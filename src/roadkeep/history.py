@@ -142,12 +142,85 @@ def origin_of(config: Config, task_id: str) -> Origin:
     return Origin(task_id=task_id, proposed_in=proposed, shipped_in=shipped)
 
 
-def _first_touching(config: Config, needle: str, role: str) -> Commit | None:
-    if not config.has(role):
+@dataclass(frozen=True, slots=True)
+class Gap:
+    """An id that is in neither file, and the commit that took it out (RK32).
+
+    ``removed_in`` is None when history cannot answer — a squash, a shallow clone, a line
+    that never reached a commit. That prints as *unresolvable* and not as retired, on
+    RK28's reasoning: an absent answer and a negative one are different answers, and
+    collapsing them here would invent a decision nobody recorded.
+    """
+
+    id: str
+    number: int
+    removed_in: Commit | None
+
+    @property
+    def resolved(self) -> bool:
+        return self.removed_in is not None
+
+
+def gaps(config: Config) -> tuple[Gap, ...]:
+    """Every id below the highest that no line carries, oldest number first.
+
+    The gaps are computed from the *entries* of both files rather than from a text scan:
+    an id mentioned in prose — `agents.md` cites plenty — is still a gap, because what is
+    missing is the record of a decision and not the string.
+    """
+    from roadkeep.ids import highest  # here, because ids.py reads this module's config
+
+    top = highest(config)
+    if top is None:
+        return ()
+    recorded: set[int] = set()
+    for role in ("roadmap", "changelog"):
+        if not config.has(role) or not config.path(role).is_file():
+            continue
+        for task_id in config.document(role).by_id():
+            number = _number(task_id, config.schema.prefix)
+            if number is not None:
+                recorded.add(number)
+    return tuple(
+        Gap(
+            id=f"{config.schema.prefix}{number}",
+            number=number,
+            removed_in=_last_touching(config, f"**{config.schema.prefix}{number}**"),
+        )
+        for number in range(1, top.number + 1)
+        if number not in recorded
+    )
+
+
+def _number(task_id: str, prefix: str) -> int | None:
+    tail = task_id[len(prefix) :] if task_id.startswith(prefix) else ""
+    return int(tail) if tail.isdigit() else None
+
+
+def _last_touching(config: Config, needle: str) -> Commit | None:
+    """The last commit whose roadmap diff mentions the id — where the line left.
+
+    The last and not the first: the first added it. A removal is not distinguished from a
+    rewording here, because a line that was reworded and is now absent still left in that
+    commit, and the commit message is what the reader is being sent to read.
+    """
+    try:
+        found = _touching_role(config, needle, "roadmap")
+    except HistoryUnavailable:
         return None
+    return found[-1] if found else None
+
+
+def _first_touching(config: Config, needle: str, role: str) -> Commit | None:
+    found = _touching_role(config, needle, role)
+    return found[0] if found else None
+
+
+def _touching_role(config: Config, needle: str, role: str) -> tuple[Commit, ...]:
+    if not config.has(role):
+        return ()
     try:
         relative = config.path(role).relative_to(config.root)
     except ValueError:
         relative = config.path(role)
-    found = commits_touching(config.root, needle, relative)
-    return found[0] if found else None
+    return commits_touching(config.root, needle, relative)

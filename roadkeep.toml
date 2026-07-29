@@ -37,3 +37,6 @@ prose = 88
 [markers]
 open = ["📋", "💭", "⏳", "🛠"]
 shipped = "✅"
+# the ledger's other door: a line that left without shipping (RK32). Never an open marker —
+# a roadmap that can say "retired" is a roadmap holding work nobody will do.
+retired = "🗑"

@@ -27,7 +27,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from roadkeep.document import Document
-from roadkeep.schema import OPEN_MARKERS, SHIPPED, Dep, DepKind, Schema
+from roadkeep.schema import OPEN_MARKERS, RETIRED, SHIPPED, Dep, DepKind, Schema
 
 CONFIG_NAME = "roadkeep.toml"
 PYPROJECT = "pyproject.toml"
@@ -53,7 +53,7 @@ _LIMIT_KEYS = {
     "section": "section_max",
     "prose": "prose_width",
 }
-_MARKER_KEYS = frozenset({"open", "shipped"})
+_MARKER_KEYS = frozenset({"open", "shipped", "retired"})
 # The invisible ones. A marker carrying U+FE0F renders identically and compares
 # unequal, so a config that declares one puts every line in the file permanently
 # out of round-trip. Refuse it where it is typed.
@@ -123,7 +123,7 @@ class Config:
 
         prefix = _string(data, "prefix", "RK", problems)
         ref_scheme = _string(data, "ref_scheme", "id", problems)
-        markers, shipped = _markers(data.get("markers"), problems)
+        markers, shipped, retired = _markers(data.get("markers"), problems)
         limits = _limits(data.get("limits"), problems)
         paths = _paths(data.get("files"), base, problems)
         extras = tuple(
@@ -139,6 +139,7 @@ class Config:
                     ref_scheme=ref_scheme,
                     markers=markers,
                     shipped_marker=shipped,
+                    retired_marker=retired,
                     **limits,
                 )
             except ValueError as error:  # a valid TOML file can still be a wrong format
@@ -248,21 +249,34 @@ def _string(
     return value
 
 
-def _markers(raw: object, problems: list[str]) -> tuple[tuple[str, ...], str]:
+def _markers(raw: object, problems: list[str]) -> tuple[tuple[str, ...], str, str]:
     if raw is None:
-        return OPEN_MARKERS, SHIPPED
+        return OPEN_MARKERS, SHIPPED, RETIRED
     if not isinstance(raw, Mapping):
-        problems.append("markers must be a table with 'open' and 'shipped'")
-        return OPEN_MARKERS, SHIPPED
+        problems.append("markers must be a table with 'open', 'shipped' and 'retired'")
+        return OPEN_MARKERS, SHIPPED, RETIRED
     _reject_unknown(raw, _MARKER_KEYS, "markers.", problems)
     open_markers = tuple(_string_list(raw.get("open"), "markers.open", problems))
-    shipped = raw.get("shipped", SHIPPED)
-    if not isinstance(shipped, str):
-        problems.append("markers.shipped must be a string")
-        shipped = SHIPPED
-    for marker in (*open_markers, shipped):
+    shipped = _one_marker(raw, "shipped", SHIPPED, problems)
+    retired = _one_marker(raw, "retired", RETIRED, problems)
+    if shipped == retired:
+        problems.append(
+            "markers.shipped and markers.retired must differ: a ledger where both "
+            "read the same cannot say whether the work was done"
+        )
+    for marker in (*open_markers, shipped, retired):
         _reject_invisible(marker, problems)
-    return (open_markers or OPEN_MARKERS), shipped
+    return (open_markers or OPEN_MARKERS), shipped, retired
+
+
+def _one_marker(
+    raw: Mapping[str, object], key: str, default: str, problems: list[str]
+) -> str:
+    value = raw.get(key, default)
+    if not isinstance(value, str):
+        problems.append(f"markers.{key} must be a string")
+        return default
+    return value
 
 
 def _reject_invisible(marker: str, problems: list[str]) -> None:

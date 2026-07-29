@@ -111,9 +111,31 @@ class Backlog:
         return self.roadmap.by_id().get(task_id)
 
     def shipped(self) -> frozenset[str]:
+        """Ids the ledger marks ✅ — never merely *present* in it.
+
+        A retired line lives in the same file (RK32), so reading the ledger as a set of
+        ids would make "this was abandoned" resolve as "this is done" — a dep satisfied
+        by the record of its own cancellation.
+        """
         if self.ledger is None:
             return frozenset()
-        return frozenset(self.ledger.by_id())
+        marker = self.config.schema.shipped_marker
+        return frozenset(
+            task_id
+            for task_id, entry in self.ledger.by_id().items()
+            if entry.task.status == marker
+        )
+
+    def retired(self) -> dict[str, Entry]:
+        """Ids the ledger marks 🗑, with the line that says why they left."""
+        if self.ledger is None:
+            return {}
+        marker = self.config.schema.retired_marker
+        return {
+            task_id: entry
+            for task_id, entry in self.ledger.by_id().items()
+            if entry.task.status == marker
+        }
 
     def open_in_block(self, label: str) -> tuple[str, ...]:
         return tuple(e.task.id for e in self.roadmap.block(label))
@@ -195,6 +217,14 @@ class Backlog:
     def _resolve_task(self, dep: Dep, kind: DepKind) -> Resolution:
         if dep.id in self.shipped():
             return Resolution(dep, kind, DepStatus.SHIPPED, "in the changelog")
+        gone = self.retired().get(dep.id)
+        if gone is not None:
+            # Unresolvable and not unknown: the record exists and says the work will not
+            # happen, so waiting is over in the one direction that never satisfies. What
+            # has to change is this line, and the retired line's own sentence says how.
+            return Resolution(
+                dep, kind, DepStatus.UNRESOLVABLE, f"retired — {_clip(gone.task.why)}"
+            )
         found = self.entry(dep.id)
         if found is not None:
             detail = f"open in Block {found.task.block}" if found.task.block else "open"
@@ -226,6 +256,11 @@ def number_of(task_id: str, prefix: str) -> int | None:
         return None
     tail = task_id[len(prefix) :]
     return int(tail) if tail.isdigit() else None
+
+
+def _clip(sentence: str, limit: int = 90) -> str:
+    """One line of detail. The whole sentence is one `show <id>` away."""
+    return sentence if len(sentence) <= limit else sentence[: limit - 1].rstrip() + "…"
 
 
 def _open_detail(still_open: tuple[str, ...]) -> str:

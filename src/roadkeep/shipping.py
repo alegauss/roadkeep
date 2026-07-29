@@ -1,4 +1,4 @@
-"""Shipping a task: three edits across three files, or none of them (RK6).
+"""A line leaving the roadmap: three edits across three files, or none of them (RK6, RK32).
 
 Shipping is the moment the format is most likely to break, because it is the only
 operation that is not one edit. The line leaves the roadmap, the entry appears in the
@@ -24,6 +24,15 @@ Two decisions worth stating, because both are narrower than they could be:
 The dep annotations of every line that named this task are re-derived in the same
 transaction (RK8), because `(deps: RK5)` becomes a false statement at exactly the moment
 this command runs and nothing else would ever revisit it.
+
+**A line leaves by three doors and this module now records all three** (RK32). `ship` is
+the first; :func:`retire` is the other two, superseded and abandoned, and it is the *same*
+transaction with a different marker rather than a second one — because the failure being
+fixed is that two of the three doors wrote nothing at all, not that they wrote it wrongly.
+What survives a retirement is one line under the block it belonged to: the symptom moved
+verbatim, and a `why` whose derived prefix names the replacement so the pointer is forward
+and written at the moment of the decision. Never the design it replaced — an accreting
+rationale file is the 539 KB this project exists to refuse.
 """
 
 from __future__ import annotations
@@ -39,24 +48,63 @@ from roadkeep.schema import Task
 from roadkeep.sections import NoSuchSection, Section
 from roadkeep.sections import drop as drop_section
 
-__all__ = ["AlreadyShipped", "NotOpen", "Section", "Shipment", "ship"]
+__all__ = [
+    "AlreadyRecorded",
+    "AlreadyShipped",
+    "Departure",
+    "NoSuchReplacement",
+    "NotOpen",
+    "Section",
+    "Shipment",
+    "retire",
+    "ship",
+]
 
 
-class AlreadyShipped(ValueError):
-    """A second ledger entry for one id is two records of one decision."""
+class AlreadyRecorded(ValueError):
+    """A second ledger entry for one id is two records of one decision.
 
-    def __init__(self, task_id: str, where: str, lineno: int) -> None:
+    The message names which door the id already went through, because "already in the
+    changelog" sends a reader looking for a ✅ that may be a 🗑 (RK32).
+    """
+
+    def __init__(self, task_id: str, where: str, lineno: int, marker: str) -> None:
         self.task_id = task_id
         self.lineno = lineno
+        self.marker = marker
         super().__init__(
-            f"{task_id} is already in {where}:{lineno}: shipping it twice would make "
-            f"the ledger disagree with itself about when it shipped"
+            f"{task_id} is already recorded as {marker} in {where}:{lineno}: a second "
+            f"entry would make the ledger disagree with itself about how it left"
+        )
+
+
+#: The names these had when shipping was the only door (RK6), kept because they read
+#: better at a `ship` call site: an id can now be retired as well as shipped, and both are
+#: the same refusal and the same transaction.
+AlreadyShipped = AlreadyRecorded
+
+
+class NoSuchReplacement(KeyError):
+    """A forward pointer to an id that is in neither file (RK32).
+
+    Refused, because a pointer to nothing is the exact defect this records against: the
+    reader of the gap would be sent somewhere else that does not explain it either.
+    """
+
+    def __init__(self, replacement: str, task_id: str) -> None:
+        super().__init__(
+            f"{replacement} is in neither file, so it cannot be what replaces "
+            f"{task_id}: retire it against an id that exists, or as abandoned"
         )
 
 
 @dataclass(frozen=True, slots=True)
-class Shipment:
-    """Every edit shipping one task makes, as data, before or after it is written."""
+class Departure:
+    """Every edit one line's departure makes, as data, before or after it is written.
+
+    One shape for both doors (RK6, RK32): the marker is the only thing that differs, and a
+    second dataclass would be a second place to add the next field to.
+    """
 
     task_id: str
     ledger: Insertion
@@ -67,8 +115,13 @@ class Shipment:
     #: Why nothing was dropped, when nothing was: a task can ship without a rationale
     #: section, and silence about that would read as a section that was deleted.
     kept: str | None = None
-    #: Open lines whose `(deps: …)` this ship made true again (RK8).
+    #: Open lines whose `(deps: …)` this write made true again (RK8).
     refreshed: tuple[str, ...] = ()
+    #: The marker the ledger line carries: ✅ shipped, 🗑 retired.
+    marker: str = ""
+    #: Open lines that still name this id. Reported and not refused: a supersession is
+    #: legitimate and those lines are the author's next edit, which `lint` (RK14) gates.
+    dependents: tuple[str, ...] = ()
 
     def save(self) -> None:
         """Write the files. Nothing here can fail on the format — that was decided."""
@@ -78,8 +131,45 @@ class Shipment:
             self.improvements.save()
 
 
-def ship(config: Config, task_id: str, *, why: str | None = None) -> Shipment:
+Shipment = Departure
+
+
+def ship(config: Config, task_id: str, *, why: str | None = None) -> Departure:
     """Move one task from the backlog to the ledger. Validates all three edits first."""
+    return _depart(config, task_id, config.schema.shipped_marker, why)
+
+
+def retire(
+    config: Config,
+    task_id: str,
+    *,
+    reason: str,
+    superseded_by: str | None = None,
+) -> Departure:
+    """Record a line leaving without shipping: superseded by a named id, or abandoned.
+
+    The `why` is a derived prefix plus the author's own sentence — the same split as every
+    other field the tool fills in (RK8): "superseded by RK41" is a fact this command holds
+    and the reason is prose it will not write (L4).
+    """
+    if superseded_by is not None:
+        if superseded_by == task_id:
+            raise NoSuchReplacement(superseded_by, task_id)
+        known = set(config.document("roadmap").by_id())
+        if config.has("changelog") and config.path("changelog").is_file():
+            known |= set(config.document("changelog").by_id())
+        if superseded_by not in known:
+            raise NoSuchReplacement(superseded_by, task_id)
+        why = f"superseded by {superseded_by}: {reason}"
+    else:
+        why = f"abandoned: {reason}"
+    return _depart(config, task_id, config.schema.retired_marker, why)
+
+
+def _depart(
+    config: Config, task_id: str, marker: str, why: str | None
+) -> Departure:
+    """The one transaction both doors are: validate everything, then write nothing yet."""
     roadmap = config.document("roadmap")
     ledger = config.document("changelog")
 
@@ -92,21 +182,24 @@ def ship(config: Config, task_id: str, *, why: str | None = None) -> Shipment:
         )
     duplicate = ledger.by_id().get(task_id)
     if duplicate is not None:
-        raise AlreadyShipped(
-            task_id, config.relative(config.path("changelog")), duplicate.lineno
+        raise AlreadyRecorded(
+            task_id,
+            config.relative(config.path("changelog")),
+            duplicate.lineno,
+            duplicate.task.status,
         )
 
-    insertion = place(ledger, _as_shipped(config, entry.task, why))
+    insertion = place(ledger, _as_recorded(entry.task, marker, why))
     remaining = _remove_entry(roadmap, entry.index)
     improvements, dropped, kept = _drop_section(config, entry.task.ref)
-    # Resolved against the state this ship *creates* — the id is in the ledger and gone
+    # Resolved against the state this write *creates* — the id is in the ledger and gone
     # from the roadmap — so a dependent's annotation is derived from what will be on
     # disk and not from what was (RK8).
     derived = refresh(
         Backlog(config=config, roadmap=remaining, ledger=insertion.document)
     )
 
-    return Shipment(
+    return Departure(
         task_id=task_id,
         ledger=insertion,
         roadmap=derived.document,
@@ -115,19 +208,23 @@ def ship(config: Config, task_id: str, *, why: str | None = None) -> Shipment:
         dropped=dropped,
         kept=kept,
         refreshed=derived.changed,
+        marker=marker,
+        dependents=tuple(
+            e.task.id for e in derived.document.entries if task_id in e.task.dep_ids
+        ),
     )
 
 
-def _as_shipped(config: Config, task: Task, why: str | None) -> Task:
-    """The same task as the ledger states it: ✅, no deps, no pointer.
+def _as_recorded(task: Task, marker: str, why: str | None) -> Task:
+    """The same task as the ledger states it: one marker, no deps, no pointer.
 
     The pointer is dropped because the section it names is deleted in the same command,
-    and the deps because a dependency is a planning fact that a shipped line has none
+    and the deps because a dependency is a planning fact that a departed line has none
     left to state — both of which the ledger schema (`as_ledger`) already refuses.
     """
     return replace(
         task,
-        status=config.schema.shipped_marker,
+        status=marker,
         deps=(),
         ref=None,
         why=why if why is not None else task.why,

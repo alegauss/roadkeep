@@ -43,12 +43,12 @@ src/roadkeep/          the package (src layout, importable via pytest pythonpath
   config.py            RK3 — Config.discover/document; refuses an unknown key
   ids.py               RK4 — scan/highest/next_id across every configured source
   authoring.py         RK5/RK7 — add(), set_status(); nothing written unless all of it
-  shipping.py          RK6 — ship(): three edits, validated together, written last
+  shipping.py          RK6/RK32 — ship()/retire(): three edits, or none of them
   markers.py           RK8 — derive/refresh: the dep annotation is a derived field
   sections.py          RK9 — find/add/drop: prose by anchor, word budget, block-placed
   backlog.py           RK28/RK37 — resolve/readiness; four dep kinds, four answers
   counting.py picking.py showing.py graph.py briefing.py  RK10-13/29 — the query surface
-  history.py           RK31 — origin_of(): the shipping commit, derived from git
+  history.py           RK31/RK32 — origin_of(), gaps(): both derived from git
   cli.py               the surface; one subparser per task, exit 0/1/2, RK38's event
 tests/                 pytest; docs/ROADMAP.md is a fixture, not a mock
 ```
@@ -65,26 +65,26 @@ differently. Never construct a task line with an f-string; before writing a comm
 
 ## This repo's own docs are the conformance fixture
 
-`roadkeep lint` **must pass on `docs/`** — the format is proven by the artefact, not
-asserted in a README. A limit that cannot express these lines is the wrong limit rather
-than a set of wrong lines, so this repository is the first thing a schema change must
-still validate — under its own `roadkeep.toml`, which is what makes L6 a fact here.
+`roadkeep lint` **must pass on `docs/`** — the format is proven by the artefact, not asserted
+in a README. A limit that cannot express these lines is the wrong limit rather than a set of
+wrong lines, so a schema change validates here first, under this repo's own `roadkeep.toml`.
 
 Don't hand-count it: `… stats` gives the tallies, the longest line (**314** of 320) and
 **uncounted 0** (RK10). By hand until RK15: pointers resolve, no orphan section, 181/250.
 
 ## Writing and shipping — call the command, never type the format
 
-`python -m roadkeep.cli <add|status|ship|section> --help` carries the flags. What the
+`python -m roadkeep.cli <add|status|ship|retire|section> --help` carries the flags. What the
 commands guarantee, so it costs you no thought: the id, the `→ §RK<n>` pointer, the status
 default and every `(deps: … ✅)` annotation are **derived, never typed**; a refusal exits 2
-naming the length and the limit and writes nothing; ✅ never reaches the roadmap; `ship`
-makes its three edits (ledger entry, roadmap line gone, `§<id>` deleted) plus the
-dependents' annotations, or makes none of them; `section add <id> --title "…"` takes the
-prose on **stdin**, ≤250 words, filled to 88 columns, placed under the task's block — a
-table or a list is inserted exactly as written. Blocks are declared by headings only: a
-write never invents one. Every write then prints one `event <id> Block <x> open|empty`
-line — the whole payload a hook gets, and the tool's last word on it (RK38).
+naming the length and the limit and writes nothing; ✅ never reaches the roadmap; `ship` makes
+its three edits (ledger entry, roadmap line gone, `§<id>` deleted) plus the dependents'
+annotations, or none of them, and `retire <id> [--superseded-by <id>] --reason "…"` is that
+same transaction through the other two doors (RK32); `section add <id> --title "…"` takes the
+prose on **stdin**, ≤250 words, filled to 88 columns, placed under the task's block — a table
+or a list is inserted exactly as written. Blocks are declared by headings only: a write never
+invents one. Every write prints one `event <id> Block <x> open|empty` line — the whole payload
+a hook gets, and the tool's last word on it (RK38).
 
 That leaves the two rules a schema cannot check:
 
@@ -93,22 +93,23 @@ That leaves the two rules a schema cannot check:
 2. **`why` is one sentence.** A second sentence is the signal the content belongs in
    `IMPROVEMENTS.md`, which is what the pointer addresses.
 
-Markers: 📋 designed · 💭 idea · ⏳ partial · 🛠 in-progress. Limits: `symptom` ≤120, `why`
-≤200, rendered line ≤320, section ≤250 words — all per project (L6).
+Markers: 📋 designed · 💭 idea · ⏳ partial · 🛠 in-progress; the ledger's are ✅ and 🗑,
+neither legal in a roadmap. Limits: `symptom` ≤120, `why` ≤200, line ≤320, section ≤250 (L6).
 
 **Ask, don't count** (all take `--json`): **`… brief [<id>]` is the one call that starts a
 task** — line, rationale, deps resolved, blocker chain, what it unblocks, the non-goals,
 bounded to fit a tool result; no id means whatever `pick` chose (RK29). Narrower: `… next-id`
-never fills a gap; `… list|stats|audit [--block C]` for the lines, the counts and every
-marker line neither could read (RK10); `… show <id>` joins one line, section and paths (RK12);
-`… deps <id>` types each dep and walks the graph (RK13/RK28/RK37); `… origin <id> --why` (RK31).
+never fills a gap; `… list|stats|audit [--block C]` counts and lists, naming every marker line
+neither could read (RK10); `… show <id>` joins one line, its section and its paths (RK12);
+`… deps <id>` walks the graph both ways (RK13/RK28/RK37); `… gaps` resolves an id in neither
+file against the commit that removed it (RK32); `… origin <id> --why` (RK31).
 
 ## Picking work
 
-`… brief` picks and briefs in one call, printing why (RK11/RK29): 🛠 first, then `priority`
-in `roadkeep.toml`, then the lowest id whose `deps` all shipped, never one blocked outside.
-Blocks run by dependency, not priority: **A** model → **B** authoring → **C** query → **D**
-gate → **E** adoption → **F** plugin — no guardrail before D, none unroutable before F.
+`… brief` picks and briefs in one call, printing why (RK11/RK29): 🛠 first, then `priority` in
+`roadkeep.toml`, then the lowest id whose `deps` all shipped, never one blocked outside. Blocks
+run by dependency, not priority: **A** model → **B** authoring → **C** query → **D** gate →
+**E** adoption → **F** plugin — no guardrail before D, none unroutable before F.
 
 ## Build and test
 
@@ -141,9 +142,8 @@ exists to stop.
 
 ## This file is scaffolding
 
-It exists because the format cannot enforce itself until Block D and cannot resist a
-hand-edit until Block F. **RK23 replaces it with a skill** — trigger-loaded, shipped by
-the plugin, identical everywhere. When it lands, "Writing a task line" and "Picking work"
-are deleted from here: a rule living in two files is a rule two files can disagree about.
+It exists because the format cannot enforce itself until Block D and cannot resist a hand-edit
+until Block F. **RK23 replaces it with a skill**, trigger-loaded and identical everywhere; when
+it lands the two sections above go — a rule in two files is a rule two files can disagree about.
 
 Budget: **under 150 lines** — loaded every turn, so L5 governs it first of all.

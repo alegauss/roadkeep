@@ -40,6 +40,10 @@ IDEA = "\N{THOUGHT BALLOON}"  # 💭
 PARTIAL = "\N{HOURGLASS WITH FLOWING SAND}"  # ⏳
 IN_PROGRESS = "\N{HAMMER AND WRENCH}"  # 🛠
 SHIPPED = "\N{WHITE HEAVY CHECK MARK}"  # ✅
+#: A line that left the roadmap without shipping (RK32). Lives in the ledger beside ✅,
+#: under the block it belonged to: a departure is a departure, and the block is the one
+#: piece of provenance worth keeping when the design itself is deleted.
+RETIRED = "\N{WASTEBASKET}"  # 🗑
 
 #: The markers a roadmap line may carry. ✅ is not among them: shipped work lives
 #: in the changelog, and a roadmap that can say "done" is a second source of truth.
@@ -187,6 +191,10 @@ class Schema:
     prefix: str = "RK"
     markers: tuple[str, ...] = OPEN_MARKERS
     shipped_marker: str = SHIPPED
+    #: The ledger's other legal marker (RK32). Not an open marker: a retired line is a
+    #: record of a departure, and a roadmap that can say "retired" is a roadmap holding
+    #: work nobody will do.
+    retired_marker: str = RETIRED
     symptom_max: int = 120
     why_max: int = 200
     line_max: int = 320
@@ -233,13 +241,14 @@ class Schema:
     def as_ledger(self) -> Schema:
         """The same format as the changelog reads it (L6, applied to a sibling file).
 
-        Marker ✅, no deps, no pointer — the rationale section is deleted when the
-        task ships, so a pointer to it could not resolve. One schema with two
-        configurations beats two grammars that drift apart.
+        Marker ✅ or 🗑, no deps, no pointer — the rationale section is deleted when the
+        task leaves, so a pointer to it could not resolve. One schema with two
+        configurations beats two grammars that drift apart, and a retired line (RK32) is
+        the same grammar again rather than a third: a departure with a different door.
         """
         return replace(
             self,
-            markers=(self.shipped_marker,),
+            markers=(self.shipped_marker, self.retired_marker),
             shipped_allowed=True,
             deps_field=False,
             ref_required=False,

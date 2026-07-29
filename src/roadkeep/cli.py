@@ -42,7 +42,7 @@ from roadkeep.config import Config, ConfigError
 from roadkeep.counting import Census
 from roadkeep.document import Document, Entry, Reject, RoundTripError
 from roadkeep.graph import Graph, Leverage
-from roadkeep.history import Commit, HistoryUnavailable, Origin, origin_of
+from roadkeep.history import Commit, HistoryUnavailable, Origin, gaps, origin_of
 from roadkeep.ids import highest, next_id
 from roadkeep.picking import Choice, pick
 from roadkeep.schema import SchemaError
@@ -50,7 +50,7 @@ from roadkeep.sections import Section
 from roadkeep.sections import add as add_section
 from roadkeep.sections import drop as drop_section
 from roadkeep.sections import find as find_section
-from roadkeep.shipping import ship
+from roadkeep.shipping import retire, ship
 from roadkeep.showing import View, show
 
 EXIT_OK = 0
@@ -298,6 +298,42 @@ def build_parser() -> argparse.ArgumentParser:
         "--json", action="store_true", help="the pick, the tier and the counts"
     )
     pick_parser.set_defaults(handler=_pick)
+
+    retire_parser = subcommands.add_parser(
+        "retire",
+        help="record a line leaving without shipping: superseded, or abandoned",
+        description=(
+            "A line leaves the roadmap by three doors and only shipping was recorded, so "
+            "a gap read as a botched hand-edit. This writes the other two: one ledger "
+            "line under the block it belonged to, with the forward pointer, and no design."
+        ),
+    )
+    retire_parser.add_argument("id", help="the task leaving, e.g. RK33")
+    retire_parser.add_argument(
+        "--superseded-by",
+        dest="superseded_by",
+        metavar="ID",
+        help="the id that replaces it; omitted, the line is recorded as abandoned",
+    )
+    retire_parser.add_argument(
+        "--reason",
+        required=True,
+        help="one sentence, the author's own: the tool never writes it",
+    )
+    retire_parser.add_argument("--json", action="store_true", help="every edit, as data")
+    retire_parser.set_defaults(handler=_retire)
+
+    gaps_parser = subcommands.add_parser(
+        "gaps",
+        help="ids in neither file, resolved against the commit that removed them",
+        description=(
+            "Every id below the highest that no line carries. Each resolves to the commit "
+            "whose message holds the decision, or to unresolvable when history cannot "
+            "answer — which is a different answer from 'retired', not a weaker one."
+        ),
+    )
+    gaps_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    gaps_parser.set_defaults(handler=_gaps)
 
     deps_parser = subcommands.add_parser(
         "deps",
@@ -970,6 +1006,102 @@ def _print_stalled(choice: Choice) -> None:
     for stalled in choice.stalled:
         print(f"  stalled  {stalled.id} is in progress, waiting on "
               f"{', '.join(stalled.blockers) or 'nothing this backlog names'}")
+
+
+def _retire(config: Config, args: argparse.Namespace) -> int:
+    try:
+        departure = retire(
+            config,
+            args.id,
+            reason=args.reason,
+            superseded_by=args.superseded_by,
+        )
+        departure.save()
+    except (RoundTripError, KeyError, ValueError, OSError) as error:
+        return _refused(error)
+
+    ledger = config.relative(config.path("changelog"))
+    roadmap = config.relative(config.path("roadmap"))
+    block = departure.ledger.entry.task.block
+    event = _event(departure.task_id, block, departure.roadmap)
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "id": departure.task_id,
+                    "marker": departure.marker,
+                    "superseded_by": args.superseded_by,
+                    "changelog": {
+                        "file": ledger,
+                        "line": departure.ledger.lineno,
+                        "rendered": departure.ledger.rendered,
+                    },
+                    "roadmap": {"file": roadmap, "removed": departure.removed_from},
+                    "dropped": None
+                    if departure.dropped is None
+                    else departure.dropped.anchor,
+                    "dependents": list(departure.dependents),
+                    "refreshed": list(departure.refreshed),
+                    "event": event,
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+
+    print(
+        f"{departure.task_id} {departure.marker} {ledger}:{departure.ledger.lineno} "
+        f"under Block {block}"
+    )
+    print(f"  removed  {roadmap}:{departure.removed_from}")
+    if departure.dropped is not None:
+        print(f"  dropped  {departure.dropped} from "
+              f"{config.relative(config.path('improvements'))}")
+    if departure.dependents:
+        # Reported, not refused: a supersession is legitimate and these lines are the
+        # author's next edit. `deps` now resolves them as unresolvable, not as satisfied.
+        print(f"  still    {', '.join(departure.dependents)} name {departure.task_id}")
+    _print_event(event, "  ")
+    return EXIT_OK
+
+
+def _gaps(config: Config, args: argparse.Namespace) -> int:
+    found = gaps(config)
+    if args.json:
+        print(
+            json.dumps(
+                [
+                    {
+                        "id": gap.id,
+                        "resolved": gap.resolved,
+                        "removed_in": None
+                        if gap.removed_in is None
+                        else {
+                            "sha": gap.removed_in.sha,
+                            "short": gap.removed_in.short,
+                            "date": gap.removed_in.date,
+                            "subject": gap.removed_in.subject,
+                        },
+                    }
+                    for gap in found
+                ],
+                indent=2,
+            )
+        )
+        return EXIT_OK
+
+    if not found:
+        print("no gaps: every id below the highest is in one of the files")
+        return EXIT_OK
+    for gap in found:
+        if gap.removed_in is None:
+            print(f"  {gap.id:<6} unresolvable  no commit in history mentions it")
+            continue
+        commit = gap.removed_in
+        print(f"  {gap.id:<6} {commit.short}  {commit.date[:10]}  {commit.subject}")
+    resolved = sum(1 for gap in found if gap.resolved)
+    print(f"{len(found)} gap(s), {resolved} resolved against history")
+    return EXIT_OK
 
 
 def _deps(config: Config, args: argparse.Namespace) -> int:

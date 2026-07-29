@@ -52,22 +52,6 @@ session doing.
 
 ## Block C — Query
 
-### §RK32 A retired id is a decision with no record
-
-Ids are non-contiguous by design and a retired one is never reused, so a gap is normal
-— which is exactly what makes it unreadable. A line leaves the roadmap by three doors
-and only one of them is recorded: **shipped** reaches the ledger, while **superseded**
-by a later design and **abandoned** reach nothing at all. RK4 derives the maximum and
-stops there, so nothing distinguishes a deliberate supersession from a botched
-hand-edit. ADR practice keeps the record and marks it superseded instead of deleting
-it; the half worth taking is the forward pointer, written at the moment the decision is
-made, which leaves history to be consulted only for the gaps nobody recorded. Deleting
-still beats keeping — an accreting rationale file is the 539 KB this project refuses —
-so what survives a supersession is one line, never the design it replaced.
-*Unresolvable* stays a valid answer: a squashed or shallow history holds no such
-commit, and must print as unresolvable rather than as retired, on the reasoning of
-RK28.
-
 ### §RK39 `export` — a projection, never a second author
 
 A README section and a site page repeat what the backlog says and drift the moment it
