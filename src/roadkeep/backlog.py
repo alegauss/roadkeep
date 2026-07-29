@@ -29,6 +29,25 @@ from roadkeep.document import Document, Entry
 from roadkeep.schema import Dep, DepKind, Task
 
 
+class NotOpen(ValueError):
+    """Only an open task can be written to, and the two ways of not being one differ.
+
+    Lives here rather than in the command that first needed it (RK6) because "is this
+    id open?" is a question about the roadmap and the ledger together, and reporting
+    "no such task" for one that shipped yesterday sends the reader to the wrong file.
+    """
+
+    def __init__(self, task_id: str, where: str, shipped: bool) -> None:
+        self.task_id = task_id
+        self.shipped = shipped
+        detail = (
+            "it is already in the changelog"
+            if shipped
+            else "nothing there carries that id"
+        )
+        super().__init__(f"no open task {task_id} in {where}: {detail}")
+
+
 class DepStatus(StrEnum):
     """How a single dep resolved."""
 

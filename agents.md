@@ -95,7 +95,8 @@ annotation); `→ §RK<n>` derived from the id (RK27), unless `ref_scheme = "out
 
 **Shipping is `… ship <id> [--why "<the outcome.>"]`** — ledger entry, roadmap line gone,
 `§<id>` deleted, all three validated before one is written; the stale dep annotations it
-*reports* are yours to edit until RK8.
+*reports* are yours to edit until RK8. **`… status <id> <marker>`** moves a marker, in the
+roadmap and nowhere else: a sibling file carrying one for that id is refused, not merged.
 
 **Ask, don't count** (all take `--json`): `python -m roadkeep.cli next-id` for the next id
 — never fill a gap, a retired id is never reused; `… deps <id>` types each dep (a task, a
@@ -126,11 +127,10 @@ the next. What `ship` wrote goes in the *same* commit as the code, so the docs n
 describe a state that did not ship, and a batch of ≥2 tasks is **not** permission to
 batch: `/loop`, one task per iteration.
 
-Use `run-commit.cmd -m "<conventional-commits title>"` from the repo root (it is on the
-system PATH). **Always pass `-m`**, keep it ASCII: without it, a docs commit's prose
-about already-shipped work gets misread as `feat: implement <feature>`. It stages
-everything, so stage the task's own paths and call `python -m commitclerk -m …` when the
-tree carries unrelated work.
+Use `run-commit.cmd -m "<conventional-commits title>"` from the repo root (on the system
+PATH). **Always pass `-m`**, keep it ASCII: without it a docs commit's prose about shipped
+work is misread as `feat: implement <feature>`. It stages everything — when the tree holds
+unrelated work, stage the task's paths and call `python -m commitclerk -m …` instead.
 
 ## Non-goals are binding
 

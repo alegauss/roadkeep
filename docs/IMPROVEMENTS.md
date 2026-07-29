@@ -50,12 +50,6 @@ session doing.
 
 ## Block B — Authoring
 
-### §RK7 `status`
-
-A marker lives in exactly one file. `status` writes it in the roadmap and fails if a
-sibling carries one, because two files that both express status will eventually
-express different status, and there is no way to tell which is right.
-
 ### §RK8 Derived dep markers
 
 `(deps: RK1 ✅)` is a cache of another line's status, and a stale cache here makes a

@@ -28,14 +28,19 @@ Three decisions that are the point of the module rather than details of it:
 What it deliberately does not do: write prose (L4 — it has no opinion on the sentence,
 only its length and count), derive the dep markers (RK8 does that on every write, and
 until then a marker is passed through exactly as typed), or fix a file that has drifted.
+
+:func:`set_status` (RK7) lives here for the same reason `add` does — it is a write to the
+roadmap — and adds exactly one rule: the marker has one home, so a sibling file carrying
+one for the same id is refused instead of reconciled.
 """
 
 from __future__ import annotations
 
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
-from roadkeep.config import Config
+from roadkeep.backlog import NotOpen
+from roadkeep.config import ROLES, Config
 from roadkeep.document import Document, Entry, Heading, blank, read_deps
 from roadkeep.ids import next_id, scan
 from roadkeep.schema import Task
@@ -64,6 +69,34 @@ class IdInUse(ValueError):
         super().__init__(
             f"{task_id} already occurs at {where}:{lineno}: an id is never reused, "
             f"not even one that was retired — omit --id and it is derived"
+        )
+
+
+class StatusElsewhere(ValueError):
+    """A marker in a second file is a status two files can come to disagree about."""
+
+    def __init__(
+        self, task_id: str, role: str, where: str, lineno: int, marker: str
+    ) -> None:
+        self.task_id = task_id
+        self.role = role
+        super().__init__(
+            f"{task_id} already carries {marker} in the {role} at {where}:{lineno}: "
+            f"status lives in exactly one file, because two files that both express it "
+            f"will eventually express different ones and nothing says which is right"
+        )
+
+
+class DuplicateId(ValueError):
+    """Two lines for one id are two statuses for one task, in one file."""
+
+    def __init__(self, task_id: str, where: str, linenos: Sequence[int]) -> None:
+        self.task_id = task_id
+        self.linenos = tuple(linenos)
+        lines = ", ".join(str(number) for number in self.linenos)
+        super().__init__(
+            f"{task_id} appears at {where}:{lines}: one line per task, and two lines "
+            f"carry two statuses — `lint` reports this, and it is fixed by hand"
         )
 
 
@@ -190,6 +223,92 @@ def add(
     insertion = place(config.document("roadmap"), task)
     insertion.document.save()
     return insertion
+
+
+@dataclass(frozen=True, slots=True)
+class StatusChange:
+    """The line as it now reads, and the marker it carried before (RK7)."""
+
+    document: Document
+    entry: Entry
+    before: str
+
+    @property
+    def after(self) -> str:
+        return self.entry.task.status
+
+    @property
+    def changed(self) -> bool:
+        return self.before != self.after
+
+    @property
+    def rendered(self) -> str:
+        return self.entry.raw
+
+    @property
+    def lineno(self) -> int:
+        return self.entry.lineno
+
+
+def set_status(config: Config, task_id: str, marker: str) -> StatusChange:
+    """Write one task's marker in the roadmap, and refuse if a sibling carries one.
+
+    A marker is maturity, and maturity has one home. Two files that both express it will
+    eventually express different values, and at that point there is no rule that says
+    which one is the status — so the second one is refused rather than reconciled
+    (:class:`StatusElsewhere`), and so is a second line for the same id in this file
+    (:class:`DuplicateId`).
+
+    ✅ is refused here by the schema itself, not by a special case: shipped work is the
+    ledger's to state, and `ship` (RK6) is the only thing that puts it there.
+    """
+    roadmap = config.document("roadmap")
+    entry = roadmap.by_id().get(task_id)
+    if entry is None:
+        raise NotOpen(
+            task_id,
+            config.relative(config.path("roadmap")),
+            shipped=_in_ledger(config, task_id),
+        )
+    twins = tuple(e.lineno for e in roadmap.entries if e.task.id == task_id)
+    if len(twins) > 1:
+        raise DuplicateId(task_id, config.relative(config.path("roadmap")), twins)
+    _refuse_sibling_status(config, task_id)
+
+    updated = config.schema.check(replace(entry.task, status=marker))
+    if updated.status == entry.task.status:
+        # Nothing to write: rewriting the same bytes would make a no-op look like an
+        # edit to every tool that watches the file.
+        return StatusChange(document=roadmap, entry=entry, before=entry.task.status)
+    document = roadmap.replace_task(entry, updated)
+    document.save()
+    return StatusChange(
+        document=document,
+        entry=next(e for e in document.entries if e.lineno == entry.lineno),
+        before=entry.task.status,
+    )
+
+
+def _in_ledger(config: Config, task_id: str) -> bool:
+    if not config.has("changelog") or not config.path("changelog").is_file():
+        return False
+    return task_id in config.document("changelog").by_id()
+
+
+def _refuse_sibling_status(config: Config, task_id: str) -> None:
+    """Any other governed file carrying a marker for this id is the disagreement."""
+    for role in ROLES:
+        if role == "roadmap" or not config.has(role) or not config.path(role).is_file():
+            continue
+        found = config.document(role).by_id().get(task_id)
+        if found is not None:
+            raise StatusElsewhere(
+                task_id,
+                role,
+                config.relative(config.path(role)),
+                found.lineno,
+                found.task.status,
+            )
 
 
 def _refuse_reuse(config: Config, task_id: str) -> None:

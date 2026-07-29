@@ -30,7 +30,7 @@ import sys
 from collections.abc import Sequence
 
 from roadkeep import __version__
-from roadkeep.authoring import add
+from roadkeep.authoring import add, set_status
 from roadkeep.backlog import Backlog
 from roadkeep.config import Config, ConfigError
 from roadkeep.document import RoundTripError
@@ -113,6 +113,22 @@ def build_parser() -> argparse.ArgumentParser:
         "--json", action="store_true", help="the line, with the file and line it landed on"
     )
     add_parser.set_defaults(handler=_add)
+
+    status_parser = subcommands.add_parser(
+        "status",
+        help="set a task's marker in the roadmap, and nowhere else",
+        description=(
+            "Write one task's status marker. Refused if a sibling file already carries "
+            "one for that id: two files that both express status will eventually "
+            "express different status, and nothing says which is right."
+        ),
+    )
+    status_parser.add_argument("id", help="the task, e.g. RK7")
+    status_parser.add_argument(
+        "marker", help="the new marker, from the open set this project declares"
+    )
+    status_parser.add_argument("--json", action="store_true", help="machine-readable form")
+    status_parser.set_defaults(handler=_status)
 
     ship_parser = subcommands.add_parser(
         "ship",
@@ -239,6 +255,36 @@ def _add(config: Config, args: argparse.Namespace) -> int:
         )
         return EXIT_OK
     print(insertion.rendered)
+    return EXIT_OK
+
+
+def _status(config: Config, args: argparse.Namespace) -> int:
+    try:
+        change = set_status(config, args.id, args.marker)
+    except (RoundTripError, KeyError, ValueError, OSError) as error:
+        return _refused(error)
+
+    where = f"{config.relative(config.path('roadmap'))}:{change.lineno}"
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "id": args.id,
+                    "from": change.before,
+                    "to": change.after,
+                    "changed": change.changed,
+                    "file": config.relative(config.path("roadmap")),
+                    "line": change.lineno,
+                    "rendered": change.rendered,
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+    if not change.changed:
+        print(f"{args.id} is already {change.after}  {where}")
+        return EXIT_OK
+    print(f"{args.id} {change.before} → {change.after}  {where}")
     return EXIT_OK
 
 

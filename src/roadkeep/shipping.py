@@ -32,23 +32,12 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 
 from roadkeep.authoring import Insertion, place
+from roadkeep.backlog import NotOpen
 from roadkeep.config import Config
 from roadkeep.document import Document, Heading, blank
 from roadkeep.schema import Task
 
-
-class NotOpen(ValueError):
-    """Only an open task can ship, and the two ways of not being one differ."""
-
-    def __init__(self, task_id: str, where: str, shipped: bool) -> None:
-        self.task_id = task_id
-        self.shipped = shipped
-        detail = (
-            "it is already in the changelog"
-            if shipped
-            else "nothing there carries that id"
-        )
-        super().__init__(f"no open task {task_id} in {where}: {detail}")
+__all__ = ["AlreadyShipped", "NotOpen", "Section", "Shipment", "ship"]
 
 
 class AlreadyShipped(ValueError):
