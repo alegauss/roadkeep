@@ -54,11 +54,6 @@ session doing.
 
 ## Block D — The gate
 
-### §RK17 One exit code, three surfaces
-
-A GitHub Action, a pre-commit hook, and the plugin's `Stop` hook all call the same
-command. A gate that runs in only one of the three is a gate with a documented bypass.
-
 ### §RK35 A dep can name more work than it looks like
 
 Shio's `(deps: Block P)` is one token and resolves to forty-eight open tasks; Turing's

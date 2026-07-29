@@ -1,0 +1,49 @@
+# The gate, as a surface another repository can call (RK17).
+#
+# A gate that runs only on a developer's machine is not a gate, and one that runs in CI
+# by way of a hand-copied `run:` block is a gate that drifts per repository. So the
+# command is declared once, here, and every adopting project references this action —
+# `roadkeep lint` is the whole of it, because the exit code is the whole contract.
+#
+#     - uses: alegauss/roadkeep@main
+#       with:
+#         directory: .          # where roadkeep.toml is, when it is not the root
+#
+# Deliberately not an input: `--fix`. A CI run that repaired the file would have to
+# commit it back, which turns a gate into a writer of the branch it is judging (RK16 is
+# a local command for exactly that reason).
+name: roadkeep gate
+description: Fail the build when a governed file drifted from the format it declares.
+author: alegauss
+branding:
+  icon: check-square
+  color: blue
+
+inputs:
+  directory:
+    description: Where to start looking for roadkeep.toml, as `-C` takes it.
+    required: false
+    default: "."
+  python-version:
+    description: The interpreter to run on. 3.11 is the floor (tomllib is stdlib there).
+    required: false
+    default: "3.11"
+
+runs:
+  using: composite
+  steps:
+    - name: set up python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    # From the action's own checkout, not from PyPI: this is installable today and has
+    # zero runtime dependencies, so there is nothing to resolve. RK19 replaces this line
+    # with `uvx roadkeep`, and nothing else here changes.
+    - name: install roadkeep
+      shell: bash
+      run: pip install "$GITHUB_ACTION_PATH"
+
+    - name: roadkeep lint
+      shell: bash
+      run: roadkeep -C "${{ inputs.directory }}" lint

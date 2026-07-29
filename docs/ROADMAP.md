@@ -28,7 +28,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK17** (deps: RK14 ✅) **A gate that runs only on a developer's machine is not a gate** — ship a GitHub Action and a pre-commit hook that both call the same exit code. → §RK17
 - 📋 **RK30** (deps: RK14 ✅) **The instruction file loaded every turn has a budget nothing enforces** — `agents.md` reached 186 KB in Shio under exactly this rule, so the gate checks the declared line and byte budget of every always-loaded file. → §RK30
 - 📋 **RK34** (deps: RK14 ✅) **An invisible character reports a visible error about something else** — a no-break space renders as a space and a variation selector renders as nothing, so the gate names the codepoint and its offset instead of the downstream violations it caused. → §RK34
 - 📋 **RK35** (deps: RK14 ✅) **A dep on a range or a block hides how much work it actually names** — `Block P` resolved to 48 open tasks in Shio, so a reader who trusts the annotation is reading one dep where the graph holds dozens. → §RK35

@@ -5,11 +5,11 @@
 point of insertion instead of a convention an author is asked to remember. Shipped as
 a Claude Code plugin, because the author to constrain is usually an agent.
 
-**The problem it solves, measured.** In Viglet Shio: 92 roadmap lines averaging **142
-words** against a one-sentence rule, worst **1406 characters**; an `agents.md` that
-reached **186 KB** absorbing the rationale of every shipped task. Six of the eight worst
-lines were written in the session that then diagnosed the problem — the drift is invited
-by the process. Full measurement: [docs/IMPROVEMENTS.md §0.1](docs/IMPROVEMENTS.md).
+**The problem it solves, measured.** In Viglet Shio: 92 roadmap lines averaging **142 words**
+against a one-sentence rule, worst **1406 characters**; an `agents.md` that reached **186 KB**
+absorbing the rationale of every shipped task. Six of the eight worst lines were written in the
+session that then diagnosed it — the drift is invited by the process. Full measurement:
+[docs/IMPROVEMENTS.md §0.1](docs/IMPROVEMENTS.md).
 
 **The insight that decides every design question.** *The saving is the analysis, not the
 characters.* A linter reports after the prose exists, when the tokens are spent and the
@@ -37,20 +37,17 @@ docs/ROADMAP.md        active backlog, one line per task (RK<n>)
 docs/CHANGELOG.md      shipped ledger, indexed by block
 docs/IMPROVEMENTS.md   design rationale for UNSHIPPED sections only
 agents.md, roadkeep.toml   this file, and this project's own configuration
-src/roadkeep/          the package (src layout, importable via pytest pythonpath)
-  schema.py            RK1 — Task, Dep, Schema, Violation; validate() and render()
-  document.py          RK2 — Document.parse/render, Entry, Reject, RoundTripError
-  config.py            RK3 — Config.discover/document; refuses an unknown key
-  ids.py               RK4 — scan/highest/next_id across every configured source
-  authoring.py         RK5/RK7 — add(), set_status(); nothing written unless all of it
-  shipping.py          RK6/RK32 — ship()/retire(): three edits, or none of them
-  markers.py           RK8 — derive/refresh: the dep annotation is a derived field
-  sections.py          RK9 — find/add/drop: prose by anchor, word budget, block-placed
-  backlog.py           RK28/RK37 — resolve/readiness; four dep kinds, four answers
-  counting/picking/showing/graph/briefing/exporting.py  RK10-13/29/39 — the query surface
-  history.py           RK31/RK32 — origin_of(), gaps(): both derived from git
-  cli.py               the surface; one subparser per task, exit 0/1/2, RK38's event
-tests/                 pytest; docs/ROADMAP.md is a fixture, not a mock
+src/roadkeep/   the package (src layout, importable via pytest pythonpath). Each module's
+                own docstring is the authority on it — this is only where to look:
+  schema document config ids                RK1-4  the model: the format, the file, the
+                                                   configuration, and the next id
+  authoring shipping markers sections       RK5-9/32  the write paths, each all-or-nothing
+  backlog counting picking showing graph    RK10-13/28-29/31/37/39-40  the query surface,
+  briefing exporting history                         plus what git alone can answer
+  linting fixing                            RK14-17  the gate, and the derived-only fixer
+  cli.py    one subparser per task, exit 0 / 1 gate / 2 usage, and RK38's event line
+action.yml, .pre-commit-hooks.yaml, .github/   the gate's three surfaces (RK17)
+tests/          pytest; docs/ROADMAP.md is a fixture, not a mock
 ```
 
 `Schema.render` is the only writer of the line format, `Schema.validate` the only reader of
@@ -69,14 +66,12 @@ differently. Never construct a task line with an f-string; before writing a comm
 in a README. A limit that cannot express these lines is the wrong limit rather than a set of
 wrong lines, so a schema change validates here first, under this repo's own `roadkeep.toml`.
 
-Don't hand-check it: `… lint` reports every violation, every line that stopped round-tripping,
-every dep nothing can satisfy, every `→ §RK<n>` that resolves to nothing and every section
-nothing points at, and **exits 1** when it finds one — that exit code is the whole gate
-(RK14/RK15). `--fix` normalizes only what is **derived** — the dep annotation, the pointer,
-dep order, an invisible codepoint, field whitespace — then reports what needs a decision
-(RK16); it re-parses to prove its own output before the disk sees it, or writes nothing at
-all. Everything else it prints is the canonical line and the edit is yours.
-`… stats` still gives the tallies and the longest line (**314** of 320).
+Don't hand-check it: `… lint` **exits 1** on any violation, line that stopped round-tripping,
+dep nothing satisfies, `→ §RK<n>` resolving to nothing or section nothing points at — that exit
+code is the gate (RK14/RK15), and CI runs the same command through the action this repo ships
+(`action.yml`, RK17). `--fix` repairs only what is **derived** (annotation, pointer, dep order,
+invisible codepoint, whitespace), proves its output round-trips or writes nothing, and leaves
+every editorial finding to you (RK16). `… stats` gives the tallies and the longest line.
 
 ## Writing and shipping — call the command, never type the format
 
@@ -94,8 +89,8 @@ a hook gets, and the tool's last word on it (RK38).
 
 That leaves the two rules a schema cannot check:
 
-1. **`symptom` states what does not work** — never a solution name. A line named after
-   its fix cannot be falsified, so it never gets closed, only abandoned.
+1. **`symptom` states what does not work** — never a solution name: a line named after its fix
+   cannot be falsified, so it never gets closed, only abandoned.
 2. **`why` is one sentence.** A second sentence is the signal the content belongs in
    `IMPROVEMENTS.md`, which is what the pointer addresses.
 
@@ -120,13 +115,13 @@ another block's. Order: A model → B authoring → C query → D gate → E ado
 
 ## Build and test
 
-- **Python ≥3.11** (`tomllib` is stdlib from 3.11; 3.13.14 is installed here).
-- **Zero runtime dependencies.** `argparse` + `tomllib`, not `click` + `pydantic`: a tool
-  meant to run as `uvx roadkeep` in someone else's CI pays for every dependency.
+- **Python ≥3.11** (`tomllib` is stdlib there; 3.13.14 is installed here) and **zero runtime
+  dependencies**: `argparse` + `tomllib`, never `click` + `pydantic` — a tool meant to run as
+  `uvx roadkeep` in someone else's CI pays for every dependency it takes.
 - `uv` is **not** installed here — `python -m pytest` from the repo root (`pythonpath =
   ["src"]` is set, so no install step). Only dev dependency: `pip install --user pytest`.
-- Round-trip (L3) is a **property test over real files**: `docs/` plus Shio's and
-  Turing's roadmaps, which also supply the dep kinds and the odd cases worth keeping.
+- Round-trip (L3) is a **property test over real files**: `docs/` plus Shio's and Turing's
+  roadmaps, which supply the dep kinds worth keeping and skip where they are absent (CI).
 
 ## Committing
 
@@ -141,15 +136,14 @@ unrelated work, stage the task's paths and call `python -m commitclerk -m …` i
 
 ## Non-goals are binding
 
-[docs/ROADMAP.md](docs/ROADMAP.md) → "Non-goals". The one most likely to be violated by
-a well-meaning suggestion: **no model and no prompts inside the tool.** It never writes
-the `symptom` or the rationale — a generator would reintroduce exactly the drift this
-exists to stop.
+[docs/ROADMAP.md](docs/ROADMAP.md) → "Non-goals", which `brief` prints with every task. The
+one a well-meaning suggestion violates: **no model and no prompts inside the tool** — it never
+writes the `symptom` or the rationale, since a generator reintroduces the drift this stops.
 
 ## This file is scaffolding
 
-It exists because the format cannot enforce itself until Block D and cannot resist a hand-edit
-until Block F. **RK23 replaces it with a skill**, trigger-loaded and identical everywhere; when
-it lands the two sections above go — a rule in two files is a rule two files can disagree about.
+The format could not enforce itself before Block D nor resist a hand-edit before Block F, so this
+stands in meanwhile. **RK23 replaces it with a skill** — trigger-loaded and identical everywhere;
+the two sections above go with it, a rule in two files being one two files can disagree about.
 
 Budget: **under 150 lines** — loaded every turn, so L5 governs it first of all.

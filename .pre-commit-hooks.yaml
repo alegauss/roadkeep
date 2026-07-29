@@ -1,0 +1,31 @@
+# The second surface (RK17): the same command, one step earlier. An adopting project adds
+#
+#     - repo: https://github.com/alegauss/roadkeep
+#       rev: main            # a tag once there is a release (RK19)
+#       hooks:
+#         - id: roadkeep-lint
+#
+# and gets the gate before the commit exists rather than after the push. Which is the
+# whole shape of this tool one layer out: the earlier a rule is enforced, the less work
+# it asks anybody to throw away.
+- id: roadkeep-lint
+  name: roadkeep lint
+  description: Fail the commit when a governed file drifted from the format it declares.
+  entry: roadkeep lint
+  language: python
+  # The command reads `roadkeep.toml` to learn which files it governs, so a list of
+  # staged paths is not an input it has — and passing them would make the gate examine
+  # whatever happened to be touched instead of the backlog it is about.
+  pass_filenames: false
+  # When to bother running at all. These are the default paths (RK3's `DEFAULT_PATHS`)
+  # plus the config itself; a project whose files live elsewhere overrides `files` in its
+  # own `.pre-commit-config.yaml`, which is the same per-project variability as L6.
+  files: (ROADMAP|CHANGELOG|IMPROVEMENTS|STRATEGY)\.md$|roadkeep\.toml$
+
+- id: roadkeep-lint-fix
+  name: roadkeep lint --fix
+  description: Normalize what is derived, then fail on what still needs a decision.
+  entry: roadkeep lint --fix
+  language: python
+  pass_filenames: false
+  files: (ROADMAP|CHANGELOG|IMPROVEMENTS|STRATEGY)\.md$|roadkeep\.toml$

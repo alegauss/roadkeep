@@ -114,22 +114,22 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 8 |
 | B — Authoring (insert, never hand-edit) | 0 | 6 |
 | C — Query (consult without reading the file) | 0 | 8 |
-| D — The gate | 5 | 3 |
+| D — The gate | 4 | 4 |
 | E — Adoption | 4 | 0 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 5 | 0 |
-| **Total** | 14 | 25 |
+| **Total** | 13 | 26 |
 
 **Next ready:**
 
-- 📋 **RK17** (deps: RK14 ✅) **A gate that runs only on a developer's machine is not a gate** — ship a GitHub Action and a pre-commit hook that both call the same exit code. → §RK17
+- 📋 **RK18** (deps: RK3 ✅, RK14 ✅) **A tool that requires an empty repo cannot be adopted by the repo that needs it** — `init` scaffolds the files and config, and `adopt` reports what an existing backlog must change to pass. → §RK18
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
 came from — because an answer an agent cannot audit gets verified by reading the file,
 which is the cost the command existed to remove.
 
-Still open, and where to look: [docs/ROADMAP.md](docs/ROADMAP.md). The gate (`lint`) and
-the plugin hook that denies an agent the hand-edit are Blocks D and F.
+Still open, and where to look: [docs/ROADMAP.md](docs/ROADMAP.md). The plugin hook that
+denies an agent the hand-edit is Block F.
 
 ## Install
 
@@ -139,6 +139,30 @@ Python ≥3.11, **zero runtime dependencies** — `argparse` and `tomllib`, not 
 ```sh
 pip install git+https://github.com/alegauss/roadkeep   # PyPI: not yet (RK19)
 ```
+
+## Run it as a gate
+
+`roadkeep lint` exits **1** on a file that drifted and **0** on one that did not — that exit
+code is the whole contract, so every surface calls the same command rather than a copy of it.
+A gate that runs in only one place is a gate with a documented bypass.
+
+```yaml
+# .github/workflows/gate.yml — the action this repository ships
+steps:
+  - uses: actions/checkout@v4
+  - uses: alegauss/roadkeep@main        # with: {directory: .}
+
+# .pre-commit-config.yaml — the same command, one step earlier
+repos:
+  - repo: https://github.com/alegauss/roadkeep
+    rev: main                          # a tag once there is a release (RK19)
+    hooks:
+      - id: roadkeep-lint              # or roadkeep-lint-fix, which normalizes first
+```
+
+`--fix` repairs only what the format *derives* — the dep annotation, the pointer, dep order,
+an invisible codepoint, whitespace around a field — and leaves every editorial finding to a
+human, which is what keeps a first run on a real backlog down to a report somebody reads.
 
 ## Non-goals
 

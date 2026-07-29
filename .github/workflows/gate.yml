@@ -1,0 +1,37 @@
+# This repository's own docs are the conformance fixture, so the first thing CI does is
+# run the gate on them — with the action this repository ships, not with a copy of its
+# command. If `uses: ./` ever fails while `roadkeep lint` passes locally, the action is
+# broken, which is the one failure a hand-written `run:` block here could not detect.
+name: gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint:
+    name: roadkeep lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./
+
+  tests:
+    name: pytest (${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # The floor and the version developed on. Nothing in between is interesting: the
+        # package has no dependencies, so there is no resolution to differ.
+        python-version: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: pip install ".[dev]"
+      # The round-trip corpus reaches for Shio's and Turing's roadmaps, which are on one
+      # machine; those cases skip rather than fail, so CI tests what it has.
+      - run: python -m pytest -q
