@@ -265,9 +265,12 @@ def test_the_command_prints_the_line_it_wrote(tmp_path, capsys):
         )
         == EXIT_OK
     )
-    printed = capsys.readouterr().out.rstrip("\n")
+    printed, event = capsys.readouterr().out.splitlines()
     assert printed == "- 📋 **RK2** (deps: RK1) **A second symptom** — Because of another reason. → §RK2"
     assert printed in source(config)
+    # A block that just gained a line is never empty, and the event says so anyway: one
+    # shape from every mutator is what makes it parseable at all (RK38).
+    assert event == "event    RK2  Block B  open"
 
 
 def test_json_says_where_the_line_landed(tmp_path, capsys):

@@ -50,20 +50,6 @@ session doing.
 
 ## Block B — Authoring
 
-### §RK38 The write is the event; reacting to it is not the tool's job
-
-A write already succeeds or refuses with an exit code, so what is missing is not a
-listener but a payload: the id, the block, and whether that block still holds an open
-line. Emitting those makes every mutator hookable by a `PostToolUse` hook (RK22) or the
-Action (RK17) without the tool learning what to do next. The rejected shape is the
-inverse — a `[hooks]` table that runs skills after `add` — and it fails on all three
-counts: "refresh the docs" is prose, so a listener that calls a model makes the tool a
-prose writer by proxy against L4 and the non-goal; a model call per inserted line
-multiplies exactly the analysis §0.1 measured; and configured shell commands would make
-`uvx roadkeep` in a third party's CI an executor of whatever the repo declares. Push is
-also the wrong direction for "a block finished": that is derivable from the count RK10
-already produces, and a fact one can query never goes stale in a queue.
-
 ## Block C — Query
 
 ### §RK10 `list`, `stats`, `audit`

@@ -24,8 +24,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK38** (deps: RK5 ✅, RK6 ✅) **A write reports an exit code and nothing about what it changed, so only a human can react to it** — add, ship and status print the id, the block and whether that block is now empty, which is the whole event a hook needs and the tool's only part in it. → §RK38
-
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK10** (deps: RK2 ✅) **Counting a backlog by grep silently drops the lines it fails to match** — `list` and `stats` report per block and marker with `--json`, and `audit` prints every marker-bearing line *not* counted, with the reason. → §RK10

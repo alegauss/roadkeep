@@ -12,6 +12,11 @@ their own:
   2 usage or configuration error. A gate that reports in prose is advice. A refused
   `add` (RK5) exits 2 and not 1: what has to change is the caller's input, not the
   file — 1 is reserved for a file that is already wrong.
+* **Every mutator emits the event and stops there (RK38).** A write already succeeds or
+  refuses with an exit code, so what a hook is missing is not a listener but a payload:
+  the id, the block, and whether that block still holds an open line. Deciding what to do
+  next belongs to the `PostToolUse` hook (RK22) or the Action (RK17) — a `[hooks]` table
+  running commands would make `uvx roadkeep` an executor of whatever a repo declares.
 * **Errors name the fix.** A `ConfigError` prints every problem it found, once.
 * **stdout is forced to UTF-8.** The markers are emoji and the default Windows console
   encoding is cp1252, which raises `UnicodeEncodeError` mid-write and leaves a
@@ -33,7 +38,7 @@ from roadkeep import __version__
 from roadkeep.authoring import add, set_status
 from roadkeep.backlog import Backlog
 from roadkeep.config import Config, ConfigError
-from roadkeep.document import RoundTripError
+from roadkeep.document import Document, RoundTripError
 from roadkeep.history import Commit, HistoryUnavailable, Origin, origin_of
 from roadkeep.ids import highest, next_id
 from roadkeep.schema import SchemaError
@@ -291,6 +296,9 @@ def _add(config: Config, args: argparse.Namespace) -> int:
     except (RoundTripError, KeyError, ValueError, OSError) as error:
         return _refused(error)  # a SchemaError arrives here as the ValueError it is
 
+    event = _event(
+        insertion.entry.task.id, insertion.entry.task.block, insertion.document
+    )
     if args.json:
         print(
             json.dumps(
@@ -300,12 +308,14 @@ def _add(config: Config, args: argparse.Namespace) -> int:
                     "line": insertion.lineno,
                     "rendered": insertion.rendered,
                     "length": len(insertion.rendered),
+                    "event": event,
                 },
                 indent=2,
             )
         )
         return EXIT_OK
     print(insertion.rendered)
+    _print_event(event)
     return EXIT_OK
 
 
@@ -382,6 +392,7 @@ def _status(config: Config, args: argparse.Namespace) -> int:
         return _refused(error)
 
     where = f"{config.relative(config.path('roadmap'))}:{change.lineno}"
+    event = _event(args.id, change.entry.task.block, change.document)
     if args.json:
         print(
             json.dumps(
@@ -394,6 +405,7 @@ def _status(config: Config, args: argparse.Namespace) -> int:
                     "line": change.lineno,
                     "rendered": change.rendered,
                     "refreshed": list(change.refreshed),
+                    "event": event,
                 },
                 indent=2,
             )
@@ -401,11 +413,28 @@ def _status(config: Config, args: argparse.Namespace) -> int:
         return EXIT_OK
     if not change.changed:
         print(f"{args.id} is already {change.after}  {where}")
+        _print_event(event, "  ")
         return EXIT_OK
     print(f"{args.id} {change.before} → {change.after}  {where}")
     if change.refreshed:
         print(f"  derived  {', '.join(change.refreshed)} (dep annotations re-derived)")
+    _print_event(event, "  ")
     return EXIT_OK
+
+
+def _event(task_id: str, block: str, roadmap: Document) -> dict[str, object]:
+    """What changed, where, and whether that place is finished (RK38).
+
+    Three facts and no more. "This block is done" stays a *derived* fact about the file
+    every mutator just wrote, so it cannot go stale the way a queued message can, and the
+    tool never learns what happens next.
+    """
+    return {"id": task_id, "block": block, "block_empty": not roadmap.block(block)}
+
+
+def _print_event(event: dict[str, object], indent: str = "") -> None:
+    state = "empty" if event["block_empty"] else "open"
+    print(f"{indent}event    {event['id']}  Block {event['block']}  {state}")
 
 
 def _refused(error: Exception) -> int:
@@ -437,6 +466,8 @@ def _ship(config: Config, args: argparse.Namespace) -> int:
 
     roadmap = config.relative(config.path("roadmap"))
     ledger = config.relative(config.path("changelog"))
+    block = shipment.ledger.entry.task.block
+    event = _event(shipment.task_id, block, shipment.roadmap)
     if args.json:
         print(
             json.dumps(
@@ -460,13 +491,13 @@ def _ship(config: Config, args: argparse.Namespace) -> int:
                         "kept": shipment.kept,
                     },
                     "refreshed": list(shipment.refreshed),
+                    "event": event,
                 },
                 indent=2,
             )
         )
         return EXIT_OK
 
-    block = shipment.ledger.entry.task.block
     print(f"{shipment.task_id} → {ledger}:{shipment.ledger.lineno} under Block {block}")
     print(f"  removed  {roadmap}:{shipment.removed_from}")
     if shipment.dropped is not None:
@@ -478,6 +509,7 @@ def _ship(config: Config, args: argparse.Namespace) -> int:
         print(f"  kept     nothing dropped: {shipment.kept}")
     if shipment.refreshed:
         print(f"  derived  {', '.join(shipment.refreshed)} (dep annotations re-derived)")
+    _print_event(event, "  ")
     return EXIT_OK
 
 

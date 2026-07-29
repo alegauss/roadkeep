@@ -238,13 +238,22 @@ def test_a_project_with_only_a_roadmap_still_works(tmp_path):
 def test_the_command_prints_the_transition(tmp_path, capsys):
     project(tmp_path)
     assert main(["-C", str(tmp_path), "status", "RK1", "🛠"]) == EXIT_OK
-    assert capsys.readouterr().out == f"RK1 📋 → 🛠  {ROADMAP}:5\n"
+    # The write is the event (RK38): what changed, its block, and whether that block
+    # is finished — which is all a hook gets, and all it needs.
+    assert capsys.readouterr().out.splitlines() == [
+        f"RK1 📋 → 🛠  {ROADMAP}:5",
+        "  event    RK1  Block A  open",
+    ]
 
 
 def test_the_command_says_when_there_was_nothing_to_do(tmp_path, capsys):
     project(tmp_path)
     assert main(["-C", str(tmp_path), "status", "RK1", "📋"]) == EXIT_OK
-    assert capsys.readouterr().out == f"RK1 is already 📋  {ROADMAP}:5\n"
+    # Still an event: a hook cannot tell 'nothing to do' from 'never ran' otherwise.
+    assert capsys.readouterr().out.splitlines() == [
+        f"RK1 is already 📋  {ROADMAP}:5",
+        "  event    RK1  Block A  open",
+    ]
 
 
 def test_json_carries_both_markers_and_whether_it_changed(tmp_path, capsys):

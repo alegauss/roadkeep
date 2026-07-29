@@ -48,7 +48,7 @@ src/roadkeep/          the package (src layout, importable via pytest pythonpath
   sections.py          RK9 — find/add/drop: prose by anchor, word budget, block-placed
   backlog.py           RK28/RK37 — resolve/readiness; four dep kinds, four answers
   history.py           RK31 — origin_of(): the shipping commit, derived from git
-  cli.py               the command surface; one subparser per task, exit 0/1/2
+  cli.py               the surface; one subparser per task, exit 0/1/2, RK38's event
 tests/                 pytest; docs/ROADMAP.md is a fixture, not a mock
 ```
 
@@ -71,8 +71,8 @@ asserted in a README. A limit that cannot express these lines is the wrong limit
 than a set of wrong lines, so this repository is the first thing a schema change must
 still validate — under its own `roadkeep.toml`, which is what makes L6 a fact here.
 
-Current reading (RK14/RK15 replace this hand-verification): 25 tasks, longest line **314**
-of 320, 25/25 pointers resolve, no orphan section, longest section **181** words of 250.
+Current reading (RK14/RK15 replace this hand-verification): 24 tasks, longest line **314**
+of 320, 24/24 pointers resolve, no orphan section, longest section **181** words of 250.
 
 ## Writing and shipping — call the command, never type the format
 
@@ -84,7 +84,8 @@ makes its three edits (ledger entry, roadmap line gone, `§<id>` deleted) plus t
 dependents' annotations, or makes none of them; `section add <id> --title "…"` takes the
 prose on **stdin**, ≤250 words, filled to 88 columns, placed under the task's block — a
 table or a list is inserted exactly as written. Blocks are declared by headings only: a
-write never invents one.
+write never invents one. Every write then prints one `event <id> Block <x> open|empty`
+line — the whole payload a hook gets, and the tool's last word on it (RK38).
 
 That leaves the two rules a schema cannot check:
 
