@@ -50,16 +50,6 @@ session doing.
 
 ## Block A — The model
 
-### §RK31 The decision survives the shipping
-
-`IMPROVEMENTS.md` deletes the section when a task ships, the ledger keeps one line, and
-the reasoning survives only in a commit message — which is precisely the place nobody
-consults. "Why is it like this" is the question an unfamiliar repository answers worst,
-and answering it today costs a `git log -S` over the whole history. So the ledger entry
-carries the commit that shipped it: a forty-character pointer trades a search for a
-lookup, without readmitting the implementation report that drove the neighbouring file
-to 539 KB.
-
 ## Block B — Authoring
 
 ### §RK5 `add`

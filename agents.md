@@ -46,6 +46,7 @@ src/roadkeep/          the package (src layout, importable via pytest pythonpath
   config.py            RK3 — Config.discover/document; refuses an unknown key
   ids.py               RK4 — scan/highest/next_id across every configured source
   backlog.py           RK28 — Backlog.resolve/readiness; four dep kinds, four answers
+  history.py           RK31 — origin_of(): the shipping commit, derived from git
   cli.py               the command surface; one subparser per task, exit 0/1/2
 tests/                 pytest; docs/ROADMAP.md is a fixture, not a mock
 ```
@@ -80,10 +81,8 @@ Current reading (RK14/RK15 replace this hand-verification): 29 tasks, longest li
 - <marker> **RK<n>** (deps: <RK<n>, … | —>) **<symptom>** — <one sentence> → §RK<n>
 ```
 
-Markers: 📋 designed · 💭 idea · ⏳ partial · 🛠 in-progress. ✅ appears only in
-`CHANGELOG.md` and in a `(deps: RK1 ✅)` annotation.
-
-Four rules, and they are the schema RK1 encodes:
+Markers: 📋 designed · 💭 idea · ⏳ partial · 🛠 in-progress. ✅ only in `CHANGELOG.md`
+and in a `(deps: RK1 ✅)` annotation. Four rules, and they are the schema RK1 encodes:
 
 1. **`symptom` states what does not work** — never a solution name. A line named after
    its fix cannot be falsified, so it never gets closed, only abandoned.
@@ -94,10 +93,11 @@ Four rules, and they are the schema RK1 encodes:
    (RK27), so there is nothing to choose and nothing to renumber on ship. Projects
    numbered by hand set `ref_scheme = "outline"` instead.
 
-**Ask, don't count:** `python -m roadkeep.cli next-id` for the next id (never fill a
-gap — a retired id is never reused) and `… deps <id>` to resolve one task's deps. Both
-take `--json`. A dep may name a task, a `Block X`, a range (`RK20–RK30`) or work
-outside the backlog — the last is *unresolvable*, never "pending" (RK28).
+**Ask, don't count** (all take `--json`): `python -m roadkeep.cli next-id` for the next
+id — never fill a gap, a retired id is never reused; `… deps <id>` to resolve deps, which
+may name a task, a `Block X`, a range (`RK20–RK30`) or work outside the backlog, the last
+being *unresolvable* and never "pending" (RK28); `… origin <id> --why` for the commits
+that proposed and shipped a task, plus the reasoning the ledger had to drop (RK31).
 
 ## Picking work
 

@@ -31,6 +31,7 @@ from pathlib import Path
 from roadkeep import __version__
 from roadkeep.backlog import Backlog
 from roadkeep.config import Config, ConfigError
+from roadkeep.history import Commit, HistoryUnavailable, Origin, origin_of
 from roadkeep.ids import highest, next_id
 
 EXIT_OK = 0
@@ -80,6 +81,24 @@ def build_parser() -> argparse.ArgumentParser:
     deps_parser.add_argument("id", help="the task to resolve, e.g. RK5")
     deps_parser.add_argument("--json", action="store_true", help="machine-readable form")
     deps_parser.set_defaults(handler=_deps)
+
+    origin_parser = subcommands.add_parser(
+        "origin",
+        help="the commits that proposed and shipped a task, with the reasoning",
+        description=(
+            "Resolve a task's history from git. The pointer is derived, never stored: "
+            "a hash written into the ledger would be rewritten by the first squash or "
+            "amend, and a dead hash reads exactly like a live one."
+        ),
+    )
+    origin_parser.add_argument("id", help="the task to look up, e.g. RK1")
+    origin_parser.add_argument(
+        "--why",
+        action="store_true",
+        help="print the shipping commit's full message — the rationale the ledger drops",
+    )
+    origin_parser.add_argument("--json", action="store_true", help="machine-readable form")
+    origin_parser.set_defaults(handler=_origin)
 
     return parser
 
@@ -172,6 +191,50 @@ def _deps(config: Config, args: argparse.Namespace) -> int:
         )
     print(f"{entry.task.id}: {readiness}")
     return EXIT_OK
+
+
+def _origin(config: Config, args: argparse.Namespace) -> int:
+    try:
+        origin = origin_of(config, args.id)
+    except HistoryUnavailable as error:
+        print(f"roadkeep: no history to resolve against ({error})", file=sys.stderr)
+        return EXIT_USAGE
+
+    if args.json:
+        print(json.dumps({"id": origin.task_id, **_commits_json(origin)}, indent=2))
+        return EXIT_OK
+
+    if origin.proposed_in is None and origin.shipped_in is None:
+        print(f"{args.id}: nothing in history mentions it yet")
+        return EXIT_OK
+    for label, commit in (("proposed", origin.proposed_in), ("shipped", origin.shipped_in)):
+        if commit is None:
+            print(f"  {label:<9} —")
+            continue
+        print(f"  {label:<9} {commit.short}  {commit.date[:10]}  {commit.subject}")
+    if args.why and origin.shipped_in is not None:
+        print()
+        print(origin.shipped_in.reasoning)
+    return EXIT_OK
+
+
+def _commits_json(origin: Origin) -> dict[str, object]:
+    def one(commit: Commit | None) -> dict[str, object] | None:
+        if commit is None:
+            return None
+        return {
+            "sha": commit.sha,
+            "short": commit.short,
+            "date": commit.date,
+            "author": commit.author,
+            "subject": commit.subject,
+            "reasoning": commit.reasoning,
+        }
+
+    return {
+        "proposed_in": one(origin.proposed_in),
+        "shipped_in": one(origin.shipped_in),
+    }
 
 
 def _relative(path: Path, root: Path) -> str:

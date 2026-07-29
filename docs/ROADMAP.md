@@ -22,7 +22,6 @@
 
 ## Block A — The model (a task is data before it is a line)
 
-- 📋 **RK31** (deps: RK2 ✅) **The reasoning behind a shipped decision survives only in a commit nobody greps** — the ledger entry carries the commit that shipped it, so the one question an unfamiliar repository cannot answer costs a lookup instead of a search. → §RK31
 
 ## Block B — Authoring (insert, never hand-edit)
 
