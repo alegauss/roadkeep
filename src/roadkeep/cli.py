@@ -42,6 +42,7 @@ from roadkeep.counting import Census
 from roadkeep.document import Document, Entry, Reject, RoundTripError
 from roadkeep.history import Commit, HistoryUnavailable, Origin, origin_of
 from roadkeep.ids import highest, next_id
+from roadkeep.picking import Choice, pick
 from roadkeep.schema import SchemaError
 from roadkeep.sections import Section
 from roadkeep.sections import add as add_section
@@ -246,6 +247,20 @@ def build_parser() -> argparse.ArgumentParser:
     )
     _counting_flags(audit_parser)
     audit_parser.set_defaults(handler=_audit)
+
+    pick_parser = subcommands.add_parser(
+        "pick",
+        help="the next task to work on, and the reason it was chosen",
+        description=(
+            "Apply three tiers — work already in progress, the declared priority, then "
+            "the lowest ready id — and print which one answered. A task blocked outside "
+            "the backlog is never offered: shipping cannot unblock it."
+        ),
+    )
+    pick_parser.add_argument(
+        "--json", action="store_true", help="the pick, the tier and the counts"
+    )
+    pick_parser.set_defaults(handler=_pick)
 
     deps_parser = subcommands.add_parser(
         "deps",
@@ -730,8 +745,73 @@ def _miss_json(miss: Reject) -> dict[str, object]:
     }
 
 
+def _pick(config: Config, args: argparse.Namespace) -> int:
+    try:
+        choice = pick(config)
+    except (KeyError, OSError) as error:
+        return _refused(error)
+    stalled = [{"id": s.id, "blockers": list(s.blockers)} for s in choice.stalled]
+    if args.json:
+        entry = choice.entry
+        print(
+            json.dumps(
+                {
+                    "pick": None
+                    if entry is None
+                    else {
+                        "id": entry.task.id,
+                        "block": entry.task.block,
+                        "status": entry.task.status,
+                        "file": config.relative(config.path("roadmap")),
+                        "line": entry.lineno,
+                        "symptom": entry.task.symptom,
+                        "ref": entry.task.ref,
+                    },
+                    "tier": None if choice.tier is None else str(choice.tier),
+                    "reason": choice.reason,
+                    "alternatives": list(choice.alternatives),
+                    "ready": choice.ready,
+                    "blocked": choice.blocked,
+                    "outside": choice.outside,
+                    "stalled": stalled,
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+
+    # Nothing ready is an answer, not a failure: exit stays 0 and the reason carries the
+    # counts, so a caller can tell "backlog finished" from "everything is blocked".
+    if choice.entry is None:
+        print(f"nothing to pick: {choice.reason}")
+        print(f"  backlog  {choice.counts}")
+        _print_stalled(choice)
+        return EXIT_OK
+
+    entry = choice.entry
+    where = f"{config.relative(config.path('roadmap'))}:{entry.lineno}"
+    print(f"{entry.task.id}  Block {entry.task.block}  {entry.task.status}  {where}")
+    print(f"  because  {choice.reason}")
+    print(f"  backlog  {choice.counts}")
+    print(f"  symptom  {entry.task.symptom}")
+    if choice.alternatives:
+        print(f"  or       {', '.join(choice.alternatives)}")
+    _print_stalled(choice)
+    return EXIT_OK
+
+
+def _print_stalled(choice: Choice) -> None:
+    """A started task that cannot be continued is the one thing a pick must not hide."""
+    for stalled in choice.stalled:
+        print(f"  stalled  {stalled.id} is in progress, waiting on "
+              f"{', '.join(stalled.blockers) or 'nothing this backlog names'}")
+
+
 def _deps(config: Config, args: argparse.Namespace) -> int:
-    backlog = Backlog.load(config)
+    try:
+        backlog = Backlog.load(config)
+    except (KeyError, OSError) as error:
+        return _refused(error)  # a declared file that is not there yet: `init` (RK18)
     entry = backlog.entry(args.id)
     if entry is None:
         print(

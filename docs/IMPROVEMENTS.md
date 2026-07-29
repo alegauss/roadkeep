@@ -52,13 +52,6 @@ session doing.
 
 ## Block C — Query
 
-### §RK11 `pick`
-
-The most common question asked of a roadmap — "what do I work on" — currently costs
-reading the entire file. `pick` applies the declared priority queue, then the lowest
-id whose deps are all shipped, and prints the reason it chose that task so the answer
-is auditable rather than oracular.
-
 ### §RK12 `show`
 
 A task is a line in one file, a rationale section in another, and sometimes a spec on

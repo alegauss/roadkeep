@@ -27,7 +27,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from roadkeep.document import Document
-from roadkeep.schema import OPEN_MARKERS, SHIPPED, Schema
+from roadkeep.schema import OPEN_MARKERS, SHIPPED, Dep, DepKind, Schema
 
 CONFIG_NAME = "roadkeep.toml"
 PYPROJECT = "pyproject.toml"
@@ -43,7 +43,7 @@ DEFAULT_PATHS: Mapping[str, str] = {
 }
 
 _TOP_KEYS = frozenset(
-    {"prefix", "ref_scheme", "files", "limits", "markers", "id_sources"}
+    {"prefix", "ref_scheme", "files", "limits", "markers", "id_sources", "priority"}
 )
 _LIMIT_KEYS = {
     "symptom": "symptom_max",
@@ -80,6 +80,11 @@ class Config:
     #: Files to scan for ids beyond the governed four (RK4). This repository keeps
     #: task ids in `agents.md`, and an id the scan misses is an id that gets reused.
     extra_id_sources: tuple[Path, ...] = ()
+    #: What jumps the queue, in order: an id or a `Block X`, and nothing else (RK11).
+    #: *Declared*, because the alternative is a "## Priority queue" section written in
+    #: prose — which Shio has, and which a tool that reads it would be interpreting
+    #: rather than validating (L4).
+    priority: tuple[str, ...] = ()
     source: Path | None = None
 
     # -- construction ------------------------------------------------------
@@ -124,6 +129,7 @@ class Config:
         extras = tuple(
             base / name for name in _string_list(data.get("id_sources"), "id_sources", problems)
         )
+        priority = tuple(_string_list(data.get("priority"), "priority", problems))
 
         schema = None
         if not problems:
@@ -137,12 +143,19 @@ class Config:
                 )
             except ValueError as error:  # a valid TOML file can still be a wrong format
                 problems.append(str(error))
+        if schema is not None:
+            _check_priority(schema, priority, problems)
         if problems:
             raise ConfigError(tuple(problems), source)
 
         assert schema is not None
         return cls(
-            root=base, schema=schema, paths=paths, extra_id_sources=extras, source=source
+            root=base,
+            schema=schema,
+            paths=paths,
+            extra_id_sources=extras,
+            priority=priority,
+            source=source,
         )
 
     # -- using it ----------------------------------------------------------
@@ -259,6 +272,27 @@ def _reject_invisible(marker: str, problems: list[str]) -> None:
                 f"marker {marker.replace(char, '')!r} carries {name}, which is "
                 f"invisible in an editor and unequal to the bare character: every "
                 f"line would be permanently out of round-trip"
+            )
+
+
+def _check_priority(
+    schema: Schema, priority: tuple[str, ...], problems: list[str]
+) -> None:
+    """A priority entry names a task or a block, and is typed by the same code deps are.
+
+    Refused rather than ignored, like every other key here: an entry `pick` cannot
+    resolve is a queue the author believes is in force and is not, and a *silent* one is
+    worse than none — the tool would then answer "lowest ready id" while looking like it
+    had applied a declaration.
+    """
+    for token in priority:
+        kind = schema.classify_dep(Dep(token))
+        if kind is DepKind.TASK and not schema.id_pattern().match(token):
+            problems.append(f"priority: not an id of this project: {token!r}")
+        elif kind in (DepKind.RANGE, DepKind.EXTERNAL):
+            problems.append(
+                f"priority: {token!r} is neither an id nor 'Block X': a queue is an "
+                f"order over work this backlog holds, so nothing else can be first"
             )
 
 

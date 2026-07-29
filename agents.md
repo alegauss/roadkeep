@@ -47,7 +47,7 @@ src/roadkeep/          the package (src layout, importable via pytest pythonpath
   markers.py           RK8 — derive/refresh: the dep annotation is a derived field
   sections.py          RK9 — find/add/drop: prose by anchor, word budget, block-placed
   backlog.py           RK28/RK37 — resolve/readiness; four dep kinds, four answers
-  counting.py          RK10 — Census: counts per block and marker, misses beside them
+  counting.py picking.py  RK10/RK11 — counts with their misses; the pick with its reason
   history.py           RK31 — origin_of(): the shipping commit, derived from git
   cli.py               the surface; one subparser per task, exit 0/1/2, RK38's event
 tests/                 pytest; docs/ROADMAP.md is a fixture, not a mock
@@ -105,10 +105,10 @@ a block no heading declares, is *unresolvable*: RK28/RK37); `… origin <id> --w
 
 ## Picking work
 
-Lowest-numbered task whose `deps` are all shipped. Blocks are ordered by dependency, not
-priority: **A** (model) → **B** (authoring) → **C** (query) → **D** (gate) → **E**
-(adoption) → **F** (plugin). No guardrail before D, and none an agent cannot route around
-before F.
+`… pick` applies the rule and prints why (RK11): 🛠 first, then `priority` in `roadkeep.toml`,
+then the lowest id whose `deps` all shipped — never one blocked outside. Blocks run by
+dependency, not priority: **A** model → **B** authoring → **C** query → **D** gate → **E**
+adoption → **F** plugin. No guardrail before D, none an agent cannot route around before F.
 
 ## Build and test
 

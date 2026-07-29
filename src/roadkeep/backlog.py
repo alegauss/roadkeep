@@ -161,7 +161,7 @@ class Backlog:
         still_open = tuple(
             e.task.id
             for e in self.roadmap.entries
-            if (number := _number_of(e.task.id, prefix)) is not None
+            if (number := number_of(e.task.id, prefix)) is not None
             and first <= number <= last
         )
         if still_open:
@@ -216,8 +216,12 @@ class Backlog:
         return Readiness.BLOCKED
 
 
-def _number_of(task_id: str, prefix: str) -> int | None:
-    """The numeric part of an id of this project, or None if it is not one."""
+def number_of(task_id: str, prefix: str) -> int | None:
+    """The numeric part of an id of this project, or None if it is not one.
+
+    Public because `pick` (RK11) orders by it: "lowest id" is a numeric comparison, and
+    a second implementation of it would sort RK9 after RK10 in exactly one of the two.
+    """
     if not task_id.startswith(prefix):
         return None
     tail = task_id[len(prefix) :]
