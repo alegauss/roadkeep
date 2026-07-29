@@ -30,7 +30,7 @@ the skill and by review.
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 # Status markers, as bare codepoints — no variation selectors, because the
 # governed files carry none and a round-trip compares bytes.
@@ -50,7 +50,10 @@ NO_DEPS = EM_DASH
 
 _PREFIX_RE = re.compile(r"^[A-Z][A-Z0-9]{0,7}$")
 _BLOCK_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9.\-]{0,15}$")
-_REF_RE = re.compile(r"^[0-9IVXLCDM]+(?:\.[0-9]+)+$")
+# A section, with any depth of subsection: "I.1", "XIV.8.7", and bare "XLV" —
+# Turing points at nine whole sections, and a pointer that resolves is the rule
+# (RK15), not the presence of a dot. [0-9] and not \d: an id is ASCII.
+_REF_RE = re.compile(r"^[0-9IVXLCDM]+(?:\.[0-9]+)*$")
 
 # A terminator followed by whitespace, i.e. a sentence that has a successor. A
 # trailing period never matches because the field is measured stripped.
@@ -89,17 +92,24 @@ class Violation:
 
 @dataclass(frozen=True, slots=True)
 class Dep:
-    """A dependency, and whether its target has shipped.
+    """A dependency, and the status its target carried when the line was written.
 
-    ``shipped`` is a cache of another line's status and is derived on write
-    (RK8); the model carries it because the rendered line does.
+    ``marker`` is a cache of another line's status, derived on write (RK8); the
+    model carries it because the rendered line does. It is any marker and not only
+    ✅ — Shio's backlog annotates ⏳ and 📋 deps too, and since the marker is
+    derived from the target's status there is no reason one status would be
+    unrepresentable.
     """
 
     id: str
-    shipped: bool = False
+    marker: str | None = None
 
-    def render(self, shipped_marker: str = SHIPPED) -> str:
-        return f"{self.id} {shipped_marker}" if self.shipped else self.id
+    @property
+    def shipped(self) -> bool:
+        return self.marker == SHIPPED
+
+    def render(self) -> str:
+        return f"{self.id} {self.marker}" if self.marker else self.id
 
 
 @dataclass(frozen=True, slots=True)
@@ -148,13 +158,19 @@ class Schema:
     why_max: int = 200
     line_max: int = 320
     ref_required: bool = True
+    #: The ledger's own status *is* ✅, so it is the one file where the shipped
+    #: marker is legal. Set by :meth:`as_ledger`, never by hand.
+    shipped_allowed: bool = False
+    #: The ledger carries no `(deps: …)` group: a dependency is a planning fact
+    #: about unshipped work, and a shipped line has none left to state.
+    deps_field: bool = True
 
     def __post_init__(self) -> None:
         if not _PREFIX_RE.match(self.prefix):
             raise ValueError(f"prefix must be uppercase alphanumeric: {self.prefix!r}")
         if not self.markers:
             raise ValueError("markers must not be empty")
-        if self.shipped_marker in self.markers:
+        if self.shipped_marker in self.markers and not self.shipped_allowed:
             raise ValueError(
                 f"{self.shipped_marker} is the shipped marker and may not also be an "
                 "open marker: a roadmap that can say 'done' disagrees with the changelog"
@@ -162,6 +178,21 @@ class Schema:
         for name in ("symptom_max", "why_max", "line_max"):
             if getattr(self, name) < 1:
                 raise ValueError(f"{name} must be positive")
+
+    def as_ledger(self) -> Schema:
+        """The same format as the changelog reads it (L6, applied to a sibling file).
+
+        Marker ✅, no deps, no pointer — the rationale section is deleted when the
+        task ships, so a pointer to it could not resolve. One schema with two
+        configurations beats two grammars that drift apart.
+        """
+        return replace(
+            self,
+            markers=(self.shipped_marker,),
+            shipped_allowed=True,
+            deps_field=False,
+            ref_required=False,
+        )
 
     # -- rendering ---------------------------------------------------------
 
@@ -172,11 +203,11 @@ class Schema:
         line from here, so "canonical" is a fact about one function rather than a
         claim in a document.
         """
-        deps = ", ".join(d.render(self.shipped_marker) for d in task.deps) or NO_DEPS
-        line = (
-            f"- {task.status} **{task.id}** (deps: {deps}) "
-            f"**{task.symptom}** {EM_DASH} {task.why}"
-        )
+        head = f"- {task.status} **{task.id}**"
+        if self.deps_field:
+            deps = ", ".join(d.render() for d in task.deps) or NO_DEPS
+            head += f" (deps: {deps})"
+        line = f"{head} **{task.symptom}** {EM_DASH} {task.why}"
         if task.ref:
             line += f" {ARROW} §{task.ref}"
         return line
@@ -194,9 +225,28 @@ class Schema:
     def validate(self, task: Task) -> tuple[Violation, ...]:
         """Every violation, in field order. Empty means the task conforms."""
         out: list[Violation] = []
-        ids = self.id_pattern()
+        out.extend(self._check_identity(task))
+        out.extend(self._check_deps(task))
+        out.extend(self._check_symptom(task))
+        out.extend(self._check_why(task))
+        out.extend(self._check_ref(task))
 
-        if not ids.match(task.id):
+        rendered = self.render(task)
+        if len(rendered) > self.line_max:
+            out.append(
+                Violation(
+                    "line.too-long",
+                    "line",
+                    f"rendered line is {len(rendered)} characters, "
+                    f"limit is {self.line_max}: move the remainder to "
+                    f"the improvements section",
+                )
+            )
+        return tuple(out)
+
+    def _check_identity(self, task: Task) -> list[Violation]:
+        out: list[Violation] = []
+        if not self.id_pattern().match(task.id):
             out.append(
                 Violation(
                     "id.format",
@@ -204,8 +254,7 @@ class Schema:
                     f"expected {self.prefix}<n> with no leading zero, got {task.id!r}",
                 )
             )
-
-        if task.status == self.shipped_marker:
+        if task.status == self.shipped_marker and not self.shipped_allowed:
             out.append(
                 Violation(
                     "status.shipped",
@@ -221,18 +270,49 @@ class Schema:
                     f"{task.status!r} is not one of {' '.join(self.markers)}",
                 )
             )
-
-        if not _BLOCK_RE.match(task.block):
+        if not task.block:
+            # Shio keeps a "## Priority queue" section above its blocks; a task
+            # parked there has no block, and inferring one would file it under
+            # whatever heading happened to precede it.
+            out.append(
+                Violation(
+                    "block.missing", "block", "a task line lives under a block heading"
+                )
+            )
+        elif not _BLOCK_RE.match(task.block):
             out.append(
                 Violation("block.format", "block", f"not a block label: {task.block!r}")
             )
+        return out
 
+    def _check_deps(self, task: Task) -> list[Violation]:
+        if task.deps and not self.deps_field:
+            return [
+                Violation(
+                    "deps.unexpected",
+                    "deps",
+                    "this file carries no deps field: a shipped line has no "
+                    "dependency left to state",
+                )
+            ]
+        out: list[Violation] = []
+        ids = self.id_pattern()
         seen: set[str] = set()
+        allowed = (*self.markers, self.shipped_marker)
         for dep in task.deps:
             if not ids.match(dep.id):
                 out.append(
                     Violation(
                         "deps.format", "deps", f"not an id of this project: {dep.id!r}"
+                    )
+                )
+            if dep.marker is not None and dep.marker not in allowed:
+                out.append(
+                    Violation(
+                        "deps.marker",
+                        "deps",
+                        f"{dep.marker!r} is not a status marker: a dep annotation "
+                        f"caches the target's status and nothing else",
                     )
                 )
             if dep.id == task.id:
@@ -242,8 +322,22 @@ class Schema:
             if dep.id in seen:
                 out.append(Violation("deps.duplicate", "deps", f"{dep.id} listed twice"))
             seen.add(dep.id)
+        return out
 
-        out.extend(self._check_text("symptom", task.symptom, self.symptom_max))
+    def _check_symptom(self, task: Task) -> list[Violation]:
+        out = self._check_text("symptom", task.symptom, self.symptom_max)
+        if "**" in task.symptom:
+            # Only the symptom reserves '**': it is what closes the field. Bold
+            # inside a `why` round-trips (25 of Shio's lines use it), and grading
+            # emphasis in someone's sentence is prose-grading, which is not the
+            # tool's job (L4).
+            out.append(
+                Violation(
+                    "symptom.markup",
+                    "symptom",
+                    "'**' closes the symptom and cannot appear inside it",
+                )
+            )
         if task.symptom.strip().endswith(_TERMINATORS):
             out.append(
                 Violation(
@@ -253,8 +347,10 @@ class Schema:
                     "drop the terminating punctuation",
                 )
             )
+        return out
 
-        out.extend(self._check_text("why", task.why, self.why_max))
+    def _check_why(self, task: Task) -> list[Violation]:
+        out = self._check_text("why", task.why, self.why_max)
         why = task.why.strip()
         if why and not why.endswith(_TERMINATORS):
             out.append(
@@ -269,42 +365,26 @@ class Schema:
                     "belongs in the improvements section this line points at",
                 )
             )
+        return out
 
-        if task.ref is None or task.ref == "":
+    def _check_ref(self, task: Task) -> list[Violation]:
+        if not task.ref:
             if self.ref_required:
-                out.append(
+                return [
                     Violation(
-                        "ref.missing",
-                        "ref",
-                        "every task points at its rationale section",
+                        "ref.missing", "ref", "every task points at its rationale section"
                     )
-                )
-        elif task.ref.startswith("§"):
-            out.append(
+                ]
+            return []
+        if task.ref.startswith("§"):
+            return [
                 Violation(
-                    "ref.sigil",
-                    "ref",
-                    f"store the anchor without §: {task.ref.lstrip('§')!r}",
+                    "ref.sigil", "ref", f"store the anchor without §: {task.ref.lstrip('§')!r}"
                 )
-            )
-        elif not _REF_RE.match(task.ref):
-            out.append(
-                Violation("ref.format", "ref", f"not an <x.y> anchor: {task.ref!r}")
-            )
-
-        rendered = self.render(task)
-        if len(rendered) > self.line_max:
-            out.append(
-                Violation(
-                    "line.too-long",
-                    "line",
-                    f"rendered line is {len(rendered)} characters, "
-                    f"limit is {self.line_max}: move the remainder to "
-                    f"the improvements section",
-                )
-            )
-
-        return tuple(out)
+            ]
+        if not _REF_RE.match(task.ref):
+            return [Violation("ref.format", "ref", f"not an <x.y> anchor: {task.ref!r}")]
+        return []
 
     def check(self, task: Task) -> Task:
         """Return the task, or raise :class:`SchemaError` with every violation."""
@@ -330,14 +410,6 @@ class Schema:
                     field,
                     "leading or trailing whitespace (refused, not trimmed: the tool "
                     "does not silently rewrite text it did not author)",
-                )
-            )
-        if "**" in value:
-            out.append(
-                Violation(
-                    f"{field}.markup",
-                    field,
-                    "'**' is the field delimiter and cannot appear inside a field",
                 )
             )
         if len(value) > limit:

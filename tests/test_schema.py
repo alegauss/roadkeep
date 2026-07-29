@@ -5,21 +5,21 @@ below fail if the schema stops being able to express the 26 lines it was measure
 from, which is the difference between a format proven by an artefact and one
 asserted in a README.
 
-The line reader at the bottom of this file is deliberately test-local and
-throwaway — RK2 owns parsing, and until it lands the corpus tests need *some* way
-to reach the fields. It is not imported from `roadkeep`.
+Reaching the fields is `Document`'s job (RK2); these tests are about what the
+schema says once they are read.
 """
 
 from __future__ import annotations
 
-import re
 from pathlib import Path
 
 import pytest
 
+from roadkeep.document import Document
 from roadkeep import (
     DESIGNED,
     IDEA,
+    PARTIAL,
     SHIPPED,
     Dep,
     Schema,
@@ -64,13 +64,25 @@ def test_empty_deps_render_as_an_em_dash():
     assert "(deps: —)" in SCHEMA.render(task(deps=()))
 
 
-def test_deps_render_with_the_shipped_marker_only_when_shipped():
-    line = SCHEMA.render(task(id="RK5", deps=(Dep("RK1", shipped=True), Dep("RK2"))))
+def test_deps_render_the_markers_they_carry():
+    line = SCHEMA.render(task(id="RK5", deps=(Dep("RK1", SHIPPED), Dep("RK2"))))
     assert f"(deps: RK1 {SHIPPED}, RK2)" in line
 
 
+def test_a_dep_marker_is_any_status_not_only_shipped():
+    # Shio annotates ⏳ and 📋 deps: the marker caches the target's status (RK8),
+    # so every status it can hold is representable.
+    assert SCHEMA.validate(task(id="RK5", deps=(Dep("RK1", PARTIAL),))) == ()
+    assert f"(deps: RK1 {PARTIAL})" in SCHEMA.render(task(id="RK5", deps=(Dep("RK1", PARTIAL),)))
+
+
+def test_a_dep_marker_that_is_not_a_status_is_refused():
+    codes = {v.code for v in SCHEMA.validate(task(id="RK5", deps=(Dep("RK1", "soon"),)))}
+    assert codes == {"deps.marker"}
+
+
 def test_plain_string_deps_are_coerced():
-    assert task(id="RK5", deps=("RK1",)).deps == (Dep("RK1", shipped=False),)
+    assert task(id="RK5", deps=("RK1",)).deps == (Dep("RK1", marker=None),)
 
 
 def test_a_task_without_a_ref_renders_without_the_arrow():
@@ -203,8 +215,15 @@ def test_a_ref_carrying_its_sigil_is_refused():
     assert "I.1" in violation.message
 
 
+def test_a_pointer_at_a_whole_section_is_accepted():
+    # Turing has nine of these. RK15's rule is that a pointer resolves, not that
+    # it carries a dot.
+    assert SCHEMA.validate(task(ref="XLV")) == ()
+    assert SCHEMA.validate(task(ref="XIV.8.7")) == ()
+
+
 def test_a_ref_that_is_not_an_anchor_is_refused():
-    assert {v.code for v in SCHEMA.validate(task(ref="I"))} == {"ref.format"}
+    assert {v.code for v in SCHEMA.validate(task(ref="Block A"))} == {"ref.format"}
 
 
 # -- round-trip safety (refused, not repaired) -----------------------------
@@ -220,9 +239,14 @@ def test_padding_is_refused_rather_than_trimmed():
     assert violation.code == "symptom.whitespace"
 
 
-def test_the_field_delimiter_cannot_appear_inside_a_field():
+def test_the_delimiter_cannot_appear_inside_the_symptom_it_closes():
     codes = {v.code for v in SCHEMA.validate(task(symptom="a **bold** claim"))}
     assert codes == {"symptom.markup"}
+
+
+def test_bold_inside_a_why_is_not_the_tools_business():
+    # 25 of Shio's lines do this and every one round-trips.
+    assert SCHEMA.validate(task(why="`HELP` is a **template literal**.")) == ()
 
 
 def test_an_empty_field_is_refused_once():
@@ -263,53 +287,12 @@ def test_limits_must_be_positive():
         Schema(why_max=0)
 
 
-# -- test-local line reader (RK2 replaces this) ----------------------------
-
-_LINE = re.compile(
-    r"^- (?P<status>\S+) \*\*(?P<id>[A-Z]+[0-9]+)\*\* \(deps: (?P<deps>[^)]*)\) "
-    r"\*\*(?P<symptom>.+?)\*\* — (?P<why>.+?)"
-    r"(?: → §(?P<ref>\S+))?$"
-)
-_BLOCK = re.compile(r"^## Block (?P<block>\S+)")
+# -- reaching the corpus ---------------------------------------------------
 
 
 def read_corpus_lines() -> list[str]:
-    return [line for line, _ in _read()]
+    return [e.raw for e in Document.load(ROADMAP, SCHEMA).entries]
 
 
 def read_corpus() -> list[Task]:
-    return [t for _, t in _read()]
-
-
-def _read() -> list[tuple[str, Task]]:
-    out: list[tuple[str, Task]] = []
-    block = "?"
-    for raw in ROADMAP.read_text(encoding="utf-8").splitlines():
-        heading = _BLOCK.match(raw)
-        if heading:
-            block = heading.group("block")
-            continue
-        match = _LINE.match(raw)
-        if not match:
-            continue  # prose bullets (the non-goals) are not task lines
-        deps = ()
-        if match.group("deps") != "—":
-            deps = tuple(
-                Dep(d.split()[0], shipped=SHIPPED in d)
-                for d in match.group("deps").split(", ")
-            )
-        out.append(
-            (
-                raw,
-                Task(
-                    id=match.group("id"),
-                    status=match.group("status"),
-                    block=block,
-                    symptom=match.group("symptom"),
-                    why=match.group("why"),
-                    deps=deps,
-                    ref=match.group("ref"),
-                ),
-            )
-        )
-    return out
+    return [e.task for e in Document.load(ROADMAP, SCHEMA).entries]

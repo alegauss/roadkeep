@@ -50,14 +50,6 @@ session doing.
 
 ## §I — The model
 
-### §I.2 Round-trip as the ownership test (RK2)
-
-The tool edits files a human also edits, so it must reproduce what it read
-byte-for-byte before it is allowed to write. Parse → render → compare, over a corpus
-of real files, as a property test. If round-trip fails on a line, the tool refuses to
-rewrite that file rather than normalizing it silently — L3 exists because a formatter
-that "fixes" what it misunderstood destroys work no diff review will catch.
-
 ### §I.3 `roadkeep.toml` (RK3)
 
 Prefix (`SH`, `RK`, `TU`), the file paths, the marker set, per-field limits, and which

@@ -41,11 +41,22 @@ docs/IMPROVEMENTS.md   design rationale for UNSHIPPED sections only
 agents.md              this file
 src/roadkeep/          the package (src layout, importable via pytest pythonpath)
   schema.py            RK1 — Task, Dep, Schema, Violation; validate() and render()
+  document.py          RK2 — Document.parse/render, Entry, Reject, RoundTripError
 tests/                 pytest; docs/ROADMAP.md is a fixture, not a mock
 ```
 
 `Schema.render` is the only writer of the line format and `Schema.validate` the only
 reader of the rules — a new command imports them rather than re-deriving either.
+`Document` is the only reader of a file: it keeps every source line verbatim, and
+**every mutator refuses the whole file** when any line it parsed would render back
+differently. Three consequences worth knowing before writing a command:
+
+- A file is read under a `Schema`; the changelog is `schema.as_ledger()` (✅, no deps,
+  no pointer), not a second grammar.
+- A marker-bearing line the grammar rejects becomes a `Reject` **with a reason**, never
+  a silent skip. A dep the schema dislikes (`Block P`) still parses, so the line stays
+  counted and `lint` reports it — that split is deliberate.
+- Never construct a task line with an f-string. `Schema.render` or nothing.
 
 ## This repo's own docs are the conformance fixture
 
