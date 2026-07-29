@@ -114,14 +114,14 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 8 |
 | B — Authoring (insert, never hand-edit) | 0 | 6 |
 | C — Query (consult without reading the file) | 0 | 8 |
-| D — The gate | 6 | 2 |
+| D — The gate | 5 | 3 |
 | E — Adoption | 4 | 0 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 5 | 0 |
-| **Total** | 15 | 24 |
+| **Total** | 14 | 25 |
 
 **Next ready:**
 
-- 📋 **RK16** (deps: RK14 ✅) **A report of ninety-two violations is a report nobody acts on** — `lint --fix` normalizes what is mechanical (ordering, dep markers, whitespace) and reports only what needs a human decision. → §RK16
+- 📋 **RK17** (deps: RK14 ✅) **A gate that runs only on a developer's machine is not a gate** — ship a GitHub Action and a pre-commit hook that both call the same exit code. → §RK17
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -42,6 +42,7 @@ from roadkeep.config import Config, ConfigError
 from roadkeep.counting import Census
 from roadkeep.document import Document, Entry, Reject, RoundTripError
 from roadkeep.exporting import project, splice
+from roadkeep.fixing import Fix, fix
 from roadkeep.graph import Graph, Leverage
 from roadkeep.history import Commit, HistoryUnavailable, Origin, gaps, origin_of
 from roadkeep.ids import highest, next_id
@@ -261,6 +262,11 @@ def build_parser() -> argparse.ArgumentParser:
             "that does not round-trip and every dep nothing can satisfy — and exits "
             "non-zero, which is the entire difference between a gate and advice."
         ),
+    )
+    lint_parser.add_argument(
+        "--fix",
+        action="store_true",
+        help="normalize what is mechanical first, then report what needs a decision",
     )
     lint_parser.add_argument(
         "--quiet",
@@ -842,6 +848,9 @@ def _audit(config: Config, args: argparse.Namespace) -> int:
 
 def _lint(config: Config, args: argparse.Namespace) -> int:
     try:
+        # The mechanical pass runs first and the report is taken afterwards, so what is
+        # printed is what is left — the whole point of RK16.
+        applied = fix(config) if args.fix else Fix()
         report = lint(config)
     except (KeyError, OSError) as error:
         return _refused(error)
@@ -850,7 +859,28 @@ def _lint(config: Config, args: argparse.Namespace) -> int:
         print(
             json.dumps(
                 {
-                    "clean": report.clean,
+                    "clean": report.clean and not applied.refused,
+                    "fixed": [
+                        {
+                            "file": repair.file,
+                            "line": repair.lineno,
+                            "id": repair.id,
+                            "reasons": list(repair.reasons),
+                            "before": repair.before,
+                            "after": repair.after,
+                        }
+                        for repair in applied.repairs
+                    ],
+                    "kept": [
+                        {
+                            "file": s.file,
+                            "line": s.lineno,
+                            "id": s.id,
+                            "reason": s.reason,
+                        }
+                        for s in applied.skipped
+                    ],
+                    "refused": list(applied.refused),
                     "checked": list(report.checked),
                     "lines": report.lines,
                     "sections": report.sections,
@@ -861,13 +891,25 @@ def _lint(config: Config, args: argparse.Namespace) -> int:
                 indent=2,
             )
         )
-        return EXIT_OK if report.clean else EXIT_GATE
+        return EXIT_OK if report.clean and not applied.refused else EXIT_GATE
+
+    if not args.quiet:
+        for repair in applied.repairs:
+            print(str(repair))
+        for kept in applied.skipped:
+            print(str(kept))
+    for message in applied.refused:
+        # A pass that could not prove its own output wrote nothing, and saying so is the
+        # difference between "clean" and "unexamined".
+        print(f"roadkeep: refused, nothing written: {message}", file=sys.stderr)
+    if applied.repairs:
+        print(f"{applied.changed} line(s) normalized in {', '.join(applied.files)}")
 
     if report.clean:
         # The files are named on the way out even when there is nothing to say: a gate
         # that passed by reading nothing looks exactly like a gate that passed.
         print(f"{', '.join(report.checked) or 'nothing'}: {_scope(report)}, clean")
-        return EXIT_OK
+        return EXIT_GATE if applied.refused else EXIT_OK
     if not args.quiet:
         for finding in report.findings:
             print(str(finding))

@@ -249,8 +249,7 @@ class Document:
     def replace_line(self, index: int, raw: str) -> Document:
         self.ensure_writable()
         lines = list(self.lines)
-        ending = _ending(lines[index])
-        lines[index] = raw + ending
+        lines[index] = raw + ending(lines[index])
         return self._reparse(lines)
 
     def insert_line(self, index: int, raw: str) -> Document:
@@ -259,7 +258,7 @@ class Document:
         lines = list(self.lines)
         # A file whose last line has no ending would otherwise get the new line
         # glued onto it — the exact corruption this module exists to prevent.
-        if lines and index >= len(lines) and not _ending(lines[-1]):
+        if lines and index >= len(lines) and not ending(lines[-1]):
             lines[-1] += self.newline
         lines.insert(index, raw + self.newline)
         return self._reparse(lines)
@@ -299,7 +298,13 @@ def blank(line: str) -> bool:
     return not line.strip()
 
 
-def _ending(line: str) -> str:
+def ending(line: str) -> str:
+    """The line's own terminator, or empty at a file that ends without one.
+
+    Public for the same reason as :func:`blank`: a writer that replaces a line has to put
+    back the ending that line had, and a second implementation of this would be the one
+    that turns a CRLF file into a mixed one on the first fix (RK16).
+    """
     for candidate in ("\r\n", "\n", "\r"):
         if line.endswith(candidate):
             return candidate

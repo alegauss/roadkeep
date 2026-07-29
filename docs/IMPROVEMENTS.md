@@ -54,15 +54,6 @@ session doing.
 
 ## Block D — The gate
 
-### §RK16 `--fix`
-
-A first run against a real backlog reports dozens of violations, and a report that
-large gets ignored wholesale. So separate the mechanical (ordering, dep markers,
-whitespace, marker spacing) from the editorial (an over-long `why`) and auto-apply the
-first, leaving a list short enough to act on. Migrating between pointer schemes is
-mechanical too, and RK27 had to do it with a throwaway script because this does not
-exist yet.
-
 ### §RK17 One exit code, three surfaces
 
 A GitHub Action, a pre-commit hook, and the plugin's `Stop` hook all call the same

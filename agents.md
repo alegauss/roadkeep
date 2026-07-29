@@ -72,7 +72,10 @@ wrong lines, so a schema change validates here first, under this repo's own `roa
 Don't hand-check it: `… lint` reports every violation, every line that stopped round-tripping,
 every dep nothing can satisfy, every `→ §RK<n>` that resolves to nothing and every section
 nothing points at, and **exits 1** when it finds one — that exit code is the whole gate
-(RK14/RK15). It never repairs: what it prints is the canonical line, the edit is yours.
+(RK14/RK15). `--fix` normalizes only what is **derived** — the dep annotation, the pointer,
+dep order, an invisible codepoint, field whitespace — then reports what needs a decision
+(RK16); it re-parses to prove its own output before the disk sees it, or writes nothing at
+all. Everything else it prints is the canonical line and the edit is yours.
 `… stats` still gives the tallies and the longest line (**314** of 320).
 
 ## Writing and shipping — call the command, never type the format
