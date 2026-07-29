@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" width="1280" height="640" role="img" aria-label="roadkeep — a schema at the point of insertion">
+  <title>roadkeep — a schema at the point of insertion</title>
+  <desc>Social preview: the roadkeep mark — task lines cut at a gate, the refused remainder beyond it — beside the wordmark, tagline and repository URL. Fixed palette, because this file is rasterised and cannot follow a reader's theme.</desc>
+
+  <rect x="0" y="0" width="1280" height="640" fill="#0b1220"/>
+
+  <!-- the mark, at 1.5x the icon, optically centred with the text block -->
+  <g transform="translate(179 202) scale(1.5)">
+    <rect fill="#cbd5e1" x="24" y="34"  width="46" height="12" rx="6"/>
+    <rect fill="#cbd5e1" x="24" y="62"  width="72" height="12" rx="6"/>
+    <rect fill="#cbd5e1" x="24" y="90"  width="58" height="12" rx="6"/>
+    <rect fill="#cbd5e1" x="24" y="118" width="90" height="12" rx="6"/>
+    <rect fill="#f59e0b" x="120" y="22" width="8" height="116" rx="4"/>
+    <rect fill="#cbd5e1" opacity=".26" x="136" y="118" width="30" height="12" rx="6"/>
+  </g>
+
+  <text x="470" y="300" fill="#f1f5f9"
+        font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+        font-size="104" font-weight="600" letter-spacing="-3">roadkeep</text>
+
+  <text x="474" y="356" fill="#94a3b8"
+        font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+        font-size="30" letter-spacing="-.5">a schema at the point of insertion</text>
+
+  <text x="474" y="414" fill="#f59e0b"
+        font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+        font-size="24" letter-spacing="-.5">github.com/alegauss/roadkeep</text>
+</svg>

@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" width="1200" height="300" role="img" aria-label="roadkeep — a schema at the point of insertion">
+  <title>roadkeep — a schema at the point of insertion</title>
+  <desc>Banner: the roadkeep mark, wordmark and tagline, with task lines receding against the gate.</desc>
+  <style>
+    .bg      { fill: #f8fafc; }
+    .bar     { fill: #334155; }
+    .gate    { fill: #b45309; }
+    .cut     { fill: #334155; opacity: .26; }
+    .word    { fill: #0f172a; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 76px; font-weight: 600; letter-spacing: -2px; }
+    .tag     { fill: #475569; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 26px; letter-spacing: -.5px; }
+    .texture { fill: #334155; opacity: .10; }
+    @media (prefers-color-scheme: dark) {
+      .bg      { fill: #0b1220; }
+      .bar     { fill: #cbd5e1; }
+      .gate    { fill: #f59e0b; }
+      .cut     { fill: #cbd5e1; opacity: .26; }
+      .word    { fill: #f1f5f9; }
+      .tag     { fill: #94a3b8; }
+      .texture { fill: #cbd5e1; opacity: .10; }
+    }
+  </style>
+
+  <rect class="bg" x="0" y="0" width="1200" height="300"/>
+
+  <!-- the mark, at the same proportions as the icon -->
+  <g transform="translate(88 70)">
+    <rect class="bar" x="24" y="34"  width="46" height="12" rx="6"/>
+    <rect class="bar" x="24" y="62"  width="72" height="12" rx="6"/>
+    <rect class="bar" x="24" y="90"  width="58" height="12" rx="6"/>
+    <rect class="bar" x="24" y="118" width="90" height="12" rx="6"/>
+    <rect class="gate" x="120" y="22" width="8" height="116" rx="4"/>
+    <rect class="cut" x="136" y="118" width="30" height="12" rx="6"/>
+  </g>
+
+  <text class="word" x="300" y="150">roadkeep</text>
+  <text class="tag"  x="304" y="196">a schema at the point of insertion</text>
+
+  <!-- the same rule, repeated: every line measured against one cap -->
+  <g class="texture">
+    <rect x="856" y="86"  width="196" height="10" rx="5"/>
+    <rect x="856" y="114" width="248" height="10" rx="5"/>
+    <rect x="856" y="142" width="164" height="10" rx="5"/>
+    <rect x="856" y="170" width="228" height="10" rx="5"/>
+    <rect x="856" y="198" width="132" height="10" rx="5"/>
+  </g>
+  <rect class="cut" x="1116" y="76" width="6" height="132" rx="3"/>
+</svg>

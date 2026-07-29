@@ -1,4 +1,25 @@
-# roadkeep
+<p align="center">
+  <img src="docs/assets/roadkeep-banner.svg" alt="roadkeep — a schema at the point of insertion" width="840">
+</p>
+
+<!--
+  Assets in docs/assets/ — the mark is task lines cut at a gate, with the refused
+  remainder faded beyond it. The SVGs follow the reader's light/dark theme; the PNG
+  cannot, so it carries a fixed dark palette.
+
+    roadkeep-mark.svg     160x160   icon
+    roadkeep-logo.svg     520x160   mark + wordmark
+    roadkeep-banner.svg  1200x300   the header above
+    roadkeep-social.svg  1280x640   source for the link preview
+    roadkeep-social.png  1280x640   upload at Settings > General > Social preview.
+                                    This is what renders when the repo URL is pasted
+                                    into LinkedIn, Slack or a link card anywhere else.
+                                    Re-render after editing the SVG:
+                                    msedge --headless=new --window-size=1280,640 \
+                                      --screenshot=docs/assets/roadkeep-social.png \
+                                      file:///.../docs/assets/roadkeep-social.svg
+-->
+
 
 **A CLI that owns the writes to your `ROADMAP.md`, `CHANGELOG.md`, `IMPROVEMENTS.md`
 and `STRATEGY.md`, so the format is a schema at the point of insertion instead of a
