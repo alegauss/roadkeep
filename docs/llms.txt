@@ -1,0 +1,73 @@
+# roadkeep
+
+> A CLI that owns the writes to a project's `ROADMAP.md`, `CHANGELOG.md`,
+> `IMPROVEMENTS.md` and `STRATEGY.md`, so the format is a schema at the point of
+> insertion instead of a convention an author is asked to remember. It refuses an
+> over-length field before the sentence is composed, rather than reporting on it
+> after the tokens are spent. Python >=3.11, zero runtime dependencies (`argparse`
+> and `tomllib`), Markdown-only store. Shipped as a Claude Code plugin, because the
+> author to constrain is usually an agent.
+
+Status: early. 9 of 36 tasks shipped — the model, `add`, and the git-derived queries
+work; the `lint`/`ship` gate and the plugin hook do not. Not on PyPI yet:
+`pip install git+https://github.com/alegauss/roadkeep`.
+
+This file is deliberately short. A tool whose thesis is that prose expands to fill
+whatever room it is given cannot ship a 2000-word summary of itself; the links below
+are the detail, and each one is fetchable Markdown.
+
+## Why it exists
+
+Three files in a real production repository each declared a format and none enforced
+it: a roadmap whose rule was one sentence per task averaged 142 words across 92 lines
+(worst line 1406 characters), an `agents.md` meant to be an index reached 186 KB
+(~46k tokens) while being loaded every turn, and an `IMPROVEMENTS.md` scoped to
+unshipped work reached 539 KB. Six of the eight worst lines were written in the
+session that then diagnosed the problem — so the drift is invited by the process, not
+caused by inattention. A linter cannot fix this, because it reports after the prose
+exists. The saving is the analysis, not the characters.
+
+## The six laws
+
+A change that breaks one is wrong even if requested.
+
+- **L1** — the format is a schema, enforced where the text is created; `lint` is only the backstop.
+- **L2** — the store is the repository: Markdown, greppable, diffable, no database and no service.
+- **L3** — round-trip or don't write: parse then render must be byte-identical, or the file is refused.
+- **L4** — the tool never writes prose; it validates and renders.
+- **L5** — query instead of read: every question is a command, so answering costs no context.
+- **L6** — configuration, not convention: prefix, paths, markers and limits are per project.
+
+## Commands that work today
+
+All take `--json`, which carries provenance (which file and which line the answer came
+from), because an answer an agent cannot audit gets verified by reading the file — the
+cost the command existed to remove.
+
+- `roadkeep add` — compose a task line from validated fields; refuses over-length input and writes nothing.
+- `roadkeep next-id` — the next unused id, one past the highest found in any configured source.
+- `roadkeep deps <id>` — resolve a task's deps, naming the ones nothing can resolve rather than calling them pending.
+- `roadkeep origin <id>` — the commits that proposed and shipped a task, derived from git, with the reasoning that was dropped.
+
+Not yet built: `ship`, `lint`, `pick`, `show`, and the plugin hook that denies an agent
+the hand-edit.
+
+## Non-goals
+
+These are binding; check them before proposing work.
+
+- No web UI and no server — files and a CLI.
+- No issue-tracker sync — a backlog that lives in a service is one an agent cannot `grep`.
+- No model and no prompts inside the tool — it never writes the symptom or the rationale.
+- No dates, quarters or estimates — a marker is maturity, not a schedule.
+
+## Links
+
+- [Website](https://alegauss.github.io/roadkeep/): project landing page
+- [GitHub repository](https://github.com/alegauss/roadkeep): source code
+- [README](https://raw.githubusercontent.com/alegauss/roadkeep/main/README.md): the problem measured, the comparison against linters and task-file tools, install
+- [agents.md](https://raw.githubusercontent.com/alegauss/roadkeep/main/agents.md): the development guide an agent is expected to follow in this repository
+- [ROADMAP.md](https://raw.githubusercontent.com/alegauss/roadkeep/main/docs/ROADMAP.md): the active backlog, one line per task, and the binding non-goals
+- [CHANGELOG.md](https://raw.githubusercontent.com/alegauss/roadkeep/main/docs/CHANGELOG.md): the shipped ledger, indexed by block
+- [IMPROVEMENTS.md](https://raw.githubusercontent.com/alegauss/roadkeep/main/docs/IMPROVEMENTS.md): design rationale for unshipped work, and the authoritative statement of the six laws
+- [roadkeep.toml](https://raw.githubusercontent.com/alegauss/roadkeep/main/roadkeep.toml): this project's own configuration, which the tool reads — the repository is its own conformance fixture

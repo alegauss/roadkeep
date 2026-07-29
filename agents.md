@@ -43,7 +43,7 @@ src/roadkeep/          the package (src layout, importable via pytest pythonpath
   document.py          RK2 — Document.parse/render, Entry, Reject, RoundTripError
   config.py            RK3 — Config.discover/document; refuses an unknown key
   ids.py               RK4 — scan/highest/next_id across every configured source
-  authoring.py         RK5 — add(): compose/validate/place; nothing written unless all
+  authoring.py         RK5/RK7 — add(), set_status(); nothing written unless all of it
   shipping.py          RK6 — ship(): three edits, validated together, written last
   backlog.py           RK28/RK37 — resolve/readiness; four dep kinds, four answers
   history.py           RK31 — origin_of(): the shipping commit, derived from git
@@ -70,8 +70,8 @@ asserted in a README. A limit that cannot express these lines is the wrong limit
 than a set of wrong lines, so this repository is the first thing a schema change must
 still validate — under its own `roadkeep.toml`, which is what makes L6 a fact here.
 
-Current reading (RK14/RK15 replace this hand-verification): 26 tasks, longest line
-**305** chars against a 320 cap, 26/26 pointers resolve, no orphan section.
+Current reading (RK14/RK15 replace this hand-verification): 25 tasks, longest line
+**305** chars against a 320 cap, 25/25 pointers resolve, no orphan section.
 
 ## Writing and shipping — call the command, never type the format
 
