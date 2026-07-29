@@ -50,15 +50,6 @@ session doing.
 
 ## §I — The model
 
-### §I.1 A schema over the task line (RK1)
-
-Six fields: `id`, `status`, `block`, `deps`, `symptom`, `why`, `ref`. Limits are the
-P90 of the lines that already read well — `symptom` 120, `why` 200, rendered line 320
-characters. Two rules are not lengths and matter as much: `symptom` states **what does
-not work** (never a solution name, because a line named after its fix cannot be
-falsified), and `why` is **one sentence** — a second sentence is the signal that the
-content belongs in this file instead.
-
 ### §I.2 Round-trip as the ownership test (RK2)
 
 The tool edits files a human also edits, so it must reproduce what it read
@@ -158,7 +149,9 @@ by the artefact rather than asserted in a README.
 
 A `→ §x.y` aimed at a section that does not exist reads exactly like a design that
 does, which is worse than no pointer — it makes a reader stop looking. Resolve every
-pointer against the improvements file and every spec path against disk.
+pointer against the improvements file and every spec path against disk. Scan the
+rendered `ref` field only, never the line: RK15's own `why` quotes `` `→ §x.y` `` as
+an example, and a naive scan reports it as a broken pointer.
 
 ### §IV.3 `--fix` (RK16)
 

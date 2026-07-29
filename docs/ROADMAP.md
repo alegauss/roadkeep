@@ -22,14 +22,13 @@
 
 ## Block A — The model (a task is data before it is a line)
 
-- 📋 **RK1** (deps: —) **Nothing knows what a task line is, so every check is a regex over prose** — a schema over the six fields (id, status, block, deps, symptom, why, ref) is the only thing that can refuse an over-length line at write time. → §I.1
-- 📋 **RK2** (deps: RK1) **A parser that cannot re-render what it read corrupts the file it edits** — parse → render → byte-identical is the invariant that lets a CLI own writes to a hand-written Markdown file. → §I.2
-- 📋 **RK3** (deps: RK1) **Hardcoding one project's vocabulary makes the tool single-use** — `roadmap.toml` carries prefix, file paths, marker set and per-field limits, so Turing's `STRATEGY.md` and Shio's absence of one are both configurations. → §I.3
+- 📋 **RK2** (deps: RK1 ✅) **A parser that cannot re-render what it read corrupts the file it edits** — parse → render → byte-identical is the invariant that lets a CLI own writes to a hand-written Markdown file. → §I.2
+- 📋 **RK3** (deps: RK1 ✅) **Hardcoding one project's vocabulary makes the tool single-use** — `roadmap.toml` carries prefix, file paths, marker set and per-field limits, so Turing's `STRATEGY.md` and Shio's absence of one are both configurations. → §I.3
 - 📋 **RK4** (deps: RK2) **The next id cannot be inferred from a block header, and a wrong guess collides with a retired one** — take the max across every configured file, in one command, with no counter file to drift. → §I.4
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK5** (deps: RK1, RK2, RK3) **Writing the line by hand is where the prose leaks in** — `add` takes the fields, refuses over-length at input, renders the canonical line and inserts it under its block. → §II.1
+- 📋 **RK5** (deps: RK1 ✅, RK2, RK3) **Writing the line by hand is where the prose leaks in** — `add` takes the fields, refuses over-length at input, renders the canonical line and inserts it under its block. → §II.1
 - 📋 **RK6** (deps: RK5) **Shipping a task is four edits across three files, so one is always missed** — `ship` moves the entry to the changelog under its block, drops its improvements section, and leaves the roadmap a pointer or nothing. → §II.2
 - 📋 **RK7** (deps: RK5) **Two files can disagree about one task's status** — `status` writes the marker in the roadmap only, and fails if a sibling file carries one. → §II.3
 - 📋 **RK8** (deps: RK6) **A dep annotation goes stale the moment its target ships** — derive the `(deps: RK1 ✅)` markers on every write so a shipped dep never reads as pending. → §II.4
@@ -44,7 +43,7 @@
 
 ## Block D — The gate
 
-- 📋 **RK14** (deps: RK1, RK2) **A format that is documented but not enforced is a format that drifts** — `lint` validates every line against the schema and exits non-zero, which is what makes it a gate rather than advice. → §IV.1
+- 📋 **RK14** (deps: RK1 ✅, RK2) **A format that is documented but not enforced is a format that drifts** — `lint` validates every line against the schema and exits non-zero, which is what makes it a gate rather than advice. → §IV.1
 - 📋 **RK15** (deps: RK14) **A pointer to a section that does not exist reads as a design that does** — resolve every `→ §x.y` against the improvements file and every spec path against disk. → §IV.2
 - 📋 **RK16** (deps: RK14) **A report of ninety-two violations is a report nobody acts on** — `lint --fix` normalizes what is mechanical (ordering, dep markers, whitespace) and reports only what needs a human decision. → §IV.3
 - 📋 **RK17** (deps: RK14) **A gate that runs only on a developer's machine is not a gate** — ship a GitHub Action and a pre-commit hook that both call the same exit code. → §IV.4

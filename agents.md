@@ -39,9 +39,13 @@ docs/ROADMAP.md        active backlog, one line per task (RK<n>)
 docs/CHANGELOG.md      shipped ledger, indexed by block
 docs/IMPROVEMENTS.md   design rationale for UNSHIPPED sections only
 agents.md              this file
+src/roadkeep/          the package (src layout, importable via pytest pythonpath)
+  schema.py            RK1 — Task, Dep, Schema, Violation; validate() and render()
+tests/                 pytest; docs/ROADMAP.md is a fixture, not a mock
 ```
 
-Nothing else exists yet. Code lands with RK1.
+`Schema.render` is the only writer of the line format and `Schema.validate` the only
+reader of the rules — a new command imports them rather than re-deriving either.
 
 ## This repo's own docs are the conformance fixture
 
@@ -50,9 +54,11 @@ asserted in a README. So when you change the schema, this repository is the firs
 that has to still validate, and a limit that cannot express these 26 lines is a wrong
 limit rather than 26 wrong lines.
 
-Current reading, verified by hand (the work RK14/RK15 exist to delete): 26 tasks,
-longest line **260** chars against a 320 cap, 26/26 `→ §x.y` pointers resolve, no
-orphan improvements section.
+Current reading (RK14/RK15 exist to replace this by hand-verification): 25 tasks,
+longest line **260** chars against a 320 cap, 25/25 `→ §x.y` pointers resolve, no
+orphan improvements section. Since RK1, `tests/test_schema.py` asserts the first two
+against `docs/ROADMAP.md` itself, so a schema change that cannot express this backlog
+fails the suite rather than a review.
 
 ## Writing a task line — until `roadkeep add` exists
 
@@ -88,7 +94,9 @@ not priority: **A** (model) → **B** (authoring) → **C** (query) → **D** (g
 - **Zero runtime dependencies.** `argparse` + `tomllib`, not `click` + `pydantic`. A
   tool meant to run as `uvx roadkeep` in someone else's CI pays for every dependency,
   and the schema is 200 lines of validation, not a framework.
-- `uv` is **not** installed on this machine — use `python -m pytest`.
+- `uv` is **not** installed on this machine — use `python -m pytest` from the repo root
+  (`pythonpath = ["src"]` is in `pyproject.toml`, so no install step). `pytest` is the
+  only dev dependency: `python -m pip install --user pytest`.
 - Round-trip (L3) is a **property test over real files**, not an example test: the
   corpus is `docs/` here plus Shio's and Turing's roadmaps.
 
