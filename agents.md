@@ -44,6 +44,8 @@ src/roadkeep/          the package (src layout, importable via pytest pythonpath
   schema.py            RK1 — Task, Dep, Schema, Violation; validate() and render()
   document.py          RK2 — Document.parse/render, Entry, Reject, RoundTripError
   config.py            RK3 — Config.discover/document; refuses an unknown key
+  ids.py               RK4 — scan/highest/next_id across every configured source
+  cli.py               the command surface; one subparser per task, exit 0/1/2
 tests/                 pytest; docs/ROADMAP.md is a fixture, not a mock
 ```
 
@@ -68,13 +70,11 @@ asserted in a README. So when you change the schema, this repository is the firs
 that has to still validate, and a limit that cannot express these 26 lines is a wrong
 limit rather than 26 wrong lines.
 
-Current reading (RK14/RK15 exist to replace this by hand-verification): 28 tasks,
-longest line **307** chars against a 320 cap, 28/28 `→ §x.y` pointers resolve, no
-orphan improvements section. Since RK1 the suite asserts the first two against
-`docs/ROADMAP.md` itself, so a schema change that cannot express this backlog fails the
-tests rather than a review — and since RK3 it asserts them under this repository's own
-`roadkeep.toml`, so "configuration, not convention" is not a claim about other people's
-projects.
+Current reading (RK14/RK15 replace this hand-verification): 27 tasks, longest line
+**307** chars against a 320 cap, 27/27 `→ §x.y` pointers resolve, no orphan section.
+The suite asserts the first two against `docs/ROADMAP.md` itself, under this
+repository's own `roadkeep.toml` — so a schema or config change that cannot express
+this backlog fails the tests rather than a review.
 
 ## Writing a task line — until `roadkeep add` exists
 
@@ -94,8 +94,8 @@ Four rules, and they are the schema RK1 encodes:
 3. **≤320 characters rendered** (`symptom` ≤120, `why` ≤200).
 4. **Every `→ §x.y` must resolve** to a `### §x.y` heading in `IMPROVEMENTS.md`.
 
-**Next id:** max across `docs/*.md` and this file. Ids are non-contiguous by design and
-retired ids are never reused, so never infer one from a block's header range.
+**Next id:** `python -m roadkeep.cli next-id`. Never guess and never fill a gap — a
+retired id is never reused, and the rule now lives in code (RK4), not here.
 
 ## Picking work
 

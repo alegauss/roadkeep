@@ -50,13 +50,6 @@ session doing.
 
 ## §I — The model
 
-### §I.4 Deriving the next id (RK4)
-
-Real backlogs are non-contiguous — epics own sub-ranges, superseded ids are retired
-and never reused — so the next id is the max across **every** configured file plus any
-declared extras, never inferred from a block's header range. A counter file would be a
-second source of truth that drifts; the maximum is derivable, so derive it.
-
 ### §I.5 Anchors keyed by task id (RK27)
 
 An outline anchor is a decision at write time (which number?) and a liability at ship
