@@ -24,6 +24,8 @@
 
 - 📋 **RK3** (deps: RK1 ✅) **Hardcoding one project's vocabulary makes the tool single-use** — `roadmap.toml` carries prefix, file paths, marker set and per-field limits, so Turing's `STRATEGY.md` and Shio's absence of one are both configurations. → §I.3
 - 📋 **RK4** (deps: RK2 ✅) **The next id cannot be inferred from a block header, and a wrong guess collides with a retired one** — take the max across every configured file, in one command, with no counter file to drift. → §I.4
+- 📋 **RK27** (deps: RK1 ✅, RK2 ✅) **A pointer's target is numbered by hand, and deleting a section leaves a hole nobody renumbers** — keying each rationale section by task id makes the pointer derivable from the line, so shipping costs no renumbering and resolving it costs no reading of the outline. → §I.5
+- 📋 **RK28** (deps: RK1 ✅) **A dep the tool cannot resolve reads exactly like one that is merely pending** — `Block P` and `real design partners` are real deps on work outside the backlog, so a resolver has to name them unresolvable instead of counting them unfinished. → §I.6
 
 ## Block B — Authoring (insert, never hand-edit)
 
@@ -39,6 +41,7 @@
 - 📋 **RK11** (deps: RK10) **Picking work means reading the whole file to find one task whose deps are shipped** — `pick` applies the priority queue, then the lowest id with satisfied deps, and prints why it chose that one. → §III.2
 - 📋 **RK12** (deps: RK2 ✅) **A task's design lives in a second file and nothing joins them** — `show` prints the line, its improvements section and its spec path together. → §III.3
 - 📋 **RK13** (deps: RK10) **A blocked task looks identical to a ready one** — `deps` resolves the graph, names the blocker chain, and detects a cycle. → §III.4
+- 📋 **RK29** (deps: RK11, RK12) **Starting a task costs reading two whole files to learn one line's worth of context** — one call returns the line, its rationale, its deps' status and the paths it touches, which is the entire cost of starting work for an agent. → §III.5
 
 ## Block D — The gate
 
@@ -46,6 +49,7 @@
 - 📋 **RK15** (deps: RK14) **A pointer to a section that does not exist reads as a design that does** — resolve every `→ §x.y` against the improvements file and every spec path against disk. → §IV.2
 - 📋 **RK16** (deps: RK14) **A report of ninety-two violations is a report nobody acts on** — `lint --fix` normalizes what is mechanical (ordering, dep markers, whitespace) and reports only what needs a human decision. → §IV.3
 - 📋 **RK17** (deps: RK14) **A gate that runs only on a developer's machine is not a gate** — ship a GitHub Action and a pre-commit hook that both call the same exit code. → §IV.4
+- 📋 **RK30** (deps: RK14) **The instruction file loaded every turn has a budget nothing enforces** — `agents.md` reached 186 KB in Shio under exactly this rule, so the gate checks the declared line and byte budget of every always-loaded file. → §IV.5
 
 ## Block E — Adoption
 

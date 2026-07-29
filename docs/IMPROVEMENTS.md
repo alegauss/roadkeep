@@ -64,6 +64,27 @@ and never reused — so the next id is the max across **every** configured file 
 declared extras, never inferred from a block's header range. A counter file would be a
 second source of truth that drifts; the maximum is derivable, so derive it.
 
+### §I.5 Anchors keyed by task id (RK27)
+
+An outline anchor is a decision at write time (which number?) and a liability at ship
+time: deleting §I.1 leaves a hole, nobody renumbers, and a decaying outline is easier
+to append to than to repair — which is part of how a sibling project's improvements
+file reached 539 KB. Key the section by the id instead — `### §RK27` — and the pointer
+becomes derivable from the line that carries it: nothing to choose when writing,
+nothing to renumber when shipping, and `grep §RK27` reaches the rationale without
+reading the outline first. `§XIV.8.7` sorts by nothing and can be computed by nobody,
+which is the same tax in a different currency. Per-project (L6), because migrating a
+live outline is a separate decision from adopting the tool.
+
+### §I.6 A dep is not always a task (RK28)
+
+Shio's `(deps: Block P)` and Turing's `(deps: real design partners)` are honest — real
+work does wait on a whole block, and on things that are not work at all. Both parse
+today as ids that resolve to nothing, so a resolver reports them as pending, which
+makes a permanently blocked task look like the next one to start. Type them: a block
+dep resolves against that block's own readiness, and an external dep is unresolvable
+by construction and has to be printed as such rather than counted as unfinished.
+
 ## §II — Authoring
 
 ### §II.1 `add` (RK5)
@@ -128,6 +149,15 @@ A blocked task and a ready one are visually identical, so the graph has to be
 resolved: blocker chains, transitive readiness, and cycles. A cycle is a defect in the
 backlog and should fail `lint`, not merely print.
 
+### §III.5 One call to start a task (RK29)
+
+Starting RK1 in this repository cost reading ROADMAP.md and IMPROVEMENTS.md end to end
+— some 5k tokens to learn one task, of which one line and one paragraph mattered.
+`pick` and `show` each answer half the question. The accelerator is one call that
+returns the line, its rationale, its deps' resolved status, the non-goals that bind it
+and the paths it will touch: bounded output is the point, because an answer that fits
+in a tool result is an answer that costs nothing to consult twice.
+
 ## §IV — The gate
 
 ### §IV.1 `lint` (RK14)
@@ -156,6 +186,14 @@ first, leaving a list short enough to act on.
 
 A GitHub Action, a pre-commit hook, and the plugin's `Stop` hook all call the same
 command. A gate that runs in only one of the three is a gate with a documented bypass.
+
+### §IV.5 The context budget is a schema field (RK30)
+
+`agents.md` declares its own 150-line budget in prose, which is precisely the
+arrangement that let Shio's reach 186 KB. A file loaded every turn spends the resource
+this tool exists to protect, so its budget belongs in the configuration and its
+overrun in the gate's exit code, alongside every other rule that turned out to need
+enforcing rather than stating.
 
 ## §V — Adoption
 
