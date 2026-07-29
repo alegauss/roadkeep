@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>roadkeep — a schema at the point of insertion</title>
+<meta name="description" content="A CLI that owns the writes to your ROADMAP.md, CHANGELOG.md, IMPROVEMENTS.md and STRATEGY.md, so the format is a schema at the point of insertion instead of a convention an author is asked to remember.">
+
+<!-- Open Graph / social -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="roadkeep">
+<meta property="og:description" content="The format is a schema enforced where the text is created — not a convention an author is asked to remember. Shipped as a Claude Code plugin.">
+<meta property="og:image" content="assets/roadkeep-social.png">
+<meta property="og:url" content="https://alegauss.github.io/roadkeep/">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="icon" type="image/svg+xml" href="assets/roadkeep-mark.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --amber:#f59e0b;
+    --amber-bright:#fbbf24;
+    --amber-deep:#b45309;
+    --bg:#0b1220;
+    --bg-2:#0f172a;
+    --panel:#141d31;
+    --panel-2:#1b2540;
+    --line:#25314c;
+    --text:#f1f5f9;
+    --muted:#94a3b8;
+    --muted-2:#64748b;
+    --slate:#cbd5e1;
+    --red:#e5484d;
+    --radius:18px;
+    --maxw:1120px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Inter',system-ui,-apple-system,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  a{color:inherit;text-decoration:none}
+  code,kbd{font-family:'JetBrains Mono',monospace}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+  .accent{color:var(--amber)}
+
+  /* ambient background glow */
+  body::before{
+    content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+    background:
+      radial-gradient(900px 500px at 80% -5%, rgba(245,158,11,.18), transparent 60%),
+      radial-gradient(700px 600px at -10% 20%, rgba(245,158,11,.08), transparent 55%),
+      linear-gradient(180deg,var(--bg),var(--bg-2));
+  }
+
+  /* ---------- nav ---------- */
+  nav{
+    position:sticky;top:0;z-index:50;
+    -webkit-backdrop-filter:blur(12px);
+    backdrop-filter:blur(12px);
+    background:rgba(11,18,32,.74);
+    border-bottom:1px solid var(--line);
+  }
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:64px}
+  .brand{display:flex;align-items:center;gap:11px;font-family:'JetBrains Mono',monospace;font-weight:600;font-size:1.05rem;letter-spacing:-.03em}
+  .brand svg{width:30px;height:30px}
+  .nav-links{display:flex;align-items:center;gap:28px}
+  .nav-links a:not(.btn){color:var(--muted);font-weight:500;font-size:.95rem;transition:color .2s}
+  .nav-links a:not(.btn):hover{color:var(--text)}
+  .btn{
+    display:inline-flex;align-items:center;gap:9px;
+    padding:11px 20px;border-radius:11px;font-weight:600;font-size:.95rem;
+    transition:transform .15s ease, box-shadow .2s ease, background .2s;
+    white-space:nowrap;
+  }
+  .btn-primary{
+    background:linear-gradient(135deg,var(--amber),var(--amber-deep));
+    color:#1a1206;box-shadow:0 8px 24px -8px rgba(245,158,11,.6);
+  }
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 14px 32px -10px rgba(245,158,11,.8)}
+  .btn-ghost{background:var(--panel);color:var(--text);border:1px solid var(--line)}
+  .btn-ghost:hover{background:var(--panel-2);transform:translateY(-2px)}
+  @media(max-width:820px){.nav-links a:not(.btn){display:none}}
+
+  /* ---------- hero ---------- */
+  .hero{padding:84px 0 64px;text-align:center;position:relative}
+  .badge{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:7px 15px;border-radius:999px;
+    background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.35);
+    color:var(--amber-bright);font-size:.82rem;font-weight:600;letter-spacing:.01em;
+    margin-bottom:28px;
+  }
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--amber-bright);box-shadow:0 0 10px var(--amber);animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  .hero h1{
+    font-size:clamp(2.4rem,6vw,4.3rem);line-height:1.06;font-weight:900;letter-spacing:-.035em;
+    margin-bottom:22px;
+  }
+  .hero h1 .grad{
+    background:linear-gradient(120deg,var(--amber-bright),var(--amber) 55%,var(--amber-deep));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .hero p.sub{
+    font-size:clamp(1.05rem,2.2vw,1.28rem);color:var(--muted);
+    max-width:700px;margin:0 auto 20px;line-height:1.55;
+  }
+  .hero p.sub b{color:var(--text);font-weight:600}
+  .hero p.note{color:var(--muted-2);font-size:.95rem;max-width:620px;margin:0 auto 34px}
+  .hero-cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:18px}
+  .hero-meta{display:flex;gap:22px;justify-content:center;flex-wrap:wrap;color:var(--muted-2);font-size:.85rem;margin-top:8px}
+  .hero-meta span{display:inline-flex;align-items:center;gap:7px}
+
+  .pills{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:34px}
+  .pill{
+    padding:8px 14px;border-radius:10px;background:var(--panel);border:1px solid var(--line);
+    font-size:.82rem;color:var(--muted);font-weight:500;
+  }
+  .pill b{color:var(--text)}
+
+  /* floating hero mark, framed as an app icon */
+  .hero-mark{
+    width:104px;height:104px;margin:0 auto 30px;border-radius:24px;
+    display:grid;place-items:center;
+    background:linear-gradient(160deg,rgba(245,158,11,.16),transparent 62%),var(--panel);
+    border:1px solid rgba(245,158,11,.34);
+    box-shadow:0 24px 56px -18px rgba(245,158,11,.42);
+    animation:float 5s ease-in-out infinite;
+  }
+  .hero-mark svg{width:78px;height:78px}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+
+  /* ---------- section ---------- */
+  section{padding:72px 0;position:relative}
+  .sec-head{text-align:center;max-width:700px;margin:0 auto 48px}
+  .eyebrow{color:var(--amber);font-weight:700;font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;margin-bottom:14px}
+  .sec-head h2{font-size:clamp(1.9rem,4vw,2.6rem);font-weight:800;letter-spacing:-.025em;line-height:1.14;margin-bottom:16px}
+  .sec-head p{color:var(--muted);font-size:1.05rem}
+  .sec-head p b{color:var(--text)}
+
+  /* ---------- measured readings ---------- */
+  .readings{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  @media(max-width:860px){.readings{grid-template-columns:1fr}}
+  .reading{
+    background:linear-gradient(180deg,var(--panel),var(--bg-2));
+    border:1px solid var(--line);border-radius:var(--radius);padding:26px;
+    transition:transform .2s ease,border-color .2s,box-shadow .25s;
+  }
+  .reading:hover{transform:translateY(-4px);border-color:rgba(245,158,11,.45);box-shadow:0 18px 40px -22px rgba(245,158,11,.45)}
+  .reading .file{font-family:'JetBrains Mono',monospace;font-size:.86rem;color:var(--amber-bright);margin-bottom:16px}
+  .reading .num{font-size:2.3rem;font-weight:900;letter-spacing:-.03em;line-height:1.1}
+  .reading .unit{font-size:.95rem;color:var(--muted);font-weight:500;margin-top:2px}
+  .reading .rule{color:var(--muted-2);font-size:.88rem;margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
+  .reading .rule b{color:var(--muted)}
+
+  .finding{
+    margin-top:26px;border-radius:var(--radius);padding:28px 30px;
+    background:linear-gradient(135deg,rgba(245,158,11,.09),var(--panel));
+    border:1px solid rgba(245,158,11,.3);
+  }
+  .finding p{color:var(--muted);font-size:1rem;max-width:820px}
+  .finding p b{color:var(--text)}
+  .finding p+p{margin-top:12px}
+
+  /* ---------- pull quote ---------- */
+  .quote{
+    text-align:center;max-width:760px;margin:0 auto;
+  }
+  .quote blockquote{
+    font-size:clamp(1.3rem,3vw,1.85rem);font-weight:800;letter-spacing:-.02em;line-height:1.3;
+    margin-bottom:18px;
+  }
+  .quote p{color:var(--muted);font-size:1.02rem}
+  .quote p b{color:var(--text)}
+
+  /* ---------- comparison table ---------- */
+  .tbl-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel)}
+  table{width:100%;border-collapse:collapse;min-width:640px}
+  th,td{text-align:left;padding:16px 20px;border-bottom:1px solid var(--line);font-size:.93rem;vertical-align:top}
+  thead th{
+    color:var(--muted-2);font-size:.76rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+    background:var(--bg-2);
+  }
+  tbody tr:last-child td{border-bottom:none}
+  td.who{font-weight:700;color:var(--text);white-space:nowrap}
+  td.good{color:var(--muted)}
+  td.why{color:var(--muted)}
+  td.why b{color:var(--amber-bright);font-weight:600}
+
+  /* ---------- numbered properties ---------- */
+  .props{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:36px}
+  @media(max-width:760px){.props{grid-template-columns:1fr}}
+  .prop{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:24px;transition:transform .2s ease,border-color .2s}
+  .prop:hover{transform:translateY(-3px);border-color:rgba(245,158,11,.45)}
+  .prop .n{
+    width:34px;height:34px;border-radius:9px;display:grid;place-items:center;font-weight:800;
+    background:linear-gradient(135deg,var(--amber),var(--amber-deep));color:#1a1206;margin-bottom:14px;font-size:.95rem;
+  }
+  .prop h3{font-size:1.08rem;font-weight:700;margin-bottom:8px;letter-spacing:-.01em}
+  .prop p{color:var(--muted);font-size:.93rem;line-height:1.6}
+  .prop p b{color:var(--text)}
+
+  /* ---------- laws ---------- */
+  .laws{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  @media(max-width:900px){.laws{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:600px){.laws{grid-template-columns:1fr}}
+  .law{
+    background:linear-gradient(180deg,var(--panel),var(--bg-2));
+    border:1px solid var(--line);border-radius:14px;padding:20px 22px;
+    display:flex;gap:14px;align-items:flex-start;
+  }
+  .law .id{
+    font-family:'JetBrains Mono',monospace;font-weight:600;font-size:.95rem;
+    color:var(--amber);flex:0 0 auto;
+  }
+  .law p{font-size:.92rem;color:var(--muted);line-height:1.55}
+  .law p b{color:var(--text)}
+
+  /* ---------- status ---------- */
+  .status-bar{
+    display:flex;align-items:center;gap:16px;flex-wrap:wrap;justify-content:center;
+    margin-bottom:30px;
+  }
+  .meter{
+    flex:1 1 320px;max-width:520px;height:12px;border-radius:999px;
+    background:var(--panel-2);border:1px solid var(--line);overflow:hidden;
+  }
+  .meter i{display:block;height:100%;width:25%;border-radius:999px;background:linear-gradient(90deg,var(--amber-deep),var(--amber-bright))}
+  .status-bar .lbl{font-family:'JetBrains Mono',monospace;font-size:.9rem;color:var(--muted)}
+  .status-bar .lbl b{color:var(--text)}
+
+  .codeblock{
+    background:#070c16;border:1px solid var(--line);border-radius:12px;
+    padding:18px 20px;font-family:'JetBrains Mono',monospace;font-size:.88rem;color:#c8d3e2;
+    overflow-x:auto;line-height:1.9;
+  }
+  .codeblock .c{color:var(--muted-2)}
+  .codeblock .g{color:var(--amber-bright)}
+  /* the command list is column-aligned, so its newlines and runs of spaces are content */
+  .codeblock.pre{white-space:pre;line-height:1.85}
+  .codeblock.copy{position:relative;display:flex;align-items:center;justify-content:space-between;gap:14px}
+  .codeblock.copy code{font-family:inherit;white-space:nowrap}
+  .copy-btn{
+    flex:0 0 auto;display:inline-flex;align-items:center;gap:7px;
+    padding:7px 12px;border-radius:8px;cursor:pointer;
+    background:var(--panel-2);border:1px solid var(--line);color:var(--muted);
+    font-family:'Inter',sans-serif;font-size:.8rem;font-weight:600;
+    transition:background .2s,color .2s,border-color .2s;
+  }
+  .copy-btn:hover{background:var(--amber);color:#1a1206;border-color:var(--amber)}
+  .copy-btn.copied{background:rgba(52,211,153,.16);color:#34d399;border-color:rgba(52,211,153,.45)}
+
+  /* ---------- non-goals ---------- */
+  .nogoals{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+  @media(max-width:760px){.nogoals{grid-template-columns:1fr}}
+  .nogoal{
+    display:flex;gap:13px;align-items:flex-start;
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px;
+  }
+  .nogoal .x{
+    flex:0 0 auto;width:22px;height:22px;border-radius:6px;display:grid;place-items:center;
+    background:rgba(229,72,77,.14);color:#f0787c;font-size:.75rem;font-weight:800;margin-top:2px;
+  }
+  .nogoal p{font-size:.93rem;color:var(--muted);line-height:1.55}
+  .nogoal p b{color:var(--text)}
+
+  /* ---------- fixture note ---------- */
+  .fixture{
+    background:linear-gradient(135deg,rgba(245,158,11,.1),var(--panel));
+    border:1px solid rgba(245,158,11,.3);border-radius:var(--radius);
+    padding:40px;text-align:center;
+  }
+  .fixture .ico{font-size:2.2rem;margin-bottom:14px}
+  .fixture h2{font-size:clamp(1.5rem,3vw,2rem);font-weight:800;margin-bottom:14px;letter-spacing:-.02em}
+  .fixture p{color:var(--muted);max-width:680px;margin:0 auto;font-size:1rem}
+  .fixture p b{color:var(--text)}
+
+  /* ---------- footer ---------- */
+  footer{border-top:1px solid var(--line);padding:46px 0 38px;margin-top:30px}
+  .foot-grid{display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap}
+  .foot-brand{display:flex;align-items:center;gap:11px;font-family:'JetBrains Mono',monospace;font-weight:600}
+  .foot-brand svg{width:28px;height:28px}
+  .foot-links{display:flex;gap:24px;flex-wrap:wrap}
+  .foot-links a{color:var(--muted);font-size:.9rem;transition:color .2s}
+  .foot-links a:hover{color:var(--amber)}
+  .disclaimer{color:var(--muted-2);font-size:.8rem;margin-top:22px;text-align:center;max-width:760px;margin-left:auto;margin-right:auto;line-height:1.6}
+
+  /* reveal on scroll */
+  .reveal{opacity:0;transform:translateY(24px);transition:opacity .6s ease,transform .6s ease}
+  .reveal.in{opacity:1;transform:none}
+  @media(prefers-reduced-motion:reduce){
+    .reveal{opacity:1;transform:none;transition:none}
+    .hero-mark,.dot{animation:none}
+  }
+</style>
+</head>
+<body>
+
+<!--
+  The mark is inlined rather than <img src="assets/roadkeep-mark.svg">: the asset
+  follows the reader's system theme, and this page is dark in either. Inlined, it
+  carries the dark palette the page needs. Keep it in sync with docs/assets/.
+-->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="mark" viewBox="0 0 160 160">
+    <rect fill="#cbd5e1" x="24" y="34"  width="46" height="12" rx="6"/>
+    <rect fill="#cbd5e1" x="24" y="62"  width="72" height="12" rx="6"/>
+    <rect fill="#cbd5e1" x="24" y="90"  width="58" height="12" rx="6"/>
+    <rect fill="#cbd5e1" x="24" y="118" width="90" height="12" rx="6"/>
+    <rect fill="#f59e0b" x="120" y="22" width="8" height="116" rx="4"/>
+    <rect fill="#cbd5e1" opacity=".26" x="136" y="118" width="30" height="12" rx="6"/>
+  </symbol>
+</svg>
+
+<nav>
+  <div class="wrap">
+    <a class="brand" href="#top"><svg aria-hidden="true"><use href="#mark"/></svg>roadkeep</a>
+    <div class="nav-links">
+      <a href="#problem">The problem</a>
+      <a href="#moat">Why not a linter</a>
+      <a href="#laws">The laws</a>
+      <a href="#status">Status</a>
+      <a class="btn btn-primary" href="https://github.com/alegauss/roadkeep">★ View on GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero" id="top">
+  <div class="wrap">
+    <div class="hero-mark"><svg role="img" aria-label="roadkeep"><use href="#mark"/></svg></div>
+    <div class="badge"><span class="dot"></span> Early · Open source · Python ≥3.11</div>
+    <h1>Your format is a convention.<br><span class="grad">Make it a schema.</span></h1>
+    <p class="sub">
+      roadkeep owns the writes to your <b>ROADMAP.md</b>, <b>CHANGELOG.md</b>,
+      <b>IMPROVEMENTS.md</b> and <b>STRATEGY.md</b> — so the format is enforced at the
+      point of insertion instead of remembered by whoever is typing.
+    </p>
+    <p class="note">
+      Shipped as a Claude Code plugin, because the author to constrain is usually an agent.
+    </p>
+    <div class="hero-cta">
+      <a class="btn btn-primary" href="https://github.com/alegauss/roadkeep">★ View on GitHub</a>
+      <a class="btn btn-ghost" href="https://github.com/alegauss/roadkeep/blob/main/docs/ROADMAP.md">Read the roadmap</a>
+    </div>
+    <div class="hero-meta">
+      <span>🗂 Your existing Markdown — no migration</span>
+      <span>🚫 Zero runtime dependencies</span>
+      <span>🔍 Greppable, diffable, no service</span>
+    </div>
+    <div class="pills">
+      <span class="pill"><b>argparse</b> + <b>tomllib</b> · nothing else</span>
+      <span class="pill">Round-trip <b>or refuse</b></span>
+      <span class="pill">Every question is a <b>command</b></span>
+      <span class="pill">Per-project <b>configuration</b></span>
+    </div>
+  </div>
+</header>
+
+<!-- THE PROBLEM -->
+<section id="problem">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">The problem, measured</div>
+      <h2>This did not start as an idea</h2>
+      <p>It started as three readings from <b>a real production repository</b>, where all three files declared a format and none of them enforced it.</p>
+    </div>
+    <div class="readings reveal">
+      <div class="reading">
+        <div class="file">docs/ROADMAP.md</div>
+        <div class="num">142 <span style="font-size:1.1rem;font-weight:600;color:var(--muted)">words</span></div>
+        <div class="unit">average, across 92 task lines — worst line <b style="color:var(--text)">1406 characters</b></div>
+        <div class="rule"><b>Declared rule:</b> one sentence per task.</div>
+      </div>
+      <div class="reading">
+        <div class="file">agents.md</div>
+        <div class="num">186 <span style="font-size:1.1rem;font-weight:600;color:var(--muted)">KB</span></div>
+        <div class="unit">≈ 46k tokens, loaded on every single turn</div>
+        <div class="rule"><b>Declared rule:</b> an index, nothing more.</div>
+      </div>
+      <div class="reading">
+        <div class="file">docs/IMPROVEMENTS.md</div>
+        <div class="num">539 <span style="font-size:1.1rem;font-weight:600;color:var(--muted)">KB</span></div>
+        <div class="unit">in a sibling project — rationale that was never dropped</div>
+        <div class="rule"><b>Declared rule:</b> rationale for <i>unshipped</i> work.</div>
+      </div>
+    </div>
+    <div class="finding reveal">
+      <p><b>The finding that decided the design: six of the eight worst lines were written in the session that then diagnosed the problem.</b></p>
+      <p>
+        This is not inattention. An author — human or model — who has the whole design in
+        working memory will write it down where the reader is. An instruction to be terse
+        does not survive the moment its author knows more than the line allows.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- WHY NOT A LINTER -->
+<section id="moat" style="padding-top:24px">
+  <div class="wrap">
+    <div class="quote reveal">
+      <div class="eyebrow">Why a linter was the wrong answer</div>
+      <blockquote>“The saving is the analysis,<br>not the characters.”</blockquote>
+      <p>
+        A linter reports <i>after</i> the prose exists. By then the tokens are spent, and the
+        author is being asked to delete work they just did. A field with
+        <code>maxLength: 200</code> refuses <b>before a sentence is composed to fill it</b> —
+        the same rule, two orders of magnitude cheaper. It turns an analytical act
+        (<i>“is this too long, and what would I cut?”</i>) into a procedural one
+        (<i>“call <code>add</code>”</i>).
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- THE MOAT -->
+<section style="padding-top:36px">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">What makes it different</div>
+      <h2>The space around this is not empty</h2>
+      <p>So the honest comparison is a narrow one.</p>
+    </div>
+    <div class="tbl-scroll reveal">
+      <table>
+        <thead>
+          <tr><th>Tool</th><th>What it does well</th><th>Why roadkeep is not it</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="who">markdownlint</td>
+            <td class="good">Structure and style of Markdown</td>
+            <td class="why">Explicitly <b>not prose</b> — it will never tell you a sentence is too long</td>
+          </tr>
+          <tr>
+            <td class="who">Vale</td>
+            <td class="good">Prose rules and style guides</td>
+            <td class="why">A linter: it reports <b>after the text exists</b>, which is the cost being avoided</td>
+          </tr>
+          <tr>
+            <td class="who">Backlog.md, taskmd,<br>the markdown-task family</td>
+            <td class="good">Mature task management, kanban, MCP</td>
+            <td class="why">One <code>.md</code> <b>file per task</b>, with acceptance criteria and DoD — more room, and more room invites more prose</td>
+          </tr>
+          <tr>
+            <td class="who">ADR / MADR</td>
+            <td class="good">Rationale that survives; superseded is never deleted</td>
+            <td class="why">An ADR set grows <b>monotonically</b> — that curve <i>is</i> the 539 KB above</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="props">
+      <div class="prop reveal">
+        <div class="n">1</div>
+        <h3>Enforced at the write path</h3>
+        <p>The refusal happens <b>before the prose exists</b>. Everything else in this space reports afterwards, at review time.</p>
+      </div>
+      <div class="prop reveal">
+        <div class="n">2</div>
+        <h3>It governs the file you already have</h3>
+        <p>One line in your existing <code>ROADMAP.md</code> — <b>not a new store you migrate into</b>. A repository with a hand-written backlog is the target, not the obstacle.</p>
+      </div>
+      <div class="prop reveal">
+        <div class="n">3</div>
+        <h3>Round-trip or refuse</h3>
+        <p>Parse → render → <b>byte-identical</b>, or the tool declines to write the file at all. A tool that owns writes to a hand-edited file has to prove it cannot corrupt one.</p>
+      </div>
+      <div class="prop reveal">
+        <div class="n">4</div>
+        <h3>Query instead of read</h3>
+        <p>Every question a maintainer asks the file is a command, so answering it <b>costs no context</b>. Reading a backlog end-to-end to find one ready task cost ~5k tokens in this very repository.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- THE LAWS -->
+<section id="laws">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">The six laws</div>
+      <h2>A change that breaks one is wrong, even if requested</h2>
+      <p>L4 is the one people try to relax first. A generator that writes the symptom for you would reintroduce <b>exactly the drift this exists to stop</b>.</p>
+    </div>
+    <div class="laws reveal">
+      <div class="law"><span class="id">L1</span><p>The format is a schema, <b>enforced where the text is created</b>; <code>lint</code> is only the backstop.</p></div>
+      <div class="law"><span class="id">L2</span><p><b>The store is the repository</b> — Markdown, greppable, diffable. No database, no service.</p></div>
+      <div class="law"><span class="id">L3</span><p><b>Round-trip or don't write</b> — parse → render → byte-identical.</p></div>
+      <div class="law"><span class="id">L4</span><p><b>The tool never writes prose</b> — it validates and renders.</p></div>
+      <div class="law"><span class="id">L5</span><p><b>Query instead of read</b> — every question is a command.</p></div>
+      <div class="law"><span class="id">L6</span><p><b>Configuration, not convention</b> — prefix, paths, markers and limits are per project.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- STATUS -->
+<section id="status">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">Status</div>
+      <h2>Early, and honest about it</h2>
+      <p>The model, the authoring command and the git-derived queries are done. The gate and the plugin are not.</p>
+    </div>
+    <div class="status-bar reveal">
+      <span class="lbl"><b>9</b> of <b>36</b> tasks shipped</span>
+      <div class="meter"><i></i></div>
+    </div>
+    <div class="reveal" style="max-width:760px;margin:0 auto">
+      <div class="codeblock pre"><span class="c"># what works today</span>
+roadkeep <span class="g">add</span>         <span class="c">compose a validated task line, refusing what is too long</span>
+roadkeep <span class="g">next-id</span>     <span class="c">the next unused id, one past the highest anywhere</span>
+roadkeep <span class="g">deps</span> &lt;id&gt;   <span class="c">resolve a task's deps, naming the ones nothing can resolve</span>
+roadkeep <span class="g">origin</span> &lt;id&gt; <span class="c">the commits that proposed and shipped it, with the reasoning</span></div>
+      <p style="color:var(--muted);font-size:.93rem;margin-top:18px">
+        All of them take <code>--json</code>, which carries provenance — which file and which
+        line the answer came from — because an answer an agent cannot audit gets verified by
+        reading the file, <b style="color:var(--text)">which is the cost the command existed to remove</b>.
+      </p>
+      <p style="color:var(--muted-2);font-size:.9rem;margin-top:14px">
+        Not yet built: <code>ship</code>, <code>lint</code>, <code>pick</code>, <code>show</code>,
+        and the plugin hook that denies an agent the hand-edit.
+      </p>
+
+      <p style="text-align:center;color:var(--muted);font-size:.95rem;margin:34px 0 12px">
+        Python ≥3.11, <b style="color:var(--text)">zero runtime dependencies</b>:
+      </p>
+      <div class="codeblock copy">
+        <code id="install-cmd">pip install <span class="g">git+https://github.com/alegauss/roadkeep</span></code>
+        <button class="copy-btn" type="button" onclick="copyInstall(this)" aria-label="Copy install command">
+          <span class="ic">⧉</span><span class="lbl">Copy</span>
+        </button>
+      </div>
+      <p style="text-align:center;color:var(--muted-2);font-size:.85rem;margin-top:12px">
+        Not on PyPI yet.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- NON-GOALS -->
+<section style="padding-top:24px">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">Non-goals</div>
+      <h2>These are binding, and half the point</h2>
+      <p>Worth reading <i>before</i> proposing work.</p>
+    </div>
+    <div class="nogoals reveal">
+      <div class="nogoal"><span class="x">✕</span><p><b>No web UI and no server.</b> Files and a CLI.</p></div>
+      <div class="nogoal"><span class="x">✕</span><p><b>No issue-tracker sync.</b> A backlog that lives in a service is one an agent cannot <code>grep</code>.</p></div>
+      <div class="nogoal"><span class="x">✕</span><p><b>No model and no prompts inside the tool.</b> It validates and renders; it never writes the symptom or the rationale.</p></div>
+      <div class="nogoal"><span class="x">✕</span><p><b>No dates, quarters or estimates.</b> A marker is maturity, not a schedule.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- FIXTURE -->
+<section style="padding-top:20px">
+  <div class="wrap reveal">
+    <div class="fixture">
+      <div class="ico">🧪</div>
+      <h2>This repository is the conformance fixture</h2>
+      <p>
+        <code>roadkeep lint</code> must pass on its own <code>docs/</code>. The format is
+        proven by the artefact rather than asserted in a README — including that one. A limit
+        that cannot express these lines is <b>the wrong limit, not a set of wrong lines</b>,
+        and the test suite asserts it against <code>docs/ROADMAP.md</code> under this
+        repository's own <code>roadkeep.toml</code>.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <a class="foot-brand" href="#top"><svg aria-hidden="true"><use href="#mark"/></svg>roadkeep</a>
+      <div class="foot-links">
+        <a href="https://github.com/alegauss/roadkeep">GitHub</a>
+        <a href="https://github.com/alegauss/roadkeep/blob/main/docs/ROADMAP.md">Roadmap</a>
+        <a href="https://github.com/alegauss/roadkeep/blob/main/docs/CHANGELOG.md">Changelog</a>
+        <a href="https://github.com/alegauss/roadkeep/blob/main/docs/IMPROVEMENTS.md">Design rationale</a>
+      </div>
+    </div>
+    <p class="disclaimer">
+      A page for a tool that is still early — it will grow as the product does.
+      Shipped as a Claude Code plugin; not affiliated with, endorsed by, or sponsored by
+      Anthropic. “Claude” and “Claude Code” are trademarks of Anthropic.
+      © 2026 Alexandre Oliveira.
+    </p>
+  </div>
+</footer>
+
+<script>
+  // reveal-on-scroll
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }});
+  },{threshold:.12});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+  // copy the install command
+  function copyInstall(btn){
+    const cmd = document.getElementById('install-cmd').innerText.trim();
+    const done = ()=>{
+      btn.classList.add('copied');
+      btn.querySelector('.lbl').textContent = 'Copied!';
+      btn.querySelector('.ic').textContent = '✓';
+      setTimeout(()=>{
+        btn.classList.remove('copied');
+        btn.querySelector('.lbl').textContent = 'Copy';
+        btn.querySelector('.ic').textContent = '⧉';
+      }, 1800);
+    };
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(cmd).then(done).catch(()=>fallbackCopy(cmd, done));
+    } else {
+      fallbackCopy(cmd, done);
+    }
+  }
+  function fallbackCopy(text, done){
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); done(); }catch(e){}
+    document.body.removeChild(ta);
+  }
+</script>
+</body>
+</html>

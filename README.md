@@ -31,8 +31,8 @@ Shipped as a Claude Code plugin, because the author to constrain is usually an a
 
 ## The problem, measured
 
-This did not start as an idea. It started as three readings from a real repository
-(Viglet Shio) where all three files declared a format and none enforced it:
+This did not start as an idea. It started as three readings from a real production
+repository, where all three files declared a format and none enforced it:
 
 | Artefact | Declared rule | Actual reading |
 |---|---|---|
