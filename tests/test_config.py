@@ -153,11 +153,23 @@ def test_missing_reports_a_declared_file_that_is_not_on_disk(tmp_path):
 
 
 def test_an_unknown_key_is_refused_and_names_the_allowed_ones(tmp_path):
-    path = write(tmp_path, 'ref_scheme = "id"\n')
+    path = write(tmp_path, 'sections = ["docs/SPEC.md"]\n')
     with pytest.raises(ConfigError) as caught:
         Config.load(path)
-    assert "unknown key 'ref_scheme'" in str(caught.value)
+    assert "unknown key 'sections'" in str(caught.value)
     assert "prefix" in str(caught.value)  # the allowed set, so the fix is one edit
+
+
+def test_the_pointer_scheme_is_a_declared_choice(tmp_path):
+    assert Config.discover(HERE).schema.ref_scheme == "id"
+    outline = write(tmp_path, 'ref_scheme = "outline"\n')
+    assert Config.load(outline).schema.ref_scheme == "outline"
+
+
+def test_an_unknown_pointer_scheme_is_refused_by_name(tmp_path):
+    path = write(tmp_path, 'ref_scheme = "roman"\n')
+    with pytest.raises(ConfigError, match="ref_scheme must be one of"):
+        Config.load(path)
 
 
 def test_a_mistyped_limit_is_refused_rather_than_defaulted(tmp_path):

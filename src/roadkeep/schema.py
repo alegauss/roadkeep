@@ -65,6 +65,10 @@ _ABBREVIATIONS = frozenset({"e.g.", "i.e.", "etc.", "vs.", "cf.", "al.", "no."})
 
 _TERMINATORS = (".", "!", "?")
 
+#: The pointer's two addressing schemes (RK27). "id" is the default because it is the
+#: one an author cannot get wrong; "outline" exists for backlogs already numbered.
+REF_SCHEMES = frozenset({"id", "outline"})
+
 
 class SchemaError(ValueError):
     """Raised by :meth:`Schema.check`, carrying every violation, not the first.
@@ -164,8 +168,19 @@ class Schema:
     #: The ledger carries no `(deps: …)` group: a dependency is a planning fact
     #: about unshipped work, and a shipped line has none left to state.
     deps_field: bool = True
+    #: How the rationale section is addressed (RK27). ``"id"`` derives the pointer
+    #: from the line's own id — nothing to choose when writing, nothing to renumber
+    #: when shipping. ``"outline"`` is the hand-numbered `§x.y` that Shio and Turing
+    #: already use, kept because migrating a live outline is a separate decision
+    #: from adopting the tool.
+    ref_scheme: str = "id"
 
     def __post_init__(self) -> None:
+        if self.ref_scheme not in REF_SCHEMES:
+            raise ValueError(
+                f"ref_scheme must be one of {', '.join(sorted(REF_SCHEMES))}, "
+                f"got {self.ref_scheme!r}"
+            )
         if not _PREFIX_RE.match(self.prefix):
             raise ValueError(f"prefix must be uppercase alphanumeric: {self.prefix!r}")
         if not self.markers:
@@ -209,7 +224,12 @@ class Schema:
             head += f" (deps: {deps})"
         line = f"{head} **{task.symptom}** {EM_DASH} {task.why}"
         if task.ref:
-            line += f" {ARROW} §{task.ref}"
+            # In the id scheme the pointer is *derived*, not echoed: a line carrying
+            # the wrong anchor stops round-tripping instead of being preserved, which
+            # is what makes the anchor impossible to get wrong rather than merely
+            # discouraged.
+            anchor = task.id if self.ref_scheme == "id" else task.ref
+            line += f" {ARROW} §{anchor}"
         return line
 
     # -- validation --------------------------------------------------------
@@ -382,6 +402,17 @@ class Schema:
                     "ref.sigil", "ref", f"store the anchor without §: {task.ref.lstrip('§')!r}"
                 )
             ]
+        if self.ref_scheme == "id":
+            if task.ref != task.id:
+                return [
+                    Violation(
+                        "ref.mismatch",
+                        "ref",
+                        f"the pointer is the task's own id ({task.id}), derived on "
+                        f"render; {task.ref!r} names a section chosen by hand",
+                    )
+                ]
+            return []
         if not _REF_RE.match(task.ref):
             return [Violation("ref.format", "ref", f"not an <x.y> anchor: {task.ref!r}")]
         return []

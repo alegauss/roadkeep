@@ -42,7 +42,9 @@ DEFAULT_PATHS: Mapping[str, str] = {
     "improvements": "docs/IMPROVEMENTS.md",
 }
 
-_TOP_KEYS = frozenset({"prefix", "files", "limits", "markers", "id_sources"})
+_TOP_KEYS = frozenset(
+    {"prefix", "ref_scheme", "files", "limits", "markers", "id_sources"}
+)
 _LIMIT_KEYS = {"symptom": "symptom_max", "why": "why_max", "line": "line_max"}
 _MARKER_KEYS = frozenset({"open", "shipped"})
 # The invisible ones. A marker carrying U+FE0F renders identically and compares
@@ -108,6 +110,7 @@ class Config:
         _reject_unknown(data, _TOP_KEYS, "", problems)
 
         prefix = _string(data, "prefix", "RK", problems)
+        ref_scheme = _string(data, "ref_scheme", "id", problems)
         markers, shipped = _markers(data.get("markers"), problems)
         limits = _limits(data.get("limits"), problems)
         paths = _paths(data.get("files"), base, problems)
@@ -119,7 +122,11 @@ class Config:
         if not problems:
             try:
                 schema = Schema(
-                    prefix=prefix, markers=markers, shipped_marker=shipped, **limits
+                    prefix=prefix,
+                    ref_scheme=ref_scheme,
+                    markers=markers,
+                    shipped_marker=shipped,
+                    **limits,
                 )
             except ValueError as error:  # a valid TOML file can still be a wrong format
                 problems.append(str(error))

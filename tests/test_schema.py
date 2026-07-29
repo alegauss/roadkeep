@@ -30,6 +30,7 @@ from roadkeep import (
 ROADMAP = Path(__file__).resolve().parents[1] / "docs" / "ROADMAP.md"
 
 SCHEMA = Schema()
+OUTLINE = Schema(ref_scheme="outline")
 
 
 def task(**over) -> Task:
@@ -44,9 +45,11 @@ def task(**over) -> Task:
             "over-length line at write time."
         ),
         deps=(),
-        ref="I.1",
     )
     fields.update(over)
+    # In the id scheme the pointer is the id, so a helper that pinned it would be
+    # testing a line no `add` could produce.
+    fields.setdefault("ref", fields["id"])
     return Task(**fields)
 
 
@@ -56,7 +59,7 @@ def task(**over) -> Task:
 def test_render_is_the_canonical_line():
     assert SCHEMA.render(task(symptom="Nothing knows what a task line is", why="a schema refuses.")) == (
         "- \U0001f4cb **RK1** (deps: —) **Nothing knows what a task line is** "
-        "— a schema refuses. → §I.1"
+        "— a schema refuses. → §RK1"
     )
 
 
@@ -215,15 +218,34 @@ def test_a_ref_carrying_its_sigil_is_refused():
     assert "I.1" in violation.message
 
 
-def test_a_pointer_at_a_whole_section_is_accepted():
-    # Turing has nine of these. RK15's rule is that a pointer resolves, not that
-    # it carries a dot.
-    assert SCHEMA.validate(task(ref="XLV")) == ()
-    assert SCHEMA.validate(task(ref="XIV.8.7")) == ()
+def test_a_pointer_at_a_whole_section_is_accepted_where_sections_are_numbered():
+    # Turing has nine of these. Under the outline scheme the rule is that a pointer
+    # resolves, not that it carries a dot.
+    assert OUTLINE.validate(task(ref="XLV")) == ()
+    assert OUTLINE.validate(task(ref="XIV.8.7")) == ()
 
 
 def test_a_ref_that_is_not_an_anchor_is_refused():
-    assert {v.code for v in SCHEMA.validate(task(ref="Block A"))} == {"ref.format"}
+    assert {v.code for v in OUTLINE.validate(task(ref="Block A"))} == {"ref.format"}
+
+
+def test_the_pointer_is_the_id_and_a_chosen_one_is_refused():
+    # The whole point of RK27: there is nothing to choose, so choosing is an error.
+    (violation,) = SCHEMA.validate(task(id="RK27", ref="I.5"))
+    assert violation.code == "ref.mismatch"
+    assert "RK27" in violation.message
+
+
+def test_the_pointer_is_derived_on_render_not_echoed():
+    # A line carrying the wrong anchor stops round-tripping instead of being
+    # preserved, which is what makes the anchor impossible to get wrong.
+    assert SCHEMA.render(task(id="RK27", ref="I.5")).endswith("§RK27")
+    assert OUTLINE.render(task(id="RK27", ref="I.5")).endswith("§I.5")
+
+
+def test_the_scheme_itself_is_checked_at_construction():
+    with pytest.raises(ValueError, match="ref_scheme"):
+        Schema(ref_scheme="roman")
 
 
 # -- round-trip safety (refused, not repaired) -----------------------------

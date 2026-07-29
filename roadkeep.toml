@@ -3,6 +3,10 @@
 
 prefix = "RK"
 
+# the pointer is the task id, derived on render: nothing to choose, nothing to
+# renumber when a section is deleted
+ref_scheme = "id"
+
 # agents.md carries task ids too, and an id the scan misses is an id that gets reused.
 id_sources = ["agents.md"]
 

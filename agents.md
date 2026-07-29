@@ -66,20 +66,18 @@ differently. Three consequences worth knowing before writing a command:
 ## This repo's own docs are the conformance fixture
 
 `roadkeep lint` **must pass on `docs/`** — the format is proven by the artefact, not
-asserted in a README. So when you change the schema, this repository is the first thing
-that has to still validate, and a limit that cannot express these 26 lines is a wrong
-limit rather than 26 wrong lines.
+asserted in a README. A limit that cannot express these lines is the wrong limit rather
+than a set of wrong lines, so this repository is the first thing a schema change must
+still validate. The suite does it under this repo's own `roadkeep.toml`, which is what
+makes L6 a fact here and not a claim about other people's projects.
 
-Current reading (RK14/RK15 replace this hand-verification): 27 tasks, longest line
-**307** chars against a 320 cap, 27/27 `→ §x.y` pointers resolve, no orphan section.
-The suite asserts the first two against `docs/ROADMAP.md` itself, under this
-repository's own `roadkeep.toml` — so a schema or config change that cannot express
-this backlog fails the tests rather than a review.
+Current reading (RK14/RK15 replace this hand-verification): 29 tasks, longest line
+**297** chars against a 320 cap, 29/29 pointers resolve, no orphan section.
 
 ## Writing a task line — until `roadkeep add` exists
 
 ```
-- <marker> **RK<n>** (deps: <RK<n>, … | —>) **<symptom>** — <one sentence> → §<x.y>
+- <marker> **RK<n>** (deps: <RK<n>, … | —>) **<symptom>** — <one sentence> → §RK<n>
 ```
 
 Markers: 📋 designed · 💭 idea · ⏳ partial · 🛠 in-progress. ✅ appears only in
@@ -92,7 +90,9 @@ Four rules, and they are the schema RK1 encodes:
 2. **`why` is one sentence.** A second sentence is the signal the content belongs in
    `IMPROVEMENTS.md`, which is what the pointer addresses.
 3. **≤320 characters rendered** (`symptom` ≤120, `why` ≤200).
-4. **Every `→ §x.y` must resolve** to a `### §x.y` heading in `IMPROVEMENTS.md`.
+4. **The pointer is the id** — `→ §RK7` resolves to `### §RK7`, derived on render
+   (RK27), so there is nothing to choose and nothing to renumber on ship. Projects
+   numbered by hand set `ref_scheme = "outline"` instead.
 
 **Next id:** `python -m roadkeep.cli next-id`. Never guess and never fill a gap — a
 retired id is never reused, and the rule now lives in code (RK4), not here.

@@ -23,14 +23,20 @@ from roadkeep import DESIGNED, IDEA, PARTIAL, SHIPPED, Dep, Schema, Task
 from roadkeep.document import Document, RoundTripError
 
 HERE = Path(__file__).resolve().parents[1]
+
+# Shio and Turing number their sections by hand; this repository derives the anchor
+# from the id (RK27). Both are configurations of one format (L6).
+OUTLINE = Schema(ref_scheme="outline")
+OUTLINE_SH = Schema(prefix="SH", ref_scheme="outline")
+OUTLINE_T = Schema(prefix="T", ref_scheme="outline")
 ROADMAP = HERE / "docs" / "ROADMAP.md"
 CHANGELOG = HERE / "docs" / "CHANGELOG.md"
 
 #: Real backlogs that predate the tool, with their own prefixes (L6). Absent on
 #: any machine but the author's, so every use is guarded.
 FOREIGN = [
-    (Path("D:/Git/viglet/shio/latest/docs/ROADMAP.md"), Schema(prefix="SH"), 90),
-    (Path("D:/Git/viglet/turing/latest/docs/ROADMAP.md"), Schema(prefix="T"), 25),
+    (Path("D:/Git/viglet/shio/latest/docs/ROADMAP.md"), OUTLINE_SH, 90),
+    (Path("D:/Git/viglet/turing/latest/docs/ROADMAP.md"), OUTLINE_T, 25),
 ]
 
 # Lower bounds, not counts: shipping a task moves a line between these two files
@@ -40,7 +46,7 @@ OWN = [(ROADMAP, Schema(), 20), (CHANGELOG, Schema().as_ledger(), 1)]
 
 LINE = (
     f"- {DESIGNED} **RK9** (deps: RK5 {SHIPPED}) **A symptom** "
-    f"— a reason. → §II.5"
+    f"— a reason. → §RK9"
 )
 
 
@@ -117,7 +123,7 @@ def test_fields_survive_the_round_trip_through_data():
         symptom="A symptom",
         why="a reason.",
         deps=(Dep("RK5", SHIPPED),),
-        ref="II.5",
+        ref="RK9",
     )
     assert entry.lineno == 2
 
@@ -129,15 +135,15 @@ def test_the_pointer_is_taken_from_the_end_not_the_first_match():
         f"- {DESIGNED} **RK15** (deps: RK14) **A pointer that does not resolve** "
         f"— resolve every `→ §x.y` against the file. → §IV.2"
     )
-    (entry,) = parse(quoted).entries
+    (entry,) = parse(quoted, schema=OUTLINE).entries
     assert entry.task.ref == "IV.2"
     assert entry.task.why == "resolve every `→ §x.y` against the file."
-    assert Schema().render(entry.task) == quoted
+    assert OUTLINE.render(entry.task) == quoted
 
 
 def test_a_dep_the_schema_rejects_is_still_parsed_and_still_counted():
     # Shio has "(deps: Block P)"; Turing has "(deps: real design partners)".
-    line = f"- {IDEA} **RK9** (deps: Block P, RK5 {PARTIAL}) **A symptom** — a reason. → §II.5"
+    line = f"- {IDEA} **RK9** (deps: Block P, RK5 {PARTIAL}) **A symptom** — a reason. → §RK9"
     document = parse_in_block(line)
     (entry,) = document.entries
     assert entry.task.deps == (Dep("Block P"), Dep("RK5", PARTIAL))
@@ -146,7 +152,7 @@ def test_a_dep_the_schema_rejects_is_still_parsed_and_still_counted():
 
 
 def test_no_deps_parses_as_none_and_renders_back():
-    line = f"- {IDEA} **RK1** (deps: —) **A symptom** — a reason. → §I.1"
+    line = f"- {IDEA} **RK1** (deps: —) **A symptom** — a reason. → §RK1"
     (entry,) = parse_in_block(line).entries
     assert entry.task.deps == ()
     assert Schema().render(entry.task) == line
@@ -163,7 +169,7 @@ def test_the_ledger_shape_is_a_configuration_of_the_same_grammar():
 
 
 def test_a_roadmap_line_without_its_deps_field_is_reported():
-    document = parse_in_block(f"- {IDEA} **RK1** **A symptom** — a reason. → §I.1")
+    document = parse_in_block(f"- {IDEA} **RK1** **A symptom** — a reason. → §RK1")
     (reject,) = document.rejects
     assert "(deps: …)" in reject.reason
 
@@ -195,7 +201,7 @@ def test_prose_bullets_are_not_tasks_and_not_rejects():
 @pytest.mark.parametrize(
     ("line", "expected"),
     [
-        (f"  - {IDEA} **RK9** (deps: —) **A symptom** — a reason. → §I.1", "indented"),
+        (f"  - {IDEA} **RK9** (deps: —) **A symptom** — a reason. → §RK9", "indented"),
         (f"- {IDEA} RK9 (deps: —) **A symptom** — a reason.", "bold"),
         (f"- {IDEA} **RK9** (deps: —) **A symptom** - a reason.", "between the symptom"),
         (f"* {IDEA} **RK9** (deps: —) **A symptom** — a reason.", "one dash"),
@@ -218,7 +224,7 @@ def test_a_deps_field_in_the_ledger_is_reported_as_one():
 
 
 def test_extra_whitespace_after_the_bullet_is_reported_not_skipped():
-    document = parse(f"-  {IDEA} **RK9** (deps: —) **A symptom** — a reason. → §I.1")
+    document = parse(f"-  {IDEA} **RK9** (deps: —) **A symptom** — a reason. → §RK9")
     assert document.entries == ()
     assert len(document.rejects) == 1
 
@@ -228,7 +234,7 @@ def test_extra_whitespace_after_the_bullet_is_reported_not_skipped():
 #: A marker with a variation selector appended: identical on screen, a different
 #: string to every tool. This is the drift a byte comparison exists to catch —
 #: and the reason the parser reads such a line at all instead of skipping it.
-INVISIBLE = f"- {DESIGNED}\ufe0f **RK9** (deps: —) **A symptom** — a reason. → §I.1"
+INVISIBLE = f"- {DESIGNED}\ufe0f **RK9** (deps: —) **A symptom** — a reason. → §RK9"
 
 
 def broken() -> Document:
