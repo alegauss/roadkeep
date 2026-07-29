@@ -1,0 +1,24 @@
+# roadkeep configures itself: this repository's docs are the tool's conformance
+# fixture, so the file read here is the file every adopting project writes (RK18).
+
+prefix = "RK"
+
+# agents.md carries task ids too, and an id the scan misses is an id that gets reused.
+id_sources = ["agents.md"]
+
+[files]
+roadmap = "docs/ROADMAP.md"
+changelog = "docs/CHANGELOG.md"
+improvements = "docs/IMPROVEMENTS.md"
+# no strategy: Turing has one, this project does not — absent, not empty
+
+[limits]
+# the P90 of the lines that already read well, which is an agent attention budget
+# and not a style rule
+symptom = 120
+why = 200
+line = 320
+
+[markers]
+open = ["📋", "💭", "⏳", "🛠"]
+shipped = "✅"

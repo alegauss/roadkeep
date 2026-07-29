@@ -22,14 +22,14 @@
 
 ## Block A — The model (a task is data before it is a line)
 
-- 📋 **RK3** (deps: RK1 ✅) **Hardcoding one project's vocabulary makes the tool single-use** — `roadmap.toml` carries prefix, file paths, marker set and per-field limits, so Turing's `STRATEGY.md` and Shio's absence of one are both configurations. → §I.3
 - 📋 **RK4** (deps: RK2 ✅) **The next id cannot be inferred from a block header, and a wrong guess collides with a retired one** — take the max across every configured file, in one command, with no counter file to drift. → §I.4
 - 📋 **RK27** (deps: RK1 ✅, RK2 ✅) **A pointer's target is numbered by hand, and deleting a section leaves a hole nobody renumbers** — keying each rationale section by task id makes the pointer derivable from the line, so shipping costs no renumbering and resolving it costs no reading of the outline. → §I.5
 - 📋 **RK28** (deps: RK1 ✅) **A dep the tool cannot resolve reads exactly like one that is merely pending** — `Block P` and `real design partners` are real deps on work outside the backlog, so a resolver has to name them unresolvable instead of counting them unfinished. → §I.6
+- 📋 **RK31** (deps: RK2 ✅) **The reasoning behind a shipped decision survives only in a commit nobody greps** — the ledger entry carries the commit that shipped it, so the one question an unfamiliar repository cannot answer costs a lookup instead of a search. → §I.7
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK5** (deps: RK1 ✅, RK2 ✅, RK3) **Writing the line by hand is where the prose leaks in** — `add` takes the fields, refuses over-length at input, renders the canonical line and inserts it under its block. → §II.1
+- 📋 **RK5** (deps: RK1 ✅, RK2 ✅, RK3 ✅) **Writing the line by hand is where the prose leaks in** — `add` takes the fields, refuses over-length at input, renders the canonical line and inserts it under its block. → §II.1
 - 📋 **RK6** (deps: RK5) **Shipping a task is four edits across three files, so one is always missed** — `ship` moves the entry to the changelog under its block, drops its improvements section, and leaves the roadmap a pointer or nothing. → §II.2
 - 📋 **RK7** (deps: RK5) **Two files can disagree about one task's status** — `status` writes the marker in the roadmap only, and fails if a sibling file carries one. → §II.3
 - 📋 **RK8** (deps: RK6) **A dep annotation goes stale the moment its target ships** — derive the `(deps: RK1 ✅)` markers on every write so a shipped dep never reads as pending. → §II.4
@@ -53,7 +53,7 @@
 
 ## Block E — Adoption
 
-- 📋 **RK18** (deps: RK3, RK14) **A tool that requires an empty repo cannot be adopted by the repo that needs it** — `init` scaffolds the files and config, and `adopt` reports what an existing backlog must change to pass. → §V.1
+- 📋 **RK18** (deps: RK3 ✅, RK14) **A tool that requires an empty repo cannot be adopted by the repo that needs it** — `init` scaffolds the files and config, and `adopt` reports what an existing backlog must change to pass. → §V.1
 - 📋 **RK19** (deps: RK18) **Installing from a git clone keeps a standard local** — publish to PyPI so `uvx roadmap-lint` runs with no checkout. → §V.2
 - 💭 **RK20** (deps: RK19, RK16) **Shio's 92 active lines average 142 words against a one-sentence rule** — migrating a real backlog is the only test of whether the schema fits a live project. → §V.3
 - 💭 **RK21** (deps: RK20) **A standard adopted by one project is a preference** — roll out to Turing, Dumont and Cursarei, each with its own `roadmap.toml`. → §V.4

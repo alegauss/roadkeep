@@ -39,9 +39,11 @@ docs/ROADMAP.md        active backlog, one line per task (RK<n>)
 docs/CHANGELOG.md      shipped ledger, indexed by block
 docs/IMPROVEMENTS.md   design rationale for UNSHIPPED sections only
 agents.md              this file
+roadkeep.toml          this project's own configuration — the tool reads it
 src/roadkeep/          the package (src layout, importable via pytest pythonpath)
   schema.py            RK1 — Task, Dep, Schema, Violation; validate() and render()
   document.py          RK2 — Document.parse/render, Entry, Reject, RoundTripError
+  config.py            RK3 — Config.discover/document; refuses an unknown key
 tests/                 pytest; docs/ROADMAP.md is a fixture, not a mock
 ```
 
@@ -52,7 +54,8 @@ reader of the rules — a new command imports them rather than re-deriving eithe
 differently. Three consequences worth knowing before writing a command:
 
 - A file is read under a `Schema`; the changelog is `schema.as_ledger()` (✅, no deps,
-  no pointer), not a second grammar.
+  no pointer), not a second grammar. Get both from `Config.document(role)` rather than
+  choosing a schema at the call site.
 - A marker-bearing line the grammar rejects becomes a `Reject` **with a reason**, never
   a silent skip. A dep the schema dislikes (`Block P`) still parses, so the line stays
   counted and `lint` reports it — that split is deliberate.
@@ -65,11 +68,13 @@ asserted in a README. So when you change the schema, this repository is the firs
 that has to still validate, and a limit that cannot express these 26 lines is a wrong
 limit rather than 26 wrong lines.
 
-Current reading (RK14/RK15 exist to replace this by hand-verification): 25 tasks,
-longest line **260** chars against a 320 cap, 25/25 `→ §x.y` pointers resolve, no
-orphan improvements section. Since RK1, `tests/test_schema.py` asserts the first two
-against `docs/ROADMAP.md` itself, so a schema change that cannot express this backlog
-fails the suite rather than a review.
+Current reading (RK14/RK15 exist to replace this by hand-verification): 28 tasks,
+longest line **307** chars against a 320 cap, 28/28 `→ §x.y` pointers resolve, no
+orphan improvements section. Since RK1 the suite asserts the first two against
+`docs/ROADMAP.md` itself, so a schema change that cannot express this backlog fails the
+tests rather than a review — and since RK3 it asserts them under this repository's own
+`roadkeep.toml`, so "configuration, not convention" is not a claim about other people's
+projects.
 
 ## Writing a task line — until `roadkeep add` exists
 

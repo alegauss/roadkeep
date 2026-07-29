@@ -50,13 +50,6 @@ session doing.
 
 ## §I — The model
 
-### §I.3 `roadkeep.toml` (RK3)
-
-Prefix (`SH`, `RK`, `TU`), the file paths, the marker set, per-field limits, and which
-of the four files exist. Turing has a `STRATEGY.md`; Shio does not; Cursarei keeps its
-roadmap under `docs/roadmap/`. All three are configurations of one format, and the
-moment any of that is hardcoded the tool serves exactly one repository.
-
 ### §I.4 Deriving the next id (RK4)
 
 Real backlogs are non-contiguous — epics own sub-ranges, superseded ids are retired
@@ -84,6 +77,16 @@ today as ids that resolve to nothing, so a resolver reports them as pending, whi
 makes a permanently blocked task look like the next one to start. Type them: a block
 dep resolves against that block's own readiness, and an external dep is unresolvable
 by construction and has to be printed as such rather than counted as unfinished.
+
+### §I.7 The decision survives the shipping (RK31)
+
+`IMPROVEMENTS.md` deletes the section when a task ships, the ledger keeps one line, and
+the reasoning survives only in a commit message — which is precisely the place nobody
+consults. "Why is it like this" is the question an unfamiliar repository answers worst,
+and answering it today costs a `git log -S` over the whole history. So the ledger entry
+carries the commit that shipped it: a forty-character pointer trades a search for a
+lookup, without readmitting the implementation report that drove the neighbouring file
+to 539 KB.
 
 ## §II — Authoring
 
