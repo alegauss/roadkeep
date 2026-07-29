@@ -422,6 +422,85 @@ def test_a_section_may_name_a_file_that_does_not_exist_yet(tmp_path):
     assert lint(project(tmp_path, improvements=forward)).clean
 
 
+# -- the byte nobody can see (RK34) -------------------------------------------
+
+
+def test_a_variation_selector_is_named_instead_of_its_consequence(tmp_path):
+    # Measured against this parser: 📋 + U+FE0F is reported as `status.unknown`, which
+    # prints as "'📋️' is not one of 📋" — correct, and unusable.
+    report = lint(project(tmp_path, roadmap=CLEAN.replace("📋", "📋️", 1)))
+    assert [f.code for f in report.findings] == ["char.invisible"]
+    (finding,) = report.findings
+    assert "U+FE0F" in finding.message and "variation selector-16" in finding.message
+    # Column 4: "- " then the marker at 3, and the selector riding on it at 4.
+    assert (finding.lineno, finding.column) == (5, 4)
+    assert str(finding).startswith("ROADMAP.md:5:4  char.invisible  RK1:")
+
+
+def test_a_no_break_space_is_named_instead_of_the_terminator_it_broke(tmp_path):
+    # The other measured case: a NBSP before the pointer is reported as
+    # `why.no-terminator`, naming the one thing the line does not lack.
+    nbsp = CLEAN.replace("reason. → §RK1", "reason. → §RK1")
+    report = lint(project(tmp_path, roadmap=nbsp))
+    assert [f.code for f in report.findings] == ["char.space"]
+    assert "U+00A0 no-break space" in report.findings[0].message
+
+
+def test_the_codepoint_replaces_every_other_finding_on_that_line(tmp_path):
+    # A line the author cannot read as written is not a line the format can judge, so the
+    # rest is left for the run after the byte is gone — and the run after says so.
+    tainted = CLEAN.replace("📋", "📋️", 1)
+    config = project(tmp_path, roadmap=tainted)
+    assert [f.code for f in lint(config).findings] == ["char.invisible"]
+    (tmp_path / "ROADMAP.md").write_text(tainted.replace("️", ""), encoding="utf-8")
+    assert lint(config).clean
+
+
+def test_a_second_line_keeps_its_own_findings(tmp_path):
+    # Suppression is per line, not per file: RK2's real problem still has to be reported.
+    both = CLEAN.replace("📋", "📋️", 1).replace(
+        "Because of another reason.", "Because of another reason. And a second."
+    )
+    report = lint(project(tmp_path, roadmap=both))
+    assert [f.code for f in report.findings] == ["char.invisible", "why.sentences"]
+
+
+def test_a_byte_order_mark_answers_for_itself(tmp_path):
+    report = lint(project(tmp_path, roadmap="﻿" + CLEAN))
+    assert [f.code for f in report.findings] == ["char.bom"]
+    assert "not text" in report.findings[0].message
+
+
+def test_a_tab_inside_a_line_is_a_control_character(tmp_path):
+    # Category `Cc`, caught by the same rule and with no entry in any list: the definition
+    # is Unicode's, so a control nobody has met yet is reported too.
+    report = lint(project(tmp_path, roadmap=CLEAN.replace("A first symptom", "A first\tsymptom")))
+    assert [f.code for f in report.findings] == ["char.invisible"]
+
+
+def test_two_kinds_of_line_ending_in_one_file_are_reported(tmp_path):
+    mixed = CLEAN.replace("- 📋 **RK1**", "- 📋 **RK1**").replace("\n", "\r\n", 3)
+    report = lint(project(tmp_path, roadmap=mixed))
+    assert [f.code for f in report.findings] == ["char.mixed-endings"]
+    assert "CRLF" in report.findings[0].message and "LF" in report.findings[0].message
+
+
+def test_a_file_that_is_uniformly_crlf_is_not_a_defect(tmp_path):
+    # It round-trips, and a repository that checks out CRLF is a configuration and not a
+    # mistake (L6). Reporting it would fail every Windows clone of an adopting project.
+    assert lint(project(tmp_path, roadmap=CLEAN.replace("\n", "\r\n"))).clean
+
+
+def test_prose_is_not_scanned_for_invisible_characters(tmp_path):
+    # §RK34 had to quote a variation selector to explain the defect. A scan over prose
+    # would have reported that quotation as the defect — RK15's trap, one file over.
+    quoting = PROSE.replace(
+        "The reasoning the first line has no room for.",
+        "Measured: `📋️` is refused as `status.unknown`, naming the wrong thing.",
+    )
+    assert lint(project(tmp_path, improvements=quoting)).clean
+
+
 # -- the file that is loaded every turn (RK30) --------------------------------
 
 

@@ -150,7 +150,9 @@ def test_an_invisible_codepoint_on_the_marker_is_dropped(tmp_path):
     # Renders identically to a real marker and compares unequal to it, so the line was
     # non-canonical: no other write path in this tool could have touched this file.
     config = project(tmp_path, roadmap=CLEAN.replace("📋", "📋️", 1))
-    assert lint(config).problems  # reported before, by two codes
+    # Reported before as `char.invisible`, naming the codepoint and its column (RK34);
+    # repaired here, because a marker is a field the format derives rather than prose.
+    assert [f.code for f in lint(config).findings] == ["char.invisible"]
     applied = fix(config)
     assert reasons(applied) == ["invisible codepoint dropped from the marker"]
     assert "️" not in roadmap_of(config)

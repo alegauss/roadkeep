@@ -63,19 +63,6 @@ judgement `pick` and a human both make from the line alone. The gate should say 
 collective dep expands to, because the cost of the abbreviation lands on whoever
 believes it.
 
-### §RK34 Name the byte, not its consequence
-
-The format is structural Unicode — `—`, `→`, `§` and four emoji markers — so the
-lookalikes a human editor produces are all invisible at the point of failure. Measured
-against the parser: `📋` plus U+FE0F is refused as `status.unknown`, which prints as
-"`📋️` is not one of `📋`"; a no-break space before the pointer is refused as
-`why.no-terminator`, naming the one thing the line does not lack. Both diagnoses are
-correct and unusable, because the character that caused them cannot be seen. Report the
-codepoint and its offset instead, and treat a BOM and a CRLF as the same class — a byte
-nobody typed, breaking a round-trip that compares bytes. `_looks_like_marker` already
-takes this position for U+FE0F and U+200D (RK2); this extends it from *not skipping the
-line in silence* to *saying what is actually wrong with it*.
-
 ### §RK36 A section may not promise what the line does not
 
 RK15 refuses a pointer at a section that does not exist; nothing refuses the mirror, a

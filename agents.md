@@ -67,11 +67,11 @@ in a README. A limit that cannot express these lines is the wrong limit rather t
 wrong lines, so a schema change validates here first, under this repo's own `roadkeep.toml`.
 
 Don't hand-check it: `… lint` **exits 1** on any violation, line that stopped round-tripping,
-dep nothing satisfies, `→ §RK<n>` resolving to nothing or section nothing points at — that exit
-code is the gate (RK14/RK15), and CI runs the same command through the action this repo ships
-(`action.yml`, RK17). `--fix` repairs only what is **derived** (annotation, pointer, dep order,
-invisible codepoint, whitespace), proves its output round-trips or writes nothing, and leaves
-every editorial finding to you (RK16). `… stats` gives the tallies and the longest line.
+dep nothing satisfies, pointer resolving to nothing, section nothing points at, over-budget
+every-turn file, or invisible codepoint — which it names as `file:line:column` instead of the
+consequence, and then judges nothing else on that line (RK14/RK15/RK30/RK34). CI runs the same
+command through the action this repo ships (RK17). `--fix` repairs only what is **derived**
+(annotation, pointer, dep order, marker codepoint, whitespace) and leaves the editorial (RK16).
 
 ## Writing and shipping — call the command, never type the format
 

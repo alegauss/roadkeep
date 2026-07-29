@@ -855,46 +855,29 @@ def _lint(config: Config, args: argparse.Namespace) -> int:
     except (KeyError, OSError) as error:
         return _refused(error)
 
+    passed = report.clean and not applied.refused
     if args.json:
-        print(
-            json.dumps(
-                {
-                    "clean": report.clean and not applied.refused,
-                    "fixed": [
-                        {
-                            "file": repair.file,
-                            "line": repair.lineno,
-                            "id": repair.id,
-                            "reasons": list(repair.reasons),
-                            "before": repair.before,
-                            "after": repair.after,
-                        }
-                        for repair in applied.repairs
-                    ],
-                    "kept": [
-                        {
-                            "file": s.file,
-                            "line": s.lineno,
-                            "id": s.id,
-                            "reason": s.reason,
-                        }
-                        for s in applied.skipped
-                    ],
-                    "refused": list(applied.refused),
-                    "checked": list(report.checked),
-                    "lines": report.lines,
-                    "sections": report.sections,
-                    "budgets": report.budgets,
-                    "problems": report.problems,
-                    "codes": report.codes(),
-                    "findings": [_finding_json(f) for f in report.findings],
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK if report.clean and not applied.refused else EXIT_GATE
+        print(json.dumps(_lint_json(report, applied), indent=2))
+        return EXIT_OK if passed else EXIT_GATE
 
+    _print_fix(applied, quiet=args.quiet)
+    if report.clean:
+        # The files are named on the way out even when there is nothing to say: a gate
+        # that passed by reading nothing looks exactly like a gate that passed.
+        print(f"{', '.join(report.checked) or 'nothing'}: {_scope(report)}, clean")
+        return EXIT_OK if passed else EXIT_GATE
     if not args.quiet:
+        for finding in report.findings:
+            print(str(finding))
+    print(
+        f"{report.problems} problem(s) in {_scope(report)} across "
+        f"{len(report.checked)} file(s): {_codes(report)}"
+    )
+    return EXIT_GATE
+
+
+def _print_fix(applied: Fix, quiet: bool) -> None:
+    if not quiet:
         for repair in applied.repairs:
             print(str(repair))
         for kept in applied.skipped:
@@ -906,19 +889,34 @@ def _lint(config: Config, args: argparse.Namespace) -> int:
     if applied.repairs:
         print(f"{applied.changed} line(s) normalized in {', '.join(applied.files)}")
 
-    if report.clean:
-        # The files are named on the way out even when there is nothing to say: a gate
-        # that passed by reading nothing looks exactly like a gate that passed.
-        print(f"{', '.join(report.checked) or 'nothing'}: {_scope(report)}, clean")
-        return EXIT_GATE if applied.refused else EXIT_OK
-    if not args.quiet:
-        for finding in report.findings:
-            print(str(finding))
-    print(
-        f"{report.problems} problem(s) in {_scope(report)} across "
-        f"{len(report.checked)} file(s): {_codes(report)}"
-    )
-    return EXIT_GATE
+
+def _lint_json(report: Report, applied: Fix) -> dict[str, object]:
+    return {
+        "clean": report.clean and not applied.refused,
+        "fixed": [
+            {
+                "file": repair.file,
+                "line": repair.lineno,
+                "id": repair.id,
+                "reasons": list(repair.reasons),
+                "before": repair.before,
+                "after": repair.after,
+            }
+            for repair in applied.repairs
+        ],
+        "kept": [
+            {"file": s.file, "line": s.lineno, "id": s.id, "reason": s.reason}
+            for s in applied.skipped
+        ],
+        "refused": list(applied.refused),
+        "checked": list(report.checked),
+        "lines": report.lines,
+        "sections": report.sections,
+        "budgets": report.budgets,
+        "problems": report.problems,
+        "codes": report.codes(),
+        "findings": [_finding_json(f) for f in report.findings],
+    }
 
 
 def _scope(report: Report) -> str:
@@ -936,6 +934,9 @@ def _finding_json(finding: Finding) -> dict[str, object]:
         "code": finding.code,
         "file": finding.file,
         "line": finding.lineno,
+        # Only a character finding has one (RK34), and it is what makes an invisible
+        # codepoint findable: `file:line:column` is what an editor jumps to.
+        "column": finding.column,
         "id": finding.id or None,
         "message": finding.message,
     }

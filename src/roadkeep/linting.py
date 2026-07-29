@@ -57,11 +57,12 @@ what it was allowed?*
 
 from __future__ import annotations
 
+import unicodedata
 from dataclasses import dataclass
 
 from roadkeep.backlog import Backlog, DepStatus, number_of
 from roadkeep.config import ROLES, Config
-from roadkeep.document import Document
+from roadkeep.document import Document, ending
 from roadkeep.graph import Graph
 from roadkeep.markers import derive
 from roadkeep.schema import DepKind, Task
@@ -71,6 +72,14 @@ from roadkeep.showing import paths_in
 #: The governed files whose unit is a task line. The prose files are paragraphs, so
 #: their gate is a pointer and a budget — RK15 and RK30, not this.
 LINE_ROLES = ("roadmap", "changelog")
+
+#: Variation selectors, which are `Mn` and not a format category: invisible all the same,
+#: and the class the parser already had to defend against (`_looks_like_marker`, RK2).
+_VARIATION_SELECTORS = frozenset(
+    chr(point) for point in (*range(0xFE00, 0xFE10), *range(0xE0100, 0xE01F0))
+)
+
+_ENDING_NAMES = {"\r\n": "CRLF", "\n": "LF", "\r": "CR"}
 
 
 @dataclass(frozen=True, slots=True)
@@ -88,10 +97,17 @@ class Finding:
     #: 1-based, as an editor counts. ``None`` when the finding is about the file itself.
     lineno: int | None = None
     id: str = ""
+    #: 1-based column, for a finding about one character (RK34). An invisible codepoint
+    #: cannot be found by eye, so the offset is half of what makes the report usable.
+    column: int | None = None
 
     @property
     def where(self) -> str:
-        return self.file if self.lineno is None else f"{self.file}:{self.lineno}"
+        if self.lineno is None:
+            return self.file
+        if self.column is None:
+            return f"{self.file}:{self.lineno}"
+        return f"{self.file}:{self.lineno}:{self.column}"
 
     def __str__(self) -> str:
         subject = f"{self.id}: " if self.id else ""
@@ -141,6 +157,7 @@ def lint(config: Config) -> Report:
     checked = [config.relative(config.path(role)) for role in documents]
     for role, document in documents.items():
         findings.extend(_within(config, role, document))
+        findings.extend(_characters(config, role, document))
     findings.extend(_across(config, documents))
 
     prose = _prose_file(config)
@@ -156,6 +173,18 @@ def lint(config: Config) -> Report:
         checked.append(config.relative(budget.path))
     findings.extend(_budgets(config))
 
+    # A line carrying a byte nobody typed is not a line this format can judge: the parser
+    # read a string the author cannot see, so every other diagnosis of it names a
+    # consequence (RK34). Report the codepoint; the rest is decidable on the next run.
+    tainted = {
+        (f.file, f.lineno) for f in findings if f.code.startswith("char.") and f.lineno
+    }
+    findings = [
+        f
+        for f in findings
+        if f.code.startswith("char.") or (f.file, f.lineno) not in tainted
+    ]
+
     order = {name: index for index, name in enumerate(checked)}
     findings.sort(key=lambda f: (order.get(f.file, len(order)), f.lineno or 0, f.code))
     return Report(
@@ -165,6 +194,109 @@ def lint(config: Config) -> Report:
         sections=len(sections),
         budgets=len(config.budgets),
     )
+
+
+def _characters(config: Config, role: str, document: Document) -> list[Finding]:
+    """Name the byte, not its consequence (RK34).
+
+    The format is structural Unicode — `—`, `→`, `§` and four emoji markers — so every
+    lookalike a human editor produces is invisible exactly where it fails. Measured
+    against this parser: `📋` plus U+FE0F is reported as `status.unknown`, which prints as
+    "'📋️' is not one of 📋"; a no-break space before the pointer is reported as
+    `why.no-terminator`, naming the one thing the line does not lack. Both are correct and
+    unusable, because the character that caused them cannot be seen.
+
+    Only the line-bearing files. A paragraph has no parse for an invisible byte to corrupt,
+    and §RK34 had to *quote* a variation selector to explain the defect — which a scan over
+    prose would have reported as the defect itself.
+    """
+    file = config.relative(config.path(role))
+    ids = {entry.lineno: entry.task.id for entry in document.entries}
+    out = _endings(document, file)
+    for number, raw in enumerate(document.lines, start=1):
+        for column, char in enumerate(raw.rstrip("\r\n"), start=1):
+            if not suspect(char):
+                continue
+            out.append(_named(file, number, column, char, ids.get(number, "")))
+    return out
+
+
+def suspect(char: str) -> bool:
+    """Is this codepoint invisible, or a space that is not the space?
+
+    Defined by Unicode category rather than a hand-kept list, so a control or format
+    character nobody has met yet is caught too: `Cc` and `Cf` are not text, `Zl` and `Zp`
+    are line breaks inside a line, and a `Zs` other than U+0020 renders as a space while
+    comparing unequal to one. Variation selectors are `Mn` and named explicitly — U+FE0F
+    on a marker is the case the parser already had to defend against (RK2).
+    """
+    if char in _VARIATION_SELECTORS:
+        return True
+    category = unicodedata.category(char)
+    return category in ("Cc", "Cf", "Zl", "Zp") or (category == "Zs" and char != " ")
+
+
+def _named(file: str, lineno: int, column: int, char: str, task_id: str) -> Finding:
+    point = f"U+{ord(char):04X}"
+    name = unicodedata.name(char, "unnamed control character").lower()
+    if lineno == 1 and column == 1 and char == "﻿":
+        # Its own answer: a byte-order mark is not text at all, and it lands on whatever
+        # the first line happens to be — which is a heading, so nothing else reports it.
+        return Finding(
+            "char.bom",
+            file,
+            f"{point} byte-order mark at the start of the file: not text, and a byte the "
+            f"round-trip compares",
+            lineno,
+            task_id,
+            column,
+        )
+    if unicodedata.category(char) == "Zs":
+        return Finding(
+            "char.space",
+            file,
+            f"{point} {name} at column {column}: renders as a space and is not one, so "
+            f"the grammar reads a word where a separator was meant",
+            lineno,
+            task_id,
+            column,
+        )
+    return Finding(
+        "char.invisible",
+        file,
+        f"{point} {name} at column {column}: invisible in an editor, so every other "
+        f"diagnosis of this line names the consequence instead",
+        lineno,
+        task_id,
+        column,
+    )
+
+
+def _endings(document: Document, file: str) -> list[Finding]:
+    """Two kinds of line ending in one file — one line edited by something else.
+
+    A file that is *uniformly* CRLF is not a defect and is not reported: `Document` keeps
+    every ending verbatim, so it round-trips, and a repository that checks out CRLF is a
+    configuration rather than a mistake (L6). Mixed is the byte nobody typed.
+    """
+    found: dict[str, int] = {}
+    for line in document.lines:
+        terminator = ending(line)
+        if terminator:
+            found[terminator] = found.get(terminator, 0) + 1
+    if len(found) < 2:
+        return []
+    spelled = ", ".join(
+        f"{count}× {_ENDING_NAMES[terminator]}" for terminator, count in sorted(found.items())
+    )
+    return [
+        Finding(
+            "char.mixed-endings",
+            file,
+            f"two kinds of line ending in one file ({spelled}): one of them was written "
+            f"by something that is not this tool, and the round-trip compares bytes",
+        )
+    ]
 
 
 def _budgets(config: Config) -> list[Finding]:
