@@ -50,6 +50,18 @@ session doing.
 
 ## Block A — The model
 
+### §RK37 An empty block and an absent one are not the same
+
+RK28 resolves a collective dep against the block's own emptiness — a block with nothing
+open is done — and that is right for a block the file declares. It is wrong for one it
+does not: `(deps: Block Z)` resolves as *shipped* today with the detail "Block Z has
+nothing open", so a renamed or mistyped block satisfies a dependency that nothing ever
+built. Absence has to be an answer of its own, on the reasoning RK28 already applied to
+external deps: a dep nothing can resolve is named unresolvable, never counted as done.
+Blocks are discovered from headings and declared nowhere, which is what makes the two
+states indistinguishable — and the failure gets likelier the more blocks a project has,
+because collective deps are what large backlogs write.
+
 ## Block B — Authoring
 
 ### §RK5 `add`
@@ -131,13 +143,18 @@ in a tool result is an answer that costs nothing to consult twice.
 ### §RK32 A retired id is a decision with no record
 
 Ids are non-contiguous by design and a retired one is never reused, so a gap is normal
-— which is exactly what makes it unreadable. RK4 derives the maximum and stops there,
-and nothing distinguishes an id retired after a deliberate supersession from one lost
-to a botched hand-edit. Both files are silent by construction: the line was deleted
-from the roadmap and never reached the ledger. Only the commit that removed it knows,
-so resolve the gap against history and print that commit. *Unresolvable* is a valid
-answer — a squashed or shallow history holds no such commit — and has to be printed as
-unresolvable rather than as retired, on the same reasoning as RK28.
+— which is exactly what makes it unreadable. A line leaves the roadmap by three doors
+and only one of them is recorded: **shipped** reaches the ledger, while **superseded**
+by a later design and **abandoned** reach nothing at all. RK4 derives the maximum and
+stops there, so nothing distinguishes a deliberate supersession from a botched
+hand-edit. ADR practice keeps the record and marks it superseded instead of deleting
+it; the half worth taking is the forward pointer, written at the moment the decision is
+made, which leaves history to be consulted only for the gaps nobody recorded. Deleting
+still beats keeping — an accreting rationale file is the 539 KB this project refuses —
+so what survives a supersession is one line, never the design it replaced.
+*Unresolvable* stays a valid answer: a squashed or shallow history holds no such
+commit, and must print as unresolvable rather than as retired, on the reasoning of
+RK28.
 
 ## Block D — The gate
 
@@ -187,17 +204,6 @@ this tool exists to protect, so its budget belongs in the configuration and its
 overrun in the gate's exit code, alongside every other rule that turned out to need
 enforcing rather than stating.
 
-### §RK33 A dead hash reads like a live one
-
-RK31 buys the lookup with a forty-character pointer, and rebase, `--amend` and
-squash-merge each rewrite the commit that pointer was written against. A ledger of dead
-hashes is worse than no ledger, because a hash resolving to nothing looks identical to
-one that resolves — the same failure RK15 addresses for `→ §RK<n>`, applied to a second
-kind of pointer. So resolve every recorded commit and fail on the one that does not
-exist. The gate has to separate *absent* from *unverifiable*: CI clones shallow
-(`fetch-depth: 1`), and history that was never fetched is not a violation, so a missing
-object fails only where the history present is deep enough to prove it missing.
-
 ### §RK34 Name the byte, not its consequence
 
 The format is structural Unicode — `—`, `→`, `§` and four emoji markers — so the
@@ -210,6 +216,18 @@ codepoint and its offset instead, and treat a BOM and a CRLF as the same class �
 nobody typed, breaking a round-trip that compares bytes. `_looks_like_marker` already
 takes this position for U+FE0F and U+200D (RK2); this extends it from *not skipping the
 line in silence* to *saying what is actually wrong with it*.
+
+### §RK36 A section may not promise what the line does not
+
+RK15 refuses a pointer at a section that does not exist; nothing refuses the mirror, a
+section that requires more than the line pointing at it. That direction is the more
+expensive one, because the line is the single source of status and the section is
+deleted on ship: a requirement written only into the rationale cannot be picked, cannot
+be shipped, and disappears with the section that held it. It happened three times in
+the session that added RK13, RK34 and RK32 — every time by an author who had just
+learned something and wrote it where the reasoning was, not where the status is. The
+check is not semantic and does not need to be: a commit that edits `### §RK<n>` without
+touching RK<n>'s line is the whole signal, and history is already resolvable (RK31).
 
 ## Block E — Adoption
 

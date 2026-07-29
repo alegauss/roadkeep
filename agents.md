@@ -73,7 +73,7 @@ still validate. The suite does it under this repo's own `roadkeep.toml`, which i
 makes L6 a fact here and not a claim about other people's projects.
 
 Current reading (RK14/RK15 replace this hand-verification): 29 tasks, longest line
-**297** chars against a 320 cap, 29/29 pointers resolve, no orphan section.
+**305** chars against a 320 cap, 29/29 pointers resolve, no orphan section.
 
 ## Writing a task line — until `roadkeep add` exists
 
