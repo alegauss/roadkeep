@@ -276,6 +276,7 @@ def _status(config: Config, args: argparse.Namespace) -> int:
                     "file": config.relative(config.path("roadmap")),
                     "line": change.lineno,
                     "rendered": change.rendered,
+                    "refreshed": list(change.refreshed),
                 },
                 indent=2,
             )
@@ -285,6 +286,8 @@ def _status(config: Config, args: argparse.Namespace) -> int:
         print(f"{args.id} is already {change.after}  {where}")
         return EXIT_OK
     print(f"{args.id} {change.before} → {change.after}  {where}")
+    if change.refreshed:
+        print(f"  derived  {', '.join(change.refreshed)} (dep annotations re-derived)")
     return EXIT_OK
 
 
@@ -339,7 +342,7 @@ def _ship(config: Config, args: argparse.Namespace) -> int:
                         },
                         "kept": shipment.kept,
                     },
-                    "stale": list(shipment.stale),
+                    "refreshed": list(shipment.refreshed),
                 },
                 indent=2,
             )
@@ -356,14 +359,8 @@ def _ship(config: Config, args: argparse.Namespace) -> int:
         )
     else:
         print(f"  kept     nothing dropped: {shipment.kept}")
-    if shipment.stale:
-        # Reported, not written: deriving the annotation is RK8, and a gap that goes
-        # unmentioned is worse than the hand-edit it will replace.
-        annotate = "annotate" if len(shipment.stale) > 1 else "annotates"
-        print(
-            f"  stale    {', '.join(shipment.stale)} still {annotate} "
-            f"{shipment.task_id} as open (RK8 derives these)"
-        )
+    if shipment.refreshed:
+        print(f"  derived  {', '.join(shipment.refreshed)} (dep annotations re-derived)")
     return EXIT_OK
 
 

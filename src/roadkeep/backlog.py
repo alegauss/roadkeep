@@ -99,7 +99,10 @@ class Backlog:
 
     @classmethod
     def load(cls, config: Config) -> Backlog:
-        ledger = config.document("changelog") if config.has("changelog") else None
+        # A declared file that is not on disk yet is absent, not empty — `init` (RK18)
+        # creates it, and refusing every question until then would be an obstacle.
+        declared = config.has("changelog") and config.path("changelog").is_file()
+        ledger = config.document("changelog") if declared else None
         return cls(config=config, roadmap=config.document("roadmap"), ledger=ledger)
 
     # -- lookups -----------------------------------------------------------

@@ -50,13 +50,6 @@ session doing.
 
 ## Block B — Authoring
 
-### §RK8 Derived dep markers
-
-`(deps: RK1 ✅)` is a cache of another line's status, and a stale cache here makes a
-ready task read as blocked. Derive the markers on every write from the actual status
-of the referenced ids; a dep pointing at an unknown id is a lint error, not a rendering
-choice.
-
 ### §RK9 Sections, not lines
 
 Improvements and strategy are prose under headings, so their unit is a section with a

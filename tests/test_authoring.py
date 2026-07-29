@@ -217,14 +217,22 @@ def test_the_default_status_is_the_first_marker_the_project_declares(tmp_path):
 
 def test_a_dep_is_read_by_the_same_code_that_reads_the_file(tmp_path):
     config = project(tmp_path)
-    added = task(config, deps=["RK1 ✅", "Block A", "real design partners"])
+    added = task(config, deps=["RK1", "Block A", "real design partners"])
     assert added.rendered.startswith(
-        "- 📋 **RK2** (deps: RK1 ✅, Block A, real design partners)"
+        "- 📋 **RK2** (deps: RK1, Block A, real design partners)"
     )
-    assert added.entry.task.deps[0].shipped
-    # The marker is passed through as typed: deriving it is RK8, and a tool that
-    # invents one before then would be caching a status it never read.
-    assert added.entry.task.deps[1].marker is None
+    assert [dep.id for dep in added.entry.task.deps] == [
+        "RK1",
+        "Block A",
+        "real design partners",
+    ]
+
+
+def test_a_typed_marker_is_corrected_rather_than_trusted(tmp_path):
+    # The annotation is a cache of another line's status (RK8), so what the author typed
+    # about RK1 loses to what RK1's own line says.
+    config = project(tmp_path)
+    assert task(config, deps=["RK1 ✅"]).rendered.startswith("- 📋 **RK2** (deps: RK1 📋)")
 
 
 def test_a_task_cannot_depend_on_itself(tmp_path):
@@ -252,13 +260,13 @@ def test_the_command_prints_the_line_it_wrote(tmp_path, capsys):
                 "--why",
                 "Because of another reason.",
                 "--dep",
-                "RK1 ✅",
+                "RK1",
             ]
         )
         == EXIT_OK
     )
     printed = capsys.readouterr().out.rstrip("\n")
-    assert printed == "- 📋 **RK2** (deps: RK1 ✅) **A second symptom** — Because of another reason. → §RK2"
+    assert printed == "- 📋 **RK2** (deps: RK1) **A second symptom** — Because of another reason. → §RK2"
     assert printed in source(config)
 
 

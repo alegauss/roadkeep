@@ -24,7 +24,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK8** (deps: RK6 ✅) **A dep annotation goes stale the moment its target ships** — derive the `(deps: RK1 ✅)` markers on every write so a shipped dep never reads as pending. → §RK8
 - 📋 **RK9** (deps: RK5 ✅) **The four files are not four of the same thing, and prose has no line to validate** — strategy and improvements are sections, not bullets, so `section` governs them by heading and word budget. → §RK9
 
 ## Block C — Query (consult without reading the file)

@@ -124,6 +124,27 @@ def test_the_file_keeps_its_line_endings(tmp_path):
     assert "\n" not in written.replace("\r\n", "")
 
 
+def test_an_annotation_that_cached_this_marker_follows_it(tmp_path):
+    # The cache goes stale in the write that changes the marker, and nothing else would
+    # ever revisit it (RK8).
+    annotated = BACKLOG.replace("(deps: RK1)", "(deps: RK1 📋)")
+    config = project(tmp_path, roadmap=annotated)
+    change = set_status(config, "RK1", "🛠")
+    assert change.refreshed == ("RK2",)
+    assert read(config) == annotated.replace("- 📋 **RK1**", "- 🛠 **RK1**").replace(
+        "(deps: RK1 📋)", "(deps: RK1 🛠)"
+    )
+
+
+def test_an_unannotated_dependent_is_left_alone(tmp_path):
+    # Nothing was cached, so there is nothing to correct: a write that annotated every
+    # open dep would churn half the file to say what `deps <id>` answers better.
+    config = project(tmp_path)
+    change = set_status(config, "RK1", "🛠")
+    assert change.refreshed == ()
+    assert read(config) == BACKLOG.replace("- 📋 **RK1**", "- 🛠 **RK1**")
+
+
 # -- the second file is always refused ---------------------------------------
 
 

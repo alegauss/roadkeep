@@ -21,10 +21,9 @@ Two decisions worth stating, because both are narrower than they could be:
   is a design and the ledger's is an outcome, so `--why` exists — but the tool never
   rewrites the sentence itself (L4), and it validates whichever one it is given.
 
-What it does not do: derive the dep annotations of the tasks that named this one. That
-is RK8, and until it lands `ship` *reports* the lines whose `(deps: …)` now read as
-pending — naming the stale cache is not the same as writing it, and a report that hides
-the gap would be worse than the hand-edit it replaces.
+The dep annotations of every line that named this task are re-derived in the same
+transaction (RK8), because `(deps: RK5)` becomes a false statement at exactly the moment
+this command runs and nothing else would ever revisit it.
 """
 
 from __future__ import annotations
@@ -32,9 +31,10 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 
 from roadkeep.authoring import Insertion, place
-from roadkeep.backlog import NotOpen
+from roadkeep.backlog import Backlog, NotOpen
 from roadkeep.config import Config
 from roadkeep.document import Document, Heading, blank
+from roadkeep.markers import refresh
 from roadkeep.schema import Task
 
 __all__ = ["AlreadyShipped", "NotOpen", "Section", "Shipment", "ship"]
@@ -78,8 +78,8 @@ class Shipment:
     #: Why nothing was dropped, when nothing was: a task can ship without a rationale
     #: section, and silence about that would read as a section that was deleted.
     kept: str | None = None
-    #: Open lines whose `(deps: …)` still annotate this task as unfinished (RK8).
-    stale: tuple[str, ...] = ()
+    #: Open lines whose `(deps: …)` this ship made true again (RK8).
+    refreshed: tuple[str, ...] = ()
 
     def save(self) -> None:
         """Write the files. Nothing here can fail on the format — that was decided."""
@@ -110,16 +110,22 @@ def ship(config: Config, task_id: str, *, why: str | None = None) -> Shipment:
     insertion = place(ledger, _as_shipped(config, entry.task, why))
     remaining = _remove_entry(roadmap, entry.index)
     improvements, dropped, kept = _drop_section(config, entry.task.ref)
+    # Resolved against the state this ship *creates* — the id is in the ledger and gone
+    # from the roadmap — so a dependent's annotation is derived from what will be on
+    # disk and not from what was (RK8).
+    derived = refresh(
+        Backlog(config=config, roadmap=remaining, ledger=insertion.document)
+    )
 
     return Shipment(
         task_id=task_id,
         ledger=insertion,
-        roadmap=remaining,
+        roadmap=derived.document,
         removed_from=entry.lineno,
         improvements=improvements,
         dropped=dropped,
         kept=kept,
-        stale=_stale_dependents(config, remaining, task_id),
+        refreshed=derived.changed,
     )
 
 
@@ -219,12 +225,3 @@ def _names(text: str, anchor: str) -> bool:
     return not rest or not (rest[0].isalnum() or rest[0] == ".")
 
 
-def _stale_dependents(config: Config, roadmap: Document, task_id: str) -> tuple[str, ...]:
-    """Open lines whose dep annotation for this task no longer matches its status."""
-    shipped = config.schema.shipped_marker
-    return tuple(
-        entry.task.id
-        for entry in roadmap.entries
-        for dep in entry.task.deps
-        if dep.id == task_id and dep.marker != shipped
-    )

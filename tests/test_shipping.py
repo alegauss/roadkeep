@@ -129,7 +129,11 @@ def test_the_line_leaves_the_roadmap_and_arrives_in_the_ledger(tmp_path):
     shipment = ship(config, "RK1")
     shipment.save()
     roadmap, ledger, _ = files(config)
-    assert roadmap == BACKLOG.replace(f"{RK1}\n", "")
+    # The line is gone and the two lines that named it now say so (RK8): the fourth edit
+    # of the four this task exists to make into one.
+    assert roadmap == BACKLOG.replace(f"{RK1}\n", "").replace(
+        "(deps: RK1)", "(deps: RK1 ✅)"
+    )
     assert ledger == LEDGER.replace(
         "## Block A — The model\n\n", f"## Block A — The model\n\n{SHIPPED_RK1}\n\n"
     )
@@ -209,19 +213,19 @@ def test_the_files_keep_their_line_endings(tmp_path):
         assert "\n" not in read(config, name).replace("\r\n", ""), name
 
 
-# -- what the author still has to know ---------------------------------------
+# -- the fourth edit ---------------------------------------------------------
 
 
-def test_the_dependents_that_now_read_as_pending_are_named(tmp_path):
-    # Deriving the annotation is RK8. Until then the gap is reported, because a report
-    # that hides it is worse than the hand-edit it replaces.
+def test_every_line_that_named_the_task_is_re_derived(tmp_path):
+    # In the same transaction, because `(deps: RK1)` becomes false at exactly the moment
+    # this command runs and nothing else would ever revisit it (RK8).
     config = project(tmp_path)
-    assert ship(config, "RK1").stale == ("RK2", "RK3")
+    assert ship(config, "RK1").refreshed == ("RK2", "RK3")
 
 
-def test_a_task_that_nothing_depends_on_reports_nothing(tmp_path):
+def test_a_task_that_nothing_depends_on_re_derives_nothing(tmp_path):
     config = project(tmp_path)
-    assert ship(config, "RK3").stale == ()
+    assert ship(config, "RK3").refreshed == ()
 
 
 def test_the_design_sentence_is_kept_unless_the_author_restates_it(tmp_path):
@@ -313,7 +317,9 @@ def test_a_project_with_no_improvements_file_ships_two_edits(tmp_path):
     assert shipment.improvements is None
     assert shipment.kept == "this project declares no improvements file"
     shipment.save()
-    assert read(config, ROADMAP) == BACKLOG.replace(f"{RK1}\n", "")
+    assert read(config, ROADMAP) == BACKLOG.replace(f"{RK1}\n", "").replace(
+        "(deps: RK1)", "(deps: RK1 ✅)"
+    )
 
 
 # -- the command -------------------------------------------------------------
@@ -326,15 +332,8 @@ def test_the_command_reports_every_edit_it_made(tmp_path, capsys):
     assert f"RK1 → {CHANGELOG}:5 under Block A" in out
     assert f"removed  {ROADMAP}:5" in out
     assert f"dropped  §RK1 (5-12) from {IMPROVEMENTS}" in out
-    assert "RK2, RK3 still annotate RK1 as open" in out
+    assert "derived  RK2, RK3" in out
     assert SHIPPED_RK1 in read(config, CHANGELOG)
-
-
-def test_one_stale_dependent_reads_as_one(tmp_path, capsys):
-    # A report whose grammar is wrong reads as a template rather than as an answer.
-    project(tmp_path, roadmap=BACKLOG.replace(f"{RK3}\n\n", ""))
-    assert main(["-C", str(tmp_path), "ship", "RK1"]) == EXIT_OK
-    assert "RK2 still annotates RK1 as open" in capsys.readouterr().out
 
 
 def test_json_carries_every_edit(tmp_path, capsys):
@@ -344,7 +343,7 @@ def test_json_carries_every_edit(tmp_path, capsys):
     assert payload["changelog"]["file"] == CHANGELOG
     assert payload["roadmap"] == {"file": ROADMAP, "removed": 6}
     assert payload["improvements"]["dropped"]["anchor"] == "RK2"
-    assert payload["stale"] == []
+    assert payload["refreshed"] == []
 
 
 def test_a_refusal_exits_two_and_writes_nothing(tmp_path, capsys):

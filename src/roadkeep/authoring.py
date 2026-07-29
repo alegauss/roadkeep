@@ -39,10 +39,11 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass, replace
 
-from roadkeep.backlog import NotOpen
+from roadkeep.backlog import Backlog, NotOpen
 from roadkeep.config import ROLES, Config
 from roadkeep.document import Document, Entry, Heading, blank, read_deps
 from roadkeep.ids import next_id, scan
+from roadkeep.markers import derive, refresh
 from roadkeep.schema import Task
 
 
@@ -205,6 +206,10 @@ def add(
     The id is derived unless one is given, and a given id that occurs anywhere is
     refused (:class:`IdInUse`) — including in prose, because a number a document
     already mentions is a number two designs would share in the history.
+
+    The dep annotations are derived here too (RK8), so `--dep RK1` renders `RK1 ✅` when
+    RK1 has shipped and the author never types a marker. Only this line is derived: no
+    existing line can name an id that did not exist a moment ago.
     """
     if task_id is None:
         task_id = next_id(config)
@@ -220,7 +225,7 @@ def add(
         deps=deps,
         ref=ref,
     )
-    insertion = place(config.document("roadmap"), task)
+    insertion = place(config.document("roadmap"), derive(Backlog.load(config), task))
     insertion.document.save()
     return insertion
 
@@ -232,6 +237,8 @@ class StatusChange:
     document: Document
     entry: Entry
     before: str
+    #: Other lines whose dep annotation this write made true again (RK8).
+    refreshed: tuple[str, ...] = ()
 
     @property
     def after(self) -> str:
@@ -261,14 +268,18 @@ def set_status(config: Config, task_id: str, marker: str) -> StatusChange:
 
     ✅ is refused here by the schema itself, not by a special case: shipped work is the
     ledger's to state, and `ship` (RK6) is the only thing that puts it there.
+
+    A marker this task's dependents cached is stale the moment it changes, so the write
+    re-derives every annotation in the file (RK8) and names the lines it corrected.
     """
-    roadmap = config.document("roadmap")
+    backlog = Backlog.load(config)
+    roadmap = backlog.roadmap
     entry = roadmap.by_id().get(task_id)
     if entry is None:
         raise NotOpen(
             task_id,
             config.relative(config.path("roadmap")),
-            shipped=_in_ledger(config, task_id),
+            shipped=task_id in backlog.shipped(),
         )
     twins = tuple(e.lineno for e in roadmap.entries if e.task.id == task_id)
     if len(twins) > 1:
@@ -280,19 +291,14 @@ def set_status(config: Config, task_id: str, marker: str) -> StatusChange:
         # Nothing to write: rewriting the same bytes would make a no-op look like an
         # edit to every tool that watches the file.
         return StatusChange(document=roadmap, entry=entry, before=entry.task.status)
-    document = roadmap.replace_task(entry, updated)
-    document.save()
+    derived = refresh(replace(backlog, roadmap=roadmap.replace_task(entry, updated)))
+    derived.document.save()
     return StatusChange(
-        document=document,
-        entry=next(e for e in document.entries if e.lineno == entry.lineno),
+        document=derived.document,
+        entry=next(e for e in derived.document.entries if e.lineno == entry.lineno),
         before=entry.task.status,
+        refreshed=tuple(name for name in derived.changed if name != task_id),
     )
-
-
-def _in_ledger(config: Config, task_id: str) -> bool:
-    if not config.has("changelog") or not config.path("changelog").is_file():
-        return False
-    return task_id in config.document("changelog").by_id()
 
 
 def _refuse_sibling_status(config: Config, task_id: str) -> None:
