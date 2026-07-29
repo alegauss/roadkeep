@@ -33,16 +33,24 @@ What survives a retirement is one line under the block it belonged to: the sympt
 verbatim, and a `why` whose derived prefix names the replacement so the pointer is forward
 and written at the moment of the decision. Never the design it replaced — an accreting
 rationale file is the 539 KB this project exists to refuse.
+
+**A fourth door starts nowhere** (RK41). All three above begin from an open roadmap line,
+so work that was finished before it was ever planned — a defect found on the way to
+something else, fixed, real, shipped — has no route into the ledger except a fictitious
+roadmap line shipped in the same breath. :func:`record` is that route made honest: it
+writes the ledger entry and touches nothing else, which is why RK7 survives it untouched
+— the line never exists open, so there is no second file to disagree with.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
 
-from roadkeep.authoring import Insertion, place
+from roadkeep.authoring import Insertion, place, refuse_reuse
 from roadkeep.backlog import Backlog, NotOpen
 from roadkeep.config import Config
 from roadkeep.document import Document, Heading, blank
+from roadkeep.ids import next_id
 from roadkeep.markers import refresh
 from roadkeep.schema import Task
 from roadkeep.sections import NoSuchSection, Section
@@ -54,8 +62,10 @@ __all__ = [
     "Departure",
     "NoSuchReplacement",
     "NotOpen",
+    "Record",
     "Section",
     "Shipment",
+    "record",
     "retire",
     "ship",
 ]
@@ -134,6 +144,34 @@ class Departure:
 Shipment = Departure
 
 
+@dataclass(frozen=True, slots=True)
+class Record:
+    """A ledger entry that had no roadmap line to leave (RK41).
+
+    Not a :class:`Departure`: there is no line removed, no section dropped and no
+    `removed_from` to report, and a shared shape would carry three fields that are
+    permanently None plus the invitation to make them meaningful later.
+    """
+
+    task_id: str
+    ledger: Insertion
+    #: The roadmap as this write leaves it — the same document unless an annotation
+    #: elsewhere became derivable (RK8), which is what :attr:`refreshed` names.
+    roadmap: Document
+    refreshed: tuple[str, ...] = ()
+    #: The marker the entry carries: ✅, the only one a record can mean.
+    marker: str = ""
+
+    def save(self) -> None:
+        """Write the ledger, and the roadmap only if a line in it actually changed."""
+        self.ledger.document.save()
+        if self.refreshed:
+            # The roadmap is not part of this transaction, so it is not rewritten to the
+            # same bytes: an untouched file with a moved mtime reads as an edit to every
+            # hook watching it, and "touched nothing else" has to be true on disk.
+            self.roadmap.save()
+
+
 def ship(config: Config, task_id: str, *, why: str | None = None) -> Departure:
     """Move one task from the backlog to the ledger. Validates all three edits first."""
     return _depart(config, task_id, config.schema.shipped_marker, why)
@@ -164,6 +202,54 @@ def retire(
     else:
         why = f"abandoned: {reason}"
     return _depart(config, task_id, config.schema.retired_marker, why)
+
+
+def record(
+    config: Config,
+    *,
+    block: str,
+    symptom: str,
+    why: str,
+    task_id: str | None = None,
+) -> Record:
+    """Write a ledger entry for work that shipped without ever being planned (RK41).
+
+    The fields are refused at input exactly as `add` refuses them (L1), against
+    :meth:`~roadkeep.schema.Schema.as_ledger` rather than the roadmap's schema — so the
+    marker is ✅, the block heading must already be declared in the ledger, and a dep or a
+    pointer is not accepted rather than dropped: there is no open line for a dep to be a
+    planning fact about, and no rationale section for a pointer to resolve to.
+
+    The id is derived like any other (RK4) and refused if anything anywhere already
+    mentions it, so recording cannot quietly claim an id the roadmap is holding. The
+    `symptom` rule is the one that must not soften: what did not work, stated so it could
+    have been falsified — never the name of the patch that closed it (L4 leaves that to
+    the caller, here as everywhere).
+    """
+    if task_id is None:
+        task_id = next_id(config)
+    else:
+        refuse_reuse(config, task_id)
+
+    ledger = config.document("changelog")
+    marker = config.schema.shipped_marker
+    insertion = place(
+        ledger,
+        Task(id=task_id, status=marker, block=block, symptom=symptom, why=why),
+    )
+    # Resolved against the state this write creates, for the same reason `_depart` does it
+    # (RK8): an id is normally too new for any line to name, but a range dep can already
+    # span it, and an annotation left un-derived by one door is one nothing revisits.
+    derived = refresh(
+        Backlog(config=config, roadmap=config.document("roadmap"), ledger=insertion.document)
+    )
+    return Record(
+        task_id=task_id,
+        ledger=insertion,
+        roadmap=derived.document,
+        refreshed=derived.changed,
+        marker=marker,
+    )
 
 
 def _depart(

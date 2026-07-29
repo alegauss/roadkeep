@@ -53,7 +53,7 @@ from roadkeep.sections import Section
 from roadkeep.sections import add as add_section
 from roadkeep.sections import drop as drop_section
 from roadkeep.sections import find as find_section
-from roadkeep.shipping import retire, ship
+from roadkeep.shipping import record, retire, ship
 from roadkeep.showing import View, show
 
 EXIT_OK = 0
@@ -213,6 +213,35 @@ def build_parser() -> argparse.ArgumentParser:
     )
     ship_parser.add_argument("--json", action="store_true", help="every edit, as data")
     ship_parser.set_defaults(handler=_ship)
+
+    record_parser = subcommands.add_parser(
+        "record",
+        help="write a ledger entry for work that shipped without ever being planned",
+        description=(
+            "The fourth door, and the only one that starts nowhere. `ship` and both "
+            "retirements begin from an open roadmap line, so a fix nobody planned had one "
+            "route in: a fictitious roadmap line shipped in the same breath, which teaches "
+            "that the format can be gamed. This writes the entry and touches nothing else."
+        ),
+    )
+    record_parser.add_argument("--block", required=True, help="the block label, e.g. B")
+    record_parser.add_argument(
+        "--symptom",
+        required=True,
+        help="what did not work — a phrase, never the name of the patch that closed it",
+    )
+    record_parser.add_argument(
+        "--why", required=True, help="one sentence, ending in a stop: the outcome"
+    )
+    record_parser.add_argument(
+        "--id",
+        dest="task_id",
+        help="the id (default: derived, one past the highest anywhere)",
+    )
+    record_parser.add_argument(
+        "--json", action="store_true", help="the entry, with the file and line it landed on"
+    )
+    record_parser.set_defaults(handler=_record)
 
     list_parser = subcommands.add_parser(
         "list",
@@ -720,6 +749,57 @@ def _ship(config: Config, args: argparse.Namespace) -> int:
         print(f"  kept     nothing dropped: {shipment.kept}")
     if shipment.refreshed:
         print(f"  derived  {', '.join(shipment.refreshed)} (dep annotations re-derived)")
+    _print_event(event, "  ")
+    return EXIT_OK
+
+
+def _record(config: Config, args: argparse.Namespace) -> int:
+    try:
+        entry = record(
+            config,
+            block=args.block,
+            symptom=args.symptom,
+            why=args.why,
+            task_id=args.task_id,
+        )
+        entry.save()
+    except (RoundTripError, KeyError, ValueError, OSError) as error:
+        return _refused(error)
+
+    ledger = config.relative(config.path("changelog"))
+    block = entry.ledger.entry.task.block  # as the file reads it back, not as it was typed
+    # The event's block state is the *roadmap's*, as it is for every other mutator: a hook
+    # asking "is Block B finished" is asking about open work, and a record adds none.
+    event = _event(entry.task_id, block, entry.roadmap)
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "id": entry.task_id,
+                    "marker": entry.marker,
+                    "changelog": {
+                        "file": ledger,
+                        "line": entry.ledger.lineno,
+                        "rendered": entry.ledger.rendered,
+                    },
+                    "roadmap": {"touched": bool(entry.refreshed)},
+                    "refreshed": list(entry.refreshed),
+                    "event": event,
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+
+    print(
+        f"{entry.task_id} {entry.marker} {ledger}:{entry.ledger.lineno} "
+        f"under Block {block}"
+    )
+    # Said out loud, because the absence is the whole point: a reader of this output has to
+    # be able to tell "nothing was planned" from "the roadmap edit was forgotten".
+    print("  planned  never: straight to the ledger, so there was no roadmap line to remove")
+    if entry.refreshed:
+        print(f"  derived  {', '.join(entry.refreshed)} (dep annotations re-derived)")
     _print_event(event, "  ")
     return EXIT_OK
 

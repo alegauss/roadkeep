@@ -98,9 +98,10 @@ def test_a_task_without_a_ref_renders_without_the_arrow():
 def test_corpus_is_not_empty():
     # A corpus test over zero lines passes for the wrong reason. A floor and not a count:
     # this corpus is the *roadmap*, which shrinks by one every time a task ships, so a
-    # tight number here would fail on progress. The shipped lines are a corpus too, under
-    # the ledger's own schema, and test_document.py holds that half.
-    assert len(read_corpus()) >= 10
+    # tight number here would fail on progress — as 10 did the moment RK41 left 9 behind.
+    # The shipped lines are a corpus too, under the ledger's own schema, and test_document.py
+    # holds that half.
+    assert len(read_corpus()) >= 5
 
 
 def test_every_corpus_line_conforms():

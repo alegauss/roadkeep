@@ -41,7 +41,7 @@ src/roadkeep/   the package (src layout, importable via pytest pythonpath). Each
                 own docstring is the authority on it — this is only where to look:
   schema document config ids                RK1-4  the model: the format, the file, the
                                                    configuration, and the next id
-  authoring shipping markers sections       RK5-9/32  the write paths, each all-or-nothing
+  authoring shipping markers sections       RK5-9/32/41  the write paths, all-or-nothing
   backlog counting picking showing graph    RK10-13/28-29/31/37/39-40  the query surface,
   briefing exporting history                         plus what git alone can answer
   linting fixing                            RK14-17  the gate, and the derived-only fixer
@@ -75,17 +75,17 @@ command through the action this repo ships (RK17). `--fix` repairs only what is 
 
 ## Writing and shipping — call the command, never type the format
 
-`python -m roadkeep.cli <add|status|ship|retire|section> --help` carries the flags. What the
-commands guarantee, so it costs you no thought: the id, the `→ §RK<n>` pointer, the status
-default and every `(deps: … ✅)` annotation are **derived, never typed**; a refusal exits 2
-naming the length and the limit and writes nothing; ✅ never reaches the roadmap; `ship` makes
-its three edits (ledger entry, roadmap line gone, `§<id>` deleted) plus the dependents'
-annotations, or none of them, and `retire <id> [--superseded-by <id>] --reason "…"` is that
-same transaction through the other two doors (RK32); `section add <id> --title "…"` takes the
-prose on **stdin**, ≤250 words, filled to 88 columns, placed under the task's block — a table
-or a list is inserted exactly as written. Blocks are declared by headings only: a write never
-invents one. Every write prints one `event <id> Block <x> open|empty` line — the whole payload
-a hook gets, and the tool's last word on it (RK38).
+`python -m roadkeep.cli <add|status|ship|retire|record|section> --help` has the flags. What they
+guarantee, so it costs you no thought: the id, the `→ §RK<n>` pointer, the status default and
+every `(deps: … ✅)` annotation are **derived, never typed**; a refusal exits 2 naming the length
+and the limit and writes nothing; ✅ never reaches the roadmap; `ship` makes its three edits
+(ledger entry, roadmap line gone, `§<id>` deleted) plus the dependents' annotations, or none, and
+`retire <id> [--superseded-by <id>] --reason "…"` is the same transaction, two more doors (RK32).
+`record --block <x> --symptom "…" --why "…"` is the fourth — never planned, so the ledger entry
+alone and the roadmap untouched (RK41). `section add <id> --title "…"` takes prose on **stdin**,
+≤250 words, filled to 88 columns, under the task's block — a table or list is inserted exactly as
+written. No write invents a block heading. Every write prints one `event <id> Block <x>
+open|empty` line, the whole payload a hook gets (RK38).
 
 That leaves the two rules a schema cannot check:
 

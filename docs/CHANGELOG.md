@@ -27,6 +27,7 @@
 - ✅ **RK8** **A dep annotation goes stale the moment its target ships** — the annotation is derived from the resolver on every write, so a shipped dep never reads as pending and a marker nobody typed is never invented.
 - ✅ **RK9** **The four files are not four of the same thing, and prose has no line to validate** — prose is governed by section instead: an anchor a pointer resolves, a budget in words, and a place derived from the block, with drop being the edit ship already calls.
 - ✅ **RK38** **A write reports an exit code and nothing about what it changed, so only a human can react to it** — every mutator prints the id, the block and whether that block still holds an open line, which is the whole event a hook needs and the last thing the tool does about it.
+- ✅ **RK41** **A fix that was never planned has no door into the ledger** — a fourth command writes the ledger entry alone, so a fix nobody planned is recorded without a fictitious roadmap line shipped in the same breath to carry it.
 
 ## Block C — Query
 

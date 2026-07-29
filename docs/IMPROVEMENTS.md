@@ -50,23 +50,6 @@ session doing.
 
 ## Block B — Authoring
 
-### §RK41 A record with no planning step
-
-Some work is finished before it is ever planned: an agent fixes a defect it found on the
-way to something else, and the fix is real, shipped and worth a ledger line. Today
-`ship` refuses it, because `_depart` starts from an open roadmap entry (RK6), and the
-roadmap schema refuses the shipped marker outright. That leaves two bad options — write
-a task to delete it in the same breath, which makes the roadmap a formality and teaches
-that the format can be gamed, or record nothing, which is what actually happens and what
-leaves the ledger describing less than the repository shipped.
-
-So the fourth door is a command: validate the entry against `as_ledger()`, require the
-block heading, re-derive the dependents' annotations, print the RK38 event, and touch
-the roadmap not at all. RK7 survives untouched precisely because the line never exists
-open — there is no second file to disagree with. The `symptom` rule is the one thing
-that must not soften: what did not work, stated so it could have been falsified, never
-the name of the patch that closed it.
-
 ## Block C — Query
 
 ## Block D — The gate

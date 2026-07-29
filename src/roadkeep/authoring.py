@@ -201,7 +201,7 @@ def add(
     if task_id is None:
         task_id = next_id(config)
     else:
-        _refuse_reuse(config, task_id)
+        refuse_reuse(config, task_id)
     task = compose(
         config,
         task_id=task_id,
@@ -304,7 +304,13 @@ def _refuse_sibling_status(config: Config, task_id: str) -> None:
             )
 
 
-def _refuse_reuse(config: Config, task_id: str) -> None:
+def refuse_reuse(config: Config, task_id: str) -> None:
+    """Refuse an id anything already mentions, anywhere (RK4).
+
+    Public because every door that mints an id needs the same refusal, and an id rule
+    with a second implementation is an id rule two commands can disagree about: `add`
+    (RK5) and `record` (RK41) both call this one.
+    """
     clash = next((ref for ref in scan(config) if ref.id == task_id), None)
     if clash is not None:
         raise IdInUse(task_id, config.relative(clash.path), clash.lineno)

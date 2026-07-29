@@ -24,8 +24,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK41** (deps: RK6 ✅) **A fix that was never planned has no door into the ledger** — the only route in is a fictitious roadmap line shipped in the same breath, so one transaction writes the ledger entry with no roadmap step at all. → §RK41
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
