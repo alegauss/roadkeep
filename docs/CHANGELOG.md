@@ -41,6 +41,8 @@
 
 ## Block D — The gate
 
+- ✅ **RK14** **A format that is documented but not enforced is a format that drifts** — the gate is one command that re-reads every governed line through the schema that wrote it and exits 1 on any drift, so a hook and an Action share one contract and neither parses a report.
+
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin

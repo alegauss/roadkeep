@@ -54,13 +54,6 @@ session doing.
 
 ## Block D — The gate
 
-### §RK14 `lint`
-
-Validates every line against the schema and **exits non-zero** — that exit code is the
-entire difference between a gate and advice. It is also the tool's own conformance
-fixture: `roadkeep lint` must pass on this repository's files, so the format is proven
-by the artefact rather than asserted in a README.
-
 ### §RK15 Resolving pointers
 
 A `→ §RK<n>` aimed at a section that does not exist reads exactly like a design that

@@ -45,6 +45,7 @@ from roadkeep.exporting import project, splice
 from roadkeep.graph import Graph, Leverage
 from roadkeep.history import Commit, HistoryUnavailable, Origin, gaps, origin_of
 from roadkeep.ids import highest, next_id
+from roadkeep.linting import Finding, Report, lint
 from roadkeep.picking import Choice, pick
 from roadkeep.schema import SchemaError
 from roadkeep.sections import Section
@@ -251,6 +252,23 @@ def build_parser() -> argparse.ArgumentParser:
     )
     _counting_flags(audit_parser)
     audit_parser.set_defaults(handler=_audit)
+
+    lint_parser = subcommands.add_parser(
+        "lint",
+        help="validate every governed line; exit 1 when anything drifted",
+        description=(
+            "The backstop for what bypassed `add`. Reports every violation, every line "
+            "that does not round-trip and every dep nothing can satisfy — and exits "
+            "non-zero, which is the entire difference between a gate and advice."
+        ),
+    )
+    lint_parser.add_argument(
+        "--quiet",
+        action="store_true",
+        help="print only the summary line, for a hook that wants the exit code",
+    )
+    lint_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    lint_parser.set_defaults(handler=_lint)
 
     brief_parser = subcommands.add_parser(
         "brief",
@@ -820,6 +838,57 @@ def _audit(config: Config, args: argparse.Namespace) -> int:
         print(f"    {miss.raw.strip()}")
     print(f"{census.file}: {census.total} counted, {census.uncounted} uncounted")
     return EXIT_OK
+
+
+def _lint(config: Config, args: argparse.Namespace) -> int:
+    try:
+        report = lint(config)
+    except (KeyError, OSError) as error:
+        return _refused(error)
+
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "clean": report.clean,
+                    "checked": list(report.checked),
+                    "lines": report.lines,
+                    "problems": report.problems,
+                    "codes": report.codes(),
+                    "findings": [_finding_json(f) for f in report.findings],
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK if report.clean else EXIT_GATE
+
+    if report.clean:
+        # The files are named on the way out even when there is nothing to say: a gate
+        # that passed by reading nothing looks exactly like a gate that passed.
+        print(f"{', '.join(report.checked) or 'nothing'}: {report.lines} line(s), clean")
+        return EXIT_OK
+    if not args.quiet:
+        for finding in report.findings:
+            print(str(finding))
+    print(
+        f"{report.problems} problem(s) in {report.lines} line(s) across "
+        f"{len(report.checked)} file(s): {_codes(report)}"
+    )
+    return EXIT_GATE
+
+
+def _codes(report: Report) -> str:
+    return "  ".join(f"{code} {count}" for code, count in report.codes().items())
+
+
+def _finding_json(finding: Finding) -> dict[str, object]:
+    return {
+        "code": finding.code,
+        "file": finding.file,
+        "line": finding.lineno,
+        "id": finding.id or None,
+        "message": finding.message,
+    }
 
 
 def _markers(markers: Mapping[str, int]) -> str:

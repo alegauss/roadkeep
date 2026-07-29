@@ -114,14 +114,14 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 8 |
 | B — Authoring (insert, never hand-edit) | 0 | 6 |
 | C — Query (consult without reading the file) | 0 | 8 |
-| D — The gate | 8 | 0 |
+| D — The gate | 7 | 1 |
 | E — Adoption | 4 | 0 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 5 | 0 |
-| **Total** | 17 | 22 |
+| **Total** | 16 | 23 |
 
 **Next ready:**
 
-- 📋 **RK14** (deps: RK1 ✅, RK2 ✅) **A format that is documented but not enforced is a format that drifts** — `lint` validates every line against the schema and exits non-zero, which is what makes it a gate rather than advice. → §RK14
+- 📋 **RK15** (deps: RK14 ✅) **A pointer to a section that does not exist reads as a design that does** — resolve every `→ §RK<n>` against the improvements file and every spec path against disk. → §RK15
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

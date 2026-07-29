@@ -197,9 +197,12 @@ def test_this_backlog_has_no_cycle_and_a_measurable_gap():
         ((g.leverage(task).count, task) for task in g.edges), reverse=True
     )
     top, least = ranked[0], ranked[-1]
-    # §RK13's measurement, now derived: the gate task sits in most blocker sets and the
-    # tail sits in none — the gap no reading of the file makes visible.
-    assert top[0] > 5 and least[0] == 0
+    # §RK13's measurement, now derived: one task sits in several blocker sets and the tail
+    # sits in none — the gap no reading of the file makes visible. Asserted as a gap and
+    # not a threshold: shipping the most-blocking task collapses the top count (RK14 went
+    # from 15 dependents to zero the moment it landed), and a bound that has to be edited
+    # by the commit that shipped it gets edited without being read.
+    assert top[0] > least[0] and least[0] == 0
 
 
 @pytest.mark.parametrize(

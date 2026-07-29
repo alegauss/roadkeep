@@ -28,25 +28,24 @@
 
 ## Block D — The gate
 
-- 📋 **RK14** (deps: RK1 ✅, RK2 ✅) **A format that is documented but not enforced is a format that drifts** — `lint` validates every line against the schema and exits non-zero, which is what makes it a gate rather than advice. → §RK14
-- 📋 **RK15** (deps: RK14) **A pointer to a section that does not exist reads as a design that does** — resolve every `→ §RK<n>` against the improvements file and every spec path against disk. → §RK15
-- 📋 **RK16** (deps: RK14) **A report of ninety-two violations is a report nobody acts on** — `lint --fix` normalizes what is mechanical (ordering, dep markers, whitespace) and reports only what needs a human decision. → §RK16
-- 📋 **RK17** (deps: RK14) **A gate that runs only on a developer's machine is not a gate** — ship a GitHub Action and a pre-commit hook that both call the same exit code. → §RK17
-- 📋 **RK30** (deps: RK14) **The instruction file loaded every turn has a budget nothing enforces** — `agents.md` reached 186 KB in Shio under exactly this rule, so the gate checks the declared line and byte budget of every always-loaded file. → §RK30
-- 📋 **RK34** (deps: RK14) **An invisible character reports a visible error about something else** — a no-break space renders as a space and a variation selector renders as nothing, so the gate names the codepoint and its offset instead of the downstream violations it caused. → §RK34
-- 📋 **RK35** (deps: RK14) **A dep on a range or a block hides how much work it actually names** — `Block P` resolved to 48 open tasks in Shio, so a reader who trusts the annotation is reading one dep where the graph holds dozens. → §RK35
-- 📋 **RK36** (deps: RK14, RK31 ✅) **A rationale section can gain a requirement the line carrying its status never mentions** — the section is deleted on ship and the line is the only thing `pick` reads, so the gate flags a commit that edits §RK<n> without touching RK<n>. → §RK36
+- 📋 **RK15** (deps: RK14 ✅) **A pointer to a section that does not exist reads as a design that does** — resolve every `→ §RK<n>` against the improvements file and every spec path against disk. → §RK15
+- 📋 **RK16** (deps: RK14 ✅) **A report of ninety-two violations is a report nobody acts on** — `lint --fix` normalizes what is mechanical (ordering, dep markers, whitespace) and reports only what needs a human decision. → §RK16
+- 📋 **RK17** (deps: RK14 ✅) **A gate that runs only on a developer's machine is not a gate** — ship a GitHub Action and a pre-commit hook that both call the same exit code. → §RK17
+- 📋 **RK30** (deps: RK14 ✅) **The instruction file loaded every turn has a budget nothing enforces** — `agents.md` reached 186 KB in Shio under exactly this rule, so the gate checks the declared line and byte budget of every always-loaded file. → §RK30
+- 📋 **RK34** (deps: RK14 ✅) **An invisible character reports a visible error about something else** — a no-break space renders as a space and a variation selector renders as nothing, so the gate names the codepoint and its offset instead of the downstream violations it caused. → §RK34
+- 📋 **RK35** (deps: RK14 ✅) **A dep on a range or a block hides how much work it actually names** — `Block P` resolved to 48 open tasks in Shio, so a reader who trusts the annotation is reading one dep where the graph holds dozens. → §RK35
+- 📋 **RK36** (deps: RK14 ✅, RK31 ✅) **A rationale section can gain a requirement the line carrying its status never mentions** — the section is deleted on ship and the line is the only thing `pick` reads, so the gate flags a commit that edits §RK<n> without touching RK<n>. → §RK36
 
 ## Block E — Adoption
 
-- 📋 **RK18** (deps: RK3 ✅, RK14) **A tool that requires an empty repo cannot be adopted by the repo that needs it** — `init` scaffolds the files and config, and `adopt` reports what an existing backlog must change to pass. → §RK18
+- 📋 **RK18** (deps: RK3 ✅, RK14 ✅) **A tool that requires an empty repo cannot be adopted by the repo that needs it** — `init` scaffolds the files and config, and `adopt` reports what an existing backlog must change to pass. → §RK18
 - 📋 **RK19** (deps: RK18) **Installing from a git clone keeps a standard local** — publish to PyPI so `uvx roadmap-lint` runs with no checkout. → §RK19
 - 💭 **RK20** (deps: RK19, RK16) **Shio's 92 active lines average 142 words against a one-sentence rule** — migrating a real backlog is the only test of whether the schema fits a live project. → §RK20
 - 💭 **RK21** (deps: RK20) **A standard adopted by one project is a preference** — roll out to Turing, Dumont and Cursarei, each with its own `roadmap.toml`. → §RK21
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK22** (deps: RK5 ✅, RK14) **An agent can hand-edit the file the CLI is supposed to own** — a `PreToolUse` hook that denies `Edit`/`Write` on the governed files and names the command to call instead is the only barrier an agent cannot route around. → §RK22
+- 📋 **RK22** (deps: RK5 ✅, RK14 ✅) **An agent can hand-edit the file the CLI is supposed to own** — a `PreToolUse` hook that denies `Edit`/`Write` on the governed files and names the command to call instead is the only barrier an agent cannot route around. → §RK22
 - 📋 **RK23** (deps: RK22) **Rules resident every turn spend the budget they exist to protect** — package the format as a skill with trigger phrases so it loads when a governed file is in play, and not before. → §RK23
 - 📋 **RK24** (deps: RK5 ✅, RK10 ✅) **Shelling out puts argument names in prose, where they are guessed** — expose `add`/`ship`/`pick`/`lint` as MCP tools so the field schema *is* the tool's input schema. → §RK24
 - 📋 **RK25** (deps: RK23) **A human driving the same standard should not have to learn the CLI** — `/roadkeep:add`, `/roadkeep:ship`, `/roadkeep:pick` and `/roadkeep:lint` over the one engine. → §RK25
