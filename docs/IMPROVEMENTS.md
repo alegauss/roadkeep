@@ -56,6 +56,20 @@ Improvements and strategy are prose under headings, so their unit is a section w
 word budget and a required anchor, not a bullet with a character cap. `section
 add|show|drop` governs them, and `drop` is what rule 1 of the ship flow calls.
 
+### §RK38 The write is the event; reacting to it is not the tool's job
+
+A write already succeeds or refuses with an exit code, so what is missing is not a
+listener but a payload: the id, the block, and whether that block still holds an open
+line. Emitting those makes every mutator hookable by a `PostToolUse` hook (RK22) or the
+Action (RK17) without the tool learning what to do next. The rejected shape is the
+inverse — a `[hooks]` table that runs skills after `add` — and it fails on all three
+counts: "refresh the docs" is prose, so a listener that calls a model makes the tool a
+prose writer by proxy against L4 and the non-goal; a model call per inserted line
+multiplies exactly the analysis §0.1 measured; and configured shell commands would make
+`uvx roadkeep` in a third party's CI an executor of whatever the repo declares. Push is
+also the wrong direction for "a block finished": that is derivable from the count RK10
+already produces, and a fact one can query never goes stale in a queue.
+
 ## Block C — Query
 
 ### §RK10 `list`, `stats`, `audit`
@@ -114,6 +128,19 @@ so what survives a supersession is one line, never the design it replaced.
 *Unresolvable* stays a valid answer: a squashed or shallow history holds no such
 commit, and must print as unresolvable rather than as retired, on the reasoning of
 RK28.
+
+### §RK39 `export` — a projection, never a second author
+
+A README section and a site page repeat what the backlog says and drift the moment it
+changes, because nothing re-derives them. `export` writes them as a pure function of the
+parsed files: a README block between two markers, and a JSON payload for a site build.
+Two properties make it a projection rather than a generator. It is **idempotent** — the
+same `docs/` yields the same bytes, so a refresh with nothing to say produces no diff,
+which is what makes the diff readable when there is something to say. And it **writes no
+new sentence**: every character it emits already passed `add`, so L4 holds and `lint`
+still proves the artefact. That is also the boundary — a summary of a block, a release
+note, any text not already in a validated line, is out of scope here and belongs to the
+author who calls `add`.
 
 ## Block D — The gate
 

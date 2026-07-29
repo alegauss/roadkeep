@@ -25,6 +25,7 @@
 ## Block B — Authoring (insert, never hand-edit)
 
 - 📋 **RK9** (deps: RK5 ✅) **The four files are not four of the same thing, and prose has no line to validate** — strategy and improvements are sections, not bullets, so `section` governs them by heading and word budget. → §RK9
+- 📋 **RK38** (deps: RK5 ✅, RK6 ✅) **A write reports an exit code and nothing about what it changed, so only a human can react to it** — add, ship and status print the id, the block and whether that block is now empty, which is the whole event a hook needs and the tool's only part in it. → §RK38
 
 ## Block C — Query (consult without reading the file)
 
@@ -34,6 +35,7 @@
 - 📋 **RK13** (deps: RK10) **A blocked task looks identical to a ready one, and one that unblocks half the backlog to one that unblocks nothing** — `deps` resolves the graph, names the blocker chain, detects a cycle, and counts what shipping each task unblocks. → §RK13
 - 📋 **RK29** (deps: RK11, RK12) **Starting a task costs reading two whole files to learn one line's worth of context** — one call returns the line, its rationale, its deps' status and the paths it touches, which is the entire cost of starting work for an agent. → §RK29
 - 📋 **RK32** (deps: RK2 ✅, RK4 ✅) **An id that exists in neither file was retired for a reason nobody recorded** — a line leaves by three doors and only shipping is recorded, so mark a superseded id at the moment it is replaced and resolve the unrecorded gaps against the commit that deleted them. → §RK32
+- 📋 **RK39** (deps: RK2 ✅, RK3 ✅) **A README and a site restate a backlog they cannot re-read, so both are stale from the first ship** — export projects the parsed files onto a marked README block and a JSON payload as a pure function of the Markdown, so a refresh is idempotent and writes no new sentence. → §RK39
 
 ## Block D — The gate
 
