@@ -41,23 +41,10 @@ from dataclasses import dataclass, replace
 
 from roadkeep.backlog import Backlog, NotOpen
 from roadkeep.config import ROLES, Config
-from roadkeep.document import Document, Entry, Heading, blank, read_deps
+from roadkeep.document import Document, Entry, Heading, UnknownBlock, blank, read_deps
 from roadkeep.ids import next_id, scan
 from roadkeep.markers import derive, refresh
 from roadkeep.schema import Task
-
-
-class UnknownBlock(ValueError):
-    """A block is declared by a heading and by nothing else (RK37)."""
-
-    def __init__(self, label: str, declared: Sequence[str]) -> None:
-        self.label = label
-        self.declared = tuple(declared)
-        known = ", ".join(self.declared) or "none"
-        super().__init__(
-            f"no heading declares Block {label} (this file declares: {known}): a "
-            f"heading invented by a write files the task where nothing looks for it"
-        )
 
 
 class IdInUse(ValueError):

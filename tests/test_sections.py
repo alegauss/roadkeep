@@ -1,0 +1,332 @@
+"""A section is the unit of a prose file (RK9).
+
+Four claims, and the last two are the ones that make this a schema rather than an append:
+
+* a section is **found and deleted whole**, subsections included, because prose left
+  under the next task's heading reads as that task's design;
+* it has a **word budget**, refused before the paragraph is written, which is `add`'s
+  argument (L1) applied to the unit prose actually has;
+* its **anchor must resolve** — an id-shaped anchor naming no open task is an orphan the
+  moment it is written, and the pointer that was supposed to reach it never will;
+* its **place is derived** from the task's block, so the prose file's order is a
+  consequence of the backlog's and nobody chooses where to type.
+"""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+import pytest
+
+from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
+from roadkeep.config import Config
+from roadkeep.document import UnknownBlock
+from roadkeep.schema import SchemaError
+from roadkeep.sections import (
+    NoSuchSection,
+    SectionExists,
+    add,
+    drop,
+    find,
+)
+
+ROADMAP = "docs/ROADMAP.md"
+IMPROVEMENTS = "docs/IMPROVEMENTS.md"
+
+BACKLOG = """# Roadmap
+
+## Block A — The model
+
+- 📋 **RK1** (deps: —) **A first symptom** — Because of a reason. → §RK1
+
+- 📋 **RK3** (deps: —) **A third symptom** — Because of a third reason. → §RK3
+
+## Block B — Authoring
+
+- 📋 **RK2** (deps: —) **A second symptom** — Because of another reason. → §RK2
+"""
+
+RATIONALE = """# Improvements
+
+## §0 — Why this exists
+
+### §0.1 The measured problem
+
+The reading that started it.
+
+## Block A — The model
+
+### §RK1 A first design
+
+The reasoning the line has no room for.
+
+#### §RK1.1 A subsection
+
+Which belongs to the section above.
+
+## Block B — Authoring
+"""
+
+
+def project(
+    tmp_path: Path, *, roadmap: str = BACKLOG, improvements: str = RATIONALE, extra: str = ""
+) -> Config:
+    (tmp_path / "roadkeep.toml").write_text(
+        f'prefix = "RK"\n[files]\nroadmap = "{ROADMAP}"\n'
+        f'improvements = "{IMPROVEMENTS}"\n{extra}',
+        encoding="utf-8",
+    )
+    for name, body in {ROADMAP: roadmap, IMPROVEMENTS: improvements}.items():
+        path = tmp_path / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("w", encoding="utf-8", newline="") as handle:
+            handle.write(body)
+    return Config.discover(tmp_path)
+
+
+def read(config: Config, name: str = IMPROVEMENTS) -> str:
+    with (config.root / name).open("r", encoding="utf-8", newline="") as handle:
+        return handle.read()
+
+
+# -- finding -----------------------------------------------------------------
+
+
+def test_a_section_owns_its_subsections(tmp_path):
+    config = project(tmp_path)
+    section = find(config.document("improvements"), "RK1")
+    assert (section.title, section.level) == ("A first design", 3)
+    assert (section.first, section.last) == (11, 18)
+    assert "A subsection" in section.body
+    # The budget counts the subsection's words too: the unit is the section, and prose
+    # that escapes the count by gaining a heading is the drift the budget exists to stop.
+    assert section.words == 18
+
+
+def test_an_outline_anchor_is_a_section_like_any_other(tmp_path):
+    config = project(tmp_path)
+    assert find(config.document("improvements"), "0.1").title == "The measured problem"
+    # §0 owns §0.1, because a section ends at the next same-or-higher heading.
+    assert find(config.document("improvements"), "0").level == 2
+
+
+def test_an_anchor_that_is_a_prefix_of_another_is_not_a_match(tmp_path):
+    config = project(tmp_path)
+    assert find(config.document("improvements"), "RK1").anchor == "RK1"
+    assert find(config.document("improvements"), "RK") is None
+
+
+# -- dropping ----------------------------------------------------------------
+
+
+def test_dropping_takes_the_subsections_and_leaves_the_shape(tmp_path):
+    config = project(tmp_path)
+    document, section = drop(config.document("improvements"), "RK1")
+    document.save()
+    assert section.first == 11
+    assert read(config) == RATIONALE.replace(
+        """### §RK1 A first design
+
+The reasoning the line has no room for.
+
+#### §RK1.1 A subsection
+
+Which belongs to the section above.
+
+""",
+        "",
+    )
+
+
+def test_dropping_the_last_section_leaves_no_trailing_blank(tmp_path):
+    config = project(tmp_path, improvements=RATIONALE + "\n### §RK2 A last design\n\nProse.\n")
+    document, _ = drop(config.document("improvements"), "RK2")
+    document.save()
+    assert read(config) == RATIONALE
+
+
+def test_dropping_what_is_not_there_is_refused(tmp_path):
+    config = project(tmp_path)
+    with pytest.raises(NoSuchSection):
+        drop(config.document("improvements"), "RK9")
+    assert read(config) == RATIONALE
+
+
+# -- adding ------------------------------------------------------------------
+
+
+def test_the_section_lands_under_its_task_s_block(tmp_path):
+    # RK2 is in Block B, so its rationale goes under Block B — the prose file's order is
+    # a consequence of the backlog's.
+    config = project(tmp_path)
+    document, section = add(config, "improvements", "RK2", "A second design", "Prose.")
+    document.save()
+    assert read(config) == RATIONALE + "\n### §RK2 A second design\n\nProse.\n"
+    assert (section.anchor, section.title, section.words) == ("RK2", "A second design", 1)
+
+
+def test_a_second_section_follows_the_first_in_its_block(tmp_path):
+    # RK3 is in Block A, so its section lands after §RK1's subsections and *before* the
+    # Block B heading — appended to its block, not to the file.
+    config = project(tmp_path)
+    document, _ = add(config, "improvements", "RK3", "A third design", "More prose.")
+    document.save()
+    body = read(config)
+    assert body.index("A third design") < body.index("## Block B")
+    assert body.index("Which belongs to the section above.") < body.index("A third design")
+
+
+def test_a_block_the_prose_file_does_not_declare_is_refused(tmp_path):
+    # Block A's sections all shipped and its heading went with them, so appending at the
+    # end would file this section under Block B for every reader.
+    config = project(
+        tmp_path, improvements="# Improvements\n\n## Block B — Authoring\n\nProse.\n"
+    )
+    with pytest.raises(UnknownBlock) as raised:
+        add(config, "improvements", "RK1", "A first design", "Prose.")
+    assert "Block A" in str(raised.value) and "declares: B" in str(raised.value)
+
+
+def test_a_task_less_anchor_goes_last(tmp_path):
+    config = project(tmp_path)
+    document, _ = add(config, "improvements", "0.2", "A second reading", "Prose.", level=3)
+    document.save()
+    assert read(config).endswith("## Block B — Authoring\n\n### §0.2 A second reading\n\nProse.\n")
+
+
+def test_prose_is_reflowed_and_structure_is_not(tmp_path):
+    config = project(tmp_path, extra="[limits]\nprose = 40\n")
+    body = (
+        "One sentence that is definitely longer than forty characters in total.\n\n"
+        "| a | b |\n|---|---|\n| 1 | 2 |"
+    )
+    document, _ = add(config, "improvements", "RK2", "A design", body)
+    document.save()
+    written = read(config)
+    assert "One sentence that is definitely longer\nthan forty characters in total.\n" in written
+    # The table is inserted exactly as written: the tool re-flows prose and never
+    # reformats a shape it did not author.
+    assert "| a | b |\n|---|---|\n| 1 | 2 |\n" in written
+
+
+def test_the_file_keeps_its_line_endings(tmp_path):
+    config = project(tmp_path, improvements=RATIONALE.replace("\n", "\r\n"))
+    document, _ = add(config, "improvements", "RK2", "A design", "Prose.")
+    document.save()
+    assert "\n" not in read(config).replace("\r\n", "")
+
+
+# -- refusing ----------------------------------------------------------------
+
+
+def test_a_section_over_its_word_budget_is_refused(tmp_path):
+    config = project(tmp_path, extra="[limits]\nsection = 10\n")
+    with pytest.raises(SchemaError) as raised:
+        add(config, "improvements", "RK2", "A design", "word " * 11)
+    assert [v.code for v in raised.value.violations] == ["body.too-long"]
+    assert "11 words, limit is 10" in str(raised.value)
+    assert read(config) == RATIONALE
+
+
+def test_an_id_anchor_that_names_no_open_task_is_refused(tmp_path):
+    # The pointer is the id (RK27), so this section is an orphan the moment it exists.
+    config = project(tmp_path)
+    with pytest.raises(SchemaError) as raised:
+        add(config, "improvements", "RK9", "A design", "Prose.")
+    assert [v.code for v in raised.value.violations] == ["anchor.unknown"]
+    assert read(config) == RATIONALE
+
+
+def test_every_violation_is_reported_not_the_first(tmp_path):
+    config = project(tmp_path)
+    with pytest.raises(SchemaError) as raised:
+        add(config, "improvements", "§RK2", "", "")
+    assert {v.code for v in raised.value.violations} == {
+        "anchor.sigil",
+        "title.empty",
+        "body.empty",
+    }
+
+
+def test_one_anchor_names_one_section(tmp_path):
+    config = project(tmp_path)
+    with pytest.raises(SectionExists) as raised:
+        add(config, "improvements", "RK1", "A duplicate", "Prose.")
+    assert "resolves to neither" in str(raised.value)
+    assert read(config) == RATIONALE
+
+
+# -- the command -------------------------------------------------------------
+
+
+def test_the_command_reads_the_body_from_stdin(tmp_path, capsys, monkeypatch):
+    config = project(tmp_path)
+    monkeypatch.setattr("sys.stdin", _Stdin("A paragraph that arrived by pipe."))
+    assert (
+        main(["-C", str(tmp_path), "section", "add", "RK2", "--title", "A design"])
+        == EXIT_OK
+    )
+    assert "§RK2 → docs/IMPROVEMENTS.md:21  6 words" in capsys.readouterr().out
+    assert "A paragraph that arrived by pipe." in read(config)
+
+
+def test_show_prints_the_section_as_the_file_has_it(tmp_path, capsys):
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "section", "show", "RK1"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert out.startswith("### §RK1 A first design\n\n")
+    assert "#### §RK1.1 A subsection" in out
+
+
+def test_show_json_carries_the_body_and_the_count(tmp_path, capsys):
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "section", "show", "0.1", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["anchor"] == "0.1" and payload["words"] == 5
+    assert payload["body"] == "The reading that started it."
+
+
+def test_show_of_nothing_exits_two(tmp_path, capsys):
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "section", "show", "RK9"]) == EXIT_USAGE
+    assert "no §RK9 section" in capsys.readouterr().err
+
+
+def test_drop_reports_what_it_removed(tmp_path, capsys):
+    config = project(tmp_path)
+    assert main(["-C", str(tmp_path), "section", "drop", "RK1"]) == EXIT_OK
+    assert f"dropped §RK1 (11-18) from {IMPROVEMENTS}" in capsys.readouterr().out
+    assert "§RK1" not in read(config)
+
+
+def test_a_refusal_exits_two_and_writes_nothing(tmp_path, capsys):
+    config = project(tmp_path)
+    assert (
+        main(
+            [
+                "-C",
+                str(tmp_path),
+                "section",
+                "add",
+                "RK9",
+                "--title",
+                "A design",
+                "--body",
+                "Prose.",
+            ]
+        )
+        == EXIT_USAGE
+    )
+    assert "anchor.unknown" in capsys.readouterr().err
+    assert read(config) == RATIONALE
+
+
+class _Stdin:
+    """The one thing a pipe has to do, without a real pipe."""
+
+    def __init__(self, text: str) -> None:
+        self._text = text
+
+    def read(self) -> str:
+        return self._text

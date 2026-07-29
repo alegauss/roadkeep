@@ -31,6 +31,7 @@ the failure mode the grep it replaces already had.
 from __future__ import annotations
 
 import re
+from collections.abc import Sequence
 from dataclasses import dataclass, replace
 from pathlib import Path
 
@@ -47,6 +48,25 @@ _HEADING_RE = re.compile(r"^(?P<hashes>#{1,6}) (?P<text>.*)$")
 _BLOCK_LABEL_RE = re.compile(r"^Block (?P<label>[A-Za-z0-9]+)\b")
 _BULLET_RE = re.compile(r"^(?P<indent>\s*)[-*+] (?P<rest>.*)$")
 _POINTER = f" {ARROW} §"
+
+
+class UnknownBlock(ValueError):
+    """A block is declared by a heading and by nothing else (RK37).
+
+    Raised by every write that files something under a block — a task line (RK5) and a
+    rationale section (RK9) — because a heading invented by a write puts the text where
+    nothing looks for it, and one that is merely missing is a heading the author can add.
+    """
+
+    def __init__(self, label: str, declared: Sequence[str], where: str = "") -> None:
+        self.label = label
+        self.declared = tuple(declared)
+        known = ", ".join(self.declared) or "none"
+        file = f"{where} " if where else ""
+        super().__init__(
+            f"no heading declares Block {label} ({file}declares: {known}): a heading "
+            f"invented by a write files the text where nothing looks for it"
+        )
 
 
 class RoundTripError(RuntimeError):

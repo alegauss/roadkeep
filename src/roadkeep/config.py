@@ -45,7 +45,14 @@ DEFAULT_PATHS: Mapping[str, str] = {
 _TOP_KEYS = frozenset(
     {"prefix", "ref_scheme", "files", "limits", "markers", "id_sources"}
 )
-_LIMIT_KEYS = {"symptom": "symptom_max", "why": "why_max", "line": "line_max"}
+_LIMIT_KEYS = {
+    "symptom": "symptom_max",
+    "why": "why_max",
+    "line": "line_max",
+    # A section is prose, so its budget is words and its shape is a width (RK9).
+    "section": "section_max",
+    "prose": "prose_width",
+}
 _MARKER_KEYS = frozenset({"open", "shipped"})
 # The invisible ones. A marker carrying U+FE0F renders identically and compares
 # unequal, so a config that declares one puts every line in the file permanently

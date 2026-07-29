@@ -25,6 +25,7 @@
 - ✅ **RK6** **Shipping a task is four edits across three files, so one is always missed** — the three edits are one command that validates every one of them before a file is touched, and the roadmap line is removed rather than stubbed so status keeps one home.
 - ✅ **RK7** **Two files can disagree about one task's status** — the marker is written in the roadmap alone, and a sibling file carrying one for the same id is refused rather than reconciled because nothing says which of the two would be right.
 - ✅ **RK8** **A dep annotation goes stale the moment its target ships** — the annotation is derived from the resolver on every write, so a shipped dep never reads as pending and a marker nobody typed is never invented.
+- ✅ **RK9** **The four files are not four of the same thing, and prose has no line to validate** — prose is governed by section instead: an anchor a pointer resolves, a budget in words, and a place derived from the block, with drop being the edit ship already calls.
 
 ## Block C — Query
 

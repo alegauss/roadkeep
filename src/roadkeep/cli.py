@@ -37,11 +37,17 @@ from roadkeep.document import RoundTripError
 from roadkeep.history import Commit, HistoryUnavailable, Origin, origin_of
 from roadkeep.ids import highest, next_id
 from roadkeep.schema import SchemaError
+from roadkeep.sections import Section
+from roadkeep.sections import add as add_section
+from roadkeep.sections import drop as drop_section
+from roadkeep.sections import find as find_section
 from roadkeep.shipping import ship
 
 EXIT_OK = 0
 EXIT_GATE = 1
 EXIT_USAGE = 2
+
+_JSON_HELP = "machine-readable form"
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -114,6 +120,51 @@ def build_parser() -> argparse.ArgumentParser:
     )
     add_parser.set_defaults(handler=_add)
 
+    section_parser = subcommands.add_parser(
+        "section",
+        help="add, show or drop a section in a prose file",
+        description=(
+            "The prose files are paragraphs, not lines, so their unit is a section: an "
+            "anchor a pointer can resolve, a word budget, and a place derived from the "
+            "task's block. `ship` calls `drop` for the first of its three edits."
+        ),
+    )
+    actions = section_parser.add_subparsers(dest="action", required=True)
+
+    section_add = actions.add_parser(
+        "add", help="write a new section under its block, reflowed to the prose width"
+    )
+    section_add.add_argument("anchor", help="the anchor, e.g. RK9 (no §)")
+    section_add.add_argument("--title", required=True, help="the heading text")
+    section_add.add_argument(
+        "--body",
+        help="the prose; omitted or '-' reads stdin, which is how a paragraph gets in",
+    )
+    section_add.add_argument(
+        "--role",
+        default="improvements",
+        help="which prose file (default: improvements)",
+    )
+    section_add.add_argument(
+        "--level", type=int, default=3, help="heading depth (default: 3)"
+    )
+    section_add.add_argument("--json", action="store_true", help=_JSON_HELP)
+    section_add.set_defaults(handler=_section_add)
+
+    section_show = actions.add_parser("show", help="print one section and its word count")
+    section_show.add_argument("anchor", help="the anchor, e.g. RK9")
+    section_show.add_argument("--role", default="improvements", help="which prose file")
+    section_show.add_argument("--json", action="store_true", help=_JSON_HELP)
+    section_show.set_defaults(handler=_section_show)
+
+    section_drop = actions.add_parser(
+        "drop", help="delete one section whole, subsections included"
+    )
+    section_drop.add_argument("anchor", help="the anchor, e.g. RK9")
+    section_drop.add_argument("--role", default="improvements", help="which prose file")
+    section_drop.add_argument("--json", action="store_true", help=_JSON_HELP)
+    section_drop.set_defaults(handler=_section_drop)
+
     status_parser = subcommands.add_parser(
         "status",
         help="set a task's marker in the roadmap, and nowhere else",
@@ -127,7 +178,7 @@ def build_parser() -> argparse.ArgumentParser:
     status_parser.add_argument(
         "marker", help="the new marker, from the open set this project declares"
     )
-    status_parser.add_argument("--json", action="store_true", help="machine-readable form")
+    status_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     status_parser.set_defaults(handler=_status)
 
     ship_parser = subcommands.add_parser(
@@ -160,7 +211,7 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     deps_parser.add_argument("id", help="the task to resolve, e.g. RK5")
-    deps_parser.add_argument("--json", action="store_true", help="machine-readable form")
+    deps_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     deps_parser.set_defaults(handler=_deps)
 
     origin_parser = subcommands.add_parser(
@@ -178,7 +229,7 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="print the shipping commit's full message — the rationale the ledger drops",
     )
-    origin_parser.add_argument("--json", action="store_true", help="machine-readable form")
+    origin_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     origin_parser.set_defaults(handler=_origin)
 
     return parser
@@ -256,6 +307,72 @@ def _add(config: Config, args: argparse.Namespace) -> int:
         return EXIT_OK
     print(insertion.rendered)
     return EXIT_OK
+
+
+def _section_add(config: Config, args: argparse.Namespace) -> int:
+    # stdin by default: a paragraph does not fit comfortably in a shell argument, and a
+    # heredoc is how the caller of this tool already passes prose.
+    body = sys.stdin.read() if args.body in (None, "-") else args.body
+    try:
+        document, section = add_section(
+            config, args.role, args.anchor, args.title, body, level=args.level
+        )
+        document.save()
+    except (RoundTripError, KeyError, ValueError, OSError) as error:
+        return _refused(error)
+
+    where = config.relative(config.path(args.role))
+    if args.json:
+        print(json.dumps(_section_json(section, where), indent=2))
+        return EXIT_OK
+    print(f"§{section.anchor} → {where}:{section.first}  {section.words} words")
+    return EXIT_OK
+
+
+def _section_show(config: Config, args: argparse.Namespace) -> int:
+    try:
+        section = find_section(config.document(args.role), args.anchor)
+    except (KeyError, OSError) as error:
+        return _refused(error)
+    where = config.relative(config.path(args.role))
+    if section is None:
+        print(f"roadkeep: no §{args.anchor} section in {where}", file=sys.stderr)
+        return EXIT_USAGE
+
+    if args.json:
+        print(json.dumps({**_section_json(section, where), "body": section.body}, indent=2))
+        return EXIT_OK
+    print(f"{'#' * section.level} §{section.anchor} {section.title}")
+    print()
+    print(section.body)
+    return EXIT_OK
+
+
+def _section_drop(config: Config, args: argparse.Namespace) -> int:
+    try:
+        document, section = drop_section(config.document(args.role), args.anchor)
+        document.save()
+    except (RoundTripError, KeyError, ValueError, OSError) as error:
+        return _refused(error)
+
+    where = config.relative(config.path(args.role))
+    if args.json:
+        print(json.dumps(_section_json(section, where), indent=2))
+        return EXIT_OK
+    print(f"dropped {section} from {where}")
+    return EXIT_OK
+
+
+def _section_json(section: Section, where: str) -> dict[str, object]:
+    return {
+        "anchor": section.anchor,
+        "title": section.title,
+        "level": section.level,
+        "file": where,
+        "first": section.first,
+        "last": section.last,
+        "words": section.words,
+    }
 
 
 def _status(config: Config, args: argparse.Namespace) -> int:
@@ -336,7 +453,7 @@ def _ship(config: Config, args: argparse.Namespace) -> int:
                         if shipment.dropped is None
                         else {
                             "anchor": shipment.dropped.anchor,
-                            "heading": shipment.dropped.text,
+                            "title": shipment.dropped.title,
                             "first": shipment.dropped.first,
                             "last": shipment.dropped.last,
                         },

@@ -36,6 +36,8 @@ from roadkeep.config import Config
 from roadkeep.document import Document, Heading, blank
 from roadkeep.markers import refresh
 from roadkeep.schema import Task
+from roadkeep.sections import NoSuchSection, Section
+from roadkeep.sections import drop as drop_section
 
 __all__ = ["AlreadyShipped", "NotOpen", "Section", "Shipment", "ship"]
 
@@ -50,19 +52,6 @@ class AlreadyShipped(ValueError):
             f"{task_id} is already in {where}:{lineno}: shipping it twice would make "
             f"the ledger disagree with itself about when it shipped"
         )
-
-
-@dataclass(frozen=True, slots=True)
-class Section:
-    """The rationale section that was dropped, and the lines it occupied."""
-
-    anchor: str
-    text: str
-    first: int  # 1-based, as an editor counts
-    last: int
-
-    def __str__(self) -> str:
-        return f"§{self.anchor} ({self.first}-{self.last})"
 
 
 @dataclass(frozen=True, slots=True)
@@ -174,54 +163,16 @@ def _drop_section(
         return None, None, "the line carried no pointer"
     if not config.has("improvements"):
         return None, None, "this project declares no improvements file"
-    document = config.document("improvements")
-    span = _span(document, anchor)
-    if span is None:
+    # The grammar of a section lives in one place (RK9), so shipping calls it rather than
+    # keeping a second opinion about where a section ends.
+    try:
+        document, section = drop_section(config.document("improvements"), anchor)
+    except NoSuchSection:
         return (
             None,
             None,
             f"no §{anchor} section in {config.relative(config.path('improvements'))}",
         )
-    start, end, heading = span
-    # Reported from the heading, not from `start`: the deletion may reach back over the
-    # blank line above it, and a report has to name the section a reader can see.
-    section = Section(anchor=anchor, text=heading.text, first=heading.lineno, last=end)
-    for _ in range(end - start):
-        document = document.remove_line(start)
     return document, section, None
-
-
-def _span(document: Document, anchor: str) -> tuple[int, int, Heading] | None:
-    """The `[start, end)` lines of the `§anchor` section, subsections included.
-
-    A section ends where the next heading of the same or higher level begins, so a
-    rationale that grew subsections is deleted whole — the alternative leaves orphaned
-    prose under the heading of the next task, attributed to it.
-    """
-    for position, heading in enumerate(document.headings):
-        if not _names(heading.text, anchor):
-            continue
-        start = heading.lineno - 1
-        end = len(document.lines)
-        for later in document.headings[position + 1 :]:
-            if later.level <= heading.level:
-                end = later.lineno - 1
-                break
-        if end == len(document.lines):
-            # Last in the file: the blank that separated it from the section above has
-            # nothing left to separate.
-            while start > 0 and blank(document.lines[start - 1]):
-                start -= 1
-        return start, end, heading
-    return None
-
-
-def _names(text: str, anchor: str) -> bool:
-    """Does this heading carry `§anchor` — and not `§anchor` as a prefix of another?"""
-    marked = f"§{anchor}"
-    if not text.startswith(marked):
-        return False
-    rest = text[len(marked) :]
-    return not rest or not (rest[0].isalnum() or rest[0] == ".")
 
 

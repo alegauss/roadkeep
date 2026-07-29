@@ -23,6 +23,12 @@ symptom = 120
 why = 200
 line = 320
 
+# a section is prose, so its budget is words: 250 clears the longest section here (181)
+# and nothing more — the file that motivated this tool reached 539 KB one paragraph at a
+# time. `prose` is the width a written section is filled to.
+section = 250
+prose = 88
+
 [markers]
 open = ["📋", "💭", "⏳", "🛠"]
 shipped = "✅"

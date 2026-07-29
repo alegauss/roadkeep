@@ -45,6 +45,7 @@ src/roadkeep/          the package (src layout, importable via pytest pythonpath
   authoring.py         RK5/RK7 — add(), set_status(); nothing written unless all of it
   shipping.py          RK6 — ship(): three edits, validated together, written last
   markers.py           RK8 — derive/refresh: the dep annotation is a derived field
+  sections.py          RK9 — find/add/drop: prose by anchor, word budget, block-placed
   backlog.py           RK28/RK37 — resolve/readiness; four dep kinds, four answers
   history.py           RK31 — origin_of(): the shipping commit, derived from git
   cli.py               the command surface; one subparser per task, exit 0/1/2
@@ -70,33 +71,30 @@ asserted in a README. A limit that cannot express these lines is the wrong limit
 than a set of wrong lines, so this repository is the first thing a schema change must
 still validate — under its own `roadkeep.toml`, which is what makes L6 a fact here.
 
-Current reading (RK14/RK15 replace this hand-verification): 24 tasks, longest line
-**305** chars against a 320 cap, 24/24 pointers resolve, no orphan section.
+Current reading (RK14/RK15 replace this hand-verification): 25 tasks, longest line **314**
+of 320, 25/25 pointers resolve, no orphan section, longest section **181** words of 250.
 
 ## Writing and shipping — call the command, never type the format
 
-```
-python -m roadkeep.cli add --block B --symptom "<what does not work>" \
-  --why "<one sentence.>" [--dep RK5] [--status 💭] [--id RK9] [--json]
-```
+`python -m roadkeep.cli <add|status|ship|section> --help` carries the flags. What the
+commands guarantee, so it costs you no thought: the id, the `→ §RK<n>` pointer, the status
+default and every `(deps: … ✅)` annotation are **derived, never typed**; a refusal exits 2
+naming the length and the limit and writes nothing; ✅ never reaches the roadmap; `ship`
+makes its three edits (ledger entry, roadmap line gone, `§<id>` deleted) plus the
+dependents' annotations, or makes none of them; `section add <id> --title "…"` takes the
+prose on **stdin**, ≤250 words, filled to 88 columns, placed under the task's block — a
+table or a list is inserted exactly as written. Blocks are declared by headings only: a
+write never invents one.
 
-The id, the pointer, the status default and every `(deps: … ✅)` annotation are derived —
-never typed — and the block must already have a heading. A refusal exits 2 with the length
-and the limit and writes nothing, leaving you the two rules a schema cannot check:
+That leaves the two rules a schema cannot check:
 
 1. **`symptom` states what does not work** — never a solution name. A line named after
    its fix cannot be falsified, so it never gets closed, only abandoned.
 2. **`why` is one sentence.** A second sentence is the signal the content belongs in
    `IMPROVEMENTS.md`, which is what the pointer addresses.
 
-Enforced for you: ≤320 rendered (`symptom` ≤120, `why` ≤200); the marker from 📋 designed
-· 💭 idea · ⏳ partial · 🛠 in-progress (✅ only in `CHANGELOG.md` and in a `(deps: RK1 ✅)`
-annotation); `→ §RK<n>` derived from the id (RK27), unless `ref_scheme = "outline"`.
-
-**Shipping is `… ship <id> [--why "<the outcome.>"]`** — ledger entry, roadmap line gone,
-`§<id>` deleted, dependents' annotations re-derived, all of it validated before one byte is
-written. **`… status <id> <marker>`** moves a marker, in the roadmap and nowhere else: a
-sibling file carrying one for that id is refused, not merged.
+Markers: 📋 designed · 💭 idea · ⏳ partial · 🛠 in-progress. Limits: `symptom` ≤120, `why`
+≤200, rendered line ≤320, section ≤250 words — all per project (L6).
 
 **Ask, don't count** (all take `--json`): `python -m roadkeep.cli next-id` for the next id
 — never fill a gap, a retired id is never reused; `… deps <id>` types each dep (a task, a

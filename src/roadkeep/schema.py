@@ -190,6 +190,13 @@ class Schema:
     symptom_max: int = 120
     why_max: int = 200
     line_max: int = 320
+    #: A rationale section's budget, in **words** — the unit a paragraph has (RK9). The
+    #: default clears the longest section in this repository (181 words) and no more:
+    #: the file that motivated the tool reached 539 KB one honest paragraph at a time.
+    section_max: int = 250
+    #: The width prose is filled to when a section is written. A table or a list is left
+    #: exactly as the author wrote it; only plain paragraphs are re-flowed.
+    prose_width: int = 88
     ref_required: bool = True
     #: The ledger's own status *is* ✅, so it is the one file where the shipped
     #: marker is legal. Set by :meth:`as_ledger`, never by hand.
@@ -219,7 +226,7 @@ class Schema:
                 f"{self.shipped_marker} is the shipped marker and may not also be an "
                 "open marker: a roadmap that can say 'done' disagrees with the changelog"
             )
-        for name in ("symptom_max", "why_max", "line_max"):
+        for name in ("symptom_max", "why_max", "line_max", "section_max", "prose_width"):
             if getattr(self, name) < 1:
                 raise ValueError(f"{name} must be positive")
 

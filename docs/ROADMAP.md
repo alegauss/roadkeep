@@ -24,7 +24,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK9** (deps: RK5 ✅) **The four files are not four of the same thing, and prose has no line to validate** — strategy and improvements are sections, not bullets, so `section` governs them by heading and word budget. → §RK9
 - 📋 **RK38** (deps: RK5 ✅, RK6 ✅) **A write reports an exit code and nothing about what it changed, so only a human can react to it** — add, ship and status print the id, the block and whether that block is now empty, which is the whole event a hook needs and the tool's only part in it. → §RK38
 
 ## Block C — Query (consult without reading the file)

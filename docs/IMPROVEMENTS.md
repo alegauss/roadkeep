@@ -50,12 +50,6 @@ session doing.
 
 ## Block B — Authoring
 
-### §RK9 Sections, not lines
-
-Improvements and strategy are prose under headings, so their unit is a section with a
-word budget and a required anchor, not a bullet with a character cap. `section
-add|show|drop` governs them, and `drop` is what rule 1 of the ship flow calls.
-
 ### §RK38 The write is the event; reacting to it is not the tool's job
 
 A write already succeeds or refuses with an exit code, so what is missing is not a
