@@ -141,13 +141,21 @@ def test_the_pointer_is_taken_from_the_end_not_the_first_match():
     assert OUTLINE.render(entry.task) == quoted
 
 
-def test_a_dep_the_schema_rejects_is_still_parsed_and_still_counted():
-    # Shio has "(deps: Block P)"; Turing has "(deps: real design partners)".
+def test_a_dep_the_parser_does_not_understand_is_still_counted():
+    # Shio has "(deps: Block P)"; both parse, and since RK28 both also validate — a
+    # block is a legitimate thing to wait on. What must not happen either way is the
+    # line dropping out of the count.
     line = f"- {IDEA} **RK9** (deps: Block P, RK5 {PARTIAL}) **A symptom** — a reason. → §RK9"
     document = parse_in_block(line)
     (entry,) = document.entries
     assert entry.task.deps == (Dep("Block P"), Dep("RK5", PARTIAL))
     assert document.non_canonical == ()  # it round-trips
+    assert Schema().validate(entry.task) == ()
+
+
+def test_an_id_shaped_dep_from_another_backlog_is_still_reported():
+    line = f"- {IDEA} **RK9** (deps: SH341) **A symptom** — a reason. → §RK9"
+    (entry,) = parse_in_block(line).entries
     assert {v.code for v in Schema().validate(entry.task)} == {"deps.format"}
 
 

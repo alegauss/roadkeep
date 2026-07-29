@@ -1,0 +1,294 @@
+"""Resolving deps, and the four answers to "is it done?" (RK28).
+
+The claim under test is that **unresolvable is not the same as open**. Every other
+assertion here exists to keep that one honest: a block dep resolves, a range dep
+resolves, an id-shaped mistake is reported, and only genuine outside work is called
+unresolvable — otherwise the distinction would just be a label on everything the
+parser found difficult.
+
+The dep kinds are the ones the live backlogs write. `Block P` is Shio's, `T451–T457`
+and `real design partners` are Turing's; none of the three was invented here.
+"""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+import pytest
+
+from roadkeep.backlog import Backlog, DepStatus, Readiness
+from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
+from roadkeep.config import Config
+from roadkeep.document import Document
+from roadkeep.schema import DESIGNED, SHIPPED, Dep, DepKind, Schema
+
+HERE = Path(__file__).resolve().parents[1]
+
+
+def write_project(tmp_path: Path, roadmap: str, changelog: str = "") -> Config:
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "ROADMAP.md").write_text(roadmap, encoding="utf-8")
+    (tmp_path / "CHANGELOG.md").write_text(changelog, encoding="utf-8")
+    return Config.discover(tmp_path)
+
+
+def line(task_id: str, deps: str, block: str = "A") -> str:
+    return (
+        f"- {DESIGNED} **{task_id}** (deps: {deps}) **A symptom** "
+        f"— a reason. → §{task_id}\n"
+    )
+
+
+def shipped(task_id: str) -> str:
+    return f"- {SHIPPED} **{task_id}** **A symptom** — a reason.\n"
+
+
+# -- classification ----------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("token", "kind"),
+    [
+        ("RK5", DepKind.TASK),
+        ("Block P", DepKind.BLOCK),
+        ("Block BJ", DepKind.BLOCK),
+        ("RK451–RK457", DepKind.RANGE),
+        ("RK451–457", DepKind.RANGE),
+        ("RK451-457", DepKind.RANGE),
+        ("real design partners", DepKind.EXTERNAL),
+        ("upstream review", DepKind.EXTERNAL),
+        # Mistakes must not hide as external work, or a typo becomes a permanent
+        # blocker nobody can see.
+        ("RK007", DepKind.TASK),
+        ("RK9x", DepKind.TASK),
+        ("SH341", DepKind.TASK),
+        # A descending range is not a range; it falls through to external, so the
+        # schema reports it (see the next test) instead of the resolver claiming
+        # nothing here can ever satisfy it.
+        ("RK457–RK451", DepKind.EXTERNAL),
+    ],
+)
+def test_a_dep_is_classified_by_what_it_names(token, kind):
+    assert Schema().classify_dep(Dep(token)) == kind
+
+
+def test_only_an_id_shaped_mistake_is_a_format_violation():
+    schema = Schema()
+    assert schema.validate(_task(deps=("Block P", "real design partners"))) == ()
+    codes = {v.code for v in schema.validate(_task(deps=("RK007",)))}
+    assert codes == {"deps.format"}
+
+
+def test_a_range_that_does_not_ascend_is_reported_rather_than_called_external():
+    codes = {v.code for v in Schema().validate(_task(deps=("RK457–RK451",)))}
+    assert codes == {"deps.range"}
+
+
+def _task(**over):
+    from roadkeep.schema import Task
+
+    fields = dict(
+        id="RK9",
+        status=DESIGNED,
+        block="A",
+        symptom="A symptom",
+        why="a reason.",
+        deps=(),
+        ref="RK9",
+    )
+    fields.update(over)
+    return Task(**fields)
+
+
+# -- resolution --------------------------------------------------------------
+
+
+def test_a_task_dep_resolves_against_both_files(tmp_path):
+    config = write_project(
+        tmp_path,
+        "## Block A — The model\n" + line("RK9", "RK1 ✅, RK5") + line("RK5", "—"),
+        "## Block A — The model\n" + shipped("RK1"),
+    )
+    backlog = Backlog.load(config)
+    statuses = {r.dep.id: r.status for r in backlog.resolve(backlog.entry("RK9").task)}
+    assert statuses == {"RK1": DepStatus.SHIPPED, "RK5": DepStatus.OPEN}
+
+
+def test_an_id_that_exists_in_neither_file_is_unknown_not_open(tmp_path):
+    config = write_project(tmp_path, "## Block A — The model\n" + line("RK9", "RK77"))
+    backlog = Backlog.load(config)
+    (resolution,) = backlog.resolve(backlog.entry("RK9").task)
+    assert resolution.status is DepStatus.UNKNOWN
+    assert "neither" in resolution.detail
+
+
+def test_a_block_dep_resolves_against_that_blocks_open_tasks(tmp_path):
+    config = write_project(
+        tmp_path,
+        "## Block A — The model\n"
+        + line("RK9", "Block B")
+        + "## Block B — Authoring\n"
+        + line("RK5", "—", block="B"),
+    )
+    backlog = Backlog.load(config)
+    (resolution,) = backlog.resolve(backlog.entry("RK9").task)
+    assert resolution.kind is DepKind.BLOCK
+    assert resolution.status is DepStatus.OPEN
+    assert "RK5" in resolution.detail
+
+
+def test_a_block_with_nothing_open_satisfies_the_dep(tmp_path):
+    config = write_project(
+        tmp_path, "## Block A — The model\n" + line("RK9", "Block B") + "## Block B — Authoring\n"
+    )
+    backlog = Backlog.load(config)
+    (resolution,) = backlog.resolve(backlog.entry("RK9").task)
+    assert resolution.status is DepStatus.SHIPPED
+
+
+def test_a_range_dep_resolves_against_the_ids_inside_it(tmp_path):
+    config = write_project(
+        tmp_path,
+        "## Block A — The model\n"
+        + line("RK9", "RK20–RK30")
+        + line("RK25", "—")
+        + line("RK40", "—"),
+    )
+    backlog = Backlog.load(config)
+    (resolution,) = backlog.resolve(backlog.entry("RK9").task)
+    assert resolution.kind is DepKind.RANGE
+    assert resolution.status is DepStatus.OPEN
+    assert "RK25" in resolution.detail and "RK40" not in resolution.detail
+
+
+def test_a_range_with_no_open_members_is_satisfied_not_unknown(tmp_path):
+    # Ids are non-contiguous by design, so "nothing open in RK20–RK30" is an answer
+    # and not a gap: Turing's T477 waits on T451–T457, all of which have shipped.
+    config = write_project(tmp_path, "## Block A — The model\n" + line("RK9", "RK20–RK30"))
+    backlog = Backlog.load(config)
+    (resolution,) = backlog.resolve(backlog.entry("RK9").task)
+    assert resolution.status is DepStatus.SHIPPED
+
+
+# -- the distinction that matters -------------------------------------------
+
+
+def test_work_outside_the_backlog_is_unresolvable_not_open(tmp_path):
+    config = write_project(
+        tmp_path, "## Block A — The model\n" + line("RK9", "real design partners")
+    )
+    backlog = Backlog.load(config)
+    (resolution,) = backlog.resolve(backlog.entry("RK9").task)
+    assert resolution.status is DepStatus.UNRESOLVABLE
+    assert not resolution.satisfied
+    assert "nothing here will ever" in resolution.detail
+
+
+def test_a_task_blocked_outside_the_backlog_is_not_merely_blocked(tmp_path):
+    config = write_project(
+        tmp_path,
+        "## Block A — The model\n"
+        + line("RK9", "real design partners")
+        + line("RK10", "RK5")
+        + line("RK11", "RK1 ✅"),
+        "## Block A — The model\n" + shipped("RK1"),
+    )
+    backlog = Backlog.load(config)
+    readiness = {e.task.id: backlog.readiness(e.task) for e in backlog.roadmap.entries}
+    # Three different answers, where before there were two: RK9 never becomes ready
+    # by shipping anything in this backlog, and `pick` must not offer it.
+    assert readiness == {
+        "RK9": Readiness.OUTSIDE,
+        "RK10": Readiness.BLOCKED,
+        "RK11": Readiness.READY,
+    }
+
+
+def test_a_task_with_no_deps_is_ready(tmp_path):
+    config = write_project(tmp_path, "## Block A — The model\n" + line("RK9", "—"))
+    backlog = Backlog.load(config)
+    assert backlog.readiness(backlog.entry("RK9").task) is Readiness.READY
+
+
+# -- the live corpora --------------------------------------------------------
+
+
+def test_this_repository_resolves_every_dep():
+    backlog = Backlog.load(Config.discover(HERE))
+    unresolved = [
+        (e.task.id, r.dep.id, str(r.status))
+        for e in backlog.roadmap.entries
+        for r in backlog.resolve(e.task)
+        if r.status is DepStatus.UNKNOWN
+    ]
+    assert unresolved == []
+
+
+@pytest.mark.parametrize(
+    ("path", "prefix", "expected"),
+    [
+        ("D:/Git/viglet/shio/latest/docs/ROADMAP.md", "SH", {DepKind.BLOCK}),
+        ("D:/Git/viglet/turing/latest/docs/ROADMAP.md", "T", {DepKind.RANGE, DepKind.EXTERNAL}),
+    ],
+)
+def test_the_live_backlogs_use_the_kinds_this_model_has(path, prefix, expected):
+    source = Path(path)
+    if not source.exists():
+        pytest.skip(f"{source} is not on this machine")
+    schema = Schema(prefix=prefix, ref_scheme="outline")
+    document = Document.load(source, schema)
+    kinds = {
+        schema.classify_dep(dep) for e in document.entries for dep in e.task.deps
+    }
+    assert expected <= kinds
+    # And none of them is a format violation any more: they were never mistakes.
+    assert not [
+        v
+        for e in document.entries
+        for v in schema.validate(e.task)
+        if v.code.startswith("deps")
+    ]
+
+
+# -- the command -------------------------------------------------------------
+
+
+def test_the_command_reports_each_dep_and_the_verdict(tmp_path, capsys):
+    write_project(
+        tmp_path,
+        "## Block A — The model\n" + line("RK9", "RK1 ✅, real design partners"),
+        "## Block A — The model\n" + shipped("RK1"),
+    )
+    assert main(["-C", str(tmp_path), "deps", "RK9"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "unresolvable" in out and "shipped" in out
+    assert out.strip().endswith("RK9: blocked-outside")
+
+
+def test_json_carries_the_kind_and_the_status(tmp_path, capsys):
+    write_project(tmp_path, "## Block A — The model\n" + line("RK9", "Block B"))
+    assert main(["-C", str(tmp_path), "deps", "RK9", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["readiness"] == "ready"  # Block B has nothing open
+    assert payload["deps"] == [
+        {
+            "dep": "Block B",
+            "kind": "block",
+            "status": "shipped",
+            "detail": "Block B has nothing open",
+        }
+    ]
+
+
+def test_asking_about_a_shipped_task_says_where_it_went(tmp_path, capsys):
+    write_project(
+        tmp_path,
+        "## Block A — The model\n",
+        "## Block A — The model\n" + shipped("RK1"),
+    )
+    assert main(["-C", str(tmp_path), "deps", "RK1"]) == EXIT_USAGE
+    assert "in the changelog" in capsys.readouterr().err

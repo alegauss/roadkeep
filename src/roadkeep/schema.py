@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, replace
+from enum import StrEnum
 
 # Status markers, as bare codepoints — no variation selectors, because the
 # governed files carry none and a round-trip compares bytes.
@@ -68,6 +69,34 @@ _TERMINATORS = (".", "!", "?")
 #: The pointer's two addressing schemes (RK27). "id" is the default because it is the
 #: one an author cannot get wrong; "outline" exists for backlogs already numbered.
 REF_SCHEMES = frozenset({"id", "outline"})
+
+# What a dep token names (RK28). Derived from the text the corpora already write —
+# `Block P` in Shio, `real design partners` in Turing — because inventing a sigil
+# would make two live backlogs wrong rather than describing them.
+_BLOCK_DEP_RE = re.compile(r"^Block ([A-Za-z0-9][A-Za-z0-9.\-]{0,15})$")
+# Anything shaped like an id: letters then a digit. `RK007`, `RK9x` and `SH341` are
+# mistakes to report, not external work to accept.
+_ID_SHAPE_RE = re.compile(r"^[A-Za-z]{1,8}[0-9][A-Za-z0-9]*$")
+# The shape of a range, without judging its direction, so that `RK9–RK5` can be
+# reported instead of quietly becoming "outside the backlog".
+_RANGE_SHAPE_RE = re.compile(r"^[A-Za-z]{1,8}[0-9]+\s*[-–—]\s*[A-Za-z]{0,8}[0-9]+$")
+
+
+class DepKind(StrEnum):
+    """The four things a dep can name, as the live backlogs already write them.
+
+    The distinction exists because they resolve differently and one of them does not
+    resolve at all: an :attr:`EXTERNAL` dep is unresolvable *by construction*, and
+    reporting it as pending makes a permanently blocked task read like the next one
+    to start. :attr:`RANGE` is here for the opposite reason — Turing's
+    `(deps: T451–T457)` *is* resolvable, so calling it external would be a false
+    statement rather than a missing one.
+    """
+
+    TASK = "task"
+    BLOCK = "block"
+    RANGE = "range"
+    EXTERNAL = "external"
 
 
 class SchemaError(ValueError):
@@ -305,6 +334,43 @@ class Schema:
             )
         return out
 
+    def classify_dep(self, dep: Dep) -> DepKind:
+        """What this dep names — a task, a block, a range, or work outside the backlog.
+
+        Ordered so that neither a mistake nor a resolvable dep can hide as external:
+        `Block P` first, then a range, then anything id-shaped (valid or not), and
+        only what none of those match is external.
+        """
+        if _BLOCK_DEP_RE.match(dep.id):
+            return DepKind.BLOCK
+        if self.range_of_dep(dep) is not None:
+            return DepKind.RANGE
+        if _ID_SHAPE_RE.match(dep.id):
+            return DepKind.TASK
+        return DepKind.EXTERNAL
+
+    def block_of_dep(self, dep: Dep) -> str | None:
+        """The block label a block dep names, or None if it names something else."""
+        match = _BLOCK_DEP_RE.match(dep.id)
+        return match.group(1) if match else None
+
+    def range_of_dep(self, dep: Dep) -> tuple[int, int] | None:
+        """The inclusive `(first, last)` a range dep names, or None.
+
+        Both `T451–T457` and `T451–457` occur in the wild, and the dash may be a
+        hyphen or an en dash. A descending range is not a range: it is returned as
+        None so the token falls through and gets reported instead of resolved.
+        """
+        pattern = re.compile(
+            rf"^{re.escape(self.prefix)}([1-9][0-9]*)"
+            rf"\s*[-–—]\s*(?:{re.escape(self.prefix)})?([1-9][0-9]*)$"
+        )
+        match = pattern.match(dep.id)
+        if not match:
+            return None
+        first, last = int(match.group(1)), int(match.group(2))
+        return (first, last) if first <= last else None
+
     def _check_deps(self, task: Task) -> list[Violation]:
         if task.deps and not self.deps_field:
             return [
@@ -320,10 +386,25 @@ class Schema:
         seen: set[str] = set()
         allowed = (*self.markers, self.shipped_marker)
         for dep in task.deps:
-            if not ids.match(dep.id):
+            kind = self.classify_dep(dep)
+            # An id-shaped token that is not an id of this project is a typo or a
+            # paste from another backlog. Prose is not: real work waits on a whole
+            # block, and on things that are not work at all (RK28).
+            if kind is DepKind.TASK and not ids.match(dep.id):
                 out.append(
                     Violation(
                         "deps.format", "deps", f"not an id of this project: {dep.id!r}"
+                    )
+                )
+            elif kind is not DepKind.RANGE and _RANGE_SHAPE_RE.match(dep.id):
+                # It looks like a range and did not parse as one, so it would resolve
+                # as "outside the backlog" — a false statement, not a missing one.
+                out.append(
+                    Violation(
+                        "deps.range",
+                        "deps",
+                        f"{dep.id!r} reads as a range but does not ascend from a "
+                        f"{self.prefix} id",
                     )
                 )
             if dep.marker is not None and dep.marker not in allowed:

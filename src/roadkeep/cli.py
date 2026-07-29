@@ -29,6 +29,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 from roadkeep import __version__
+from roadkeep.backlog import Backlog
 from roadkeep.config import Config, ConfigError
 from roadkeep.ids import highest, next_id
 
@@ -66,6 +67,19 @@ def build_parser() -> argparse.ArgumentParser:
         help="include where the highest id was found, so the answer can be audited",
     )
     next_id_parser.set_defaults(handler=_next_id)
+
+    deps_parser = subcommands.add_parser(
+        "deps",
+        help="resolve one task's deps, naming the ones nothing can resolve",
+        description=(
+            "Resolve each dep against the roadmap and the changelog. A dep on work "
+            "outside the backlog is reported as unresolvable rather than open, "
+            "because waiting will never satisfy it."
+        ),
+    )
+    deps_parser.add_argument("id", help="the task to resolve, e.g. RK5")
+    deps_parser.add_argument("--json", action="store_true", help="machine-readable form")
+    deps_parser.set_defaults(handler=_deps)
 
     return parser
 
@@ -110,6 +124,53 @@ def _next_id(config: Config, args: argparse.Namespace) -> int:
             indent=2,
         )
     )
+    return EXIT_OK
+
+
+def _deps(config: Config, args: argparse.Namespace) -> int:
+    backlog = Backlog.load(config)
+    entry = backlog.entry(args.id)
+    if entry is None:
+        print(
+            f"roadkeep: no open task {args.id} in {_relative(config.path('roadmap'), config.root)}"
+            + (" (it is in the changelog)" if args.id in backlog.shipped() else ""),
+            file=sys.stderr,
+        )
+        return EXIT_USAGE
+
+    resolutions = backlog.resolve(entry.task)
+    readiness = backlog.readiness(entry.task)
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "id": entry.task.id,
+                    "readiness": str(readiness),
+                    "deps": [
+                        {
+                            "dep": r.dep.id,
+                            "kind": str(r.kind),
+                            "status": str(r.status),
+                            "detail": r.detail,
+                        }
+                        for r in resolutions
+                    ],
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+
+    if not resolutions:
+        print(f"{entry.task.id}: {readiness} (no deps)")
+        return EXIT_OK
+    width = max(len(r.dep.id) for r in resolutions)
+    for resolution in resolutions:
+        print(
+            f"  {resolution.dep.id:<{width}}  {resolution.status:<13}"
+            f"{resolution.kind:<9}{resolution.detail}"
+        )
+    print(f"{entry.task.id}: {readiness}")
     return EXIT_OK
 
 

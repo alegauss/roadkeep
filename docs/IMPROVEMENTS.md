@@ -50,15 +50,6 @@ session doing.
 
 ## Block A — The model
 
-### §RK28 A dep is not always a task
-
-Shio's `(deps: Block P)` and Turing's `(deps: real design partners)` are honest — real
-work does wait on a whole block, and on things that are not work at all. Both parse
-today as ids that resolve to nothing, so a resolver reports them as pending, which
-makes a permanently blocked task look like the next one to start. Type them: a block
-dep resolves against that block's own readiness, and an external dep is unresolvable
-by construction and has to be printed as such rather than counted as unfinished.
-
 ### §RK31 The decision survives the shipping
 
 `IMPROVEMENTS.md` deletes the section when a task ships, the ledger keeps one line, and
@@ -131,7 +122,12 @@ loading two files to read forty lines.
 
 A blocked task and a ready one are visually identical, so the graph has to be
 resolved: blocker chains, transitive readiness, and cycles. A cycle is a defect in the
-backlog and should fail `lint`, not merely print.
+backlog and should fail `lint`, not merely print. Resolve the reverse direction too —
+how many tasks shipping this one unblocks — because that count is the half of
+prioritisation a tool may supply: leverage is derivable, value is not. Measured here,
+RK14 unblocks 14 of 29 and RK10 unblocks 4, a gap no reading of the file makes visible.
+The traversal belongs in tested code rather than rewritten per session: an ad-hoc one
+is not merely expensive, it is wrong in ways nothing checks.
 
 ### §RK29 One call to start a task
 
@@ -183,6 +179,15 @@ exist yet.
 
 A GitHub Action, a pre-commit hook, and the plugin's `Stop` hook all call the same
 command. A gate that runs in only one of the three is a gate with a documented bypass.
+
+### §RK35 A dep can name more work than it looks like
+
+Shio's `(deps: Block P)` is one token and resolves to forty-eight open tasks; Turing's
+`(deps: T451–T457)` is one token and names seven. Both are legitimate (RK28) and both
+mislead a reader counting deps to judge how blocked a task is, which is exactly the
+judgement `pick` and a human both make from the line alone. The gate should say what a
+collective dep expands to, because the cost of the abbreviation lands on whoever
+believes it.
 
 ### §RK30 The context budget is a schema field
 

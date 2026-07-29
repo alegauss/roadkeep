@@ -22,7 +22,6 @@
 
 ## Block A — The model (a task is data before it is a line)
 
-- 📋 **RK28** (deps: RK1 ✅) **A dep the tool cannot resolve reads exactly like one that is merely pending** — `Block P` and `real design partners` are real deps on work outside the backlog, so a resolver has to name them unresolvable instead of counting them unfinished. → §RK28
 - 📋 **RK31** (deps: RK2 ✅) **The reasoning behind a shipped decision survives only in a commit nobody greps** — the ledger entry carries the commit that shipped it, so the one question an unfamiliar repository cannot answer costs a lookup instead of a search. → §RK31
 
 ## Block B — Authoring (insert, never hand-edit)
@@ -38,7 +37,7 @@
 - 📋 **RK10** (deps: RK2 ✅) **Counting a backlog by grep silently drops the lines it fails to match** — `list` and `stats` report per block and marker with `--json`, and `audit` prints every marker-bearing line *not* counted, with the reason. → §RK10
 - 📋 **RK11** (deps: RK10) **Picking work means reading the whole file to find one task whose deps are shipped** — `pick` applies the priority queue, then the lowest id with satisfied deps, and prints why it chose that one. → §RK11
 - 📋 **RK12** (deps: RK2 ✅) **A task's design lives in a second file and nothing joins them** — `show` prints the line, its improvements section and its spec path together. → §RK12
-- 📋 **RK13** (deps: RK10) **A blocked task looks identical to a ready one** — `deps` resolves the graph, names the blocker chain, and detects a cycle. → §RK13
+- 📋 **RK13** (deps: RK10) **A blocked task looks identical to a ready one, and one that unblocks half the backlog to one that unblocks nothing** — `deps` resolves the graph, names the blocker chain, detects a cycle, and counts what shipping each task unblocks. → §RK13
 - 📋 **RK29** (deps: RK11, RK12) **Starting a task costs reading two whole files to learn one line's worth of context** — one call returns the line, its rationale, its deps' status and the paths it touches, which is the entire cost of starting work for an agent. → §RK29
 - 📋 **RK32** (deps: RK2 ✅, RK4 ✅) **An id that exists in neither file was retired for a reason nobody recorded** — a gap in the sequence is either a decision or a mistake, and only the commit that deleted the line says which, so resolve it to that commit instead of to silence. → §RK32
 
@@ -51,6 +50,7 @@
 - 📋 **RK30** (deps: RK14) **The instruction file loaded every turn has a budget nothing enforces** — `agents.md` reached 186 KB in Shio under exactly this rule, so the gate checks the declared line and byte budget of every always-loaded file. → §RK30
 - 📋 **RK33** (deps: RK14, RK31) **A commit pointer dies on the first rebase, and a dead hash reads exactly like a live one** — squash-merge and amend rewrite the hash a ledger entry was written against, so the gate resolves every recorded commit and fails on the one that no longer exists. → §RK33
 - 📋 **RK34** (deps: RK14) **An invisible character reports a visible error about something else** — a no-break space renders as a space and a variation selector renders as nothing, so the gate names the codepoint and its offset instead of the downstream violations it caused. → §RK34
+- 📋 **RK35** (deps: RK14) **A dep on a range or a block hides how much work it actually names** — `Block P` resolved to 48 open tasks in Shio, so a reader who trusts the annotation is reading one dep where the graph holds dozens. → §RK35
 
 ## Block E — Adoption
 
