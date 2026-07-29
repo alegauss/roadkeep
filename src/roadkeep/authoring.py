@@ -36,7 +36,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 
 from roadkeep.config import Config
-from roadkeep.document import Document, Entry, Heading, read_deps
+from roadkeep.document import Document, Entry, Heading, blank, read_deps
 from roadkeep.ids import next_id, scan
 from roadkeep.schema import Task
 
@@ -215,14 +215,10 @@ def _placement(
     lines = document.lines
     index = heading.lineno  # 0-based: the line after the heading
     before: list[str] = []
-    if index < len(lines) and _blank(lines[index]):
+    if index < len(lines) and blank(lines[index]):
         index += 1
     else:
         before = [""]
     at_end = index >= len(lines)
-    after = [] if at_end or _blank(lines[index]) else [""]
+    after = [] if at_end or blank(lines[index]) else [""]
     return index, [*before, rendered, *after]
-
-
-def _blank(line: str) -> bool:
-    return not line.strip()

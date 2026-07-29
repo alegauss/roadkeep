@@ -22,6 +22,7 @@
 ## Block B — Authoring
 
 - ✅ **RK5** **Writing the line by hand is where the prose leaks in** — the fields are refused at input, so the limit is met before a sentence is composed to fill it and the file is only ever touched by a line that renders back to what was written.
+- ✅ **RK6** **Shipping a task is four edits across three files, so one is always missed** — the three edits are one command that validates every one of them before a file is touched, and the roadmap line is removed rather than stubbed so status keeps one home.
 
 ## Block C — Query
 

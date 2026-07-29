@@ -255,6 +255,16 @@ class Document:
         return replace(parsed, path=self.path)
 
 
+def blank(line: str) -> bool:
+    """A line with no content — what separates a heading from what belongs to it.
+
+    Public because every writer has to reason about it: a task glued to a heading, or a
+    doubled blank left where a line was removed, is a change to the file's shape that
+    the round-trip cannot catch because both spellings round-trip.
+    """
+    return not line.strip()
+
+
 def _ending(line: str) -> str:
     for candidate in ("\r\n", "\n", "\r"):
         if line.endswith(candidate):

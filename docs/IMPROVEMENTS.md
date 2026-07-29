@@ -50,13 +50,6 @@ session doing.
 
 ## Block B — Authoring
 
-### §RK6 `ship`
-
-Shipping is four coordinated edits across three files, which is why one is always
-missed: move the entry to the changelog under its block, delete the improvements
-section, replace the roadmap line with nothing or a single pointer, and update
-dependents' dep markers. One command, one transaction, or the files disagree.
-
 ### §RK7 `status`
 
 A marker lives in exactly one file. `status` writes it in the roadmap and fails if a

@@ -11,11 +11,10 @@ reached **186 KB** absorbing the rationale of every shipped task. Six of the eig
 lines were written in the session that then diagnosed the problem — the drift is invited
 by the process. Full measurement: [docs/IMPROVEMENTS.md §0.1](docs/IMPROVEMENTS.md).
 
-**The insight that decides every design question.** *The saving is the analysis, not
-the characters.* A linter reports after the prose exists, when the tokens are already
-spent and the author is being asked to delete work. A `maxLength` refuses before a
-sentence is composed to fill it — and turns an analytical act ("is this too long, what
-would I cut?") into a procedural one ("call `add`").
+**The insight that decides every design question.** *The saving is the analysis, not the
+characters.* A linter reports after the prose exists, when the tokens are spent and the
+author is asked to delete work; a `maxLength` refuses before a sentence is composed to
+fill it, turning an analytical act ("what would I cut?") into a procedural one ("call `add`").
 
 ## The six laws
 
@@ -45,17 +44,17 @@ src/roadkeep/          the package (src layout, importable via pytest pythonpath
   config.py            RK3 — Config.discover/document; refuses an unknown key
   ids.py               RK4 — scan/highest/next_id across every configured source
   authoring.py         RK5 — add(): compose/validate/place; nothing written unless all
+  shipping.py          RK6 — ship(): three edits, validated together, written last
   backlog.py           RK28/RK37 — resolve/readiness; four dep kinds, four answers
   history.py           RK31 — origin_of(): the shipping commit, derived from git
   cli.py               the command surface; one subparser per task, exit 0/1/2
 tests/                 pytest; docs/ROADMAP.md is a fixture, not a mock
 ```
 
-`Schema.render` is the only writer of the line format, `Schema.validate` the only
-reader of the rules, and `Document` the only reader of a file — it keeps every source
-line verbatim and **every mutator refuses the whole file** when a line it parsed would
-render back differently. Never construct a task line with an f-string; before writing a
-command:
+`Schema.render` is the only writer of the line format, `Schema.validate` the only reader of
+the rules, and `Document` the only reader of a file — it keeps every source line verbatim
+and **every mutator refuses the whole file** when a line it parsed would render back
+differently. Never construct a task line with an f-string; before writing a command:
 
 - Get documents from `Config.document(role)`, never by choosing a schema at the call
   site: the changelog is `schema.as_ledger()` (✅, no deps, no pointer), not a second
@@ -71,19 +70,19 @@ asserted in a README. A limit that cannot express these lines is the wrong limit
 than a set of wrong lines, so this repository is the first thing a schema change must
 still validate — under its own `roadkeep.toml`, which is what makes L6 a fact here.
 
-Current reading (RK14/RK15 replace this hand-verification): 27 tasks, longest line
-**305** chars against a 320 cap, 27/27 pointers resolve, no orphan section.
+Current reading (RK14/RK15 replace this hand-verification): 26 tasks, longest line
+**305** chars against a 320 cap, 26/26 pointers resolve, no orphan section.
 
-## Writing a task line — call `add`, never type the format
+## Writing and shipping — call the command, never type the format
 
 ```
 python -m roadkeep.cli add --block B --symptom "<what does not work>" \
   --why "<one sentence.>" [--dep "RK5 ✅"] [--status 💭] [--id RK9] [--json]
 ```
 
-The id, the pointer and the marker are derived; the block must already have a heading.
-A refusal exits 2 with the length and the limit and writes nothing, which leaves you
-the two rules a schema cannot check:
+The id, the pointer and the marker are derived; the block must already have a heading. A
+refusal exits 2 with the length and the limit and writes nothing, leaving you the two
+rules a schema cannot check:
 
 1. **`symptom` states what does not work** — never a solution name. A line named after
    its fix cannot be falsified, so it never gets closed, only abandoned.
@@ -93,20 +92,22 @@ the two rules a schema cannot check:
 Enforced for you: ≤320 rendered (`symptom` ≤120, `why` ≤200); the marker from 📋 designed
 · 💭 idea · ⏳ partial · 🛠 in-progress (✅ only in `CHANGELOG.md` and in a `(deps: RK1 ✅)`
 annotation); `→ §RK<n>` derived from the id (RK27), unless `ref_scheme = "outline"`.
-**Shipping is still four hand edits until RK6**, and `add` is roadmap-only.
 
-**Ask, don't count** (all take `--json`): `python -m roadkeep.cli next-id` for the next
-id — never fill a gap, a retired id is never reused; `… deps <id>` resolves deps naming a
-task, a `Block X`, a range (`RK20–RK30`) or outside work — the last, and a block no
-heading declares, is *unresolvable*, never "pending" (RK28, RK37); `… origin <id> --why`
-for the commits that proposed and shipped a task, plus the reasoning dropped (RK31).
+**Shipping is `… ship <id> [--why "<the outcome.>"]`** — ledger entry, roadmap line gone,
+`§<id>` deleted, all three validated before one is written; the stale dep annotations it
+*reports* are yours to edit until RK8.
+
+**Ask, don't count** (all take `--json`): `python -m roadkeep.cli next-id` for the next id
+— never fill a gap, a retired id is never reused; `… deps <id>` types each dep (a task, a
+`Block X`, a range, or outside work — the last, and a block no heading declares, is
+*unresolvable*, never "pending": RK28/RK37); `… origin <id> --why` for the reasoning (RK31).
 
 ## Picking work
 
-Lowest-numbered task whose `deps` are all shipped. Blocks are ordered by dependency,
-not priority: **A** (model) → **B** (authoring) → **C** (query) → **D** (gate) →
-**E** (adoption) → **F** (plugin). The guardrail does not exist until D, and is not
-*inescapable* until F.
+Lowest-numbered task whose `deps` are all shipped. Blocks are ordered by dependency, not
+priority: **A** (model) → **B** (authoring) → **C** (query) → **D** (gate) → **E**
+(adoption) → **F** (plugin). No guardrail before D, and none an agent cannot route around
+before F.
 
 ## Build and test
 
@@ -120,17 +121,16 @@ not priority: **A** (model) → **B** (authoring) → **C** (query) → **D** (g
 
 ## Committing
 
-**One task → one commit, and commit the instant a task is validated** — before
-starting the next. The doc sync (`ROADMAP` → `CHANGELOG`, drop the `IMPROVEMENTS`
-section) goes in the *same* commit as the code, so the docs never describe a state that
-did not ship.
+**One task → one commit, and commit the instant a task is validated** — before starting
+the next. What `ship` wrote goes in the *same* commit as the code, so the docs never
+describe a state that did not ship, and a batch of ≥2 tasks is **not** permission to
+batch: `/loop`, one task per iteration.
 
 Use `run-commit.cmd -m "<conventional-commits title>"` from the repo root (it is on the
 system PATH). **Always pass `-m`**, keep it ASCII: without it, a docs commit's prose
-about already-shipped work gets misread as `feat: implement <feature>`.
-
-A batch of ≥2 tasks is **not** permission to batch — run it under `/loop`, one task per
-iteration, commit at the end of each.
+about already-shipped work gets misread as `feat: implement <feature>`. It stages
+everything, so stage the task's own paths and call `python -m commitclerk -m …` when the
+tree carries unrelated work.
 
 ## Non-goals are binding
 

@@ -37,6 +37,7 @@ from roadkeep.document import RoundTripError
 from roadkeep.history import Commit, HistoryUnavailable, Origin, origin_of
 from roadkeep.ids import highest, next_id
 from roadkeep.schema import SchemaError
+from roadkeep.shipping import ship
 
 EXIT_OK = 0
 EXIT_GATE = 1
@@ -112,6 +113,26 @@ def build_parser() -> argparse.ArgumentParser:
         "--json", action="store_true", help="the line, with the file and line it landed on"
     )
     add_parser.set_defaults(handler=_add)
+
+    ship_parser = subcommands.add_parser(
+        "ship",
+        help="move a task to the ledger, drop its rationale, clear the roadmap line",
+        description=(
+            "Ship one task in three edits across three files. Everything is validated "
+            "before anything is written, because whichever of the three is done by hand "
+            "last is the one that gets forgotten."
+        ),
+    )
+    ship_parser.add_argument("id", help="the task to ship, e.g. RK5")
+    ship_parser.add_argument(
+        "--why",
+        help=(
+            "restate the sentence as an outcome; the design's own sentence is kept "
+            "verbatim by default and the tool never rewrites either"
+        ),
+    )
+    ship_parser.add_argument("--json", action="store_true", help="every edit, as data")
+    ship_parser.set_defaults(handler=_ship)
 
     deps_parser = subcommands.add_parser(
         "deps",
@@ -200,27 +221,8 @@ def _add(config: Config, args: argparse.Namespace) -> int:
             ref=args.ref,
             task_id=args.task_id,
         )
-    except SchemaError as error:
-        # Every violation at once, each naming its limit: a refusal that reports one
-        # problem per run turns a single fix into a conversation.
-        print("roadkeep: refused, nothing written:", file=sys.stderr)
-        for violation in error.violations:
-            print(f"  {violation}", file=sys.stderr)
-        return EXIT_USAGE
-    except RoundTripError as error:
-        # The file drifted before this command ran, so the gate says no: normalizing
-        # a line the parser may have misread is the corruption L3 forbids.
-        print(f"roadkeep: {error}", file=sys.stderr)
-        return EXIT_GATE
-    except KeyError as error:
-        print(f"roadkeep: {error.args[0]}", file=sys.stderr)
-        return EXIT_USAGE
-    except ValueError as error:
-        print(f"roadkeep: {error}", file=sys.stderr)
-        return EXIT_USAGE
-    except OSError as error:
-        print(f"roadkeep: {error}", file=sys.stderr)
-        return EXIT_USAGE
+    except (RoundTripError, KeyError, ValueError, OSError) as error:
+        return _refused(error)  # a SchemaError arrives here as the ValueError it is
 
     if args.json:
         print(
@@ -237,6 +239,85 @@ def _add(config: Config, args: argparse.Namespace) -> int:
         )
         return EXIT_OK
     print(insertion.rendered)
+    return EXIT_OK
+
+
+def _refused(error: Exception) -> int:
+    """One error path for every command that writes. The exit code is the contract."""
+    if isinstance(error, SchemaError):
+        # Every violation at once, each naming its limit: a refusal that reports one
+        # problem per run turns a single fix into a conversation.
+        print("roadkeep: refused, nothing written:", file=sys.stderr)
+        for violation in error.violations:
+            print(f"  {violation}", file=sys.stderr)
+        return EXIT_USAGE
+    if isinstance(error, RoundTripError):
+        # The file drifted before this command ran, so the gate says no: normalizing a
+        # line the parser may have misread is the corruption L3 forbids.
+        print(f"roadkeep: {error}", file=sys.stderr)
+        return EXIT_GATE
+    # KeyError renders its message in quotes, which reads as a stray token in a report.
+    message = error.args[0] if isinstance(error, KeyError) else error
+    print(f"roadkeep: {message}", file=sys.stderr)
+    return EXIT_USAGE
+
+
+def _ship(config: Config, args: argparse.Namespace) -> int:
+    try:
+        shipment = ship(config, args.id, why=args.why)
+        shipment.save()
+    except (RoundTripError, KeyError, ValueError, OSError) as error:
+        return _refused(error)
+
+    roadmap = config.relative(config.path("roadmap"))
+    ledger = config.relative(config.path("changelog"))
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "id": shipment.task_id,
+                    "changelog": {
+                        "file": ledger,
+                        "line": shipment.ledger.lineno,
+                        "rendered": shipment.ledger.rendered,
+                    },
+                    "roadmap": {"file": roadmap, "removed": shipment.removed_from},
+                    "improvements": {
+                        "dropped": None
+                        if shipment.dropped is None
+                        else {
+                            "anchor": shipment.dropped.anchor,
+                            "heading": shipment.dropped.text,
+                            "first": shipment.dropped.first,
+                            "last": shipment.dropped.last,
+                        },
+                        "kept": shipment.kept,
+                    },
+                    "stale": list(shipment.stale),
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+
+    block = shipment.ledger.entry.task.block
+    print(f"{shipment.task_id} → {ledger}:{shipment.ledger.lineno} under Block {block}")
+    print(f"  removed  {roadmap}:{shipment.removed_from}")
+    if shipment.dropped is not None:
+        print(
+            f"  dropped  {shipment.dropped} from "
+            f"{config.relative(config.path('improvements'))}"
+        )
+    else:
+        print(f"  kept     nothing dropped: {shipment.kept}")
+    if shipment.stale:
+        # Reported, not written: deriving the annotation is RK8, and a gap that goes
+        # unmentioned is worse than the hand-edit it will replace.
+        annotate = "annotate" if len(shipment.stale) > 1 else "annotates"
+        print(
+            f"  stale    {', '.join(shipment.stale)} still {annotate} "
+            f"{shipment.task_id} as open (RK8 derives these)"
+        )
     return EXIT_OK
 
 
