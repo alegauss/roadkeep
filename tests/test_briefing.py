@@ -101,6 +101,33 @@ def test_an_explicit_id_is_not_a_pick(tmp_path):
     assert brief(project(tmp_path), "RK4").picked == ""
 
 
+def test_the_pick_can_be_scoped_to_one_block(tmp_path):
+    # "Start the next thing in Block B" is one call, and its absence of an answer is
+    # about Block B rather than about a lower id somewhere else (RK40).
+    roadmap = ROADMAP.replace(
+        "## Non-goals",
+        "## Block B — Authoring\n\n"
+        f"- {DESIGNED} **RK8** (deps: —) **A later symptom** — Because of a reason. → §RK8\n\n"
+        "## Non-goals",
+    )
+    gathered = brief(project(tmp_path, roadmap=roadmap), block="B")
+    assert gathered.task.id == "RK8"
+    assert gathered.picked == "lowest ready id in Block B"
+
+
+def test_an_id_and_a_block_together_are_refused(tmp_path, capsys):
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "brief", "RK1", "--block", "A"]) == EXIT_USAGE
+    assert "not both" in capsys.readouterr().err
+
+
+def test_a_finished_block_is_reported_as_finished(tmp_path):
+    roadmap = ROADMAP.replace("## Non-goals", "## Block B — Authoring\n\n## Non-goals")
+    with pytest.raises(NothingToBrief) as caught:
+        brief(project(tmp_path, roadmap=roadmap), block="B")
+    assert "nothing is open in Block B" in caught.value.args[0]
+
+
 def test_nothing_ready_is_refused_with_the_reason(tmp_path):
     roadmap = ROADMAP.replace("(deps: —)", "(deps: RK9)")
     with pytest.raises(NothingToBrief) as caught:

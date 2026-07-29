@@ -107,9 +107,10 @@ restate a count in prose**: `… export [--readme|--json]` projects it, idempote
 
 ## Picking work
 
-`… brief` picks and briefs in one call, printing why (RK11/RK29): 🛠 first, then `priority` in
-`roadkeep.toml`, then the lowest ready id, never one blocked outside. Blocks run by dependency —
-**A** model → **B** authoring → **C** query → **D** gate → **E** adoption → **F** plugin.
+`… brief [--block C]` picks and briefs in one call, printing why (RK11/RK29/RK40): 🛠 first, then
+`priority` in `roadkeep.toml`, then the lowest ready id, never one blocked outside. **Scope it to
+finish a block**: only "nothing is open in Block C" means finished — unscoped, the answer may be
+another block's. Order: A model → B authoring → C query → D gate → E adoption → F plugin.
 
 ## Build and test
 
@@ -123,10 +124,9 @@ restate a count in prose**: `… export [--readme|--json]` projects it, idempote
 
 ## Committing
 
-**One task → one commit, and commit the instant a task is validated** — before starting
-the next. What `ship` wrote goes in the *same* commit as the code, so the docs never
-describe a state that did not ship, and a batch of ≥2 tasks is **not** permission to
-batch: `/loop`, one task per iteration.
+**One task → one commit, and commit the instant a task is validated** — before starting the next.
+What `ship` wrote goes in the *same* commit as the code, so the docs never describe a state that
+did not ship; a batch of ≥2 tasks is **not** permission to batch: `/loop`, one task per iteration.
 
 Use `run-commit.cmd -m "<conventional-commits title>"` from the repo root (on the system
 PATH). **Always pass `-m`**, keep it ASCII: without it a docs commit's prose about shipped

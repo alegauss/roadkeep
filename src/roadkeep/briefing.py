@@ -67,11 +67,17 @@ class Brief:
         return self.view.task
 
 
-def brief(config: Config, task_id: str | None = None) -> Brief:
-    """Join every answer about one task. Reads four files at most; writes none."""
+def brief(
+    config: Config, task_id: str | None = None, block: str | None = None
+) -> Brief:
+    """Join every answer about one task. Reads four files at most; writes none.
+
+    ``block`` scopes the pick when no id is given (RK40), so "start the next thing in
+    Block C" is one call whose absence of an answer is about Block C.
+    """
     picked = ""
     if task_id is None:
-        choice = pick(config)
+        choice = pick(config, block)
         if choice.entry is None:
             raise NothingToBrief(choice.reason)
         task_id, picked = choice.entry.task.id, choice.reason

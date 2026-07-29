@@ -52,21 +52,6 @@ session doing.
 
 ## Block C — Query
 
-### §RK40 Scoping the pick to a block
-
-This task exists because the failure was observed rather than imagined. Working Block C,
-four tasks shipped and `pick` answered RK14 — Block D, and correct, since it is the
-lowest ready id. The answer was read as "Block C is finished", and Block C still held
-RK29, RK32 and RK39: ids that are not sequential, so nothing about the reading felt
-wrong. Every fact needed to catch it was already printed. `ship` had emitted `event RK13
-Block C open` (RK38), and `stats` prints a per-block row even at zero (RK10). What was
-missing is narrower and worth fixing: the question "what is next *in this block*" had no
-command, so it was answered by inference from a global one. A scoped `pick --block C`
-collapses that: it returns a task in the block or reports nothing to pick, and "nothing"
-then means the block is empty rather than the queue having moved on. The same flag
-belongs on `brief`, because the one call that starts work is the one an agent actually
-makes.
-
 ## Block D — The gate
 
 ### §RK14 `lint`

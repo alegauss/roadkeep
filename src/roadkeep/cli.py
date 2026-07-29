@@ -264,6 +264,9 @@ def build_parser() -> argparse.ArgumentParser:
     brief_parser.add_argument(
         "id", nargs="?", help="the task; omitted, `pick` chooses it"
     )
+    brief_parser.add_argument(
+        "--block", help="scope the pick to one block, e.g. C (only without an id)"
+    )
     brief_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     brief_parser.set_defaults(handler=_brief)
 
@@ -293,6 +296,13 @@ def build_parser() -> argparse.ArgumentParser:
             "Apply three tiers — work already in progress, the declared priority, then "
             "the lowest ready id — and print which one answered. A task blocked outside "
             "the backlog is never offered: shipping cannot unblock it."
+        ),
+    )
+    pick_parser.add_argument(
+        "--block",
+        help=(
+            "scope every part of the answer to one block, so 'nothing to pick' is a "
+            "statement about that block and not about a lower id somewhere else"
         ),
     )
     pick_parser.add_argument(
@@ -841,8 +851,16 @@ def _miss_json(miss: Reject) -> dict[str, object]:
 
 
 def _brief(config: Config, args: argparse.Namespace) -> int:
+    if args.id is not None and args.block is not None:
+        # Two answers to one question: the id names a task and the block names a search.
+        print(
+            "roadkeep: give an id or --block, not both: an id is already the answer "
+            "--block would look for",
+            file=sys.stderr,
+        )
+        return EXIT_USAGE
     try:
-        gathered = brief(config, args.id)
+        gathered = brief(config, args.id, args.block)
     except (KeyError, OSError) as error:
         return _refused(error)
 
@@ -970,7 +988,7 @@ def _view_json(view: View, no_body: bool) -> dict[str, object]:
 
 def _pick(config: Config, args: argparse.Namespace) -> int:
     try:
-        choice = pick(config)
+        choice = pick(config, args.block)
     except (KeyError, OSError) as error:
         return _refused(error)
     stalled = [{"id": s.id, "blockers": list(s.blockers)} for s in choice.stalled]
@@ -992,6 +1010,7 @@ def _pick(config: Config, args: argparse.Namespace) -> int:
                     },
                     "tier": None if choice.tier is None else str(choice.tier),
                     "reason": choice.reason,
+                    "scope": choice.block,
                     "alternatives": list(choice.alternatives),
                     "ready": choice.ready,
                     "blocked": choice.blocked,

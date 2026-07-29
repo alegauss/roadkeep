@@ -26,8 +26,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK40** (deps: RK11 ✅, RK10 ✅) **A block's own next task is not askable, so a global answer reads as that block being finished** — scope the pick and the brief to one block, so that 'nothing to pick' means the block is empty rather than a lower id living somewhere else. → §RK40
-
 ## Block D — The gate
 
 - 📋 **RK14** (deps: RK1 ✅, RK2 ✅) **A format that is documented but not enforced is a format that drifts** — `lint` validates every line against the schema and exits non-zero, which is what makes it a gate rather than advice. → §RK14

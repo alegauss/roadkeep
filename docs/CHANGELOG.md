@@ -37,6 +37,7 @@
 - ✅ **RK29** **Starting a task costs reading two whole files to learn one line's worth of context** — one call composes the line, its rationale, its resolved deps, the blocker chain, what shipping it unblocks and the non-goals, bounded to fit a tool result.
 - ✅ **RK32** **An id that exists in neither file was retired for a reason nobody recorded** — a line now leaves by three recorded doors: retire writes the forward pointer at the moment of the decision, and gaps resolves the older holes against the commit that removed them.
 - ✅ **RK39** **A README and a site restate a backlog they cannot re-read, so both are stale from the first ship** — the restatement is derived: one marked README block and one JSON payload, idempotent and stamped with nothing, so a refresh with nothing to say makes no diff.
+- ✅ **RK40** **A block's own next task is not askable, so a global answer reads as that block being finished** — every part of a scoped answer is about that block, so nothing open in Block C is the wording that means finished and a lower id elsewhere can no longer read as one.
 
 ## Block D — The gate
 

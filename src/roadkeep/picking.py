@@ -66,6 +66,9 @@ class Choice:
     entry: Entry | None
     tier: Tier | None
     reason: str
+    #: The block the question was scoped to, when it was (RK40). Every count and every
+    #: alternative below is then about that block and nothing else.
+    block: str | None = None
     #: The next few ready tasks, in the same order the pick came from.
     alternatives: tuple[str, ...] = ()
     ready: int = 0
@@ -86,15 +89,74 @@ class Choice:
         )
 
 
-def pick(config: Config) -> Choice:
-    """Apply the three tiers to the roadmap, and say which one answered."""
+def pick(config: Config, block: str | None = None) -> Choice:
+    """Apply the three tiers to the roadmap, and say which one answered.
+
+    ``block`` scopes every part of the answer — the tiers, the counts, the alternatives —
+    so that "nothing to pick" is a statement about *that* block (RK40). Unscoped, the
+    lowest ready id can live in another block, and reading that as "this block is
+    finished" is a mistake the ids being non-sequential makes easy.
+    """
     backlog = Backlog.load(config)
     prefix = config.schema.prefix
+    if block is not None and block not in backlog.declared_blocks():
+        raise KeyError(
+            f"no heading declares Block {block} (declares: "
+            f"{', '.join(sorted(backlog.declared_blocks())) or 'none'})"
+        )
+    scope = f" in Block {block}" if block else ""
+    considered = [
+        entry
+        for entry in backlog.roadmap.entries
+        if block is None or entry.task.block == block
+    ]
+    survey = _survey(backlog, considered)
+    ordered = sorted(
+        survey.ready, key=lambda e: (number_of(e.task.id, prefix) or 0, e.task.id)
+    )
+    counts = {
+        "block": block,
+        "blocked": survey.blocked,
+        "outside": survey.outside,
+        "stalled": survey.stalled,
+    }
+    if not ordered:
+        # Two different absences, and telling them apart is the whole point of the scope:
+        # a block with nothing left is finished, one whose lines are all blocked is not.
+        reason = (
+            f"nothing is open{scope}"
+            if not considered
+            else f"every open task{scope} is blocked, so there is nothing to start"
+        )
+        return Choice(entry=None, tier=None, reason=reason, **counts)
+
+    chosen, tier, why = _first(ordered, config)
+    rest = tuple(e.task.id for e in ordered if e is not chosen)[:ALTERNATIVES]
+    return Choice(
+        entry=chosen,
+        tier=tier,
+        reason=f"{why}{scope}" if tier is Tier.LOWEST else why,
+        alternatives=rest,
+        ready=len(survey.ready),
+        **counts,
+    )
+
+
+@dataclass(frozen=True, slots=True)
+class _Survey:
+    """One pass over the lines in scope: who is ready, and who is not and why not."""
+
+    ready: tuple[Entry, ...]
+    blocked: int
+    outside: int
+    stalled: tuple[Stalled, ...]
+
+
+def _survey(backlog: Backlog, considered: list[Entry]) -> _Survey:
     ready: list[Entry] = []
     blocked = outside = 0
     stalled: list[Stalled] = []
-
-    for entry in backlog.roadmap.entries:
+    for entry in considered:
         readiness = backlog.readiness(entry.task)
         if readiness is Readiness.READY:
             ready.append(entry)
@@ -112,29 +174,8 @@ def pick(config: Config) -> Choice:
                     ),
                 )
             )
-
-    ordered = sorted(ready, key=lambda e: (number_of(e.task.id, prefix) or 0, e.task.id))
-    if not ordered:
-        return Choice(
-            entry=None,
-            tier=None,
-            reason="every open task is blocked, so there is nothing to start",
-            blocked=blocked,
-            outside=outside,
-            stalled=tuple(stalled),
-        )
-
-    chosen, tier, why = _first(ordered, config)
-    rest = tuple(e.task.id for e in ordered if e is not chosen)[:ALTERNATIVES]
-    return Choice(
-        entry=chosen,
-        tier=tier,
-        reason=why,
-        alternatives=rest,
-        ready=len(ready),
-        blocked=blocked,
-        outside=outside,
-        stalled=tuple(stalled),
+    return _Survey(
+        ready=tuple(ready), blocked=blocked, outside=outside, stalled=tuple(stalled)
     )
 
 

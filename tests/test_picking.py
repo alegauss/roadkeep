@@ -170,6 +170,68 @@ def test_a_priority_entry_shaped_like_an_id_but_not_one_is_refused(tmp_path):
     assert "not an id of this project" in str(caught.value)
 
 
+# -- scoped to one block (RK40) ----------------------------------------------
+
+
+def test_a_scoped_pick_answers_about_that_block_only(tmp_path):
+    # The failure this closes: unscoped, RK2 is the answer, and reading it as "Block B is
+    # finished" is a mistake non-sequential ids make easy.
+    config = project(
+        tmp_path, BLOCKS + line("RK2") + MORE + line("RK8", block="B") + line("RK9", block="B")
+    )
+    assert pick(config).entry.task.id == "RK2"
+    scoped = pick(config, "B")
+    assert scoped.entry.task.id == "RK8" and scoped.block == "B"
+    assert "in Block B" in scoped.reason
+    # Every count is about the scope too, or the answer is scoped and its numbers are not.
+    assert scoped.ready == 2
+
+
+def test_a_finished_block_and_a_stuck_one_read_differently(tmp_path):
+    # The distinction the scope exists for: nothing open means done, and everything
+    # blocked means not done — one word for both would be the bug again.
+    config = project(
+        tmp_path, BLOCKS + line("RK2", "RK5") + MORE
+    )
+    empty = pick(config, "B")
+    assert not empty.found and empty.reason == "nothing is open in Block B"
+    stuck = pick(config, "A")
+    assert not stuck.found and "every open task in Block A is blocked" in stuck.reason
+    assert (stuck.blocked, stuck.ready) == (1, 0)
+
+
+def test_a_block_no_heading_declares_is_refused(tmp_path):
+    config = project(tmp_path, BLOCKS + line("RK2"))
+    with pytest.raises(KeyError) as caught:
+        pick(config, "Z")
+    assert "no heading declares Block Z" in caught.value.args[0]
+    assert "declares: A" in caught.value.args[0]
+
+
+def test_a_block_whose_last_task_shipped_still_resolves(tmp_path):
+    # The heading may only be in the ledger by then (RK37): the answer is "finished",
+    # not "no such block".
+    config = project(
+        tmp_path,
+        BLOCKS + line("RK2"),
+        changelog=f"# Shipped\n\n## Block B — Authoring\n\n- {SHIPPED} **RK8** "
+        f"**A symptom** — done.\n",
+    )
+    choice = pick(config, "B")
+    assert not choice.found and choice.reason == "nothing is open in Block B"
+
+
+def test_the_scope_does_not_change_the_tiers(tmp_path):
+    # In-progress still outranks a lower id — inside the block it is scoped to.
+    config = project(
+        tmp_path,
+        BLOCKS + line("RK2") + MORE + line("RK8", block="B")
+        + line("RK9", block="B", status=IN_PROGRESS),
+    )
+    scoped = pick(config, "B")
+    assert (scoped.entry.task.id, scoped.tier) == ("RK9", Tier.STARTED)
+
+
 # -- the absence of an answer is an answer -----------------------------------
 
 
@@ -226,6 +288,20 @@ def test_nothing_to_pick_exits_zero_because_it_is_an_answer(tmp_path, capsys):
     out = capsys.readouterr().out
     assert out.startswith("nothing to pick: every open task is blocked")
     assert "0 ready, 1 blocked" in out
+
+
+def test_the_command_scopes_and_says_so(tmp_path, capsys):
+    project(tmp_path, BLOCKS + line("RK2") + MORE + line("RK8", block="B"))
+    assert main(["-C", str(tmp_path), "pick", "--block", "B", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["pick"]["id"] == "RK8" and payload["scope"] == "B"
+    assert payload["reason"].endswith("in Block B")
+
+
+def test_an_undeclared_block_exits_two(tmp_path, capsys):
+    project(tmp_path, BLOCKS + line("RK2"))
+    assert main(["-C", str(tmp_path), "pick", "--block", "Z"]) == EXIT_USAGE
+    assert "no heading declares Block Z" in capsys.readouterr().err
 
 
 def test_a_missing_roadmap_is_a_usage_error_not_a_traceback(tmp_path, capsys):
