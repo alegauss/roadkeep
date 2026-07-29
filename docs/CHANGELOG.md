@@ -30,6 +30,8 @@
 
 ## Block C — Query
 
+- ✅ **RK10** **Counting a backlog by grep silently drops the lines it fails to match** — every count prints what it could not read beside what it did, so a broken line, a parked task and a marker this project never declared are visible instead of silently absent.
+
 ## Block D — The gate
 
 ## Block E — Adoption

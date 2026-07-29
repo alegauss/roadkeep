@@ -14,7 +14,9 @@ Four claims, and the last two are the ones that make this a schema rather than a
 
 from __future__ import annotations
 
+import io
 import json
+import sys
 from pathlib import Path
 
 import pytest
@@ -269,6 +271,40 @@ def test_the_command_reads_the_body_from_stdin(tmp_path, capsys, monkeypatch):
     )
     assert "§RK2 → docs/IMPROVEMENTS.md:21  6 words" in capsys.readouterr().out
     assert "A paragraph that arrived by pipe." in read(config)
+
+
+def test_a_pipe_the_console_would_decode_as_cp1252_still_carries_an_em_dash(
+    tmp_path, capsys, monkeypatch
+):
+    # The defect this closes: stdout was forced to UTF-8 and stdin was not, so on a
+    # Windows console every em dash in a piped paragraph arrived as three mojibake
+    # characters — and the round-trip then preserved them in the file forever.
+    config = project(tmp_path)
+    prose = "A paragraph — piped, and the dash has to survive it."
+    monkeypatch.setattr(
+        "sys.stdin", io.TextIOWrapper(io.BytesIO(prose.encode()), encoding="cp1252")
+    )
+    assert (
+        main(["-C", str(tmp_path), "section", "add", "RK2", "--title", "A design"])
+        == EXIT_OK
+    )
+    assert prose in read(config)
+
+
+def test_a_pipe_that_is_not_utf8_is_refused_rather_than_repaired(tmp_path, capsys):
+    # Strict on the way in: a substituted character would round-trip out of the file it
+    # landed in, so the input is refused and the file is left exactly as it was (L3).
+    config = project(tmp_path)
+    sys.stdin = io.TextIOWrapper(io.BytesIO(b"A paragraph, \xe9 alone."), encoding="cp1252")
+    try:
+        assert (
+            main(["-C", str(tmp_path), "section", "add", "RK2", "--title", "A design"])
+            == EXIT_USAGE
+        )
+    finally:
+        sys.stdin = sys.__stdin__
+    assert "utf-8" in capsys.readouterr().err
+    assert read(config) == RATIONALE
 
 
 def test_show_prints_the_section_as_the_file_has_it(tmp_path, capsys):

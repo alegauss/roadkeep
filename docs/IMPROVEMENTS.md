@@ -52,14 +52,6 @@ session doing.
 
 ## Block C — Query
 
-### §RK10 `list`, `stats`, `audit`
-
-Counting by grep drops what it fails to match, and reports the remainder with no
-indication that anything is missing — an empty count reads identically to a clean
-file. So `audit` is not an extra: it prints every marker-bearing line the counter did
-**not** count, with the reason, which is the only way a count can be trusted. `--json`
-for anything programmatic.
-
 ### §RK11 `pick`
 
 The most common question asked of a roadmap — "what do I work on" — currently costs

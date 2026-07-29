@@ -34,8 +34,11 @@ CHANGELOG = HERE / "docs" / "CHANGELOG.md"
 
 #: Real backlogs that predate the tool, with their own prefixes (L6). Absent on
 #: any machine but the author's, so every use is guarded.
+#: The bounds are deliberately slack: these files belong to other projects and shrink
+#: whenever those projects ship, so a tight floor fails on work that happened elsewhere
+#: (Shio crossed 90 mid-session) and says nothing about this parser.
 FOREIGN = [
-    (Path("D:/Git/viglet/shio/latest/docs/ROADMAP.md"), OUTLINE_SH, 90),
+    (Path("D:/Git/viglet/shio/latest/docs/ROADMAP.md"), OUTLINE_SH, 80),
     (Path("D:/Git/viglet/turing/latest/docs/ROADMAP.md"), OUTLINE_T, 25),
 ]
 

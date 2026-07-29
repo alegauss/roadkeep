@@ -32,13 +32,14 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 
 from roadkeep import __version__
 from roadkeep.authoring import add, set_status
 from roadkeep.backlog import Backlog
 from roadkeep.config import Config, ConfigError
-from roadkeep.document import Document, RoundTripError
+from roadkeep.counting import Census
+from roadkeep.document import Document, Entry, Reject, RoundTripError
 from roadkeep.history import Commit, HistoryUnavailable, Origin, origin_of
 from roadkeep.ids import highest, next_id
 from roadkeep.schema import SchemaError
@@ -206,6 +207,46 @@ def build_parser() -> argparse.ArgumentParser:
     ship_parser.add_argument("--json", action="store_true", help="every edit, as data")
     ship_parser.set_defaults(handler=_ship)
 
+    list_parser = subcommands.add_parser(
+        "list",
+        help="the task lines, filtered, printed verbatim",
+        description=(
+            "Print the lines a filter selects, exactly as the file spells them. A "
+            "marker-bearing line the grammar did not accept is reported on stderr with "
+            "the count, so a filtered listing can never look complete when it is not."
+        ),
+    )
+    _counting_flags(list_parser)
+    list_parser.add_argument("--marker", help="only this status marker")
+    list_parser.add_argument(
+        "--ids", action="store_true", help="print ids alone, one per line"
+    )
+    list_parser.set_defaults(handler=_list)
+
+    stats_parser = subcommands.add_parser(
+        "stats",
+        help="counts per block and per marker, with what was not counted",
+        description=(
+            "Count the file. Every count carries the number of marker-bearing lines it "
+            "could *not* read, printed even when it is zero: a grep reports the "
+            "remainder with no indication that anything is missing."
+        ),
+    )
+    _counting_flags(stats_parser)
+    stats_parser.set_defaults(handler=_stats)
+
+    audit_parser = subcommands.add_parser(
+        "audit",
+        help="every marker-bearing line the count did not count, and why",
+        description=(
+            "Print the misses. This is what makes a count trustable rather than an "
+            "extra: exit stays 0, because reporting is not the gate (`lint`, RK14) — "
+            "an audit that failed a build would be a gate nobody could adopt first."
+        ),
+    )
+    _counting_flags(audit_parser)
+    audit_parser.set_defaults(handler=_audit)
+
     deps_parser = subcommands.add_parser(
         "deps",
         help="resolve one task's deps, naming the ones nothing can resolve",
@@ -240,7 +281,23 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _counting_flags(parser: argparse.ArgumentParser) -> None:
+    """The three flags every counting command shares (RK10), declared once."""
+    parser.add_argument("--block", help="only this block, e.g. C")
+    parser.add_argument(
+        "--role", default="roadmap", help="which governed file (default: roadmap)"
+    )
+    parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+
+
 def main(argv: Sequence[str] | None = None) -> int:
+    # stdin too, and for the same reason as the two below: a section's prose arrives on
+    # a pipe (RK9), the governed files are UTF-8, and the default Windows console
+    # encoding is cp1252 — which turned every em dash in a piped paragraph into three
+    # mojibake characters the round-trip then preserved forever.
+    # strict on the way in: input that is not UTF-8 is refused, never repaired, because
+    # a substituted character round-trips out of the file it lands in (L3).
+    _force_utf8(sys.stdin, errors="strict")
     _force_utf8(sys.stdout)
     _force_utf8(sys.stderr)
     parser = build_parser()
@@ -322,8 +379,10 @@ def _add(config: Config, args: argparse.Namespace) -> int:
 def _section_add(config: Config, args: argparse.Namespace) -> int:
     # stdin by default: a paragraph does not fit comfortably in a shell argument, and a
     # heredoc is how the caller of this tool already passes prose.
-    body = sys.stdin.read() if args.body in (None, "-") else args.body
     try:
+        # Inside the try: a paragraph that is not UTF-8 raises UnicodeDecodeError, which
+        # is a ValueError, so it is refused with the exit code every other bad input gets.
+        body = sys.stdin.read() if args.body in (None, "-") else args.body
         document, section = add_section(
             config, args.role, args.anchor, args.title, body, level=args.level
         )
@@ -513,6 +572,164 @@ def _ship(config: Config, args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _census(config: Config, args: argparse.Namespace) -> Census:
+    return Census.read(config, args.role).select(
+        block=args.block, marker=getattr(args, "marker", None)
+    )
+
+
+def _list(config: Config, args: argparse.Namespace) -> int:
+    try:
+        census = _census(config, args)
+    except (KeyError, OSError) as error:
+        return _refused(error)
+
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "file": census.file,
+                    "total": census.total,
+                    "uncounted": [_miss_json(m) for m in census.missed],
+                    "tasks": [_row_json(entry) for entry in census.counted],
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+
+    for entry in census.counted:
+        print(entry.task.id if args.ids else entry.raw)
+    # stdout stays exactly what the file says, so `list` substitutes for the grep it
+    # replaces; the miss goes to stderr, where it cannot be silent and cannot corrupt
+    # a pipe either. A listing that looked complete is the whole symptom (RK10).
+    if census.missed:
+        print(
+            f"roadkeep: {census.uncounted} marker-bearing line(s) in {census.file} "
+            f"were not counted; run 'roadkeep audit' to see them",
+            file=sys.stderr,
+        )
+    return EXIT_OK
+
+
+def _stats(config: Config, args: argparse.Namespace) -> int:
+    try:
+        census = _census(config, args)
+    except (KeyError, OSError) as error:
+        return _refused(error)
+
+    longest = census.longest()
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "file": census.file,
+                    "total": census.total,
+                    "uncounted": census.uncounted,
+                    "markers": census.markers(),
+                    "blocks": [
+                        {
+                            "block": tally.label,
+                            "counted": tally.counted,
+                            "uncounted": tally.missed,
+                            "markers": dict(tally.markers),
+                        }
+                        for tally in census.tallies()
+                    ],
+                    "longest": None
+                    if longest is None
+                    else {
+                        "id": longest.task.id,
+                        "length": len(longest.raw),
+                        "limit": census.schema.line_max,
+                    },
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+
+    tallies = census.tallies()
+    names = [tally.name for tally in tallies] + ["total", "uncounted"]
+    width = max(len(name) for name in names)
+    print(census.file)
+    for tally in tallies:
+        print(
+            f"  {tally.name:<{width}}  {tally.counted:>4}  "
+            f"{_markers(tally.markers)}".rstrip()
+        )
+    print(
+        f"  {'total':<{width}}  {census.total:>4}  {_markers(census.markers())}".rstrip()
+    )
+    # Printed at zero too: a field that appears only when it is non-zero is a field a
+    # reader learns to stop looking for, which is how the miss became invisible.
+    print(f"  {'uncounted':<{width}}  {census.uncounted:>4}")
+    if longest is not None:
+        print(
+            f"  {'longest':<{width}}  {longest.task.id} at {len(longest.raw)} "
+            f"of {census.schema.line_max}"
+        )
+    return EXIT_OK
+
+
+def _audit(config: Config, args: argparse.Namespace) -> int:
+    try:
+        census = _census(config, args)
+    except (KeyError, OSError) as error:
+        return _refused(error)
+
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "file": census.file,
+                    "counted": census.total,
+                    "uncounted": [_miss_json(m) for m in census.missed],
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+
+    if not census.missed:
+        print(f"{census.file}: {census.total} counted, none uncounted")
+        return EXIT_OK
+    for miss in census.missed:
+        where = f"Block {miss.block}" if miss.block else "no block"
+        print(f"{census.file}:{miss.lineno}  ({where})  {miss.reason}")
+        print(f"    {miss.raw.strip()}")
+    print(f"{census.file}: {census.total} counted, {census.uncounted} uncounted")
+    return EXIT_OK
+
+
+def _markers(markers: Mapping[str, int]) -> str:
+    return "  ".join(f"{marker} {count}" for marker, count in markers.items())
+
+
+def _row_json(entry: Entry) -> dict[str, object]:
+    task = entry.task
+    return {
+        "id": task.id,
+        "status": task.status,
+        "block": task.block,
+        "symptom": task.symptom,
+        "why": task.why,
+        "deps": [dep.render() for dep in task.deps],
+        "ref": task.ref,
+        "line": entry.lineno,
+        "length": len(entry.raw),
+    }
+
+
+def _miss_json(miss: Reject) -> dict[str, object]:
+    return {
+        "line": miss.lineno,
+        "block": miss.block,
+        "reason": miss.reason,
+        "raw": miss.raw,
+    }
+
+
 def _deps(config: Config, args: argparse.Namespace) -> int:
     backlog = Backlog.load(config)
     entry = backlog.entry(args.id)
@@ -604,10 +821,10 @@ def _commits_json(origin: Origin) -> dict[str, object]:
     }
 
 
-def _force_utf8(stream: object) -> None:
+def _force_utf8(stream: object, errors: str = "backslashreplace") -> None:
     reconfigure = getattr(stream, "reconfigure", None)
     if reconfigure is not None:
-        reconfigure(encoding="utf-8", errors="backslashreplace")
+        reconfigure(encoding="utf-8", errors=errors)
 
 
 if __name__ == "__main__":  # pragma: no cover - exercised via the console script

@@ -26,10 +26,9 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK10** (deps: RK2 ✅) **Counting a backlog by grep silently drops the lines it fails to match** — `list` and `stats` report per block and marker with `--json`, and `audit` prints every marker-bearing line *not* counted, with the reason. → §RK10
-- 📋 **RK11** (deps: RK10) **Picking work means reading the whole file to find one task whose deps are shipped** — `pick` applies the priority queue, then the lowest id with satisfied deps, and prints why it chose that one. → §RK11
+- 📋 **RK11** (deps: RK10 ✅) **Picking work means reading the whole file to find one task whose deps are shipped** — `pick` applies the priority queue, then the lowest id with satisfied deps, and prints why it chose that one. → §RK11
 - 📋 **RK12** (deps: RK2 ✅) **A task's design lives in a second file and nothing joins them** — `show` prints the line, its improvements section and its spec path together. → §RK12
-- 📋 **RK13** (deps: RK10) **A blocked task looks identical to a ready one, and one that unblocks half the backlog to one that unblocks nothing** — `deps` resolves the graph, names the blocker chain, detects a cycle, and counts what shipping each task unblocks. → §RK13
+- 📋 **RK13** (deps: RK10 ✅) **A blocked task looks identical to a ready one, and one that unblocks half the backlog to one that unblocks nothing** — `deps` resolves the graph, names the blocker chain, detects a cycle, and counts what shipping each task unblocks. → §RK13
 - 📋 **RK29** (deps: RK11, RK12) **Starting a task costs reading two whole files to learn one line's worth of context** — one call returns the line, its rationale, its deps' status and the paths it touches, which is the entire cost of starting work for an agent. → §RK29
 - 📋 **RK32** (deps: RK2 ✅, RK4 ✅) **An id that exists in neither file was retired for a reason nobody recorded** — a line leaves by three doors and only shipping is recorded, so mark a superseded id at the moment it is replaced and resolve the unrecorded gaps against the commit that deleted them. → §RK32
 - 📋 **RK39** (deps: RK2 ✅, RK3 ✅) **A README and a site restate a backlog they cannot re-read, so both are stale from the first ship** — export projects the parsed files onto a marked README block and a JSON payload as a pure function of the Markdown, so a refresh is idempotent and writes no new sentence. → §RK39
@@ -56,7 +55,7 @@
 
 - 📋 **RK22** (deps: RK5 ✅, RK14) **An agent can hand-edit the file the CLI is supposed to own** — a `PreToolUse` hook that denies `Edit`/`Write` on the governed files and names the command to call instead is the only barrier an agent cannot route around. → §RK22
 - 📋 **RK23** (deps: RK22) **Rules resident every turn spend the budget they exist to protect** — package the format as a skill with trigger phrases so it loads when a governed file is in play, and not before. → §RK23
-- 📋 **RK24** (deps: RK5 ✅, RK10) **Shelling out puts argument names in prose, where they are guessed** — expose `add`/`ship`/`pick`/`lint` as MCP tools so the field schema *is* the tool's input schema. → §RK24
+- 📋 **RK24** (deps: RK5 ✅, RK10 ✅) **Shelling out puts argument names in prose, where they are guessed** — expose `add`/`ship`/`pick`/`lint` as MCP tools so the field schema *is* the tool's input schema. → §RK24
 - 📋 **RK25** (deps: RK23) **A human driving the same standard should not have to learn the CLI** — `/roadkeep:add`, `/roadkeep:ship`, `/roadkeep:pick` and `/roadkeep:lint` over the one engine. → §RK25
 - 💭 **RK26** (deps: RK22, RK19) **A plugin installed by hand is a plugin one project has** — publish a `marketplace.json` so `/plugin install` reaches it. → §RK26
 

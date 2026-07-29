@@ -23,9 +23,10 @@ licence to rewrite the files written before it.** The guard is also what keeps a
 future normalizing parser honest, because it fails the corpus instead of a review.
 
 Nothing here silently drops a line it failed to read: a bullet that carries a status
-marker but does not match the grammar becomes a :class:`Reject` with a reason, which
-is the data `audit` (RK10) exists to print. A count whose misses are invisible is
-the failure mode the grep it replaces already had.
+marker but does not match the grammar becomes a :class:`Reject` with a reason, and so
+does one that puts an *undeclared* marker where the marker goes — otherwise it reads
+as prose and leaves no trace at all. That is the data `audit` (RK10) prints, because a
+count whose misses are invisible is the failure mode the grep it replaces already had.
 """
 
 from __future__ import annotations
@@ -47,6 +48,9 @@ _TASK_RE = re.compile(
 _HEADING_RE = re.compile(r"^(?P<hashes>#{1,6}) (?P<text>.*)$")
 _BLOCK_LABEL_RE = re.compile(r"^Block (?P<label>[A-Za-z0-9]+)\b")
 _BULLET_RE = re.compile(r"^(?P<indent>\s*)[-*+] (?P<rest>.*)$")
+#: A bullet that puts *something* where a marker goes and a bold id after it — how an
+#: undeclared marker is caught instead of read as prose (see `_wears_the_marker_slot`).
+_MARKER_SLOT_RE = re.compile(r"^\S+ \*\*[A-Za-z0-9]+\*\*")
 _POINTER = f" {ARROW} §"
 
 
@@ -103,11 +107,17 @@ class Entry:
 
 @dataclass(frozen=True, slots=True)
 class Reject:
-    """A marker-bearing bullet the grammar did not accept, and why."""
+    """A marker-bearing bullet the grammar did not accept, and why.
+
+    ``block`` is the heading it sits under, known at parse time and kept because a
+    count reported per block has to report its misses per block too (RK10) — a
+    total that is honest and a column that is not is the same failure, narrower.
+    """
 
     raw: str
     lineno: int
     reason: str
+    block: str = ""
 
 
 @dataclass(frozen=True, slots=True)
@@ -167,7 +177,11 @@ class Document:
             if outcome is None:
                 continue
             if isinstance(outcome, str):
-                rejects.append(Reject(raw=body, lineno=number, reason=outcome))
+                rejects.append(
+                    Reject(
+                        raw=body, lineno=number, reason=outcome, block=block or ""
+                    )
+                )
             else:
                 entries.append(Entry(task=outcome, raw=body, lineno=number))
 
@@ -307,6 +321,23 @@ def _looks_like_marker(token: str, schema: Schema) -> bool:
     )
 
 
+def _wears_the_marker_slot(rest: str, token: str) -> bool:
+    """A bullet whose first token sits where a marker sits and is not one.
+
+    The silent miss :mod:`roadkeep.counting` exists to end: a line written with a
+    marker this project does not declare — a ✨ from another repository's set, a ✅
+    in the roadmap — matches no marker, so it is read as prose and disappears from
+    every count without being rejected either.
+
+    The token must carry no letter or digit, which is what separates it from prose:
+    ``- See **RK5** for the design.`` also puts a bold id second, and reporting it
+    would make the audit the noise its own symptom names.
+    """
+    return bool(token) and not any(c.isalnum() for c in token) and bool(
+        _MARKER_SLOT_RE.match(rest)
+    )
+
+
 def _block_label(text: str) -> str | None:
     match = _BLOCK_LABEL_RE.match(text)
     return match.group("label") if match else None
@@ -334,7 +365,14 @@ def _read_bullet(body: str, schema: Schema, block: str) -> Task | str | None:
     if not bullet:
         return None
     rest = bullet.group("rest").lstrip()
-    if not _looks_like_marker(rest.split(" ", 1)[0], schema):
+    token = rest.split(" ", 1)[0]
+    if not _looks_like_marker(token, schema):
+        if _wears_the_marker_slot(rest, token):
+            declared = " ".join((*schema.markers, schema.shipped_marker))
+            return (
+                f"{token} is not a marker this project declares ({declared}): the "
+                f"line reads as prose and no count sees it"
+            )
         return None
     if bullet.group("indent"):
         return "indented: a task line starts at column zero"

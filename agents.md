@@ -47,6 +47,7 @@ src/roadkeep/          the package (src layout, importable via pytest pythonpath
   markers.py           RK8 — derive/refresh: the dep annotation is a derived field
   sections.py          RK9 — find/add/drop: prose by anchor, word budget, block-placed
   backlog.py           RK28/RK37 — resolve/readiness; four dep kinds, four answers
+  counting.py          RK10 — Census: counts per block and marker, misses beside them
   history.py           RK31 — origin_of(): the shipping commit, derived from git
   cli.py               the surface; one subparser per task, exit 0/1/2, RK38's event
 tests/                 pytest; docs/ROADMAP.md is a fixture, not a mock
@@ -60,9 +61,8 @@ differently. Never construct a task line with an f-string; before writing a comm
 - Get documents from `Config.document(role)`, never by choosing a schema at the call
   site: the changelog is `schema.as_ledger()` (✅, no deps, no pointer), not a second
   grammar.
-- A marker-bearing line the grammar rejects becomes a `Reject` **with a reason**, never
-  a silent skip; a dep the parser cannot type still parses, so the line stays counted
-  and `lint` reports it. That split is deliberate.
+- A rejected marker line becomes a `Reject` **with a reason** (`audit` prints them); a dep
+  the parser cannot type still parses, so the line stays counted. That split is deliberate.
 
 ## This repo's own docs are the conformance fixture
 
@@ -71,8 +71,8 @@ asserted in a README. A limit that cannot express these lines is the wrong limit
 than a set of wrong lines, so this repository is the first thing a schema change must
 still validate — under its own `roadkeep.toml`, which is what makes L6 a fact here.
 
-Current reading (RK14/RK15 replace this hand-verification): 24 tasks, longest line **314**
-of 320, 24/24 pointers resolve, no orphan section, longest section **181** words of 250.
+Don't hand-count it: `… stats` gives the tallies, the longest line (**314** of 320) and
+**uncounted 0** (RK10). By hand until RK15: pointers resolve, no orphan section, 181/250.
 
 ## Writing and shipping — call the command, never type the format
 
@@ -98,9 +98,10 @@ Markers: 📋 designed · 💭 idea · ⏳ partial · 🛠 in-progress. Limits: 
 ≤200, rendered line ≤320, section ≤250 words — all per project (L6).
 
 **Ask, don't count** (all take `--json`): `python -m roadkeep.cli next-id` for the next id
-— never fill a gap, a retired id is never reused; `… deps <id>` types each dep (a task, a
-`Block X`, a range, or outside work — the last, and a block no heading declares, is
-*unresolvable*, never "pending": RK28/RK37); `… origin <id> --why` for the reasoning (RK31).
+— never fill a gap, a retired id is never reused; `… list|stats|audit [--block C]` for the
+lines, the counts per block and marker, and every marker line neither could read (RK10);
+`… deps <id>` types each dep (a task, a `Block X`, a range, or outside work — the last, and
+a block no heading declares, is *unresolvable*: RK28/RK37); `… origin <id> --why` (RK31).
 
 ## Picking work
 
