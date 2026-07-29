@@ -47,7 +47,7 @@ src/roadkeep/          the package (src layout, importable via pytest pythonpath
   markers.py           RK8 — derive/refresh: the dep annotation is a derived field
   sections.py          RK9 — find/add/drop: prose by anchor, word budget, block-placed
   backlog.py           RK28/RK37 — resolve/readiness; four dep kinds, four answers
-  counting.py picking.py  RK10/RK11 — counts with their misses; the pick with its reason
+  counting.py picking.py showing.py  RK10/11/12 — the counts, the pick, the join
   history.py           RK31 — origin_of(): the shipping commit, derived from git
   cli.py               the surface; one subparser per task, exit 0/1/2, RK38's event
 tests/                 pytest; docs/ROADMAP.md is a fixture, not a mock
@@ -58,9 +58,8 @@ the rules, and `Document` the only reader of a file — it keeps every source li
 and **every mutator refuses the whole file** when a line it parsed would render back
 differently. Never construct a task line with an f-string; before writing a command:
 
-- Get documents from `Config.document(role)`, never by choosing a schema at the call
-  site: the changelog is `schema.as_ledger()` (✅, no deps, no pointer), not a second
-  grammar.
+- Get documents from `Config.document(role)`, never by picking a schema at the call site:
+  the changelog is `schema.as_ledger()` (✅, no deps, no pointer), not a second grammar.
 - A rejected marker line becomes a `Reject` **with a reason** (`audit` prints them); a dep
   the parser cannot type still parses, so the line stays counted. That split is deliberate.
 
@@ -97,11 +96,11 @@ That leaves the two rules a schema cannot check:
 Markers: 📋 designed · 💭 idea · ⏳ partial · 🛠 in-progress. Limits: `symptom` ≤120, `why`
 ≤200, rendered line ≤320, section ≤250 words — all per project (L6).
 
-**Ask, don't count** (all take `--json`): `python -m roadkeep.cli next-id` for the next id
-— never fill a gap, a retired id is never reused; `… list|stats|audit [--block C]` for the
-lines, the counts per block and marker, and every marker line neither could read (RK10);
-`… deps <id>` types each dep (a task, a `Block X`, a range, or outside work — the last, and
-a block no heading declares, is *unresolvable*: RK28/RK37); `… origin <id> --why` (RK31).
+**Ask, don't count** (all take `--json`): `… next-id` for the next id — never fill a gap;
+`… list|stats|audit [--block C]` for the lines, the counts, and every marker line neither
+could read (RK10); `… show <id>` joins the line, its section and the paths its text names,
+an absent section carrying *why* (RK12); `… deps <id>` types each dep — a task, a `Block X`,
+a range, or outside work, the last *unresolvable* (RK28/RK37); `… origin <id> --why` (RK31).
 
 ## Picking work
 

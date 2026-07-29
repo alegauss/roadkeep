@@ -52,12 +52,6 @@ session doing.
 
 ## Block C — Query
 
-### §RK12 `show`
-
-A task is a line in one file, a rationale section in another, and sometimes a spec on
-disk. `show` joins them, which is what a maintainer does by hand today at the cost of
-loading two files to read forty lines.
-
 ### §RK13 `deps`
 
 A blocked task and a ready one are visually identical, so the graph has to be

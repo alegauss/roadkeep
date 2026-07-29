@@ -49,6 +49,7 @@ from roadkeep.sections import add as add_section
 from roadkeep.sections import drop as drop_section
 from roadkeep.sections import find as find_section
 from roadkeep.shipping import ship
+from roadkeep.showing import View, show
 
 EXIT_OK = 0
 EXIT_GATE = 1
@@ -247,6 +248,24 @@ def build_parser() -> argparse.ArgumentParser:
     )
     _counting_flags(audit_parser)
     audit_parser.set_defaults(handler=_audit)
+
+    show_parser = subcommands.add_parser(
+        "show",
+        help="one task: its line, its rationale section and the paths it names",
+        description=(
+            "Join what a task is out of the files that hold a piece of it. Nothing is "
+            "stored to make this possible: the section is found by the pointer, and a "
+            "pointer that resolves to nothing is reported as the absence it is."
+        ),
+    )
+    show_parser.add_argument("id", help="the task, e.g. RK12")
+    show_parser.add_argument(
+        "--brief",
+        action="store_true",
+        help="omit the section's prose, keeping the line and where the prose is",
+    )
+    show_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    show_parser.set_defaults(handler=_show)
 
     pick_parser = subcommands.add_parser(
         "pick",
@@ -742,6 +761,67 @@ def _miss_json(miss: Reject) -> dict[str, object]:
         "block": miss.block,
         "reason": miss.reason,
         "raw": miss.raw,
+    }
+
+
+def _show(config: Config, args: argparse.Namespace) -> int:
+    try:
+        view = show(config, args.id)
+    except (KeyError, OSError) as error:
+        return _refused(error)
+
+    task = view.task
+    section = view.section
+    if args.json:
+        print(json.dumps(_view_json(view, brief=args.brief), indent=2))
+        return EXIT_OK
+
+    state = "shipped" if view.shipped else "open"
+    print(f"{task.id}  Block {task.block}  {task.status}  {state}  "
+          f"{view.file}:{view.entry.lineno}")
+    print(f"  symptom  {task.symptom}")
+    print(f"  why      {task.why}")
+    if task.deps:
+        print(f"  deps     {', '.join(dep.render() for dep in task.deps)}")
+    if section is not None:
+        print(
+            f"  section  {view.section_file}:{section.first}  "
+            f"§{section.anchor}, {section.words} words"
+        )
+    else:
+        # The absence carries its reason: deleted on ship, never written, or no prose
+        # file at all are three states, and only one of them is a defect (RK15).
+        print(f"  section  none — {view.section_absence}")
+    for referenced in view.paths:
+        print(f"  path     {referenced.path}{'' if referenced.exists else '  (missing)'}")
+    if section is not None and not args.brief:
+        print()
+        print(f"{'#' * section.level} §{section.anchor} {section.title}")
+        print()
+        print(section.body)
+    return EXIT_OK
+
+
+def _view_json(view: View, brief: bool) -> dict[str, object]:
+    task, section = view.task, view.section
+    body = None if brief or section is None else section.body
+    return {
+        "id": task.id,
+        "status": task.status,
+        "block": task.block,
+        "shipped": view.shipped,
+        "file": view.file,
+        "line": view.entry.lineno,
+        "rendered": view.entry.raw,
+        "symptom": task.symptom,
+        "why": task.why,
+        "deps": [dep.render() for dep in task.deps],
+        "ref": task.ref,
+        "section": None
+        if section is None
+        else {**_section_json(section, view.section_file or ""), "body": body},
+        "section_absence": view.section_absence,
+        "paths": [{"path": p.path, "exists": p.exists} for p in view.paths],
     }
 
 
