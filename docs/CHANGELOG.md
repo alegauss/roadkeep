@@ -47,6 +47,7 @@
 - ✅ **RK17** **A gate that runs only on a developer's machine is not a gate** — the same command is declared once as an action and once as a pre-commit hook, so the exit code is enforced where the commit happens and where the push lands.
 - ✅ **RK30** **The instruction file loaded every turn has a budget nothing enforces** — the budget of a file loaded every turn is a declared number in the configuration and an exit code in the gate, instead of a sentence inside the file it governs.
 - ✅ **RK34** **An invisible character reports a visible error about something else** — an invisible codepoint is reported as its own name, class and column and nothing else on that line is judged, so the diagnosis stops naming the consequence.
+- ✅ **RK35** **A dep on a range or a block hides how much work it actually names** — a dep on a block or a range is reported with the open tasks it expands to, at exit zero, so the abbreviation stops costing whoever counts deps to judge a line.
 
 ## Block E — Adoption
 

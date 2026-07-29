@@ -422,6 +422,97 @@ def test_a_section_may_name_a_file_that_does_not_exist_yet(tmp_path):
     assert lint(project(tmp_path, improvements=forward)).clean
 
 
+# -- the dep that names more work than it looks like (RK35) -------------------
+
+COLLECTIVE = """# Roadmap
+
+## Block A — The model
+
+- 📋 **RK1** (deps: —) **A first symptom** — Because of a reason. → §RK1
+- 💭 **RK2** (deps: —) **A second symptom** — Because of another reason. → §RK2
+
+## Block B — Authoring
+
+- 📋 **RK3** (deps: Block A) **A third symptom** — Because of a third reason. → §RK3
+"""
+
+WITH_RK3 = PROSE + "\n### §RK3 The third design\n\nThe reasoning the third line lacks.\n"
+
+
+def test_a_block_dep_says_what_it_expands_to_without_failing(tmp_path):
+    # `Block P` resolved to forty-one open tasks in Shio and is one token on the page.
+    # Legitimate (RK28), so the exit code cannot move — but a reader counting deps to
+    # judge how blocked a line is has no way to see it from the line.
+    report = lint(project(tmp_path, roadmap=COLLECTIVE, improvements=WITH_RK3))
+    assert report.clean and report.problems == 0
+    (note,) = report.notes
+    assert note.code == "deps.collective" and note.id == "RK3"
+    assert "Block A is one token naming 2 open tasks: RK1, RK2" in note.message
+    assert str(note).startswith("ROADMAP.md:10  deps.collective  RK3:")
+
+
+def test_the_note_does_not_move_the_exit_code(tmp_path, capsys):
+    project(tmp_path, roadmap=COLLECTIVE, improvements=WITH_RK3)
+    assert main(["-C", str(tmp_path), "lint"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "deps.collective" in out and "clean" in out
+
+
+def test_a_range_dep_is_expanded_too(tmp_path):
+    # Turing's `(deps: T451–T457)` is one token naming seven.
+    ranged = COLLECTIVE.replace("(deps: Block A)", "(deps: RK1–RK2)")
+    report = lint(project(tmp_path, roadmap=ranged, improvements=WITH_RK3))
+    assert report.clean
+    assert "RK1–RK2 is one token naming 2 open tasks" in report.notes[0].message
+
+
+def test_a_collective_dep_naming_one_task_says_nothing(tmp_path):
+    # There is no surprise at one, and at zero the annotation already reads ✅ because the
+    # dep is satisfied (RK8). A note per token below that is output nobody reads.
+    single = COLLECTIVE.replace(
+        "- 💭 **RK2** (deps: —) **A second symptom** — Because of another reason. → §RK2\n",
+        "",
+    )
+    # The section goes with the line, or §RK2 is an orphan and the file is not clean.
+    prose = WITH_RK3.replace(
+        "### §RK2 The second design\n\nThe reasoning the second line has no room for.\n", ""
+    )
+    report = lint(project(tmp_path, roadmap=single, improvements=prose))
+    assert report.notes == () and report.clean
+
+
+def test_quiet_drops_the_notes_with_everything_else(tmp_path, capsys):
+    project(tmp_path, roadmap=COLLECTIVE, improvements=WITH_RK3)
+    assert main(["-C", str(tmp_path), "lint", "--quiet"]) == EXIT_OK
+    assert "deps.collective" not in capsys.readouterr().out
+
+
+def test_json_carries_the_notes_beside_the_findings(tmp_path, capsys):
+    project(tmp_path, roadmap=COLLECTIVE, improvements=WITH_RK3)
+    assert main(["-C", str(tmp_path), "lint", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["clean"] is True and payload["findings"] == []
+    (note,) = payload["notes"]
+    assert note["code"] == "deps.collective" and note["id"] == "RK3"
+
+
+def test_a_live_backlog_shows_where_the_abbreviation_hides_work():
+    roadmap = SHIO / "docs" / "ROADMAP.md"
+    if not roadmap.is_file():
+        pytest.skip(f"{roadmap} is not on this machine")
+    config = Config.parse(
+        {
+            "prefix": "SH",
+            "ref_scheme": "outline",
+            "files": {"roadmap": "docs/ROADMAP.md", "changelog": "docs/CHANGELOG.md"},
+        },
+        root=SHIO,
+    )
+    # A floor and not a count: Shio ships, and 41 today was 48 when this was measured.
+    (note,) = [n for n in lint(config).notes if "Block P" in n.message]
+    assert int(note.message.split("naming ")[1].split(" ")[0]) > 20
+
+
 # -- the byte nobody can see (RK34) -------------------------------------------
 
 

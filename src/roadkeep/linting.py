@@ -115,6 +115,30 @@ class Finding:
 
 
 @dataclass(frozen=True, slots=True)
+class Note:
+    """Something the gate says and does not fail on (RK35).
+
+    A separate list from :class:`Finding` because the exit code is the contract: `Block P`
+    is a legitimate dep (RK28) and failing a build over one would fail the honest backlog
+    this tool was measured against. But it is one token naming forty-eight open tasks, and
+    a reader counting deps to judge how blocked a line is has no way to see that from the
+    line — so the expansion is stated, at exit 0, which is the same split `audit` (RK10)
+    makes between reporting a miss and being the gate.
+    """
+
+    code: str
+    file: str
+    message: str
+    lineno: int | None = None
+    id: str = ""
+
+    def __str__(self) -> str:
+        where = self.file if self.lineno is None else f"{self.file}:{self.lineno}"
+        subject = f"{self.id}: " if self.id else ""
+        return f"{where}  {self.code}  {subject}{self.message}"
+
+
+@dataclass(frozen=True, slots=True)
 class Report:
     """What was checked, and everything wrong with it. Emptiness is the pass."""
 
@@ -127,6 +151,8 @@ class Report:
     sections: int = 0
     #: Always-loaded files whose budget was measured (RK30).
     budgets: int = 0
+    #: What the gate observed without failing on it (RK35). Never affects the exit code.
+    notes: tuple[Note, ...] = ()
 
     @property
     def clean(self) -> bool:
@@ -159,6 +185,7 @@ def lint(config: Config) -> Report:
         findings.extend(_within(config, role, document))
         findings.extend(_characters(config, role, document))
     findings.extend(_across(config, documents))
+    notes = _collective(config, documents)
 
     prose = _prose_file(config)
     sections = ()
@@ -193,6 +220,7 @@ def lint(config: Config) -> Report:
         lines=sum(len(d.entries) for d in documents.values()),
         sections=len(sections),
         budgets=len(config.budgets),
+        notes=tuple(notes),
     )
 
 
@@ -333,6 +361,42 @@ def _budgets(config: Config) -> list[Finding]:
                         f"turn, so the overrun is paid on every turn",
                     )
                 )
+    return out
+
+
+def _collective(config: Config, documents: dict[str, Document]) -> list[Note]:
+    """What a `Block X` or a range actually names, said out loud (RK35).
+
+    Only when it expands to **two or more** open tasks, which is precisely the case the
+    line hides: at one there is no surprise to report, and at zero the annotation already
+    reads ✅ because the dep is satisfied (RK8). A note per token below that threshold
+    would be output nobody reads, which is the failure mode RK16 exists to avoid.
+    """
+    roadmap = documents.get("roadmap")
+    if roadmap is None:
+        return []
+    backlog = Backlog(
+        config=config, roadmap=roadmap, ledger=documents.get("changelog")
+    )
+    file = config.relative(config.path("roadmap"))
+    out: list[Note] = []
+    for entry in roadmap.entries:
+        for dep in entry.task.deps:
+            if config.schema.classify_dep(dep) not in (DepKind.BLOCK, DepKind.RANGE):
+                continue
+            members = backlog.expand(dep)
+            if len(members) < 2:
+                continue
+            shown = ", ".join(members[:6]) + (" …" if len(members) > 6 else "")
+            out.append(
+                Note(
+                    "deps.collective",
+                    file,
+                    f"{dep.id} is one token naming {len(members)} open tasks: {shown}",
+                    entry.lineno,
+                    entry.task.id,
+                )
+            )
     return out
 
 

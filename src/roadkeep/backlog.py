@@ -233,6 +233,33 @@ class Backlog:
             dep, kind, DepStatus.UNKNOWN, "in neither the roadmap nor the changelog"
         )
 
+    def expand(self, dep: Dep) -> tuple[str, ...]:
+        """The open tasks a collective dep names, in file order; empty for the other kinds.
+
+        `Block P` is one token and resolved to forty-eight open tasks in Shio; `T451–T457`
+        is one token and names seven. Public and here rather than inside the graph because
+        two callers need the same answer: the traversal, which would otherwise walk into a
+        dep it treats as opaque, and the gate, which says out loud what the abbreviation
+        costs whoever counts deps to judge how blocked a line is (RK35).
+        """
+        schema = self.config.schema
+        kind = schema.classify_dep(dep)
+        if kind is DepKind.BLOCK:
+            label = schema.block_of_dep(dep)
+            return self.open_in_block(label) if label else ()
+        if kind is not DepKind.RANGE:
+            return ()
+        bounds = schema.range_of_dep(dep)
+        if bounds is None:
+            return ()
+        first, last = bounds
+        return tuple(
+            entry.task.id
+            for entry in self.roadmap.entries
+            if (number := number_of(entry.task.id, schema.prefix)) is not None
+            and first <= number <= last
+        )
+
     def resolve(self, task: Task) -> tuple[Resolution, ...]:
         return tuple(self.resolve_dep(dep) for dep in task.deps)
 

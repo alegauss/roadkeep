@@ -860,7 +860,13 @@ def _lint(config: Config, args: argparse.Namespace) -> int:
         print(json.dumps(_lint_json(report, applied), indent=2))
         return EXIT_OK if passed else EXIT_GATE
 
-    _print_fix(applied, quiet=args.quiet)
+    if not args.quiet:
+        _print_fix(applied)
+        # Notes before the findings and the summary: a note is what the gate says about a
+        # file it is passing, and after an exit-1 report nobody would read it (RK35).
+        for note in report.notes:
+            print(str(note))
+    _print_refusals(applied)
     if report.clean:
         # The files are named on the way out even when there is nothing to say: a gate
         # that passed by reading nothing looks exactly like a gate that passed.
@@ -876,18 +882,20 @@ def _lint(config: Config, args: argparse.Namespace) -> int:
     return EXIT_GATE
 
 
-def _print_fix(applied: Fix, quiet: bool) -> None:
-    if not quiet:
-        for repair in applied.repairs:
-            print(str(repair))
-        for kept in applied.skipped:
-            print(str(kept))
-    for message in applied.refused:
-        # A pass that could not prove its own output wrote nothing, and saying so is the
-        # difference between "clean" and "unexamined".
-        print(f"roadkeep: refused, nothing written: {message}", file=sys.stderr)
+def _print_fix(applied: Fix) -> None:
+    for repair in applied.repairs:
+        print(str(repair))
+    for kept in applied.skipped:
+        print(str(kept))
     if applied.repairs:
         print(f"{applied.changed} line(s) normalized in {', '.join(applied.files)}")
+
+
+def _print_refusals(applied: Fix) -> None:
+    """Printed even under `--quiet`: a pass that could not prove its own output wrote
+    nothing, and silence about that is the difference between "clean" and "unexamined"."""
+    for message in applied.refused:
+        print(f"roadkeep: refused, nothing written: {message}", file=sys.stderr)
 
 
 def _lint_json(report: Report, applied: Fix) -> dict[str, object]:
@@ -916,6 +924,16 @@ def _lint_json(report: Report, applied: Fix) -> dict[str, object]:
         "problems": report.problems,
         "codes": report.codes(),
         "findings": [_finding_json(f) for f in report.findings],
+        "notes": [
+            {
+                "code": note.code,
+                "file": note.file,
+                "line": note.lineno,
+                "id": note.id or None,
+                "message": note.message,
+            }
+            for note in report.notes
+        ],
     }
 
 

@@ -24,11 +24,12 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK41** (deps: RK6 ✅) **A fix that was never planned has no door into the ledger** — the only route in is a fictitious roadmap line shipped in the same breath, so one transaction writes the ledger entry with no roadmap step at all. → §RK41
+
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
 
-- 📋 **RK35** (deps: RK14 ✅) **A dep on a range or a block hides how much work it actually names** — `Block P` resolved to 48 open tasks in Shio, so a reader who trusts the annotation is reading one dep where the graph holds dozens. → §RK35
 - 📋 **RK36** (deps: RK14 ✅, RK31 ✅) **A rationale section can gain a requirement the line carrying its status never mentions** — the section is deleted on ship and the line is the only thing `pick` reads, so the gate flags a commit that edits §RK<n> without touching RK<n>. → §RK36
 
 ## Block E — Adoption

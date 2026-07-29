@@ -141,6 +141,27 @@ def test_a_block_dep_resolves_against_that_blocks_open_tasks(tmp_path):
     assert "RK5" in resolution.detail
 
 
+def test_a_collective_dep_expands_to_the_open_tasks_it_names(tmp_path):
+    # One answer, two callers (RK35): the graph would otherwise walk into a dep it treats
+    # as opaque, and the gate says out loud what one token costs a reader counting deps.
+    config = write_project(
+        tmp_path,
+        "## Block A — The model\n"
+        + line("RK9", "Block B")
+        + line("RK10", "RK20–RK30")
+        + line("RK25", "—")
+        + "## Block B — Authoring\n"
+        + line("RK5", "—", block="B")
+        + line("RK6", "—", block="B"),
+    )
+    backlog = Backlog.load(config)
+    assert backlog.expand(Dep("Block B")) == ("RK5", "RK6")
+    assert backlog.expand(Dep("RK20–RK30")) == ("RK25",)
+    # A task and something outside the backlog name no members, rather than themselves.
+    assert backlog.expand(Dep("RK5")) == ()
+    assert backlog.expand(Dep("real design partners")) == ()
+
+
 def test_a_declared_block_with_nothing_open_satisfies_the_dep(tmp_path):
     config = write_project(
         tmp_path, "## Block A — The model\n" + line("RK9", "Block B") + "## Block B — Authoring\n"

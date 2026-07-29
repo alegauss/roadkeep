@@ -29,9 +29,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from roadkeep.backlog import Backlog, DepStatus, Readiness, number_of
+from roadkeep.backlog import Backlog, DepStatus, Readiness
 from roadkeep.config import Config
-from roadkeep.schema import Dep, DepKind, Task
+from roadkeep.schema import DepKind, Task
 
 #: How many chains and dependents an answer carries. Bounded because the value of a query
 #: is that its output fits in a tool result; the counts stay exact either way.
@@ -233,7 +233,7 @@ def _hops(backlog: Backlog, task: Task) -> tuple[Hop, ...]:
         if kind in (DepKind.BLOCK, DepKind.RANGE):
             out.extend(
                 Hop(target=member, via=dep.id, status=DepStatus.OPEN)
-                for member in _members(backlog, dep, kind)
+                for member in backlog.expand(dep)
             )
             if resolution.status is DepStatus.UNRESOLVABLE:
                 # A block no heading declares: nothing to expand, and waiting on it is
@@ -242,23 +242,6 @@ def _hops(backlog: Backlog, task: Task) -> tuple[Hop, ...]:
             continue
         out.append(Hop(target=dep.id, via=dep.id, status=resolution.status))
     return tuple(out)
-
-
-def _members(backlog: Backlog, dep: Dep, kind: DepKind) -> tuple[str, ...]:
-    schema = backlog.config.schema
-    if kind is DepKind.BLOCK:
-        label = schema.block_of_dep(dep)
-        return backlog.open_in_block(label) if label else ()
-    bounds = schema.range_of_dep(dep)
-    if bounds is None:
-        return ()
-    first, last = bounds
-    return tuple(
-        entry.task.id
-        for entry in backlog.roadmap.entries
-        if (number := number_of(entry.task.id, schema.prefix)) is not None
-        and first <= number <= last
-    )
 
 
 def _terminal_detail(hop: Hop) -> str:
