@@ -326,7 +326,9 @@ def test_the_command_reports_each_dep_and_the_verdict(tmp_path, capsys):
     assert main(["-C", str(tmp_path), "deps", "RK9"]) == EXIT_OK
     out = capsys.readouterr().out
     assert "unresolvable" in out and "shipped" in out
-    assert out.strip().endswith("RK9: blocked-outside")
+    # The verdict is a line of its own; RK13 appends the graph after it, so it is no
+    # longer the last word.
+    assert "RK9: blocked-outside" in out.splitlines()
 
 
 def test_json_carries_the_kind_and_the_status(tmp_path, capsys):

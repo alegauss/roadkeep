@@ -47,7 +47,7 @@ src/roadkeep/          the package (src layout, importable via pytest pythonpath
   markers.py           RK8 — derive/refresh: the dep annotation is a derived field
   sections.py          RK9 — find/add/drop: prose by anchor, word budget, block-placed
   backlog.py           RK28/RK37 — resolve/readiness; four dep kinds, four answers
-  counting.py picking.py showing.py  RK10/11/12 — the counts, the pick, the join
+  counting.py picking.py showing.py graph.py  RK10-13 — counts, pick, join, both directions
   history.py           RK31 — origin_of(): the shipping commit, derived from git
   cli.py               the surface; one subparser per task, exit 0/1/2, RK38's event
 tests/                 pytest; docs/ROADMAP.md is a fixture, not a mock
@@ -100,7 +100,8 @@ Markers: 📋 designed · 💭 idea · ⏳ partial · 🛠 in-progress. Limits: 
 `… list|stats|audit [--block C]` for the lines, the counts, and every marker line neither
 could read (RK10); `… show <id>` joins the line, its section and the paths its text names,
 an absent section carrying *why* (RK12); `… deps <id>` types each dep — a task, a `Block X`,
-a range, or outside work, the last *unresolvable* (RK28/RK37); `… origin <id> --why` (RK31).
+a range, or outside work, the last *unresolvable* — then walks the graph: the blocker chain,
+the cycle, and what shipping it unblocks (RK13/RK28/RK37); `… origin <id> --why` (RK31).
 
 ## Picking work
 

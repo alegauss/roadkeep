@@ -52,17 +52,6 @@ session doing.
 
 ## Block C — Query
 
-### §RK13 `deps`
-
-A blocked task and a ready one are visually identical, so the graph has to be
-resolved: blocker chains, transitive readiness, and cycles. A cycle is a defect in the
-backlog and should fail `lint`, not merely print. Resolve the reverse direction too —
-how many tasks shipping this one unblocks — because that count is the half of
-prioritisation a tool may supply: leverage is derivable, value is not. Measured here,
-RK14 unblocks 14 of 29 and RK10 unblocks 4, a gap no reading of the file makes visible.
-The traversal belongs in tested code rather than rewritten per session: an ad-hoc one
-is not merely expensive, it is wrong in ways nothing checks.
-
 ### §RK29 One call to start a task
 
 Starting RK1 in this repository cost reading ROADMAP.md and IMPROVEMENTS.md end to end

@@ -40,6 +40,7 @@ from roadkeep.backlog import Backlog
 from roadkeep.config import Config, ConfigError
 from roadkeep.counting import Census
 from roadkeep.document import Document, Entry, Reject, RoundTripError
+from roadkeep.graph import Graph, Leverage
 from roadkeep.history import Commit, HistoryUnavailable, Origin, origin_of
 from roadkeep.ids import highest, next_id
 from roadkeep.picking import Choice, pick
@@ -903,6 +904,10 @@ def _deps(config: Config, args: argparse.Namespace) -> int:
 
     resolutions = backlog.resolve(entry.task)
     readiness = backlog.readiness(entry.task)
+    graph = Graph.of(backlog)
+    chains = graph.chains(args.id)
+    leverage = graph.leverage(args.id)
+    cycle = graph.cycle_of(args.id)
     if args.json:
         print(
             json.dumps(
@@ -918,6 +923,23 @@ def _deps(config: Config, args: argparse.Namespace) -> int:
                         }
                         for r in resolutions
                     ],
+                    "blockers": sorted(graph.blockers(args.id)),
+                    "chains": [
+                        {
+                            "path": [entry.task.id, *(hop.target for hop in c.hops)],
+                            "via": [hop.via for hop in c.hops],
+                            "end": str(c.end),
+                            "detail": c.detail,
+                        }
+                        for c in chains
+                    ],
+                    "unblocks": {
+                        "direct": list(leverage.direct),
+                        "transitive": list(leverage.transitive),
+                        "count": leverage.count,
+                        "of": leverage.of,
+                    },
+                    "cycle": list(cycle),
                 },
                 indent=2,
             )
@@ -926,6 +948,7 @@ def _deps(config: Config, args: argparse.Namespace) -> int:
 
     if not resolutions:
         print(f"{entry.task.id}: {readiness} (no deps)")
+        _print_leverage(leverage)
         return EXIT_OK
     width = max(len(r.dep.id) for r in resolutions)
     for resolution in resolutions:
@@ -934,7 +957,21 @@ def _deps(config: Config, args: argparse.Namespace) -> int:
             f"{resolution.kind:<9}{resolution.detail}"
         )
     print(f"{entry.task.id}: {readiness}")
+    for chain in chains:
+        print(f"  chain    {chain.render(entry.task.id)}  — {chain.detail}")
+    if cycle:
+        # A defect, not a shape: printed here, failed by `lint` (RK14).
+        print(f"  cycle    {' ↔ '.join(cycle)}: nothing in this group can be started")
+    _print_leverage(leverage)
     return EXIT_OK
+
+
+def _print_leverage(leverage: Leverage) -> None:
+    """The reverse direction, which is the half of prioritisation a tool may supply."""
+    shown = ", ".join(leverage.transitive[:4])
+    tail = " …" if leverage.count > 4 else ""
+    detail = f": {shown}{tail}" if shown else ""
+    print(f"  unblocks {leverage.count} of {leverage.of} open{detail}")
 
 
 def _origin(config: Config, args: argparse.Namespace) -> int:

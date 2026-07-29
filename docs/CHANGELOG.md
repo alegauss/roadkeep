@@ -33,6 +33,7 @@
 - ✅ **RK10** **Counting a backlog by grep silently drops the lines it fails to match** — every count prints what it could not read beside what it did, so a broken line, a parked task and a marker this project never declared are visible instead of silently absent.
 - ✅ **RK11** **Picking work means reading the whole file to find one task whose deps are shipped** — three tiers answer it and the answer names the one that fired: work already in progress, then the priority a project declares, then the lowest id whose deps all shipped.
 - ✅ **RK12** **A task's design lives in a second file and nothing joins them** — one call joins the line, its rationale section and the paths its text names, and an absent section carries the reason it is absent instead of reading as a design that exists.
+- ✅ **RK13** **A blocked task looks identical to a ready one, and one that unblocks half the backlog to one that unblocks nothing** — the walk is tested code instead of an ad-hoc traversal: it names the blocker chain, reports a cycle as a group, and counts how many tasks shipping this one unblocks.
 
 ## Block D — The gate
 
