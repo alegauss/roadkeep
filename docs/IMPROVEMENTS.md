@@ -54,14 +54,6 @@ session doing.
 
 ## Block D — The gate
 
-### §RK15 Resolving pointers
-
-A `→ §RK<n>` aimed at a section that does not exist reads exactly like a design that
-does, which is worse than no pointer — it makes a reader stop looking. Resolve every
-pointer against the improvements file and every spec path against disk. Scan the
-rendered `ref` field only, never the line: RK15's own `why` quotes the pointer as an
-example, and a naive scan reports that quotation as a broken pointer.
-
 ### §RK16 `--fix`
 
 A first run against a real backlog reports dozens of violations, and a report that

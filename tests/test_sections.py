@@ -29,6 +29,7 @@ from roadkeep.sections import (
     NoSuchSection,
     SectionExists,
     add,
+    anchored,
     drop,
     find,
 )
@@ -104,6 +105,16 @@ def test_a_section_owns_its_subsections(tmp_path):
     # The budget counts the subsection's words too: the unit is the section, and prose
     # that escapes the count by gaining a heading is the drift the budget exists to stop.
     assert section.words == 18
+
+
+def test_every_anchor_is_enumerable_with_its_own_prose(tmp_path):
+    # What the gate reads from the other direction (RK15): a pointer resolves one anchor,
+    # and a section nothing points at is only visible from the set. Own prose, because
+    # `find` returns the subtree and §0 is a container with no paragraph of its own.
+    sections = {s.anchor: s for s in anchored(project(tmp_path).document("improvements"))}
+    assert list(sections) == ["0", "0.1", "RK1", "RK1.1"]
+    assert sections["0"].words == 0 and sections["0.1"].words == 5
+    assert sections["RK1"].words == 8  # 18 with the subsection `find` also returns
 
 
 def test_an_outline_anchor_is_a_section_like_any_other(tmp_path):

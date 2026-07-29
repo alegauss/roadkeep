@@ -45,19 +45,38 @@ LEDGER = """# Shipped
 - ✅ **RK5** **An earlier symptom** — Because it was done.
 """
 
-CONFIG = 'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
+PROSE = """# Design rationale
+
+## Block A — The model
+
+### §RK1 The first design
+
+The reasoning the first line has no room for.
+
+### §RK2 The second design
+
+The reasoning the second line has no room for.
+"""
+
+CONFIG = (
+    'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
+    'improvements = "IMPROVEMENTS.md"\n'
+)
 
 
 def project(
     tmp_path: Path,
     roadmap: str = CLEAN,
     changelog: str | None = LEDGER,
+    improvements: str | None = PROSE,
     config: str = CONFIG,
 ) -> Config:
     (tmp_path / "roadkeep.toml").write_text(config, encoding="utf-8")
     files = {"ROADMAP.md": roadmap}
     if changelog is not None:
         files["CHANGELOG.md"] = changelog
+    if improvements is not None:
+        files["IMPROVEMENTS.md"] = improvements
     for name, body in files.items():
         with (tmp_path / name).open("w", encoding="utf-8", newline="") as handle:
             handle.write(body)
@@ -76,8 +95,12 @@ def test_this_repository_passes_its_own_gate():
     # the wrong limit rather than a set of wrong lines.
     report = lint(Config.discover(HERE))
     assert report.clean, [str(f) for f in report.findings]
-    assert report.lines > 30
-    assert report.checked == ("docs/ROADMAP.md", "docs/CHANGELOG.md")
+    assert report.lines > 30 and report.sections > 10
+    assert report.checked == (
+        "docs/ROADMAP.md",
+        "docs/CHANGELOG.md",
+        "docs/IMPROVEMENTS.md",
+    )
 
 
 def test_a_clean_project_exits_zero(tmp_path, capsys):
@@ -260,6 +283,138 @@ def test_a_declared_file_that_is_absent_is_reported_not_crashed(tmp_path):
     missing = next(f for f in report.findings if f.code == "file.missing")
     assert missing.file == "CHANGELOG.md" and missing.lineno is None
     assert report.lines == 2  # the roadmap was still read
+
+
+# -- the pointer, resolved in both directions (RK15) -------------------------
+
+
+def test_a_pointer_to_a_section_that_does_not_exist_fails(tmp_path):
+    # Worse than no pointer: it makes a reader stop looking.
+    report = lint(project(tmp_path, improvements=PROSE.replace("§RK2", "§RK7")))
+    unresolved = next(f for f in report.findings if f.code == "ref.unresolved")
+    assert unresolved.id == "RK2" and "IMPROVEMENTS.md" in unresolved.message
+    assert unresolved.file == "ROADMAP.md"  # where the broken pointer is written
+
+
+def test_a_pointer_quoted_inside_a_sentence_is_not_scanned(tmp_path):
+    # §RK15's own trap: the `why` quotes a pointer as an example of one, and a scan over
+    # the raw line would report that quotation as the design that does not exist. The
+    # rendered `ref` field is the only pointer, and here it resolves.
+    quoting = CLEAN.replace(
+        "Because of another reason.", "Because a `→ §RK9` in prose is not a pointer."
+    )
+    assert lint(project(tmp_path, roadmap=quoting)).clean
+
+
+def test_a_section_whose_task_shipped_and_was_not_dropped_fails(tmp_path):
+    # `ship` deletes the section as one of its three edits, so this is a hand edit.
+    survived = PROSE + "\n### §RK5 The shipped design\n\nStill here after the ship.\n"
+    report = lint(project(tmp_path, improvements=survived))
+    stale = next(f for f in report.findings if f.code == "section.stale")
+    assert stale.id == "RK5" and stale.file == "IMPROVEMENTS.md"
+
+
+def test_a_section_no_line_points_at_is_an_orphan(tmp_path):
+    orphaned = PROSE + "\n### §RK7 A design for nothing\n\nProse nothing points at.\n"
+    report = lint(project(tmp_path, improvements=orphaned))
+    assert [f.id for f in report.findings if f.code == "section.orphan"] == ["RK7"]
+
+
+def test_prose_that_belongs_to_no_task_is_nobody_s_orphan(tmp_path):
+    # `§0.1` is this repository's own preface: an anchor no line owns, which is legal —
+    # the same rule `section add` applies to an anchor that is not id-shaped (RK9).
+    preface = PROSE + "\n## §0 — Why this exists\n\n### §0.1 The measured problem\n\nProse.\n"
+    assert lint(project(tmp_path, improvements=preface)).clean
+
+
+def test_two_sections_with_one_anchor_fail(tmp_path):
+    twice = PROSE + "\n### §RK1 The first design again\n\nA pasted duplicate.\n"
+    report = lint(project(tmp_path, improvements=twice))
+    duplicate = next(f for f in report.findings if f.code == "section.duplicate")
+    assert duplicate.id == "RK1" and "resolves to neither" in duplicate.message
+
+
+def test_a_section_over_its_word_budget_fails(tmp_path):
+    tight = CONFIG + "\n[limits]\nsection = 5\n"
+    report = lint(project(tmp_path, config=tight))
+    over = [f for f in report.findings if f.code == "section.too-long"]
+    assert len(over) == 2 and "limit is 5" in over[0].message
+
+
+def test_a_section_a_line_points_at_is_charged_for_its_subsection(tmp_path):
+    # RK9's rule, at the gate: prose that escapes the budget by gaining a heading is the
+    # drift the budget exists to stop, and following §RK1 is what hands it to a reader.
+    grown = PROSE.replace(
+        "### §RK2 The second design",
+        "#### §RK1.1 A subsection\n\nWhich doubles what the pointer hands a reader.\n"
+        "\n### §RK2 The second design",
+    )
+    # 10 words clears every section's own prose here and not §RK1 plus its subsection.
+    report = lint(project(tmp_path, improvements=grown, config=CONFIG + "\n[limits]\nsection = 10\n"))
+    assert [f.id for f in report.findings if f.code == "section.too-long"] == ["RK1"]
+
+
+def test_a_container_nothing_points_at_is_measured_on_its_own_prose(tmp_path):
+    # The other half: §0 has no prose of its own and three anchored children that are each
+    # inside the budget, so charging it their words would fail a file with no long
+    # paragraph in it — and this repository's own file is the fixture.
+    nested = """# Design rationale
+
+## Block A — The model
+
+### §RK1 The first design
+
+Three words here.
+
+### §RK2 The second design
+
+Three words here.
+
+## §0 — Why this exists
+
+Short.
+
+### §0.1 The measured problem
+
+This subsection is comfortably over any budget of five words.
+"""
+    report = lint(project(tmp_path, improvements=nested, config=CONFIG + "\n[limits]\nsection = 5\n"))
+    assert [f.id for f in report.findings if f.code == "section.too-long"] == ["0.1"]
+
+
+def test_no_prose_file_means_no_pointer_to_resolve(tmp_path):
+    # Shio declares no improvements file. That is not a pointer defect, and a gate that
+    # said so would fail every project that keeps its rationale somewhere else.
+    bare = 'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
+    assert lint(project(tmp_path, improvements=None, config=bare)).clean
+
+
+# -- the paths a line claims (RK15) ------------------------------------------
+
+
+def test_a_path_a_line_names_and_the_repository_lacks_fails(tmp_path):
+    claiming = CLEAN.replace(
+        "Because of a reason.", "Because `docs/specs/absent.md` says so."
+    )
+    report = lint(project(tmp_path, roadmap=claiming))
+    missing = next(f for f in report.findings if f.code == "path.missing")
+    assert missing.id == "RK1" and "docs/specs/absent.md" in missing.message
+
+
+def test_a_slash_command_is_not_a_missing_path(tmp_path):
+    # RK25's line names four of them; each is slash-shaped and none is a file here.
+    commands = CLEAN.replace("Because of a reason.", "Because `/roadkeep:add` exists.")
+    assert lint(project(tmp_path, roadmap=commands)).clean
+
+
+def test_a_section_may_name_a_file_that_does_not_exist_yet(tmp_path):
+    # A design's whole job: §RK26 names `.claude-plugin/marketplace.json` before there is
+    # one. Resolving a section's prose would fail every honest forward reference.
+    forward = PROSE.replace(
+        "The reasoning the first line has no room for.",
+        "It will write `.claude-plugin/marketplace.json` and nothing else.",
+    )
+    assert lint(project(tmp_path, improvements=forward)).clean
 
 
 # -- the contract -------------------------------------------------------------

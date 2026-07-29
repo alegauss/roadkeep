@@ -69,11 +69,11 @@ differently. Never construct a task line with an f-string; before writing a comm
 in a README. A limit that cannot express these lines is the wrong limit rather than a set of
 wrong lines, so a schema change validates here first, under this repo's own `roadkeep.toml`.
 
-Don't hand-check it: `… lint` reports every violation, every line that stopped round-tripping
-and every dep nothing can satisfy, and **exits 1** when it finds one — that exit code is the
-whole gate (RK14). It never repairs: what it prints is the canonical line, the edit is yours.
-`… stats` still gives the tallies and the longest line (**314** of 320). By hand until RK15:
-pointers resolve, no orphan section, 181/250.
+Don't hand-check it: `… lint` reports every violation, every line that stopped round-tripping,
+every dep nothing can satisfy, every `→ §RK<n>` that resolves to nothing and every section
+nothing points at, and **exits 1** when it finds one — that exit code is the whole gate
+(RK14/RK15). It never repairs: what it prints is the canonical line, the edit is yours.
+`… stats` still gives the tallies and the longest line (**314** of 320).
 
 ## Writing and shipping — call the command, never type the format
 

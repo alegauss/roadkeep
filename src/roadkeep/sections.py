@@ -101,6 +101,38 @@ def find(document: Document, anchor: str) -> Section | None:
     )
 
 
+def anchored(document: Document) -> tuple[Section, ...]:
+    """Every `§<anchor>` section in file order, each carrying only its **own** prose.
+
+    The gate (RK15) needs the set and not one lookup: a pointer resolves in one
+    direction, and an orphan — a section nothing points at — is only visible from the
+    other. **Own** prose, because :func:`find` deliberately returns the subtree (`drop`
+    has to delete it whole, and a task's rationale is charged for the subsection it
+    grew), and a container like this repository's `§0` has no prose of its own at all —
+    counting its children against it would measure the file's shape rather than anyone's
+    paragraph. Which of the two the budget uses is the gate's decision, not this one's.
+    """
+    out: list[Section] = []
+    for position, heading in enumerate(document.headings):
+        anchor = _anchor_of(heading.text)
+        if anchor is None:
+            continue
+        end = len(document.lines)
+        if position + 1 < len(document.headings):
+            end = document.headings[position + 1].lineno - 1
+        out.append(
+            Section(
+                anchor=anchor,
+                title=_title_of(heading.text),
+                level=heading.level,
+                first=heading.lineno,
+                last=end,
+                body="".join(document.lines[heading.lineno : end]).strip("\r\n"),
+            )
+        )
+    return tuple(out)
+
+
 def drop(document: Document, anchor: str) -> tuple[Document, Section]:
     """Delete the section whole — subsections included — and report what went.
 
@@ -294,6 +326,13 @@ def _span(document: Document, anchor: str) -> tuple[int, int, Heading] | None:
                 start -= 1
         return start, end, heading
     return None
+
+
+def _anchor_of(text: str) -> str | None:
+    """`§RK9 A design` → `RK9`. None when the heading carries no anchor at all."""
+    if not text.startswith("§"):
+        return None
+    return text[1:].split(" ", 1)[0].strip() or None
 
 
 def _title_of(text: str) -> str:

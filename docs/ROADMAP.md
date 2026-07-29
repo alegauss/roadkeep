@@ -28,7 +28,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK15** (deps: RK14 ✅) **A pointer to a section that does not exist reads as a design that does** — resolve every `→ §RK<n>` against the improvements file and every spec path against disk. → §RK15
 - 📋 **RK16** (deps: RK14 ✅) **A report of ninety-two violations is a report nobody acts on** — `lint --fix` normalizes what is mechanical (ordering, dep markers, whitespace) and reports only what needs a human decision. → §RK16
 - 📋 **RK17** (deps: RK14 ✅) **A gate that runs only on a developer's machine is not a gate** — ship a GitHub Action and a pre-commit hook that both call the same exit code. → §RK17
 - 📋 **RK30** (deps: RK14 ✅) **The instruction file loaded every turn has a budget nothing enforces** — `agents.md` reached 186 KB in Shio under exactly this rule, so the gate checks the declared line and byte budget of every always-loaded file. → §RK30

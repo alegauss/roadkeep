@@ -853,6 +853,7 @@ def _lint(config: Config, args: argparse.Namespace) -> int:
                     "clean": report.clean,
                     "checked": list(report.checked),
                     "lines": report.lines,
+                    "sections": report.sections,
                     "problems": report.problems,
                     "codes": report.codes(),
                     "findings": [_finding_json(f) for f in report.findings],
@@ -865,16 +866,21 @@ def _lint(config: Config, args: argparse.Namespace) -> int:
     if report.clean:
         # The files are named on the way out even when there is nothing to say: a gate
         # that passed by reading nothing looks exactly like a gate that passed.
-        print(f"{', '.join(report.checked) or 'nothing'}: {report.lines} line(s), clean")
+        print(f"{', '.join(report.checked) or 'nothing'}: {_scope(report)}, clean")
         return EXIT_OK
     if not args.quiet:
         for finding in report.findings:
             print(str(finding))
     print(
-        f"{report.problems} problem(s) in {report.lines} line(s) across "
+        f"{report.problems} problem(s) in {_scope(report)} across "
         f"{len(report.checked)} file(s): {_codes(report)}"
     )
     return EXIT_GATE
+
+
+def _scope(report: Report) -> str:
+    """What was read, in its own units — lines, and the sections the pointers resolve to."""
+    return f"{report.lines} line(s), {report.sections} section(s)"
 
 
 def _codes(report: Report) -> str:

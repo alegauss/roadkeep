@@ -146,6 +146,9 @@ def test_the_paths_come_from_the_line_and_the_section(tmp_path):
         # A URL is not a path in this repository.
         ("`https://example.com/a.md` and [x](https://example.com/b.md)", []),
         ("a [link](docs/specs/linked.md) counts", ["docs/specs/linked.md"]),
+        # Slash-shaped and not this repository: a slash command, and an absolute path
+        # that `roadkeep.toml` refuses for the same reason. RK25's line names four.
+        ("`/roadkeep:add` and `/etc/hosts`", []),
         ("bare docs/specs/unquoted.md does not", []),
         # Quoted twice, reported once, in order of appearance.
         ("`a/b.md` then `a/b.md`", ["a/b.md"]),

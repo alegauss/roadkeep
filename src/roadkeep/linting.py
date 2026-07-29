@@ -33,12 +33,21 @@ What it reports, and why each one is a defect the other commands cannot see:
 * **A cycle** — three tasks waiting on each other are three tasks nothing can start
   (RK13), which is a defect and not a shape.
 
+And the same question asked of the prose file, which is RK15's half: **a pointer that
+resolves to nothing reads exactly like a design that exists**, which is worse than no
+pointer because it makes a reader stop looking. So the `→ §RK<n>` is resolved against
+the improvements file, in both directions — a pointer with no section, and a section no
+line points at — plus the section's word budget and the paths a line claims. The
+pointer is read from the parsed ``ref`` field and never from the line's text: §RK15's
+own `why` quotes a pointer as an example, and a scan over the line would report that
+quotation as the broken pointer it is not.
+
 What is deliberately *not* here, because each is its own task and a gate that grew all
-of them at once would be a gate nobody could adopt: resolving the `→ §RK<n>` pointer
-and the spec paths (RK15), normalizing what is mechanical (RK16), the always-loaded
-file budgets (RK30), naming an invisible codepoint (RK34), and what a commit touched
-(RK36). This one answers a narrower question completely: *is every line in the
-governed files a line this format accepts?*
+of them at once would be a gate nobody could adopt: normalizing what is mechanical
+(RK16), the always-loaded file budgets (RK30), naming an invisible codepoint (RK34),
+and what a commit touched (RK36). This one answers a narrower question completely: *is
+every line in the governed files a line this format accepts, and does everything it
+points at exist?*
 """
 
 from __future__ import annotations
@@ -51,6 +60,8 @@ from roadkeep.document import Document
 from roadkeep.graph import Graph
 from roadkeep.markers import derive
 from roadkeep.schema import DepKind, Task
+from roadkeep.sections import Section, anchored, find
+from roadkeep.showing import paths_in
 
 #: The governed files whose unit is a task line. The prose files are paragraphs, so
 #: their gate is a pointer and a budget — RK15 and RK30, not this.
@@ -91,6 +102,8 @@ class Report:
     #: gate that passed by reading nothing is the failure mode of every gate.
     checked: tuple[str, ...]
     lines: int
+    #: Anchored sections read in the prose file — the other half of what was checked.
+    sections: int = 0
 
     @property
     def clean(self) -> bool:
@@ -118,18 +131,39 @@ def lint(config: Config) -> Report:
         if config.has(role) and config.path(role).is_file():
             documents[role] = config.document(role)
 
-    checked = tuple(config.relative(config.path(role)) for role in documents)
+    checked = [config.relative(config.path(role)) for role in documents]
     for role, document in documents.items():
         findings.extend(_within(config, role, document))
     findings.extend(_across(config, documents))
+
+    prose = _prose_file(config)
+    sections = ()
+    if prose is not None:
+        checked.append(config.relative(config.path("improvements")))
+        sections = anchored(prose)
+        findings.extend(_pointers(config, documents, sections))
+        findings.extend(_orphans(config, documents, prose, sections))
+    findings.extend(_paths(config, documents))
 
     order = {name: index for index, name in enumerate(checked)}
     findings.sort(key=lambda f: (order.get(f.file, len(order)), f.lineno or 0, f.code))
     return Report(
         findings=tuple(findings),
-        checked=checked,
+        checked=tuple(checked),
         lines=sum(len(d.entries) for d in documents.values()),
+        sections=len(sections),
     )
+
+
+def _prose_file(config: Config) -> Document | None:
+    """The improvements file, when this project has one on disk.
+
+    A project that declares none is Shio, not a Shio with an empty one, and a declared
+    file that is not there yet is already `file.missing` — neither is a pointer defect.
+    """
+    if not config.has("improvements") or not config.path("improvements").is_file():
+        return None
+    return config.document("improvements")
 
 
 def _absent(config: Config) -> list[Finding]:
@@ -279,6 +313,153 @@ def _deps(backlog: Backlog, task: Task, file: str, lineno: int) -> list[Finding]
         # An external dep falls through on purpose: waiting on work this backlog does
         # not track is a fact about the work, and reporting it would fail every file
         # that states one honestly.
+    return out
+
+
+def _pointers(
+    config: Config, documents: dict[str, Document], sections: tuple[Section, ...]
+) -> list[Finding]:
+    """Every `→ §<anchor>` on an open line, resolved against the prose file (RK15).
+
+    Read from the parsed ``ref`` and never from the line's text, which is the whole
+    subtlety: §RK15's own sentence quotes a pointer as an example of one, and a scan
+    over the raw line reports that quotation as a design that does not exist.
+    """
+    roadmap = documents.get("roadmap")
+    if roadmap is None:
+        return []
+    where = config.relative(config.path("improvements"))
+    anchors = {section.anchor for section in sections}
+    return [
+        Finding(
+            "ref.unresolved",
+            config.relative(config.path("roadmap")),
+            f"points at §{entry.task.ref}, which is not in {where}: a pointer to a "
+            f"section that does not exist reads as a design that does",
+            entry.lineno,
+            entry.task.id,
+        )
+        for entry in roadmap.entries
+        if entry.task.ref and entry.task.ref not in anchors
+    ]
+
+
+def _orphans(
+    config: Config,
+    documents: dict[str, Document],
+    prose: Document,
+    sections: tuple[Section, ...],
+) -> list[Finding]:
+    """The prose file read from its own side: a section, and what points at it.
+
+    A pointer resolves one way only, so nothing in `_pointers` can see a section that
+    survived its task. Three ways that happens and one budget, all at the anchor's line.
+
+    The budget is charged against **what a pointer hands a reader**, which is the one
+    reading that keeps RK9's rule and this repository's own file both true: a section a
+    line points at is measured with its subsections (`show` prints them, so a rationale
+    that doubled by growing a `§RK34.1` is caught), and one nothing points at is measured
+    on its own prose (`§0` is a container whose three anchored children are each inside
+    the budget, and charging it 461 words would fail a file with no long paragraph in it).
+    """
+    file = config.relative(config.path("improvements"))
+    open_ids = documents["roadmap"].by_id() if "roadmap" in documents else {}
+    gone = documents["changelog"].by_id() if "changelog" in documents else {}
+    pointed = {
+        entry.task.ref
+        for document in documents.values()
+        for entry in document.entries
+        if entry.task.ref
+    }
+    ids = config.schema.id_pattern()
+    seen: dict[str, int] = {}
+    out: list[Finding] = []
+
+    for section in sections:
+        anchor = section.anchor
+        first = seen.get(anchor)
+        if first is not None:
+            out.append(
+                Finding(
+                    "section.duplicate",
+                    file,
+                    f"§{anchor} is already at line {first}: an anchor names one "
+                    f"section, and a pointer that resolves to two resolves to neither",
+                    section.first,
+                    anchor,
+                )
+            )
+        seen.setdefault(anchor, section.first)
+        out.extend(_budget(config, prose, section, pointed=anchor in pointed, file=file))
+        # Only an id-shaped anchor is owned by a task. `§0.1` is prose that belongs to
+        # no line and is nobody's orphan — the same rule `section add` applies (RK9).
+        if ids.match(anchor) and anchor not in open_ids:
+            out.append(_unowned(section, file, shipped=anchor in gone))
+    return out
+
+
+def _budget(
+    config: Config, prose: Document, section: Section, *, pointed: bool, file: str
+) -> list[Finding]:
+    handed = (find(prose, section.anchor) if pointed else None) or section
+    if handed.words <= config.schema.section_max:
+        return []
+    return [
+        Finding(
+            "section.too-long",
+            file,
+            f"{handed.words} words, limit is {config.schema.section_max}: a section "
+            f"this long is two sections, or a paragraph that belongs in the commit",
+            section.first,
+            section.anchor,
+        )
+    ]
+
+
+def _unowned(section: Section, file: str, *, shipped: bool) -> Finding:
+    """An id-shaped anchor that no open line carries — gone, or never there."""
+    if shipped:
+        return Finding(
+            "section.stale",
+            file,
+            f"{section.anchor} is in the changelog and its rationale is still here: "
+            f"`ship` deletes the section, so this survived a hand edit",
+            section.first,
+            section.anchor,
+        )
+    return Finding(
+        "section.orphan",
+        file,
+        f"no line in either file carries {section.anchor}, so nothing can ever point "
+        f"at this section",
+        section.first,
+        section.anchor,
+    )
+
+
+def _paths(config: Config, documents: dict[str, Document]) -> list[Finding]:
+    """Paths a task *line* claims, resolved against disk (RK15).
+
+    Lines only, and the exemption is the point: an unshipped design's whole job is to
+    describe a file that does not exist yet — §RK26 names `.claude-plugin/marketplace.json`
+    and is right to — so resolving a section's prose would fail every honest forward
+    reference. A line is a claim about the repository as it is now.
+    """
+    out: list[Finding] = []
+    for role, document in documents.items():
+        file = config.relative(config.path(role))
+        for entry in document.entries:
+            out.extend(
+                Finding(
+                    "path.missing",
+                    file,
+                    f"names {referenced.path}, which is not in the repository",
+                    entry.lineno,
+                    entry.task.id,
+                )
+                for referenced in paths_in(entry.raw, config.root)
+                if not referenced.exists
+            )
     return out
 
 

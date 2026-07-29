@@ -135,6 +135,12 @@ def paths_in(text: str, root: Path) -> tuple[Referenced, ...]:
         token = (match.group(1) or match.group(2)).rstrip(".,;:")
         if not token or _SCHEME.match(token) or token.startswith("#"):
             continue
+        if token.startswith("/"):
+            # Not this repository: `/roadkeep:add` is a slash command, and an absolute
+            # path is wrong on every other machine (which `roadkeep.toml` also refuses).
+            # Both are slash-shaped, so without this they read as claims about a file
+            # that is missing — four of them on one line, in RK25's own text.
+            continue
         exists = (root / token).exists() if not Path(token).is_absolute() else False
         # Either the repository really has it, or the token is slash-shaped and so an
         # explicit claim about the repository — a missing one of those is worth saying.

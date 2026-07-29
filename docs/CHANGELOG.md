@@ -42,6 +42,7 @@
 ## Block D — The gate
 
 - ✅ **RK14** **A format that is documented but not enforced is a format that drifts** — the gate is one command that re-reads every governed line through the schema that wrote it and exits 1 on any drift, so a hook and an Action share one contract and neither parses a report.
+- ✅ **RK15** **A pointer to a section that does not exist reads as a design that does** — the pointer is resolved in both directions and the paths a line claims against disk, so a design that does not exist can no longer read as one that does.
 
 ## Block E — Adoption
 
