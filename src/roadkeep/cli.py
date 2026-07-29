@@ -269,6 +269,14 @@ def build_parser() -> argparse.ArgumentParser:
         help="normalize what is mechanical first, then report what needs a decision",
     )
     lint_parser.add_argument(
+        "--since",
+        metavar="REV",
+        help=(
+            "also report a rationale section edited since REV whose task line was not "
+            "(RK36): HEAD in a commit hook, the base branch in CI"
+        ),
+    )
+    lint_parser.add_argument(
         "--quiet",
         action="store_true",
         help="print only the summary line, for a hook that wants the exit code",
@@ -851,16 +859,23 @@ def _lint(config: Config, args: argparse.Namespace) -> int:
         # The mechanical pass runs first and the report is taken afterwards, so what is
         # printed is what is left — the whole point of RK16.
         applied = fix(config) if args.fix else Fix()
-        report = lint(config)
+        report = lint(config, since=args.since)
+    except HistoryUnavailable as error:
+        print(f"roadkeep: no history to resolve against ({error})", file=sys.stderr)
+        return EXIT_USAGE
     except (KeyError, OSError) as error:
         return _refused(error)
 
     passed = report.clean and not applied.refused
     if args.json:
         print(json.dumps(_lint_json(report, applied), indent=2))
-        return EXIT_OK if passed else EXIT_GATE
+    else:
+        _print_report(report, applied, quiet=args.quiet)
+    return EXIT_OK if passed else EXIT_GATE
 
-    if not args.quiet:
+
+def _print_report(report: Report, applied: Fix, quiet: bool) -> None:
+    if not quiet:
         _print_fix(applied)
         # Notes before the findings and the summary: a note is what the gate says about a
         # file it is passing, and after an exit-1 report nobody would read it (RK35).
@@ -871,15 +886,14 @@ def _lint(config: Config, args: argparse.Namespace) -> int:
         # The files are named on the way out even when there is nothing to say: a gate
         # that passed by reading nothing looks exactly like a gate that passed.
         print(f"{', '.join(report.checked) or 'nothing'}: {_scope(report)}, clean")
-        return EXIT_OK if passed else EXIT_GATE
-    if not args.quiet:
+        return
+    if not quiet:
         for finding in report.findings:
             print(str(finding))
     print(
         f"{report.problems} problem(s) in {_scope(report)} across "
         f"{len(report.checked)} file(s): {_codes(report)}"
     )
-    return EXIT_GATE
 
 
 def _print_fix(applied: Fix) -> None:

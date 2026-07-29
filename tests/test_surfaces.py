@@ -56,6 +56,16 @@ def test_the_hook_ships_the_normalizing_variant_too():
     assert fixes == [False, True]
 
 
+def test_the_hook_compares_against_the_commit_being_written():
+    # RK36's check needs a revision, and a hook is the surface that always has one. The
+    # action does not pass `--since`: a CI job's base branch is the caller's to name.
+    since = [
+        build_parser().parse_args(shlex.split(d)[1:]).since for d in declarations(HOOKS)
+    ]
+    assert since == ["HEAD", None]
+    assert build_parser().parse_args(shlex.split(declarations(ACTION)[0])[1:]).since is None
+
+
 def test_the_action_is_used_and_not_copied():
     # If CI ran its own `roadkeep lint` step, the action could break while the badge
     # stayed green — which is the one failure this repository cannot afford, since the

@@ -134,6 +134,105 @@ def commits_touching(root: Path, needle: str, path: Path | None = None) -> tuple
     return _parse(_run(root, *args))
 
 
+@dataclass(frozen=True, slots=True)
+class Change:
+    """One changed line, numbered **on the side it exists on**.
+
+    Which side matters, and getting it wrong is what makes a diff-based check cry wolf: a
+    deleted paragraph has no line number in the file as it is now, so attributing it to
+    the new-side position lands it in whichever section happens to precede the hole.
+    """
+
+    lineno: int
+    text: str
+    #: True for a line the diff added (new side), False for one it removed (old side).
+    added: bool
+
+
+@dataclass(frozen=True, slots=True)
+class Touched:
+    """Every line a diff changed in one file (RK36)."""
+
+    changes: tuple[Change, ...] = ()
+
+    @property
+    def lines(self) -> tuple[str, ...]:
+        """The changed text, either side — added, removed or reworded.
+
+        All three mean somebody had the line open, which is the only thing the check is
+        entitled to conclude: deciding whether the edit was *responsive* would be reading
+        prose (L4).
+        """
+        return tuple(change.text for change in self.changes)
+
+
+_HUNK_RE = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
+
+
+def resolves(config: Config, rev: str) -> bool:
+    """Does git know this revision? False for `HEAD` in a repository with no commits."""
+    try:
+        _run(config.root, "rev-parse", "--verify", "--quiet", f"{rev}^{{commit}}")
+    except HistoryUnavailable:
+        return False
+    return True
+
+
+def touched_since(config: Config, rev: str, role: str) -> Touched:
+    """The diff of one governed file from ``rev`` to the working tree.
+
+    `-U0`, because context lines would put a neighbouring section inside the span and the
+    whole value of this check is that it names the section somebody actually opened.
+    """
+    if not config.has(role) or not config.path(role).is_file():
+        return Touched()
+    try:
+        relative = config.path(role).relative_to(config.root)
+    except ValueError:
+        relative = config.path(role)
+    output = _run(config.root, "diff", "--no-color", "-U0", rev, "--", str(relative))
+    return _read_diff(output)
+
+
+def _read_diff(output: str) -> Touched:
+    """Walk a `-U0` diff, numbering each changed line on its own side."""
+    changes: list[Change] = []
+    old = new = 0
+    for raw in output.splitlines():
+        hunk = _HUNK_RE.match(raw)
+        if hunk:
+            old, new = int(hunk.group(1)), int(hunk.group(3))
+            continue
+        if raw.startswith(("+++", "---")):
+            continue
+        if raw.startswith("+"):
+            changes.append(Change(lineno=new, text=raw[1:], added=True))
+            new += 1
+        elif raw.startswith("-"):
+            changes.append(Change(lineno=old, text=raw[1:], added=False))
+            old += 1
+    return Touched(changes=tuple(changes))
+
+
+def content_at(config: Config, rev: str, role: str) -> str:
+    """One governed file as of ``rev``, or empty when it was not there yet.
+
+    Needed because a removal has to be attributed to the section that *held* it, and that
+    section may no longer exist — which is exactly the case `ship` produces, and the one a
+    check must not report (RK36).
+    """
+    if not config.has(role):
+        return ""
+    try:
+        relative = config.path(role).relative_to(config.root)
+    except ValueError:
+        relative = config.path(role)
+    try:
+        return _run(config.root, "show", f"{rev}:{relative.as_posix()}")
+    except HistoryUnavailable:
+        return ""
+
+
 def origin_of(config: Config, task_id: str) -> Origin:
     """The commit that proposed the task and the one that shipped it, if each exists."""
     needle = f"**{task_id}**"  # the bold id, so RK1 does not match RK10

@@ -30,8 +30,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK36** (deps: RK14 ✅, RK31 ✅) **A rationale section can gain a requirement the line carrying its status never mentions** — the section is deleted on ship and the line is the only thing `pick` reads, so the gate flags a commit that edits §RK<n> without touching RK<n>. → §RK36
-
 ## Block E — Adoption
 
 - 📋 **RK18** (deps: RK3 ✅, RK14 ✅) **A tool that requires an empty repo cannot be adopted by the repo that needs it** — `init` scaffolds the files and config, and `adopt` reports what an existing backlog must change to pass. → §RK18

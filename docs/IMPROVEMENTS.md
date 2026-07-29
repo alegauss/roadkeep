@@ -71,18 +71,6 @@ the name of the patch that closed it.
 
 ## Block D — The gate
 
-### §RK36 A section may not promise what the line does not
-
-RK15 refuses a pointer at a section that does not exist; nothing refuses the mirror, a
-section that requires more than the line pointing at it. That direction is the more
-expensive one, because the line is the single source of status and the section is
-deleted on ship: a requirement written only into the rationale cannot be picked, cannot
-be shipped, and disappears with the section that held it. It happened three times in
-the session that added RK13, RK34 and RK32 — every time by an author who had just
-learned something and wrote it where the reasoning was, not where the status is. The
-check is not semantic and does not need to be: a commit that edits `### §RK<n>` without
-touching RK<n>'s line is the whole signal, and history is already resolvable (RK31).
-
 ## Block E — Adoption
 
 ### §RK18 `init` and `adopt`

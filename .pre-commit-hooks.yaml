@@ -11,7 +11,11 @@
 - id: roadkeep-lint
   name: roadkeep lint
   description: Fail the commit when a governed file drifted from the format it declares.
-  entry: roadkeep lint
+  # `--since HEAD` only here: a hook always runs inside a repository, so the one check that
+  # is about a change rather than a state (RK36) has something to diff against. It reports
+  # at exit 0 — a rationale section edited without its line is a sentence worth reading at
+  # the moment of the commit, not a wall. A repository with no HEAD yet is not failed.
+  entry: roadkeep lint --since HEAD
   language: python
   # The command reads `roadkeep.toml` to learn which files it governs, so a list of
   # staged paths is not an input it has — and passing them would make the gate examine

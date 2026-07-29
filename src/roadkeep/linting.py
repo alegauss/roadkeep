@@ -47,16 +47,27 @@ a budget stated in its own prose is what let Shio's `agents.md` reach 186 KB** w
 declaring 150 lines at the bottom of itself (RK30). So `roadkeep.toml` declares it and the
 exit code holds it, in lines and in bytes — the two units the reader actually pays.
 
-What is deliberately *not* here, because each is its own task and a gate that grew all of
-them at once would be a gate nobody could adopt: normalizing what is mechanical (RK16),
-naming an invisible codepoint (RK34), and what a commit touched (RK36). This one answers a
-narrower question completely: *is every line in the governed files a line this format
-accepts, does everything it points at exist, and did anything loaded every turn outgrow
-what it was allowed?*
+**Two tiers, because the exit code is the contract.** A :class:`Finding` fails the build;
+a :class:`Note` is something the gate says at exit 0. Both exist because two real defects
+cannot be refused without failing an honest file: `Block P` is a legitimate dep that
+happens to name forty-eight open tasks (RK35), and a rationale section edited without its
+task line is the shape of a smuggled requirement *and* of a typo fix (RK36). Refusing
+either would produce a gate that gets bypassed, which is worth less than a sentence read
+at the moment of the commit — the same split `audit` (RK10) makes.
+
+Everything above is decidable from the files as they are. The one check that is about a
+*change* is opt-in through ``since``, because `lint` has to keep working in a checkout with
+no history: `--since HEAD` in a commit hook, the base branch in CI.
+
+What is deliberately *not* here: normalizing what is mechanical, which is a write and lives
+in :mod:`roadkeep.fixing` (RK16). This module answers one question completely and never
+writes: *is every line in the governed files a line this format accepts, does everything it
+points at exist, and did anything loaded every turn outgrow what it was allowed?*
 """
 
 from __future__ import annotations
 
+import re
 import unicodedata
 from dataclasses import dataclass
 
@@ -64,6 +75,12 @@ from roadkeep.backlog import Backlog, DepStatus, number_of
 from roadkeep.config import ROLES, Config
 from roadkeep.document import Document, ending
 from roadkeep.graph import Graph
+from roadkeep.history import (
+    HistoryUnavailable,
+    content_at,
+    resolves,
+    touched_since,
+)
 from roadkeep.markers import derive
 from roadkeep.schema import DepKind, Task
 from roadkeep.sections import Section, anchored, find
@@ -170,8 +187,13 @@ class Report:
         return dict(sorted(found.items(), key=lambda pair: (-pair[1], pair[0])))
 
 
-def lint(config: Config) -> Report:
-    """Read every governed file and return every defect. Writes nothing, ever."""
+def lint(config: Config, since: str | None = None) -> Report:
+    """Read every governed file and return every defect. Writes nothing, ever.
+
+    ``since`` adds the one check that is about a *change* rather than a state (RK36): a
+    revision to diff the governed files against, `HEAD` in a pre-commit hook and the base
+    branch in CI.
+    """
     findings: list[Finding] = []
     findings.extend(_absent(config))
 
@@ -185,7 +207,7 @@ def lint(config: Config) -> Report:
         findings.extend(_within(config, role, document))
         findings.extend(_characters(config, role, document))
     findings.extend(_across(config, documents))
-    notes = _collective(config, documents)
+    notes: list[Note] = _collective(config, documents)
 
     prose = _prose_file(config)
     sections = ()
@@ -194,6 +216,8 @@ def lint(config: Config) -> Report:
         sections = anchored(prose)
         findings.extend(_pointers(config, documents, sections))
         findings.extend(_orphans(config, documents, prose, sections))
+        if since is not None:
+            notes.extend(_unpaired(config, sections, since))
     findings.extend(_paths(config, documents))
 
     for budget in config.budgets:
@@ -398,6 +422,85 @@ def _collective(config: Config, documents: dict[str, Document]) -> list[Note]:
                 )
             )
     return out
+
+
+def _unpaired(config: Config, sections: tuple[Section, ...], since: str) -> list[Note]:
+    """A rationale section edited without touching the line that carries its status (RK36).
+
+    RK15 refuses a pointer at a section that does not exist; this is the mirror, and the
+    more expensive direction: the line is the only thing `pick` reads and the section is
+    deleted on ship, so a requirement written only into the rationale cannot be picked,
+    cannot be shipped, and leaves with the section that held it. It happened three times in
+    one session here, every time by an author who had just learned something and wrote it
+    where the reasoning was rather than where the status is.
+
+    A **note**, not a finding, and this is the whole judgement: the check cannot tell a
+    typo in a paragraph from a smuggled requirement, and a gate that failed every honest
+    rationale edit would be bypassed within a week — which is worth less than a sentence
+    read at the moment of the commit. It is deliberately not semantic (§RK36 says so): the
+    signal is that the section was open and the line was not.
+    """
+    if not resolves(config, since):
+        # A repository with no commits has no HEAD, which is the shipped hook's default —
+        # so the initial commit is not the thing this fails on.
+        if since == "HEAD":
+            return []
+        raise HistoryUnavailable(f"{since} is not a revision this repository knows")
+
+    edited = touched_since(config, since, "improvements")
+    if not edited.changes:
+        return []
+    ids = config.schema.id_pattern()
+    mentioned = re.compile(rf"\*\*({re.escape(config.schema.prefix)}[1-9][0-9]*)\*\*")
+    touched_ids = {
+        found
+        for role in LINE_ROLES
+        for line in touched_since(config, since, role).lines
+        for found in mentioned.findall(line)
+    }
+    # The file as it was, so a *removal* is attributed to the section that held it. Without
+    # this a deleted section lands in whichever one now precedes the hole — and the section
+    # `ship` just deleted would be reported against its innocent neighbour every time.
+    before = anchored(
+        Document.parse(content_at(config, since, "improvements"), schema=config.schema)
+    )
+
+    opened: set[str] = set()
+    for change in edited.changes:
+        if not change.text.strip():
+            # A blank belongs to no section's prose, and counting it would attribute an
+            # appended section to the one whose trailing blank line it starts on.
+            continue
+        anchor = _section_at(sections if change.added else before, change.lineno)
+        if anchor is not None:
+            opened.add(anchor)
+
+    here = {section.anchor: section for section in sections}
+    out: list[Note] = []
+    for anchor in sorted(opened):
+        section = here.get(anchor)
+        if section is None or not ids.match(anchor) or anchor in touched_ids:
+            continue
+        out.append(
+            Note(
+                "section.unpaired",
+                config.relative(config.path("improvements")),
+                f"§{anchor} was edited and {anchor}'s line was not: the line is the only "
+                f"thing `pick` reads, and this section is deleted on ship — so a "
+                f"requirement written only here goes with it",
+                section.first,
+                anchor,
+            )
+        )
+    return out
+
+
+def _section_at(sections: tuple[Section, ...], lineno: int) -> str | None:
+    """The anchor whose span holds this line, or None for prose under no anchor."""
+    return next(
+        (s.anchor for s in sections if s.first <= lineno <= s.last),
+        None,
+    )
 
 
 def _prose_file(config: Config) -> Document | None:

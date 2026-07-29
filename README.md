@@ -114,10 +114,10 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 8 |
 | B — Authoring (insert, never hand-edit) | 1 | 6 |
 | C — Query (consult without reading the file) | 0 | 8 |
-| D — The gate | 1 | 7 |
+| D — The gate | 0 | 8 |
 | E — Adoption | 4 | 0 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 5 | 0 |
-| **Total** | 11 | 29 |
+| **Total** | 10 | 30 |
 
 **Next ready:**
 
@@ -163,6 +163,13 @@ repos:
 `--fix` repairs only what the format *derives* — the dep annotation, the pointer, dep order,
 an invisible codepoint, whitespace around a field — and leaves every editorial finding to a
 human, which is what keeps a first run on a real backlog down to a report somebody reads.
+
+Two things it reports **without** failing, because refusing them would fail an honest file
+and a gate that gets bypassed is worth nothing: what a `Block X` dep expands to (one token
+named 41 open tasks in the backlog measured above), and — with `--since HEAD`, which the
+pre-commit hook passes — a rationale section edited while the line carrying its status was
+not. The line is the only thing `pick` reads and the section is deleted on ship, so a
+requirement written only into the reasoning cannot be picked, shipped, or kept.
 
 The gate also holds the files nobody edits on purpose. An instruction file loaded on every
 turn spends the resource this tool exists to protect, and `agents.md` reached **186 KB** in
