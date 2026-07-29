@@ -146,4 +146,5 @@ The format could not enforce itself before Block D nor resist a hand-edit before
 stands in meanwhile. **RK23 replaces it with a skill** — trigger-loaded and identical everywhere;
 the two sections above go with it, a rule in two files being one two files can disagree about.
 
-Budget: **under 150 lines** — loaded every turn, so L5 governs it first of all.
+Budget: `[budgets]` in `roadkeep.toml`, held by `lint` (RK30) — a number stated here is what
+let Shio's reach 186 KB. Loaded every turn, so L5 governs this file first of all.

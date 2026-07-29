@@ -884,6 +884,7 @@ def _lint(config: Config, args: argparse.Namespace) -> int:
                     "checked": list(report.checked),
                     "lines": report.lines,
                     "sections": report.sections,
+                    "budgets": report.budgets,
                     "problems": report.problems,
                     "codes": report.codes(),
                     "findings": [_finding_json(f) for f in report.findings],
@@ -921,8 +922,9 @@ def _lint(config: Config, args: argparse.Namespace) -> int:
 
 
 def _scope(report: Report) -> str:
-    """What was read, in its own units — lines, and the sections the pointers resolve to."""
-    return f"{report.lines} line(s), {report.sections} section(s)"
+    """What was read, in its own units: task lines, sections, and budgeted files."""
+    scope = f"{report.lines} line(s), {report.sections} section(s)"
+    return scope if not report.budgets else f"{scope}, {report.budgets} budget(s)"
 
 
 def _codes(report: Report) -> str:

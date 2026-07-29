@@ -43,8 +43,18 @@ DEFAULT_PATHS: Mapping[str, str] = {
 }
 
 _TOP_KEYS = frozenset(
-    {"prefix", "ref_scheme", "files", "limits", "markers", "id_sources", "priority"}
+    {
+        "prefix",
+        "ref_scheme",
+        "files",
+        "limits",
+        "markers",
+        "id_sources",
+        "priority",
+        "budgets",
+    }
 )
+_BUDGET_KEYS = frozenset({"lines", "bytes"})
 _LIMIT_KEYS = {
     "symptom": "symptom_max",
     "why": "why_max",
@@ -58,6 +68,24 @@ _MARKER_KEYS = frozenset({"open", "shipped", "retired"})
 # unequal, so a config that declares one puts every line in the file permanently
 # out of round-trip. Refuse it where it is typed.
 _INVISIBLE = {"️": "U+FE0F", "‍": "U+200D", "​": "U+200B"}
+
+
+@dataclass(frozen=True, slots=True)
+class Budget:
+    """A file that is loaded every turn, and what it is allowed to cost (RK30).
+
+    Declared here rather than in the file's own prose, which is the arrangement that let
+    Shio's `agents.md` reach 186 KB while stating a 150-line rule at the bottom of itself:
+    a budget nothing reads is a budget nothing enforces. Both numbers are optional and at
+    least one is required — an entry that declares neither is refused, because it would
+    read as a budget and hold nobody to anything.
+    """
+
+    path: Path
+    lines: int | None = None
+    #: Size on disk. Bytes and not tokens: the tool guesses at nothing, and 186 KB was the
+    #: measurement that started this — roughly 46k tokens, spent on every single turn.
+    bytes: int | None = None
 
 
 class ConfigError(ValueError):
@@ -85,6 +113,9 @@ class Config:
     #: prose — which Shio has, and which a tool that reads it would be interpreting
     #: rather than validating (L4).
     priority: tuple[str, ...] = ()
+    #: Always-loaded files and what each may cost (RK30). Not a governed role: the tool
+    #: writes none of these, it only refuses to let one grow unwatched.
+    budgets: tuple[Budget, ...] = ()
     source: Path | None = None
 
     # -- construction ------------------------------------------------------
@@ -130,6 +161,7 @@ class Config:
             base / name for name in _string_list(data.get("id_sources"), "id_sources", problems)
         )
         priority = tuple(_string_list(data.get("priority"), "priority", problems))
+        budgets = _budgets(data.get("budgets"), base, problems)
 
         schema = None
         if not problems:
@@ -156,6 +188,7 @@ class Config:
             paths=paths,
             extra_id_sources=extras,
             priority=priority,
+            budgets=budgets,
             source=source,
         )
 
@@ -326,6 +359,56 @@ def _limits(raw: object, problems: list[str]) -> dict[str, int]:
             problems.append(f"limits.{key} must be an integer")
             continue
         out[field_name] = value
+    return out
+
+
+def _budgets(raw: object, base: Path, problems: list[str]) -> tuple[Budget, ...]:
+    """`[budgets]` — a path to what it may cost. Refused, like every other key here."""
+    if raw is None:
+        return ()
+    if not isinstance(raw, Mapping):
+        problems.append("budgets must be a table of path = { lines = …, bytes = … }")
+        return ()
+    out: list[Budget] = []
+    for name, value in raw.items():
+        where = f"budgets.'{name}'"
+        if not isinstance(value, Mapping):
+            problems.append(f"{where} must be a table with 'lines' and/or 'bytes'")
+            continue
+        _reject_unknown(value, _BUDGET_KEYS, f"{where}.", problems)
+        if Path(name).is_absolute():
+            problems.append(
+                f"{where} must be relative to the project root: an absolute path is "
+                f"checked in and then wrong on every other machine"
+            )
+            continue
+        if not _BUDGET_KEYS & set(value):
+            # Declared *nothing*, which is a different mistake from declaring a number
+            # this rejected: reporting both would send the reader to fix the wrong line.
+            problems.append(
+                f"{where} declares neither lines nor bytes: an entry that holds nobody "
+                f"to anything reads as a budget and is the arrangement being replaced"
+            )
+            continue
+        numbers = _positive(value, where, problems)
+        if numbers:
+            out.append(Budget(path=(base / name).resolve(), **numbers))
+    return tuple(out)
+
+
+def _positive(
+    value: Mapping[str, object], where: str, problems: list[str]
+) -> dict[str, int]:
+    """The budget's two numbers, each one a positive integer or a problem."""
+    out: dict[str, int] = {}
+    for key in sorted(_BUDGET_KEYS):
+        if key not in value:
+            continue
+        number = value[key]
+        if not isinstance(number, int) or isinstance(number, bool) or number < 1:
+            problems.append(f"{where}.{key} must be a positive integer")
+            continue
+        out[key] = number
     return out
 
 

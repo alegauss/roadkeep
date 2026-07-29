@@ -45,6 +45,7 @@
 - ✅ **RK15** **A pointer to a section that does not exist reads as a design that does** — the pointer is resolved in both directions and the paths a line claims against disk, so a design that does not exist can no longer read as one that does.
 - ✅ **RK16** **A report of ninety-two violations is a report nobody acts on** — the mechanical half is repaired from the parse and the editorial half is left, so the report that survives a first run on a real backlog is one somebody reads.
 - ✅ **RK17** **A gate that runs only on a developer's machine is not a gate** — the same command is declared once as an action and once as a pre-commit hook, so the exit code is enforced where the commit happens and where the push lands.
+- ✅ **RK30** **The instruction file loaded every turn has a budget nothing enforces** — the budget of a file loaded every turn is a declared number in the configuration and an exit code in the gate, instead of a sentence inside the file it governs.
 
 ## Block E — Adoption
 

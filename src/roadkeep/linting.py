@@ -42,12 +42,17 @@ pointer is read from the parsed ``ref`` field and never from the line's text: §
 own `why` quotes a pointer as an example, and a scan over the line would report that
 quotation as the broken pointer it is not.
 
-What is deliberately *not* here, because each is its own task and a gate that grew all
-of them at once would be a gate nobody could adopt: normalizing what is mechanical
-(RK16), the always-loaded file budgets (RK30), naming an invisible codepoint (RK34),
-and what a commit touched (RK36). This one answers a narrower question completely: *is
-every line in the governed files a line this format accepts, and does everything it
-points at exist?*
+And one file the tool never writes: **an always-loaded instruction file has a budget, and
+a budget stated in its own prose is what let Shio's `agents.md` reach 186 KB** while
+declaring 150 lines at the bottom of itself (RK30). So `roadkeep.toml` declares it and the
+exit code holds it, in lines and in bytes — the two units the reader actually pays.
+
+What is deliberately *not* here, because each is its own task and a gate that grew all of
+them at once would be a gate nobody could adopt: normalizing what is mechanical (RK16),
+naming an invisible codepoint (RK34), and what a commit touched (RK36). This one answers a
+narrower question completely: *is every line in the governed files a line this format
+accepts, does everything it points at exist, and did anything loaded every turn outgrow
+what it was allowed?*
 """
 
 from __future__ import annotations
@@ -104,6 +109,8 @@ class Report:
     lines: int
     #: Anchored sections read in the prose file — the other half of what was checked.
     sections: int = 0
+    #: Always-loaded files whose budget was measured (RK30).
+    budgets: int = 0
 
     @property
     def clean(self) -> bool:
@@ -145,6 +152,10 @@ def lint(config: Config) -> Report:
         findings.extend(_orphans(config, documents, prose, sections))
     findings.extend(_paths(config, documents))
 
+    for budget in config.budgets:
+        checked.append(config.relative(budget.path))
+    findings.extend(_budgets(config))
+
     order = {name: index for index, name in enumerate(checked)}
     findings.sort(key=lambda f: (order.get(f.file, len(order)), f.lineno or 0, f.code))
     return Report(
@@ -152,7 +163,45 @@ def lint(config: Config) -> Report:
         checked=tuple(checked),
         lines=sum(len(d.entries) for d in documents.values()),
         sections=len(sections),
+        budgets=len(config.budgets),
     )
+
+
+def _budgets(config: Config) -> list[Finding]:
+    """Every always-loaded file, against what it declared it may cost (RK30).
+
+    Measured in bytes off the disk and lines by counting terminators, so nothing here has
+    to decode a file the tool does not govern: a budget is about what a loader pays, and
+    an instruction file is not a format this tool has any business parsing (L4).
+    """
+    out: list[Finding] = []
+    for budget in config.budgets:
+        where = config.relative(budget.path)
+        if not budget.path.is_file():
+            out.append(
+                Finding(
+                    "budget.absent",
+                    where,
+                    "declares a budget and is not on disk: the entry holds nothing",
+                )
+            )
+            continue
+        raw = budget.path.read_bytes()
+        lines = raw.count(b"\n") + (0 if raw.endswith(b"\n") or not raw else 1)
+        for unit, measured, allowed in (
+            ("lines", lines, budget.lines),
+            ("bytes", len(raw), budget.bytes),
+        ):
+            if allowed is not None and measured > allowed:
+                out.append(
+                    Finding(
+                        f"budget.{unit}",
+                        where,
+                        f"{measured} {unit}, budget is {allowed}: this is loaded every "
+                        f"turn, so the overrun is paid on every turn",
+                    )
+                )
+    return out
 
 
 def _prose_file(config: Config) -> Document | None:

@@ -34,6 +34,17 @@ line = 320
 section = 250
 prose = 88
 
+[budgets]
+# Files loaded on every turn, and what each may cost (RK30). This budget lived in prose at
+# the bottom of agents.md until the gate could hold it — which is exactly the arrangement
+# that let Shio's reach 186 KB while declaring 150 lines about itself.
+# bytes as well as lines, and close to the reading (149 lines, 9686 bytes): a line budget
+# alone is met by writing longer lines, and 20 KB of "under 150 lines" is not a budget.
+"agents.md" = { lines = 150, bytes = 11000 }
+# CLAUDE.md only points at agents.md, and a pointer that grew a second paragraph is a
+# second place the rules live (RK23 collapses both into a skill).
+"CLAUDE.md" = { lines = 12, bytes = 600 }
+
 [markers]
 open = ["📋", "💭", "⏳", "🛠"]
 shipped = "✅"

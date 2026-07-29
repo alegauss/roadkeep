@@ -100,7 +100,12 @@ def test_this_repository_passes_its_own_gate():
         "docs/ROADMAP.md",
         "docs/CHANGELOG.md",
         "docs/IMPROVEMENTS.md",
+        "agents.md",
+        "CLAUDE.md",
     )
+    # The instruction files are inside the budget they declare, which is the reading that
+    # matters: this repository is the file that reached 186 KB in the project next door.
+    assert report.budgets == 2
 
 
 def test_a_clean_project_exits_zero(tmp_path, capsys):
@@ -415,6 +420,58 @@ def test_a_section_may_name_a_file_that_does_not_exist_yet(tmp_path):
         "It will write `.claude-plugin/marketplace.json` and nothing else.",
     )
     assert lint(project(tmp_path, improvements=forward)).clean
+
+
+# -- the file that is loaded every turn (RK30) --------------------------------
+
+
+def budgeted(tmp_path: Path, body: str, declaration: str) -> Config:
+    (tmp_path / "agents.md").write_text(body, encoding="utf-8", newline="")
+    return project(tmp_path, config=CONFIG + f"\n[budgets]\n{declaration}\n")
+
+
+def test_a_file_over_its_line_budget_fails(tmp_path):
+    # Shio's `agents.md` reached 186 KB while stating a 150-line rule about itself, which
+    # is the whole argument: a budget nothing reads is a budget nothing enforces.
+    report = lint(budgeted(tmp_path, "a\nb\nc\nd\n", '"agents.md" = { lines = 3 }'))
+    over = next(f for f in report.findings if f.code == "budget.lines")
+    assert "4 lines, budget is 3" in over.message and over.file == "agents.md"
+    assert "every turn" in over.message
+
+
+def test_a_file_inside_its_budget_passes(tmp_path):
+    assert lint(budgeted(tmp_path, "a\nb\n", '"agents.md" = { lines = 2 }')).clean
+
+
+def test_a_last_line_without_a_terminator_still_counts(tmp_path):
+    # Otherwise a file could sit one line over the budget by not ending with a newline.
+    report = lint(budgeted(tmp_path, "a\nb\nc", '"agents.md" = { lines = 2 }'))
+    assert "3 lines" in next(f for f in report.findings if f.code == "budget.lines").message
+
+
+def test_the_byte_budget_catches_what_the_line_budget_cannot(tmp_path):
+    # A line budget alone is met by writing longer lines, which is why RK30 names both.
+    long_lines = "x" * 400 + "\n" + "y" * 400 + "\n"
+    report = lint(budgeted(tmp_path, long_lines, '"agents.md" = { lines = 9, bytes = 500 }'))
+    assert [f.code for f in report.findings] == ["budget.bytes"]
+    assert "802 bytes, budget is 500" in report.findings[0].message
+
+
+def test_a_budgeted_file_that_is_absent_is_reported(tmp_path):
+    report = lint(project(tmp_path, config=CONFIG + '\n[budgets]\n"gone.md" = { lines = 5 }\n'))
+    absent = next(f for f in report.findings if f.code == "budget.absent")
+    assert absent.file == "gone.md" and absent.lineno is None
+
+
+def test_a_budget_is_read_from_the_configuration_and_not_from_the_file(tmp_path):
+    # L6: the number is per project, and the file it governs is not one the tool writes —
+    # so nothing here parses `agents.md`, it only measures what a loader pays for it.
+    config = budgeted(tmp_path, "a\n" * 40, '"agents.md" = { lines = 40 }')
+    assert lint(config).clean
+    (tmp_path / "roadkeep.toml").write_text(
+        CONFIG + '\n[budgets]\n"agents.md" = { lines = 39 }\n', encoding="utf-8"
+    )
+    assert not lint(Config.discover(tmp_path)).clean
 
 
 # -- the contract -------------------------------------------------------------

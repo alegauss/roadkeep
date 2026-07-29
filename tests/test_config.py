@@ -54,6 +54,15 @@ def test_its_own_documents_validate_under_its_own_config():
         assert [v for e in document.entries for v in document.schema.validate(e.task)] == []
 
 
+def test_its_own_instruction_files_declare_their_budget_here(tmp_path):
+    # RK30: this repository's `agents.md` stated its budget in its own prose, which is the
+    # arrangement that let Shio's reach 186 KB. The number lives in the config now.
+    config = Config.discover(HERE)
+    declared = {config.relative(b.path): b for b in config.budgets}
+    assert set(declared) == {"agents.md", "CLAUDE.md"}
+    assert declared["agents.md"].lines == 150 and declared["agents.md"].bytes == 11000
+
+
 def test_a_project_without_a_strategy_file_declares_none_rather_than_an_empty_one():
     config = Config.discover(HERE)
     assert not config.has("strategy")
@@ -197,6 +206,40 @@ def test_an_invisible_marker_is_refused_where_it_is_typed(tmp_path):
 def test_a_marker_set_that_can_say_done_is_refused(tmp_path):
     path = write(tmp_path, f'[markers]\nopen = ["{DESIGNED}", "{SHIPPED}"]\n')
     with pytest.raises(ConfigError, match="shipped marker"):
+        Config.load(path)
+
+
+def test_a_budget_reaches_the_config_with_both_units(tmp_path):
+    path = write(tmp_path, '[budgets]\n"agents.md" = { lines = 150, bytes = 11000 }\n')
+    (budget,) = Config.load(path).budgets
+    assert budget.path == (tmp_path / "agents.md").resolve()
+    assert (budget.lines, budget.bytes) == (150, 11000)
+
+
+def test_a_budget_that_declares_nothing_is_refused(tmp_path):
+    # It would read as a budget and hold nobody to anything, which is the arrangement
+    # RK30 exists to replace rather than reproduce one file over.
+    path = write(tmp_path, '[budgets]\n"agents.md" = {}\n')
+    with pytest.raises(ConfigError, match="declares neither lines nor bytes"):
+        Config.load(path)
+
+
+def test_a_budget_key_that_is_not_a_unit_is_refused(tmp_path):
+    path = write(tmp_path, '[budgets]\n"agents.md" = { tokens = 46000 }\n')
+    with pytest.raises(ConfigError, match="budgets.'agents.md'.tokens"):
+        Config.load(path)
+
+
+def test_a_budget_that_is_not_a_positive_integer_is_refused(tmp_path):
+    path = write(tmp_path, '[budgets]\n"agents.md" = { lines = 0, bytes = "lots" }\n')
+    with pytest.raises(ConfigError) as caught:
+        Config.load(path)
+    assert len(caught.value.problems) == 2
+
+
+def test_an_absolute_budget_path_is_refused_like_a_file_path(tmp_path):
+    path = write(tmp_path, '[budgets]\n"D:/Git/other/agents.md" = { lines = 150 }\n')
+    with pytest.raises(ConfigError, match="must be relative"):
         Config.load(path)
 
 

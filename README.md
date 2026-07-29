@@ -114,10 +114,10 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 8 |
 | B — Authoring (insert, never hand-edit) | 0 | 6 |
 | C — Query (consult without reading the file) | 0 | 8 |
-| D — The gate | 4 | 4 |
+| D — The gate | 3 | 5 |
 | E — Adoption | 4 | 0 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 5 | 0 |
-| **Total** | 13 | 26 |
+| **Total** | 12 | 27 |
 
 **Next ready:**
 
@@ -163,6 +163,16 @@ repos:
 `--fix` repairs only what the format *derives* — the dep annotation, the pointer, dep order,
 an invisible codepoint, whitespace around a field — and leaves every editorial finding to a
 human, which is what keeps a first run on a real backlog down to a report somebody reads.
+
+The gate also holds the files nobody edits on purpose. An instruction file loaded on every
+turn spends the resource this tool exists to protect, and `agents.md` reached **186 KB** in
+the project measured above while declaring a 150-line rule at the bottom of itself — so the
+budget moves out of its prose and into the configuration, in both units a reader pays:
+
+```toml
+[budgets]
+"agents.md" = { lines = 150, bytes = 11000 }   # this repository's own, held by `lint`
+```
 
 ## Non-goals
 

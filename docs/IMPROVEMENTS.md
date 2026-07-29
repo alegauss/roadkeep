@@ -63,14 +63,6 @@ judgement `pick` and a human both make from the line alone. The gate should say 
 collective dep expands to, because the cost of the abbreviation lands on whoever
 believes it.
 
-### §RK30 The context budget is a schema field
-
-`agents.md` declares its own 150-line budget in prose, which is precisely the
-arrangement that let Shio's reach 186 KB. A file loaded every turn spends the resource
-this tool exists to protect, so its budget belongs in the configuration and its
-overrun in the gate's exit code, alongside every other rule that turned out to need
-enforcing rather than stating.
-
 ### §RK34 Name the byte, not its consequence
 
 The format is structural Unicode — `—`, `→`, `§` and four emoji markers — so the
