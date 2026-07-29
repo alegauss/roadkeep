@@ -9,7 +9,9 @@ their own:
   answer an agent cannot audit gets verified by reading the file, which is the cost
   the command existed to remove (L5).
 * **Exit codes are the contract.** 0 success, 1 the gate says no (`lint`, from RK14),
-  2 usage or configuration error. A gate that reports in prose is advice.
+  2 usage or configuration error. A gate that reports in prose is advice. A refused
+  `add` (RK5) exits 2 and not 1: what has to change is the caller's input, not the
+  file — 1 is reserved for a file that is already wrong.
 * **Errors name the fix.** A `ConfigError` prints every problem it found, once.
 * **stdout is forced to UTF-8.** The markers are emoji and the default Windows console
   encoding is cp1252, which raises `UnicodeEncodeError` mid-write and leaves a
@@ -26,13 +28,15 @@ import argparse
 import json
 import sys
 from collections.abc import Sequence
-from pathlib import Path
 
 from roadkeep import __version__
+from roadkeep.authoring import add
 from roadkeep.backlog import Backlog
 from roadkeep.config import Config, ConfigError
+from roadkeep.document import RoundTripError
 from roadkeep.history import Commit, HistoryUnavailable, Origin, origin_of
 from roadkeep.ids import highest, next_id
+from roadkeep.schema import SchemaError
 
 EXIT_OK = 0
 EXIT_GATE = 1
@@ -68,6 +72,46 @@ def build_parser() -> argparse.ArgumentParser:
         help="include where the highest id was found, so the answer can be audited",
     )
     next_id_parser.set_defaults(handler=_next_id)
+
+    add_parser = subcommands.add_parser(
+        "add",
+        help="insert a task line under its block, refusing the fields at input",
+        description=(
+            "Compose, validate and insert one task line. Nothing is written unless "
+            "every field passes: a limit reported after the prose exists is a limit "
+            "discovered too late to save the tokens it was meant to save."
+        ),
+    )
+    add_parser.add_argument("--block", required=True, help="the block label, e.g. B")
+    add_parser.add_argument(
+        "--symptom", required=True, help="what does not work — a phrase, never a fix"
+    )
+    add_parser.add_argument("--why", required=True, help="one sentence, ending in a stop")
+    add_parser.add_argument(
+        "--dep",
+        action="append",
+        default=[],
+        dest="deps",
+        metavar="DEP",
+        help="a dep, repeatable: an id, 'Block X', a range, or work outside the backlog",
+    )
+    add_parser.add_argument(
+        "--status",
+        help="the status marker (default: the first marker roadkeep.toml declares)",
+    )
+    add_parser.add_argument(
+        "--id",
+        dest="task_id",
+        help="the id (default: derived, one past the highest anywhere)",
+    )
+    add_parser.add_argument(
+        "--ref",
+        help="the rationale anchor, for ref_scheme = 'outline' only; otherwise derived",
+    )
+    add_parser.add_argument(
+        "--json", action="store_true", help="the line, with the file and line it landed on"
+    )
+    add_parser.set_defaults(handler=_add)
 
     deps_parser = subcommands.add_parser(
         "deps",
@@ -131,13 +175,11 @@ def _next_id(config: Config, args: argparse.Namespace) -> int:
                 if top is None
                 else {
                     "id": top.id,
-                    "file": _relative(top.path, config.root),
+                    "file": config.relative(top.path),
                     "line": top.lineno,
                 },
                 "sources": [
-                    _relative(path, config.root)
-                    for path in config.id_sources()
-                    if path.is_file()
+                    config.relative(path) for path in config.id_sources() if path.is_file()
                 ],
             },
             indent=2,
@@ -146,12 +188,64 @@ def _next_id(config: Config, args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _add(config: Config, args: argparse.Namespace) -> int:
+    try:
+        insertion = add(
+            config,
+            block=args.block,
+            symptom=args.symptom,
+            why=args.why,
+            status=args.status,
+            deps=args.deps,
+            ref=args.ref,
+            task_id=args.task_id,
+        )
+    except SchemaError as error:
+        # Every violation at once, each naming its limit: a refusal that reports one
+        # problem per run turns a single fix into a conversation.
+        print("roadkeep: refused, nothing written:", file=sys.stderr)
+        for violation in error.violations:
+            print(f"  {violation}", file=sys.stderr)
+        return EXIT_USAGE
+    except RoundTripError as error:
+        # The file drifted before this command ran, so the gate says no: normalizing
+        # a line the parser may have misread is the corruption L3 forbids.
+        print(f"roadkeep: {error}", file=sys.stderr)
+        return EXIT_GATE
+    except KeyError as error:
+        print(f"roadkeep: {error.args[0]}", file=sys.stderr)
+        return EXIT_USAGE
+    except ValueError as error:
+        print(f"roadkeep: {error}", file=sys.stderr)
+        return EXIT_USAGE
+    except OSError as error:
+        print(f"roadkeep: {error}", file=sys.stderr)
+        return EXIT_USAGE
+
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "id": insertion.entry.task.id,
+                    "file": config.relative(config.path("roadmap")),
+                    "line": insertion.lineno,
+                    "rendered": insertion.rendered,
+                    "length": len(insertion.rendered),
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+    print(insertion.rendered)
+    return EXIT_OK
+
+
 def _deps(config: Config, args: argparse.Namespace) -> int:
     backlog = Backlog.load(config)
     entry = backlog.entry(args.id)
     if entry is None:
         print(
-            f"roadkeep: no open task {args.id} in {_relative(config.path('roadmap'), config.root)}"
+            f"roadkeep: no open task {args.id} in {config.relative(config.path('roadmap'))}"
             + (" (it is in the changelog)" if args.id in backlog.shipped() else ""),
             file=sys.stderr,
         )
@@ -235,14 +329,6 @@ def _commits_json(origin: Origin) -> dict[str, object]:
         "proposed_in": one(origin.proposed_in),
         "shipped_in": one(origin.shipped_in),
     }
-
-
-def _relative(path: Path, root: Path) -> str:
-    """Paths are reported relative to the project, so output is machine-independent."""
-    try:
-        return path.relative_to(root).as_posix()
-    except ValueError:
-        return path.as_posix()
 
 
 def _force_utf8(stream: object) -> None:

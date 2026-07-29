@@ -324,7 +324,7 @@ def _read_bullet(body: str, schema: Schema, block: str) -> Task | str | None:
 
     deps: tuple[Dep, ...] = ()
     if raw_deps is not None and raw_deps != NO_DEPS:
-        deps = _read_deps(raw_deps, schema)
+        deps = read_deps(raw_deps, schema)
 
     return Task(
         id=match.group("id"),
@@ -337,8 +337,12 @@ def _read_bullet(body: str, schema: Schema, block: str) -> Task | str | None:
     )
 
 
-def _read_deps(raw: str, schema: Schema) -> tuple[Dep, ...]:
+def read_deps(raw: str, schema: Schema) -> tuple[Dep, ...]:
     """Split the field; never reject the line over it.
+
+    Public because `add` (RK5) reads the deps an author types with the same code that
+    reads the ones already in the file — a `(deps: …)` field the writer and the reader
+    parse differently is a field that stops round-tripping on the next write.
 
     A dep token the schema will not accept — Shio's ``Block P``, Turing's ``real
     design partners`` — still round-trips, so it is read as an id and reported by

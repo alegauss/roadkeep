@@ -5,12 +5,11 @@
 point of insertion instead of a convention an author is asked to remember. Shipped as
 a Claude Code plugin, because the author to constrain is usually an agent.
 
-**The problem it solves, measured.** In the Viglet Shio repository: 92 roadmap lines
-averaging **142 words** against a one-sentence rule, worst **1406 characters**; an
-`agents.md` that reached **186 KB** by absorbing the rationale of every shipped task.
-Six of the eight worst lines were written in the session that then diagnosed the
-problem — the drift is invited by the process, not caused by inattention. Full
-measurement: [docs/IMPROVEMENTS.md §0.1](docs/IMPROVEMENTS.md).
+**The problem it solves, measured.** In Viglet Shio: 92 roadmap lines averaging **142
+words** against a one-sentence rule, worst **1406 characters**; an `agents.md` that
+reached **186 KB** absorbing the rationale of every shipped task. Six of the eight worst
+lines were written in the session that then diagnosed the problem — the drift is invited
+by the process. Full measurement: [docs/IMPROVEMENTS.md §0.1](docs/IMPROVEMENTS.md).
 
 **The insight that decides every design question.** *The saving is the analysis, not
 the characters.* A linter reports after the prose exists, when the tokens are already
@@ -45,6 +44,7 @@ src/roadkeep/          the package (src layout, importable via pytest pythonpath
   document.py          RK2 — Document.parse/render, Entry, Reject, RoundTripError
   config.py            RK3 — Config.discover/document; refuses an unknown key
   ids.py               RK4 — scan/highest/next_id across every configured source
+  authoring.py         RK5 — add(): compose/validate/place; nothing written unless all
   backlog.py           RK28/RK37 — resolve/readiness; four dep kinds, four answers
   history.py           RK31 — origin_of(): the shipping commit, derived from git
   cli.py               the command surface; one subparser per task, exit 0/1/2
@@ -54,7 +54,8 @@ tests/                 pytest; docs/ROADMAP.md is a fixture, not a mock
 `Schema.render` is the only writer of the line format, `Schema.validate` the only
 reader of the rules, and `Document` the only reader of a file — it keeps every source
 line verbatim and **every mutator refuses the whole file** when a line it parsed would
-render back differently. Before writing a command:
+render back differently. Never construct a task line with an f-string; before writing a
+command:
 
 - Get documents from `Config.document(role)`, never by choosing a schema at the call
   site: the changelog is `schema.as_ledger()` (✅, no deps, no pointer), not a second
@@ -62,36 +63,37 @@ render back differently. Before writing a command:
 - A marker-bearing line the grammar rejects becomes a `Reject` **with a reason**, never
   a silent skip; a dep the parser cannot type still parses, so the line stays counted
   and `lint` reports it. That split is deliberate.
-- Never construct a task line with an f-string. `Schema.render` or nothing.
 
 ## This repo's own docs are the conformance fixture
 
 `roadkeep lint` **must pass on `docs/`** — the format is proven by the artefact, not
 asserted in a README. A limit that cannot express these lines is the wrong limit rather
 than a set of wrong lines, so this repository is the first thing a schema change must
-still validate. The suite does it under this repo's own `roadkeep.toml`, which is what
-makes L6 a fact here and not a claim about other people's projects.
+still validate — under its own `roadkeep.toml`, which is what makes L6 a fact here.
 
-Current reading (RK14/RK15 replace this hand-verification): 28 tasks, longest line
-**305** chars against a 320 cap, 28/28 pointers resolve, no orphan section.
+Current reading (RK14/RK15 replace this hand-verification): 27 tasks, longest line
+**305** chars against a 320 cap, 27/27 pointers resolve, no orphan section.
 
-## Writing a task line — until `roadkeep add` exists
+## Writing a task line — call `add`, never type the format
 
 ```
-- <marker> **RK<n>** (deps: <RK<n>, … | —>) **<symptom>** — <one sentence> → §RK<n>
+python -m roadkeep.cli add --block B --symptom "<what does not work>" \
+  --why "<one sentence.>" [--dep "RK5 ✅"] [--status 💭] [--id RK9] [--json]
 ```
 
-Markers: 📋 designed · 💭 idea · ⏳ partial · 🛠 in-progress. ✅ only in `CHANGELOG.md`
-and in a `(deps: RK1 ✅)` annotation. Four rules, and they are the schema RK1 encodes:
+The id, the pointer and the marker are derived; the block must already have a heading.
+A refusal exits 2 with the length and the limit and writes nothing, which leaves you
+the two rules a schema cannot check:
 
 1. **`symptom` states what does not work** — never a solution name. A line named after
    its fix cannot be falsified, so it never gets closed, only abandoned.
 2. **`why` is one sentence.** A second sentence is the signal the content belongs in
    `IMPROVEMENTS.md`, which is what the pointer addresses.
-3. **≤320 characters rendered** (`symptom` ≤120, `why` ≤200).
-4. **The pointer is the id** — `→ §RK7` resolves to `### §RK7`, derived on render
-   (RK27), so there is nothing to choose and nothing to renumber on ship. Projects
-   numbered by hand set `ref_scheme = "outline"` instead.
+
+Enforced for you: ≤320 rendered (`symptom` ≤120, `why` ≤200); the marker from 📋 designed
+· 💭 idea · ⏳ partial · 🛠 in-progress (✅ only in `CHANGELOG.md` and in a `(deps: RK1 ✅)`
+annotation); `→ §RK<n>` derived from the id (RK27), unless `ref_scheme = "outline"`.
+**Shipping is still four hand edits until RK6**, and `add` is roadmap-only.
 
 **Ask, don't count** (all take `--json`): `python -m roadkeep.cli next-id` for the next
 id — never fill a gap, a retired id is never reused; `… deps <id>` resolves deps naming a
@@ -109,9 +111,8 @@ not priority: **A** (model) → **B** (authoring) → **C** (query) → **D** (g
 ## Build and test
 
 - **Python ≥3.11** (`tomllib` is stdlib from 3.11; 3.13.14 is installed here).
-- **Zero runtime dependencies.** `argparse` + `tomllib`, not `click` + `pydantic`. A
-  tool meant to run as `uvx roadkeep` in someone else's CI pays for every dependency,
-  and the schema is 200 lines of validation, not a framework.
+- **Zero runtime dependencies.** `argparse` + `tomllib`, not `click` + `pydantic`: a tool
+  meant to run as `uvx roadkeep` in someone else's CI pays for every dependency.
 - `uv` is **not** installed here — `python -m pytest` from the repo root (`pythonpath =
   ["src"]` is set, so no install step). Only dev dependency: `pip install --user pytest`.
 - Round-trip (L3) is a **property test over real files**: `docs/` plus Shio's and
@@ -134,17 +135,15 @@ iteration, commit at the end of each.
 ## Non-goals are binding
 
 [docs/ROADMAP.md](docs/ROADMAP.md) → "Non-goals". The one most likely to be violated by
-a well-meaning suggestion: **no model and no prompts inside the tool.** It validates
-and renders; it never writes the `symptom` or the rationale. A generator would
-reintroduce precisely the drift this exists to stop.
+a well-meaning suggestion: **no model and no prompts inside the tool.** It never writes
+the `symptom` or the rationale — a generator would reintroduce exactly the drift this
+exists to stop.
 
 ## This file is scaffolding
 
-It exists because the format cannot enforce itself until Block D, and cannot resist a
+It exists because the format cannot enforce itself until Block D and cannot resist a
 hand-edit until Block F. **RK23 replaces it with a skill** — trigger-loaded, shipped by
-the plugin, identical across every project. When RK23 lands, everything above under
-"Writing a task line" and "Picking work" is deleted from here, because a rule that
-lives in two files is a rule two files can disagree about.
+the plugin, identical everywhere. When it lands, "Writing a task line" and "Picking work"
+are deleted from here: a rule living in two files is a rule two files can disagree about.
 
-Budget: this file stays under **150 lines**. It is loaded every turn, so it is governed
-by L5 before it governs anything else.
+Budget: **under 150 lines** — loaded every turn, so L5 governs it first of all.

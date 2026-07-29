@@ -50,13 +50,6 @@ session doing.
 
 ## Block B — Authoring
 
-### §RK5 `add`
-
-Takes the fields, validates against the schema, renders the canonical line, inserts it
-under its block. Refusal messages carry the limit, the actual length, and the
-suggestion to move the remainder to the improvements file — an error that teaches is
-the difference between a guardrail and an obstacle.
-
 ### §RK6 `ship`
 
 Shipping is four coordinated edits across three files, which is why one is always

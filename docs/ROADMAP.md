@@ -24,11 +24,10 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK5** (deps: RK1 ✅, RK2 ✅, RK3 ✅) **Writing the line by hand is where the prose leaks in** — `add` takes the fields, refuses over-length at input, renders the canonical line and inserts it under its block. → §RK5
-- 📋 **RK6** (deps: RK5) **Shipping a task is four edits across three files, so one is always missed** — `ship` moves the entry to the changelog under its block, drops its improvements section, and leaves the roadmap a pointer or nothing. → §RK6
-- 📋 **RK7** (deps: RK5) **Two files can disagree about one task's status** — `status` writes the marker in the roadmap only, and fails if a sibling file carries one. → §RK7
+- 📋 **RK6** (deps: RK5 ✅) **Shipping a task is four edits across three files, so one is always missed** — `ship` moves the entry to the changelog under its block, drops its improvements section, and leaves the roadmap a pointer or nothing. → §RK6
+- 📋 **RK7** (deps: RK5 ✅) **Two files can disagree about one task's status** — `status` writes the marker in the roadmap only, and fails if a sibling file carries one. → §RK7
 - 📋 **RK8** (deps: RK6) **A dep annotation goes stale the moment its target ships** — derive the `(deps: RK1 ✅)` markers on every write so a shipped dep never reads as pending. → §RK8
-- 📋 **RK9** (deps: RK5) **The four files are not four of the same thing, and prose has no line to validate** — strategy and improvements are sections, not bullets, so `section` governs them by heading and word budget. → §RK9
+- 📋 **RK9** (deps: RK5 ✅) **The four files are not four of the same thing, and prose has no line to validate** — strategy and improvements are sections, not bullets, so `section` governs them by heading and word budget. → §RK9
 
 ## Block C — Query (consult without reading the file)
 
@@ -59,9 +58,9 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK22** (deps: RK5, RK14) **An agent can hand-edit the file the CLI is supposed to own** — a `PreToolUse` hook that denies `Edit`/`Write` on the governed files and names the command to call instead is the only barrier an agent cannot route around. → §RK22
+- 📋 **RK22** (deps: RK5 ✅, RK14) **An agent can hand-edit the file the CLI is supposed to own** — a `PreToolUse` hook that denies `Edit`/`Write` on the governed files and names the command to call instead is the only barrier an agent cannot route around. → §RK22
 - 📋 **RK23** (deps: RK22) **Rules resident every turn spend the budget they exist to protect** — package the format as a skill with trigger phrases so it loads when a governed file is in play, and not before. → §RK23
-- 📋 **RK24** (deps: RK5, RK10) **Shelling out puts argument names in prose, where they are guessed** — expose `add`/`ship`/`pick`/`lint` as MCP tools so the field schema *is* the tool's input schema. → §RK24
+- 📋 **RK24** (deps: RK5 ✅, RK10) **Shelling out puts argument names in prose, where they are guessed** — expose `add`/`ship`/`pick`/`lint` as MCP tools so the field schema *is* the tool's input schema. → §RK24
 - 📋 **RK25** (deps: RK23) **A human driving the same standard should not have to learn the CLI** — `/roadkeep:add`, `/roadkeep:ship`, `/roadkeep:pick` and `/roadkeep:lint` over the one engine. → §RK25
 - 💭 **RK26** (deps: RK22, RK19) **A plugin installed by hand is a plugin one project has** — publish a `marketplace.json` so `/plugin install` reaches it. → §RK26
 

@@ -160,6 +160,13 @@ class Config:
         """Load a governed file under the right schema — the one seam every command uses."""
         return Document.load(self.path(role), self.schema_for(role))
 
+    def relative(self, path: Path) -> str:
+        """A path as the project spells it — output has to be machine-independent."""
+        try:
+            return Path(path).resolve().relative_to(self.root).as_posix()
+        except ValueError:
+            return Path(path).as_posix()
+
     def missing(self) -> tuple[str, ...]:
         """Declared roles with no file on disk — what `init` creates and `lint` reports."""
         return tuple(role for role, path in self.paths.items() if not path.exists())
