@@ -47,7 +47,7 @@ src/roadkeep/          the package (src layout, importable via pytest pythonpath
   markers.py           RK8 — derive/refresh: the dep annotation is a derived field
   sections.py          RK9 — find/add/drop: prose by anchor, word budget, block-placed
   backlog.py           RK28/RK37 — resolve/readiness; four dep kinds, four answers
-  counting.py picking.py showing.py graph.py  RK10-13 — counts, pick, join, both directions
+  counting.py picking.py showing.py graph.py briefing.py  RK10-13/29 — the query surface
   history.py           RK31 — origin_of(): the shipping commit, derived from git
   cli.py               the surface; one subparser per task, exit 0/1/2, RK38's event
 tests/                 pytest; docs/ROADMAP.md is a fixture, not a mock
@@ -96,19 +96,19 @@ That leaves the two rules a schema cannot check:
 Markers: 📋 designed · 💭 idea · ⏳ partial · 🛠 in-progress. Limits: `symptom` ≤120, `why`
 ≤200, rendered line ≤320, section ≤250 words — all per project (L6).
 
-**Ask, don't count** (all take `--json`): `… next-id` for the next id — never fill a gap;
-`… list|stats|audit [--block C]` for the lines, the counts, and every marker line neither
-could read (RK10); `… show <id>` joins the line, its section and the paths its text names,
-an absent section carrying *why* (RK12); `… deps <id>` types each dep — a task, a `Block X`,
-a range, or outside work, the last *unresolvable* — then walks the graph: the blocker chain,
-the cycle, and what shipping it unblocks (RK13/RK28/RK37); `… origin <id> --why` (RK31).
+**Ask, don't count** (all take `--json`): **`… brief [<id>]` is the one call that starts a
+task** — line, rationale, deps resolved, blocker chain, what it unblocks, the non-goals,
+bounded to fit a tool result; no id means whatever `pick` chose (RK29). Narrower: `… next-id`
+never fills a gap; `… list|stats|audit [--block C]` for the lines, the counts and every
+marker line neither could read (RK10); `… show <id>` joins one line, section and paths (RK12);
+`… deps <id>` types each dep and walks the graph (RK13/RK28/RK37); `… origin <id> --why` (RK31).
 
 ## Picking work
 
-`… pick` applies the rule and prints why (RK11): 🛠 first, then `priority` in `roadkeep.toml`,
-then the lowest id whose `deps` all shipped — never one blocked outside. Blocks run by
-dependency, not priority: **A** model → **B** authoring → **C** query → **D** gate → **E**
-adoption → **F** plugin. No guardrail before D, none an agent cannot route around before F.
+`… brief` picks and briefs in one call, printing why (RK11/RK29): 🛠 first, then `priority`
+in `roadkeep.toml`, then the lowest id whose `deps` all shipped, never one blocked outside.
+Blocks run by dependency, not priority: **A** model → **B** authoring → **C** query → **D**
+gate → **E** adoption → **F** plugin — no guardrail before D, none unroutable before F.
 
 ## Build and test
 

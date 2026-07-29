@@ -182,9 +182,11 @@ def test_the_command_prints_the_line_then_the_prose(tmp_path, capsys):
     assert out.rstrip().endswith("`roadkeep.toml`.")
 
 
-def test_brief_keeps_the_pointer_and_drops_the_prose(tmp_path, capsys):
+def test_no_body_keeps_the_pointer_and_drops_the_prose(tmp_path, capsys):
+    # `--no-body`, not `--brief`: `brief` is the command that starts a task (RK29), and
+    # one word meaning two things is a word an agent guesses wrong.
     project(tmp_path)
-    assert main(["-C", str(tmp_path), "show", "RK1", "--brief"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "show", "RK1", "--no-body"]) == EXIT_OK
     out = capsys.readouterr().out
     assert "IMPROVEMENTS.md:5" in out
     assert "The reasoning the line has no room for" not in out
@@ -205,9 +207,9 @@ def test_json_carries_the_section_the_absence_and_the_paths(tmp_path, capsys):
     assert payload["section"]["body"].startswith("The reasoning")
 
 
-def test_json_brief_drops_the_body_and_keeps_the_count(tmp_path, capsys):
+def test_json_no_body_drops_the_body_and_keeps_the_count(tmp_path, capsys):
     project(tmp_path)
-    assert main(["-C", str(tmp_path), "show", "RK1", "--brief", "--json"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "show", "RK1", "--no-body", "--json"]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
     assert payload["section"]["body"] is None and payload["section"]["words"] == 13
 

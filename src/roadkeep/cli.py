@@ -37,6 +37,7 @@ from collections.abc import Mapping, Sequence
 from roadkeep import __version__
 from roadkeep.authoring import add, set_status
 from roadkeep.backlog import Backlog
+from roadkeep.briefing import Brief, brief
 from roadkeep.config import Config, ConfigError
 from roadkeep.counting import Census
 from roadkeep.document import Document, Entry, Reject, RoundTripError
@@ -250,6 +251,21 @@ def build_parser() -> argparse.ArgumentParser:
     _counting_flags(audit_parser)
     audit_parser.set_defaults(handler=_audit)
 
+    brief_parser = subcommands.add_parser(
+        "brief",
+        help="everything it costs to start one task, in one call",
+        description=(
+            "Compose the line, its rationale, its resolved deps, the blocker chain, what "
+            "shipping it unblocks and the non-goals that bind it. With no id, briefs "
+            "whatever `pick` would choose, which makes the first call the only one."
+        ),
+    )
+    brief_parser.add_argument(
+        "id", nargs="?", help="the task; omitted, `pick` chooses it"
+    )
+    brief_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    brief_parser.set_defaults(handler=_brief)
+
     show_parser = subcommands.add_parser(
         "show",
         help="one task: its line, its rationale section and the paths it names",
@@ -261,7 +277,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     show_parser.add_argument("id", help="the task, e.g. RK12")
     show_parser.add_argument(
-        "--brief",
+        "--no-body",
+        dest="no_body",
         action="store_true",
         help="omit the section's prose, keeping the line and where the prose is",
     )
@@ -765,6 +782,73 @@ def _miss_json(miss: Reject) -> dict[str, object]:
     }
 
 
+def _brief(config: Config, args: argparse.Namespace) -> int:
+    try:
+        gathered = brief(config, args.id)
+    except (KeyError, OSError) as error:
+        return _refused(error)
+
+    view, task = gathered.view, gathered.task
+    if args.json:
+        print(json.dumps(_brief_json(gathered), indent=2))
+        return EXIT_OK
+
+    print(f"{task.id}  Block {task.block}  {task.status}  {gathered.readiness}  "
+          f"{view.file}:{view.entry.lineno}")
+    if gathered.picked:
+        print(f"  picked   {gathered.picked}")
+    print(f"  symptom  {task.symptom}")
+    print(f"  why      {task.why}")
+    for resolution in gathered.deps:
+        print(f"  dep      {resolution.dep.id}  {resolution.status}  {resolution.detail}")
+    for chain in gathered.chains:
+        print(f"  chain    {chain.render(task.id)}  — {chain.detail}")
+    _print_leverage(gathered.leverage)
+    for referenced in view.paths:
+        print(f"  path     {referenced.path}{'' if referenced.exists else '  (missing)'}")
+    for non_goal in gathered.non_goals:
+        print(f"  not      {non_goal}")
+    if view.section is not None:
+        print()
+        print(f"{'#' * view.section.level} §{view.section.anchor} {view.section.title}")
+        print()
+        print(view.section.body)
+    else:
+        print(f"  section  none — {view.section_absence}")
+    return EXIT_OK
+
+
+def _brief_json(gathered: Brief) -> dict[str, object]:
+    return {
+        **_view_json(gathered.view, no_body=False),
+        "readiness": str(gathered.readiness),
+        "picked": gathered.picked or None,
+        "deps_resolved": [
+            {
+                "dep": r.dep.id,
+                "kind": str(r.kind),
+                "status": str(r.status),
+                "detail": r.detail,
+            }
+            for r in gathered.deps
+        ],
+        "chains": [
+            {
+                "path": [gathered.task.id, *(hop.target for hop in c.hops)],
+                "end": str(c.end),
+                "detail": c.detail,
+            }
+            for c in gathered.chains
+        ],
+        "unblocks": {
+            "count": gathered.leverage.count,
+            "of": gathered.leverage.of,
+            "transitive": list(gathered.leverage.transitive),
+        },
+        "non_goals": list(gathered.non_goals),
+    }
+
+
 def _show(config: Config, args: argparse.Namespace) -> int:
     try:
         view = show(config, args.id)
@@ -774,7 +858,7 @@ def _show(config: Config, args: argparse.Namespace) -> int:
     task = view.task
     section = view.section
     if args.json:
-        print(json.dumps(_view_json(view, brief=args.brief), indent=2))
+        print(json.dumps(_view_json(view, no_body=args.no_body), indent=2))
         return EXIT_OK
 
     state = "shipped" if view.shipped else "open"
@@ -795,7 +879,7 @@ def _show(config: Config, args: argparse.Namespace) -> int:
         print(f"  section  none — {view.section_absence}")
     for referenced in view.paths:
         print(f"  path     {referenced.path}{'' if referenced.exists else '  (missing)'}")
-    if section is not None and not args.brief:
+    if section is not None and not args.no_body:
         print()
         print(f"{'#' * section.level} §{section.anchor} {section.title}")
         print()
@@ -803,9 +887,9 @@ def _show(config: Config, args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
-def _view_json(view: View, brief: bool) -> dict[str, object]:
+def _view_json(view: View, no_body: bool) -> dict[str, object]:
     task, section = view.task, view.section
-    body = None if brief or section is None else section.body
+    body = None if no_body or section is None else section.body
     return {
         "id": task.id,
         "status": task.status,

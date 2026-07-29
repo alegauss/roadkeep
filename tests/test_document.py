@@ -42,10 +42,11 @@ FOREIGN = [
     (Path("D:/Git/viglet/turing/latest/docs/ROADMAP.md"), OUTLINE_T, 25),
 ]
 
-# Lower bounds, not counts: shipping a task moves a line between these two files
-# every commit, and a test that has to be edited by every commit gets edited without
-# being read.
-OWN = [(ROADMAP, Schema(), 20), (CHANGELOG, Schema().as_ledger(), 1)]
+# Lower bounds, not counts: shipping a task moves a line between these two files every
+# commit, and a test that has to be edited by every commit gets edited without being read.
+# The roadmap's bound is the slack one because it *shrinks* as work ships; the ledger's is
+# the one worth raising, because that file only grows.
+OWN = [(ROADMAP, Schema(), 10), (CHANGELOG, Schema().as_ledger(), 10)]
 
 LINE = (
     f"- {DESIGNED} **RK9** (deps: RK5 {SHIPPED}) **A symptom** "

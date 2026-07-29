@@ -52,15 +52,6 @@ session doing.
 
 ## Block C — Query
 
-### §RK29 One call to start a task
-
-Starting RK1 in this repository cost reading ROADMAP.md and IMPROVEMENTS.md end to end
-— some 5k tokens to learn one task, of which one line and one paragraph mattered.
-`pick` and `show` each answer half the question. The accelerator is one call that
-returns the line, its rationale, its deps' resolved status, the non-goals that bind it
-and the paths it will touch: bounded output is the point, because an answer that fits
-in a tool result is an answer that costs nothing to consult twice.
-
 ### §RK32 A retired id is a decision with no record
 
 Ids are non-contiguous by design and a retired one is never reused, so a gap is normal
