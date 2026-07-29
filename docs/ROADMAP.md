@@ -22,8 +22,6 @@
 
 ## Block A — The model (a task is data before it is a line)
 
-- 📋 **RK37** (deps: RK28 ✅) **A dep on a block that does not exist resolves as satisfied** — emptiness is read as completion without checking the block was ever declared, so a mistyped or renamed block unblocks work that nothing shipped. → §RK37
-
 ## Block B — Authoring (insert, never hand-edit)
 
 - 📋 **RK5** (deps: RK1 ✅, RK2 ✅, RK3 ✅) **Writing the line by hand is where the prose leaks in** — `add` takes the fields, refuses over-length at input, renders the canonical line and inserts it under its block. → §RK5

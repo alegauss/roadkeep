@@ -11,7 +11,9 @@ and on things that are not tracked work at all. So:
 
 * a **task** dep resolves against the roadmap and the ledger;
 * a **block** dep resolves against that block's own emptiness — a block with open
-  tasks is not done, and a block with none left is;
+  tasks is not done, and a block with none left is — but only once a heading
+  declares the block, because blocks are discovered and never registered, so a
+  block nothing declares is empty for a reason that is not completion (RK37);
 * an **external** dep is :attr:`DepStatus.UNRESOLVABLE` forever, and a task carrying
   one is never *ready*, it is blocked outside the backlog. Naming that is the
   difference between an answer and a guess.
@@ -94,6 +96,22 @@ class Backlog:
     def open_in_block(self, label: str) -> tuple[str, ...]:
         return tuple(e.task.id for e in self.roadmap.block(label))
 
+    def declared_blocks(self) -> frozenset[str]:
+        """Every block label a heading declares, across both files.
+
+        The ledger counts: a block whose last task shipped keeps its heading there
+        and may have lost the one in the roadmap. This is the only record that a
+        block exists at all — nothing registers one — which is why an undeclared
+        block and a finished one are otherwise indistinguishable.
+        """
+        return frozenset(
+            heading.label
+            for document in (self.roadmap, self.ledger)
+            if document is not None
+            for heading in document.headings
+            if heading.label
+        )
+
     # -- resolving ---------------------------------------------------------
 
     def resolve_dep(self, dep: Dep) -> Resolution:
@@ -132,6 +150,17 @@ class Backlog:
 
     def _resolve_block(self, dep: Dep, kind: DepKind) -> Resolution:
         label = self.config.schema.block_of_dep(dep)
+        if label not in self.declared_blocks():
+            # Not UNKNOWN: an undeclared block is not a gap in a file, it is a dep
+            # this backlog cannot answer at all — the same answer an external dep
+            # gets, so that neither is ever counted as done by being empty.
+            return Resolution(
+                dep,
+                kind,
+                DepStatus.UNRESOLVABLE,
+                f"no heading declares Block {label}: a block nothing declares is "
+                f"not a block with nothing open",
+            )
         still_open = self.open_in_block(label)
         if still_open:
             return Resolution(

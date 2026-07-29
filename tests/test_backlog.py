@@ -141,13 +141,28 @@ def test_a_block_dep_resolves_against_that_blocks_open_tasks(tmp_path):
     assert "RK5" in resolution.detail
 
 
-def test_a_block_with_nothing_open_satisfies_the_dep(tmp_path):
+def test_a_declared_block_with_nothing_open_satisfies_the_dep(tmp_path):
     config = write_project(
         tmp_path, "## Block A — The model\n" + line("RK9", "Block B") + "## Block B — Authoring\n"
     )
     backlog = Backlog.load(config)
     (resolution,) = backlog.resolve(backlog.entry("RK9").task)
     assert resolution.status is DepStatus.SHIPPED
+
+
+def test_a_block_declared_only_by_the_ledger_still_resolves(tmp_path):
+    # The last task of a block ships, its roadmap heading goes, and the dep must not
+    # flip from satisfied to unresolvable because the file it emptied stopped saying
+    # the block ever existed.
+    config = write_project(
+        tmp_path,
+        "## Block A — The model\n" + line("RK9", "Block B"),
+        "## Block B — Authoring\n" + shipped("RK5"),
+    )
+    backlog = Backlog.load(config)
+    (resolution,) = backlog.resolve(backlog.entry("RK9").task)
+    assert resolution.status is DepStatus.SHIPPED
+    assert backlog.declared_blocks() == {"A", "B"}
 
 
 def test_a_range_dep_resolves_against_the_ids_inside_it(tmp_path):
@@ -208,6 +223,33 @@ def test_a_task_blocked_outside_the_backlog_is_not_merely_blocked(tmp_path):
     }
 
 
+def test_a_block_no_heading_declares_is_unresolvable_not_satisfied(tmp_path):
+    # RK37: emptiness is not completion. `Block Z` has nothing open for the same
+    # reason a mistyped or renamed block has nothing open — it does not exist.
+    config = write_project(tmp_path, "## Block A — The model\n" + line("RK9", "Block Z"))
+    backlog = Backlog.load(config)
+    (resolution,) = backlog.resolve(backlog.entry("RK9").task)
+    assert resolution.kind is DepKind.BLOCK
+    assert resolution.status is DepStatus.UNRESOLVABLE
+    assert not resolution.satisfied
+    assert "nothing declares" in resolution.detail
+
+
+def test_an_undeclared_block_never_reads_as_ready(tmp_path):
+    # The failure this closes: RK9 waited on a block nothing ever built, and `pick`
+    # would have offered it as the next task to start.
+    config = write_project(
+        tmp_path,
+        "## Block A — The model\n"
+        + line("RK9", "Block Z")
+        + line("RK10", "Block A")
+        + "## Block B — Authoring\n",
+    )
+    backlog = Backlog.load(config)
+    readiness = {e.task.id: backlog.readiness(e.task) for e in backlog.roadmap.entries}
+    assert readiness == {"RK9": Readiness.OUTSIDE, "RK10": Readiness.BLOCKED}
+
+
 def test_a_task_with_no_deps_is_ready(tmp_path):
     config = write_project(tmp_path, "## Block A — The model\n" + line("RK9", "—"))
     backlog = Backlog.load(config)
@@ -226,6 +268,24 @@ def test_this_repository_resolves_every_dep():
         if r.status is DepStatus.UNKNOWN
     ]
     assert unresolved == []
+
+
+def test_shios_block_deps_all_name_a_block_it_declares():
+    # The counter-check on RK37: the new answer must be reachable only by a mistake.
+    # Shio writes the only block deps in any corpus here, and all of them resolve.
+    source = Path("D:/Git/viglet/shio/latest/docs/ROADMAP.md")
+    if not source.exists():
+        pytest.skip(f"{source} is not on this machine")
+    schema = Schema(prefix="SH", ref_scheme="outline")
+    document = Document.load(source, schema)
+    declared = {h.label for h in document.headings if h.label}
+    named = {
+        schema.block_of_dep(dep)
+        for e in document.entries
+        for dep in e.task.deps
+        if schema.classify_dep(dep) is DepKind.BLOCK
+    }
+    assert named and named <= declared
 
 
 @pytest.mark.parametrize(
@@ -270,10 +330,13 @@ def test_the_command_reports_each_dep_and_the_verdict(tmp_path, capsys):
 
 
 def test_json_carries_the_kind_and_the_status(tmp_path, capsys):
-    write_project(tmp_path, "## Block A — The model\n" + line("RK9", "Block B"))
+    write_project(
+        tmp_path,
+        "## Block A — The model\n" + line("RK9", "Block B") + "## Block B — Authoring\n",
+    )
     assert main(["-C", str(tmp_path), "deps", "RK9", "--json"]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
-    assert payload["readiness"] == "ready"  # Block B has nothing open
+    assert payload["readiness"] == "ready"  # Block B is declared and has nothing open
     assert payload["deps"] == [
         {
             "dep": "Block B",

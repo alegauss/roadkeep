@@ -48,20 +48,6 @@ task; `stats` replaces a grep whose misses are silent; `show` replaces joining t
 files by hand. Those three are most of what an agent currently spends a roadmap
 session doing.
 
-## Block A — The model
-
-### §RK37 An empty block and an absent one are not the same
-
-RK28 resolves a collective dep against the block's own emptiness — a block with nothing
-open is done — and that is right for a block the file declares. It is wrong for one it
-does not: `(deps: Block Z)` resolves as *shipped* today with the detail "Block Z has
-nothing open", so a renamed or mistyped block satisfies a dependency that nothing ever
-built. Absence has to be an answer of its own, on the reasoning RK28 already applied to
-external deps: a dep nothing can resolve is named unresolvable, never counted as done.
-Blocks are discovered from headings and declared nowhere, which is what makes the two
-states indistinguishable — and the failure gets likelier the more blocks a project has,
-because collective deps are what large backlogs write.
-
 ## Block B — Authoring
 
 ### §RK5 `add`

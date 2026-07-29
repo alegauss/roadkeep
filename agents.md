@@ -45,7 +45,7 @@ src/roadkeep/          the package (src layout, importable via pytest pythonpath
   document.py          RK2 — Document.parse/render, Entry, Reject, RoundTripError
   config.py            RK3 — Config.discover/document; refuses an unknown key
   ids.py               RK4 — scan/highest/next_id across every configured source
-  backlog.py           RK28 — Backlog.resolve/readiness; four dep kinds, four answers
+  backlog.py           RK28/RK37 — resolve/readiness; four dep kinds, four answers
   history.py           RK31 — origin_of(): the shipping commit, derived from git
   cli.py               the command surface; one subparser per task, exit 0/1/2
 tests/                 pytest; docs/ROADMAP.md is a fixture, not a mock
@@ -72,8 +72,8 @@ than a set of wrong lines, so this repository is the first thing a schema change
 still validate. The suite does it under this repo's own `roadkeep.toml`, which is what
 makes L6 a fact here and not a claim about other people's projects.
 
-Current reading (RK14/RK15 replace this hand-verification): 29 tasks, longest line
-**305** chars against a 320 cap, 29/29 pointers resolve, no orphan section.
+Current reading (RK14/RK15 replace this hand-verification): 28 tasks, longest line
+**305** chars against a 320 cap, 28/28 pointers resolve, no orphan section.
 
 ## Writing a task line — until `roadkeep add` exists
 
@@ -94,10 +94,10 @@ and in a `(deps: RK1 ✅)` annotation. Four rules, and they are the schema RK1 e
    numbered by hand set `ref_scheme = "outline"` instead.
 
 **Ask, don't count** (all take `--json`): `python -m roadkeep.cli next-id` for the next
-id — never fill a gap, a retired id is never reused; `… deps <id>` to resolve deps, which
-may name a task, a `Block X`, a range (`RK20–RK30`) or work outside the backlog, the last
-being *unresolvable* and never "pending" (RK28); `… origin <id> --why` for the commits
-that proposed and shipped a task, plus the reasoning the ledger had to drop (RK31).
+id — never fill a gap, a retired id is never reused; `… deps <id>` resolves deps naming a
+task, a `Block X`, a range (`RK20–RK30`) or outside work — the last, and a block no
+heading declares, is *unresolvable*, never "pending" (RK28, RK37); `… origin <id> --why`
+for the commits that proposed and shipped a task, plus the reasoning dropped (RK31).
 
 ## Picking work
 
