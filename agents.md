@@ -47,7 +47,7 @@ src/roadkeep/          the package (src layout, importable via pytest pythonpath
   markers.py           RK8 — derive/refresh: the dep annotation is a derived field
   sections.py          RK9 — find/add/drop: prose by anchor, word budget, block-placed
   backlog.py           RK28/RK37 — resolve/readiness; four dep kinds, four answers
-  counting.py picking.py showing.py graph.py briefing.py  RK10-13/29 — the query surface
+  counting/picking/showing/graph/briefing/exporting.py  RK10-13/29/39 — the query surface
   history.py           RK31/RK32 — origin_of(), gaps(): both derived from git
   cli.py               the surface; one subparser per task, exit 0/1/2, RK38's event
 tests/                 pytest; docs/ROADMAP.md is a fixture, not a mock
@@ -96,20 +96,20 @@ That leaves the two rules a schema cannot check:
 Markers: 📋 designed · 💭 idea · ⏳ partial · 🛠 in-progress; the ledger's are ✅ and 🗑,
 neither legal in a roadmap. Limits: `symptom` ≤120, `why` ≤200, line ≤320, section ≤250 (L6).
 
-**Ask, don't count** (all take `--json`): **`… brief [<id>]` is the one call that starts a
-task** — line, rationale, deps resolved, blocker chain, what it unblocks, the non-goals,
-bounded to fit a tool result; no id means whatever `pick` chose (RK29). Narrower: `… next-id`
-never fills a gap; `… list|stats|audit [--block C]` counts and lists, naming every marker line
+**Ask, don't count** (all take `--json`): **`… brief [<id>]` starts a task in one call** — the
+line, its rationale, deps resolved, the blocker chain, what it unblocks and the non-goals,
+bounded to a tool result; with no id, `pick`'s own choice (RK29). Narrower: `… next-id` never
+fills a gap; `… list|stats|audit [--block C]` counts and lists, naming every marker line
 neither could read (RK10); `… show <id>` joins one line, its section and its paths (RK12);
 `… deps <id>` walks the graph both ways (RK13/RK28/RK37); `… gaps` resolves an id in neither
-file against the commit that removed it (RK32); `… origin <id> --why` (RK31).
+file against the commit that removed it (RK32); `… origin <id> --why` (RK31). And **never
+restate a count in prose**: `… export [--readme|--json]` projects it, idempotently (RK39).
 
 ## Picking work
 
 `… brief` picks and briefs in one call, printing why (RK11/RK29): 🛠 first, then `priority` in
-`roadkeep.toml`, then the lowest id whose `deps` all shipped, never one blocked outside. Blocks
-run by dependency, not priority: **A** model → **B** authoring → **C** query → **D** gate →
-**E** adoption → **F** plugin — no guardrail before D, none unroutable before F.
+`roadkeep.toml`, then the lowest ready id, never one blocked outside. Blocks run by dependency —
+**A** model → **B** authoring → **C** query → **D** gate → **E** adoption → **F** plugin.
 
 ## Build and test
 

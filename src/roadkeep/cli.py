@@ -41,6 +41,7 @@ from roadkeep.briefing import Brief, brief
 from roadkeep.config import Config, ConfigError
 from roadkeep.counting import Census
 from roadkeep.document import Document, Entry, Reject, RoundTripError
+from roadkeep.exporting import project, splice
 from roadkeep.graph import Graph, Leverage
 from roadkeep.history import Commit, HistoryUnavailable, Origin, gaps, origin_of
 from roadkeep.ids import highest, next_id
@@ -322,6 +323,27 @@ def build_parser() -> argparse.ArgumentParser:
     )
     retire_parser.add_argument("--json", action="store_true", help="every edit, as data")
     retire_parser.set_defaults(handler=_retire)
+
+    export_parser = subcommands.add_parser(
+        "export",
+        help="project the backlog onto a README block or a JSON payload",
+        description=(
+            "Derive what another file would restate: counts per block and the next ready "
+            "line. Idempotent and stamped with nothing, so a refresh with nothing to say "
+            "makes no diff — and every character of content already passed `add`."
+        ),
+    )
+    export_parser.add_argument(
+        "--readme",
+        nargs="?",
+        const="README.md",
+        metavar="PATH",
+        help="write the block between the roadkeep markers in this file (default README.md)",
+    )
+    export_parser.add_argument(
+        "--json", action="store_true", help="the payload a site build reads"
+    )
+    export_parser.set_defaults(handler=_export)
 
     gaps_parser = subcommands.add_parser(
         "gaps",
@@ -1062,6 +1084,29 @@ def _retire(config: Config, args: argparse.Namespace) -> int:
         # author's next edit. `deps` now resolves them as unresolvable, not as satisfied.
         print(f"  still    {', '.join(departure.dependents)} name {departure.task_id}")
     _print_event(event, "  ")
+    return EXIT_OK
+
+
+def _export(config: Config, args: argparse.Namespace) -> int:
+    try:
+        projection = project(config)
+        if args.readme is None:
+            print(projection.json() if args.json else projection.markdown())
+            return EXIT_OK
+        target = config.root / args.readme
+        with target.open("r", encoding="utf-8", newline="") as handle:
+            before = handle.read()
+        after = splice(before, projection.markdown(), config.relative(target))
+    except (KeyError, ValueError, OSError) as error:
+        return _refused(error)
+
+    if after == before:
+        # The point of idempotence, said out loud: nothing changed, so nothing is written
+        # and the file's mtime does not move either.
+        print(f"{config.relative(target)} is already current")
+        return EXIT_OK
+    target.write_text(after, encoding="utf-8", newline="")
+    print(f"{config.relative(target)} refreshed between the roadkeep markers")
     return EXIT_OK
 
 

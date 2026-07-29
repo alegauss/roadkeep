@@ -52,19 +52,6 @@ session doing.
 
 ## Block C — Query
 
-### §RK39 `export` — a projection, never a second author
-
-A README section and a site page repeat what the backlog says and drift the moment it
-changes, because nothing re-derives them. `export` writes them as a pure function of the
-parsed files: a README block between two markers, and a JSON payload for a site build.
-Two properties make it a projection rather than a generator. It is **idempotent** — the
-same `docs/` yields the same bytes, so a refresh with nothing to say produces no diff,
-which is what makes the diff readable when there is something to say. And it **writes no
-new sentence**: every character it emits already passed `add`, so L4 holds and `lint`
-still proves the artefact. That is also the boundary — a summary of a block, a release
-note, any text not already in a validated line, is out of scope here and belongs to the
-author who calls `add`.
-
 ### §RK40 Scoping the pick to a block
 
 This task exists because the failure was observed rather than imagined. Working Block C,

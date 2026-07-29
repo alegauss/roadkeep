@@ -26,7 +26,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK39** (deps: RK2 ✅, RK3 ✅) **A README and a site restate a backlog they cannot re-read, so both are stale from the first ship** — export projects the parsed files onto a marked README block and a JSON payload as a pure function of the Markdown, so a refresh is idempotent and writes no new sentence. → §RK39
 - 📋 **RK40** (deps: RK11 ✅, RK10 ✅) **A block's own next task is not askable, so a global answer reads as that block being finished** — scope the pick and the brief to one block, so that 'nothing to pick' means the block is empty rather than a lower id living somewhere else. → §RK40
 
 ## Block D — The gate
