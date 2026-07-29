@@ -112,11 +112,10 @@ not priority: **A** (model) → **B** (authoring) → **C** (query) → **D** (g
 - **Zero runtime dependencies.** `argparse` + `tomllib`, not `click` + `pydantic`. A
   tool meant to run as `uvx roadkeep` in someone else's CI pays for every dependency,
   and the schema is 200 lines of validation, not a framework.
-- `uv` is **not** installed on this machine — use `python -m pytest` from the repo root
-  (`pythonpath = ["src"]` is in `pyproject.toml`, so no install step). `pytest` is the
-  only dev dependency: `python -m pip install --user pytest`.
-- Round-trip (L3) is a **property test over real files**, not an example test: the
-  corpus is `docs/` here plus Shio's and Turing's roadmaps.
+- `uv` is **not** installed here — `python -m pytest` from the repo root (`pythonpath =
+  ["src"]` is set, so no install step). Only dev dependency: `pip install --user pytest`.
+- Round-trip (L3) is a **property test over real files**: `docs/` plus Shio's and
+  Turing's roadmaps, which also supply the dep kinds and the odd cases worth keeping.
 
 ## Committing
 
