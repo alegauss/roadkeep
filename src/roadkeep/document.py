@@ -31,13 +31,14 @@ mode the grep it replaces already had. Measured: Shio's changelog is 920 bullets
 parsed as 0 entries *and* 0 rejects, the one shape that made the miss silent twice.
 
 The marker slot is also the one part of the grammar a file may not have. Both live
-ledgers write `- **T1** — …`, so `markers.ledger = false` (L6) says the status is the
+ledgers write `- **T1** — …`, so `[ledger] marker = false` (L6) says the status is the
 file's rather than the line's — every entry in it shipped — and there a marker on a line
 is the reject instead.
 """
 
 from __future__ import annotations
 
+import functools
 import re
 from collections.abc import Sequence
 from dataclasses import dataclass, replace
@@ -45,19 +46,27 @@ from pathlib import Path
 
 from roadkeep.schema import ARROW, EM_DASH, ID_SHAPE, NO_DEPS, Dep, Schema, Task
 
-#: Everything after the marker slot. `deps` is optional because the ledger has none; the
-#: trailing pointer is stripped before this runs (see `_split_ref`). One string, because
-#: the marker slot is the only part that varies and two full grammars would drift.
-_TASK_BODY = (
-    r"\*\*(?P<id>[A-Za-z0-9]+)\*\*"
-    r"(?: \(deps: (?P<deps>[^)]*)\))?"
-    rf" \*\*(?P<symptom>.+?)\*\* {EM_DASH} (?P<why>.+)$"
-)
-#: A task line, anchored at both ends.
-_TASK_RE = re.compile(rf"^- (?P<status>\S+) {_TASK_BODY}")
-#: The same line in a file that declares no marker (`markers.ledger = false`, RK43): the
-#: status is read off the file rather than the line, so the slot is absent and not blank.
-_MARKERLESS_TASK_RE = re.compile(rf"^- {_TASK_BODY}")
+#: Everything after the marker slot, up to the symptom. `deps` is optional because the
+#: ledger has none; the trailing pointer is stripped before this runs (see `_split_ref`).
+_TASK_HEAD = r"\*\*(?P<id>[A-Za-z0-9]+)\*\*(?: \(deps: (?P<deps>[^)]*)\))?"
+#: The two slots a file may not have (`[ledger]`, RK43 and RK48), composed rather than
+#: written out four times: a grammar per combination is four things that drift apart.
+_SYMPTOM = rf" \*\*(?P<symptom>.+?)\*\* {EM_DASH} "
+_WHY = r"(?P<why>.+)$"
+
+
+@functools.lru_cache(maxsize=None)
+def _task_re(marker: bool, symptom: bool) -> re.Pattern[str]:
+    """The task-line grammar for one file's shape, anchored at both ends.
+
+    Cached because it is rebuilt per line otherwise, and the four combinations are the
+    whole domain: with a marker or without, with a symptom slot or without.
+    """
+    status = r"(?P<status>\S+) " if marker else ""
+    middle = _SYMPTOM if symptom else f" {EM_DASH} "
+    return re.compile(rf"^- {status}{_TASK_HEAD}{middle}{_WHY}")
+
+
 _HEADING_RE = re.compile(r"^(?P<hashes>#{1,6}) (?P<text>.*)$")
 _BLOCK_LABEL_RE = re.compile(r"^Block (?P<label>[A-Za-z0-9]+)\b")
 _BULLET_RE = re.compile(r"^(?P<indent>\s*)[-*+] (?P<rest>.*)$")
@@ -391,7 +400,7 @@ def _marker_slot(rest: str, token: str, schema: Schema) -> tuple[bool, str | Non
         if _looks_like_marker(token, schema):
             return False, (
                 f"{token} is a status marker, in a file whose lines carry none "
-                f"(markers.ledger = false): there the marker is the file's, not the line's"
+                f"([ledger] marker = false): there the marker is the file's, not the line's"
             )
         return _leads_with_the_id(rest), None
     if _looks_like_marker(token, schema):
@@ -414,7 +423,7 @@ def _marker_slot(rest: str, token: str, schema: Schema) -> tuple[bool, str | Non
             # The declaration that makes 920 of these into 920 entries. Said here because
             # this reason is the only place a reader of that file will be looking.
             reason += (
-                " — a ledger where every entry shipped declares markers.ledger = false"
+                " — a ledger where every entry shipped declares [ledger] marker = false"
             )
         return False, reason
     return False, None
@@ -460,7 +469,7 @@ def _read_bullet(body: str, schema: Schema, block: str) -> Task | str | None:
         return "bullet must be '- ': a task line is one dash and one space"
 
     head, ref = _split_ref(body)
-    match = (_TASK_RE if schema.marker_field else _MARKERLESS_TASK_RE).match(head)
+    match = _task_re(schema.marker_field, schema.symptom_field).match(head)
     if not match:
         return _diagnose(head, schema)
 
@@ -480,7 +489,9 @@ def _read_bullet(body: str, schema: Schema, block: str) -> Task | str | None:
         # a ledger that carries none shipped, which is the whole content of the claim.
         status=match.group("status") if schema.marker_field else schema.shipped_marker,
         block=block,
-        symptom=match.group("symptom"),
+        # Absent where the file has no such slot (RK48): the whole tail is the `why`, and
+        # an empty string is what `render` then reproduces by omitting the bold entirely.
+        symptom=match.group("symptom") if schema.symptom_field else "",
         why=match.group("why"),
         deps=deps,
         ref=ref,

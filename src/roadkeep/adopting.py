@@ -248,15 +248,18 @@ def render_config(schema: Schema, paths: Mapping[str, str]) -> str:
         f"shipped = {_quote(schema.shipped_marker)}",
         f"retired = {_quote(schema.retired_marker)}",
     ]
-    if not schema.ledger_marker:
-        # Only when it is false: a default written out reads as a decision somebody made
-        # about a file whose lines all carry a marker anyway (RK43).
-        lines += [
-            "",
-            "# the ledger carries no marker: every entry in it shipped, stated here",
-            "# instead of on every line",
-            "ledger = false",
-        ]
+    absent = [
+        # Only what is false: a default written out reads as a decision somebody made about
+        # a slot the file carries anyway (RK43, RK48).
+        line
+        for present, line in (
+            (schema.ledger_marker, "# every entry in it shipped, so no line repeats it\nmarker = false"),
+            (schema.ledger_symptom, "# its lines are `- **id** — <prose>`, with no symptom slot\nsymptom = false"),
+        )
+        if not present
+    ]
+    if absent:
+        lines += ["", "[ledger]", *absent]
     lines.append("")
     return "\n".join(lines)
 

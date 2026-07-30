@@ -231,10 +231,18 @@ class Schema:
     #: `- **T1** — …`, 755 lines in Turing and 234 in Shio, and the marker of a file
     #: where everything shipped is derivable from the file. Set by :meth:`as_ledger`.
     marker_field: bool = True
-    #: The project's declaration of the above — `markers.ledger` in `roadkeep.toml` (L6).
-    #: Read only by :meth:`as_ledger`: in the roadmap the marker *is* the status, so a
-    #: roadmap without one could not tell 📋 from 🛠 and the slot is never absent there.
+    #: Whether the line carries a bold symptom before the em dash. False is the other
+    #: shape both live ledgers write — `- **T1** — <prose>`, 761 lines in Turing and 234
+    #: in Shio — where the whole tail is the `why` and the split has no consumer, because
+    #: nothing picks, blocks on or budgets a line that already shipped (RK48). Set by
+    #: :meth:`as_ledger`.
+    symptom_field: bool = True
+    #: The project's declaration of the two above — `[ledger] marker` and `[ledger]
+    #: symptom` in `roadkeep.toml` (L6). Read only by :meth:`as_ledger`: in the roadmap
+    #: the marker *is* the status, so a roadmap without one could not tell 📋 from 🛠, and
+    #: a roadmap without a symptom would be a backlog of reasons with no faults.
     ledger_marker: bool = True
+    ledger_symptom: bool = True
     #: How the rationale section is addressed (RK27). ``"id"`` derives the pointer
     #: from the line's own id — nothing to choose when writing, nothing to renumber
     #: when shipping. ``"outline"`` is the hand-numbered `§x.y` that Shio and Turing
@@ -278,8 +286,11 @@ class Schema:
         configurations beats two grammars that drift apart, and a retired line (RK32) is
         the same grammar again rather than a third: a departure with a different door.
 
-        The marker slot itself is the one part a project can drop (RK43): a ledger where
-        every entry shipped says so in `markers.ledger` instead of on every line.
+        Two slots are the part a project can drop, both declared in `[ledger]`: the marker
+        (RK43), because a ledger where every entry shipped says so once in the file rather
+        than on every line, and the symptom (RK48), because `- **T1** — <prose>` is what a
+        ledger written before this tool already spells — and on a shipped line the split
+        between the fault and its outcome has no reader left.
         """
         return replace(
             self,
@@ -288,6 +299,7 @@ class Schema:
             deps_field=False,
             ref_required=False,
             marker_field=self.ledger_marker,
+            symptom_field=self.ledger_symptom,
         )
 
     # -- rendering ---------------------------------------------------------
@@ -305,7 +317,10 @@ class Schema:
         if self.deps_field:
             deps = ", ".join(d.render() for d in task.deps) or NO_DEPS
             head += f" (deps: {deps})"
-        line = f"{head} **{task.symptom}** {EM_DASH} {task.why}"
+        # The symptom is omitted the same way and for the same reason (RK48): a ledger that
+        # never had the slot must render back the line it read, not one with an empty bold.
+        body = f" **{task.symptom}**" if self.symptom_field else ""
+        line = f"{head}{body} {EM_DASH} {task.why}"
         if task.ref:
             # In the id scheme the pointer is *derived*, not echoed: a line carrying
             # the wrong anchor stops round-tripping instead of being preserved, which
@@ -366,7 +381,7 @@ class Schema:
                     "status.unrepresentable",
                     "status",
                     f"this project declares a ledger with no marker "
-                    f"(markers.ledger = false), so {task.status!r} cannot be told from "
+                    f"([ledger] marker = false), so {task.status!r} cannot be told from "
                     f"{self.shipped_marker}: declare the marker before recording one",
                 )
             )
@@ -493,6 +508,10 @@ class Schema:
         return out
 
     def _check_symptom(self, task: Task) -> list[Violation]:
+        if not self.symptom_field:
+            # The slot does not exist in this file (RK48), so there is no field to judge
+            # and an empty one is not a violation: `- **T1** — <prose>` is the whole line.
+            return []
         out = self._check_text("symptom", task.symptom, self.symptom_max)
         if "**" in task.symptom:
             # Only the symptom reserves '**': it is what closes the field. Bold

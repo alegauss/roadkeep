@@ -128,14 +128,19 @@ def test_config_follows_the_schema_and_not_a_template() -> None:
     assert "changelog" not in rendered
 
 
-def test_a_markerless_ledger_is_written_out_and_a_declared_one_is_not() -> None:
-    # The key is emitted only when it is false (RK43): a default written out reads as a
-    # decision somebody made about a file whose lines all carry a marker anyway.
+def test_only_the_ledger_slots_a_file_lacks_are_written_out() -> None:
+    # A key is emitted only when it is false (RK43, RK48): a default written out reads as a
+    # decision somebody made about a slot the file carries anyway.
     paths = {"roadmap": "docs/ROADMAP.md"}
     assert "ledger" not in render_config(Schema(), paths)
-    rendered = render_config(replace(Schema(), ledger_marker=False), paths)
-    assert "ledger = false" in rendered
-    assert Config.parse(tomllib.loads(rendered), root=".").schema.ledger_marker is False
+    for field, key in (("ledger_marker", "marker"), ("ledger_symptom", "symptom")):
+        rendered = render_config(replace(Schema(), **{field: False}), paths)
+        assert "[ledger]" in rendered and f"{key} = false" in rendered
+        parsed = Config.parse(tomllib.loads(rendered), root=".").schema
+        assert getattr(parsed, field) is False
+        # And only that one: the other slot is still the default the file has.
+        other = "ledger_symptom" if field == "ledger_marker" else "ledger_marker"
+        assert getattr(parsed, other) is True
 
 
 def test_prefix_is_carried_into_the_first_id(tmp_path: Path, capsys) -> None:

@@ -152,10 +152,26 @@ def test_the_changelog_is_the_same_format_in_its_ledger_configuration(tmp_path):
 def test_a_ledger_can_declare_that_it_carries_no_marker(tmp_path):
     # The declaration Shio needs to adopt at all (RK43): 920 entries, all shipped, and a
     # marker written once here instead of 920 times in the file.
-    write(tmp_path, "[markers]\nledger = false\n")
+    write(tmp_path, "[ledger]\nmarker = false\n")
     schema = Config.discover(tmp_path).schema
     # Only the ledger's: the roadmap's marker is its status, so that slot never goes.
     assert schema.marker_field and not schema.as_ledger().marker_field
+
+
+def test_a_ledger_can_declare_that_its_lines_have_no_symptom_slot(tmp_path):
+    # The declaration Shio and Turing both need (RK48): `- **T1** — <prose>` is the shape
+    # 234 and 761 lines already have, and the slot has no reader on a line that shipped.
+    write(tmp_path, "[ledger]\nsymptom = false\n")
+    schema = Config.discover(tmp_path).schema
+    assert schema.symptom_field and not schema.as_ledger().symptom_field
+
+
+def test_the_old_marker_spelling_names_its_replacement_instead_of_being_read(tmp_path):
+    # Refused rather than aliased (RK48): two spellings of one flag are two that can
+    # disagree, and a setting that silently stops being read is worse than an error.
+    path = write(tmp_path, "[markers]\nledger = false\n")
+    with pytest.raises(ConfigError, match=r"markers.ledger moved to \[ledger\] marker"):
+        Config.load(path)
 
 
 def test_the_ledger_carries_a_marker_unless_the_project_says_otherwise(tmp_path):
@@ -163,8 +179,8 @@ def test_the_ledger_carries_a_marker_unless_the_project_says_otherwise(tmp_path)
 
 
 def test_a_ledger_declaration_that_is_not_a_boolean_is_refused(tmp_path):
-    path = write(tmp_path, '[markers]\nledger = "none"\n')
-    with pytest.raises(ConfigError, match="markers.ledger must be true or false"):
+    path = write(tmp_path, '[ledger]\nmarker = "none"\n')
+    with pytest.raises(ConfigError, match="ledger.marker must be true or false"):
         Config.load(path)
 
 

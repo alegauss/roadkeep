@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>roadkeep — a schema at the point of insertion</title>
-<meta name="description" content="A CLI that owns the writes to your ROADMAP.md, CHANGELOG.md, IMPROVEMENTS.md and STRATEGY.md, so the format is a schema at the point of insertion instead of a convention an author is asked to remember.">
+<title>roadkeep — the roadmap format your agent cannot break</title>
+<meta name="description" content="roadkeep owns the writes to your ROADMAP.md, CHANGELOG.md, IMPROVEMENTS.md and STRATEGY.md. One line per task, refused at the input instead of at review. A Claude Code plugin with zero runtime dependencies.">
 
 <!-- Open Graph / social -->
 <meta property="og:type" content="website">
-<meta property="og:title" content="roadkeep">
-<meta property="og:description" content="The format is a schema enforced where the text is created — not a convention an author is asked to remember. Shipped as a Claude Code plugin.">
+<meta property="og:title" content="roadkeep — the roadmap format your agent cannot break">
+<meta property="og:description" content="Your ROADMAP.md declares a format. roadkeep enforces it where the text is created — before a sentence is composed to fill the space. Shipped as a Claude Code plugin.">
 <meta property="og:image" content="assets/roadkeep-social.png">
 <meta property="og:url" content="https://alegauss.github.io/roadkeep/">
 <meta name="twitter:card" content="summary_large_image">
@@ -24,18 +24,21 @@
     --amber:#f59e0b;
     --amber-bright:#fbbf24;
     --amber-deep:#b45309;
-    --bg:#0b1220;
-    --bg-2:#0f172a;
-    --panel:#141d31;
-    --panel-2:#1b2540;
-    --line:#25314c;
-    --text:#f1f5f9;
-    --muted:#94a3b8;
-    --muted-2:#64748b;
-    --slate:#cbd5e1;
-    --red:#e5484d;
+    --bg:#0a0f1b;
+    --bg-2:#0e1526;
+    --panel:#131b2d;
+    --panel-2:#1a2440;
+    --line:#232f49;
+    --line-soft:#1b2540;
+    --text:#f2f6fb;
+    --muted:#98a5bb;
+    --muted-2:#65748d;
+    --slate:#c7d2e1;
+    --green:#34d399;
+    --red:#f0787c;
     --radius:18px;
-    --maxw:1120px;
+    --radius-sm:12px;
+    --maxw:1140px;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
@@ -43,7 +46,7 @@
     font-family:'Inter',system-ui,-apple-system,sans-serif;
     background:var(--bg);
     color:var(--text);
-    line-height:1.6;
+    line-height:1.62;
     -webkit-font-smoothing:antialiased;
     overflow-x:hidden;
   }
@@ -51,284 +54,404 @@
   code,kbd{font-family:'JetBrains Mono',monospace}
   .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
   .accent{color:var(--amber)}
+  b,strong{font-weight:600}
 
-  /* ambient background glow */
+  /* ambient backdrop: amber bloom over a faint engineering grid */
   body::before{
-    content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+    content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
     background:
-      radial-gradient(900px 500px at 80% -5%, rgba(245,158,11,.18), transparent 60%),
-      radial-gradient(700px 600px at -10% 20%, rgba(245,158,11,.08), transparent 55%),
-      linear-gradient(180deg,var(--bg),var(--bg-2));
+      radial-gradient(1000px 560px at 78% -8%, rgba(245,158,11,.20), transparent 62%),
+      radial-gradient(760px 620px at -12% 14%, rgba(245,158,11,.07), transparent 58%),
+      linear-gradient(180deg,var(--bg),var(--bg-2) 60%,var(--bg));
+  }
+  body::after{
+    content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.35;
+    background-image:
+      linear-gradient(rgba(255,255,255,.028) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.028) 1px, transparent 1px);
+    background-size:64px 64px;
+    -webkit-mask-image:radial-gradient(1200px 700px at 50% 0%, #000 25%, transparent 78%);
+    mask-image:radial-gradient(1200px 700px at 50% 0%, #000 25%, transparent 78%);
   }
 
   /* ---------- nav ---------- */
   nav{
     position:sticky;top:0;z-index:50;
-    -webkit-backdrop-filter:blur(12px);
-    backdrop-filter:blur(12px);
-    background:rgba(11,18,32,.74);
-    border-bottom:1px solid var(--line);
+    -webkit-backdrop-filter:blur(14px);
+    backdrop-filter:blur(14px);
+    background:rgba(10,15,27,.78);
+    border-bottom:1px solid var(--line-soft);
   }
-  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:64px}
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:66px;gap:20px}
   .brand{display:flex;align-items:center;gap:11px;font-family:'JetBrains Mono',monospace;font-weight:600;font-size:1.05rem;letter-spacing:-.03em}
   .brand svg{width:30px;height:30px}
-  .nav-links{display:flex;align-items:center;gap:28px}
-  .nav-links a:not(.btn){color:var(--muted);font-weight:500;font-size:.95rem;transition:color .2s}
+  .nav-links{display:flex;align-items:center;gap:26px}
+  .nav-links a:not(.btn){color:var(--muted);font-weight:500;font-size:.93rem;transition:color .2s}
   .nav-links a:not(.btn):hover{color:var(--text)}
   .btn{
     display:inline-flex;align-items:center;gap:9px;
     padding:11px 20px;border-radius:11px;font-weight:600;font-size:.95rem;
-    transition:transform .15s ease, box-shadow .2s ease, background .2s;
-    white-space:nowrap;
+    transition:transform .15s ease, box-shadow .2s ease, background .2s, border-color .2s;
+    white-space:nowrap;cursor:pointer;
   }
   .btn-primary{
-    background:linear-gradient(135deg,var(--amber),var(--amber-deep));
-    color:#1a1206;box-shadow:0 8px 24px -8px rgba(245,158,11,.6);
+    background:linear-gradient(135deg,var(--amber-bright),var(--amber-deep));
+    color:#1a1206;box-shadow:0 10px 26px -10px rgba(245,158,11,.65);
   }
-  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 14px 32px -10px rgba(245,158,11,.8)}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 16px 34px -12px rgba(245,158,11,.85)}
   .btn-ghost{background:var(--panel);color:var(--text);border:1px solid var(--line)}
-  .btn-ghost:hover{background:var(--panel-2);transform:translateY(-2px)}
-  @media(max-width:820px){.nav-links a:not(.btn){display:none}}
+  .btn-ghost:hover{background:var(--panel-2);transform:translateY(-2px);border-color:rgba(245,158,11,.4)}
+  .btn-sm{padding:9px 15px;font-size:.88rem;border-radius:10px}
+  @media(max-width:900px){.nav-links a:not(.btn){display:none}}
 
   /* ---------- hero ---------- */
-  .hero{padding:84px 0 64px;text-align:center;position:relative}
+  .hero{padding:76px 0 30px;text-align:center;position:relative}
   .badge{
     display:inline-flex;align-items:center;gap:8px;
     padding:7px 15px;border-radius:999px;
-    background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.35);
-    color:var(--amber-bright);font-size:.82rem;font-weight:600;letter-spacing:.01em;
-    margin-bottom:28px;
+    background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.34);
+    color:var(--amber-bright);font-size:.8rem;font-weight:600;
+    margin-bottom:26px;
   }
-  .dot{width:7px;height:7px;border-radius:50%;background:var(--amber-bright);box-shadow:0 0 10px var(--amber);animation:pulse 2s infinite}
-  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
-  .hero h1{
-    font-size:clamp(2.4rem,6vw,4.3rem);line-height:1.06;font-weight:900;letter-spacing:-.035em;
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--amber-bright);box-shadow:0 0 10px var(--amber);animation:pulse 2.2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+  h1{
+    font-size:clamp(2.35rem,5.6vw,4.15rem);line-height:1.05;font-weight:900;letter-spacing:-.038em;
     margin-bottom:22px;
   }
-  .hero h1 .grad{
-    background:linear-gradient(120deg,var(--amber-bright),var(--amber) 55%,var(--amber-deep));
+  .grad{
+    background:linear-gradient(115deg,var(--amber-bright),var(--amber) 52%,var(--amber-deep));
     -webkit-background-clip:text;background-clip:text;color:transparent;
   }
   .hero p.sub{
-    font-size:clamp(1.05rem,2.2vw,1.28rem);color:var(--muted);
-    max-width:700px;margin:0 auto 20px;line-height:1.55;
+    font-size:clamp(1.04rem,2.1vw,1.26rem);color:var(--muted);
+    max-width:720px;margin:0 auto 16px;line-height:1.58;
   }
-  .hero p.sub b{color:var(--text);font-weight:600}
-  .hero p.note{color:var(--muted-2);font-size:.95rem;max-width:620px;margin:0 auto 34px}
-  .hero-cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:18px}
-  .hero-meta{display:flex;gap:22px;justify-content:center;flex-wrap:wrap;color:var(--muted-2);font-size:.85rem;margin-top:8px}
-  .hero-meta span{display:inline-flex;align-items:center;gap:7px}
-
-  .pills{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:34px}
-  .pill{
-    padding:8px 14px;border-radius:10px;background:var(--panel);border:1px solid var(--line);
+  .hero p.sub b{color:var(--text)}
+  .hero p.note{color:var(--muted-2);font-size:.95rem;max-width:600px;margin:0 auto 32px}
+  .hero-cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:22px}
+  .hero-meta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:20px}
+  .chip{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:8px 14px;border-radius:10px;background:rgba(19,27,45,.7);border:1px solid var(--line);
     font-size:.82rem;color:var(--muted);font-weight:500;
   }
-  .pill b{color:var(--text)}
+  .chip b{color:var(--text)}
 
-  /* floating hero mark, framed as an app icon */
   .hero-mark{
-    width:104px;height:104px;margin:0 auto 30px;border-radius:24px;
+    width:96px;height:96px;margin:0 auto 28px;border-radius:24px;
     display:grid;place-items:center;
-    background:linear-gradient(160deg,rgba(245,158,11,.16),transparent 62%),var(--panel);
+    background:linear-gradient(160deg,rgba(245,158,11,.18),transparent 62%),var(--panel);
     border:1px solid rgba(245,158,11,.34);
-    box-shadow:0 24px 56px -18px rgba(245,158,11,.42);
-    animation:float 5s ease-in-out infinite;
+    box-shadow:0 26px 58px -20px rgba(245,158,11,.45);
+    animation:float 5.5s ease-in-out infinite;
   }
-  .hero-mark svg{width:78px;height:78px}
-  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+  .hero-mark svg{width:72px;height:72px}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-11px)}}
 
-  /* ---------- section ---------- */
-  section{padding:72px 0;position:relative}
-  .sec-head{text-align:center;max-width:700px;margin:0 auto 48px}
-  .eyebrow{color:var(--amber);font-weight:700;font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;margin-bottom:14px}
-  .sec-head h2{font-size:clamp(1.9rem,4vw,2.6rem);font-weight:800;letter-spacing:-.025em;line-height:1.14;margin-bottom:16px}
-  .sec-head p{color:var(--muted);font-size:1.05rem}
+  /* ---------- section scaffolding ---------- */
+  section{padding:70px 0;position:relative}
+  .sec-head{text-align:center;max-width:740px;margin:0 auto 46px}
+  .sec-head.left{text-align:left;margin-left:0}
+  .eyebrow{color:var(--amber);font-weight:700;font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;margin-bottom:13px}
+  .sec-head h2{font-size:clamp(1.85rem,3.8vw,2.5rem);font-weight:800;letter-spacing:-.028em;line-height:1.16;margin-bottom:14px}
+  .sec-head p{color:var(--muted);font-size:1.04rem}
   .sec-head p b{color:var(--text)}
+  .rule-sep{height:1px;background:linear-gradient(90deg,transparent,var(--line),transparent)}
 
-  /* ---------- measured readings ---------- */
+  /* ---------- terminal / code windows ---------- */
+  .term{
+    background:#070c16;border:1px solid var(--line);border-radius:14px;overflow:hidden;
+    box-shadow:0 26px 60px -32px rgba(0,0,0,.9);
+    text-align:left;
+  }
+  .term-bar{
+    display:flex;align-items:center;gap:8px;padding:11px 14px;
+    background:linear-gradient(180deg,#101827,#0b1220);border-bottom:1px solid var(--line);
+  }
+  .term-bar i{width:10px;height:10px;border-radius:50%;background:#2b3a56;display:block}
+  .term-bar i:first-child{background:#3d4a66}
+  .term-bar .t{
+    margin-left:8px;font-family:'JetBrains Mono',monospace;font-size:.76rem;color:#8593ab;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .term pre{
+    margin:0;padding:18px 20px;overflow-x:auto;
+    font-family:'JetBrains Mono',monospace;font-size:.845rem;line-height:1.8;color:#c8d3e2;
+    white-space:pre;
+  }
+  @media(max-width:600px){.term pre{font-size:.76rem;padding:14px 14px}}
+  .c{color:var(--muted-2)}
+  .g{color:var(--amber-bright)}
+  .ok{color:var(--green)}
+  .no{color:var(--red)}
+  .dim{color:#8a99b3}
+
+  /* ---------- the split: without / with ---------- */
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+  @media(max-width:920px){.split{grid-template-columns:1fr}}
+  .side{
+    border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;
+    background:linear-gradient(180deg,var(--panel),var(--bg-2));
+  }
+  .side-head{
+    display:flex;align-items:center;gap:10px;padding:15px 20px;border-bottom:1px solid var(--line);
+    font-weight:700;font-size:.95rem;letter-spacing:-.01em;
+  }
+  .side-head .tag{
+    font-family:'JetBrains Mono',monospace;font-size:.7rem;font-weight:600;
+    padding:3px 8px;border-radius:6px;letter-spacing:.04em;
+  }
+  .side.bad .side-head{color:#f3a9ab}
+  .side.bad .side-head .tag{background:rgba(240,120,124,.15);color:#f0787c}
+  .side.good .side-head{color:var(--amber-bright)}
+  .side.good .side-head .tag{background:rgba(245,158,11,.16);color:var(--amber-bright)}
+  .side .body{padding:18px 20px 20px}
+  .side .body pre{
+    margin:0 0 14px;padding:14px;border-radius:10px;background:#070c16;border:1px solid var(--line-soft);
+    font-family:'JetBrains Mono',monospace;font-size:.79rem;line-height:1.75;color:#b9c6d8;
+    white-space:pre-wrap;overflow-wrap:anywhere;overflow:hidden;
+  }
+  .side ul{list-style:none;display:flex;flex-direction:column;gap:9px}
+  .side li{display:flex;gap:10px;font-size:.9rem;color:var(--muted);line-height:1.5}
+  .side li b{color:var(--text)}
+  .side li .m{flex:0 0 auto;font-weight:700;width:16px;text-align:center}
+  .side.bad li .m{color:var(--red)}
+  .side.good li .m{color:var(--green)}
+
+  /* ---------- strengths ---------- */
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  @media(max-width:980px){.cards{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:680px){.cards{grid-template-columns:1fr}}
+  .card{
+    position:relative;
+    background:linear-gradient(180deg,var(--panel),var(--bg-2));
+    border:1px solid var(--line);border-radius:var(--radius);padding:26px 24px;
+    transition:transform .2s ease,border-color .2s,box-shadow .25s;
+  }
+  .card:hover{transform:translateY(-4px);border-color:rgba(245,158,11,.42);box-shadow:0 22px 48px -26px rgba(245,158,11,.45)}
+  .card .ico{
+    width:38px;height:38px;border-radius:11px;display:grid;place-items:center;margin-bottom:15px;
+    background:linear-gradient(140deg,rgba(245,158,11,.22),rgba(245,158,11,.05));
+    border:1px solid rgba(245,158,11,.3);font-size:1.05rem;
+  }
+  .card h3{font-size:1.06rem;font-weight:700;letter-spacing:-.015em;margin-bottom:9px;line-height:1.35}
+  .card p{color:var(--muted);font-size:.92rem;line-height:1.62}
+  .card p b{color:var(--text)}
+  .card p code,.card h3 code{font-size:.86em;color:var(--amber-bright)}
+  .card .kicker{
+    display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.72rem;
+    color:var(--muted-2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px;
+  }
+
+  /* ---------- the differentiator strip ---------- */
+  .diff{
+    display:grid;grid-template-columns:1.05fr 1fr;gap:26px;align-items:center;
+    background:linear-gradient(135deg,rgba(245,158,11,.09),var(--panel) 55%);
+    border:1px solid rgba(245,158,11,.28);border-radius:var(--radius);padding:34px;
+  }
+  @media(max-width:920px){.diff{grid-template-columns:1fr;padding:26px}}
+  .diff h3{font-size:clamp(1.3rem,2.6vw,1.7rem);font-weight:800;letter-spacing:-.025em;line-height:1.25;margin-bottom:14px}
+  .diff p{color:var(--muted);font-size:1rem}
+  .diff p+p{margin-top:12px}
+  .diff p b{color:var(--text)}
+  .diff code{color:var(--amber-bright);font-size:.9em}
+
+  /* ---------- steps ---------- */
+  .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:26px}
+  @media(max-width:900px){.steps{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:520px){.steps{grid-template-columns:1fr}}
+  .step{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-sm);padding:20px;
+    transition:transform .2s ease,border-color .2s;
+  }
+  .step:hover{transform:translateY(-3px);border-color:rgba(245,158,11,.42)}
+  .step .n{
+    width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-weight:800;font-size:.85rem;
+    background:linear-gradient(135deg,var(--amber),var(--amber-deep));color:#1a1206;margin-bottom:13px;
+  }
+  .step h4{font-family:'JetBrains Mono',monospace;font-size:.95rem;font-weight:600;color:var(--amber-bright);margin-bottom:7px}
+  .step p{color:var(--muted);font-size:.87rem;line-height:1.55}
+  .step p b{color:var(--text)}
+
+  /* ---------- comparison table ---------- */
+  .tbl-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel)}
+  table{width:100%;border-collapse:collapse;min-width:680px}
+  th,td{text-align:left;padding:16px 20px;border-bottom:1px solid var(--line);font-size:.92rem;vertical-align:top}
+  thead th{
+    color:var(--muted-2);font-size:.74rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+    background:var(--bg-2);
+  }
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:hover{background:rgba(245,158,11,.03)}
+  td.who{font-weight:700;color:var(--text);white-space:nowrap}
+  td.good,td.why{color:var(--muted)}
+  td.why b{color:var(--amber-bright);font-weight:600}
+  .tbl-note{color:var(--muted-2);font-size:.86rem;margin-top:14px;text-align:center}
+
+  /* ---------- evidence readings ---------- */
   .readings{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
   @media(max-width:860px){.readings{grid-template-columns:1fr}}
   .reading{
     background:linear-gradient(180deg,var(--panel),var(--bg-2));
-    border:1px solid var(--line);border-radius:var(--radius);padding:26px;
-    transition:transform .2s ease,border-color .2s,box-shadow .25s;
+    border:1px solid var(--line);border-radius:var(--radius);padding:24px;
   }
-  .reading:hover{transform:translateY(-4px);border-color:rgba(245,158,11,.45);box-shadow:0 18px 40px -22px rgba(245,158,11,.45)}
-  .reading .file{font-family:'JetBrains Mono',monospace;font-size:.86rem;color:var(--amber-bright);margin-bottom:16px}
-  .reading .num{font-size:2.3rem;font-weight:900;letter-spacing:-.03em;line-height:1.1}
-  .reading .unit{font-size:.95rem;color:var(--muted);font-weight:500;margin-top:2px}
-  .reading .rule{color:var(--muted-2);font-size:.88rem;margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
+  .reading .file{font-family:'JetBrains Mono',monospace;font-size:.84rem;color:var(--amber-bright);margin-bottom:14px}
+  .reading .num{font-size:2.2rem;font-weight:900;letter-spacing:-.035em;line-height:1.1}
+  .reading .num small{font-size:1.05rem;font-weight:600;color:var(--muted);letter-spacing:0}
+  .reading .unit{font-size:.92rem;color:var(--muted);margin-top:3px}
+  .reading .unit b{color:var(--text)}
+  .reading .rule{color:var(--muted-2);font-size:.86rem;margin-top:15px;padding-top:15px;border-top:1px solid var(--line)}
   .reading .rule b{color:var(--muted)}
-
   .finding{
-    margin-top:26px;border-radius:var(--radius);padding:28px 30px;
+    margin-top:22px;border-radius:var(--radius);padding:26px 28px;
     background:linear-gradient(135deg,rgba(245,158,11,.09),var(--panel));
-    border:1px solid rgba(245,158,11,.3);
+    border:1px solid rgba(245,158,11,.28);
   }
-  .finding p{color:var(--muted);font-size:1rem;max-width:820px}
+  .finding p{color:var(--muted);font-size:1rem;max-width:840px}
   .finding p b{color:var(--text)}
   .finding p+p{margin-top:12px}
 
   /* ---------- pull quote ---------- */
-  .quote{
-    text-align:center;max-width:760px;margin:0 auto;
-  }
+  .quote{text-align:center;max-width:780px;margin:0 auto}
   .quote blockquote{
-    font-size:clamp(1.3rem,3vw,1.85rem);font-weight:800;letter-spacing:-.02em;line-height:1.3;
+    font-size:clamp(1.35rem,3vw,1.95rem);font-weight:800;letter-spacing:-.028em;line-height:1.28;
     margin-bottom:18px;
   }
-  .quote p{color:var(--muted);font-size:1.02rem}
+  .quote p{color:var(--muted);font-size:1.01rem}
   .quote p b{color:var(--text)}
+  .quote code{color:var(--amber-bright)}
 
-  /* ---------- comparison table ---------- */
-  .tbl-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel)}
-  table{width:100%;border-collapse:collapse;min-width:640px}
-  th,td{text-align:left;padding:16px 20px;border-bottom:1px solid var(--line);font-size:.93rem;vertical-align:top}
-  thead th{
-    color:var(--muted-2);font-size:.76rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
-    background:var(--bg-2);
+  /* ---------- install ---------- */
+  .install{max-width:820px;margin:0 auto}
+  .install-step{display:flex;gap:16px;align-items:flex-start;margin-bottom:22px}
+  .install-step .n{
+    flex:0 0 auto;width:28px;height:28px;border-radius:9px;display:grid;place-items:center;
+    font-weight:800;font-size:.82rem;background:var(--panel-2);border:1px solid var(--line);color:var(--amber-bright);
+    margin-top:4px;
   }
-  tbody tr:last-child td{border-bottom:none}
-  td.who{font-weight:700;color:var(--text);white-space:nowrap}
-  td.good{color:var(--muted)}
-  td.why{color:var(--muted)}
-  td.why b{color:var(--amber-bright);font-weight:600}
-
-  /* ---------- numbered properties ---------- */
-  .props{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:36px}
-  @media(max-width:760px){.props{grid-template-columns:1fr}}
-  .prop{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:24px;transition:transform .2s ease,border-color .2s}
-  .prop:hover{transform:translateY(-3px);border-color:rgba(245,158,11,.45)}
-  .prop .n{
-    width:34px;height:34px;border-radius:9px;display:grid;place-items:center;font-weight:800;
-    background:linear-gradient(135deg,var(--amber),var(--amber-deep));color:#1a1206;margin-bottom:14px;font-size:.95rem;
+  .install-step .body{flex:1 1 auto;min-width:0}
+  .install-step h4{font-size:1rem;font-weight:700;margin-bottom:4px;letter-spacing:-.01em}
+  .install-step p{color:var(--muted);font-size:.9rem;margin-bottom:10px}
+  .install-step p b{color:var(--text)}
+  .install-step p code{color:var(--amber-bright);font-size:.88em}
+  .copyline{
+    display:flex;align-items:center;justify-content:space-between;gap:14px;
+    background:#070c16;border:1px solid var(--line);border-radius:11px;padding:12px 12px 12px 16px;
   }
-  .prop h3{font-size:1.08rem;font-weight:700;margin-bottom:8px;letter-spacing:-.01em}
-  .prop p{color:var(--muted);font-size:.93rem;line-height:1.6}
-  .prop p b{color:var(--text)}
-
-  /* ---------- laws ---------- */
-  .laws{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-  @media(max-width:900px){.laws{grid-template-columns:repeat(2,1fr)}}
-  @media(max-width:600px){.laws{grid-template-columns:1fr}}
-  .law{
-    background:linear-gradient(180deg,var(--panel),var(--bg-2));
-    border:1px solid var(--line);border-radius:14px;padding:20px 22px;
-    display:flex;gap:14px;align-items:flex-start;
+  .copyline code{
+    font-family:'JetBrains Mono',monospace;font-size:.85rem;color:#c8d3e2;
+    overflow-x:auto;white-space:pre;flex:1 1 auto;
   }
-  .law .id{
-    font-family:'JetBrains Mono',monospace;font-weight:600;font-size:.95rem;
-    color:var(--amber);flex:0 0 auto;
-  }
-  .law p{font-size:.92rem;color:var(--muted);line-height:1.55}
-  .law p b{color:var(--text)}
-
-  /* ---------- status ---------- */
-  .status-bar{
-    display:flex;align-items:center;gap:16px;flex-wrap:wrap;justify-content:center;
-    margin-bottom:30px;
-  }
-  .meter{
-    flex:1 1 320px;max-width:520px;height:12px;border-radius:999px;
-    background:var(--panel-2);border:1px solid var(--line);overflow:hidden;
-  }
-  .meter i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--amber-deep),var(--amber-bright))}
-  .status-bar .lbl{font-family:'JetBrains Mono',monospace;font-size:.9rem;color:var(--muted)}
-  .status-bar .lbl b{color:var(--text)}
-
-  /* the derived strip: one row per block, written by `roadkeep export --site` */
-  .blocks{
-    display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-    gap:10px;max-width:860px;margin:0 auto 28px;
-  }
-  .blk{
-    display:flex;flex-direction:column;gap:6px;
-    padding:14px 16px;border-radius:11px;
-    background:var(--panel);border:1px solid var(--line);
-  }
-  .blk .b-n{font-family:'JetBrains Mono',monospace;font-size:.76rem;color:var(--muted-2);letter-spacing:.02em}
-  .blk .b-t{font-size:.9rem;color:var(--slate);line-height:1.4}
-  .blk.done{border-color:rgba(245,158,11,.28)}
-  .blk.done .b-n{color:var(--amber)}
-  .next{
-    text-align:center;color:var(--muted);font-size:.93rem;
-    max-width:760px;margin:0 auto 6px;
-  }
-  .next .k{color:var(--muted-2);font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;margin-right:6px}
-  .next code{color:var(--amber);font-size:.9rem}
-
-  .arc{max-width:760px;margin:34px auto 0}
-  .arc .lead{color:var(--muted);font-size:.98rem;margin-bottom:18px;text-align:center}
-  .arc .lead b{color:var(--text);font-weight:600}
-  .arc .aside{color:var(--muted);font-size:.93rem;margin-top:18px}
-  .arc .aside b{color:var(--text)}
-  .arc .install-lead{text-align:center;color:var(--muted);font-size:.95rem;margin:38px 0 12px}
-  .arc .install-lead b{color:var(--text)}
-  .arc .install-note{text-align:center;color:var(--muted-2);font-size:.85rem;margin-top:12px}
-
-  .codeblock{
-    background:#070c16;border:1px solid var(--line);border-radius:12px;
-    padding:18px 20px;font-family:'JetBrains Mono',monospace;font-size:.88rem;color:#c8d3e2;
-    overflow-x:auto;line-height:1.9;
-  }
-  .codeblock .c{color:var(--muted-2)}
-  .codeblock .g{color:var(--amber-bright)}
-  /* the command list is column-aligned, so its newlines and runs of spaces are content */
-  .codeblock.pre{white-space:pre;line-height:1.85}
-  .codeblock.copy{position:relative;display:flex;align-items:center;justify-content:space-between;gap:14px}
-  .codeblock.copy code{font-family:inherit;white-space:nowrap}
+  @media(max-width:600px){.copyline code{font-size:.76rem}}
   .copy-btn{
     flex:0 0 auto;display:inline-flex;align-items:center;gap:7px;
     padding:7px 12px;border-radius:8px;cursor:pointer;
     background:var(--panel-2);border:1px solid var(--line);color:var(--muted);
-    font-family:'Inter',sans-serif;font-size:.8rem;font-weight:600;
+    font-family:'Inter',sans-serif;font-size:.79rem;font-weight:600;
     transition:background .2s,color .2s,border-color .2s;
   }
   .copy-btn:hover{background:var(--amber);color:#1a1206;border-color:var(--amber)}
-  .copy-btn.copied{background:rgba(52,211,153,.16);color:#34d399;border-color:rgba(52,211,153,.45)}
+  .copy-btn.copied{background:rgba(52,211,153,.16);color:var(--green);border-color:rgba(52,211,153,.45)}
+  .install-foot{color:var(--muted-2);font-size:.87rem;text-align:center;margin-top:26px;line-height:1.7}
+  .install-foot code{color:var(--amber)}
+
+  /* ---------- laws ---------- */
+  .laws{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  @media(max-width:920px){.laws{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:600px){.laws{grid-template-columns:1fr}}
+  .law{
+    background:linear-gradient(180deg,var(--panel),var(--bg-2));
+    border:1px solid var(--line);border-radius:14px;padding:19px 20px;
+    display:flex;gap:13px;align-items:flex-start;
+  }
+  .law .id{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:.92rem;color:var(--amber);flex:0 0 auto}
+  .law p{font-size:.9rem;color:var(--muted);line-height:1.55}
+  .law p b{color:var(--text)}
 
   /* ---------- non-goals ---------- */
-  .nogoals{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+  .nogoals{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:22px}
   @media(max-width:760px){.nogoals{grid-template-columns:1fr}}
   .nogoal{
     display:flex;gap:13px;align-items:flex-start;
-    background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px;
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:17px 19px;
   }
   .nogoal .x{
     flex:0 0 auto;width:22px;height:22px;border-radius:6px;display:grid;place-items:center;
-    background:rgba(229,72,77,.14);color:#f0787c;font-size:.75rem;font-weight:800;margin-top:2px;
+    background:rgba(240,120,124,.13);color:var(--red);font-size:.72rem;font-weight:800;margin-top:2px;
   }
-  .nogoal p{font-size:.93rem;color:var(--muted);line-height:1.55}
+  .nogoal p{font-size:.91rem;color:var(--muted);line-height:1.55}
   .nogoal p b{color:var(--text)}
 
-  /* ---------- fixture note ---------- */
-  .fixture{
-    background:linear-gradient(135deg,rgba(245,158,11,.1),var(--panel));
-    border:1px solid rgba(245,158,11,.3);border-radius:var(--radius);
-    padding:40px;text-align:center;
+  /* ---------- built in the open (the derived strip) ---------- */
+  .openbox{
+    border:1px solid var(--line);border-radius:var(--radius);
+    background:linear-gradient(180deg,var(--panel),var(--bg-2));padding:30px 26px;
   }
-  .fixture .ico{font-size:2.2rem;margin-bottom:14px}
-  .fixture h2{font-size:clamp(1.5rem,3vw,2rem);font-weight:800;margin-bottom:14px;letter-spacing:-.02em}
-  .fixture p{color:var(--muted);max-width:680px;margin:0 auto;font-size:1rem}
-  .fixture p b{color:var(--text)}
+  .status-bar{
+    display:flex;align-items:center;gap:16px;flex-wrap:wrap;justify-content:center;
+    margin-bottom:24px;
+  }
+  .meter{
+    flex:1 1 300px;max-width:480px;height:10px;border-radius:999px;
+    background:var(--panel-2);border:1px solid var(--line);overflow:hidden;
+  }
+  .meter i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--amber-deep),var(--amber-bright))}
+  .status-bar .lbl{font-family:'JetBrains Mono',monospace;font-size:.88rem;color:var(--muted)}
+  .status-bar .lbl b{color:var(--text)}
+  .blocks{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));
+    gap:10px;max-width:880px;margin:0 auto 22px;
+  }
+  .blk{
+    display:flex;flex-direction:column;gap:5px;
+    padding:13px 15px;border-radius:11px;
+    background:rgba(10,15,27,.55);border:1px solid var(--line);
+  }
+  .blk .b-n{font-family:'JetBrains Mono',monospace;font-size:.74rem;color:var(--muted-2);letter-spacing:.02em}
+  .blk .b-t{font-size:.88rem;color:var(--slate);line-height:1.4}
+  .blk.done{border-color:rgba(245,158,11,.26)}
+  .blk.done .b-n{color:var(--amber)}
+  .next{text-align:center;color:var(--muted);font-size:.9rem;max-width:760px;margin:0 auto}
+  .next .k{color:var(--muted-2);font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;margin-right:6px}
+  .next code{color:var(--amber);font-size:.9rem}
+  .openbox .derived{
+    color:var(--muted-2);font-size:.85rem;text-align:center;margin-top:22px;
+    padding-top:20px;border-top:1px solid var(--line);line-height:1.7;
+  }
+  .openbox .derived code{color:var(--amber)}
+  .openbox .derived b{color:var(--muted)}
+
+  /* ---------- closing CTA ---------- */
+  .closing{
+    background:linear-gradient(135deg,rgba(245,158,11,.13),var(--panel) 60%);
+    border:1px solid rgba(245,158,11,.3);border-radius:22px;
+    padding:52px 40px;text-align:center;
+  }
+  @media(max-width:600px){.closing{padding:36px 22px}}
+  .closing h2{font-size:clamp(1.6rem,3.4vw,2.3rem);font-weight:800;letter-spacing:-.03em;margin-bottom:14px;line-height:1.2}
+  .closing p{color:var(--muted);max-width:660px;margin:0 auto 26px;font-size:1.02rem}
+  .closing p b{color:var(--text)}
+  .closing .hero-cta{margin-bottom:0}
 
   /* ---------- footer ---------- */
-  footer{border-top:1px solid var(--line);padding:46px 0 38px;margin-top:30px}
+  footer{border-top:1px solid var(--line);padding:44px 0 38px;margin-top:34px}
   .foot-grid{display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap}
   .foot-brand{display:flex;align-items:center;gap:11px;font-family:'JetBrains Mono',monospace;font-weight:600}
   .foot-brand svg{width:28px;height:28px}
-  .foot-links{display:flex;gap:24px;flex-wrap:wrap}
-  .foot-links a{color:var(--muted);font-size:.9rem;transition:color .2s}
+  .foot-links{display:flex;gap:22px;flex-wrap:wrap}
+  .foot-links a{color:var(--muted);font-size:.89rem;transition:color .2s}
   .foot-links a:hover{color:var(--amber)}
-  .disclaimer{color:var(--muted-2);font-size:.8rem;margin-top:22px;text-align:center;max-width:760px;margin-left:auto;margin-right:auto;line-height:1.6}
+  .disclaimer{color:var(--muted-2);font-size:.79rem;margin:22px auto 0;text-align:center;max-width:780px;line-height:1.65}
+  .disclaimer code{color:var(--muted)}
 
   /* reveal on scroll */
-  .reveal{opacity:0;transform:translateY(24px);transition:opacity .6s ease,transform .6s ease}
+  .reveal{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .6s ease}
   .reveal.in{opacity:1;transform:none}
   @media(prefers-reduced-motion:reduce){
     .reveal{opacity:1;transform:none;transition:none}
     .hero-mark,.dot{animation:none}
+    html{scroll-behavior:auto}
   }
 </style>
 </head>
@@ -354,11 +477,12 @@
   <div class="wrap">
     <a class="brand" href="#top"><svg aria-hidden="true"><use href="#mark"/></svg>roadkeep</a>
     <div class="nav-links">
-      <a href="#problem">The problem</a>
-      <a href="#moat">Why not a linter</a>
-      <a href="#laws">The laws</a>
-      <a href="#status">Status</a>
-      <a class="btn btn-primary" href="https://github.com/alegauss/roadkeep">★ View on GitHub</a>
+      <a href="#why">Why</a>
+      <a href="#strengths">Strengths</a>
+      <a href="#agents">For agents</a>
+      <a href="#compare">Compare</a>
+      <a href="#install">Install</a>
+      <a class="btn btn-primary btn-sm" href="https://github.com/alegauss/roadkeep">★ GitHub</a>
     </div>
   </div>
 </nav>
@@ -367,84 +491,80 @@
 <header class="hero" id="top">
   <div class="wrap">
     <div class="hero-mark"><svg role="img" aria-label="roadkeep"><use href="#mark"/></svg></div>
-    <div class="badge"><span class="dot"></span> Open source · Python ≥3.11 · Apache-2.0</div>
-    <h1>Your format is a convention.<br><span class="grad">Make it a schema.</span></h1>
+    <div class="badge"><span class="dot"></span> Claude Code plugin · Python ≥3.11 · zero dependencies · Apache-2.0</div>
+    <h1>Your ROADMAP.md declares a format.<br><span class="grad">roadkeep enforces it.</span></h1>
     <p class="sub">
-      roadkeep owns the writes to your <b>ROADMAP.md</b>, <b>CHANGELOG.md</b>,
-      <b>IMPROVEMENTS.md</b> and <b>STRATEGY.md</b> — so the format is enforced at the
-      point of insertion instead of remembered by whoever is typing.
+      One line per task, refused <b>at the input</b> — not flagged at review, when the prose is
+      already written and someone has to delete it. roadkeep owns the writes to your
+      <b>ROADMAP.md</b>, <b>CHANGELOG.md</b>, <b>IMPROVEMENTS.md</b> and <b>STRATEGY.md</b>.
     </p>
     <p class="note">
-      Shipped as a Claude Code plugin, because the author to constrain is usually an agent.
+      Built for the author who actually keeps them now: an agent.
     </p>
     <div class="hero-cta">
-      <a class="btn btn-primary" href="https://github.com/alegauss/roadkeep">★ View on GitHub</a>
-      <a class="btn btn-ghost" href="https://github.com/alegauss/roadkeep/blob/main/docs/ROADMAP.md">Read the roadmap</a>
+      <a class="btn btn-primary" href="#install">Start in two lines →</a>
+      <a class="btn btn-ghost" href="https://github.com/alegauss/roadkeep">★ View on GitHub</a>
     </div>
     <div class="hero-meta">
-      <span>🗂 Your existing Markdown — no migration</span>
-      <span>🚫 Zero runtime dependencies</span>
-      <span>🔍 Greppable, diffable, no service</span>
-    </div>
-    <div class="pills">
-      <span class="pill"><b>argparse</b> + <b>tomllib</b> · nothing else</span>
-      <span class="pill">Round-trip <b>or refuse</b></span>
-      <span class="pill">Every question is a <b>command</b></span>
-      <span class="pill">Per-project <b>configuration</b></span>
+      <span class="chip">🗂 <b>Your existing Markdown</b> — no migration</span>
+      <span class="chip">🚫 <b>Zero</b> runtime dependencies</span>
+      <span class="chip">🔍 Greppable, diffable, <b>no service</b></span>
+      <span class="chip">⛔ Hand-edits <b>denied at the source</b></span>
     </div>
   </div>
 </header>
 
-<!-- THE PROBLEM -->
-<section id="problem">
+<!-- THE PITCH: WITHOUT / WITH -->
+<section id="why" style="padding-top:44px">
   <div class="wrap">
     <div class="sec-head reveal">
-      <div class="eyebrow">The problem, measured</div>
-      <h2>This did not start as an idea</h2>
-      <p>It started as three readings from <b>a real production repository</b>, where all three files declared a format and none of them enforced it.</p>
+      <div class="eyebrow">The pitch, in one screen</div>
+      <h2>Every backlog rots the same way</h2>
+      <p>Not from neglect — from an author who knows more than the line allows, and a rule that only a reviewer holds.</p>
     </div>
-    <div class="readings reveal">
-      <div class="reading">
-        <div class="file">docs/ROADMAP.md</div>
-        <div class="num">142 <span style="font-size:1.1rem;font-weight:600;color:var(--muted)">words</span></div>
-        <div class="unit">average, across 92 task lines — worst line <b style="color:var(--text)">1406 characters</b></div>
-        <div class="rule"><b>Declared rule:</b> one sentence per task.</div>
-      </div>
-      <div class="reading">
-        <div class="file">agents.md</div>
-        <div class="num">186 <span style="font-size:1.1rem;font-weight:600;color:var(--muted)">KB</span></div>
-        <div class="unit">≈ 46k tokens, loaded on every single turn</div>
-        <div class="rule"><b>Declared rule:</b> an index, nothing more.</div>
-      </div>
-      <div class="reading">
-        <div class="file">docs/IMPROVEMENTS.md</div>
-        <div class="num">539 <span style="font-size:1.1rem;font-weight:600;color:var(--muted)">KB</span></div>
-        <div class="unit">in a sibling project — rationale that was never dropped</div>
-        <div class="rule"><b>Declared rule:</b> rationale for <i>unshipped</i> work.</div>
-      </div>
-    </div>
-    <div class="finding reveal">
-      <p><b>The finding that decided the design: six of the eight worst lines were written in the session that then diagnosed the problem.</b></p>
-      <p>
-        This is not inattention. An author — human or model — who has the whole design in
-        working memory will write it down where the reader is. An instruction to be terse
-        does not survive the moment its author knows more than the line allows.
-      </p>
-    </div>
-  </div>
-</section>
 
-<!-- WHY NOT A LINTER -->
-<section id="moat" style="padding-top:24px">
-  <div class="wrap">
-    <div class="quote reveal">
-      <div class="eyebrow">Why a linter was the wrong answer</div>
+    <div class="split reveal">
+      <div class="side bad">
+        <div class="side-head"><span class="tag">BEFORE</span> A format nobody enforces</div>
+        <div class="body">
+<pre>- 📋 <b>T-104</b> Refactor the cache layer. We looked at
+  three options here and the reason we went with the
+  second is that the first would require touching the
+  scheduler, which nobody owns anymore, and the third
+  needs a migration. Note that Marc raised… <span class="c">(+1100 chars)</span></pre>
+          <ul>
+            <li><span class="m">✕</span>The rule said <b>one sentence</b>. Nothing checked.</li>
+            <li><span class="m">✕</span>The rationale landed where the reader is, not where it belongs.</li>
+            <li><span class="m">✕</span>Picking one ready task means reading the whole file.</li>
+            <li><span class="m">✕</span>Review catches it a whole turn of prose <b>too late</b>.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="side good">
+        <div class="side-head"><span class="tag">AFTER</span> A format that is a schema</div>
+        <div class="body">
+<pre>$ roadkeep <span class="g">add</span> --block C --symptom "…" --why "…"
+<span class="no">refused</span>: why is 412 characters, limit 200
+        <span class="dim">nothing was written</span>
+
+$ roadkeep <span class="g">add</span> --block C --symptom "…" --why "…"
+<span class="ok">RK51</span> Block C — <span class="dim">line 41, 268 of 320 chars</span></pre>
+          <ul>
+            <li><span class="m">✓</span>The field is refused <b>before a sentence fills it</b>.</li>
+            <li><span class="m">✓</span>Id, pointer, marker and dep annotations are <b>derived</b>.</li>
+            <li><span class="m">✓</span><code>roadkeep pick</code> answers "what next" in one call.</li>
+            <li><span class="m">✓</span><code>roadkeep lint</code> exits <b>1</b> if anything drifted anyway.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="quote reveal" style="margin-top:52px">
       <blockquote>“The saving is the analysis,<br>not the characters.”</blockquote>
       <p>
-        A linter reports <i>after</i> the prose exists. By then the tokens are spent, and the
-        author is being asked to delete work they just did. A field with
-        <code>maxLength: 200</code> refuses <b>before a sentence is composed to fill it</b> —
-        the same rule, two orders of magnitude cheaper. It turns an analytical act
+        A linter reports <i>after</i> the prose exists — the tokens are spent and the author is
+        asked to delete work they just did. A field with <code>maxLength: 200</code> refuses
+        first. Same rule, two orders of magnitude cheaper, and it turns an analytical act
         (<i>“is this too long, and what would I cut?”</i>) into a procedural one
         (<i>“call <code>add</code>”</i>).
       </p>
@@ -452,13 +572,88 @@
   </div>
 </section>
 
-<!-- THE MOAT -->
-<section style="padding-top:36px">
+<!-- STRENGTHS -->
+<section id="strengths">
   <div class="wrap">
     <div class="sec-head reveal">
-      <div class="eyebrow">What makes it different</div>
+      <div class="eyebrow">Strengths</div>
+      <h2>Six reasons it survives contact with a real repo</h2>
+      <p>Each one is a property the tool can be held to — not a promise in a README.</p>
+    </div>
+    <div class="cards">
+      <div class="card reveal">
+        <div class="ico">🛑</div>
+        <span class="kicker">Enforced, not advised</span>
+        <h3>The refusal happens before the prose</h3>
+        <p>Every field is validated at insertion and the write is <b>all-or-nothing</b>: an over-length <code>why</code> exits 2 naming the length and the limit, and <b>nothing reaches the file</b>. A retry costs a sentence; a review costs a deletion.</p>
+      </div>
+      <div class="card reveal">
+        <div class="ico">📄</div>
+        <span class="kicker">No migration</span>
+        <h3>It governs the file you already have</h3>
+        <p>One line in your existing <code>ROADMAP.md</code> — not a new store, not a database, not a service. <code>roadkeep adopt</code> measures your backlog and <b>tells you what adopting would cost before you commit to it</b>.</p>
+      </div>
+      <div class="card reveal">
+        <div class="ico">🔒</div>
+        <span class="kicker">Provably safe writes</span>
+        <h3>Round-trip or refuse</h3>
+        <p>Parse → render → <b>byte-identical</b>, or the tool declines to write the file at all. A tool that owns writes to a hand-edited file has to prove it cannot corrupt one — so it is a property test over real roadmaps, not an intention.</p>
+      </div>
+      <div class="card reveal">
+        <div class="ico">⚡</div>
+        <span class="kicker">Context is the budget</span>
+        <h3>Query instead of read</h3>
+        <p>Every question is a command: <code>pick</code>, <code>brief</code>, <code>deps</code>, <code>show</code>, <code>stats</code>, <code>origin</code>. Reading a backlog end-to-end to find one ready task cost <b>~5k tokens</b> here. <code>brief</code> starts the same task in one call.</p>
+      </div>
+      <div class="card reveal">
+        <div class="ico">🧾</div>
+        <span class="kicker">One command, three files</span>
+        <h3>Shipping is a transaction</h3>
+        <p><code>ship &lt;id&gt;</code> writes the ledger entry, clears the roadmap line, drops the rationale section and re-annotates every dependent — <b>all of them or none</b>. The docs never describe a state that did not ship.</p>
+      </div>
+      <div class="card reveal">
+        <div class="ico">🪶</div>
+        <span class="kicker">Nothing to resolve</span>
+        <h3>argparse and tomllib. That is the whole stack.</h3>
+        <p><b>Zero runtime dependencies</b> — not <code>click</code>, not <code>pydantic</code>. A tool that runs in someone else's CI pays for every dependency it takes, which is what makes <code>uvx roadkeep lint</code> viable with no install and no checkout.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- THE DIFFERENTIATOR -->
+<section id="compare" style="padding-top:26px">
+  <div class="wrap">
+    <div class="diff reveal">
+      <div>
+        <div class="eyebrow">The differentiator</div>
+        <h3>Everything else in this space reports. roadkeep refuses.</h3>
+        <p>
+          Linters, kanban files, ADR sets — all of them are read <b>after</b> the text exists.
+          That is one position on a timeline, and it is the expensive one.
+        </p>
+        <p>
+          roadkeep is the only one that sits <b>at the write path</b>, which is also the only
+          position from which an <i>agent</i> can be constrained: by the time a hook, a
+          reviewer or a CI job objects, the turn is already paid for.
+        </p>
+      </div>
+      <div class="term">
+        <div class="term-bar"><i></i><i></i><i></i><span class="t">the timeline of one line</span></div>
+<pre><span class="g">roadkeep add</span>     <span class="c">← refuses here.  cost: a retry</span>
+   │
+   ├─ prose written
+   ├─ <span class="dim">Vale / markdownlint</span>  <span class="c">← reports here</span>
+   ├─ <span class="dim">pull request review</span>  <span class="c">← reports here</span>
+   └─ <span class="dim">…6 months of backlog</span> <span class="c">← nobody reports</span>
+                    <span class="c">cost: a deletion, or drift</span></pre>
+      </div>
+    </div>
+
+    <div class="sec-head reveal" style="margin-top:60px">
+      <div class="eyebrow">Honest comparison</div>
       <h2>The space around this is not empty</h2>
-      <p>So the honest comparison is a narrow one.</p>
+      <p>So the comparison is a narrow one, and each of these is <b>good at what it does</b>.</p>
     </div>
     <div class="tbl-scroll reveal">
       <table>
@@ -484,39 +679,239 @@
           <tr>
             <td class="who">ADR / MADR</td>
             <td class="good">Rationale that survives; superseded is never deleted</td>
-            <td class="why">An ADR set grows <b>monotonically</b> — that curve <i>is</i> the 539 KB above</td>
+            <td class="why">An ADR set grows <b>monotonically</b> — that curve <i>is</i> the 539 KB below</td>
+          </tr>
+          <tr>
+            <td class="who">Jira, Linear,<br>GitHub Issues</td>
+            <td class="good">Planning across a company, at scale</td>
+            <td class="why">A backlog that lives in a service is one an agent <b>cannot <code>grep</code></b> — and every read is a round trip</td>
           </tr>
         </tbody>
       </table>
     </div>
+    <p class="tbl-note reveal">roadkeep composes with all five. It owns four files; it asks for nothing else.</p>
+  </div>
+</section>
 
-    <div class="props">
-      <div class="prop reveal">
+<!-- FOR AGENTS -->
+<section id="agents">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">The guardrail at the agent boundary</div>
+      <h2>An agent will bypass any format with one <code>Edit</code></h2>
+      <p>Because <code>Edit</code> is cheaper than reading a <code>--help</code>. So the plugin makes the denial the cheapest path forward.</p>
+    </div>
+
+    <div class="split reveal">
+      <div class="term">
+        <div class="term-bar"><i></i><i></i><i></i><span class="t">PreToolUse — Edit on docs/ROADMAP.md</span></div>
+<pre><span class="no">Edit refused</span>: docs/ROADMAP.md is this project's
+roadmap, and roadkeep owns its writes.
+
+Call instead, from the project root:
+  roadkeep <span class="g">add</span> --block &lt;x&gt; --symptom "…" --why "…"
+        <span class="c">a new task line, fields refused at input</span>
+  roadkeep <span class="g">status</span> &lt;id&gt; &lt;marker&gt;
+        <span class="c">a marker, and only in this file</span>
+  roadkeep <span class="g">ship</span> &lt;id&gt;
+        <span class="c">ledger entry, line gone, section dropped</span></pre>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="card" style="padding:22px">
+          <h3 style="margin-bottom:8px">A refusal that names the alternative</h3>
+          <p>A denial with no next step is a denial an agent routes around. This one arrives with the command and its flags, so complying is <b>less work than retrying</b>.</p>
+        </div>
+        <div class="card" style="padding:22px">
+          <h3 style="margin-bottom:8px">Four surfaces, one engine</h3>
+          <p>A <b>hook</b> that denies the hand-edit and lints before the turn ends; an <b>MCP server</b> whose input schema is <i>derived</i> from your <code>roadkeep.toml</code>; four <b>slash commands</b>; and a trigger-loaded <b>skill</b>. Every one dispatches through the same parser your terminal uses.</p>
+        </div>
+        <div class="card" style="padding:22px">
+          <h3 style="margin-bottom:8px">Silence is the allow, and every failure allows</h3>
+          <p>The guard returns only <code>deny</code>, never <code>allow</code> — so it never waves through the permission rules you set. A broken config, bad JSON or a missing path <b>lets the write through</b>: a guard that denies on its own errors turns one typo into a repo nobody can edit.</p>
+        </div>
+      </div>
+    </div>
+
+    <p class="tbl-note reveal" style="margin-top:20px">
+      The MCP schema carries <i>your</i> numbers: <code>maxLength</code> is this project's field limits,
+      <code>enum</code> its declared markers, <code>pattern</code> its id shape. A misspelt flag is refused by the
+      protocol instead of costing a round trip to a usage string.
+    </p>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section style="padding-top:26px">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">How it works</div>
+      <h2>A whole task is four calls</h2>
+      <p>Not a manual to learn — a shape: <b>ask what to work on</b>, <b>write the line</b>, <b>ship it</b>, <b>prove nothing drifted</b>.</p>
+    </div>
+
+    <div class="steps reveal">
+      <div class="step">
         <div class="n">1</div>
-        <h3>Enforced at the write path</h3>
-        <p>The refusal happens <b>before the prose exists</b>. Everything else in this space reports afterwards, at review time.</p>
+        <h4>brief</h4>
+        <p>What to work on and <b>everything it costs to start it</b> — line, rationale, deps resolved, blockers, non-goals.</p>
       </div>
-      <div class="prop reveal">
+      <div class="step">
         <div class="n">2</div>
-        <h3>It governs the file you already have</h3>
-        <p>One line in your existing <code>ROADMAP.md</code> — <b>not a new store you migrate into</b>. A repository with a hand-written backlog is the target, not the obstacle, so it will measure yours and tell you what adopting would cost <b>before</b> you commit to it.</p>
+        <h4>add</h4>
+        <p>Compose the line. The <b>field</b> is refused, never the sentence — and the id, pointer and annotations are derived.</p>
       </div>
-      <div class="prop reveal">
+      <div class="step">
         <div class="n">3</div>
-        <h3>Round-trip or refuse</h3>
-        <p>Parse → render → <b>byte-identical</b>, or the tool declines to write the file at all. A tool that owns writes to a hand-edited file has to prove it cannot corrupt one.</p>
+        <h4>ship &lt;id&gt;</h4>
+        <p>Three edits across three files, <b>all of them or none</b>, plus every dependent's annotation.</p>
       </div>
-      <div class="prop reveal">
+      <div class="step">
         <div class="n">4</div>
-        <h3>Query instead of read</h3>
-        <p>Every question a maintainer asks the file is a command, so answering it <b>costs no context</b>. Reading a backlog end-to-end to find one ready task cost ~5k tokens in this very repository.</p>
+        <h4>lint</h4>
+        <p>Exit <b>1</b> when anything drifted, naming <code>file:line:column</code>. That exit code is the contract.</p>
       </div>
+    </div>
+
+    <div class="term reveal" style="max-width:900px;margin:0 auto">
+      <div class="term-bar"><i></i><i></i><i></i><span class="t">one task, start to gate — real output from this repository</span></div>
+<pre>$ roadkeep <span class="g">pick</span>
+RK21  Block E  💭  docs/ROADMAP.md:33
+  because  lowest ready id
+  backlog  3 ready, 1 blocked, 0 blocked outside the backlog
+  symptom  A standard adopted by one project is a preference
+  or       RK48, RK49
+
+$ roadkeep <span class="g">lint</span>
+docs/ROADMAP.md, docs/CHANGELOG.md, docs/IMPROVEMENTS.md, agents.md, CLAUDE.md:
+49 line(s), 9 section(s), 2 budget(s), <span class="ok">clean</span>              <span class="c"># exit 0</span></pre>
+    </div>
+
+    <p class="tbl-note reveal" style="margin-top:18px;max-width:820px;margin-left:auto;margin-right:auto">
+      Every command takes <code>--json</code> carrying <b>which file and which line</b> the answer came
+      from — because an answer an agent cannot audit gets verified by reading the file, which is
+      the cost the command existed to remove.
+    </p>
+  </div>
+</section>
+
+<!-- EVIDENCE -->
+<section style="padding-top:26px">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">The problem, measured</div>
+      <h2>This did not start as an idea</h2>
+      <p>It started as three readings from <b>a real production repository</b>, where all three files declared a format and none of them enforced it.</p>
+    </div>
+    <div class="readings reveal">
+      <div class="reading">
+        <div class="file">docs/ROADMAP.md</div>
+        <div class="num">142 <small>words</small></div>
+        <div class="unit">average, across 92 task lines — worst line <b>1406 characters</b></div>
+        <div class="rule"><b>Declared rule:</b> one sentence per task.</div>
+      </div>
+      <div class="reading">
+        <div class="file">agents.md</div>
+        <div class="num">186 <small>KB</small></div>
+        <div class="unit">≈ <b>46k tokens</b>, loaded on every single turn</div>
+        <div class="rule"><b>Declared rule:</b> an index, nothing more.</div>
+      </div>
+      <div class="reading">
+        <div class="file">docs/IMPROVEMENTS.md</div>
+        <div class="num">539 <small>KB</small></div>
+        <div class="unit">in a sibling project — rationale that was <b>never dropped</b></div>
+        <div class="rule"><b>Declared rule:</b> rationale for <i>unshipped</i> work.</div>
+      </div>
+    </div>
+    <div class="finding reveal">
+      <p><b>The finding that decided the design: six of the eight worst lines were written in the session that then diagnosed the problem.</b></p>
+      <p>
+        This is not inattention. An author — human or model — who has the whole design in
+        working memory will write it down where the reader is. An instruction to be terse does
+        not survive the moment its author knows more than the line allows. So roadkeep also
+        holds a <b>byte and line budget</b> on the instruction files nobody edits on purpose.
+      </p>
     </div>
   </div>
 </section>
 
-<!-- THE LAWS -->
-<section id="laws">
+<!-- INSTALL -->
+<section id="install" style="padding-top:36px">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">Get started</div>
+      <h2>Two lines to the plugin, one to a gate</h2>
+      <p>Python ≥3.11 and nothing to resolve. Try it on a repository before adopting it anywhere.</p>
+    </div>
+
+    <div class="install">
+      <div class="install-step reveal">
+        <div class="n">0</div>
+        <div class="body">
+          <h4>See what it would say about your repo</h4>
+          <p>No install, no checkout, no config — <code>adopt</code> <b>measures your existing backlog</b> and reports what would have to change.</p>
+          <div class="copyline">
+            <code data-copy>uvx roadkeep adopt</code>
+            <button class="copy-btn" type="button" aria-label="Copy command"><span class="ic">⧉</span><span class="lbl">Copy</span></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="install-step reveal">
+        <div class="n">1</div>
+        <div class="body">
+          <h4>Install it, and scaffold the config</h4>
+          <p><code>init</code> writes <code>roadkeep.toml</code> — <b>your</b> prefix, paths, markers and limits — plus the files it declares.</p>
+          <div class="copyline">
+            <code data-copy>pip install roadkeep &amp;&amp; roadkeep init</code>
+            <button class="copy-btn" type="button" aria-label="Copy command"><span class="ic">⧉</span><span class="lbl">Copy</span></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="install-step reveal">
+        <div class="n">2</div>
+        <div class="body">
+          <h4>Install the Claude Code plugin</h4>
+          <p>Hook, MCP server, slash commands and skill — the enforcement point <b>an agent cannot route around</b>.</p>
+          <div class="copyline">
+            <code data-copy>/plugin marketplace add alegauss/roadkeep</code>
+            <button class="copy-btn" type="button" aria-label="Copy command"><span class="ic">⧉</span><span class="lbl">Copy</span></button>
+          </div>
+          <div class="copyline" style="margin-top:9px">
+            <code data-copy>/plugin install roadkeep@alegauss</code>
+            <button class="copy-btn" type="button" aria-label="Copy command"><span class="ic">⧉</span><span class="lbl">Copy</span></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="install-step reveal">
+        <div class="n">3</div>
+        <div class="body">
+          <h4>Make it a gate</h4>
+          <p>The same command in CI and at the commit — <b>a gate that runs in one place is a gate with a documented bypass</b>. <code>--fix</code> repairs only what the format derives and leaves every editorial finding to a human.</p>
+          <div class="term" style="margin-top:4px">
+            <div class="term-bar"><i></i><i></i><i></i><span class="t">.github/workflows/gate.yml · .pre-commit-config.yaml</span></div>
+<pre><span class="c">- uses: alegauss/roadkeep@main</span>   <span class="c"># the action this repo ships</span>
+
+repos:
+  - repo: https://github.com/alegauss/roadkeep
+    rev: v0.1.0
+    hooks:
+      - id: <span class="g">roadkeep-lint</span>          <span class="c"># or roadkeep-lint-fix</span></pre>
+          </div>
+        </div>
+      </div>
+
+      <p class="install-foot reveal">
+        Or keep it to one command in an existing pipeline: <code>uvx roadkeep lint</code> — exit
+        <b>0</b> clean, <b>1</b> drifted.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- PRINCIPLES -->
+<section style="padding-top:26px">
   <div class="wrap">
     <div class="sec-head reveal">
       <div class="eyebrow">The six laws</div>
@@ -531,18 +926,31 @@
       <div class="law"><span class="id">L5</span><p><b>Query instead of read</b> — every question is a command.</p></div>
       <div class="law"><span class="id">L6</span><p><b>Configuration, not convention</b> — prefix, paths, markers and limits are per project.</p></div>
     </div>
+
+    <div class="sec-head reveal" style="margin-top:56px;margin-bottom:0">
+      <div class="eyebrow">Non-goals</div>
+      <h2>These are binding, and half the point</h2>
+      <p>What a tool refuses to become is the reason it stays small enough to trust.</p>
+    </div>
+    <div class="nogoals reveal">
+      <div class="nogoal"><span class="x">✕</span><p><b>No web UI and no server.</b> Files and a CLI; the MCP server binds nothing and stores nothing.</p></div>
+      <div class="nogoal"><span class="x">✕</span><p><b>No issue-tracker sync.</b> A backlog that lives in a service is one an agent cannot <code>grep</code>.</p></div>
+      <div class="nogoal"><span class="x">✕</span><p><b>No model and no prompts inside the tool.</b> It validates and renders; it never writes the symptom or the rationale.</p></div>
+      <div class="nogoal"><span class="x">✕</span><p><b>No dates, quarters or estimates.</b> A marker is maturity, not a schedule.</p></div>
+    </div>
   </div>
 </section>
 
-<!-- STATUS -->
-<section id="status">
+<!-- BUILT IN THE OPEN -->
+<section style="padding-top:30px">
   <div class="wrap">
     <div class="sec-head reveal">
-      <div class="eyebrow">Status</div>
-      <h2>The model, the writes, the queries and the gate are done</h2>
-      <p>What is left is the layer that makes an agent unable to route around any of it.</p>
+      <div class="eyebrow">Proof, not a promise</div>
+      <h2>roadkeep keeps its own backlog</h2>
+      <p><code>roadkeep lint</code> must pass on this repository's <code>docs/</code>. The format is proven by the artefact rather than asserted in a README — including this page.</p>
     </div>
 
+    <div class="openbox reveal">
     <!--
       Everything between the two markers is written by `roadkeep export --site` and must
       not be edited here: this page claimed "9 of 36 tasks shipped" for twenty-five ships,
@@ -551,8 +959,8 @@
     <!-- roadkeep:begin -->
 <!-- generated by `roadkeep export --site`; edit the governed files instead -->
 <div class="status-bar reveal">
-  <span class="lbl"><b>45</b> of <b>46</b> tasks shipped</span>
-  <div class="meter"><i style="width:97%"></i></div>
+  <span class="lbl"><b>46</b> of <b>49</b> tasks shipped</span>
+  <div class="meter"><i style="width:93%"></i></div>
 </div>
 <div class="blocks reveal">
   <div class="blk done">
@@ -572,7 +980,7 @@
     <span class="b-t">D — The gate</span>
   </div>
   <div class="blk open">
-    <span class="b-n">3 shipped · 1 open</span>
+    <span class="b-n">4 shipped · 3 open</span>
     <span class="b-t">E — Adoption</span>
   </div>
   <div class="blk done">
@@ -584,73 +992,30 @@
   <span class="k">Next ready</span> <code>RK21</code> — A standard adopted by one project is a preference
 </p>
     <!-- roadkeep:end -->
-
-    <div class="reveal arc">
-      <p class="lead">
-        A whole task is four calls. Not a manual to learn — a shape: <b>ask what to work
-        on</b>, <b>write the line</b>, <b>ship it</b>, <b>prove nothing drifted</b>.
-      </p>
-      <div class="codeblock pre"><span class="c"># the arc of one task</span>
-roadkeep <span class="g">brief</span>       <span class="c">what to work on, and everything it costs to start it</span>
-roadkeep <span class="g">add</span>         <span class="c">compose the line — the field is refused, never the sentence</span>
-roadkeep <span class="g">ship</span> &lt;id&gt;   <span class="c">three edits across three files, all of them or none</span>
-roadkeep <span class="g">lint</span>        <span class="c">exit 1 when anything drifted. That code is the contract.</span></div>
-      <p class="aside">
-        Around those sit the rest — status, sections, the dependency walk, the git-derived
-        history, the projection that keeps this page honest. Every one takes
-        <code>--json</code> carrying which file and which line the answer came from, because
-        an answer an agent cannot audit gets verified by reading the file,
-        <b>which is the cost the command existed to remove</b>. The full surface lives in
-        <code>--help</code> and the repository; a landing page is the wrong place for it.
-      </p>
-
-      <p class="install-lead">
-        Python ≥3.11, <b>zero runtime dependencies</b> — which is what makes the first line
-        below possible: there is nothing to resolve.
-      </p>
-      <div class="codeblock copy">
-        <code id="install-cmd">uvx roadkeep <span class="g">lint</span></code>
-        <button class="copy-btn" type="button" onclick="copyInstall(this)" aria-label="Copy install command">
-          <span class="ic">⧉</span><span class="lbl">Copy</span>
-        </button>
-      </div>
-      <p class="install-note">
-        No install and no checkout. Or <code>pip install roadkeep</code> to keep it around.
+      <p class="derived">
+        <b>None of the numbers above were typed here.</b> <code>roadkeep export --site</code> derives
+        them from the governed files, so a page that restates a backlog it cannot re-read cannot
+        go stale — the same reason a limit that cannot express these lines is
+        <b>the wrong limit, not a set of wrong lines</b>.
       </p>
     </div>
   </div>
 </section>
 
-<!-- NON-GOALS -->
-<section style="padding-top:24px">
-  <div class="wrap">
-    <div class="sec-head reveal">
-      <div class="eyebrow">Non-goals</div>
-      <h2>These are binding, and half the point</h2>
-      <p>Worth reading <i>before</i> proposing work.</p>
-    </div>
-    <div class="nogoals reveal">
-      <div class="nogoal"><span class="x">✕</span><p><b>No web UI and no server.</b> Files and a CLI.</p></div>
-      <div class="nogoal"><span class="x">✕</span><p><b>No issue-tracker sync.</b> A backlog that lives in a service is one an agent cannot <code>grep</code>.</p></div>
-      <div class="nogoal"><span class="x">✕</span><p><b>No model and no prompts inside the tool.</b> It validates and renders; it never writes the symptom or the rationale.</p></div>
-      <div class="nogoal"><span class="x">✕</span><p><b>No dates, quarters or estimates.</b> A marker is maturity, not a schedule.</p></div>
-    </div>
-  </div>
-</section>
-
-<!-- FIXTURE -->
+<!-- CLOSING CTA -->
 <section style="padding-top:20px">
   <div class="wrap reveal">
-    <div class="fixture">
-      <div class="ico">🧪</div>
-      <h2>This repository is the conformance fixture</h2>
+    <div class="closing">
+      <h2>Start the next project with the format already enforced</h2>
       <p>
-        <code>roadkeep lint</code> must pass on its own <code>docs/</code>. The format is
-        proven by the artefact rather than asserted in a README — including that one. A limit
-        that cannot express these lines is <b>the wrong limit, not a set of wrong lines</b>,
-        and the test suite asserts it against <code>docs/ROADMAP.md</code> under this
-        repository's own <code>roadkeep.toml</code>.
+        One config file, four commands, and a plugin that makes calling them cheaper than
+        editing the file by hand. <b>Your Markdown stays yours</b> — greppable, diffable, and
+        readable by anyone who never installs this.
       </p>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="#install">Install roadkeep →</a>
+        <a class="btn btn-ghost" href="https://github.com/alegauss/roadkeep">★ Star it on GitHub</a>
+      </div>
     </div>
   </div>
 </section>
@@ -665,6 +1030,7 @@ roadkeep <span class="g">lint</span>        <span class="c">exit 1 when anything
         <a href="https://github.com/alegauss/roadkeep/blob/main/docs/ROADMAP.md">Roadmap</a>
         <a href="https://github.com/alegauss/roadkeep/blob/main/docs/CHANGELOG.md">Changelog</a>
         <a href="https://github.com/alegauss/roadkeep/blob/main/docs/IMPROVEMENTS.md">Design rationale</a>
+        <a href="llms.txt">llms.txt</a>
       </div>
     </div>
     <p class="disclaimer">
@@ -672,7 +1038,7 @@ roadkeep <span class="g">lint</span>        <span class="c">exit 1 when anything
       <code>roadkeep export --site</code>, not written here.
       Shipped as a Claude Code plugin; not affiliated with, endorsed by, or sponsored by
       Anthropic. “Claude” and “Claude Code” are trademarks of Anthropic.
-      © 2026 Alexandre Oliveira.
+      © 2026 Alexandre Oliveira. Apache-2.0.
     </p>
   </div>
 </footer>
@@ -681,34 +1047,41 @@ roadkeep <span class="g">lint</span>        <span class="c">exit 1 when anything
   // reveal-on-scroll
   const io = new IntersectionObserver((entries)=>{
     entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }});
-  },{threshold:.12});
+  },{threshold:.1});
   document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
 
-  // copy the install command
-  function copyInstall(btn){
-    const cmd = document.getElementById('install-cmd').innerText.trim();
-    const done = ()=>{
-      btn.classList.add('copied');
-      btn.querySelector('.lbl').textContent = 'Copied!';
-      btn.querySelector('.ic').textContent = '✓';
-      setTimeout(()=>{
-        btn.classList.remove('copied');
-        btn.querySelector('.lbl').textContent = 'Copy';
-        btn.querySelector('.ic').textContent = '⧉';
-      }, 1800);
-    };
+  // copy: every .copyline carries its own command in [data-copy]
+  document.querySelectorAll('.copyline .copy-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const source = btn.closest('.copyline').querySelector('[data-copy]');
+      if(!source) return;
+      copyText(source.innerText.trim(), ()=>flash(btn));
+    });
+  });
+  function flash(btn){
+    btn.classList.add('copied');
+    btn.querySelector('.lbl').textContent = 'Copied!';
+    btn.querySelector('.ic').textContent = '✓';
+    setTimeout(()=>{
+      btn.classList.remove('copied');
+      btn.querySelector('.lbl').textContent = 'Copy';
+      btn.querySelector('.ic').textContent = '⧉';
+    }, 1800);
+  }
+  function copyText(text, done){
     if(navigator.clipboard && navigator.clipboard.writeText){
-      navigator.clipboard.writeText(cmd).then(done).catch(()=>fallbackCopy(cmd, done));
+      navigator.clipboard.writeText(text).then(done).catch(()=>fallbackCopy(text, done));
     } else {
-      fallbackCopy(cmd, done);
+      fallbackCopy(text, done);
     }
   }
   function fallbackCopy(text, done){
     const ta = document.createElement('textarea');
     ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
     document.body.appendChild(ta); ta.select();
-    try{ document.execCommand('copy'); done(); }catch(e){}
-    document.body.removeChild(ta);
+    try{ document.execCommand('copy'); done(); }
+    catch(e){ /* no clipboard route left: the command is on screen to select by hand */ }
+    ta.remove();
   }
 </script>
 </body>

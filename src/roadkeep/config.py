@@ -52,9 +52,14 @@ _TOP_KEYS = frozenset(
         "id_sources",
         "priority",
         "budgets",
+        "ledger",
     }
 )
 _BUDGET_KEYS = frozenset({"lines", "bytes"})
+#: Which slots the ledger's lines carry (RK43, RK48). Its own table because the shape of a
+#: file is one decision with two parts, and `markers.ledger` put half of it under a heading
+#: that cannot name the other half: a symptom is not a marker.
+_LEDGER_KEYS = frozenset({"marker", "symptom"})
 _LIMIT_KEYS = {
     "symptom": "symptom_max",
     "why": "why_max",
@@ -63,7 +68,7 @@ _LIMIT_KEYS = {
     "section": "section_max",
     "prose": "prose_width",
 }
-_MARKER_KEYS = frozenset({"open", "shipped", "retired", "ledger"})
+_MARKER_KEYS = frozenset({"open", "shipped", "retired"})
 # The invisible ones. A marker carrying U+FE0F renders identically and compares
 # unequal, so a config that declares one puts every line in the file permanently
 # out of round-trip. Refuse it where it is typed.
@@ -155,6 +160,7 @@ class Config:
         prefix = _string(data, "prefix", "RK", problems)
         ref_scheme = _string(data, "ref_scheme", "id", problems)
         markers = _markers(data.get("markers"), problems)
+        ledger = _ledger(data.get("ledger"), problems)
         limits = _limits(data.get("limits"), problems)
         paths = _paths(data.get("files"), base, problems)
         extras = tuple(
@@ -170,6 +176,7 @@ class Config:
                     prefix=prefix,
                     ref_scheme=ref_scheme,
                     **markers,
+                    **ledger,
                     **limits,
                 )
             except ValueError as error:  # a valid TOML file can still be a wrong format
@@ -303,13 +310,38 @@ def _markers(raw: object, problems: list[str]) -> dict[str, object]:
         )
     for marker in (*open_markers, shipped, retired):
         _reject_invisible(marker, problems)
+    if "ledger" in raw:
+        # Moved to its own table by RK48, and refused rather than aliased: two spellings of
+        # one flag are two spellings that can disagree, and a config error that names its
+        # replacement costs one edit against a setting that silently stops being read.
+        problems.append(
+            "markers.ledger moved to [ledger] marker (RK48): the ledger's shape is one "
+            "table, since [ledger] symptom cannot live under markers"
+        )
     return {
         "markers": open_markers or OPEN_MARKERS,
         "shipped_marker": shipped,
         "retired_marker": retired,
-        # `false` states once what a ledger where everything shipped otherwise repeats on
-        # every line (RK43). Only the ledger's: the roadmap's marker *is* its status.
-        "ledger_marker": _flag(raw, "ledger", True, problems),
+    }
+
+
+def _ledger(raw: object, problems: list[str]) -> dict[str, object]:
+    """Which slots the ledger's own lines carry — the marker (RK43) and the symptom (RK48).
+
+    Both default to *present*, so a project that declares nothing keeps the format this
+    repository's own ledger is written in, and a ledger written before the tool declares
+    the two absences it already has.
+    """
+    default = {"ledger_marker": True, "ledger_symptom": True}
+    if raw is None:
+        return default
+    if not isinstance(raw, Mapping):
+        problems.append("ledger must be a table with 'marker' and 'symptom'")
+        return default
+    _reject_unknown(raw, _LEDGER_KEYS, "ledger.", problems)
+    return {
+        "ledger_marker": _flag(raw, "marker", True, problems),
+        "ledger_symptom": _flag(raw, "symptom", True, problems),
     }
 
 
@@ -318,7 +350,7 @@ def _flag(
 ) -> bool:
     value = raw.get(key, default)
     if not isinstance(value, bool):
-        problems.append(f"markers.{key} must be true or false")
+        problems.append(f"ledger.{key} must be true or false")
         return default
     return value
 

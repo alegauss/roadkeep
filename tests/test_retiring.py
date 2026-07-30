@@ -222,15 +222,15 @@ def test_a_project_may_declare_its_own_retired_marker(tmp_path):
 
 
 #: A project whose ledger states the marker once instead of on every line (RK43).
-NO_LEDGER_MARKER = "\n[markers]\nledger = false\n"
+NO_LEDGER_MARKER = "\n[ledger]\nmarker = false\n"
 
 
 def test_retiring_into_a_ledger_that_declares_no_marker_writes_nothing(tmp_path):
-    # What `markers.ledger = false` costs (RK43 against RK32): with no slot to carry 🗑,
+    # What `[ledger] marker = false` costs (RK43 against RK32): with no slot to carry 🗑,
     # the record would read as a shipment, so the whole transaction is refused instead.
     config = project(tmp_path, declare=NO_LEDGER_MARKER)
     before = (tmp_path / "CHANGELOG.md").read_text(encoding="utf-8")
-    with pytest.raises(SchemaError, match="markers.ledger = false"):
+    with pytest.raises(SchemaError, match=r"\[ledger\] marker = false"):
         retire(config, "RK1", reason="Nobody will do it.")
     assert (tmp_path / "CHANGELOG.md").read_text(encoding="utf-8") == before
     assert "RK1" in config.document("roadmap").by_id()

@@ -210,7 +210,7 @@ def test_the_ledger_shape_is_a_configuration_of_the_same_grammar():
 
 
 #: The ledger both live projects actually write: no marker, because every entry in it
-#: shipped (RK43). Declared once in `markers.ledger`, not repeated on 920 lines.
+#: shipped (RK43). Declared once in `[ledger] marker`, not repeated on 920 lines.
 MARKERLESS = replace(Schema(), ledger_marker=False).as_ledger()
 
 
@@ -240,6 +240,37 @@ def test_a_retired_line_cannot_be_written_to_a_ledger_that_declares_no_marker():
     assert {v.code for v in MARKERLESS.validate(task)} == {"status.unrepresentable"}
 
 
+#: The other slot both live ledgers lack (RK48): `- **SH134** — <prose>`, with no bold
+#: symptom before the em dash — 234 lines in Shio and 761 in Turing.
+NO_SLOTS = replace(Schema(), ledger_marker=False, ledger_symptom=False).as_ledger()
+
+
+def test_a_ledger_with_no_symptom_slot_reads_the_tail_as_the_why_and_renders_it_back():
+    line = "- **RK1** — **`post.move`**, the seventh op, moves an address in place."
+    (entry,) = parse_in_block(line, schema=NO_SLOTS).entries
+    assert entry.task.id == "RK1"
+    assert entry.task.symptom == ""  # the slot does not exist, so the field is empty
+    assert entry.task.why.startswith("**`post.move`**")
+    # L3 is not relaxed for a file whose history nobody will rewrite: the line comes back.
+    assert NO_SLOTS.render(entry.task) == line
+    assert NO_SLOTS.validate(entry.task) == ()
+
+
+def test_an_absent_symptom_slot_is_not_an_empty_one():
+    # `- **SH1** ****  — …` would be the shape a blank field renders as, and no ledger
+    # writes it. The bold is omitted entirely, which is what makes the round-trip hold.
+    task = Task(id="SH1", status=SHIPPED, block="A", symptom="", why="a reason.")
+    assert NO_SLOTS.render(task) == "- **SH1** — a reason."
+    assert "****" not in NO_SLOTS.render(task)
+
+
+def test_the_symptom_slot_is_only_droppable_in_the_ledger():
+    # The roadmap keeps both slots whatever the ledger declares: a backlog of reasons with
+    # no faults could not say what does not work, which is the one field that must exist.
+    roadmap = replace(Schema(), ledger_marker=False, ledger_symptom=False)
+    assert roadmap.symptom_field and roadmap.marker_field
+
+
 def test_a_bullet_leading_with_a_bold_id_is_rejected_rather_than_read_as_prose():
     # Measured on Shio: 920 changelog lines, 0 entries *and* 0 rejects. The marker slot
     # is not wrong here, it is empty, which is what made the miss silent twice (RK43).
@@ -250,7 +281,7 @@ def test_a_bullet_leading_with_a_bold_id_is_rejected_rather_than_read_as_prose()
     (reject,) = document.rejects
     assert "no marker where the status goes" in reject.reason
     # And it names the declaration that turns those lines into entries.
-    assert "markers.ledger = false" in reject.reason
+    assert "[ledger] marker = false" in reject.reason
 
 
 @pytest.mark.parametrize(
