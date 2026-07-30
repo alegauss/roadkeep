@@ -22,6 +22,8 @@
 
 ## Block A — The model (a task is data before it is a line)
 
+- 📋 **RK47** (deps: RK44 ✅) **A lettered outline subsection is no anchor, so 20 of Turing's headings are sections nothing sees** — Turing numbers a fourth level with a letter (`VII.2.a`) and the pointer shares this pattern, so widen it at both ends or the two ends disagree about which sections exist. → §RK47
+
 ## Block B — Authoring (insert, never hand-edit)
 
 - 📋 **RK45** (deps: RK20 ✅) **A section belonging to no task lands after the last block, where it reads as that block's rationale** — An outline anchor states its own place, so derive the position from it instead of appending — which is the mistake this module already refuses one case over. → §RK45
