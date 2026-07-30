@@ -14,12 +14,12 @@ not on PATH.
 ## Writing and shipping
 
 When the `mcp__roadkeep__*` tools are available, **prefer them**: the whole write path and
-the reads a task needs are there — `add`, `status`, `ship`, `retire`, `record`, `section_add`,
-`section_drop`, `brief`, `pick`, `list`, `deps`, `lint` — same engine and same refusals, with
+the reads a task needs are there — `add`, `status`, `amend`, `ship`, `retire`, `record`,
+`section_add`, `section_drop`, `brief`, `pick`, `list`, `deps`, `lint` — same engine and same refusals, with
 the fields arriving as a schema instead of flag names typed from memory. `init` and `adopt`
 run once per project and want the CLI. Every guarantee below holds either way.
 
-`roadkeep <add|status|ship|retire|record|section> --help` has the flags. What they guarantee,
+`roadkeep <add|status|amend|ship|retire|record|section> --help` has the flags. What they guarantee,
 so it costs you no thought: the id, the `→ §<id>` pointer, the status default and every
 `(deps: … ✅)` annotation are **derived, never typed**; a refusal exits 2 naming the length and
 the limit and writes nothing; the shipped marker never reaches the roadmap; `ship <id>` makes
@@ -34,6 +34,10 @@ hook gets. There is no second route: `Edit` on a governed file is denied, naming
 and `lint` gates the turn's end.
 
 That leaves the two rules a schema cannot check:
+
+`amend <id>` corrects an existing line's `why`, `--dep` group or `--ref` — the fields that are a
+fact or a compression — and never its `symptom`, which is the claim the line is. That is the door
+a project adopting the tool needs; a greenfield one rarely calls it.
 
 1. **`symptom` states what does not work** — never a solution name: a line named after its fix
    cannot be falsified, so it never gets closed, only abandoned.

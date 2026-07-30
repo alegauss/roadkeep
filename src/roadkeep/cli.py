@@ -37,7 +37,7 @@ from pathlib import Path
 
 from roadkeep import __version__
 from roadkeep.adopting import Estimate, adopt, init
-from roadkeep.authoring import add, set_status
+from roadkeep.authoring import add, amend, set_status
 from roadkeep.backlog import Backlog
 from roadkeep.briefing import Brief, brief
 from roadkeep.config import Config, ConfigError
@@ -216,6 +216,32 @@ def build_parser() -> argparse.ArgumentParser:
     )
     status_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     status_parser.set_defaults(handler=_status)
+
+    amend_parser = subcommands.add_parser(
+        "amend",
+        help="correct one open line's why, deps or pointer",
+        description=(
+            "Correct the three fields a project that adopted the tool has to be able to fix: "
+            "a pointer it never had, a dep naming an id in neither file, and the compression "
+            "of a `why` that was a paragraph before the limit existed. Validated at input "
+            "exactly as `add` validates it, or nothing is written. The `symptom` is not "
+            "amendable — it is the claim the line is, so a different one is a different task."
+        ),
+    )
+    amend_parser.add_argument("id", help="the task, e.g. RK7")
+    amend_parser.add_argument("--why", help="the sentence, re-validated against the limit")
+    amend_parser.add_argument(
+        "--dep",
+        action="append",
+        dest="deps",
+        metavar="DEP",
+        help="a dep, repeatable: given at all, it replaces the whole group",
+    )
+    amend_parser.add_argument(
+        "--ref", help="the rationale anchor, for ref_scheme = 'outline'"
+    )
+    amend_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    amend_parser.set_defaults(handler=_amend)
 
     ship_parser = subcommands.add_parser(
         "ship",
@@ -826,6 +852,45 @@ def _refused(error: Exception) -> int:
     message = error.args[0] if isinstance(error, KeyError) else error
     print(f"roadkeep: {message}", file=sys.stderr)
     return EXIT_USAGE
+
+
+def _amend(config: Config, args: argparse.Namespace) -> int:
+    if args.why is None and args.deps is None and args.ref is None:
+        print(
+            "roadkeep: nothing to amend: pass --why, --dep or --ref",
+            file=sys.stderr,
+        )
+        return EXIT_USAGE
+    try:
+        amended = amend(config, args.id, why=args.why, deps=args.deps, ref=args.ref)
+    except (RoundTripError, KeyError, ValueError, OSError) as error:
+        return _refused(error)
+
+    where = config.relative(config.path("roadmap"))
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "id": args.id,
+                    "file": where,
+                    "line": amended.entry.lineno,
+                    "changed": list(amended.changed),
+                    "rendered": amended.rendered,
+                    "refreshed": list(amended.refreshed),
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+
+    if not amended.changed:
+        print(f"{args.id} unchanged: every field already reads that way")
+        return EXIT_OK
+    print(f"{args.id} amended  {where}:{amended.entry.lineno}  ({', '.join(amended.changed)})")
+    print(f"  {amended.rendered}")
+    if amended.refreshed:
+        print(f"  derived  {', '.join(amended.refreshed)} (dep annotations re-derived)")
+    return EXIT_OK
 
 
 def _ship(config: Config, args: argparse.Namespace) -> int:

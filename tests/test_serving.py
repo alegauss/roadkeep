@@ -110,6 +110,7 @@ def test_the_tools_are_what_a_task_needs_end_to_end():
     assert [tool.name for tool in TOOLS] == [
         "add",
         "status",
+        "amend",
         "ship",
         "retire",
         "record",
@@ -217,7 +218,16 @@ def test_the_read_only_hint_says_which_tools_write(tmp_path):
     # `lint` is read-only *because* `--fix` is not exposed: RK16 belongs where a human is
     # standing (the pre-commit hook), so the tool cannot repair anything.
     writes = {name for name, only_reads in hints.items() if not only_reads}
-    assert writes == {"add", "status", "ship", "retire", "record", "section_add", "section_drop"}
+    assert writes == {
+        "add",
+        "status",
+        "amend",
+        "ship",
+        "retire",
+        "record",
+        "section_add",
+        "section_drop",
+    }
     # `lint` is read-only *because* `--fix` is not exposed, so it takes no arguments at all.
     assert listed(project(tmp_path))["lint"]["inputSchema"]["properties"] == {}
 

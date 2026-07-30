@@ -18,9 +18,10 @@ from pathlib import Path
 
 import pytest
 
-from roadkeep.authoring import DerivedPointer, IdInUse, UnknownBlock, add
+from roadkeep.authoring import DerivedPointer, IdInUse, UnknownBlock, add, amend
 from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
+from roadkeep.backlog import NotOpen
 from roadkeep.document import RoundTripError
 from roadkeep.schema import SchemaError
 
@@ -339,3 +340,58 @@ def test_a_drifted_file_exits_one_because_the_gate_says_no(tmp_path, capsys):
         == EXIT_GATE
     )
     assert "will not be rewritten" in capsys.readouterr().err
+
+
+# -- correcting a line that already exists (RK65) ------------------------------
+
+
+def test_amend_rewrites_the_why_and_re_validates_it(tmp_path):
+    # The work Shio's adoption is: 70 lines whose `why` is a paragraph, and §0.4 measured that
+    # 67 of them point at a section that already makes the argument. Compression against a text
+    # already written had no command until this one.
+    config = project(tmp_path)
+    amended = amend(config, "RK1", why="A shorter sentence.")
+    assert amended.changed == ("why",)
+    assert amended.rendered.endswith("— A shorter sentence. → §RK1")
+    assert "A shorter sentence." in source(config)
+
+
+def test_amend_refuses_a_why_over_the_limit_and_writes_nothing(tmp_path):
+    config = project(tmp_path)
+    before = source(config)
+    with pytest.raises(SchemaError, match="why"):
+        amend(config, "RK1", why="Because of " + "a long reason " * 30)
+    assert source(config) == before
+
+
+def test_amend_replaces_the_whole_dep_group(tmp_path):
+    # Given at all, `--dep` replaces: a flag that appended could not remove the dep naming an
+    # id in neither file, which is 4 of Shio's findings.
+    second = "- 💭 **RK2** (deps: RK1) **A second symptom** — Because of another. → §RK2"
+    config = project(tmp_path, BODY.replace(FIRST, FIRST + "\n" + second))
+    amended = amend(config, "RK2", deps=["RK1"])
+    assert amended.changed == ()  # already exactly that
+    amended = amend(config, "RK2", deps=[])
+    assert amended.changed == ("deps",) and "(deps: —)" in amended.rendered
+
+
+def test_amend_writes_nothing_when_every_field_already_reads_that_way(tmp_path):
+    config = project(tmp_path)
+    before = source(config)
+    amended = amend(config, "RK1", why=config.document("roadmap").by_id()["RK1"].task.why)
+    assert amended.changed == ()
+    assert source(config) == before
+
+
+def test_amend_refuses_an_id_that_is_not_open(tmp_path):
+    config = project(tmp_path)
+    with pytest.raises(NotOpen):
+        amend(config, "RK404", why="A sentence.")
+
+
+def test_the_symptom_is_not_amendable():
+    """It is the falsifiable claim the line *is*, so a different one is a different task — and
+    the corpus agrees it is not the problem: 0 of Shio's 78 over the limit, against 70 whys."""
+    import inspect
+
+    assert "symptom" not in inspect.signature(amend).parameters

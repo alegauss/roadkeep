@@ -78,6 +78,7 @@ _INSTEAD: Mapping[str, tuple[tuple[str, str], ...]] = {
     "roadmap": (
         ('add --block <x> --symptom "…" --why "…"', "a new task line, fields refused at input"),
         ("status <id> <marker>", "a marker, and only in this file"),
+        ('amend <id> --why "…"', "correct the why, the deps or the pointer of a line"),
         ("ship <id>", "shipped: ledger entry, line gone, section dropped"),
         ('retire <id> --reason "…"', "gone without shipping"),
     ),

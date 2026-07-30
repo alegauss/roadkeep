@@ -288,6 +288,91 @@ def set_status(config: Config, task_id: str, marker: str) -> StatusChange:
     )
 
 
+@dataclass(frozen=True, slots=True)
+class Amendment:
+    """One line as it now reads, and as it read before (RK65).
+
+    Not a :class:`StatusChange` with more fields: the marker has its own door because status is
+    maturity, and this one exists for the fields a project *adopting* the tool has to correct —
+    which is a different question with a different refusal.
+    """
+
+    document: Document
+    entry: Entry
+    before: Task
+    #: Other lines whose dep annotation this write made true again (RK8).
+    refreshed: tuple[str, ...] = ()
+
+    @property
+    def changed(self) -> tuple[str, ...]:
+        """Which fields actually differ, in field order — empty when nothing was written."""
+        return tuple(
+            name
+            for name in ("why", "deps", "ref")
+            if getattr(self.before, name) != getattr(self.entry.task, name)
+        )
+
+    @property
+    def rendered(self) -> str:
+        return self.entry.raw
+
+
+def amend(
+    config: Config,
+    task_id: str,
+    *,
+    why: str | None = None,
+    deps: Sequence[str] | None = None,
+    ref: str | None = None,
+) -> Amendment:
+    """Correct one open line's `why`, `deps` or `ref`. Validated at input, or nothing (RK65).
+
+    The three fields a project that adopted the tool has to be able to fix: a pointer it never
+    had, a dep naming an id that is in neither file, and the compression of a `why` that was a
+    paragraph before the limit existed. `retire` plus `add` would lose the id, and the id is
+    what the history is keyed on.
+
+    `symptom` is deliberately absent: it is the falsifiable claim the line *is*, so a different
+    one is a different task — and the corpus says it is not the problem (0 of Shio's 78 over the
+    limit, against 70 of its whys). `status` is absent because :func:`set_status` is its door.
+
+    Nothing is written when nothing differs: rewriting the same bytes makes a no-op look like an
+    edit to every hook watching the file.
+    """
+    backlog = Backlog.load(config)
+    roadmap = backlog.roadmap
+    entry = roadmap.by_id().get(task_id)
+    if entry is None:
+        raise NotOpen(
+            task_id,
+            config.relative(config.path("roadmap")),
+            shipped=task_id in backlog.shipped(),
+        )
+    twins = tuple(e.lineno for e in roadmap.entries if e.task.id == task_id)
+    if len(twins) > 1:
+        raise DuplicateId(task_id, config.relative(config.path("roadmap")), twins)
+
+    wanted = replace(
+        entry.task,
+        why=entry.task.why if why is None else why,
+        deps=entry.task.deps if deps is None else read_deps(", ".join(deps), config.schema),
+        ref=entry.task.ref if ref is None else ref,
+    )
+    # Derived on write like every other annotation (RK8): the author names the dep and the
+    # tool states whether it shipped.
+    updated = config.schema.check(derive(backlog, wanted))
+    if updated == entry.task:
+        return Amendment(document=roadmap, entry=entry, before=entry.task)
+    derived = refresh(replace(backlog, roadmap=roadmap.replace_task(entry, updated)))
+    derived.document.save()
+    return Amendment(
+        document=derived.document,
+        entry=next(e for e in derived.document.entries if e.lineno == entry.lineno),
+        before=entry.task,
+        refreshed=tuple(name for name in derived.changed if name != task_id),
+    )
+
+
 def _refuse_sibling_status(config: Config, task_id: str) -> None:
     """Any other governed file carrying a marker for this id is the disagreement."""
     for role in ROLES:

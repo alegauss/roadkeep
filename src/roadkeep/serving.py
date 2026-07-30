@@ -114,6 +114,7 @@ class Tool:
 TOOLS: tuple[Tool, ...] = (
     Tool("add", ("block", "symptom", "why", "deps", "status"), writes=True),
     Tool("status", ("id", "marker"), writes=True),
+    Tool("amend", ("id", "why", "deps", "ref"), writes=True),
     Tool("ship", ("id", "why"), writes=True),
     Tool("retire", ("id", "reason", "superseded_by"), writes=True),
     Tool("record", ("block", "symptom", "why"), writes=True),

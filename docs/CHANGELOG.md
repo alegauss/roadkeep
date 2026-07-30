@@ -33,6 +33,7 @@
 - ✅ **RK41** **A fix that was never planned has no door into the ledger** — a fourth command writes the ledger entry alone, so a fix nobody planned is recorded without a fictitious roadmap line shipped in the same breath to carry it.
 - ✅ **RK45** **A section belonging to no task lands after the last block, where it reads as that block's rationale** — the place is derived from the anchor: the end of the subtree of the longest anchor the new one extends, and one extending nothing this file declares is refused rather than appended.
 - ✅ **RK64** **Shipping one of several tasks that share a section deletes the design the others still point at** — A section another open line points at is kept and the reason is reported, so shipping one of Shio's four tenant tasks no longer deletes the design the other three point at.
+- ✅ **RK65** **A line can be created and removed but never corrected, so every adoption defect needs a hand-edit** — amend corrects an open line's why, deps or pointer — validated at input, symptom excluded — which is the door none of Shio's seventeen defects had.
 
 ## Block C — Query
 
