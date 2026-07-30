@@ -48,29 +48,30 @@ task; `stats` replaces a grep whose misses are silent; `show` replaces joining t
 files by hand. Those three are most of what an agent currently spends a roadmap
 session doing.
 
-### §0.4 The limits, measured against a live corpus (RK20)
+### §0.4 The limits, measured against a live corpus
 
 §0.1 asked whether the limits are right or the lines are. Shio's 78 active lines answer
-it, and the answer is split in a way that only a real backlog could have produced:
+it, and the answer is split in a way that only a real backlog could have produced — the
+reading RK20 took:
 
 | Field | Limit | p50 | p90 | max | Over |
 |---|---|---|---|---|---|
 | `symptom` | 120 | 58 | 86 | 111 | **0 of 78** |
 | `why` | 200 | 481 | 900 | 1251 | **70 of 78** |
 
-The same authors, in the same lines, met one limit every single time and missed the other
-89% of the time. So 89% is not evidence that 200 is too small — `symptom` is the control,
-and it shows compliance is available. The difference is that "what does not work" is one
-clause by construction and a `why` has no natural end, which is L1 stated as a
-measurement: the field whose scope is unbounded is the one that needs the bound at the
-write path.
+The same authors, in the same lines, met one limit every single time and missed the
+other 89% of the time. So 89% is not evidence that 200 is too small — `symptom` is the
+control, and it shows compliance is available. The difference is that "what does not
+work" is one clause by construction and a `why` has no natural end, which is L1 stated
+as a measurement: the field whose scope is unbounded is the one that needs the bound at
+the write path.
 
-And the migration is smaller than §RK20 assumed. **74 of the 78 pointers resolve, and none
-dangle**; 67 of the 70 over-length lines point at a section that already exists and already
-makes the same argument — compared line-against-section on SH295 and SH309, the `why` is a
-recompression of the paragraph, same examples and all. The rationale is not homeless. The
-line is a second copy of it, so the edit is compression against a text that is already
-written, not authorship.
+And the migration is smaller than that task assumed. **74 of the 78 pointers resolve,
+and none dangle**; 67 of the 70 over-length lines point at a section that already exists
+and makes the same argument — compared line-against-section on SH295 and SH309, the
+`why` is a recompression of the paragraph, same examples and all. The rationale is not
+homeless. The line is a second copy of it, so the edit is compression against a text
+already written, not authorship.
 
 ## Block A — The model
 

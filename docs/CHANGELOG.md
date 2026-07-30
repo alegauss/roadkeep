@@ -59,6 +59,7 @@
 - ✅ **RK60** **A project that adopts the tool with drift already in it has its every turn blocked by history** — The Stop gate keeps only findings on lines the working tree changed, so Shio's 278 fell to zero at the end of a turn that touched none of them.
 - ✅ **RK58** **A refusal names a command the machine may not have, now that the plugin needs no install** — The refusal names mcp__roadkeep__add and ship before the shell form, so the route the same plugin certainly installed is the one it offers first.
 - ✅ **RK61** **Under the outline scheme no check can say which task a section belongs to** — A section's owners are the anchor under the id scheme and the ids its heading names under an outline, so Shio's 39 stale sections and 9 orphans are visible.
+- ✅ **RK63** **A heuristic read off this repository disabled the new check on the corpus it was written for** — Ownership is the claim a heading makes by naming a task, with no exemption for where the section sits, and this repository's own preface stopped making it.
 
 ## Block E — Adoption
 

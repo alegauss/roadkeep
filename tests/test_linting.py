@@ -376,13 +376,18 @@ def test_an_outline_heading_that_names_no_task_owns_nothing(tmp_path):
     assert lint(outline(tmp_path, improvements=unowned)).clean
 
 
-def test_a_section_outside_every_block_cites_a_task_without_owning_it(tmp_path):
-    # This repository's own §0.4 names RK20 and is *about* the project: deliberately
-    # permanent, and filed before the first block precisely because it is nobody's (RK45).
-    cited = "### §0.4 The limits, measured (RK5)\n\nProse.\n\n" + OUTLINE_PROSE.removeprefix(
-        "# Design rationale\n\n"
+def test_naming_a_task_in_a_heading_is_the_claim_to_be_its_rationale(tmp_path):
+    # No exemption for where the section sits. The first attempt made one — "a task's section
+    # is under a `Block X` heading", read off this repository's own file — and it disabled the
+    # check on the corpus it was for: Shio files rationale under `## VIII. … (Block H)`, so all
+    # 146 of its sections looked unowned. This repository's own §0.4 lost `(RK20)` from its
+    # heading instead, because citing the task that took a measurement is not owning it.
+    outside = OUTLINE_PROSE.replace(
+        "## Block A — The model",
+        "### §0.9 A reading (RK5)\n\nProse.\n\n## Block A — The model",
     )
-    assert lint(outline(tmp_path, improvements="# Design rationale\n\n" + cited)).clean
+    report = lint(outline(tmp_path, improvements=outside))
+    assert [f.code for f in report.findings] == ["section.stale"]
 
 
 def test_prose_that_belongs_to_no_task_is_nobody_s_orphan(tmp_path):
