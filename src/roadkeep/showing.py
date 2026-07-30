@@ -162,11 +162,28 @@ def paths_in(text: str, root: Path, *, near: Path | None = None) -> tuple[Refere
             # Nothing on disk can settle it either way, so there is no question to ask.
             continue
         exists = _resolves(token, root, near)
-        # Either the repository really has it, or the token is slash-shaped and so an
-        # explicit claim about the repository — a missing one of those is worth saying.
-        if exists or "/" in token:
+        # Either the repository really has it, or the token is a decidable claim that it
+        # should: a filename whose directory is there (RK55). A slash alone is not — 60 of
+        # Shio's 61 findings were a MIME type, an i18n key or two method names sharing one.
+        if exists or _claims_a_file(token, root, near):
             out.setdefault(token, Referenced(path=token, exists=exists))
     return tuple(out.values())
+
+
+def _claims_a_file(token: str, root: Path, near: Path | None) -> bool:
+    """Whether a token that does not resolve is nonetheless a claim about a file (RK55).
+
+    Both halves are needed. The extension is what tells `lib/shio.ts` from
+    `ShPostUnifiedWriteService.update/publish`; the existing directory is what tells a file
+    this repository lost from one that was never in it — the `app/api/…` of a template it
+    generates elsewhere. Together they took Shio's 61 findings to the one true row: a Java
+    class the ledger still names under the directory it was renamed inside.
+    """
+    head, _, name = token.rpartition("/")
+    if not head or "." not in name:
+        return False
+    bases = (root,) if near is None else (near, root)
+    return any((base / head).is_dir() for base in bases)
 
 
 def _resolves(token: str, root: Path, near: Path | None) -> bool:

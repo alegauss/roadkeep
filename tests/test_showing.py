@@ -64,6 +64,10 @@ def project(
     )
     (tmp_path / "ROADMAP.md").write_text(roadmap, encoding="utf-8")
     (tmp_path / "CHANGELOG.md").write_text(changelog, encoding="utf-8")
+    # The directory the rationale's path claim sits in, and not the file: a claim is only
+    # decidable where its directory exists (RK55), and what is being tested is a claim the
+    # repository fails.
+    (tmp_path / "docs" / "specs").mkdir(parents=True, exist_ok=True)
     return Config.discover(tmp_path)
 
 
@@ -138,20 +142,26 @@ def test_the_paths_come_from_the_line_and_the_section(tmp_path):
     [
         # Really there, so worth reporting even without a slash.
         ("see `roadkeep.toml`", ["roadkeep.toml"]),
-        # Slash-shaped: an explicit claim about the repository, missing or not.
-        ("see `docs/specs/nope.md`", ["docs/specs/nope.md"]),
+        # A filename under a directory that exists: a claim the repository fails (RK55).
+        ("see `docs/assets/nope.md`", ["docs/assets/nope.md"]),
+        # The same name where no such directory exists — undecidable from prose, and 60 of
+        # Shio's 61 findings. `app/api/route.ts` is a path in a template, not in the repo.
+        ("see `nowhere/at/all/nope.md`", []),
+        # An extension is what tells a filename from two method names sharing a prefix.
+        ("`ShPostUnifiedWriteService.update/publish` is a pair", []),
+        ("`application/zip` is a media type", []),
         # A dotted name in prose is not a broken file, and reporting it would make the
         # list noise — which is the failure mode of every report nobody reads.
         ("`Config.load` and `Schema.render`", []),
         # A URL is not a path in this repository.
         ("`https://example.com/a.md` and [x](https://example.com/b.md)", []),
-        ("a [link](docs/specs/linked.md) counts", ["docs/specs/linked.md"]),
+        ("a [link](docs/assets/linked.md) counts", ["docs/assets/linked.md"]),
         # Slash-shaped and not this repository: a slash command, and an absolute path
         # that `roadkeep.toml` refuses for the same reason. RK25's line names four.
         ("`/roadkeep:add` and `/etc/hosts`", []),
         ("bare docs/specs/unquoted.md does not", []),
         # Quoted twice, reported once, in order of appearance.
-        ("`a/b.md` then `a/b.md`", ["a/b.md"]),
+        ("`docs/b.md` then `docs/b.md`", ["docs/b.md"]),
         # Slash-shaped and still not one file: a class of them. Disk cannot settle any of
         # these, so there is no question to ask — four of RK46's eight false findings.
         ("`blueprints/*/files/package.json` is a glob", []),
@@ -159,7 +169,7 @@ def test_the_paths_come_from_the_line_and_the_section(tmp_path):
         ("`template/widget/<name>.html` is a placeholder", []),
         ("`@graphiql/react` is an npm package", []),
         # A leading `@` only: `node_modules/@types/node` names a directory, not a scope.
-        ("`docs/@notes/kept.md`", ["docs/@notes/kept.md"]),
+        ("`docs/assets/@kept.md`", ["docs/assets/@kept.md"]),
     ],
 )
 def test_what_counts_as_a_path(text, expected):

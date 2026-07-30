@@ -403,6 +403,9 @@ def test_a_path_a_shipped_line_names_and_the_repository_lacks_fails(tmp_path):
     claiming = LEDGER.replace(
         "Because it was done.", "Because `docs/specs/absent.md` says so."
     )
+    # The directory and not the file: a claim is decidable where its directory exists, and
+    # undecidable prose is what RK55 stopped reporting.
+    (tmp_path / "docs" / "specs").mkdir(parents=True)
     report = lint(project(tmp_path, changelog=claiming))
     missing = next(f for f in report.findings if f.code == "path.missing")
     assert missing.id == "RK5" and "docs/specs/absent.md" in missing.message
@@ -438,6 +441,7 @@ def test_a_link_relative_to_the_ledgers_own_directory_resolves(tmp_path):
 
 
 def test_a_relative_link_that_resolves_under_no_base_is_still_reported(tmp_path):
+    (tmp_path / "src").mkdir()  # the directory exists; the file it claims does not (RK55)
     config = in_docs(
         tmp_path,
         LEDGER.replace("Because it was done.", "Because [g](../src/Gone.java) did it."),
