@@ -90,11 +90,6 @@ is a preference.
 
 ## Block F — The plugin
 
-### §RK25 Slash commands
-
-`/roadkeep:add`, `/roadkeep:ship`, `/roadkeep:pick`, `/roadkeep:lint` — the same engine,
-driven by a human who should not have to learn flag order to file a task.
-
 ### §RK26 Marketplace
 
 A `marketplace.json` so `/plugin install` reaches it, following the layout Shio already

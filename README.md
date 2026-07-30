@@ -121,8 +121,8 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 9 |
 | D — The gate | 0 | 9 |
 | E — Adoption | 1 | 3 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 2 | 3 |
-| **Total** | 3 | 43 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 4 |
+| **Total** | 2 | 44 |
 
 **Next ready:**
 
@@ -135,7 +135,7 @@ which is the cost the command existed to remove.
 
 Still open, and where to look:
 [docs/ROADMAP.md](https://github.com/alegauss/roadkeep/blob/main/docs/ROADMAP.md). What is left of
-Block F is the last of the packaging: the slash commands, and a marketplace entry.
+Block F is one line: the marketplace entry that makes `/plugin install` reach it.
 
 ## Install
 
@@ -230,7 +230,7 @@ and the gate is still there at the commit.
 shell command to catch it taxes every command in the session. The `Stop` hook runs `lint`
 instead — so the bypass is caught before the turn ends, by the agent that can still fix it.
 
-The denial is one half of the answer; the other two are what make calling the command cheaper
+The denial is one surface of four; the other three are what make calling the command cheaper
 than typing it. The plugin ships an **MCP server** — `roadkeep mcp`, JSON-RPC on stdio, no
 port and no state — exposing `add`, `ship`, `pick` and `lint` as tools whose input schema is
 *derived*: `maxLength` is this project's `symptom` and `why` limits, `enum` is its declared
@@ -239,8 +239,17 @@ misspelt `--deps` is refused by the protocol with the arguments that exist, inst
 a round trip to a usage string, and every call is dispatched through the same parser a
 terminal uses — one engine, one refusal.
 
-The third is a **skill**, `skills/roadkeep/SKILL.md`, holding which command to call, what it
-derives, the two rules a schema cannot check, and how work is picked. It is a skill and not a paragraph in the
+The same four are **slash commands** — `/roadkeep:add`, `/roadkeep:ship`, `/roadkeep:pick`,
+`/roadkeep:lint` — for the person driving the standard, who reads `/help` and not a JSON
+Schema. `/roadkeep:add F | what does not work | one sentence.` passes those words *verbatim*:
+the command files are written so that every instruction about the user's text is a
+prohibition, because a prompt that said "write a concise symptom" would have moved the prose
+generation one file to the left while keeping L4's letter. That is asserted, not intended —
+`tests/test_commands.py` refuses the phrasing.
+
+The fourth is a **skill**, `skills/roadkeep/SKILL.md`, holding which command to call, what it
+derives, the two rules a schema cannot check, and how work is picked. It is a skill and not a
+paragraph in the
 project's instruction file because instructions are loaded on *every* turn, including the ones
 that touch no roadmap — the budget above exists because that is how the 186 KB happened. The
 skill is read when a governed file is in play and costs nothing otherwise, and it ships with
