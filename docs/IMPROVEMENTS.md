@@ -112,4 +112,27 @@ Turing, Dumont and Cursarei, each with its own `roadkeep.toml`. Four projects sh
 one format is what makes cross-project context transferable; one project with a format
 is a preference.
 
+### §RK62 A line with nowhere to go
+
+Shio's roadmap carries `- ✅ **SH22** … — shipped → CHANGELOG Block F. Follow-ups
+remain:` with four live tasks nested under it. That one line is four findings — a
+shipped marker in the roadmap, the same id in two files, no pointer, no terminator — and
+**no command can remove it**. `ship SH22` refuses, correctly: the entry is already in
+the ledger at line 878, and a second would make the file disagree with itself. `retire`
+would write a departure that did not happen. The hook denies the hand-edit, which is the
+point of the hook.
+
+So adoption leaves a class of line the format rejects and the tool cannot fix — and it
+is exactly the shape adoption produces, because a project that moved a task to its
+changelog by hand and left a pointer behind was following its own convention.
+
+The door is `ship` again, one step narrower: when the id is already recorded, closing
+the roadmap line is not a second entry, it is the rest of a transaction that never
+completed. The refusal becomes an offer — the line goes, the section goes, dependents
+are re-annotated, and the ledger is untouched because it is already right. What must not
+follow is a `--force` that writes a duplicate entry; the asymmetry is the point.
+
+Nesting stays legal (RK49), so the four children survive the parent's removal where they
+are.
+
 ## Block F — The plugin
