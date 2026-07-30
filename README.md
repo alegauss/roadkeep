@@ -121,8 +121,8 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 9 |
 | D — The gate | 0 | 9 |
 | E — Adoption | 1 | 3 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 4 |
-| **Total** | 2 | 44 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 5 |
+| **Total** | 1 | 45 |
 
 **Next ready:**
 
@@ -134,8 +134,9 @@ came from — because an answer an agent cannot audit gets verified by reading t
 which is the cost the command existed to remove.
 
 Still open, and where to look:
-[docs/ROADMAP.md](https://github.com/alegauss/roadkeep/blob/main/docs/ROADMAP.md). What is left of
-Block F is one line: the marketplace entry that makes `/plugin install` reach it.
+[docs/ROADMAP.md](https://github.com/alegauss/roadkeep/blob/main/docs/ROADMAP.md). Block F is
+finished — the plugin below is installed rather than assembled — and what is left is adoption:
+proving the standard on a repository that never heard of it.
 
 ## Install
 
@@ -254,6 +255,14 @@ project's instruction file because instructions are loaded on *every* turn, incl
 that touch no roadmap — the budget above exists because that is how the 186 KB happened. The
 skill is read when a governed file is in play and costs nothing otherwise, and it ships with
 the plugin, so the standard is the same text in every project rather than a copy per repo.
+
+Installing all four is two lines, plus the package the hook and the server call:
+
+```sh
+/plugin marketplace add alegauss/roadkeep   # .claude-plugin/marketplace.json, in this repo
+/plugin install roadkeep@alegauss
+pip install roadkeep                        # `roadkeep guard` and `roadkeep mcp` are the CLI
+```
 
 ## Non-goals
 

@@ -26,6 +26,16 @@ decisions those two files encode live here, next to the assertions that hold the
   (`pyproject.toml` reads the module, RK19), because `/plugin` shows a version to whoever
   installed it and "unknown" is not an answer somebody can pin. A duplicate held by a test
   is a duplicate; one held by review is a disagreement waiting for a release.
+* **The marketplace entry states what the manifest cannot.** `marketplace.json` makes
+  `/plugin install` reach this repository (RK26), and it carries a name, a source and a
+  category — *not* the description, author, license, keywords or version, all of which
+  `plugin.json` already states in the same commit. That rule is the same sentence as the one
+  above: two copies of a description are two descriptions, and the one in the listing is the
+  one nobody remembers to update.
+* **The source is `./` because this repository is the plugin.** Shio publishes a marketplace
+  whose plugin sits in a subdirectory; here the components (`hooks/`, `skills/`, `commands/`,
+  `.mcp.json`) are at the root beside the package they run, so the plugin root is the
+  repository root. A test resolves it rather than trusting the spelling.
 """
 
 from __future__ import annotations
@@ -42,6 +52,7 @@ HERE = Path(__file__).resolve().parents[1]
 MANIFEST = HERE / ".claude-plugin" / "plugin.json"
 HOOKS = HERE / "hooks" / "hooks.json"
 MCP = HERE / ".mcp.json"
+MARKETPLACE = HERE / ".claude-plugin" / "marketplace.json"
 
 
 def read(path: Path) -> dict:
@@ -151,3 +162,39 @@ def test_the_server_runs_a_command_line_the_cli_accepts():
     # `uvx` line would make the plugin depend on the interpreter that happens to be first.
     assert server["command"] == "roadkeep"
     assert "env" not in server, "a server that needs configuration is one that fails silently"
+
+
+# -- the marketplace that installs it (RK26) ---------------------------------
+
+
+def test_the_marketplace_offers_this_plugin_and_nothing_else():
+    marketplace = read(MARKETPLACE)
+    assert marketplace["$schema"].endswith("marketplace.schema.json")
+    assert marketplace["name"] == "alegauss" and marketplace["owner"]["name"]
+    # One entry, under the name the manifest states: a listing that renames the plugin is a
+    # second name for it, and `/plugin install <name>@alegauss` is the one an install pins.
+    entry, = marketplace["plugins"]
+    assert entry["name"] == read(MANIFEST)["name"]
+
+
+def test_the_source_resolves_to_the_directory_holding_the_manifest():
+    """`./` and not a subdirectory: the components sit at the repository root beside the
+    package they run, so the plugin root *is* the checkout."""
+    entry, = read(MARKETPLACE)["plugins"]
+    # Relative to the marketplace *root* — the checkout — and not to `.claude-plugin/`,
+    # which is where the file happens to sit.
+    root = (HERE / entry["source"]).resolve()
+    assert root == HERE
+    assert (root / ".claude-plugin" / "plugin.json").is_file()
+
+
+def test_the_entry_states_nothing_the_manifest_already_states():
+    """The listing and the manifest travel in one commit, so a description repeated here is
+    the copy that goes stale — and a version repeated here is a third place to bump."""
+    entry, = read(MARKETPLACE)["plugins"]
+    manifest = read(MANIFEST)
+    duplicated = sorted(set(entry) & set(manifest) - {"name"})
+    assert duplicated == [], duplicated
+    assert "version" not in entry
+    # What is left is about the *listing* and has nowhere else to live.
+    assert set(entry) == {"name", "source", "category"}

@@ -1,0 +1,16 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "alegauss",
+  "description": "Plugins published from Alexandre Oliveira's repositories.",
+  "owner": {
+    "name": "Alexandre Oliveira",
+    "url": "https://github.com/alegauss"
+  },
+  "plugins": [
+    {
+      "name": "roadkeep",
+      "source": "./",
+      "category": "productivity"
+    }
+  ]
+}

@@ -89,8 +89,3 @@ one format is what makes cross-project context transferable; one project with a 
 is a preference.
 
 ## Block F — The plugin
-
-### §RK26 Marketplace
-
-A `marketplace.json` so `/plugin install` reaches it, following the layout Shio already
-publishes from (`.claude-plugin/marketplace.json` + a plugin directory).
