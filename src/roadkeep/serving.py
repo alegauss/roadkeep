@@ -88,6 +88,11 @@ TOOLS: tuple[Tool, ...] = (
     Tool("lint"),
 )
 
+#: The same four by name. Read by the `PreToolUse` refusal (RK58), which names the tool
+#: before the shell command: the plugin that denies the write serves these in the same
+#: install, and since RK57 that install implies no console script at all.
+TOOL_NAMES = frozenset(tool.command for tool in TOOLS)
+
 #: What the config knows about a field that argparse does not: the limit, the marker set, the
 #: id shape. This is the whole of RK24 — the bound that refuses the prose and the bound the
 #: client validates against are read from the same `roadkeep.toml` (L6).

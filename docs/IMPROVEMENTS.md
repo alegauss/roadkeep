@@ -80,25 +80,6 @@ written, not authorship.
 
 ## Block D — The gate
 
-### §RK58 The advice has to be runnable
-
-The denial's whole value is that it names what to call instead. Since RK57 the plugin
-runs without `pip install roadkeep`, so the machine that just refused an `Edit` may have
-no `roadkeep` on PATH at all — and the refusal still says "Call instead, from the
-project root: roadkeep add …". An agent that follows it gets `command not found`, which
-is the one outcome worse than the original hand-edit: it teaches that the tool's advice
-does not work.
-
-The same plugin that installs the hook installs the four MCP tools (RK24), so on exactly
-the machines where the shell command is uncertain, `mcp__roadkeep__add` is present and
-carries the field schema. So the refusal names the tool first and the command second,
-and says which is which. Both stay, because a project that pip-installed is real too,
-and CI has no MCP client.
-
-What the guard cannot know is whether the client actually connected. That is fine for a
-message: naming two routes, one of which is certainly there, beats naming one that may
-not be.
-
 ## Block E — Adoption
 
 ### §RK21 Rollout

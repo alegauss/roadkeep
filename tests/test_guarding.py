@@ -38,6 +38,7 @@ import pytest
 
 from roadkeep.cli import EXIT_OK, build_parser, main
 from roadkeep.guarding import _INSTEAD, _SCAFFOLD, Refusal, governed, guard, review
+from roadkeep.serving import TOOL_NAMES
 
 ROADMAP = "docs/ROADMAP.md"
 CHANGELOG = "docs/CHANGELOG.md"
@@ -161,6 +162,39 @@ def test_the_ledger_names_the_transaction_and_not_add(tmp_path):
     # `add` writes the roadmap. Offering it here would name a command that cannot make
     # this edit, which is worse than naming none.
     assert "roadkeep add " not in reason
+
+
+def test_the_refusal_names_the_tool_before_the_command(tmp_path):
+    # Since RK57 the plugin installs with no console script, so `roadkeep add` may be a
+    # `command not found` — and advice that does not run teaches that the tool's advice
+    # does not run. The same install serves the tools, so they are named first (RK58).
+    root = project(tmp_path)
+    reason = str(guard(write(str(root / ROADMAP)), root))
+    assert reason.index("mcp__roadkeep__add") < reason.index("roadkeep add --block")
+    assert "this session's tools" in reason
+    # Both stay: a project that pip-installed is real, and CI has no MCP client at all.
+    assert "Or the same engine in a shell" in reason
+
+
+def test_every_named_tool_is_one_the_server_serves(tmp_path):
+    """The same argument the CLI commands get: a name nothing answers is worse than none."""
+    root = project(tmp_path)
+    for role in ("roadmap", "changelog", "improvements"):
+        for name, _ in Refusal(tool="Edit", path="x", role=role).tools:
+            assert name.removeprefix("mcp__roadkeep__") in TOOL_NAMES
+
+
+def test_a_role_with_no_tool_behind_it_names_only_the_commands(tmp_path):
+    # `section add` is not a tool yet (RK59), so the prose file's refusal has nothing to
+    # promote — and it must not invent `mcp__roadkeep__section`.
+    root = project(
+        tmp_path,
+        config=CONFIG + 'improvements = "docs/IMPROVEMENTS.md"\n',
+    )
+    (root / "docs" / "IMPROVEMENTS.md").write_text("# Improvements\n", encoding="utf-8")
+    reason = str(guard(write(str(root / "docs" / "IMPROVEMENTS.md")), root))
+    assert "mcp__roadkeep__" not in reason
+    assert "Call instead, from the project root:" in reason
 
 
 def test_every_writing_tool_is_matched(tmp_path):

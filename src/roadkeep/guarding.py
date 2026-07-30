@@ -53,6 +53,7 @@ from pathlib import Path
 from roadkeep.config import Config, ConfigError, find_config
 from roadkeep.history import changed_lines
 from roadkeep.linting import Report, lint
+from roadkeep.serving import TOOL_NAMES
 
 #: The tools that put bytes in a file. Listed by what reaches the disk and not by what the
 #: harness happens to call it this month: a writing tool that is missing here is the hole
@@ -116,6 +117,20 @@ class Refusal:
     def commands(self) -> tuple[tuple[str, str], ...]:
         return _INSTEAD.get(self.role, ()) if self.exists else _SCAFFOLD
 
+    @property
+    def tools(self) -> tuple[tuple[str, str], ...]:
+        """The commands above that the same plugin also serves as MCP tools (RK58).
+
+        Named first, because since RK57 the plugin installs with no `pip install` and no
+        PATH entry: on that machine the tool is the route that is certainly there and
+        `roadkeep add` is a `command not found` waiting to teach that the advice is wrong.
+        """
+        return tuple(
+            (f"mcp__roadkeep__{command.split()[0]}", purpose)
+            for command, purpose in self.commands
+            if command.split()[0] in TOOL_NAMES
+        )
+
     def __str__(self) -> str:
         """The reason, as the agent reads it: what was refused, why, and what to run."""
         lines = [
@@ -127,8 +142,14 @@ class Refusal:
             "and a limit discovered after the sentence exists is a limit that costs a "
             "deletion instead of a refusal.",
             "",
-            "Call instead, from the project root:",
         ]
+        if self.tools:
+            width = max(len(name) for name, _ in self.tools)
+            lines.append("Call instead — this session's tools, where the fields are a schema:")
+            lines += [f"  {name:<{width}}  {purpose}" for name, purpose in self.tools]
+            lines += ["", "Or the same engine in a shell, from the project root:"]
+        else:
+            lines.append("Call instead, from the project root:")
         width = max((len(command) for command, _ in self.commands), default=0)
         for command, purpose in self.commands:
             lines.append(f"  roadkeep {command:<{width}}  {purpose}")

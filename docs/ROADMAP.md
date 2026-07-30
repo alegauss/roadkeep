@@ -28,8 +28,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK58** (deps: RK22 ✅) **A refusal names a command the machine may not have, now that the plugin needs no install** — Name the MCP tool the same plugin serves before the shell command, since the deny and the tools arrive together and only one of them is certain to run. → §RK58
-
 ## Block E — Adoption
 
 - 💭 **RK21** (deps: RK20 ✅) **A standard adopted by one project is a preference** — roll out to Turing, Dumont and Cursarei, each with its own `roadmap.toml`. → §RK21
