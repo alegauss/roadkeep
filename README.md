@@ -134,15 +134,52 @@ came from — because an answer an agent cannot audit gets verified by reading t
 which is the cost the command existed to remove.
 
 Still open, and where to look:
-[docs/ROADMAP.md](https://github.com/alegauss/roadkeep/blob/main/docs/ROADMAP.md). Block F is
-finished — the plugin below is installed rather than assembled — and what is left is adoption:
-proving the standard on a repository that never heard of it.
+[docs/ROADMAP.md](https://github.com/alegauss/roadkeep/blob/main/docs/ROADMAP.md). Shio is
+adopted and governed, which is what the remaining three lines are about: a refusal that names
+a tool rather than a command the machine may lack, the rest of the commands as MCP tools, and
+the next three projects.
 
-## Install
+## Adopt it in a project — two commands, and the repository carries the rest
 
-Python ≥3.11, **zero runtime dependencies** — `argparse` and `tomllib`, not `click` and
-`pydantic`. A tool meant to run in someone else's CI pays for every dependency it takes,
-and that is also what makes the first line below viable: there is nothing to resolve.
+Nothing is installed and nothing is added to `PATH`. The plugin ships this package, so the
+only thing the machine needs is a Python ≥3.11 interpreter — which is what runs the tool
+either way. Run these in the project you want governed:
+
+```sh
+claude plugin marketplace add alegauss/roadkeep --scope project
+claude plugin install roadkeep@alegauss --scope project
+```
+
+`--scope project` writes both declarations into that repository's `.claude/settings.json`:
+
+```jsonc
+"extraKnownMarketplaces": { "alegauss": { "source": { "source": "github", "repo": "alegauss/roadkeep" } } },
+"enabledPlugins": { "roadkeep@alegauss": true }
+```
+
+Commit that file and **every clone is wired** — no per-machine step, no OS-specific path. What
+arrives with it: the hook that denies a hand-edit and names the command, the four MCP tools
+whose input schema is *your* project's schema, the four `/roadkeep:*` commands, and the skill
+that loads only when a governed file is in play (~300 tokens per session, all in).
+
+Then declare the format once, from the project root:
+
+```sh
+roadkeep adopt docs/ROADMAP.md --prefix SH   # measures first: what would change, and where
+roadkeep init                                # writes roadkeep.toml and the files it declares
+```
+
+Those two read and write files rather than answer a hook, so they want the CLI — `pip install
+roadkeep`, or `uvx roadkeep`, or `python <plugin>/scripts/roadkeep.py`. Everything a *task*
+needs afterwards is already in the tools the plugin installed.
+
+**[Viglet Shio](https://github.com/openviglet/shio) is the reference adoption**: 80 task
+lines, a 618 KB ledger of 233 entries written years before this tool, and a `roadkeep.toml`
+that declares exactly what that history is — `[ledger]` for the two slots its lines never
+carried, `[limits.changelog]` for a file whose median line is 1038 characters, and
+`[rules.changelog]` for the two prose rules history cannot obey.
+
+### Or just the CLI
 
 ```sh
 uvx roadkeep lint                                      # no install, no checkout
@@ -150,6 +187,10 @@ pip install roadkeep
 
 pip install git+https://github.com/alegauss/roadkeep   # an unreleased commit
 ```
+
+Python ≥3.11, **zero runtime dependencies** — `argparse` and `tomllib`, not `click` and
+`pydantic`. A tool meant to run in someone else's CI pays for every dependency it takes,
+and that is also what makes the first line above viable: there is nothing to resolve.
 
 ## Run it as a gate
 
@@ -256,13 +297,16 @@ that touch no roadmap — the budget above exists because that is how the 186 KB
 skill is read when a governed file is in play and costs nothing otherwise, and it ships with
 the plugin, so the standard is the same text in every project rather than a copy per repo.
 
-Installing all four is two lines, plus the package the hook and the server call:
+All four install with the two commands at the top of this file, and both surfaces the harness
+starts run `python "${CLAUDE_PLUGIN_ROOT}/scripts/roadkeep.py"` — the package the plugin
+already copied. There is no console script to install and no `PATH` entry to add, because a
+plugin that installs cleanly and then starts nothing is the failure that taught this (RK57).
 
-```sh
-/plugin marketplace add alegauss/roadkeep   # .claude-plugin/marketplace.json, in this repo
-/plugin install roadkeep@alegauss
-pip install roadkeep                        # `roadkeep guard` and `roadkeep mcp` are the CLI
-```
+One more property makes the gate usable on a repository that adopts the tool late: the `Stop`
+hook judges **only the lines the working tree changed**. Shio joined with 278 findings in it,
+and a gate that blocked the end of every turn over somebody else's history is a gate that gets
+switched off — so `lint`, the pre-commit hook and the Action still judge every line, and the
+hook answers the narrower question it was installed to answer (RK60).
 
 ## Non-goals
 
