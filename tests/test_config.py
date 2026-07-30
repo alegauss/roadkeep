@@ -158,6 +158,36 @@ def test_a_ledger_can_declare_that_it_carries_no_marker(tmp_path):
     assert schema.marker_field and not schema.as_ledger().marker_field
 
 
+def test_a_role_can_be_held_to_its_own_limit(tmp_path):
+    # RK50: a roadmap line is refused at insertion, where the refusal costs a retry; a
+    # ledger line is history, and Turing's reads 938 characters at the median against 320.
+    write(tmp_path, "[limits]\nwhy = 200\nline = 320\n\n[limits.changelog]\nwhy = 4000\nline = 4200\n")
+    config = Config.discover(tmp_path)
+    assert (config.schema_for("roadmap").why_max, config.schema_for("roadmap").line_max) == (200, 320)
+    assert (config.schema_for("changelog").why_max, config.schema_for("changelog").line_max) == (4000, 4200)
+    # And nothing else about the ledger's shape is disturbed by carrying its own numbers.
+    assert config.schema_for("changelog").shipped_allowed and not config.schema_for("changelog").deps_field
+
+
+def test_a_limit_for_a_role_the_format_does_not_know_is_refused(tmp_path):
+    path = write(tmp_path, "[limits.readme]\nline = 900\n")
+    with pytest.raises(ConfigError, match="limits.readme: not a governed role"):
+        Config.load(path)
+
+
+def test_an_unknown_key_inside_a_roles_limits_is_refused_like_any_other(tmp_path):
+    path = write(tmp_path, "[limits.changelog]\nlines = 900\n")
+    with pytest.raises(ConfigError, match="limits.changelog.lines"):
+        Config.load(path)
+
+
+def test_a_project_that_declares_no_role_limit_holds_every_file_to_one_number(tmp_path):
+    write(tmp_path, "[limits]\nline = 300\n")
+    config = Config.discover(tmp_path)
+    assert config.limits == {}
+    assert config.schema_for("changelog").line_max == config.schema_for("roadmap").line_max
+
+
 def test_a_ledger_can_declare_that_its_lines_have_no_symptom_slot(tmp_path):
     # The declaration Shio and Turing both need (RK48): `- **T1** — <prose>` is the shape
     # 234 and 761 lines already have, and the slot has no reader on a line that shipped.

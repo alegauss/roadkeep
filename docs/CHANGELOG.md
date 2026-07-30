@@ -64,6 +64,7 @@
 - ✅ **RK20** **Shio's 92 active lines average 142 words against a one-sentence rule** — migrating a real backlog is the only test of whether the schema fits a live project.
 - ✅ **RK48** **A ledger whose lines carry no marker reads as prose, and every dep on one goes unknown** — The ledger's shape is declared in [ledger] — marker and symptom, either absent — so Shio's 234 entries parse and its unknown deps fall from 96 to 5.
 - ✅ **RK51** **A link written relative to its own file is read as a path the repository lacks** — A token now resolves against the file's own directory as well as the root, so Shio's file-relative ledger links fall from 886 findings to 61.
+- ✅ **RK50** **One budget judges a roadmap line and a ledger of history nobody will rewrite** — A limit is declared per role in [limits.<role>], so Shio's ledger keeps its own 4300 and its length findings fall from 600 to 134.
 
 ## Block F — The Claude Code plugin
 

@@ -32,7 +32,6 @@
 
 - 💭 **RK21** (deps: RK20 ✅) **A standard adopted by one project is a preference** — roll out to Turing, Dumont and Cursarei, each with its own `roadmap.toml`. → §RK21
 - 📋 **RK49** (deps: RK20 ✅) **A follow-up nested under its parent line is invisible to every count and every pick** — Parse an indented task line and keep its indentation verbatim, which is how Shio spells four live tasks under a shipped parent. → §RK49
-- 📋 **RK50** (deps: RK48 ✅) **One budget judges a roadmap line and a ledger of history nobody will rewrite** — Let a limit be declared per role, because Shio's ledger reads 982 characters at the median against the 320 its roadmap is held to. → §RK50
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 

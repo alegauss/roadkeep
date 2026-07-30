@@ -738,7 +738,7 @@ def _orphans(
                 )
             )
         seen.setdefault(anchor, section.first)
-        out.extend(_budget(config, prose, section, pointed=anchor in pointed, file=file))
+        out.extend(_budget(prose, section, pointed=anchor in pointed, file=file))
         # Only an id-shaped anchor is owned by a task. `§0.1` is prose that belongs to
         # no line and is nobody's orphan — the same rule `section add` applies (RK9).
         if ids.match(anchor) and anchor not in open_ids:
@@ -747,16 +747,19 @@ def _orphans(
 
 
 def _budget(
-    config: Config, prose: Document, section: Section, *, pointed: bool, file: str
+    prose: Document, section: Section, *, pointed: bool, file: str
 ) -> list[Finding]:
     handed = (find(prose, section.anchor) if pointed else None) or section
-    if handed.words <= config.schema.section_max:
+    # The prose file's own budget where it declares one (RK50): `[limits.improvements]` is
+    # the same declaration `[limits.changelog]` is, and this is the file it governs.
+    limit = prose.schema.section_max
+    if handed.words <= limit:
         return []
     return [
         Finding(
             "section.too-long",
             file,
-            f"{handed.words} words, limit is {config.schema.section_max}: a section "
+            f"{handed.words} words, limit is {limit}: a section "
             f"this long is two sections, or a paragraph that belongs in the commit",
             section.first,
             section.anchor,

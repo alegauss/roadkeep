@@ -23,7 +23,7 @@ from __future__ import annotations
 
 import tomllib
 from collections.abc import Mapping
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 
 from roadkeep.document import Document
@@ -121,6 +121,11 @@ class Config:
     #: Always-loaded files and what each may cost (RK30). Not a governed role: the tool
     #: writes none of these, it only refuses to let one grow unwatched.
     budgets: tuple[Budget, ...] = ()
+    #: `[limits.<role>]` — the numbers one file is held to instead of the shared ones
+    #: (RK50), keyed by role and applied by :meth:`schema_for`. Empty is the common case:
+    #: a project declares one only where a file's economics differ, which in practice is a
+    #: ledger of history against a roadmap refused at insertion.
+    limits: Mapping[str, Mapping[str, int]] = field(default_factory=dict)
     source: Path | None = None
 
     # -- construction ------------------------------------------------------
@@ -162,6 +167,7 @@ class Config:
         markers = _markers(data.get("markers"), problems)
         ledger = _ledger(data.get("ledger"), problems)
         limits = _limits(data.get("limits"), problems)
+        per_role = _by_role(data.get("limits"), problems)
         paths = _paths(data.get("files"), base, problems)
         extras = tuple(
             base / name for name in _string_list(data.get("id_sources"), "id_sources", problems)
@@ -194,6 +200,7 @@ class Config:
             extra_id_sources=extras,
             priority=priority,
             budgets=budgets,
+            limits=per_role,
             source=source,
         )
 
@@ -212,8 +219,15 @@ class Config:
             ) from None
 
     def schema_for(self, role: str) -> Schema:
-        """The changelog is the same format in its ledger configuration, not another."""
-        return self.schema.as_ledger() if role == "changelog" else self.schema
+        """The changelog is the same format in its ledger configuration, not another.
+
+        Plus whatever `[limits.<role>]` says (RK50) — the same format again, held to this
+        file's own numbers, because a ledger of history and a roadmap line are refused at
+        opposite ends of the work.
+        """
+        schema = self.schema.as_ledger() if role == "changelog" else self.schema
+        own = self.limits.get(role)
+        return replace(schema, **own) if own else schema
 
     def document(self, role: str) -> Document:
         """Load a governed file under the right schema — the one seam every command uses."""
@@ -397,19 +411,57 @@ def _check_priority(
 
 
 def _limits(raw: object, problems: list[str]) -> dict[str, int]:
+    """`[limits]` — the numbers every governed file is held to, before any role says less.
+
+    A sub-table is a role's own (`[limits.changelog]`, RK50) and is read by :func:`_by_role`;
+    it is skipped here rather than rejected, so one table can carry both.
+    """
     if raw is None:
         return {}
     if not isinstance(raw, Mapping):
         problems.append("limits must be a table")
         return {}
-    _reject_unknown(raw, frozenset(_LIMIT_KEYS), "limits.", problems)
+    scalars = {key: value for key, value in raw.items() if not isinstance(value, Mapping)}
+    _reject_unknown(scalars, frozenset(_LIMIT_KEYS), "limits.", problems)
+    return _read_limits(scalars, "limits", problems)
+
+
+def _by_role(raw: object, problems: list[str]) -> dict[str, dict[str, int]]:
+    """`[limits.<role>]` — where one file is held to a different number (RK50).
+
+    A roadmap line is refused at insertion, where the refusal costs a retry; a ledger line
+    is history, and Turing's reads 938 characters at the median against a `line` of 320.
+    Judging the second by the first is a report about work nobody will redo, so the number
+    is per role — and per *role*, not per path, because the role is what the format knows.
+    """
+    if not isinstance(raw, Mapping):
+        return {}
+    out: dict[str, dict[str, int]] = {}
+    for role, value in raw.items():
+        if not isinstance(value, Mapping):
+            continue
+        where = f"limits.{role}"
+        if role not in ROLES:
+            problems.append(
+                f"{where}: not a governed role ({', '.join(sorted(ROLES))}): a limit "
+                f"for a file the format does not know is a limit nothing reads"
+            )
+            continue
+        _reject_unknown(value, frozenset(_LIMIT_KEYS), f"{where}.", problems)
+        found = _read_limits(value, where, problems)
+        if found:
+            out[role] = found
+    return out
+
+
+def _read_limits(raw: Mapping[str, object], where: str, problems: list[str]) -> dict[str, int]:
     out: dict[str, int] = {}
     for key, field_name in _LIMIT_KEYS.items():
         if key not in raw:
             continue
         value = raw[key]
         if not isinstance(value, int) or isinstance(value, bool):
-            problems.append(f"limits.{key} must be an integer")
+            problems.append(f"{where}.{key} must be an integer")
             continue
         out[field_name] = value
     return out

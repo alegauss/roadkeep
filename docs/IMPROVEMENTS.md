@@ -113,26 +113,4 @@ belongs in the ledger), and that refusal is what tells Shio the grouping line is
 thing to change. Nesting a task is a shape the format can carry; using a shipped marker
 as a heading is not.
 
-### §RK50 A limit per role
-
-`[limits]` is one table for every governed file, and the two files have opposite economics. A
-roadmap line is refused at insertion, where the refusal costs a retry; a ledger line is
-*history*, and 761 of Turing's and 234 of Shio's were written years before this tool existed.
-Their median is 982 characters against a `line` limit of 320, and their p90 is 2604.
-
-So the moment RK48 lets those entries parse, 234 `line.unparsed` findings become 234
-`line.too-long` findings. The count barely moves and the honesty gets worse: an unparsed
-line is roadkeep admitting it cannot read the file, while a length finding on a shipped
-line is roadkeep asking for a rewrite of something nobody will rewrite, in a file that
-only grows.
-
-The limit still has to exist on the write path — `record` (RK41) and `ship` compose
-ledger entries from fields already refused at input, so L1 is unaffected either way.
-What has to change is what `lint` says about lines that predate it: a project declares
-`[limits.changelog] line = 4000` and keeps `line = 320` for its roadmap, and the gate
-then reports the drift the project can act on instead of the history it cannot.
-
-The default is the same number for both, so nothing changes for a project that never
-declares one — including this repository, whose own ledger is short by construction.
-
 ## Block F — The plugin
