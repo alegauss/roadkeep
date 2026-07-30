@@ -76,21 +76,6 @@ written, not authorship.
 
 ## Block B — Authoring
 
-### §RK45 Where a section with no task belongs
-
-`_where` returns `len(document.lines)` for a section whose anchor names no task, and the
-docstring one paragraph above it explains why that is wrong for the neighbouring case: a
-Block A section appended after Block F's "reads as Block F's, which is the same mistake
-`add` refuses one file over". The preface sections are exactly that case. Writing §0.4
-with `section add` put it after §RK26, under `## Block F — The plugin`, where the only
-signal that it is not Block F's rationale is the anchor itself.
-
-An outline anchor already states its place: §0.4 follows §0.3, and §RK34.1 belongs
-inside §RK34. So the position is derivable from the anchor rather than a fallback — find
-the longest anchored prefix and file after its subtree, and refuse when there is none,
-which is the same refusal `_where` already makes for an undeclared block. Appending is
-the one answer that is always plausible and frequently wrong.
-
 ## Block C — Query
 
 ## Block D — The gate

@@ -13,8 +13,10 @@ about a paragraph. What a section *does* have is:
 * **a word budget**, because the failure mode measured here was a rationale file reaching
   539 KB one honest paragraph at a time — a limit in words is the one an author can act
   on before writing, which is the same argument as `add`'s (L1);
-* **a place**, which is derived: a section for a task belongs under that task's block, so
-  the file's shape is a consequence of the backlog's and nobody chooses where to type.
+* **a place**, which is derived twice over: a section for a task belongs under that task's
+  block, and a section for no task belongs under the section its anchor extends (RK45) —
+  §0.4 after §0.3, §RK34.1 inside §RK34. So the file's shape is a consequence of the
+  backlog's and of the outline's, and nobody chooses where to type.
 
 `drop` is the operation `ship` (RK6) calls for rule one of its three edits — it lives here
 rather than there because deleting a section is a fact about this file's grammar, not
@@ -30,6 +32,7 @@ from __future__ import annotations
 
 import re
 import textwrap
+from collections.abc import Sequence
 from dataclasses import dataclass
 
 from roadkeep.config import Config
@@ -65,6 +68,27 @@ class SectionExists(ValueError):
         super().__init__(
             f"§{anchor} is already at {where}:{lineno}: an anchor names one section, "
             f"and a pointer that resolves to two resolves to neither"
+        )
+
+
+class UnknownParent(ValueError):
+    """An anchor states its place, and this file declares nothing it extends (RK45).
+
+    The counterpart of :class:`~roadkeep.document.UnknownBlock`, for prose that belongs to
+    no task: a §0.4 appended after the last block reads as that block's rationale, which is
+    the mistake this module already refuses one case over. So the top level of the file is
+    the author's to declare — a heading that is merely missing is a heading they can add —
+    and everything under it is derived.
+    """
+
+    def __init__(self, anchor: str, declared: Sequence[str], where: str = "") -> None:
+        self.anchor = anchor
+        self.declared = tuple(declared)
+        known = ", ".join(f"§{a}" for a in self.declared) or "none"
+        file = f"{where} " if where else ""
+        super().__init__(
+            f"no section §{anchor} extends ({file}declares: {known}): an anchor states "
+            f"its own place, and appending files the prose under the last block"
         )
 
 
@@ -161,7 +185,7 @@ def add(
     *,
     level: int = 3,
 ) -> tuple[Document, Section]:
-    """Place one section under its block, reflowed. Validates before it renders.
+    """Place one section under its block or its anchor, reflowed. Validates first.
 
     Returns the document unsaved, so a caller mid-transaction (`ship`, `init`) decides
     when the file is touched.
@@ -176,7 +200,7 @@ def add(
         )
 
     lines = _render(config, anchor, title, body, level)
-    index = _placement(document, task)
+    index = _placement(document, anchor, task)
     payload = list(lines)
     if index > 0 and not blank(document.lines[index - 1]):
         payload.insert(0, "")
@@ -293,19 +317,26 @@ def _reflow(paragraph: str, width: int) -> str:
     )
 
 
-def _placement(document: Document, task: Task | None) -> int:
-    """Where the section goes: after the last one under its block, else at the end.
+def _placement(document: Document, anchor: str, task: Task | None) -> int:
+    """Where the section goes: after the last one under its block, or after what it extends.
 
     A section for a task belongs under that task's block, so the prose file's order is a
     consequence of the backlog's rather than a decision made per insertion. Prose that
-    belongs to no task — this project's `§0` preface — has no block to derive, and goes
-    last.
+    belongs to no task — this project's `§0` preface — has no block to derive it from, and
+    derives it from the anchor instead (RK45): `§0.4` follows `§0.3` and `§RK34.1` belongs
+    inside `§RK34`, so the place is the end of the subtree of the longest anchor this file
+    declares that the new one extends.
 
-    A block the prose file does not declare is refused rather than appended at the end:
-    a Block A section landing after Block F's reads as Block F's, which is the same
-    mistake `add` refuses one file over (RK37).
+    Neither is ever appended at the end as a fallback. A block the prose file does not
+    declare is refused (RK37) and so is an anchor extending nothing: a Block A section
+    landing after Block F's reads as Block F's, which is the same mistake `add` refuses one
+    file over, and appending is the one answer that is always plausible and frequently
+    wrong. A task whose line sits under no heading at all is the one case with nothing to
+    derive from either side, and only that one goes last.
     """
-    if task is None or not task.block:
+    if task is None:
+        return _extended(document, anchor)
+    if not task.block:
         return len(document.lines)
     heading = document.heading(task.block)
     if heading is None:
@@ -318,6 +349,36 @@ def _placement(document: Document, task: Task | None) -> int:
         if later.lineno > heading.lineno and later.level <= heading.level:
             return later.lineno - 1
     return len(document.lines)
+
+
+def _extended(document: Document, anchor: str) -> int:
+    """The end of the subtree of the section this anchor extends, or a refusal (RK45)."""
+    parent = _extends(document, anchor)
+    if parent is None:
+        raise UnknownParent(
+            anchor,
+            [section.anchor for section in anchored(document)],
+            str(document.path.name if document.path else ""),
+        )
+    span = _span(document, parent)
+    assert span is not None  # `_extends` read the anchor out of this document
+    return span[1]
+
+
+def _extends(document: Document, anchor: str) -> str | None:
+    """The longest anchor this file declares that `anchor` continues: `0.4.2` → `0.4`, `0`.
+
+    Segment by segment rather than by string, which is what keeps `§0.1` from being read as
+    the parent of `§0.10` — the same care :func:`_names` takes about where an anchor ends.
+    """
+    segments = anchor.split(".")
+    best: list[str] = []
+    for section in anchored(document):
+        candidate = section.anchor.split(".")
+        if len(best) < len(candidate) < len(segments):
+            if candidate == segments[: len(candidate)]:
+                best = candidate
+    return ".".join(best) or None
 
 
 def _span(document: Document, anchor: str) -> tuple[int, int, Heading] | None:

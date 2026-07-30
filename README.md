@@ -117,12 +117,12 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped |
 | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 11 |
-| B — Authoring (insert, never hand-edit) | 1 | 7 |
+| B — Authoring (insert, never hand-edit) | 0 | 8 |
 | C — Query (consult without reading the file) | 0 | 9 |
 | D — The gate | 1 | 8 |
 | E — Adoption | 1 | 3 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 5 | 0 |
-| **Total** | 8 | 38 |
+| **Total** | 7 | 39 |
 
 **Next ready:**
 

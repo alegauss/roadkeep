@@ -8,8 +8,9 @@ Four claims, and the last two are the ones that make this a schema rather than a
   argument (L1) applied to the unit prose actually has;
 * its **anchor must resolve** — an id-shaped anchor naming no open task is an orphan the
   moment it is written, and the pointer that was supposed to reach it never will;
-* its **place is derived** from the task's block, so the prose file's order is a
-  consequence of the backlog's and nobody chooses where to type.
+* its **place is derived** — from the task's block, or from the anchor itself when it
+  belongs to no task (RK45) — so the prose file's order is a consequence of the backlog's
+  and of the outline's, and nobody chooses where to type.
 """
 
 from __future__ import annotations
@@ -28,12 +29,15 @@ from roadkeep.schema import Schema, SchemaError
 from roadkeep.sections import (
     NoSuchSection,
     SectionExists,
+    UnknownParent,
     add,
     anchored,
     drop,
     find,
 )
 
+#: This repository, whose `docs/` are the conformance fixture — read, never written.
+HERE = Path(__file__).resolve().parents[1]
 ROADMAP = "docs/ROADMAP.md"
 IMPROVEMENTS = "docs/IMPROVEMENTS.md"
 
@@ -342,11 +346,63 @@ def test_a_block_the_prose_file_does_not_declare_is_refused(tmp_path):
     assert "Block A" in str(raised.value) and "declares: B" in str(raised.value)
 
 
-def test_a_task_less_anchor_goes_last(tmp_path):
+def test_a_task_less_anchor_lands_after_the_section_it_extends(tmp_path):
+    # §0.2 continues §0, so it goes at the end of §0's subtree — *before* Block A, not at
+    # the end of the file, where the only signal that it is not Block B's rationale would
+    # be the anchor itself (RK45).
     config = project(tmp_path)
     document, _ = add(config, "improvements", "0.2", "A second reading", "Prose.", level=3)
     document.save()
-    assert read(config).endswith("## Block B — Authoring\n\n### §0.2 A second reading\n\nProse.\n")
+    body = read(config)
+    assert body.index("The reading that started it.") < body.index("§0.2 A second reading")
+    assert body.index("§0.2 A second reading") < body.index("## Block A")
+
+
+def test_a_subsection_of_a_task_lands_inside_that_task_s_section(tmp_path):
+    # §RK1.1 belongs inside §RK1, and this one goes after the subsection already there:
+    # the place is the end of the subtree, so a third one follows the second.
+    config = project(tmp_path)
+    document, _ = add(config, "improvements", "RK1.2", "A second subsection", "Prose.", level=4)
+    document.save()
+    body = read(config)
+    assert body.index("Which belongs to the section above.") < body.index("§RK1.2")
+    assert body.index("§RK1.2") < body.index("## Block B")
+
+
+def test_an_anchor_extending_nothing_this_file_declares_is_refused(tmp_path):
+    # The refusal `_placement` already makes for an undeclared block, from the other side:
+    # appending is the one answer that is always plausible and frequently wrong, so the
+    # file's top level stays the author's to declare.
+    config = project(tmp_path)
+    with pytest.raises(UnknownParent) as raised:
+        add(config, "improvements", "9.1", "A reading nothing precedes", "Prose.")
+    assert "no section §9.1 extends" in str(raised.value)
+    assert "§0.1" in str(raised.value)  # what the file does declare, so the fix is visible
+    assert read(config) == RATIONALE
+
+
+def test_an_anchor_is_not_the_parent_of_the_one_it_prefixes_as_a_string(tmp_path):
+    # `§0.1` is not what `§0.10` extends — read segment by segment, the same care `find`
+    # takes about where an anchor ends. §0 is, so §0.10 lands at the end of §0's subtree.
+    config = project(tmp_path, improvements=RATIONALE.replace("§0.1 The", "§0.9 The"))
+    document, _ = add(config, "improvements", "0.10", "A tenth reading", "Prose.", level=3)
+    document.save()
+    body = read(config)
+    assert body.index("The reading that started it.") < body.index("§0.10")
+    assert body.index("§0.10") < body.index("## Block A")
+
+
+def test_the_repository_s_own_preface_files_itself_before_the_first_block():
+    # The reading that opened RK45: writing §0.4 with `section add` put it under Block F,
+    # 50 lines and five headings away from the §0.3 it continues. Unsaved — this file is
+    # the conformance fixture, and a test that rewrote it would be measuring itself.
+    config = Config.discover(HERE)
+    document, section = add(config, "improvements", "0.9", "A ninth reading", "Prose.")
+    body = "".join(document.lines)
+    assert body.index("### §0.4") < body.index("### §0.9") < body.index("## Block A")
+    # And nowhere near last, which is where the reading found §0.4: five headings further
+    # down, under the block whose rationale it then read as.
+    assert section.first < max(heading.lineno for heading in document.headings)
 
 
 def test_prose_is_reflowed_and_structure_is_not(tmp_path):

@@ -24,8 +24,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK45** (deps: RK20 ✅) **A section belonging to no task lands after the last block, where it reads as that block's rationale** — An outline anchor states its own place, so derive the position from it instead of appending — which is the mistake this module already refuses one case over. → §RK45
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
