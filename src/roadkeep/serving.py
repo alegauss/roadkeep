@@ -1,4 +1,4 @@
-"""The four commands as MCP tools, so the field schema *is* the tool's input schema (RK24).
+"""The commands as MCP tools, so the field schema *is* the tool's input schema (RK24, RK59).
 
 A CLI reached through `Bash` puts the field names in prose. `--symptom` is typed from memory,
 `--dep` is guessed as `--deps`, and the answer is a usage string the caller pays for after the
@@ -27,11 +27,20 @@ What that costs, and how each cost is avoided here:
   the tools away exactly when a typo in the config most needs the gate. `tools/list` then
   describes the defaults, and the error is what the first `tools/call` returns.
 
-Four tools and not fourteen, because the roadmap line names four: `add`, `ship`, `pick`,
-`lint` — the write path, the transaction, the choice, the gate. The reads (`brief`, `show`,
-`deps`) are one `Bash` call away and cost nothing to get wrong; a mistyped `add` costs a line
-in the file. `lint` deliberately exposes **no** arguments: `--fix` writes, and RK16 belongs
-where a human is standing (the pre-commit hook), which keeps this tool honestly read-only.
+The surface is what a task needs end to end, which RK24 got wrong by half. It exposed four
+because one roadmap line named four, on the argument that the reads were "one `Bash` call
+away" — and RK57 then made a plugin install with no console script at all, so on that machine
+there is no shell command to fall back to. Starting a task needs `brief`, writing a rationale
+needs `section add`, a line that leaves without shipping needs `retire`.
+
+What stays out is what a tool cannot be: `init` and `adopt` run once, before the project is
+governed, and `guard` and `mcp` are the harness's own entry points. `lint` deliberately exposes
+**no** arguments — `--fix` writes, and RK16 belongs where a human is standing (the pre-commit
+hook), which keeps that one honestly read-only.
+
+A nested subcommand is one tool: `section add` is `section_add` to the protocol, which has no
+space in a name, and two argv words here. One :class:`Tool` holds both spellings rather than a
+table mapping between them.
 """
 
 from __future__ import annotations
@@ -71,6 +80,9 @@ class Tool:
     schema cannot then check.
     """
 
+    #: The subcommand path, space-separated where it is nested (`"section add"`). The argv
+    #: is this split; the tool's name is the same with `_`, because a protocol name may not
+    #: carry a space and a client shows what it is given.
     command: str
     exposes: tuple[str, ...] = ()
     #: Whether a successful call changes a governed file — `readOnlyHint`, which a client
@@ -79,19 +91,45 @@ class Tool:
     #: exposed above.
     writes: bool = False
 
+    @property
+    def name(self) -> str:
+        """The protocol name: the command path with `_` where its space is (RK59).
 
-#: The four the roadmap names. Order is the order `tools/list` reports.
+        A tool name may not carry a space, and a client shows the name it is given — so
+        `section add` is `section_add` there and stays two argv words here.
+        """
+        return self.command.replace(" ", "_")
+
+    @property
+    def argv_head(self) -> list[str]:
+        return self.command.split()
+
+
+#: What a task needs end to end (RK24's four, extended by RK59). Order is the order
+#: `tools/list` reports: the write path first, then the reads, because that is the order a
+#: session uses them in and a client renders the list as given.
+#:
+#: `init` and `adopt` are deliberately absent — they run once, before the project is
+#: governed — and so are `guard` and `mcp`, which are the harness's own entry points.
 TOOLS: tuple[Tool, ...] = (
     Tool("add", ("block", "symptom", "why", "deps", "status"), writes=True),
-    Tool("ship", ("id",), writes=True),
+    Tool("status", ("id", "marker"), writes=True),
+    Tool("ship", ("id", "why"), writes=True),
+    Tool("retire", ("id", "reason", "superseded_by"), writes=True),
+    Tool("record", ("block", "symptom", "why"), writes=True),
+    Tool("section add", ("anchor", "title", "body", "role"), writes=True),
+    Tool("section drop", ("anchor", "role"), writes=True),
+    Tool("brief", ("id", "block")),
     Tool("pick", ("block",)),
+    Tool("list", ("block", "role", "marker")),
+    Tool("deps", ("id",)),
     Tool("lint"),
 )
 
-#: The same four by name. Read by the `PreToolUse` refusal (RK58), which names the tool
-#: before the shell command: the plugin that denies the write serves these in the same
-#: install, and since RK57 that install implies no console script at all.
-TOOL_NAMES = frozenset(tool.command for tool in TOOLS)
+#: The subcommands above by their first word. Kept because a caller asking "is this command
+#: served as a tool" asks about `section`, not `section add`; the refusal that names one
+#: (RK58) resolves the full path itself.
+TOOL_NAMES = frozenset(tool.argv_head[0] for tool in TOOLS)
 
 #: What the config knows about a field that argparse does not: the limit, the marker set, the
 #: id shape. This is the whole of RK24 — the bound that refuses the prose and the bound the
@@ -119,12 +157,20 @@ def _action(parser: argparse.ArgumentParser, dest: str) -> argparse.Action:
 
 
 def _subparser(command: str) -> argparse.ArgumentParser:
+    """The parser for a subcommand path, descending where it is nested (`section add`)."""
     from roadkeep.cli import build_parser
 
-    for action in build_parser()._actions:  # noqa: SLF001
+    parser = build_parser()
+    for step in command.split():
+        parser = _choices(parser)[step]
+    return parser
+
+
+def _choices(parser: argparse.ArgumentParser) -> Mapping[str, argparse.ArgumentParser]:
+    for action in parser._actions:  # noqa: SLF001
         if isinstance(action, argparse._SubParsersAction):  # noqa: SLF001
-            return action.choices[command]
-    raise KeyError(command)  # pragma: no cover - the parser always has subcommands
+            return action.choices
+    raise KeyError(parser.prog)  # pragma: no cover - every path here has subcommands
 
 
 def _property(action: argparse.Action, schema: Schema) -> dict[str, Any]:
@@ -154,7 +200,7 @@ def descriptor(tool: Tool, config: Config) -> dict[str, Any]:
         if _required(action):
             required.append(dest)
     payload: dict[str, Any] = {
-        "name": tool.command,
+        "name": tool.name,
         "description": (parser.description or "").strip(),
         "inputSchema": {
             "type": "object",
@@ -194,7 +240,7 @@ def argv(tool: Tool, arguments: Mapping[str, Any]) -> list[str]:
     unknown = [name for name in arguments if name not in tool.exposes]
     if unknown:
         raise ToolError(
-            f"{tool.command}: no such argument {', '.join(sorted(unknown))} — "
+            f"{tool.name}: no such argument {', '.join(sorted(unknown))} — "
             f"this tool takes {', '.join(tool.exposes) or 'no arguments'}"
         )
     positional: list[str] = []
@@ -207,7 +253,7 @@ def argv(tool: Tool, arguments: Mapping[str, Any]) -> list[str]:
         (optional if action.option_strings else positional).extend(fragment)
     # `--json` is never exposed and always passed: the provenance is the difference between
     # an answer an agent can audit and one it re-reads the file to check (L5).
-    return [tool.command, *positional, *optional, "--json"]
+    return [*tool.argv_head, *positional, *optional, "--json"]
 
 
 def _rendered(action: argparse.Action, dest: str, value: Any) -> list[str]:
@@ -256,16 +302,16 @@ def call(tool: Tool, arguments: Mapping[str, Any], directory: str = ".") -> Answ
     except ConfigError as error:
         return Answer(f"roadkeep: {error}", is_error=True)
     reported = "\n".join(part for part in (err.getvalue().strip(), out.getvalue().strip()) if part)
-    return Answer(reported or f"{tool.command}: exit {code}", is_error=bool(code))
+    return Answer(reported or f"{tool.name}: exit {code}", is_error=bool(code))
 
 
 def tool_named(name: str) -> Tool:
     for tool in TOOLS:
-        if tool.command == name:
+        if tool.name == name:
             return tool
     raise ToolError(
         f"no such tool {name!r} — this server offers "
-        f"{', '.join(tool.command for tool in TOOLS)}"
+        f"{', '.join(tool.name for tool in TOOLS)}"
     )
 
 

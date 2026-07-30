@@ -53,7 +53,7 @@ from pathlib import Path
 from roadkeep.config import Config, ConfigError, find_config
 from roadkeep.history import changed_lines
 from roadkeep.linting import Report, lint
-from roadkeep.serving import TOOL_NAMES
+from roadkeep.serving import TOOLS
 
 #: The tools that put bytes in a file. Listed by what reaches the disk and not by what the
 #: harness happens to call it this month: a writing tool that is missing here is the hole
@@ -96,6 +96,20 @@ _INSTEAD: Mapping[str, tuple[tuple[str, str], ...]] = {
     ),
 }
 
+def _tool_for(command: str) -> str | None:
+    """The tool that serves this command line, matching the longest subcommand path first.
+
+    Two words before one, because `section add` is a tool and `section` is not — a lookup on
+    the first word alone would name `mcp__roadkeep__section`, which nothing answers (RK59).
+    """
+    words = command.split()
+    for length in (2, 1):
+        for tool in TOOLS:
+            if tool.argv_head == words[:length]:
+                return tool.name
+    return None
+
+
 #: What a file that is governed but absent needs, which is not an edit.
 _SCAFFOLD = (("init", "create the governed files and the config this project declares"),)
 
@@ -125,11 +139,12 @@ class Refusal:
         PATH entry: on that machine the tool is the route that is certainly there and
         `roadkeep add` is a `command not found` waiting to teach that the advice is wrong.
         """
-        return tuple(
-            (f"mcp__roadkeep__{command.split()[0]}", purpose)
-            for command, purpose in self.commands
-            if command.split()[0] in TOOL_NAMES
-        )
+        found = []
+        for command, purpose in self.commands:
+            name = _tool_for(command)
+            if name is not None:
+                found.append((f"mcp__roadkeep__{name}", purpose))
+        return tuple(found)
 
     def __str__(self) -> str:
         """The reason, as the agent reads it: what was refused, why, and what to run."""

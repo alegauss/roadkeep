@@ -89,28 +89,3 @@ one format is what makes cross-project context transferable; one project with a 
 is a preference.
 
 ## Block F — The plugin
-
-### §RK59 Four is not the surface
-
-RK24 exposed `add`, `ship`, `pick` and `lint` because the roadmap line named those four,
-and the reasoning held at the time: the reads were "one `Bash` call away and cost
-nothing to get wrong". RK57 changed the arithmetic. A plugin now installs with no `pip
-install` and no PATH entry, so on that machine the four tools are the *only* route that
-certainly runs — and starting a task needs `brief`, writing a rationale needs `section
-add`, a line that leaves without shipping needs `retire`, unplanned work needs `record`,
-and answering "what is open" needs `list`. Every one of those falls back to a shell
-command that may not exist.
-
-So the surface is decided by what a task needs end to end, not by what one roadmap line
-listed. The four write commands and the reads a session actually calls become tools,
-derived from the same parser and the same config as the first four (that machinery is
-already generic: a tool is a subcommand name plus which of its arguments an agent may
-set).
-
-Two stay out. `init` and `adopt` are what somebody runs *once*, before the project is
-governed, and `guard` and `mcp` are the harness's own entry points — a tool that started
-a second server inside the first is not a capability.
-
-`section add` is the interesting one, because its prose arrives on stdin: over MCP it is
-a string argument bounded by the project's word budget, which is the same refusal by
-another door.

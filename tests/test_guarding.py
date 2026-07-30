@@ -38,7 +38,7 @@ import pytest
 
 from roadkeep.cli import EXIT_OK, build_parser, main
 from roadkeep.guarding import _INSTEAD, _SCAFFOLD, Refusal, governed, guard, review
-from roadkeep.serving import TOOL_NAMES
+from roadkeep.serving import TOOLS
 
 ROADMAP = "docs/ROADMAP.md"
 CHANGELOG = "docs/CHANGELOG.md"
@@ -176,25 +176,28 @@ def test_the_refusal_names_the_tool_before_the_command(tmp_path):
     assert "Or the same engine in a shell" in reason
 
 
-def test_every_named_tool_is_one_the_server_serves(tmp_path):
+def test_every_named_tool_is_one_the_server_serves():
     """The same argument the CLI commands get: a name nothing answers is worse than none."""
-    root = project(tmp_path)
-    for role in ("roadmap", "changelog", "improvements"):
+    served = {tool.name for tool in TOOLS}
+    for role in ("roadmap", "changelog", "improvements", "strategy"):
         for name, _ in Refusal(tool="Edit", path="x", role=role).tools:
-            assert name.removeprefix("mcp__roadkeep__") in TOOL_NAMES
+            assert name.removeprefix("mcp__roadkeep__") in served
 
 
-def test_a_role_with_no_tool_behind_it_names_only_the_commands(tmp_path):
-    # `section add` is not a tool yet (RK59), so the prose file's refusal has nothing to
-    # promote — and it must not invent `mcp__roadkeep__section`.
-    root = project(
-        tmp_path,
-        config=CONFIG + 'improvements = "docs/IMPROVEMENTS.md"\n',
-    )
-    (root / "docs" / "IMPROVEMENTS.md").write_text("# Improvements\n", encoding="utf-8")
-    reason = str(guard(write(str(root / "docs" / "IMPROVEMENTS.md")), root))
+def test_a_nested_command_is_promoted_under_the_name_that_answers():
+    # `section add` is a tool (RK59) and `section` is not, so matching the first word alone
+    # would name `mcp__roadkeep__section` — a route nothing answers.
+    reason = str(Refusal(tool="Edit", path="docs/IMPROVEMENTS.md", role="improvements"))
+    assert "mcp__roadkeep__section_add" in reason
+    assert "mcp__roadkeep__section " not in reason
+
+
+def test_a_role_with_no_tool_behind_it_names_only_the_commands():
+    # `init` is not a tool and must not be invented as one: a governed file that is not on
+    # disk yet needs scaffolding, which runs once and from a shell.
+    reason = str(Refusal(tool="Write", path="docs/ROADMAP.md", role="roadmap", exists=False))
     assert "mcp__roadkeep__" not in reason
-    assert "Call instead, from the project root:" in reason
+    assert "roadkeep init" in reason
 
 
 def test_every_writing_tool_is_matched(tmp_path):

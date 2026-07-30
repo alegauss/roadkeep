@@ -149,7 +149,13 @@ def build_parser() -> argparse.ArgumentParser:
     actions = section_parser.add_subparsers(dest="action", required=True)
 
     section_add = actions.add_parser(
-        "add", help="write a new section under its block, reflowed to the prose width"
+        "add",
+        help="write a new section under its block, reflowed to the prose width",
+        description=(
+            "Write one rationale section: the prose on stdin or `--body`, within the word "
+            "budget, filled to the configured width, and placed under the task's own block "
+            "or beneath the section it extends. A table or a list is inserted as written."
+        ),
     )
     section_add.add_argument("anchor", help="the anchor, e.g. RK9 (no §)")
     section_add.add_argument("--title", required=True, help="the heading text")
@@ -168,14 +174,27 @@ def build_parser() -> argparse.ArgumentParser:
     section_add.add_argument("--json", action="store_true", help=_JSON_HELP)
     section_add.set_defaults(handler=_section_add)
 
-    section_show = actions.add_parser("show", help="print one section and its word count")
+    section_show = actions.add_parser(
+        "show",
+        help="print one section and its word count",
+        description=(
+            "Print one section whole, with the word count the budget is measured in. Reads; "
+            "never writes."
+        ),
+    )
     section_show.add_argument("anchor", help="the anchor, e.g. RK9")
     section_show.add_argument("--role", default="improvements", help="which prose file")
     section_show.add_argument("--json", action="store_true", help=_JSON_HELP)
     section_show.set_defaults(handler=_section_show)
 
     section_drop = actions.add_parser(
-        "drop", help="delete one section whole, subsections included"
+        "drop",
+        help="delete one section whole, subsections included",
+        description=(
+            "Delete one section and everything under it. Subsections included, because one "
+            "left behind is orphaned prose under the next task's heading — which reads as "
+            "that task's design and is the outcome worse than deleting too much."
+        ),
     )
     section_drop.add_argument("anchor", help="the anchor, e.g. RK9")
     section_drop.add_argument("--role", default="improvements", help="which prose file")

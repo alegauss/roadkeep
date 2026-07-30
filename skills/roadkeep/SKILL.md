@@ -13,9 +13,11 @@ not on PATH.
 
 ## Writing and shipping
 
-When the `mcp__roadkeep__*` tools are available, prefer them for `add`, `ship`, `pick` and
-`lint`: same engine, same refusals, but the fields arrive as a schema instead of flag names
-typed from memory. Everything else is the CLI, and the guarantees below hold either way.
+When the `mcp__roadkeep__*` tools are available, **prefer them**: the whole write path and
+the reads a task needs are there — `add`, `status`, `ship`, `retire`, `record`, `section_add`,
+`section_drop`, `brief`, `pick`, `list`, `deps`, `lint` — same engine and same refusals, with
+the fields arriving as a schema instead of flag names typed from memory. `init` and `adopt`
+run once per project and want the CLI. Every guarantee below holds either way.
 
 `roadkeep <add|status|ship|retire|record|section> --help` has the flags. What they guarantee,
 so it costs you no thought: the id, the `→ §<id>` pointer, the status default and every

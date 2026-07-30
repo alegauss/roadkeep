@@ -121,8 +121,8 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 9 | 0 |
 | D — The gate | 0 | 11 | 0 |
 | E — Adoption | 1 | 11 | 0 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 6 | 1 |
-| **Total** | 2 | 56 | 1 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 7 | 1 |
+| **Total** | 1 | 57 | 1 |
 
 **Next ready:**
 
@@ -158,20 +158,25 @@ claude plugin install roadkeep@alegauss --scope project
 ```
 
 Commit that file and **every clone is wired** — no per-machine step, no OS-specific path. What
-arrives with it: the hook that denies a hand-edit and names the command, the four MCP tools
+arrives with it: the hook that denies a hand-edit and names the tool, the twelve MCP tools
 whose input schema is *your* project's schema, the four `/roadkeep:*` commands, and the skill
 that loads only when a governed file is in play (~300 tokens per session, all in).
 
-Then declare the format once, from the project root:
+Then declare the format once. `init` and `adopt` run before the project is governed, so they
+are the one thing that wants a shell — the plugin's own copy answers, with no install:
 
 ```sh
-roadkeep adopt docs/ROADMAP.md --prefix SH   # measures first: what would change, and where
-roadkeep init                                # writes roadkeep.toml and the files it declares
+# the plugin's launcher, wherever the marketplace was cloned
+R=~/.claude/plugins/marketplaces/alegauss/scripts/roadkeep.py
+
+python $R adopt docs/ROADMAP.md --prefix SH   # measures first: what would change, and where
+python $R init                                # writes roadkeep.toml and the files it declares
 ```
 
-Those two read and write files rather than answer a hook, so they want the CLI — `pip install
-roadkeep`, or `uvx roadkeep`, or `python <plugin>/scripts/roadkeep.py`. Everything a *task*
-needs afterwards is already in the tools the plugin installed.
+Everything a *task* needs afterwards is already in the tools the plugin installed: `add`,
+`status`, `ship`, `retire`, `record`, `section_add`, `section_drop`, `brief`, `pick`, `list`,
+`deps`, `lint`. No shell, no `PATH`, and the schema each of them validates against is the one
+`roadkeep.toml` just declared.
 
 **[Viglet Shio](https://github.com/openviglet/shio) is the reference adoption**: 80 task
 lines, a 618 KB ledger of 233 entries written years before this tool, and a `roadkeep.toml`

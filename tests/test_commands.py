@@ -87,10 +87,11 @@ def test_the_commands_are_the_four_the_roadmap_names():
     assert {path.stem for path in files()} == EXPECTED
 
 
-def test_the_commands_are_the_operations_the_tools_expose():
-    """`/roadkeep:add` and `mcp__roadkeep__add` are one command reached two ways. A fifth
-    slash command with no tool behind it would be a second engine."""
-    assert {tool.command for tool in TOOLS} == EXPECTED
+def test_the_commands_are_operations_the_tools_also_expose():
+    """`/roadkeep:add` and `mcp__roadkeep__add` are one command reached two ways. A slash
+    command with no tool behind it would be a second engine; the reverse is fine — RK59
+    exposes what a task needs, and only four of those are worth a `/help` entry."""
+    assert EXPECTED <= {tool.name for tool in TOOLS}
 
 
 def test_they_sit_where_the_loader_looks_and_are_not_declared_twice():

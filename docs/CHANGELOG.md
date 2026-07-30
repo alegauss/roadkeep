@@ -82,3 +82,4 @@
 - ✅ **RK26** **A plugin installed by hand is a plugin one project has** — publish a `marketplace.json` so `/plugin install` reaches it.
 - 🗑 **RK56** **Installing the plugin is not enough: every surface it declares calls a console script the user has to install first** — superseded by RK57: Its sentence lost a fragment to shell backtick substitution, and the format has no door that edits prose in place.
 - ✅ **RK57** **Installing the plugin is not enough: every surface it declares calls a console script the user has to install first** — Both surfaces run python on the launcher at the plugin's own root, so /plugin install is the whole setup and no console script or PATH entry is needed.
+- ✅ **RK59** **Four tools cover four commands, so the eight a task actually needs still require a shell** — Twelve tools cover the write path and the reads a task calls, nested commands included, so an installed plugin needs no shell for anything after init.

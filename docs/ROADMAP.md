@@ -34,8 +34,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK59** (deps: RK24 ✅) **Four tools cover four commands, so the eight a task actually needs still require a shell** — Expose the read and write commands a session calls — brief, section, retire, record, list, deps — so an installed plugin is a complete surface rather than a partial one. → §RK59
-
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:

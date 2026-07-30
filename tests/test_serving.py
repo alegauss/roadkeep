@@ -104,8 +104,39 @@ def text_of(result: dict) -> str:
 # -- the schema is the format's schema ---------------------------------------
 
 
-def test_the_tools_are_the_four_the_roadmap_names():
-    assert [tool.command for tool in TOOLS] == ["add", "ship", "pick", "lint"]
+def test_the_tools_are_what_a_task_needs_end_to_end():
+    # RK24 exposed four because the roadmap line named four; RK59 added the rest a session
+    # calls, because since RK57 a plugin installs with no shell command to fall back to.
+    assert [tool.name for tool in TOOLS] == [
+        "add",
+        "status",
+        "ship",
+        "retire",
+        "record",
+        "section_add",
+        "section_drop",
+        "brief",
+        "pick",
+        "list",
+        "deps",
+        "lint",
+    ]
+
+
+def test_what_stays_out_stays_out():
+    """`init` and `adopt` run once, before the project is governed; `guard` and `mcp` are
+    the harness's own entry points, and a tool that started a second server inside the
+    first is not a capability."""
+    named = {tool.argv_head[0] for tool in TOOLS}
+    assert named.isdisjoint({"init", "adopt", "guard", "mcp"})
+
+
+def test_a_nested_command_is_one_tool_name_and_two_argv_words():
+    # A protocol name may not carry a space, and the CLI path is two words: one Tool holds
+    # both spellings rather than a table mapping between them.
+    tool = tool_named("section_add")
+    assert tool.argv_head == ["section", "add"]
+    assert argv(tool, {"anchor": "RK1", "title": "A design"})[:2] == ["section", "add"]
 
 
 def test_every_tool_is_a_subcommand_the_cli_accepts():
@@ -113,7 +144,7 @@ def test_every_tool_is_a_subcommand_the_cli_accepts():
     # `cli.py` fails a test instead of failing a call.
     for tool in TOOLS:
         parsed = build_parser().parse_args(argv(tool, _minimal(tool)))
-        assert parsed.command == tool.command
+        assert parsed.command == tool.argv_head[0]
         assert parsed.json is True  # never exposed, always passed
 
 
@@ -157,6 +188,14 @@ def test_a_description_is_the_subcommands_own():
         assert descriptor(tool, Config.default())["description"] == described.strip()
 
 
+def test_a_write_that_needs_prose_takes_it_as_a_bounded_string(tmp_path):
+    # `section add` reads stdin in a shell; over MCP the body is an argument, and the word
+    # budget refuses it exactly the same way.
+    properties = listed(project(tmp_path))["section_add"]["inputSchema"]["properties"]
+    assert set(properties) == {"anchor", "title", "body", "role"}
+    assert properties["body"]["type"] == "string"
+
+
 def test_the_derived_fields_are_not_offered(tmp_path):
     """`add --id` and `add --ref` exist for adoption; offering them lets a caller choose
     what the tool derives, and a hand-set id is the one thing the schema cannot check."""
@@ -177,7 +216,9 @@ def test_the_read_only_hint_says_which_tools_write(tmp_path):
     }
     # `lint` is read-only *because* `--fix` is not exposed: RK16 belongs where a human is
     # standing (the pre-commit hook), so the tool cannot repair anything.
-    assert hints == {"add": False, "ship": False, "pick": True, "lint": True}
+    writes = {name for name, only_reads in hints.items() if not only_reads}
+    assert writes == {"add", "status", "ship", "retire", "record", "section_add", "section_drop"}
+    # `lint` is read-only *because* `--fix` is not exposed, so it takes no arguments at all.
     assert listed(project(tmp_path))["lint"]["inputSchema"]["properties"] == {}
 
 
