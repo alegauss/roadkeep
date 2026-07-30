@@ -211,6 +211,12 @@ class Schema:
     retired_marker: str = RETIRED
     symptom_max: int = 120
     why_max: int = 200
+    #: Whether `why` is held to one sentence, and to ending in a stop. True everywhere by
+    #: default, because the rule is what keeps a `why` from becoming the rationale — and
+    #: switchable per role (`[rules.<role>]`, RK52) because a ledger written before the
+    #: tool is 233 paragraphs of history, and a rule cannot be obeyed retroactively.
+    one_sentence: bool = True
+    terminator: bool = True
     line_max: int = 320
     #: A rationale section's budget, in **words** — the unit a paragraph has (RK9). The
     #: default clears the longest section in this repository (181 words) and no more:
@@ -539,11 +545,11 @@ class Schema:
     def _check_why(self, task: Task) -> list[Violation]:
         out = self._check_text("why", task.why, self.why_max)
         why = task.why.strip()
-        if why and not why.endswith(_TERMINATORS):
+        if why and self.terminator and not why.endswith(_TERMINATORS):
             out.append(
                 Violation("why.no-terminator", "why", "why is a sentence: end it")
             )
-        if _sentence_count(why) > 1:
+        if self.one_sentence and _sentence_count(why) > 1:
             out.append(
                 Violation(
                     "why.sentences",

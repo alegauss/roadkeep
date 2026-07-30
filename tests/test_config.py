@@ -169,6 +169,35 @@ def test_a_role_can_be_held_to_its_own_limit(tmp_path):
     assert config.schema_for("changelog").shipped_allowed and not config.schema_for("changelog").deps_field
 
 
+def test_a_role_can_be_exempted_from_a_prose_rule_its_history_cannot_obey(tmp_path):
+    # RK52: `why is one sentence` says the remainder belongs in the section the line points
+    # at, and a ledger line has none — so 233 of Shio's entries have no available fix. The
+    # project declares the exemption; the tool does not decide the rule never mattered.
+    write(tmp_path, "[rules.changelog]\none_sentence = false\nterminator = false\n")
+    config = Config.discover(tmp_path)
+    ledger = config.schema_for("changelog")
+    assert not ledger.one_sentence and not ledger.terminator
+    # The roadmap keeps both, which is the whole point of the rule being per role.
+    assert config.schema_for("roadmap").one_sentence and config.schema_for("roadmap").terminator
+
+
+def test_an_exemption_is_read_by_the_write_path_too(tmp_path):
+    # Not a lint-only switch: a project that says its ledger holds paragraphs may `record`
+    # one, and one that says nothing is still refused at input (`tests/test_recording.py`).
+    write(tmp_path, "[rules.changelog]\none_sentence = false\n")
+    schema = Config.discover(tmp_path).schema_for("changelog")
+    from roadkeep.schema import SHIPPED, Task
+
+    task = Task(id="RK1", status=SHIPPED, block="A", symptom="A symptom", why="Two. Sentences.")
+    assert schema.validate(task) == ()
+
+
+def test_an_unknown_prose_rule_is_refused_like_any_other_key(tmp_path):
+    path = write(tmp_path, "[rules.changelog]\nno_emoji = false\n")
+    with pytest.raises(ConfigError, match="rules.changelog.no_emoji"):
+        Config.load(path)
+
+
 def test_a_limit_for_a_role_the_format_does_not_know_is_refused(tmp_path):
     path = write(tmp_path, "[limits.readme]\nline = 900\n")
     with pytest.raises(ConfigError, match="limits.readme: not a governed role"):

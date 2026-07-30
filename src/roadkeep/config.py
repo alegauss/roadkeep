@@ -53,6 +53,7 @@ _TOP_KEYS = frozenset(
         "priority",
         "budgets",
         "ledger",
+        "rules",
     }
 )
 _BUDGET_KEYS = frozenset({"lines", "bytes"})
@@ -60,6 +61,9 @@ _BUDGET_KEYS = frozenset({"lines", "bytes"})
 #: file is one decision with two parts, and `markers.ledger` put half of it under a heading
 #: that cannot name the other half: a symptom is not a marker.
 _LEDGER_KEYS = frozenset({"marker", "symptom"})
+#: The prose rules a role may switch off (`[rules.<role>]`, RK52). Not limits, because they
+#: are not numbers, and not `[ledger]`, because that table says which *slots* a line has.
+_RULE_KEYS = {"one_sentence": "one_sentence", "terminator": "terminator"}
 _LIMIT_KEYS = {
     "symptom": "symptom_max",
     "why": "why_max",
@@ -126,6 +130,9 @@ class Config:
     #: a project declares one only where a file's economics differ, which in practice is a
     #: ledger of history against a roadmap refused at insertion.
     limits: Mapping[str, Mapping[str, int]] = field(default_factory=dict)
+    #: `[rules.<role>]` — a prose rule one file is not held to (RK52), applied by
+    #: :meth:`schema_for` alongside that file's limits.
+    rules: Mapping[str, Mapping[str, bool]] = field(default_factory=dict)
     source: Path | None = None
 
     # -- construction ------------------------------------------------------
@@ -168,6 +175,7 @@ class Config:
         ledger = _ledger(data.get("ledger"), problems)
         limits = _limits(data.get("limits"), problems)
         per_role = _by_role(data.get("limits"), problems)
+        rules = _rules(data.get("rules"), problems)
         paths = _paths(data.get("files"), base, problems)
         extras = tuple(
             base / name for name in _string_list(data.get("id_sources"), "id_sources", problems)
@@ -201,6 +209,7 @@ class Config:
             priority=priority,
             budgets=budgets,
             limits=per_role,
+            rules=rules,
             source=source,
         )
 
@@ -226,7 +235,7 @@ class Config:
         opposite ends of the work.
         """
         schema = self.schema.as_ledger() if role == "changelog" else self.schema
-        own = self.limits.get(role)
+        own = {**self.limits.get(role, {}), **self.rules.get(role, {})}
         return replace(schema, **own) if own else schema
 
     def document(self, role: str) -> Document:
@@ -449,6 +458,43 @@ def _by_role(raw: object, problems: list[str]) -> dict[str, dict[str, int]]:
             continue
         _reject_unknown(value, frozenset(_LIMIT_KEYS), f"{where}.", problems)
         found = _read_limits(value, where, problems)
+        if found:
+            out[role] = found
+    return out
+
+
+def _rules(raw: object, problems: list[str]) -> dict[str, dict[str, bool]]:
+    """`[rules.<role>]` — a prose rule one file is not held to (RK52).
+
+    Only per role, and only these two: `why` is one sentence ending in a stop *because* the
+    remainder belongs in the section the line points at. That reasoning is a roadmap's. A
+    ledger adopted with history in it holds 233 paragraphs that were written before the rule
+    existed, and no edit available to their author makes them one sentence — so the project
+    declares the file exempt, rather than the tool deciding the rule never mattered there.
+    The write path reads the same declaration, so what a project exempts it may also record.
+    """
+    if not isinstance(raw, Mapping):
+        if raw is not None:
+            problems.append("rules must be a table of per-role tables")
+        return {}
+    out: dict[str, dict[str, bool]] = {}
+    for role, value in raw.items():
+        where = f"rules.{role}"
+        if role not in ROLES:
+            problems.append(
+                f"{where}: not a governed role ({', '.join(sorted(ROLES))}): a rule for a "
+                f"file the format does not know is a rule nothing reads"
+            )
+            continue
+        if not isinstance(value, Mapping):
+            problems.append(f"{where} must be a table of rule = true|false")
+            continue
+        _reject_unknown(value, frozenset(_RULE_KEYS), f"{where}.", problems)
+        found = {
+            field: _flag(value, key, True, problems)
+            for key, field in _RULE_KEYS.items()
+            if key in value
+        }
         if found:
             out[role] = found
     return out
