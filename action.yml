@@ -37,9 +37,11 @@ runs:
       with:
         python-version: ${{ inputs.python-version }}
 
-    # From the action's own checkout, not from PyPI: this is installable today and has
-    # zero runtime dependencies, so there is nothing to resolve. RK19 replaces this line
-    # with `uvx roadkeep`, and nothing else here changes.
+    # From the action's own checkout and *not* from PyPI, which RK19 deliberately did not
+    # change. `uses: alegauss/roadkeep@v0.1.0` pins a ref, and installing that ref is what
+    # makes the pin mean a version; `uvx roadkeep` would run whatever PyPI's latest is, so
+    # the ref would silently stop selecting anything. The published package is for the
+    # caller who is not using this action — `uvx roadkeep lint` in any other runner.
     - name: install roadkeep
       shell: bash
       run: pip install "$GITHUB_ACTION_PATH"

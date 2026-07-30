@@ -54,5 +54,6 @@
 ## Block E — Adoption
 
 - ✅ **RK18** **A tool that requires an empty repo cannot be adopted by the repo that needs it** — `init` scaffolds the files and config, and `adopt` reports what an existing backlog must change to pass.
+- ✅ **RK19** **Installing from a git clone keeps a standard local** — publish to PyPI so `uvx roadkeep` runs with no checkout.
 
 ## Block F — The Claude Code plugin

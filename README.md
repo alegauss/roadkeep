@@ -1,23 +1,27 @@
 <p align="center">
-  <img src="docs/assets/roadkeep-banner.svg" alt="roadkeep — a schema at the point of insertion" width="840">
+  <img src="https://raw.githubusercontent.com/alegauss/roadkeep/main/docs/assets/roadkeep-banner.png" alt="roadkeep — a schema at the point of insertion" width="840">
 </p>
 
 <!--
   Assets in docs/assets/ — the mark is task lines cut at a gate, with the refused
-  remainder faded beyond it. The SVGs follow the reader's light/dark theme; the PNG
-  cannot, so it carries a fixed dark palette.
+  remainder faded beyond it. The SVGs follow the reader's light/dark theme; a PNG
+  cannot, so each carries a fixed dark palette.
 
     roadkeep-mark.svg     160x160   icon
     roadkeep-logo.svg     520x160   mark + wordmark
-    roadkeep-banner.svg  1200x300   the header above
+    roadkeep-banner.svg  1200x300   source for the header above
+    roadkeep-banner.png  1200x300   the header above. Raster and absolute because this
+                                    file is also the PyPI project page (RK19): a
+                                    relative path resolves against pypi.org and an SVG
+                                    is served as text/plain, so both render as broken.
     roadkeep-social.svg  1280x640   source for the link preview
     roadkeep-social.png  1280x640   upload at Settings > General > Social preview.
                                     This is what renders when the repo URL is pasted
                                     into LinkedIn, Slack or a link card anywhere else.
-                                    Re-render after editing the SVG:
-                                    msedge --headless=new --window-size=1280,640 \
-                                      --screenshot=docs/assets/roadkeep-social.png \
-                                      file:///.../docs/assets/roadkeep-social.svg
+                                    Re-render either PNG after editing its SVG:
+                                    msedge --headless=new --window-size=1200,300 \
+                                      --screenshot=docs/assets/roadkeep-banner.png \
+                                      file:///.../docs/assets/roadkeep-banner.svg
 -->
 
 
@@ -85,7 +89,8 @@ Four properties are the actual differentiator:
 ## The six laws
 
 A change that breaks one is wrong even if requested.
-[docs/IMPROVEMENTS.md §0.3](docs/IMPROVEMENTS.md) is authoritative.
+[docs/IMPROVEMENTS.md §0.3](https://github.com/alegauss/roadkeep/blob/main/docs/IMPROVEMENTS.md)
+is authoritative.
 
 | # | Law |
 |---|---|
@@ -115,29 +120,34 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 0 | 7 |
 | C — Query (consult without reading the file) | 0 | 8 |
 | D — The gate | 0 | 8 |
-| E — Adoption | 3 | 1 |
+| E — Adoption | 2 | 2 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 5 | 0 |
-| **Total** | 8 | 32 |
+| **Total** | 7 | 33 |
 
 **Next ready:**
 
-- 📋 **RK19** (deps: RK18 ✅) **Installing from a git clone keeps a standard local** — publish to PyPI so `uvx roadmap-lint` runs with no checkout. → §RK19
+- 💭 **RK20** (deps: RK16 ✅, RK19 ✅) **Shio's 92 active lines average 142 words against a one-sentence rule** — migrating a real backlog is the only test of whether the schema fits a live project. → §RK20
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
 came from — because an answer an agent cannot audit gets verified by reading the file,
 which is the cost the command existed to remove.
 
-Still open, and where to look: [docs/ROADMAP.md](docs/ROADMAP.md). The plugin hook that
+Still open, and where to look:
+[docs/ROADMAP.md](https://github.com/alegauss/roadkeep/blob/main/docs/ROADMAP.md). The hook that
 denies an agent the hand-edit is Block F.
 
 ## Install
 
 Python ≥3.11, **zero runtime dependencies** — `argparse` and `tomllib`, not `click` and
-`pydantic`. A tool meant to run in someone else's CI pays for every dependency it takes.
+`pydantic`. A tool meant to run in someone else's CI pays for every dependency it takes,
+and that is also what makes the first line below viable: there is nothing to resolve.
 
 ```sh
-pip install git+https://github.com/alegauss/roadkeep   # PyPI: not yet (RK19)
+uvx roadkeep lint                                      # no install, no checkout
+pip install roadkeep
+
+pip install git+https://github.com/alegauss/roadkeep   # an unreleased commit
 ```
 
 ## Run it as a gate
@@ -155,7 +165,7 @@ steps:
 # .pre-commit-config.yaml — the same command, one step earlier
 repos:
   - repo: https://github.com/alegauss/roadkeep
-    rev: main                          # a tag once there is a release (RK19)
+    rev: v0.1.0                        # or main, to track an unreleased commit
     hooks:
       - id: roadkeep-lint              # or roadkeep-lint-fix, which normalizes first
 ```

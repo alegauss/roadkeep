@@ -37,9 +37,12 @@ CHANGELOG = HERE / "docs" / "CHANGELOG.md"
 #: The bounds are deliberately slack: these files belong to other projects and shrink
 #: whenever those projects ship, so a tight floor fails on work that happened elsewhere
 #: (Shio crossed 90 mid-session) and says nothing about this parser.
+# The foreign bounds are slack for the reason the note below gives, and they were not slack
+# enough: 80 was one ship away from Shio's 79 and crossed the day Shio shipped SH270. A
+# bound set at the current reading is a count, whoever writes the comment saying it is not.
 FOREIGN = [
-    (Path("D:/Git/viglet/shio/latest/docs/ROADMAP.md"), OUTLINE_SH, 80),
-    (Path("D:/Git/viglet/turing/latest/docs/ROADMAP.md"), OUTLINE_T, 25),
+    (Path("D:/Git/viglet/shio/latest/docs/ROADMAP.md"), OUTLINE_SH, 40),
+    (Path("D:/Git/viglet/turing/latest/docs/ROADMAP.md"), OUTLINE_T, 15),
 ]
 
 # Lower bounds, not counts: shipping a task moves a line between these two files every

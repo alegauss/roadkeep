@@ -345,11 +345,14 @@ def test_shio_is_readable_before_it_is_conforming() -> None:
     """
     estimate = adopt(Config.default(SHIO.parent), SHIO, ref_scheme="outline")
     assert estimate.prefix == "SH"
-    assert estimate.parsed > 70
     assert estimate.non_canonical == 0
     codes = dict(estimate.codes)
-    assert codes["why.too-long"] > 50
     assert "id.format" not in codes
+    # Slack bounds, not readings: this file is another repository's live backlog and it
+    # shrinks every time Shio ships. A number set at today's count is a test that fails
+    # on somebody else's commit — which is how `test_document.py`'s bound was crossed.
+    assert estimate.parsed > 40
+    assert codes["why.too-long"] > 20
 
 
 class _Stdin:

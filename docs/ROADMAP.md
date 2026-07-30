@@ -30,8 +30,7 @@
 
 ## Block E — Adoption
 
-- 📋 **RK19** (deps: RK18 ✅) **Installing from a git clone keeps a standard local** — publish to PyPI so `uvx roadmap-lint` runs with no checkout. → §RK19
-- 💭 **RK20** (deps: RK16 ✅, RK19) **Shio's 92 active lines average 142 words against a one-sentence rule** — migrating a real backlog is the only test of whether the schema fits a live project. → §RK20
+- 💭 **RK20** (deps: RK16 ✅, RK19 ✅) **Shio's 92 active lines average 142 words against a one-sentence rule** — migrating a real backlog is the only test of whether the schema fits a live project. → §RK20
 - 💭 **RK21** (deps: RK20) **A standard adopted by one project is a preference** — roll out to Turing, Dumont and Cursarei, each with its own `roadmap.toml`. → §RK21
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
@@ -40,7 +39,7 @@
 - 📋 **RK23** (deps: RK22) **Rules resident every turn spend the budget they exist to protect** — package the format as a skill with trigger phrases so it loads when a governed file is in play, and not before. → §RK23
 - 📋 **RK24** (deps: RK5 ✅, RK10 ✅) **Shelling out puts argument names in prose, where they are guessed** — expose `add`/`ship`/`pick`/`lint` as MCP tools so the field schema *is* the tool's input schema. → §RK24
 - 📋 **RK25** (deps: RK23) **A human driving the same standard should not have to learn the CLI** — `/roadkeep:add`, `/roadkeep:ship`, `/roadkeep:pick` and `/roadkeep:lint` over the one engine. → §RK25
-- 💭 **RK26** (deps: RK19, RK22) **A plugin installed by hand is a plugin one project has** — publish a `marketplace.json` so `/plugin install` reaches it. → §RK26
+- 💭 **RK26** (deps: RK19 ✅, RK22) **A plugin installed by hand is a plugin one project has** — publish a `marketplace.json` so `/plugin install` reaches it. → §RK26
 
 ## Non-goals
 

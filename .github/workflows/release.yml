@@ -1,0 +1,94 @@
+# Publishing, as the one path that exists (RK19). A release cut by hand from a laptop is a
+# release whose provenance is a person's memory, and PyPI never lets a version number be
+# reused — so the only correction for a wrong upload is a version nobody asked for.
+#
+# Three guards, in the order that makes each one cheap:
+#
+#   1. **The tag must equal the package's own version.** `pyproject.toml` reads the version
+#      from `roadkeep.__version__`, so the only number left to disagree is the tag — and a
+#      tag that says v0.2.0 over a package that says 0.1.0 is discovered by whoever pins it.
+#   2. **The gate and the tests run first.** This repository's `docs/` are the conformance
+#      fixture, so a release that skipped `roadkeep lint` would publish the tool that
+#      cannot pass its own format.
+#   3. **Trusted Publishing, so no token is stored.** The `id-token: write` permission and
+#      the `pypi` environment are the whole credential; there is no secret to leak or
+#      rotate. Configure the publisher once at
+#      https://pypi.org/manage/project/roadkeep/settings/publishing/
+#      (owner `alegauss`, repository `roadkeep`, workflow `release.yml`, environment `pypi`).
+#
+# Cutting a release, once the publisher is configured:
+#
+#     # bump src/roadkeep/__init__.py __version__, commit, then
+#     git tag v0.1.0 && git push origin v0.1.0
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+  # Buildable without publishing: a dispatch run proves the artefacts before a tag exists.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: build and verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # The gate this repository ships, on this repository's own docs — the same call CI
+      # makes on every push, repeated here because a tag can be pushed without one.
+      - uses: ./
+      - run: pip install ".[dev]"
+      - run: python -m pytest -q
+
+      - name: the tag must be the package's version
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          declared=$(python -c "import roadkeep; print(roadkeep.__version__)")
+          tagged="${GITHUB_REF_NAME#v}"
+          if [ "$declared" != "$tagged" ]; then
+            echo "tag $GITHUB_REF_NAME does not match roadkeep.__version__ ($declared)" >&2
+            exit 1
+          fi
+
+      - run: pip install build
+      - run: python -m build
+
+      # Installed from the built wheel and run as the console script: what is uploaded is
+      # what gets tested, which a `pip install .` of the source tree cannot claim.
+      - name: the wheel runs as `roadkeep`
+        run: |
+          python -m venv /tmp/probe
+          /tmp/probe/bin/pip install --quiet dist/*.whl
+          /tmp/probe/bin/roadkeep --version
+          /tmp/probe/bin/roadkeep lint
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    name: publish to PyPI
+    # Only a tag publishes. A dispatch run stops at the artefacts above, which is what
+    # makes it safe to use for checking a release before committing to its number.
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/roadkeep
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1

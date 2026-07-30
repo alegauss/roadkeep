@@ -1,7 +1,7 @@
 # The second surface (RK17): the same command, one step earlier. An adopting project adds
 #
 #     - repo: https://github.com/alegauss/roadkeep
-#       rev: main            # a tag once there is a release (RK19)
+#       rev: v0.1.0          # or main, to track an unreleased commit
 #       hooks:
 #         - id: roadkeep-lint
 #

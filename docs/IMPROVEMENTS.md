@@ -56,12 +56,6 @@ session doing.
 
 ## Block E — Adoption
 
-### §RK19 PyPI
-
-Distribution decides whether this is a standard or a script in one repository.
-`uvx roadkeep` with no checkout is the bar. Publish after Block D, because a published
-`0.1.0` whose format still moves is worse than an unpublished one.
-
 ### §RK20 Shio as the first real corpus
 
 Shio's 92 lines are the test of whether the limits are right: if a meaningful fraction
