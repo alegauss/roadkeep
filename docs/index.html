@@ -83,8 +83,22 @@
     border-bottom:1px solid var(--line-soft);
   }
   nav .wrap{display:flex;align-items:center;justify-content:space-between;height:66px;gap:20px}
+  .nav-left{display:flex;align-items:center;gap:14px;min-width:0}
   .brand{display:flex;align-items:center;gap:11px;font-family:'JetBrains Mono',monospace;font-weight:600;font-size:1.05rem;letter-spacing:-.03em}
   .brand svg{width:30px;height:30px}
+  /* parent-brand backlink: this site is one of the alegauss tools */
+  .parent{
+    display:inline-flex;align-items:center;gap:6px;flex:0 0 auto;
+    padding:7px 13px;border-radius:999px;
+    border:1px solid var(--line);
+    color:var(--muted);font-size:.8rem;font-weight:500;white-space:nowrap;
+    transition:color .2s,border-color .2s,background .2s;
+  }
+  .parent b{color:var(--text);font-weight:600}
+  .parent svg{width:12px;height:12px;color:var(--muted-2);transition:transform .2s,color .2s}
+  .parent:hover{background:var(--panel);border-color:var(--amber);color:var(--text)}
+  .parent:hover svg{color:var(--amber);transform:translate(1.5px,-1.5px)}
+  @media(max-width:560px){.parent .pre{display:none}}
   .nav-links{display:flex;align-items:center;gap:26px}
   .nav-links a:not(.btn){color:var(--muted);font-weight:500;font-size:.93rem;transition:color .2s}
   .nav-links a:not(.btn):hover{color:var(--text)}
@@ -498,7 +512,15 @@
 
 <nav>
   <div class="wrap">
-    <a class="brand" href="#top"><svg aria-hidden="true"><use href="#mark"/></svg>roadkeep</a>
+    <div class="nav-left">
+      <a class="brand" href="#top"><svg aria-hidden="true"><use href="#mark"/></svg>roadkeep</a>
+      <a class="parent" href="https://alegauss.github.io/" title="alegauss — small developer tools">
+        <span class="pre">part of</span><b>alegauss</b>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M7 17 17 7"/><path d="M9 7h8v8"/>
+        </svg>
+      </a>
+    </div>
     <div class="nav-links">
       <a href="#why">Why it exists</a>
       <a href="#agents">Claude Code</a>
