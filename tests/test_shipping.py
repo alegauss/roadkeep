@@ -296,6 +296,65 @@ def test_shipping_twice_is_refused_by_the_ledger(tmp_path):
         ship(config, "RK1")
 
 
+# -- a section more than one line points at (RK64) ----------------------------
+
+
+SHARED = RATIONALE.replace("### §RK2 A second design", "### §RK1.epic A shared design")
+
+
+def outline_project(tmp_path):
+    """A project that numbers by hand, where two lines may name one section — which is what
+    Shio's tenant epic does with four of them (§VI.1)."""
+    shared = """# Improvements
+
+## Block A — The model
+
+### §I.1 A design two tasks share (RK1, RK2)
+
+The reasoning both lines point at.
+
+## Block B — Authoring
+
+### §I.2 A third design (RK3)
+
+Which only one line points at.
+"""
+    config = project(
+        tmp_path,
+        roadmap=BACKLOG.replace("→ §RK1", "→ §I.1")
+        .replace("→ §RK2", "→ §I.1")
+        .replace("→ §RK3", "→ §I.2"),
+        improvements=shared,
+    )
+    declared = (tmp_path / "roadkeep.toml").read_text(encoding="utf-8")
+    (tmp_path / "roadkeep.toml").write_text(
+        declared.replace('prefix = "RK"', 'prefix = "RK"\nref_scheme = "outline"'),
+        encoding="utf-8",
+    )
+    return Config.discover(tmp_path)
+
+
+def test_a_section_another_open_line_points_at_is_kept(tmp_path):
+    # Shio's §VI.1 is one design for SH44–SH47; shipping the first deleted it and left three
+    # live pointers resolving to nothing, with a lint finding as the only trace (RK64).
+    config = outline_project(tmp_path)
+    shipment = ship(config, "RK1")
+    shipment.save()
+    assert shipment.dropped is None
+    assert shipment.kept == "§I.1 is also pointed at by RK2"
+    assert "§I.1" in read(config, IMPROVEMENTS)
+
+
+def test_the_last_line_pointing_at_a_shared_section_still_drops_it(tmp_path):
+    # Not a permanent exemption: when the last owner leaves, the section leaves with it.
+    config = outline_project(tmp_path)
+    ship(config, "RK1").save()
+    shipment = ship(Config.discover(tmp_path), "RK2")
+    shipment.save()
+    assert shipment.dropped is not None and shipment.dropped.anchor == "I.1"
+    assert "§I.1" not in read(config, IMPROVEMENTS)
+
+
 # -- the line the ledger already recorded (RK62) ------------------------------
 
 

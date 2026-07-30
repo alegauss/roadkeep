@@ -32,6 +32,7 @@
 - ✅ **RK38** **A write reports an exit code and nothing about what it changed, so only a human can react to it** — every mutator prints the id, the block and whether that block still holds an open line, which is the whole event a hook needs and the last thing the tool does about it.
 - ✅ **RK41** **A fix that was never planned has no door into the ledger** — a fourth command writes the ledger entry alone, so a fix nobody planned is recorded without a fictitious roadmap line shipped in the same breath to carry it.
 - ✅ **RK45** **A section belonging to no task lands after the last block, where it reads as that block's rationale** — the place is derived from the anchor: the end of the subtree of the longest anchor the new one extends, and one extending nothing this file declares is refused rather than appended.
+- ✅ **RK64** **Shipping one of several tasks that share a section deletes the design the others still point at** — A section another open line points at is kept and the reason is reported, so shipping one of Shio's four tenant tasks no longer deletes the design the other three point at.
 
 ## Block C — Query
 

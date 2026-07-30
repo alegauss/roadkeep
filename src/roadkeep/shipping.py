@@ -348,7 +348,7 @@ def _depart(
 
     insertion = place(ledger, _as_recorded(entry.task, marker, why))
     remaining = _remove_entry(roadmap, entry.index)
-    improvements, dropped, kept = _drop_section(config, entry.task.ref)
+    improvements, dropped, kept = _drop_section(config, entry.task.ref, leaving=task_id)
     # Resolved against the state this write *creates* — the id is in the ledger and gone
     # from the roadmap — so a dependent's annotation is derived from what will be on
     # disk and not from what was (RK8).
@@ -369,6 +369,15 @@ def _depart(
         dependents=tuple(
             e.task.id for e in derived.document.entries if task_id in e.task.dep_ids
         ),
+    )
+
+
+def _others_pointing(config: Config, anchor: str, leaving: str) -> tuple[str, ...]:
+    """Open lines other than this one whose pointer names the same anchor (RK64)."""
+    return tuple(
+        entry.task.id
+        for entry in config.document("roadmap").entries
+        if entry.task.ref == anchor and entry.task.id != leaving
     )
 
 
@@ -399,7 +408,7 @@ def _close(config: Config, task_id: str, recorded: Entry) -> Closure:
     roadmap = config.document("roadmap")
     entry = roadmap.by_id()[task_id]
     remaining = _remove_entry(roadmap, entry.index)
-    improvements, dropped, kept = _drop_section(config, entry.task.ref)
+    improvements, dropped, kept = _drop_section(config, entry.task.ref, leaving=task_id)
     derived = refresh(
         Backlog(config=config, roadmap=remaining, ledger=config.document("changelog"))
     )
@@ -456,17 +465,25 @@ def _remove_entry(document: Document, index: int) -> Document:
 
 
 def _drop_section(
-    config: Config, anchor: str | None
+    config: Config, anchor: str | None, *, leaving: str = ""
 ) -> tuple[Document | None, Section | None, str | None]:
-    """Delete the rationale section the shipped line pointed at, if there is one.
+    """Delete the rationale section the departing line pointed at, if it is only that line's.
 
     Absence is reported, never refused: a task can ship without a section, and a command
     that fails over it would be an obstacle at the one moment the author is finishing.
+
+    So is a section with **more than one owner** (RK64). Under `ref_scheme = "id"` the anchor
+    is the id and nothing else can name it; under an outline, four of Shio's lines point at one
+    epic design, and deleting it when the first of them ships left three live pointers resolving
+    to nothing. The section stays and the reason is reported in the same field.
     """
     if anchor is None:
         return None, None, "the line carried no pointer"
     if not config.has("improvements"):
         return None, None, "this project declares no improvements file"
+    others = _others_pointing(config, anchor, leaving)
+    if others:
+        return None, None, f"§{anchor} is also pointed at by {', '.join(others)}"
     # The grammar of a section lives in one place (RK9), so shipping calls it rather than
     # keeping a second opinion about where a section ends.
     try:
