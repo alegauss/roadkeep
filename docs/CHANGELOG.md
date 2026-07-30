@@ -20,6 +20,7 @@
 - ✅ **RK37** **A dep on a block that does not exist resolves as satisfied** — a block is declared by a heading and by nothing else, so a dep naming one no heading declares is unresolvable, never a block that happens to have nothing open.
 - ✅ **RK43** **A changelog whose lines carry no status marker parses as zero entries and zero rejects** — a bullet that leads with a bold id is now a reject naming the empty slot, and `markers.ledger = false` states a ledger's marker once instead of on all 920 of its lines.
 - ✅ **RK44** **Under ref_scheme = outline a heading numbers itself, so 151 headings yield zero sections** — the anchor is read per scheme, so an outline numbers its own headings and keeps the sigil on the pointer: Shio's 151 headings are 146 sections and its 72 pointers all resolve.
+- ✅ **RK47** **A lettered outline subsection is no anchor, so 20 of Turing's headings are sections nothing sees** — the anchor's final segment may be one lowercase letter, measured and not guessed: it admits Turing's 20 lettered headings and nothing more, one of them 779 words the budget was not charging.
 
 ## Block B — Authoring
 

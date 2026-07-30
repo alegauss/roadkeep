@@ -74,29 +74,6 @@ written, not authorship.
 
 ## Block A — The model
 
-### §RK47 A lettered subsection escapes the anchor
-
-Found while shipping RK44 and not fixed by it: with the sigil no longer required on an
-outline heading, Turing's `IMPROVEMENTS.md` reads 111 sections out of 147 headings, and
-23 of the 36 misses are headings that *are* numbered. Twenty of those spell a fourth
-level with a letter — `VII.2.a HTTP auth chainable helpers (T39)`, `IX.3.c Workspace SSE
-bus (T113)` — which `OUTLINE_ANCHOR_RE` refuses because it admits only digits after the
-first dot. Shio has none, which is why RK44's own measurement came out clean.
-
-Two consequences, and the second is the one that matters. A pointer `→ §VII.2.a` is
-already a `ref.format` violation, so the two ends of the pointer agree today only
-because Turing happens never to write one. And the twenty headings are invisible to both
-directions of RK15: not orphans, not sections, and the word budget that charges a
-rationale per section does not charge them at all — prose that escapes the count by
-gaining a heading, which is the drift the budget exists to stop.
-
-So the pattern is widened at both ends or at neither. The open question is what a
-segment may be: a single letter covers every case measured here, while a general
-alphanumeric segment would also admit `VII.2.beta`, which no corpus writes and which
-makes `§VII.2` ambiguous against a title beginning with a word. Measure before choosing
-— the range heading `III.2–III.5` is a separate shape again, and naming one anchor is
-not what it does.
-
 ## Block B — Authoring
 
 ### §RK45 Where a section with no task belongs

@@ -229,6 +229,23 @@ def test_a_pointer_at_a_whole_section_is_accepted_where_sections_are_numbered():
     assert OUTLINE.validate(task(ref="XIV.8.7")) == ()
 
 
+def test_a_lettered_final_segment_is_an_anchor_at_both_ends_of_the_pointer():
+    # Turing spells a fourth level with a letter (RK47), 20 headings across two files,
+    # and the heading and the pointer read the same pattern — so a `§VII.2.a` the file
+    # declares had to be a pointer the schema accepts, or the two ends would disagree
+    # about which sections exist.
+    assert OUTLINE.validate(task(ref="VII.2.a")) == ()
+    assert OUTLINE.validate(task(ref="IX.4.d")) == ()
+
+
+@pytest.mark.parametrize("ref", ["VII.2.beta", "VII.2.A", "VII.a.2", "III.2–III.5"])
+def test_a_segment_no_corpus_writes_is_still_refused(ref):
+    # One lowercase letter, last: measured, not guessed. A general alphanumeric segment
+    # admits nothing more across either corpus and costs `§VII.2` its ability to tell an
+    # anchor from a title's first word; a range names no single anchor at all.
+    assert {v.code for v in OUTLINE.validate(task(ref=ref))} == {"ref.format"}
+
+
 def test_a_ref_that_is_not_an_anchor_is_refused():
     assert {v.code for v in OUTLINE.validate(task(ref="Block A"))} == {"ref.format"}
 

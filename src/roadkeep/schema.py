@@ -64,7 +64,11 @@ _BLOCK_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9.\-]{0,15}$")
 #: Public because it reads the *heading* too (RK44): under the outline scheme a heading
 #: numbers itself and the number is what announces it, so one pattern has to answer both
 #: ends of the pointer or the two disagree about which sections exist.
-OUTLINE_ANCHOR_RE = re.compile(r"^[0-9IVXLCDM]+(?:\.[0-9]+)*$")
+#: The final segment may be **one lowercase letter** (RK47), which is measured and not
+#: guessed: it admits exactly Turing's 20 `VII.2.a` headings across both prose files, and
+#: a general alphanumeric segment admits not one thing more while also admitting
+#: `VII.2.beta`, where `§VII.2` stops telling an anchor from a title's first word.
+OUTLINE_ANCHOR_RE = re.compile(r"^[0-9IVXLCDM]+(?:\.[0-9]+)*(?:\.[a-z])?$")
 
 # A terminator followed by whitespace, i.e. a sentence that has a successor. A
 # trailing period never matches because the field is measured stripped.

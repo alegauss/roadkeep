@@ -160,6 +160,14 @@ A tenth one, which §VIII.1 must not claim.
 #### XIV.8.7 The deepest one
 
 Three segments, which Turing writes.
+
+#### IX.4.d The pivot
+
+A fourth level spelled with a letter, which Turing writes twenty times.
+
+#### IX.4.beta Not a segment
+
+A word after the dot, which nothing writes and which no anchor claims.
 """
 
 
@@ -178,7 +186,7 @@ def test_an_outline_document_numbers_its_headings_and_they_are_still_sections(tm
     # Measured on Shio: 151 headings, 0 sections, and 74 pointers reported as resolving to
     # nothing against a file that answers every one of them — RK15's argument inverted.
     sections = {s.anchor: s for s in anchored(outline(tmp_path).document("improvements"))}
-    assert list(sections) == ["VIII", "VIII.1", "VIII.10", "XIV.8.7"]
+    assert list(sections) == ["VIII", "VIII.1", "VIII.10", "XIV.8.7", "IX.4.d"]
     assert sections["VIII"].title == "The Agent Gateway"  # the period is not the anchor
     assert sections["VIII.1"].title == "MCP server host (SH75)"
 
@@ -186,11 +194,14 @@ def test_an_outline_document_numbers_its_headings_and_they_are_still_sections(tm
 def test_an_outline_heading_with_no_number_is_prose_and_not_a_section(tmp_path):
     config = outline(tmp_path)
     assert find(config.document("improvements"), "Table") is None
+    # `IX.4.beta` is here too: a segment no corpus writes stays prose, which is what keeps
+    # `§IX.4` from having to tell an anchor from a title's first word (RK47).
     assert {s.anchor for s in anchored(config.document("improvements"))} == {
         "VIII",
         "VIII.1",
         "VIII.10",
         "XIV.8.7",
+        "IX.4.d",
     }
 
 
@@ -230,6 +241,8 @@ def test_an_anchor_the_outline_scheme_cannot_number_is_refused(tmp_path):
 #: Absent on any machine but the author's, so the use is guarded (as in `test_document`).
 SHIO_PROSE = Path("D:/Git/viglet/shio/latest/docs/IMPROVEMENTS.md")
 SHIO_BACKLOG = Path("D:/Git/viglet/shio/latest/docs/ROADMAP.md")
+#: Turing, the only corpus that spells a fourth level with a letter (RK47).
+TURING_PROSE = Path("D:/Git/viglet/turing/latest/docs/IMPROVEMENTS.md")
 
 
 def test_a_live_outline_file_yields_its_sections_and_answers_its_pointers():
@@ -245,6 +258,17 @@ def test_a_live_outline_file_yields_its_sections_and_answers_its_pointers():
     # *that* backlog for `lint` to report, which is the whole point — before RK44 the
     # answer was 74 of them, and the gate was reporting the file rather than reading it.
     assert pointers and [p for p in pointers if p not in declared] == []
+
+
+def test_a_lettered_heading_in_the_live_corpus_becomes_a_section_the_budget_charges():
+    if not TURING_PROSE.exists():
+        pytest.skip(f"{TURING_PROSE} is not on this machine")
+    sections = anchored(Document.load(TURING_PROSE, Schema(prefix="T", ref_scheme="outline")))
+    lettered = [s for s in sections if s.anchor[-2:-1] == "." and s.anchor[-1].isalpha()]
+    # Twenty, and one of them is 779 words: prose that had escaped the section budget
+    # entirely by gaining a lettered heading, which is the drift RK47 measured.
+    assert len(lettered) >= 20
+    assert max(s.words for s in lettered) > 250
 
 
 # -- dropping ----------------------------------------------------------------

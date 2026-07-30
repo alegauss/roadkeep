@@ -370,10 +370,12 @@ def _anchor_of(text: str, schema: Schema) -> str | None:
 
     * ``id`` — `§RK9 A design` → `RK9`. The anchor is a task id, so the § is what marks
       it as an anchor rather than a word, and it is required.
-    * ``outline`` — `VIII.1 MCP server host` → `VIII.1`, and Shio's `0. Strategy` → `0`:
-      the number *is* the announcement, so the sigil belongs on the pointer alone. It is
-      accepted where an author wrote one anyway, because a heading nothing can see is the
-      defect this closes and not a spelling to punish.
+    * ``outline`` — `VIII.1 MCP server host` → `VIII.1`, Shio's `0. Strategy` → `0`, and
+      Turing's lettered fourth level `IX.4.d The pivot` → `IX.4.d` (RK47): the number *is*
+      the announcement, so the sigil belongs on the pointer alone. It is accepted where an
+      author wrote one anyway, because a heading nothing can see is the defect this closes
+      and not a spelling to punish. What a segment may be is
+      :data:`~roadkeep.schema.OUTLINE_ANCHOR_RE`'s to say, at both ends of the pointer.
     """
     head = text.lstrip()
     if schema.ref_scheme == "id":
