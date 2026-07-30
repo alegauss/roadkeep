@@ -242,15 +242,17 @@ def test_this_repositorys_readme_is_current():
     assert splice(readme, project(config).markdown(), "README.md") == readme
 
 
-def test_this_repositorys_landing_page_is_current():
-    """The page claimed 9 of 36 through twenty-five ships. Now it is a test.
+def test_the_landing_page_carries_no_projection_to_go_stale():
+    """`docs/index.html` is a pitch, so it restates no count — and holds no markers.
 
-    Which is the whole argument for the HTML shape existing at all: the README half of
-    RK39 was derived and stayed right, and the site half was prose and did not.
+    The page used to carry the derived strip, which is why the README half of RK39 has a
+    currency test and this one does not: a page that says nothing about the backlog cannot
+    say it wrongly. `--site` is still the supported shape, asserted below against a
+    scaffolded page; what is asserted here is that this file is not one of its targets.
     """
-    config = Config.discover(HERE)
     page = (HERE / "docs" / "index.html").read_text(encoding="utf-8", errors="strict")
-    assert splice(page, project(config).html(), "docs/index.html") == page
+    assert BEGIN not in page
+    assert "tasks shipped" not in page
 
 
 # -- the page shape (RK39's other half) ---------------------------------------

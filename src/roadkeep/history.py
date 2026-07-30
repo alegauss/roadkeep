@@ -194,6 +194,31 @@ def touched_since(config: Config, rev: str, role: str) -> Touched:
     return _read_diff(output)
 
 
+def changed_lines(config: Config, rev: str, path: Path) -> frozenset[int] | None:
+    """Line numbers this working tree changed in one file against ``rev`` (RK60).
+
+    ``None`` means git cannot narrow this file — no history, no `git`, or a file it does not
+    track yet — and the caller then judges all of it, because a file nothing can diff is a
+    file nobody can be excused from.
+
+    A path and not a role, because the `Stop` gate also holds the instruction files a
+    `[budgets]` entry names (RK30), and those are governed by nothing.
+    """
+    try:
+        relative = path.resolve().relative_to(config.root)
+    except ValueError:
+        relative = path
+    try:
+        if not _run(config.root, "ls-files", "--", str(relative)).strip():
+            return None  # untracked: every line of it arrived without a commit
+        output = _run(config.root, "diff", "--no-color", "-U0", rev, "--", str(relative))
+    except HistoryUnavailable:
+        return None
+    return frozenset(
+        change.lineno for change in _read_diff(output).changes if change.added
+    )
+
+
 def _read_diff(output: str) -> Touched:
     """Walk a `-U0` diff, numbering each changed line on its own side."""
     changes: list[Change] = []

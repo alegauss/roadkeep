@@ -31,6 +31,7 @@ import io
 import json
 import os
 import shlex
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -54,6 +55,60 @@ LEDGER = """# Shipped
 """
 
 CONFIG = f'prefix = "RK"\n[files]\nroadmap = "{ROADMAP}"\nchangelog = "{CHANGELOG}"\n'
+
+
+def committed(tmp_path: Path, *, roadmap: str = CLEAN) -> Path:
+    """A governed project with a first commit, which is what `HEAD` means (RK60).
+
+    The adopting case has history: the drift is in it, and the turn is answerable for the
+    lines it changed since. A repository with no commits is the other branch, asserted below.
+    """
+    project(tmp_path, roadmap=roadmap)
+    for args in (
+        ["init", "-q"],
+        ["config", "user.email", "t@example.com"],
+        ["config", "user.name", "T"],
+        ["config", "commit.gpgsign", "false"],
+        ["add", "-A"],
+        ["commit", "-qm", "adopted with drift in it"],
+    ):
+        done = subprocess.run(
+            ["git", "-C", str(tmp_path), *args], capture_output=True, text=True, check=False
+        )
+        assert done.returncode == 0, done.stderr
+    return tmp_path
+
+
+def test_the_stop_gate_ignores_drift_the_turn_did_not_touch(tmp_path):
+    # Shio adopted the tool with 278 findings in it, and the hook blocked the end of every
+    # turn that touched none of them. A gate that fires on somebody else's work is one that
+    # gets turned off, which is worth less than no gate.
+    drifted = CLEAN.replace("A first symptom", "A first symptom that is far too long " * 6)
+    committed(tmp_path, roadmap=drifted)
+    assert review({"hook_event_name": "Stop"}, tmp_path) is None
+
+
+def test_the_stop_gate_still_blocks_a_line_this_turn_changed(tmp_path):
+    committed(tmp_path)
+    path = tmp_path / ROADMAP
+    path.write_text(
+        path.read_text(encoding="utf-8").replace(
+            "Because of a reason.", "Because of a reason. And a second sentence."
+        ),
+        encoding="utf-8",
+    )
+    found = review({"hook_event_name": "Stop"}, tmp_path)
+    assert found is not None
+    assert [f.code for f in found.report.findings] == ["why.sentences"]
+    assert "this turn changed" in str(found)
+
+
+def test_without_history_the_gate_judges_everything(tmp_path):
+    # No commits, so nothing can be excused: a file git cannot diff is a file whose every
+    # line arrived without one.
+    drifted = CLEAN.replace("A first symptom", "A first symptom that is far too long " * 6)
+    project(tmp_path, roadmap=drifted)
+    assert review({"hook_event_name": "Stop"}, tmp_path) is not None
 
 
 def project(tmp_path: Path, *, roadmap: str = CLEAN, config: str = CONFIG) -> Path:

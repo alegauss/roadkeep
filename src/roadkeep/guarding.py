@@ -47,10 +47,11 @@ from __future__ import annotations
 import os
 import tomllib
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 from roadkeep.config import Config, ConfigError, find_config
+from roadkeep.history import changed_lines
 from roadkeep.linting import Report, lint
 
 #: The tools that put bytes in a file. Listed by what reaches the disk and not by what the
@@ -154,7 +155,7 @@ class Review:
     def __str__(self) -> str:
         findings = self.report.findings
         lines = [
-            f"roadkeep lint refuses {len(findings)} line(s) in "
+            f"roadkeep lint refuses {len(findings)} line(s) this turn changed in "
             f"{', '.join(self.report.checked)}: a governed file was changed by something "
             f"other than roadkeep, and the format is what the next reader trusts.",
             "",
@@ -219,7 +220,31 @@ def review(payload: Mapping[str, object], root: str | Path = ".") -> Review | No
         report = lint(config)
     except (KeyError, OSError):
         return None
-    return None if report.clean else Review(report=report)
+    if report.clean:
+        return None
+    narrowed = _this_turn(config, report)
+    return Review(report=narrowed) if narrowed.findings else None
+
+
+def _this_turn(config: Config, report: Report) -> Report:
+    """The same report, keeping only findings on lines the working tree changed (RK60).
+
+    The hook answers "did this turn leave the file in a state the format rejects", and a
+    project that adopted the tool with drift already in it would otherwise have every turn
+    blocked by history — 278 findings in Shio, none of them the session's. `roadkeep lint`,
+    the pre-commit hook and the Action are unchanged: they answer "is this file correct".
+    """
+    per_file: dict[str, frozenset[int] | None] = {}
+    kept = []
+    for finding in report.findings:
+        if finding.file not in per_file:
+            per_file[finding.file] = changed_lines(config, "HEAD", config.root / finding.file)
+        changed = per_file[finding.file]
+        # `None` is git declining to say, and a finding about the file itself (a budget) has
+        # no line to compare — both are judged, because neither can be excused.
+        if changed is None or finding.lineno is None or finding.lineno in changed:
+            kept.append(finding)
+    return replace(report, findings=tuple(kept))
 
 
 def governed(path: str | Path) -> tuple[Config, str] | None:
