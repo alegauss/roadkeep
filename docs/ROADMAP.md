@@ -28,11 +28,15 @@
 
 ## Block D — The gate
 
+- 📋 **RK58** (deps: RK22 ✅) **A refusal names a command the machine may not have, now that the plugin needs no install** — Name the MCP tool the same plugin serves before the shell command, since the deny and the tools arrive together and only one of them is certain to run. → §RK58
+
 ## Block E — Adoption
 
 - 💭 **RK21** (deps: RK20 ✅) **A standard adopted by one project is a preference** — roll out to Turing, Dumont and Cursarei, each with its own `roadmap.toml`. → §RK21
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
+
+- 📋 **RK59** (deps: RK24 ✅) **Four tools cover four commands, so the eight a task actually needs still require a shell** — Expose the read and write commands a session calls — brief, section, retire, record, list, deps — so an installed plugin is a complete surface rather than a partial one. → §RK59
 
 ## Non-goals
 

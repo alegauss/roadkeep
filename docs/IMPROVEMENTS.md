@@ -80,6 +80,25 @@ written, not authorship.
 
 ## Block D — The gate
 
+### §RK58 The advice has to be runnable
+
+The denial's whole value is that it names what to call instead. Since RK57 the plugin
+runs without `pip install roadkeep`, so the machine that just refused an `Edit` may have
+no `roadkeep` on PATH at all — and the refusal still says "Call instead, from the
+project root: roadkeep add …". An agent that follows it gets `command not found`, which
+is the one outcome worse than the original hand-edit: it teaches that the tool's advice
+does not work.
+
+The same plugin that installs the hook installs the four MCP tools (RK24), so on exactly
+the machines where the shell command is uncertain, `mcp__roadkeep__add` is present and
+carries the field schema. So the refusal names the tool first and the command second,
+and says which is which. Both stay, because a project that pip-installed is real too,
+and CI has no MCP client.
+
+What the guard cannot know is whether the client actually connected. That is fine for a
+message: naming two routes, one of which is certainly there, beats naming one that may
+not be.
+
 ## Block E — Adoption
 
 ### §RK21 Rollout
@@ -89,3 +108,28 @@ one format is what makes cross-project context transferable; one project with a 
 is a preference.
 
 ## Block F — The plugin
+
+### §RK59 Four is not the surface
+
+RK24 exposed `add`, `ship`, `pick` and `lint` because the roadmap line named those four,
+and the reasoning held at the time: the reads were "one `Bash` call away and cost
+nothing to get wrong". RK57 changed the arithmetic. A plugin now installs with no `pip
+install` and no PATH entry, so on that machine the four tools are the *only* route that
+certainly runs — and starting a task needs `brief`, writing a rationale needs `section
+add`, a line that leaves without shipping needs `retire`, unplanned work needs `record`,
+and answering "what is open" needs `list`. Every one of those falls back to a shell
+command that may not exist.
+
+So the surface is decided by what a task needs end to end, not by what one roadmap line
+listed. The four write commands and the reads a session actually calls become tools,
+derived from the same parser and the same config as the first four (that machinery is
+already generic: a tool is a subcommand name plus which of its arguments an agent may
+set).
+
+Two stay out. `init` and `adopt` are what somebody runs *once*, before the project is
+governed, and `guard` and `mcp` are the harness's own entry points — a tool that started
+a second server inside the first is not a capability.
+
+`section add` is the interesting one, because its prose arrives on stdin: over MCP it is
+a string argument bounded by the project's word budget, which is the same refusal by
+another door.
