@@ -240,3 +240,90 @@ def test_this_repositorys_readme_is_current():
     config = Config.discover(HERE)
     readme = (HERE / "README.md").read_text(encoding="utf-8", errors="strict")
     assert splice(readme, project(config).markdown(), "README.md") == readme
+
+
+def test_this_repositorys_landing_page_is_current():
+    """The page claimed 9 of 36 through twenty-five ships. Now it is a test.
+
+    Which is the whole argument for the HTML shape existing at all: the README half of
+    RK39 was derived and stayed right, and the site half was prose and did not.
+    """
+    config = Config.discover(HERE)
+    page = (HERE / "docs" / "index.html").read_text(encoding="utf-8", errors="strict")
+    assert splice(page, project(config).html(), "docs/index.html") == page
+
+
+# -- the page shape (RK39's other half) ---------------------------------------
+
+PAGE = f"""<!DOCTYPE html>
+<html><body>
+<p>Markup the author owns.</p>
+{BEGIN}
+<p>stale markup nobody re-derived</p>
+{END}
+<footer>More markup the author owns.</footer>
+</body></html>
+"""
+
+
+def test_the_page_body_is_derived_from_the_same_projection(tmp_path):
+    projection = project(project_files(tmp_path))
+    body = projection.html()
+    assert "roadkeep export --site" in body
+    # The same two numbers the Markdown table carries, in the shape a page reads.
+    assert f"<b>{projection.totals.shipped}</b>" in body
+    assert f'width:{projection.progress}%' in body
+    assert "A — The model" in body
+
+
+def test_a_symptom_that_would_break_the_markup_is_escaped(tmp_path):
+    """A line that passed `add` must not be able to emit markup a browser mis-parses."""
+    roadmap = ROADMAP.replace(
+        "**A first symptom**", "**Tags <b> & quotes are not stripped**"
+    )
+    body = project(project_files(tmp_path, roadmap=roadmap)).html()
+    assert "&lt;b&gt; &amp; quotes" in body
+    assert "<b> & quotes" not in body
+
+
+def test_the_meter_never_reads_full_while_something_is_open(tmp_path):
+    """Floored, not rounded: 100% with one line still open is the one wrong number."""
+    projection = project(project_files(tmp_path))
+    assert projection.totals.open > 0
+    assert projection.progress < 100
+
+
+def test_the_page_refresh_is_idempotent(tmp_path):
+    config = project_files(tmp_path)
+    (tmp_path / "index.html").write_text(PAGE, encoding="utf-8", newline="")
+    where = ["-C", str(tmp_path), "export", "--site", "index.html"]
+    assert main(where) == EXIT_OK
+    once = (tmp_path / "index.html").read_text(encoding="utf-8")
+    assert "stale markup" not in once
+    assert "<footer>More markup the author owns.</footer>" in once
+    assert main(where) == EXIT_OK
+    assert (tmp_path / "index.html").read_text(encoding="utf-8") == once
+    assert config is not None
+
+
+def test_both_destinations_refresh_in_one_call(tmp_path, capsys):
+    """A README and a page that restate one backlog cannot be refreshed by two commands:
+    the one nobody remembered is the stale one, which is the symptom RK39 names."""
+    project_files(tmp_path)
+    (tmp_path / "index.html").write_text(PAGE, encoding="utf-8", newline="")
+    assert (
+        main(["-C", str(tmp_path), "export", "--readme", "--site", "index.html"])
+        == EXIT_OK
+    )
+    out = capsys.readouterr().out
+    assert "README.md refreshed" in out
+    assert "index.html refreshed" in out
+    assert "stale text" not in (tmp_path / "README.md").read_text(encoding="utf-8")
+    assert "stale markup" not in (tmp_path / "index.html").read_text(encoding="utf-8")
+
+
+def test_a_page_with_no_markers_is_refused_with_the_lines_to_paste(tmp_path, capsys):
+    project_files(tmp_path)
+    (tmp_path / "index.html").write_text("<html></html>\n", encoding="utf-8")
+    assert main(["-C", str(tmp_path), "export", "--site", "index.html"]) == EXIT_USAGE
+    assert BEGIN in capsys.readouterr().err

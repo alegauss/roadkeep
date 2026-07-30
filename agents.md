@@ -104,7 +104,7 @@ fills a gap; `… list|stats|audit [--block C]` counts and lists, naming every m
 neither could read (RK10); `… show <id>` joins one line, its section and its paths (RK12);
 `… deps <id>` walks the graph both ways (RK13/RK28/RK37); `… gaps` resolves an id in neither
 file against the commit that removed it (RK32); `… origin <id> --why` (RK31). And **never
-restate a count in prose**: `… export [--readme|--json]` projects it, idempotently (RK39).
+restate a count in prose**: `… export [--readme|--site|--json]` projects it (RK39/RK42).
 
 ## Picking work
 

@@ -8,13 +8,17 @@
 > and `tomllib`), Markdown-only store. Shipped as a Claude Code plugin, because the
 > author to constrain is usually an agent.
 
-Status: early. 9 of 36 tasks shipped — the model, `add`, and the git-derived queries
-work; the `lint`/`ship` gate and the plugin hook do not. Not on PyPI yet:
-`pip install git+https://github.com/alegauss/roadkeep`.
+Status: the model, the write paths, the query surface and the gate are done; the Claude
+Code plugin that stops an agent hand-editing a governed file is not. Install with
+`uvx roadkeep` or `pip install roadkeep`.
 
-This file is deliberately short. A tool whose thesis is that prose expands to fill
-whatever room it is given cannot ship a 2000-word summary of itself; the links below
-are the detail, and each one is fetchable Markdown.
+No count is stated here on purpose. A restatement of a backlog goes stale on the first
+ship — this file said "9 of 36" through twenty-five of them — and the ROADMAP and
+CHANGELOG linked below are one fetch away and always right.
+
+This file is deliberately short for the same reason. A tool whose thesis is that prose
+expands to fill whatever room it is given cannot ship a 2000-word summary of itself; the
+links below are the detail, and each one is fetchable Markdown.
 
 ## Why it exists
 
@@ -38,19 +42,24 @@ A change that breaks one is wrong even if requested.
 - **L5** — query instead of read: every question is a command, so answering costs no context.
 - **L6** — configuration, not convention: prefix, paths, markers and limits are per project.
 
-## Commands that work today
+## What it does
 
-All take `--json`, which carries provenance (which file and which line the answer came
-from), because an answer an agent cannot audit gets verified by reading the file — the
-cost the command existed to remove.
+A whole task is four calls, which is the shape rather than the reference — `--help` and
+the repository carry the flags.
 
-- `roadkeep add` — compose a task line from validated fields; refuses over-length input and writes nothing.
-- `roadkeep next-id` — the next unused id, one past the highest found in any configured source.
-- `roadkeep deps <id>` — resolve a task's deps, naming the ones nothing can resolve rather than calling them pending.
-- `roadkeep origin <id>` — the commits that proposed and shipped a task, derived from git, with the reasoning that was dropped.
+- `roadkeep brief` — what to work on and everything it costs to start: the line, its rationale, the resolved deps, the blocker chain, what shipping it unblocks, the binding non-goals.
+- `roadkeep add` — compose a task line from validated fields; refuses an over-length field before the sentence is composed to fill it, and writes nothing when it does.
+- `roadkeep ship <id>` — the ledger entry, the roadmap line removed and the rationale section dropped, as one transaction: all three or none.
+- `roadkeep lint` — exit 1 when any governed line drifted, a pointer resolves to nothing, or an always-loaded file outgrew its declared budget. The exit code is the whole contract.
 
-Not yet built: `ship`, `lint`, `pick`, `show`, and the plugin hook that denies an agent
-the hand-edit.
+Around them: `status`, `section`, `retire`, `record`, `list`/`stats`/`audit`, `show`,
+`pick`, `deps`, `gaps`, `origin`, `export`, and `init`/`adopt` for a repository that
+already has a backlog — `adopt` measures one and reports what adopting would cost before
+anything is changed. Every command takes `--json`, which carries provenance (which file
+and which line the answer came from), because an answer an agent cannot audit gets
+verified by reading the file — the cost the command existed to remove.
+
+Not built: the Claude Code plugin hook that denies an agent the hand-edit.
 
 ## Non-goals
 

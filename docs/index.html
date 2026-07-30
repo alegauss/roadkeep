@@ -233,9 +233,39 @@
     flex:1 1 320px;max-width:520px;height:12px;border-radius:999px;
     background:var(--panel-2);border:1px solid var(--line);overflow:hidden;
   }
-  .meter i{display:block;height:100%;width:25%;border-radius:999px;background:linear-gradient(90deg,var(--amber-deep),var(--amber-bright))}
+  .meter i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--amber-deep),var(--amber-bright))}
   .status-bar .lbl{font-family:'JetBrains Mono',monospace;font-size:.9rem;color:var(--muted)}
   .status-bar .lbl b{color:var(--text)}
+
+  /* the derived strip: one row per block, written by `roadkeep export --site` */
+  .blocks{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+    gap:10px;max-width:860px;margin:0 auto 28px;
+  }
+  .blk{
+    display:flex;flex-direction:column;gap:6px;
+    padding:14px 16px;border-radius:11px;
+    background:var(--panel);border:1px solid var(--line);
+  }
+  .blk .b-n{font-family:'JetBrains Mono',monospace;font-size:.76rem;color:var(--muted-2);letter-spacing:.02em}
+  .blk .b-t{font-size:.9rem;color:var(--slate);line-height:1.4}
+  .blk.done{border-color:rgba(245,158,11,.28)}
+  .blk.done .b-n{color:var(--amber)}
+  .next{
+    text-align:center;color:var(--muted);font-size:.93rem;
+    max-width:760px;margin:0 auto 6px;
+  }
+  .next .k{color:var(--muted-2);font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;margin-right:6px}
+  .next code{color:var(--amber);font-size:.9rem}
+
+  .arc{max-width:760px;margin:34px auto 0}
+  .arc .lead{color:var(--muted);font-size:.98rem;margin-bottom:18px;text-align:center}
+  .arc .lead b{color:var(--text);font-weight:600}
+  .arc .aside{color:var(--muted);font-size:.93rem;margin-top:18px}
+  .arc .aside b{color:var(--text)}
+  .arc .install-lead{text-align:center;color:var(--muted);font-size:.95rem;margin:38px 0 12px}
+  .arc .install-lead b{color:var(--text)}
+  .arc .install-note{text-align:center;color:var(--muted-2);font-size:.85rem;margin-top:12px}
 
   .codeblock{
     background:#070c16;border:1px solid var(--line);border-radius:12px;
@@ -337,7 +367,7 @@
 <header class="hero" id="top">
   <div class="wrap">
     <div class="hero-mark"><svg role="img" aria-label="roadkeep"><use href="#mark"/></svg></div>
-    <div class="badge"><span class="dot"></span> Early · Open source · Python ≥3.11</div>
+    <div class="badge"><span class="dot"></span> Open source · Python ≥3.11 · Apache-2.0</div>
     <h1>Your format is a convention.<br><span class="grad">Make it a schema.</span></h1>
     <p class="sub">
       roadkeep owns the writes to your <b>ROADMAP.md</b>, <b>CHANGELOG.md</b>,
@@ -469,7 +499,7 @@
       <div class="prop reveal">
         <div class="n">2</div>
         <h3>It governs the file you already have</h3>
-        <p>One line in your existing <code>ROADMAP.md</code> — <b>not a new store you migrate into</b>. A repository with a hand-written backlog is the target, not the obstacle.</p>
+        <p>One line in your existing <code>ROADMAP.md</code> — <b>not a new store you migrate into</b>. A repository with a hand-written backlog is the target, not the obstacle, so it will measure yours and tell you what adopting would cost <b>before</b> you commit to it.</p>
       </div>
       <div class="prop reveal">
         <div class="n">3</div>
@@ -509,40 +539,83 @@
   <div class="wrap">
     <div class="sec-head reveal">
       <div class="eyebrow">Status</div>
-      <h2>Early, and honest about it</h2>
-      <p>The model, the authoring command and the git-derived queries are done. The gate and the plugin are not.</p>
+      <h2>The model, the writes, the queries and the gate are done</h2>
+      <p>What is left is the layer that makes an agent unable to route around any of it.</p>
     </div>
-    <div class="status-bar reveal">
-      <span class="lbl"><b>9</b> of <b>36</b> tasks shipped</span>
-      <div class="meter"><i></i></div>
-    </div>
-    <div class="reveal" style="max-width:760px;margin:0 auto">
-      <div class="codeblock pre"><span class="c"># what works today</span>
-roadkeep <span class="g">add</span>         <span class="c">compose a validated task line, refusing what is too long</span>
-roadkeep <span class="g">next-id</span>     <span class="c">the next unused id, one past the highest anywhere</span>
-roadkeep <span class="g">deps</span> &lt;id&gt;   <span class="c">resolve a task's deps, naming the ones nothing can resolve</span>
-roadkeep <span class="g">origin</span> &lt;id&gt; <span class="c">the commits that proposed and shipped it, with the reasoning</span></div>
-      <p style="color:var(--muted);font-size:.93rem;margin-top:18px">
-        All of them take <code>--json</code>, which carries provenance — which file and which
-        line the answer came from — because an answer an agent cannot audit gets verified by
-        reading the file, <b style="color:var(--text)">which is the cost the command existed to remove</b>.
+
+    <!--
+      Everything between the two markers is written by `roadkeep export --site` and must
+      not be edited here: this page claimed "9 of 36 tasks shipped" for twenty-five ships,
+      which is the exact symptom the tool exists to remove, on the tool's own page.
+    -->
+    <!-- roadkeep:begin -->
+<!-- generated by `roadkeep export --site`; edit the governed files instead -->
+<div class="status-bar reveal">
+  <span class="lbl"><b>34</b> of <b>41</b> tasks shipped</span>
+  <div class="meter"><i style="width:82%"></i></div>
+</div>
+<div class="blocks reveal">
+  <div class="blk done">
+    <span class="b-n">8 shipped · 0 open</span>
+    <span class="b-t">A — The model (a task is data before it is a line)</span>
+  </div>
+  <div class="blk done">
+    <span class="b-n">7 shipped · 0 open</span>
+    <span class="b-t">B — Authoring (insert, never hand-edit)</span>
+  </div>
+  <div class="blk done">
+    <span class="b-n">9 shipped · 0 open</span>
+    <span class="b-t">C — Query (consult without reading the file)</span>
+  </div>
+  <div class="blk done">
+    <span class="b-n">8 shipped · 0 open</span>
+    <span class="b-t">D — The gate</span>
+  </div>
+  <div class="blk open">
+    <span class="b-n">2 shipped · 2 open</span>
+    <span class="b-t">E — Adoption</span>
+  </div>
+  <div class="blk open">
+    <span class="b-n">0 shipped · 5 open</span>
+    <span class="b-t">F — The Claude Code plugin (the guardrail at the agent boundary)</span>
+  </div>
+</div>
+<p class="next reveal">
+  <span class="k">Next ready</span> <code>RK20</code> — Shio&#x27;s 92 active lines average 142 words against a one-sentence rule
+</p>
+    <!-- roadkeep:end -->
+
+    <div class="reveal arc">
+      <p class="lead">
+        A whole task is four calls. Not a manual to learn — a shape: <b>ask what to work
+        on</b>, <b>write the line</b>, <b>ship it</b>, <b>prove nothing drifted</b>.
       </p>
-      <p style="color:var(--muted-2);font-size:.9rem;margin-top:14px">
-        Not yet built: <code>ship</code>, <code>lint</code>, <code>pick</code>, <code>show</code>,
-        and the plugin hook that denies an agent the hand-edit.
+      <div class="codeblock pre"><span class="c"># the arc of one task</span>
+roadkeep <span class="g">brief</span>       <span class="c">what to work on, and everything it costs to start it</span>
+roadkeep <span class="g">add</span>         <span class="c">compose the line — the field is refused, never the sentence</span>
+roadkeep <span class="g">ship</span> &lt;id&gt;   <span class="c">three edits across three files, all of them or none</span>
+roadkeep <span class="g">lint</span>        <span class="c">exit 1 when anything drifted. That code is the contract.</span></div>
+      <p class="aside">
+        Around those sit the rest — status, sections, the dependency walk, the git-derived
+        history, the projection that keeps this page honest. Every one takes
+        <code>--json</code> carrying which file and which line the answer came from, because
+        an answer an agent cannot audit gets verified by reading the file,
+        <b>which is the cost the command existed to remove</b>. The full surface lives in
+        <code>--help</code> and the repository; a landing page is the wrong place for it.
       </p>
 
-      <p style="text-align:center;color:var(--muted);font-size:.95rem;margin:34px 0 12px">
-        Python ≥3.11, <b style="color:var(--text)">zero runtime dependencies</b>:
+      <p class="install-lead">
+        Python ≥3.11, <b>zero runtime dependencies</b> — which is what makes the first line
+        below possible: there is nothing to resolve.
       </p>
       <div class="codeblock copy">
-        <code id="install-cmd">pip install <span class="g">git+https://github.com/alegauss/roadkeep</span></code>
+        <code id="install-cmd">uvx roadkeep <span class="g">lint</span></code>
         <button class="copy-btn" type="button" onclick="copyInstall(this)" aria-label="Copy install command">
           <span class="ic">⧉</span><span class="lbl">Copy</span>
         </button>
       </div>
-      <p style="text-align:center;color:var(--muted-2);font-size:.85rem;margin-top:12px">
-        Not on PyPI yet.
+      <p class="install-note">
+        No install and no checkout. Or <code>pip install roadkeep</code> to keep it around.
       </p>
     </div>
   </div>
@@ -595,7 +668,8 @@ roadkeep <span class="g">origin</span> &lt;id&gt; <span class="c">the commits th
       </div>
     </div>
     <p class="disclaimer">
-      A page for a tool that is still early — it will grow as the product does.
+      The counts on this page are derived from the repository's own backlog by
+      <code>roadkeep export --site</code>, not written here.
       Shipped as a Claude Code plugin; not affiliated with, endorsed by, or sponsored by
       Anthropic. “Claude” and “Claude Code” are trademarks of Anthropic.
       © 2026 Alexandre Oliveira.

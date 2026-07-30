@@ -43,7 +43,7 @@ from roadkeep.briefing import Brief, brief
 from roadkeep.config import Config, ConfigError
 from roadkeep.counting import Census
 from roadkeep.document import Document, Entry, Reject, RoundTripError
-from roadkeep.exporting import project, splice
+from roadkeep.exporting import Projection, project, splice
 from roadkeep.fixing import Fix, fix
 from roadkeep.graph import Graph, Leverage
 from roadkeep.history import Commit, HistoryUnavailable, Origin, gaps, origin_of
@@ -399,7 +399,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     export_parser = subcommands.add_parser(
         "export",
-        help="project the backlog onto a README block or a JSON payload",
+        help="project the backlog onto a README block, a page, or a JSON payload",
         description=(
             "Derive what another file would restate: counts per block and the next ready "
             "line. Idempotent and stamped with nothing, so a refresh with nothing to say "
@@ -412,6 +412,16 @@ def build_parser() -> argparse.ArgumentParser:
         const="README.md",
         metavar="PATH",
         help="write the block between the roadkeep markers in this file (default README.md)",
+    )
+    export_parser.add_argument(
+        "--site",
+        nargs="?",
+        const="docs/index.html",
+        metavar="PATH",
+        help=(
+            "the same projection as HTML, between the same two markers "
+            "(default docs/index.html)"
+        ),
     )
     export_parser.add_argument(
         "--json", action="store_true", help="the payload a site build reads"
@@ -1402,25 +1412,43 @@ def _retire(config: Config, args: argparse.Namespace) -> int:
 
 
 def _export(config: Config, args: argparse.Namespace) -> int:
+    # Both destinations in one run: a README and a page that restate the same backlog have
+    # to be refreshed by the same call, or the one nobody remembered is the stale one —
+    # which is the whole symptom RK39 names, and it named the site too.
+    targets = [
+        (args.readme, "markdown"),
+        (args.site, "html"),
+    ]
+    chosen = [(name, shape) for name, shape in targets if name is not None]
     try:
         projection = project(config)
-        if args.readme is None:
+        if not chosen:
             print(projection.json() if args.json else projection.markdown())
             return EXIT_OK
-        target = config.root / args.readme
-        with target.open("r", encoding="utf-8", newline="") as handle:
-            before = handle.read()
-        after = splice(before, projection.markdown(), config.relative(target))
+        written = [_splice_into(config, projection, name, shape) for name, shape in chosen]
     except (KeyError, ValueError, OSError) as error:
         return _refused(error)
 
+    for line in written:
+        print(line)
+    return EXIT_OK
+
+
+def _splice_into(
+    config: Config, projection: Projection, name: str, shape: str
+) -> str:
+    """Replace one file's marked block, and report which of the two things happened."""
+    target = config.root / name
+    with target.open("r", encoding="utf-8", newline="") as handle:
+        before = handle.read()
+    body = projection.html() if shape == "html" else projection.markdown()
+    after = splice(before, body, config.relative(target))
     if after == before:
         # The point of idempotence, said out loud: nothing changed, so nothing is written
         # and the file's mtime does not move either.
-        print(f"{config.relative(target)} is already current")
-        return EXIT_OK
+        return f"{config.relative(target)} is already current"
     target.write_text(after, encoding="utf-8", newline="")
-    print(f"{config.relative(target)} refreshed between the roadkeep markers")
+    return f"{config.relative(target)} refreshed between the roadkeep markers"
     return EXIT_OK
 
 
