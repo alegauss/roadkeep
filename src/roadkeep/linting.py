@@ -739,11 +739,53 @@ def _orphans(
             )
         seen.setdefault(anchor, section.first)
         out.extend(_budget(prose, section, pointed=anchor in pointed, file=file))
-        # Only an id-shaped anchor is owned by a task. `§0.1` is prose that belongs to
-        # no line and is nobody's orphan — the same rule `section add` applies (RK9).
-        if ids.match(anchor) and anchor not in open_ids:
-            out.append(_unowned(section, file, shipped=anchor in gone))
+        owners = _owners(section, ids) if _under_a_block(prose, section) else ()
+        # Prose that belongs to no task is nobody's orphan — `§0.1` under the id scheme, and
+        # any outline heading that names no id — the same rule `section add` applies (RK9).
+        if owners and not any(owner in open_ids for owner in owners):
+            out.append(
+                _unowned(
+                    section,
+                    file,
+                    shipped=any(owner in gone for owner in owners),
+                    owners=owners,
+                )
+            )
     return out
+
+
+def _under_a_block(prose: Document, section: Section) -> bool:
+    """Whether this section sits under a `Block X` heading, which is where a task's is filed.
+
+    The preface is the counter-example and it is in this repository: `§0.4 The limits, measured
+    against a live corpus (RK20)` names a shipped task and is *about* the project rather than
+    RK20's rationale — deliberately permanent, and filed before the first block precisely
+    because it belongs to no task (RK45). So citing an id and being owned by one are told apart
+    by where the section is, which the author already declares by placing it.
+    """
+    label = None
+    for heading in prose.headings:
+        if heading.lineno > section.first:
+            break
+        if heading.label is not None:
+            label = heading.label
+        elif heading.level <= 2:
+            # A non-block heading at the top level ends the block it followed, exactly as the
+            # task parser reads it: prose under "## Non-goals" is under no block either.
+            label = None
+    return label is not None
+
+
+def _owners(section: Section, ids: re.Pattern[str]) -> tuple[str, ...]:
+    """The tasks this section belongs to, whichever scheme addresses it (RK61).
+
+    Under `ref_scheme = "id"` the anchor *is* the id. Under an outline the anchor is
+    `XVI.12` and the id is in the heading — `§XVI.12 A design (SH123)` — which is why both
+    checks below fired for nobody in the two live corpora until this read it.
+    """
+    if ids.match(section.anchor):
+        return (section.anchor,)
+    return section.names(re.compile(rf"\b{ids.pattern.strip('^$')}\b"))
 
 
 def _budget(
@@ -767,13 +809,21 @@ def _budget(
     ]
 
 
-def _unowned(section: Section, file: str, *, shipped: bool) -> Finding:
-    """An id-shaped anchor that no open line carries — gone, or never there."""
+def _unowned(
+    section: Section, file: str, *, shipped: bool, owners: tuple[str, ...]
+) -> Finding:
+    """A section whose task no open line carries — gone, or never there.
+
+    `owners` is what the section says it belongs to, which is the anchor under the id scheme
+    and the ids in the heading under an outline (RK61). Named in the message, because
+    `§XVI.12` alone tells a reader nothing about which task left.
+    """
+    named = ", ".join(owners)
     if shipped:
         return Finding(
             "section.stale",
             file,
-            f"{section.anchor} is in the changelog and its rationale is still here: "
+            f"{named} is in the changelog and this rationale is still here: "
             f"`ship` deletes the section, so this survived a hand edit",
             section.first,
             section.anchor,
@@ -781,7 +831,7 @@ def _unowned(section: Section, file: str, *, shipped: bool) -> Finding:
     return Finding(
         "section.orphan",
         file,
-        f"no line in either file carries {section.anchor}, so nothing can ever point "
+        f"no line in either file carries {named}, so nothing can ever point "
         f"at this section",
         section.first,
         section.anchor,

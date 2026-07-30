@@ -28,8 +28,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK61** (deps: RK15 ✅) **Under the outline scheme no check can say which task a section belongs to** — Read the ids a heading names, because section.orphan and section.stale only fire for an id-shaped anchor and both live projects number by hand. → §RK61
-
 ## Block E — Adoption
 
 - 💭 **RK21** (deps: RK20 ✅) **A standard adopted by one project is a preference** — roll out to Turing, Dumont and Cursarei, each with its own `roadmap.toml`. → §RK21

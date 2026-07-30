@@ -107,6 +107,19 @@ class Section:
     def words(self) -> int:
         return len(self.body.split())
 
+    def names(self, pattern: re.Pattern[str]) -> tuple[str, ...]:
+        """The task ids this heading names, in order (RK61).
+
+        Whose section this is, for a project that numbers by hand: under
+        `ref_scheme = "outline"` the anchor is `XVI.12` and the id lives in the title —
+        `§XVI.12 A design (SH123)` — so ownership is unreadable from the anchor alone, and
+        both `section.orphan` and `section.stale` fired for nobody in the two live corpora.
+
+        The **title** and never the body: a section quoting another id is discussing it, not
+        owning it, and reading the prose would report every cross-reference in the file.
+        """
+        return tuple(dict.fromkeys(pattern.findall(self.title)))
+
     def __str__(self) -> str:
         return f"§{self.anchor} ({self.first}-{self.last})"
 

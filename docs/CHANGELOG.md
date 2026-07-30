@@ -58,6 +58,7 @@
 - ✅ **RK46** **All 8 paths reported missing on Shio are globs, placeholders or files the task will create** — A roadmap names unshipped work, so its paths are the ones not there yet: resolve the claim in the ledger only, never for a token carrying a glob, an ellipsis or a placeholder.
 - ✅ **RK60** **A project that adopts the tool with drift already in it has its every turn blocked by history** — The Stop gate keeps only findings on lines the working tree changed, so Shio's 278 fell to zero at the end of a turn that touched none of them.
 - ✅ **RK58** **A refusal names a command the machine may not have, now that the plugin needs no install** — The refusal names mcp__roadkeep__add and ship before the shell form, so the route the same plugin certainly installed is the one it offers first.
+- ✅ **RK61** **Under the outline scheme no check can say which task a section belongs to** — A section's owners are the anchor under the id scheme and the ids its heading names under an outline, so Shio's 39 stale sections and 9 orphans are visible.
 
 ## Block E — Adoption
 

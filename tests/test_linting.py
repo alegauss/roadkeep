@@ -327,6 +327,64 @@ def test_a_section_no_line_points_at_is_an_orphan(tmp_path):
     assert [f.id for f in report.findings if f.code == "section.orphan"] == ["RK7"]
 
 
+#: A project that numbers its rationale by hand, which is what both live corpora do (RK44).
+#: The id is in the heading, not the anchor: `§XIV.15 A design (RK5)`.
+OUTLINE_CONFIG = CONFIG.replace('prefix = "RK"', 'prefix = "RK"\nref_scheme = "outline"')
+OUTLINE_CLEAN = CLEAN.replace("→ §RK1", "→ §I.1").replace("→ §RK2", "→ §I.2")
+OUTLINE_PROSE = """# Design rationale
+
+## Block A — The model
+
+### §I.1 The first design (RK1)
+
+The reasoning the first line has no room for.
+
+### §I.2 The second design (RK2)
+
+The reasoning the second line has no room for.
+"""
+
+
+def outline(tmp_path, improvements=OUTLINE_PROSE):
+    return project(
+        tmp_path, roadmap=OUTLINE_CLEAN, improvements=improvements, config=OUTLINE_CONFIG
+    )
+
+
+def test_an_outline_project_passes_when_every_section_names_a_live_task(tmp_path):
+    assert lint(outline(tmp_path)).clean
+
+
+def test_a_shipped_task_named_in_an_outline_heading_is_stale_too(tmp_path):
+    # RK61: both checks were guarded by an id-shaped anchor, so under the scheme Shio and
+    # Turing use they fired for nobody — 39 stale sections and 9 orphans in Shio, unseen.
+    survived = OUTLINE_PROSE + "\n### §I.9 The shipped design (RK5)\n\nStill here.\n"
+    report = lint(outline(tmp_path, improvements=survived))
+    stale = next(f for f in report.findings if f.code == "section.stale")
+    assert stale.id == "I.9" and "RK5" in stale.message
+
+
+def test_an_outline_heading_naming_no_live_task_is_an_orphan(tmp_path):
+    orphaned = OUTLINE_PROSE + "\n### §I.9 A design for nothing (RK7)\n\nProse.\n"
+    report = lint(outline(tmp_path, improvements=orphaned))
+    assert [f.id for f in report.findings if f.code == "section.orphan"] == ["I.9"]
+
+
+def test_an_outline_heading_that_names_no_task_owns_nothing(tmp_path):
+    # Naming no id is how a section says it belongs to no task, under either scheme.
+    unowned = OUTLINE_PROSE + "\n### §I.9 A shape of the file\n\nProse.\n"
+    assert lint(outline(tmp_path, improvements=unowned)).clean
+
+
+def test_a_section_outside_every_block_cites_a_task_without_owning_it(tmp_path):
+    # This repository's own §0.4 names RK20 and is *about* the project: deliberately
+    # permanent, and filed before the first block precisely because it is nobody's (RK45).
+    cited = "### §0.4 The limits, measured (RK5)\n\nProse.\n\n" + OUTLINE_PROSE.removeprefix(
+        "# Design rationale\n\n"
+    )
+    assert lint(outline(tmp_path, improvements="# Design rationale\n\n" + cited)).clean
+
+
 def test_prose_that_belongs_to_no_task_is_nobody_s_orphan(tmp_path):
     # `§0.1` is this repository's own preface: an anchor no line owns, which is legal —
     # the same rule `section add` applies to an anchor that is not id-shaped (RK9).
