@@ -77,6 +77,28 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK67 The entry nobody can drop
+
+The ledger is append-only by design: `ship` and `retire` move a line into it, `record`
+writes one that never had a line, and nothing takes an entry out. That is right for
+history and wrong for a duplicate — Shio's `SH347` is on lines 579 and 586 of its
+changelog, so the file states one decision twice and `id.duplicate` reports it with no
+command that can act.
+
+`ship` cannot help: the id is already recorded, which is what RK62's closing path now
+reads as a leftover roadmap line rather than a leftover entry. `retire` would add a
+third. `--fix` repairs only what is derived. What is left is the hand-edit the hook
+denies, which is the same dead end RK65 opened for a roadmap line.
+
+So `record drop <id>` — the inverse of the door that wrote it, and narrow for the same
+reason: it refuses unless the id appears **twice** in the ledger, because removing the
+only record of a decision is deleting history rather than de-duplicating it. Which of
+the two goes is the later one: the first is where the reader already found it.
+
+Not a general delete. An entry that is wrong in its prose is `amend`'s question one file
+over, and an entry that should never have been written at all is a decision the author
+states in the commit that removes it.
+
 ## Block C — Query
 
 ## Block D — The gate
@@ -88,5 +110,26 @@ already written, not authorship.
 Turing, Dumont and Cursarei, each with its own `roadkeep.toml`. Four projects sharing
 one format is what makes cross-project context transferable; one project with a format
 is a preference.
+
+### §RK66 A pointer a project may not require
+
+`ref_required` is a `Schema` field and no key reads it, so every project is held to
+"every task points at its rationale section". Shio's own process guide says the opposite
+and says it for the reason RK15 gives: *if a task has no rationale section, the line
+carries no pointer — a pointer to nowhere reads as though the design exists.* Three of
+its lines follow that rule and each one is a finding.
+
+Both positions are defensible, which is exactly what makes this configuration and not a
+default to argue about (L6). A project that derives its anchors from ids can require the
+pointer, because writing the section is one command away and the anchor cannot be wrong.
+A project that numbers by hand may have a task whose design is one line long — and
+inventing a section to satisfy a linter is the accretion this tool exists to refuse.
+
+So `ref = false` under a table that already governs the line's shape, defaulting to true
+so nothing changes for a project that never declares it. `add` then stops refusing
+without `--ref` there, and `lint` stops reporting a pointer nobody promised.
+
+What stays unconditional is the other direction: a pointer that *is* written must
+resolve. The choice is whether to demand one, never whether it may dangle.
 
 ## Block F — The plugin
