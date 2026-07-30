@@ -24,9 +24,16 @@ future normalizing parser honest, because it fails the corpus instead of a revie
 
 Nothing here silently drops a line it failed to read: a bullet that carries a status
 marker but does not match the grammar becomes a :class:`Reject` with a reason, and so
-does one that puts an *undeclared* marker where the marker goes — otherwise it reads
-as prose and leaves no trace at all. That is the data `audit` (RK10) prints, because a
-count whose misses are invisible is the failure mode the grep it replaces already had.
+does one that puts an *undeclared* marker where the marker goes, or **no marker at all**
+where a bold id leads (RK43) — otherwise it reads as prose and leaves no trace. That is
+the data `audit` (RK10) prints, because a count whose misses are invisible is the failure
+mode the grep it replaces already had. Measured: Shio's changelog is 920 bullets and
+parsed as 0 entries *and* 0 rejects, the one shape that made the miss silent twice.
+
+The marker slot is also the one part of the grammar a file may not have. Both live
+ledgers write `- **T1** — …`, so `markers.ledger = false` (L6) says the status is the
+file's rather than the line's — every entry in it shipped — and there a marker on a line
+is the reject instead.
 """
 
 from __future__ import annotations
@@ -36,21 +43,31 @@ from collections.abc import Sequence
 from dataclasses import dataclass, replace
 from pathlib import Path
 
-from roadkeep.schema import ARROW, EM_DASH, NO_DEPS, Dep, Schema, Task
+from roadkeep.schema import ARROW, EM_DASH, ID_SHAPE, NO_DEPS, Dep, Schema, Task
 
-#: A task line, anchored at both ends. `deps` is optional because the ledger has
-#: none; the trailing pointer is stripped before this runs (see `_split_ref`).
-_TASK_RE = re.compile(
-    r"^- (?P<status>\S+) \*\*(?P<id>[A-Za-z0-9]+)\*\*"
+#: Everything after the marker slot. `deps` is optional because the ledger has none; the
+#: trailing pointer is stripped before this runs (see `_split_ref`). One string, because
+#: the marker slot is the only part that varies and two full grammars would drift.
+_TASK_BODY = (
+    r"\*\*(?P<id>[A-Za-z0-9]+)\*\*"
     r"(?: \(deps: (?P<deps>[^)]*)\))?"
     rf" \*\*(?P<symptom>.+?)\*\* {EM_DASH} (?P<why>.+)$"
 )
+#: A task line, anchored at both ends.
+_TASK_RE = re.compile(rf"^- (?P<status>\S+) {_TASK_BODY}")
+#: The same line in a file that declares no marker (`markers.ledger = false`, RK43): the
+#: status is read off the file rather than the line, so the slot is absent and not blank.
+_MARKERLESS_TASK_RE = re.compile(rf"^- {_TASK_BODY}")
 _HEADING_RE = re.compile(r"^(?P<hashes>#{1,6}) (?P<text>.*)$")
 _BLOCK_LABEL_RE = re.compile(r"^Block (?P<label>[A-Za-z0-9]+)\b")
 _BULLET_RE = re.compile(r"^(?P<indent>\s*)[-*+] (?P<rest>.*)$")
 #: A bullet that puts *something* where a marker goes and a bold id after it — how an
 #: undeclared marker is caught instead of read as prose (see `_wears_the_marker_slot`).
 _MARKER_SLOT_RE = re.compile(r"^\S+ \*\*[A-Za-z0-9]+\*\*")
+#: A bullet whose first token *is* the bold id, so the marker slot is empty rather than
+#: wrong (see `_leads_with_the_id`). Id-shaped and nothing else: the shape is what tells
+#: `- **T1** — …` from `- **Delete** the 3 old files`.
+_BOLD_ID_RE = re.compile(rf"^\*\*{ID_SHAPE}\*\*(?=\s|$)")
 _POINTER = f" {ARROW} §"
 
 
@@ -343,6 +360,66 @@ def _wears_the_marker_slot(rest: str, token: str) -> bool:
     )
 
 
+def _leads_with_the_id(rest: str) -> bool:
+    """A bullet whose first token *is* the bold id: the slot is empty, not wrong (RK43).
+
+    The wider half of the same silent miss, and the one that was measured: Shio's
+    changelog is 920 bullets, and it parsed as **0 entries and 0 rejects** — every line
+    writes ``- **SH125** — …`` with no marker at all, so none of them wears the slot
+    wrongly, they leave it out, and :func:`_wears_the_marker_slot` declines them because
+    the first token carries alphanumerics. Turing's writes 755 of the same.
+
+    Id-shaped and nothing after the bold, which is what keeps this off prose that also
+    leads with bold: ``- **Delete** the 3 old files`` carries no digit and
+    ``- **SH239**: a benchmark …`` puts a colon where the grammar has a space.
+    """
+    return bool(_BOLD_ID_RE.match(rest))
+
+
+def _marker_slot(rest: str, token: str, schema: Schema) -> tuple[bool, str | None]:
+    """Whether this bullet claims a task line's shape, and the reason if its slot is not.
+
+    A pair because there are three answers and skipping is one of them: ``(False, None)``
+    is prose, ``(True, None)`` is a line to go on parsing, and ``(False, reason)`` is a
+    claim whose marker slot is wrong — which is the only one that becomes a
+    :class:`Reject`, because rejecting prose is what makes a report unread.
+
+    Which slot is right is a fact about the file, not the format (RK43): where the ledger
+    declares no marker the slot is absent, so a bold id leads and a marker is the error.
+    """
+    if not schema.marker_field:
+        if _looks_like_marker(token, schema):
+            return False, (
+                f"{token} is a status marker, in a file whose lines carry none "
+                f"(markers.ledger = false): there the marker is the file's, not the line's"
+            )
+        return _leads_with_the_id(rest), None
+    if _looks_like_marker(token, schema):
+        return True, None
+    if _wears_the_marker_slot(rest, token):
+        declared = " ".join((*schema.markers, schema.shipped_marker))
+        return False, (
+            f"{token} is not a marker this project declares ({declared}): the line "
+            f"reads as prose and no count sees it"
+        )
+    if _leads_with_the_id(rest):
+        # The id is deliberately left out of the reason: a `Reject` already carries the
+        # line number, and 755 reasons differing only by an id group into 755 rows of one,
+        # which is the report `adopt` (RK18) prints instead of a number worth reading.
+        reason = (
+            "no marker where the status goes: the slot is empty, so the line reads as "
+            "prose and no count sees it"
+        )
+        if schema.is_ledger:
+            # The declaration that makes 920 of these into 920 entries. Said here because
+            # this reason is the only place a reader of that file will be looking.
+            reason += (
+                " — a ledger where every entry shipped declares markers.ledger = false"
+            )
+        return False, reason
+    return False, None
+
+
 def _block_label(text: str) -> str | None:
     match = _BLOCK_LABEL_RE.match(text)
     return match.group("label") if match else None
@@ -363,21 +440,19 @@ def _split_ref(body: str) -> tuple[str, str | None]:
 def _read_bullet(body: str, schema: Schema, block: str) -> Task | str | None:
     """A task, a reason it was rejected, or None when the line is not a task at all.
 
-    Only marker-bearing bullets can be rejected: every other bullet is prose, and
-    reporting the non-goals list as malformed would make the report worthless.
+    Only a bullet that claims the task line's own shape can be rejected: every other one
+    is prose, and reporting the non-goals list as malformed would make the report
+    worthless. Which shape that is depends on the file — in a markerless ledger (RK43)
+    the claim is a leading bold id, and a marker there is the mistake instead.
     """
     bullet = _BULLET_RE.match(body)
     if not bullet:
         return None
     rest = bullet.group("rest").lstrip()
-    token = rest.split(" ", 1)[0]
-    if not _looks_like_marker(token, schema):
-        if _wears_the_marker_slot(rest, token):
-            declared = " ".join((*schema.markers, schema.shipped_marker))
-            return (
-                f"{token} is not a marker this project declares ({declared}): the "
-                f"line reads as prose and no count sees it"
-            )
+    claimed, wrong = _marker_slot(rest, rest.split(" ", 1)[0], schema)
+    if wrong is not None:
+        return wrong
+    if not claimed:
         return None
     if bullet.group("indent"):
         return "indented: a task line starts at column zero"
@@ -385,7 +460,7 @@ def _read_bullet(body: str, schema: Schema, block: str) -> Task | str | None:
         return "bullet must be '- ': a task line is one dash and one space"
 
     head, ref = _split_ref(body)
-    match = _TASK_RE.match(head)
+    match = (_TASK_RE if schema.marker_field else _MARKERLESS_TASK_RE).match(head)
     if not match:
         return _diagnose(head, schema)
 
@@ -401,7 +476,9 @@ def _read_bullet(body: str, schema: Schema, block: str) -> Task | str | None:
 
     return Task(
         id=match.group("id"),
-        status=match.group("status"),
+        # Where the file declares no marker, the status is the file's own: every entry in
+        # a ledger that carries none shipped, which is the whole content of the claim.
+        status=match.group("status") if schema.marker_field else schema.shipped_marker,
         block=block,
         symptom=match.group("symptom"),
         why=match.group("why"),
@@ -437,7 +514,8 @@ def read_deps(raw: str, schema: Schema) -> tuple[Dep, ...]:
 def _diagnose(head: str, schema: Schema) -> str:
     """Name the missing piece. A reason is what makes a reject actionable."""
     if not re.search(r"\*\*[A-Za-z0-9]+\*\*", head):
-        return "no bold **<id>** after the marker"
+        where = "after the marker" if schema.marker_field else "where the line starts"
+        return f"no bold **<id>** {where}"
     if schema.deps_field and "(deps:" not in head:
         return "no (deps: …) field"
     if not schema.deps_field and "(deps:" in head:

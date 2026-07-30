@@ -143,6 +143,25 @@ def test_the_changelog_is_the_same_format_in_its_ledger_configuration(tmp_path):
     assert config.schema_for("roadmap") == config.schema
 
 
+def test_a_ledger_can_declare_that_it_carries_no_marker(tmp_path):
+    # The declaration Shio needs to adopt at all (RK43): 920 entries, all shipped, and a
+    # marker written once here instead of 920 times in the file.
+    write(tmp_path, "[markers]\nledger = false\n")
+    schema = Config.discover(tmp_path).schema
+    # Only the ledger's: the roadmap's marker is its status, so that slot never goes.
+    assert schema.marker_field and not schema.as_ledger().marker_field
+
+
+def test_the_ledger_carries_a_marker_unless_the_project_says_otherwise(tmp_path):
+    assert Config.discover(HERE).schema_for("changelog").marker_field
+
+
+def test_a_ledger_declaration_that_is_not_a_boolean_is_refused(tmp_path):
+    path = write(tmp_path, '[markers]\nledger = "none"\n')
+    with pytest.raises(ConfigError, match="markers.ledger must be true or false"):
+        Config.load(path)
+
+
 def test_id_sources_are_every_file_that_can_carry_an_id(tmp_path):
     names = [p.name for p in Config.discover(HERE).id_sources()]
     # The governed files first, then the extras — an id missed here is an id reused.

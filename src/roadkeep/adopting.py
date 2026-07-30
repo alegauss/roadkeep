@@ -247,8 +247,17 @@ def render_config(schema: Schema, paths: Mapping[str, str]) -> str:
         f"open = [{', '.join(_quote(marker) for marker in schema.markers)}]",
         f"shipped = {_quote(schema.shipped_marker)}",
         f"retired = {_quote(schema.retired_marker)}",
-        "",
     ]
+    if not schema.ledger_marker:
+        # Only when it is false: a default written out reads as a decision somebody made
+        # about a file whose lines all carry a marker anyway (RK43).
+        lines += [
+            "",
+            "# the ledger carries no marker: every entry in it shipped, stated here",
+            "# instead of on every line",
+            "ledger = false",
+        ]
+    lines.append("")
     return "\n".join(lines)
 
 

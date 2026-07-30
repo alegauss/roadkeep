@@ -74,23 +74,6 @@ written, not authorship.
 
 ## Block A — The model
 
-### §RK43 The ledger that reads as prose
-
-Measured on Shio: 920 changelog lines, 0 entries parsed, and 0 rejects — the silent miss
-the reject list exists to make impossible. The cause is narrow. Shio writes `- **SH125**
-— **Title.** …` with no status marker, so `_read_bullet` finds no marker;
-`_wears_the_marker_slot` then declines to reject it because the first token carries
-alphanumerics, which is the guard that keeps `- See **RK5** for the design.` out of the
-report. The guard is right and the consequence is not: a bullet whose whole shape is a
-ledger line is not prose, and reading it as prose cost 100 false `deps.unknown`
-findings, because every dep on shipped work resolved against an empty ledger.
-
-Two halves, and the second decides whether Shio can adopt at all. First, the line must
-be visible: a bullet matching the ledger grammar except for the marker is a `Reject`
-with a reason, never silence. Second, `[markers]` has to be able to say a ledger carries
-none — the marker is derivable from the file a line sits in, and a changelog where every
-entry is shipped states that once in the schema rather than 920 times.
-
 ### §RK44 An outline numbers its own headings
 
 `anchored` reads a heading only when its text starts with `§`, which is how this

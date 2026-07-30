@@ -27,8 +27,8 @@ from roadkeep.document import Document
 from roadkeep.history import gaps
 from roadkeep.markers import refresh
 from roadkeep.picking import pick
-from roadkeep.schema import DESIGNED, RETIRED, SHIPPED, Schema
-from roadkeep.shipping import AlreadyRecorded, NoSuchReplacement, NotOpen, retire
+from roadkeep.schema import DESIGNED, RETIRED, SHIPPED, Schema, SchemaError
+from roadkeep.shipping import AlreadyRecorded, NoSuchReplacement, NotOpen, retire, ship
 
 HERE = Path(__file__).resolve().parents[1]
 
@@ -56,10 +56,10 @@ The reasoning the line has no room for.
 """
 
 
-def project(tmp_path: Path, roadmap: str = ROADMAP) -> Config:
+def project(tmp_path: Path, roadmap: str = ROADMAP, declare: str = "") -> Config:
     (tmp_path / "roadkeep.toml").write_text(
         'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
-        'improvements = "IMPROVEMENTS.md"\n',
+        'improvements = "IMPROVEMENTS.md"\n' + declare,
         encoding="utf-8",
     )
     for name, body in {
@@ -219,6 +219,31 @@ def test_a_project_may_declare_its_own_retired_marker(tmp_path):
         'prefix = "RK"\n[markers]\nretired = "⛔"\n', encoding="utf-8"
     )
     assert Config.discover(tmp_path).schema.retired_marker == "⛔"
+
+
+#: A project whose ledger states the marker once instead of on every line (RK43).
+NO_LEDGER_MARKER = "\n[markers]\nledger = false\n"
+
+
+def test_retiring_into_a_ledger_that_declares_no_marker_writes_nothing(tmp_path):
+    # What `markers.ledger = false` costs (RK43 against RK32): with no slot to carry 🗑,
+    # the record would read as a shipment, so the whole transaction is refused instead.
+    config = project(tmp_path, declare=NO_LEDGER_MARKER)
+    before = (tmp_path / "CHANGELOG.md").read_text(encoding="utf-8")
+    with pytest.raises(SchemaError, match="markers.ledger = false"):
+        retire(config, "RK1", reason="Nobody will do it.")
+    assert (tmp_path / "CHANGELOG.md").read_text(encoding="utf-8") == before
+    assert "RK1" in config.document("roadmap").by_id()
+
+
+def test_a_ledger_that_declares_no_marker_still_takes_a_shipment(tmp_path):
+    # The other half of the same declaration: shipped is the status the *file* states, so
+    # it is the one departure a markerless ledger can record.
+    config = project(tmp_path, declare=NO_LEDGER_MARKER)
+    ship(config, "RK1").save()
+    (entry,) = [e for e in config.document("changelog").entries if e.task.id == "RK1"]
+    assert entry.task.status == SHIPPED  # derived from the file, not read off the line
+    assert entry.raw == "- **RK1** **A first symptom** — Because of a reason."
 
 
 def test_one_marker_for_two_doors_is_refused(tmp_path):

@@ -15,6 +15,9 @@ Seven fields carry a task: ``id``, ``status``, ``block``, ``deps``, ``symptom``,
   belongs in the improvements file, which is what ``ref`` points at.
 * **Shape** — id against the configured prefix, status in the configured marker
   set, ``deps`` well-formed and non-self-referential, ``ref`` present and anchored.
+  Two of those slots are *per-file* rather than per-format: the ledger carries no
+  ``deps``, and a ledger where every entry shipped carries no marker either (RK43) —
+  which is a marker derived from the file instead of repeated on all 920 of its lines.
 * **Nothing that would break a round-trip** — no newlines, no stray ``**``, no
   leading or trailing whitespace in a field. These are refused rather than
   trimmed: silently normalizing text the tool misunderstood is what L3 forbids.
@@ -78,9 +81,13 @@ REF_SCHEMES = frozenset({"id", "outline"})
 # `Block P` in Shio, `real design partners` in Turing — because inventing a sigil
 # would make two live backlogs wrong rather than describing them.
 _BLOCK_DEP_RE = re.compile(r"^Block ([A-Za-z0-9][A-Za-z0-9.\-]{0,15})$")
-# Anything shaped like an id: letters then a digit. `RK007`, `RK9x` and `SH341` are
-# mistakes to report, not external work to accept.
-_ID_SHAPE_RE = re.compile(r"^[A-Za-z]{1,8}[0-9][A-Za-z0-9]*$")
+#: Anything shaped like an id: letters then a digit. `RK007`, `RK9x` and `SH341` are
+#: mistakes to report, not external work to accept. Public as a fragment because the
+#: parser asks the same question: a bullet leading with a bold one is a ledger line whose
+#: marker slot is empty (RK43), and a second spelling of "id-shaped" would disagree with
+#: this one on the first `**Delete**`.
+ID_SHAPE = r"[A-Za-z]{1,8}[0-9][A-Za-z0-9]*"
+_ID_SHAPE_RE = re.compile(rf"^{ID_SHAPE}$")
 # The shape of a range, without judging its direction, so that `RK9–RK5` can be
 # reported instead of quietly becoming "outside the backlog".
 _RANGE_SHAPE_RE = re.compile(r"^[A-Za-z]{1,8}[0-9]+\s*[-–—]\s*[A-Za-z]{0,8}[0-9]+$")
@@ -212,6 +219,15 @@ class Schema:
     #: The ledger carries no `(deps: …)` group: a dependency is a planning fact
     #: about unshipped work, and a shipped line has none left to state.
     deps_field: bool = True
+    #: Whether the line carries a status slot at all. False is a **ledger** stating once
+    #: what every entry in it would otherwise repeat (RK43): both live ledgers write
+    #: `- **T1** — …`, 755 lines in Turing and 234 in Shio, and the marker of a file
+    #: where everything shipped is derivable from the file. Set by :meth:`as_ledger`.
+    marker_field: bool = True
+    #: The project's declaration of the above — `markers.ledger` in `roadkeep.toml` (L6).
+    #: Read only by :meth:`as_ledger`: in the roadmap the marker *is* the status, so a
+    #: roadmap without one could not tell 📋 from 🛠 and the slot is never absent there.
+    ledger_marker: bool = True
     #: How the rationale section is addressed (RK27). ``"id"`` derives the pointer
     #: from the line's own id — nothing to choose when writing, nothing to renumber
     #: when shipping. ``"outline"`` is the hand-numbered `§x.y` that Shio and Turing
@@ -238,6 +254,15 @@ class Schema:
             if getattr(self, name) < 1:
                 raise ValueError(f"{name} must be positive")
 
+    @property
+    def is_ledger(self) -> bool:
+        """This is the ledger's configuration — the one file whose own status is ✅.
+
+        Named because two things read it and "shipped_allowed" only implies it: the marker
+        that may be absent is the ledger's (RK43), and so is the advice a reject gives.
+        """
+        return self.shipped_allowed
+
     def as_ledger(self) -> Schema:
         """The same format as the changelog reads it (L6, applied to a sibling file).
 
@@ -245,6 +270,9 @@ class Schema:
         task leaves, so a pointer to it could not resolve. One schema with two
         configurations beats two grammars that drift apart, and a retired line (RK32) is
         the same grammar again rather than a third: a departure with a different door.
+
+        The marker slot itself is the one part a project can drop (RK43): a ledger where
+        every entry shipped says so in `markers.ledger` instead of on every line.
         """
         return replace(
             self,
@@ -252,6 +280,7 @@ class Schema:
             shipped_allowed=True,
             deps_field=False,
             ref_required=False,
+            marker_field=self.ledger_marker,
         )
 
     # -- rendering ---------------------------------------------------------
@@ -263,7 +292,9 @@ class Schema:
         line from here, so "canonical" is a fact about one function rather than a
         claim in a document.
         """
-        head = f"- {task.status} **{task.id}**"
+        # The marker is omitted, never emptied: `- **T1** …` is the shape both live
+        # ledgers already write, and `-  **T1** …` would be a third one nobody has.
+        head = f"- {task.status} **{task.id}**" if self.marker_field else f"- **{task.id}**"
         if self.deps_field:
             deps = ", ".join(d.render() for d in task.deps) or NO_DEPS
             head += f" (deps: {deps})"
@@ -319,7 +350,20 @@ class Schema:
                     f"expected {self.prefix}<n> with no leading zero, got {task.id!r}",
                 )
             )
-        if task.status == self.shipped_marker and not self.shipped_allowed:
+        if not self.marker_field and task.status != self.shipped_marker:
+            # The one thing a markerless ledger cannot record is a departure that is not
+            # a shipment (RK32): with no slot to carry 🗑, a retired line would read as
+            # shipped. Refused here, so `retire` refuses the whole transaction (RK6).
+            out.append(
+                Violation(
+                    "status.unrepresentable",
+                    "status",
+                    f"this project declares a ledger with no marker "
+                    f"(markers.ledger = false), so {task.status!r} cannot be told from "
+                    f"{self.shipped_marker}: declare the marker before recording one",
+                )
+            )
+        elif task.status == self.shipped_marker and not self.shipped_allowed:
             out.append(
                 Violation(
                     "status.shipped",

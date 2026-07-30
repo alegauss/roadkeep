@@ -63,7 +63,7 @@ _LIMIT_KEYS = {
     "section": "section_max",
     "prose": "prose_width",
 }
-_MARKER_KEYS = frozenset({"open", "shipped", "retired"})
+_MARKER_KEYS = frozenset({"open", "shipped", "retired", "ledger"})
 # The invisible ones. A marker carrying U+FE0F renders identically and compares
 # unequal, so a config that declares one puts every line in the file permanently
 # out of round-trip. Refuse it where it is typed.
@@ -154,7 +154,7 @@ class Config:
 
         prefix = _string(data, "prefix", "RK", problems)
         ref_scheme = _string(data, "ref_scheme", "id", problems)
-        markers, shipped, retired = _markers(data.get("markers"), problems)
+        markers = _markers(data.get("markers"), problems)
         limits = _limits(data.get("limits"), problems)
         paths = _paths(data.get("files"), base, problems)
         extras = tuple(
@@ -169,9 +169,7 @@ class Config:
                 schema = Schema(
                     prefix=prefix,
                     ref_scheme=ref_scheme,
-                    markers=markers,
-                    shipped_marker=shipped,
-                    retired_marker=retired,
+                    **markers,
                     **limits,
                 )
             except ValueError as error:  # a valid TOML file can still be a wrong format
@@ -282,12 +280,18 @@ def _string(
     return value
 
 
-def _markers(raw: object, problems: list[str]) -> tuple[tuple[str, ...], str, str]:
+def _markers(raw: object, problems: list[str]) -> dict[str, object]:
+    """The `[markers]` table as :class:`Schema` keywords — the four the format varies by."""
+    default: dict[str, object] = {
+        "markers": OPEN_MARKERS,
+        "shipped_marker": SHIPPED,
+        "retired_marker": RETIRED,
+    }
     if raw is None:
-        return OPEN_MARKERS, SHIPPED, RETIRED
+        return default
     if not isinstance(raw, Mapping):
         problems.append("markers must be a table with 'open', 'shipped' and 'retired'")
-        return OPEN_MARKERS, SHIPPED, RETIRED
+        return default
     _reject_unknown(raw, _MARKER_KEYS, "markers.", problems)
     open_markers = tuple(_string_list(raw.get("open"), "markers.open", problems))
     shipped = _one_marker(raw, "shipped", SHIPPED, problems)
@@ -299,7 +303,24 @@ def _markers(raw: object, problems: list[str]) -> tuple[tuple[str, ...], str, st
         )
     for marker in (*open_markers, shipped, retired):
         _reject_invisible(marker, problems)
-    return (open_markers or OPEN_MARKERS), shipped, retired
+    return {
+        "markers": open_markers or OPEN_MARKERS,
+        "shipped_marker": shipped,
+        "retired_marker": retired,
+        # `false` states once what a ledger where everything shipped otherwise repeats on
+        # every line (RK43). Only the ledger's: the roadmap's marker *is* its status.
+        "ledger_marker": _flag(raw, "ledger", True, problems),
+    }
+
+
+def _flag(
+    raw: Mapping[str, object], key: str, default: bool, problems: list[str]
+) -> bool:
+    value = raw.get(key, default)
+    if not isinstance(value, bool):
+        problems.append(f"markers.{key} must be true or false")
+        return default
+    return value
 
 
 def _one_marker(

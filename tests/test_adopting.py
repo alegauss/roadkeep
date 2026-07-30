@@ -18,6 +18,8 @@ to, skipped on any machine but the author's.
 from __future__ import annotations
 
 import json
+import tomllib
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -124,6 +126,16 @@ def test_config_follows_the_schema_and_not_a_template() -> None:
     assert "symptom = 99" in rendered
     assert 'roadmap = "docs/ROADMAP.md"' in rendered
     assert "changelog" not in rendered
+
+
+def test_a_markerless_ledger_is_written_out_and_a_declared_one_is_not() -> None:
+    # The key is emitted only when it is false (RK43): a default written out reads as a
+    # decision somebody made about a file whose lines all carry a marker anyway.
+    paths = {"roadmap": "docs/ROADMAP.md"}
+    assert "ledger" not in render_config(Schema(), paths)
+    rendered = render_config(replace(Schema(), ledger_marker=False), paths)
+    assert "ledger = false" in rendered
+    assert Config.parse(tomllib.loads(rendered), root=".").schema.ledger_marker is False
 
 
 def test_prefix_is_carried_into_the_first_id(tmp_path: Path, capsys) -> None:

@@ -18,6 +18,7 @@
 - ✅ **RK28** **A dep the tool cannot resolve reads exactly like one that is merely pending** — `Block P` and `real design partners` are real deps on work outside the backlog, so a resolver has to name them unresolvable instead of counting them unfinished.
 - ✅ **RK31** **The reasoning behind a shipped decision survives only in a commit nobody greps** — the shipping commit is derived from the ledger's own diff, so the reasoning is one lookup away and no stored hash can rot when history is rewritten.
 - ✅ **RK37** **A dep on a block that does not exist resolves as satisfied** — a block is declared by a heading and by nothing else, so a dep naming one no heading declares is unresolvable, never a block that happens to have nothing open.
+- ✅ **RK43** **A changelog whose lines carry no status marker parses as zero entries and zero rejects** — a bullet that leads with a bold id is now a reject naming the empty slot, and `markers.ledger = false` states a ledger's marker once instead of on all 920 of its lines.
 
 ## Block B — Authoring
 

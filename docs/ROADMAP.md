@@ -22,7 +22,6 @@
 
 ## Block A — The model (a task is data before it is a line)
 
-- 📋 **RK43** (deps: RK20 ✅) **A changelog whose lines carry no status marker parses as zero entries and zero rejects** — Widen the marker-slot test so a bullet leading with a bold id is rejected with a reason, and let a project declare a ledger that carries no marker at all. → §RK43
 - 📋 **RK44** (deps: RK20 ✅) **Under ref_scheme = outline a heading numbers itself, so 151 headings yield zero sections** — Read the anchor per scheme: an outline document writes the number bare and puts the sigil only on the pointer, so requiring it on the heading reads one scheme into the other. → §RK44
 
 ## Block B — Authoring (insert, never hand-edit)

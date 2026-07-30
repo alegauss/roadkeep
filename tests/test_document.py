@@ -21,6 +21,7 @@ import pytest
 
 from roadkeep import DESIGNED, IDEA, PARTIAL, SHIPPED, Dep, Schema, Task
 from roadkeep.document import Document, RoundTripError
+from roadkeep.schema import RETIRED
 
 HERE = Path(__file__).resolve().parents[1]
 
@@ -104,6 +105,30 @@ def test_a_foreign_backlog_round_trips_while_failing_validation():
     assert len(offenders) > 50
 
 
+#: The two live ledgers, and a floor on what the parser must *say* about them. Lower
+#: bounds like every other one here, and safe ones: a ledger only grows. Before RK43 both
+#: numbers were 0 — 920 bullets in Shio read as prose, and the reject list that exists to
+#: make a miss impossible was empty because nothing wore the marker slot wrongly.
+FOREIGN_LEDGERS = [
+    (Path("D:/Git/viglet/shio/latest/docs/CHANGELOG.md"), OUTLINE_SH, 150),
+    (Path("D:/Git/viglet/turing/latest/docs/CHANGELOG.md"), OUTLINE_T, 500),
+]
+
+
+@pytest.mark.parametrize(
+    "case", FOREIGN_LEDGERS, ids=lambda c: c[0].parent.parent.name
+)
+def test_a_live_ledger_that_carries_no_marker_is_reported_line_by_line(case):
+    path, schema, minimum = case
+    if not path.exists():
+        pytest.skip(f"{path} is not on this machine")
+    document = Document.load(path, schema.as_ledger())
+    assert len(document.rejects) >= minimum
+    assert all(reject.reason for reject in document.rejects)
+    with path.open("r", encoding="utf-8", newline="") as handle:
+        assert document.render() == handle.read()  # reported, and still not rewritten
+
+
 def test_our_own_roadmap_has_no_rejects():
     # The non-goals are prose bullets, not malformed tasks: reporting them would
     # make the reject list noise, and a noisy report is an ignored one.
@@ -182,6 +207,66 @@ def test_the_ledger_shape_is_a_configuration_of_the_same_grammar():
     assert entry.task.ref is None
     assert ledger.render(entry.task) == line
     assert ledger.validate(entry.task) == ()
+
+
+#: The ledger both live projects actually write: no marker, because every entry in it
+#: shipped (RK43). Declared once in `markers.ledger`, not repeated on 920 lines.
+MARKERLESS = replace(Schema(), ledger_marker=False).as_ledger()
+
+
+def test_a_ledger_that_declares_no_marker_reads_its_lines_and_renders_them_back():
+    line = "- **RK1** **A symptom** — a reason."
+    (entry,) = parse_in_block(line, schema=MARKERLESS).entries
+    # The status is the file's, not the line's: a ledger carrying no marker is a ledger
+    # where everything in it shipped, which is the whole content of the declaration.
+    assert entry.task.status == SHIPPED
+    assert MARKERLESS.render(entry.task) == line
+    assert MARKERLESS.validate(entry.task) == ()
+
+
+def test_a_marker_in_a_ledger_that_declares_none_is_reported_not_read():
+    document = parse_in_block(
+        f"- {SHIPPED} **RK1** **A symptom** — a reason.", schema=MARKERLESS
+    )
+    assert document.entries == ()
+    (reject,) = document.rejects
+    assert "carry none" in reject.reason
+
+
+def test_a_retired_line_cannot_be_written_to_a_ledger_that_declares_no_marker():
+    # The one thing the declaration costs (RK32): with no slot to carry 🗑, a retired
+    # line would read as shipped, so it is refused rather than recorded as a lie.
+    task = Task(id="RK1", status=RETIRED, block="A", symptom="A symptom", why="a reason.")
+    assert {v.code for v in MARKERLESS.validate(task)} == {"status.unrepresentable"}
+
+
+def test_a_bullet_leading_with_a_bold_id_is_rejected_rather_than_read_as_prose():
+    # Measured on Shio: 920 changelog lines, 0 entries *and* 0 rejects. The marker slot
+    # is not wrong here, it is empty, which is what made the miss silent twice (RK43).
+    document = parse_in_block(
+        "- **SH134** — **`post.move`**, the seventh op.", schema=Schema().as_ledger()
+    )
+    assert document.entries == ()
+    (reject,) = document.rejects
+    assert "no marker where the status goes" in reject.reason
+    # And it names the declaration that turns those lines into entries.
+    assert "markers.ledger = false" in reject.reason
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        "- **Delete** the 3 old files after migration",  # bold, and no digit: prose
+        "- **SH239**: a benchmark pair wrote into the folder another pair measured",
+        "- See **RK5** for the design.",
+        "- **No web UI and no server.** Files and a CLI.",
+    ],
+)
+def test_prose_that_also_leads_with_bold_stays_prose(line):
+    # The widened test is the one that could make the report noise, and a noisy report
+    # is an ignored one: it takes an id-shaped token and nothing else in the slot.
+    document = parse_in_block(line, schema=Schema().as_ledger())
+    assert document.entries == () and document.rejects == ()
 
 
 def test_a_roadmap_line_without_its_deps_field_is_reported():
