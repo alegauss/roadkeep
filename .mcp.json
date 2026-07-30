@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "roadkeep": {
-      "command": "roadkeep",
-      "args": ["mcp"]
+      "command": "python",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/roadkeep.py", "mcp"]
     }
   }
 }

@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>roadkeep — the roadmap format your agent cannot break</title>
-<meta name="description" content="roadkeep owns the writes to your ROADMAP.md, CHANGELOG.md, IMPROVEMENTS.md and STRATEGY.md. One line per task, refused at the input instead of at review. A Claude Code plugin with zero runtime dependencies.">
+<title>roadkeep — stop paying tokens to keep your docs</title>
+<meta name="description" content="A Claude Code plugin that turns the format of your ROADMAP.md, CHANGELOG.md, IMPROVEMENTS.md and STRATEGY.md into a schema a command enforces — so keeping them is procedural and deterministic instead of context the model spends remembering, reading and checking.">
 
 <!-- Open Graph / social -->
 <meta property="og:type" content="website">
-<meta property="og:title" content="roadkeep — the roadmap format your agent cannot break">
-<meta property="og:description" content="Your ROADMAP.md declares a format. roadkeep enforces it where the text is created — before a sentence is composed to fill the space. Shipped as a Claude Code plugin.">
+<meta property="og:title" content="roadkeep — stop paying tokens to keep your docs">
+<meta property="og:description" content="Claude Code should spend its context on the work, not on policing your docs. One call writes the line; one exit code decides whether anything drifted.">
 <meta property="og:image" content="assets/roadkeep-social.png">
 <meta property="og:url" content="https://alegauss.github.io/roadkeep/">
 <meta name="twitter:card" content="summary_large_image">
@@ -196,6 +196,15 @@
   /* ---------- the split: without / with ---------- */
   .split{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
   @media(max-width:920px){.split{grid-template-columns:1fr}}
+  /* the two halves of a comparison must be the same height, or the shorter one reads as
+     the lesser argument. `even` stretches them and lets each `pre` absorb the difference,
+     so the two bullet lists start on the same line. */
+  .split.even{align-items:stretch}
+  .split.even>.side{display:flex;flex-direction:column}
+  .split.even .body{display:flex;flex-direction:column;flex:1 1 auto}
+  .split.even .body pre{flex:1 0 auto}
+  .split.even>.term{display:flex;flex-direction:column}
+  .split.even>.term pre{flex:1 0 auto}
   .side{
     border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;
     background:linear-gradient(180deg,var(--panel),var(--bg-2));
@@ -421,44 +430,20 @@
   .nogoal p{font-size:.91rem;color:var(--muted);line-height:1.55}
   .nogoal p b{color:var(--text)}
 
-  /* ---------- built in the open (the derived strip) ---------- */
+  /* ---------- the conformance box ---------- */
   .openbox{
-    border:1px solid var(--line);border-radius:var(--radius);
-    background:linear-gradient(180deg,var(--panel),var(--bg-2));padding:30px 26px;
+    border:1px solid var(--line);border-radius:var(--radius);text-align:center;
+    background:linear-gradient(180deg,var(--panel),var(--bg-2));padding:34px 30px;
   }
-  .status-bar{
-    display:flex;align-items:center;gap:16px;flex-wrap:wrap;justify-content:center;
-    margin-bottom:24px;
+  .openbox h2{
+    font-size:clamp(1.45rem,2.9vw,1.95rem);font-weight:800;letter-spacing:-.025em;
+    line-height:1.22;margin-bottom:16px;
   }
-  .meter{
-    flex:1 1 300px;max-width:480px;height:10px;border-radius:999px;
-    background:var(--panel-2);border:1px solid var(--line);overflow:hidden;
+  .openbox p{
+    color:var(--muted);font-size:.95rem;line-height:1.7;max-width:760px;margin:0 auto;
   }
-  .meter i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--amber-deep),var(--amber-bright))}
-  .status-bar .lbl{font-family:'JetBrains Mono',monospace;font-size:.88rem;color:var(--muted)}
-  .status-bar .lbl b{color:var(--text)}
-  .blocks{
-    display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));
-    gap:10px;max-width:880px;margin:0 auto 22px;
-  }
-  .blk{
-    display:flex;flex-direction:column;gap:5px;
-    padding:13px 15px;border-radius:11px;
-    background:rgba(10,15,27,.55);border:1px solid var(--line);
-  }
-  .blk .b-n{font-family:'JetBrains Mono',monospace;font-size:.74rem;color:var(--muted-2);letter-spacing:.02em}
-  .blk .b-t{font-size:.88rem;color:var(--slate);line-height:1.4}
-  .blk.done{border-color:rgba(245,158,11,.26)}
-  .blk.done .b-n{color:var(--amber)}
-  .next{text-align:center;color:var(--muted);font-size:.9rem;max-width:760px;margin:0 auto}
-  .next .k{color:var(--muted-2);font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;margin-right:6px}
-  .next code{color:var(--amber);font-size:.9rem}
-  .openbox .derived{
-    color:var(--muted-2);font-size:.85rem;text-align:center;margin-top:22px;
-    padding-top:20px;border-top:1px solid var(--line);line-height:1.7;
-  }
-  .openbox .derived code{color:var(--amber)}
-  .openbox .derived b{color:var(--muted)}
+  .openbox p code{color:var(--amber-bright);font-size:.9em}
+  .openbox p b{color:var(--text)}
 
   /* ---------- closing CTA ---------- */
   .closing{
@@ -620,37 +605,52 @@
       <p>Not from neglect — from an author who knows more than the line allows, and a rule that only a reviewer holds. When that author is a model, the rot is <b>billed twice</b>: once to write it, once to read it back.</p>
     </div>
 
-    <div class="split reveal">
+    <p class="tbl-note reveal" style="margin-bottom:22px">
+      One task, <b>T1</b>, written both ways — hand-edited on the left, through <code>add</code> on
+      the right. Same repository, same rule, same intent.
+    </p>
+
+    <div class="split even reveal">
       <div class="side bad">
-        <div class="side-head"><span class="tag">BEFORE</span> A format nobody enforces</div>
+        <div class="side-head"><span class="tag">BY HAND</span> A format nobody enforces</div>
         <div class="body">
-<pre>- 📋 <b>T-104</b> Refactor the cache layer. We looked at
-  three options here and the reason we went with the
-  second is that the first would require touching the
-  scheduler, which nobody owns anymore, and the third
-  needs a migration. Note that Marc raised… <span class="c">(+1100 chars)</span></pre>
+<pre>- 📋 <b>T1</b> Refactor the cache layer. We looked at three
+  options here and the reason we went with the second is
+  that the first would require touching the scheduler,
+  which nobody owns anymore, and the third needs a
+  migration. Note that Marc raised the same concern last
+  quarter, and the benchmark he attached is still the
+  best evidence we have.</pre>
           <ul>
-            <li><span class="m">✕</span>The rule said <b>one sentence</b>. Nothing checked, so the model wrote to the limit of what it knew.</li>
-            <li><span class="m">✕</span>The rationale landed where the reader is — so <b>every later turn re-reads it</b>.</li>
-            <li><span class="m">✕</span>Picking one ready task means reading the file: <b>~5k tokens per ask</b>.</li>
-            <li><span class="m">✕</span>Review catches it a whole turn of prose <b>too late</b>, and asks for a deletion.</li>
+            <li><span class="m">✕</span><b>396 characters</b> against a one-sentence rule — and <b>nothing objected</b>.</li>
+            <li><span class="m">✕</span>Named after its fix, so the line can never be falsified — only abandoned.</li>
+            <li><span class="m">✕</span>The rationale landed where the reader is, so <b>every later turn re-reads it</b>.</li>
+            <li><span class="m">✕</span>Finding this task again means reading the file: <b>~5k tokens per ask</b>.</li>
           </ul>
         </div>
       </div>
       <div class="side good">
-        <div class="side-head"><span class="tag">AFTER</span> A format that is a schema</div>
+        <div class="side-head"><span class="tag">THROUGH add</span> A format that is a schema</div>
         <div class="body">
-<pre>$ roadkeep <span class="g">add</span> --block C --symptom "…" --why "…"
-<span class="no">refused</span>: why is 412 characters, limit 200
-        <span class="dim">nothing was written</span>
+<pre>$ roadkeep <span class="g">add</span> --block A --symptom "…" --why "…"
+<span class="no">roadkeep: refused, nothing written:</span>
+  why: 305 characters, limit is 200
+  why: why is one sentence; a second is the signal
+       it belongs in the section this line points at
+  line: rendered line is 396, limit is 320
+                                    <span class="dim">exit 2</span>
 
-$ roadkeep <span class="g">add</span> --block C --symptom "…" --why "…"
-<span class="ok">RK51</span> Block C — <span class="dim">line 41, 268 of 320 chars</span></pre>
+$ roadkeep <span class="g">add</span> --block A --symptom "…" --why "…"
+- 📋 <b>T1</b> (deps: —) <b>Every read of the cache layer
+  serialises through one lock</b> — the second option
+  avoids touching the scheduler nobody owns, and
+  needs no migration. → §T1
+<span class="ok">event    T1  Block A  open</span></pre>
           <ul>
-            <li><span class="m">✓</span>The field is refused <b>before a sentence fills it</b> — the retry costs a field, not a turn.</li>
-            <li><span class="m">✓</span>Id, pointer, marker and dep annotations are <b>derived</b>: nothing to decide, nothing to look up.</li>
-            <li><span class="m">✓</span><code>pick</code> answers “what next” in <b>one tool result</b>.</li>
-            <li><span class="m">✓</span><code>lint</code> exits <b>1</b> if anything drifted anyway — a number, not a review.</li>
+            <li><span class="m">✓</span><b>185 characters</b>, refused twice before it existed — the retry cost a field, not a turn.</li>
+            <li><span class="m">✓</span>The marker, the <code>(deps: —)</code> annotation and the <code>→ §T1</code> pointer are <b>derived</b>.</li>
+            <li><span class="m">✓</span>The rationale went to the file the pointer names, where <b>nothing loads it by accident</b>.</li>
+            <li><span class="m">✓</span>The <code>event</code> line is the whole payload a hook needs — <b>no file to re-read</b>.</li>
           </ul>
         </div>
       </div>
@@ -683,7 +683,7 @@ $ roadkeep <span class="g">add</span> --block C --symptom "…" --why "…"
       </p>
     </div>
 
-    <div class="split reveal">
+    <div class="split even reveal">
       <div class="term">
         <div class="term-bar"><i></i><i></i><i></i><span class="t">PreToolUse — Edit on docs/ROADMAP.md</span></div>
 <pre><span class="no">Edit refused</span>: docs/ROADMAP.md is this project's
@@ -697,27 +697,28 @@ Call instead, from the project root:
   roadkeep <span class="g">ship</span> &lt;id&gt;
         <span class="c">ledger entry, line gone, section dropped</span></pre>
       </div>
-      <div style="display:flex;flex-direction:column;gap:16px">
-        <div class="card" style="padding:22px">
-          <span class="kicker">The hook</span>
-          <h3 style="margin-bottom:8px">A denial that costs one line, not a turn</h3>
-          <p>A refusal with no next step is one an agent routes around, burning the turn to find its own way in. This one <b>is the instruction</b> — command and flags included — so complying is less work than retrying. A second hook runs <code>lint</code> before the turn ends, so drift is caught <b>by the agent that can still fix it</b> instead of by a human, tomorrow.</p>
-        </div>
-        <div class="card" style="padding:22px">
-          <span class="kicker">The MCP server</span>
-          <h3 style="margin-bottom:8px">The schema arrives with the tool</h3>
-          <p><code>add</code>, <code>ship</code>, <code>pick</code> and <code>lint</code> over stdio, with an input schema <i>derived</i> from your <code>roadkeep.toml</code>: <code>maxLength</code> is this project's field limits, <code>enum</code> its markers, <code>pattern</code> its id shape. <b>No flags to recall and no round trip to a usage string</b> — a wrong argument is refused by the protocol, before a call is made.</p>
-        </div>
-        <div class="card" style="padding:22px">
-          <span class="kicker">The skill</span>
-          <h3 style="margin-bottom:8px">Rules that load only on the turns that need them</h3>
-          <p>The whole write path lives in a <b>trigger-loaded skill</b>, read when a governed file is in play and <b>costing nothing on every other turn</b>. It ships with the plugin, so the standard is the same text in every project rather than a paragraph each repo re-invents in the file that loads always.</p>
-        </div>
-        <div class="card" style="padding:22px">
-          <span class="kicker">The slash commands · and the guarantee</span>
-          <h3 style="margin-bottom:8px">Silence is the allow, and every failure allows</h3>
-          <p><code>/roadkeep:add</code>, <code>:ship</code>, <code>:pick</code>, <code>:lint</code> are there for the person driving. The guard behind all of it returns only <code>deny</code>, never <code>allow</code>, so it never waves through the permission rules you set — and a broken config, bad JSON or a missing path <b>lets the write through</b>: a guard that denied on its own errors would turn one typo into a repo nobody can edit.</p>
-        </div>
+      <div class="card">
+        <span class="kicker">1 · the hook</span>
+        <h3>A denial that costs one line, not a turn</h3>
+        <p>A refusal with no next step is one an agent routes around, burning the turn to find its own way in. This one <b>is the instruction</b> — command and flags included — so complying is less work than retrying. A second hook runs <code>lint</code> before the turn ends, so drift is caught <b>by the agent that can still fix it</b> instead of by a human, tomorrow.</p>
+      </div>
+    </div>
+
+    <div class="cards reveal" style="margin-top:18px">
+      <div class="card">
+        <span class="kicker">2 · the MCP server</span>
+        <h3>The schema arrives with the tool</h3>
+        <p><code>add</code>, <code>ship</code>, <code>pick</code> and <code>lint</code> over stdio, with an input schema <i>derived</i> from your <code>roadkeep.toml</code>: <code>maxLength</code> is this project's field limits, <code>enum</code> its markers, <code>pattern</code> its id shape. <b>No flags to recall, no round trip to a usage string</b> — a wrong argument is refused by the protocol.</p>
+      </div>
+      <div class="card">
+        <span class="kicker">3 · the skill</span>
+        <h3>Rules that load only on the turns that need them</h3>
+        <p>The whole write path lives in a <b>trigger-loaded skill</b>, read when a governed file is in play and <b>costing nothing on every other turn</b>. It ships with the plugin, so the standard is the same text in every project rather than a paragraph each repo re-invents in the file that always loads.</p>
+      </div>
+      <div class="card">
+        <span class="kicker">4 · the slash commands</span>
+        <h3>Silence is the allow, and every failure allows</h3>
+        <p><code>/roadkeep:add</code>, <code>:ship</code>, <code>:pick</code> and <code>:lint</code> are there for the person driving. The guard behind all of it returns only <code>deny</code>, never <code>allow</code>, so it never waves through the permission rules you set — and a broken config, bad JSON or a missing path <b>lets the write through</b>: a guard that denied on its own errors would turn one typo into a repository nobody can edit.</p>
       </div>
     </div>
 
@@ -744,7 +745,7 @@ Call instead, from the project root:
         <p>Every question is a command — <code>pick</code>, <code>brief</code>, <code>deps</code>, <code>show</code>, <code>stats</code>, <code>origin</code> — answering inside <b>one tool result</b>. Finding one ready task by reading the backlog cost <b>~5k tokens</b> here; <code>brief</code> starts the same task and adds the deps, the blockers and the non-goals.</p>
       </div>
       <div class="card reveal">
-        <div class="ico">🎚</div>
+        <div class="ico">🔌</div>
         <span class="kicker">Nothing resident</span>
         <h3>The rules cost nothing on the turns that don't write</h3>
         <p>The write path is a <b>trigger-loaded skill</b>, not a paragraph in an instruction file that every turn pays for. And the instruction files themselves get a <b>line and byte budget <code>lint</code> enforces</b> — because the one measured below reached 186 KB while declaring a limit about itself.</p>
@@ -786,12 +787,14 @@ Call instead, from the project root:
         <h3>Everything else in this space reports. roadkeep refuses.</h3>
         <p>
           Linters, kanban files, ADR sets — all of them are read <b>after</b> the text exists.
-          That is one position on a timeline, and it is the expensive one.
+          That is one position on a timeline, and for a model it is the expensive one: the
+          report arrives when the output tokens are already spent.
         </p>
         <p>
           roadkeep is the only one that sits <b>at the write path</b>, which is also the only
-          position from which an <i>agent</i> can be constrained: by the time a hook, a
-          reviewer or a CI job objects, the turn is already paid for.
+          position from which an <i>agent</i> can be constrained cheaply. And a line that never
+          got long is a line <b>nothing has to re-read</b> — the saving compounds on every later
+          turn, not just the one that wrote it.
         </p>
       </div>
       <div class="term">
@@ -883,28 +886,31 @@ Call instead, from the project root:
     </div>
 
     <div class="term reveal" style="max-width:900px;margin:0 auto">
-      <div class="term-bar"><i></i><i></i><i></i><span class="t">the first call and the last, on this repository</span></div>
-<pre>$ roadkeep <span class="g">brief</span>          <span class="c"># the whole start of a task, one tool result</span>
-RK21  Block E  💭  ready  docs/ROADMAP.md:33
+      <div class="term-bar"><i></i><i></i><i></i><span class="t">the same task T1, from picked to gated</span></div>
+<pre>$ roadkeep <span class="g">brief</span>        <span class="c"># the whole start of a task, in one tool result</span>
+T1  Block A  📋  ready  docs/ROADMAP.md:5
   picked   lowest ready id
-  symptom  A standard adopted by one project is a preference
-  why      roll out to Turing, Dumont and Cursarei, each with its own `roadkeep.toml`.
-  dep      RK20  shipped  in the changelog
-  unblocks 0 of 2 open
-  path     roadkeep.toml
-  not      No web UI and no server
-  not      No issue-tracker sync
-  not      No model and no prompts
-  not      No dates, quarters or estimates          <span class="c"># the non-goals, every time</span>
+  symptom  Every read of the cache layer serialises through one lock
+  why      the second option avoids touching the scheduler nobody owns, and needs no migration.
+  unblocks 1 of 1 open: T2
+  not      No cache rewrite                 <span class="c"># the non-goals, every time</span>
+  not      No new dependency
 
-### §RK21 Rollout                                   <span class="c"># its rationale, inlined</span>
-Turing, Dumont and Cursarei, each with its own `roadkeep.toml`. Four projects
-sharing one format is what makes cross-project context transferable; one
-project with a format is a preference.
+### §T1 One lock, three options              <span class="c"># its rationale, inlined</span>
 
-$ roadkeep <span class="g">lint</span>           <span class="c"># the gate, after the work</span>
-docs/ROADMAP.md, docs/CHANGELOG.md, docs/IMPROVEMENTS.md, agents.md, CLAUDE.md:
-50 line(s), 8 section(s), 2 budget(s), <span class="ok">clean</span>            <span class="c"># exit 0</span></pre>
+One lock serialises every read, so the second option is chosen because it avoids
+the scheduler nobody owns and needs no migration.
+
+$ roadkeep <span class="g">ship</span> T1      <span class="c"># three files, one transaction</span>
+T1 → docs/CHANGELOG.md:5 under Block A
+  removed  docs/ROADMAP.md:5
+  dropped  §T1 (5-9) from docs/IMPROVEMENTS.md
+  derived  T2 (dep annotations re-derived)
+  event    T1  Block A  open
+
+$ roadkeep <span class="g">lint</span>         <span class="c"># the gate, before the turn ends</span>
+docs/ROADMAP.md, docs/CHANGELOG.md, docs/IMPROVEMENTS.md:
+2 line(s), 1 section(s), <span class="ok">clean</span>            <span class="c"># exit 0</span></pre>
     </div>
 
     <p class="tbl-note reveal" style="margin-top:18px;max-width:820px;margin-left:auto;margin-right:auto">
@@ -921,7 +927,7 @@ docs/ROADMAP.md, docs/CHANGELOG.md, docs/IMPROVEMENTS.md, agents.md, CLAUDE.md:
     <div class="sec-head reveal">
       <div class="eyebrow">The problem, measured</div>
       <h2>This did not start as an idea</h2>
-      <p>It started as three readings from <b>a real production repository</b>, where all three files declared a format and none of them enforced it.</p>
+      <p>It started as three readings from <b>a real production repository</b> where every one of these files declared a format, none of them enforced it, and an agent paid for all three.</p>
     </div>
     <div class="readings reveal">
       <div class="reading">
@@ -960,40 +966,16 @@ docs/ROADMAP.md, docs/CHANGELOG.md, docs/IMPROVEMENTS.md, agents.md, CLAUDE.md:
   <div class="wrap">
     <div class="sec-head reveal">
       <div class="eyebrow">Get started</div>
-      <h2>Two lines to the plugin, one to a gate</h2>
-      <p>Python ≥3.11 and nothing to resolve. Try it on a repository before adopting it anywhere.</p>
+      <h2>Three lines, and the next turn is cheaper</h2>
+      <p>Python ≥3.11 and nothing to resolve. It reads the Markdown you already have, so there is no migration to plan.</p>
     </div>
 
     <div class="install">
       <div class="install-step reveal">
-        <div class="n">0</div>
-        <div class="body">
-          <h4>See what it would say about your repo</h4>
-          <p>No install, no checkout, no config — <code>adopt</code> <b>measures your existing backlog</b> and reports what would have to change.</p>
-          <div class="copyline">
-            <code data-copy>uvx roadkeep adopt</code>
-            <button class="copy-btn" type="button" aria-label="Copy command"><span class="ic">⧉</span><span class="lbl">Copy</span></button>
-          </div>
-        </div>
-      </div>
-
-      <div class="install-step reveal">
         <div class="n">1</div>
         <div class="body">
-          <h4>Install it, and scaffold the config</h4>
-          <p><code>init</code> writes <code>roadkeep.toml</code> — <b>your</b> prefix, paths, markers and limits — plus the files it declares.</p>
-          <div class="copyline">
-            <code data-copy>pip install roadkeep &amp;&amp; roadkeep init</code>
-            <button class="copy-btn" type="button" aria-label="Copy command"><span class="ic">⧉</span><span class="lbl">Copy</span></button>
-          </div>
-        </div>
-      </div>
-
-      <div class="install-step reveal">
-        <div class="n">2</div>
-        <div class="body">
-          <h4>Install the Claude Code plugin</h4>
-          <p>Hook, MCP server, slash commands and skill — the enforcement point <b>an agent cannot route around</b>.</p>
+          <h4>Install the plugin, in Claude Code</h4>
+          <p>Hook, MCP server, skill and slash commands — the enforcement point <b>an agent cannot route around</b>, and the schema it calls with.</p>
           <div class="copyline">
             <code data-copy>/plugin marketplace add alegauss/roadkeep</code>
             <button class="copy-btn" type="button" aria-label="Copy command"><span class="ic">⧉</span><span class="lbl">Copy</span></button>
@@ -1006,7 +988,31 @@ docs/ROADMAP.md, docs/CHANGELOG.md, docs/IMPROVEMENTS.md, agents.md, CLAUDE.md:
       </div>
 
       <div class="install-step reveal">
+        <div class="n">2</div>
+        <div class="body">
+          <h4>Install the CLI the plugin calls</h4>
+          <p><code>roadkeep guard</code> and <code>roadkeep mcp</code> <i>are</i> the CLI — one package, no dependencies, nothing else to configure.</p>
+          <div class="copyline">
+            <code data-copy>pip install roadkeep</code>
+            <button class="copy-btn" type="button" aria-label="Copy command"><span class="ic">⧉</span><span class="lbl">Copy</span></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="install-step reveal">
         <div class="n">3</div>
+        <div class="body">
+          <h4>Point it at your repository</h4>
+          <p><code>adopt</code> <b>measures the backlog you already have</b> and reports what adopting would cost <i>before</i> you commit to it; <code>init</code> then writes <code>roadkeep.toml</code> — your prefix, paths, markers and limits.</p>
+          <div class="copyline">
+            <code data-copy>roadkeep adopt   # then: roadkeep init</code>
+            <button class="copy-btn" type="button" aria-label="Copy command"><span class="ic">⧉</span><span class="lbl">Copy</span></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="install-step reveal">
+        <div class="n">4</div>
         <div class="body">
           <h4>Make it a gate</h4>
           <p>The same command in CI and at the commit — <b>a gate that runs in one place is a gate with a documented bypass</b>. <code>--fix</code> repairs only what the format derives and leaves every editorial finding to a human.</p>
@@ -1062,62 +1068,18 @@ repos:
   </div>
 </section>
 
-<!-- BUILT IN THE OPEN -->
+<!-- PROOF -->
 <section style="padding-top:30px">
-  <div class="wrap">
-    <div class="sec-head reveal">
+  <div class="wrap reveal">
+    <div class="openbox">
       <div class="eyebrow">Proof, not a promise</div>
-      <h2>roadkeep keeps its own backlog</h2>
-      <p><code>roadkeep lint</code> must pass on this repository's <code>docs/</code>. The format is proven by the artefact rather than asserted in a README — including this page.</p>
-    </div>
-
-    <div class="openbox reveal">
-    <!--
-      Everything between the two markers is written by `roadkeep export --site` and must
-      not be edited here: this page claimed "9 of 36 tasks shipped" for twenty-five ships,
-      which is the exact symptom the tool exists to remove, on the tool's own page.
-    -->
-    <!-- roadkeep:begin -->
-<!-- generated by `roadkeep export --site`; edit the governed files instead -->
-<div class="status-bar reveal">
-  <span class="lbl"><b>49</b> of <b>51</b> tasks shipped</span>
-  <div class="meter"><i style="width:96%"></i></div>
-</div>
-<div class="blocks reveal">
-  <div class="blk done">
-    <span class="b-n">11 shipped · 0 open</span>
-    <span class="b-t">A — The model (a task is data before it is a line)</span>
-  </div>
-  <div class="blk done">
-    <span class="b-n">8 shipped · 0 open</span>
-    <span class="b-t">B — Authoring (insert, never hand-edit)</span>
-  </div>
-  <div class="blk done">
-    <span class="b-n">9 shipped · 0 open</span>
-    <span class="b-t">C — Query (consult without reading the file)</span>
-  </div>
-  <div class="blk done">
-    <span class="b-n">9 shipped · 0 open</span>
-    <span class="b-t">D — The gate</span>
-  </div>
-  <div class="blk open">
-    <span class="b-n">7 shipped · 2 open</span>
-    <span class="b-t">E — Adoption</span>
-  </div>
-  <div class="blk done">
-    <span class="b-n">5 shipped · 0 open</span>
-    <span class="b-t">F — The Claude Code plugin (the guardrail at the agent boundary)</span>
-  </div>
-</div>
-<p class="next reveal">
-  <span class="k">Next ready</span> <code>RK21</code> — A standard adopted by one project is a preference
-</p>
-    <!-- roadkeep:end -->
-      <p class="derived">
-        <b>None of the numbers above were typed here.</b> <code>roadkeep export --site</code> derives
-        them from the governed files, so a page that restates a backlog it cannot re-read cannot
-        go stale — the same reason a limit that cannot express these lines is
-        <b>the wrong limit, not a set of wrong lines</b>.
+      <h2>The format is proven by the artefact, not asserted in a README</h2>
+      <p>
+        <code>roadkeep lint</code> must pass on this repository's own <code>docs/</code>, under this
+        repository's own <code>roadkeep.toml</code>, and the test suite asserts it. A limit that
+        cannot express these lines is <b>the wrong limit, not a set of wrong lines</b> — and
+        round-trip is a property test over real roadmaps, including two this project does not own:
+        parse → render → <b>byte-identical</b>, or the write is refused.
       </p>
     </div>
   </div>
@@ -1127,14 +1089,15 @@ repos:
 <section style="padding-top:20px">
   <div class="wrap reveal">
     <div class="closing">
-      <h2>Start the next project with the format already enforced</h2>
+      <h2>Give Claude Code its context back</h2>
       <p>
-        One config file, four commands, and a plugin that makes calling them cheaper than
-        editing the file by hand. <b>Your Markdown stays yours</b> — greppable, diffable, and
-        readable by anyone who never installs this.
+        One config file, four commands, and a plugin that makes calling them cheaper than editing
+        the file by hand. The format stops being something a turn <b>spends tokens remembering,
+        writing and checking</b>, and becomes something a subprocess decides — while your
+        Markdown stays greppable, diffable and readable by anyone who never installs this.
       </p>
       <div class="hero-cta">
-        <a class="btn btn-primary" href="#install">Install roadkeep →</a>
+        <a class="btn btn-primary" href="#install">Install the plugin →</a>
         <a class="btn btn-ghost" href="https://github.com/alegauss/roadkeep">★ Star it on GitHub</a>
       </div>
     </div>
@@ -1155,8 +1118,7 @@ repos:
       </div>
     </div>
     <p class="disclaimer">
-      The counts on this page are derived from the repository's own backlog by
-      <code>roadkeep export --site</code>, not written here.
+      Every command output on this page was run against this repository or a scaffolded one.
       Shipped as a Claude Code plugin; not affiliated with, endorsed by, or sponsored by
       Anthropic. “Claude” and “Claude Code” are trademarks of Anthropic.
       © 2026 Alexandre Oliveira. Apache-2.0.

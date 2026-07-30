@@ -78,3 +78,5 @@
 - ✅ **RK24** **Shelling out puts argument names in prose, where they are guessed** — expose `add`/`ship`/`pick`/`lint` as MCP tools so the field schema *is* the tool's input schema.
 - ✅ **RK25** **A human driving the same standard should not have to learn the CLI** — `/roadkeep:add`, `/roadkeep:ship`, `/roadkeep:pick` and `/roadkeep:lint` over the one engine.
 - ✅ **RK26** **A plugin installed by hand is a plugin one project has** — publish a `marketplace.json` so `/plugin install` reaches it.
+- 🗑 **RK56** **Installing the plugin is not enough: every surface it declares calls a console script the user has to install first** — superseded by RK57: Its sentence lost a fragment to shell backtick substitution, and the format has no door that edits prose in place.
+- ✅ **RK57** **Installing the plugin is not enough: every surface it declares calls a console script the user has to install first** — Both surfaces run python on the launcher at the plugin's own root, so /plugin install is the whole setup and no console script or PATH entry is needed.

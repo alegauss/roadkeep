@@ -42,6 +42,8 @@ from __future__ import annotations
 
 import json
 import shlex
+import subprocess
+import sys
 from pathlib import Path
 
 import roadkeep
@@ -118,6 +120,18 @@ def test_the_turn_cannot_end_on_a_drifted_file():
     assert "SubagentStop" not in read(HOOKS)["hooks"]
 
 
+#: The plugin's own launcher, as a command line spells it (RK57). Everything before the
+#: subcommand: an interpreter, and the script the plugin ships at its own root.
+LAUNCHER = ("python", "${CLAUDE_PLUGIN_ROOT}/scripts/roadkeep.py")
+
+
+def subcommand_of(command: str) -> str:
+    """The CLI arguments a declared command passes, with the launcher stripped."""
+    argv = shlex.split(command)
+    assert tuple(argv[:2]) == LAUNCHER, command
+    return build_parser().parse_args(argv[2:]).command
+
+
 def test_every_declared_command_is_one_the_cli_accepts():
     # The same argument `tests/test_surfaces.py` makes about the Action and the pre-commit
     # hook: a surface that drifts from the CLI fails a test instead of failing a session.
@@ -125,14 +139,13 @@ def test_every_declared_command_is_one_the_cli_accepts():
     assert len(commands) == 2
     for hook in commands:
         assert hook["type"] == "command"
-        args = build_parser().parse_args(shlex.split(hook["command"])[1:])
-        assert args.command == "guard", hook["command"]
+        assert subcommand_of(hook["command"]) == "guard", hook["command"]
 
 
 def test_one_command_answers_both_events():
     """The event is in the payload, so there is one entry point and one place to fix."""
     commands = {hook["command"] for hook in declarations("PreToolUse") + declarations("Stop")}
-    assert commands == {"roadkeep guard"}
+    assert len(commands) == 1
 
 
 def test_every_hook_bounds_how_long_it_may_block_the_write():
@@ -156,12 +169,50 @@ def test_one_server_named_for_the_package():
 
 def test_the_server_runs_a_command_line_the_cli_accepts():
     server = read(MCP)["mcpServers"]["roadkeep"]
-    args = build_parser().parse_args(server["args"])
-    assert args.command == "mcp"
-    # The console script the hooks already require, not a second way in: `python -m` or a
-    # `uvx` line would make the plugin depend on the interpreter that happens to be first.
-    assert server["command"] == "roadkeep"
+    assert (server["command"], server["args"][0]) == LAUNCHER
+    assert build_parser().parse_args(server["args"][1:]).command == "mcp"
     assert "env" not in server, "a server that needs configuration is one that fails silently"
+
+
+# -- and it runs what the plugin carries (RK57) -------------------------------
+
+
+def test_both_surfaces_run_the_launcher_the_plugin_ships():
+    """`/plugin install` is the whole setup: no `pip install`, nothing on PATH.
+
+    The path is `${CLAUDE_PLUGIN_ROOT}`-relative because that is what the harness
+    substitutes, and asserted to exist because a plugin whose hook points at a missing file
+    installs cleanly and then does nothing at all — which is how this was found.
+    """
+    launcher = HERE / "scripts" / "roadkeep.py"
+    assert launcher.is_file()
+    assert LAUNCHER[1].endswith("/scripts/roadkeep.py")
+    declared = [hook["command"] for hook in declarations("PreToolUse") + declarations("Stop")]
+    declared.append(" ".join([read(MCP)["mcpServers"]["roadkeep"]["command"], *read(MCP)["mcpServers"]["roadkeep"]["args"]]))
+    for command in declared:
+        assert "${CLAUDE_PLUGIN_ROOT}" in command, command
+        assert "roadkeep guard" not in command and "roadkeep mcp" not in command
+
+
+def test_the_launcher_prefers_the_source_it_ships_over_anything_installed():
+    # Position 0, not `append`: a plugin that silently ran an older installed copy would
+    # report this version through `/plugin` while another one answered.
+    source = (HERE / "scripts" / "roadkeep.py").read_text(encoding="utf-8")
+    assert "sys.path.insert(0," in source
+    assert '"src"' in source
+
+
+def test_the_launcher_runs_from_any_directory(tmp_path):
+    """A subprocess, because the whole claim is about a process the harness starts."""
+    finished = subprocess.run(
+        [sys.executable, str(HERE / "scripts" / "roadkeep.py"), "--version"],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert finished.returncode == 0, finished.stderr
+    assert finished.stdout.strip() == f"roadkeep {roadkeep.__version__}"
 
 
 # -- the marketplace that installs it (RK26) ---------------------------------
