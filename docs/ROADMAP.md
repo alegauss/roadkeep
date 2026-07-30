@@ -30,8 +30,7 @@
 
 ## Block E — Adoption
 
-- 📋 **RK18** (deps: RK3 ✅, RK14 ✅) **A tool that requires an empty repo cannot be adopted by the repo that needs it** — `init` scaffolds the files and config, and `adopt` reports what an existing backlog must change to pass. → §RK18
-- 📋 **RK19** (deps: RK18) **Installing from a git clone keeps a standard local** — publish to PyPI so `uvx roadmap-lint` runs with no checkout. → §RK19
+- 📋 **RK19** (deps: RK18 ✅) **Installing from a git clone keeps a standard local** — publish to PyPI so `uvx roadmap-lint` runs with no checkout. → §RK19
 - 💭 **RK20** (deps: RK16 ✅, RK19) **Shio's 92 active lines average 142 words against a one-sentence rule** — migrating a real backlog is the only test of whether the schema fits a live project. → §RK20
 - 💭 **RK21** (deps: RK20) **A standard adopted by one project is a preference** — roll out to Turing, Dumont and Cursarei, each with its own `roadmap.toml`. → §RK21
 

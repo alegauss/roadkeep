@@ -33,8 +33,10 @@ import argparse
 import json
 import sys
 from collections.abc import Mapping, Sequence
+from pathlib import Path
 
 from roadkeep import __version__
+from roadkeep.adopting import Estimate, adopt, init
 from roadkeep.authoring import add, set_status
 from roadkeep.backlog import Backlog
 from roadkeep.briefing import Brief, brief
@@ -458,6 +460,67 @@ def build_parser() -> argparse.ArgumentParser:
     )
     origin_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     origin_parser.set_defaults(handler=_origin)
+
+    init_parser = subcommands.add_parser(
+        "init",
+        help="scaffold roadkeep.toml and the files it declares",
+        description=(
+            "Write the configuration and the three governed files, or write nothing. The "
+            "config is rendered from the schema's own defaults, so a scaffold cannot "
+            "declare a format the tool does not implement. No starter task and no prose: "
+            "a title, the blocks you name, and where the non-goals go."
+        ),
+    )
+    init_parser.add_argument(
+        "--prefix", default="RK", help="the id prefix, uppercase alphanumeric (default: RK)"
+    )
+    init_parser.add_argument(
+        "--block",
+        action="append",
+        dest="blocks",
+        metavar="LABEL",
+        help=(
+            "a block heading, repeatable: 'A' or 'A — The model'. A task is filed "
+            "under a heading and a write never invents one (default: A)"
+        ),
+    )
+    init_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    init_parser.set_defaults(handler=_init)
+
+    adopt_parser = subcommands.add_parser(
+        "adopt",
+        help="what an existing backlog would have to change to pass",
+        description=(
+            "Run the schema over a backlog this tool does not own yet and report the "
+            "delta: what parses, what conforms, the longest field against its limit, the "
+            "markers to declare. Writes nothing and never fails — an estimate that "
+            "exits 1 is a gate, and the point is to take it before the commitment."
+        ),
+    )
+    adopt_parser.add_argument("path", help="the file to measure, e.g. docs/ROADMAP.md")
+    adopt_parser.add_argument(
+        "--prefix",
+        help=(
+            "read the ids under this prefix; without it the project's own is used, or "
+            "the one the file's ids already spell"
+        ),
+    )
+    adopt_parser.add_argument(
+        "--ref-scheme",
+        dest="ref_scheme",
+        choices=("id", "outline"),
+        help=(
+            "measure the pointers under this scheme: 'outline' asks what adopting the "
+            "tool costs, 'id' what adopting it and renumbering the outline costs"
+        ),
+    )
+    adopt_parser.add_argument(
+        "--ledger",
+        action="store_true",
+        help="measure it as a changelog: shipped marker, no deps field, no pointer",
+    )
+    adopt_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    adopt_parser.set_defaults(handler=_adopt)
 
     return parser
 
@@ -1527,6 +1590,120 @@ def _commits_json(origin: Origin) -> dict[str, object]:
     return {
         "proposed_in": one(origin.proposed_in),
         "shipped_in": one(origin.shipped_in),
+    }
+
+
+def _init(config: Config, args: argparse.Namespace) -> int:
+    # `config` is deliberately unused: `init` is the one command that runs *before* a
+    # project is configured, so it takes the directory it was pointed at. A discovered
+    # config would be an ancestor's, and scaffolding under someone else's paths is how a
+    # subproject ends up writing into its parent's roadmap.
+    del config
+    try:
+        created = init(args.directory, prefix=args.prefix, blocks=args.blocks or ("A",))
+    except (ValueError, OSError) as error:
+        return _refused(error)
+
+    files = [created.config, *created.files]
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "root": Path(args.directory).resolve().as_posix(),
+                    "created": [path.as_posix() for path in files],
+                    "prefix": args.prefix,
+                    "blocks": list(created.blocks),
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+    for path in files:
+        print(f"created  {path.as_posix()}")
+    print(
+        f"{len(files)} file(s), blocks {', '.join(created.blocks)}: "
+        f"`roadkeep add --block {created.blocks[0]} …` writes the first line"
+    )
+    return EXIT_OK
+
+
+def _adopt(config: Config, args: argparse.Namespace) -> int:
+    try:
+        estimate = adopt(
+            config,
+            args.path,
+            prefix=args.prefix,
+            ref_scheme=args.ref_scheme,
+            ledger=args.ledger,
+        )
+    except (ValueError, OSError) as error:
+        return _refused(error)
+
+    if args.json:
+        print(json.dumps(_estimate_json(estimate), indent=2))
+        return EXIT_OK
+    _print_estimate(estimate)
+    # Always 0: this reports on a file the project has not adopted, so there is no
+    # contract for it to have broken. `lint` is the command with an exit code.
+    return EXIT_OK
+
+
+def _print_estimate(estimate: Estimate) -> None:
+    where = estimate.path.as_posix()
+    source = " (inferred from the ids)" if estimate.inferred else ""
+    print(f"{where}  prefix {estimate.prefix}{source}")
+    print(
+        f"  read     {estimate.parsed} line(s), {estimate.conforming} conform, "
+        f"{estimate.changing} would change"
+    )
+    if estimate.blocks:
+        print(f"  blocks   {', '.join(estimate.blocks)}")
+    for prefix, count in estimate.prefixes[1:]:
+        # Only the ones the chosen prefix does not cover: a second is a backlog that
+        # absorbed another, and no single `prefix` key can express two.
+        print(f"  also     {count} id(s) spell {prefix}, which one prefix cannot cover")
+    for measure in estimate.measures:
+        if measure.over:
+            print(
+                f"  {measure.field:<8} {measure.over} over {measure.limit}, "
+                f"longest {measure.longest}"
+            )
+    for marker, count in estimate.undeclared:
+        print(f"  marker   {marker} on {count} line(s), declared by nothing in [markers]")
+    for code, count in estimate.codes:
+        print(f"  {code:<8} {count}")
+    for reason, count in estimate.rejects:
+        print(f"  unparsed {count}: {reason}")
+    if estimate.non_canonical:
+        print(
+            f"  {estimate.non_canonical} line(s) do not round-trip: the tool would "
+            f"refuse to write this file until they are rewritten by hand"
+        )
+
+
+def _estimate_json(estimate: Estimate) -> dict[str, object]:
+    return {
+        "file": estimate.path.as_posix(),
+        "prefix": estimate.prefix,
+        "inferred": estimate.inferred,
+        "parsed": estimate.parsed,
+        "conforming": estimate.conforming,
+        "changing": estimate.changing,
+        "blocks": list(estimate.blocks),
+        "prefixes": [{"prefix": p, "count": n} for p, n in estimate.prefixes],
+        "measures": [
+            {
+                "field": m.field,
+                "limit": m.limit,
+                "longest": m.longest,
+                "over": m.over,
+            }
+            for m in estimate.measures
+        ],
+        "undeclared": [{"marker": m, "count": n} for m, n in estimate.undeclared],
+        "codes": [{"code": c, "count": n} for c, n in estimate.codes],
+        "rejects": [{"reason": r, "count": n} for r, n in estimate.rejects],
+        "non_canonical": estimate.non_canonical,
     }
 
 

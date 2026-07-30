@@ -115,13 +115,13 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 0 | 7 |
 | C — Query (consult without reading the file) | 0 | 8 |
 | D — The gate | 0 | 8 |
-| E — Adoption | 4 | 0 |
+| E — Adoption | 3 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 5 | 0 |
-| **Total** | 9 | 31 |
+| **Total** | 8 | 32 |
 
 **Next ready:**
 
-- 📋 **RK18** (deps: RK3 ✅, RK14 ✅) **A tool that requires an empty repo cannot be adopted by the repo that needs it** — `init` scaffolds the files and config, and `adopt` reports what an existing backlog must change to pass. → §RK18
+- 📋 **RK19** (deps: RK18 ✅) **Installing from a git clone keeps a standard local** — publish to PyPI so `uvx roadmap-lint` runs with no checkout. → §RK19
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

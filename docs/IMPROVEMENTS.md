@@ -56,13 +56,6 @@ session doing.
 
 ## Block E — Adoption
 
-### §RK18 `init` and `adopt`
-
-The repositories that need this most already have backlogs, so requiring an empty repo
-would exclude every real user. `init` scaffolds files and config; `adopt` runs the
-schema over an existing backlog and reports what would have to change — a migration
-estimate before a migration commitment.
-
 ### §RK19 PyPI
 
 Distribution decides whether this is a standard or a script in one repository.
