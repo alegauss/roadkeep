@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "roadkeep": {
+      "command": "roadkeep",
+      "args": ["mcp"]
+    }
+  }
+}

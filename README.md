@@ -121,8 +121,8 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 9 |
 | D — The gate | 0 | 9 |
 | E — Adoption | 1 | 3 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 3 | 2 |
-| **Total** | 4 | 42 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 2 | 3 |
+| **Total** | 3 | 43 |
 
 **Next ready:**
 
@@ -135,7 +135,7 @@ which is the cost the command existed to remove.
 
 Still open, and where to look:
 [docs/ROADMAP.md](https://github.com/alegauss/roadkeep/blob/main/docs/ROADMAP.md). What is left of
-Block F is the packaging around the hook below: the commands and the MCP tools.
+Block F is the last of the packaging: the slash commands, and a marketplace entry.
 
 ## Install
 
@@ -230,9 +230,17 @@ and the gate is still there at the commit.
 shell command to catch it taxes every command in the session. The `Stop` hook runs `lint`
 instead — so the bypass is caught before the turn ends, by the agent that can still fix it.
 
-The plugin's other half is the answer the denial assumes exists: a **skill**,
-`skills/roadkeep/SKILL.md`, holding which command to call, what it derives, the two rules a
-schema cannot check, and how work is picked. It is a skill and not a paragraph in the
+The denial is one half of the answer; the other two are what make calling the command cheaper
+than typing it. The plugin ships an **MCP server** — `roadkeep mcp`, JSON-RPC on stdio, no
+port and no state — exposing `add`, `ship`, `pick` and `lint` as tools whose input schema is
+*derived*: `maxLength` is this project's `symptom` and `why` limits, `enum` is its declared
+markers, `pattern` is its id shape, and the description is the subcommand's own help. So a
+misspelt `--deps` is refused by the protocol with the arguments that exist, instead of costing
+a round trip to a usage string, and every call is dispatched through the same parser a
+terminal uses — one engine, one refusal.
+
+The third is a **skill**, `skills/roadkeep/SKILL.md`, holding which command to call, what it
+derives, the two rules a schema cannot check, and how work is picked. It is a skill and not a paragraph in the
 project's instruction file because instructions are loaded on *every* turn, including the ones
 that touch no roadmap — the budget above exists because that is how the 186 KB happened. The
 skill is read when a governed file is in play and costs nothing otherwise, and it ships with
@@ -242,7 +250,8 @@ the plugin, so the standard is the same text in every project rather than a copy
 
 These are binding, and half the point. Check before proposing work:
 
-- **No web UI and no server.** Files and a CLI.
+- **No web UI and no server.** Files and a CLI — the MCP server above is one stdio process
+  speaking JSON-RPC to the CLI, which binds nothing and stores nothing.
 - **No issue-tracker sync.** A backlog that lives in a service is one an agent cannot `grep`.
 - **No model and no prompts inside the tool.** It validates and renders; it never writes
   the symptom or the rationale.

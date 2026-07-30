@@ -56,6 +56,7 @@ from roadkeep.sections import Section, heading_of
 from roadkeep.sections import add as add_section
 from roadkeep.sections import drop as drop_section
 from roadkeep.sections import find as find_section
+from roadkeep.serving import serve
 from roadkeep.shipping import record, retire, ship
 from roadkeep.showing import View, show
 
@@ -547,6 +548,22 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     guard_parser.set_defaults(handler=_guard, tolerates_config_error=True)
+
+    mcp_parser = subcommands.add_parser(
+        "mcp",
+        help="serve add, ship, pick and lint as MCP tools over stdio",
+        description=(
+            "Speak JSON-RPC on stdin and stdout so the fields arrive as a schema the "
+            "client validates instead of flag names an agent types from memory (RK24). "
+            "Every tool is dispatched through this same parser, so the refusal is the one "
+            "a terminal prints. Not for a human to call: a session's client starts it."
+        ),
+    )
+    # Same reason as `guard`: the process is started once for a whole session, so refusing
+    # to start on a broken `roadkeep.toml` would take the tools away exactly when the gate
+    # is what the project needs. `tools/list` describes the defaults and the first call
+    # reports the error.
+    mcp_parser.set_defaults(handler=_mcp, tolerates_config_error=True)
 
     return parser
 
@@ -1791,6 +1808,15 @@ def _guard(config: Config, args: argparse.Namespace) -> int:
             )
         )
     return EXIT_OK
+
+
+def _mcp(config: Config, args: argparse.Namespace) -> int:
+    """Hand stdin and stdout to the protocol loop (RK24).
+
+    The directory and not the `Config`: the server re-discovers it per message, so a
+    `roadkeep.toml` edited during the session is the one the next `tools/list` describes.
+    """
+    return serve(sys.stdin, sys.stdout, args.directory)
 
 
 def _payload() -> Mapping[str, object]:

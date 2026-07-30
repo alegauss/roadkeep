@@ -45,11 +45,11 @@ src/roadkeep/   the package (src layout, importable via pytest pythonpath). Each
   briefing exporting history                         plus what git alone can answer
   linting fixing                            RK14-17  the gate, and the derived-only fixer
   adopting                                  RK18  `init` scaffolds, `adopt` estimates first
-  guarding                                  RK22  the hook: deny the hand-edit, allow on error
+  guarding serving                          RK22/24  the hook, and the four tools over stdio
   cli.py    one subparser per task, exit 0 / 1 gate / 2 usage, and RK38's event line
 action.yml, .pre-commit-hooks.yaml, .github/   the gate's three surfaces (RK17)
-hooks/, skills/, .claude-plugin/   the plugin's three (RK22/RK23), reasoned in
-                tests/test_plugin.py and tests/test_skill.py
+hooks/, skills/, .mcp.json, .claude-plugin/   the plugin's four (RK22/23/24), reasoned in
+                tests/test_plugin.py, tests/test_skill.py and tests/test_serving.py
 tests/          pytest; docs/ROADMAP.md is a fixture, not a mock
 ```
 

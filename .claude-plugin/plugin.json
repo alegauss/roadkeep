@@ -1,6 +1,6 @@
 {
   "name": "roadkeep",
-  "description": "Refuses the hand-edit of a governed roadmap, changelog or rationale file and names the command to call instead, then runs the gate as the turn ends.",
+  "description": "Refuses the hand-edit of a governed roadmap, changelog or rationale file and names the command to call instead, runs the gate as the turn ends, and serves add, ship, pick and lint as MCP tools whose input schema is the format's own.",
   "version": "0.1.0",
   "author": {
     "name": "Alexandre Oliveira"
@@ -13,7 +13,9 @@
     "changelog",
     "markdown",
     "guardrail",
-    "hooks"
+    "hooks",
+    "mcp"
   ],
-  "hooks": "./hooks/hooks.json"
+  "hooks": "./hooks/hooks.json",
+  "mcpServers": "./.mcp.json"
 }

@@ -13,6 +13,10 @@ not on PATH.
 
 ## Writing and shipping
 
+When the `mcp__roadkeep__*` tools are available, prefer them for `add`, `ship`, `pick` and
+`lint`: same engine, same refusals, but the fields arrive as a schema instead of flag names
+typed from memory. Everything else is the CLI, and the guarantees below hold either way.
+
 `roadkeep <add|status|ship|retire|record|section> --help` has the flags. What they guarantee,
 so it costs you no thought: the id, the `→ §<id>` pointer, the status default and every
 `(deps: … ✅)` annotation are **derived, never typed**; a refusal exits 2 naming the length and

@@ -18,6 +18,10 @@ decisions those two files encode live here, next to the assertions that hold the
   is the answer, and that trade is asserted so it stays a decision rather than an oversight.
 * **Every hook has a timeout.** A `PreToolUse` hook is synchronous: an unbounded one turns a
   hung interpreter into a session that cannot write anything at all.
+* **The MCP server is declared too, and starts the same way the hook does.** `.mcp.json`
+  would be auto-discovered at the plugin root, but it is named in the manifest for the reason
+  `hooks` is: a declared path is one a test can check exists. Both surfaces run the installed
+  console script, so the plugin asks for *one* thing to be on PATH rather than two (RK24).
 * **The version is the module's.** This is the *only* second place the number is written
   (`pyproject.toml` reads the module, RK19), because `/plugin` shows a version to whoever
   installed it and "unknown" is not an answer somebody can pin. A duplicate held by a test
@@ -37,6 +41,7 @@ from roadkeep.guarding import STOP_EVENTS, WRITE_TOOLS
 HERE = Path(__file__).resolve().parents[1]
 MANIFEST = HERE / ".claude-plugin" / "plugin.json"
 HOOKS = HERE / "hooks" / "hooks.json"
+MCP = HERE / ".mcp.json"
 
 
 def read(path: Path) -> dict:
@@ -122,3 +127,27 @@ def test_one_command_answers_both_events():
 def test_every_hook_bounds_how_long_it_may_block_the_write():
     for hook in declarations("PreToolUse") + declarations("Stop"):
         assert isinstance(hook.get("timeout"), int) and hook["timeout"] > 0, hook
+
+
+# -- the MCP server it installs (RK24) ---------------------------------------
+
+
+def test_the_manifest_points_at_the_server_it_ships():
+    declared = HERE / read(MANIFEST)["mcpServers"].removeprefix("./")
+    assert declared == MCP and declared.is_file()
+
+
+def test_one_server_named_for_the_package():
+    """The name is a prefix an agent reads: the tools arrive as `mcp__roadkeep__add`. A
+    second server here would be a second name for one engine."""
+    assert list(read(MCP)["mcpServers"]) == ["roadkeep"]
+
+
+def test_the_server_runs_a_command_line_the_cli_accepts():
+    server = read(MCP)["mcpServers"]["roadkeep"]
+    args = build_parser().parse_args(server["args"])
+    assert args.command == "mcp"
+    # The console script the hooks already require, not a second way in: `python -m` or a
+    # `uvx` line would make the plugin depend on the interpreter that happens to be first.
+    assert server["command"] == "roadkeep"
+    assert "env" not in server, "a server that needs configuration is one that fails silently"

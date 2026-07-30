@@ -90,13 +90,6 @@ is a preference.
 
 ## Block F — The plugin
 
-### §RK24 MCP tools
-
-A CLI invoked through `Bash` puts the field names in prose, where they get guessed and
-mistyped. Exposing `add`/`ship`/`pick`/`lint` as MCP tools makes the schema the tool's
-input schema — the arguments are validated by the protocol, and a wrong name is
-refused with the allowed set instead of a usage string.
-
 ### §RK25 Slash commands
 
 `/roadkeep:add`, `/roadkeep:ship`, `/roadkeep:pick`, `/roadkeep:lint` — the same engine,
