@@ -45,8 +45,10 @@ src/roadkeep/   the package (src layout, importable via pytest pythonpath). Each
   briefing exporting history                         plus what git alone can answer
   linting fixing                            RK14-17  the gate, and the derived-only fixer
   adopting                                  RK18  `init` scaffolds, `adopt` estimates first
+  guarding                                  RK22  the hook: deny the hand-edit, allow on error
   cli.py    one subparser per task, exit 0 / 1 gate / 2 usage, and RK38's event line
 action.yml, .pre-commit-hooks.yaml, .github/   the gate's three surfaces (RK17)
+hooks/, .claude-plugin/   the plugin's two (RK22), reasoned in tests/test_plugin.py
 tests/          pytest; docs/ROADMAP.md is a fixture, not a mock
 ```
 
@@ -85,7 +87,8 @@ and the limit and writes nothing; ✅ never reaches the roadmap; `ship` makes it
 alone and the roadmap untouched (RK41). `section add <id> --title "…"` takes prose on **stdin**,
 ≤250 words, filled to 88 columns, under the task's block — a table or list is inserted exactly as
 written. No write invents a block heading. Every write prints one `event <id> Block <x>
-open|empty` line, the whole payload a hook gets (RK38).
+open|empty` line, the whole payload a hook gets (RK38). With the plugin there is no second
+route: `Edit` on a governed file is denied, naming these, and `lint` gates the turn's end (RK22).
 
 That leaves the two rules a schema cannot check:
 
@@ -111,7 +114,7 @@ restate a count in prose**: `… export [--readme|--site|--json]` projects it (R
 `… brief [--block C]` picks and briefs in one call, printing why (RK11/RK29/RK40): 🛠 first, then
 `priority` in `roadkeep.toml`, then the lowest ready id, never one blocked outside. **Scope it to
 finish a block**: only "nothing is open in Block C" means finished — unscoped, the answer may be
-another block's. Order: A model → B authoring → C query → D gate → E adoption → F plugin.
+another block's, and the block order is the headings' own (`… list`).
 
 ## Build and test
 
@@ -125,26 +128,23 @@ another block's. Order: A model → B authoring → C query → D gate → E ado
 
 ## Committing
 
-**One task → one commit, and commit the instant a task is validated** — before starting the next.
-What `ship` wrote goes in the *same* commit as the code, so the docs never describe a state that
-did not ship; a batch of ≥2 tasks is **not** permission to batch: `/loop`, one task per iteration.
-
-Use `run-commit.cmd -m "<conventional-commits title>"` from the repo root (on the system
-PATH). **Always pass `-m`**, keep it ASCII: without it a docs commit's prose about shipped
-work is misread as `feat: implement <feature>`. It stages everything — when the tree holds
-unrelated work, stage the task's paths and call `python -m commitclerk -m …` instead.
+**One task → one commit, the instant it is validated.** What `ship` wrote goes in the *same*
+commit as the code, so the docs never describe a state that did not ship, and a batch of ≥2
+tasks is **not** permission to batch: `/loop`, one task per iteration. Use `run-commit.cmd -m
+"<conventional-commits title>"` from the repo root, **`-m` always** and ASCII — without it a
+docs commit's prose about shipped work is misread as `feat: implement <feature>`. It stages
+everything, so a tree holding unrelated work wants the task's paths staged and
+`python -m commitclerk -m …` instead.
 
 ## Non-goals are binding
 
-[docs/ROADMAP.md](docs/ROADMAP.md) → "Non-goals", which `brief` prints with every task. The
-one a well-meaning suggestion violates: **no model and no prompts inside the tool** — it never
-writes the `symptom` or the rationale, since a generator reintroduces the drift this stops.
+[docs/ROADMAP.md](docs/ROADMAP.md) → "Non-goals", which `brief` prints with every task. The one a
+suggestion keeps violating: **no model, no prompts** (L4) — a generator reintroduces this drift.
 
 ## This file is scaffolding
 
-The format could not enforce itself before Block D nor resist a hand-edit before Block F, so this
-stands in meanwhile. **RK23 replaces it with a skill** — trigger-loaded and identical everywhere;
-the two sections above go with it, a rule in two files being one two files can disagree about.
-
-Budget: `[budgets]` in `roadkeep.toml`, held by `lint` (RK30) — a number stated here is what
-let Shio's reach 186 KB. Loaded every turn, so L5 governs this file first of all.
+Enforcement has caught up — Block D gates the format, RK22 denies the hand-edit — but these
+*rules* still load every turn. **RK23 replaces it with a skill**, trigger-loaded and identical
+everywhere; the two sections above go with it, a rule in two files being one two files can
+disagree about. L5 governs it first: its budget is `[budgets]` in `roadkeep.toml`, held by `lint`
+and not by this sentence (RK30) — the arrangement that let Shio's reach the 186 KB above.

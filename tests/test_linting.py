@@ -95,7 +95,9 @@ def test_this_repository_passes_its_own_gate():
     # the wrong limit rather than a set of wrong lines.
     report = lint(Config.discover(HERE))
     assert report.clean, [str(f) for f in report.findings]
-    assert report.lines > 30 and report.sections > 10
+    # A floor and not a count: the lines only grow, but `ship` deletes the rationale
+    # section, so the number of sections falls as the backlog empties (10 as RK22 landed).
+    assert report.lines > 30 and report.sections > 3
     assert report.checked == (
         "docs/ROADMAP.md",
         "docs/CHANGELOG.md",

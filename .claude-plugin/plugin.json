@@ -1,0 +1,19 @@
+{
+  "name": "roadkeep",
+  "description": "Refuses the hand-edit of a governed roadmap, changelog or rationale file and names the command to call instead, then runs the gate as the turn ends.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Alexandre Oliveira"
+  },
+  "homepage": "https://github.com/alegauss/roadkeep",
+  "repository": "https://github.com/alegauss/roadkeep",
+  "license": "Apache-2.0",
+  "keywords": [
+    "roadmap",
+    "changelog",
+    "markdown",
+    "guardrail",
+    "hooks"
+  ],
+  "hooks": "./hooks/hooks.json"
+}

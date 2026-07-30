@@ -46,6 +46,7 @@ from roadkeep.document import Document, Entry, Reject, RoundTripError
 from roadkeep.exporting import Projection, project, splice
 from roadkeep.fixing import Fix, fix
 from roadkeep.graph import Graph, Leverage
+from roadkeep.guarding import STOP_EVENTS, guard, review
 from roadkeep.history import Commit, HistoryUnavailable, Origin, gaps, origin_of
 from roadkeep.ids import highest, next_id
 from roadkeep.linting import Finding, Report, lint
@@ -532,6 +533,21 @@ def build_parser() -> argparse.ArgumentParser:
     adopt_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     adopt_parser.set_defaults(handler=_adopt)
 
+    guard_parser = subcommands.add_parser(
+        "guard",
+        help="answer a Claude Code hook: deny a hand-edit, or lint as the turn ends",
+        description=(
+            "Read one hook payload on stdin and answer it on stdout (RK22). A "
+            "`PreToolUse` payload naming a governed file is denied with the command to "
+            "call instead; a `Stop` payload runs `lint` and blocks on what it refuses. "
+            "Everything else is answered with silence. Not for a human to call: the "
+            "harness runs it before every write, so it always exits 0 — a non-zero exit "
+            "is read as the hook itself having failed, which would deny nothing and "
+            "report a broken hook on every edit in the session."
+        ),
+    )
+    guard_parser.set_defaults(handler=_guard, tolerates_config_error=True)
+
     return parser
 
 
@@ -559,8 +575,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         config = Config.discover(args.directory)
     except ConfigError as error:
-        print(f"roadkeep: {error}", file=sys.stderr)
-        return EXIT_USAGE
+        if not getattr(args, "tolerates_config_error", False):
+            print(f"roadkeep: {error}", file=sys.stderr)
+            return EXIT_USAGE
+        # `guard` (RK22) is the one command that has to survive a broken config: it runs
+        # before every write in the session, so failing here would turn one typo in
+        # `roadkeep.toml` into a repository nobody can edit. It resolves its own config
+        # from the payload anyway — one hook process serves every project a session sees.
+        config = Config.default(args.directory)
     return args.handler(config, args)
 
 
@@ -1733,6 +1755,53 @@ def _estimate_json(estimate: Estimate) -> dict[str, object]:
         "rejects": [{"reason": r, "count": n} for r, n in estimate.rejects],
         "non_canonical": estimate.non_canonical,
     }
+
+
+def _guard(config: Config, args: argparse.Namespace) -> int:
+    """One command for both hooks: the event is in the payload, not in the flags (RK22).
+
+    Two shapes of answer, because the harness reads two: a `PreToolUse` decision, and a
+    `Stop` block. Neither is ever an *approval* — a governed file is denied and everything
+    else is answered with an empty stdout, since `permissionDecision: "allow"` would grant
+    the write rather than decline to judge it, waving through the permission rules the user
+    set for every other file in the repository.
+
+    The config discovered from `-C` is only this command's fallback: the payload names the
+    directory, and the paths in it may belong to another project entirely.
+    """
+    payload = _payload()
+    root = config.root
+    if payload.get("hook_event_name") in STOP_EVENTS:
+        found = review(payload, root)
+        if found is not None:
+            print(json.dumps({"decision": "block", "reason": str(found)}, indent=2))
+        return EXIT_OK
+    refusal = guard(payload, root)
+    if refusal is not None:
+        print(
+            json.dumps(
+                {
+                    "hookSpecificOutput": {
+                        "hookEventName": "PreToolUse",
+                        "permissionDecision": "deny",
+                        "permissionDecisionReason": str(refusal),
+                    }
+                },
+                indent=2,
+            )
+        )
+    return EXIT_OK
+
+
+def _payload() -> Mapping[str, object]:
+    """The hook payload, or nothing at all — a guard that raises denies every write."""
+    try:
+        data = json.loads(sys.stdin.read() or "{}")
+    except (ValueError, OSError):
+        # `ValueError` covers both halves: a payload that is not JSON, and one that is not
+        # UTF-8 — stdin is strict on the way in (see `main`), and neither is worth a crash.
+        return {}
+    return data if isinstance(data, Mapping) else {}
 
 
 def _force_utf8(stream: object, errors: str = "backslashreplace") -> None:

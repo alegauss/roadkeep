@@ -64,3 +64,5 @@
 - ✅ **RK20** **Shio's 92 active lines average 142 words against a one-sentence rule** — migrating a real backlog is the only test of whether the schema fits a live project.
 
 ## Block F — The Claude Code plugin
+
+- ✅ **RK22** **An agent can hand-edit the file the CLI is supposed to own** — A `PreToolUse` hook denies `Edit`/`Write` on a governed file and answers with the command to call, and a `Stop` hook runs `lint` so a `Bash` bypass is caught before the turn ends.

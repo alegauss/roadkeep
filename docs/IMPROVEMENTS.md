@@ -90,15 +90,6 @@ is a preference.
 
 ## Block F — The plugin
 
-### §RK22 Deny the hand-edit
-
-With Markdown as the store, an agent can bypass the entire schema with one `Edit` call
-— and will, because `Edit` is cheaper than learning a CLI. A `PreToolUse` hook that
-denies `Edit`/`Write` on the governed paths and returns the command to call instead is
-the only enforcement point an agent cannot route around, and it is what makes L1 true
-rather than aspirational. Pair it with a `Stop` hook running `lint`, so a bypass via
-`Bash` is caught before the turn ends.
-
 ### §RK23 A skill, not a preamble
 
 Format rules pasted into a project's always-loaded instructions cost tokens on every

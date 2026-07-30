@@ -121,8 +121,8 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 9 |
 | D — The gate | 0 | 9 |
 | E — Adoption | 1 | 3 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 5 | 0 |
-| **Total** | 6 | 40 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 4 | 1 |
+| **Total** | 5 | 41 |
 
 **Next ready:**
 
@@ -134,8 +134,8 @@ came from — because an answer an agent cannot audit gets verified by reading t
 which is the cost the command existed to remove.
 
 Still open, and where to look:
-[docs/ROADMAP.md](https://github.com/alegauss/roadkeep/blob/main/docs/ROADMAP.md). The hook that
-denies an agent the hand-edit is Block F.
+[docs/ROADMAP.md](https://github.com/alegauss/roadkeep/blob/main/docs/ROADMAP.md). What is left of
+Block F is the packaging around the hook below: a skill, the commands, the MCP tools.
 
 ## Install
 
@@ -190,6 +190,45 @@ budget moves out of its prose and into the configuration, in both units a reader
 [budgets]
 "agents.md" = { lines = 150, bytes = 11000 }   # this repository's own, held by `lint`
 ```
+
+## Run it as a Claude Code plugin
+
+The store is Markdown (L2), so an agent can bypass the entire format with one `Edit` — and
+will, because `Edit` is cheaper than reading a `--help`. A gate at the commit catches that a
+whole turn of prose too late: the tokens are already spent, and the report asks for a
+deletion. So the plugin installs the one enforcement point an agent cannot route around.
+
+```jsonc
+// hooks/hooks.json, shipped in this repository — `roadkeep guard` answers both events
+"PreToolUse": [{ "matcher": "Edit|MultiEdit|NotebookEdit|Write", … }]   // deny, and say what to call
+"Stop":       [{ … }]                                                  // `lint`, before the turn ends
+```
+
+A write to a file some project's `roadkeep.toml` declares is **denied with the command that
+does it properly**, flags included — a refusal that names no alternative is one an agent
+routes around, and one that names the command makes the denial the cheapest path forward:
+
+```
+Edit refused: docs/ROADMAP.md is this project's roadmap, and roadkeep owns its writes.
+…
+Call instead, from the project root:
+  roadkeep add --block <x> --symptom "…" --why "…"  a new task line, fields refused at input
+  roadkeep status <id> <marker>                     a marker, and only in this file
+  roadkeep ship <id>                                shipped: ledger entry, line gone, section dropped
+```
+
+Three properties are load-bearing, and each is a test rather than an intention. The config is
+discovered **from the file** and not from the working directory, so one hook process answers
+correctly for every repository a session touches. **Silence is the allow** — `deny` is the only
+decision it ever returns, because `allow` in this protocol *grants* the write and would wave
+through the permission rules you set for every file the tool has no opinion about. And **every
+failure allows**: a broken `roadkeep.toml`, a payload that is not JSON, a tool input with no
+path. A guard that denies on its own errors turns one typo into a repository nobody can edit,
+and the gate is still there at the commit.
+
+`Bash` is deliberately not matched: `sed -i` on the roadmap is a real bypass, and matching every
+shell command to catch it taxes every command in the session. The `Stop` hook runs `lint`
+instead — so the bypass is caught before the turn ends, by the agent that can still fix it.
 
 ## Non-goals
 
