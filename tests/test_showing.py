@@ -152,6 +152,14 @@ def test_the_paths_come_from_the_line_and_the_section(tmp_path):
         ("bare docs/specs/unquoted.md does not", []),
         # Quoted twice, reported once, in order of appearance.
         ("`a/b.md` then `a/b.md`", ["a/b.md"]),
+        # Slash-shaped and still not one file: a class of them. Disk cannot settle any of
+        # these, so there is no question to ask — four of RK46's eight false findings.
+        ("`blueprints/*/files/package.json` is a glob", []),
+        ("`monaco-editor/esm/vs/…` is elided", []),
+        ("`template/widget/<name>.html` is a placeholder", []),
+        ("`@graphiql/react` is an npm package", []),
+        # A leading `@` only: `node_modules/@types/node` names a directory, not a scope.
+        ("`docs/@notes/kept.md`", ["docs/@notes/kept.md"]),
     ],
 )
 def test_what_counts_as_a_path(text, expected):

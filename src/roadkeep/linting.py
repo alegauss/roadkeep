@@ -786,29 +786,37 @@ def _unowned(section: Section, file: str, *, shipped: bool) -> Finding:
 
 
 def _paths(config: Config, documents: dict[str, Document]) -> list[Finding]:
-    """Paths a task *line* claims, resolved against disk (RK15).
+    """Paths a *shipped* line claims, resolved against disk (RK15, narrowed by RK46).
 
-    Lines only, and the exemption is the point: an unshipped design's whole job is to
-    describe a file that does not exist yet — §RK26 names `.claude-plugin/marketplace.json`
-    and is right to — so resolving a section's prose would fail every honest forward
-    reference. A line is a claim about the repository as it is now.
+    Two exemptions, and both turn on which file is being read rather than on the token.
+
+    Lines only: an unshipped design's whole job is to describe a file that does not exist
+    yet — §RK26 names `.claude-plugin/marketplace.json` and is right to — so resolving a
+    section's prose would fail every honest forward reference.
+
+    And the ledger only, which is the same reasoning applied one file up. A roadmap
+    describes work that has **not happened**, so the paths in it are disproportionately
+    the artefacts its tasks exist to write; naming one is what a task line is for. Shio
+    had eight such findings and all eight were false. A shipped line is the opposite
+    claim — the work is done, so a path it names and the repository lacks is a real
+    defect, and the only one here worth exit 1.
     """
-    out: list[Finding] = []
-    for role, document in documents.items():
-        file = config.relative(config.path(role))
-        for entry in document.entries:
-            out.extend(
-                Finding(
-                    "path.missing",
-                    file,
-                    f"names {referenced.path}, which is not in the repository",
-                    entry.lineno,
-                    entry.task.id,
-                )
-                for referenced in paths_in(entry.raw, config.root)
-                if not referenced.exists
-            )
-    return out
+    document = documents.get("changelog")
+    if document is None:
+        return []
+    file = config.relative(config.path("changelog"))
+    return [
+        Finding(
+            "path.missing",
+            file,
+            f"names {referenced.path}, which is not in the repository",
+            entry.lineno,
+            entry.task.id,
+        )
+        for entry in document.entries
+        for referenced in paths_in(entry.raw, config.root)
+        if not referenced.exists
+    ]
 
 
 def _cycles(backlog: Backlog, file: str) -> list[Finding]:

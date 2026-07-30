@@ -28,8 +28,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK46** (deps: RK20 ✅) **All 8 paths reported missing on Shio are globs, placeholders or files the task will create** — A roadmap names unshipped work, so its paths are the ones not there yet: resolve the claim in the ledger only, never for a token carrying a glob, an ellipsis or a placeholder. → §RK46
-
 ## Block E — Adoption
 
 - 💭 **RK21** (deps: RK20 ✅) **A standard adopted by one project is a preference** — roll out to Turing, Dumont and Cursarei, each with its own `roadmap.toml`. → §RK21

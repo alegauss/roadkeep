@@ -18,6 +18,10 @@ Three things it derives rather than trusts:
   token is slash-shaped and therefore an explicit claim about the repository. That rule
   is what separates `docs/specs/show.md` (missing, worth saying) from `Config.load`
   (a dotted name in prose, and not this tool's business to report as a broken file).
+  Slash-shaped is not sufficient on its own: a glob, an elision, a placeholder or an npm
+  scope names a *class* of file rather than one, so it is dropped before disk is asked
+  (RK46) — asking would only ever answer "missing", and eight such answers on Shio were
+  eight false ones.
 """
 
 from __future__ import annotations
@@ -35,6 +39,11 @@ from roadkeep.sections import Section, find
 #: deliberate acts of quoting, unlike a bare word that happens to contain a dot.
 _QUOTED = re.compile(r"`([^`\s]+)`|\]\(([^)\s]+)\)")
 _SCHEME = re.compile(r"^[a-z][a-z0-9+.-]*:")
+#: A quoted token that stands for a *class* of file, not a file: a glob, an elision, a
+#: placeholder, an npm scope. Each is slash-shaped, so each would otherwise read as a
+#: claim the repository fails — `blueprints/*/files/package.json`, `monaco-editor/esm/vs/…`,
+#: `template/widget/<name>.html`, `@graphiql/react`, four of the eight RK46 measured.
+_UNRESOLVABLE = re.compile(r"[*…<]|^@")
 
 
 class NoSuchTask(KeyError):
@@ -140,6 +149,9 @@ def paths_in(text: str, root: Path) -> tuple[Referenced, ...]:
             # path is wrong on every other machine (which `roadkeep.toml` also refuses).
             # Both are slash-shaped, so without this they read as claims about a file
             # that is missing — four of them on one line, in RK25's own text.
+            continue
+        if _UNRESOLVABLE.search(token):
+            # Nothing on disk can settle it either way, so there is no question to ask.
             continue
         exists = (root / token).exists() if not Path(token).is_absolute() else False
         # Either the repository really has it, or the token is slash-shaped and so an

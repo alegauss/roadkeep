@@ -80,25 +80,6 @@ written, not authorship.
 
 ## Block D — The gate
 
-### §RK46 A path a roadmap names does not exist yet
-
-Measured on Shio: 8 `path.missing` findings, 8 of them false.
-`blueprints/*/files/package.json` is a glob, `monaco-editor/esm/vs/…` is elided,
-`@graphiql/react` is an npm package, and `openviglet/bootstrap-site` is a repository
-slug; `template/widget/<name>.html` carries a placeholder; `target/` is a build
-directory; and `import/post-types.json` is the file its task exists to create. Not one
-is a claim that a file should be there and is not.
-
-The category error is the file being read. A roadmap describes work that has **not
-happened**, so the paths in it are disproportionately the ones that cannot resolve yet —
-naming the artefact you intend to write is what a task line is for. A changelog is the
-opposite: it describes work that shipped, so a path it names and the repository lacks is
-a real defect and worth exit 1.
-
-So the check moves to the ledger, and the extractor learns what is not a path claim at
-all: a token holding `*`, `…`, `<`, or a leading `@`. What remains for the roadmap is
-nothing — which is the right amount, because there is no defect there to find.
-
 ## Block E — Adoption
 
 ### §RK21 Rollout

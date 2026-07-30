@@ -394,22 +394,48 @@ def test_no_prose_file_means_no_pointer_to_resolve(tmp_path):
     assert lint(project(tmp_path, improvements=None, config=bare)).clean
 
 
-# -- the paths a line claims (RK15) ------------------------------------------
+# -- the paths a line claims (RK15, narrowed to the ledger by RK46) ----------
 
 
-def test_a_path_a_line_names_and_the_repository_lacks_fails(tmp_path):
-    claiming = CLEAN.replace(
-        "Because of a reason.", "Because `docs/specs/absent.md` says so."
+def test_a_path_a_shipped_line_names_and_the_repository_lacks_fails(tmp_path):
+    claiming = LEDGER.replace(
+        "Because it was done.", "Because `docs/specs/absent.md` says so."
     )
-    report = lint(project(tmp_path, roadmap=claiming))
+    report = lint(project(tmp_path, changelog=claiming))
     missing = next(f for f in report.findings if f.code == "path.missing")
-    assert missing.id == "RK1" and "docs/specs/absent.md" in missing.message
+    assert missing.id == "RK5" and "docs/specs/absent.md" in missing.message
+    assert missing.file == "CHANGELOG.md"
+
+
+def test_a_path_the_roadmap_names_is_the_file_the_task_will_write(tmp_path):
+    # Shio: 8 findings, 8 false — every one an artefact its task exists to create. A
+    # roadmap describes work that has not happened, so absence there is not a defect.
+    claiming = CLEAN.replace(
+        "Because of a reason.", "Because it will write `import/post-types.json`."
+    )
+    assert lint(project(tmp_path, roadmap=claiming)).clean
 
 
 def test_a_slash_command_is_not_a_missing_path(tmp_path):
     # RK25's line names four of them; each is slash-shaped and none is a file here.
-    commands = CLEAN.replace("Because of a reason.", "Because `/roadkeep:add` exists.")
-    assert lint(project(tmp_path, roadmap=commands)).clean
+    commands = LEDGER.replace("Because it was done.", "Because `/roadkeep:add` exists.")
+    assert lint(project(tmp_path, changelog=commands)).clean
+
+
+@pytest.mark.parametrize(
+    "token",
+    [
+        "blueprints/*/files/package.json",
+        "monaco-editor/esm/vs/…",
+        "template/widget/<name>.html",
+        "@graphiql/react",
+    ],
+)
+def test_a_token_naming_a_class_of_file_is_not_a_claim_even_when_shipped(tmp_path, token):
+    # The ledger is the file where absence *is* a defect, and these still are not: no
+    # state of the repository makes any of them resolve, so none of them is falsifiable.
+    claiming = LEDGER.replace("Because it was done.", f"Because `{token}` says so.")
+    assert lint(project(tmp_path, changelog=claiming)).clean
 
 
 def test_a_section_may_name_a_file_that_does_not_exist_yet(tmp_path):

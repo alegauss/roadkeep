@@ -55,6 +55,7 @@
 - ✅ **RK34** **An invisible character reports a visible error about something else** — an invisible codepoint is reported as its own name, class and column and nothing else on that line is judged, so the diagnosis stops naming the consequence.
 - ✅ **RK35** **A dep on a range or a block hides how much work it actually names** — a dep on a block or a range is reported with the open tasks it expands to, at exit zero, so the abbreviation stops costing whoever counts deps to judge a line.
 - ✅ **RK36** **A rationale section can gain a requirement the line carrying its status never mentions** — a section edited while the line carrying its status was not is reported from the diff at exit zero, so a requirement written only into the reasoning is seen before it leaves with it.
+- ✅ **RK46** **All 8 paths reported missing on Shio are globs, placeholders or files the task will create** — A roadmap names unshipped work, so its paths are the ones not there yet: resolve the claim in the ledger only, never for a token carrying a glob, an ellipsis or a placeholder.
 
 ## Block E — Adoption
 
