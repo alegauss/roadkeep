@@ -24,7 +24,14 @@ from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.document import RoundTripError
 from roadkeep.schema import SchemaError
-from roadkeep.shipping import AlreadyShipped, NotOpen, ship
+from roadkeep.shipping import (
+    AlreadyShipped,
+    Closure,
+    NoRestatement,
+    NotOpen,
+    retire,
+    ship,
+)
 
 ROADMAP = "docs/ROADMAP.md"
 CHANGELOG = "docs/CHANGELOG.md"
@@ -267,20 +274,81 @@ def test_a_task_already_in_the_ledger_says_so(tmp_path):
     assert "already in the changelog" in str(raised.value)
 
 
-def test_shipping_twice_is_refused_by_the_ledger(tmp_path):
-    config = project(tmp_path)
-    ship(config, "RK1").save()
-    # The roadmap line is gone, so the second call is refused by NotOpen; a ledger that
-    # has the id while the roadmap still does is the state AlreadyShipped names.
-    hand_edited = project(
+def half_shipped(tmp_path, marker: str = "✅"):
+    """The state adoption produces: the entry moved to the ledger by hand, the line left
+    behind wearing the marker a roadmap may not carry. Shio's `- ✅ **SH22** …` is this, and it
+    was four findings with no door (RK62)."""
+    return project(
         tmp_path,
-        roadmap=BACKLOG,
+        roadmap=BACKLOG.replace(RK1, RK1.replace("📋", marker, 1)),
         changelog=LEDGER.replace(
             "## Block A — The model\n", f"## Block A — The model\n\n{SHIPPED_RK1}\n"
         ),
     )
+
+
+def test_shipping_twice_is_refused_by_the_ledger(tmp_path):
+    config = project(tmp_path)
+    ship(config, "RK1").save()
+    # The roadmap line is gone, so the second call is refused by NotOpen — there is no line
+    # to close and nothing to record.
+    with pytest.raises(NotOpen):
+        ship(config, "RK1")
+
+
+# -- the line the ledger already recorded (RK62) ------------------------------
+
+
+def test_a_line_whose_id_the_ledger_holds_is_closed_and_the_ledger_is_untouched(tmp_path):
+    config = half_shipped(tmp_path)
+    before = read(config, CHANGELOG)
+    closure = ship(config, "RK1")
+    assert isinstance(closure, Closure)
+    assert closure.marker == "✅" and closure.recorded.task.id == "RK1"
+    closure.save()
+    # The one edit that was missing, and not a second entry: the ledger is byte-identical,
+    # and the roadmap no longer carries the line.
+    assert read(config, CHANGELOG) == before
+    assert "RK1" not in config.document("roadmap").by_id()
+
+
+def test_closing_drops_the_section_and_re_derives_the_dependents(tmp_path):
+    config = half_shipped(tmp_path)
+    closure = ship(config, "RK1")
+    closure.save()
+    assert closure.dropped is not None and closure.dropped.anchor == "RK1"
+    assert "§RK1" not in read(config, IMPROVEMENTS)
+    # RK2 and RK3 wait on RK1, and both annotations were written when RK1 was open.
+    assert closure.refreshed == ("RK2", "RK3")
+
+
+def test_a_restated_why_is_refused_where_the_ledger_is_not_written(tmp_path):
+    config = half_shipped(tmp_path)
+    before = files(config)
+    with pytest.raises(NoRestatement) as raised:
+        ship(config, "RK1", why="Which the ledger already says.")
+    assert "the ledger is not written here" in str(raised.value)
+    assert files(config) == before
+
+
+def test_an_open_line_whose_id_the_ledger_mentions_is_not_closed(tmp_path):
+    # The condition that is easy to miss, and cost a real deletion before it was added:
+    # Shio's `⏳ SH238` names the half that has not shipped while the ledger records the half
+    # that did. That is `id.two-files` for `lint` to report — not a line for `ship` to delete.
+    config = half_shipped(tmp_path, marker="⏳")
+    before = files(config)
     with pytest.raises(AlreadyShipped) as raised:
-        ship(hand_edited, "RK1")
+        ship(config, "RK1")
+    assert "disagree with itself" in str(raised.value)
+    assert files(config) == before
+
+
+def test_retiring_a_line_the_ledger_recorded_is_still_refused(tmp_path):
+    # Closing is not retiring: the work shipped, and a 🗑 entry beside the ✅ would be the
+    # ledger disagreeing with itself about how the line left.
+    config = half_shipped(tmp_path)
+    with pytest.raises(AlreadyShipped) as raised:
+        retire(config, "RK1", reason="Nobody will do it.")
     assert "disagree with itself" in str(raised.value)
 
 

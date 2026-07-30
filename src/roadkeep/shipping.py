@@ -49,7 +49,7 @@ from dataclasses import dataclass, replace
 from roadkeep.authoring import Insertion, place, refuse_reuse
 from roadkeep.backlog import Backlog, NotOpen
 from roadkeep.config import Config
-from roadkeep.document import Document, Heading, blank
+from roadkeep.document import Document, Entry, Heading, blank
 from roadkeep.ids import next_id
 from roadkeep.markers import refresh
 from roadkeep.schema import Task
@@ -59,7 +59,9 @@ from roadkeep.sections import drop as drop_section
 __all__ = [
     "AlreadyRecorded",
     "AlreadyShipped",
+    "Closure",
     "Departure",
+    "NoRestatement",
     "NoSuchReplacement",
     "NotOpen",
     "Record",
@@ -92,6 +94,22 @@ class AlreadyRecorded(ValueError):
 #: better at a `ship` call site: an id can now be retired as well as shipped, and both are
 #: the same refusal and the same transaction.
 AlreadyShipped = AlreadyRecorded
+
+
+class NoRestatement(ValueError):
+    """`--why` where the ledger is not written (RK62).
+
+    On the closing path the entry already exists and this command deliberately leaves it alone,
+    so the sentence has nothing to restate. Refused rather than dropped: a flag silently
+    ignored is a flag the caller believes took effect.
+    """
+
+    def __init__(self, task_id: str, recorded: Entry) -> None:
+        super().__init__(
+            f"{task_id} is already recorded as {recorded.task.status} at line "
+            f"{recorded.lineno}, so this call only closes its roadmap line: --why restates "
+            f"the ledger's sentence, and the ledger is not written here"
+        )
 
 
 class NoSuchReplacement(KeyError):
@@ -145,6 +163,44 @@ Shipment = Departure
 
 
 @dataclass(frozen=True, slots=True)
+class Closure:
+    """The rest of a transaction that never completed (RK62).
+
+    A roadmap line whose id the ledger *already* records has nowhere to go: `ship` cannot write
+    a second entry, `retire` would claim a departure that did not happen, and the hook denies
+    the hand-edit. So closing the line is its own outcome — the same edits a departure makes
+    minus the one that is already done, and the ledger is opened only to be read.
+
+    Not a :class:`Departure` with a None: the field that would be None is the entry, which is
+    the whole subject of that shape. Here the entry is the *evidence*, and it is somebody
+    else's write.
+    """
+
+    task_id: str
+    #: The roadmap as this write leaves it: without the line, dependents re-annotated.
+    roadmap: Document
+    removed_from: int
+    #: The ledger entry that already existed, and its marker — ✅ or 🗑, because a reader has
+    #: to know which door this id went through before its line was left behind.
+    recorded: Entry
+    improvements: Document | None = None
+    dropped: Section | None = None
+    kept: str | None = None
+    refreshed: tuple[str, ...] = ()
+    dependents: tuple[str, ...] = ()
+
+    @property
+    def marker(self) -> str:
+        return self.recorded.task.status
+
+    def save(self) -> None:
+        """Write the roadmap and the prose file. The ledger is never opened for writing."""
+        self.roadmap.save()
+        if self.improvements is not None:
+            self.improvements.save()
+
+
+@dataclass(frozen=True, slots=True)
 class Record:
     """A ledger entry that had no roadmap line to leave (RK41).
 
@@ -172,9 +228,24 @@ class Record:
             self.roadmap.save()
 
 
-def ship(config: Config, task_id: str, *, why: str | None = None) -> Departure:
-    """Move one task from the backlog to the ledger. Validates all three edits first."""
-    return _depart(config, task_id, config.schema.shipped_marker, why)
+def ship(config: Config, task_id: str, *, why: str | None = None) -> Departure | Closure:
+    """Move one task from the backlog to the ledger. Validates all three edits first.
+
+    Or, when the ledger already records the id, close the roadmap line alone (RK62): that is
+    not a second entry, it is the rest of a transaction that never completed — which is the
+    shape adoption produces, because a project that moved a task to its changelog by hand and
+    left a pointer behind was following its own convention.
+
+    `why` is refused on that path rather than ignored: it restates the *ledger's* sentence, and
+    the ledger is not written here. A flag silently dropped is a flag the caller believes took
+    effect.
+    """
+    recorded = _already_recorded(config, task_id)
+    if recorded is None:
+        return _depart(config, task_id, config.schema.shipped_marker, why)
+    if why is not None:
+        raise NoRestatement(task_id, recorded)
+    return _close(config, task_id, recorded)
 
 
 def retire(
@@ -295,6 +366,52 @@ def _depart(
         kept=kept,
         refreshed=derived.changed,
         marker=marker,
+        dependents=tuple(
+            e.task.id for e in derived.document.entries if task_id in e.task.dep_ids
+        ),
+    )
+
+
+def _already_recorded(config: Config, task_id: str) -> Entry | None:
+    """The ledger entry this roadmap line was left behind by — three conditions, not two.
+
+    A ledger entry and a roadmap line for one id is *two* different situations, and only one of
+    them is a leftover. The roadmap line has to carry a marker the roadmap may not carry —
+    ✅ or 🗑 — because that is what says the line was already treated as gone. A line with a
+    legal open marker is a live task whose id the ledger also mentions: Shio's `⏳ SH238` names
+    the half that has not shipped, and closing it deleted a real task and a 224-word section
+    until this condition was added. That case stays :class:`AlreadyRecorded`, and `lint`'s
+    `id.two-files` is what reports it, because deciding whose id it is belongs to the author.
+    """
+    if not config.has("changelog") or not config.path("changelog").is_file():
+        return None
+    open_line = config.document("roadmap").by_id().get(task_id)
+    if open_line is None:
+        return None
+    schema = config.schema
+    if open_line.task.status not in (schema.shipped_marker, schema.retired_marker):
+        return None
+    return config.document("changelog").by_id().get(task_id)
+
+
+def _close(config: Config, task_id: str, recorded: Entry) -> Closure:
+    """Everything a departure does except the entry, which is already on disk (RK62)."""
+    roadmap = config.document("roadmap")
+    entry = roadmap.by_id()[task_id]
+    remaining = _remove_entry(roadmap, entry.index)
+    improvements, dropped, kept = _drop_section(config, entry.task.ref)
+    derived = refresh(
+        Backlog(config=config, roadmap=remaining, ledger=config.document("changelog"))
+    )
+    return Closure(
+        task_id=task_id,
+        roadmap=derived.document,
+        removed_from=entry.lineno,
+        recorded=recorded,
+        improvements=improvements,
+        dropped=dropped,
+        kept=kept,
+        refreshed=derived.changed,
         dependents=tuple(
             e.task.id for e in derived.document.entries if task_id in e.task.dep_ids
         ),

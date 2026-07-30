@@ -57,7 +57,7 @@ from roadkeep.sections import add as add_section
 from roadkeep.sections import drop as drop_section
 from roadkeep.sections import find as find_section
 from roadkeep.serving import serve
-from roadkeep.shipping import record, retire, ship
+from roadkeep.shipping import Closure, record, retire, ship
 from roadkeep.showing import View, show
 
 EXIT_OK = 0
@@ -835,6 +835,12 @@ def _ship(config: Config, args: argparse.Namespace) -> int:
     except (RoundTripError, KeyError, ValueError, OSError) as error:
         return _refused(error)
 
+    if isinstance(shipment, Closure):
+        # The ledger already holds the entry, so there is none to report (RK62): what this
+        # call did is remove the line that was left behind, and the evidence is where the
+        # entry already was.
+        return _closed(config, shipment, args)
+
     roadmap = config.relative(config.path("roadmap"))
     ledger = config.relative(config.path("changelog"))
     block = shipment.ledger.entry.task.block
@@ -880,6 +886,53 @@ def _ship(config: Config, args: argparse.Namespace) -> int:
         print(f"  kept     nothing dropped: {shipment.kept}")
     if shipment.refreshed:
         print(f"  derived  {', '.join(shipment.refreshed)} (dep annotations re-derived)")
+    _print_event(event, "  ")
+    return EXIT_OK
+
+
+def _closed(config: Config, closure: Closure, args: argparse.Namespace) -> int:
+    """A roadmap line closed against an entry the ledger already had (RK62)."""
+    roadmap = config.relative(config.path("roadmap"))
+    ledger = config.relative(config.path("changelog"))
+    event = _event(closure.task_id, closure.recorded.task.block, closure.roadmap)
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "id": closure.task_id,
+                    "closed": {"file": roadmap, "removed": closure.removed_from},
+                    "recorded": {
+                        "file": ledger,
+                        "line": closure.recorded.lineno,
+                        "marker": closure.marker,
+                        "written": False,
+                    },
+                    "improvements": {
+                        "dropped": None
+                        if closure.dropped is None
+                        else {"anchor": closure.dropped.anchor, "title": closure.dropped.title},
+                        "kept": closure.kept,
+                    },
+                    "refreshed": list(closure.refreshed),
+                    "event": event,
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+
+    print(
+        f"{closure.task_id} closed  {roadmap}:{closure.removed_from} removed, "
+        f"already {closure.marker} in {ledger}:{closure.recorded.lineno}"
+    )
+    print("  ledger   untouched: the entry was already there")
+    if closure.dropped is not None:
+        print(
+            f"  dropped  {closure.dropped} from "
+            f"{config.relative(config.path('improvements'))}"
+        )
+    if closure.refreshed:
+        print(f"  derived  {', '.join(closure.refreshed)} (dep annotations re-derived)")
     _print_event(event, "  ")
     return EXIT_OK
 

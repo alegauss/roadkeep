@@ -72,6 +72,7 @@
 - ✅ **RK49** **A follow-up nested under its parent line is invisible to every count and every pick** — An indented task line parses and keeps its indentation verbatim, so Shio's four nested follow-ups are counted, picked and never handed out twice.
 - ✅ **RK54** **Deleting a section one line at a time validates half-deleted states nobody wrote** — A span is deleted in one validated edit, so a section quoting a fenced example is never half-removed and re-parsed as a file nobody wrote.
 - ✅ **RK55** **A MIME type, an i18n key and a list of method names are reported as missing files** — A path claim is reported only when it has an extension and its directory exists, which takes Shio's 61 findings to the 1 naming a renamed file.
+- ✅ **RK62** **A roadmap line for work already in the ledger has no door out of the roadmap** — ship closes a roadmap line whose id the ledger already records and whose marker the roadmap may not carry, leaving the entry untouched.
 
 ## Block F — The Claude Code plugin
 
