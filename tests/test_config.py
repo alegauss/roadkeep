@@ -56,11 +56,17 @@ def test_its_own_documents_validate_under_its_own_config():
 
 def test_its_own_instruction_files_declare_their_budget_here(tmp_path):
     # RK30: this repository's `agents.md` stated its budget in its own prose, which is the
-    # arrangement that let Shio's reach 186 KB. The number lives in the config now.
+    # arrangement that let Shio's reach 186 KB. The number lives in the config now — and it is
+    # checked here as *headroom over the reading*, not as a literal: a figure repeated in a
+    # test is the duplicate the move existed to remove, and a budget left far above the file
+    # it governs is room the prose grows back into, which is what RK23's trim had to reclaim.
     config = Config.discover(HERE)
     declared = {config.relative(b.path): b for b in config.budgets}
     assert set(declared) == {"agents.md", "CLAUDE.md"}
-    assert declared["agents.md"].lines == 150 and declared["agents.md"].bytes == 11000
+    for name, budget in declared.items():
+        raw = (HERE / name).read_bytes()
+        assert 0 <= budget.lines - len(raw.splitlines()) <= 25, name
+        assert 0 <= budget.bytes - len(raw) <= 2000, name
 
 
 def test_a_project_without_a_strategy_file_declares_none_rather_than_an_empty_one():

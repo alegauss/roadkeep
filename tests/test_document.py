@@ -48,10 +48,10 @@ FOREIGN = [
 
 # Lower bounds, not counts: shipping a task moves a line between these two files every
 # commit, and a test that has to be edited by every commit gets edited without being read.
-# The roadmap's bound is the slack one because it *shrinks* as work ships; the ledger's is
-# the one worth raising, because that file only grows. The roadmap's was 10 until RK41
-# shipped and left 9 — a bound that progress can cross was the bound being read as a count.
-OWN = [(ROADMAP, Schema(), 5), (CHANGELOG, Schema().as_ledger(), 30)]
+# So the roadmap's is the weakest statement that still fails on an empty parse — its finished
+# state is zero lines, and every floor above one is a count that progress crosses (10 fell to
+# RK41, then 5 to RK23). The ledger's is the bound worth raising, because that file only grows.
+OWN = [(ROADMAP, Schema(), 1), (CHANGELOG, Schema().as_ledger(), 40)]
 
 LINE = (
     f"- {DESIGNED} **RK9** (deps: RK5 {SHIPPED}) **A symptom** "

@@ -90,13 +90,6 @@ is a preference.
 
 ## Block F — The plugin
 
-### §RK23 A skill, not a preamble
-
-Format rules pasted into a project's always-loaded instructions cost tokens on every
-turn including the turns that touch no roadmap — the exact failure that made
-`agents.md` 186 KB. A skill with trigger phrases loads the rules when a governed file
-is in play and costs nothing otherwise.
-
 ### §RK24 MCP tools
 
 A CLI invoked through `Bash` puts the field names in prose, where they get guessed and

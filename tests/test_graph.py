@@ -197,6 +197,13 @@ def test_this_backlog_has_no_cycle_and_a_measurable_gap():
         ((g.leverage(task).count, task) for task in g.edges), reverse=True
     )
     top, least = ranked[0], ranked[-1]
+    if top[0] == 0:
+        # The measurement is exhausted, not broken: RK23 was the last open task any other
+        # open task waited on, so nothing left blocks anything. A flat graph is still a
+        # statement worth failing on — every open line is ready, which is what `pick` reads,
+        # and a cycle or an unsatisfied dep would break it.
+        assert all(not g.blockers(task) for task in g.edges)
+        return
     # §RK13's measurement, now derived: one task sits in several blocker sets and the tail
     # sits in none — the gap no reading of the file makes visible. Asserted as a gap and
     # not a threshold: shipping the most-blocking task collapses the top count (RK14 went

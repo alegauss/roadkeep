@@ -121,8 +121,8 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 9 |
 | D — The gate | 0 | 9 |
 | E — Adoption | 1 | 3 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 4 | 1 |
-| **Total** | 5 | 41 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 3 | 2 |
+| **Total** | 4 | 42 |
 
 **Next ready:**
 
@@ -135,7 +135,7 @@ which is the cost the command existed to remove.
 
 Still open, and where to look:
 [docs/ROADMAP.md](https://github.com/alegauss/roadkeep/blob/main/docs/ROADMAP.md). What is left of
-Block F is the packaging around the hook below: a skill, the commands, the MCP tools.
+Block F is the packaging around the hook below: the commands and the MCP tools.
 
 ## Install
 
@@ -188,7 +188,7 @@ budget moves out of its prose and into the configuration, in both units a reader
 
 ```toml
 [budgets]
-"agents.md" = { lines = 150, bytes = 11000 }   # this repository's own, held by `lint`
+"agents.md" = { lines = 125, bytes = 8400 }   # this repository's own, held by `lint`
 ```
 
 ## Run it as a Claude Code plugin
@@ -229,6 +229,14 @@ and the gate is still there at the commit.
 `Bash` is deliberately not matched: `sed -i` on the roadmap is a real bypass, and matching every
 shell command to catch it taxes every command in the session. The `Stop` hook runs `lint`
 instead — so the bypass is caught before the turn ends, by the agent that can still fix it.
+
+The plugin's other half is the answer the denial assumes exists: a **skill**,
+`skills/roadkeep/SKILL.md`, holding which command to call, what it derives, the two rules a
+schema cannot check, and how work is picked. It is a skill and not a paragraph in the
+project's instruction file because instructions are loaded on *every* turn, including the ones
+that touch no roadmap — the budget above exists because that is how the 186 KB happened. The
+skill is read when a governed file is in play and costs nothing otherwise, and it ships with
+the plugin, so the standard is the same text in every project rather than a copy per repo.
 
 ## Non-goals
 

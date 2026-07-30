@@ -66,3 +66,4 @@
 ## Block F — The Claude Code plugin
 
 - ✅ **RK22** **An agent can hand-edit the file the CLI is supposed to own** — A `PreToolUse` hook denies `Edit`/`Write` on a governed file and answers with the command to call, and a `Stop` hook runs `lint` so a `Bash` bypass is caught before the turn ends.
+- ✅ **RK23** **Rules resident every turn spend the budget they exist to protect** — package the format as a skill with trigger phrases so it loads when a governed file is in play, and not before.
