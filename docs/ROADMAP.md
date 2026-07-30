@@ -22,16 +22,22 @@
 
 ## Block A — The model (a task is data before it is a line)
 
+- 📋 **RK43** (deps: RK20 ✅) **A changelog whose lines carry no status marker parses as zero entries and zero rejects** — Widen the marker-slot test so a bullet leading with a bold id is rejected with a reason, and let a project declare a ledger that carries no marker at all. → §RK43
+- 📋 **RK44** (deps: RK20 ✅) **Under ref_scheme = outline a heading numbers itself, so 151 headings yield zero sections** — Read the anchor per scheme: an outline document writes the number bare and puts the sigil only on the pointer, so requiring it on the heading reads one scheme into the other. → §RK44
+
 ## Block B — Authoring (insert, never hand-edit)
+
+- 📋 **RK45** (deps: RK20 ✅) **A section belonging to no task lands after the last block, where it reads as that block's rationale** — An outline anchor states its own place, so derive the position from it instead of appending — which is the mistake this module already refuses one case over. → §RK45
 
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
 
+- 📋 **RK46** (deps: RK20 ✅) **All 8 paths reported missing on Shio are globs, placeholders or files the task will create** — A roadmap names unshipped work, so its paths are the ones not there yet: resolve the claim in the ledger only, never for a token carrying a glob, an ellipsis or a placeholder. → §RK46
+
 ## Block E — Adoption
 
-- 💭 **RK20** (deps: RK16 ✅, RK19 ✅) **Shio's 92 active lines average 142 words against a one-sentence rule** — migrating a real backlog is the only test of whether the schema fits a live project. → §RK20
-- 💭 **RK21** (deps: RK20) **A standard adopted by one project is a preference** — roll out to Turing, Dumont and Cursarei, each with its own `roadmap.toml`. → §RK21
+- 💭 **RK21** (deps: RK20 ✅) **A standard adopted by one project is a preference** — roll out to Turing, Dumont and Cursarei, each with its own `roadmap.toml`. → §RK21
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 

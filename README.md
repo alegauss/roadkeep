@@ -116,17 +116,17 @@ called unbuilt were already in the ledger.
 
 | Block | Open | Shipped |
 | --- | --- | --- |
-| A — The model (a task is data before it is a line) | 0 | 8 |
-| B — Authoring (insert, never hand-edit) | 0 | 7 |
+| A — The model (a task is data before it is a line) | 2 | 8 |
+| B — Authoring (insert, never hand-edit) | 1 | 7 |
 | C — Query (consult without reading the file) | 0 | 9 |
-| D — The gate | 0 | 8 |
-| E — Adoption | 2 | 2 |
+| D — The gate | 1 | 8 |
+| E — Adoption | 1 | 3 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 5 | 0 |
-| **Total** | 7 | 34 |
+| **Total** | 10 | 35 |
 
 **Next ready:**
 
-- 💭 **RK20** (deps: RK16 ✅, RK19 ✅) **Shio's 92 active lines average 142 words against a one-sentence rule** — migrating a real backlog is the only test of whether the schema fits a live project. → §RK20
+- 💭 **RK21** (deps: RK20 ✅) **A standard adopted by one project is a preference** — roll out to Turing, Dumont and Cursarei, each with its own `roadmap.toml`. → §RK21
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

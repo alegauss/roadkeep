@@ -48,19 +48,110 @@ task; `stats` replaces a grep whose misses are silent; `show` replaces joining t
 files by hand. Those three are most of what an agent currently spends a roadmap
 session doing.
 
+### §0.4 The limits, measured against a live corpus (RK20)
+
+§0.1 asked whether the limits are right or the lines are. Shio's 78 active lines answer
+it, and the answer is split in a way that only a real backlog could have produced:
+
+| Field | Limit | p50 | p90 | max | Over |
+|---|---|---|---|---|---|
+| `symptom` | 120 | 58 | 86 | 111 | **0 of 78** |
+| `why` | 200 | 481 | 900 | 1251 | **70 of 78** |
+
+The same authors, in the same lines, met one limit every single time and missed the other
+89% of the time. So 89% is not evidence that 200 is too small — `symptom` is the control,
+and it shows compliance is available. The difference is that "what does not work" is one
+clause by construction and a `why` has no natural end, which is L1 stated as a
+measurement: the field whose scope is unbounded is the one that needs the bound at the
+write path.
+
+And the migration is smaller than §RK20 assumed. **74 of the 78 pointers resolve, and none
+dangle**; 67 of the 70 over-length lines point at a section that already exists and already
+makes the same argument — compared line-against-section on SH295 and SH309, the `why` is a
+recompression of the paragraph, same examples and all. The rationale is not homeless. The
+line is a second copy of it, so the edit is compression against a text that is already
+written, not authorship.
+
+## Block A — The model
+
+### §RK43 The ledger that reads as prose
+
+Measured on Shio: 920 changelog lines, 0 entries parsed, and 0 rejects — the silent miss
+the reject list exists to make impossible. The cause is narrow. Shio writes `- **SH125**
+— **Title.** …` with no status marker, so `_read_bullet` finds no marker;
+`_wears_the_marker_slot` then declines to reject it because the first token carries
+alphanumerics, which is the guard that keeps `- See **RK5** for the design.` out of the
+report. The guard is right and the consequence is not: a bullet whose whole shape is a
+ledger line is not prose, and reading it as prose cost 100 false `deps.unknown`
+findings, because every dep on shipped work resolved against an empty ledger.
+
+Two halves, and the second decides whether Shio can adopt at all. First, the line must
+be visible: a bullet matching the ledger grammar except for the marker is a `Reject`
+with a reason, never silence. Second, `[markers]` has to be able to say a ledger carries
+none — the marker is derivable from the file a line sits in, and a changelog where every
+entry is shipped states that once in the schema rather than 920 times.
+
+### §RK44 An outline numbers its own headings
+
+`anchored` reads a heading only when its text starts with `§`, which is how this
+repository writes one: `ref_scheme = "id"` derives the anchor from the task id, and the
+sigil is what marks it as an anchor rather than a word. An outline document does the
+opposite — the number is the heading's own numbering, written bare (`### XVI.47 Nothing
+announces the drift`), and the sigil appears only on the pointer that refers to it.
+Measured on Shio: 151 headings, 0 sections, and therefore 74 pointers reported as
+resolving to nothing when every one of them resolves.
+
+That is the worst available failure for RK15, whose whole argument is that a pointer to
+nothing reads exactly like a design that exists. Here the gate inverts it and reports a
+design that exists as nothing, 74 times — which is how a gate teaches its reader to skip
+a category. The anchor has to be read per scheme instead of by one spelling.
+
+It also unblocks a measurement `adopt` cannot make today: with sections readable, an
+estimate can separate a line whose rationale already has a home from one whose rationale
+must still be written, and those are different migrations. On Shio, 67 of the 70
+over-length lines are the first kind.
+
 ## Block B — Authoring
+
+### §RK45 Where a section with no task belongs
+
+`_where` returns `len(document.lines)` for a section whose anchor names no task, and the
+docstring one paragraph above it explains why that is wrong for the neighbouring case: a
+Block A section appended after Block F's "reads as Block F's, which is the same mistake
+`add` refuses one file over". The preface sections are exactly that case. Writing §0.4
+with `section add` put it after §RK26, under `## Block F — The plugin`, where the only
+signal that it is not Block F's rationale is the anchor itself.
+
+An outline anchor already states its place: §0.4 follows §0.3, and §RK34.1 belongs
+inside §RK34. So the position is derivable from the anchor rather than a fallback — find
+the longest anchored prefix and file after its subtree, and refuse when there is none,
+which is the same refusal `_where` already makes for an undeclared block. Appending is
+the one answer that is always plausible and frequently wrong.
 
 ## Block C — Query
 
 ## Block D — The gate
 
+### §RK46 A path a roadmap names does not exist yet
+
+Measured on Shio: 8 `path.missing` findings, 8 of them false.
+`blueprints/*/files/package.json` is a glob, `monaco-editor/esm/vs/…` is elided,
+`@graphiql/react` is an npm package, and `openviglet/bootstrap-site` is a repository
+slug; `template/widget/<name>.html` carries a placeholder; `target/` is a build
+directory; and `import/post-types.json` is the file its task exists to create. Not one
+is a claim that a file should be there and is not.
+
+The category error is the file being read. A roadmap describes work that has **not
+happened**, so the paths in it are disproportionately the ones that cannot resolve yet —
+naming the artefact you intend to write is what a task line is for. A changelog is the
+opposite: it describes work that shipped, so a path it names and the repository lacks is
+a real defect and worth exit 1.
+
+So the check moves to the ledger, and the extractor learns what is not a path claim at
+all: a token holding `*`, `…`, `<`, or a leading `@`. What remains for the roadmap is
+nothing — which is the right amount, because there is no defect there to find.
+
 ## Block E — Adoption
-
-### §RK20 Shio as the first real corpus
-
-Shio's 92 lines are the test of whether the limits are right: if a meaningful fraction
-cannot be expressed within them, the schema is wrong and not the lines. Migrating is
-also how the six worst offenders finally get their rationale moved to where it belongs.
 
 ### §RK21 Rollout
 
