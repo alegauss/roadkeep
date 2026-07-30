@@ -314,6 +314,10 @@ def _as_recorded(task: Task, marker: str, why: str | None) -> Task:
         deps=(),
         ref=None,
         why=why if why is not None else task.why,
+        # And at column zero (RK49): the nesting said which roadmap line this one belonged
+        # under, and that line is not in the ledger — an indented entry would be nested
+        # beneath whatever entry happened to precede it.
+        indent="",
     )
 
 

@@ -66,6 +66,9 @@
 - ✅ **RK51** **A link written relative to its own file is read as a path the repository lacks** — A token now resolves against the file's own directory as well as the root, so Shio's file-relative ledger links fall from 886 findings to 61.
 - ✅ **RK50** **One budget judges a roadmap line and a ledger of history nobody will rewrite** — A limit is declared per role in [limits.<role>], so Shio's ledger keeps its own 4300 and its length findings fall from 600 to 134.
 - ✅ **RK52** **A shipped line is told to move its second sentence to a section that was deleted on ship** — The two prose rules are per role in [rules.<role>], read by lint and by the write path alike, so Shio's findings fall from 629 to 347.
+- ✅ **RK53** **An example line inside a fenced code block is read as a task and counted** — The parser tracks the fence, so a quoted example is text: the section documenting this change is one the tool refused to write before it.
+- ✅ **RK49** **A follow-up nested under its parent line is invisible to every count and every pick** — An indented task line parses and keeps its indentation verbatim, so Shio's four nested follow-ups are counted, picked and never handed out twice.
+- ✅ **RK54** **Deleting a section one line at a time validates half-deleted states nobody wrote** — A span is deleted in one validated edit, so a section quoting a fenced example is never half-removed and re-parsed as a file nobody wrote.
 
 ## Block F — The Claude Code plugin
 

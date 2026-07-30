@@ -88,29 +88,4 @@ Turing, Dumont and Cursarei, each with its own `roadkeep.toml`. Four projects sh
 one format is what makes cross-project context transferable; one project with a format
 is a preference.
 
-### §RK49 An indented task line
-
-Shio nests four live tasks under the line that shipped their parent:
-
-```
-- ✅ **SH22** (deps: SH2) **Multi-tenancy / SaaS** — shipped → CHANGELOG Block F. Follow-ups remain:
-  - 💭 **SH44** (deps: SH22) **Superadmin impersonation** — … → §VI.1
-```
-
-The parser refuses the children with "indented: a task line starts at column zero", so
-SH44 through SH47 exist in the file, carry ids, deps and pointers, and are invisible to
-`list`, `stats`, `pick`, `brief` and the graph. An id that nothing counts is also an id
-`next-id` would hand out twice.
-
-Column zero was a deliberate choice: it keeps a task line distinguishable from the prose
-in a nested bullet. But the four lines above are not prose — they are task lines, and
-they parse completely once the indentation is allowed. So the rule becomes: leading
-whitespace is permitted and **kept verbatim**, which L3 requires anyway, and everything
-after it is judged exactly as it is at column zero.
-
-What this does not do is legalise the parent. A `✅` in a roadmap is still refused (it
-belongs in the ledger), and that refusal is what tells Shio the grouping line is the
-thing to change. Nesting a task is a shape the format can carry; using a shipped marker
-as a heading is not.
-
 ## Block F — The plugin

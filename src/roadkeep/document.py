@@ -70,6 +70,8 @@ def _task_re(marker: bool, symptom: bool) -> re.Pattern[str]:
 _HEADING_RE = re.compile(r"^(?P<hashes>#{1,6}) (?P<text>.*)$")
 _BLOCK_LABEL_RE = re.compile(r"^Block (?P<label>[A-Za-z0-9]+)\b")
 _BULLET_RE = re.compile(r"^(?P<indent>\s*)[-*+] (?P<rest>.*)$")
+#: A fenced code block's delimiter, indented or not — a fence inside a list item is (RK53).
+_FENCE_RE = re.compile(r"^\s*(?P<marks>`{3,}|~{3,})")
 #: A bullet that puts *something* where a marker goes and a bold id after it — how an
 #: undeclared marker is caught instead of read as prose (see `_wears_the_marker_slot`).
 _MARKER_SLOT_RE = re.compile(r"^\S+ \*\*[A-Za-z0-9]+\*\*")
@@ -180,8 +182,18 @@ class Document:
         headings: list[Heading] = []
         block: str | None = None
 
+        fence: str | None = None
         for number, raw in enumerate(lines, start=1):
             body = raw.rstrip("\r\n")
+            opened = _FENCE_RE.match(body)
+            if opened is not None:
+                fence = _fenced(fence, opened.group("marks"))
+                continue
+            if fence is not None:
+                # Inside a fence nothing is a list item and nothing is a heading. A quoted
+                # example is what a rationale section is for, and reading it as a task gave
+                # the file an id nothing wrote and a line that could not round-trip.
+                continue
             heading = _HEADING_RE.match(body)
             if heading:
                 label = _block_label(heading.group("text"))
@@ -290,9 +302,19 @@ class Document:
         return self._reparse(lines)
 
     def remove_line(self, index: int) -> Document:
+        return self.remove_lines(index, index + 1)
+
+    def remove_lines(self, start: int, stop: int) -> Document:
+        """Delete ``[start, stop)`` in one edit — validated once, re-parsed once (RK54).
+
+        One edit and not a loop, because every intermediate state of a loop is validated as
+        if it were the finished file: deleting a section whose prose quotes a fenced example
+        removes the fence's opening line first, and the quoted task line inside it is then
+        briefly outside any fence, parses, and refuses the rest of the deletion.
+        """
         self.ensure_writable()
         lines = list(self.lines)
-        del lines[index]
+        del lines[start:stop]
         return self._reparse(lines)
 
     def replace_task(self, entry: Entry, task: Task) -> Document:
@@ -429,6 +451,20 @@ def _marker_slot(rest: str, token: str, schema: Schema) -> tuple[bool, str | Non
     return False, None
 
 
+def _fenced(open_marks: str | None, marks: str) -> str | None:
+    """The fence still open after this delimiter line, or None (RK53).
+
+    A fence is closed only by its own character and at least as many of them, so ``` inside
+    a ~~~ block is text — which is how a renderer reads it, and the only way a section that
+    quotes one fence inside another can be read at all.
+    """
+    if open_marks is None:
+        return marks
+    if marks[0] == open_marks[0] and len(marks) >= len(open_marks):
+        return None
+    return open_marks
+
+
 def _block_label(text: str) -> str | None:
     match = _BLOCK_LABEL_RE.match(text)
     return match.group("label") if match else None
@@ -463,12 +499,14 @@ def _read_bullet(body: str, schema: Schema, block: str) -> Task | str | None:
         return wrong
     if not claimed:
         return None
-    if bullet.group("indent"):
-        return "indented: a task line starts at column zero"
-    if not body.startswith("- "):
+    indent = bullet.group("indent")
+    if not body.lstrip().startswith("- "):
         return "bullet must be '- ': a task line is one dash and one space"
 
-    head, ref = _split_ref(body)
+    # Judged exactly as it would be at column zero (RK49), and the indentation is carried
+    # on the task so `render` puts it back: Shio nests four live tasks under a shipped
+    # parent, and rejecting them made 4 ids invisible to every count and to `next-id`.
+    head, ref = _split_ref(body[len(indent) :])
     match = _task_re(schema.marker_field, schema.symptom_field).match(head)
     if not match:
         return _diagnose(head, schema)
@@ -495,6 +533,7 @@ def _read_bullet(body: str, schema: Schema, block: str) -> Task | str | None:
         why=match.group("why"),
         deps=deps,
         ref=ref,
+        indent=indent,
     )
 
 

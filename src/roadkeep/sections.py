@@ -171,9 +171,9 @@ def drop(document: Document, anchor: str) -> tuple[Document, Section]:
     if span is None or section is None:
         raise NoSuchSection(anchor, str(document.path or "the document"))
     start, end, _ = span
-    for _ in range(end - start):
-        document = document.remove_line(start)
-    return document, section
+    # One edit, not one per line (RK54): a loop validates every half-deleted state, and a
+    # section quoting a fenced example is briefly a file whose fence has no opening line.
+    return document.remove_lines(start, end), section
 
 
 def add(

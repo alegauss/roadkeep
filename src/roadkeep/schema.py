@@ -180,6 +180,11 @@ class Task:
     why: str
     deps: tuple[Dep, ...] = ()
     ref: str | None = None
+    #: The whitespace the line starts with, kept verbatim (RK49). Part of the line and so
+    #: part of the model: Shio nests four live tasks under the line that shipped their
+    #: parent, and a render that dropped two spaces would stop 4 files from round-tripping.
+    #: Never invented — no write sets it, so a nested line stays nested and nothing else is.
+    indent: str = ""
 
     def __post_init__(self) -> None:
         # Accept plain ids for convenience; keep the field a tuple of Dep so
@@ -319,7 +324,12 @@ class Schema:
         """
         # The marker is omitted, never emptied: `- **T1** …` is the shape both live
         # ledgers already write, and `-  **T1** …` would be a third one nobody has.
-        head = f"- {task.status} **{task.id}**" if self.marker_field else f"- **{task.id}**"
+        # The indentation is the line's, not the format's (RK49): read off the file and
+        # written back unchanged, so a nested follow-up is a task instead of prose.
+        dash = f"{task.indent}-"
+        head = (
+            f"{dash} {task.status} **{task.id}**" if self.marker_field else f"{dash} **{task.id}**"
+        )
         if self.deps_field:
             deps = ", ".join(d.render() for d in task.deps) or NO_DEPS
             head += f" (deps: {deps})"

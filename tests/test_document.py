@@ -327,13 +327,77 @@ def test_prose_bullets_are_not_tasks_and_not_rejects():
     assert document.entries == () and document.rejects == ()
 
 
+# -- a nested task, and a quoted one (RK49, RK53) ---------------------------
+
+
+def test_an_indented_task_line_is_a_task_and_keeps_its_indentation():
+    # Shio nests four live tasks under the line that shipped their parent, so rejecting an
+    # indented line made SH44–SH47 invisible to every count, to `pick`, and to `next-id`.
+    line = f"  - {IDEA} **RK9** (deps: —) **A symptom** — a reason. → §RK9"
+    (entry,) = parse_in_block(line).entries
+    assert entry.task.id == "RK9" and entry.task.indent == "  "
+    # The indentation is part of the line, so `render` puts it back byte for byte (L3).
+    assert Schema().render(entry.task) == line
+
+
+def test_the_ledger_entry_a_nested_line_ships_into_starts_at_column_zero():
+    from roadkeep.shipping import _as_recorded
+
+    nested = Task(id="RK9", status=IDEA, block="A", symptom="A symptom", why="a reason.", indent="  ")
+    assert _as_recorded(nested, SHIPPED, None).indent == ""
+
+
+@pytest.mark.parametrize("fence", ["```", "~~~", "```toml", "   ```"])
+def test_a_task_line_inside_a_fence_is_quoted_text_and_not_a_task(fence):
+    document = parse_in_block(
+        fence,
+        f"- {IDEA} **RK9** (deps: —) **A symptom** — a reason. → §RK9",
+        fence.strip()[:3],
+    )
+    assert document.entries == () and document.rejects == ()
+
+
+def test_a_fence_is_closed_only_by_its_own_kind():
+    # ``` inside a ~~~ block is text, which is what a renderer does with it — and the only
+    # way a section quoting one fence inside another can be read at all.
+    document = parse_in_block(
+        "~~~",
+        "```",
+        f"- {IDEA} **RK9** (deps: —) **A symptom** — a reason. → §RK9",
+        "```",
+        "~~~",
+    )
+    assert document.entries == ()
+
+
+def test_a_line_after_the_fence_closes_is_read_again():
+    document = parse_in_block(
+        "```",
+        f"- {IDEA} **RK1** (deps: —) **Quoted** — a reason. → §RK1",
+        "```",
+        f"- {IDEA} **RK9** (deps: —) **Real** — a reason. → §RK9",
+    )
+    assert [e.task.id for e in document.entries] == ["RK9"]
+
+
+def test_a_heading_inside_a_fence_does_not_close_the_block():
+    # Otherwise a `## Block` in a quoted example would file every following task under it.
+    document = parse_in_block(
+        "```",
+        "## Block Z — quoted, not declared",
+        "```",
+        f"- {IDEA} **RK9** (deps: —) **A symptom** — a reason. → §RK9",
+    )
+    (entry,) = document.entries
+    assert entry.task.block == "A"
+
+
 # -- rejects name their reason ---------------------------------------------
 
 
 @pytest.mark.parametrize(
     ("line", "expected"),
     [
-        (f"  - {IDEA} **RK9** (deps: —) **A symptom** — a reason. → §RK9", "indented"),
         (f"- {IDEA} RK9 (deps: —) **A symptom** — a reason.", "bold"),
         (f"- {IDEA} **RK9** (deps: —) **A symptom** - a reason.", "between the symptom"),
         (f"* {IDEA} **RK9** (deps: —) **A symptom** — a reason.", "one dash"),

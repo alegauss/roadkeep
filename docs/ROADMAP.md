@@ -31,7 +31,6 @@
 ## Block E — Adoption
 
 - 💭 **RK21** (deps: RK20 ✅) **A standard adopted by one project is a preference** — roll out to Turing, Dumont and Cursarei, each with its own `roadmap.toml`. → §RK21
-- 📋 **RK49** (deps: RK20 ✅) **A follow-up nested under its parent line is invisible to every count and every pick** — Parse an indented task line and keep its indentation verbatim, which is how Shio spells four live tasks under a shipped parent. → §RK49
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
