@@ -814,7 +814,9 @@ def _paths(config: Config, documents: dict[str, Document]) -> list[Finding]:
             entry.task.id,
         )
         for entry in document.entries
-        for referenced in paths_in(entry.raw, config.root)
+        # `near` is the ledger's own directory (RK51): a link written the way Markdown
+        # reads it points at a file that is there, and 886 of Shio's are written that way.
+        for referenced in paths_in(entry.raw, config.root, near=config.path("changelog").parent)
         if not referenced.exists
     ]
 

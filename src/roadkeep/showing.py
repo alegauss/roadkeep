@@ -97,7 +97,9 @@ def show(config: Config, task_id: str) -> View:
         section=section,
         section_file=section_file,
         section_absence=absence,
-        paths=paths_in(text, config.root),
+        # Both bases, for the reason RK51 gives: the line and its section are read from a
+        # file, and a link relative to that file names an artefact the repository has.
+        paths=paths_in(text, config.root, near=config.path(role).parent),
     )
 
 
@@ -133,11 +135,17 @@ def _rationale(
     return None, where, f"§{anchor} is not in {where}: the pointer resolves to nothing"
 
 
-def paths_in(text: str, root: Path) -> tuple[Referenced, ...]:
+def paths_in(text: str, root: Path, *, near: Path | None = None) -> tuple[Referenced, ...]:
     """Quoted paths, deduplicated, in order of appearance.
 
     Public because RK29 joins the same list onto a wider answer, and a second
     implementation would disagree about what counts as a path.
+
+    `near` is the directory the text was read from, and a token resolves against it as
+    well as against `root` (RK51). Both conventions are live: this repository writes
+    root-relative tokens in its own lines, Shio writes the file-relative ones Markdown
+    itself reads — 886 of them — and the question being asked is whether the repository
+    has the artefact, not whether the link would render from where it is written.
     """
     out: dict[str, Referenced] = {}
     for match in _QUOTED.finditer(text):
@@ -153,9 +161,18 @@ def paths_in(text: str, root: Path) -> tuple[Referenced, ...]:
         if _UNRESOLVABLE.search(token):
             # Nothing on disk can settle it either way, so there is no question to ask.
             continue
-        exists = (root / token).exists() if not Path(token).is_absolute() else False
+        exists = _resolves(token, root, near)
         # Either the repository really has it, or the token is slash-shaped and so an
         # explicit claim about the repository — a missing one of those is worth saying.
         if exists or "/" in token:
             out.setdefault(token, Referenced(path=token, exists=exists))
     return tuple(out.values())
+
+
+def _resolves(token: str, root: Path, near: Path | None) -> bool:
+    """Whether the repository has this artefact, under either convention (RK51)."""
+    if Path(token).is_absolute():
+        # Refused in a config and meaningless in a line: it is a claim about one machine.
+        return False
+    bases = (root,) if near is None else (near, root)
+    return any((base / token).exists() for base in bases)

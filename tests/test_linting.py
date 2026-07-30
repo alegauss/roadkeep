@@ -409,6 +409,43 @@ def test_a_path_a_shipped_line_names_and_the_repository_lacks_fails(tmp_path):
     assert missing.file == "CHANGELOG.md"
 
 
+def in_docs(tmp_path: Path, ledger: str) -> Config:
+    """A project whose ledger sits one directory down, which is where `..` starts to mean
+    something: at the root the two bases RK51 compares are the same directory."""
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "docs/CHANGELOG.md"\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "docs").mkdir()
+    for name, body in {"ROADMAP.md": CLEAN, "docs/CHANGELOG.md": ledger}.items():
+        with (tmp_path / name).open("w", encoding="utf-8", newline="") as handle:
+            handle.write(body)
+    return Config.discover(tmp_path)
+
+
+def test_a_link_relative_to_the_ledgers_own_directory_resolves(tmp_path):
+    # 886 of Shio's ledger links are written the way Markdown reads them — from the file —
+    # and every one of them was reported missing (RK51). The question is whether the
+    # repository has the artefact, not whether the link renders from the root.
+    (tmp_path / "src").mkdir()
+    (tmp_path / "src" / "Service.java").write_text("//", encoding="utf-8")
+    config = in_docs(
+        tmp_path,
+        LEDGER.replace("Because it was done.", "Because [S](../src/Service.java) does it."),
+    )
+    assert config.document("changelog").entries, "the fixture has to have a ledger to read"
+    assert [f for f in lint(config).findings if f.code == "path.missing"] == []
+
+
+def test_a_relative_link_that_resolves_under_no_base_is_still_reported(tmp_path):
+    config = in_docs(
+        tmp_path,
+        LEDGER.replace("Because it was done.", "Because [g](../src/Gone.java) did it."),
+    )
+    missing = next(f for f in lint(config).findings if f.code == "path.missing")
+    assert "../src/Gone.java" in missing.message
+
+
 def test_a_path_the_roadmap_names_is_the_file_the_task_will_write(tmp_path):
     # Shio: 8 findings, 8 false — every one an artefact its task exists to create. A
     # roadmap describes work that has not happened, so absence there is not a defect.
