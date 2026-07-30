@@ -74,26 +74,6 @@ written, not authorship.
 
 ## Block A — The model
 
-### §RK44 An outline numbers its own headings
-
-`anchored` reads a heading only when its text starts with `§`, which is how this
-repository writes one: `ref_scheme = "id"` derives the anchor from the task id, and the
-sigil is what marks it as an anchor rather than a word. An outline document does the
-opposite — the number is the heading's own numbering, written bare (`### XVI.47 Nothing
-announces the drift`), and the sigil appears only on the pointer that refers to it.
-Measured on Shio: 151 headings, 0 sections, and therefore 74 pointers reported as
-resolving to nothing when every one of them resolves.
-
-That is the worst available failure for RK15, whose whole argument is that a pointer to
-nothing reads exactly like a design that exists. Here the gate inverts it and reports a
-design that exists as nothing, 74 times — which is how a gate teaches its reader to skip
-a category. The anchor has to be read per scheme instead of by one spelling.
-
-It also unblocks a measurement `adopt` cannot make today: with sections readable, an
-estimate can separate a line whose rationale already has a home from one whose rationale
-must still be written, and those are different migrations. On Shio, 67 of the 70
-over-length lines are the first kind.
-
 ## Block B — Authoring
 
 ### §RK45 Where a section with no task belongs

@@ -22,8 +22,6 @@
 
 ## Block A — The model (a task is data before it is a line)
 
-- 📋 **RK44** (deps: RK20 ✅) **Under ref_scheme = outline a heading numbers itself, so 151 headings yield zero sections** — Read the anchor per scheme: an outline document writes the number bare and puts the sigil only on the pointer, so requiring it on the heading reads one scheme into the other. → §RK44
-
 ## Block B — Authoring (insert, never hand-edit)
 
 - 📋 **RK45** (deps: RK20 ✅) **A section belonging to no task lands after the last block, where it reads as that block's rationale** — An outline anchor states its own place, so derive the position from it instead of appending — which is the mistake this module already refuses one case over. → §RK45

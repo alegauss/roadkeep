@@ -51,7 +51,7 @@ from roadkeep.ids import highest, next_id
 from roadkeep.linting import Finding, Report, lint
 from roadkeep.picking import Choice, pick
 from roadkeep.schema import SchemaError
-from roadkeep.sections import Section
+from roadkeep.sections import Section, heading_of
 from roadkeep.sections import add as add_section
 from roadkeep.sections import drop as drop_section
 from roadkeep.sections import find as find_section
@@ -665,7 +665,7 @@ def _section_show(config: Config, args: argparse.Namespace) -> int:
     if args.json:
         print(json.dumps({**_section_json(section, where), "body": section.body}, indent=2))
         return EXIT_OK
-    print(f"{'#' * section.level} §{section.anchor} {section.title}")
+    print(heading_of(config.schema, section))
     print()
     print(section.body)
     return EXIT_OK
@@ -1191,7 +1191,7 @@ def _brief(config: Config, args: argparse.Namespace) -> int:
         print(f"  not      {non_goal}")
     if view.section is not None:
         print()
-        print(f"{'#' * view.section.level} §{view.section.anchor} {view.section.title}")
+        print(heading_of(config.schema, view.section))
         print()
         print(view.section.body)
     else:
@@ -1262,7 +1262,7 @@ def _show(config: Config, args: argparse.Namespace) -> int:
         print(f"  path     {referenced.path}{'' if referenced.exists else '  (missing)'}")
     if section is not None and not args.no_body:
         print()
-        print(f"{'#' * section.level} §{section.anchor} {section.title}")
+        print(heading_of(config.schema, section))
         print()
         print(section.body)
     return EXIT_OK

@@ -58,10 +58,13 @@ NO_DEPS = EM_DASH
 
 _PREFIX_RE = re.compile(r"^[A-Z][A-Z0-9]{0,7}$")
 _BLOCK_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9.\-]{0,15}$")
-# A section, with any depth of subsection: "I.1", "XIV.8.7", and bare "XLV" —
-# Turing points at nine whole sections, and a pointer that resolves is the rule
-# (RK15), not the presence of a dot. [0-9] and not \d: an id is ASCII.
-_REF_RE = re.compile(r"^[0-9IVXLCDM]+(?:\.[0-9]+)*$")
+#: A section, with any depth of subsection: "I.1", "XIV.8.7", and bare "XLV" —
+#: Turing points at nine whole sections, and a pointer that resolves is the rule
+#: (RK15), not the presence of a dot. [0-9] and not \d: an id is ASCII.
+#: Public because it reads the *heading* too (RK44): under the outline scheme a heading
+#: numbers itself and the number is what announces it, so one pattern has to answer both
+#: ends of the pointer or the two disagree about which sections exist.
+OUTLINE_ANCHOR_RE = re.compile(r"^[0-9IVXLCDM]+(?:\.[0-9]+)*$")
 
 # A terminator followed by whitespace, i.e. a sentence that has a successor. A
 # trailing period never matches because the field is measured stripped.
@@ -554,7 +557,7 @@ class Schema:
                     )
                 ]
             return []
-        if not _REF_RE.match(task.ref):
+        if not OUTLINE_ANCHOR_RE.match(task.ref):
             return [Violation("ref.format", "ref", f"not an <x.y> anchor: {task.ref!r}")]
         return []
 

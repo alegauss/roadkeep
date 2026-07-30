@@ -23,8 +23,8 @@ import pytest
 
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
-from roadkeep.document import UnknownBlock
-from roadkeep.schema import SchemaError
+from roadkeep.document import Document, UnknownBlock
+from roadkeep.schema import Schema, SchemaError
 from roadkeep.sections import (
     NoSuchSection,
     SectionExists,
@@ -73,10 +73,16 @@ Which belongs to the section above.
 
 
 def project(
-    tmp_path: Path, *, roadmap: str = BACKLOG, improvements: str = RATIONALE, extra: str = ""
+    tmp_path: Path,
+    *,
+    roadmap: str = BACKLOG,
+    improvements: str = RATIONALE,
+    extra: str = "",
+    top: str = "",
 ) -> Config:
+    """A project on disk. ``extra`` follows `[files]`; ``top`` precedes it (a bare key)."""
     (tmp_path / "roadkeep.toml").write_text(
-        f'prefix = "RK"\n[files]\nroadmap = "{ROADMAP}"\n'
+        f'prefix = "RK"\n{top}[files]\nroadmap = "{ROADMAP}"\n'
         f'improvements = "{IMPROVEMENTS}"\n{extra}',
         encoding="utf-8",
     )
@@ -128,6 +134,117 @@ def test_an_anchor_that_is_a_prefix_of_another_is_not_a_match(tmp_path):
     config = project(tmp_path)
     assert find(config.document("improvements"), "RK1").anchor == "RK1"
     assert find(config.document("improvements"), "RK") is None
+
+
+# -- the anchor is read per scheme (RK44) ------------------------------------
+
+#: An outline document numbers its own headings and puts the § on the pointer alone. The
+#: shapes are the live ones: Shio's terminating period, Turing's depth, a container with
+#: no number at all, and a `.10` that must not be claimed by `.1`.
+OUTLINE_RATIONALE = """# Improvements
+
+## Table of contents
+
+## VIII. The Agent Gateway
+
+The part that is not numbered by anybody.
+
+### VIII.1 MCP server host (SH75)
+
+The reasoning the line has no room for.
+
+### VIII.10 Batch and apply
+
+A tenth one, which §VIII.1 must not claim.
+
+#### XIV.8.7 The deepest one
+
+Three segments, which Turing writes.
+"""
+
+
+def outline(tmp_path: Path) -> Config:
+    return project(
+        tmp_path,
+        improvements=OUTLINE_RATIONALE,
+        top='ref_scheme = "outline"\n',
+        roadmap=BACKLOG.replace("§RK1", "§VIII.1")
+        .replace("§RK2", "§XIV.8.7")
+        .replace("§RK3", "§VIII.10"),
+    )
+
+
+def test_an_outline_document_numbers_its_headings_and_they_are_still_sections(tmp_path):
+    # Measured on Shio: 151 headings, 0 sections, and 74 pointers reported as resolving to
+    # nothing against a file that answers every one of them — RK15's argument inverted.
+    sections = {s.anchor: s for s in anchored(outline(tmp_path).document("improvements"))}
+    assert list(sections) == ["VIII", "VIII.1", "VIII.10", "XIV.8.7"]
+    assert sections["VIII"].title == "The Agent Gateway"  # the period is not the anchor
+    assert sections["VIII.1"].title == "MCP server host (SH75)"
+
+
+def test_an_outline_heading_with_no_number_is_prose_and_not_a_section(tmp_path):
+    config = outline(tmp_path)
+    assert find(config.document("improvements"), "Table") is None
+    assert {s.anchor for s in anchored(config.document("improvements"))} == {
+        "VIII",
+        "VIII.1",
+        "VIII.10",
+        "XIV.8.7",
+    }
+
+
+def test_an_outline_anchor_does_not_claim_the_one_it_prefixes(tmp_path):
+    config = outline(tmp_path)
+    assert find(config.document("improvements"), "VIII.1").title.startswith("MCP")
+    assert find(config.document("improvements"), "VIII").level == 2
+
+
+def test_the_sigil_is_still_required_on_a_heading_under_the_id_scheme(tmp_path):
+    # The two schemes are read differently and neither is read into the other: under `id`
+    # the anchor is a task id, so the § is what tells `RK1` from a word.
+    config = project(tmp_path, improvements=RATIONALE.replace("### §RK1", "### RK1"))
+    assert find(config.document("improvements"), "RK1") is None
+
+
+def test_a_section_written_under_the_outline_scheme_is_read_back(tmp_path):
+    config = outline(tmp_path)
+    document, section = add(
+        config, "improvements", "VIII.2", "Agent manifest", "The reasoning, written once."
+    )
+    document.save()
+    # Written bare, because that is how the scheme spells a heading — and a heading this
+    # tool writes that it cannot read back is the defect RK44 closes, not a new one.
+    assert "### VIII.2 Agent manifest" in read(config)
+    assert section.anchor == "VIII.2"
+    assert find(config.document("improvements"), "VIII.2") is not None
+
+
+def test_an_anchor_the_outline_scheme_cannot_number_is_refused(tmp_path):
+    config = outline(tmp_path)
+    with pytest.raises(SchemaError, match="outline anchor"):
+        add(config, "improvements", "RK9", "A design", "The reasoning.")
+
+
+#: Shio, whose 151 headings and 74 unresolved pointers are the measurement RK44 names.
+#: Absent on any machine but the author's, so the use is guarded (as in `test_document`).
+SHIO_PROSE = Path("D:/Git/viglet/shio/latest/docs/IMPROVEMENTS.md")
+SHIO_BACKLOG = Path("D:/Git/viglet/shio/latest/docs/ROADMAP.md")
+
+
+def test_a_live_outline_file_yields_its_sections_and_answers_its_pointers():
+    if not SHIO_PROSE.exists():
+        pytest.skip(f"{SHIO_PROSE} is not on this machine")
+    schema = Schema(prefix="SH", ref_scheme="outline")
+    sections = anchored(Document.load(SHIO_PROSE, schema))
+    # A lower bound, like every other foreign one here: the file only grows.
+    assert len(sections) >= 120
+    declared = {s.anchor for s in sections}
+    pointers = [e.task.ref for e in Document.load(SHIO_BACKLOG, schema).entries if e.task.ref]
+    # Every one of them, and not a slack count: an unresolved pointer here is a defect in
+    # *that* backlog for `lint` to report, which is the whole point — before RK44 the
+    # answer was 74 of them, and the gate was reporting the file rather than reading it.
+    assert pointers and [p for p in pointers if p not in declared] == []
 
 
 # -- dropping ----------------------------------------------------------------

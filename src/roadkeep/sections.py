@@ -6,7 +6,10 @@ twice over: there is no `symptom` to bound and no 320-character cap that means a
 about a paragraph. What a section *does* have is:
 
 * **an anchor**, which is the whole reason the pointer on a task line resolves (RK27) —
-  so `§RK9` must name an open task, and a typo names nothing at all;
+  so `§RK9` must name an open task, and a typo names nothing at all. Read **per scheme**
+  (RK44): `id` requires the § that tells an id from a word, while an outline numbers its
+  own headings and puts the sigil on the pointer alone, so reading one spelling into the
+  other turned Shio's 151 headings into 0 sections and 74 pointers into 74 dangling ones;
 * **a word budget**, because the failure mode measured here was a rationale file reaching
   539 KB one honest paragraph at a time — a limit in words is the one an author can act
   on before writing, which is the same argument as `add`'s (L1);
@@ -31,7 +34,7 @@ from dataclasses import dataclass
 
 from roadkeep.config import Config
 from roadkeep.document import Document, Heading, UnknownBlock, blank
-from roadkeep.schema import SchemaError, Task, Violation
+from roadkeep.schema import OUTLINE_ANCHOR_RE, Schema, SchemaError, Task, Violation
 
 #: A paragraph whose first characters are any of these is a structure, not prose.
 _STRUCTURE = ("|", ">", "-", "*", "+", "#", "```", "~~~", "1.")
@@ -93,7 +96,7 @@ def find(document: Document, anchor: str) -> Section | None:
     body = "".join(document.lines[heading.lineno : end]).strip("\r\n")
     return Section(
         anchor=anchor,
-        title=_title_of(heading.text),
+        title=_title_of(heading.text, document.schema),
         level=heading.level,
         first=heading.lineno,
         last=end,
@@ -114,7 +117,7 @@ def anchored(document: Document) -> tuple[Section, ...]:
     """
     out: list[Section] = []
     for position, heading in enumerate(document.headings):
-        anchor = _anchor_of(heading.text)
+        anchor = _anchor_of(heading.text, document.schema)
         if anchor is None:
             continue
         end = len(document.lines)
@@ -123,7 +126,7 @@ def anchored(document: Document) -> tuple[Section, ...]:
         out.append(
             Section(
                 anchor=anchor,
-                title=_title_of(heading.text),
+                title=_title_of(heading.text, document.schema),
                 level=heading.level,
                 first=heading.lineno,
                 last=end,
@@ -201,6 +204,18 @@ def _check(config: Config, anchor: str, title: str, body: str, task: Task | None
         out.append(
             Violation("anchor.sigil", "anchor", f"store the anchor without §: {anchor!r}")
         )
+    elif schema.ref_scheme == "outline" and not OUTLINE_ANCHOR_RE.match(anchor):
+        # Refused rather than written, because the heading would be read back by nothing:
+        # under this scheme the number is what announces a section (RK44), so an anchor
+        # that is not one is a section invisible from the moment it reaches the file.
+        out.append(
+            Violation(
+                "anchor.format",
+                "anchor",
+                f"not an <x.y> outline anchor: {anchor!r} — under ref_scheme = outline "
+                f"the heading numbers itself, and a heading with no number is prose",
+            )
+        )
     elif schema.id_pattern().match(anchor) and task is None:
         # The pointer is the id (RK27), so an id-shaped anchor that names no open task is
         # a section nothing can ever point at — an orphan the moment it is written.
@@ -249,7 +264,7 @@ def _task_for(config: Config, anchor: str) -> Task | None:
 def _render(
     config: Config, anchor: str, title: str, body: str, level: int
 ) -> tuple[str, ...]:
-    heading = f"{'#' * level} §{anchor} {title.strip()}"
+    heading = f"{'#' * level} {anchor_text(config.schema, anchor)} {title.strip()}"
     paragraphs = [p for p in _normalize(body).split("\n\n") if p.strip()]
     out: list[str] = [heading, ""]
     for position, paragraph in enumerate(paragraphs):
@@ -313,7 +328,7 @@ def _span(document: Document, anchor: str) -> tuple[int, int, Heading] | None:
     which otherwise survives as a trailing blank nobody put there.
     """
     for position, heading in enumerate(document.headings):
-        if not _names(heading.text, anchor):
+        if not _names(heading.text, anchor, document.schema):
             continue
         start = heading.lineno - 1
         end = len(document.lines)
@@ -328,24 +343,61 @@ def _span(document: Document, anchor: str) -> tuple[int, int, Heading] | None:
     return None
 
 
-def _anchor_of(text: str) -> str | None:
-    """`§RK9 A design` → `RK9`. None when the heading carries no anchor at all."""
-    if not text.startswith("§"):
-        return None
-    return text[1:].split(" ", 1)[0].strip() or None
+def anchor_text(schema: Schema, anchor: str) -> str:
+    """The anchor as a *heading* spells it: `§RK9` under `id`, `VIII.1` under `outline`.
+
+    The one place that spelling is decided, so a reader that echoes a heading (`section
+    show`, `brief`) cannot print a file back differently from how it is written. On the
+    pointer the § is unconditional — that is the end of the reference where a sigil is
+    what tells an anchor from a word, in either scheme.
+    """
+    return f"§{anchor}" if schema.ref_scheme == "id" else anchor
 
 
-def _title_of(text: str) -> str:
+def heading_of(schema: Schema, section: Section) -> str:
+    """The heading line this section is written as — one spelling, one writer (RK44)."""
+    return f"{'#' * section.level} {anchor_text(schema, section.anchor)} {section.title}"
+
+
+def _anchor_of(text: str, schema: Schema) -> str | None:
+    """The anchor this heading declares, or None when it declares none (RK27, RK44).
+
+    Read **per scheme**, because the two write it differently and requiring one spelling
+    read the other as prose: measured on Shio, 151 headings yielded 0 sections and
+    therefore 74 pointers reported as resolving to nothing against a file that answers
+    every one of them — RK15's argument inverted, which is how a gate teaches its reader
+    to skip a category.
+
+    * ``id`` — `§RK9 A design` → `RK9`. The anchor is a task id, so the § is what marks
+      it as an anchor rather than a word, and it is required.
+    * ``outline`` — `VIII.1 MCP server host` → `VIII.1`, and Shio's `0. Strategy` → `0`:
+      the number *is* the announcement, so the sigil belongs on the pointer alone. It is
+      accepted where an author wrote one anyway, because a heading nothing can see is the
+      defect this closes and not a spelling to punish.
+    """
+    head = text.lstrip()
+    if schema.ref_scheme == "id":
+        if not head.startswith("§"):
+            return None
+        return head[1:].split(" ", 1)[0].strip() or None
+    # The trailing period is Shio's numbering ("## VIII. The Agent Gateway"), not part of
+    # the anchor a pointer writes — the pointer says `§VIII.7`.
+    token = head.split(" ", 1)[0].lstrip("§").rstrip(".")
+    return token if OUTLINE_ANCHOR_RE.match(token) else None
+
+
+def _title_of(text: str, schema: Schema) -> str:
     """`§RK9 A design` → `A design`. The anchor is one token; the rest is the title."""
-    if not text.startswith("§"):
+    if _anchor_of(text, schema) is None:
         return text
-    return text[1:].partition(" ")[2].strip()
+    return text.lstrip().partition(" ")[2].strip()
 
 
-def _names(text: str, anchor: str) -> bool:
-    """Does this heading carry `§anchor` — and not `§anchor` as a prefix of another?"""
-    marked = f"§{anchor}"
-    if not text.startswith(marked):
-        return False
-    rest = text[len(marked) :]
-    return not rest or not (rest[0].isalnum() or rest[0] == ".")
+def _names(text: str, anchor: str, schema: Schema) -> bool:
+    """Does this heading declare exactly this anchor?
+
+    Asked of the parsed anchor rather than of the text, which is what keeps `§0` from
+    claiming `§0.1` and `VIII.1` from claiming `VIII.10` without a second opinion about
+    where an anchor ends.
+    """
+    return _anchor_of(text, schema) == anchor
