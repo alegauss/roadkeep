@@ -80,6 +80,30 @@ written, not authorship.
 
 ## Block D — The gate
 
+### §RK61 Ownership under an outline
+
+`section.orphan` and `section.stale` ask whether a task line owns a section, and both
+are guarded by `ids.match(anchor)` — the anchor has to be `SH<n>`-shaped. Under
+`ref_scheme = "outline"` an anchor is `XVI.12`, so neither check ever fires, and that is
+the scheme both live projects use. Shio has 146 sections and gets no ownership check at
+all.
+
+Not a theoretical gap: Shio keeps a 280-line JUnit test for exactly this, and the
+measurement that motivated it was 121 sections against 82 pointers with **11 dead**, 1
+section written twice, 9 unnumbered, 1 left behind after its task shipped. When Shio
+adopted roadkeep only one of that test's five checks could be retired — the other four
+are what this gap leaves unenforceable, and a project should not keep a linter in
+another language to cover a scheme this tool claims to support.
+
+What is missing is one fact: the ids a heading names. `### §XVI.12 A design (SH123)`
+says whose it is, in prose the parser already reads for the number. Collecting those ids
+makes both checks scheme-independent — the anchor addresses the section, the heading
+says who owns it — and it also answers the check with teeth: a task that *has* a section
+and points somewhere else is a pointer that resolves and is still wrong.
+
+The heading and not the body: a section quoting another id is discussing it, not owning
+it, and a check reading the body would report every cross-reference in the file.
+
 ## Block E — Adoption
 
 ### §RK21 Rollout
