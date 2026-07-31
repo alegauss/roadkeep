@@ -51,8 +51,6 @@
 Deliberately **not** built — check this list before proposing work:
 
 - **No web UI and no server.** Files and a CLI. The store is the repository.
-- **No issue-tracker sync** (Jira, Linear, GitHub Issues). A backlog that lives in a
-  service is a backlog an agent cannot `Grep`.
 - **No model and no prompts.** The tool validates and renders; it never writes the
   symptom or the rationale. A generator would reintroduce exactly the prose drift
   this exists to stop.
@@ -62,3 +60,6 @@ Deliberately **not** built — check this list before proposing work:
 - **No effort or size field.** Nothing can verify a letter, `pick`'s every tier is a
   fact, and what an agent pays is context: 4 to 14 files a task, against lines that vary
   27-fold, so the letter prices the axis nobody pays.
+- **No backlog in an issue tracker** (Jira, Linear, GitHub Issues.) A backlog that lives
+  in a service is one an agent cannot `Grep`; a one-way report about this tool, sent
+  explicitly, moves nothing out of the files.
