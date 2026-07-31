@@ -41,7 +41,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK81** (deps: RK79 ✅) **The MCP server is declared and no tool reaches the client** — A whole session drove the CLI through Bash because no roadkeep tool was offered, which is the surface that would have made the flags discoverable without reading help. → §RK81
 - 💭 **RK82** (deps: —) **Nothing announces the write path at the moment a session starts reading the files** — The hook refuses a hand-edit and the skill names the read verbs, but both arrive after the first grep, so the rule is learned by breaking it. → §RK82
 - 📋 **RK85** (deps: RK79 ✅) **A defect an agent hits in another repository is reported as prose, or is not reported at all** — The session that could identify it holds the argv, the engine that answered, the exit code and the line that failed, and none of that survives into a narration written afterwards. → §RK85
 - 📋 **RK86** (deps: RK85) **A refusal names the rule it enforced and never what to do when the rule is the defect** — An agent that meets a wrong limit or a crash has one visible move left, which is to work around the tool quietly, so the failures most worth hearing about are the ones that end the session. → §RK86

@@ -18,10 +18,17 @@ decisions those two files encode live here, next to the assertions that hold the
   is the answer, and that trade is asserted so it stays a decision rather than an oversight.
 * **Every hook has a timeout.** A `PreToolUse` hook is synchronous: an unbounded one turns a
   hung interpreter into a session that cannot write anything at all.
-* **The MCP server is declared too, and starts the same way the hook does.** `.mcp.json`
-  would be auto-discovered at the plugin root, but it is named in the manifest for the reason
-  `hooks` is: a declared path is one a test can check exists. Both surfaces run the installed
-  console script, so the plugin asks for *one* thing to be on PATH rather than two (RK24).
+* **The MCP server is declared too, and starts the same way the hook does.** It is named in
+  the manifest for the reason `hooks` is: a declared path is one a test can check exists.
+  Both surfaces run the launcher the plugin ships, so `/plugin install` is the whole setup
+  and nothing has to be on PATH (RK24).
+* **Declared twice, because a placeholder cannot be in two scopes.** `${CLAUDE_PLUGIN_ROOT}`
+  is defined only for a plugin-provided config, and a project's own server must sit at the
+  root as `.mcp.json` — so the file that served both roles started in neither here, and this
+  repository, which writes the tool, was the one session with no `mcp__roadkeep__*` tool in
+  it (RK81). The plugin's declaration moved beside the manifest, the root file became this
+  project's, and a test holds them to one engine. Declaring is still not starting: the argv
+  is run over real stdio, because JSON that parses is exactly what the broken state had.
 * **The version is the module's.** This is the *only* second place the number is written
   (`pyproject.toml` reads the module, RK19), because `/plugin` shows a version to whoever
   installed it and "unknown" is not an answer somebody can pin. A duplicate held by a test
@@ -34,7 +41,7 @@ decisions those two files encode live here, next to the assertions that hold the
   one nobody remembers to update.
 * **The source is `./` because this repository is the plugin.** Shio publishes a marketplace
   whose plugin sits in a subdirectory; here the components (`hooks/`, `skills/`, `commands/`,
-  `.mcp.json`) are at the root beside the package they run, so the plugin root is the
+  `.claude-plugin/`) are at the root beside the package they run, so the plugin root is the
   repository root. A test resolves it rather than trusting the spelling.
 """
 
@@ -53,7 +60,14 @@ from roadkeep.guarding import STOP_EVENTS, WRITE_TOOLS
 HERE = Path(__file__).resolve().parents[1]
 MANIFEST = HERE / ".claude-plugin" / "plugin.json"
 HOOKS = HERE / "hooks" / "hooks.json"
-MCP = HERE / ".mcp.json"
+#: The plugin's declaration, read by whoever installed it, and the one this repository
+#: starts for itself (RK81). Two files because one placeholder cannot be both: a project
+#: `.mcp.json` must live at the root under that exact name, and `${CLAUDE_PLUGIN_ROOT}` is
+#: defined only for a plugin-provided config — left at the root, the declaration named a
+#: variable nothing set here and the server was never launched in its own repository.
+MCP = HERE / ".claude-plugin" / "mcp.json"
+PROJECT_MCP = HERE / ".mcp.json"
+SETTINGS = HERE / ".claude" / "settings.json"
 MARKETPLACE = HERE / ".claude-plugin" / "marketplace.json"
 
 
@@ -172,6 +186,65 @@ def test_the_server_runs_a_command_line_the_cli_accepts():
     assert (server["command"], server["args"][0]) == LAUNCHER
     assert build_parser().parse_args(server["args"][1:]).command == "mcp"
     assert "env" not in server, "a server that needs configuration is one that fails silently"
+
+
+# -- the same server, for the repository that writes it (RK81) ----------------
+
+
+def test_this_repository_declares_the_server_for_itself_too():
+    """The tool an agent cannot reach is the tool it works around.
+
+    Measured: a whole session here drove the CLI through Bash, excavating flags with
+    `--help`, because no `mcp__roadkeep__*` tool was offered. The plugin was installed for
+    a different project, and the declaration at this root named `${CLAUDE_PLUGIN_ROOT}` —
+    which only a plugin-provided config defines, so nothing could have started it.
+    """
+    server = read(PROJECT_MCP)["mcpServers"]["roadkeep"]
+    assert server["args"][0] == "${CLAUDE_PROJECT_DIR:-.}/scripts/roadkeep.py"
+    assert build_parser().parse_args(server["args"][1:]).command == "mcp"
+
+
+def test_the_two_declarations_differ_only_in_where_the_launcher_is():
+    """One engine, two roots. Anything else that drifts apart is a second server."""
+    plugin = read(MCP)["mcpServers"]
+    project = read(PROJECT_MCP)["mcpServers"]
+    rooted = json.dumps(project).replace("${CLAUDE_PROJECT_DIR:-.}", "${CLAUDE_PLUGIN_ROOT}")
+    assert json.loads(rooted) == plugin
+
+
+def test_the_repository_approves_its_own_server_so_it_starts_unasked():
+    """A project `.mcp.json` waits for approval, and a server awaiting approval is a
+    server that never ran — which is indistinguishable, from the session's side, from the
+    one that was never declared."""
+    assert read(SETTINGS)["enabledMcpjsonServers"] == ["roadkeep"]
+
+
+def test_the_declared_command_starts_and_offers_the_tools(tmp_path):
+    """Declared is not started: this runs the argv the config states, over real stdio.
+
+    Every assertion above reads JSON, and JSON that parses is what RK81 already had. The
+    only proof that a tool reaches a client is a client's two messages getting answers.
+    """
+    server = read(MCP)["mcpServers"]["roadkeep"]
+    argv = [
+        sys.executable if server["command"] == "python" else server["command"],
+        *(part.replace("${CLAUDE_PLUGIN_ROOT}", str(HERE)) for part in server["args"]),
+    ]
+    conversation = "\n".join(
+        json.dumps(message)
+        for message in (
+            {"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {}},
+            {"jsonrpc": "2.0", "id": 2, "method": "tools/list"},
+        )
+    )
+    finished = subprocess.run(
+        argv, input=conversation + "\n", cwd=tmp_path, capture_output=True, text=True, check=False
+    )
+    assert finished.returncode == 0, finished.stderr
+    answers = [json.loads(line) for line in finished.stdout.splitlines() if line.strip()]
+    assert answers[0]["result"]["serverInfo"]["name"] == "roadkeep"
+    offered = {tool["name"] for tool in answers[1]["result"]["tools"]}
+    assert {"add", "ship", "brief", "pick", "lint"} <= offered
 
 
 # -- and it runs what the plugin carries (RK57) -------------------------------

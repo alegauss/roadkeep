@@ -49,7 +49,7 @@ src/roadkeep/   the package (src layout, importable via pytest pythonpath). Each
   guarding serving provenance          RK22/24/79  the hook, the stdio tools, which tree ran
   cli.py    one subparser per task, exit 0 / 1 gate / 2 usage, and RK38's event line
 action.yml, .pre-commit-hooks.yaml, .github/   the gate's three surfaces (RK17)
-hooks/, skills/, commands/, .mcp.json, .claude-plugin/   the plugin's five, and how it is
+hooks/, skills/, commands/, .claude-plugin/, .mcp.json   the plugin's five, and how it is
                 installed (RK22-26); reasoned in tests/test_{plugin,skill,serving,commands}.py
 tests/          pytest; docs/ROADMAP.md is a fixture, not a mock
 ```

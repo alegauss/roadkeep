@@ -17,5 +17,5 @@
     "mcp"
   ],
   "hooks": "./hooks/hooks.json",
-  "mcpServers": "./.mcp.json"
+  "mcpServers": "./.claude-plugin/mcp.json"
 }

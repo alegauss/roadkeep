@@ -171,26 +171,6 @@ governance it does not have, which is the drift this tool exists to refuse.
 
 ## Block F — The plugin
 
-### §RK81 The agent-native surface is the one that did not load
-
-A full session of driving roadkeep ran `python -m roadkeep.cli` through Bash,
-discovering flags with `--help`. `brief --block P` — one call that returns the pick, its
-rationale, its deps and the binding non-goals — was used only after four calls had done
-the same job worse, because nothing announced it. `list --marker` was found the same
-way, late.
-
-That is the cost of the tool schemas not being in context. An MCP server puts every
-command's parameters in front of the caller before the first call, which is the
-discovery mechanism `--help` archaeology substitutes for badly. The plugin declares the
-server and no `mcp__roadkeep__*` tool was offered in the session.
-
-Whether the server fails to start, starts and registers nothing, or was never launched
-is not yet established, and RK79 is why: with two engines answering the same version, a
-diagnosis run against one says nothing certain about the other. So the order is RK79
-first. Worth stating that the CLI is not the fallback here but the workaround — a tool
-whose own commands have to be excavated is one an agent will keep using at four calls
-where one would do.
-
 ### §RK82 The read verbs arrive after the read
 
 Observed directly. A session opened with a `grep` of the governed roadmap and a load of
