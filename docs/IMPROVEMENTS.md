@@ -77,27 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK70 The one write the denial cannot name
-
-RK22's value is that the refusal *is* the command to call. For the non-goals it is not:
-`Edit` on the roadmap is denied and the reason offers `add`, `status`, `amend`, `ship`
-and `retire`, all five of which write task lines. What is left is `sed` through `Bash`,
-which the barrier deliberately does not match and which `lint` does not judge, because a
-bullet carrying no marker is prose. So the only content of the roadmap that is not a
-task line is also the only content nothing governs — L1 holds everywhere except here.
-
-A non-goal is structurally what `add` already governs, a lead and a reason, so `non-goal
-add --lead "…" --why "…"` needs no new law: one renderer, and the fields refused at
-input. Addressed by its lead, unique and checked. **No ids** — an id creates a
-lifecycle, retire and rename, for a list of eight lines that changes once a year. The
-trigger that would change that answer is already visible: Turing's backlog says "which
-the Non-goals say is not the path", a reference resolving to nothing, which is the
-defect RK15 catches for `→ §`.
-
-The shape is opt-in under `[non_goals]` (L6), for RK66's reason: Shio and Turing wrote
-theirs before the schema existed, and a default that reports fifteen findings on
-adoption is a gate that gets bypassed. This repository opts in and is the fixture.
-
 ### §RK72 A non-goal that argues the schedule
 
 The list says *No dates, quarters or estimates. A marker is maturity, not a schedule.*

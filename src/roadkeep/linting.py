@@ -71,6 +71,7 @@ import re
 import unicodedata
 from dataclasses import dataclass
 
+from roadkeep import scoping
 from roadkeep.backlog import Backlog, DepStatus, number_of
 from roadkeep.config import ROLES, Config
 from roadkeep.document import Document, ending
@@ -207,6 +208,7 @@ def lint(config: Config, since: str | None = None) -> Report:
         findings.extend(_within(config, role, document))
         findings.extend(_characters(config, role, document))
     findings.extend(_across(config, documents))
+    findings.extend(_scope(config, documents.get("roadmap")))
     notes: list[Note] = _collective(config, documents)
 
     prose = _prose_file(config)
@@ -570,6 +572,51 @@ def _within(config: Config, role: str, document: Document) -> list[Finding]:
                 )
             )
         seen.setdefault(task.id, entry.lineno)
+    return out
+
+
+def _scope(config: Config, roadmap: Document | None) -> list[Finding]:
+    """The non-goals, for a project that declared them governed (RK70).
+
+    Silent otherwise, and that is the whole of the opt-in: two live corpora wrote their lists
+    as free prose years before this grammar existed, and a gate that reported fifteen findings
+    on the first run is a gate that gets bypassed rather than adopted (RK66).
+
+    What is judged is what the schema can judge — the shape, the two lengths, and a lead
+    claimed twice. Not the wrap: a filled bullet is written at insertion (L1) and a
+    hand-wrapped one is whitespace inside prose, which `--fix` is the door for (RK16).
+    """
+    if roadmap is None or config.non_goals is None:
+        return []
+    file = config.relative(config.path("roadmap"))
+    out: list[Finding] = []
+    for lineno, raw in scoping.rejects(roadmap):
+        out.append(
+            Finding(
+                scoping.SHAPE,
+                file,
+                f"a governed non-goal is `- **<lead>** <why>`, so this bullet has no lead "
+                f"to be addressed by: {raw.strip()[:60]!r}",
+                lineno,
+            )
+        )
+    seen: dict[str, int] = {}
+    for non_goal in scoping.read(roadmap):
+        for violation in scoping.validate(config, non_goal.lead, non_goal.why):
+            out.append(Finding(violation.code, file, violation.message, non_goal.first))
+        lead = scoping.address(non_goal.lead)
+        first = seen.get(lead)
+        if first is not None:
+            out.append(
+                Finding(
+                    "non-goal.duplicate",
+                    file,
+                    f"already led on line {first}: the lead is the address, so two bullets "
+                    f"carrying it are two answers about one scope",
+                    non_goal.first,
+                )
+            )
+        seen.setdefault(lead, non_goal.first)
     return out
 
 

@@ -26,6 +26,7 @@ from roadkeep.backlog import Backlog, Readiness, Resolution
 from roadkeep.config import Config
 from roadkeep.document import Document
 from roadkeep.graph import Chain, Graph, Leverage
+from roadkeep import scoping
 from roadkeep.picking import pick
 from roadkeep.schema import Task
 from roadkeep.showing import View, show
@@ -34,10 +35,10 @@ from roadkeep.showing import View, show
 #: a brief is read to start work, and the second chain is already context, not an answer.
 CHAINS = 2
 
-#: Any heading whose text starts like this holds the non-goals. A prefix match rather than
-#: a config key, because both live corpora already write it and neither writes it exactly:
-#: this repository has "## Non-goals", Shio has "## Non-goals (do NOT add as tasks)".
-_NON_GOALS = re.compile(r"^non-goals?\b", re.IGNORECASE)
+#: Where the non-goals are, owned by the module that writes them (RK70) so that the reader
+#: and the writer cannot disagree about which heading holds the list. The *lead* is still
+#: inferred from prose here, which is the defect RK68 is about.
+_NON_GOALS = scoping.HEADING
 _BOLD_LEAD = re.compile(r"\*\*(.+?)\*\*")
 _BULLET = re.compile(r"^[-*+] (?P<rest>.*)$")
 

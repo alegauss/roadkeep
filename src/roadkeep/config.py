@@ -54,8 +54,13 @@ _TOP_KEYS = frozenset(
         "budgets",
         "ledger",
         "rules",
+        "non_goals",
     }
 )
+#: `[non_goals]` — the two fields the roadmap's other bullet has (RK70). Opt-in for RK66's
+#: reason: two live corpora wrote theirs as free prose, and a default that reported findings
+#: on the first run is a gate that gets bypassed instead of adopted.
+_SCOPE_KEYS = frozenset({"lead", "why"})
 _BUDGET_KEYS = frozenset({"lines", "bytes"})
 #: Which slots the ledger's lines carry (RK43, RK48). Its own table because the shape of a
 #: file is one decision with two parts, and `markers.ledger` put half of it under a heading
@@ -97,6 +102,22 @@ class Budget:
     bytes: int | None = None
 
 
+@dataclass(frozen=True, slots=True)
+class Scope:
+    """What a governed non-goal may say, when a project declares its list governed (RK70).
+
+    Two numbers and no marker, no id and no pointer: a non-goal has no lifecycle to state.
+    The list is eight lines that change once a year, and an id would buy them a retirement,
+    a rename and a second file to disagree with — so the lead *is* the address.
+    """
+
+    #: The bolded head, which is what a `brief` prints and what a duplicate is judged on.
+    lead: int = 80
+    #: The rest of the bullet. Longer than a task's `why` and not one sentence: the corpus
+    #: argues these in two, and the file has no rationale section to send the second to.
+    why: int = 320
+
+
 class ConfigError(ValueError):
     """Every problem with the file, not the first one found."""
 
@@ -133,6 +154,9 @@ class Config:
     #: `[rules.<role>]` — a prose rule one file is not held to (RK52), applied by
     #: :meth:`schema_for` alongside that file's limits.
     rules: Mapping[str, Mapping[str, bool]] = field(default_factory=dict)
+    #: `[non_goals]` — declared when this project's non-goals are governed too (RK70), and
+    #: **None** when they are prose, which is what every project's were before it opted in.
+    non_goals: Scope | None = None
     source: Path | None = None
 
     # -- construction ------------------------------------------------------
@@ -182,6 +206,7 @@ class Config:
         )
         priority = tuple(_string_list(data.get("priority"), "priority", problems))
         budgets = _budgets(data.get("budgets"), base, problems)
+        non_goals = _scope(data.get("non_goals"), problems)
 
         schema = None
         if not problems:
@@ -210,6 +235,7 @@ class Config:
             budgets=budgets,
             limits=per_role,
             rules=rules,
+            non_goals=non_goals,
             source=source,
         )
 
@@ -511,6 +537,30 @@ def _read_limits(raw: Mapping[str, object], where: str, problems: list[str]) -> 
             continue
         out[field_name] = value
     return out
+
+
+def _scope(raw: object, problems: list[str]) -> Scope | None:
+    """`[non_goals]` — declared at all means governed, and each number may be left default.
+
+    An empty table is legal and is the shortest way to opt in: what a project is declaring
+    is *that* the list is a schema, and the two limits are what it may then also tune (L6).
+    """
+    if raw is None:
+        return None
+    if not isinstance(raw, Mapping):
+        problems.append("non_goals must be a table of lead = …, why = …")
+        return None
+    _reject_unknown(raw, _SCOPE_KEYS, "non_goals.", problems)
+    numbers: dict[str, int] = {}
+    for key in sorted(_SCOPE_KEYS):
+        if key not in raw:
+            continue
+        value = raw[key]
+        if not isinstance(value, int) or isinstance(value, bool) or value < 1:
+            problems.append(f"non_goals.{key} must be a positive integer")
+            continue
+        numbers[key] = value
+    return Scope(**numbers)
 
 
 def _budgets(raw: object, base: Path, problems: list[str]) -> tuple[Budget, ...]:

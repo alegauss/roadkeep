@@ -34,6 +34,13 @@ line = 320
 section = 250
 prose = 88
 
+# the roadmap's other bullet is governed here too (RK70) — declared, because Shio and Turing
+# wrote their lists as prose years before the grammar existed. Measured on the five below:
+# longest lead 43 characters, longest reason 152.
+[non_goals]
+lead = 60
+why = 200
+
 [budgets]
 # Files loaded on every turn, and what each may cost (RK30). This budget lived in prose at
 # the bottom of agents.md until the gate could hold it — which is exactly the arrangement

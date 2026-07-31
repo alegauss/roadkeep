@@ -81,6 +81,9 @@ _INSTEAD: Mapping[str, tuple[tuple[str, str], ...]] = {
         ('amend <id> --why "…"', "correct the why, the deps or the pointer of a line"),
         ("ship <id>", "shipped: ledger entry, line gone, section dropped"),
         ('retire <id> --reason "…"', "gone without shipping"),
+        # The one bullet in this file that is not a task line, and the reason the five above
+        # were not enough: a denial that named only them left `sed` as the route (RK70).
+        ('non-goal add --lead "…" --why "…"', "a constraint on what may be proposed at all"),
     ),
     "changelog": (
         ("ship <id>", "the entry a planned task earns, in one transaction"),

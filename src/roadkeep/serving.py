@@ -96,9 +96,11 @@ class Tool:
         """The protocol name: the command path with `_` where its space is (RK59).
 
         A tool name may not carry a space, and a client shows the name it is given — so
-        `section add` is `section_add` there and stays two argv words here.
+        `section add` is `section_add` there and stays two argv words here. A hyphen goes the
+        same way (RK70): `non-goal add` is one command spelled in two conventions, and the
+        name a client renders should not be where that shows.
         """
-        return self.command.replace(" ", "_")
+        return self.command.replace(" ", "_").replace("-", "_")
 
     @property
     def argv_head(self) -> list[str]:
@@ -119,6 +121,7 @@ TOOLS: tuple[Tool, ...] = (
     Tool("retire", ("id", "reason", "superseded_by"), writes=True),
     Tool("record add", ("block", "symptom", "why"), writes=True),
     Tool("record drop", ("id",), writes=True),
+    Tool("non-goal add", ("lead", "why"), writes=True),
     Tool("section add", ("anchor", "title", "body", "role"), writes=True),
     Tool("section drop", ("anchor", "role"), writes=True),
     Tool("brief", ("id", "block")),

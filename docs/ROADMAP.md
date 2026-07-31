@@ -24,8 +24,7 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK70** (deps: RK3 ✅) **No command can write a non-goal, and the denial names five that cannot** — The hook refuses the edit and offers only commands that write task lines, so a binding constraint is edited by the `sed` the barrier deliberately does not match. → §RK70
-- 📋 **RK72** (deps: RK70) **The non-goal against estimates names a schedule, not the field a size bucket would be** — A marker is not a schedule is why dates are refused, which did not settle a proposal to put P/M/L on the line and cost an analysis where a lookup should have answered. → §RK72
+- 📋 **RK72** (deps: RK70 ✅) **The non-goal against estimates names a schedule, not the field a size bucket would be** — A marker is not a schedule is why dates are refused, which did not settle a proposal to put P/M/L on the line and cost an analysis where a lookup should have answered. → §RK72
 
 ## Block C — Query (consult without reading the file)
 

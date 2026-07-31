@@ -52,6 +52,7 @@ from roadkeep.ids import highest, next_id
 from roadkeep.linting import Finding, Report, lint
 from roadkeep.picking import Choice, pick
 from roadkeep.schema import SchemaError
+from roadkeep.scoping import add as add_non_goal
 from roadkeep.sections import Section, heading_of
 from roadkeep.sections import add as add_section
 from roadkeep.sections import drop as drop_section
@@ -318,6 +319,43 @@ def build_parser() -> argparse.ArgumentParser:
         "--json", action="store_true", help="which line went, and which one answers now"
     )
     record_drop.set_defaults(handler=_record_drop)
+
+    scope_parser = subcommands.add_parser(
+        "non-goal",
+        help="write the roadmap's other bullet: a constraint, not a task",
+        description=(
+            "The one content of the roadmap that is not a task line, and until RK70 the one "
+            "thing nothing governed: `Edit` denied and offered five commands that all write "
+            "task lines, `lint` said nothing because a bullet with no marker is prose, and "
+            "`sed` through `Bash` was the route left. Opt in with `[non_goals]`."
+        ),
+    )
+    # One action, and a subparser all the same: reading the list at the moment a task is
+    # *proposed* is RK69's door, and it belongs beside this one rather than under a flag.
+    constraints = scope_parser.add_subparsers(dest="action", required=True)
+
+    scope_add = constraints.add_parser(
+        "add",
+        help="insert one non-goal under the heading, filled to the prose width",
+        description=(
+            "Compose, validate and insert one non-goal. Addressed by its lead — unique and "
+            "checked — because an id would buy a lifecycle for a list of eight lines that "
+            "changes once a year. No marker, no dep and no pointer: a constraint has no "
+            "status to state."
+        ),
+    )
+    scope_add.add_argument(
+        "--lead",
+        required=True,
+        help="what is not built — the bolded head a brief prints and a duplicate is judged on",
+    )
+    scope_add.add_argument(
+        "--why", required=True, help="the reason it is not, in this file's own limit"
+    )
+    scope_add.add_argument(
+        "--json", action="store_true", help="the bullet, with the file and line it landed on"
+    )
+    scope_add.set_defaults(handler=_non_goal_add)
 
     list_parser = subcommands.add_parser(
         "list",
@@ -1077,6 +1115,37 @@ def _record(config: Config, args: argparse.Namespace) -> int:
     if entry.refreshed:
         print(f"  derived  {', '.join(entry.refreshed)} (dep annotations re-derived)")
     _print_event(event, "  ")
+    return EXIT_OK
+
+
+def _non_goal_add(config: Config, args: argparse.Namespace) -> int:
+    try:
+        written = add_non_goal(config, lead=args.lead, why=args.why)
+        written.save()
+    except (RoundTripError, KeyError, ValueError, OSError) as error:
+        return _refused(error)
+
+    where = config.relative(config.path("roadmap"))
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "lead": written.non_goal.lead,
+                    "why": written.non_goal.why,
+                    "file": where,
+                    "line": written.lineno,
+                    "rendered": list(written.rendered),
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+
+    print(f"{where}:{written.lineno}  {len(written.rendered)} line(s)")
+    for line in written.rendered:
+        print(f"  {line}")
+    # No event line (RK38): the payload a hook reads is an id and its block's open state, and
+    # a non-goal has neither — it is the constraint on what a block may hold, not a member.
     return EXIT_OK
 
 

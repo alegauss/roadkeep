@@ -149,6 +149,9 @@ def test_the_roadmap_is_refused_and_the_command_is_named(tmp_path):
     # machine, and it is read by an agent that has to type the command next.
     assert refusal.path == ROADMAP
     assert "roadkeep add --block" in str(refusal)
+    # And the bullet in this file that is not a task line (RK70): a denial that offered only
+    # the five commands writing task lines left `sed` as the route to the non-goals.
+    assert "roadkeep non-goal add --lead" in str(refusal)
 
 
 def test_the_ledger_names_the_transaction_and_not_add(tmp_path):

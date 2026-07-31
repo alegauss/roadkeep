@@ -15,11 +15,12 @@ not on PATH.
 
 When the `mcp__roadkeep__*` tools are available, **prefer them**: the whole write path and
 the reads a task needs are there — `add`, `status`, `amend`, `ship`, `retire`, `record_add`,
-`record_drop`, `section_add`, `section_drop`, `brief`, `pick`, `list`, `deps`, `lint` — same engine and same refusals, with
+`record_drop`, `non_goal_add`, `section_add`, `section_drop`, `brief`, `pick`, `list`, `deps`, `lint` — same engine and same
+refusals, with
 the fields arriving as a schema instead of flag names typed from memory. `init` and `adopt`
 run once per project and want the CLI. Every guarantee below holds either way.
 
-`roadkeep <add|status|amend|ship|retire|record|section> --help` has the flags. What they guarantee,
+`roadkeep <add|status|amend|ship|retire|record|non-goal|section> --help` has the flags. What they guarantee,
 so it costs you no thought: the id, the `→ §<id>` pointer, the status default and every
 `(deps: … ✅)` annotation are **derived, never typed**; a refusal exits 2 naming the length and
 the limit and writes nothing; the shipped marker never reaches the roadmap; `ship <id>` makes
@@ -31,8 +32,11 @@ refused unless the ledger states that id **twice**, then the later entry goes an
 because removing the only record of a decision is deleting history. `section add <id> --title "…"`
 takes prose on **stdin**, within the word budget, filled to the configured width, under the
 task's block — a table or list is inserted exactly as written. No write invents a block
-heading. Every write prints one `event <id> Block <x> open|empty` line, the whole payload a
-hook gets. There is no second route: `Edit` on a governed file is denied, naming the command,
+heading. `non-goal add --lead "…" --why "…"` writes the one bullet that is not a task line,
+where `[non_goals]` declares the list governed: addressed by its lead, which is unique and
+checked, and carrying no marker, dep or pointer, because a constraint has no status to state.
+Every write prints one `event <id> Block <x> open|empty` line, the whole payload a
+hook gets — a non-goal excepted, having neither an id nor a block. There is no second route: `Edit` on a governed file is denied, naming the command,
 and `lint` gates the turn's end.
 
 That leaves the two rules a schema cannot check:

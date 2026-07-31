@@ -35,6 +35,7 @@
 - ✅ **RK64** **Shipping one of several tasks that share a section deletes the design the others still point at** — A section another open line points at is kept and the reason is reported, so shipping one of Shio's four tenant tasks no longer deletes the design the other three point at.
 - ✅ **RK65** **A line can be created and removed but never corrected, so every adoption defect needs a hand-edit** — amend corrects an open line's why, deps or pointer — validated at input, symptom excluded — which is the door none of Shio's seventeen defects had.
 - ✅ **RK67** **A ledger entry written twice cannot be removed, so the file states one decision twice** — record drop <id> removes the later of two ledger entries for one id, refused unless the ledger states it twice, and record's write path is record add so the two doors are one grammar.
+- ✅ **RK70** **No command can write a non-goal, and the denial names five that cannot** — A non-goal is written by its own door where `[non_goals]` declares the list governed, addressed by its lead, so a binding constraint no longer needs the `sed` the hook does not match.
 
 ## Block C — Query
 

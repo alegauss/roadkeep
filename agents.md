@@ -40,7 +40,8 @@ agents.md, roadkeep.toml   this file, and this project's own configuration
 src/roadkeep/   the package (src layout, importable via pytest pythonpath). Each module's
                 own docstring is the authority on it — this is only where to look:
   schema document config ids                RK1-4  the format, the file, the config, the id
-  authoring shipping markers sections       RK5-9/32/41  the write paths, all-or-nothing
+  authoring shipping markers sections       RK5-9/32/41/67  the write paths, all-or-nothing
+  scoping                                   RK70  the non-goal, the bullet that is no task
   backlog counting picking showing graph    RK10-13/28-29/31/37/39-40  the query surface,
   briefing exporting history                         plus what git alone can answer
   linting fixing                            RK14-17  the gate, and the derived-only fixer
