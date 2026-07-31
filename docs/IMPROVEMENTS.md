@@ -270,4 +270,4 @@ observation, emit the facts, and stop. No network in the default path, no state 
 the adopting repository, nothing to authenticate. What it emits should be a task line for
 *this* backlog, symptom and `why` already inside the limits, so the schema is enforced in
 the session where the claim is made rather than in the maintainer's review of an issue.
-Delivery is then somebody's explicit second command, which is where RK87 puts it.
+Delivery is a separate command somebody types, and is filed separately.
