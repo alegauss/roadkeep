@@ -36,7 +36,10 @@ heading. `non-goal add --lead "…" --why "…"` writes the one bullet that is n
 where `[non_goals]` declares the list governed: addressed by its lead, which is unique and
 checked, and carrying no marker, dep or pointer, because a constraint has no status to state.
 `non-goal drop <lead>` is the other half, and what a *correction* takes: the lead is the address,
-so a constraint whose lead changes is one dropped and one written.
+so a constraint whose lead changes is one dropped and one written. **Call `non-goal list` before
+an `add`** — the list binds what may be proposed, so reading it after the line exists is reading
+it too late; it prints on a project that never opted in, and nothing checks a proposal against it
+for you, that being a judgement about meaning and this tool having no model (L4).
 Every write prints one `event <id> Block <x> open|empty` line, the whole payload a
 hook gets — a non-goal excepted, having neither an id nor a block. There is no second route: `Edit` on a governed file is denied, naming the command,
 and `lint` gates the turn's end.

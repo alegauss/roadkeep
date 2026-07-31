@@ -79,25 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK69 The list that binds a proposal it never sees
-
-The roadmap tells an author to check the non-goals before proposing work, and `brief
-<id>` is the only command that prints them — which is the moment a task *starts*, not
-the moment one is *proposed*. `add` neither prints them nor is scoped by them, so the
-constraint is carried by a sentence in a file, which is the arrangement §0.1 measured at
-186 KB.
-
-`roadkeep non-goals [--json]`, and the same tool over stdio: eight leads cost nothing on
-the turns that propose nothing, and the guard's roadmap table names it, so a denied edit
-teaches the read as well as the write. The skill says to call it before `add`.
-
-What this is not, stated here so nothing promises it later: **presence, not
-enforcement**. Deciding whether a proposed task violates a non-goal is a judgement about
-meaning, and the tool has no model and will not get one (L4) — a keyword match over
-eight bullets would produce a confident wrong answer, which is worse than the sentence
-it replaced. An `add --acknowledge-non-goals` flag is the same theatre one step later:
-an agent passes any flag it is asked to pass.
-
 ### §RK71 The weight the ledger already knows
 
 Sixty-three shipped tasks here cost between 52 and 1384 lines in the commit that wrote

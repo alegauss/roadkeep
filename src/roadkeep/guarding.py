@@ -85,6 +85,10 @@ _INSTEAD: Mapping[str, tuple[tuple[str, str], ...]] = {
         # were not enough: a denial that named only them left `sed` as the route (RK70).
         ('non-goal add --lead "…" --why "…"', "a constraint on what may be proposed at all"),
         ("non-goal drop <lead>", "a constraint that is gone, or whose lead is being corrected"),
+        # The one read in a table of writes (RK69), and here rather than in the closing
+        # sentence because this is the file whose first bullet decides whether `add` may be
+        # called at all: a denial that teaches the write and not the check teaches half.
+        ("non-goal list", "what may not be proposed at all — before `add`, not after"),
     ),
     "changelog": (
         ("ship <id>", "the entry a planned task earns, in one transaction"),

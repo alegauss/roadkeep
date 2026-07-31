@@ -21,6 +21,7 @@ import pytest
 
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config, ConfigError, Scope
+from roadkeep.guarding import Refusal
 from roadkeep.linting import lint
 from roadkeep.schema import SchemaError
 from roadkeep.scoping import (
@@ -387,6 +388,70 @@ def test_a_refused_drop_writes_nothing_and_exits_two(tmp_path, capsys):
     assert main(["-C", str(tmp_path), "non-goal", "drop", "No dates"]) == EXIT_USAGE
     assert "leads with 'No dates'" in capsys.readouterr().err
     assert text(tmp_path) == ROADMAP
+
+
+# -- the list at the moment one is proposed (RK69) ----------------------------
+
+
+def test_the_list_is_a_command_and_not_only_a_field_of_a_brief(tmp_path, capsys):
+    # The roadmap says to check the list before proposing work, and until this command the
+    # only thing that printed it was `brief <id>` — the moment a task *starts*.
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "non-goal", "list"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert out.startswith("ROADMAP.md  2 non-goal(s)")
+    # The shape `brief` prints, from the same reader: two projections of one list are two
+    # answers about scope (RK68).
+    assert "  not      No web UI and no server." in out
+    assert "  not      No issue-tracker sync" in out
+
+
+def test_reading_the_list_is_never_refused_for_not_being_governed(tmp_path, capsys):
+    # `[non_goals]` gates the *write* (RK70). Refusing the read as well would leave the
+    # scope of every project that has not opted in unaskable, which is the sentence-in-a-
+    # file arrangement this replaces.
+    project(tmp_path, config=PROSE)
+    assert main(["-C", str(tmp_path), "non-goal", "list"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "read-only: no [non_goals]" in out
+    assert "  not      No web UI and no server." in out
+
+
+def test_an_empty_list_says_so_rather_than_printing_nothing(tmp_path, capsys):
+    project(tmp_path, roadmap="# Roadmap\n\n## Non-goals\n")
+    assert main(["-C", str(tmp_path), "non-goal", "list"]) == EXIT_OK
+    assert "no non-goals" in capsys.readouterr().out
+
+
+def test_the_json_carries_the_leads_the_file_and_whether_it_is_governed(tmp_path, capsys):
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "non-goal", "list", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["file"] == "ROADMAP.md" and payload["governed"] is True
+    assert payload["non_goals"][0] == "No web UI and no server."
+    assert payload["non_goals_elided"] == 0
+
+
+def test_nothing_is_enforced_because_enforcing_it_would_take_a_model(tmp_path):
+    # Stated as a test so nothing later promises it: the write door takes a lead and a
+    # reason and nothing that acknowledges the list — an agent passes any flag it is asked
+    # to pass, and judging whether a proposal violates a constraint is meaning (L4).
+    described = descriptor(
+        next(t for t in TOOLS if t.name == "non_goal_add"), project(tmp_path)
+    )
+    assert set(described["inputSchema"]["properties"]) == {"lead", "why"}
+    assert described["inputSchema"]["additionalProperties"] is False
+
+
+def test_the_read_is_served_over_stdio_and_named_by_the_guard():
+    # RK69's other two surfaces: the same tool a session already has (RK24), and the denial
+    # that teaches the check beside the writes (RK22) — advice that names only the write
+    # teaches half of what the roadmap asks for.
+    assert "non_goal_list" in {tool.name for tool in TOOLS}
+    assert not next(t for t in TOOLS if t.name == "non_goal_list").writes
+    reason = str(Refusal(tool="Edit", path="docs/ROADMAP.md", role="roadmap"))
+    assert "roadkeep non-goal list" in reason
+    assert "mcp__roadkeep__non_goal_list" in reason
 
 
 # -- the bound a client validates against ------------------------------------

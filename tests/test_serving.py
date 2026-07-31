@@ -119,6 +119,8 @@ def test_the_tools_are_what_a_task_needs_end_to_end():
         "non_goal_drop",
         "section_add",
         "section_drop",
+        # The first read a session that is *proposing* makes, so it heads the reads (RK69).
+        "non_goal_list",
         "brief",
         "pick",
         "list",

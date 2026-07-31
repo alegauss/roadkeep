@@ -39,7 +39,7 @@ from roadkeep import __version__
 from roadkeep.adopting import Estimate, adopt, init
 from roadkeep.authoring import add, amend, set_status
 from roadkeep.backlog import Backlog
-from roadkeep.briefing import Brief, brief
+from roadkeep.briefing import Brief, brief, non_goals
 from roadkeep.config import Config, ConfigError
 from roadkeep.counting import Census
 from roadkeep.document import Document, Entry, Reject, RoundTripError
@@ -331,8 +331,9 @@ def build_parser() -> argparse.ArgumentParser:
             "`sed` through `Bash` was the route left. Opt in with `[non_goals]`."
         ),
     )
-    # One action, and a subparser all the same: reading the list at the moment a task is
-    # *proposed* is RK69's door, and it belongs beside this one rather than under a flag.
+    # Three actions, two of which write. `list` is here rather than as the top-level
+    # `non-goals` its design named (RK69): one noun with three verbs, because `non-goal` and
+    # `non-goals` are two addresses for one list and a near-twin is a command typed wrong.
     constraints = scope_parser.add_subparsers(dest="action", required=True)
 
     scope_add = constraints.add_parser(
@@ -357,6 +358,22 @@ def build_parser() -> argparse.ArgumentParser:
         "--json", action="store_true", help="the bullet, with the file and line it landed on"
     )
     scope_add.set_defaults(handler=_non_goal_add)
+
+    scope_list = constraints.add_parser(
+        "list",
+        help="print what may not be proposed at all — call it before `add`",
+        description=(
+            "The list that binds an `add`, at the moment one is *proposed* rather than the "
+            "moment a task starts: until RK69 only `brief <id>` printed it, so the rule was "
+            "carried by a sentence in a file. Presence, not enforcement — whether a proposal "
+            "violates a constraint is a judgement about meaning, and this tool has no model "
+            "(L4). Reading is never refused, so an ungoverned list prints and says so."
+        ),
+    )
+    scope_list.add_argument(
+        "--json", action="store_true", help="the leads, with the file and what was left"
+    )
+    scope_list.set_defaults(handler=_non_goal_list)
 
     scope_drop = constraints.add_parser(
         "drop",
@@ -1163,6 +1180,52 @@ def _non_goal_add(config: Config, args: argparse.Namespace) -> int:
         print(f"  {line}")
     # No event line (RK38): the payload a hook reads is an id and its block's open state, and
     # a non-goal has neither — it is the constraint on what a block may hold, not a member.
+    return EXIT_OK
+
+
+def _non_goal_list(config: Config, args: argparse.Namespace) -> int:
+    """Print the list at the moment a task is proposed (RK69).
+
+    The same leads `brief` carries, from the same reader and under the same bound (RK68): a
+    second projection of the list is a second answer about scope, and the whole point is that
+    the constraint an `add` is checked against is the constraint the file states.
+    """
+    try:
+        document = config.document("roadmap")
+    except (KeyError, OSError) as error:
+        return _refused(error)
+
+    where = config.relative(config.path("roadmap"))
+    gathered = non_goals(config, document)
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "file": where,
+                    # A project that has not opted in can still be read — `add` is what
+                    # `[non_goals]` gates (RK70), and refusing the read too would leave the
+                    # scope of two live corpora unaskable.
+                    "governed": config.non_goals is not None,
+                    "non_goals": list(gathered.leads),
+                    "non_goals_elided": gathered.elided,
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+
+    if not gathered.leads:
+        print(f"{where}: no non-goals — nothing here says what may not be proposed")
+        return EXIT_OK
+
+    ungoverned = "" if config.non_goals is not None else "  read-only: no [non_goals]"
+    print(f"{where}  {len(gathered.leads)} non-goal(s){ungoverned}")
+    for lead in gathered.leads:
+        # The shape `brief` prints, so the list is recognisable as the same list and not as
+        # a second one that happens to agree today.
+        print(f"  not      {lead}")
+    if gathered.elided:
+        print(f"  not      … and {gathered.elided} more under Non-goals")
     return EXIT_OK
 
 

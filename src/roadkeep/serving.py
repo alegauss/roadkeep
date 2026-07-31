@@ -124,6 +124,7 @@ TOOLS: tuple[Tool, ...] = (
     Tool("non-goal drop", ("lead",), writes=True),
     Tool("section add", ("anchor", "title", "body", "role"), writes=True),
     Tool("section drop", ("anchor", "role"), writes=True),
+    Tool("non-goal list"),
     Tool("brief", ("id", "block")),
     Tool("pick", ("block",)),
     Tool("list", ("block", "role", "marker")),
