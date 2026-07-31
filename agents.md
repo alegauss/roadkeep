@@ -43,7 +43,7 @@ src/roadkeep/   the package (src layout, importable via pytest pythonpath). Each
   authoring shipping markers sections       RK5-9/32/41/67  the write paths, all-or-nothing
   scoping                                   RK69-70  the non-goal, and the list read before an add
   backlog counting picking showing graph    RK10-13/28-29/31/37/39-40  the query surface,
-  briefing exporting history                         plus what git alone can answer
+  briefing exporting history weighing                plus what git alone can answer
   linting fixing                            RK14-17  the gate, and the derived-only fixer
   adopting                                  RK18  `init` scaffolds, `adopt` estimates first
   guarding serving                          RK22/24  the hook, and the tools over stdio

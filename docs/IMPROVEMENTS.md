@@ -79,32 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK71 The weight the ledger already knows
-
-Sixty-three shipped tasks here cost between 52 and 1384 lines in the commit that wrote
-their ledger entry: p25 170, median 376, p75 574, p90 811. Eight are above 800 — RK2,
-RK6, RK9, RK10, RK18, RK22, RK32, RK48 — and they are the architectural ones. The spread
-is real and nothing in the backlog says it.
-
-`history` can already answer it: the commit that added an entry is findable by pickaxe
-over the ledger, so *what did a comparable task cost* is a query rather than an
-estimate. Which is the point — a derived number cannot rot, costs nothing on the turns
-nobody asks (L5), and anyone who doubts it can check it against git.
-
-What it is for: **granularity, at the moment the line is written.** A block whose last
-three comparables shipped at 800+ lines is a block where the next line is probably two
-lines, and that is an authoring decision the tool can inform without predicting
-anything.
-
-What it is explicitly not for: **ranking work.** Every tier of `pick` is a fact — in
-progress, declared priority, lowest ready id — and a cheapness tier would defer exactly
-the eight tasks above, which are the ones with the most leverage.
-
-And never a field on the line: §RK72 carries that argument.
-
-💭 and not 📋 on purpose. It changes perhaps one authoring decision in ten, and the marker
-set exists so that can be said instead of promoted.
-
 ## Block D — The gate
 
 ## Block E — Adoption

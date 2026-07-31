@@ -258,6 +258,115 @@ def content_at(config: Config, rev: str, role: str) -> str:
         return ""
 
 
+@dataclass(frozen=True, slots=True)
+class Cost:
+    """What one commit changed: lines either side, and how many files (RK71).
+
+    Both, because the two live corpora disagree about which one an author pays. Lines are
+    what varies — 40 to 1384 here — and files are what an agent holds in context, which the
+    "no size field" non-goal measured at 4 to 14. A derivation that reported one would be
+    picking the axis for the reader.
+    """
+
+    sha: str
+    short: str
+    lines: int
+    files: int
+
+
+def added_ids(config: Config, role: str) -> dict[str, str]:
+    """Which commit first added each id to one governed file: id → sha, oldest wins.
+
+    One `git log -U0` over the file, not one pickaxe per id: 69 ids is 69 processes, which
+    is the difference between a query and a thing nobody runs twice. The trade is that this
+    reads *added lines* rather than asking about an id, so an id the file never carried is
+    absent here where :func:`origin_of` would say so — which is why both exist.
+    """
+    if not config.has(role):
+        return {}
+    try:
+        relative = config.path(role).relative_to(config.root)
+    except ValueError:
+        relative = config.path(role)
+    output = _run(
+        config.root,
+        "log",
+        "--reverse",
+        f"--format={_RECORD}%H",
+        "--no-color",
+        "-U0",
+        "--",
+        str(relative),
+    )
+    bold = re.compile(rf"\*\*({re.escape(config.schema.prefix)}[1-9][0-9]*)\*\*")
+    first: dict[str, str] = {}
+    for head, rows in _records(output):
+        added = "\n".join(
+            row for row in rows if row.startswith("+") and not row.startswith("+++")
+        )
+        for task_id in bold.findall(added):
+            first.setdefault(task_id, head.strip())
+    return first
+
+
+def costs_of(config: Config, shas: tuple[str, ...]) -> dict[str, Cost]:
+    """The size of each named commit, across every file it touched, in one call.
+
+    `--no-walk`, so the argument list is the commit list and not a range: the commits that
+    wrote a ledger entry are scattered through history and a range would count what sits
+    between them. A binary file's numstat is `-`, and it counts as a file and no lines.
+    """
+    if not shas:
+        return {}
+    output = _run(
+        config.root,
+        "log",
+        "--no-walk",
+        f"--format={_RECORD}{_UNIT.join(['%H', '%h'])}",
+        "--numstat",
+        *shas,
+    )
+    out: dict[str, Cost] = {}
+    for head, rows in _records(output):
+        sha, _, short = head.partition(_UNIT)
+        counted = [
+            changed for changed in (_numstat(row) for row in rows) if changed is not None
+        ]
+        out[sha] = Cost(
+            sha=sha, short=short or sha[:7], lines=sum(counted), files=len(counted)
+        )
+    return out
+
+
+def _numstat(row: str) -> int | None:
+    """One numstat row as the lines it changed, or None when the row is not one.
+
+    A binary file reports `-` for both sides: it is a file that changed and no lines that
+    did, which is what the caller counts it as rather than dropping it.
+    """
+    columns = row.split("\t")
+    if len(columns) != 3:
+        return None
+    added, removed = columns[0], columns[1]
+    return (int(added) if added.isdigit() else 0) + (
+        int(removed) if removed.isdigit() else 0
+    )
+
+
+def _records(output: str) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    """Split a `--format=<record>…` log into (head line, following rows) pairs.
+
+    The record separator and not newlines, for :data:`_FORMAT`'s reason: a subject or a diff
+    line can hold anything, so only a byte no message carries can end a record.
+    """
+    out: list[tuple[str, tuple[str, ...]]] = []
+    for record in output.split(_RECORD):
+        rows = record.strip("\n").splitlines()
+        if rows:
+            out.append((rows[0], tuple(rows[1:])))
+    return tuple(out)
+
+
 def origin_of(config: Config, task_id: str) -> Origin:
     """The commit that proposed the task and the one that shipped it, if each exists."""
     needle = f"**{task_id}**"  # the bold id, so RK1 does not match RK10

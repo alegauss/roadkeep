@@ -60,6 +60,7 @@ from roadkeep.sections import drop as drop_section
 from roadkeep.sections import find as find_section
 from roadkeep.serving import serve
 from roadkeep.shipping import Closure, record, retire, ship
+from roadkeep.weighing import Spread, Weights, weigh
 from roadkeep.shipping import drop as drop_record
 from roadkeep.showing import View, show
 
@@ -616,6 +617,23 @@ def build_parser() -> argparse.ArgumentParser:
     )
     origin_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     origin_parser.set_defaults(handler=_origin)
+
+    weight_parser = subcommands.add_parser(
+        "weight",
+        help="what comparable tasks cost, derived from the commits that shipped them",
+        description=(
+            "What a comparable task cost, so granularity is a query instead of a feel: a "
+            "block whose last comparables shipped at 800+ lines is a block where the next "
+            "line is probably two lines. Derived from the commit that wrote each ledger "
+            "entry, so nothing stores it and `git show` refutes it. Two axes and no score — "
+            "lines vary 27-fold here and files, which is what an agent holds in context, do "
+            "not. This ranks nothing: every tier of `pick` is a fact, and a cheapness tier "
+            "would defer the architectural tasks, which is where the leverage is."
+        ),
+    )
+    weight_parser.add_argument("--block", help="only this block's comparables, e.g. C")
+    weight_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    weight_parser.set_defaults(handler=_weight)
 
     init_parser = subcommands.add_parser(
         "init",
@@ -2040,6 +2058,85 @@ def _origin(config: Config, args: argparse.Namespace) -> int:
         print()
         print(origin.shipped_in.reasoning)
     return EXIT_OK
+
+
+def _weight(config: Config, args: argparse.Namespace) -> int:
+    """Print what comparable tasks cost (RK71). Numbers only — the judgement is the author's.
+
+    No advice line: what a spread means for the line being written is an editorial call, and
+    a tool that phrased it would be writing the reasoning it exists not to write (L4).
+    """
+    try:
+        weights = weigh(config, args.block)
+    except HistoryUnavailable as error:
+        print(f"roadkeep: no history to weigh against ({error})", file=sys.stderr)
+        return EXIT_USAGE
+    except (KeyError, OSError) as error:
+        return _refused(error)
+
+    where = config.relative(config.path("changelog"))
+    if args.json:
+        print(json.dumps(_weight_json(where, weights), indent=2))
+        return EXIT_OK
+
+    scope = f"  Block {weights.block}" if weights.block else ""
+    print(f"{where}{scope}  {weights.lines.count} weighed")
+    print(f"  lines    {weights.lines}")
+    print(f"  files    {weights.files}")
+    if weights.block:
+        # The number the block is being compared against, without a second command.
+        print(f"  ledger   {weights.everywhere}")
+        for weight in weights.recent:
+            print(
+                f"  last     {weight.task_id:<6} {weight.lines:>5} lines  "
+                f"{weight.files:>3} files  {weight.commit}"
+            )
+    else:
+        for label, spread in weights.by_block().items():
+            print(f"  block {label:<3} {spread}")
+    if weights.unresolved:
+        # An absent answer is not a cheap task (RK28): a squash or a shallow clone leaves an
+        # entry no commit accounts for, and a count that hid them would read as complete.
+        print(
+            f"  missing  {len(weights.unresolved)} entr(ies) no commit accounts for: "
+            f"{', '.join(weights.unresolved)}"
+        )
+    return EXIT_OK
+
+
+def _weight_json(where: str, weights: Weights) -> dict[str, object]:
+    def spread(one: Spread) -> dict[str, int]:
+        return {
+            "count": one.count,
+            "low": one.low,
+            "high": one.high,
+            "p25": one.p25,
+            "median": one.median,
+            "p75": one.p75,
+            "p90": one.p90,
+        }
+
+    return {
+        "file": where,
+        "block": weights.block,
+        "lines": spread(weights.lines),
+        "files": spread(weights.files),
+        "ledger": spread(weights.everywhere),
+        "blocks": {
+            label: spread(one) for label, one in weights.by_block().items()
+        },
+        "weighed": [
+            {
+                "id": weight.task_id,
+                "block": weight.block,
+                "lines": weight.lines,
+                "files": weight.files,
+                "commit": weight.commit,
+            }
+            for weight in weights.weighed
+        ],
+        "unresolved": list(weights.unresolved),
+    }
 
 
 def _commits_json(origin: Origin) -> dict[str, object]:

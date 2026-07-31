@@ -62,7 +62,10 @@ what is **derived** (annotation, pointer, dep order, marker codepoint, whitespac
 
 ## Ask, don't count
 
-Every query takes `--json`. **`roadkeep brief [<id>]` starts a task in one call** — the line,
+Every query takes `--json`. **`weight [--block <x>]` is the other pre-`add` read**: what
+comparable tasks cost, derived from the commits that shipped them, so whether the line being
+written is one task or two is a question with an answer. It ranks nothing and lands on no
+line — the size field is a non-goal. **`roadkeep brief [<id>]` starts a task in one call** — the line,
 its rationale, deps resolved, the blocker chain, what it unblocks and the non-goals, bounded
 to a tool result; with no id, `pick`'s own choice. Narrower: `next-id` never fills a gap;
 `list|stats|audit [--block <x>]` counts and lists, naming every marker line neither could

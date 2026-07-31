@@ -52,6 +52,7 @@
 - ✅ **RK42** **The landing page claimed 9 of 36 tasks shipped through twenty-five ships** — `export --site` splices the same projection into the page as HTML between the same two markers, so one call refreshes both restatements and a test fails when either drifts.
 - ✅ **RK68** **The brief prints a non-goal narrower than the file states** — The lead is now the bold run at the start of a bullet or its first sentence, read from the bullet joined across its wrapped lines and cut to the project's own limit where the cut shows.
 - ✅ **RK69** **Non-goals are printed when a task starts, not when one is proposed** — The list is now `non-goal list` — beside the two write doors, over stdio, and in the guard's roadmap table — so it prints when work is *proposed* and not only when a task starts.
+- ✅ **RK71** **A task that should be two looks exactly like one that should be one** — `weight [--block <x>]` derives what comparable tasks cost from the commit that wrote each ledger entry — two axes, no score, no field on a line.
 
 ## Block D — The gate
 
