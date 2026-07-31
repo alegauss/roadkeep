@@ -77,34 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK72 A non-goal that argues the schedule
-
-The list says *No dates, quarters or estimates. A marker is maturity, not a schedule.*
-The reason given is about scheduling, so by its own letter it does not reach a `P/M/L`
-size bucket, which claims nothing about when. A proposal to add one arrived and the
-non-goal did not settle it — three laws did, at the cost of an analysis where a lookup
-should have answered. A constraint that must be re-derived every time it is tested is
-one that will eventually be re-derived wrongly.
-
-So it names the field, and carries the reasons the field fails rather than the reason a
-date fails.
-
-An effort letter would be the only field here that nothing can verify: every other one
-is a derivable fact or a falsifiable claim, and nobody returns with `amend` to correct
-an `L` that shipped as a `P`.
-
-The unit does not cross the human/agent boundary. What an agent pays is context, and the
-files a task touches is nearly flat — 4 to 14, median 9 — while the lines vary 27-fold.
-The letter would price the axis nobody pays.
-
-And it would poison `pick`, whose every tier is a fact today. Preferring the cheap
-letter optimises commit count against build order, and the heavy tasks are the
-architectural ones.
-
-Waiting on RK70 is the point and not an accident: a non-goal is prose no command can
-write, and the hand-edit is what the hook denies. This is that door's first concrete
-customer.
-
 ## Block C — Query
 
 ### §RK68 The lead that is a guess

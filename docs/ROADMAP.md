@@ -24,8 +24,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK72** (deps: RK70 ✅) **The non-goal against estimates names a schedule, not the field a size bucket would be** — A marker is not a schedule is why dates are refused, which did not settle a proposal to put P/M/L on the line and cost an analysis where a lookup should have answered. → §RK72
-
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK68** (deps: RK29 ✅) **The brief prints a non-goal narrower than the file states** — Turing's first bullet loses seven of its ten items to a line wrap and its second reduces to the word `not`, because the lead is inferred from prose instead of read from a field. → §RK68
@@ -51,6 +49,9 @@ Deliberately **not** built — check this list before proposing work:
 - **No model and no prompts.** The tool validates and renders; it never writes the
   symptom or the rationale. A generator would reintroduce exactly the prose drift
   this exists to stop.
-- **No dates, quarters or estimates.** A marker is maturity, not a schedule.
 - **No enforced id scheme beyond `<prefix><n>`.** Non-contiguous, retired-never-reused
   is a property of real backlogs, not a defect to normalize.
+- **No dates or quarters.** A marker is maturity, not a schedule.
+- **No effort or size field.** Nothing can verify a letter, `pick`'s every tier is a
+  fact, and what an agent pays is context: 4 to 14 files a task, against lines that vary
+  27-fold, so the letter prices the axis nobody pays.
