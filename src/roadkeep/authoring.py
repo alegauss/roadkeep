@@ -187,6 +187,7 @@ def add(
     deps: Sequence[str] = (),
     ref: str | None = None,
     task_id: str | None = None,
+    family: str | None = None,
 ) -> Insertion:
     """Insert one task into the roadmap and save it. The whole write path.
 
@@ -194,12 +195,17 @@ def add(
     refused (:class:`IdInUse`) — including in prose, because a number a document
     already mentions is a number two designs would share in the history.
 
+    ``family`` picks which track the derived id counts in (RK74) and defaults to the first
+    the project declares, which is the only answer for the projects that declare one. It
+    is never inferred from the block: a track is not a block, and a tool that mapped one
+    to the other would be holding an opinion about someone else's backlog.
+
     The dep annotations are derived here too (RK8), so `--dep RK1` renders `RK1 ✅` when
     RK1 has shipped and the author never types a marker. Only this line is derived: no
     existing line can name an id that did not exist a moment ago.
     """
     if task_id is None:
-        task_id = next_id(config)
+        task_id = next_id(config, family)
     else:
         refuse_reuse(config, task_id)
     task = compose(

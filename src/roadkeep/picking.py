@@ -98,7 +98,7 @@ def pick(config: Config, block: str | None = None) -> Choice:
     finished" is a mistake the ids being non-sequential makes easy.
     """
     backlog = Backlog.load(config)
-    prefix = config.schema.prefix
+    prefixes = config.schema.prefixes
     if block is not None and block not in backlog.declared_blocks():
         raise KeyError(
             f"no heading declares Block {block} (declares: "
@@ -112,7 +112,7 @@ def pick(config: Config, block: str | None = None) -> Choice:
     ]
     survey = _survey(backlog, considered)
     ordered = sorted(
-        survey.ready, key=lambda e: (number_of(e.task.id, prefix) or 0, e.task.id)
+        survey.ready, key=lambda e: (number_of(e.task.id, prefixes) or 0, e.task.id)
     )
     counts = {
         "block": block,

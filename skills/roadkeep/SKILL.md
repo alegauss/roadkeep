@@ -22,7 +22,9 @@ run once per project and want the CLI. Every guarantee below holds either way.
 
 `roadkeep <add|status|amend|ship|retire|record|non-goal|section> --help` has the flags. What they guarantee,
 so it costs you no thought: the id, the `→ §<id>` pointer, the status default and every
-`(deps: … ✅)` annotation are **derived, never typed**; a refusal exits 2 naming the length and
+`(deps: … ✅)` annotation are **derived, never typed** — where a project declares `prefix` as a
+list it numbers by track, and then `add --prefix <letter>` says which track while the number
+stays derived, per family; a refusal exits 2 naming the length and
 the limit and writes nothing; the shipped marker never reaches the roadmap; `ship <id>` makes
 its three edits (ledger entry, roadmap line gone, `§<id>` deleted) plus the dependents'
 annotations, or none, and `retire <id> [--superseded-by <id>] --reason "…"` is the same

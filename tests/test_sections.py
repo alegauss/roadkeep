@@ -252,7 +252,7 @@ TURING_PROSE = Path("D:/Git/viglet/turing/latest/docs/IMPROVEMENTS.md")
 def test_a_live_outline_file_yields_its_sections_and_answers_its_pointers():
     if not SHIO_PROSE.exists():
         pytest.skip(f"{SHIO_PROSE} is not on this machine")
-    schema = Schema(prefix="SH", ref_scheme="outline")
+    schema = Schema(prefixes=("SH",), ref_scheme="outline")
     sections = anchored(Document.load(SHIO_PROSE, schema))
     # A lower bound, like every other foreign one here: the file only grows.
     assert len(sections) >= 120
@@ -267,7 +267,7 @@ def test_a_live_outline_file_yields_its_sections_and_answers_its_pointers():
 def test_a_lettered_heading_in_the_live_corpus_becomes_a_section_the_budget_charges():
     if not TURING_PROSE.exists():
         pytest.skip(f"{TURING_PROSE} is not on this machine")
-    sections = anchored(Document.load(TURING_PROSE, Schema(prefix="T", ref_scheme="outline")))
+    sections = anchored(Document.load(TURING_PROSE, Schema(prefixes=("T",), ref_scheme="outline")))
     lettered = [s for s in sections if s.anchor[-2:-1] == "." and s.anchor[-1].isalpha()]
     # Twenty, and one of them is 779 words: prose that had escaped the section budget
     # entirely by gaining a lettered heading, which is the drift RK47 measured.

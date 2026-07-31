@@ -21,6 +21,7 @@ and on things that are not tracked work at all. So:
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from enum import StrEnum
 
@@ -178,14 +179,7 @@ class Backlog:
         )
 
     def _resolve_range(self, dep: Dep, kind: DepKind) -> Resolution:
-        first, last = self.config.schema.range_of_dep(dep)
-        prefix = self.config.schema.prefix
-        still_open = tuple(
-            e.task.id
-            for e in self.roadmap.entries
-            if (number := number_of(e.task.id, prefix)) is not None
-            and first <= number <= last
-        )
+        still_open = self._open_in_range(dep)
         if still_open:
             return Resolution(dep, kind, DepStatus.OPEN, _open_detail(still_open))
         # A range with no open members is satisfied, not unknown: ids are
@@ -247,16 +241,27 @@ class Backlog:
         if kind is DepKind.BLOCK:
             label = schema.block_of_dep(dep)
             return self.open_in_block(label) if label else ()
-        if kind is not DepKind.RANGE:
-            return ()
+        return self._open_in_range(dep) if kind is DepKind.RANGE else ()
+
+    def _open_in_range(self, dep: Dep) -> tuple[str, ...]:
+        """The still-open ids a range dep names — bounded by its numbers *and* its track.
+
+        One implementation, because `resolve_dep` and `open_for` used to hold two and a
+        range that counted one family in one of them would have been a dep whose detail
+        line disagreed with its status.
+        """
+        schema = self.config.schema
         bounds = schema.range_of_dep(dep)
-        if bounds is None:
+        family = schema.family_of_dep(dep)
+        if bounds is None or family is None:
             return ()
         first, last = bounds
         return tuple(
             entry.task.id
             for entry in self.roadmap.entries
-            if (number := number_of(entry.task.id, schema.prefix)) is not None
+            # `number_of` against the *one* family, not all of them: `C14–C20` counts in
+            # cursarei's product track and must not be satisfied by `V15` shipping.
+            if (number := number_of(entry.task.id, family)) is not None
             and first <= number <= last
         )
 
@@ -273,16 +278,39 @@ class Backlog:
         return Readiness.BLOCKED
 
 
-def number_of(task_id: str, prefix: str) -> int | None:
+def number_of(task_id: str, prefixes: str | Sequence[str]) -> int | None:
     """The numeric part of an id of this project, or None if it is not one.
 
     Public because `pick` (RK11) orders by it: "lowest id" is a numeric comparison, and
     a second implementation of it would sort RK9 after RK10 in exactly one of the two.
+
+    Takes every family the project numbers (RK74), longest first so that a `C` declared
+    beside a `CX` cannot claim `CX7` — which :func:`~roadkeep.schema._check_prefixes`
+    already refuses, this being the second place that would have to know it.
     """
-    if not task_id.startswith(prefix):
-        return None
-    tail = task_id[len(prefix) :]
-    return int(tail) if tail.isdigit() else None
+    if isinstance(prefixes, str):
+        prefixes = (prefixes,)
+    for prefix in sorted(prefixes, key=lambda p: (-len(p), p)):
+        if not task_id.startswith(prefix):
+            continue
+        tail = task_id[len(prefix) :]
+        if tail.isdigit():
+            return int(tail)
+    return None
+
+
+def family_of(task_id: str, prefixes: Sequence[str]) -> str | None:
+    """Which family an id belongs to (RK74), or None if it belongs to none.
+
+    Separate from :func:`number_of` because `next-id` asks a different question of the
+    same string: not "how high does this backlog count" but "how high does *this track*",
+    two tracks sharing a counter being two tracks that renumber each other.
+    """
+    for prefix in sorted(prefixes, key=lambda p: (-len(p), p)):
+        tail = task_id[len(prefix) :] if task_id.startswith(prefix) else ""
+        if tail.isdigit():
+            return prefix
+    return None
 
 
 def _clip(sentence: str, limit: int = 90) -> str:

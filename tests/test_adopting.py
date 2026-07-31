@@ -120,7 +120,7 @@ def test_config_reads_back_as_the_schema_it_was_rendered_from(tmp_path: Path) ->
 def test_config_follows_the_schema_and_not_a_template() -> None:
     """A default that moves moves the scaffold, because the value is read off the object."""
     rendered = render_config(
-        Schema(prefix="SH", symptom_max=99), {"roadmap": "docs/ROADMAP.md"}
+        Schema(prefixes=("SH",), symptom_max=99), {"roadmap": "docs/ROADMAP.md"}
     )
     assert 'prefix = "SH"' in rendered
     assert "symptom = 99" in rendered

@@ -22,8 +22,6 @@
 
 ## Block A — The model (a task is data before it is a line)
 
-- 📋 **RK74** (deps: RK3 ✅, RK4 ✅) **A backlog numbered by track cannot declare its ids** — cursarei numbers six tracks against a prefix that is one string, so adopt reads 0 of its 521 lines. → §RK74
-
 ## Block B — Authoring (insert, never hand-edit)
 
 ## Block C — Query (consult without reading the file)

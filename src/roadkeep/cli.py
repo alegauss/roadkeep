@@ -95,6 +95,14 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     next_id_parser.add_argument(
+        "--prefix",
+        dest="family",
+        help=(
+            "count in this track (default: the first declared) — two tracks sharing a "
+            "counter are two tracks that renumber each other"
+        ),
+    )
+    next_id_parser.add_argument(
         "--json",
         action="store_true",
         help="include where the highest id was found, so the answer can be audited",
@@ -131,6 +139,14 @@ def build_parser() -> argparse.ArgumentParser:
         "--id",
         dest="task_id",
         help="the id (default: derived, one past the highest anywhere)",
+    )
+    add_parser.add_argument(
+        "--prefix",
+        dest="family",
+        help=(
+            "which track the derived id counts in (default: the first declared); only "
+            "a backlog that numbers by track has a second one to name"
+        ),
     )
     add_parser.add_argument(
         "--ref",
@@ -646,7 +662,12 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     init_parser.add_argument(
-        "--prefix", default="RK", help="the id prefix, uppercase alphanumeric (default: RK)"
+        "--prefix",
+        action="append",
+        help=(
+            "the id prefix, uppercase alphanumeric (default: RK). Repeatable for a "
+            "backlog numbered by track; the first is what `add` mints under"
+        ),
     )
     init_parser.add_argument(
         "--block",
@@ -674,9 +695,11 @@ def build_parser() -> argparse.ArgumentParser:
     adopt_parser.add_argument("path", help="the file to measure, e.g. docs/ROADMAP.md")
     adopt_parser.add_argument(
         "--prefix",
+        action="append",
         help=(
-            "read the ids under this prefix; without it the project's own is used, or "
-            "the one the file's ids already spell"
+            "read the ids under this prefix, repeatable for a backlog numbered by "
+            "track; without it the project's own is used, or the one the file's ids "
+            "already spell — never all of them, which is a judgement and not a count"
         ),
     )
     adopt_parser.add_argument(
@@ -766,16 +789,21 @@ def main(argv: Sequence[str] | None = None) -> int:
 
 
 def _next_id(config: Config, args: argparse.Namespace) -> int:
-    identifier = next_id(config)
+    try:
+        identifier = next_id(config, args.family)
+    except ValueError as error:
+        return _refused(error)
+    family = args.family or config.schema.prefix
     if not args.json:
         print(identifier)
         return EXIT_OK
-    top = highest(config)
+    top = highest(config, family)
     print(
         json.dumps(
             {
                 "next": identifier,
-                "prefix": config.schema.prefix,
+                "prefix": family,
+                "prefixes": list(config.schema.prefixes),
                 "highest": None
                 if top is None
                 else {
@@ -804,6 +832,7 @@ def _add(config: Config, args: argparse.Namespace) -> int:
             deps=args.deps,
             ref=args.ref,
             task_id=args.task_id,
+            family=args.family,
         )
     except (RoundTripError, KeyError, ValueError, OSError) as error:
         return _refused(error)  # a SchemaError arrives here as the ValueError it is
@@ -2164,8 +2193,9 @@ def _init(config: Config, args: argparse.Namespace) -> int:
     # config would be an ancestor's, and scaffolding under someone else's paths is how a
     # subproject ends up writing into its parent's roadmap.
     del config
+    families = tuple(args.prefix or ("RK",))
     try:
-        created = init(args.directory, prefix=args.prefix, blocks=args.blocks or ("A",))
+        created = init(args.directory, prefix=families, blocks=args.blocks or ("A",))
     except (ValueError, OSError) as error:
         return _refused(error)
 
@@ -2176,7 +2206,8 @@ def _init(config: Config, args: argparse.Namespace) -> int:
                 {
                     "root": Path(args.directory).resolve().as_posix(),
                     "created": [path.as_posix() for path in files],
-                    "prefix": args.prefix,
+                    "prefix": families[0],
+                    "prefixes": list(families),
                     "blocks": list(created.blocks),
                 },
                 indent=2,
@@ -2216,17 +2247,22 @@ def _adopt(config: Config, args: argparse.Namespace) -> int:
 def _print_estimate(estimate: Estimate) -> None:
     where = estimate.path.as_posix()
     source = " (inferred from the ids)" if estimate.inferred else ""
-    print(f"{where}  prefix {estimate.prefix}{source}")
+    print(f"{where}  prefix {'/'.join(estimate.families)}{source}")
     print(
         f"  read     {estimate.parsed} line(s), {estimate.conforming} conform, "
         f"{estimate.changing} would change"
     )
     if estimate.blocks:
         print(f"  blocks   {', '.join(estimate.blocks)}")
-    for prefix, count in estimate.prefixes[1:]:
-        # Only the ones the chosen prefix does not cover: a second is a backlog that
-        # absorbed another, and no single `prefix` key can express two.
-        print(f"  also     {count} id(s) spell {prefix}, which one prefix cannot cover")
+    for prefix, count in estimate.prefixes:
+        # Only the ones the chosen families do not cover. `prefix` takes a list now
+        # (RK74), so this names the flag instead of the limitation: whether the spelling
+        # is a second track or a paste from another backlog is the reader's call.
+        if prefix not in estimate.families:
+            print(
+                f"  also     {count} id(s) spell {prefix}, unread here: "
+                f"--prefix {prefix} if it is a track of this backlog"
+            )
     for measure in estimate.measures:
         if measure.over:
             print(
@@ -2250,6 +2286,7 @@ def _estimate_json(estimate: Estimate) -> dict[str, object]:
     return {
         "file": estimate.path.as_posix(),
         "prefix": estimate.prefix,
+        "families": list(estimate.families),
         "inferred": estimate.inferred,
         "parsed": estimate.parsed,
         "conforming": estimate.conforming,

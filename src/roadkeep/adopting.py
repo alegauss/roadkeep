@@ -147,9 +147,14 @@ class Estimate:
     #: Tokens sitting where a marker sits that this project does not declare, with counts:
     #: the `[markers]` table the adopting project has to write.
     undeclared: tuple[tuple[str, int], ...] = ()
-    #: Every prefix the ids actually spell, worst first. More than one is a backlog that
-    #: absorbed another, which no single `prefix` key can express.
+    #: Every prefix the ids actually spell, worst first. More than one is a backlog
+    #: numbered by track, or one that absorbed another — `prefix` takes the list (RK74),
+    #: and which of the two this is, is the reader's call and never the tool's.
     prefixes: tuple[tuple[str, int], ...] = ()
+    #: Every family the measurement was taken under. One unless the caller passed a list:
+    #: inference stays at the dominant spelling, because promoting the rest would be the
+    #: tool deciding a foreign id is a second track (L4).
+    families: tuple[str, ...] = ("RK",)
     blocks: tuple[str, ...] = ()
     #: Lines whose schema rendering differs from how they are written. Not a defect to fix
     #: here — it is the reason the tool would refuse to write the file at all (L3).
@@ -167,7 +172,7 @@ class Estimate:
 def init(
     root: str | Path = ".",
     *,
-    prefix: str = "RK",
+    prefix: str | Sequence[str] = "RK",
     blocks: Sequence[str] = ("A",),
     roles: Sequence[str] = SCAFFOLD_ROLES,
 ) -> Created:
@@ -183,7 +188,9 @@ def init(
     if existing is not None:
         raise AlreadyConfigured(existing)
 
-    schema = Schema(prefix=prefix)  # raises on a prefix this format cannot carry
+    # Raises on a prefix this format cannot carry, and on a set of families that would
+    # read one id two ways (RK74).
+    schema = Schema(prefixes=_families(prefix))
     labels = tuple(_label(block) for block in blocks)
     if not labels:
         raise UnreadableBlock("")
@@ -218,8 +225,15 @@ def render_config(schema: Schema, paths: Mapping[str, str]) -> str:
     which is the one thing the key name does not say — a `section` in words and a `line` in
     characters are not the same kind of number.
     """
+    # One family is written as the string every other project has; several as the list a
+    # backlog numbered by track needs (RK74), in the order they were declared.
+    prefix = (
+        _quote(schema.prefix)
+        if len(schema.prefixes) == 1
+        else "[" + ", ".join(_quote(p) for p in schema.prefixes) + "]"
+    )
     lines = [
-        f"prefix = {_quote(schema.prefix)}",
+        f"prefix = {prefix}",
         "",
         "# how a rationale section is addressed: \"id\" derives the pointer from the",
         "# task's own id, \"outline\" keeps a hand-numbered anchor",
@@ -324,6 +338,15 @@ def _scaffold(role: str, blocks: Sequence[str]) -> str:
     return "\n".join(lines)
 
 
+def _families(prefix: str | Sequence[str]) -> tuple[str, ...]:
+    """One family or a list of them, as :class:`Schema` takes it (RK74).
+
+    A bare string stays one family rather than becoming a list of its letters, which is
+    the one thing a `str`-is-a-`Sequence` reading of this argument would silently do.
+    """
+    return (prefix,) if isinstance(prefix, str) else tuple(prefix)
+
+
 def _quote(value: str) -> str:
     """A TOML basic string, or a refusal — this never guesses at an escape."""
     if '"' in value or "\\" in value or "\n" in value:
@@ -338,7 +361,7 @@ def adopt(
     config: Config,
     path: str | Path,
     *,
-    prefix: str | None = None,
+    prefix: str | Sequence[str] | None = None,
     ref_scheme: str | None = None,
     ledger: bool = False,
 ) -> Estimate:
@@ -362,14 +385,20 @@ def adopt(
         schema = replace(schema, ref_scheme=ref_scheme)  # raises on an unknown scheme
     document = Document.load(target, schema)
 
-    prefixes = _prefixes(document)
-    declared = prefix or (config.schema.prefix if config.source is not None else None)
+    spelled = _prefixes(document)
+    declared = _families(prefix) if prefix else None
+    if declared is None and config.source is not None:
+        declared = config.schema.prefixes
     inferred = declared is None
-    chosen = declared or (prefixes[0][0] if prefixes else schema.prefix)
-    if chosen != schema.prefix:
+    # Inference stays at *one* family even now that the schema carries several (RK74).
+    # Which of two spellings is a second track and which is a paste from another backlog
+    # is a judgement about meaning, and this tool has no model (L4) — so a project that
+    # numbers by track declares it, and `--prefix` takes the list.
+    chosen = declared or ((spelled[0][0],) if spelled else schema.prefixes)
+    if chosen != schema.prefixes:
         # Swapped rather than re-read: the prefix is a validation rule and not a grammar,
         # so no line parses differently under it and a second read would be the same read.
-        schema = replace(schema, prefix=chosen)
+        schema = replace(schema, prefixes=chosen)
         document = replace(document, schema=schema)
 
     counts: dict[str, int] = {}
@@ -383,7 +412,8 @@ def adopt(
 
     return Estimate(
         path=target,
-        prefix=chosen,
+        prefix=chosen[0],
+        families=chosen,
         inferred=inferred,
         parsed=len(document.entries),
         conforming=conforming,
@@ -391,7 +421,7 @@ def adopt(
         codes=_ranked(counts),
         measures=_measures(document, schema),
         undeclared=_undeclared(document),
-        prefixes=prefixes,
+        prefixes=spelled,
         blocks=tuple(h.label for h in document.headings if h.label),
         non_canonical=len(document.non_canonical),
     )

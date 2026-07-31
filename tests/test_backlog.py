@@ -297,7 +297,7 @@ def test_shios_block_deps_all_name_a_block_it_declares():
     source = Path("D:/Git/viglet/shio/latest/docs/ROADMAP.md")
     if not source.exists():
         pytest.skip(f"{source} is not on this machine")
-    schema = Schema(prefix="SH", ref_scheme="outline")
+    schema = Schema(prefixes=("SH",), ref_scheme="outline")
     document = Document.load(source, schema)
     declared = {h.label for h in document.headings if h.label}
     named = {
@@ -320,7 +320,7 @@ def test_the_live_backlogs_use_the_kinds_this_model_has(path, prefix, expected):
     source = Path(path)
     if not source.exists():
         pytest.skip(f"{source} is not on this machine")
-    schema = Schema(prefix=prefix, ref_scheme="outline")
+    schema = Schema(prefixes=(prefix,), ref_scheme="outline")
     document = Document.load(source, schema)
     kinds = {
         schema.classify_dep(dep) for e in document.entries for dep in e.task.deps

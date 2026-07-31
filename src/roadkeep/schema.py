@@ -197,6 +197,26 @@ class Task:
         return tuple(d.id for d in self.deps)
 
 
+def _check_prefixes(prefixes: tuple[str, ...]) -> None:
+    """Every family this backlog numbers has to be readable, and readable as one thing."""
+    if not prefixes:
+        raise ValueError("prefix must name at least one family")
+    for prefix in prefixes:
+        if not _PREFIX_RE.match(prefix):
+            raise ValueError(f"prefix must be uppercase alphanumeric: {prefix!r}")
+    if len(set(prefixes)) != len(prefixes):
+        raise ValueError(f"prefix names a family twice: {list(prefixes)}")
+    for prefix in prefixes:
+        # `C` beside `C1` makes `C12` two ids — `C`+12 and `C1`+2 — and which one it is
+        # would depend on the order the alternation happens to be written in.
+        other = next((p for p in prefixes if p != prefix and p.startswith(prefix)), None)
+        if other is not None:
+            raise ValueError(
+                f"prefix {prefix!r} and {other!r} cannot both be families: an id "
+                f"starting {other!r} would read as either, and no rule breaks the tie"
+            )
+
+
 @dataclass(frozen=True, slots=True)
 class Schema:
     """The format, as configuration (L6).
@@ -207,7 +227,12 @@ class Schema:
     hardcoding any project's vocabulary.
     """
 
-    prefix: str = "RK"
+    #: Every family this backlog numbers, the first being the one new ids are minted
+    #: under. One is the common case and three of the four live corpora; cursarei numbers
+    #: six tracks and the letter *is* which track the work belongs to (RK74), so a single
+    #: string would have made 521 of its lines unreadable rather than non-conforming.
+    #: Nothing maps a family to anything — a track is not a block and not an owner.
+    prefixes: tuple[str, ...] = ("RK",)
     markers: tuple[str, ...] = OPEN_MARKERS
     shipped_marker: str = SHIPPED
     #: The ledger's other legal marker (RK32). Not an open marker: a retired line is a
@@ -274,8 +299,7 @@ class Schema:
                 f"ref_scheme must be one of {', '.join(sorted(REF_SCHEMES))}, "
                 f"got {self.ref_scheme!r}"
             )
-        if not _PREFIX_RE.match(self.prefix):
-            raise ValueError(f"prefix must be uppercase alphanumeric: {self.prefix!r}")
+        _check_prefixes(self.prefixes)
         if not self.markers:
             raise ValueError("markers must not be empty")
         if self.shipped_marker in self.markers and not self.shipped_allowed:
@@ -286,6 +310,42 @@ class Schema:
         for name in ("symptom_max", "why_max", "line_max", "section_max", "prose_width"):
             if getattr(self, name) < 1:
                 raise ValueError(f"{name} must be positive")
+
+    @property
+    def prefix(self) -> str:
+        """The family a new id is minted under when the caller names none (RK74).
+
+        The first declared, and not a default the tool chose: a project that numbers one
+        family reads this as "the prefix", and one that numbers six has already said which
+        track is its main line by writing it first.
+        """
+        return self.prefixes[0]
+
+    @property
+    def prefix_alternation(self) -> str:
+        """The families as one regex fragment, ready to embed. `RK`, or `(?:C|G|L)`.
+
+        One family stays bare, so a single-track project's `id_pattern` is still the
+        `^RK[1-9][0-9]*$` a reader recognises — an MCP client shows this string, and a
+        group nothing alternates over is punctuation that has to be read past.
+
+        Longest first, so `CX` would win over `C`. A tie is impossible —
+        :func:`_check_prefixes` refuses a family that starts another — but the alternation
+        is still ordered, because a regex that only works because no input reaches its
+        ambiguity is one that reads as though the order did not matter.
+        """
+        if len(self.prefixes) == 1:
+            return re.escape(self.prefixes[0])
+        ordered = sorted(self.prefixes, key=lambda p: (-len(p), p))
+        return "(?:" + "|".join(re.escape(prefix) for prefix in ordered) + ")"
+
+    def _families(self) -> str:
+        """The families as a refusal names them: `RK`, or `C/L/S/P/G/V` in declared order.
+
+        Declared order and not the alternation's, because a message is read by the author
+        who wrote the config and a reordering they did not make reads as a second list.
+        """
+        return "/".join(self.prefixes)
 
     @property
     def is_ledger(self) -> bool:
@@ -359,9 +419,11 @@ class Schema:
         """Ids are ``<prefix><n>``, non-contiguous, and never zero-padded.
 
         Padding would make ``RK01`` and ``RK1`` two spellings of one id, and the
-        next-id maximum (RK4) is taken over these strings.
+        next-id maximum (RK4) is taken over these strings. Every declared family matches
+        (RK74): a backlog that numbers by track is one backlog, so `C14` and `V05` are
+        both ids of it and a dep from one to the other is an ordinary dep.
         """
-        return re.compile(rf"^{re.escape(self.prefix)}[1-9][0-9]*$")
+        return re.compile(rf"^{self.prefix_alternation}[1-9][0-9]*$")
 
     def validate(self, task: Task) -> tuple[Violation, ...]:
         """Every violation, in field order. Empty means the task conforms."""
@@ -392,7 +454,8 @@ class Schema:
                 Violation(
                     "id.format",
                     "id",
-                    f"expected {self.prefix}<n> with no leading zero, got {task.id!r}",
+                    f"expected {self._families()}<n> with no leading zero, "
+                    f"got {task.id!r}",
                 )
             )
         if not self.marker_field and task.status != self.shipped_marker:
@@ -465,16 +528,35 @@ class Schema:
         Both `T451–T457` and `T451–457` occur in the wild, and the dash may be a
         hyphen or an en dash. A descending range is not a range: it is returned as
         None so the token falls through and gets reported instead of resolved.
+
+        Both ends are the *same* family: `C14–V05` spans two tracks that number
+        independently, so the pair it names is not a range of anything (RK74).
         """
-        pattern = re.compile(
-            rf"^{re.escape(self.prefix)}([1-9][0-9]*)"
-            rf"\s*[-–—]\s*(?:{re.escape(self.prefix)})?([1-9][0-9]*)$"
-        )
-        match = pattern.match(dep.id)
+        match = self._range_match(dep)
         if not match:
             return None
-        first, last = int(match.group(1)), int(match.group(2))
+        first, last = int(match.group(2)), int(match.group(3))
         return (first, last) if first <= last else None
+
+    def family_of_dep(self, dep: Dep) -> str | None:
+        """Which family a range dep counts in (RK74), or None if it names no range.
+
+        A range is bounded twice — by its numbers and by its track — and only the numbers
+        used to be read, which was correct while `C14–C20` was the only kind of range a
+        project could write. On a backlog that numbers six tracks it would also swallow
+        `V15`, and a dep reported satisfied by work in another track is worse than one
+        reported unresolvable.
+        """
+        match = self._range_match(dep)
+        return match.group("family") if match else None
+
+    def _range_match(self, dep: Dep) -> re.Match[str] | None:
+        families = self.prefix_alternation
+        pattern = re.compile(
+            rf"^(?P<family>{families})([1-9][0-9]*)"
+            rf"\s*[-–—]\s*(?P=family)?([1-9][0-9]*)$"
+        )
+        return pattern.match(dep.id)
 
     def _check_deps(self, task: Task) -> list[Violation]:
         if task.deps and not self.deps_field:
@@ -509,7 +591,7 @@ class Schema:
                         "deps.range",
                         "deps",
                         f"{dep.id!r} reads as a range but does not ascend from a "
-                        f"{self.prefix} id",
+                        f"{self._families()} id",
                     )
                 )
             if dep.marker is not None and dep.marker not in allowed:

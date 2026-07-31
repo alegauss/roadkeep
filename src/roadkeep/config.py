@@ -200,7 +200,7 @@ class Config:
         problems: list[str] = []
         _reject_unknown(data, _TOP_KEYS, "", problems)
 
-        prefix = _string(data, "prefix", "RK", problems)
+        prefixes = _prefixes(data.get("prefix"), problems)
         ref_scheme = _string(data, "ref_scheme", "id", problems)
         markers = _markers(data.get("markers"), problems)
         ledger = _ledger(data.get("ledger"), problems)
@@ -219,7 +219,7 @@ class Config:
         if not problems:
             try:
                 schema = Schema(
-                    prefix=prefix,
+                    prefixes=prefixes,
                     ref_scheme=ref_scheme,
                     **markers,
                     **ledger,
@@ -341,6 +341,30 @@ def _string(
         problems.append(f"{key} must be a string, got {type(value).__name__}")
         return default
     return value
+
+
+def _prefixes(raw: object, problems: list[str]) -> tuple[str, ...]:
+    """`prefix` — one family, or the list a backlog numbered by track needs (RK74).
+
+    A string stays a string in the file, because three of the four live corpora number one
+    family and `prefix = ["RK"]` would be a list nobody asked for. A list is read in
+    declaration order: the first is what `add` mints under when no family is named, and
+    the order is the author's, so a message that reprints it prints their list back.
+    """
+    if raw is None:
+        return ("RK",)
+    if isinstance(raw, str):
+        return (raw,)
+    if isinstance(raw, list) and all(isinstance(item, str) for item in raw):
+        if not raw:
+            problems.append("prefix must name at least one family")
+            return ("RK",)
+        return tuple(raw)
+    problems.append(
+        "prefix must be a string, or a list of strings for a backlog that numbers "
+        "by track"
+    )
+    return ("RK",)
 
 
 def _markers(raw: object, problems: list[str]) -> dict[str, object]:

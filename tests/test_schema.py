@@ -316,7 +316,7 @@ def test_check_returns_the_task_when_it_conforms():
 
 
 def test_another_projects_prefix_is_a_configuration():
-    shio = Schema(prefix="SH")
+    shio = Schema(prefixes=("SH",))
     assert shio.validate(task(id="SH341", deps=("SH1",), symptom="A", why="b.")) == ()
 
 
@@ -339,3 +339,53 @@ def read_corpus_lines() -> list[str]:
 
 def read_corpus() -> list[Task]:
     return [e.task for e in Document.load(ROADMAP, SCHEMA).entries]
+
+
+# -- a backlog numbered by track (RK74) -------------------------------------
+
+TRACKS = Schema(prefixes=("C", "L", "V"), ref_scheme="outline")
+
+
+def test_every_declared_family_is_an_id_of_the_project():
+    # One backlog, six numbering tracks: the letter is which track the work belongs to,
+    # so `C14` and `V5` are both ids here and a dep from one to the other is ordinary.
+    for identifier in ("C14", "L4", "V5"):
+        assert TRACKS.id_pattern().match(identifier)
+    assert not TRACKS.id_pattern().match("G11")
+
+
+def test_a_dep_across_two_tracks_is_an_ordinary_dep():
+    crossing = task(id="V5", deps=("C14", "L4"), ref="1.2")
+    assert TRACKS.validate(crossing) == ()
+
+
+def test_a_refusal_names_every_family_and_not_just_the_first():
+    codes = {v.code: v.message for v in TRACKS.validate(task(id="G11", ref="1.2"))}
+    assert "C/L/V" in codes["id.format"]
+
+
+def test_a_range_counts_in_one_track():
+    # `C14–C20` is a range; `C14–V5` names two tracks that number independently, so the
+    # pair it names is not a range of anything and falls through to be reported.
+    assert TRACKS.range_of_dep(Dep("C14–C20")) == (14, 20)
+    assert TRACKS.family_of_dep(Dep("C14–C20")) == "C"
+    assert TRACKS.range_of_dep(Dep("C14–V20")) is None
+    assert TRACKS.family_of_dep(Dep("C14–20")) == "C"
+
+
+def test_two_families_that_read_one_id_two_ways_are_refused():
+    # `C` beside `C1` makes `C12` two ids, and which one it is would depend on the order
+    # the alternation happens to be written in.
+    with pytest.raises(ValueError, match="no rule breaks the tie"):
+        Schema(prefixes=("C", "C1"))
+
+
+def test_a_family_declared_twice_is_refused():
+    with pytest.raises(ValueError, match="names a family twice"):
+        Schema(prefixes=("C", "L", "C"))
+
+
+def test_a_project_that_numbers_one_family_reads_the_pattern_it_always_did():
+    # An MCP client shows this string, and a group nothing alternates over is punctuation
+    # a reader has to look past.
+    assert Schema().id_pattern().pattern == "^RK[1-9][0-9]*$"

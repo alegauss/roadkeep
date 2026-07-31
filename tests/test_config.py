@@ -402,3 +402,32 @@ def test_every_problem_is_reported_at_once(tmp_path):
     # Three independent mistakes, one run: a config fixed one error per run is a
     # config fixed over four runs.
     assert len(caught.value.problems) == 3
+
+
+def test_a_backlog_numbered_by_track_declares_its_families(tmp_path):
+    # RK74: cursarei numbers C## for product, L## for the LLM track, V## for the migration
+    # to Viglet — and `prefix` as one string made 521 of its lines unreadable, not
+    # non-conforming.
+    write(tmp_path, 'prefix = ["C", "L", "V"]\n')
+    schema = Config.discover(tmp_path).schema
+    assert schema.prefixes == ("C", "L", "V")
+    # The first is what `add` mints under, and it is the author's choice, not a default
+    # the tool picked: it is the one they wrote first.
+    assert schema.prefix == "C"
+
+
+def test_one_family_stays_the_string_every_other_project_writes(tmp_path):
+    write(tmp_path, 'prefix = "SH"\n')
+    assert Config.discover(tmp_path).schema.prefixes == ("SH",)
+
+
+def test_a_prefix_that_is_neither_a_string_nor_a_list_is_refused(tmp_path):
+    path = write(tmp_path, "prefix = 3\n")
+    with pytest.raises(ConfigError, match="prefix must be a string, or a list"):
+        Config.load(path)
+
+
+def test_a_declaration_of_no_families_at_all_is_refused(tmp_path):
+    path = write(tmp_path, "prefix = []\n")
+    with pytest.raises(ConfigError, match="at least one family"):
+        Config.load(path)

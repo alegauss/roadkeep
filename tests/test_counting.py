@@ -199,7 +199,7 @@ def test_a_live_backlog_accounts_for_every_marker_bearing_line(path, prefix):
     source = Path(path)
     if not source.exists():
         pytest.skip(f"{source} is not on this machine")
-    document = Document.load(source, Schema(prefix=prefix, ref_scheme="outline"))
+    document = Document.load(source, Schema(prefixes=(prefix,), ref_scheme="outline"))
     assert document.entries
     assert all(reject.reason for reject in document.rejects)
 

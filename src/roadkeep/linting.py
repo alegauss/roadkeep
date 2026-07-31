@@ -453,7 +453,9 @@ def _unpaired(config: Config, sections: tuple[Section, ...], since: str) -> list
     if not edited.changes:
         return []
     ids = config.schema.id_pattern()
-    mentioned = re.compile(rf"\*\*({re.escape(config.schema.prefix)}[1-9][0-9]*)\*\*")
+    mentioned = re.compile(
+        rf"\*\*({config.schema.prefix_alternation}[1-9][0-9]*)\*\*"
+    )
     touched_ids = {
         found
         for role in LINE_ROLES
@@ -909,9 +911,9 @@ def _paths(config: Config, documents: dict[str, Document]) -> list[Finding]:
 def _cycles(backlog: Backlog, file: str) -> list[Finding]:
     """A group of tasks that wait on each other, anchored on its lowest id."""
     out: list[Finding] = []
-    prefix = backlog.config.schema.prefix
+    prefixes = backlog.config.schema.prefixes
     for group in Graph.of(backlog).cycles():
-        anchor = min(group, key=lambda i: (number_of(i, prefix) or 0, i))
+        anchor = min(group, key=lambda i: (number_of(i, prefixes) or 0, i))
         entry = backlog.entry(anchor)
         # A group of one is the same defect through a `Block X` dep the task is itself a
         # member of: the block cannot empty until this line ships, so the line waits on

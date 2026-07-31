@@ -298,7 +298,7 @@ def added_ids(config: Config, role: str) -> dict[str, str]:
         "--",
         str(relative),
     )
-    bold = re.compile(rf"\*\*({re.escape(config.schema.prefix)}[1-9][0-9]*)\*\*")
+    bold = re.compile(rf"\*\*({config.schema.prefix_alternation}[1-9][0-9]*)\*\*")
     first: dict[str, str] = {}
     for head, rows in _records(output):
         added = "\n".join(
@@ -400,10 +400,22 @@ def gaps(config: Config) -> tuple[Gap, ...]:
     The gaps are computed from the *entries* of both files rather than from a text scan:
     an id mentioned in prose — `agents.md` cites plenty — is still a gap, because what is
     missing is the record of a decision and not the string.
+
+    Per family, and in declared order (RK74): each track counts on its own, so a `C##`
+    that reached 40 says nothing about which `V##` are missing, and one range walked over
+    the highest id anywhere would report every unreached number of every other track.
     """
+    return tuple(
+        gap
+        for family in config.schema.prefixes
+        for gap in _gaps_in(config, family)
+    )
+
+
+def _gaps_in(config: Config, family: str) -> tuple[Gap, ...]:
     from roadkeep.ids import highest  # here, because ids.py reads this module's config
 
-    top = highest(config)
+    top = highest(config, family)
     if top is None:
         return ()
     recorded: set[int] = set()
@@ -411,14 +423,14 @@ def gaps(config: Config) -> tuple[Gap, ...]:
         if not config.has(role) or not config.path(role).is_file():
             continue
         for task_id in config.document(role).by_id():
-            number = _number(task_id, config.schema.prefix)
+            number = _number(task_id, family)
             if number is not None:
                 recorded.add(number)
     return tuple(
         Gap(
-            id=f"{config.schema.prefix}{number}",
+            id=f"{family}{number}",
             number=number,
-            removed_in=_last_touching(config, f"**{config.schema.prefix}{number}**"),
+            removed_in=_last_touching(config, f"**{family}{number}**"),
         )
         for number in range(1, top.number + 1)
         if number not in recorded

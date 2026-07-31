@@ -28,8 +28,8 @@ HERE = Path(__file__).resolve().parents[1]
 # Shio and Turing number their sections by hand; this repository derives the anchor
 # from the id (RK27). Both are configurations of one format (L6).
 OUTLINE = Schema(ref_scheme="outline")
-OUTLINE_SH = Schema(prefix="SH", ref_scheme="outline")
-OUTLINE_T = Schema(prefix="T", ref_scheme="outline")
+OUTLINE_SH = Schema(prefixes=("SH",), ref_scheme="outline")
+OUTLINE_T = Schema(prefixes=("T",), ref_scheme="outline")
 ROADMAP = HERE / "docs" / "ROADMAP.md"
 CHANGELOG = HERE / "docs" / "CHANGELOG.md"
 

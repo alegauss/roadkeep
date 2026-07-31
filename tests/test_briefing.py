@@ -251,7 +251,7 @@ def test_turings_leads_are_each_a_scope_and_none_is_a_stray_word():
     # The second live corpus is where RK68's two failures actually are, and the property
     # is not a wording: it is that no lead is a fragment of the constraint it addresses.
     gathered = non_goals(Config(root=TURING.parent), Document.parse(
-        TURING.read_text(encoding="utf-8"), Schema(prefix="T")
+        TURING.read_text(encoding="utf-8"), Schema(prefixes=("T",))
     ))
     assert len(gathered.leads) >= 7
     for lead in gathered.leads:

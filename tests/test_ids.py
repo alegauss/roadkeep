@@ -172,3 +172,54 @@ def test_the_command_reads_the_config_from_a_subdirectory(tmp_path, capsys):
     deep.mkdir(parents=True)
     assert main(["-C", str(deep), "next-id"]) == EXIT_OK
     assert capsys.readouterr().out == "RK10\n"
+
+
+# -- a backlog numbered by track (RK74) -------------------------------------
+
+
+def multi(tmp_path: Path, body: str) -> Path:
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = ["C", "L", "V"]\n[files]\nroadmap = "docs/ROADMAP.md"\n', encoding="utf-8"
+    )
+    target = tmp_path / ROADMAP
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(body, encoding="utf-8")
+    return target
+
+
+def test_each_track_counts_on_its_own(tmp_path):
+    # Two tracks sharing a counter are two tracks that renumber each other: cursarei's
+    # C## reaching 45 must not push V## past its 05.
+    config = Config.discover(multi(tmp_path, "- C45 and C44\n- V5\n- L12\n"))
+    assert next_id(config, "C") == "C46"
+    assert next_id(config, "V") == "V6"
+    assert next_id(config, "L") == "L13"
+
+
+def test_the_first_declared_family_is_what_a_caller_naming_none_gets(tmp_path):
+    config = Config.discover(multi(tmp_path, "- C45\n- V5\n"))
+    assert next_id(config) == next_id(config, "C") == "C46"
+
+
+def test_a_track_with_no_ids_yet_starts_at_one(tmp_path):
+    # Not one past the highest *anywhere*, which would open a track at 46.
+    config = Config.discover(multi(tmp_path, "- C45\n"))
+    assert next_id(config, "V") == "V1"
+
+
+def test_an_id_is_never_minted_outside_the_declared_families(tmp_path):
+    config = Config.discover(multi(tmp_path, "- C45\n"))
+    with pytest.raises(ValueError, match="not a family this project numbers"):
+        next_id(config, "G")
+
+
+def test_the_scan_reads_every_family_and_says_which_matched(tmp_path):
+    config = Config.discover(multi(tmp_path, "- C45 waits on V5\n"))
+    found = {ref.id: ref.family for ref in scan(config)}
+    assert found == {"C45": "C", "V5": "V"}
+
+
+def test_a_single_family_scanner_is_the_pattern_it_always_was(tmp_path):
+    # The list is what a backlog numbered by track needs; a project that numbers one
+    # reads the same regex it always did, and `prefix = "RK"` stays a string in the file.
+    assert id_scanner("RK").pattern == id_scanner(("RK",)).pattern
