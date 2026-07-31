@@ -262,25 +262,3 @@ files in it than to reconstruct from sessions that ended. A capture nobody prune
 kilobytes; a capture nobody kept costs the only session that could identify the defect.
 Sending is still nobody's default: what lands here is local, and RK87 governs everything
 that leaves.
-
-### §RK85 The report the reporter cannot write
-
-Four projects now drive this tool through agents, and the defects they find are found in
-sessions that end. What reaches the maintainer is a sentence composed after the fact, in
-the genre this repository exists to distrust: the 142-word roadmap line is the same
-author, writing the same way, about a different subject.
-
-The asymmetry is that the losing session holds everything an identification needs and
-none of it is prose. The argv, the exit code, `roadkeep.toml` as it was read, the engine
-that actually answered, and the input line with its `file:line:column` are all facts the
-process already has. RK79 is the dep because the engine field is the one that decides
-whether a report is a defect at all: with two trees answering `0.1.0`, a stale plugin
-cache and a real bug are indistinguishable, and the maintainer pays for the difference.
-
-The shape that keeps L2 is a capture, not a client: re-run the failing command under
-observation, emit the facts, and stop. No network in the default path, nothing to
-authenticate, and what it leaves on disk is ignored by git rather than governed (RK89).
-What it emits should be a task line for *this* backlog, symptom and `why` already inside
-the limits, so the schema is enforced in the session where the claim is made rather than
-in the maintainer's review of an issue. Delivery is a separate command somebody types,
-and is filed separately.

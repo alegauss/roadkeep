@@ -47,6 +47,7 @@ src/roadkeep/   the package (src layout, importable via pytest pythonpath). Each
   linting fixing                            RK14-17  the gate, and the derived-only fixer
   adopting                                  RK18  `init` scaffolds, `adopt` estimates first
   guarding serving provenance          RK22/24/79  the hook, the stdio tools, which tree ran
+  capturing                                 RK85  a defect in this tool, as facts not prose
   cli.py    one subparser per task, exit 0 / 1 gate / 2 usage, and RK38's event line
 action.yml, .pre-commit-hooks.yaml, .github/   the gate's three surfaces (RK17)
 hooks/, skills/, commands/, .claude-plugin/, .mcp.json   the plugin's five, and how it is

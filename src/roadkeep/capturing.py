@@ -1,0 +1,239 @@
+"""The report the losing session can write and the narration afterwards cannot (RK85).
+
+Four projects drive this tool through agents, and the defects they find are found in
+sessions that end. What reaches the maintainer is a sentence composed after the fact — in
+exactly the genre this repository exists to distrust, since the 142-word roadmap line was
+the same author writing the same way about a different subject.
+
+**The asymmetry is that none of what identifies a defect is prose.** The argv, the exit
+code, the engine that answered, `roadkeep.toml` as it was read and the offending
+`file:line:column` are facts the process already holds. So the failing command is re-run
+under observation and those facts are emitted; the two things a machine cannot supply —
+what does not work, and why it matters — are *arguments*, validated here against this
+repository's own schema. A report that arrives inside the limits was refused in the
+session that made the claim, instead of in a maintainer's review of an issue.
+
+Three boundaries this does not cross:
+
+* **It is a capture, not a client.** No network in this path, nothing to authenticate, no
+  identity. Delivery is somebody typing a separate command, and RK87 governs what may
+  leave a private repository at all.
+* **It re-runs, in this process.** A subprocess would be a second engine to be wrong about
+  — the whole reason RK79 comes first — so the command runs through the same
+  :func:`roadkeep.cli.main` this interpreter loaded, and the capture states which tree that
+  was. A crash is caught and kept: a traceback is the most identifying fact there is.
+* **It never writes the claim.** `symptom` and `why` come from the caller, and a capture
+  whose claim is over the limit is refused whole (L4). What is rendered for the maintainer
+  is the `add` command that files it — a command, not a sentence, and one whose id stays
+  derived where the backlog is.
+"""
+
+from __future__ import annotations
+
+import contextlib
+import io
+import re
+import shlex
+import traceback
+from collections.abc import Sequence
+from dataclasses import dataclass
+from pathlib import Path
+
+from roadkeep.config import find_config
+from roadkeep.provenance import Engine, engine
+from roadkeep.schema import Schema, Task, Violation
+
+#: How much of the failing command's output is kept. A capture is read by a person, and a
+#: `lint` over an adopted corpus prints hundreds of findings — the first of which is the
+#: one being reported, and the rest of which is the corpus.
+_MOST_OUTPUT_LINES = 40
+
+#: `file:line[:column]`, the address every finding this tool prints leads with (RK15). The
+#: column is optional because half of them have no column to name — a budget is about a
+#: file and a dep is about a line. Matched over the captured output rather than passed in:
+#: the caller reporting the defect is not the caller who knows which line was objected to.
+_WHERE = re.compile(r"^(?P<file>[^\s:][^:]*):(?P<line>\d+)(?::(?P<column>\d+))?", re.MULTILINE)
+
+#: The claim is checked against **this** repository's schema and never the reporting
+#: project's: the line is destined for this backlog, so a project with a looser limit would
+#: otherwise export a line the maintainer's own `add` refuses.
+HOME = Schema()
+
+#: A placeholder, so the two prose fields can be judged the way a real line is. The id and
+#: the pointer are derived where the line is actually filed, and both are `add`'s to mint —
+#: this exists only to make :meth:`Schema.validate` judge a whole line.
+_PLACEHOLDER = "RK1"
+
+
+@dataclass(frozen=True, slots=True)
+class Failure:
+    """What the observed command did, with nothing about it interpreted."""
+
+    argv: tuple[str, ...]
+    exit_code: int
+    output: str
+    #: Present when the command raised instead of exiting — the single most identifying
+    #: fact a capture can carry, and the one a narration never reproduces.
+    traceback: str | None = None
+
+    @property
+    def command(self) -> str:
+        return shlex.join(("roadkeep", *self.argv))
+
+    @property
+    def where(self) -> str | None:
+        """The first `file:line:column` the output named, or ``None``."""
+        found = _WHERE.search(self.output)
+        return found.group(0) if found else None
+
+
+@dataclass(frozen=True, slots=True)
+class Capture:
+    """One defect, as the session that hit it can state it."""
+
+    #: The caller's, never composed here (L4), and refused before this exists.
+    symptom: str
+    why: str
+    block: str
+    failure: Failure
+    #: Which tree answered (RK79). Without it a stale plugin cache and a real defect are
+    #: the same report, and the maintainer pays the difference.
+    engine: Engine
+    #: The reporting project's configuration, as it was read. A limit that is wrong is a
+    #: defect whose evidence is this file.
+    config: str | None = None
+    config_path: str | None = None
+    #: The input line the engine objected to, verbatim, and where it lives.
+    source: str | None = None
+
+    @property
+    def filing(self) -> str:
+        """The command that files this in the maintainer's backlog, id left derived."""
+        return shlex.join(
+            [
+                "roadkeep",
+                "add",
+                "--block",
+                self.block,
+                "--symptom",
+                self.symptom,
+                "--why",
+                self.why,
+            ]
+        )
+
+    def __str__(self) -> str:
+        lines = [
+            "roadkeep capture — what the session that hit this knew, before it ended",
+            "",
+            f"  symptom  {self.symptom}",
+            f"  why      {self.why}",
+            f"  block    {self.block}",
+            "",
+            f"  command  {self.failure.command}",
+            f"  exit     {self.failure.exit_code}",
+            f"  engine   {self.engine}",
+        ]
+        if self.failure.where:
+            lines.append(f"  where    {self.failure.where}")
+        if self.config_path:
+            lines.append(f"  config   {self.config_path}")
+        if self.source is not None:
+            lines += ["", "--- the line it objected to ---", self.source]
+        if self.failure.traceback:
+            lines += ["", "--- traceback ---", self.failure.traceback.rstrip()]
+        lines += ["", "--- output ---", self.failure.output.rstrip() or "(nothing)"]
+        if self.config is not None:
+            lines += ["", "--- roadkeep.toml as it was read ---", self.config.rstrip()]
+        lines += ["", "File it:", f"  {self.filing}"]
+        return "\n".join(lines)
+
+
+def check(symptom: str, why: str, block: str) -> tuple[Violation, ...]:
+    """Judge the claim against this repository's schema, before anything is run."""
+    task = Task(
+        id=_PLACEHOLDER,
+        status=HOME.markers[0],
+        block=block,
+        symptom=symptom,
+        why=why,
+        ref=_PLACEHOLDER,
+    )
+    return HOME.validate(task)
+
+
+def observe(argv: Sequence[str]) -> Failure:
+    """Re-run one roadkeep command in this process and keep everything it did.
+
+    Both streams into one buffer, in the order they were written: a capture that separates
+    them loses which finding preceded the traceback, and that order is the diagnosis.
+    """
+    from roadkeep.cli import main  # here, because the CLI is what builds a capture
+
+    buffer = io.StringIO()
+    trace: str | None = None
+    code = 0
+    with contextlib.redirect_stdout(buffer), contextlib.redirect_stderr(buffer):
+        try:
+            code = main(list(argv))
+        except SystemExit as exit_:  # argparse's own refusals leave this way
+            code = exit_.code if isinstance(exit_.code, int) else 2
+        except Exception:
+            # A crash *is* the report. `Exception` and not `BaseException`: an interrupt is
+            # the user asking for the session back, and a capture is not worth taking it.
+            trace = traceback.format_exc()
+            code = 1
+    return Failure(
+        argv=tuple(argv), exit_code=code, output=_tail(buffer.getvalue()), traceback=trace
+    )
+
+
+def capture(
+    symptom: str, why: str, block: str, argv: Sequence[str], root: str | Path = "."
+) -> Capture:
+    """Run the failing command and compose the report. The claim is already validated."""
+    failure = observe(argv)
+    config_path, config = _configuration(root)
+    return Capture(
+        symptom=symptom,
+        why=why,
+        block=block,
+        failure=failure,
+        engine=engine(),
+        config=config,
+        config_path=config_path,
+        source=_source(failure.where, root),
+    )
+
+
+def _tail(output: str) -> str:
+    lines = output.splitlines()
+    if len(lines) <= _MOST_OUTPUT_LINES:
+        return output
+    dropped = len(lines) - _MOST_OUTPUT_LINES
+    # Stated, because a truncated listing that does not say so reads as a complete one.
+    return "\n".join([f"… {dropped} earlier line(s) not kept", *lines[-_MOST_OUTPUT_LINES:]])
+
+
+def _configuration(root: str | Path) -> tuple[str | None, str | None]:
+    found = find_config(Path(root))
+    if found is None:
+        return None, None
+    try:
+        return str(found), found.read_text(encoding="utf-8")
+    except OSError:
+        return str(found), None
+
+
+def _source(where: str | None, root: str | Path) -> str | None:
+    """The line the engine named, read back verbatim — never reconstructed."""
+    if where is None:
+        return None
+    name, _, rest = where.partition(":")
+    number = int(rest.partition(":")[0])
+    path = Path(root) / name
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except (OSError, UnicodeDecodeError):
+        return None
+    return lines[number - 1] if 1 <= number <= len(lines) else None

@@ -39,6 +39,7 @@ from roadkeep.adopting import Estimate, adopt, init
 from roadkeep.authoring import add, amend, set_status
 from roadkeep.backlog import Backlog
 from roadkeep.briefing import Brief, brief, non_goals
+from roadkeep.capturing import capture, check
 from roadkeep.config import Config, ConfigError
 from roadkeep.counting import Census
 from roadkeep.document import Document, Entry, Reject, RoundTripError
@@ -670,6 +671,38 @@ def build_parser() -> argparse.ArgumentParser:
     weight_parser.add_argument("--block", help="only this block's comparables, e.g. C")
     weight_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     weight_parser.set_defaults(handler=_weight)
+
+    report_parser = subcommands.add_parser(
+        "report",
+        help="capture a defect in this tool, with what the failing session knew",
+        description=(
+            "Re-run the command that failed, in this process, and emit what identifies the "
+            "defect: the argv, the exit code, the engine that answered, this project's "
+            "roadkeep.toml, the line the engine objected to and any traceback. The two "
+            "facts a machine cannot supply are arguments and are refused here against this "
+            "tool's own schema, so a report arrives inside the limits the backlog it is "
+            "destined for enforces. Nothing is sent: the capture is printed, and delivery "
+            "is a separate decision."
+        ),
+    )
+    report_parser.add_argument(
+        "--symptom", required=True, help="what does not work — a phrase, never a fix"
+    )
+    report_parser.add_argument(
+        "--why", required=True, help="one sentence, ending in a stop: why it matters"
+    )
+    report_parser.add_argument(
+        "--block",
+        default="F",
+        help="the block of roadkeep's own backlog this belongs under (default: F)",
+    )
+    report_parser.add_argument(
+        "command_argv",
+        nargs=argparse.REMAINDER,
+        metavar="-- COMMAND",
+        help="the roadkeep command that failed, after a bare --, without the program name",
+    )
+    report_parser.set_defaults(handler=_report, tolerates_config_error=True)
 
     init_parser = subcommands.add_parser(
         "init",
@@ -2327,6 +2360,30 @@ def _estimate_json(estimate: Estimate) -> dict[str, object]:
         "rejects": [{"reason": r, "count": n} for r, n in estimate.rejects],
         "non_canonical": estimate.non_canonical,
     }
+
+
+def _report(config: Config, args: argparse.Namespace) -> int:
+    """Capture one defect in this tool (RK85). Exit 2 refuses the claim, never the capture.
+
+    The refusal is the point: a report is a task line for a backlog that holds a limit, so
+    the sentence is judged in the session that made the claim rather than in the review of
+    an issue. What the observed command exits with is a *fact of the capture* and never this
+    command's own code — the whole reason to run it is that it failed.
+    """
+    argv = list(args.command_argv)
+    if argv and argv[0] == "--":
+        argv = argv[1:]
+    if not argv:
+        print("roadkeep: name the command that failed, after a bare --", file=sys.stderr)
+        return EXIT_USAGE
+    violations = check(args.symptom, args.why, args.block)
+    if violations:
+        print("roadkeep: refused, nothing captured:", file=sys.stderr)
+        for violation in violations:
+            print(f"  {violation}", file=sys.stderr)
+        return EXIT_USAGE
+    print(capture(args.symptom, args.why, args.block, argv, config.root))
+    return EXIT_OK
 
 
 def _guard(config: Config, args: argparse.Namespace) -> int:
