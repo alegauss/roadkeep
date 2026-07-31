@@ -212,7 +212,25 @@ def test_the_launcher_runs_from_any_directory(tmp_path):
         check=False,
     )
     assert finished.returncode == 0, finished.stderr
-    assert finished.stdout.strip() == f"roadkeep {roadkeep.__version__}"
+    assert finished.stdout.strip().startswith(f"roadkeep {roadkeep.__version__} (")
+
+
+def test_the_launcher_names_the_tree_it_ran_and_not_only_its_number(tmp_path):
+    """RK79: a cache and a checkout both answer `0.1.0`, so the number cannot be the answer.
+
+    The launcher is the surface where the two diverge — the hook and the MCP server go
+    through it while `python -m roadkeep.cli` does not — so this asserts the directory it
+    printed is the `src/` it put first on `sys.path`, and not whatever else was importable.
+    """
+    finished = subprocess.run(
+        [sys.executable, str(HERE / "scripts" / "roadkeep.py"), "--version"],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert finished.returncode == 0, finished.stderr
+    assert str(HERE / "src" / "roadkeep") in finished.stdout
 
 
 # -- the marketplace that installs it (RK26) ---------------------------------

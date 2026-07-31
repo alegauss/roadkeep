@@ -332,6 +332,22 @@ def test_the_handshake_answers_with_the_version_the_client_asked_for(asked):
     assert response["result"]["serverInfo"]["name"] == "roadkeep"
 
 
+def test_the_handshake_names_the_tree_that_will_answer_every_call():
+    """RK79: this is the one moment the server gets to say which engine it is.
+
+    `serverInfo.version` stays the release number, because a client may be pinned against
+    it — the directory and the commit go to `instructions`, which is the field a session
+    actually reads.
+    """
+    from roadkeep import __version__
+    from roadkeep.provenance import engine
+
+    response = handle({"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {}})
+    assert response["result"]["serverInfo"]["version"] == __version__
+    assert response["result"]["instructions"] == str(engine())
+    assert str(engine().home) in response["result"]["instructions"]
+
+
 def test_an_unknown_protocol_version_is_answered_with_one_this_server_knows():
     response = handle(
         {

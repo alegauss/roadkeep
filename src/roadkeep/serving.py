@@ -55,6 +55,7 @@ from typing import Any, TextIO
 
 from roadkeep import __version__
 from roadkeep.config import Config, ConfigError, Scope
+from roadkeep.provenance import engine
 
 #: The protocol revision this server answers with when the client asks for one it does not
 #: know. Negotiation is "echo what the client asked for if we understand it": a server that
@@ -368,6 +369,10 @@ def _handshake(params: Mapping[str, Any]) -> dict[str, Any]:
         "protocolVersion": asked if asked in KNOWN_PROTOCOLS else PROTOCOL,
         "capabilities": {"tools": {}},
         "serverInfo": {"name": "roadkeep", "version": __version__},
+        # The startup line RK79 asks for. `serverInfo.version` stays the release number a
+        # client may have pinned against, so which tree answered goes here — the one field
+        # of the handshake that reaches a session, and the only moment this server has one.
+        "instructions": str(engine()),
     }
 
 

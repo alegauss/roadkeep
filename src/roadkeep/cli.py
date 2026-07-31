@@ -35,7 +35,6 @@ import sys
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 
-from roadkeep import __version__
 from roadkeep.adopting import Estimate, adopt, init
 from roadkeep.authoring import add, amend, set_status
 from roadkeep.backlog import Backlog
@@ -51,6 +50,7 @@ from roadkeep.history import Commit, HistoryUnavailable, Origin, gaps, origin_of
 from roadkeep.ids import highest, next_id
 from roadkeep.linting import Finding, Report, lint
 from roadkeep.picking import Choice, pick
+from roadkeep.provenance import engine
 from roadkeep.schema import SchemaError
 from roadkeep.scoping import add as add_non_goal
 from roadkeep.scoping import drop as drop_non_goal
@@ -71,12 +71,32 @@ EXIT_USAGE = 2
 _JSON_HELP = "machine-readable form"
 
 
+class _Version(argparse.Action):
+    """Print which engine answered, not just its number (RK79).
+
+    An `action="version"` string is built with the parser, on every run — and naming the
+    tree costs a git call. This defers it to the flag being passed, so the answer a plugin
+    cache and a checkout disagree on costs nothing on the commands that do the work.
+    """
+
+    def __init__(self, option_strings: Sequence[str], dest: str, **kwargs: object) -> None:
+        super().__init__(option_strings, dest, nargs=0, default=argparse.SUPPRESS, **kwargs)
+
+    def __call__(self, parser, namespace, values, option_string=None) -> None:  # type: ignore[no-untyped-def]
+        print(engine())
+        parser.exit(EXIT_OK)
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="roadkeep",
         description="Own the writes to a project's roadmap, changelog and rationale.",
     )
-    parser.add_argument("--version", action="version", version=f"roadkeep {__version__}")
+    parser.add_argument(
+        "--version",
+        action=_Version,
+        help="the version, the commit it is at and the directory it ran from",
+    )
     parser.add_argument(
         "-C",
         "--directory",

@@ -171,26 +171,6 @@ governance it does not have, which is the drift this tool exists to refuse.
 
 ## Block F — The plugin
 
-### §RK79 Two engines, one version string
-
-Measured on a live session. `python -m roadkeep.cli` resolved to the developer checkout;
-the hooks and the MCP server ran the plugin cache. Diffing the two `src/roadkeep/` trees
-found 14 files differing and two modules present in one and absent from the other. Both
-`plugin.json` and the package report `0.1.0`, so nothing observable distinguishes them —
-and the checkout was two commits ahead of the remote the cache is fetched from, which
-means `/plugin update` would not have closed the gap either.
-
-RK57's launcher docstring already names this failure class: "a plugin that silently ran
-an older installed copy is the hardest kind of stale". The fix it shipped puts the
-plugin's own `src` first, which defends against a stale *installed* copy and cannot
-defend against a stale *cache*. The direction it does not cover is the one a developer
-of this tool hits every day.
-
-The cheap half is making the two distinguishable rather than making them the same: a
-version that carries the commit, or a startup line naming which tree answered. Being
-unable to tell is what turns every other symptom into a guess, which is why RK81 is
-filed as depending on this one rather than as a defect in its own right.
-
 ### §RK81 The agent-native surface is the one that did not load
 
 A full session of driving roadkeep ran `python -m roadkeep.cli` through Bash,

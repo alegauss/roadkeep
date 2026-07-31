@@ -27,6 +27,8 @@ import tomllib
 from importlib import import_module
 from pathlib import Path
 
+import pytest
+
 import roadkeep
 
 HERE = Path(__file__).resolve().parents[1]
@@ -134,9 +136,25 @@ def test_the_console_script_resolves_to_something_callable() -> None:
     assert callable(getattr(import_module(module_name), attribute))
 
 
-def test_the_cli_reports_the_package_version() -> None:
+def test_the_cli_reports_the_package_version(capsys) -> None:
     """`--version` is what an adopter checks against a pin, so it is not a second literal."""
     from roadkeep.cli import build_parser
 
+    parser = build_parser()
+    with pytest.raises(SystemExit) as exited:
+        parser.parse_args(["--version"])
+    assert exited.value.code == 0
+    assert capsys.readouterr().out.startswith(f"roadkeep {roadkeep.__version__} (")
+
+
+def test_the_version_costs_nothing_until_it_is_asked_for() -> None:
+    """RK79 names the tree with a git call — one the commands doing the work never pay.
+
+    An `action="version"` string is built with the parser, so the cost would land on every
+    run; the assertion is that no literal was baked in at build time.
+    """
+    from roadkeep.cli import build_parser
+
     action = next(a for a in build_parser()._actions if "--version" in a.option_strings)
-    assert action.version == f"roadkeep {roadkeep.__version__}"
+    assert not hasattr(action, "version")
+    assert action.nargs == 0
