@@ -25,8 +25,12 @@
 ## Block B — Authoring (insert, never hand-edit)
 
 - 📋 **RK67** (deps: RK41 ✅) **A ledger entry written twice cannot be removed, so the file states one decision twice** — Give record its inverse for an entry no roadmap line ever left, because Shio carries SH347 on two lines and nothing but a hand-edit can drop one. → §RK67
+- 📋 **RK70** (deps: RK3 ✅) **No command can write a non-goal, and the denial names five that cannot** — The hook refuses the edit and offers only commands that write task lines, so a binding constraint is edited by the `sed` the barrier deliberately does not match. → §RK70
 
 ## Block C — Query (consult without reading the file)
+
+- 📋 **RK68** (deps: RK29 ✅) **The brief prints a non-goal narrower than the file states** — Turing's first bullet loses seven of its ten items to a line wrap and its second reduces to the word `not`, because the lead is inferred from prose instead of read from a field. → §RK68
+- 📋 **RK69** (deps: —) **Non-goals are printed when a task starts, not when one is proposed** — The roadmap says to check the list before proposing work and only `brief <id>` prints it, so the rule that binds an `add` has no command at the moment it binds. → §RK69
 
 ## Block D — The gate
 

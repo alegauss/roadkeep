@@ -99,7 +99,69 @@ Not a general delete. An entry that is wrong in its prose is `amend`'s question 
 over, and an entry that should never have been written at all is a decision the author
 states in the commit that removes it.
 
+### §RK70 The one write the denial cannot name
+
+RK22's value is that the refusal *is* the command to call. For the non-goals it is not:
+`Edit` on the roadmap is denied and the reason offers `add`, `status`, `amend`, `ship`
+and `retire`, all five of which write task lines. What is left is `sed` through `Bash`,
+which the barrier deliberately does not match and which `lint` does not judge, because a
+bullet carrying no marker is prose. So the only content of the roadmap that is not a
+task line is also the only content nothing governs — L1 holds everywhere except here.
+
+A non-goal is structurally what `add` already governs, a lead and a reason, so `non-goal
+add --lead "…" --why "…"` needs no new law: one renderer, and the fields refused at
+input. Addressed by its lead, unique and checked. **No ids** — an id creates a
+lifecycle, retire and rename, for a list of eight lines that changes once a year. The
+trigger that would change that answer is already visible: Turing's backlog says "which
+the Non-goals say is not the path", a reference resolving to nothing, which is the
+defect RK15 catches for `→ §`.
+
+The shape is opt-in under `[non_goals]` (L6), for RK66's reason: Shio and Turing wrote
+theirs before the schema existed, and a default that reports fifteen findings on
+adoption is a gate that gets bypassed. This repository opts in and is the fixture.
+
 ## Block C — Query
+
+### §RK68 The lead that is a guess
+
+`brief` carries the non-goals as leads, and the lead is scraped: the first `**…**` run
+anywhere in the bullet, or the text before the first `. `, over the bullet's first
+physical line only. Both halves fail on the second live corpus. Turing's first non-goal
+spans four lines, so the lead keeps three of the ten things it forbids and drops the SSE
+bus, the anti-injection normalization and `TurToolCallbackPipeline.decorate`. Its second
+reads `Structured output (LLM → JSON) is **not** a path`, where the bold is mid-sentence
+emphasis — so the printed non-goal is the word `not`.
+
+This repository's own five leads are correct, which is the part worth saying out loud:
+the fixture proves the reader only where the file was hand-written to the convention the
+reader assumes.
+
+So the lead is a bold run **at the start** of the bullet or nothing, the bullet is
+joined across its continuation lines before it is cut, and the cut is stated where it
+happens. And it is bounded like every other field of a brief — the chains stop at two
+and a section has a word budget, while the non-goals are today the one field with no
+limit at all, so a forty-bullet section replaces the file the brief exists to save.
+
+Not a rewrite of anyone's prose (L4): what changes is which characters are quoted.
+
+### §RK69 The list that binds a proposal it never sees
+
+The roadmap tells an author to check the non-goals before proposing work, and `brief
+<id>` is the only command that prints them — which is the moment a task *starts*, not
+the moment one is *proposed*. `add` neither prints them nor is scoped by them, so the
+constraint is carried by a sentence in a file, which is the arrangement §0.1 measured at
+186 KB.
+
+`roadkeep non-goals [--json]`, and the same tool over stdio: eight leads cost nothing on
+the turns that propose nothing, and the guard's roadmap table names it, so a denied edit
+teaches the read as well as the write. The skill says to call it before `add`.
+
+What this is not, stated here so nothing promises it later: **presence, not
+enforcement**. Deciding whether a proposed task violates a non-goal is a judgement about
+meaning, and the tool has no model and will not get one (L4) — a keyword match over
+eight bullets would produce a confident wrong answer, which is worse than the sentence
+it replaced. An `add --acknowledge-non-goals` flag is the same theatre one step later:
+an agent passes any flag it is asked to pass.
 
 ## Block D — The gate
 
