@@ -230,27 +230,6 @@ PreToolUse matcher on the read tools that **warns** and names `brief`/`list` wou
 what the line missed. It must never refuse: `lint` emits file-and-line, and editing the
 prose of those files is legitimate work.
 
-### §RK85 The report the reporter cannot write
-
-Four projects now drive this tool through agents, and the defects they find are found in
-sessions that end. What reaches the maintainer is a sentence composed after the fact, in
-the genre this repository exists to distrust: the 142-word roadmap line is the same
-author, writing the same way, about a different subject.
-
-The asymmetry is that the losing session holds everything an identification needs and
-none of it is prose. The argv, the exit code, `roadkeep.toml` as it was read, the engine
-that actually answered, and the input line with its `file:line:column` are all facts the
-process already has. RK79 is the dep because the engine field is the one that decides
-whether a report is a defect at all: with two trees answering `0.1.0`, a stale plugin
-cache and a real bug are indistinguishable, and the maintainer pays for the difference.
-
-The shape that keeps L2 is a capture, not a client: re-run the failing command under
-observation, emit the facts, and stop. No network in the default path, no state file in
-the adopting repository, nothing to authenticate. What it emits should be a task line for
-*this* backlog, symptom and `why` already inside the limits, so the schema is enforced in
-the session where the claim is made rather than in the maintainer's review of an issue.
-Delivery is a separate command somebody types, and is filed separately.
-
 ### §RK86 The exit that ends the conversation
 
 Every refusal this tool writes is addressed to an author who is wrong: the limit, the
@@ -319,3 +298,48 @@ Two things to settle. A capture has to be replayable without the repository it c
 from, which bounds what it may embed and pins it to RK87's redaction. And a replay that
 now passes is a regression test worth keeping, so the corpus is a directory in `tests/`,
 not a tracker.
+
+### §RK89 Persist first, curate later
+
+Evidence that exists for the length of one stdout depends on the caller taking a second
+step, and RK86 is the record of second steps not being taken. So the capture is written
+before it is printed: `.roadkeep/reports/` in the project where the failure happened,
+one file per capture, unconditional.
+
+This crosses a boundary worth naming. The tool owns four files in an adopting repository
+and this is a fifth path — but it is a fifth path the repository never has to see,
+because the same run appends it to `.gitignore` when no rule already covers it. Nothing
+enters anybody's history, nothing appears in a diff, nothing has to be explained to a
+reviewer who did not install this. The rules that keep that true: append one line, only
+when absent, never reorder or rewrite what is there, and if the file cannot be written,
+say so and keep the capture anyway. `.gitignore` is not governed and never round-trips,
+so it is read to decide and appended to, never rendered.
+
+Retention is deliberately unsolved. Rotation, dedup by argv, an age limit, a command
+listing what was never sent — all of it is easier to add to a directory that already has
+files in it than to reconstruct from sessions that ended. A capture nobody pruned costs
+kilobytes; a capture nobody kept costs the only session that could identify the defect.
+Sending is still nobody's default: what lands here is local, and RK87 governs everything
+that leaves.
+
+### §RK85 The report the reporter cannot write
+
+Four projects now drive this tool through agents, and the defects they find are found in
+sessions that end. What reaches the maintainer is a sentence composed after the fact, in
+the genre this repository exists to distrust: the 142-word roadmap line is the same
+author, writing the same way, about a different subject.
+
+The asymmetry is that the losing session holds everything an identification needs and
+none of it is prose. The argv, the exit code, `roadkeep.toml` as it was read, the engine
+that actually answered, and the input line with its `file:line:column` are all facts the
+process already has. RK79 is the dep because the engine field is the one that decides
+whether a report is a defect at all: with two trees answering `0.1.0`, a stale plugin
+cache and a real bug are indistinguishable, and the maintainer pays for the difference.
+
+The shape that keeps L2 is a capture, not a client: re-run the failing command under
+observation, emit the facts, and stop. No network in the default path, nothing to
+authenticate, and what it leaves on disk is ignored by git rather than governed (RK89).
+What it emits should be a task line for *this* backlog, symptom and `why` already inside
+the limits, so the schema is enforced in the session where the claim is made rather than
+in the maintainer's review of an issue. Delivery is a separate command somebody types,
+and is filed separately.
