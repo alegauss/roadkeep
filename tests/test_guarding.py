@@ -158,7 +158,8 @@ def test_the_ledger_names_the_transaction_and_not_add(tmp_path):
     reason = str(refusal)
     assert "Write refused" in reason
     assert "roadkeep ship <id>" in reason
-    assert "roadkeep record --block" in reason
+    assert "roadkeep record add --block" in reason
+    assert "roadkeep record drop <id>" in reason
     # `add` writes the roadmap. Offering it here would name a command that cannot make
     # this edit, which is worse than naming none.
     assert "roadkeep add " not in reason

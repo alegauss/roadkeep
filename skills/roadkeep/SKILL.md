@@ -14,8 +14,8 @@ not on PATH.
 ## Writing and shipping
 
 When the `mcp__roadkeep__*` tools are available, **prefer them**: the whole write path and
-the reads a task needs are there — `add`, `status`, `amend`, `ship`, `retire`, `record`,
-`section_add`, `section_drop`, `brief`, `pick`, `list`, `deps`, `lint` — same engine and same refusals, with
+the reads a task needs are there — `add`, `status`, `amend`, `ship`, `retire`, `record_add`,
+`record_drop`, `section_add`, `section_drop`, `brief`, `pick`, `list`, `deps`, `lint` — same engine and same refusals, with
 the fields arriving as a schema instead of flag names typed from memory. `init` and `adopt`
 run once per project and want the CLI. Every guarantee below holds either way.
 
@@ -25,8 +25,10 @@ so it costs you no thought: the id, the `→ §<id>` pointer, the status default
 the limit and writes nothing; the shipped marker never reaches the roadmap; `ship <id>` makes
 its three edits (ledger entry, roadmap line gone, `§<id>` deleted) plus the dependents'
 annotations, or none, and `retire <id> [--superseded-by <id>] --reason "…"` is the same
-transaction, two more doors. `record --block <x> --symptom "…" --why "…"` is the fourth — never
-planned, so the ledger entry alone and the roadmap untouched. `section add <id> --title "…"`
+transaction, two more doors. `record add --block <x> --symptom "…" --why "…"` is the fourth — never
+planned, so the ledger entry alone and the roadmap untouched, and `record drop <id>` is its inverse:
+refused unless the ledger states that id **twice**, then the later entry goes and the first stays,
+because removing the only record of a decision is deleting history. `section add <id> --title "…"`
 takes prose on **stdin**, within the word budget, filled to the configured width, under the
 task's block — a table or list is inserted exactly as written. No write invents a block
 heading. Every write prints one `event <id> Block <x> open|empty` line, the whole payload a

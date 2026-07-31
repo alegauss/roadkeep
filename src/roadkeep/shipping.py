@@ -40,6 +40,15 @@ something else, fixed, real, shipped — has no route into the ledger except a f
 roadmap line shipped in the same breath. :func:`record` is that route made honest: it
 writes the ledger entry and touches nothing else, which is why RK7 survives it untouched
 — the line never exists open, so there is no second file to disagree with.
+
+**And a door out of the ledger, for exactly one shape** (RK67). Every door above only ever
+adds an entry, which is right for history and wrong for a duplicate: an id the ledger states
+twice states one decision twice, `lint`'s `id.duplicate` reports it, and until now nothing but
+the hand-edit the hook denies could act. :func:`drop` is the inverse of the door that wrote it
+and refuses unless the id is there **twice** — removing the only record of a decision is
+deleting history rather than de-duplicating it. The later entry goes: the first is where the
+reader already found it. Prose that is wrong is `amend`'s question one file over, and an entry
+that should never have existed is a decision the author states in the commit that removes it.
 """
 
 from __future__ import annotations
@@ -61,12 +70,15 @@ __all__ = [
     "AlreadyShipped",
     "Closure",
     "Departure",
+    "Dropped",
     "NoRestatement",
     "NoSuchReplacement",
+    "NotDuplicated",
     "NotOpen",
     "Record",
     "Section",
     "Shipment",
+    "drop",
     "record",
     "retire",
     "ship",
@@ -109,6 +121,25 @@ class NoRestatement(ValueError):
             f"{task_id} is already recorded as {recorded.task.status} at line "
             f"{recorded.lineno}, so this call only closes its roadmap line: --why restates "
             f"the ledger's sentence, and the ledger is not written here"
+        )
+
+
+class NotDuplicated(ValueError):
+    """`drop` against an id the ledger does not state twice (RK67).
+
+    The narrow condition is this door's whole safety: de-duplicating is the one removal that
+    cannot lose a decision, because the decision stays on the line the reader already found.
+    So the message names the count it *did* find — "not a duplicate" reads as "no such entry"
+    when it is one entry, which is the case where the author has to hear the difference.
+    """
+
+    def __init__(self, task_id: str, where: str, linenos: tuple[int, ...]) -> None:
+        self.task_id = task_id
+        self.linenos = linenos
+        found = f"once, at line {linenos[0]}" if linenos else "nowhere"
+        super().__init__(
+            f"{task_id} is in {where} {found}: this removes the later of two entries for one "
+            f"id, and the only record of a decision is history rather than a duplicate"
         )
 
 
@@ -226,6 +257,66 @@ class Record:
             # same bytes: an untouched file with a moved mtime reads as an edit to every
             # hook watching it, and "touched nothing else" has to be true on disk.
             self.roadmap.save()
+
+
+@dataclass(frozen=True, slots=True)
+class Dropped:
+    """One of two ledger entries for a single id, removed (RK67).
+
+    No roadmap field, and that is the shape of the guarantee rather than an omission: an id
+    the ledger still records once is an id every annotation elsewhere is still true about, so
+    there is nothing to re-derive (RK8) and no second file to open. :class:`Record` had to say
+    "touched nothing else" in a docstring; here there is nothing that could.
+    """
+
+    task_id: str
+    #: The ledger as this write leaves it: one entry for the id, and no doubled blank.
+    ledger: Document
+    removed_from: int
+    #: The line the decision keeps, and the marker it carries there — printed, because a
+    #: duplicate whose two entries disagree about the door is a fact the author has to see.
+    kept: int
+    kept_marker: str
+    #: The block the ledger still files this decision under — the kept entry's, since that is
+    #: the one that is left to answer for it.
+    block: str = ""
+    #: The marker the removed entry carried, which is normally the same one.
+    marker: str = ""
+
+    def save(self) -> None:
+        """Write the ledger. Nothing else was opened, so nothing else can be touched."""
+        self.ledger.save()
+
+
+def drop(config: Config, task_id: str) -> Dropped:
+    """Remove the later of two ledger entries for one id (RK67).
+
+    Refused unless the id is recorded **twice**, so the operation is de-duplication and can
+    never be a deletion of history: what stays is the first entry, where a reader who already
+    found this decision found it. With three, the last goes and a second call is the next one —
+    convergent by construction, rather than one command that decides how many to remove.
+
+    The whole write is the ledger, which is what makes this narrow enough to exist at all: no
+    dep annotation changes when an id the file still records goes from two entries to one.
+    """
+    ledger = config.document("changelog")
+    twins = tuple(entry for entry in ledger.entries if entry.task.id == task_id)
+    if len(twins) < 2:
+        raise NotDuplicated(
+            task_id,
+            config.relative(config.path("changelog")),
+            tuple(entry.lineno for entry in twins),
+        )
+    later = twins[-1]
+    return Dropped(
+        task_id=task_id,
+        ledger=_remove_entry(ledger, later.index),
+        removed_from=later.lineno,
+        kept=twins[0].lineno,
+        kept_marker=twins[0].task.status,
+        block=twins[0].task.block,
+        marker=later.task.status,
+    )
 
 
 def ship(config: Config, task_id: str, *, why: str | None = None) -> Departure | Closure:

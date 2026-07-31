@@ -58,6 +58,7 @@ from roadkeep.sections import drop as drop_section
 from roadkeep.sections import find as find_section
 from roadkeep.serving import serve
 from roadkeep.shipping import Closure, record, retire, ship
+from roadkeep.shipping import drop as drop_record
 from roadkeep.showing import View, show
 
 EXIT_OK = 0
@@ -265,6 +266,16 @@ def build_parser() -> argparse.ArgumentParser:
 
     record_parser = subcommands.add_parser(
         "record",
+        help="write a ledger entry for unplanned work, or drop a duplicate of one",
+        description=(
+            "The ledger's own two doors, the pair the roadmap's four are not: every other "
+            "command starts from a task line, and these start from the entry."
+        ),
+    )
+    entries = record_parser.add_subparsers(dest="action", required=True)
+
+    record_add = entries.add_parser(
+        "add",
         help="write a ledger entry for work that shipped without ever being planned",
         description=(
             "The fourth door, and the only one that starts nowhere. `ship` and both "
@@ -273,24 +284,40 @@ def build_parser() -> argparse.ArgumentParser:
             "that the format can be gamed. This writes the entry and touches nothing else."
         ),
     )
-    record_parser.add_argument("--block", required=True, help="the block label, e.g. B")
-    record_parser.add_argument(
+    record_add.add_argument("--block", required=True, help="the block label, e.g. B")
+    record_add.add_argument(
         "--symptom",
         required=True,
         help="what did not work — a phrase, never the name of the patch that closed it",
     )
-    record_parser.add_argument(
+    record_add.add_argument(
         "--why", required=True, help="one sentence, ending in a stop: the outcome"
     )
-    record_parser.add_argument(
+    record_add.add_argument(
         "--id",
         dest="task_id",
         help="the id (default: derived, one past the highest anywhere)",
     )
-    record_parser.add_argument(
+    record_add.add_argument(
         "--json", action="store_true", help="the entry, with the file and line it landed on"
     )
-    record_parser.set_defaults(handler=_record)
+    record_add.set_defaults(handler=_record)
+
+    record_drop = entries.add_parser(
+        "drop",
+        help="remove the later of two ledger entries for one id",
+        description=(
+            "Delete a duplicate entry, and only a duplicate: refused unless the ledger states "
+            "the id twice, because removing the only record of a decision is deleting history "
+            "rather than de-duplicating it. The first entry stays, since that is where a "
+            "reader already found the decision, and no other file is opened."
+        ),
+    )
+    record_drop.add_argument("id", help="the id the ledger carries twice, e.g. RK41")
+    record_drop.add_argument(
+        "--json", action="store_true", help="which line went, and which one answers now"
+    )
+    record_drop.set_defaults(handler=_record_drop)
 
     list_parser = subcommands.add_parser(
         "list",
@@ -1049,6 +1076,53 @@ def _record(config: Config, args: argparse.Namespace) -> int:
     print("  planned  never: straight to the ledger, so there was no roadmap line to remove")
     if entry.refreshed:
         print(f"  derived  {', '.join(entry.refreshed)} (dep annotations re-derived)")
+    _print_event(event, "  ")
+    return EXIT_OK
+
+
+def _record_drop(config: Config, args: argparse.Namespace) -> int:
+    try:
+        dropped = drop_record(config, args.id)
+        dropped.save()
+    except (RoundTripError, KeyError, ValueError, OSError) as error:
+        return _refused(error)
+
+    ledger = config.relative(config.path("changelog"))
+    # The roadmap is read, never written (RK67): the event's block state is the *roadmap's*
+    # for every mutator, and a duplicate entry removed leaves open work exactly as it was.
+    event = _event(dropped.task_id, dropped.block, config.document("roadmap"))
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "id": dropped.task_id,
+                    "changelog": {
+                        "file": ledger,
+                        "removed": dropped.removed_from,
+                        "marker": dropped.marker,
+                    },
+                    "kept": {"line": dropped.kept, "marker": dropped.kept_marker},
+                    "roadmap": {"touched": False},
+                    "event": event,
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+
+    print(
+        f"{dropped.task_id} {dropped.marker} {ledger}:{dropped.removed_from} removed, "
+        f"duplicate of {ledger}:{dropped.kept}"
+    )
+    print(f"  kept     {dropped.kept_marker} line {dropped.kept}: where the decision was found")
+    if dropped.kept_marker != dropped.marker:
+        # Two entries that disagree about the door are not one decision written twice, and
+        # the later one is gone: which marker the ledger now states has to be said out loud.
+        print(
+            f"  differed the entry removed said {dropped.marker}, so the ledger now states "
+            f"{dropped.kept_marker}"
+        )
+    print("  roadmap  untouched: an id the ledger still records changes no annotation")
     _print_event(event, "  ")
     return EXIT_OK
 

@@ -77,28 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK67 The entry nobody can drop
-
-The ledger is append-only by design: `ship` and `retire` move a line into it, `record`
-writes one that never had a line, and nothing takes an entry out. That is right for
-history and wrong for a duplicate — Shio's `SH347` is on lines 579 and 586 of its
-changelog, so the file states one decision twice and `id.duplicate` reports it with no
-command that can act.
-
-`ship` cannot help: the id is already recorded, which is what RK62's closing path now
-reads as a leftover roadmap line rather than a leftover entry. `retire` would add a
-third. `--fix` repairs only what is derived. What is left is the hand-edit the hook
-denies, which is the same dead end RK65 opened for a roadmap line.
-
-So `record drop <id>` — the inverse of the door that wrote it, and narrow for the same
-reason: it refuses unless the id appears **twice** in the ledger, because removing the
-only record of a decision is deleting history rather than de-duplicating it. Which of
-the two goes is the later one: the first is where the reader already found it.
-
-Not a general delete. An entry that is wrong in its prose is `amend`'s question one file
-over, and an entry that should never have been written at all is a decision the author
-states in the commit that removes it.
-
 ### §RK70 The one write the denial cannot name
 
 RK22's value is that the refusal *is* the command to call. For the non-goals it is not:

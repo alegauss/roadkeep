@@ -84,7 +84,8 @@ _INSTEAD: Mapping[str, tuple[tuple[str, str], ...]] = {
     ),
     "changelog": (
         ("ship <id>", "the entry a planned task earns, in one transaction"),
-        ('record --block <x> --symptom "…" --why "…"', "work that was never planned"),
+        ('record add --block <x> --symptom "…" --why "…"', "work that was never planned"),
+        ("record drop <id>", "one of two entries for one id, when the ledger says it twice"),
         ('retire <id> --reason "…"', "a line that left without shipping"),
     ),
     "improvements": (

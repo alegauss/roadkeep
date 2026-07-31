@@ -174,7 +174,8 @@ python $R init                                # writes roadkeep.toml and the fil
 ```
 
 Everything a *task* needs afterwards is already in the tools the plugin installed: `add`,
-`status`, `ship`, `retire`, `record`, `section_add`, `section_drop`, `brief`, `pick`, `list`,
+`status`, `ship`, `retire`, `record_add`, `record_drop`, `section_add`, `section_drop`,
+`brief`, `pick`, `list`,
 `deps`, `lint`. No shell, no `PATH`, and the schema each of them validates against is the one
 `roadkeep.toml` just declared.
 
