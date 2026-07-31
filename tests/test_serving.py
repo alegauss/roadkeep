@@ -116,6 +116,7 @@ def test_the_tools_are_what_a_task_needs_end_to_end():
         "record_add",
         "record_drop",
         "non_goal_add",
+        "non_goal_drop",
         "section_add",
         "section_drop",
         "brief",
@@ -229,6 +230,7 @@ def test_the_read_only_hint_says_which_tools_write(tmp_path):
         "record_add",
         "record_drop",
         "non_goal_add",
+        "non_goal_drop",
         "section_add",
         "section_drop",
     }

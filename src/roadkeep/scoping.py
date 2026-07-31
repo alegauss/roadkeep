@@ -45,13 +45,16 @@ __all__ = [
     "SHAPE",
     "WHY",
     "DuplicateLead",
+    "Dropped",
     "NoNonGoals",
+    "NoSuchNonGoal",
     "NonGoal",
     "NotGoverned",
     "Written",
     "add",
     "address",
     "check",
+    "drop",
     "read",
     "render",
     "validate",
@@ -113,6 +116,18 @@ class DuplicateLead(ValueError):
         )
 
 
+class NoSuchNonGoal(KeyError):
+    """A lead that addresses nothing. The leads that exist are named, because a constraint
+    is looked up by the words a reader remembers and the stop inside the bold is invisible."""
+
+    def __init__(self, lead: str, where: str, leads: tuple[str, ...]) -> None:
+        self.lead = lead
+        known = ", ".join(repr(one) for one in leads) or "none"
+        super().__init__(
+            f"no non-goal in {where} leads with {lead!r}: the list carries {known}"
+        )
+
+
 @dataclass(frozen=True, slots=True)
 class NonGoal:
     """One bullet under the non-goals heading, as data and as the file spells it."""
@@ -142,6 +157,24 @@ class Written:
 
     @property
     def rendered(self) -> tuple[str, ...]:
+        return self.non_goal.lines
+
+    def save(self) -> None:
+        self.document.save()
+
+
+@dataclass(frozen=True, slots=True)
+class Dropped:
+    """A non-goal removed, whole. Save writes the roadmap and nothing else."""
+
+    document: Document
+    non_goal: NonGoal
+    #: How many bullets carried this address before the removal — 2 or more means the drop
+    #: was also the repair for `lint`'s `non-goal.duplicate`, and the report says so.
+    carried: int = 1
+
+    @property
+    def lines(self) -> tuple[str, ...]:
         return self.non_goal.lines
 
     def save(self) -> None:
@@ -282,6 +315,56 @@ def add(config: Config, lead: str, why: str) -> Written:
             lines=lines,
         ),
     )
+
+
+def drop(config: Config, lead: str) -> Dropped:
+    """Remove the non-goal a lead addresses, whole, wrapped lines included.
+
+    The other half of the door, and the half a *correction* needs: a lead is the address, so a
+    constraint whose lead changes is a different constraint — `- **No dates, quarters or
+    estimates**` becoming `- **No dates or quarters**` is one retired and one written, which
+    is honest in a way an in-place edit of the address would not be.
+
+    Where two bullets carry one address — `lint`'s `non-goal.duplicate` — the later one goes,
+    for `record drop`'s reason (RK67): the first is where the reader already found it. So this
+    is also that finding's door, and a second call is what a third copy takes.
+    """
+    if config.non_goals is None:
+        raise NotGoverned(config.relative(config.source or config.root))
+    document = config.document("roadmap")
+    where = config.relative(config.path("roadmap"))
+    if _heading_index(document) is None:
+        raise NoNonGoals(where)
+
+    existing = read(document)
+    wanted = address(lead)
+    matches = tuple(one for one in existing if address(one.lead) == wanted)
+    if not matches:
+        raise NoSuchNonGoal(lead.strip(), where, tuple(one.lead for one in existing))
+    going = matches[-1]
+    return Dropped(
+        document=_remove_span(document, going),
+        non_goal=going,
+        carried=len(matches),
+    )
+
+
+def _remove_span(document: Document, going: NonGoal) -> Document:
+    """Take the bullet out, and the blank line the removal doubled.
+
+    A list of one sits between blanks, so removing it leaves a paragraph break the file never
+    had — and both spellings round-trip, which is exactly why nothing downstream would catch
+    it (the same care `ship` takes with a task line, RK6).
+    """
+    start = going.first - 1
+    updated = document.remove_lines(start, going.last)
+    lines = updated.lines
+    if start > 0 and start < len(lines) and blank(lines[start - 1]) and blank(lines[start]):
+        return updated.remove_line(start)
+    if start >= len(lines) and start > 0 and blank(lines[start - 1]):
+        # The list was last in the file: its trailing blank has nothing left to separate.
+        return updated.remove_line(start - 1)
+    return updated
 
 
 def _heading_index(document: Document) -> int | None:

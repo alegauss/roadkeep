@@ -54,8 +54,7 @@ from dataclasses import dataclass
 from typing import Any, TextIO
 
 from roadkeep import __version__
-from roadkeep.config import Config, ConfigError
-from roadkeep.schema import Schema
+from roadkeep.config import Config, ConfigError, Scope
 
 #: The protocol revision this server answers with when the client asks for one it does not
 #: know. Negotiation is "echo what the client asked for if we understand it": a server that
@@ -122,6 +121,7 @@ TOOLS: tuple[Tool, ...] = (
     Tool("record add", ("block", "symptom", "why"), writes=True),
     Tool("record drop", ("id",), writes=True),
     Tool("non-goal add", ("lead", "why"), writes=True),
+    Tool("non-goal drop", ("lead",), writes=True),
     Tool("section add", ("anchor", "title", "body", "role"), writes=True),
     Tool("section drop", ("anchor", "role"), writes=True),
     Tool("brief", ("id", "block")),
@@ -140,10 +140,18 @@ TOOL_NAMES = frozenset(tool.argv_head[0] for tool in TOOLS)
 #: id shape. This is the whole of RK24 — the bound that refuses the prose and the bound the
 #: client validates against are read from the same `roadkeep.toml` (L6).
 _BOUNDS = {
-    "symptom": lambda schema: {"maxLength": schema.symptom_max},
-    "why": lambda schema: {"maxLength": schema.why_max},
-    "status": lambda schema: {"enum": list(schema.markers)},
-    "id": lambda schema: {"pattern": schema.id_pattern().pattern},
+    "symptom": lambda config: {"maxLength": config.schema.symptom_max},
+    "why": lambda config: {"maxLength": config.schema.why_max},
+    "status": lambda config: {"enum": list(config.schema.markers)},
+    "id": lambda config: {"pattern": config.schema.id_pattern().pattern},
+}
+
+#: The non-goals are their own two limits (RK70), so the same `why` means a different number
+#: here — a client validating a bullet against the *task* limit would refuse prose the tool
+#: accepts, which is the one way this derivation can be wrong while looking right.
+_SCOPE_BOUNDS = {
+    "lead": lambda config: {"maxLength": (config.non_goals or Scope()).lead},
+    "why": lambda config: {"maxLength": (config.non_goals or Scope()).why},
 }
 
 
@@ -178,9 +186,11 @@ def _choices(parser: argparse.ArgumentParser) -> Mapping[str, argparse.ArgumentP
     raise KeyError(parser.prog)  # pragma: no cover - every path here has subcommands
 
 
-def _property(action: argparse.Action, schema: Schema) -> dict[str, Any]:
+def _property(
+    action: argparse.Action, config: Config, bounds_for: Mapping[str, Any] = _BOUNDS
+) -> dict[str, Any]:
     """One argparse argument, as the JSON Schema a client validates before calling."""
-    bounds = _BOUNDS.get(action.dest, lambda _: {})(schema)
+    bounds = bounds_for.get(action.dest, lambda _: {})(config)
     described = {"description": (action.help or "").strip()}
     if isinstance(action, argparse._StoreTrueAction):  # noqa: SLF001
         return {"type": "boolean", **described}
@@ -197,11 +207,14 @@ def _required(action: argparse.Action) -> bool:
 
 def descriptor(tool: Tool, config: Config) -> dict[str, Any]:
     parser = _subparser(tool.command)
+    # Which table holds this tool's numbers: the non-goals are governed by `[non_goals]` and
+    # every other command by `[limits]`, and `why` is a field both of them name (RK70).
+    bounds_for = _SCOPE_BOUNDS if tool.argv_head[0] == "non-goal" else _BOUNDS
     properties: dict[str, Any] = {}
     required: list[str] = []
     for dest in tool.exposes:
         action = _action(parser, dest)
-        properties[dest] = _property(action, config.schema)
+        properties[dest] = _property(action, config, bounds_for)
         if _required(action):
             required.append(dest)
     payload: dict[str, Any] = {

@@ -84,6 +84,7 @@ _INSTEAD: Mapping[str, tuple[tuple[str, str], ...]] = {
         # The one bullet in this file that is not a task line, and the reason the five above
         # were not enough: a denial that named only them left `sed` as the route (RK70).
         ('non-goal add --lead "…" --why "…"', "a constraint on what may be proposed at all"),
+        ("non-goal drop <lead>", "a constraint that is gone, or whose lead is being corrected"),
     ),
     "changelog": (
         ("ship <id>", "the entry a planned task earns, in one transaction"),

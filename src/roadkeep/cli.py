@@ -53,6 +53,7 @@ from roadkeep.linting import Finding, Report, lint
 from roadkeep.picking import Choice, pick
 from roadkeep.schema import SchemaError
 from roadkeep.scoping import add as add_non_goal
+from roadkeep.scoping import drop as drop_non_goal
 from roadkeep.sections import Section, heading_of
 from roadkeep.sections import add as add_section
 from roadkeep.sections import drop as drop_section
@@ -356,6 +357,22 @@ def build_parser() -> argparse.ArgumentParser:
         "--json", action="store_true", help="the bullet, with the file and line it landed on"
     )
     scope_add.set_defaults(handler=_non_goal_add)
+
+    scope_drop = constraints.add_parser(
+        "drop",
+        help="remove the non-goal a lead addresses, wrapped lines included",
+        description=(
+            "Delete one non-goal whole. The half a correction needs: a lead is the address, "
+            "so a constraint whose lead changes is one retired and one written rather than an "
+            "edit to an address. Where two bullets carry one lead the later goes, which makes "
+            "this the door for `lint`'s non-goal.duplicate as well."
+        ),
+    )
+    scope_drop.add_argument(
+        "lead", help="the lead, as the file reads it; the trailing stop and case do not matter"
+    )
+    scope_drop.add_argument("--json", action="store_true", help=_JSON_HELP)
+    scope_drop.set_defaults(handler=_non_goal_drop)
 
     list_parser = subcommands.add_parser(
         "list",
@@ -1146,6 +1163,42 @@ def _non_goal_add(config: Config, args: argparse.Namespace) -> int:
         print(f"  {line}")
     # No event line (RK38): the payload a hook reads is an id and its block's open state, and
     # a non-goal has neither — it is the constraint on what a block may hold, not a member.
+    return EXIT_OK
+
+
+def _non_goal_drop(config: Config, args: argparse.Namespace) -> int:
+    try:
+        dropped = drop_non_goal(config, args.lead)
+        dropped.save()
+    except (RoundTripError, KeyError, ValueError, OSError) as error:
+        return _refused(error)
+
+    where = config.relative(config.path("roadmap"))
+    span = dropped.non_goal
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "lead": span.lead,
+                    "why": span.why,
+                    "file": where,
+                    "removed": [span.first, span.last],
+                    "carried": dropped.carried,
+                    "rendered": list(dropped.lines),
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+
+    print(f"{where}:{span.first}-{span.last}  dropped  **{span.lead}**")
+    if dropped.carried > 1:
+        # Two bullets for one address is `lint`'s non-goal.duplicate, and this call repaired
+        # it rather than removing the list's only statement of a constraint.
+        print(
+            f"  duplicate {dropped.carried} bullets carried this lead: the later one went, "
+            f"the first is where the reader already found it"
+        )
     return EXIT_OK
 
 

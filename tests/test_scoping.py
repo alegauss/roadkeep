@@ -26,13 +26,16 @@ from roadkeep.schema import SchemaError
 from roadkeep.scoping import (
     DuplicateLead,
     NoNonGoals,
+    NoSuchNonGoal,
     NotGoverned,
     add,
     address,
+    drop,
     read,
     rejects,
     render,
 )
+from roadkeep.serving import TOOLS, descriptor
 
 HERE = Path(__file__).resolve().parents[1]
 
@@ -294,3 +297,111 @@ def test_a_refused_command_writes_nothing_and_exits_two(tmp_path, capsys):
     )
     assert "[non_goals]" in capsys.readouterr().err
     assert text(tmp_path) == ROADMAP
+
+
+# -- the other half of the door ----------------------------------------------
+
+
+def test_the_bullet_a_lead_addresses_goes_whole(tmp_path):
+    # Wrapped lines included: removing the first line of a filled bullet would leave its
+    # continuation behind as prose nothing governs.
+    config = project(tmp_path)
+    dropped = drop(config, "no issue-tracker sync")
+    dropped.save()
+    assert (dropped.non_goal.first, dropped.non_goal.last) == (12, 13)
+    assert dropped.carried == 1
+    assert text(tmp_path) == ROADMAP.split("- **No issue-tracker sync**")[0].rstrip(" ")
+    assert read(Config.discover(tmp_path).document("roadmap"))[0].lead.startswith("No web UI")
+
+
+def test_the_stop_inside_the_bold_does_not_have_to_be_typed(tmp_path):
+    # The address is the lead folded and without its trailing stop, so a constraint is looked
+    # up by the words a reader remembers rather than by punctuation they cannot see.
+    config = project(tmp_path)
+    drop(config, "NO WEB UI AND NO SERVER").save()
+    assert [n.lead for n in read(Config.discover(tmp_path).document("roadmap"))] == [
+        "No issue-tracker sync"
+    ]
+
+
+def test_dropping_the_only_bullet_leaves_no_doubled_blank(tmp_path):
+    one = ROADMAP.split("- **No issue-tracker sync**")[0]
+    config = project(tmp_path, roadmap=one + "\n## After — a heading below the list\n")
+    drop(config, "No web UI and no server").save()
+    assert text(tmp_path).endswith("proposing work:\n\n## After — a heading below the list\n")
+    assert Config.discover(tmp_path).document("roadmap").render() == text(tmp_path)  # L3
+
+
+def test_a_lead_that_addresses_nothing_names_the_ones_that_exist(tmp_path):
+    # A refusal that only says "not found" sends the caller to read the file, which is the
+    # cost the command exists to remove (L5).
+    config = project(tmp_path)
+    with pytest.raises(NoSuchNonGoal) as caught:
+        drop(config, "No dates")
+    assert "No issue-tracker sync" in str(caught.value)
+    assert text(tmp_path) == ROADMAP
+
+
+def test_a_duplicate_lead_is_dropped_from_the_later_bullet(tmp_path):
+    # The repair for `lint`'s non-goal.duplicate, and the same rule `record drop` follows:
+    # what stays is the first, where the reader already found the decision.
+    twice = ROADMAP + "- **No web UI and no server** Written a second time.\n"
+    config = project(tmp_path, roadmap=twice)
+    dropped = drop(config, "No web UI and no server")
+    dropped.save()
+    assert dropped.carried == 2 and dropped.non_goal.first == 14
+    assert text(tmp_path) == ROADMAP
+    assert lint(Config.discover(tmp_path)).findings == ()
+
+
+def test_a_project_that_has_not_opted_in_cannot_drop_either(tmp_path):
+    config = project(tmp_path, config=PROSE)
+    with pytest.raises(NotGoverned):
+        drop(config, "No web UI and no server")
+    assert text(tmp_path) == ROADMAP
+
+
+def test_the_drop_command_names_the_span_and_the_lead(tmp_path, capsys):
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "non-goal", "drop", "no issue-tracker sync"]) == EXIT_OK
+    assert capsys.readouterr().out.startswith(
+        "ROADMAP.md:12-13  dropped  **No issue-tracker sync**"
+    )
+
+
+def test_the_drop_command_json_carries_what_was_removed(tmp_path, capsys):
+    project(tmp_path)
+    assert (
+        main(["-C", str(tmp_path), "non-goal", "drop", "--json", "No web UI and no server"])
+        == EXIT_OK
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["removed"] == [11, 11] and payload["carried"] == 1
+    assert payload["rendered"] == [
+        "- **No web UI and no server.** Files and a CLI. The store is the repository."
+    ]
+
+
+def test_a_refused_drop_writes_nothing_and_exits_two(tmp_path, capsys):
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "non-goal", "drop", "No dates"]) == EXIT_USAGE
+    assert "leads with 'No dates'" in capsys.readouterr().err
+    assert text(tmp_path) == ROADMAP
+
+
+# -- the bound a client validates against ------------------------------------
+
+
+def test_the_tool_schema_reads_the_non_goals_own_limits(tmp_path):
+    # `why` is a field two tables name, so a client validating a bullet against the *task*
+    # limit would refuse prose the tool accepts — right-looking and wrong (RK24).
+    config = project(
+        tmp_path,
+        config='prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\n'
+        "[limits]\nwhy = 200\n[non_goals]\nlead = 40\nwhy = 400\n",
+    )
+    described = descriptor(next(t for t in TOOLS if t.name == "non_goal_add"), config)
+    properties = described["inputSchema"]["properties"]
+    assert properties["why"]["maxLength"] == 400
+    assert properties["lead"]["maxLength"] == 40
+    assert described["inputSchema"]["required"] == ["lead", "why"]

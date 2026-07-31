@@ -36,6 +36,7 @@
 - ✅ **RK65** **A line can be created and removed but never corrected, so every adoption defect needs a hand-edit** — amend corrects an open line's why, deps or pointer — validated at input, symptom excluded — which is the door none of Shio's seventeen defects had.
 - ✅ **RK67** **A ledger entry written twice cannot be removed, so the file states one decision twice** — record drop <id> removes the later of two ledger entries for one id, refused unless the ledger states it twice, and record's write path is record add so the two doors are one grammar.
 - ✅ **RK70** **No command can write a non-goal, and the denial names five that cannot** — A non-goal is written by its own door where `[non_goals]` declares the list governed, addressed by its lead, so a binding constraint no longer needs the `sed` the hook does not match.
+- ✅ **RK73** **A non-goal could be written and never corrected, so a wrong lead was the Edit the hook denies** — `non-goal drop <lead>` removes the bullet an address names, so correcting a lead is one constraint retired and one written, and lint's non-goal.duplicate has its repair.
 
 ## Block C — Query
 
