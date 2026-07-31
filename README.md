@@ -126,7 +126,7 @@ called unbuilt were already in the ledger.
 
 **Next ready:**
 
-- 💭 **RK21** (deps: RK20 ✅) **A standard adopted by one project is a preference** — roll out to Turing, Dumont and Cursarei, each with its own `roadmap.toml`. → §RK21
+- ⏳ **RK21** (deps: RK20 ✅) **A standard adopted by one project is a preference** — roll out to Turing, Dumont and Cursarei, each with its own `roadmap.toml`. → §RK21
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
