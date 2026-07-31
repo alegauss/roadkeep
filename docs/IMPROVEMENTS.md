@@ -89,25 +89,4 @@ Turing, Dumont and Cursarei, each with its own `roadkeep.toml`. Four projects sh
 one format is what makes cross-project context transferable; one project with a format
 is a preference.
 
-### §RK66 A pointer a project may not require
-
-`ref_required` is a `Schema` field and no key reads it, so every project is held to
-"every task points at its rationale section". Shio's own process guide says the opposite
-and says it for the reason RK15 gives: *if a task has no rationale section, the line
-carries no pointer — a pointer to nowhere reads as though the design exists.* Three of
-its lines follow that rule and each one is a finding.
-
-Both positions are defensible, which is exactly what makes this configuration and not a
-default to argue about (L6). A project that derives its anchors from ids can require the
-pointer, because writing the section is one command away and the anchor cannot be wrong.
-A project that numbers by hand may have a task whose design is one line long — and
-inventing a section to satisfy a linter is the accretion this tool exists to refuse.
-
-So `ref = false` under a table that already governs the line's shape, defaulting to true
-so nothing changes for a project that never declares it. `add` then stops refusing
-without `--ref` there, and `lint` stops reporting a pointer nobody promised.
-
-What stays unconditional is the other direction: a pointer that *is* written must
-resolve. The choice is whether to demand one, never whether it may dangle.
-
 ## Block F — The plugin

@@ -11,6 +11,7 @@ about other people's projects.
 
 from __future__ import annotations
 
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -190,6 +191,41 @@ def test_an_exemption_is_read_by_the_write_path_too(tmp_path):
 
     task = Task(id="RK1", status=SHIPPED, block="A", symptom="A symptom", why="Two. Sentences.")
     assert schema.validate(task) == ()
+
+
+def test_a_project_may_declare_that_a_line_needs_no_pointer(tmp_path):
+    # RK66: `ref_required` was a Schema field no key reached, so every project was held to
+    # "every task points at its rationale section" — including Shio, whose process guide
+    # says the opposite and whose three obedient lines were each a finding.
+    write(tmp_path, "[rules.roadmap]\nref = false\n")
+    config = Config.discover(tmp_path)
+    assert not config.schema_for("roadmap").ref_required
+    # Declared per role, and the default is *required*: a project that says nothing is
+    # unchanged, which is what makes this a declaration and not a loosened default.
+    assert Config.parse({}, root=tmp_path).schema.ref_required
+
+
+def test_a_waived_pointer_is_the_demand_and_never_the_resolution(tmp_path):
+    # The two halves of RK15 come apart here: nothing has to be pointed at, and a pointer
+    # that is written still has to point at something — a dangling one reads as though the
+    # design exists, whatever the project declared.
+    from roadkeep.schema import Task
+
+    write(tmp_path, "ref_scheme = \"outline\"\n\n[rules.roadmap]\nref = false\n")
+    schema = Config.discover(tmp_path).schema_for("roadmap")
+    bare = Task(id="RK1", status=DESIGNED, block="A", symptom="A symptom", why="Because.")
+    assert schema.validate(bare) == ()
+    codes = [v.code for v in schema.validate(replace(bare, ref="§1.2"))]
+    assert codes == ["ref.sigil"]
+
+
+def test_the_ledger_has_no_pointer_to_require_or_to_waive(tmp_path):
+    # `ship` deletes §<id> in the transaction that writes the entry, so `ref = true` on the
+    # changelog would put every line that ever ships permanently in violation. Refused where
+    # it is typed rather than obeyed into a file nobody can fix.
+    path = write(tmp_path, "[rules.changelog]\nref = true\n")
+    with pytest.raises(ConfigError, match="rules.changelog.ref: the ledger carries no pointer"):
+        Config.load(path)
 
 
 def test_an_unknown_prose_rule_is_refused_like_any_other_key(tmp_path):

@@ -230,6 +230,13 @@ class Schema:
     #: The width prose is filled to when a section is written. A table or a list is left
     #: exactly as the author wrote it; only plain paragraphs are re-flowed.
     prose_width: int = 88
+    #: Whether a line must point at a rationale section. True by default and switchable per
+    #: role (`[rules.<role>]`, RK66), because it is a project's convention and not a fact
+    #: about the format: one that derives its anchors from ids can demand the pointer, the
+    #: section being one command away and the anchor unable to be wrong, while one that
+    #: numbers by hand may have a task whose design is a single line — and inventing a
+    #: section to satisfy a linter is the accretion this tool exists to refuse. What is never
+    #: negotiable is the other direction: a pointer that *is* written must resolve.
     ref_required: bool = True
     #: The ledger's own status *is* ✅, so it is the one file where the shipped
     #: marker is legal. Set by :meth:`as_ledger`, never by hand.

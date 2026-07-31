@@ -66,9 +66,16 @@ _BUDGET_KEYS = frozenset({"lines", "bytes"})
 #: file is one decision with two parts, and `markers.ledger` put half of it under a heading
 #: that cannot name the other half: a symptom is not a marker.
 _LEDGER_KEYS = frozenset({"marker", "symptom"})
-#: The prose rules a role may switch off (`[rules.<role>]`, RK52). Not limits, because they
+#: The rules a role may switch off (`[rules.<role>]`, RK52). Not limits, because they
 #: are not numbers, and not `[ledger]`, because that table says which *slots* a line has.
-_RULE_KEYS = {"one_sentence": "one_sentence", "terminator": "terminator"}
+#: `ref` joins them for RK66's reason: whether a line must point at a rationale section is
+#: a convention, not a fact about the format, and a project that documents the opposite one
+#: gets a finding for obeying itself.
+_RULE_KEYS = {
+    "one_sentence": "one_sentence",
+    "terminator": "terminator",
+    "ref": "ref_required",
+}
 _LIMIT_KEYS = {
     "symptom": "symptom_max",
     "why": "why_max",
@@ -490,14 +497,22 @@ def _by_role(raw: object, problems: list[str]) -> dict[str, dict[str, int]]:
 
 
 def _rules(raw: object, problems: list[str]) -> dict[str, dict[str, bool]]:
-    """`[rules.<role>]` — a prose rule one file is not held to (RK52).
+    """`[rules.<role>]` — a rule one file is not held to (RK52, RK66).
 
-    Only per role, and only these two: `why` is one sentence ending in a stop *because* the
-    remainder belongs in the section the line points at. That reasoning is a roadmap's. A
-    ledger adopted with history in it holds 233 paragraphs that were written before the rule
-    existed, and no edit available to their author makes them one sentence — so the project
-    declares the file exempt, rather than the tool deciding the rule never mattered there.
-    The write path reads the same declaration, so what a project exempts it may also record.
+    Only per role: `why` is one sentence ending in a stop *because* the remainder belongs in
+    the section the line points at. That reasoning is a roadmap's. A ledger adopted with
+    history in it holds 233 paragraphs that were written before the rule existed, and no edit
+    available to their author makes them one sentence — so the project declares the file
+    exempt, rather than the tool deciding the rule never mattered there. The write path reads
+    the same declaration, so what a project exempts it may also record.
+
+    `ref = false` is the third, and it is the same shape of decision: Shio's process guide
+    says a task with no rationale section carries no pointer, and three of its lines are a
+    finding for obeying it. Both positions are defensible, which is what makes this
+    configuration rather than a default to argue about (L6). It defaults to *required*, so
+    nothing changes for a project that never declares it — and only the demand is
+    negotiable, never the resolution: a pointer that is written must still point at
+    something, which :mod:`roadkeep.linting` checks whatever this says.
     """
     if not isinstance(raw, Mapping):
         if raw is not None:
@@ -516,6 +531,17 @@ def _rules(raw: object, problems: list[str]) -> dict[str, dict[str, bool]]:
             problems.append(f"{where} must be a table of rule = true|false")
             continue
         _reject_unknown(value, frozenset(_RULE_KEYS), f"{where}.", problems)
+        if role == "changelog" and "ref" in value:
+            # The ledger has no pointer to demand or to waive: `ship` deletes §<id> in the
+            # same transaction that writes the entry, so `ref = true` here would put every
+            # line that ever ships permanently in violation, and `ref = false` states what
+            # `as_ledger` already guarantees. Refused rather than ignored, like every other
+            # key in this file.
+            problems.append(
+                f"{where}.ref: the ledger carries no pointer at all — the rationale "
+                f"section is deleted when the task ships, so there is none to require"
+            )
+            continue
         found = {
             field: _flag(value, key, True, problems)
             for key, field in _RULE_KEYS.items()

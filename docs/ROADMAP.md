@@ -31,7 +31,6 @@
 ## Block E — Adoption
 
 - 💭 **RK21** (deps: RK20 ✅) **A standard adopted by one project is a preference** — roll out to Turing, Dumont and Cursarei, each with its own `roadmap.toml`. → §RK21
-- 📋 **RK66** (deps: RK3 ✅) **A project whose convention is no section means no pointer cannot declare it** — Expose ref_required in roadkeep.toml, because Shio documents that a task without design carries no pointer and gets three findings for obeying its own rule. → §RK66
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 

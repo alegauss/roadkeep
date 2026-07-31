@@ -84,6 +84,7 @@
 - ✅ **RK54** **Deleting a section one line at a time validates half-deleted states nobody wrote** — A span is deleted in one validated edit, so a section quoting a fenced example is never half-removed and re-parsed as a file nobody wrote.
 - ✅ **RK55** **A MIME type, an i18n key and a list of method names are reported as missing files** — A path claim is reported only when it has an extension and its directory exists, which takes Shio's 61 findings to the 1 naming a renamed file.
 - ✅ **RK62** **A roadmap line for work already in the ledger has no door out of the roadmap** — ship closes a roadmap line whose id the ledger already records and whose marker the roadmap may not carry, leaving the entry untouched.
+- ✅ **RK66** **A project whose convention is no section means no pointer cannot declare it** — ref is a per-role rule in [rules.<role>], so a project whose convention is no section means no pointer declares it and lint stops reporting a pointer nobody promised.
 
 ## Block F — The Claude Code plugin
 
