@@ -17,7 +17,10 @@ their own:
   the id, the block, and whether that block still holds an open line. Deciding what to do
   next belongs to the `PostToolUse` hook (RK22) or the Action (RK17) — a `[hooks]` table
   running commands would make `uvx roadkeep` an executor of whatever a repo declares.
-* **Errors name the fix.** A `ConfigError` prints every problem it found, once.
+* **Errors name the fix, and a failure names one more move.** A `ConfigError` prints every
+  problem it found, once — and every non-zero exit closes with the `report` command that
+  captures it, argv already substituted (RK86). Held here rather than at each of the twenty
+  refusals, because the exit code is the contract they all already leave through.
 * **stdout is forced to UTF-8.** The markers are emoji and the default Windows console
   encoding is cp1252, which raises `UnicodeEncodeError` mid-write and leaves a
   half-printed report. That cost three interrupted runs while this file's own package
@@ -32,6 +35,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import traceback
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 
@@ -39,7 +43,7 @@ from roadkeep.adopting import Estimate, adopt, init
 from roadkeep.authoring import add, amend, set_status
 from roadkeep.backlog import Backlog
 from roadkeep.briefing import Brief, brief, non_goals
-from roadkeep.capturing import capture, check
+from roadkeep.capturing import capture, check, offer
 from roadkeep.config import Config, ConfigError
 from roadkeep.counting import Census
 from roadkeep.document import Document, Entry, Reject, RoundTripError
@@ -825,8 +829,16 @@ def main(argv: Sequence[str] | None = None) -> int:
     _force_utf8(sys.stdin, errors="strict")
     _force_utf8(sys.stdout)
     _force_utf8(sys.stderr)
+    argv = list(sys.argv[1:] if argv is None else argv)
     parser = build_parser()
-    args = parser.parse_args(argv)
+    try:
+        args = parser.parse_args(argv)
+    except SystemExit as exit_:
+        # argparse refuses before a handler exists, and its exit 2 is one of the three
+        # places RK86 names. The argv is all this knows, and all the offer needs.
+        if exit_.code:
+            print(offer(argv), file=sys.stderr)
+        raise
     try:
         config = Config.discover(args.directory)
     except ConfigError as error:
@@ -838,7 +850,34 @@ def main(argv: Sequence[str] | None = None) -> int:
         # `roadkeep.toml` into a repository nobody can edit. It resolves its own config
         # from the payload anyway — one hook process serves every project a session sees.
         config = Config.default(args.directory)
-    return args.handler(config, args)
+    try:
+        code = args.handler(config, args)
+    except Exception:
+        # A traceback that reaches a terminal raw is a session that ends, and RK86's whole
+        # subject is what an agent does next. Printed, then closed with the offer, then
+        # answered with an exit code — 1 and not 2, because nothing about the caller's
+        # input is what has to change.
+        traceback.print_exc()
+        code = EXIT_GATE
+    if code != EXIT_OK:
+        _may_offer(argv, args)
+    return code
+
+
+def _may_offer(argv: Sequence[str], args: argparse.Namespace) -> None:
+    """Close a failure with the capture command, except where that would be a loop.
+
+    One place and not twenty: every refusal in this file already leaves through an exit
+    code, so the affordance rides the contract instead of being remembered at each of them.
+    """
+    if args.command in ("report", "guard", "mcp"):
+        # `report` offering to report itself is a regress; `guard` and `mcp` answer a
+        # protocol, and a sentence on their stderr is read by no agent at all.
+        return
+    # The report this closes went to stdout and this goes to stderr: unflushed, the offer
+    # lands above the findings it is about, and a line out of order is a line misread.
+    sys.stdout.flush()
+    print(offer(argv), file=sys.stderr)
 
 
 def _next_id(config: Config, args: argparse.Namespace) -> int:

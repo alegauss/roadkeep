@@ -15,15 +15,23 @@ was built to distrust.
   and it is exactly what a narration cannot reproduce.
 * **The observed exit code is a fact, not this command's.** `report` succeeds when it
   captures a failure — the whole reason to run it is that something failed.
+
+And the affordance that makes any of it reachable (RK86): every non-zero exit closes with
+the capture command. A refusal that names only the rule it applied is a dead end in the one
+case where the rule is the defect, and what an agent does with a dead end is work around it
+quietly — so the surface with the worst failures produces the fewest reports. The two rules
+asserted below are that it costs nothing on the runs that succeed, and that it never claims
+the refusal was wrong: this tool has no way to know and no model to guess (L4).
 """
 
 from __future__ import annotations
 
+import io
 from pathlib import Path
 
 import pytest
 
-from roadkeep.capturing import HOME, Failure, _tail, capture, check, observe
+from roadkeep.capturing import HOME, Failure, _tail, capture, check, observe, offer
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 
 ROADMAP = "docs/ROADMAP.md"
@@ -234,3 +242,99 @@ def test_nothing_leaves_the_machine(tmp_path):
     )
     for forbidden in ("urllib", "http", "socket", "requests", "smtplib"):
         assert forbidden not in source, forbidden
+
+
+# -- the offer every failure closes with (RK86) -------------------------------
+
+
+def test_the_offer_substitutes_the_failing_argv_so_the_move_costs_nothing():
+    said = offer(["-C", "/somewhere", "lint"])
+    assert said.endswith('roadkeep report --symptom "…" --why "…" -- -C /somewhere lint')
+
+
+def test_the_offer_composes_no_part_of_the_claim():
+    """The two fields stay ellipses. A tool that guessed a symptom would be a tool with a
+    model, and the sentence it guessed is the one a maintainer would then be reading."""
+    said = offer(["lint"])
+    assert '--symptom "…"' in said and '--why "…"' in said
+
+
+def test_the_offer_never_says_the_refusal_was_wrong():
+    """Conditional, because nothing here can know. `lint` was right in every case but the
+    one this exists for, and a tool that apologised for its own gate would teach the wrong
+    lesson in all the others."""
+    said = offer(["lint"]).lower()
+    assert said.startswith("if roadkeep itself is what is wrong here")
+    assert "sorry" not in said and "bug" not in said
+
+
+def test_a_refused_write_closes_with_the_offer(tmp_path, capsys):
+    root = project(tmp_path)
+    code = main(["-C", str(root), "add", "--block", "A", "--symptom", "x" * 200, "--why", "B."])
+    err = capsys.readouterr().err
+    assert code == EXIT_USAGE
+    assert "symptom.too-long" in err and "roadkeep report --symptom" in err
+
+
+def test_a_failing_gate_closes_with_the_offer(tmp_path, capsys):
+    root = project(tmp_path, roadmap=BROKEN)
+    code = main(["-C", str(root), "lint"])
+    assert code == 1
+    assert "roadkeep report --symptom" in capsys.readouterr().err
+
+
+def test_a_command_that_succeeds_says_nothing_about_reporting(tmp_path, capsys):
+    """It costs nothing on the runs that work, which is the whole reason it can live on
+    every failure path instead of in a document somebody loads first."""
+    root = project(tmp_path)
+    assert main(["-C", str(root), "lint"]) == EXIT_OK
+    assert "report" not in capsys.readouterr().err
+
+
+def test_argparse_refuses_before_a_handler_exists_and_still_offers(capsys):
+    with pytest.raises(SystemExit) as exited:
+        main(["lint", "--no-such-flag"])
+    assert exited.value.code == EXIT_USAGE
+    assert "roadkeep report --symptom" in capsys.readouterr().err
+
+
+def test_help_and_version_are_not_failures(capsys):
+    with pytest.raises(SystemExit) as exited:
+        main(["--help"])
+    assert exited.value.code == 0
+    assert "roadkeep report" not in capsys.readouterr().err
+
+
+def test_report_never_offers_to_report_itself(tmp_path, capsys):
+    root = project(tmp_path)
+    code = main(
+        ["-C", str(root), "report", "--symptom", SYMPTOM, "--why", "One. Two.", "--", "lint"]
+    )
+    err = capsys.readouterr().err
+    assert code == EXIT_USAGE
+    assert "nothing captured" in err and "roadkeep report --symptom" not in err
+
+
+def test_the_hook_is_never_given_prose_to_answer_a_protocol_with(tmp_path, capsys, monkeypatch):
+    """`guard` and `mcp` answer a harness, not an agent. A sentence on their stderr is read
+    by nobody, and on their stdout it would be a parse error."""
+    root = project(tmp_path)
+    monkeypatch.setattr("sys.stdin", io.StringIO("not json at all"))
+    assert main(["-C", str(root), "guard"]) == EXIT_OK
+    assert capsys.readouterr().err == ""
+
+
+def test_a_crash_is_printed_and_closed_with_the_offer(tmp_path, capsys, monkeypatch):
+    """The third place RK86 names. A traceback that reaches a terminal raw is a session
+    that ends, and what it ends without is the report only that session could write."""
+    root = project(tmp_path)
+
+    def explode(*_args, **_kwargs):
+        raise RuntimeError("the parser lost its footing")
+
+    monkeypatch.setattr("roadkeep.cli._lint", explode)
+    code = main(["-C", str(root), "lint"])
+    err = capsys.readouterr().err
+    assert code == 1
+    assert "RuntimeError: the parser lost its footing" in err
+    assert err.index("Traceback") < err.index("roadkeep report --symptom")

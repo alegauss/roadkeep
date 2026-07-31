@@ -149,6 +149,29 @@ class Capture:
         return "\n".join(lines)
 
 
+#: What every failure ends with (RK86). Conditional and never an admission: this tool has
+#: no way to know whether the rule it just applied was the right one, and no model to guess
+#: (L4). What it can do is make the capture the cheapest next move instead of the invisible
+#: one — an agent that meets a wrong limit otherwise has exactly one option left, which is
+#: to work around the tool quietly, and that loses the sessions with the most to say.
+_OFFER = "If roadkeep itself is what is wrong here, capture it before the session ends:"
+
+
+def offer(argv: Sequence[str]) -> str:
+    """The two lines a failure closes with: the sentence, and the command to run.
+
+    The failing argv is already substituted, because the move has to cost nothing to take.
+    The two prose fields stay as ellipses — they are the caller's, and this composes no
+    part of a claim.
+    """
+    return "\n".join(
+        [
+            _OFFER,
+            f'  roadkeep report --symptom "…" --why "…" -- {shlex.join(argv)}',
+        ]
+    )
+
+
 def check(symptom: str, why: str, block: str) -> tuple[Violation, ...]:
     """Judge the claim against this repository's schema, before anything is run."""
     task = Task(
