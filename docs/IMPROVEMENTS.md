@@ -77,9 +77,63 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK78 ship deletes what it did not name
+
+Observed on Shio at SH326. The rationale file nests: a level-2 section groups an epic
+and each task keeps a level-3 section under it. `ship` deleted the level-2 by taking
+everything up to the next level-2, which swallowed four level-3 children — two of them
+the rationale of tasks that are still open, so the roadmap then pointed at sections that
+no longer existed. 160 lines went in one transaction that reported dropping one section.
+
+The gate caught it: `lint` reported two `ref.unresolved` immediately after. That is the
+right instrument in the wrong order — it names the damage after the write rather than
+refusing it, and the operator's only remedy was `git checkout` on the whole file, which
+also discards the part of the ship that was correct.
+
+Two things to settle. A drop has to be bounded by the next heading of **any** depth
+greater-or-equal, not the same depth. And a transaction that would orphan a live pointer
+should refuse before writing, the way `add` already validates every field first — the
+reasoning `add` states for itself ("a limit reported after the prose exists is a limit
+discovered too late") is the same reasoning, one verb along.
+
 ## Block C — Query
 
+### §RK83 Ready is two different states
+
+`pick --block P` answered with the lowest ready id and said so. The block held both
+designed tasks and ideas, and the id it chose was an idea — a design session, not an
+implementation. A caller who asked to execute a block wants the second kind, and had to
+override the answer by hand on every iteration of a long run.
+
+The markers already carry the distinction and the tiers do not read them. Whether that
+is a new tier below the declared priority, or a flag, or only a sentence added to the
+`because` line — "the pick still needs designing" — is the open question. The last is
+the cheapest and may be enough: `pick` already explains which tier answered, and the
+complaint is not that it chose wrongly but that it chose silently.
+
+Worth noting what should not change: a block whose ideas are never offered is a block
+whose ideas are never designed. The bias belongs to the caller's intent, not to the
+tool's ranking, which argues for the flag over the tier.
+
 ## Block D — The gate
+
+### §RK84 A gate on a corpus with standing debt
+
+Adopting projects arrive with history. One live corpus lints at 317 problems, none of
+which the current change caused, and the number moves by one or two per task. `lint`
+exits non-zero on all of it, so on that repository the gate cannot be wired to CI, and
+the question actually asked after every write — did I add anything — has no command.
+
+It was answered by hand: stash the three files, run `lint`, unstash, run it again,
+compare the two summary lines. That worked and it is not something a hook can do. It
+also nearly hid a real defect: the count fell by eight on the run that deleted 160 lines
+of rationale it should not have (RK78), and the drop looked like an improvement until
+the two `ref.unresolved` entries were read individually.
+
+`--since REV` exists and answers a different question (a rationale edited without its
+line, RK36). What is missing is a baseline: the violations at a ref, subtracted from the
+violations now, exiting non-zero only on the difference. That is also the shape that
+lets a repository adopt the gate before it has paid off the debt.
 
 ## Block E — Adoption
 
@@ -137,3 +191,62 @@ So the answer is not a `roadkeep.toml` here. A config whose every read is zero c
 governance it does not have, which is the drift this tool exists to refuse.
 
 ## Block F — The plugin
+
+### §RK79 Two engines, one version string
+
+Measured on a live session. `python -m roadkeep.cli` resolved to the developer checkout;
+the hooks and the MCP server ran the plugin cache. Diffing the two `src/roadkeep/` trees
+found 14 files differing and two modules present in one and absent from the other. Both
+`plugin.json` and the package report `0.1.0`, so nothing observable distinguishes them —
+and the checkout was two commits ahead of the remote the cache is fetched from, which
+means `/plugin update` would not have closed the gap either.
+
+RK57's launcher docstring already names this failure class: "a plugin that silently ran
+an older installed copy is the hardest kind of stale". The fix it shipped puts the
+plugin's own `src` first, which defends against a stale *installed* copy and cannot
+defend against a stale *cache*. The direction it does not cover is the one a developer
+of this tool hits every day.
+
+The cheap half is making the two distinguishable rather than making them the same: a
+version that carries the commit, or a startup line naming which tree answered. Being
+unable to tell is what turns every other symptom into a guess, which is why RK81 is
+filed as depending on this one rather than as a defect in its own right.
+
+### §RK81 The agent-native surface is the one that did not load
+
+A full session of driving roadkeep ran `python -m roadkeep.cli` through Bash,
+discovering flags with `--help`. `brief --block P` — one call that returns the pick, its
+rationale, its deps and the binding non-goals — was used only after four calls had done
+the same job worse, because nothing announced it. `list --marker` was found the same
+way, late.
+
+That is the cost of the tool schemas not being in context. An MCP server puts every
+command's parameters in front of the caller before the first call, which is the
+discovery mechanism `--help` archaeology substitutes for badly. The plugin declares the
+server and no `mcp__roadkeep__*` tool was offered in the session.
+
+Whether the server fails to start, starts and registers nothing, or was never launched
+is not yet established, and RK79 is why: with two engines answering the same version, a
+diagnosis run against one says nothing certain about the other. So the order is RK79
+first. Worth stating that the CLI is not the fallback here but the workaround — a tool
+whose own commands have to be excavated is one an agent will keep using at four calls
+where one would do.
+
+### §RK82 The read verbs arrive after the read
+
+Observed directly. A session opened with a `grep` of the governed roadmap and a load of
+the project's own skill in the same batch of calls, so the instruction not to read the
+file arrived in the same result set as the file's contents. Nothing that was resident
+beforehand mentioned that reading was covered — the always-loaded line says the three
+files are "owned by roadkeep, never hand-edited", which is a rule about writes.
+
+The asymmetry is the point. The write side has an instrument: a PreToolUse hook that
+refuses and names the command. The read side has prose in two non-resident places. A
+convention with no instrument is one every fresh session rediscovers by breaking it, and
+this one costs tokens rather than correctness, which is why it survives.
+
+Two candidates. A `SessionStart` hook injecting one line — the three files, `brief` to
+start, `ship` to finish — costs about twenty tokens once and removes the class. A
+PreToolUse matcher on the read tools that **warns** and names `brief`/`list` would catch
+what the line missed. It must never refuse: `lint` emits file-and-line, and editing the
+prose of those files is legitimate work.
