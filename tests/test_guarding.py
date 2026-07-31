@@ -37,7 +37,17 @@ from pathlib import Path
 import pytest
 
 from roadkeep.cli import EXIT_OK, build_parser, main
-from roadkeep.guarding import _INSTEAD, _SCAFFOLD, Refusal, governed, guard, review
+from roadkeep.guarding import (
+    _INSTEAD,
+    _NOTICE_BUDGET,
+    _SCAFFOLD,
+    Notice,
+    Refusal,
+    announce,
+    governed,
+    guard,
+    review,
+)
 from roadkeep.serving import TOOLS
 
 ROADMAP = "docs/ROADMAP.md"
@@ -472,3 +482,65 @@ def test_the_command_survives_the_config_error_every_other_command_exits_on(
     `add` — would report a broken hook on every edit until somebody fixed the TOML."""
     root = project(tmp_path, config='prefix = "RK"\nsymptom_max = 120\n')
     assert run(monkeypatch, capsys, write(str(root / ROADMAP)), root) == {}
+
+
+# -- what a session is told before it reads anything (RK82) -------------------
+
+
+def start(cwd: Path) -> dict[str, object]:
+    return {"hook_event_name": "SessionStart", "cwd": str(cwd)}
+
+
+def test_the_notice_names_the_files_this_project_governs(tmp_path):
+    """Derived from `[files]`, never a sentence about three paths (L6). The whole point is
+    that the session knows which paths are covered *before* it greps for one."""
+    root = project(tmp_path)
+    notice = announce(start(root), root)
+    assert notice.files == (ROADMAP, CHANGELOG)
+    assert ROADMAP in str(notice) and CHANGELOG in str(notice)
+
+
+def test_the_notice_states_that_reading_is_a_command_too():
+    """The asymmetry RK82 measured: the write side had a hook and the read side had prose
+    in two non-resident places, so the rule arrived in the same result set as the file."""
+    said = str(Notice(files=(ROADMAP,)))
+    assert "brief" in said and "show" in said and "list" in said
+
+
+def test_the_notice_does_not_restate_the_write_path():
+    """The skill is the authority on which command to call (RK23), and this loads on every
+    session in every governed project. Repeating it here would be a second copy of a rule
+    that can disagree — and the cost would be paid by the turns that write nothing."""
+    said = str(Notice(files=(ROADMAP,)))
+    assert "add --block" not in said and "ship" not in said
+
+
+def test_the_notice_fits_the_budget_that_makes_it_worth_injecting():
+    """Resident for the whole session, so its size is the argument for it. A number a test
+    holds, because prose about being brief is what stops holding."""
+    assert len(str(Notice(files=(ROADMAP, CHANGELOG)))) <= _NOTICE_BUDGET
+
+
+def test_a_session_outside_a_roadkeep_project_is_told_nothing(tmp_path):
+    """Silence is the same decision the barrier makes about `allow`: a hook that speaks in
+    every repository is one every repository pays for."""
+    assert announce(start(tmp_path), tmp_path) is None
+
+
+def test_a_broken_config_says_nothing_rather_than_failing_the_session_start(tmp_path):
+    root = project(tmp_path, config="prefix = [")
+    assert announce(start(root), root) is None
+
+
+def test_the_command_answers_a_sessionstart_payload_with_context(
+    tmp_path, monkeypatch, capsys
+):
+    root = project(tmp_path)
+    specific = run(monkeypatch, capsys, start(root), root)["hookSpecificOutput"]
+    assert specific["hookEventName"] == "SessionStart"
+    assert ROADMAP in specific["additionalContext"]
+
+
+def test_a_session_start_outside_a_project_prints_nothing(tmp_path, monkeypatch, capsys):
+    (tmp_path / "elsewhere").mkdir()
+    assert run(monkeypatch, capsys, start(tmp_path / "elsewhere"), tmp_path / "elsewhere") == {}

@@ -146,24 +146,58 @@ def subcommand_of(command: str) -> str:
     return build_parser().parse_args(argv[2:]).command
 
 
+#: Every event this plugin declares a hook for. Named once, so a sixth event cannot be
+#: added without the assertions below judging it.
+EVENTS = ("SessionStart", "PreToolUse", "Stop")
+
+
+def every_hook() -> list[dict]:
+    return [hook for event in EVENTS for hook in declarations(event)]
+
+
 def test_every_declared_command_is_one_the_cli_accepts():
     # The same argument `tests/test_surfaces.py` makes about the Action and the pre-commit
     # hook: a surface that drifts from the CLI fails a test instead of failing a session.
-    commands = declarations("PreToolUse") + declarations("Stop")
-    assert len(commands) == 2
+    commands = every_hook()
+    assert len(commands) == 3
     for hook in commands:
         assert hook["type"] == "command"
         assert subcommand_of(hook["command"]) == "guard", hook["command"]
 
 
-def test_one_command_answers_both_events():
+def test_no_event_is_declared_that_the_command_does_not_answer():
+    assert set(read(HOOKS)["hooks"]) == set(EVENTS)
+
+
+def test_the_write_path_is_announced_before_the_first_read(tmp_path):
+    """RK82: the read side had no instrument, so the rule arrived after the `grep`.
+
+    A session opened with a `grep` of the governed roadmap and a load of the skill in one
+    batch of calls — the instruction not to read the file came back with the file. This is
+    the one event that lands before any of it, and the assertion is that it says something.
+    """
+    assert declarations("SessionStart"), "the rule is then learned by breaking it again"
+    finished = subprocess.run(
+        [sys.executable, str(HERE / "scripts" / "roadkeep.py"), "-C", str(HERE), "guard"],
+        input=json.dumps({"hook_event_name": "SessionStart", "cwd": str(HERE)}),
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert finished.returncode == 0, finished.stderr
+    specific = json.loads(finished.stdout)["hookSpecificOutput"]
+    assert specific["hookEventName"] == "SessionStart"
+    assert "docs/ROADMAP.md" in specific["additionalContext"]
+
+
+def test_one_command_answers_every_event():
     """The event is in the payload, so there is one entry point and one place to fix."""
-    commands = {hook["command"] for hook in declarations("PreToolUse") + declarations("Stop")}
-    assert len(commands) == 1
+    assert len({hook["command"] for hook in every_hook()}) == 1
 
 
 def test_every_hook_bounds_how_long_it_may_block_the_write():
-    for hook in declarations("PreToolUse") + declarations("Stop"):
+    for hook in every_hook():
         assert isinstance(hook.get("timeout"), int) and hook["timeout"] > 0, hook
 
 
@@ -260,7 +294,7 @@ def test_both_surfaces_run_the_launcher_the_plugin_ships():
     launcher = HERE / "scripts" / "roadkeep.py"
     assert launcher.is_file()
     assert LAUNCHER[1].endswith("/scripts/roadkeep.py")
-    declared = [hook["command"] for hook in declarations("PreToolUse") + declarations("Stop")]
+    declared = [hook["command"] for hook in every_hook()]
     declared.append(" ".join([read(MCP)["mcpServers"]["roadkeep"]["command"], *read(MCP)["mcpServers"]["roadkeep"]["args"]]))
     for command in declared:
         assert "${CLAUDE_PLUGIN_ROOT}" in command, command

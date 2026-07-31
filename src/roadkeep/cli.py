@@ -45,7 +45,7 @@ from roadkeep.document import Document, Entry, Reject, RoundTripError
 from roadkeep.exporting import Projection, project, splice
 from roadkeep.fixing import Fix, fix
 from roadkeep.graph import Graph, Leverage
-from roadkeep.guarding import STOP_EVENTS, guard, review
+from roadkeep.guarding import START_EVENTS, STOP_EVENTS, announce, guard, review
 from roadkeep.history import Commit, HistoryUnavailable, Origin, gaps, origin_of
 from roadkeep.ids import highest, next_id
 from roadkeep.linting import Finding, Report, lint
@@ -2330,19 +2330,35 @@ def _estimate_json(estimate: Estimate) -> dict[str, object]:
 
 
 def _guard(config: Config, args: argparse.Namespace) -> int:
-    """One command for both hooks: the event is in the payload, not in the flags (RK22).
+    """One command for every hook: the event is in the payload, not in the flags (RK22).
 
-    Two shapes of answer, because the harness reads two: a `PreToolUse` decision, and a
-    `Stop` block. Neither is ever an *approval* — a governed file is denied and everything
-    else is answered with an empty stdout, since `permissionDecision: "allow"` would grant
-    the write rather than decline to judge it, waving through the permission rules the user
-    set for every other file in the repository.
+    Three shapes of answer, because the harness reads three: a `SessionStart` line of
+    context, a `PreToolUse` decision, and a `Stop` block. None of them is ever an
+    *approval* — a governed file is denied and everything else is answered with an empty
+    stdout, since `permissionDecision: "allow"` would grant the write rather than decline
+    to judge it, waving through the permission rules the user set for every other file in
+    the repository.
 
     The config discovered from `-C` is only this command's fallback: the payload names the
     directory, and the paths in it may belong to another project entirely.
     """
     payload = _payload()
     root = config.root
+    if payload.get("hook_event_name") in START_EVENTS:
+        notice = announce(payload, root)
+        if notice is not None:
+            print(
+                json.dumps(
+                    {
+                        "hookSpecificOutput": {
+                            "hookEventName": "SessionStart",
+                            "additionalContext": str(notice),
+                        }
+                    },
+                    indent=2,
+                )
+            )
+        return EXIT_OK
     if payload.get("hook_event_name") in STOP_EVENTS:
         found = review(payload, root)
         if found is not None:

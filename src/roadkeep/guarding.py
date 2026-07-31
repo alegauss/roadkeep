@@ -36,6 +36,12 @@ Five decisions, each because the opposite breaks a session rather than a rule:
   non-zero exit as *the hook itself failed*, so this is the one command in the package that
   always exits 0 (see :func:`roadkeep.cli._guard`) and says everything in its output.
 
+The same process answers `SessionStart` (RK82), because the barrier only ever spoke to a
+session that had already decided to write: :class:`Notice` states which files are governed
+here, once, before the first read. The other candidate — a `PreToolUse` matcher on the
+reading tools — is not taken, on the argument `Bash` gets above: paying on every read to
+catch what one resident line already said is a tax, and reading is never refused anyway.
+
 What is deliberately absent: any judgement about the *content* of the write. This module
 never reads what the agent was about to insert, only where it was going. Deciding whether a
 sentence fits is :meth:`Schema.validate`'s job, and it gets to make it when the author calls
@@ -62,6 +68,15 @@ WRITE_TOOLS = ("Edit", "MultiEdit", "NotebookEdit", "Write")
 
 #: The events that mean the turn is trying to end, and `lint` is the last thing to say.
 STOP_EVENTS = ("Stop", "SubagentStop")
+
+#: The event that arrives before the session's first tool call — the one moment an
+#: announcement is cheaper than the mistake it prevents (RK82).
+START_EVENTS = ("SessionStart",)
+
+#: What the notice may cost, in characters. A budget and not a style rule: this is resident
+#: for the whole session in every governed project, so the thing that keeps it one line is
+#: a number a test holds, exactly as `[budgets]` holds `agents.md` (RK30).
+_NOTICE_BUDGET = 260
 
 #: Where a tool's input spells the file. Every key any writer uses, rather than the key
 #: each one uses: reading all three costs three dict lookups and survives a renamed field.
@@ -219,6 +234,51 @@ class Review:
             "wants a command, not an edit.",
         ]
         return "\n".join(lines)
+
+
+@dataclass(frozen=True, slots=True)
+class Notice:
+    """The one line a session is given before it reads anything (RK82).
+
+    The write side had an instrument and the read side had prose: a hook refuses a
+    hand-edit, and the rule that these files are *queried* rather than read lives in a
+    skill that loads once a governed file is already in play. Measured, that is too late —
+    a session opened with a `grep` of the roadmap and the skill in the same batch, so the
+    instruction not to read the file arrived with the file's contents.
+
+    So this states the two facts nothing resident carried: **which** files are governed
+    here, and that reading them is a command too. It never repeats the write path — that
+    is the skill's, and a rule in two places is two places that can disagree.
+    """
+
+    #: As this project spells them, in the order `[files]` declares: the whole point is
+    #: that a session learns these paths before it greps for one (L6).
+    files: tuple[str, ...]
+
+    def __str__(self) -> str:
+        return (
+            f"roadkeep governs {', '.join(self.files)} — ask, never read them whole: "
+            "`roadkeep brief` starts a task, `show <id>` and `list --block <x>` answer "
+            "the rest, and a hand-edit is refused."
+        )
+
+
+def announce(payload: Mapping[str, object], root: str | Path = ".") -> Notice | None:
+    """Compose what a starting session is told, or ``None`` where there is nothing to say.
+
+    Silence outside a roadkeep project, on the same argument the barrier makes about
+    `allow`: a hook that speaks in every repository is a hook every repository pays for.
+    Failure is silence too — a session that cannot start because a `roadkeep.toml` has a
+    typo in it is a worse outcome than one told nothing, and `lint` still refuses the file.
+    """
+    try:
+        config = Config.discover(_cwd(payload, root))
+    except (ConfigError, OSError, tomllib.TOMLDecodeError):
+        return None
+    if config.source is None:
+        return None
+    files = tuple(config.relative(path) for path in config.paths.values())
+    return Notice(files=files) if files else None
 
 
 def guard(payload: Mapping[str, object], root: str | Path = ".") -> Refusal | None:

@@ -171,25 +171,6 @@ governance it does not have, which is the drift this tool exists to refuse.
 
 ## Block F — The plugin
 
-### §RK82 The read verbs arrive after the read
-
-Observed directly. A session opened with a `grep` of the governed roadmap and a load of
-the project's own skill in the same batch of calls, so the instruction not to read the
-file arrived in the same result set as the file's contents. Nothing that was resident
-beforehand mentioned that reading was covered — the always-loaded line says the three
-files are "owned by roadkeep, never hand-edited", which is a rule about writes.
-
-The asymmetry is the point. The write side has an instrument: a PreToolUse hook that
-refuses and names the command. The read side has prose in two non-resident places. A
-convention with no instrument is one every fresh session rediscovers by breaking it, and
-this one costs tokens rather than correctness, which is why it survives.
-
-Two candidates. A `SessionStart` hook injecting one line — the three files, `brief` to
-start, `ship` to finish — costs about twenty tokens once and removes the class. A
-PreToolUse matcher on the read tools that **warns** and names `brief`/`list` would catch
-what the line missed. It must never refuse: `lint` emits file-and-line, and editing the
-prose of those files is legitimate work.
-
 ### §RK86 The exit that ends the conversation
 
 Every refusal this tool writes is addressed to an author who is wrong: the limit, the
