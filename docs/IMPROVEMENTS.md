@@ -128,4 +128,30 @@ settles what `--ledger` means: not "apply the ledger schema" but "read this file
 changelog role". A path is not a role — the caller names a file the project may not have
 declared — so the flag stays, and only what it resolves to changes.
 
+### §RK77 The corpus no configuration reaches
+
+Shio and Turing adopted because their lines already *were* this format under other
+numbers; Dumont adopted because its roadmap was empty. cursarei is the case none of that
+covers, and it is the honest test of L6: four gaps, each needing a different key, none
+fixable together.
+
+**The marker holds a space.** Its lines are `- [ ] **C40** · …`, and the parser reads the
+first whitespace-delimited token — which is `[`, never `[ ]`. Declaring the checkbox in
+`[markers]` does nothing, so all 16 open lines are invisible rather than rejected.
+
+**The heading has no label.** Five read `## Fase 0 — …` and five `## Trilha contínua — …`.
+RK75's configurable word does not reach this: the five Trilhas share both words, so there is
+no label to be the block, and what tells them apart is prose.
+
+**The separator is `·`.** Twelve lines split symptom from why with a middle dot where the
+render writes an em dash — and by L3 a line that does not round-trip is one the tool refuses
+to write the whole file for.
+
+**The ledger is keyed by release.** `## Não lançado` over `#### NEW FEATURES` over
+`* **Título (C26)** — …`, the id inside the bold title. Nine of twelve entries carry it
+where nothing looks.
+
+So the answer is not a `roadkeep.toml` here. A config whose every read is zero claims a
+governance it does not have, which is the drift this tool exists to refuse.
+
 ## Block F — The plugin
