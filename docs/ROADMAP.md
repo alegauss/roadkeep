@@ -26,11 +26,13 @@
 
 - 📋 **RK67** (deps: RK41 ✅) **A ledger entry written twice cannot be removed, so the file states one decision twice** — Give record its inverse for an entry no roadmap line ever left, because Shio carries SH347 on two lines and nothing but a hand-edit can drop one. → §RK67
 - 📋 **RK70** (deps: RK3 ✅) **No command can write a non-goal, and the denial names five that cannot** — The hook refuses the edit and offers only commands that write task lines, so a binding constraint is edited by the `sed` the barrier deliberately does not match. → §RK70
+- 📋 **RK72** (deps: RK70) **The non-goal against estimates names a schedule, not the field a size bucket would be** — A marker is not a schedule is why dates are refused, which did not settle a proposal to put P/M/L on the line and cost an analysis where a lookup should have answered. → §RK72
 
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK68** (deps: RK29 ✅) **The brief prints a non-goal narrower than the file states** — Turing's first bullet loses seven of its ten items to a line wrap and its second reduces to the word `not`, because the lead is inferred from prose instead of read from a field. → §RK68
 - 📋 **RK69** (deps: —) **Non-goals are printed when a task starts, not when one is proposed** — The roadmap says to check the list before proposing work and only `brief <id>` prints it, so the rule that binds an `add` has no command at the moment it binds. → §RK69
+- 💭 **RK71** (deps: —) **A task that should be two looks exactly like one that should be one** — The ledger knows what every comparable task cost, 63 here spread from 52 to 1384 lines, and a line being written cannot consult it, so splitting is decided by feel. → §RK71
 
 ## Block D — The gate
 

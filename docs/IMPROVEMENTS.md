@@ -120,6 +120,34 @@ The shape is opt-in under `[non_goals]` (L6), for RK66's reason: Shio and Turing
 theirs before the schema existed, and a default that reports fifteen findings on
 adoption is a gate that gets bypassed. This repository opts in and is the fixture.
 
+### §RK72 A non-goal that argues the schedule
+
+The list says *No dates, quarters or estimates. A marker is maturity, not a schedule.*
+The reason given is about scheduling, so by its own letter it does not reach a `P/M/L`
+size bucket, which claims nothing about when. A proposal to add one arrived and the
+non-goal did not settle it — three laws did, at the cost of an analysis where a lookup
+should have answered. A constraint that must be re-derived every time it is tested is
+one that will eventually be re-derived wrongly.
+
+So it names the field, and carries the reasons the field fails rather than the reason a
+date fails.
+
+An effort letter would be the only field here that nothing can verify: every other one
+is a derivable fact or a falsifiable claim, and nobody returns with `amend` to correct
+an `L` that shipped as a `P`.
+
+The unit does not cross the human/agent boundary. What an agent pays is context, and the
+files a task touches is nearly flat — 4 to 14, median 9 — while the lines vary 27-fold.
+The letter would price the axis nobody pays.
+
+And it would poison `pick`, whose every tier is a fact today. Preferring the cheap
+letter optimises commit count against build order, and the heavy tasks are the
+architectural ones.
+
+Waiting on RK70 is the point and not an accident: a non-goal is prose no command can
+write, and the hand-edit is what the hook denies. This is that door's first concrete
+customer.
+
 ## Block C — Query
 
 ### §RK68 The lead that is a guess
@@ -162,6 +190,32 @@ meaning, and the tool has no model and will not get one (L4) — a keyword match
 eight bullets would produce a confident wrong answer, which is worse than the sentence
 it replaced. An `add --acknowledge-non-goals` flag is the same theatre one step later:
 an agent passes any flag it is asked to pass.
+
+### §RK71 The weight the ledger already knows
+
+Sixty-three shipped tasks here cost between 52 and 1384 lines in the commit that wrote
+their ledger entry: p25 170, median 376, p75 574, p90 811. Eight are above 800 — RK2,
+RK6, RK9, RK10, RK18, RK22, RK32, RK48 — and they are the architectural ones. The spread
+is real and nothing in the backlog says it.
+
+`history` can already answer it: the commit that added an entry is findable by pickaxe
+over the ledger, so *what did a comparable task cost* is a query rather than an
+estimate. Which is the point — a derived number cannot rot, costs nothing on the turns
+nobody asks (L5), and anyone who doubts it can check it against git.
+
+What it is for: **granularity, at the moment the line is written.** A block whose last
+three comparables shipped at 800+ lines is a block where the next line is probably two
+lines, and that is an authoring decision the tool can inform without predicting
+anything.
+
+What it is explicitly not for: **ranking work.** Every tier of `pick` is a fact — in
+progress, declared priority, lowest ready id — and a cheapness tier would defer exactly
+the eight tasks above, which are the ones with the most leverage.
+
+And never a field on the line: §RK72 carries that argument.
+
+💭 and not 📋 on purpose. It changes perhaps one authoring decision in ten, and the marker
+set exists so that can be said instead of promoted.
 
 ## Block D — The gate
 
