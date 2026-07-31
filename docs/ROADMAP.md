@@ -26,7 +26,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK68** (deps: RK29 ✅) **The brief prints a non-goal narrower than the file states** — Turing's first bullet loses seven of its ten items to a line wrap and its second reduces to the word `not`, because the lead is inferred from prose instead of read from a field. → §RK68
 - 📋 **RK69** (deps: —) **Non-goals are printed when a task starts, not when one is proposed** — The roadmap says to check the list before proposing work and only `brief <id>` prints it, so the rule that binds an `add` has no command at the moment it binds. → §RK69
 - 💭 **RK71** (deps: —) **A task that should be two looks exactly like one that should be one** — The ledger knows what every comparable task cost, 63 here spread from 52 to 1384 lines, and a line being written cannot consult it, so splitting is decided by feel. → §RK71
 

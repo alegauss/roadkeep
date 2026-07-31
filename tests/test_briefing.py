@@ -16,13 +16,21 @@ from pathlib import Path
 
 import pytest
 
-from roadkeep.briefing import CHAINS, NothingToBrief, brief, non_goals
+from roadkeep.briefing import CHAINS, NON_GOALS, NothingToBrief, brief, non_goals
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
-from roadkeep.config import Config
+from roadkeep.config import Config, Scope
 from roadkeep.document import Document
 from roadkeep.schema import DESIGNED, SHIPPED, Schema
 
 HERE = Path(__file__).resolve().parents[1]
+TURING = Path("D:/Git/viglet/turing/latest/docs/ROADMAP.md")
+
+
+def leads(text: str, config: Config | None = None) -> tuple[str, ...]:
+    """The leads of a roadmap's non-goals, which is the only thing a brief carries of them."""
+    document = Document.parse(text, Schema())
+    return non_goals(config or Config(root=HERE), document).leads
+
 
 ROADMAP = f"""# Roadmap
 
@@ -78,7 +86,7 @@ def test_one_call_carries_every_answer(tmp_path):
     assert str(gathered.readiness) == "blocked"
     assert [r.dep.id for r in gathered.deps] == ["RK1"]
     assert gathered.chains[0].root == "RK1"
-    assert gathered.non_goals == ("No web UI and no server", "No dates")
+    assert gathered.non_goals.leads == ("No web UI and no server.", "No dates.")
     assert gathered.leverage.of == 1
 
 
@@ -165,12 +173,12 @@ def test_the_heading_is_matched_by_prefix_because_no_two_projects_spell_it_alike
         "# Roadmap\n\n## Non-goals (do NOT add as tasks)\n\n"
         "- **No web UI.** Files and a CLI.\n"
     )
-    assert non_goals(Document.parse(text, Schema())) == ("No web UI",)
+    assert leads(text) == ("No web UI.",)
 
 
 def test_a_bullet_with_no_bold_lead_keeps_its_first_sentence():
     text = "# Roadmap\n\n## Non-goals\n\n- No server. It would be a second store.\n"
-    assert non_goals(Document.parse(text, Schema())) == ("No server",)
+    assert leads(text) == ("No server",)
 
 
 def test_the_section_ends_at_the_next_heading():
@@ -178,11 +186,76 @@ def test_the_section_ends_at_the_next_heading():
         "# Roadmap\n\n## Non-goals\n\n- **No server.** Prose.\n\n"
         "## Block A — The model\n\n- **Not a non-goal.** Prose.\n"
     )
-    assert non_goals(Document.parse(text, Schema())) == ("No server",)
+    assert leads(text) == ("No server.",)
 
 
 def test_a_project_with_no_non_goals_section_reports_none():
-    assert non_goals(Document.parse("# Roadmap\n\n## Block A\n", Schema())) == ()
+    assert leads("# Roadmap\n\n## Block A\n") == ()
+
+
+# -- the lead, where the file was not written to the convention (RK68) --------
+
+
+def test_a_wrapped_bullet_is_read_whole_and_not_to_its_first_line():
+    # Turing's first non-goal spans four lines and forbids ten things. Read to the first
+    # physical line it appeared to forbid three, dropping the SSE bus and the rest.
+    text = (
+        "# Roadmap\n\n## Non-goals\n\n"
+        "- Don't refactor the auto-trigger router, continuation logic,\n"
+        "  A/B assignment, the SSE bus, or `summarizeVariables` cap — these\n"
+        "  are product, not patches.\n"
+    )
+    assert leads(text, Config(root=HERE, non_goals=Scope(lead=200))) == (
+        "Don't refactor the auto-trigger router, continuation logic, A/B assignment, "
+        "the SSE bus, or `summarizeVariables` cap — these are product, not patches.",
+    )
+
+
+def test_a_bold_run_mid_sentence_is_emphasis_and_not_a_lead():
+    # Turing writes `is **not** a path`, and the scraped lead was the word `not`.
+    text = (
+        "# Roadmap\n\n## Non-goals\n\n"
+        "- Structured output (LLM → JSON) is **not** a path — use tool-calling schemas.\n"
+    )
+    assert leads(text, Config(root=HERE, non_goals=Scope(lead=200))) == (
+        "Structured output (LLM → JSON) is **not** a path — use tool-calling schemas.",
+    )
+
+
+def test_a_lead_over_the_projects_limit_is_cut_where_the_cut_shows():
+    text = "# Roadmap\n\n## Non-goals\n\n- Don't refactor the router, the bus or the cap.\n"
+    assert leads(text, Config(root=HERE, non_goals=Scope(lead=30))) == (
+        "Don't refactor the router, …",
+    )
+
+
+def test_a_governed_lead_is_never_cut_because_add_already_refused_a_long_one():
+    lead = "No " + "x" * (Scope().lead - 3)
+    text = f"# Roadmap\n\n## Non-goals\n\n- **{lead}** Because of a reason.\n"
+    assert leads(text) == (lead,)
+
+
+def test_a_section_longer_than_the_bound_says_how_many_it_left(tmp_path, capsys):
+    bullets = "".join(
+        f"- **No number {n}.** Because of a reason.\n" for n in range(NON_GOALS + 3)
+    )
+    project(tmp_path, roadmap=ROADMAP[: ROADMAP.index("- **No web")] + bullets)
+    gathered = brief(Config.discover(tmp_path), "RK1")
+    assert len(gathered.non_goals.leads) == NON_GOALS and gathered.non_goals.elided == 3
+    assert main(["-C", str(tmp_path), "brief", "RK1"]) == EXIT_OK
+    assert "not      … and 3 more under Non-goals" in capsys.readouterr().out
+
+
+@pytest.mark.skipif(not TURING.is_file(), reason="Turing is not checked out here")
+def test_turings_leads_are_each_a_scope_and_none_is_a_stray_word():
+    # The second live corpus is where RK68's two failures actually are, and the property
+    # is not a wording: it is that no lead is a fragment of the constraint it addresses.
+    gathered = non_goals(Config(root=TURING.parent), Document.parse(
+        TURING.read_text(encoding="utf-8"), Schema(prefix="T")
+    ))
+    assert len(gathered.leads) >= 7
+    for lead in gathered.leads:
+        assert len(lead.split()) > 3, lead
 
 
 # -- this repository ---------------------------------------------------------
@@ -201,7 +274,7 @@ def test_every_open_task_here_briefs():
     config = Config.discover(HERE)
     for entry in config.document("roadmap").entries:
         gathered = brief(config, entry.task.id)
-        assert gathered.non_goals and gathered.view.section is not None
+        assert gathered.non_goals.leads and gathered.view.section is not None
 
 
 # -- the command -------------------------------------------------------------
@@ -230,7 +303,7 @@ def test_json_carries_the_whole_pack(tmp_path, capsys):
     assert payload["id"] == "RK4" and payload["readiness"] == "blocked"
     assert payload["deps_resolved"][0]["status"] == "open"
     assert payload["chains"][0]["path"] == ["RK4", "RK1"]
-    assert payload["non_goals"] == ["No web UI and no server", "No dates"]
+    assert payload["non_goals"] == ["No web UI and no server.", "No dates."]
     assert payload["unblocks"] == {"count": 0, "of": 1, "transitive": []}
     assert payload["picked"] is None
 

@@ -19,11 +19,11 @@ would choose, which makes the first call of a session the only one.
 
 from __future__ import annotations
 
-import re
+import textwrap
 from dataclasses import dataclass
 
 from roadkeep.backlog import Backlog, Readiness, Resolution
-from roadkeep.config import Config
+from roadkeep.config import Config, Scope
 from roadkeep.document import Document
 from roadkeep.graph import Chain, Graph, Leverage
 from roadkeep import scoping
@@ -35,12 +35,14 @@ from roadkeep.showing import View, show
 #: a brief is read to start work, and the second chain is already context, not an answer.
 CHAINS = 2
 
-#: Where the non-goals are, owned by the module that writes them (RK70) so that the reader
-#: and the writer cannot disagree about which heading holds the list. The *lead* is still
-#: inferred from prose here, which is the defect RK68 is about.
-_NON_GOALS = scoping.HEADING
-_BOLD_LEAD = re.compile(r"\*\*(.+?)\*\*")
-_BULLET = re.compile(r"^[-*+] (?P<rest>.*)$")
+#: How many non-goals a brief carries, for the same reason (RK68): the list binds what may be
+#: proposed, and a section long enough to need scrolling is the file back. Two live corpora
+#: write seven and eight, so this is headroom over both rather than a cut anyone will meet.
+NON_GOALS = 12
+
+#: What a cut lead ends with. A space before it, so the mark reads as the tool's and not as
+#: an author's ellipsis — the cut has to be visible where it happens, never silent.
+ELLIPSIS = " …"
 
 
 class NothingToBrief(KeyError):
@@ -48,6 +50,19 @@ class NothingToBrief(KeyError):
 
     def __init__(self, reason: str) -> None:
         super().__init__(f"nothing to brief: {reason}")
+
+
+@dataclass(frozen=True, slots=True)
+class NonGoals:
+    """The scope a proposal has to stay inside: the leads carried, and what was left.
+
+    Two fields because a bounded list that does not say it is bounded reads as the whole
+    list — the failure this is the fix for, one level up (RK68).
+    """
+
+    leads: tuple[str, ...] = ()
+    #: How many bullets the section held beyond the ones carried. 0 means these are all.
+    elided: int = 0
 
 
 @dataclass(frozen=True, slots=True)
@@ -59,7 +74,7 @@ class Brief:
     deps: tuple[Resolution, ...]
     chains: tuple[Chain, ...]
     leverage: Leverage
-    non_goals: tuple[str, ...]
+    non_goals: NonGoals
     #: Set when the id came from `pick` rather than from the caller, with its reason.
     picked: str = ""
 
@@ -97,36 +112,30 @@ def brief(
         deps=backlog.resolve(task) if entry is not None else (),
         chains=graph.chains(task_id)[:CHAINS] if entry is not None else (),
         leverage=graph.leverage(task_id),
-        non_goals=non_goals(backlog.roadmap),
+        non_goals=non_goals(config, backlog.roadmap),
         picked=picked,
     )
 
 
-def non_goals(document: Document) -> tuple[str, ...]:
-    """The lead of each bullet under the non-goals heading, in file order.
+def non_goals(config: Config, document: Document) -> NonGoals:
+    """The lead of each bullet under the non-goals heading, in file order and bounded.
 
     The lead and not the bullet: what keeps a proposal inside scope is *that* the line
-    exists, and the sentence arguing it is already in the file the caller can open.
+    exists, and the sentence arguing it is already in the file the caller can open. *Which*
+    characters are the lead is `scoping`'s answer and not one guessed here (RK68) — the
+    module that writes a non-goal is the one that says what its address is.
+
+    Bounded twice, for the reason the chains stop at two and a section has a word budget:
+    each lead is cut to the project's own `[non_goals]` limit (L6) with the cut *shown*, and
+    a list past :data:`NON_GOALS` reports how many it left. A field with no limit at all is
+    a forty-bullet section arriving in place of the file this call exists to replace.
     """
-    heading = next((h for h in document.headings if _NON_GOALS.match(h.text)), None)
-    if heading is None:
-        return ()
-    out: list[str] = []
-    for line in document.lines[heading.lineno :]:
-        body = line.rstrip("\r\n")
-        if body.startswith("#"):
-            break  # the next heading ends the section, whatever its level
-        bullet = _BULLET.match(body)
-        if bullet is None:
-            continue
-        out.append(_lead(bullet.group("rest")))
-    return tuple(out)
-
-
-def _lead(text: str) -> str:
-    """The bolded head of a bullet, or its first sentence — never a rewrite of either."""
-    bold = _BOLD_LEAD.search(text)
-    if bold:
-        return bold.group(1).rstrip(".")
-    head, _, _ = text.partition(". ")
-    return head.rstrip(".")
+    limit = (config.non_goals or Scope()).lead
+    every = scoping.leads(document)
+    return NonGoals(
+        leads=tuple(
+            textwrap.shorten(lead, width=limit, placeholder=ELLIPSIS)
+            for lead in every[:NON_GOALS]
+        ),
+        elided=max(0, len(every) - NON_GOALS),
+    )

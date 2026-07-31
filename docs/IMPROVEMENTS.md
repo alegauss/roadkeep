@@ -79,28 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK68 The lead that is a guess
-
-`brief` carries the non-goals as leads, and the lead is scraped: the first `**…**` run
-anywhere in the bullet, or the text before the first `. `, over the bullet's first
-physical line only. Both halves fail on the second live corpus. Turing's first non-goal
-spans four lines, so the lead keeps three of the ten things it forbids and drops the SSE
-bus, the anti-injection normalization and `TurToolCallbackPipeline.decorate`. Its second
-reads `Structured output (LLM → JSON) is **not** a path`, where the bold is mid-sentence
-emphasis — so the printed non-goal is the word `not`.
-
-This repository's own five leads are correct, which is the part worth saying out loud:
-the fixture proves the reader only where the file was hand-written to the convention the
-reader assumes.
-
-So the lead is a bold run **at the start** of the bullet or nothing, the bullet is
-joined across its continuation lines before it is cut, and the cut is stated where it
-happens. And it is bounded like every other field of a brief — the chains stop at two
-and a section has a word budget, while the non-goals are today the one field with no
-limit at all, so a forty-bullet section replaces the file the brief exists to save.
-
-Not a rewrite of anyone's prose (L4): what changes is which characters are quoted.
-
 ### §RK69 The list that binds a proposal it never sees
 
 The roadmap tells an author to check the non-goals before proposing work, and `brief

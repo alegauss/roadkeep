@@ -1559,8 +1559,12 @@ def _brief(config: Config, args: argparse.Namespace) -> int:
     _print_leverage(gathered.leverage)
     for referenced in view.paths:
         print(f"  path     {referenced.path}{'' if referenced.exists else '  (missing)'}")
-    for non_goal in gathered.non_goals:
+    for non_goal in gathered.non_goals.leads:
         print(f"  not      {non_goal}")
+    if gathered.non_goals.elided:
+        # Where the list was cut, and not silently: a bounded list that reads as the whole
+        # one is a proposal made against a scope it never saw (RK68).
+        print(f"  not      … and {gathered.non_goals.elided} more under Non-goals")
     if view.section is not None:
         print()
         print(heading_of(config.schema, view.section))
@@ -1598,7 +1602,8 @@ def _brief_json(gathered: Brief) -> dict[str, object]:
             "of": gathered.leverage.of,
             "transitive": list(gathered.leverage.transitive),
         },
-        "non_goals": list(gathered.non_goals),
+        "non_goals": list(gathered.non_goals.leads),
+        "non_goals_elided": gathered.non_goals.elided,
     }
 
 

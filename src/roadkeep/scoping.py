@@ -55,6 +55,7 @@ __all__ = [
     "address",
     "check",
     "drop",
+    "leads",
     "read",
     "render",
     "validate",
@@ -72,6 +73,9 @@ _BULLET = re.compile(r"^- \*\*(?P<lead>[^*]+)\*\*(?P<why> .*)?$")
 _ANY_BULLET = re.compile(r"^[-*+] (?P<rest>.*)$")
 #: What a wrapped bullet's continuation looks like: indented, and not a bullet of its own.
 _CONTINUATION = "  "
+#: Where a lead ends in a bullet that carries no bold head. A stop *and a space*, so an
+#: abbreviation or a version number inside the sentence is not read as its end.
+_SENTENCE = ". "
 
 #: The two codes this format can be violated by, and the one a bullet's *shape* is. Named
 #: here because `lint` reports them and a code spelled twice is a code that drifts once.
@@ -126,6 +130,26 @@ class NoSuchNonGoal(KeyError):
         super().__init__(
             f"no non-goal in {where} leads with {lead!r}: the list carries {known}"
         )
+
+
+@dataclass(frozen=True, slots=True)
+class _Bullet:
+    """One bullet's span before the grammar judges it: where it starts, and what it says.
+
+    ``joined`` folds the continuation lines in, which is what lets a lead be taken from the
+    whole bullet instead of from its first physical line (RK68) — the difference between
+    Turing's first non-goal forbidding ten things and appearing to forbid three.
+    """
+
+    first: int
+    raw: str
+    joined: str
+
+    @property
+    def rest(self) -> str:
+        """The bullet without its marker: what a lead is taken from, verbatim."""
+        marker = _ANY_BULLET.match(self.joined)
+        return marker.group("rest") if marker is not None else self.joined
 
 
 @dataclass(frozen=True, slots=True)
@@ -199,8 +223,35 @@ def rejects(document: Document) -> tuple[tuple[int, str], ...]:
     separate from an entry: a count that silently omitted them would read as a complete one.
     """
     return tuple(
-        (lineno, raw) for (lineno, raw), parsed in _bullets(document) if parsed is None
+        (bullet.first, bullet.raw)
+        for bullet, parsed in _bullets(document)
+        if parsed is None
     )
+
+
+def leads(document: Document) -> tuple[str, ...]:
+    """The lead of every bullet under the heading, in file order — what `brief` prints.
+
+    Here rather than at the reader's call site so that the reader and the writer cannot
+    disagree about what a lead *is*, exactly as :data:`HEADING` settles where the list is
+    (RK68). And unlike :func:`read`, nothing is skipped: a project that has not opted in
+    still has a scope every brief must carry, so a bullet the shape refuses gets a lead too.
+
+    Where the shape holds it is the bold run and only that. Where it does not, it is the
+    first sentence of the bullet **joined across its continuations** — never a bold run found
+    mid-sentence, which is emphasis and not an address: Turing writes ``is **not** a path``,
+    whose middle bold made the printed non-goal the word ``not``.
+    """
+    out: list[str] = []
+    for bullet, parsed in _bullets(document):
+        if parsed is not None:
+            out.append(parsed.lead)
+            continue
+        head, _, _ = bullet.rest.partition(_SENTENCE)
+        # Verbatim, stop included, exactly as the bold lead is kept: normalizing an author's
+        # punctuation to satisfy a rule nobody stated is the rewrite this refuses to be (L4).
+        out.append(head.strip())
+    return tuple(out)
 
 
 def address(lead: str) -> str:
@@ -375,12 +426,12 @@ def _heading_index(document: Document) -> int | None:
 
 def _bullets(
     document: Document,
-) -> tuple[tuple[tuple[int, str], NonGoal | None], ...]:
+) -> tuple[tuple[_Bullet, NonGoal | None], ...]:
     """Every bullet under the heading with its span joined, parsed where the shape allows."""
     start = _heading_index(document)
     if start is None:
         return ()
-    out: list[tuple[tuple[int, str], NonGoal | None]] = []
+    out: list[tuple[_Bullet, NonGoal | None]] = []
     spans: list[tuple[int, list[str]]] = []
     for offset, raw in enumerate(document.lines[start + 1 :], start=start + 2):
         body = raw.rstrip("\r\n")
@@ -404,7 +455,7 @@ def _bullets(
                 last=first + len(span) - 1,
                 lines=tuple(span),
             )
-        out.append(((first, span[0]), parsed))
+        out.append((_Bullet(first=first, raw=span[0], joined=joined), parsed))
     return tuple(out)
 
 

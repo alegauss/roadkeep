@@ -50,6 +50,7 @@
 - ✅ **RK39** **A README and a site restate a backlog they cannot re-read, so both are stale from the first ship** — the restatement is derived: one marked README block and one JSON payload, idempotent and stamped with nothing, so a refresh with nothing to say makes no diff.
 - ✅ **RK40** **A block's own next task is not askable, so a global answer reads as that block being finished** — every part of a scoped answer is about that block, so nothing open in Block C is the wording that means finished and a lower id elsewhere can no longer read as one.
 - ✅ **RK42** **The landing page claimed 9 of 36 tasks shipped through twenty-five ships** — `export --site` splices the same projection into the page as HTML between the same two markers, so one call refreshes both restatements and a test fails when either drifts.
+- ✅ **RK68** **The brief prints a non-goal narrower than the file states** — The lead is now the bold run at the start of a bullet or its first sentence, read from the bullet joined across its wrapped lines and cut to the project's own limit where the cut shows.
 
 ## Block D — The gate
 
