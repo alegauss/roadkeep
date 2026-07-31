@@ -35,6 +35,8 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import tempfile
+import tomllib
 import traceback
 from collections.abc import Mapping, Sequence
 from pathlib import Path
@@ -43,7 +45,7 @@ from roadkeep.adopting import Estimate, adopt, init
 from roadkeep.authoring import add, amend, set_status
 from roadkeep.backlog import Backlog
 from roadkeep.briefing import Brief, brief, non_goals
-from roadkeep.capturing import PARTS, body, capture, check, handoff, offer
+from roadkeep.capturing import PARTS, body, capture, check, handoff, offer, replay
 from roadkeep.config import Config, ConfigError
 from roadkeep.counting import Census
 from roadkeep.document import Document, Entry, Reject, RoundTripError
@@ -726,12 +728,37 @@ def build_parser() -> argparse.ArgumentParser:
         help="file against this repository instead of the configured upstream",
     )
     report_parser.add_argument(
+        "--embed",
+        action="store_true",
+        help=(
+            "carry the file the finding named, so the capture can be replayed without this "
+            "repository — a test somewhere else, and a file leaving here"
+        ),
+    )
+    report_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    report_parser.add_argument(
         "command_argv",
         nargs=argparse.REMAINDER,
         metavar="-- COMMAND",
         help="the roadkeep command that failed, after a bare --, without the program name",
     )
     report_parser.set_defaults(handler=_report, tolerates_config_error=True)
+
+    replay_parser = subcommands.add_parser(
+        "replay",
+        help="re-run a stored capture against the tree that is here now",
+        description=(
+            "Stage the capture's own configuration and file in a scratch directory, run "
+            "the argv it recorded, and answer whether the defect still reproduces. Nothing "
+            "from the reporting project is needed: a capture that was never made replayable "
+            "says which part it lacks instead of being staged from a guess. Exits 1 when "
+            "the answer differs from the `reproduces` the file records — which is what "
+            "makes a corpus of field reports a gate rather than a folder."
+        ),
+    )
+    replay_parser.add_argument("path", help="a capture written by `report --json`")
+    replay_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    replay_parser.set_defaults(handler=_replay, tolerates_config_error=True)
 
     init_parser = subcommands.add_parser(
         "init",
@@ -866,7 +893,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         raise
     try:
         config = Config.discover(args.directory)
-    except ConfigError as error:
+    except (ConfigError, tomllib.TOMLDecodeError, OSError) as error:
+        # A TOML *syntax* error never reached `ConfigError`, so the commands declared to
+        # survive a broken config did not survive the way it is most often broken — and
+        # `report`, whose whole purpose is the session where something is wrong, crashed
+        # on the file it was about to carry as evidence.
         if not getattr(args, "tolerates_config_error", False):
             print(f"roadkeep: {error}", file=sys.stderr)
             return EXIT_USAGE
@@ -2446,7 +2477,12 @@ def _report(config: Config, args: argparse.Namespace) -> int:
         for violation in violations:
             print(f"  {violation}", file=sys.stderr)
         return EXIT_USAGE
-    found = capture(args.symptom, args.why, args.block, argv, config.root).without(*args.without)
+    found = capture(
+        args.symptom, args.why, args.block, argv, config.root, embed=args.embed
+    ).without(*args.without)
+    if args.json:
+        print(json.dumps(found.as_dict(), indent=2, ensure_ascii=False))
+        return EXIT_OK
     if not args.issue:
         print(found)
         return EXIT_OK
@@ -2463,6 +2499,49 @@ def _report(config: Config, args: argparse.Namespace) -> int:
     sys.stdout.flush()
     print(handoff(found, upstream), file=sys.stderr)
     return EXIT_OK
+
+
+def _replay(config: Config, args: argparse.Namespace) -> int:
+    """Re-run one stored capture (RK88). Exit 1 when the verdict is not the recorded one.
+
+    A scratch directory and never the working tree: the capture carries a `roadkeep.toml`
+    and a governed file, and staging those over somebody's project would be the one write
+    this tool makes that nobody asked for.
+    """
+    try:
+        recorded = json.loads(Path(args.path).read_text(encoding="utf-8"))
+    except (OSError, ValueError) as error:
+        print(f"roadkeep: {error}", file=sys.stderr)
+        return EXIT_USAGE
+    with tempfile.TemporaryDirectory(prefix="roadkeep-replay-") as scratch:
+        outcome = replay(recorded, scratch)
+    expected = bool(recorded.get("reproduces", True))
+    agrees = outcome.ran and outcome.reproduces == expected
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "path": args.path,
+                    "ran": outcome.ran,
+                    "missing": list(outcome.missing),
+                    "reproduces": outcome.reproduces,
+                    "expected": expected,
+                    "recorded_exit": outcome.recorded_exit,
+                    "exit": outcome.exit_code,
+                },
+                indent=2,
+            )
+        )
+    else:
+        print(f"{args.path}  {outcome}")
+        if outcome.ran and not agrees:
+            # The whole point of the corpus: a verdict that moved is either a fix to record
+            # or a regression to answer, and both want the file updated in the same commit.
+            print(
+                f"  recorded reproduces = {str(expected).lower()}: "
+                f"update the capture, or the tree stopped agreeing with it"
+            )
+    return EXIT_OK if agrees else EXIT_GATE
 
 
 def _guard(config: Config, args: argparse.Namespace) -> int:

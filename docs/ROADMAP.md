@@ -41,7 +41,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK88** (deps: RK85 ✅) **A field report cannot be told fixed from unfixed without restaging the reporter's project** — The evidence that reproduces a defect is the evidence a regression test needs, and a corpus of real captures is what this repository already trusts over an assertion. → §RK88
 - 📋 **RK89** (deps: RK85 ✅) **A capture survives the command that produced it and not the session that ran it** — It is printed and then gone unless the caller thought to redirect it, which is the second step the same block already documents an agent not taking. → §RK89
 
 ## Non-goals

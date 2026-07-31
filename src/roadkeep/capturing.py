@@ -39,7 +39,7 @@ import io
 import re
 import shlex
 import traceback
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, replace
 from pathlib import Path
 
@@ -97,7 +97,19 @@ class Failure:
 #: promises to find secrets is a promise nobody can check against a repository it never saw.
 #: `symptom`, `why`, `block` and the exit code are never droppable — without them there is
 #: no claim, and an empty report is worse than no report.
-PARTS = ("command", "engine", "where", "config", "source", "output", "traceback")
+PARTS = ("command", "engine", "where", "config", "source", "document", "output", "traceback")
+
+#: What a replay cannot be staged without (RK88). The tension RK87 leaves behind, named
+#: rather than resolved: a capture that embeds nothing is safe and inert, and one that can
+#: be re-run somewhere else is one that carried a file out of a repository. So the
+#: embedding is opt-in, and a capture that was never asked for it says which part is
+#: missing instead of failing halfway through a staging.
+#:
+#: `document` is not here because it is not always input: a defect in reading
+#: `roadkeep.toml` has no governed file in it at all, and demanding one would make the
+#: cheapest class of field report the one class that cannot be replayed. It is required
+#: exactly when the failure named a file — see :attr:`Capture.missing`.
+REPLAYABLE = ("command", "config")
 
 
 @dataclass(frozen=True, slots=True)
@@ -118,6 +130,11 @@ class Capture:
     config_path: str | None = None
     #: The input line the engine objected to, verbatim, and where it lives.
     source: str | None = None
+    #: The whole file that line is in, embedded only when the caller asked (RK88): it is
+    #: the input half of a test, and it is also a file leaving a repository. One file, the
+    #: one the finding named — never the project.
+    document: str | None = None
+    document_path: str | None = None
     #: Parts the operator deleted before this went anywhere (RK87). Held rather than
     #: applied to the data, so one capture can be read whole in the terminal and emitted
     #: redacted — and *named* in the output, because a report missing a section without
@@ -158,38 +175,105 @@ class Capture:
             ]
         )
 
-    def __str__(self) -> str:
-        lines = [
-            "roadkeep capture — what the session that hit this knew, before it ended",
-            "",
-            f"  symptom  {self.symptom}",
-            f"  why      {self.why}",
-            f"  block    {self.block}",
-            "",
-        ]
-        if self.shows("command"):
-            lines.append(f"  command  {self.failure.command}")
-        lines.append(f"  exit     {self.failure.exit_code}")
-        if self.shows("engine"):
-            lines.append(f"  engine   {self.engine}")
-        if self.shows("where") and self.failure.where:
-            lines.append(f"  where    {self.failure.where}")
-        if self.shows("config") and self.config_path:
-            lines.append(f"  config   {self.config_path}")
-        if self.hidden:
+    def _head(self) -> list[str]:
+        """The labelled facts, in the order a reader needs them to decide what this is."""
+        fields = [
+            ("command", self.failure.command if self.shows("command") else None),
+            ("exit", str(self.failure.exit_code)),
+            ("engine", str(self.engine) if self.shows("engine") else None),
+            ("where", self.failure.where if self.shows("where") else None),
+            ("config", self.config_path if self.shows("config") else None),
             # Named, because a capture that quietly drops a section is one a maintainer
             # reads as evidence that did not exist.
-            lines.append(f"  omitted  {', '.join(sorted(self.hidden))}")
-        if self.shows("source") and self.source is not None:
-            lines += ["", "--- the line it objected to ---", self.source]
-        if self.shows("traceback") and self.failure.traceback:
-            lines += ["", "--- traceback ---", self.failure.traceback.rstrip()]
+            ("omitted", ", ".join(sorted(self.hidden)) if self.hidden else None),
+        ]
+        return [f"  {label:<8} {value}" for label, value in fields if value]
+
+    def _blocks(self) -> list[str]:
+        """The verbatim evidence, each under a heading that says what it is."""
+        parts = [
+            ("source", "the line it objected to", self.source),
+            ("traceback", "traceback", self.failure.traceback),
+            ("output", "output", self.failure.output.rstrip() or "(nothing)"),
+            ("config", "roadkeep.toml as it was read", self.config),
+            ("document", f"{self.document_path} as it was read", self.document),
+        ]
+        lines: list[str] = []
+        for part, title, text in parts:
+            if self.shows(part) and text is not None:
+                lines += ["", f"--- {title} ---", text.rstrip()]
+        return lines
+
+    def __str__(self) -> str:
+        return "\n".join(
+            [
+                "roadkeep capture — what the session that hit this knew, before it ended",
+                "",
+                f"  symptom  {self.symptom}",
+                f"  why      {self.why}",
+                f"  block    {self.block}",
+                "",
+                *self._head(),
+                *self._blocks(),
+                "",
+                "File it:",
+                f"  {self.filing}",
+            ]
+        )
+
+    @property
+    def missing(self) -> tuple[str, ...]:
+        """The parts a replay would need and does not have (RK88)."""
+        held = {
+            "command": bool(self.failure.argv),
+            "config": self.config is not None,
+            "document": self.document is not None and self.document_path is not None,
+        }
+        needed = list(REPLAYABLE)
+        if self.shows("where") and self.failure.where:
+            # The failure named a file, so that file is half the input.
+            needed.append("document")
+        return tuple(part for part in needed if not (self.shows(part) and held[part]))
+
+    @property
+    def replayable(self) -> bool:
+        return not self.missing
+
+    def as_dict(self) -> dict[str, object]:
+        """The capture as a corpus file holds it — redaction applied, not recorded around.
+
+        A dropped part is absent here exactly as it is absent from the printed text: one
+        artefact, one set of contents, so what a reviewer approved is what gets stored and
+        replayed. `reproduces` is this repository's standing expectation, and the only
+        field a *reader* of the capture writes: flipping it is how a fix is recorded.
+        """
+        data: dict[str, object] = {
+            "symptom": self.symptom,
+            "why": self.why,
+            "block": self.block,
+            "exit": self.failure.exit_code,
+            "reproduces": True,
+        }
+        if self.shows("command"):
+            data["argv"] = list(self.failure.argv)
+        if self.shows("engine"):
+            data["engine"] = str(self.engine)
+        if self.shows("where") and self.failure.where:
+            data["where"] = self.failure.where
         if self.shows("output"):
-            lines += ["", "--- output ---", self.failure.output.rstrip() or "(nothing)"]
+            data["output"] = self.failure.output
+        if self.shows("traceback") and self.failure.traceback:
+            data["traceback"] = self.failure.traceback
         if self.shows("config") and self.config is not None:
-            lines += ["", "--- roadkeep.toml as it was read ---", self.config.rstrip()]
-        lines += ["", "File it:", f"  {self.filing}"]
-        return "\n".join(lines)
+            data["config"] = self.config
+        if self.shows("source") and self.source is not None:
+            data["source"] = self.source
+        if self.shows("document") and self.document is not None:
+            data["document"] = self.document
+            data["document_path"] = self.document_path
+        if self.hidden:
+            data["omitted"] = sorted(self.hidden)
+        return data
 
 
 #: What every failure ends with (RK86). Conditional and never an admission: this tool has
@@ -282,11 +366,22 @@ def observe(argv: Sequence[str]) -> Failure:
 
 
 def capture(
-    symptom: str, why: str, block: str, argv: Sequence[str], root: str | Path = "."
+    symptom: str,
+    why: str,
+    block: str,
+    argv: Sequence[str],
+    root: str | Path = ".",
+    embed: bool = False,
 ) -> Capture:
-    """Run the failing command and compose the report. The claim is already validated."""
+    """Run the failing command and compose the report. The claim is already validated.
+
+    ``embed`` carries the file the finding named, which is what makes the capture a test
+    somewhere else (RK88) and also what makes it a file leaving a repository (RK87) — so it
+    is asked for, never assumed.
+    """
     failure = observe(argv)
     config_path, config = _configuration(root)
+    document_path, document = _document(failure.where, root) if embed else (None, None)
     return Capture(
         symptom=symptom,
         why=why,
@@ -296,7 +391,85 @@ def capture(
         config=config,
         config_path=config_path,
         source=_source(failure.where, root),
+        document=document,
+        document_path=document_path,
     )
+
+
+@dataclass(frozen=True, slots=True)
+class Replay:
+    """One capture re-run against the tree that is here now (RK88).
+
+    The question a field report cannot otherwise answer. *Reproduces* is the recorded exit
+    code and the recorded address both turning up again — not an output comparison, because
+    a message this repository improved is not a defect that came back.
+    """
+
+    reproduces: bool
+    recorded_exit: int
+    exit_code: int
+    output: str
+    #: Non-empty when nothing was run: the capture was never made replayable, and saying so
+    #: is the whole answer. A staging that guessed at the missing half would be a test whose
+    #: input this repository invented, which is the thing RK88 exists to avoid.
+    missing: tuple[str, ...] = ()
+
+    @property
+    def ran(self) -> bool:
+        return not self.missing
+
+    def __str__(self) -> str:
+        if self.missing:
+            return f"not replayable: the capture has no {', '.join(self.missing)}"
+        verdict = "still reproduces" if self.reproduces else "no longer reproduces"
+        return f"{verdict}: recorded exit {self.recorded_exit}, now {self.exit_code}"
+
+
+def replay(recorded: Mapping[str, object], workdir: str | Path) -> Replay:
+    """Stage the capture's own inputs in ``workdir`` and run its argv against them.
+
+    The reporter's repository is never needed and never reached: what is written is the
+    `roadkeep.toml` and the one file the capture carries, and the `-C` in the recorded argv
+    is repointed at the staging. Everything else in that argv is passed through untouched —
+    a replay that rewrote the flags would be testing a command nobody ran.
+    """
+    needed = list(REPLAYABLE) + (["document"] if recorded.get("where") else [])
+    missing = tuple(part for part in needed if not recorded.get(_FIELD[part]))
+    recorded_exit = int(recorded.get("exit", 0) or 0)
+    if missing:
+        return Replay(False, recorded_exit, 0, "", missing)
+
+    root = Path(workdir)
+    (root / "roadkeep.toml").write_text(str(recorded["config"]), encoding="utf-8")
+    if recorded.get("document"):
+        document = root / str(recorded["document_path"])
+        document.parent.mkdir(parents=True, exist_ok=True)
+        # `newline=""`: the round-trip invariant is about bytes, and a translated line
+        # ending is a different file from the one that failed.
+        with document.open("w", encoding="utf-8", newline="") as handle:
+            handle.write(str(recorded["document"]))
+
+    failure = observe(_repointed([str(part) for part in recorded["argv"]], root))
+    where = recorded.get("where")
+    reproduces = failure.exit_code == recorded_exit and (
+        where is None or str(where) in failure.output
+    )
+    return Replay(reproduces, recorded_exit, failure.exit_code, failure.output)
+
+
+#: Which key of a stored capture each replayable part lives under.
+_FIELD = {"command": "argv", "config": "config", "document": "document"}
+
+
+def _repointed(argv: list[str], root: Path) -> list[str]:
+    """The recorded argv with its `-C` aimed at the staging, and nothing else touched."""
+    out = list(argv)
+    for index, word in enumerate(out[:-1]):
+        if word in ("-C", "--directory"):
+            out[index + 1] = str(root)
+    if not any(word in ("-C", "--directory") for word in out):
+        out = ["-C", str(root), *out]
+    return out
 
 
 def _tail(output: str) -> str:
@@ -316,6 +489,17 @@ def _configuration(root: str | Path) -> tuple[str | None, str | None]:
         return str(found), found.read_text(encoding="utf-8")
     except OSError:
         return str(found), None
+
+
+def _document(where: str | None, root: str | Path) -> tuple[str | None, str | None]:
+    """The file the finding named, whole and verbatim — one file, never the project."""
+    if where is None:
+        return None, None
+    name = where.partition(":")[0]
+    try:
+        return name, (Path(root) / name).read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        return None, None
 
 
 def _source(where: str | None, root: str | Path) -> str | None:

@@ -461,3 +461,14 @@ def test_a_fork_reports_to_itself(tmp_path, capsys):
     main(["-C", str(root), "report", "--symptom", SYMPTOM, "--why", WHY, "--issue", "--to",
           "other/fork", "--", "lint"])
     assert "-R other/fork" in capsys.readouterr().err
+
+
+def test_a_command_declared_to_survive_a_broken_config_survives_a_broken_one(tmp_path, capsys):
+    """A TOML *syntax* error never reached `ConfigError`, so the commands that promise to
+    tolerate a bad config did not tolerate the way one is most often bad — and `report`,
+    whose whole subject is the session where something is wrong, crashed on the very file
+    it was about to carry as evidence."""
+    (tmp_path / "roadkeep.toml").write_text("prefix = [\n", encoding="utf-8")
+    code = main(["-C", str(tmp_path), "report", "--symptom", SYMPTOM, "--why", WHY, "--", "lint"])
+    assert code == EXIT_OK
+    assert "roadkeep capture" in capsys.readouterr().out

@@ -1,0 +1,15 @@
+{
+  "symptom": "A command declared to tolerate a broken config still crashed on a TOML syntax error",
+  "why": "ConfigError never covered tomllib's own exception, so report died on the file it existed to carry as evidence.",
+  "block": "F",
+  "exit": 1,
+  "reproduces": false,
+  "argv": [
+    "-C",
+    ".",
+    "lint"
+  ],
+  "engine": "roadkeep 0.1.0 (52893c6, D:/Git/alegauss/roadkeep/src/roadkeep)",
+  "output": "  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\\Lib\\tomllib\\_parser.py\", line 628, in parse_value\n    return parse_array(src, pos, parse_float)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\\Lib\\tomllib\\_parser.py\", line 432, in parse_array\n    pos, val = parse_value(src, pos, parse_float)\n               ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\\Lib\\tomllib\\_parser.py\", line 661, in parse_value\n    raise suffixed_err(src, pos, \"Invalid value\")\ntomllib.TOMLDecodeError: Invalid value (at end of document)",
+  "config": "prefix = [\n"
+}

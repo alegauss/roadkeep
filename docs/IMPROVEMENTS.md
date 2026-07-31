@@ -171,31 +171,6 @@ governance it does not have, which is the drift this tool exists to refuse.
 
 ## Block F — The plugin
 
-### §RK88 A report that can be run is a test
-
-A capture that is only read is spent once. Someone reads it, forms a theory, edits, and
-then has no way to check the theory except rebuilding the reporter's repository from a
-description of it — the step that does not happen, so field defects get closed on
-plausibility and reopen from a second project.
-
-The material is already there. A capture holds the argv, the config and the input
-fragment, which is precisely the input half of a test; the exit code and the message are
-the expected half. Running it again against the current tree answers *is this still
-broken* with a fact, and the same run against the tree before a fix answers *did that
-change anything*. Nothing needs a fixture author.
-
-This repository already argues the position everywhere else. Round-trip is a property
-test over real files rather than a mock, `docs/` is the conformance fixture for the
-format, and the reason Shio's and Turing's roadmaps are in the test corpus is that they
-supply dep kinds no invented file would. Field captures are the same argument extended
-to the failure side: inputs nobody here would have thought to write, arriving with their
-verdict attached.
-
-Two things to settle. A capture has to be replayable without the repository it came
-from, which bounds what it may embed and pins it to RK87's redaction. And a replay that
-now passes is a regression test worth keeping, so the corpus is a directory in `tests/`,
-not a tracker.
-
 ### §RK89 Persist first, curate later
 
 Evidence that exists for the length of one stdout depends on the caller taking a second
