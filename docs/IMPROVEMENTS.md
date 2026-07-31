@@ -293,3 +293,25 @@ the capture command with the failing argv already substituted — costs nothing 
 runs that succeed. The two rules that survive: it appears on failure only, and it never
 suggests that the refusal was wrong, because the tool has no way to know and no model to
 guess (L4).
+
+### §RK87 Delivery is a second command, and a decision
+
+The obvious ending for a capture is that it files itself. It is also the one ending that
+cannot be taken back. The evidence that makes a report worth reading — the argv, the
+resolved paths, the config in force, the line that failed to round-trip — is a sample of
+a repository that may be private, chosen by the code path that just crashed, and sent to
+a public tracker where deletion does not undo indexing.
+
+The asymmetry decides it. Auto-filing saves one command and stakes disclosure on a
+process in a state it did not anticipate; an explicit second command costs a command and
+stakes nothing. Three consequences follow. The capture prints to stdout by default and
+goes nowhere. Anything that leaves is composed of fields a reviewer can see in the same
+terminal, so a redaction is a deletion rather than a trusted filter. And nothing here
+holds a token or opens a socket: handing the text to `gh issue create -F -` borrows an
+authentication the operator already made and keeps the zero-dependency rule intact.
+
+The non-goal was reworded ahead of this task, because as written it forbade the handoff
+as well as the sync it meant. What stays forbidden is the store moving: no id issued by
+a tracker, no state pulled back, nothing in the backlog a `Grep` cannot reach. A report
+leaves; nothing returns. The upstream repository is a default in configuration, not a
+constant, so a fork reports to itself (L6).

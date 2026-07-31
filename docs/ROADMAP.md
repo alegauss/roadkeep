@@ -47,6 +47,7 @@
 - 💭 **RK82** (deps: —) **Nothing announces the write path at the moment a session starts reading the files** — The hook refuses a hand-edit and the skill names the read verbs, but both arrive after the first grep, so the rule is learned by breaking it. → §RK82
 - 📋 **RK85** (deps: RK79) **A defect an agent hits in another repository is reported as prose, or is not reported at all** — The session that could identify it holds the argv, the engine that answered, the exit code and the line that failed, and none of that survives into a narration written afterwards. → §RK85
 - 📋 **RK86** (deps: RK85) **A refusal names the rule it enforced and never what to do when the rule is the defect** — An agent that meets a wrong limit or a crash has one visible move left, which is to work around the tool quietly, so the failures most worth hearing about are the ones that end the session. → §RK86
+- 📋 **RK87** (deps: RK85) **A capture taken inside a private repository is a disclosure the moment it is filed** — Argv, config and the offending line carry that project's paths and prose, so filing one automatically publishes a repository's contents on the judgement of the process that just failed. → §RK87
 
 ## Non-goals
 
