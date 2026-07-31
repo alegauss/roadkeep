@@ -271,3 +271,25 @@ the adopting repository, nothing to authenticate. What it emits should be a task
 *this* backlog, symptom and `why` already inside the limits, so the schema is enforced in
 the session where the claim is made rather than in the maintainer's review of an issue.
 Delivery is a separate command somebody types, and is filed separately.
+
+### §RK86 The exit that ends the conversation
+
+Every refusal this tool writes is addressed to an author who is wrong: the limit, the
+column, the marker that is not in the open set. That is the whole design, and it holds
+right up to the case where the tool is the one that is wrong — and then the same message
+is a dead end, because it describes the rule being applied and offers no next move
+except compliance with a rule that should not have applied.
+
+RK81 recorded what an agent does with a dead end. A full session excavated flags with
+`--help` and ran four calls where one would do, and none of that reached anybody: the
+workaround is silent by construction, which is why the surface with the worst defects is
+also the one that produces the fewest reports. A quiet workaround loses exactly the
+sessions that had the most to say.
+
+So the affordance belongs where the failure already prints, not in a document somebody
+loads first. Exit 2, the `lint` violation and any unhandled traceback are the three
+places an agent is guaranteed to be reading, and one line at the end of each — naming
+the capture command with the failing argv already substituted — costs nothing on the
+runs that succeed. The two rules that survive: it appears on failure only, and it never
+suggests that the refusal was wrong, because the tool has no way to know and no model to
+guess (L4).
