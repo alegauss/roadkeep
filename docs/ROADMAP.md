@@ -45,6 +45,7 @@
 - 📋 **RK79** (deps: —) **The plugin cache and the developer checkout are two engines, and both answer 0.1.0** — The launcher puts the cache's own src first on sys.path, so hooks and MCP run one engine while the CLI runs another, and the version cannot tell them apart. → §RK79
 - 📋 **RK81** (deps: RK79) **The MCP server is declared and no tool reaches the client** — A whole session drove the CLI through Bash because no roadkeep tool was offered, which is the surface that would have made the flags discoverable without reading help. → §RK81
 - 💭 **RK82** (deps: —) **Nothing announces the write path at the moment a session starts reading the files** — The hook refuses a hand-edit and the skill names the read verbs, but both arrive after the first grep, so the rule is learned by breaking it. → §RK82
+- 📋 **RK85** (deps: RK79) **A defect an agent hits in another repository is reported as prose, or is not reported at all** — The session that could identify it holds the argv, the engine that answered, the exit code and the line that failed, and none of that survives into a narration written afterwards. → §RK85
 
 ## Non-goals
 
