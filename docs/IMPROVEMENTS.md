@@ -75,6 +75,27 @@ already written, not authorship.
 
 ## Block A — The model
 
+### §RK74 One backlog, six numbering tracks
+
+`prefix` is one string, so `id_pattern` matches one family and everything else is prose
+to the parser. That is right for three of the four live corpora and wrong for the
+fourth: cursarei numbers `C##` for product, `L##` for the LLM track, `S##` and `P##` for
+two catalogue-expansion tracks, `G##` for SEO and `V##` for the migration to Viglet, and
+its own legend says the letter *is* which track the work belongs to. `adopt` reads 0 of
+its 521 lines, and every refusal it would report is a refusal to read the file at all.
+
+The letter is not a second id scheme — it is the block, written where the id is. A
+backlog that numbers by track has already made the decision `prefix` asks for, once per
+track, and collapsing it to one letter would renumber six independent sequences into
+one, losing the only fact the id carries.
+
+So `prefix` accepts a list, and everything derived from it stays derived: `next-id` is
+per family, because two tracks sharing a counter renumber each other; the anchor is
+still the whole id; and a dep across families is the same dep, the graph being over ids
+and never over letters. What must not follow is a mapping from a prefix to anything — a
+track is not a block and not an owner, and a table saying so would be the tool holding
+an opinion about someone else's backlog.
+
 ## Block B — Authoring
 
 ## Block C — Query
