@@ -21,6 +21,7 @@ project that already has one config file does not need a second.
 
 from __future__ import annotations
 
+import re
 import tomllib
 from collections.abc import Mapping
 from dataclasses import dataclass, field, replace
@@ -64,6 +65,7 @@ _TOP_KEYS = frozenset(
         "rules",
         "non_goals",
         "headings",
+        "report",
     }
 )
 #: `[headings]` — the word a project files work under (RK75). Its own table and not a top
@@ -177,6 +179,13 @@ class Config:
     #: `[non_goals]` — declared when this project's non-goals are governed too (RK70), and
     #: **None** when they are prose, which is what every project's were before it opted in.
     non_goals: Scope | None = None
+    #: `[report] upstream` — where a capture of a defect *in this tool* would be filed
+    #: (RK87), as `owner/repo`. Configuration and not a constant, so a fork reports to
+    #: itself (L6); **None** means `report --issue` refuses rather than guessing a
+    #: destination, since a wrong one is a private repository's contents in a stranger's
+    #: tracker. Nothing is ever sent from here — this only addresses the command a person
+    #: runs.
+    upstream: str | None = None
     source: Path | None = None
 
     # -- construction ------------------------------------------------------
@@ -228,6 +237,7 @@ class Config:
         priority = tuple(_string_list(data.get("priority"), "priority", problems))
         budgets = _budgets(data.get("budgets"), base, problems)
         non_goals = _scope(data.get("non_goals"), problems)
+        upstream = _upstream(data.get("report"), problems)
 
         schema = None
         if not problems:
@@ -258,6 +268,7 @@ class Config:
             limits=per_role,
             rules=rules,
             non_goals=non_goals,
+            upstream=upstream,
             source=source,
         )
 
@@ -646,6 +657,32 @@ def _scope(raw: object, problems: list[str]) -> Scope | None:
             continue
         numbers[key] = value
     return Scope(**numbers)
+
+
+#: `[report]` — one key, and refused like every other. A table with room for a token or a
+#: URL is a table somebody puts a token in; the only thing declarable here is *where* a
+#: defect in this tool would be filed, and filing it is still a command a person types.
+_REPORT_KEYS = frozenset({"upstream"})
+
+#: `owner/repo`, which is what `gh --repo` takes. Checked because the alternative to a
+#: shape here is a shape guessed by whatever the operator pipes the capture into.
+_UPSTREAM = re.compile(r"^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$")
+
+
+def _upstream(raw: object, problems: list[str]) -> str | None:
+    if raw is None:
+        return None
+    if not isinstance(raw, Mapping):
+        problems.append("report must be a table of upstream = 'owner/repo'")
+        return None
+    _reject_unknown(raw, _REPORT_KEYS, "report.", problems)
+    value = raw.get("upstream")
+    if value is None:
+        return None
+    if not isinstance(value, str) or not _UPSTREAM.match(value):
+        problems.append("report.upstream must be 'owner/repo'")
+        return None
+    return value
 
 
 def _budgets(raw: object, base: Path, problems: list[str]) -> tuple[Budget, ...]:

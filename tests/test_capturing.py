@@ -26,12 +26,26 @@ the refusal was wrong: this tool has no way to know and no model to guess (L4).
 
 from __future__ import annotations
 
+import ast
 import io
 from pathlib import Path
 
 import pytest
 
-from roadkeep.capturing import HOME, Failure, _tail, capture, check, observe, offer
+from roadkeep.capturing import (
+    HOME,
+    PARTS,
+    Capture,
+    Failure,
+    _tail,
+    body,
+    capture,
+    check,
+    handoff,
+    observe,
+    offer,
+)
+from roadkeep.provenance import engine
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 
 ROADMAP = "docs/ROADMAP.md"
@@ -234,14 +248,27 @@ def test_the_command_wants_the_command_that_failed(tmp_path, capsys):
     assert "after a bare --" in err
 
 
-def test_nothing_leaves_the_machine(tmp_path):
+def test_nothing_leaves_the_machine():
     """A capture and not a client: no network in this path, nothing to authenticate, and
-    no identity. Delivery is somebody typing a separate command, and RK87 governs it."""
-    source = (Path(__file__).resolve().parents[1] / "src" / "roadkeep" / "capturing.py").read_text(
-        encoding="utf-8"
+    no identity. Delivery is somebody typing a separate command, and RK87 governs it.
+
+    Imports and not a text scan — the prose here argues about sockets, and a test a comment
+    can fail is a test somebody deletes. `subprocess` is in the list because handing the
+    body to `gh` must stay something a *person* runs: this composes that command line and
+    never executes it.
+    """
+    tree = ast.parse(
+        (Path(__file__).resolve().parents[1] / "src" / "roadkeep" / "capturing.py").read_text(
+            encoding="utf-8"
+        )
     )
-    for forbidden in ("urllib", "http", "socket", "requests", "smtplib"):
-        assert forbidden not in source, forbidden
+    imported = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            imported |= {alias.name.split(".")[0] for alias in node.names}
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            imported.add(node.module.split(".")[0])
+    assert not imported & {"urllib", "http", "socket", "requests", "smtplib", "subprocess"}
 
 
 # -- the offer every failure closes with (RK86) -------------------------------
@@ -338,3 +365,99 @@ def test_a_crash_is_printed_and_closed_with_the_offer(tmp_path, capsys, monkeypa
     assert code == 1
     assert "RuntimeError: the parser lost its footing" in err
     assert err.index("Traceback") < err.index("roadkeep report --symptom")
+
+
+# -- what may leave, and how (RK87) ------------------------------------------
+
+
+def test_a_capture_goes_nowhere_by_default(tmp_path, capsys):
+    """The obvious ending is that it files itself, and it is the one ending that cannot be
+    taken back: a sample of a private repository, chosen by the code path that crashed."""
+    root = project(tmp_path)
+    code = main(["-C", str(root), "report", "--symptom", SYMPTOM, "--why", WHY, "--", "lint"])
+    out, err = capsys.readouterr()
+    assert code == EXIT_OK
+    assert "roadkeep capture" in out and "gh issue" not in out and err == ""
+
+
+def test_a_part_is_deleted_by_name_and_the_deletion_is_stated(tmp_path):
+    root = project(tmp_path, roadmap=BROKEN)
+    found = capture(SYMPTOM, WHY, "F", ["-C", str(root), "lint"], root).without("config", "source")
+    said = str(found)
+    assert CONFIG.strip() not in said and found.source not in said
+    # Named, or a maintainer reads a missing section as evidence that never existed.
+    assert "omitted  config, source" in said
+
+
+def test_every_part_that_carries_the_reporting_project_can_be_dropped(tmp_path):
+    root = project(tmp_path, roadmap=BROKEN)
+    found = capture(SYMPTOM, WHY, "F", ["-C", str(root), "lint"], root).without(*PARTS)
+    said = str(found)
+    assert str(root) not in said and "RK99" not in said
+
+
+def test_the_claim_itself_can_never_be_dropped(tmp_path):
+    """An empty report is worse than no report: what is left has to still be a claim."""
+    root = project(tmp_path)
+    said = str(capture(SYMPTOM, WHY, "F", ["-C", str(root), "lint"], root).without(*PARTS))
+    assert SYMPTOM in said and WHY in said and "exit" in said
+
+
+def test_a_part_nobody_declared_is_refused_rather_than_ignored(tmp_path):
+    root = project(tmp_path)
+    found = capture(SYMPTOM, WHY, "F", ["lint"], root)
+    with pytest.raises(ValueError, match="no such part"):
+        found.without("secrets")
+
+
+def test_the_body_is_byte_for_byte_what_the_terminal_showed(tmp_path):
+    """A reviewer approves what they read. A body composed differently from the preview is
+    a body nobody reviewed."""
+    root = project(tmp_path, roadmap=BROKEN)
+    found = capture(SYMPTOM, WHY, "F", ["-C", str(root), "lint"], root).without("config")
+    assert body(found) == "```\n" + str(found) + "\n```"
+
+
+def test_the_handoff_borrows_an_authentication_this_tool_never_holds():
+    found = Capture(
+        symptom=SYMPTOM,
+        why=WHY,
+        block="F",
+        failure=Failure(argv=("lint",), exit_code=1, output=""),
+        engine=engine(),
+    )
+    said = handoff(found, "alegauss/roadkeep")
+    assert "Nothing was sent" in said
+    assert "gh issue create -R alegauss/roadkeep" in said and SYMPTOM in said
+
+
+def test_the_issue_body_is_stdout_and_the_command_is_stderr(tmp_path, capsys):
+    """So the pipe is the operator's: `roadkeep report … --issue | gh issue create -F -`
+    carries the artefact and nothing else."""
+    root = project(tmp_path, config=CONFIG + '[report]\nupstream = "someone/theirs"\n')
+    code = main(
+        ["-C", str(root), "report", "--symptom", SYMPTOM, "--why", WHY, "--issue", "--", "lint"]
+    )
+    out, err = capsys.readouterr()
+    assert code == EXIT_OK
+    assert out.startswith("```") and "gh issue create" not in out
+    assert "gh issue create -R someone/theirs" in err
+
+
+def test_an_upstream_nobody_declared_is_refused_and_never_guessed(tmp_path, capsys):
+    """A guessed destination is a private repository's contents in a stranger's tracker."""
+    root = project(tmp_path)
+    code = main(
+        ["-C", str(root), "report", "--symptom", SYMPTOM, "--why", WHY, "--issue", "--", "lint"]
+    )
+    out, err = capsys.readouterr()
+    assert code == EXIT_USAGE
+    assert out == "" and "[report] upstream" in err
+
+
+def test_a_fork_reports_to_itself(tmp_path, capsys):
+    """The upstream is configuration and not a constant (L6)."""
+    root = project(tmp_path, config=CONFIG + '[report]\nupstream = "someone/theirs"\n')
+    main(["-C", str(root), "report", "--symptom", SYMPTOM, "--why", WHY, "--issue", "--to",
+          "other/fork", "--", "lint"])
+    assert "-R other/fork" in capsys.readouterr().err

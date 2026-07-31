@@ -16,8 +16,12 @@ session that made the claim, instead of in a maintainer's review of an issue.
 Three boundaries this does not cross:
 
 * **It is a capture, not a client.** No network in this path, nothing to authenticate, no
-  identity. Delivery is somebody typing a separate command, and RK87 governs what may
-  leave a private repository at all.
+  identity. It prints, and stops. Filing is a second command *a person runs* (RK87),
+  because auto-filing saves one command and stakes a private repository's contents on a
+  process in a state it did not anticipate, where an explicit hand-off stakes nothing. What
+  leaves is composed of :data:`PARTS` a reviewer can delete by name in the same terminal —
+  a deletion they can verify, not a scrubber promising to recognise a secret it has never
+  seen — and `gh issue create -F -` borrows an authentication the operator already made.
 * **It re-runs, in this process.** A subprocess would be a second engine to be wrong about
   — the whole reason RK79 comes first — so the command runs through the same
   :func:`roadkeep.cli.main` this interpreter loaded, and the capture states which tree that
@@ -36,7 +40,7 @@ import re
 import shlex
 import traceback
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 from roadkeep.config import find_config
@@ -87,6 +91,15 @@ class Failure:
         return found.group(0) if found else None
 
 
+#: The parts of a capture that carry the *reporting* project rather than the defect, each
+#: droppable by name (RK87). Deletion and not filtering: a redaction a reviewer performs by
+#: naming a section is one they can verify by reading the output, where a scrubber that
+#: promises to find secrets is a promise nobody can check against a repository it never saw.
+#: `symptom`, `why`, `block` and the exit code are never droppable — without them there is
+#: no claim, and an empty report is worse than no report.
+PARTS = ("command", "engine", "where", "config", "source", "output", "traceback")
+
+
 @dataclass(frozen=True, slots=True)
 class Capture:
     """One defect, as the session that hit it can state it."""
@@ -105,6 +118,29 @@ class Capture:
     config_path: str | None = None
     #: The input line the engine objected to, verbatim, and where it lives.
     source: str | None = None
+    #: Parts the operator deleted before this went anywhere (RK87). Held rather than
+    #: applied to the data, so one capture can be read whole in the terminal and emitted
+    #: redacted — and *named* in the output, because a report missing a section without
+    #: saying so is one a maintainer reads as a section that was empty.
+    hidden: frozenset[str] = frozenset()
+
+    def without(self, *parts: str) -> Capture:
+        """The same capture with those parts omitted from everything it renders."""
+        unknown = [part for part in parts if part not in PARTS]
+        if unknown:
+            raise ValueError(
+                f"no such part of a capture: {', '.join(unknown)} — "
+                f"the parts are {', '.join(PARTS)}"
+            )
+        return replace(self, hidden=self.hidden | frozenset(parts))
+
+    def shows(self, part: str) -> bool:
+        return part not in self.hidden
+
+    @property
+    def title(self) -> str:
+        """What a tracker would put in its subject line: the claim, already inside 120."""
+        return self.symptom
 
     @property
     def filing(self) -> str:
@@ -130,20 +166,27 @@ class Capture:
             f"  why      {self.why}",
             f"  block    {self.block}",
             "",
-            f"  command  {self.failure.command}",
-            f"  exit     {self.failure.exit_code}",
-            f"  engine   {self.engine}",
         ]
-        if self.failure.where:
+        if self.shows("command"):
+            lines.append(f"  command  {self.failure.command}")
+        lines.append(f"  exit     {self.failure.exit_code}")
+        if self.shows("engine"):
+            lines.append(f"  engine   {self.engine}")
+        if self.shows("where") and self.failure.where:
             lines.append(f"  where    {self.failure.where}")
-        if self.config_path:
+        if self.shows("config") and self.config_path:
             lines.append(f"  config   {self.config_path}")
-        if self.source is not None:
+        if self.hidden:
+            # Named, because a capture that quietly drops a section is one a maintainer
+            # reads as evidence that did not exist.
+            lines.append(f"  omitted  {', '.join(sorted(self.hidden))}")
+        if self.shows("source") and self.source is not None:
             lines += ["", "--- the line it objected to ---", self.source]
-        if self.failure.traceback:
+        if self.shows("traceback") and self.failure.traceback:
             lines += ["", "--- traceback ---", self.failure.traceback.rstrip()]
-        lines += ["", "--- output ---", self.failure.output.rstrip() or "(nothing)"]
-        if self.config is not None:
+        if self.shows("output"):
+            lines += ["", "--- output ---", self.failure.output.rstrip() or "(nothing)"]
+        if self.shows("config") and self.config is not None:
             lines += ["", "--- roadkeep.toml as it was read ---", self.config.rstrip()]
         lines += ["", "File it:", f"  {self.filing}"]
         return "\n".join(lines)
@@ -168,6 +211,33 @@ def offer(argv: Sequence[str]) -> str:
         [
             _OFFER,
             f'  roadkeep report --symptom "…" --why "…" -- {shlex.join(argv)}',
+        ]
+    )
+
+
+def body(found: Capture) -> str:
+    """The capture as a tracker takes it: the same text, fenced so nothing is re-rendered.
+
+    Byte-for-byte what the terminal showed, because that is the whole claim RK87 makes —
+    a reviewer approves what they read, and a body composed differently from the preview
+    is a body nobody reviewed.
+    """
+    return "\n".join(["```", str(found), "```"])
+
+
+def handoff(found: Capture, upstream: str) -> str:
+    """The command *somebody else* runs to file it. Never run here (L2, and RK87).
+
+    `gh` borrows an authentication the operator already made, on a machine that already
+    trusts it. The alternative is this tool holding a token — a credential, a config key
+    to leak it through, and a socket in a package whose whole promise is that the store is
+    the repository and nothing talks to anything.
+    """
+    return "\n".join(
+        [
+            "Nothing was sent. To file it, after reading what is above:",
+            f"  roadkeep report … --issue | gh issue create -R {upstream} "
+            f"-t {shlex.quote(found.title)} -F -",
         ]
     )
 

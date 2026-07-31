@@ -15,6 +15,12 @@ id_sources = ["agents.md"]
 # says which tier answered, so a queue nobody declared is never implied.
 priority = []
 
+# where a defect in this tool is filed, for the `--issue` handoff (RK87). Configuration and
+# not a constant, so a fork reports to itself — and nothing is ever sent from here: this
+# only addresses the `gh` command a person runs after reading the capture.
+[report]
+upstream = "alegauss/roadkeep"
+
 [files]
 roadmap = "docs/ROADMAP.md"
 changelog = "docs/CHANGELOG.md"

@@ -43,7 +43,7 @@ from roadkeep.adopting import Estimate, adopt, init
 from roadkeep.authoring import add, amend, set_status
 from roadkeep.backlog import Backlog
 from roadkeep.briefing import Brief, brief, non_goals
-from roadkeep.capturing import capture, check, offer
+from roadkeep.capturing import PARTS, body, capture, check, handoff, offer
 from roadkeep.config import Config, ConfigError
 from roadkeep.counting import Census
 from roadkeep.document import Document, Entry, Reject, RoundTripError
@@ -699,6 +699,31 @@ def build_parser() -> argparse.ArgumentParser:
         "--block",
         default="F",
         help="the block of roadkeep's own backlog this belongs under (default: F)",
+    )
+    report_parser.add_argument(
+        "--without",
+        dest="without",
+        action="append",
+        default=[],
+        metavar="PART",
+        choices=PARTS,
+        help=(
+            "drop one part of the capture, repeatable: what a private repository must not "
+            "publish is deleted by name, never scrubbed by a filter"
+        ),
+    )
+    report_parser.add_argument(
+        "--issue",
+        action="store_true",
+        help=(
+            "print the tracker body on stdout and the command that files it on stderr; "
+            "nothing is sent, and the destination is [report] upstream"
+        ),
+    )
+    report_parser.add_argument(
+        "--to",
+        metavar="OWNER/REPO",
+        help="file against this repository instead of the configured upstream",
     )
     report_parser.add_argument(
         "command_argv",
@@ -2421,7 +2446,22 @@ def _report(config: Config, args: argparse.Namespace) -> int:
         for violation in violations:
             print(f"  {violation}", file=sys.stderr)
         return EXIT_USAGE
-    print(capture(args.symptom, args.why, args.block, argv, config.root))
+    found = capture(args.symptom, args.why, args.block, argv, config.root).without(*args.without)
+    if not args.issue:
+        print(found)
+        return EXIT_OK
+    upstream = args.to or config.upstream
+    if upstream is None:
+        # Guessed, this publishes a private repository's contents in a stranger's tracker.
+        print(
+            "roadkeep: no upstream to file against: declare [report] upstream = "
+            "'owner/repo' in roadkeep.toml, or pass --to",
+            file=sys.stderr,
+        )
+        return EXIT_USAGE
+    print(body(found))
+    sys.stdout.flush()
+    print(handoff(found, upstream), file=sys.stderr)
     return EXIT_OK
 
 
