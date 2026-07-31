@@ -31,6 +31,8 @@
 ## Block E — Adoption
 
 - ⏳ **RK21** (deps: RK20 ✅) **A standard adopted by one project is a preference** — roll out to Turing, Dumont and Cursarei, each with its own `roadmap.toml`. → §RK21
+- 📋 **RK75** (deps: RK3 ✅, RK37 ✅) **A backlog that files work under any other word cannot declare its headings** — Dumont writes Track, Turing writes bare sub-blocks and cursarei writes Fase, so 34 of 34 entries read as filed under nothing. → §RK75
+- 📋 **RK76** (deps: RK18 ✅, RK50 ✅) **The estimate a project takes before adopting is not the one the gate applies** — adopt --ledger reads as_ledger and never schema_for, so a role's own limits and rules are absent from the number it reports. → §RK76
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 

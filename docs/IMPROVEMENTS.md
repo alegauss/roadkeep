@@ -89,4 +89,43 @@ Turing, Dumont and Cursarei, each with its own `roadkeep.toml`. Four projects sh
 one format is what makes cross-project context transferable; one project with a format
 is a preference.
 
+### §RK75 The heading word is a convention
+
+`_BLOCK_LABEL_RE` in `document.py` is `^Block (?P<label>…)`, and `_BLOCK_DEP_RE` in
+`schema.py` spells the dep the same way. That is right for the two corpora the format
+was read off and wrong for every other one measured: Dumont files all 34 shipped entries
+under `## Track A — …`, Turing writes 22 sub-blocks as bare `## D.1 — …`, and cursarei
+numbers `## Fase 0 — Higienização`. Three of four adopting projects, and each one gets a
+finding per line for using its own vocabulary.
+
+By L6 that settles it: a word a project chose is configuration, not format. What must
+stay a fact is the *shape* — a heading declares one label, a task names one heading, and
+a dep on a heading resolves against the same list — because that is what `pick`, `stats`
+and every block dep are over.
+
+So `[headings] word = "Track"`, defaulting to `Block` so nothing changes for a project
+that never declares it, and read by the parser and the dep grammar from one place. A
+project whose sub-blocks carry no word at all is the harder half and is not this: `##
+D.1` would need the word to be optional, which makes every `## Objetivo` a block. That
+is a second decision and belongs to whoever takes it, not to the key that fixes three
+files.
+
+### §RK76 An estimate that is not the gate
+
+`adopt` builds its schema as `config.schema.as_ledger() if ledger else config.schema`,
+which is the one place in the codebase that reaches past `Config.schema_for(role)`. So
+`[limits.changelog]` and `[rules.changelog]` — the two tables a project writes precisely
+*because* its ledger is history — are invisible to the estimate, and the number it prints
+is the number under the shared limits.
+
+Measured on Dumont: `adopt --ledger` reported 34 `why.no-terminator` against a config
+that declares `terminator = false`, while `lint` on the same file reported none. The
+command whose whole purpose is "take the measurement before the commitment" was
+reporting a commitment nobody was being asked to make.
+
+The fix is that `adopt` asks the same question every other command does, which also
+settles what `--ledger` means: not "apply the ledger schema" but "read this file in the
+changelog role". A path is not a role — the caller names a file the project may not have
+declared — so the flag stays, and only what it resolves to changes.
+
 ## Block F — The plugin
