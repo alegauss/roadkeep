@@ -87,6 +87,7 @@
 - ✅ **RK62** **A roadmap line for work already in the ledger has no door out of the roadmap** — ship closes a roadmap line whose id the ledger already records and whose marker the roadmap may not carry, leaving the entry untouched.
 - ✅ **RK66** **A project whose convention is no section means no pointer cannot declare it** — ref is a per-role rule in [rules.<role>], so a project whose convention is no section means no pointer declares it and lint stops reporting a pointer nobody promised.
 - ✅ **RK76** **The estimate a project takes before adopting is not the one the gate applies** — adopt reads its file through Config.schema_for like every other command, so --ledger names the changelog role and that role's own limits and rules reach the estimate.
+- ✅ **RK75** **A backlog that files work under any other word cannot declare its headings** — The heading word is [headings] word in roadkeep.toml, read by the parser and the dep grammar from one place, so Dumont files under Track and its 34 entries stop reading as filed under nothing.
 
 ## Block F — The Claude Code plugin
 

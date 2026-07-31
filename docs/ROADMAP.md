@@ -37,8 +37,7 @@
 ## Block E — Adoption
 
 - ⏳ **RK21** (deps: RK20 ✅) **A standard adopted by one project is a preference** — roll out to Turing, Dumont and Cursarei, each with its own `roadmap.toml`. → §RK21
-- 📋 **RK75** (deps: RK3 ✅, RK37 ✅) **A backlog that files work under any other word cannot declare its headings** — Dumont writes Track, Turing writes bare sub-blocks and cursarei writes Fase, so 34 of 34 entries read as filed under nothing. → §RK75
-- 📋 **RK77** (deps: RK74 ✅, RK75) **A backlog whose marker, heading and ledger all differ cannot be adopted at all** — cursarei needs four unrelated keys the format has none of, so 0 of its 16 open lines and 9 of its 12 ledger entries stay unread. → §RK77
+- 📋 **RK77** (deps: RK74 ✅, RK75 ✅) **A backlog whose marker, heading and ledger all differ cannot be adopted at all** — cursarei needs four unrelated keys the format has none of, so 0 of its 16 open lines and 9 of its 12 ledger entries stay unread. → §RK77
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
@@ -48,6 +47,7 @@
 - 📋 **RK85** (deps: RK79) **A defect an agent hits in another repository is reported as prose, or is not reported at all** — The session that could identify it holds the argv, the engine that answered, the exit code and the line that failed, and none of that survives into a narration written afterwards. → §RK85
 - 📋 **RK86** (deps: RK85) **A refusal names the rule it enforced and never what to do when the rule is the defect** — An agent that meets a wrong limit or a crash has one visible move left, which is to work around the tool quietly, so the failures most worth hearing about are the ones that end the session. → §RK86
 - 📋 **RK87** (deps: RK85) **A capture taken inside a private repository is a disclosure the moment it is filed** — Argv, config and the offending line carry that project's paths and prose, so filing one automatically publishes a repository's contents on the judgement of the process that just failed. → §RK87
+- 📋 **RK88** (deps: RK85) **A field report cannot be told fixed from unfixed without restaging the reporter's project** — The evidence that reproduces a defect is the evidence a regression test needs, and a corpus of real captures is what this repository already trusts over an assertion. → §RK88
 
 ## Non-goals
 

@@ -143,27 +143,6 @@ Turing, Dumont and Cursarei, each with its own `roadkeep.toml`. Four projects sh
 one format is what makes cross-project context transferable; one project with a format
 is a preference.
 
-### §RK75 The heading word is a convention
-
-`_BLOCK_LABEL_RE` in `document.py` is `^Block (?P<label>…)`, and `_BLOCK_DEP_RE` in
-`schema.py` spells the dep the same way. That is right for the two corpora the format
-was read off and wrong for every other one measured: Dumont files all 34 shipped entries
-under `## Track A — …`, Turing writes 22 sub-blocks as bare `## D.1 — …`, and cursarei
-numbers `## Fase 0 — Higienização`. Three of four adopting projects, and each one gets a
-finding per line for using its own vocabulary.
-
-By L6 that settles it: a word a project chose is configuration, not format. What must
-stay a fact is the *shape* — a heading declares one label, a task names one heading, and
-a dep on a heading resolves against the same list — because that is what `pick`, `stats`
-and every block dep are over.
-
-So `[headings] word = "Track"`, defaulting to `Block` so nothing changes for a project
-that never declares it, and read by the parser and the dep grammar from one place. A
-project whose sub-blocks carry no word at all is the harder half and is not this: `##
-D.1` would need the word to be optional, which makes every `## Objetivo` a block. That
-is a second decision and belongs to whoever takes it, not to the key that fixes three
-files.
-
 ### §RK77 The corpus no configuration reaches
 
 Shio and Turing adopted because their lines already *were* this format under other
@@ -315,3 +294,28 @@ as well as the sync it meant. What stays forbidden is the store moving: no id is
 a tracker, no state pulled back, nothing in the backlog a `Grep` cannot reach. A report
 leaves; nothing returns. The upstream repository is a default in configuration, not a
 constant, so a fork reports to itself (L6).
+
+### §RK88 A report that can be run is a test
+
+A capture that is only read is spent once. Someone reads it, forms a theory, edits, and
+then has no way to check the theory except rebuilding the reporter's repository from a
+description of it — the step that does not happen, so field defects get closed on
+plausibility and reopen from a second project.
+
+The material is already there. A capture holds the argv, the config and the input
+fragment, which is precisely the input half of a test; the exit code and the message are
+the expected half. Running it again against the current tree answers *is this still
+broken* with a fact, and the same run against the tree before a fix answers *did that
+change anything*. Nothing needs a fixture author.
+
+This repository already argues the position everywhere else. Round-trip is a property
+test over real files rather than a mock, `docs/` is the conformance fixture for the
+format, and the reason Shio's and Turing's roadmaps are in the test corpus is that they
+supply dep kinds no invented file would. Field captures are the same argument extended
+to the failure side: inputs nobody here would have thought to write, arriving with their
+verdict attached.
+
+Two things to settle. A capture has to be replayable without the repository it came
+from, which bounds what it may embed and pins it to RK87's redaction. And a replay that
+now passes is a regression test worth keeping, so the corpus is a directory in `tests/`,
+not a tracker.
