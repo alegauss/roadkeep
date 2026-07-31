@@ -160,7 +160,9 @@ def place(document: Document, task: Task) -> Insertion:
     heading = document.heading(task.block)
     if heading is None:
         raise UnknownBlock(
-            task.block, sorted({h.label for h in document.headings if h.label})
+            task.block,
+            sorted({h.label for h in document.headings if h.label}),
+            word=document.schema.heading_word,
         )
 
     rendered = document.schema.render(task)

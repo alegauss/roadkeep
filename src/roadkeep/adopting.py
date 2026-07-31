@@ -45,7 +45,7 @@ from pathlib import Path
 
 from roadkeep.config import CONFIG_NAME, DEFAULT_PATHS, PYPROJECT, Config
 from roadkeep.document import Document
-from roadkeep.schema import Schema
+from roadkeep.schema import DEFAULT_HEADING_WORD, Schema
 
 #: The roles `init` scaffolds. `strategy` is absent and not empty: Turing has one and this
 #: project does not, and a declared file nobody writes is `file.missing` on the first lint.
@@ -191,7 +191,7 @@ def init(
     # Raises on a prefix this format cannot carry, and on a set of families that would
     # read one id two ways (RK74).
     schema = Schema(prefixes=_families(prefix))
-    labels = tuple(_label(block) for block in blocks)
+    labels = tuple(_label(block, schema) for block in blocks)
     if not labels:
         raise UnreadableBlock("")
 
@@ -200,7 +200,7 @@ def init(
     _verify(text, schema, base, paths)
 
     target = base / CONFIG_NAME
-    bodies = {role: _scaffold(role, blocks) for role in roles}
+    bodies = {role: _scaffold(role, blocks, schema) for role in roles}
     clashes = [path for path in (target, *paths.values()) if path.exists()]
     if clashes:
         raise WouldOverwrite(clashes)
@@ -262,6 +262,16 @@ def render_config(schema: Schema, paths: Mapping[str, str]) -> str:
         f"shipped = {_quote(schema.shipped_marker)}",
         f"retired = {_quote(schema.retired_marker)}",
     ]
+    if schema.heading_word != DEFAULT_HEADING_WORD:
+        # Only when it differs, for the same reason the `[ledger]` absences below are only
+        # written when they are absences: `word = "Block"` reads as a decision about a word
+        # nobody chose.
+        lines += [
+            "",
+            "[headings]",
+            "# the word this project files work under",
+            f"word = {_quote(schema.heading_word)}",
+        ]
     absent = [
         # Only what is false: a default written out reads as a decision somebody made about
         # a slot the file carries anyway (RK43, RK48).
@@ -316,21 +326,20 @@ def _verify(text: str, schema: Schema, base: Path, paths: Mapping[str, Path]) ->
         )
 
 
-def _label(block: str) -> str:
-    """The label a `--block` value declares, or a refusal."""
-    heading = f"Block {block.strip()}"
-    document = Document.parse(f"## {heading}\n")
+def _label(block: str, schema: Schema) -> str:
+    """The label a `--block` value declares, or a refusal — under this project's word."""
+    document = Document.parse(f"## {schema.block_named(block.strip())}\n", schema)
     label = document.headings[0].label if document.headings else None
     if not label:
         raise UnreadableBlock(block)
     return label
 
 
-def _scaffold(role: str, blocks: Sequence[str]) -> str:
+def _scaffold(role: str, blocks: Sequence[str], schema: Schema) -> str:
     """One file: a title, the block headings, and — for the roadmap — where non-goals go."""
     lines = [f"# {_TITLES[role]}", ""]
     for block in blocks:
-        lines += [f"## Block {block.strip()}", ""]
+        lines += [f"## {schema.block_named(block.strip())}", ""]
     if role == "roadmap":
         # `brief` prints these with every task (RK29), so the heading exists from the
         # start: an author who has to create it first is an author who writes none.

@@ -33,7 +33,7 @@ from dataclasses import dataclass
 
 from roadkeep.config import Config
 from roadkeep.document import Entry, Reject
-from roadkeep.schema import Schema
+from roadkeep.schema import DEFAULT_HEADING_WORD, Schema
 
 
 @dataclass(frozen=True, slots=True)
@@ -44,10 +44,14 @@ class Tally:
     counted: int
     missed: int
     markers: Mapping[str, int]
+    #: The word this project files work under (RK75). Carried on the row rather than read
+    #: from a constant, because a report is read by the author of the file it counts and
+    #: `Block G` on a project whose headings all say `Track` names nothing they wrote.
+    word: str = DEFAULT_HEADING_WORD
 
     @property
     def name(self) -> str:
-        return f"Block {self.label}" if self.label else NO_BLOCK
+        return f"{self.word} {self.label}" if self.label else NO_BLOCK
 
 
 #: What a line under no block heading is called in a report. Not "Block —": it is the
@@ -94,7 +98,7 @@ class Census:
         if block is not None:
             if block not in self.blocks:
                 raise KeyError(
-                    f"no heading declares Block {block} in {self.file} (declares: "
+                    f"no heading declares {self.schema.block_named(block)} in {self.file} (declares: "
                     f"{', '.join(self.blocks) or 'none'})"
                 )
             counted = tuple(e for e in counted if e.task.block == block)
@@ -165,6 +169,7 @@ class Census:
                     counted=len(inside),
                     missed=sum(1 for r in self.missed if r.block == label),
                     markers=self._markers(inside),
+                    word=self.schema.heading_word,
                 )
             )
         return tuple(out)

@@ -187,7 +187,8 @@ class Backlog:
         return Resolution(dep, kind, DepStatus.SHIPPED, "nothing open in the range")
 
     def _resolve_block(self, dep: Dep, kind: DepKind) -> Resolution:
-        label = self.config.schema.block_of_dep(dep)
+        schema = self.config.schema
+        label = schema.block_of_dep(dep)
         if label not in self.declared_blocks():
             # Not UNKNOWN: an undeclared block is not a gap in a file, it is a dep
             # this backlog cannot answer at all — the same answer an external dep
@@ -196,16 +197,19 @@ class Backlog:
                 dep,
                 kind,
                 DepStatus.UNRESOLVABLE,
-                f"no heading declares Block {label}: a block nothing declares is "
+                f"no heading declares {schema.block_named(label)}: a block nothing declares is "
                 f"not a block with nothing open",
             )
         still_open = self.open_in_block(label)
         if still_open:
             return Resolution(
-                dep, kind, DepStatus.OPEN, f"Block {label}: {_open_detail(still_open)}"
+                dep,
+                kind,
+                DepStatus.OPEN,
+                f"{schema.block_named(label)}: {_open_detail(still_open)}",
             )
         return Resolution(
-            dep, kind, DepStatus.SHIPPED, f"Block {label} has nothing open"
+            dep, kind, DepStatus.SHIPPED, f"{schema.block_named(label)} has nothing open"
         )
 
     def _resolve_task(self, dep: Dep, kind: DepKind) -> Resolution:

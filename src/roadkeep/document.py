@@ -68,7 +68,6 @@ def _task_re(marker: bool, symptom: bool) -> re.Pattern[str]:
 
 
 _HEADING_RE = re.compile(r"^(?P<hashes>#{1,6}) (?P<text>.*)$")
-_BLOCK_LABEL_RE = re.compile(r"^Block (?P<label>[A-Za-z0-9]+)\b")
 _BULLET_RE = re.compile(r"^(?P<indent>\s*)[-*+] (?P<rest>.*)$")
 #: A fenced code block's delimiter, indented or not — a fence inside a list item is (RK53).
 _FENCE_RE = re.compile(r"^\s*(?P<marks>`{3,}|~{3,})")
@@ -90,13 +89,15 @@ class UnknownBlock(ValueError):
     nothing looks for it, and one that is merely missing is a heading the author can add.
     """
 
-    def __init__(self, label: str, declared: Sequence[str], where: str = "") -> None:
+    def __init__(
+        self, label: str, declared: Sequence[str], where: str = "", word: str = "Block"
+    ) -> None:
         self.label = label
         self.declared = tuple(declared)
         known = ", ".join(self.declared) or "none"
         file = f"{where} " if where else ""
         super().__init__(
-            f"no heading declares Block {label} ({file}declares: {known}): a heading "
+            f"no heading declares {word} {label} ({file}declares: {known}): a heading "
             f"invented by a write files the text where nothing looks for it"
         )
 
@@ -196,7 +197,7 @@ class Document:
                 continue
             heading = _HEADING_RE.match(body)
             if heading:
-                label = _block_label(heading.group("text"))
+                label = _block_label(heading.group("text"), schema)
                 headings.append(
                     Heading(
                         level=len(heading.group("hashes")),
@@ -465,8 +466,13 @@ def _fenced(open_marks: str | None, marks: str) -> str | None:
     return open_marks
 
 
-def _block_label(text: str) -> str | None:
-    match = _BLOCK_LABEL_RE.match(text)
+def _block_label(text: str, schema: Schema) -> str | None:
+    """The label a heading declares, under this project's own word (RK75).
+
+    Read from the schema and not from a constant here, so the heading and the dep that
+    names it cannot disagree about either the word or the label's shape.
+    """
+    match = schema.heading_pattern().match(text)
     return match.group("label") if match else None
 
 

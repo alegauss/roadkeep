@@ -389,3 +389,37 @@ def test_a_project_that_numbers_one_family_reads_the_pattern_it_always_did():
     # An MCP client shows this string, and a group nothing alternates over is punctuation
     # a reader has to look past.
     assert Schema().id_pattern().pattern == "^RK[1-9][0-9]*$"
+
+
+# -- the word a project files work under (RK75) -----------------------------
+
+TRACKS_WORD = Schema(heading_word="Track", ref_scheme="outline")
+
+
+def test_the_heading_and_the_dep_read_the_same_word_and_the_same_label():
+    # One list, or `pick --block D.1` answers about a block nothing declares while both
+    # halves parse. The label shape is the format's; only the word is the project's.
+    assert TRACKS_WORD.heading_pattern().match("Track A — Structured sources")["label"] == "A"
+    assert TRACKS_WORD.heading_pattern().match("Block A — nope") is None
+    assert TRACKS_WORD.block_of_dep(Dep("Track A")) == "A"
+    assert TRACKS_WORD.block_of_dep(Dep("Block A")) is None
+
+
+def test_a_dotted_label_is_one_label_on_both_sides():
+    # It was not: the heading captured `D` where the dep captured `D.1`, so two headings
+    # `Block D.1` and `Block D.2` both declared `D` and a dep on either resolved wrong.
+    plain = Schema(ref_scheme="outline")
+    assert plain.heading_pattern().match("Block D.1 — sub-block")["label"] == "D.1"
+    assert plain.block_of_dep(Dep("Block D.1")) == "D.1"
+
+
+def test_a_report_names_a_block_in_the_projects_own_word():
+    assert TRACKS_WORD.block_named("C") == "Track C"
+
+
+def test_a_heading_word_that_is_not_one_bare_word_is_refused():
+    # It is joined to the label by exactly one space, on the heading and on the dep alike.
+    with pytest.raises(ValueError, match="one bare word"):
+        Schema(heading_word=" Track")
+    with pytest.raises(ValueError, match="one bare word"):
+        Schema(heading_word="")

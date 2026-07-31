@@ -357,6 +357,7 @@ def _placement(document: Document, anchor: str, task: Task | None) -> int:
             task.block,
             sorted({h.label for h in document.headings if h.label}),
             str(document.path.name if document.path else ""),
+            word=document.schema.heading_word,
         )
     for later in document.headings:
         if later.lineno > heading.lineno and later.level <= heading.level:

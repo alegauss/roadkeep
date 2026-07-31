@@ -101,10 +101,10 @@ def pick(config: Config, block: str | None = None) -> Choice:
     prefixes = config.schema.prefixes
     if block is not None and block not in backlog.declared_blocks():
         raise KeyError(
-            f"no heading declares Block {block} (declares: "
+            f"no heading declares {config.schema.block_named(block)} (declares: "
             f"{', '.join(sorted(backlog.declared_blocks())) or 'none'})"
         )
-    scope = f" in Block {block}" if block else ""
+    scope = f" in {config.schema.block_named(block)}" if block else ""
     considered = [
         entry
         for entry in backlog.roadmap.entries

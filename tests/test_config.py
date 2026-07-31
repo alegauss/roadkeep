@@ -431,3 +431,19 @@ def test_a_declaration_of_no_families_at_all_is_refused(tmp_path):
     path = write(tmp_path, "prefix = []\n")
     with pytest.raises(ConfigError, match="at least one family"):
         Config.load(path)
+
+
+def test_a_project_declares_the_word_it_files_work_under(tmp_path):
+    # RK75: three of the four adopting corpora spell it otherwise — Dumont files under
+    # `## Track A`, cursarei under `## Fase 0` — and each was getting a finding per line
+    # for its own vocabulary. The word is the project's; the shape after it is not.
+    write(tmp_path, '[headings]\nword = "Track"\n')
+    schema = Config.discover(tmp_path).schema
+    assert schema.heading_word == "Track"
+    assert Config.parse({}, root=tmp_path).schema.heading_word == "Block"
+
+
+def test_an_unknown_heading_key_is_refused_like_any_other(tmp_path):
+    path = write(tmp_path, '[headings]\nlevel = 2\n')
+    with pytest.raises(ConfigError, match="headings.level"):
+        Config.load(path)

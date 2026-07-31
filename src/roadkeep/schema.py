@@ -86,8 +86,12 @@ REF_SCHEMES = frozenset({"id", "outline"})
 
 # What a dep token names (RK28). Derived from the text the corpora already write —
 # `Block P` in Shio, `real design partners` in Turing — because inventing a sigil
-# would make two live backlogs wrong rather than describing them.
-_BLOCK_DEP_RE = re.compile(r"^Block ([A-Za-z0-9][A-Za-z0-9.\-]{0,15})$")
+# would make two live backlogs wrong rather than describing them. The word is the
+# project's (RK75); only the shape after it is the format's.
+BLOCK_LABEL = r"[A-Za-z0-9][A-Za-z0-9.\-]{0,15}"
+#: The word a project files work under. `Block` for the two corpora the format was read
+#: off, and not for the others: Dumont writes `Track`, cursarei writes `Fase`.
+DEFAULT_HEADING_WORD = "Block"
 #: Anything shaped like an id: letters then a digit. `RK007`, `RK9x` and `SH341` are
 #: mistakes to report, not external work to accept. Public as a fragment because the
 #: parser asks the same question: a bullet leading with a bold one is a ledger line whose
@@ -286,6 +290,12 @@ class Schema:
     #: a roadmap without a symptom would be a backlog of reasons with no faults.
     ledger_marker: bool = True
     ledger_symptom: bool = True
+    #: The word a heading files work under (RK75). `Block` by default, so nothing changes
+    #: for a project that never declares it; `Track`, `Fase` or anything else for the three
+    #: of four adopting corpora that chose their own. Only the word is configuration — a
+    #: heading still declares exactly one label, and a dep still resolves against that same
+    #: list, because that is what `pick`, `stats` and every block dep are over.
+    heading_word: str = DEFAULT_HEADING_WORD
     #: How the rationale section is addressed (RK27). ``"id"`` derives the pointer
     #: from the line's own id — nothing to choose when writing, nothing to renumber
     #: when shipping. ``"outline"`` is the hand-numbered `§x.y` that Shio and Turing
@@ -300,6 +310,11 @@ class Schema:
                 f"got {self.ref_scheme!r}"
             )
         _check_prefixes(self.prefixes)
+        if not self.heading_word.strip() or self.heading_word != self.heading_word.strip():
+            raise ValueError(
+                f"heading word must be one bare word: {self.heading_word!r} — it is "
+                f"joined to the label by exactly one space, on both the heading and the dep"
+            )
         if not self.markers:
             raise ValueError("markers must not be empty")
         if self.shipped_marker in self.markers and not self.shipped_allowed:
@@ -338,6 +353,26 @@ class Schema:
             return re.escape(self.prefixes[0])
         ordered = sorted(self.prefixes, key=lambda p: (-len(p), p))
         return "(?:" + "|".join(re.escape(prefix) for prefix in ordered) + ")"
+
+    def block_dep_pattern(self) -> re.Pattern[str]:
+        """`<word> <label>` as a dep names it (RK28, RK75)."""
+        return re.compile(rf"^{re.escape(self.heading_word)} ({BLOCK_LABEL})$")
+
+    def heading_pattern(self) -> re.Pattern[str]:
+        """`<word> <label>` as a heading declares it — the same label shape as the dep.
+
+        The same, and not merely similar: a heading that declared `D` where the dep spells
+        `D.1` would make `pick --block D.1` an answer about a block nothing declares, and
+        the disagreement would be invisible because both halves parse.
+        """
+        return re.compile(
+            rf"^{re.escape(self.heading_word)} (?P<label>{BLOCK_LABEL})(?:\s|$)"
+        )
+
+    def block_named(self, label: str) -> str:
+        """How a report names a block — the project's word, so a refusal it prints is
+        the text its own files carry rather than a vocabulary it never adopted."""
+        return f"{self.heading_word} {label}"
 
     def _families(self) -> str:
         """The families as a refusal names them: `RK`, or `C/L/S/P/G/V` in declared order.
@@ -509,7 +544,7 @@ class Schema:
         `Block P` first, then a range, then anything id-shaped (valid or not), and
         only what none of those match is external.
         """
-        if _BLOCK_DEP_RE.match(dep.id):
+        if self.block_dep_pattern().match(dep.id):
             return DepKind.BLOCK
         if self.range_of_dep(dep) is not None:
             return DepKind.RANGE
@@ -519,7 +554,7 @@ class Schema:
 
     def block_of_dep(self, dep: Dep) -> str | None:
         """The block label a block dep names, or None if it names something else."""
-        match = _BLOCK_DEP_RE.match(dep.id)
+        match = self.block_dep_pattern().match(dep.id)
         return match.group(1) if match else None
 
     def range_of_dep(self, dep: Dep) -> tuple[int, int] | None:

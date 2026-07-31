@@ -27,7 +27,15 @@ from dataclasses import dataclass, field, replace
 from pathlib import Path
 
 from roadkeep.document import Document
-from roadkeep.schema import OPEN_MARKERS, RETIRED, SHIPPED, Dep, DepKind, Schema
+from roadkeep.schema import (
+    DEFAULT_HEADING_WORD,
+    OPEN_MARKERS,
+    RETIRED,
+    SHIPPED,
+    Dep,
+    DepKind,
+    Schema,
+)
 
 CONFIG_NAME = "roadkeep.toml"
 PYPROJECT = "pyproject.toml"
@@ -55,8 +63,13 @@ _TOP_KEYS = frozenset(
         "ledger",
         "rules",
         "non_goals",
+        "headings",
     }
 )
+#: `[headings]` — the word a project files work under (RK75). Its own table and not a top
+#: key, because the heading is a shape with more than one part and the next question about
+#: it (a sub-block that carries no word at all) belongs under the same heading.
+_HEADING_KEYS = frozenset({"word"})
 #: `[non_goals]` — the two fields the roadmap's other bullet has (RK70). Opt-in for RK66's
 #: reason: two live corpora wrote theirs as free prose, and a default that reported findings
 #: on the first run is a gate that gets bypassed instead of adopted.
@@ -201,6 +214,7 @@ class Config:
         _reject_unknown(data, _TOP_KEYS, "", problems)
 
         prefixes = _prefixes(data.get("prefix"), problems)
+        heading_word = _heading_word(data.get("headings"), problems)
         ref_scheme = _string(data, "ref_scheme", "id", problems)
         markers = _markers(data.get("markers"), problems)
         ledger = _ledger(data.get("ledger"), problems)
@@ -220,6 +234,7 @@ class Config:
             try:
                 schema = Schema(
                     prefixes=prefixes,
+                    heading_word=heading_word,
                     ref_scheme=ref_scheme,
                     **markers,
                     **ledger,
@@ -365,6 +380,26 @@ def _prefixes(raw: object, problems: list[str]) -> tuple[str, ...]:
         "by track"
     )
     return ("RK",)
+
+
+def _heading_word(raw: object, problems: list[str]) -> str:
+    """`[headings] word` — what this project files work under (RK75).
+
+    Defaults to `Block`, so a project that never declares it is unchanged. Declared by the
+    three of four adopting corpora that chose otherwise: Dumont files under `## Track A`,
+    cursarei under `## Fase 0`, and each was getting a finding per line for its own word.
+    """
+    if raw is None:
+        return DEFAULT_HEADING_WORD
+    if not isinstance(raw, Mapping):
+        problems.append("headings must be a table with 'word'")
+        return DEFAULT_HEADING_WORD
+    _reject_unknown(raw, _HEADING_KEYS, "headings.", problems)
+    word = raw.get("word", DEFAULT_HEADING_WORD)
+    if not isinstance(word, str):
+        problems.append("headings.word must be a string")
+        return DEFAULT_HEADING_WORD
+    return word
 
 
 def _markers(raw: object, problems: list[str]) -> dict[str, object]:

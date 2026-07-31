@@ -255,7 +255,9 @@ def _titles(config: Config, has_ledger: bool) -> dict[str, str]:
     for role in roles:  # the roadmap is read last, so its wording wins
         for heading in config.document(role).headings:
             if heading.label:
-                out[heading.label] = heading.text.removeprefix("Block ")
+                out[heading.label] = heading.text.removeprefix(
+                    f"{config.schema.heading_word} "
+                )
     return out
 
 
