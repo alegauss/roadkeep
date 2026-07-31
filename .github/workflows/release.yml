@@ -36,7 +36,11 @@ jobs:
     name: build and verify
     runs-on: ubuntu-latest
     steps:
+      # Full history for the same reason the gate needs it: the suite this job runs
+      # derives task origins from commit subjects, so a shallow clone fails a release.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"

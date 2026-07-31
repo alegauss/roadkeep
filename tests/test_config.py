@@ -290,7 +290,11 @@ def test_a_mistyped_limit_is_refused_rather_than_defaulted(tmp_path):
 
 
 def test_an_absolute_path_is_refused_because_it_is_checked_in(tmp_path):
-    path = write(tmp_path, '[files]\nroadmap = "D:/Git/other/ROADMAP.md"\n')
+    # Absolute *on the machine running the test*: a `D:/…` literal is a plain relative
+    # name to POSIX, so it would assert nothing on CI. `as_posix` keeps it TOML-safe,
+    # a Windows path's backslashes being escapes inside a basic string.
+    absolute = (tmp_path / "elsewhere" / "ROADMAP.md").as_posix()
+    path = write(tmp_path, f'[files]\nroadmap = "{absolute}"\n')
     with pytest.raises(ConfigError, match="must be relative"):
         Config.load(path)
 
@@ -338,7 +342,8 @@ def test_a_budget_that_is_not_a_positive_integer_is_refused(tmp_path):
 
 
 def test_an_absolute_budget_path_is_refused_like_a_file_path(tmp_path):
-    path = write(tmp_path, '[budgets]\n"D:/Git/other/agents.md" = { lines = 150 }\n')
+    absolute = (tmp_path / "elsewhere" / "agents.md").as_posix()
+    path = write(tmp_path, f'[budgets]\n"{absolute}" = {{ lines = 150 }}\n')
     with pytest.raises(ConfigError, match="must be relative"):
         Config.load(path)
 

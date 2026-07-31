@@ -27,7 +27,13 @@ jobs:
         # package has no dependencies, so there is no resolution to differ.
         python-version: ["3.11", "3.13"]
     steps:
+      # Full history, not the default single commit: `history` and `gaps` derive a task's
+      # origin by *searching commit subjects* (RK39), and this repository's own past is
+      # their fixture. Under `fetch-depth: 1` they resolve every id to the one commit
+      # present, which fails as a wrong answer rather than as a missing corpus.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
