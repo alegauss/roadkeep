@@ -86,6 +86,7 @@
 - ✅ **RK55** **A MIME type, an i18n key and a list of method names are reported as missing files** — A path claim is reported only when it has an extension and its directory exists, which takes Shio's 61 findings to the 1 naming a renamed file.
 - ✅ **RK62** **A roadmap line for work already in the ledger has no door out of the roadmap** — ship closes a roadmap line whose id the ledger already records and whose marker the roadmap may not carry, leaving the entry untouched.
 - ✅ **RK66** **A project whose convention is no section means no pointer cannot declare it** — ref is a per-role rule in [rules.<role>], so a project whose convention is no section means no pointer declares it and lint stops reporting a pointer nobody promised.
+- ✅ **RK76** **The estimate a project takes before adopting is not the one the gate applies** — adopt reads its file through Config.schema_for like every other command, so --ledger names the changelog role and that role's own limits and rules reach the estimate.
 
 ## Block F — The Claude Code plugin
 

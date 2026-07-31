@@ -380,3 +380,39 @@ class _Stdin:
 
     def read(self) -> str:
         return self._text
+
+
+def test_the_estimate_is_taken_under_the_numbers_the_gate_applies(tmp_path: Path) -> None:
+    """RK76: `adopt` was the one caller reaching past `Config.schema_for(role)`.
+
+    So `[limits.changelog]` and `[rules.changelog]` — the two tables a project writes
+    *because* its ledger is history — were invisible to the estimate, and the number it
+    printed measured a commitment nobody was being asked to make. Measured on Dumont:
+    34 `why.no-terminator` from `adopt` against none from `lint`, on one file.
+    """
+    (tmp_path / "roadkeep.toml").write_text(
+        '[files]\nchangelog = "CHANGELOG.md"\n\n'
+        "[limits.changelog]\nwhy = 4000\nline = 4200\n\n"
+        "[rules.changelog]\none_sentence = false\nterminator = false\n",
+        encoding="utf-8",
+    )
+    history = "Two sentences. And no terminating stop, at " + "x" * 400
+    target = tmp_path / "CHANGELOG.md"
+    target.write_text(
+        f"# Shipped\n\n## Block A\n\n- ✅ **RK1** **A symptom** — {history}\n",
+        encoding="utf-8",
+    )
+    assert adopt(Config.discover(tmp_path), target, ledger=True).conforming == 1
+
+    # And it is those two tables doing it, not the ledger shape: the same file, the same
+    # `--ledger`, with the role's own numbers withdrawn, is the estimate as it read before.
+    (tmp_path / "roadkeep.toml").write_text(
+        '[files]\nchangelog = "CHANGELOG.md"\n', encoding="utf-8"
+    )
+    bare = adopt(Config.discover(tmp_path), target, ledger=True)
+    assert bare.conforming == 0
+    assert {code for code, _ in bare.codes} >= {
+        "why.too-long",
+        "why.sentences",
+        "why.no-terminator",
+    }

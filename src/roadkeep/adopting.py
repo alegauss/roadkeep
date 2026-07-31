@@ -378,9 +378,16 @@ def adopt(
     `outline` says what adopting the tool costs, and under `id` what adopting the tool
     *and* renumbering the outline costs. Both are real questions and only the caller
     knows which one is being asked.
+
+    ``ledger`` names the **role** the file is read in, not a schema to apply (RK76): the
+    numbers come from :meth:`Config.schema_for`, the same seam every other command loads a
+    document through, so `[limits.changelog]` and `[rules.changelog]` reach the estimate.
+    They did not before, and an estimate taken under limits the gate does not apply is a
+    measurement of a commitment nobody is being asked to make. A role and not a path
+    because the caller names a file the project may not have declared at all.
     """
     target = Path(path)
-    schema = config.schema.as_ledger() if ledger else config.schema
+    schema = config.schema_for("changelog" if ledger else "roadmap")
     if ref_scheme is not None and ref_scheme != schema.ref_scheme:
         schema = replace(schema, ref_scheme=ref_scheme)  # raises on an unknown scheme
     document = Document.load(target, schema)

@@ -110,24 +110,6 @@ D.1` would need the word to be optional, which makes every `## Objetivo` a block
 is a second decision and belongs to whoever takes it, not to the key that fixes three
 files.
 
-### §RK76 An estimate that is not the gate
-
-`adopt` builds its schema as `config.schema.as_ledger() if ledger else config.schema`,
-which is the one place in the codebase that reaches past `Config.schema_for(role)`. So
-`[limits.changelog]` and `[rules.changelog]` — the two tables a project writes precisely
-*because* its ledger is history — are invisible to the estimate, and the number it prints
-is the number under the shared limits.
-
-Measured on Dumont: `adopt --ledger` reported 34 `why.no-terminator` against a config
-that declares `terminator = false`, while `lint` on the same file reported none. The
-command whose whole purpose is "take the measurement before the commitment" was
-reporting a commitment nobody was being asked to make.
-
-The fix is that `adopt` asks the same question every other command does, which also
-settles what `--ledger` means: not "apply the ledger schema" but "read this file in the
-changelog role". A path is not a role — the caller names a file the project may not have
-declared — so the flag stays, and only what it resolves to changes.
-
 ### §RK77 The corpus no configuration reaches
 
 Shio and Turing adopted because their lines already *were* this format under other
