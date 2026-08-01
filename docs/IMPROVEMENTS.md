@@ -77,25 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK78 ship deletes what it did not name
-
-Observed on Shio at SH326. The rationale file nests: a level-2 section groups an epic
-and each task keeps a level-3 section under it. `ship` deleted the level-2 by taking
-everything up to the next level-2, which swallowed four level-3 children — two of them
-the rationale of tasks that are still open, so the roadmap then pointed at sections that
-no longer existed. 160 lines went in one transaction that reported dropping one section.
-
-The gate caught it: `lint` reported two `ref.unresolved` immediately after. That is the
-right instrument in the wrong order — it names the damage after the write rather than
-refusing it, and the operator's only remedy was `git checkout` on the whole file, which
-also discards the part of the ship that was correct.
-
-Two things to settle. A drop has to be bounded by the next heading of **any** depth
-greater-or-equal, not the same depth. And a transaction that would orphan a live pointer
-should refuse before writing, the way `add` already validates every field first — the
-reasoning `add` states for itself ("a limit reported after the prose exists is a limit
-discovered too late") is the same reasoning, one verb along.
-
 ### §RK91 Two doors, one of them the way back
 
 The only non-ship exit today is retire, and it is terminal by construction: the resolver

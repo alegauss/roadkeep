@@ -62,7 +62,7 @@ from roadkeep.document import Document, Entry, Heading, blank
 from roadkeep.ids import next_id
 from roadkeep.markers import refresh
 from roadkeep.schema import Task
-from roadkeep.sections import NoSuchSection, Section
+from roadkeep.sections import NoSuchSection, Section, nested, pointers
 from roadkeep.sections import drop as drop_section
 
 __all__ = [
@@ -174,6 +174,10 @@ class Departure:
     #: Why nothing was dropped, when nothing was: a task can ship without a rationale
     #: section, and silence about that would read as a section that was deleted.
     kept: str | None = None
+    #: The anchors that went with it, nested under the one named (RK78). Reported because a
+    #: drop is a subtree, and a transaction that says "one section" about five is one whose
+    #: size the author only learns from the diff.
+    nested: tuple[str, ...] = ()
     #: Open lines whose `(deps: …)` this write made true again (RK8).
     refreshed: tuple[str, ...] = ()
     #: The marker the ledger line carries: ✅ shipped, 🗑 retired.
@@ -217,6 +221,8 @@ class Closure:
     improvements: Document | None = None
     dropped: Section | None = None
     kept: str | None = None
+    #: The anchors nested under the one dropped, as :class:`Departure` reports them (RK78).
+    nested: tuple[str, ...] = ()
     refreshed: tuple[str, ...] = ()
     dependents: tuple[str, ...] = ()
 
@@ -439,7 +445,9 @@ def _depart(
 
     insertion = place(ledger, _as_recorded(entry.task, marker, why))
     remaining = _remove_entry(roadmap, entry.index)
-    improvements, dropped, kept = _drop_section(config, entry.task.ref, leaving=task_id)
+    improvements, dropped, kept, taken = _drop_section(
+        config, entry.task.ref, leaving=task_id
+    )
     # Resolved against the state this write *creates* — the id is in the ledger and gone
     # from the roadmap — so a dependent's annotation is derived from what will be on
     # disk and not from what was (RK8).
@@ -455,6 +463,7 @@ def _depart(
         improvements=improvements,
         dropped=dropped,
         kept=kept,
+        nested=taken,
         refreshed=derived.changed,
         marker=marker,
         dependents=tuple(
@@ -499,7 +508,9 @@ def _close(config: Config, task_id: str, recorded: Entry) -> Closure:
     roadmap = config.document("roadmap")
     entry = roadmap.by_id()[task_id]
     remaining = _remove_entry(roadmap, entry.index)
-    improvements, dropped, kept = _drop_section(config, entry.task.ref, leaving=task_id)
+    improvements, dropped, kept, taken = _drop_section(
+        config, entry.task.ref, leaving=task_id
+    )
     derived = refresh(
         Backlog(config=config, roadmap=remaining, ledger=config.document("changelog"))
     )
@@ -511,6 +522,7 @@ def _close(config: Config, task_id: str, recorded: Entry) -> Closure:
         improvements=improvements,
         dropped=dropped,
         kept=kept,
+        nested=taken,
         refreshed=derived.changed,
         dependents=tuple(
             e.task.id for e in derived.document.entries if task_id in e.task.dep_ids
@@ -557,7 +569,7 @@ def _remove_entry(document: Document, index: int) -> Document:
 
 def _drop_section(
     config: Config, anchor: str | None, *, leaving: str = ""
-) -> tuple[Document | None, Section | None, str | None]:
+) -> tuple[Document | None, Section | None, str | None, tuple[str, ...]]:
     """Delete the rationale section the departing line pointed at, if it is only that line's.
 
     Absence is reported, never refused: a task can ship without a section, and a command
@@ -567,24 +579,37 @@ def _drop_section(
     is the id and nothing else can name it; under an outline, four of Shio's lines point at one
     epic design, and deleting it when the first of them ships left three live pointers resolving
     to nothing. The section stays and the reason is reported in the same field.
+
+    A section **nesting** one of those is the same fact one level down, and it is a refusal
+    rather than a report (RK78): keeping the section is a legitimate outcome of shipping,
+    while a subtree that cannot be deleted whole is a transaction the author has to resolve —
+    so :class:`~roadkeep.sections.SectionOccupied` propagates, and by the ordering this module
+    already guarantees, no file has been touched when it does. What the drop *did* take is
+    returned with it, because a deletion that reports one section and removes five is how the
+    same defect stayed invisible for 160 lines.
     """
     if anchor is None:
-        return None, None, "the line carried no pointer"
+        return None, None, "the line carried no pointer", ()
     if not config.has("improvements"):
-        return None, None, "this project declares no improvements file"
+        return None, None, "this project declares no improvements file", ()
     others = _others_pointing(config, anchor, leaving)
     if others:
-        return None, None, f"§{anchor} is also pointed at by {', '.join(others)}"
+        return None, None, f"§{anchor} is also pointed at by {', '.join(others)}", ()
     # The grammar of a section lives in one place (RK9), so shipping calls it rather than
     # keeping a second opinion about where a section ends.
+    improvements = config.document("improvements")
+    taken = tuple(child.anchor for child in nested(improvements, anchor))
     try:
-        document, section = drop_section(config.document("improvements"), anchor)
+        document, section = drop_section(
+            improvements, anchor, claimed=pointers(config, leaving=leaving)
+        )
     except NoSuchSection:
         return (
             None,
             None,
             f"no §{anchor} section in {config.relative(config.path('improvements'))}",
+            (),
         )
-    return document, section, None
+    return document, section, None, taken
 
 

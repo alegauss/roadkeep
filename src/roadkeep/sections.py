@@ -20,7 +20,12 @@ about a paragraph. What a section *does* have is:
 
 `drop` is the operation `ship` (RK6) calls for rule one of its three edits — it lives here
 rather than there because deleting a section is a fact about this file's grammar, not
-about shipping, and the two would otherwise disagree about where a section ends.
+about shipping, and the two would otherwise disagree about where a section ends. It takes
+the **whole subtree**, and is refused before it writes when that subtree holds a section
+some other open line points at (RK78): a heading nested under another is that other's
+prose, right up until a second pointer names it, and then deleting it is a deletion the
+transaction never named — measured on Shio, 160 lines removed by a command that reported
+dropping one section, leaving two live pointers resolving to nothing.
 
 Reflow is deliberately narrow. A plain paragraph is filled to the configured width, and
 anything carrying a Markdown structure — a table, a list, a quote, a fence — is inserted
@@ -32,7 +37,7 @@ from __future__ import annotations
 
 import re
 import textwrap
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 
 from roadkeep.config import Config
@@ -68,6 +73,38 @@ class SectionExists(ValueError):
         super().__init__(
             f"§{anchor} is already at {where}:{lineno}: an anchor names one section, "
             f"and a pointer that resolves to two resolves to neither"
+        )
+
+
+class SectionOccupied(ValueError):
+    """A drop whose subtree holds prose another open line owns (RK78).
+
+    The counterpart, one level down, of the multi-owner check `ship` already makes about the
+    anchor it was given: that one asks who else points *here*, and this one asks who else
+    points at anything **nested** here. Both refuse rather than repair, because a drop is
+    contiguous — a subtree with a stranger in the middle has no partial deletion that is not
+    a decision about someone else's prose — and the author's remedy is to lift the section
+    out or to ship the line that claims it.
+
+    Refused *before* the write and not reported after, which is the whole difference this
+    closes: `lint` named the damage as two `ref.unresolved` immediately afterwards, by which
+    point the only remedy was `git checkout` on the file, discarding the part of the ship
+    that was correct along with the part that was not (L1, one verb along from `add`).
+    """
+
+    def __init__(
+        self, anchor: str, occupied: Sequence[tuple[str, Sequence[str]]], where: str = ""
+    ) -> None:
+        self.anchor = anchor
+        self.occupied = tuple((child, tuple(owners)) for child, owners in occupied)
+        named = ", ".join(
+            f"§{child} ({', '.join(owners)})" for child, owners in self.occupied
+        )
+        file = f" in {where}" if where else ""
+        super().__init__(
+            f"§{anchor}{file} nests {len(self.occupied)} section(s) another open line "
+            f"points at: {named} — dropping it deletes prose this transaction never "
+            f"named, and leaves those pointers resolving to nothing"
         )
 
 
@@ -173,16 +210,69 @@ def anchored(document: Document) -> tuple[Section, ...]:
     return tuple(out)
 
 
-def drop(document: Document, anchor: str) -> tuple[Document, Section]:
+def nested(document: Document, anchor: str) -> tuple[Section, ...]:
+    """The anchored sections a drop of this one would take with it, in file order (RK78).
+
+    What :func:`find` returns as one body, enumerated as the headings it actually is — the
+    honest report of a deletion whose size is not the size of the section that was named.
+    Empty for an anchor this file does not declare, because "nothing is nested under a
+    section that is not there" is the same answer as the refusal :func:`drop` raises, and
+    a reader asking this question is not the one to tell about the missing heading.
+    """
+    span = _span(document, anchor)
+    if span is None:
+        return ()
+    _, end, heading = span
+    return tuple(
+        section for section in anchored(document) if heading.lineno < section.first <= end
+    )
+
+
+def pointers(config: Config, *, leaving: str = "") -> dict[str, tuple[str, ...]]:
+    """Which open lines point at which anchor — the claims a drop may not orphan (RK78).
+
+    Read from the roadmap and never from the prose file, because a claim is a pointer and a
+    pointer only exists on a task line: a heading nested under another is that other's prose
+    until a line names it, and this is the one place that says which ones do. `leaving` is
+    the line being shipped, whose own claim is the reason the drop is happening.
+    """
+    out: dict[str, list[str]] = {}
+    for entry in config.document("roadmap").entries:
+        if entry.task.ref and entry.task.id != leaving:
+            out.setdefault(entry.task.ref, []).append(entry.task.id)
+    return {anchor: tuple(ids) for anchor, ids in out.items()}
+
+
+def drop(
+    document: Document,
+    anchor: str,
+    *,
+    claimed: Mapping[str, Sequence[str]] | None = None,
+) -> tuple[Document, Section]:
     """Delete the section whole — subsections included — and report what went.
 
     A subsection left behind is orphaned prose under the *next* task's heading, which
     reads as that task's design and is the one outcome worse than deleting too much.
+
+    Unless one of them is not this section's at all. `claimed` is :func:`pointers`' answer,
+    and a nested anchor in it stops the whole write with :class:`SectionOccupied` (RK78) —
+    the deletion is bounded by ownership rather than by depth, so a level-2 grouping four
+    level-3 designs is refused while a task's own `§RK34.1` still goes with `§RK34`. Omitted,
+    nothing is claimed: a caller with no roadmap to read cannot be told about a pointer, and
+    both callers that have one pass it.
     """
     span = _span(document, anchor)
     section = find(document, anchor)
     if span is None or section is None:
         raise NoSuchSection(anchor, str(document.path or "the document"))
+    if claimed:
+        occupied = [
+            (child.anchor, claimed[child.anchor])
+            for child in nested(document, anchor)
+            if child.anchor in claimed
+        ]
+        if occupied:
+            raise SectionOccupied(anchor, occupied, str(document.path or ""))
     start, end, _ = span
     # One edit, not one per line (RK54): a loop validates every half-deleted state, and a
     # section quoting a fenced example is briefly a file whose fence has no opening line.

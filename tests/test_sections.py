@@ -29,11 +29,14 @@ from roadkeep.schema import Schema, SchemaError
 from roadkeep.sections import (
     NoSuchSection,
     SectionExists,
+    SectionOccupied,
     UnknownParent,
     add,
     anchored,
     drop,
     find,
+    nested,
+    pointers,
 )
 
 #: This repository, whose `docs/` are the conformance fixture — read, never written.
@@ -311,6 +314,50 @@ def test_dropping_what_is_not_there_is_refused(tmp_path):
     assert read(config) == RATIONALE
 
 
+# -- a subtree that is not all one section's (RK78) ---------------------------
+
+
+#: A level-2 section with a level-3 child that belongs to another line, which is the shape
+#: `find` reads as one body and a drop would delete as one deletion.
+NESTING = RATIONALE.replace("### §RK1 A first design", "## §RK1 An epic design").replace(
+    "#### §RK1.1 A subsection", "### §RK2 A design under it"
+)
+
+
+def test_a_subtree_is_enumerable_as_the_headings_it_is(tmp_path):
+    config = project(tmp_path, improvements=NESTING)
+    assert [s.anchor for s in nested(config.document("improvements"), "RK1")] == ["RK2"]
+    # And nothing is nested under a section that is not there — the same answer the drop
+    # gives, so a reader of this question is not the one told about the missing heading.
+    assert nested(config.document("improvements"), "RK9") == ()
+
+
+def test_what_the_open_lines_point_at_is_read_from_the_roadmap(tmp_path):
+    config = project(tmp_path, improvements=NESTING)
+    assert pointers(config) == {"RK1": ("RK1",), "RK2": ("RK2",), "RK3": ("RK3",)}
+    # The departing line's own claim is the reason the drop is happening, so it is not one.
+    assert pointers(config, leaving="RK1") == {"RK2": ("RK2",), "RK3": ("RK3",)}
+
+
+def test_a_subtree_another_line_points_at_is_refused_before_the_write(tmp_path):
+    config = project(tmp_path, improvements=NESTING)
+    with pytest.raises(SectionOccupied) as raised:
+        drop(config.document("improvements"), "RK1", claimed=pointers(config, leaving="RK1"))
+    assert "§RK2 (RK2)" in str(raised.value)
+    assert read(config) == NESTING
+
+
+def test_a_subtree_nobody_else_claims_still_goes_whole(tmp_path):
+    # Ownership bounds the deletion and not depth: §RK1.1 carries no pointer of its own, so
+    # it is RK1's prose and leaves with it — which is what keeps the refusal above narrow.
+    config = project(tmp_path)
+    document, _ = drop(
+        config.document("improvements"), "RK1", claimed=pointers(config, leaving="RK1")
+    )
+    document.save()
+    assert "§RK1.1" not in read(config)
+
+
 # -- adding ------------------------------------------------------------------
 
 
@@ -540,8 +587,18 @@ def test_show_of_nothing_exits_two(tmp_path, capsys):
 def test_drop_reports_what_it_removed(tmp_path, capsys):
     config = project(tmp_path)
     assert main(["-C", str(tmp_path), "section", "drop", "RK1"]) == EXIT_OK
-    assert f"dropped §RK1 (11-18) from {IMPROVEMENTS}" in capsys.readouterr().out
+    out = capsys.readouterr().out
+    assert f"dropped §RK1 (11-18) from {IMPROVEMENTS}" in out
+    # And the size the anchor does not state: one command, two headings (RK78).
+    assert "nested   §RK1.1 went with it" in out
     assert "§RK1" not in read(config)
+
+
+def test_drop_of_an_occupied_subtree_exits_two_and_writes_nothing(tmp_path, capsys):
+    config = project(tmp_path, improvements=NESTING)
+    assert main(["-C", str(tmp_path), "section", "drop", "RK1"]) == EXIT_USAGE
+    assert "resolving to nothing" in capsys.readouterr().err
+    assert read(config) == NESTING
 
 
 def test_a_refusal_exits_two_and_writes_nothing(tmp_path, capsys):

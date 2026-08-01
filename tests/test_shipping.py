@@ -24,6 +24,7 @@ from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.document import RoundTripError
 from roadkeep.schema import SchemaError
+from roadkeep.sections import SectionOccupied
 from roadkeep.shipping import (
     AlreadyShipped,
     Closure,
@@ -353,6 +354,96 @@ def test_the_last_line_pointing_at_a_shared_section_still_drops_it(tmp_path):
     shipment.save()
     assert shipment.dropped is not None and shipment.dropped.anchor == "I.1"
     assert "§I.1" not in read(config, IMPROVEMENTS)
+
+
+# -- a section nesting another line's (RK78) ----------------------------------
+
+
+NESTING = """# Improvements
+
+## Block A — The model
+
+## §I.1 An epic (RK1)
+
+The reasoning the epic itself has.
+
+### §I.2 A design under it (RK2)
+
+Which belongs to RK2 and is only nested under the epic.
+
+### §I.3 A second design under it (RK3)
+
+Which belongs to RK3, and is the other one a drop would take.
+
+## Block B — Authoring
+"""
+
+
+def nesting_project(tmp_path):
+    """Shio's SH326: a level-2 epic whose level-3 children are other open tasks' designs."""
+    config = project(
+        tmp_path,
+        roadmap=BACKLOG.replace("→ §RK1", "→ §I.1")
+        .replace("→ §RK2", "→ §I.2")
+        .replace("→ §RK3", "→ §I.3"),
+        improvements=NESTING,
+    )
+    declared = (tmp_path / "roadkeep.toml").read_text(encoding="utf-8")
+    (tmp_path / "roadkeep.toml").write_text(
+        declared.replace('prefix = "RK"', 'prefix = "RK"\nref_scheme = "outline"'),
+        encoding="utf-8",
+    )
+    return Config.discover(tmp_path)
+
+
+def test_a_subtree_holding_another_line_s_design_is_refused(tmp_path):
+    # The measured failure: 160 lines deleted by a transaction that reported dropping one
+    # section, leaving two live pointers resolving to nothing and `git checkout` on the
+    # whole file as the only remedy — which discards the part of the ship that was correct.
+    config = nesting_project(tmp_path)
+    before = files(config)
+    with pytest.raises(SectionOccupied) as raised:
+        ship(config, "RK1")
+    # Every claim, not the first: a refusal that names one of two turns a single lift into
+    # a conversation, which is the same argument the schema's violations make.
+    assert "§I.2 (RK2)" in str(raised.value) and "§I.3 (RK3)" in str(raised.value)
+    assert files(config) == before
+
+
+def test_the_refusal_lifts_once_the_nested_lines_have_shipped(tmp_path):
+    # Not a permanent exemption either: the epic is droppable the moment nothing else claims
+    # anything under it, and the two ships that get there each drop their own section.
+    config = nesting_project(tmp_path)
+    ship(config, "RK2").save()
+    ship(Config.discover(tmp_path), "RK3").save()
+    shipment = ship(Config.discover(tmp_path), "RK1")
+    shipment.save()
+    assert shipment.dropped is not None and shipment.dropped.anchor == "I.1"
+    assert "§I.1" not in read(config, IMPROVEMENTS)
+
+
+def test_a_subsection_of_the_line_s_own_prose_is_dropped_and_reported(tmp_path):
+    # The other half of the rule: ownership bounds the deletion, not depth — §RK1.1 is RK1's
+    # own and still goes, and the transaction states its real size rather than the anchor's.
+    config = project(tmp_path)
+    shipment = ship(config, "RK1")
+    assert shipment.nested == ("RK1.1",)
+    shipment.save()
+    assert "§RK1.1" not in read(config, IMPROVEMENTS)
+
+
+def test_ship_prints_what_the_subtree_took(tmp_path, capsys):
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "ship", "RK1"]) == EXIT_OK
+    assert "nested   §RK1.1 went with it" in capsys.readouterr().out
+
+
+def test_a_refused_subtree_exits_two_and_writes_nothing(tmp_path, capsys):
+    config = nesting_project(tmp_path)
+    before = files(config)
+    assert main(["-C", str(tmp_path), "ship", "RK1"]) == EXIT_USAGE
+    assert "resolving to nothing" in capsys.readouterr().err
+    assert files(config) == before
 
 
 # -- the line the ledger already recorded (RK62) ------------------------------

@@ -65,6 +65,8 @@ from roadkeep.sections import Section, heading_of
 from roadkeep.sections import add as add_section
 from roadkeep.sections import drop as drop_section
 from roadkeep.sections import find as find_section
+from roadkeep.sections import nested as nested_sections
+from roadkeep.sections import pointers
 from roadkeep.serving import serve
 from roadkeep.shipping import Closure, record, retire, ship
 from roadkeep.weighing import Spread, Weights, weigh
@@ -1052,16 +1054,22 @@ def _section_show(config: Config, args: argparse.Namespace) -> int:
 
 def _section_drop(config: Config, args: argparse.Namespace) -> int:
     try:
-        document, section = drop_section(config.document(args.role), args.anchor)
+        document = config.document(args.role)
+        # Read before the drop, because afterwards the headings are gone: what a subtree
+        # took is the part of this command's size that the anchor does not state (RK78).
+        taken = tuple(child.anchor for child in nested_sections(document, args.anchor))
+        document, section = drop_section(document, args.anchor, claimed=pointers(config))
         document.save()
     except (RoundTripError, KeyError, ValueError, OSError) as error:
         return _refused(error)
 
     where = config.relative(config.path(args.role))
     if args.json:
-        print(json.dumps(_section_json(section, where), indent=2))
+        print(json.dumps({**_section_json(section, where), "nested": list(taken)}, indent=2))
         return EXIT_OK
     print(f"dropped {section} from {where}")
+    if taken:
+        print(f"  nested   {', '.join(f'§{a}' for a in taken)} went with it")
     return EXIT_OK
 
 
@@ -1225,6 +1233,7 @@ def _ship(config: Config, args: argparse.Namespace) -> int:
                             "first": shipment.dropped.first,
                             "last": shipment.dropped.last,
                         },
+                        "nested": list(shipment.nested),
                         "kept": shipment.kept,
                     },
                     "refreshed": list(shipment.refreshed),
@@ -1242,6 +1251,10 @@ def _ship(config: Config, args: argparse.Namespace) -> int:
             f"  dropped  {shipment.dropped} from "
             f"{config.relative(config.path('improvements'))}"
         )
+        if shipment.nested:
+            print(
+                f"  nested   {', '.join(f'§{a}' for a in shipment.nested)} went with it"
+            )
     else:
         print(f"  kept     nothing dropped: {shipment.kept}")
     if shipment.refreshed:
@@ -1271,6 +1284,7 @@ def _closed(config: Config, closure: Closure, args: argparse.Namespace) -> int:
                         "dropped": None
                         if closure.dropped is None
                         else {"anchor": closure.dropped.anchor, "title": closure.dropped.title},
+                        "nested": list(closure.nested),
                         "kept": closure.kept,
                     },
                     "refreshed": list(closure.refreshed),
@@ -1291,6 +1305,8 @@ def _closed(config: Config, closure: Closure, args: argparse.Namespace) -> int:
             f"  dropped  {closure.dropped} from "
             f"{config.relative(config.path('improvements'))}"
         )
+        if closure.nested:
+            print(f"  nested   {', '.join(f'§{a}' for a in closure.nested)} went with it")
     if closure.refreshed:
         print(f"  derived  {', '.join(closure.refreshed)} (dep annotations re-derived)")
     _print_event(event, "  ")
