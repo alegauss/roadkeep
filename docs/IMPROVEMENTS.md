@@ -75,6 +75,20 @@ already written, not authorship.
 
 ## Block A — The model
 
+### §RK90 A state between open and terminal
+
+The lifecycle has four doors and every one of them leaves to the ledger, which is
+terminal: a dep on a shipped line is satisfied, and a dep on a retired line is
+unresolvable forever (RK28). That leaves no way to say "not now" as distinct from "not
+ever". Pausing is a real intent and a different one from abandoning, and representing it
+needs a state the marker set does not have — neither an open marker the roadmap keeps
+nor a terminal one the ledger owns. So the store is a governed file declared like any
+other in `[files]`, holding lines that keep their id, symptom, why and their `§id`
+section, under a `deferred` marker in `[markers]` legal only there and never in the
+roadmap (the same rule 🗑 already obeys). Maturity, not a schedule: the state says "set
+aside", never "in Q3", so the no-dates non-goal holds. Data before a command (Block A):
+the schema parses and round-trips a deferred line before any door writes one.
+
 ## Block B — Authoring
 
 ### §RK78 ship deletes what it did not name
@@ -96,6 +110,36 @@ should refuse before writing, the way `add` already validates every field first 
 reasoning `add` states for itself ("a limit reported after the prose exists is a limit
 discovered too late") is the same reasoning, one verb along.
 
+### §RK91 Two doors, one of them the way back
+
+The only non-ship exit today is retire, and it is terminal by construction: the resolver
+reads a retired dep as never (RK28), and re-adding cannot reclaim the id because
+retired-never-reused is enforced. So pausing through retire destroys exactly what makes
+it a pause — the id every dependent names, the `§id` rationale, the thread `origin` and
+`deps` key on. `defer <id> --reason` moves the line roadmap→backlog in one transaction
+shaped like ship and retire: all-or-nothing, the section carried rather than deleted,
+the dependents' annotations re-derived (RK8). But the destination is revivable, not the
+ledger. `resume <id>` is the return direction ship and retire lack, restoring the line
+under its block with an open marker and re-deriving the annotations again. This does not
+cross the retired-never-reused non-goal: a deferred id was never retired, so it is not
+reused — the same work keeps its own id, which is the whole point of a pause over an
+abandonment.
+
+### §RK93 A success that fails the gate
+
+Observed filing RK90-92 this session: three `add` calls each exited 0, and the very next
+`lint` failed with three `ref.unresolved`, one per line just written. Under `ref_scheme
+= "id"` the `→ §id` pointer is derived on every render and `lint` requires it resolve,
+but the section is a separate `section add`, so an `add` on its own can never leave a
+gate-clean tree. The follow-up was learned from the backstop rather than from the
+command that made it necessary, which is the exact inversion L1 exists to prevent: the
+write path should inform where the text is created, not leave the discovery to the gate.
+Options, none chosen here: `add` prints the required `section add <id>` the way a
+refusal names its command; or an `--section` reads both in one transaction; or the event
+line carries a `needs-section` flag a hook can act on. Worth reconciling with
+`_drop_section`'s rule that a task may ship without a section — true at ship, yet an
+open line under id-scheme cannot pass `lint` without one.
+
 ## Block C — Query
 
 ### §RK83 Ready is two different states
@@ -114,6 +158,33 @@ complaint is not that it chose wrongly but that it chose silently.
 Worth noting what should not change: a block whose ideas are never offered is a block
 whose ideas are never designed. The bias belongs to the caller's intent, not to the
 tool's ranking, which argues for the flag over the tier.
+
+### §RK92 A dep blocked on paused work
+
+The resolver has four outcomes — shipped, open, unknown, unresolvable — and a deferred
+dep is none of them: not shipped (not done), not open (not in the active roadmap), not
+unknown (it is recorded, in the backlog), and not unresolvable (that is retire's
+"never", and a deferred task can return). So a fifth status, `DEFERRED`, mapping to a
+readiness `pick` does not offer, the way `OUTSIDE` already is not offered. A task
+waiting on paused work is not ready, but neither is it blocked-forever — the block lifts
+the moment the dep resumes. Without the distinction a deferred dep collapses one of two
+wrong ways: read as open, `pick` offers a task whose blocker nobody is working; read as
+unresolvable, `pick` buries a task that will unblock. It is the same honesty RK28 drew
+between blocked and blocked-outside, extended to the one state that is blocked-for-now.
+
+### §RK94 One commit, many tasks, one number
+
+Observed running `weight` this session to size these tasks. Cost is derived from the
+commit that wrote each ledger entry, which is right when one commit ships one task. But
+the initial history import, `4fc05f3`, wrote 47 entries at once, so `weight` attributed
+its whole size — 20963 lines, 87 files — to each of them, and every block's p25, median
+and p90 collapsed onto that one value. The summary the tool leads with, and the very
+number its description offers for judging whether a line is really two lines, then
+carries no signal; only the raw `weighed` list, read entry by entry, was usable. A
+commit that co-ships N entries should divide its size across them, or flag them as
+co-shipped so the percentiles can exclude the batch. This is not peculiar to this repo:
+any adopted project with a squashed import hits the same skew, which is RK77's adoption
+territory exactly.
 
 ## Block D — The gate
 
