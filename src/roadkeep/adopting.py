@@ -471,7 +471,12 @@ def _undeclared(document: Document) -> tuple[tuple[str, int], ...]:
     time the sentence was reworded.
     """
     schema = document.schema
-    known = {*schema.markers, schema.shipped_marker, schema.retired_marker}
+    known = {
+        *schema.markers,
+        schema.shipped_marker,
+        schema.retired_marker,
+        schema.deferred_marker,
+    }
     counts: dict[str, int] = {}
     for reject in document.rejects:
         token = reject.raw.lstrip("-*+ ").split(" ", 1)[0]

@@ -88,8 +88,15 @@ from roadkeep.sections import Section, anchored, find
 from roadkeep.showing import paths_in
 
 #: The governed files whose unit is a task line. The prose files are paragraphs, so
-#: their gate is a pointer and a budget — RK15 and RK30, not this.
-LINE_ROLES = ("roadmap", "changelog")
+#: their gate is a pointer and a budget — RK15 and RK30, not this. The deferred store is
+#: one of them (RK96): a line set aside is still a line, and a store nothing gated would
+#: be the one place the format is a convention again.
+LINE_ROLES = ("roadmap", "changelog", "deferred")
+
+#: The two whose lines are still alive, so their rationale section is still there: open
+#: work, and work set aside (RK96). The ledger is not among them — `ship` and `retire`
+#: delete the section in the transaction that writes the entry.
+LIVE_ROLES = ("roadmap", "deferred")
 
 #: Variation selectors, which are `Mn` and not a format category: invisible all the same,
 #: and the class the parser already had to defend against (`_looks_like_marker`, RK2).
@@ -716,27 +723,28 @@ def _deps(backlog: Backlog, task: Task, file: str, lineno: int) -> list[Finding]
 def _pointers(
     config: Config, documents: dict[str, Document], sections: tuple[Section, ...]
 ) -> list[Finding]:
-    """Every `→ §<anchor>` on an open line, resolved against the prose file (RK15).
+    """Every `→ §<anchor>` on a line that still has a design, resolved against the prose
+    file (RK15) — open, or set aside and still pointing at the rationale a resume needs
+    (RK96).
 
     Read from the parsed ``ref`` and never from the line's text, which is the whole
     subtlety: §RK15's own sentence quotes a pointer as an example of one, and a scan
     over the raw line reports that quotation as a design that does not exist.
     """
-    roadmap = documents.get("roadmap")
-    if roadmap is None:
-        return []
     where = config.relative(config.path("improvements"))
     anchors = {section.anchor for section in sections}
     return [
         Finding(
             "ref.unresolved",
-            config.relative(config.path("roadmap")),
+            config.relative(config.path(role)),
             f"points at §{entry.task.ref}, which is not in {where}: a pointer to a "
             f"section that does not exist reads as a design that does",
             entry.lineno,
             entry.task.id,
         )
-        for entry in roadmap.entries
+        for role in LIVE_ROLES
+        if role in documents
+        for entry in documents[role].entries
         if entry.task.ref and entry.task.ref not in anchors
     ]
 
@@ -760,7 +768,15 @@ def _orphans(
     the budget, and charging it 461 words would fail a file with no long paragraph in it).
     """
     file = config.relative(config.path("improvements"))
-    open_ids = documents["roadmap"].by_id() if "roadmap" in documents else {}
+    # A deferred task's section is carried, not deleted (RK96), so the line that owns it is
+    # in the store rather than the roadmap — and reporting it orphaned would make the gate
+    # demand the deletion of exactly what a resume restores.
+    kept = {
+        task_id
+        for role in LIVE_ROLES
+        if role in documents
+        for task_id in documents[role].by_id()
+    }
     gone = documents["changelog"].by_id() if "changelog" in documents else {}
     pointed = {
         entry.task.ref
@@ -791,7 +807,7 @@ def _orphans(
         owners = _owners(section, ids)
         # Prose that belongs to no task is nobody's orphan — `§0.1` under the id scheme, and
         # any outline heading that names no id — the same rule `section add` applies (RK9).
-        if owners and not any(owner in open_ids for owner in owners):
+        if owners and not any(owner in kept for owner in owners):
             out.append(
                 _unowned(
                     section,
@@ -865,7 +881,7 @@ def _unowned(
     return Finding(
         "section.orphan",
         file,
-        f"no line in either file carries {named}, so nothing can ever point "
+        f"no line in any governed file carries {named}, so nothing can ever point "
         f"at this section",
         section.first,
         section.anchor,

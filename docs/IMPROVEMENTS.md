@@ -75,20 +75,6 @@ already written, not authorship.
 
 ## Block A — The model
 
-### §RK96 A state between open and terminal
-
-The lifecycle has four doors and every one of them leaves to the ledger, which is
-terminal: a dep on a shipped line is satisfied, and a dep on a retired line is
-unresolvable forever (RK28). That leaves no way to say "not now" as distinct from "not
-ever". Pausing is a real intent and a different one from abandoning, and representing it
-needs a state the marker set does not have — neither an open marker the roadmap keeps
-nor a terminal one the ledger owns. So the store is a governed file declared like any
-other in `[files]`, holding lines that keep their id, symptom, why and their `§id`
-section, under a `deferred` marker in `[markers]` legal only there and never in the
-roadmap (the same rule 🗑 already obeys). Maturity, not a schedule: the state says "set
-aside", never "in Q3", so the no-dates non-goal holds. Data before a command (Block A):
-the schema parses and round-trips a deferred line before any door writes one.
-
 ## Block B — Authoring
 
 ### §RK78 ship deletes what it did not name

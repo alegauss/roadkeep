@@ -47,6 +47,11 @@ SHIPPED = "\N{WHITE HEAVY CHECK MARK}"  # ✅
 #: under the block it belonged to: a departure is a departure, and the block is the one
 #: piece of provenance worth keeping when the design itself is deleted.
 RETIRED = "\N{WASTEBASKET}"  # 🗑
+#: A line set aside and still alive (RK96) — the one state that is neither open nor
+#: terminal. It lives in the deferred store and nowhere else: a roadmap that can say
+#: "paused" is a backlog counting work nobody is doing, and a ledger that can is a ledger
+#: of departures one of which comes back.
+DEFERRED = "\N{DOUBLE VERTICAL BAR}"  # ⏸
 
 #: The markers a roadmap line may carry. ✅ is not among them: shipped work lives
 #: in the changelog, and a roadmap that can say "done" is a second source of truth.
@@ -243,6 +248,11 @@ class Schema:
     #: record of a departure, and a roadmap that can say "retired" is a roadmap holding
     #: work nobody will do.
     retired_marker: str = RETIRED
+    #: The deferred store's only legal marker (RK96) — the state between open and terminal.
+    #: Held to the same rule as the two above and for the same reason: the file a line
+    #: sits in is what says whether it is being worked, so a marker legal in two files is
+    #: two files that can both claim one task.
+    deferred_marker: str = DEFERRED
     symptom_max: int = 120
     why_max: int = 200
     #: Whether `why` is held to one sentence, and to ending in a stop. True everywhere by
@@ -270,6 +280,9 @@ class Schema:
     #: The ledger's own status *is* ✅, so it is the one file where the shipped
     #: marker is legal. Set by :meth:`as_ledger`, never by hand.
     shipped_allowed: bool = False
+    #: The same claim for the deferred store, whose own status is ⏸ (RK96). Set by
+    #: :meth:`as_deferred`, never by hand.
+    deferred_allowed: bool = False
     #: The ledger carries no `(deps: …)` group: a dependency is a planning fact
     #: about unshipped work, and a shipped line has none left to state.
     deps_field: bool = True
@@ -321,6 +334,12 @@ class Schema:
             raise ValueError(
                 f"{self.shipped_marker} is the shipped marker and may not also be an "
                 "open marker: a roadmap that can say 'done' disagrees with the changelog"
+            )
+        if self.deferred_marker in self.markers and not self.deferred_allowed:
+            raise ValueError(
+                f"{self.deferred_marker} is the deferred marker and may not also be an "
+                "open marker: a roadmap that can say 'paused' is a backlog `pick` reads "
+                "as work waiting to be started"
             )
         for name in ("symptom_max", "why_max", "line_max", "section_max", "prose_width"):
             if getattr(self, name) < 1:
@@ -413,6 +432,40 @@ class Schema:
             ref_required=False,
             marker_field=self.ledger_marker,
             symptom_field=self.ledger_symptom,
+        )
+
+    @property
+    def is_deferred(self) -> bool:
+        """This is the deferred store's configuration — the one file whose status is ⏸."""
+        return self.deferred_allowed
+
+    def as_deferred(self) -> Schema:
+        """The same format as the deferred store reads it (RK96, L6 again).
+
+        The roadmap's shape with one marker swapped, and nothing else dropped. One marker,
+        because the file *is* the state: a store that could also hold 📋 would be a second
+        roadmap, and two files that both say a task is open eventually disagree about which
+        one it is. Everything else stays, and that is what separates a pause from the
+        ledger's two departures — the id every dependent names, the deps that are still
+        deps, the symptom, and the `→ §id` pointer whose section is carried rather than
+        deleted. :meth:`as_ledger` drops all three because a shipped line has no design and
+        no blocker left; a deferred one has both, and a return that had to reinvent them
+        would be a re-add under a new id.
+        """
+        return replace(self, markers=(self.deferred_marker,), deferred_allowed=True)
+
+    @property
+    def dep_markers(self) -> tuple[str, ...]:
+        """The statuses a dep annotation may cache (RK8) — the open set, ✅ and ⏸.
+
+        Derived from the target's status, so what a file may *hold* and what an annotation
+        may *say* are the same list or the re-derivation writes a line the gate then
+        refuses (RK96). 🗑 is not among them for the one reason that is not symmetry: a
+        retired target leaves no line to derive from, and the dep on it is unresolvable
+        rather than annotated (RK28).
+        """
+        return tuple(
+            dict.fromkeys((*self.markers, self.shipped_marker, self.deferred_marker))
         )
 
     # -- rendering ---------------------------------------------------------
@@ -606,7 +659,7 @@ class Schema:
         out: list[Violation] = []
         ids = self.id_pattern()
         seen: set[str] = set()
-        allowed = (*self.markers, self.shipped_marker)
+        allowed = self.dep_markers
         for dep in task.deps:
             kind = self.classify_dep(dep)
             # An id-shaped token that is not an id of this project is a typo or a

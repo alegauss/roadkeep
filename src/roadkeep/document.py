@@ -556,7 +556,7 @@ def read_deps(raw: str, schema: Schema) -> tuple[Dep, ...]:
     otherwise perfect task out of every count, which is the silent-miss failure
     the reject list exists to prevent.
     """
-    markers = (*schema.markers, schema.shipped_marker)
+    markers = schema.dep_markers
     out: list[Dep] = []
     for token in raw.split(", "):
         head, _, last = token.rpartition(" ")

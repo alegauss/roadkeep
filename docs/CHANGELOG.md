@@ -22,6 +22,7 @@
 - ✅ **RK44** **Under ref_scheme = outline a heading numbers itself, so 151 headings yield zero sections** — the anchor is read per scheme, so an outline numbers its own headings and keeps the sigil on the pointer: Shio's 151 headings are 146 sections and its 72 pointers all resolve.
 - ✅ **RK47** **A lettered outline subsection is no anchor, so 20 of Turing's headings are sections nothing sees** — the anchor's final segment may be one lowercase letter, measured and not guessed: it admits Turing's 20 lettered headings and nothing more, one of them 779 words the budget was not charging.
 - ✅ **RK74** **A backlog numbered by track cannot declare its ids** — prefix takes a list, so a backlog numbered by track declares every family and each one counts on its own, add --prefix naming which track while the number stays derived.
+- ✅ **RK96** **There is no state for a task set aside but neither shipped nor abandoned** — The schema reads a fifth marker in a fifth governed file, so a paused line keeps its id, deps, symptom and section where neither the roadmap nor the ledger could hold it.
 
 ## Block B — Authoring
 

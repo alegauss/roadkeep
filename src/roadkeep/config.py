@@ -30,6 +30,7 @@ from pathlib import Path
 from roadkeep.document import Document
 from roadkeep.schema import (
     DEFAULT_HEADING_WORD,
+    DEFERRED,
     OPEN_MARKERS,
     RETIRED,
     SHIPPED,
@@ -41,9 +42,11 @@ from roadkeep.schema import (
 CONFIG_NAME = "roadkeep.toml"
 PYPROJECT = "pyproject.toml"
 
-#: The four governed files. A project declares the ones it has; the rest are absent,
-#: not empty — `strategy` missing means Shio, not a Shio with an empty strategy.
-ROLES = ("roadmap", "changelog", "improvements", "strategy")
+#: The governed files. A project declares the ones it has; the rest are absent,
+#: not empty — `strategy` missing means Shio, not a Shio with an empty strategy. The
+#: same is true of `deferred` (RK96), which is why it is not in :data:`DEFAULT_PATHS`:
+#: a project that never pauses anything has no store, rather than an empty one.
+ROLES = ("roadmap", "changelog", "improvements", "strategy", "deferred")
 
 DEFAULT_PATHS: Mapping[str, str] = {
     "roadmap": "docs/ROADMAP.md",
@@ -99,7 +102,7 @@ _LIMIT_KEYS = {
     "section": "section_max",
     "prose": "prose_width",
 }
-_MARKER_KEYS = frozenset({"open", "shipped", "retired"})
+_MARKER_KEYS = frozenset({"open", "shipped", "retired", "deferred"})
 # The invisible ones. A marker carrying U+FE0F renders identically and compares
 # unequal, so a config that declares one puts every line in the file permanently
 # out of round-trip. Refuse it where it is typed.
@@ -289,11 +292,19 @@ class Config:
     def schema_for(self, role: str) -> Schema:
         """The changelog is the same format in its ledger configuration, not another.
 
+        The deferred store (RK96) is the third such configuration and the same claim: one
+        format, one marker set per file, and the file a line sits in is what states its
+        status — never a second grammar.
+
         Plus whatever `[limits.<role>]` says (RK50) — the same format again, held to this
         file's own numbers, because a ledger of history and a roadmap line are refused at
         opposite ends of the work.
         """
-        schema = self.schema.as_ledger() if role == "changelog" else self.schema
+        schema = self.schema
+        if role == "changelog":
+            schema = schema.as_ledger()
+        elif role == "deferred":
+            schema = schema.as_deferred()
         own = {**self.limits.get(role, {}), **self.rules.get(role, {})}
         return replace(schema, **own) if own else schema
 
@@ -419,22 +430,34 @@ def _markers(raw: object, problems: list[str]) -> dict[str, object]:
         "markers": OPEN_MARKERS,
         "shipped_marker": SHIPPED,
         "retired_marker": RETIRED,
+        "deferred_marker": DEFERRED,
     }
     if raw is None:
         return default
     if not isinstance(raw, Mapping):
-        problems.append("markers must be a table with 'open', 'shipped' and 'retired'")
+        problems.append(
+            "markers must be a table with 'open', 'shipped', 'retired' and 'deferred'"
+        )
         return default
     _reject_unknown(raw, _MARKER_KEYS, "markers.", problems)
     open_markers = tuple(_string_list(raw.get("open"), "markers.open", problems))
     shipped = _one_marker(raw, "shipped", SHIPPED, problems)
     retired = _one_marker(raw, "retired", RETIRED, problems)
+    deferred = _one_marker(raw, "deferred", DEFERRED, problems)
     if shipped == retired:
         problems.append(
             "markers.shipped and markers.retired must differ: a ledger where both "
             "read the same cannot say whether the work was done"
         )
-    for marker in (*open_markers, shipped, retired):
+    if deferred in (shipped, retired):
+        # Checked here rather than in the schema, where the open-set clash is: this pair
+        # only meets inside `as_ledger`, so a project that spelled them the same would get
+        # its refusal from a method call instead of from the file it typed them in.
+        problems.append(
+            "markers.deferred must differ from shipped and retired: a paused task that "
+            "reads as a departure is the one distinction the state exists to make"
+        )
+    for marker in (*open_markers, shipped, retired, deferred):
         _reject_invisible(marker, problems)
     if "ledger" in raw:
         # Moved to its own table by RK48, and refused rather than aliased: two spellings of
@@ -448,6 +471,7 @@ def _markers(raw: object, problems: list[str]) -> dict[str, object]:
         "markers": open_markers or OPEN_MARKERS,
         "shipped_marker": shipped,
         "retired_marker": retired,
+        "deferred_marker": deferred,
     }
 
 
