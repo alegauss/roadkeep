@@ -22,13 +22,19 @@
 
 ## Block A — The model (a task is data before it is a line)
 
+- 💭 **RK90** (deps: —) **There is no state for a task set aside but neither shipped nor abandoned** — Every marker is an open one the roadmap keeps or a terminal one the ledger owns, so the data cannot hold work that is paused but still alive. → §RK90
+
 ## Block B — Authoring (insert, never hand-edit)
 
 - 📋 **RK78** (deps: —) **ship deletes the sections nested under the one it drops** — A section body runs to the next heading of the same depth, so dropping a level-2 took its four level-3 children with it, two of them belonging to open tasks. → §RK78
+- 💭 **RK91** (deps: RK90) **Pausing a task means retiring it, losing its id, rationale section and every dependent that named it** — retire is the only non-ship exit and the resolver reads it as never, while a re-add cannot reclaim the id, so a pause and an abandonment are recorded the same way. → §RK91
+- 💭 **RK93** (deps: —) **add exits 0 on a line whose derived pointer fails lint at once, and names no follow-up** — Under ref_scheme=id every line carries a derived pointer lint requires to resolve, but the section is a second command, so a successful add always leaves a gate failure it never mentions. → §RK93
 
 ## Block C — Query (consult without reading the file)
 
 - 💭 **RK83** (deps: —) **pick offers an idea when a designed task is ready** — The tiers rank by id and never by marker, so a caller asking to execute a block is handed the one task that still needs designing. → §RK83
+- 💭 **RK92** (deps: RK90) **The dep resolver has no answer for a dep blocked on paused work** — Its outcomes are shipped, open, unknown and unresolvable, so a task waiting on a deferred one reads as ready or blocked-forever and pick offers or buries it wrongly. → §RK92
+- 💭 **RK94** (deps: —) **weight gives one commit's whole size to every task it shipped, so a bulk import pins the percentiles to itself** — Cost comes from the commit that wrote each entry, but one that shipped 47 tasks charges all its lines to each, so the median advertised for granularity has no signal here. → §RK94
 
 ## Block D — The gate
 
