@@ -14,7 +14,8 @@ not on PATH.
 ## Writing and shipping
 
 When the `mcp__roadkeep__*` tools are available, **prefer them**: the whole write path and
-the reads a task needs are there — `add`, `status`, `amend`, `ship`, `retire`, `record_add`,
+the reads a task needs are there — `add`, `status`, `amend`, `ship`, `retire`, `defer`, `resume`,
+`record_add`,
 `record_drop`, `non_goal_add`, `non_goal_drop`, `section_add`, `section_drop`, `brief`, `pick`, `list`, `deps`, `lint` — same engine and same
 refusals, with
 the fields arriving as a schema instead of flag names typed from memory. `init` and `adopt`
@@ -28,7 +29,12 @@ stays derived, per family; a refusal exits 2 naming the length and
 the limit and writes nothing; the shipped marker never reaches the roadmap; `ship <id>` makes
 its three edits (ledger entry, roadmap line gone, `§<id>` deleted) plus the dependents'
 annotations, or none, and `retire <id> [--superseded-by <id>] --reason "…"` is the same
-transaction, two more doors. `record add --block <x> --symptom "…" --why "…"` is the fourth — never
+transaction, two more doors. **A pause is none of those three**: `defer <id> --reason "…"` moves
+the line to the deferred store, keeping the id, the deps, the symptom and the section a
+departure deletes, and `resume <id> [--marker <m>]` is the return direction the ledger has
+none of — the reason wraps the `why` on the way out and is unwrapped on the way back, and the
+open marker is what the store could not keep, so `--marker` is where you say which it was.
+Reach for `retire` only when the work is not coming back. `record add --block <x> --symptom "…" --why "…"` is the fourth — never
 planned, so the ledger entry alone and the roadmap untouched, and `record drop <id>` is its inverse:
 refused unless the ledger states that id **twice**, then the later entry goes and the first stays,
 because removing the only record of a decision is deleting history. `section add <id> --title "…"`

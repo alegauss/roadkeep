@@ -77,21 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK91 Two doors, one of them the way back
-
-The only non-ship exit today is retire, and it is terminal by construction: the resolver
-reads a retired dep as never (RK28), and re-adding cannot reclaim the id because
-retired-never-reused is enforced. So pausing through retire destroys exactly what makes
-it a pause — the id every dependent names, the `§id` rationale, the thread `origin` and
-`deps` key on. `defer <id> --reason` moves the line roadmap→backlog in one transaction
-shaped like ship and retire: all-or-nothing, the section carried rather than deleted,
-the dependents' annotations re-derived (RK8). But the destination is revivable, not the
-ledger. `resume <id>` is the return direction ship and retire lack, restoring the line
-under its block with an open marker and re-deriving the annotations again. This does not
-cross the retired-never-reused non-goal: a deferred id was never retired, so it is not
-reused — the same work keeps its own id, which is the whole point of a pause over an
-abandonment.
-
 ### §RK93 A success that fails the gate
 
 Observed filing RK91, RK92 and RK96 this session: three `add` calls each exited 0, and

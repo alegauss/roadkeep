@@ -55,10 +55,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass, replace
 
-from roadkeep.authoring import Insertion, place, refuse_reuse
+from roadkeep.authoring import Insertion, place, refuse_reuse, remove_entry
 from roadkeep.backlog import Backlog, NotOpen
 from roadkeep.config import Config
-from roadkeep.document import Document, Entry, Heading, blank
+from roadkeep.document import Document, Entry, Heading
 from roadkeep.ids import next_id
 from roadkeep.markers import refresh
 from roadkeep.schema import Task
@@ -316,7 +316,7 @@ def drop(config: Config, task_id: str) -> Dropped:
     later = twins[-1]
     return Dropped(
         task_id=task_id,
-        ledger=_remove_entry(ledger, later.index),
+        ledger=remove_entry(ledger, later.index),
         removed_from=later.lineno,
         kept=twins[0].lineno,
         kept_marker=twins[0].task.status,
@@ -444,7 +444,7 @@ def _depart(
         )
 
     insertion = place(ledger, _as_recorded(entry.task, marker, why))
-    remaining = _remove_entry(roadmap, entry.index)
+    remaining = remove_entry(roadmap, entry.index)
     improvements, dropped, kept, taken = _drop_section(
         config, entry.task.ref, leaving=task_id
     )
@@ -507,7 +507,7 @@ def _close(config: Config, task_id: str, recorded: Entry) -> Closure:
     """Everything a departure does except the entry, which is already on disk (RK62)."""
     roadmap = config.document("roadmap")
     entry = roadmap.by_id()[task_id]
-    remaining = _remove_entry(roadmap, entry.index)
+    remaining = remove_entry(roadmap, entry.index)
     improvements, dropped, kept, taken = _drop_section(
         config, entry.task.ref, leaving=task_id
     )
@@ -548,23 +548,6 @@ def _as_recorded(task: Task, marker: str, why: str | None) -> Task:
         # beneath whatever entry happened to precede it.
         indent="",
     )
-
-
-def _remove_entry(document: Document, index: int) -> Document:
-    """Take the line out, and the blank line the removal doubled.
-
-    A task line sits between blanks when it is the last one in its block, so removing it
-    leaves a paragraph break the file never had. Both spellings round-trip, which is
-    exactly why nothing downstream would catch it.
-    """
-    updated = document.remove_line(index)
-    lines = updated.lines
-    if index > 0 and index < len(lines) and blank(lines[index - 1]) and blank(lines[index]):
-        return updated.remove_line(index)
-    if index >= len(lines) and index > 0 and blank(lines[index - 1]):
-        # The block was last in the file: its trailing blank has nothing left to separate.
-        return updated.remove_line(index - 1)
-    return updated
 
 
 def _drop_section(

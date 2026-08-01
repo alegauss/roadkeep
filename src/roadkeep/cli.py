@@ -52,6 +52,7 @@ from roadkeep.document import Document, Entry, Reject, RoundTripError
 from roadkeep.exporting import Projection, project, splice
 from roadkeep.fixing import Fix, fix
 from roadkeep.graph import Graph, Leverage
+from roadkeep.deferring import defer, resume
 from roadkeep.guarding import START_EVENTS, STOP_EVENTS, announce, guard, review
 from roadkeep.history import Commit, HistoryUnavailable, Origin, gaps, origin_of
 from roadkeep.ids import highest, next_id
@@ -588,6 +589,44 @@ def build_parser() -> argparse.ArgumentParser:
     )
     retire_parser.add_argument("--json", action="store_true", help="every edit, as data")
     retire_parser.set_defaults(handler=_retire)
+
+    defer_parser = subcommands.add_parser(
+        "defer",
+        help="set a line aside without retiring it: the store, not the ledger",
+        description=(
+            "A pause spelled as a retirement is terminal — the id cannot come back, the "
+            "resolver reads the dep as never, and the rationale is deleted. This moves the "
+            "line to the deferred store instead, keeping every slot and the section."
+        ),
+    )
+    defer_parser.add_argument("id", help="the task being set aside, e.g. RK33")
+    defer_parser.add_argument(
+        "--reason",
+        required=True,
+        help="one sentence, the author's own: it wraps the why and a resume unwraps it",
+    )
+    defer_parser.add_argument("--json", action="store_true", help="every edit, as data")
+    defer_parser.set_defaults(handler=_defer)
+
+    resume_parser = subcommands.add_parser(
+        "resume",
+        help="return a set-aside line to its block — the direction the ledger has none of",
+        description=(
+            "The store is revivable, which is what separates it from the two terminal "
+            "doors: the same id, the same deps, the same section, back under the block "
+            "the line left. The open marker is the one thing the store could not keep."
+        ),
+    )
+    resume_parser.add_argument("id", help="the task coming back, e.g. RK33")
+    resume_parser.add_argument(
+        "--marker",
+        help=(
+            "the open marker it returns with; omitted, the first this project declares — "
+            "the store holds one marker, so which one it was is not a fact any file kept"
+        ),
+    )
+    resume_parser.add_argument("--json", action="store_true", help="every edit, as data")
+    resume_parser.set_defaults(handler=_resume)
 
     export_parser = subcommands.add_parser(
         "export",
@@ -2059,6 +2098,103 @@ def _retire(config: Config, args: argparse.Namespace) -> int:
         # Reported, not refused: a supersession is legitimate and these lines are the
         # author's next edit. `deps` now resolves them as unresolvable, not as satisfied.
         print(f"  still    {', '.join(departure.dependents)} name {departure.task_id}")
+    _print_event(event, "  ")
+    return EXIT_OK
+
+
+def _defer(config: Config, args: argparse.Namespace) -> int:
+    try:
+        pause = defer(config, args.id, reason=args.reason)
+        pause.save()
+    except (RoundTripError, KeyError, ValueError, OSError) as error:
+        return _refused(error)
+
+    roadmap = config.relative(config.path("roadmap"))
+    store = config.relative(config.path("deferred"))
+    block = pause.store.entry.task.block
+    event = _event(pause.task_id, block, pause.roadmap)
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "id": pause.task_id,
+                    "marker": pause.marker,
+                    "deferred": {
+                        "file": store,
+                        "line": pause.store.lineno,
+                        "rendered": pause.store.rendered,
+                    },
+                    "roadmap": {"file": roadmap, "removed": pause.removed_from},
+                    "carried": pause.carried,
+                    "dependents": list(pause.dependents),
+                    "refreshed": list(pause.refreshed),
+                    "event": event,
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+
+    print(f"{pause.task_id} {pause.marker} {store}:{pause.store.lineno} under Block {block}")
+    print(f"  removed  {roadmap}:{pause.removed_from}")
+    if pause.carried is not None:
+        # Named, because every other door that moves a line deletes this section: silence
+        # about a design that was kept reads exactly like the deletion (RK6).
+        print(
+            f"  carried  {pause.carried} kept in "
+            f"{config.relative(config.path('improvements'))}"
+        )
+    if pause.dependents:
+        print(f"  still    {', '.join(pause.dependents)} name {pause.task_id}")
+    if pause.refreshed:
+        print(f"  derived  {', '.join(pause.refreshed)} (dep annotations re-derived)")
+    _print_event(event, "  ")
+    return EXIT_OK
+
+
+def _resume(config: Config, args: argparse.Namespace) -> int:
+    try:
+        resumption = resume(config, args.id, marker=args.marker)
+        resumption.save()
+    except (RoundTripError, KeyError, ValueError, OSError) as error:
+        return _refused(error)
+
+    roadmap = config.relative(config.path("roadmap"))
+    store = config.relative(config.path("deferred"))
+    block = resumption.roadmap.entry.task.block
+    event = _event(resumption.task_id, block, resumption.roadmap.document)
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "id": resumption.task_id,
+                    "marker": resumption.marker,
+                    "roadmap": {
+                        "file": roadmap,
+                        "line": resumption.roadmap.lineno,
+                        "rendered": resumption.roadmap.rendered,
+                    },
+                    "deferred": {"file": store, "removed": resumption.removed_from},
+                    "was": resumption.was,
+                    "refreshed": list(resumption.refreshed),
+                    "event": event,
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+
+    print(
+        f"{resumption.task_id} {resumption.marker} {roadmap}:{resumption.roadmap.lineno} "
+        f"under Block {block}"
+    )
+    print(f"  removed  {store}:{resumption.removed_from}")
+    if resumption.was is not None:
+        # The last time the reason is visible: what comes back is a design, and the pause
+        # it went through is history the commit states rather than the line.
+        print(f"  was      set aside: {resumption.was}")
+    if resumption.refreshed:
+        print(f"  derived  {', '.join(resumption.refreshed)} (dep annotations re-derived)")
     _print_event(event, "  ")
     return EXIT_OK
 

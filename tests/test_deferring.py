@@ -25,10 +25,21 @@ from pathlib import Path
 import pytest
 
 from roadkeep.authoring import IdInUse, StatusElsewhere, refuse_reuse, set_status
+from roadkeep.backlog import NotOpen
+from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config, ConfigError
+from roadkeep.deferring import (
+    NoStore,
+    NotSetAside,
+    SetAside,
+    UnrecoverableReason,
+    defer,
+    resume,
+)
 from roadkeep.document import Document
 from roadkeep.linting import lint
 from roadkeep.schema import DEFERRED, DESIGNED, IDEA, SHIPPED, Dep, Schema, Task
+from roadkeep.shipping import AlreadyRecorded
 
 ROADMAP = f"""# Roadmap
 
@@ -232,3 +243,167 @@ def test_a_dep_may_be_annotated_deferred(tmp_path):
     (entry,) = [e for e in config.document("roadmap").entries if e.task.id == "RK4"]
     assert entry.task.deps == (Dep("RK2", marker=DEFERRED),)
     assert config.schema.validate(entry.task) == ()
+
+
+# -- the two doors, one of them the way back (RK91) ---------------------------
+
+
+def read(config: Config, name: str) -> str:
+    with (config.root / name).open("r", encoding="utf-8", newline="") as handle:
+        return handle.read()
+
+
+def files(config: Config) -> tuple[str, ...]:
+    return tuple(
+        read(config, name)
+        for name in ("ROADMAP.md", "CHANGELOG.md", "IMPROVEMENTS.md", "DEFERRED.md")
+    )
+
+
+def test_the_line_leaves_the_roadmap_and_arrives_in_the_store(tmp_path):
+    config = project(tmp_path)
+    pause = defer(config, "RK1", reason="the decision it waits on is somebody else's")
+    pause.save()
+    assert pause.store.rendered == (
+        f"- {DEFERRED} **RK1** (deps: —) **A first symptom** — set aside (the decision it "
+        f"waits on is somebody else's): Because of a reason. → §RK1"
+    )
+    assert "RK1" not in config.document("roadmap").by_id()
+    # Every slot the ledger would have dropped is still there, which is what a return needs.
+    (held,) = [e for e in config.document("deferred").entries if e.task.id == "RK1"]
+    assert (held.task.symptom, held.task.ref) == ("A first symptom", "RK1")
+
+
+def test_the_rationale_is_carried_and_not_deleted(tmp_path):
+    # The one edit a departure makes that this one must not: `ship` deletes the design
+    # because a shipped line has none left to state, and a paused line has all of it.
+    config = project(tmp_path)
+    pause = defer(config, "RK1", reason="it waits on a decision")
+    pause.save()
+    assert pause.carried == "§RK1"
+    assert "### §RK1 A first design" in read(config, "IMPROVEMENTS.md")
+    # And the gate agrees it is not an orphan, which is the half RK96 already built.
+    assert not [f for f in lint(config).findings if f.id == "RK1"]
+
+
+def test_the_return_restores_the_line_the_pause_wrapped(tmp_path):
+    config = project(tmp_path)
+    defer(config, "RK1", reason="it waits on a decision").save()
+    resumption = resume(Config.discover(tmp_path), "RK1")
+    resumption.save()
+    # The author's own sentence, unwrapped: what came back is the line that left, and the
+    # reason is reported once rather than left in a design it was never part of.
+    assert resumption.roadmap.rendered == (
+        f"- {DESIGNED} **RK1** (deps: —) **A first symptom** — Because of a reason. → §RK1"
+    )
+    assert resumption.was == "it waits on a decision"
+    assert "RK1" not in config.document("deferred").by_id()
+
+
+def test_the_id_is_the_same_one_and_never_a_reuse(tmp_path):
+    # The whole difference from a retirement: retired-never-reused is not crossed, because
+    # a deferred id was never retired — the same work comes back under its own number.
+    config = project(tmp_path)
+    defer(config, "RK1", reason="it waits").save()
+    resume(Config.discover(tmp_path), "RK1").save()
+    (entry,) = [e for e in config.document("roadmap").entries if e.task.id == "RK1"]
+    assert entry.task.ref == "RK1"
+
+
+def test_the_marker_the_store_could_not_keep_is_the_authors_to_state(tmp_path):
+    config = project(tmp_path, {"ROADMAP.md": ROADMAP.replace(DESIGNED, "⏳", 1)})
+    defer(config, "RK1", reason="it waits").save()
+    resumption = resume(Config.discover(tmp_path), "RK1", marker="⏳")
+    resumption.save()
+    assert resumption.roadmap.entry.task.status == "⏳"
+
+
+def test_the_dependents_are_re_derived_on_the_way_back(tmp_path):
+    # RK4 caches ⏸ for RK2 while it is paused; the moment RK2 is open again the annotation
+    # is false, and nothing else would ever revisit it (RK8).
+    config = project(tmp_path)
+    resumption = resume(config, "RK2")
+    resumption.save()
+    assert resumption.refreshed == ("RK4",)
+    (entry,) = [e for e in config.document("roadmap").entries if e.task.id == "RK4"]
+    assert entry.task.deps == (Dep("RK2", marker=DESIGNED),)
+
+
+def test_a_reason_that_would_not_survive_the_return_is_refused(tmp_path):
+    # Invisible until the return trip: the unwrap stops at the first `): `, so the design
+    # sentence would come back with the tail of the reason glued to its front.
+    config = project(tmp_path)
+    before = files(config)
+    with pytest.raises(UnrecoverableReason):
+        defer(config, "RK1", reason="waiting (on RK9): which never shipped")
+    assert files(config) == before
+
+
+def test_a_pause_with_nowhere_to_go_is_refused_and_not_scaffolded(tmp_path):
+    # A store a `defer` invented on its way past would be a format decided by a verb.
+    declare = DECLARE.replace('deferred = "DEFERRED.md"\n', "")
+    config = project(tmp_path, declare=declare)
+    with pytest.raises(NoStore, match="no deferred store is declared"):
+        defer(config, "RK1", reason="it waits")
+
+
+def test_a_line_the_ledger_already_recorded_has_neither_door(tmp_path):
+    shipped = LEDGER + (
+        f"\n- {SHIPPED} **RK1** **A first symptom** — Because of a reason.\n"
+    )
+    config = project(tmp_path, {"CHANGELOG.md": shipped})
+    before = files(config)
+    with pytest.raises(AlreadyRecorded):
+        defer(config, "RK1", reason="it waits")
+    assert files(config) == before
+
+
+def test_pausing_what_is_not_open_is_refused(tmp_path):
+    config = project(tmp_path)
+    with pytest.raises(NotOpen):
+        defer(config, "RK9", reason="it waits")
+
+
+def test_pausing_what_the_store_already_holds_is_refused(tmp_path):
+    # RK2 is in the store and not in the roadmap, so this is NotOpen — the case the store's
+    # own refusal answers is a hand-edit that left the id in both files.
+    both = ROADMAP + (
+        f"- {DESIGNED} **RK2** (deps: RK1) **A paused symptom** — Because it waits. → §RK2\n"
+    )
+    config = project(tmp_path, {"ROADMAP.md": both})
+    with pytest.raises(SetAside, match="already set aside"):
+        defer(config, "RK2", reason="it waits")
+
+
+def test_resuming_what_never_paused_names_where_it_is(tmp_path):
+    # "Not in the store" is the same sentence for an open task, a shipped one and a typo,
+    # and only the last is a mistake about the id.
+    config = project(tmp_path)
+    with pytest.raises(NotSetAside, match="it is open in the roadmap"):
+        resume(config, "RK1")
+
+
+def test_the_gate_passes_over_both_files_after_a_pause(tmp_path):
+    config = project(tmp_path)
+    defer(config, "RK1", reason="it waits on a decision").save()
+    # RK4's dep on RK2 is the one standing finding (RK92), and the pause added none.
+    assert [f.code for f in lint(Config.discover(tmp_path)).findings] == ["deps.unknown"]
+
+
+def test_defer_reports_every_edit_and_resume_reports_the_reason(tmp_path, capsys):
+    tmp = str(tmp_path)
+    project(tmp_path)
+    assert main(["-C", tmp, "defer", "RK1", "--reason", "it waits on a decision"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert f"RK1 {DEFERRED} DEFERRED.md:" in out
+    assert "carried  §RK1 kept in IMPROVEMENTS.md" in out
+    assert main(["-C", tmp, "resume", "RK1"]) == EXIT_OK
+    assert "was      set aside: it waits on a decision" in capsys.readouterr().out
+
+
+def test_a_refused_pause_exits_two_and_writes_nothing(tmp_path, capsys):
+    config = project(tmp_path)
+    before = files(config)
+    assert main(["-C", str(tmp_path), "defer", "RK9", "--reason", "it waits"]) == EXIT_USAGE
+    assert "RK9" in capsys.readouterr().err
+    assert files(config) == before

@@ -179,6 +179,27 @@ def place(document: Document, task: Task) -> Insertion:
     return Insertion(document=updated, entry=entry)
 
 
+def remove_entry(document: Document, index: int) -> Document:
+    """Take the line out, and the blank line the removal doubled. The inverse of `place`.
+
+    A task line sits between blanks when it is the last one in its block, so removing it
+    leaves a paragraph break the file never had. Both spellings round-trip, which is
+    exactly why nothing downstream would catch it.
+
+    Here rather than in one caller because a line now leaves the roadmap by four doors —
+    three of them departures (RK6, RK32) and one of them reversible (RK91) — and a second
+    copy of this rule is a second opinion about the shape of the file it leaves behind.
+    """
+    updated = document.remove_line(index)
+    lines = updated.lines
+    if index > 0 and index < len(lines) and blank(lines[index - 1]) and blank(lines[index]):
+        return updated.remove_line(index)
+    if index >= len(lines) and index > 0 and blank(lines[index - 1]):
+        # The block was last in the file: its trailing blank has nothing left to separate.
+        return updated.remove_line(index - 1)
+    return updated
+
+
 def add(
     config: Config,
     *,

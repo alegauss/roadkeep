@@ -24,7 +24,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 💭 **RK91** (deps: RK96 ✅) **Pausing a task means retiring it, losing its id, rationale section and every dependent that named it** — retire is the only non-ship exit and the resolver reads it as never, while a re-add cannot reclaim the id, so a pause and an abandonment are recorded the same way. → §RK91
 - 💭 **RK93** (deps: —) **add exits 0 on a line whose derived pointer fails lint at once, and names no follow-up** — Under ref_scheme=id every line carries a derived pointer lint requires to resolve, but the section is a second command, so a successful add always leaves a gate failure it never mentions. → §RK93
 - 📋 **RK97** (deps: —) **an id two branches allocated to different work has no door that moves either line** — Only ship and retire take a line out of the roadmap and both write a terminal ledger entry, so the one repair a merge conflict needs is the hand-edit every other write path denies. → §RK97
 

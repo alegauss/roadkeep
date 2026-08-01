@@ -41,6 +41,7 @@
 - ✅ **RK73** **A non-goal could be written and never corrected, so a wrong lead was the Edit the hook denies** — `non-goal drop <lead>` removes the bullet an address names, so correcting a lead is one constraint retired and one written, and lint's non-goal.duplicate has its repair.
 - ✅ **RK72** **The non-goal against estimates names a schedule, not the field a size bucket would be** — The list now names the field and argues the field instead of the schedule, so a P/M/L proposal is settled by a lookup rather than the analysis it cost.
 - ✅ **RK78** **ship deletes the sections nested under the one it drops** — A drop is bounded by ownership: the subtree still goes whole, and a nested section another open line points at refuses the whole transaction before a byte is written.
+- ✅ **RK91** **Pausing a task means retiring it, losing its id, rationale section and every dependent that named it** — defer moves the line to the store keeping the id, the deps, the symptom and the section a departure deletes, and resume returns it under its block: a pause is a state, not a retirement.
 
 ## Block C — Query
 
