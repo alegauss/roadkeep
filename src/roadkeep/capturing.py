@@ -36,11 +36,14 @@ from __future__ import annotations
 
 import contextlib
 import io
+import json
 import re
 import shlex
 import traceback
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, replace
+from datetime import datetime, timezone
+from hashlib import sha256
 from pathlib import Path
 
 from roadkeep.config import find_config
@@ -459,6 +462,105 @@ def replay(recorded: Mapping[str, object], workdir: str | Path) -> Replay:
 
 #: Which key of a stored capture each replayable part lives under.
 _FIELD = {"command": "argv", "config": "config", "document": "document"}
+
+#: Where a capture lands before anybody decides what to do with it (RK89). A fifth path in
+#: a repository that declared four — and one the repository never has to see, because the
+#: same run teaches git to ignore it.
+REPORTS = Path(".roadkeep") / "reports"
+
+#: The line appended to `.gitignore`, and every spelling that already covers it. Nothing
+#: here enters a history, a diff, or a review by somebody who never installed this tool.
+IGNORE_RULE = ".roadkeep/"
+_COVERED = frozenset({".roadkeep", ".roadkeep/", "/.roadkeep", "/.roadkeep/", ".roadkeep/**"})
+
+
+@dataclass(frozen=True, slots=True)
+class Kept:
+    """One capture on disk, and what had to be said about getting it there."""
+
+    path: Path
+    #: `None` when git was already told to ignore the directory or has just been told.
+    #: A sentence when it could not be — never an exception, because the capture is the
+    #: point and an unwritable `.gitignore` is a thing to mention, not to fail over.
+    complaint: str | None = None
+
+
+def keep(found: Capture, root: str | Path = ".") -> Kept:
+    """Write the capture before it is printed (RK89).
+
+    Evidence that lives for the length of one stdout depends on the caller taking a second
+    step, and RK86 is this block's own record of second steps not being taken. So this is
+    unconditional and has no flag: a capture nobody pruned costs kilobytes, and a capture
+    nobody kept costs the only session that could have identified the defect.
+
+    Retention is deliberately unsolved. Rotation, dedup by argv, an age limit, a command
+    that lists what was never sent — every one of them is easier to add to a directory
+    with files in it than to reconstruct from sessions that ended.
+
+    What is written is what was produced: `--without` applied, `--embed` or not. One
+    artefact and one set of contents, so the file on disk is the text that was reviewed.
+    """
+    base = Path(root)
+    directory = base / REPORTS
+    directory.mkdir(parents=True, exist_ok=True)
+    path = directory / _filename(found)
+    path.write_text(
+        json.dumps(found.as_dict(), indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
+    return Kept(path=path, complaint=_ignore(base))
+
+
+def _filename(found: Capture) -> str:
+    """Sortable, and it says what failed. Uniqueness is the clock plus the claim's digest:
+    two captures of one command in one second are still two captures."""
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    digest = sha256(f"{found.symptom}{found.failure.command}".encode()).hexdigest()[:8]
+    return f"{stamp}-{_slug(_subcommand(found.failure.argv))}-{digest}.json"
+
+
+def _subcommand(argv: Sequence[str]) -> str:
+    """Which command failed, asked of the parser rather than guessed from the argv.
+
+    The first non-flag word is the *value* of `-C` half the time, and a filename naming a
+    directory instead of a command is a directory listing nobody can read.
+    """
+    from roadkeep.cli import build_parser
+
+    with contextlib.redirect_stderr(io.StringIO()):
+        try:
+            known, _ = build_parser().parse_known_args(list(argv))
+        except SystemExit:
+            return "run"
+    return getattr(known, "command", None) or "run"
+
+
+def _slug(word: str) -> str:
+    kept = [character if character.isalnum() else "-" for character in word.lower()]
+    return "".join(kept).strip("-") or "run"
+
+
+def _ignore(root: Path) -> str | None:
+    """Teach git to ignore the directory, once, without touching a line already there.
+
+    Append-only and never rendered: `.gitignore` is not a governed file, it does not
+    round-trip, and reordering somebody's ignore rules to add one is the kind of write
+    this tool refuses everywhere else.
+    """
+    path = root / ".gitignore"
+    try:
+        existing = path.read_text(encoding="utf-8") if path.is_file() else ""
+    except (OSError, UnicodeDecodeError) as error:
+        return f"could not read {path}: {error}"
+    if any(line.strip() in _COVERED for line in existing.splitlines()):
+        return None
+    prefix = "" if not existing or existing.endswith("\n") else "\n"
+    try:
+        with path.open("a", encoding="utf-8", newline="") as handle:
+            handle.write(f"{prefix}{IGNORE_RULE}\n")
+    except OSError as error:
+        # The capture is already on disk. This is a sentence, not a failure.
+        return f"could not add {IGNORE_RULE} to {path}: {error}"
+    return None
 
 
 def _repointed(argv: list[str], root: Path) -> list[str]:

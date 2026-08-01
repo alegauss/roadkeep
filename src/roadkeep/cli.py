@@ -45,7 +45,7 @@ from roadkeep.adopting import Estimate, adopt, init
 from roadkeep.authoring import add, amend, set_status
 from roadkeep.backlog import Backlog
 from roadkeep.briefing import Brief, brief, non_goals
-from roadkeep.capturing import PARTS, body, capture, check, handoff, offer, replay
+from roadkeep.capturing import PARTS, body, capture, check, handoff, keep, offer, replay
 from roadkeep.config import Config, ConfigError
 from roadkeep.counting import Census
 from roadkeep.document import Document, Entry, Reject, RoundTripError
@@ -2480,6 +2480,13 @@ def _report(config: Config, args: argparse.Namespace) -> int:
     found = capture(
         args.symptom, args.why, args.block, argv, config.root, embed=args.embed
     ).without(*args.without)
+    # Written before it is printed (RK89): what only exists on a stdout depends on the
+    # caller taking a second step, and this block's own RK86 is the record of second steps
+    # not being taken. On stderr, so `--json` and `--issue` stay pipeable.
+    kept = keep(found, config.root)
+    print(f"kept  {kept.path}", file=sys.stderr)
+    if kept.complaint:
+        print(f"roadkeep: {kept.complaint}", file=sys.stderr)
     if args.json:
         print(json.dumps(found.as_dict(), indent=2, ensure_ascii=False))
         return EXIT_OK

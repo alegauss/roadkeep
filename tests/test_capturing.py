@@ -28,13 +28,16 @@ from __future__ import annotations
 
 import ast
 import io
+import json
 from pathlib import Path
 
 import pytest
 
 from roadkeep.capturing import (
     HOME,
+    IGNORE_RULE,
     PARTS,
+    REPORTS,
     Capture,
     Failure,
     _tail,
@@ -42,11 +45,12 @@ from roadkeep.capturing import (
     capture,
     check,
     handoff,
+    keep,
     observe,
     offer,
 )
-from roadkeep.provenance import engine
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
+from roadkeep.provenance import engine
 
 ROADMAP = "docs/ROADMAP.md"
 
@@ -377,7 +381,11 @@ def test_a_capture_goes_nowhere_by_default(tmp_path, capsys):
     code = main(["-C", str(root), "report", "--symptom", SYMPTOM, "--why", WHY, "--", "lint"])
     out, err = capsys.readouterr()
     assert code == EXIT_OK
-    assert "roadkeep capture" in out and "gh issue" not in out and err == ""
+    assert "roadkeep capture" in out and "gh issue" not in out
+    # RK89 keeps it, and RK87 still sends nothing: the two are not the same step. What is
+    # on disk is local, gitignored, and waiting for somebody to decide.
+    assert err.startswith(f"kept  {root / REPORTS}")
+    assert "gh issue" not in err
 
 
 def test_a_part_is_deleted_by_name_and_the_deletion_is_stated(tmp_path):
@@ -472,3 +480,116 @@ def test_a_command_declared_to_survive_a_broken_config_survives_a_broken_one(tmp
     code = main(["-C", str(tmp_path), "report", "--symptom", SYMPTOM, "--why", WHY, "--", "lint"])
     assert code == EXIT_OK
     assert "roadkeep capture" in capsys.readouterr().out
+
+
+# -- the capture survives the session that took it (RK89) ---------------------
+
+
+def test_a_capture_is_on_disk_before_it_is_printed(tmp_path):
+    """What exists only on a stdout depends on the caller taking a second step, and this
+    block's own RK86 is the record of second steps not being taken."""
+    root = project(tmp_path)
+    kept = keep(capture(SYMPTOM, WHY, "F", ["-C", str(root), "lint"], root), root)
+    assert kept.path.is_file()
+    assert kept.path.parent == root / REPORTS
+    assert json.loads(kept.path.read_text(encoding="utf-8"))["symptom"] == SYMPTOM
+
+
+def test_what_is_kept_is_what_was_produced(tmp_path):
+    """One artefact and one set of contents: the file on disk is the text that was read,
+    `--without` applied. A local copy that quietly held more would make the redaction a
+    thing the operator has to be told about twice."""
+    root = project(tmp_path)
+    found = capture(SYMPTOM, WHY, "F", ["-C", str(root), "lint"], root).without("config")
+    stored = json.loads(keep(found, root).path.read_text(encoding="utf-8"))
+    assert "config" not in stored and stored["omitted"] == ["config"]
+
+
+def test_two_captures_of_one_command_are_two_files(tmp_path):
+    root = project(tmp_path)
+    first = keep(capture(SYMPTOM, WHY, "F", ["lint"], root), root)
+    second = keep(capture("A different symptom entirely", WHY, "F", ["lint"], root), root)
+    assert first.path != second.path
+    assert len(list((root / REPORTS).glob("*.json"))) == 2
+
+
+def test_the_filename_names_the_command_that_failed(tmp_path):
+    """Asked of the parser, not guessed: the first non-flag word is the value of `-C` half
+    the time, and a filename naming a directory is a listing nobody can read."""
+    root = project(tmp_path)
+    kept = keep(capture(SYMPTOM, WHY, "F", ["-C", str(root), "lint"], root), root)
+    assert "-lint-" in kept.path.name
+
+
+# -- and the repository never has to see it ----------------------------------
+
+
+def test_git_is_told_to_ignore_the_directory(tmp_path):
+    root = project(tmp_path)
+    keep(capture(SYMPTOM, WHY, "F", ["lint"], root), root)
+    assert (root / ".gitignore").read_text(encoding="utf-8").splitlines() == [IGNORE_RULE]
+
+
+def test_a_rule_that_already_covers_it_is_left_alone(tmp_path):
+    """Append one line, only when absent. Reordering somebody's ignore rules to add one is
+    the write this tool refuses everywhere else."""
+    root = project(tmp_path)
+    (root / ".gitignore").write_text("node_modules/\n.roadkeep\n*.log\n", encoding="utf-8")
+    keep(capture(SYMPTOM, WHY, "F", ["lint"], root), root)
+    assert (root / ".gitignore").read_text(encoding="utf-8") == "node_modules/\n.roadkeep\n*.log\n"
+
+
+def test_nothing_already_there_is_reordered_or_rewritten(tmp_path):
+    root = project(tmp_path)
+    before = "# mine\nnode_modules/\n\n*.log\n"
+    (root / ".gitignore").write_text(before, encoding="utf-8")
+    keep(capture(SYMPTOM, WHY, "F", ["lint"], root), root)
+    after = (root / ".gitignore").read_text(encoding="utf-8")
+    assert after == before + f"{IGNORE_RULE}\n"
+
+
+def test_a_file_with_no_trailing_newline_does_not_get_a_glued_rule(tmp_path):
+    root = project(tmp_path)
+    (root / ".gitignore").write_text("node_modules/", encoding="utf-8")
+    keep(capture(SYMPTOM, WHY, "F", ["lint"], root), root)
+    assert (root / ".gitignore").read_text(encoding="utf-8") == f"node_modules/\n{IGNORE_RULE}\n"
+
+
+def test_keeping_the_capture_wins_over_teaching_git_about_it(tmp_path, monkeypatch):
+    """If `.gitignore` cannot be written, say so and keep the capture anyway: the evidence
+    is the point, and an unwritable ignore file is a sentence, not a failure."""
+    root = project(tmp_path)
+
+    opened = Path.open
+
+    def refuse(self, *args, **kwargs):
+        if self.name == ".gitignore":
+            raise OSError("read-only file system")
+        return opened(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "open", refuse)
+    kept = keep(capture(SYMPTOM, WHY, "F", ["lint"], root), root)
+    assert kept.path.is_file()
+    assert "could not add" in kept.complaint
+
+
+def test_the_command_says_where_it_kept_it_on_stderr(tmp_path, capsys):
+    """stderr, so `--json` and `--issue` stay pipeable."""
+    root = project(tmp_path)
+    main(["-C", str(root), "report", "--json", "--symptom", SYMPTOM, "--why", WHY, "--", "lint"])
+    out, err = capsys.readouterr()
+    assert json.loads(out)["symptom"] == SYMPTOM
+    assert "kept  " in err and str(REPORTS) in err
+
+
+def test_there_is_no_flag_for_not_keeping_it(tmp_path):
+    """Unconditional. A capture nobody pruned costs kilobytes; a capture nobody kept costs
+    the only session that could have identified the defect."""
+    from roadkeep.cli import build_parser
+
+    flags = {
+        option
+        for action in build_parser()._subparsers._group_actions[0].choices["report"]._actions
+        for option in action.option_strings
+    }
+    assert not {"--no-keep", "--keep", "--dry-run"} & flags

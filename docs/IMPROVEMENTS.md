@@ -241,26 +241,3 @@ So the answer is not a `roadkeep.toml` here. A config whose every read is zero c
 governance it does not have, which is the drift this tool exists to refuse.
 
 ## Block F — The plugin
-
-### §RK89 Persist first, curate later
-
-Evidence that exists for the length of one stdout depends on the caller taking a second
-step, and RK86 is the record of second steps not being taken. So the capture is written
-before it is printed: `.roadkeep/reports/` in the project where the failure happened,
-one file per capture, unconditional.
-
-This crosses a boundary worth naming. The tool owns four files in an adopting repository
-and this is a fifth path — but it is a fifth path the repository never has to see,
-because the same run appends it to `.gitignore` when no rule already covers it. Nothing
-enters anybody's history, nothing appears in a diff, nothing has to be explained to a
-reviewer who did not install this. The rules that keep that true: append one line, only
-when absent, never reorder or rewrite what is there, and if the file cannot be written,
-say so and keep the capture anyway. `.gitignore` is not governed and never round-trips,
-so it is read to decide and appended to, never rendered.
-
-Retention is deliberately unsolved. Rotation, dedup by argv, an age limit, a command
-listing what was never sent — all of it is easier to add to a directory that already has
-files in it than to reconstruct from sessions that ended. A capture nobody pruned costs
-kilobytes; a capture nobody kept costs the only session that could identify the defect.
-Sending is still nobody's default: what lands here is local, and RK87 governs everything
-that leaves.
