@@ -6,7 +6,8 @@ was indistinguishable from a botched hand-edit. Two answers, tested here:
 * **`retire`** writes the record at the moment of the decision — one ledger line under the
   block it belonged to, carrying the forward pointer and never the design it replaced;
 * **`gaps`** resolves what was already lost against the commit that removed it, and says
-  *unresolvable* where history cannot answer rather than inventing a decision.
+  *unresolvable* where history cannot answer rather than inventing a decision — the third
+  answer, *never carried*, is a complete history's own and is tested in `test_history.py`.
 
 The third claim is the one that would rot silently: a retired id must **not** satisfy a
 dep. The ledger holds it, so any reading of "in the changelog" as "done" would let a
@@ -24,7 +25,7 @@ from roadkeep.backlog import Backlog, DepStatus, Readiness
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config, ConfigError
 from roadkeep.document import Document
-from roadkeep.history import gaps
+from roadkeep.history import gaps, searchable
 from roadkeep.markers import refresh
 from roadkeep.picking import pick
 from roadkeep.schema import DESIGNED, RETIRED, SHIPPED, Schema, SchemaError
@@ -269,11 +270,13 @@ def test_a_contiguous_backlog_has_no_gaps(tmp_path):
 
 def test_a_missing_id_is_a_gap_and_history_is_where_it_resolves(tmp_path):
     # tmp_path is not a repository, so the gap is *unresolvable* rather than retired —
-    # an absent answer, which is the answer RK28 insists on keeping distinct.
+    # an absent answer, which is the answer RK28 insists on keeping distinct. It is not
+    # "never carried" either: nothing was searched, so nothing was found out (RK95).
     config = project(tmp_path)  # RK1, RK4, RK7: 2, 3, 5, 6 are gaps
     found = gaps(config)
     assert [gap.id for gap in found] == ["RK2", "RK3", "RK5", "RK6"]
     assert all(not gap.resolved and gap.removed_in is None for gap in found)
+    assert not any(gap.never_carried for gap in found)
 
 
 def test_a_retired_id_stops_being_a_gap(tmp_path):
@@ -282,14 +285,20 @@ def test_a_retired_id_stops_being_a_gap(tmp_path):
     assert "RK4" not in [gap.id for gap in gaps(Config.discover(tmp_path))]
 
 
-def test_this_repositorys_own_gap_resolves_to_the_commit_that_removed_it():
-    # RK33 left before this command existed: the record is the commit subject, which is
-    # exactly the case `gaps` is for. If this repo ever has none, the assertion is moot.
-    found = gaps(Config.discover(HERE))
+def test_this_repositorys_own_gaps_are_each_accounted_for():
+    # Two shapes, and this repo has one of each: RK33 left before this command existed, so
+    # the record is the commit subject; RK80 was skipped when RK78-RK84 were allocated, so
+    # no commit ever carried it and none ever will. What must never happen is a third
+    # answer — a gap this checkout simply could not look up (RK95).
+    config = Config.discover(HERE)
+    if not searchable(config):
+        pytest.skip("a shallow clone cannot tell a skipped id from a removed one")
+    found = gaps(config)
     if not found:
         pytest.skip("this backlog has no gaps left")
-    assert all(gap.resolved for gap in found), [gap.id for gap in found if not gap.resolved]
-    assert any("retire" in gap.removed_in.subject for gap in found)
+    unaccounted = [gap.id for gap in found if not (gap.resolved or gap.never_carried)]
+    assert not unaccounted, unaccounted
+    assert any(gap.resolved and "retire" in gap.removed_in.subject for gap in found)
 
 
 # -- the commands ------------------------------------------------------------

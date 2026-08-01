@@ -623,8 +623,9 @@ def build_parser() -> argparse.ArgumentParser:
         help="ids in neither file, resolved against the commit that removed them",
         description=(
             "Every id below the highest that no line carries. Each resolves to the commit "
-            "whose message holds the decision, or to unresolvable when history cannot "
-            "answer — which is a different answer from 'retired', not a weaker one."
+            "whose message holds the decision, to 'never carried' when a complete history "
+            "mentions it nowhere, or to 'unresolvable' when there is no history to search "
+            "— three different answers from 'retired', none of them a weaker one."
         ),
     )
     gaps_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
@@ -2096,6 +2097,7 @@ def _gaps(config: Config, args: argparse.Namespace) -> int:
                     {
                         "id": gap.id,
                         "resolved": gap.resolved,
+                        "never_carried": gap.never_carried,
                         "removed_in": None
                         if gap.removed_in is None
                         else {
@@ -2116,13 +2118,18 @@ def _gaps(config: Config, args: argparse.Namespace) -> int:
         print("no gaps: every id below the highest is in one of the files")
         return EXIT_OK
     for gap in found:
+        if gap.never_carried:
+            print(f"  {gap.id:<6} never carried  the whole history mentions it nowhere")
+            continue
         if gap.removed_in is None:
-            print(f"  {gap.id:<6} unresolvable  no commit in history mentions it")
+            print(f"  {gap.id:<6} unresolvable  no history here to search")
             continue
         commit = gap.removed_in
         print(f"  {gap.id:<6} {commit.short}  {commit.date[:10]}  {commit.subject}")
     resolved = sum(1 for gap in found if gap.resolved)
-    print(f"{len(found)} gap(s), {resolved} resolved against history")
+    skipped = sum(1 for gap in found if gap.never_carried)
+    tail = f", {skipped} never carried" if skipped else ""
+    print(f"{len(found)} gap(s), {resolved} resolved against history{tail}")
     return EXIT_OK
 
 

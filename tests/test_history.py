@@ -19,8 +19,10 @@ from roadkeep.config import Config
 from roadkeep.history import (
     HistoryUnavailable,
     commits_touching,
+    gaps,
     git_available,
     origin_of,
+    searchable,
 )
 from roadkeep.schema import DESIGNED, SHIPPED
 
@@ -249,3 +251,73 @@ def test_no_repository_exits_two_with_the_reason(tmp_path, capsys):
     (tmp_path / "roadkeep.toml").write_text('prefix = "RK"\n', encoding="utf-8")
     assert main(["-C", str(tmp_path), "origin", "RK1"]) == EXIT_USAGE
     assert "no history" in capsys.readouterr().err
+
+
+# -- the two ways a gap holds no commit (RK95) -------------------------------
+
+
+def drop(config: Config, task_id: str, message: str) -> str:
+    """Take a line out of the roadmap and record it nowhere — the hand-edit RK32 is about."""
+    roadmap = config.path("roadmap")
+    roadmap.write_text(
+        "".join(
+            line
+            for line in roadmap.read_text(encoding="utf-8").splitlines(keepends=True)
+            if f"**{task_id}**" not in line
+        ),
+        encoding="utf-8",
+    )
+    return commit(config.root, message)
+
+
+def test_a_number_nothing_ever_carried_is_never_carried_and_not_unresolvable(tmp_path):
+    """RK80 in this repository's own backlog: six findings were filed under seven numbers.
+    No commit will ever mention it, and reporting that as 'history cannot answer' sends a
+    reader to look for a decision that was never taken."""
+    config = repo(tmp_path)
+    propose(config, "RK1", "docs: add RK1")
+    propose(config, "RK3", "docs: add RK3")  # RK2 was skipped when these were allocated
+    found = gaps(Config.discover(tmp_path))
+    assert [gap.id for gap in found] == ["RK2"]
+    assert found[0].never_carried and not found[0].resolved
+
+
+def test_a_line_that_left_resolves_and_is_not_called_never_carried(tmp_path):
+    config = repo(tmp_path)
+    propose(config, "RK1", "docs: add RK1")
+    propose(config, "RK2", "docs: add RK2")
+    propose(config, "RK3", "docs: add RK3")  # a gap is only a gap below the highest id
+    drop(config, "RK2", "docs: RK2 was a duplicate of RK1")
+    found = gaps(Config.discover(tmp_path))
+    assert [gap.id for gap in found] == ["RK2"]
+    assert found[0].resolved and not found[0].never_carried
+    assert found[0].removed_in.subject == "docs: RK2 was a duplicate of RK1"
+
+
+def test_a_shallow_clone_says_unresolvable_because_it_cannot_know(tmp_path):
+    """The distinction is a property of the checkout, not of the id: the same backlog in a
+    clone that cannot reach its root commit must answer nothing rather than 'never'."""
+    config = repo(tmp_path)
+    propose(config, "RK1", "docs: add RK1")
+    propose(config, "RK3", "docs: add RK3")
+    shallow = tmp_path.parent / f"{tmp_path.name}-shallow"
+    git(tmp_path, "clone", "--quiet", "--depth", "1", tmp_path.as_uri(), str(shallow))
+    assert not searchable(Config.discover(shallow))
+    found = gaps(Config.discover(shallow))
+    assert [gap.id for gap in found] == ["RK2"]
+    assert not found[0].never_carried and not found[0].resolved
+
+
+def test_a_directory_that_is_not_a_repository_is_not_searchable(tmp_path):
+    (tmp_path / "roadkeep.toml").write_text('prefix = "RK"\n', encoding="utf-8")
+    assert not searchable(Config.discover(tmp_path))
+
+
+def test_the_command_names_the_two_answers_apart(tmp_path, capsys):
+    config = repo(tmp_path)
+    propose(config, "RK1", "docs: add RK1")
+    propose(config, "RK3", "docs: add RK3")
+    assert main(["-C", str(tmp_path), "gaps"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "RK2    never carried" in out and "unresolvable" not in out
+    assert "1 gap(s), 0 resolved against history, 1 never carried" in out

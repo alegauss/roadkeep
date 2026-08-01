@@ -379,19 +379,29 @@ def origin_of(config: Config, task_id: str) -> Origin:
 class Gap:
     """An id that is in neither file, and the commit that took it out (RK32).
 
-    ``removed_in`` is None when history cannot answer — a squash, a shallow clone, a line
-    that never reached a commit. That prints as *unresolvable* and not as retired, on
+    ``removed_in`` is None for two unlike reasons, and RK95 is the record of them having
+    read alike. A history that **cannot** be searched — no git, no repository, a shallow
+    clone — answers nothing; a complete one that mentions the id nowhere answers that no
+    line ever carried it, which is the shape of a number skipped when a batch was
+    allocated. The first prints as *unresolvable* and the second as *never carried*, on
     RK28's reasoning: an absent answer and a negative one are different answers, and
-    collapsing them here would invent a decision nobody recorded.
+    collapsing them here would invent a decision nobody recorded — or deny one that was.
     """
 
     id: str
     number: int
     removed_in: Commit | None
+    #: Whether the log that came back empty was a log worth trusting.
+    searched: bool = False
 
     @property
     def resolved(self) -> bool:
         return self.removed_in is not None
+
+    @property
+    def never_carried(self) -> bool:
+        """Searched to the root commit and found nowhere: skipped, not removed."""
+        return self.removed_in is None and self.searched
 
 
 def gaps(config: Config) -> tuple[Gap, ...]:
@@ -405,14 +415,32 @@ def gaps(config: Config) -> tuple[Gap, ...]:
     that reached 40 says nothing about which `V##` are missing, and one range walked over
     the highest id anywhere would report every unreached number of every other track.
     """
+    searched = searchable(config)
     return tuple(
         gap
         for family in config.schema.prefixes
-        for gap in _gaps_in(config, family)
+        for gap in _gaps_in(config, family, searched)
     )
 
 
-def _gaps_in(config: Config, family: str) -> tuple[Gap, ...]:
+def searchable(config: Config) -> bool:
+    """Whether an empty `git log` here means *never* rather than *cannot tell* (RK95).
+
+    A missing git, a directory that is not a repository and a shallow clone all return
+    nothing for an id some commit does carry. Only a history that reaches its root commit
+    makes the absence of a hit a fact about the id instead of one about the clone.
+
+    Asked once per call and not per gap: it is a property of the checkout, and the answer
+    is what separates the two ways :class:`Gap` has of holding no commit.
+    """
+    try:
+        answer = _run(config.root, "rev-parse", "--is-shallow-repository").strip()
+    except HistoryUnavailable:
+        return False
+    return answer == "false"
+
+
+def _gaps_in(config: Config, family: str, searched: bool) -> tuple[Gap, ...]:
     from roadkeep.ids import highest  # here, because ids.py reads this module's config
 
     top = highest(config, family)
@@ -431,6 +459,7 @@ def _gaps_in(config: Config, family: str) -> tuple[Gap, ...]:
             id=f"{family}{number}",
             number=number,
             removed_in=_last_touching(config, f"**{family}{number}**"),
+            searched=searched,
         )
         for number in range(1, top.number + 1)
         if number not in recorded
