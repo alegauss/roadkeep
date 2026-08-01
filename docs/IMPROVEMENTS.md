@@ -75,7 +75,7 @@ already written, not authorship.
 
 ## Block A — The model
 
-### §RK90 A state between open and terminal
+### §RK96 A state between open and terminal
 
 The lifecycle has four doors and every one of them leaves to the ledger, which is
 terminal: a dep on a shipped line is satisfied, and a dep on a retired line is
@@ -127,16 +127,16 @@ abandonment.
 
 ### §RK93 A success that fails the gate
 
-Observed filing RK90-92 this session: three `add` calls each exited 0, and the very next
-`lint` failed with three `ref.unresolved`, one per line just written. Under `ref_scheme
-= "id"` the `→ §id` pointer is derived on every render and `lint` requires it resolve,
-but the section is a separate `section add`, so an `add` on its own can never leave a
-gate-clean tree. The follow-up was learned from the backstop rather than from the
-command that made it necessary, which is the exact inversion L1 exists to prevent: the
-write path should inform where the text is created, not leave the discovery to the gate.
-Options, none chosen here: `add` prints the required `section add <id>` the way a
-refusal names its command; or an `--section` reads both in one transaction; or the event
-line carries a `needs-section` flag a hook can act on. Worth reconciling with
+Observed filing RK91, RK92 and RK96 this session: three `add` calls each exited 0, and
+the very next `lint` failed with three `ref.unresolved`, one per line just written.
+Under `ref_scheme = "id"` the `→ §id` pointer is derived on every render and `lint`
+requires it resolve, but the section is a separate `section add`, so an `add` on its own
+can never leave a gate-clean tree. The follow-up was learned from the backstop rather
+than from the command that made it necessary, which is the exact inversion L1 exists to
+prevent: the write path should inform where the text is created, not leave the discovery
+to the gate. Options, none chosen here: `add` prints the required `section add <id>` the
+way a refusal names its command; or an `--section` reads both in one transaction; or the
+event line carries a `needs-section` flag a hook can act on. Worth reconciling with
 `_drop_section`'s rule that a task may ship without a section — true at ship, yet an
 open line under id-scheme cannot pass `lint` without one.
 
