@@ -125,6 +125,21 @@ cross the retired-never-reused non-goal: a deferred id was never retired, so it 
 reused — the same work keeps its own id, which is the whole point of a pause over an
 abandonment.
 
+### §RK93 A success that fails the gate
+
+Observed filing RK90-92 this session: three `add` calls each exited 0, and the very next
+`lint` failed with three `ref.unresolved`, one per line just written. Under `ref_scheme
+= "id"` the `→ §id` pointer is derived on every render and `lint` requires it resolve,
+but the section is a separate `section add`, so an `add` on its own can never leave a
+gate-clean tree. The follow-up was learned from the backstop rather than from the
+command that made it necessary, which is the exact inversion L1 exists to prevent: the
+write path should inform where the text is created, not leave the discovery to the gate.
+Options, none chosen here: `add` prints the required `section add <id>` the way a
+refusal names its command; or an `--section` reads both in one transaction; or the event
+line carries a `needs-section` flag a hook can act on. Worth reconciling with
+`_drop_section`'s rule that a task may ship without a section — true at ship, yet an
+open line under id-scheme cannot pass `lint` without one.
+
 ## Block C — Query
 
 ### §RK83 Ready is two different states
@@ -156,6 +171,20 @@ the moment the dep resumes. Without the distinction a deferred dep collapses one
 wrong ways: read as open, `pick` offers a task whose blocker nobody is working; read as
 unresolvable, `pick` buries a task that will unblock. It is the same honesty RK28 drew
 between blocked and blocked-outside, extended to the one state that is blocked-for-now.
+
+### §RK94 One commit, many tasks, one number
+
+Observed running `weight` this session to size these tasks. Cost is derived from the
+commit that wrote each ledger entry, which is right when one commit ships one task. But
+the initial history import, `4fc05f3`, wrote 47 entries at once, so `weight` attributed
+its whole size — 20963 lines, 87 files — to each of them, and every block's p25, median
+and p90 collapsed onto that one value. The summary the tool leads with, and the very
+number its description offers for judging whether a line is really two lines, then
+carries no signal; only the raw `weighed` list, read entry by entry, was usable. A
+commit that co-ships N entries should divide its size across them, or flag them as
+co-shipped so the percentiles can exclude the batch. This is not peculiar to this repo:
+any adopted project with a squashed import hits the same skew, which is RK77's adoption
+territory exactly.
 
 ## Block D — The gate
 
