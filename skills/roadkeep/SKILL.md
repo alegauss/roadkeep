@@ -35,7 +35,11 @@ either is written — and an `add` without it answers with the `section add` tha
 pointer it just created, rather than leaving the gate to say so. `ship <id>` makes
 its three edits (ledger entry, roadmap line gone, `§<id>` deleted) plus the dependents'
 annotations, or none, and `retire <id> [--superseded-by <id>] --reason "…"` is the same
-transaction, two more doors. **Half of it landing is a third answer, not a full ship
+transaction, two more doors. **`ship <id>` is also how one that stopped halfway is finished**:
+the ledger is written first, so a crash leaves the id in two files (`lint` says `id.two-files`)
+and re-running `ship` closes the line without writing a second entry. It refuses instead where
+the files say the work is in halves — a ⏳ line or an entry naming one — or where the line and
+the entry describe different work, which is two tasks sharing an id and `renumber`'s to fix. **Half of it landing is a third answer, not a full ship
 with a hedge in the sentence**: `ship <id> --part "<which half>"` records the entry as
 `✅ **<id> (which half)**` and *leaves the line open* at ⏳ with its section intact, and the
 later `ship <id>` completes it — replacing that entry in place and dropping the qualifier,

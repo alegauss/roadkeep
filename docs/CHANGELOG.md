@@ -61,6 +61,7 @@
 - ✅ **RK126** **Corruption inside a ledger entry is reported by lint and repairable by no verb** — `lint --fix` deletes every codepoint that is not text wherever it sits, including lines no parse reaches; a Zs that renders as a space and a rejected bullet stay the author's.
 - ✅ **RK127** **record drop assumes a duplicate is redundant, and picks the later entry either way** — `record drop` refuses two entries that do not say the same thing, and `record renumber --line` gives one of two deliveries its own address without moving it.
 - ✅ **RK129** **Retiring a task whose half already shipped deletes the record that it did** — The completion path is a ship's alone: a retirement against a task whose half the ledger records is refused, so the sentence about what landed is not deleted silently.
+- ✅ **RK130** **A transaction that stopped after its ledger write can be finished by no command** — `ship` reads the ledger side too, so an entry for a still-open line closes it — unless the files say the work is in halves, or the two describe different work.
 
 ## Block C — Query
 

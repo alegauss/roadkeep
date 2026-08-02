@@ -118,31 +118,6 @@ as one. RK122 is the same question one file up.
 
 ## Block B — Authoring
 
-### §RK130 The middle state is loud, and has no door
-
-RK118 ordered a departure's three writes so that every state a crash can leave is loud
-and lossless: the ledger goes first, so stopping after it puts the id in two files,
-which `lint` reports as `id.two-files`. Nothing is lost and the gate names it. What
-RK118 did not establish is a way out.
-
-Three commands look like the way out and none of them is. `ship` sees an entry the
-ledger already holds and raises `AlreadyRecorded`. `Closure` (RK62) exists for exactly
-this shape and is unreachable, because `_already_recorded` requires the roadmap line to
-carry ✅ or 🗑 — the marker that says it was already treated as gone — and a line a crash
-left behind still carries 📋. `record drop` refuses unless the id is recorded **twice**,
-which it is not.
-
-So the author is left with the edit the hook denies, on the file the tool exists to own.
-That is the shape of every defect in Block B: a state the tool can produce and cannot
-undo.
-
-The condition to widen is `_already_recorded`'s, and widening it is not free — its
-current narrowness is what stopped `ship` from closing Shio's live `⏳ SH238` and
-deleting a real task with a 224-word section. What separates the two is the *ledger*
-side rather than the roadmap's: an entry written by this tool for a line still open is a
-leftover, and an entry naming a half is not. Which is the distinction RK121 just made
-representable.
-
 ### §RK141 Opening a block is a door with no key
 
 Measured in Claude Code Tray, shipping the first task of a new block. `ship T179`

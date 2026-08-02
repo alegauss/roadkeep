@@ -42,6 +42,17 @@ verbatim, and a `why` whose derived prefix names the replacement so the pointer 
 and written at the moment of the decision. Never the design it replaced — an accreting
 rationale file is the 539 KB this project exists to refuse.
 
+**And the way out of the middle of one** (RK130). RK118 ordered a departure's three writes
+so that every state a crash can leave is loud and lossless — the ledger first, so stopping
+after it puts the id in two files and `lint` says so — and established no way out: `ship`
+refused the id, :class:`Closure` wanted a marker the abandoned line does not carry, and
+`record drop` wants a second entry. So the only exit was the edit the hook denies, on the
+file this tool exists to own. :func:`_already_recorded` now reads the **ledger** side as well:
+an entry for a line still open is a leftover unless the files say it is a live partial — a ⏳
+line, or an entry naming a half. What that widening opened is refused rather than guessed: an
+interrupted transaction wrote its entry from the line, so two that describe different work are
+two tasks sharing an id, and `renumber` is their repair.
+
 **A fourth door starts nowhere** (RK41). All three above begin from an open roadmap line,
 so work that was finished before it was ever planned — a defect found on the way to
 something else, fixed, real, shipped — has no route into the ledger except a fictitious
@@ -100,6 +111,7 @@ __all__ = [
     "Closure",
     "Corrected",
     "Departure",
+    "Divergent",
     "Dropped",
     "NoQualifier",
     "NoRestatement",
@@ -161,6 +173,31 @@ class NoRestatement(ValueError):
             f"{task_id} is already recorded as {recorded.task.status} at line "
             f"{recorded.lineno}, so this call only closes its roadmap line: --why restates "
             f"the ledger's sentence, and the ledger is not written here"
+        )
+
+
+class Divergent(ValueError):
+    """A roadmap line and a ledger entry for one id that describe different work (RK130).
+
+    The reading that opened when closing a still-open line became possible. A transaction
+    that stopped after its ledger write wrote that entry **from** this line, so the two state
+    the same symptom; two that do not are two tasks that were never one — the merge RK97 is
+    about, where one branch shipped under an id another branch had spent.
+
+    Closing that would delete a roadmap line and its rationale section on the strength of an
+    entry describing something else, which is a loss no crash caused. `renumber` is the
+    repair, and it is the one this refusal names.
+    """
+
+    def __init__(
+        self, task_id: str, roadmap: str, line: int, ledger: str, entry: int
+    ) -> None:
+        self.task_id = task_id
+        super().__init__(
+            f"{roadmap}:{line} and {ledger}:{entry} both carry {task_id} and describe "
+            f"different work: an interrupted transaction writes its entry from the line, so "
+            f"the two would match — these are two tasks sharing an id, and "
+            f"`roadkeep renumber {task_id}` gives the open one an address of its own"
         )
 
 
@@ -1012,25 +1049,57 @@ def _others_pointing(config: Config, anchor: str, leaving: str) -> tuple[str, ..
 
 
 def _already_recorded(config: Config, task_id: str) -> Entry | None:
-    """The ledger entry this roadmap line was left behind by — three conditions, not two.
+    """The ledger entry this roadmap line was left behind by, or None if it is not one.
 
-    A ledger entry and a roadmap line for one id is *two* different situations, and only one of
-    them is a leftover. The roadmap line has to carry a marker the roadmap may not carry —
-    ✅ or 🗑 — because that is what says the line was already treated as gone. A line with a
-    legal open marker is a live task whose id the ledger also mentions: Shio's `⏳ SH238` names
-    the half that has not shipped, and closing it deleted a real task and a 224-word section
-    until this condition was added. That case stays :class:`AlreadyRecorded`, and `lint`'s
-    `id.two-files` is what reports it, because deciding whose id it is belongs to the author.
+    A ledger entry and a roadmap line for one id is *several* different situations, and only
+    some of them are a leftover. Two answers, read off two different sides:
+
+    * **The roadmap's** (RK62). A line carrying a marker the roadmap may not carry — ✅ or 🗑
+      — was already treated as gone, which is the shape adoption produces: a project that
+      moved a task to its changelog by hand and left a pointer behind.
+    * **The ledger's** (RK130). RK118 ordered a departure's writes so the ledger goes first,
+      which makes stopping between them *loud and lossless* — `id.two-files` names it — and
+      left no way out: `ship` refused the id, this function's roadmap-side condition did not
+      match a line still marked 📋, and `record drop` wants a second entry. So an entry for a
+      line that is still open is a leftover **unless the files say it is a live partial**,
+      which is the distinction RK121 made representable: a ⏳ line, or an entry naming a
+      half. Shio's `⏳ SH238` is the first of those and stays :class:`AlreadyRecorded` — the
+      case where widening this cost a real task and a 224-word section.
+
+    And a refusal, because widening it opened one more reading. An interrupted transaction
+    wrote its entry **from this line**, so the two state the same symptom; two that do not are
+    two tasks sharing an id (RK97), and closing one of them would delete work no crash
+    touched. Compared only where the ledger carries a symptom at all: a file with no such
+    slot holds no fact to tell them apart, and the marker and the qualifier are then the whole
+    of what the files say.
     """
     if not config.has("changelog") or not config.path("changelog").is_file():
         return None
     open_line = config.document("roadmap").by_id().get(task_id)
     if open_line is None:
         return None
-    schema = config.schema
-    if open_line.task.status not in (schema.shipped_marker, schema.retired_marker):
+    ledger = config.document("changelog")
+    recorded = ledger.by_id().get(task_id)
+    if recorded is None:
         return None
-    return config.document("changelog").by_id().get(task_id)
+
+    schema = config.schema
+    if open_line.task.status in (schema.shipped_marker, schema.retired_marker):
+        return recorded
+    if open_line.task.status == PARTIAL or recorded.task.part:
+        return None
+    if (
+        ledger.schema.symptom_field
+        and open_line.task.symptom != recorded.task.symptom
+    ):
+        raise Divergent(
+            task_id,
+            config.relative(config.path("roadmap")),
+            open_line.lineno,
+            config.relative(config.path("changelog")),
+            recorded.lineno,
+        )
+    return recorded
 
 
 def _close(config: Config, task_id: str, recorded: Entry) -> Closure:

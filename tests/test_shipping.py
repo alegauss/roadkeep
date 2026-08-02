@@ -27,6 +27,7 @@ from roadkeep.linting import lint
 from roadkeep.schema import PARTIAL, Schema, SchemaError
 from roadkeep.sections import SectionOccupied
 from roadkeep.shipping import (
+    Divergent,
     PartRecorded,
     AlreadyShipped,
     Closure,
@@ -885,3 +886,112 @@ def test_the_command_refuses_with_two_and_writes_nothing(tmp_path, capsys):
     assert code == EXIT_USAGE
     assert "already records" in capsys.readouterr().err
     assert files(Config.discover(tmp_path)) == before
+
+
+# -- the middle of a transaction has a door (RK130) ---------------------------
+
+#: What a crash between the ledger write and the roadmap write leaves: the entry the
+#: departure wrote, and the line it wrote it from, still open and still 📋.
+INTERRUPTED = f"""# Shipped
+
+## Block A — The model
+
+{SHIPPED_RK1}
+
+## Block B — Authoring
+"""
+
+
+def test_a_stopped_transaction_is_finished_by_the_command_that_started_it(tmp_path):
+    # RK118 made the middle state loud and lossless and left no way out: `ship` refused the
+    # id, `Closure` wanted a marker the line does not carry, `record drop` wants a second
+    # entry — so the only exit was the edit the hook denies.
+    config = project(tmp_path, changelog=INTERRUPTED)
+    # `deps.stale` rides along: RK2 and RK3 name RK1, whose annotation the write that never
+    # happened would have derived. Both are what the middle state is meant to look like.
+    assert {f.code for f in lint(config).findings} == {"id.two-files", "deps.stale"}
+
+    closed = ship(config, "RK1")
+    closed.save()
+
+    assert isinstance(closed, Closure)
+    assert closed.marker == "✅" and closed.recorded.lineno == 5
+    roadmap, ledger, improvements = files(Config.discover(tmp_path))
+    assert RK1 not in roadmap  # the write that never happened
+    assert ledger == INTERRUPTED  # and the one that did is not repeated
+    assert "§RK1 A first design" not in improvements
+    assert lint(Config.discover(tmp_path)).clean
+
+
+def test_a_retirement_that_stopped_is_finished_the_same_way(tmp_path):
+    # Which door the ledger recorded is the entry's to say, and `ship` is the verb for
+    # "finish this": a 🗑 leftover closes to a 🗑, not to a second claim.
+    retired = INTERRUPTED.replace(
+        SHIPPED_RK1, "- 🗑 **RK1** **A first symptom** — abandoned: Nobody will do it."
+    )
+    config = project(tmp_path, changelog=retired)
+    closed = ship(config, "RK1")
+    closed.save()
+
+    assert closed.marker == "🗑"
+    assert read(config, CHANGELOG) == retired
+    assert RK1 not in read(config, ROADMAP)
+
+
+def test_a_live_partial_is_still_not_a_leftover(tmp_path):
+    # The case that cost a real task and a 224-word section: an open line whose id the
+    # ledger also mentions is a live task where the marker says the work is in halves.
+    config = project(
+        tmp_path,
+        roadmap=BACKLOG.replace("- 📋 **RK1**", "- ⏳ **RK1**"),
+        changelog=INTERRUPTED,
+    )
+    with pytest.raises(AlreadyShipped):
+        ship(config, "RK1")
+    assert "⏳ **RK1**" in read(config, ROADMAP)
+    assert "§RK1 A first design" in read(config, IMPROVEMENTS)
+
+
+def test_an_entry_naming_a_half_is_completed_and_never_closed(tmp_path):
+    # The other half of the same distinction, read off the ledger: a project that declares
+    # no ⏳ leaves the line's own marker, so the qualifier is what says it is a partial.
+    config = project(
+        tmp_path,
+        changelog=INTERRUPTED.replace(
+            "**RK1**", "**RK1 (local half)**"
+        ),
+    )
+    completed = ship(config, "RK1", why="All of it landed.")
+    completed.save()
+
+    ledger = read(config, CHANGELOG)
+    assert ledger.count("**RK1") == 1 and "local half" not in ledger
+    assert "All of it landed." in ledger
+
+
+def test_two_tasks_sharing_an_id_are_refused_rather_than_closed(tmp_path):
+    # What widening the condition opened: an interrupted transaction wrote its entry *from*
+    # the line, so the symptoms match — two that do not are the merge RK97 is about, and
+    # closing one would delete work no crash touched.
+    config = project(
+        tmp_path,
+        changelog=INTERRUPTED.replace("A first symptom", "What the other branch shipped"),
+    )
+    before = files(config)
+    with pytest.raises(Divergent) as caught:
+        ship(config, "RK1")
+    assert "renumber RK1" in str(caught.value)
+    assert files(Config.discover(tmp_path)) == before
+
+
+def test_a_restatement_is_refused_on_the_path_that_writes_no_entry(tmp_path):
+    config = project(tmp_path, changelog=INTERRUPTED)
+    with pytest.raises(NoRestatement):
+        ship(config, "RK1", why="A sentence with nowhere to go.")
+
+
+def test_the_command_says_the_ledger_already_held_it(tmp_path, capsys):
+    project(tmp_path, changelog=INTERRUPTED)
+    assert main(["-C", str(tmp_path), "ship", "RK1"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "RK1" in printed and "✅" in printed
