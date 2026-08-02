@@ -57,10 +57,19 @@ Every write prints one `event <id> Block <x> open|empty` line, the whole payload
 hook gets — a non-goal excepted, having neither an id nor a block. There is no second route: `Edit` on a governed file is denied, naming the command,
 and `lint` gates the turn's end.
 
+**An id is an address, and a merge can spend one twice.** `renumber <id> [--to <new>]` moves
+the line, the `§<id>` section its pointer resolves to and every dep naming it, in one
+transaction — the destination derived in the line's own family unless you name one, and refused
+if any source already mentions it. The ledger is never opened, so the id the other branch
+recorded stays theirs; the deps it moved are **named in the answer**, because which of two
+collided ids a dep meant is the one thing the files do not say. `ship` and `retire` are wrong
+here: both write a terminal entry for work nobody cancelled.
+
 That leaves the two rules a schema cannot check:
 
 `amend <id>` corrects an existing line's `why`, `--dep` group or `--ref` — the fields that are a
-fact or a compression — and never its `symptom`, which is the claim the line is. That is the door
+fact or a compression — and never its `symptom`, which is the claim the line is, or its `id`,
+which is what `renumber` is for. That is the door
 a project adopting the tool needs; a greenfield one rarely calls it.
 
 1. **`symptom` states what does not work** — never a solution name: a line named after its fix

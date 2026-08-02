@@ -59,6 +59,7 @@ from roadkeep.ids import highest, next_id
 from roadkeep.linting import Finding, Report, lint
 from roadkeep.picking import Choice, pick
 from roadkeep.provenance import engine
+from roadkeep.renumbering import renumber
 from roadkeep.schema import SchemaError
 from roadkeep.scoping import add as add_non_goal
 from roadkeep.scoping import drop as drop_non_goal
@@ -307,6 +308,25 @@ def build_parser() -> argparse.ArgumentParser:
     )
     amend_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     amend_parser.set_defaults(handler=_amend)
+
+    renumber_parser = subcommands.add_parser(
+        "renumber",
+        help="move one open line to a free id, with its section and its dependents",
+        description=(
+            "Change one line's address, without a departure. The line, the section its "
+            "pointer resolves to and every dep naming it move in one transaction; the "
+            "ledger is never opened, because an id it records is a decision and not an "
+            "address. This is the repair a merge that allocated one id twice needs, and "
+            "the door `ship`, `retire` and `amend` all deliberately refuse to be."
+        ),
+    )
+    renumber_parser.add_argument("id", help="the line to move, e.g. RK90")
+    renumber_parser.add_argument(
+        "--to",
+        help="the new id (default: derived, one past the highest in the line's family)",
+    )
+    renumber_parser.add_argument("--json", action="store_true", help="every edit, as data")
+    renumber_parser.set_defaults(handler=_renumber)
 
     ship_parser = subcommands.add_parser(
         "ship",
@@ -1275,6 +1295,59 @@ def _amend(config: Config, args: argparse.Namespace) -> int:
     print(f"  {amended.rendered}")
     if amended.refreshed:
         print(f"  derived  {', '.join(amended.refreshed)} (dep annotations re-derived)")
+    return EXIT_OK
+
+
+def _renumber(config: Config, args: argparse.Namespace) -> int:
+    try:
+        moved = renumber(config, args.id, args.to)
+        moved.save()
+    except (RoundTripError, KeyError, ValueError, OSError) as error:
+        return _refused(error)
+
+    where = config.relative(config.path(moved.role))
+    prose = config.relative(config.path("improvements")) if config.has("improvements") else ""
+    # Read back when this write did not touch the roadmap — a line moved in the deferred
+    # store still owes the same event line (RK38), and the file is already saved.
+    event = _event(
+        moved.to,
+        moved.entry.task.block,
+        moved.documents.get("roadmap") or config.document("roadmap"),
+    )
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "id": moved.task_id,
+                    "to": moved.to,
+                    "role": moved.role,
+                    "file": where,
+                    "line": moved.lineno,
+                    "rendered": moved.rendered,
+                    "section": None
+                    if moved.section is None
+                    else _section_json(moved.section, prose),
+                    # The lines this write changed on the author's behalf, because which
+                    # of two collided ids a dep meant is not a fact any file holds.
+                    "moved": list(moved.moved),
+                    "refreshed": list(moved.refreshed),
+                    "files": sorted(config.relative(config.path(role)) for role in moved.documents),
+                    "event": event,
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+
+    print(f"{moved.task_id} → {moved.to}  {where}:{moved.lineno}")
+    print(f"  {moved.rendered}")
+    if moved.section is not None:
+        print(f"  section  §{moved.to} → {prose}:{moved.section.first}")
+    if moved.moved:
+        print(f"  deps     {', '.join(moved.moved)} now name {moved.to} — confirm each meant this line")
+    if moved.refreshed:
+        print(f"  derived  {', '.join(moved.refreshed)} (dep annotations re-derived)")
+    _print_event(event, "  ")
     return EXIT_OK
 
 

@@ -1,0 +1,279 @@
+"""The id two branches spent on different work, moved without a departure (RK97).
+
+Measured here: a branch filed five ids while main shipped a different task under the
+first of them, and the merge left both. `lint` named it at once — `id.two-files`, because
+open and recorded-as-gone are not both true — and then no command could act on it. `ship`
+and `retire` are the only doors that take a line out of the roadmap, and each writes a
+*terminal* ledger entry, which is the wrong record for work nobody cancelled; `amend`
+reaches the `why`, the deps and the ref, and deliberately not the id. So the only repair
+was a hand-edit of the line, its pointer and its section heading, in the files the guard
+(RK22) exists to keep hands out of.
+
+This is the door that leaves the work open. An id is an address, and a collision is two
+lines claiming one — so the move is an address change and nothing else:
+
+* **The whole address, or none of it.** The line, the `§id` heading its pointer resolves
+  to, and every `(deps: …)` naming it change in one transaction, validated before any file
+  is touched. A renumber that wrote the line and not the section would leave the pointer
+  dangling, which is the state RK93 exists to prevent one verb over.
+* **The destination is derived unless it is given.** `next_id` in the line's own family
+  (RK74) is the answer the repair usually wants, and a given one is refused if *anything*
+  mentions it — the same :func:`~roadkeep.authoring.refuse_reuse` `add` calls, because a
+  free id is one question with one answer (RK4).
+* **The ledger is never opened.** The id the other branch spent stays spent: it is a
+  decision already recorded, and renumbering history is how a `git log -S` starts
+  returning two unrelated designs.
+
+What it cannot know, and therefore reports: **which line a dep meant**. After the merge
+both RK90s existed, so a `(deps: RK90)` elsewhere in the backlog was written about one of
+them and nothing in the files says which. Every dep on the old id is moved with the line —
+that is what a dependent of *this* task needs — and every line that happened to is named
+in the answer, because the one the author has to reconsider is a line they can only
+reconsider if they are told it changed. Refusing instead would leave the repair a
+hand-edit, which is the defect.
+
+Nothing here crosses the id-scheme non-goal. Non-contiguity is a property of real backlogs
+and stays one: the old number is not reclaimed, not filled and not reused — it is left to
+the line that already had it.
+"""
+
+from __future__ import annotations
+
+from collections.abc import Mapping
+from dataclasses import dataclass, field, replace
+
+from roadkeep.authoring import refuse_reuse
+from roadkeep.backlog import Backlog, NotOpen
+from roadkeep.config import Config
+from roadkeep.document import Document, Entry
+from roadkeep.ids import id_scanner, next_id
+from roadkeep.markers import refresh
+from roadkeep.sections import Section, find, heading_of
+
+__all__ = ["NotAnId", "Renumbering", "SameId", "renumber"]
+
+#: The files whose unit is a line, in the order a lookup asks them. The deferred store is
+#: one (RK96): a paused line carries an id like any other, and a collision does not wait.
+LINE_ROLES = ("roadmap", "deferred")
+
+
+class NotAnId(ValueError):
+    """A destination the format cannot read as an id.
+
+    Refused before anything is written, because an unreadable id is worse than the
+    collision it was meant to repair: nothing resolves a dep against it, `next_id` cannot
+    see it, and the line is invisible to every scan (RK4).
+    """
+
+    def __init__(self, wanted: str, pattern: str) -> None:
+        self.wanted = wanted
+        super().__init__(
+            f"{wanted!r} is not an id this project can read ({pattern}): the move needs "
+            f"an address, and omitting one derives the next in the line's own family"
+        )
+
+
+class SameId(ValueError):
+    """A move to the number the line already carries."""
+
+    def __init__(self, task_id: str) -> None:
+        self.task_id = task_id
+        super().__init__(
+            f"{task_id} already is that id: a renumber that changes nothing would still "
+            f"rewrite the file, and an untouched file with a moved mtime reads as an edit"
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class Renumbering:
+    """Every edit one line's change of address makes, as data, before it is written."""
+
+    task_id: str
+    to: str
+    #: Which line file held it — the roadmap, or the deferred store (RK96).
+    role: str
+    #: The line as it now reads, under its new id.
+    entry: Entry
+    #: The governed files this write leaves changed, by role. A mapping and not three
+    #: named fields, because *which* files are in it is a property of the project — a
+    #: deferred store is optional and a prose file may hold no section for this line.
+    documents: Mapping[str, Document] = field(default_factory=dict)
+    #: The heading that moved with the line, or None when the pointer had no section.
+    section: Section | None = None
+    #: Every line whose `(deps: …)` now names the new id. Named and never silent: which
+    #: of two collided ids a dep meant is the one thing this transaction cannot read.
+    moved: tuple[str, ...] = ()
+    #: Lines whose annotation this write made true again (RK8).
+    refreshed: tuple[str, ...] = ()
+
+    @property
+    def rendered(self) -> str:
+        return self.entry.raw
+
+    @property
+    def lineno(self) -> int:
+        return self.entry.lineno
+
+    def save(self) -> None:
+        """Write the files. Nothing here can fail on the format — that was decided."""
+        for document in self.documents.values():
+            document.save()
+
+
+def renumber(config: Config, task_id: str, to: str | None = None) -> Renumbering:
+    """Move one open line to a free id, with its section and its dependents.
+
+    `to` is derived when it is not given: one past the highest id in this line's own
+    family (RK74), which is the address a collision repair almost always wants. Given, it
+    is held to the same rule every minted id is — refused if any configured source
+    mentions it, including prose, because a number a document already names is a number
+    two designs would share in the history.
+
+    Refuses before writing anything: an id in neither line file, a destination the format
+    cannot read, a destination already spent, and any line the move would render over the
+    limit — a longer number is two more characters, and the cap is the cap.
+    """
+    schema = config.schema
+    documents = _line_documents(config)
+    role, entry = _locate(config, documents, task_id)
+    if to is None:
+        to = next_id(config, _family(config, task_id))
+    if to == task_id:
+        raise SameId(task_id)
+    if not schema.id_pattern().match(to):
+        raise NotAnId(to, schema.id_pattern().pattern)
+    refuse_reuse(config, to)
+
+    changed: dict[str, Document] = {}
+    # The pointer is the id under `ref_scheme = "id"` (RK27), so it moves with it; under
+    # an outline it names a heading this line does not own, and is left exactly as typed.
+    pointer = to if schema.ref_scheme == "id" and entry.task.ref else entry.task.ref
+    documents[role] = documents[role].replace_task(
+        entry, documents[role].schema.check(replace(entry.task, id=to, ref=pointer))
+    )
+    changed[role] = documents[role]
+
+    moved = _move_deps(documents, task_id, to)
+    changed.update({name: documents[name] for name in moved})
+
+    section = None
+    prose = _section_document(config, task_id, to) if entry.task.ref == task_id else None
+    if prose is not None:
+        changed["improvements"], section = prose
+
+    derived = ()
+    if "roadmap" in documents:
+        # Derived against the state this write creates, for the reason every other door
+        # does it (RK8): a dep that now names a different id is a dep whose cached marker
+        # was answered by the line that used to carry it.
+        refreshed = refresh(replace(Backlog.load(config), roadmap=documents["roadmap"]))
+        documents["roadmap"] = refreshed.document
+        derived = refreshed.changed
+        if derived:
+            changed["roadmap"] = refreshed.document
+
+    dependents = tuple(name for names in moved.values() for name in names)
+    return Renumbering(
+        task_id=task_id,
+        to=to,
+        role=role,
+        entry=next(e for e in documents[role].entries if e.task.id == to),
+        documents=changed,
+        section=section,
+        moved=dependents,
+        refreshed=tuple(n for n in derived if n != to and n not in dependents),
+    )
+
+
+def _move_deps(
+    documents: dict[str, Document], task_id: str, to: str
+) -> dict[str, tuple[str, ...]]:
+    """Rewrite every `(deps: <old>)` to the new id, in place, by file. Refuses first.
+
+    Which lines those are is read once, before any of them is rewritten: `replace_task`
+    re-parses, so an entry held across an edit is one whose line number may already have
+    moved — the same care every mutator in :mod:`roadkeep.document` takes.
+    """
+    out: dict[str, tuple[str, ...]] = {}
+    for name, document in documents.items():
+        dependents = tuple(
+            e.task.id for e in document.entries if task_id in e.task.dep_ids
+        )
+        for dependent in dependents:
+            current = next(e for e in documents[name].entries if e.task.id == dependent)
+            rewritten = replace(
+                current.task,
+                deps=tuple(
+                    replace(dep, id=to) if dep.id == task_id else dep
+                    for dep in current.task.deps
+                ),
+            )
+            documents[name] = documents[name].replace_task(
+                current, documents[name].schema.check(rewritten)
+            )
+        if dependents:
+            out[name] = dependents
+    return out
+
+
+def _line_documents(config: Config) -> dict[str, Document]:
+    """Every governed file whose unit is a line, loaded once and mutated in memory."""
+    return {
+        role: config.document(role)
+        for role in LINE_ROLES
+        if config.has(role) and config.path(role).is_file()
+    }
+
+
+def _locate(
+    config: Config, documents: Mapping[str, Document], task_id: str
+) -> tuple[str, Entry]:
+    """Which line file holds this id, and the line — the roadmap, or the store (RK96).
+
+    A paused line is still a line, so it is renumbered by the same door; the ledger is not
+    asked, because an id it records is a decision and not an address to move.
+    """
+    for role, document in documents.items():
+        entry = document.by_id().get(task_id)
+        if entry is not None:
+            return role, entry
+    raise NotOpen(
+        task_id,
+        ", ".join(config.relative(config.path(role)) for role in documents),
+        shipped=task_id in Backlog.load(config).shipped(),
+    )
+
+
+def _section_document(
+    config: Config, anchor: str, to: str
+) -> tuple[Document, Section] | None:
+    """The prose file with this section's heading re-addressed, or None if it has none.
+
+    Only the heading. The prose under it is the author's (L4), and a nested `§<id>.1` is
+    their own numbering — it travels with the subtree it is written inside, which is where
+    a reader already finds it.
+    """
+    if not config.has("improvements") or not config.path("improvements").is_file():
+        return None
+    document = config.document("improvements")
+    section = find(document, anchor)
+    if section is None:
+        return None
+    moved = replace(section, anchor=to)
+    return (
+        document.replace_line(section.first - 1, heading_of(document.schema, moved)),
+        moved,
+    )
+
+
+def _family(config: Config, task_id: str) -> str:
+    """Which track this id belongs to, read off the id itself (RK74).
+
+    Off the id and never off the block: a track is not a block, and the destination of a
+    move has to stay in the family the line was numbered in or the repair is a second
+    collision waiting for the next `next_id`.
+    """
+    match = id_scanner(config.schema.prefixes).match(task_id)
+    return match.group(1) if match else config.schema.prefix
+
+

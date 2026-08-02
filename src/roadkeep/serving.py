@@ -124,6 +124,11 @@ TOOLS: tuple[Tool, ...] = (
     ),
     Tool("status", ("id", "marker"), writes=True),
     Tool("amend", ("id", "why", "deps", "ref"), writes=True),
+    # The repair a merge needs, exposed for the reason it exists at all (RK97): the agent
+    # that hits a doubled id is the one the hook denies a hand-edit to, so a door only a
+    # human can reach is no door. `to` is offered because the derived answer is not always
+    # the wanted one — it is refused against every source either way.
+    Tool("renumber", ("id", "to"), writes=True),
     Tool("ship", ("id", "why"), writes=True),
     Tool("retire", ("id", "reason", "superseded_by"), writes=True),
     Tool("defer", ("id", "reason"), writes=True),

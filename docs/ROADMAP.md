@@ -24,8 +24,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK97** (deps: —) **an id two branches allocated to different work has no door that moves either line** — Only ship and retire take a line out of the roadmap and both write a terminal ledger entry, so the one repair a merge conflict needs is the hand-edit every other write path denies. → §RK97
-
 ## Block C — Query (consult without reading the file)
 
 - 💭 **RK83** (deps: —) **pick offers an idea when a designed task is ready** — The tiers rank by id and never by marker, so a caller asking to execute a block is handed the one task that still needs designing. → §RK83

@@ -65,6 +65,8 @@ LEDGER = """# Shipped
 ## Block A — The model
 """
 
+COLLIDED = "- 📋 **RK2** (deps: RK1) **A second symptom** — Because of a reason. → §RK2\n"
+
 DESIGN = """# Improvements
 
 ## Block A — The model
@@ -130,6 +132,9 @@ def test_the_tools_are_what_a_task_needs_end_to_end():
         "add",
         "status",
         "amend",
+        # The door a merge that spent one id twice needs (RK97) — beside `amend`, whose
+        # every other field it is, and which deliberately refuses this one.
+        "renumber",
         "ship",
         "retire",
         # The third and fourth doors a line leaves and returns by (RK91) — beside the two
@@ -262,6 +267,7 @@ def test_the_read_only_hint_says_which_tools_write(tmp_path):
         "add",
         "status",
         "amend",
+        "renumber",
         "ship",
         "retire",
         # The third and fourth doors a line leaves and returns by (RK91) — beside the two
@@ -333,6 +339,15 @@ def test_an_add_with_no_rationale_reports_the_follow_up_the_gate_would_find(tmp_
     )
     assert payload["needs"].startswith("section add RK2 --title")
     assert called(tmp_path, "lint")["isError"] is True
+
+
+def test_the_merge_repair_is_reachable_by_the_caller_the_hook_denies(tmp_path):
+    # The agent that hits a doubled id is exactly the one `Edit` is denied to (RK22), so a
+    # renumber only a terminal can run is a door that is closed where it is needed.
+    project(tmp_path, roadmap=CLEAN + COLLIDED, config=CONFIG + f'improvements = "{IMPROVEMENTS}"\n', improvements=DESIGN)
+    payload = json.loads(text_of(called(tmp_path, "renumber", id="RK1", to="RK9")))
+    assert payload["to"] == "RK9"
+    assert "**RK9**" in (tmp_path / ROADMAP).read_text(encoding="utf-8")
 
 
 def test_a_repeated_dep_arrives_as_the_array_the_schema_declares(tmp_path):

@@ -77,22 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK97 The merge the write path cannot repair
-
-Measured here, on 2026-08-01: a branch filed RK90-RK94 while main shipped a different
-RK90, and the merge left both. `lint` named it at once — `id.two-files`, open and
-recorded as gone are not both true — and then no command could act on it. `ship` and
-`retire` are the only doors that take a line out of the roadmap and each writes a
-terminal ledger entry, which is the wrong record for work nobody cancelled; `amend`
-reaches the why, the deps and the ref, and deliberately not the id. So the repair was
-three hand-edits (the line, its pointer, its section heading) plus two `amend --dep`
-calls, in the file the guard exists to keep hands out of. What the door has to be is
-open: a `renumber <id> <new-id>` moving the line, its `§id` section and every
-dependent's dep in one transaction, or a merge-aware `add` that refuses an id the other
-side of the history already spent. Neither crosses the id-scheme non-goal — the
-collision is not non-contiguity to be normalised, it is two lines claiming one address,
-which the format has never allowed.
-
 ## Block C — Query
 
 ### §RK83 Ready is two different states
