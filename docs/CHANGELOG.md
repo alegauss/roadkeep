@@ -26,6 +26,7 @@
 - ✅ **RK101** **An outline anchored by block letter declares no section, and one by block C declares one** — An outline anchor may begin with one uppercase letter and a dot, so a rationale numbered by its own block letters is read whole instead of at the headings the Latin alphabet happened to allow.
 - ✅ **RK106** **An id a live backlog spells the same way every time is refused as malformed** — `[ids] pad` and `[ids] suffix` declare the spelling, so Dumont's 9 findings and Turing's 4 go to 0 with no other finding moved — measured against both working trees.
 - ✅ **RK109** **The id's shape is declared once and read by two parsers that answer differently** — `Schema.parse_id` is the one parse the pattern and the ordering both derive from, and `id_order` is the one sort key three callers used to spell by hand.
+- ✅ **RK115** **Where a heading's region ends is re-derived at every call site, under two rules that already differ** — `Document.subtree_end` and `Document.prose_end` are the two rules named once, and the four loops over `headings` that spelled them are gone.
 
 ## Block B — Authoring
 

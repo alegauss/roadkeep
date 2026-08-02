@@ -561,17 +561,14 @@ def _after_preamble(document: Document, heading: Heading) -> int:
     """The line past the heading's own prose — 0-based, and the heading's own line when
     there is none, which is every block in this repository and was the whole rule (RK108).
 
-    *Own* is the boundary `section add` already draws one file over: any heading ends it,
-    because prose under a nested heading belongs to that heading and a line placed after
-    it would sit under the wrong one. Trailing blanks are not prose, so what comes back is
-    the blank that separates the paragraph from the block — which the caller then reads
-    exactly as it reads the blank after a bare heading.
+    *Own* is the boundary the document draws (RK115): any heading ends it, because prose
+    under a nested heading belongs to that heading and a line placed after it would sit
+    under the wrong one. Trailing blanks are not prose, so what comes back is the blank
+    that separates the paragraph from the block — which the caller then reads exactly as it
+    reads the blank after a bare heading.
     """
     start = heading.lineno  # 0-based: the line after the heading
-    end = next(
-        (later.lineno - 1 for later in document.headings if later.lineno > heading.lineno),
-        len(document.lines),
-    )
+    end = document.prose_end(heading)
     index = start
     for offset in range(start, end):
         if not blank(document.lines[offset]):

@@ -75,27 +75,6 @@ already written, not authorship.
 
 ## Block A — The model
 
-### §RK115 What a heading owns, answered four times
-
-Four call sites answer “where does this heading's region end”, under two different
-rules. `_span` and `_placement` in `sections.py` stop at the next heading of the **same
-or higher** level; `anchored` stops at the next heading of **any** level; and RK108
-added `_after_preamble` in `authoring.py`, which stops at any heading too.
-
-Each is right for what it asks. `find` returns a subtree because a drop deletes one;
-`anchored` returns own prose because a budget charges one paragraph; `_after_preamble`
-stops early because a task placed past a nested heading would read as that heading's.
-The rules are not in conflict. They are in four places, spelled as loops over
-`document.headings` rather than as a question the document answers.
-
-This is RK109's shape one structure over: declared once, read by parsers that answer
-differently. There it is the id; here it is what a heading owns. The cost is the same,
-and it is not hypothetical — this session added the fourth loop, and added it in the
-module that is not `document.py`, which agents.md names as the only reader of a file.
-
-Nothing is broken yet, which is why this is an idea and not a design. It is worth
-carrying because the next writer adds a fifth.
-
 ### §RK116 The file that moved under the writer
 
 `Document.load` reads a file whole and `save` writes it whole. Between those two calls a
@@ -267,6 +246,49 @@ and an insertion where a word changed. On a shipped entry the loss is worse, bec
 Whether it may also touch the block is the open question: an entry filed under the wrong
 block is a real mistake and moving it *is* a move, so that half may honestly belong to a
 separate verb rather than to a flag that pretends nothing happened.
+
+### §RK126 The ledger's unit is the entry, and the damage is smaller than that
+
+`lint` finds four line-level defects in Shio's ledger and describes them exactly: two
+`U+0008` control characters inside an entry's continuation line, an entry naming a file
+the repository no longer contains, a bullet with no `—` separator, and a duplicate id.
+Shio's own rationale calls them "corruption rather than prose, and `lint --fix` does not
+touch it" — which is true, and the reason is worth stating: **nothing can**.
+
+Every write verb takes a whole entry. `record add` appends one, `record drop` removes
+one, `ship` writes one from a roadmap line, `retire` writes a departure. The damage is a
+character inside an entry somebody wrote correctly two years ago, and the only
+expressible repair is to delete that entry and write it again — losing its position, and
+requiring whoever fixes a control character to retype 900 words of history.
+
+The guard makes it airtight: it denies `Edit` on the file, and the four commands its
+refusal names are the four above. A guard that says "call these instead" has to be right
+that one of them applies.
+
+The smallest honest shape is `lint --fix` growing the cases that need no judgement — an
+invisible control character has one correct reading, and a missing separator has one.
+The link and the duplicate need a decision and should stay reported.
+
+### §RK127 Two entries for one id are not always one entry twice
+
+`record drop` removes "the later of two ledger entries for one id", and the guard's own
+refusal text advertises it as the answer "when the ledger says it twice". That reading
+holds when a duplicate is a slip — the same work recorded again.
+
+Shio's `SH347` is the other kind. One entry records an unplanned fix (Spring's
+context-cache ceiling raised to 64 after an unrelated test failed) and ends by saying
+what it left open: *"the ceiling is silent"*. The other records exactly that, shipped
+later, with the test that made the ceiling visible. Two true entries, two different
+deliveries, one id — because the first was written by hand before `record add` existed
+to give unplanned work an id of its own.
+
+Dropping either destroys a delivery, and the verb picks the **later**, which here is the
+entry that actually earned the id from a roadmap line. Running it on this corpus
+produces the wrong file and reports success.
+
+What is missing is a way to say *this entry is different work*: a renumber for the
+ledger, the counterpart of the one the roadmap has. Related to RK121, and not the same —
+that one is a task in halves under one id, this one is two tasks that were never one.
 
 ## Block C — Query
 
@@ -490,3 +512,26 @@ rather than derived — and where a sub-letter is declared, deriving is not on o
 Narrowly, expose `id` only where the project declares a shape the counter cannot reach;
 bluntly, expose it always and let the two refusals do the work. Which is right is the
 open question, and the narrow one has the cost that a tool schema then varies by config.
+
+### §RK128 The boundary the guard defends has one side open
+
+`guard` reads a `PreToolUse` payload and denies a governed path with a refusal naming
+the verb to call instead. It matches on the tool: `Edit` and `Write` carry a
+`file_path`, so they are checked. `Bash` carries a `command`, and the payload is
+answered with silence.
+
+Verified against this project's own hook on Shio: an `Edit` payload naming
+`docs/CHANGELOG.md` is denied with the four-verb refusal; a `Bash` payload whose command
+writes the same path returns nothing at all. Any agent that reaches for `sed -i`, `python
+-c`, or a heredoc rewrites the ledger with no refusal, no record, and no lint until the
+`Stop` payload — which reports the damage as findings rather than preventing it.
+
+This is not an argument for parsing shell. It is an argument for the guard **saying**
+what it does not cover, because the refusal it prints reads as a boundary rather than as
+a filter over two tool names — and an agent told "roadkeep owns its writes" will believe
+it.
+
+Three options, cheapest first: name the gap in the refusal text; match a governed path
+appearing anywhere in a `Bash` command and deny on the suspicion, since a read is served
+by `brief` and `show` anyway; or let `Stop` compare the governed files against `git` and
+refuse a change no verb in this session made.

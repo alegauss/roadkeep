@@ -216,13 +216,11 @@ def anchored(document: Document) -> tuple[Section, ...]:
     paragraph. Which of the two the budget uses is the gate's decision, not this one's.
     """
     out: list[Section] = []
-    for position, heading in enumerate(document.headings):
+    for heading in document.headings:
         anchor = _anchor_of(heading.text, document.schema)
         if anchor is None:
             continue
-        end = len(document.lines)
-        if position + 1 < len(document.headings):
-            end = document.headings[position + 1].lineno - 1
+        end = document.prose_end(heading)
         out.append(
             Section(
                 anchor=anchor,
@@ -504,10 +502,7 @@ def _placement(document: Document, anchor: str, task: Task | None) -> int:
             str(document.path.name if document.path else ""),
             word=document.schema.heading_word,
         )
-    for later in document.headings:
-        if later.lineno > heading.lineno and later.level <= heading.level:
-            return later.lineno - 1
-    return len(document.lines)
+    return document.subtree_end(heading)
 
 
 def _extended(document: Document, anchor: str) -> int:
@@ -543,19 +538,16 @@ def _extends(document: Document, anchor: str) -> str | None:
 def _span(document: Document, anchor: str) -> tuple[int, int, Heading] | None:
     """The `[start, end)` lines to delete, and the heading that names them.
 
-    A section ends where the next heading of the same or higher level begins. When it is
-    the last thing in the file, the deletion reaches back over the blank line above it,
-    which otherwise survives as a trailing blank nobody put there.
+    A section ends where the next heading of the same or higher level begins — the
+    document's own answer (RK115), because a drop takes the subtree. When it is the last
+    thing in the file, the deletion reaches back over the blank line above it, which
+    otherwise survives as a trailing blank nobody put there.
     """
-    for position, heading in enumerate(document.headings):
+    for heading in document.headings:
         if not _names(heading.text, anchor, document.schema):
             continue
         start = heading.lineno - 1
-        end = len(document.lines)
-        for later in document.headings[position + 1 :]:
-            if later.level <= heading.level:
-                end = later.lineno - 1
-                break
+        end = document.subtree_end(heading)
         if end == len(document.lines):
             while start > 0 and blank(document.lines[start - 1]):
                 start -= 1

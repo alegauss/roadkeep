@@ -22,7 +22,6 @@
 
 ## Block A — The model (a task is data before it is a line)
 
-- 💭 **RK115** (deps: —) **Where a heading's region ends is re-derived at every call site, under two rules that already differ** — `_span` and `_placement` stop at the next same-or-higher heading while `anchored` and `_after_preamble` stop at any heading, and the one reader of a file is meant to be Document. → §RK115
 - 📋 **RK116** (deps: —) **A second write to a governed file erases the first one's line and both commands exit 0** — `Document` reads every byte and `save` writes every byte back with nothing checking the file is still the one that was read, so two agents in one checkout lose a line silently. → §RK116
 - 📋 **RK117** (deps: RK116) **Two adds started together mint the same id, and the gate reports it only once both lines exist** — `next_id` derives one past the highest anywhere and nothing holds that maximum between the scan and the write, so the id is a claim two processes can both make. → §RK117
 - 📋 **RK118** (deps: —) **A reader can load a governed file truncated, and an interrupted ship leaves two of its three files written** — `save` truncates the target before it fills it and a departure writes three files in sequence, so an interrupted write leaves the state `Closure` was built to repair. → §RK118
@@ -34,6 +33,8 @@
 - 📋 **RK120** (deps: RK113) **Two branches each spend the same id, and the merge git produces is a conflict in a file only this tool may write** — Every add appends inside the same block heading, so parallel worktrees collide on almost every task and resolving it by hand is the edit the hook denies. → §RK120
 - 📋 **RK123** (deps: —) **An open task's rationale cannot be corrected by any verb, and the hook denies the hand-edit** — section drop refuses while a live pointer names the anchor and section add refuses the duplicate, so a design is write-once until ship deletes it. → §RK123
 - 📋 **RK124** (deps: —) **A ledger entry can be written and deleted but never corrected** — record add and record drop are the pair, so fixing one word of a why means dropping the entry and re-adding it, which moves the line to the end of its block. → §RK124
+- 📋 **RK126** (deps: —) **Corruption inside a ledger entry is reported by lint and repairable by no verb** — The unit is the entry and the damage is inside one: Shio carries two U+0008 control characters and a dead link in entry prose, and add, drop, ship and retire all reach only the whole line. → §RK126
+- 📋 **RK127** (deps: RK121) **record drop assumes a duplicate is redundant, and picks the later entry either way** — Shio's two SH347 entries are two different pieces of work sharing an id, so dropping either destroys history, and the one the verb picks is the entry that earned the id. → §RK127
 
 ## Block C — Query (consult without reading the file)
 
@@ -56,6 +57,7 @@
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - 📋 **RK111** (deps: —) **The MCP write path cannot write an id the deriver never mints** — `add --id` is withheld because a chosen id is what a schema cannot check, but a sub-letter is derived by nothing, so a project declaring `[ids] suffix` has a shape only the CLI can write. → §RK111
+- 📋 **RK128** (deps: —) **The guard denies Edit and Write and answers silence to a shell command writing the same file** — A PreToolUse payload naming Bash is passed through whatever the command does, so sed, python -c or a heredoc rewrites a governed file with no refusal and no record. → §RK128
 
 ## Non-goals
 

@@ -565,6 +565,50 @@ def test_entries_are_reachable_by_id_and_by_block():
     assert document.heading("B").text.startswith("Block B")
 
 
+# -- what a heading owns, asked of the document (RK115) ---------------------
+
+
+def nested_file() -> Document:
+    return parse(
+        "# Title",
+        "intro",
+        "## Block A — The model",
+        "preamble",
+        "### A nested heading",
+        "nested prose",
+        "## Block B — Authoring",
+        "b prose",
+    )
+
+
+def test_the_subtree_reaches_past_a_nested_heading_and_stops_at_the_next_peer():
+    document = nested_file()
+    # `## Block A` is line 3 (1-based); `## Block B` is line 7, so the subtree it owns is
+    # everything up to index 6 — the nested `###` included, because a drop takes it.
+    assert document.subtree_end(document.heading("A")) == 6
+    assert document.subtree_end(document.heading("B")) == len(document.lines)
+
+
+def test_the_prose_a_heading_owns_stops_at_the_nested_heading():
+    document = nested_file()
+    # The narrower answer: `### A nested heading` is line 5, so Block A's own prose is
+    # the one line at index 3. A budget charging Block A may not count the subsection.
+    assert document.prose_end(document.heading("A")) == 4
+
+
+def test_the_two_answers_are_the_same_where_nothing_is_nested():
+    document = parse("## Block A — The model", "a", "## Block B — Authoring", "b")
+    for label in ("A", "B"):
+        heading = document.heading(label)
+        assert document.subtree_end(heading) == document.prose_end(heading)
+
+
+def test_a_heading_at_the_end_of_the_file_owns_the_rest_of_it():
+    document = nested_file()
+    last = document.headings[-1]
+    assert document.subtree_end(last) == document.prose_end(last) == len(document.lines)
+
+
 def test_the_live_roadmap_files_every_task_under_a_block():
     # Both governed files, because the claim is about the parser and not about the backlog:
     # this repository's roadmap is empty (RK21 shipped its last line), so asked of that file

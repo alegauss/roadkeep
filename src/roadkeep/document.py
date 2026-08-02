@@ -40,7 +40,7 @@ from __future__ import annotations
 
 import functools
 import re
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, replace
 from pathlib import Path
 
@@ -306,6 +306,39 @@ class Document:
     def heading(self, label: str) -> Heading | None:
         """The first heading naming ``label`` — where `add` inserts (RK5)."""
         return next((h for h in self.headings if h.label == label), None)
+
+    def subtree_end(self, heading: Heading) -> int:
+        """Where a heading's whole region ends: the next heading of the **same or higher**
+        level, as a 0-based index one past the last line it owns (RK115).
+
+        What a deletion takes and what an insertion may not cross. A nested heading is
+        *inside* this region — `drop` removes the subsection with the section, and a task
+        appended to a block goes after everything filed under it.
+        """
+        return self._ends_before(heading, lambda later: later.level <= heading.level)
+
+    def prose_end(self, heading: Heading) -> int:
+        """Where a heading's **own** prose ends: the next heading of *any* level, as a
+        0-based index one past the last line (RK115).
+
+        The other of the two answers, and the narrower one: a paragraph under a nested
+        heading belongs to that heading, so a budget charging this one may not count it and
+        a line placed past it would read as the nested heading's.
+        """
+        return self._ends_before(heading, lambda later: True)
+
+    def _ends_before(self, heading: Heading, stops: Callable[[Heading], bool]) -> int:
+        """The one loop the two rules above differ only in the predicate of.
+
+        Four call sites used to walk :attr:`headings` themselves — two under each rule —
+        which is the id's defect (RK109) one structure over: a question answered where it is
+        asked rather than by the thing that read the file. No boolean, because a flag passed
+        by hand is what that fix removed: the two rules are two names.
+        """
+        for later in self.headings:
+            if later.lineno > heading.lineno and stops(later):
+                return later.lineno - 1
+        return len(self.lines)
 
     # -- the ownership test ------------------------------------------------
 
