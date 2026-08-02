@@ -100,6 +100,22 @@ its scratch name first, check all the targets, then rename them in sequence — 
 renames are the only steps that touch anything, and they are the ones already made one
 step each by RK118.
 
+### §RK133 The part is read and then dropped
+
+RK121 taught the parser to read `SH96 (local half)`, and the two `deps.unknown` it was
+filed for went to zero. Measured on the same tree immediately after: `id.duplicate` went
+0 -> 6 and `id.two-files` 1 -> 3. Nothing in Shio changed; the ids simply became
+readable, and every part resolved to the same base id. Four entries spell `SH348 (the
+measurement)`, `(step 1 of 4)`, `(steps 2 and 3)` and `(step 4 - the sibling link)`: one
+task delivered in four commits, which is the state RK121 exists to represent, now
+reported as four answers to whether it is done. The `part` is parsed and then discarded
+before anything asks what identity it confers. Two questions the fix has to answer, and
+neither is obvious: whether `SH348 (step 1 of 4)` and `SH348 (step 2)` are one id or
+two, and what `deps: SH348` means when three of four parts have landed. The corpus
+already answers the second in prose - a line waits on the whole - so the cheap shape is
+an id that is one identity with several entries, and a duplicate check that counts parts
+as one. RK122 is the same question one file up.
+
 ## Block B — Authoring
 
 ### §RK113 Half a subtree renamed, and written
@@ -408,6 +424,53 @@ This is not RK104, which is about the gate: that a stale README passes `lint` is
 different failure from a fresh README overwriting somebody's edit. They share a file and
 nothing else, and fixing either leaves the other exactly as it is.
 
+### §RK134 Two readers of one fact, disagreeing
+
+Reproduced minimally: a heading `### II.1 Shared design (ZZ1)` whose only named id has
+shipped, with two open lines carrying `-> II.1`. `lint` reports `section.stale` - "ZZ1
+is in the changelog and this rationale is still here" - and `section drop II.1` refuses,
+naming ZZ2 and ZZ3 as the lines whose pointers would stop resolving. Both are behaving
+as written: `_unowned` reads the ids in the title (RK61) and `drop` reads the pointer
+index. Shio's `VI.1` is the live case, where SH22 shipped and SH44-SH47 are still open
+against the same design, and the only way out was to retitle the heading by hand so the
+pointers and the title agreed. RK64 already settled this question for `ship`: a section
+another open line points at is kept, and the reason is reported. The gate never learned
+it. A finding whose remedy the tool refuses is worse than no finding - it is the shape
+RK16 splits mechanical from editorial to avoid - so the fix is to give `_unowned` the
+pointer index it already builds, and to say "still pointed at by" rather than "survived
+a hand edit".
+
+### §RK135 The dead draft no check can see
+
+Shio carried `XV.21` and `XV.22` under the same title - "A raster is still the only
+answer to most of 'looks wrong' (SH265)" - one an earlier draft of the other. SH265
+points at `XV.22`. `section.orphan` did not fire, because the id in `XV.21`'s title is
+an open line; `section.duplicate` did not fire, because the anchors differ;
+`ref.unresolved` did not fire, because the pointer resolves somewhere. Twenty-three
+lines of superseded design lint clean, and the only reason it was found is that a reader
+happened to compare two adjacent headings. Reproduced minimally in four lines of
+fixture. The check that is missing is cheap and already has both halves in hand: a
+section whose title names an id, where that id's pointer resolves to a *different*
+anchor, is a section nothing can ever reach. It is not the same as an orphan - the task
+is alive - and the remedy is different too, because one of the two is the design and the
+other is history, which is a reading rather than a deletion.
+
+### §RK136 A budget for prose, applied to a table
+
+`sections.words` is `len(body.split())`, so every cell of a Markdown table costs what a
+word of argument costs. Measured while adopting Claude Tray: its `III` is 269 words of
+which 230 are the measured-baseline table the file keeps *because it is data, not
+design*, and its `XVI.3` is 293 of which 72 are a timing table. Both are under 250
+counting prose alone. The remedy the finding offers - "this is two sections, or a
+paragraph that belongs in the commit" - is advice about prose, and neither applies:
+splitting a six-row measurement in half helps nobody, and the rows are the evidence the
+design rests on. The adoption ended by declaring `section = 300`, a number that
+describes two tables rather than budgeting anybody's prose, which is the outcome L6 is
+supposed to prevent. What the limit is for is an agent's attention on an argument, so
+the honest count excludes what is not argument: a table, a fenced block, a blockquote of
+somebody else's words. `sections.structural` already knows how to recognise the first
+two.
+
 ## Block E — Adoption
 
 ### §RK103 The marker slot that holds two tokens
@@ -495,6 +558,67 @@ retired entries only, since a file with no markers has nothing to be inconsisten
 or write the retirement to the roadmap rather than the ledger; or refuse at `adopt`
 time, so a project learns the cost before it inherits it rather than the first time it
 retires a line.
+
+### §RK137 The one fact the skill still gets wrong
+
+`install` states its own contract: every byte is a translation of what the plugin ships,
+"the launcher's path being the only substituted fact". The skill is the one surface
+where it is not substituted. `skills/roadkeep/SKILL.md` says "`roadkeep` is the
+installed entry point - `python -m roadkeep.cli` when it is not on PATH", and for a
+project wired to a checkout both are false: the package is not installed, and the entry
+point is `<path>/scripts/roadkeep.py`, which the same command already computed and wrote
+into `.mcp.json` and into three hook entries. Verified on a real adoption: `roadkeep`
+resolves to nothing on the machine, so every shell example in the copied skill is a
+command that fails. The MCP tools carry the write path, so nothing is broken until an
+agent falls back to the shell - which is exactly when the skill is being read. The fix
+is the substitution the module already performs three times, applied to the one line
+that spells the entry point, and `--check` then holds it in step like the rest.
+
+### §RK138 A wiring with no way out
+
+Claude Tray was wired to a sibling checkout and then moved to the plugin, which is the
+ordinary path: an early adopter develops against a checkout and switches once the plugin
+is installable. There is no verb for the second half. `.mcp.json`,
+`.claude/settings.json` and `.claude/skills/roadkeep/` had to be removed with `rm`, and
+the only reason that was safe is that `install` had *created* all three, so the
+pre-existing state was "absent". Had the project already declared another MCP server or
+another hook, the correct edit would have been to remove this project's entries and keep
+everything else - which is precisely the surgery `install` performs on the way in and
+refuses to describe on the way out. `--check` makes the asymmetry plainer: it reports
+what would change and exits non-zero, so the tool can already see the difference between
+wired and not. What is missing is the verb that acts on it, with the same rule the write
+path has - the declarations keep everything that is not this project's entry, and a file
+that is not a JSON object is refused rather than replaced.
+
+### §RK139 The half of the roadmap the estimate does not read
+
+`adopt` exists so the cost is known before the commitment: it reads the lines, names the
+longest field against its limit, and never fails, because "an estimate that exits 1 is a
+gate". It reads one of the roadmap's two kinds of bullet. Measured on Claude Tray:
+`adopt` reported 18 lines over on `why` and `line`, the adoption was decided on that,
+and `lint` then produced nine findings nobody had been shown - two bullets with no
+parseable lead at all, one lead at 72 characters against 60, and six reasons over 200,
+the worst at 1,100. That is a third of the work, discovered after the config was
+written. `[non_goals]` is opt-in for RK66's reason, which makes measuring it *more*
+useful rather than less: the number an adopter needs is what the limit would cost, and
+today the only way to get it is to declare the table and run the gate. The estimate
+already has the parser - `scoping.read` - and the same shape of answer to give: how many
+bullets parse, the longest lead, the longest reason, and what would change.
+
+### §RK140 A gate that is red before it is read
+
+The workflow is written once and then the adopter's, which is right - it takes a
+`directory:` and a `baseline:` this command cannot know it wants. But the default it
+ships is the strict one, and the projects that most need the gate are the ones with the
+most standing debt. Shio is the case: after a session of repair it still holds nine
+sections over budget and three findings that are this tool's own open defects, so the
+workflow as written would be red on every push from the day it lands. The workflow
+committed there sets `baseline: origin/main` by hand, with a comment saying which
+findings it is deferring and when to drop the line. `install` can tell the difference
+without being told: it can run `lint` while it writes, and a project that is already
+clean gets the strict workflow while one that is not gets the baseline plus a comment
+naming the count it deferred. That keeps the recommendation honest in both directions -
+a red nobody reads is the failure mode, and so is a baseline nobody remembers to remove.
 
 ## Block F — The plugin
 
