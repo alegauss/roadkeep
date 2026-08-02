@@ -118,6 +118,66 @@ as one. RK122 is the same question one file up.
 
 ## Block B — Authoring
 
+### §RK143 The move record amend was right not to pretend was a correction
+
+RK124 gave the ledger an update and deliberately withheld `--block`: filing an entry
+under a different heading relocates the line, and a flag that pretends nothing happened
+is the thing that verb exists to stop being. That reasoning holds. What it left is a
+hole.
+
+`ship` derives the block from the roadmap line, so an entry lands wherever that line sat
+— and a line filed under the wrong block ships to the wrong block. `record add --block`
+takes one at input and is refused for an id that exists. `record drop` needs the id
+stated twice. `record renumber` changes the address and not the heading. So an entry
+under the wrong block is reachable by nothing, which is the shape of every defect Block
+B just closed.
+
+The honest shape is a verb that says it is a move: `record move <id> --to-block <x>`,
+which removes the line and re-places it under the named heading, reports both positions,
+and refuses a block the ledger does not declare — the heading being `block add`'s to
+write (RK141). A move is what the diff will show either way, and a command that names it
+is not the same as a flag that hides it inside a correction.
+
+### §RK144 The key opens the door and cannot close it
+
+RK141 gave block declaration a verb because the pair of correct refusals around it was a
+deadlock. The verb writes the heading into every governed file already organised by
+blocks — and nothing removes one, which is the same deadlock reflected: a label typed
+wrongly, or a block whose every line has shipped and whose heading an author wants gone,
+is three headings that only the edit the guard denies can take out.
+
+The asymmetry is exactly RK138's, one surface over: `install` writes four things and un-wiring
+is a hand edit. Here the write is smaller and the refusals are sharper, which makes the inverse
+cheap: a `block drop <label>` that removes the heading from every file where the label carries
+**no line at all**, and refuses by name where any does — the roadmap's open lines, the ledger's
+entries, the store's paused ones. A heading over work is not an empty heading, and deleting one
+would orphan every line beneath it.
+
+Not to be confused with an empty heading being wrong. A block with no open lines is the
+normal end state of finishing one, and the ledger keeps its heading for ever because
+history is filed under it. This is about the label an author wants gone, not the one
+that is merely quiet.
+
+### §RK145 Appended is a placement, not the placement
+
+`block add` derives its position: after the last block's subtree, which is what opening
+a *new* block means and which is the only placement that cannot land inside another's
+work. Right for the case it was written for, and it is the only case it has.
+
+Block order is not decoration. `list` reports blocks in the headings' own order and says
+so; `brief --block <x>` is scoped by it; an author reading a roadmap reads the sequence
+as the shape of the plan. A project that opens a block for work belonging between two
+phases gets it appended after both, and the repair is reordering headings by hand across
+three files — the edit the guard denies, on the arrangement RK141 existed to stop
+needing.
+
+The narrow shape is one argument: `--after <label>`, placed at the end of that block's
+subtree and refused for a label the file does not declare, with the current behaviour as
+the default so nothing about the common case changes. The wider question it exposes is
+whether the *same* order has to hold in every governed file — the roadmap's sequence is
+a plan and the ledger's is where history sits — and the answer may honestly be no, which
+would make `--after` a per-file argument or a refusal when the files disagree.
+
 ## Block C — Query
 
 ### §RK119 One backlog, two workers, one answer
@@ -297,6 +357,52 @@ the honest count excludes what is not argument: a table, a fenced block, a block
 somebody else's words. `sections.structural` already knows how to recognise the first
 two.
 
+### §RK146 A control character with a rendering
+
+`suspect` is defined by Unicode category rather than a hand-kept list, which is the
+right call: a format character nobody has met yet is caught too. It also catches U+0009,
+because a tab is `Cc` — and the message it prints is *"invisible in an editor, so every
+other diagnosis of this line names the consequence instead"*, which of a tab is simply
+untrue.
+
+RK126 then had to withhold it from `--fix` for a reason that is also right: the
+indentation of a nested line is read off the file and written back verbatim (RK49), so
+deleting a tab re-parents somebody's task. The two correct decisions leave a project
+that indents with tabs holding a `char.invisible` per line, permanently, cleared by no
+command — a standing finding, which is what teaches a reader to stop reading the report.
+
+What separates a tab from the rest of `Cc` is that it **renders**, and the gate already
+knows that distinction: `removable` was written to name it. So the report should read it
+too — either by exempting a tab from `suspect` outright, or by giving it a finding of
+its own that says what is actually wrong (a tab where the format writes spaces) and can
+be fixed where the line's `indent` is empty. Which of those is right depends on whether
+any live corpus indents with tabs, and that is a measurement this task should take
+first.
+
+### §RK147 The limit the writing door does not read
+
+L1 is the project's first law: the schema is enforced **where the text is created**, and
+`lint` is only the backstop. RK50 made the limits declarable per file,
+`[limits.improvements]` beside `[limits.changelog]`, and `Config.schema_for` is what
+resolves them.
+
+The section write path does not call it. `sections._check` reads `config.schema` — the
+project's top-level numbers — while `linting._budget` charges
+`prose.schema.section_max`, which came from `config.document(role)` and therefore from
+`schema_for`. So a project that declares a *tighter* rationale budget gets it enforced
+only after the paragraph exists, which is the exact failure L1 names; and one that
+declares a *looser* one has `section add` refusing prose the gate would accept, which is
+worse, because a refusal on legal text is a refusal an author routes around.
+
+Neither half was visible here: this repository declares `[limits] section` and no
+per-role override, so both readings return the same number and the fixture proves
+nothing. That is the finding as much as the bug is — the conformance corpus has no file
+whose own limits differ, so one has to be added with the fix, or the next per-role
+declaration will find the same seam.
+
+The fix itself is one argument threaded through: `_check` takes the role, or takes the
+schema the caller already loaded the document under.
+
 ## Block E — Adoption
 
 ### §RK103 The marker slot that holds two tokens
@@ -445,6 +551,27 @@ without being told: it can run `lint` while it writes, and a project that is alr
 clean gets the strict workflow while one that is not gets the baseline plus a comment
 naming the count it deferred. That keeps the recommendation honest in both directions -
 a red nobody reads is the failure mode, and so is a baseline nobody remembers to remove.
+
+### §RK148 The fifth surface nobody is told about
+
+RK100's whole argument is that a vendored surface nobody keeps in step is worse than
+none, and `install` exists so an adopting project gets every one of them derived from
+what the plugin already ships. RK120 then added a fifth: a git merge driver, registered
+per file in `.gitattributes` and per checkout in `git config`, opt-in because it is
+configuration (L6).
+
+Opt-in is not the problem. Being unmentioned is. An adopter runs `install`, reads its
+report, and is told about the server, the guard, the skill, the workflow and the
+`CONTRIBUTING.md` line this tool will not write — and not that a driver exists. The
+failure lands later and looks like the tool's fault: two worktrees spend one id, git
+writes conflict markers into the roadmap, and the resolution is the hand edit the guard
+denies.
+
+The narrow shape is a line in `install`'s `skipped` report, beside `CONTRIBUTING.md`, naming
+`merge --register` and why it is not run — the `git config` half writes outside the files this
+tool was given (L2), so it is named there for the same reason. The wider one is `install
+--register-merge` doing both halves for a caller that asks, which is a decision about somebody's
+git configuration and should stay a flag rather than a default.
 
 ## Block F — The plugin
 

@@ -27,6 +27,10 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK143** (deps: —) **A ledger entry filed under the wrong block can be corrected by no verb at all** — record amend leaves the block out because filing an entry elsewhere is a move, and record drop refuses unless the id is stated twice, so the only route left is the hand-edit the hook denies. → §RK143
+- 📋 **RK144** (deps: —) **Declaring a block writes three files and nothing takes the heading back out** — block add is the only verb that writes a heading, so a label opened by mistake or emptied by a retirement leaves a heading in every governed file that only a hand-edit removes. → §RK144
+- 📋 **RK145** (deps: —) **A block can only be opened last, and where it sits is what every ordered answer reads** — block add places the heading after the last block's subtree, so a phase belonging between two existing ones can only be appended — and the order a list reports is the headings' own. → §RK145
+
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK119** (deps: RK117 ✅) **Every agent asking what to work on is handed the same line, including one another agent already started** — Tier 1 prefers an in-progress line so one worker finishes what they started, and the file has no way to say a task is taken, so a second caller is sent at work under way. → §RK119
@@ -41,6 +45,8 @@
 - 📋 **RK134** (deps: —) **A section that four open lines point at is reported stale, and the drop it names is refused** — `_unowned` decides from the ids in the heading while `section drop` decides from the pointers that resolve, so the only door the finding offers is the one the tool closes. → §RK134
 - 📋 **RK135** (deps: —) **A rationale section whose task points at a different one is reported by nothing** — `section.orphan` clears because the id in the title is open and no check asks whether the pointer naming it resolves here, so a superseded draft lints clean for ever. → §RK135
 - 📋 **RK136** (deps: —) **The section budget charges a measured table exactly what it charges a paragraph** — `words` splits the whole body on whitespace, so a section that is 230 of its 269 words of measurement is judged by a limit written for prose and offered a remedy that fits neither. → §RK136
+- 📋 **RK146** (deps: —) **A tab is reported as an invisible character and repaired by nothing, for ever** — suspect reads Unicode categories and a tab is Cc, while --fix withholds it because indentation is part of the model — so a file with one carries a finding no verb can clear. → §RK146
+- 📋 **RK147** (deps: —) **A prose file's own limits are enforced by the gate and ignored by the write that creates the text** — section add and amend check the body against config.schema while lint charges schema_for(role), so a project declaring [limits.improvements] has a budget only the backstop holds. → §RK147
 
 ## Block E — Adoption
 
@@ -52,6 +58,7 @@
 - 📋 **RK138** (deps: —) **Un-wiring a project is the hand-edit this tool exists to deny** — `install` writes four surfaces and nothing removes them, so moving a project from a checkout to the plugin means deleting a server entry and three hook entries by hand. → §RK138
 - 📋 **RK139** (deps: —) **`adopt` measures the task lines and says nothing about the non-goals it will govern** — The estimate reports symptom, why and line against their limits and never the lead and reason it will hold the other bullet to, so nine findings arrived after the commitment. → §RK139
 - 📋 **RK140** (deps: —) **The CI workflow `install` writes is red on its first run for every backlog with debt** — The baseline that fails on what a branch added is named in a comment and left unset, so the gate an adopter meets first is one reporting work nobody was going to redo. → §RK140
+- 📋 **RK148** (deps: —) **install wires four surfaces and leaves the merge driver to whoever remembers it** — merge --register is the opt-in RK120 shipped, and nothing offers it during adoption — so a wired project gets the tools, the guard and the skill, and its first parallel branch still conflicts by hand. → §RK148
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
