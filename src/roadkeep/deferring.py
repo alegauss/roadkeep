@@ -203,7 +203,10 @@ def defer(config: Config, task_id: str, *, reason: str) -> Pause:
     # Derived against the state this write *creates* — the line is out of the roadmap — for
     # the same reason a departure does it (RK8): an annotation left un-derived by one door
     # is one nothing else revisits.
-    derived = refresh(replace(backlog, roadmap=remaining))
+    # Both halves of the new state, not just the roadmap: the dependents' annotations are
+    # derived from where this id now *is* (RK92), and a refresh reading the store from disk
+    # would annotate against a file this transaction has not written yet.
+    derived = refresh(replace(backlog, roadmap=remaining, store=insertion.document))
     return Pause(
         task_id=task_id,
         store=insertion,
@@ -244,7 +247,9 @@ def resume(config: Config, task_id: str, *, marker: str | None = None) -> Resump
     status = marker or config.schema.markers[0]
     insertion = place(backlog.roadmap, _as_open(held.task, status))
     remaining = remove_entry(store, held.index)
-    derived = refresh(replace(backlog, roadmap=insertion.document))
+    # The store this write leaves behind, for `defer`'s reason read backwards: a dependent
+    # still annotated ⏸ after the pause ended is the stale cache RK8 exists to prevent.
+    derived = refresh(replace(backlog, roadmap=insertion.document, store=remaining))
     returned = next(e for e in derived.document.entries if e.task.id == task_id)
     return Resumption(
         task_id=task_id,

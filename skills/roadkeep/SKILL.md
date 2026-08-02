@@ -38,6 +38,8 @@ the line to the deferred store, keeping the id, the deps, the symptom and the se
 departure deletes, and `resume <id> [--marker <m>]` is the return direction the ledger has
 none of — the reason wraps the `why` on the way out and is unwrapped on the way back, and the
 open marker is what the store could not keep, so `--marker` is where you say which it was.
+A dep on a paused task resolves as **deferred**, and the line waiting on it as
+`blocked-paused` — not offered, counted apart, and unblocked by a `resume` rather than a ship.
 Reach for `retire` only when the work is not coming back. `record add --block <x> --symptom "…" --why "…"` is the fourth — never
 planned, so the ledger entry alone and the roadmap untouched, and `record drop <id>` is its inverse:
 refused unless the ledger states that id **twice**, then the later entry goes and the first stays,

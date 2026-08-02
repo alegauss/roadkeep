@@ -247,4 +247,9 @@ def _hops(backlog: Backlog, task: Task) -> tuple[Hop, ...]:
 def _terminal_detail(hop: Hop) -> str:
     if hop.status is DepStatus.UNKNOWN:
         return "in neither the roadmap nor the changelog"
+    if hop.status is DepStatus.DEFERRED:
+        # The one terminal end that is not terminal (RK92): the walk stops because the
+        # store holds no deps to follow, and saying "shipping cannot satisfy it" would
+        # name the chain unresolvable when what it needs is a `resume`.
+        return "set aside in the deferred store: a resume ends this chain"
     return "outside the backlog: shipping cannot satisfy it"

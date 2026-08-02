@@ -408,8 +408,11 @@ def _collective(config: Config, documents: dict[str, Document]) -> list[Note]:
     roadmap = documents.get("roadmap")
     if roadmap is None:
         return []
-    backlog = Backlog(
-        config=config, roadmap=roadmap, ledger=documents.get("changelog")
+    backlog = Backlog.during(
+        config,
+        roadmap=roadmap,
+        ledger=documents.get("changelog"),
+        store=documents.get("deferred"),
     )
     file = config.relative(config.path("roadmap"))
     out: list[Note] = []
@@ -635,7 +638,9 @@ def _across(config: Config, documents: dict[str, Document]) -> list[Finding]:
     if roadmap is None:
         return []
     ledger = documents.get("changelog")
-    backlog = Backlog(config=config, roadmap=roadmap, ledger=ledger)
+    backlog = Backlog.during(
+        config, roadmap=roadmap, ledger=ledger, store=documents.get("deferred")
+    )
     file = config.relative(config.path("roadmap"))
     out: list[Finding] = []
 
@@ -716,7 +721,9 @@ def _deps(backlog: Backlog, task: Task, file: str, lineno: int) -> list[Finding]
             )
         # An external dep falls through on purpose: waiting on work this backlog does
         # not track is a fact about the work, and reporting it would fail every file
-        # that states one honestly.
+        # that states one honestly. A deferred one falls through for the same reason
+        # (RK92) — it is recorded, findable and revivable, and the gate reported it as a
+        # missing id for as long as the resolver had no fifth answer to give.
     return out
 
 

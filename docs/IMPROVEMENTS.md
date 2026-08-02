@@ -79,19 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK92 A dep blocked on paused work
-
-The resolver has four outcomes — shipped, open, unknown, unresolvable — and a deferred
-dep is none of them: not shipped (not done), not open (not in the active roadmap), not
-unknown (it is recorded, in the backlog), and not unresolvable (that is retire's
-"never", and a deferred task can return). So a fifth status, `DEFERRED`, mapping to a
-readiness `pick` does not offer, the way `OUTSIDE` already is not offered. A task
-waiting on paused work is not ready, but neither is it blocked-forever — the block lifts
-the moment the dep resumes. Without the distinction a deferred dep collapses one of two
-wrong ways: read as open, `pick` offers a task whose blocker nobody is working; read as
-unresolvable, `pick` buries a task that will unblock. It is the same honesty RK28 drew
-between blocked and blocked-outside, extended to the one state that is blocked-for-now.
-
 ### §RK94 One commit, many tasks, one number
 
 Observed running `weight` this session to size these tasks. Cost is derived from the

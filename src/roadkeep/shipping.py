@@ -409,7 +409,9 @@ def record(
     # (RK8): an id is normally too new for any line to name, but a range dep can already
     # span it, and an annotation left un-derived by one door is one nothing revisits.
     derived = refresh(
-        Backlog(config=config, roadmap=config.document("roadmap"), ledger=insertion.document)
+        Backlog.during(
+            config, roadmap=config.document("roadmap"), ledger=insertion.document
+        )
     )
     return Record(
         task_id=task_id,
@@ -452,7 +454,7 @@ def _depart(
     # from the roadmap — so a dependent's annotation is derived from what will be on
     # disk and not from what was (RK8).
     derived = refresh(
-        Backlog(config=config, roadmap=remaining, ledger=insertion.document)
+        Backlog.during(config, roadmap=remaining, ledger=insertion.document)
     )
 
     return Departure(
@@ -512,7 +514,7 @@ def _close(config: Config, task_id: str, recorded: Entry) -> Closure:
         config, entry.task.ref, leaving=task_id
     )
     derived = refresh(
-        Backlog(config=config, roadmap=remaining, ledger=config.document("changelog"))
+        Backlog.during(config, roadmap=remaining, ledger=config.document("changelog"))
     )
     return Closure(
         task_id=task_id,

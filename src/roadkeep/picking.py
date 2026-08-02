@@ -21,7 +21,9 @@ Three tiers, in this order, and each one is a fact rather than a taste:
 What never gets offered: anything :class:`Readiness.BLOCKED`, and — the distinction that
 makes this useful — anything :class:`Readiness.OUTSIDE`. A task waiting on work this
 backlog does not track never becomes ready by shipping tasks, so offering it as "next"
-sends the caller at something that cannot be finished (RK28).
+sends the caller at something that cannot be finished (RK28). :class:`Readiness.PAUSED`
+is the third (RK92) and gets its own number for the same reason: a backlog stuck on
+deferred deps is stuck on a decision nobody revisited, which no amount of shipping moves.
 
 The stalled list is the other half of the same honesty: a 🛠 task that is *blocked* is
 reported beside the answer, because that is the state a reader most needs to know about
@@ -82,6 +84,9 @@ class Choice:
     ready: int = 0
     blocked: int = 0
     outside: int = 0
+    #: Open lines waiting on work somebody set aside (RK92). Its own number for RK28's
+    #: reason: a backlog stuck on paused deps is stuck on a decision, not on a task.
+    paused: int = 0
     stalled: tuple[Stalled, ...] = ()
     #: Whether the chosen line still needs designing (RK83). Said, never acted on: it is
     #: the sentence that stops the pick being silent about which of the two states it is.
@@ -96,10 +101,11 @@ class Choice:
 
     @property
     def counts(self) -> str:
-        """All three numbers, always: a zero is the fact a reader is checking for."""
+        """All four numbers, always: a zero is the fact a reader is checking for."""
         return (
             f"{self.ready} ready, {self.blocked} blocked, "
-            f"{self.outside} blocked outside the backlog"
+            f"{self.outside} blocked outside the backlog, "
+            f"{self.paused} blocked on paused work"
         )
 
 
@@ -143,6 +149,7 @@ def pick(config: Config, block: str | None = None, designed: bool = False) -> Ch
         "block": block,
         "blocked": survey.blocked,
         "outside": survey.outside,
+        "paused": survey.paused,
         "stalled": survey.stalled,
         "undesigned": set_aside,
     }
@@ -190,11 +197,12 @@ class _Survey:
     blocked: int
     outside: int
     stalled: tuple[Stalled, ...]
+    paused: int = 0
 
 
 def _survey(backlog: Backlog, considered: list[Entry]) -> _Survey:
     ready: list[Entry] = []
-    blocked = outside = 0
+    blocked = outside = paused = 0
     stalled: list[Stalled] = []
     for entry in considered:
         readiness = backlog.readiness(entry.task)
@@ -203,6 +211,8 @@ def _survey(backlog: Backlog, considered: list[Entry]) -> _Survey:
             continue
         if readiness is Readiness.OUTSIDE:
             outside += 1
+        elif readiness is Readiness.PAUSED:
+            paused += 1
         else:
             blocked += 1
         if entry.task.status == IN_PROGRESS:
@@ -215,7 +225,11 @@ def _survey(backlog: Backlog, considered: list[Entry]) -> _Survey:
                 )
             )
     return _Survey(
-        ready=tuple(ready), blocked=blocked, outside=outside, stalled=tuple(stalled)
+        ready=tuple(ready),
+        blocked=blocked,
+        outside=outside,
+        stalled=tuple(stalled),
+        paused=paused,
     )
 
 

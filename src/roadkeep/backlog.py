@@ -1,9 +1,18 @@
 """Resolving a dep against the backlog it names (RK28).
 
-A dep is a claim about other work, and there are four different answers to "is it
-done?" — shipped, still open, no such task, and *unanswerable*. Collapsing the last
-one into "still open" is what makes a permanently blocked task read like the next one
-to start, which is the whole reason this module exists rather than a boolean.
+A dep is a claim about other work, and there are five different answers to "is it
+done?" — shipped, still open, *set aside*, no such task, and *unanswerable*. Collapsing
+the last one into "still open" is what makes a permanently blocked task read like the next
+one to start, which is the whole reason this module exists rather than a boolean.
+
+The fifth is the same honesty one state further in (RK92). A deferred dep is none of the
+other four: not shipped, not open — the store is not the roadmap — not unknown, since it
+is recorded and findable, and not unresolvable, which is `retire`'s "never" and a pause
+can end. Read as open, a task is offered whose blocker nobody is working; read as
+unresolvable, a task is buried that unblocks the moment the dep resumes. So it is
+:attr:`DepStatus.DEFERRED`, and the task waiting on it is
+:attr:`Readiness.PAUSED` — blocked for now, which is neither of the two blocked already
+told apart.
 
 The interesting case is the one the corpora already write. Shio has `(deps: Block P)`
 and Turing has `(deps: real design partners)`: real work does wait on a whole block,
@@ -54,6 +63,10 @@ class DepStatus(StrEnum):
 
     SHIPPED = "shipped"
     OPEN = "open"
+    #: Held in the deferred store (RK92). Recorded, so not unknown; revivable, so not
+    #: unresolvable; and not in the roadmap, so not open — the state `retire` has no
+    #: door for and `resume` is the way out of.
+    DEFERRED = "deferred"
     #: An id of this project that exists in neither file. A lint error (RK8), not a
     #: rendering choice: nothing downstream can tell whether it is done.
     UNKNOWN = "unknown"
@@ -62,13 +75,17 @@ class DepStatus(StrEnum):
 
 
 class Readiness(StrEnum):
-    """Whether a task can be started, and if not, in which of two senses."""
+    """Whether a task can be started, and if not, in which of three senses."""
 
     READY = "ready"
     BLOCKED = "blocked"
     #: Blocked by something the backlog does not track, so no amount of shipping
     #: tasks unblocks it. `pick` (RK11) must not offer these as next work.
     OUTSIDE = "blocked-outside"
+    #: Blocked on work somebody set aside (RK92). Not offered either — nobody is working
+    #: the blocker — but unlike :attr:`OUTSIDE` the block lifts on a `resume`, so what has
+    #: to change is a decision and not this line.
+    PAUSED = "blocked-paused"
 
 
 @dataclass(frozen=True, slots=True)
@@ -97,14 +114,44 @@ class Backlog:
     config: Config
     roadmap: Document
     ledger: Document | None = None
+    #: The deferred store (RK96), read for the same reason the ledger is (RK92): a dep
+    #: whose target is paused resolves against a file neither of the other two is, and
+    #: loading it only where somebody remembered to is how a fifth status comes to mean
+    #: "unknown" in every command that forgot.
+    store: Document | None = None
 
     @classmethod
     def load(cls, config: Config) -> Backlog:
-        # A declared file that is not on disk yet is absent, not empty — `init` (RK18)
-        # creates it, and refusing every question until then would be an obstacle.
-        declared = config.has("changelog") and config.path("changelog").is_file()
-        ledger = config.document("changelog") if declared else None
-        return cls(config=config, roadmap=config.document("roadmap"), ledger=ledger)
+        return cls(
+            config=config,
+            roadmap=config.document("roadmap"),
+            ledger=_present(config, "changelog"),
+            store=_present(config, "deferred"),
+        )
+
+    @classmethod
+    def during(
+        cls,
+        config: Config,
+        *,
+        roadmap: Document,
+        ledger: Document | None = None,
+        store: Document | None = None,
+    ) -> Backlog:
+        """A backlog mid-write: the documents this transaction creates, the rest from disk.
+
+        A door and not a convenience (RK92). Every caller that resolves against a state not
+        yet on disk used to build the dataclass by hand, which meant naming each file it
+        cared about — so a file added later was absent in exactly the commands that never
+        heard of it, and a deferred dep read as a missing id inside `ship` while reading
+        correctly outside it. Named files override; the others are read.
+        """
+        return cls(
+            config=config,
+            roadmap=roadmap,
+            ledger=ledger if ledger is not None else _present(config, "changelog"),
+            store=store if store is not None else _present(config, "deferred"),
+        )
 
     # -- lookups -----------------------------------------------------------
 
@@ -126,6 +173,15 @@ class Backlog:
             for task_id, entry in self.ledger.by_id().items()
             if entry.task.status == marker
         )
+
+    def deferred(self) -> dict[str, Entry]:
+        """Ids the store holds, with the line that says why they were set aside.
+
+        Every line in it, and not the ones carrying ⏸: the store's own status *is* ⏸ and
+        the schema refuses any other there (RK96), so filtering by marker would be this
+        module re-deciding what the file already guarantees.
+        """
+        return {} if self.store is None else dict(self.store.by_id())
 
     def retired(self) -> dict[str, Entry]:
         """Ids the ledger marks 🗑, with the line that says why they left."""
@@ -227,6 +283,14 @@ class Backlog:
         if found is not None:
             detail = f"open in Block {found.task.block}" if found.task.block else "open"
             return Resolution(dep, kind, DepStatus.OPEN, detail)
+        paused = self.deferred().get(dep.id)
+        if paused is not None:
+            # Checked after the roadmap and before "unknown" (RK92): the store is the one
+            # place a recorded id can be that is neither open nor terminal, and reporting
+            # it as a gap in the files would send the reader looking for a typo.
+            return Resolution(
+                dep, kind, DepStatus.DEFERRED, f"set aside — {_clip(paused.task.why)}"
+            )
         return Resolution(
             dep, kind, DepStatus.UNKNOWN, "in neither the roadmap nor the changelog"
         )
@@ -273,12 +337,21 @@ class Backlog:
         return tuple(self.resolve_dep(dep) for dep in task.deps)
 
     def readiness(self, task: Task) -> Readiness:
-        """Ready, blocked, or blocked by something this backlog cannot resolve."""
+        """Ready, or blocked in one of the three senses that differ (RK28, RK92).
+
+        Ordered by how permanent the answer is, so a line with two kinds of blocker
+        reports the one nothing on this backlog's own path resolves: unresolvable outranks
+        paused, because shipping never satisfies it and a resume would still leave it; and
+        paused outranks blocked, because an open blocker is somebody's next task while a
+        deferred one is a decision nobody has revisited.
+        """
         resolutions = self.resolve(task)
         if any(r.status is DepStatus.UNRESOLVABLE for r in resolutions):
             return Readiness.OUTSIDE
         if all(r.satisfied for r in resolutions):
             return Readiness.READY
+        if any(r.status is DepStatus.DEFERRED for r in resolutions):
+            return Readiness.PAUSED
         return Readiness.BLOCKED
 
 
@@ -315,6 +388,17 @@ def family_of(task_id: str, prefixes: Sequence[str]) -> str | None:
         if tail.isdigit():
             return prefix
     return None
+
+
+def _present(config: Config, role: str) -> Document | None:
+    """One optional governed file, or None where it is undeclared or not written yet.
+
+    A declared file that is not on disk yet is absent, not empty — `init` (RK18) creates
+    it, and refusing every question until then would be an obstacle.
+    """
+    if not config.has(role) or not config.path(role).is_file():
+        return None
+    return config.document(role)
 
 
 def _clip(sentence: str, limit: int = 90) -> str:

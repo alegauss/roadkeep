@@ -2144,6 +2144,7 @@ def _pick(config: Config, args: argparse.Namespace) -> int:
                     "ready": choice.ready,
                     "blocked": choice.blocked,
                     "outside": choice.outside,
+                    "paused": choice.paused,
                     "needs_design": choice.needs_design,
                     "undesigned": choice.undesigned,
                     "stalled": stalled,

@@ -25,7 +25,7 @@ from pathlib import Path
 import pytest
 
 from roadkeep.authoring import IdInUse, StatusElsewhere, refuse_reuse, set_status
-from roadkeep.backlog import NotOpen
+from roadkeep.backlog import Backlog, DepStatus, NotOpen, Readiness
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config, ConfigError
 from roadkeep.deferring import (
@@ -38,6 +38,7 @@ from roadkeep.deferring import (
 )
 from roadkeep.document import Document
 from roadkeep.linting import lint
+from roadkeep.picking import pick
 from roadkeep.schema import DEFERRED, DESIGNED, IDEA, SHIPPED, Dep, Schema, Task
 from roadkeep.shipping import AlreadyRecorded
 
@@ -197,12 +198,51 @@ def test_the_gate_reads_the_store_and_leaves_its_section_alone(tmp_path):
     assert not [f for f in report.findings if f.file == "DEFERRED.md"]
 
 
-def test_a_dep_on_paused_work_is_the_one_thing_left_unresolved(tmp_path):
-    # The seam RK92 is filed for, tested where it is rather than left to be discovered: the
-    # resolver's four outcomes are shipped, open, unknown and unresolvable, and a deferred
-    # dep is none of them — so today it reads as unknown. Data before the query (Block A).
-    (found,) = lint(project(tmp_path)).findings
-    assert found.code == "deps.unknown" and found.id == "RK4"
+def test_a_dep_on_paused_work_resolves_as_paused_and_not_as_a_gap(tmp_path):
+    # The fifth outcome (RK92). Read as unknown — which is what it was before the resolver
+    # had an answer — the gate failed a file stating a legitimate wait, and told the reader
+    # to go looking for a typo that is not there.
+    config = project(tmp_path)
+    assert lint(config).findings == ()
+    backlog = Backlog.load(config)
+    (resolution,) = backlog.resolve(backlog.entry("RK4").task)
+    assert resolution.status is DepStatus.DEFERRED
+    assert "set aside" in resolution.detail and "a decision" in resolution.detail
+
+
+def test_a_task_waiting_on_paused_work_is_neither_ready_nor_blocked_forever(tmp_path):
+    # The two wrong collapses, both named in §RK92: read as open, `pick` offers a task
+    # whose blocker nobody is working; read as unresolvable, it buries one that unblocks.
+    backlog = Backlog.load(project(tmp_path))
+    assert backlog.readiness(backlog.entry("RK4").task) is Readiness.PAUSED
+    assert backlog.readiness(backlog.entry("RK1").task) is Readiness.READY
+
+
+def test_the_pick_does_not_offer_it_and_counts_it_apart(tmp_path):
+    choice = pick(project(tmp_path))
+    assert choice.entry.task.id == "RK1"
+    assert (choice.ready, choice.blocked, choice.paused) == (1, 0, 1)
+    assert "1 blocked on paused work" in choice.counts
+
+
+def test_an_unresolvable_dep_still_outranks_a_paused_one(tmp_path):
+    # Ordered by how permanent the answer is: a resume would leave the external dep, so
+    # "blocked outside" is the honest word for a line carrying both.
+    roadmap = ROADMAP.replace(
+        "(deps: RK2 ⏸)", "(deps: RK2 ⏸, real design partners)"
+    ).replace("⏸", DEFERRED)
+    backlog = Backlog.load(project(tmp_path, {"ROADMAP.md": roadmap}))
+    assert backlog.readiness(backlog.entry("RK4").task) is Readiness.OUTSIDE
+
+
+def test_a_resumed_dep_stops_reading_as_paused(tmp_path):
+    # The block lifts on a decision, which is the whole difference from `retire`'s never.
+    config = project(tmp_path)
+    resume(config, "RK2").save()
+    backlog = Backlog.load(Config.discover(config.root))
+    assert backlog.readiness(backlog.entry("RK4").task) is Readiness.BLOCKED
+    (resolution,) = backlog.resolve(backlog.entry("RK4").task)
+    assert resolution.status is DepStatus.OPEN
 
 
 def test_a_pointer_the_store_dangles_is_the_same_finding(tmp_path):
@@ -386,8 +426,35 @@ def test_resuming_what_never_paused_names_where_it_is(tmp_path):
 def test_the_gate_passes_over_both_files_after_a_pause(tmp_path):
     config = project(tmp_path)
     defer(config, "RK1", reason="it waits on a decision").save()
-    # RK4's dep on RK2 is the one standing finding (RK92), and the pause added none.
-    assert [f.code for f in lint(Config.discover(tmp_path)).findings] == ["deps.unknown"]
+    # Clean on both sides now (RK92): RK4's wait on paused RK2 is a state the resolver has
+    # a word for, and RK2's own wait on the freshly paused RK1 is the same word again.
+    assert [f.code for f in lint(Config.discover(tmp_path)).findings] == []
+
+
+def test_a_pause_annotates_the_lines_waiting_on_it_in_the_same_write(tmp_path):
+    # The dependents `defer` already reported (RK96) get the marker in the transaction that
+    # paused the target, for RK8's reason: an annotation derived by one door and not another
+    # is a cache the gate refuses on the next run.
+    waiting = ROADMAP + (
+        f"- {DESIGNED} **RK7** (deps: RK1 {DESIGNED}) **A seventh symptom** — Because of a "
+        f"third. → §RK7\n"
+    )
+    design = RATIONALE + "\n### §RK7 A seventh design\n\nThe reasoning it waits for.\n"
+    config = project(tmp_path, {"ROADMAP.md": waiting, "IMPROVEMENTS.md": design})
+    paused = defer(config, "RK1", reason="it waits on a decision")
+    assert paused.dependents == ("RK7",)
+    paused.save()
+    returned = Config.discover(tmp_path).document("roadmap").by_id()
+    assert returned["RK7"].task.deps == (Dep("RK1", marker=DEFERRED),)
+    assert lint(Config.discover(tmp_path)).findings == ()
+
+
+def test_a_resume_takes_the_annotation_back_off(tmp_path):
+    config = project(tmp_path)
+    resume(config, "RK2").save()
+    returned = Config.discover(tmp_path).document("roadmap").by_id()
+    # RK4 waited on RK2 ⏸ and now waits on an open line, so the cached marker follows.
+    assert returned["RK4"].task.deps == (Dep("RK2", marker=DESIGNED),)
 
 
 def test_defer_reports_every_edit_and_resume_reports_the_reason(tmp_path, capsys):

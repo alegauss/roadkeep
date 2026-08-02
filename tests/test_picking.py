@@ -239,7 +239,9 @@ def test_nothing_ready_is_reported_with_its_counts(tmp_path):
     config = project(tmp_path, BLOCKS + line("RK1", "RK5") + line("RK2", "RK6"))
     choice = pick(config)
     assert not choice.found and choice.tier is None
-    assert choice.counts == "0 ready, 2 blocked, 0 blocked outside the backlog"
+    assert choice.counts == (
+        "0 ready, 2 blocked, 0 blocked outside the backlog, 0 blocked on paused work"
+    )
 
 
 def test_an_empty_backlog_is_not_an_error(tmp_path):
