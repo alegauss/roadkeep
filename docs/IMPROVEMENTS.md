@@ -126,6 +126,29 @@ first blank — the question `section add` answers for a subsection, asked one f
 Hand-editing it into place was the alternative, and that is the edit RK22 denies: a tool
 whose output gets quietly corrected is a tool nobody finds the defect in.
 
+### §RK112 section drop deletes a section an open line points at (RK112)
+
+Found by using the tool, in Shio: `section drop VIII.11` succeeded, and the next `lint`
+reported `ref.unresolved` for **SH197**, an open task whose pointer named exactly that
+anchor. The section was stale by every other measure — both tasks in its title had
+shipped — and an open line still owned it.
+
+**RK78 already decided this must refuse.** Its guard asks who points at a section *nested* under the
+anchor, and its own docstring names the counterpart: "the multi-owner check `ship` already makes
+about the anchor it was given — that one asks who else points here". That check lives on the ship
+path. The standalone `section drop` never makes it, so the verb whose whole job is removing one
+section is the one that can strand a pointer.
+
+The consequence is RK78's own words about what it closed: *"`lint` named the damage
+immediately afterwards, by which point the only remedy was `git checkout` on the file"*.
+Here it was worse: the drop was one of seven in a triage pass, so reverting would have
+discarded six correct ones, and the fix was to hand-write SH197 a new section — the
+state this tool exists to keep an author out of.
+
+Refuse before the write, in the same message shape: name the anchor, name the owners,
+say the remedy is to repoint or to ship the line that claims it. `ship` keeps dropping
+its own task's section, which is the case that is always right.
+
 ## Block C — Query
 
 ## Block D — The gate
