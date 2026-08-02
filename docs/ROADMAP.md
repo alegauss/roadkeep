@@ -28,6 +28,8 @@
 
 ## Block D — The gate
 
+- 📋 **RK102** (deps: —) **A test over a live corpus fails when the other project ships the work it counted** — The floor on Shio's Block P was written at 48, is recorded at 41 and reads 13 today, so this suite goes red for progress in a repository it does not own and did not misread. → §RK102
+
 ## Block E — Adoption
 
 - ⏳ **RK21** (deps: RK20 ✅) **A standard adopted by one project is a preference** — roll out to Turing, Dumont and Cursarei, each with its own `roadmap.toml`. → §RK21
