@@ -142,7 +142,10 @@ TOOLS: tuple[Tool, ...] = (
     # being true is the commonest correction an entry needs, and the agent that wrote it is
     # the one the hook denies a hand-edit to.
     Tool("record amend", ("id", "why", "part"), writes=True),
-    Tool("record drop", ("id",), writes=True),
+    # `line` rides with both because the choice is the fix (RK127): two entries for one id
+    # can be one slip or two deliveries, and the default picked the entry that earned the id.
+    Tool("record drop", ("id", "line"), writes=True),
+    Tool("record renumber", ("id", "line", "to"), writes=True),
     Tool("non-goal add", ("lead", "why"), writes=True),
     Tool("non-goal drop", ("lead",), writes=True),
     Tool("section add", ("anchor", "title", "body", "role"), writes=True),

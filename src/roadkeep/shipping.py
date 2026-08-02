@@ -47,8 +47,13 @@ twice states one decision twice, `lint`'s `id.duplicate` reports it, and until n
 the hand-edit the hook denies could act. :func:`drop` is the inverse of the door that wrote it
 and refuses unless the id is there **twice** — removing the only record of a decision is
 deleting history rather than de-duplicating it. The later entry goes: the first is where the
-reader already found it. Prose that is wrong is :func:`amend`'s, below, and an entry
-that should never have existed is a decision the author states in the commit that removes it.
+reader already found it — **and only when the two entries say the same thing** (RK127). Two
+that do not are two deliveries under one id rather than one recorded twice, and the verb's
+default picks exactly the wrong one of them: the entry that earned the id. So the guess is
+refused and the reader chooses, either by naming the line that goes or by calling
+:func:`readdress`, which gives the other delivery an address of its own. Prose that is wrong
+is :func:`amend`'s, below, and an entry that should never have existed is a decision the
+author states in the commit that removes it.
 
 **And an update, because insert and delete are not one** (RK124). A `why` written under
 pressure is the field most likely to be wrong, and the two doors above are not equivalent to
@@ -75,6 +80,7 @@ from roadkeep.config import Config
 from roadkeep.document import Document, Entry, Heading, assert_all_current
 from roadkeep.ids import next_id
 from roadkeep.markers import refresh
+from roadkeep.renumbering import NotAnId, SameId, family_of
 from roadkeep.schema import PARTIAL, Task
 from roadkeep.sections import NoSuchSection, Section, nested, pointers
 from roadkeep.sections import drop as drop_section
@@ -89,16 +95,21 @@ __all__ = [
     "Dropped",
     "NoQualifier",
     "NoRestatement",
+    "NoSuchEntry",
     "NoSuchReplacement",
     "NotDuplicated",
     "NotOpen",
     "NotRecorded",
+    "NotRedundant",
     "Partial",
+    "Readdressed",
     "Record",
     "Section",
     "Shipment",
+    "Unchosen",
     "amend",
     "drop",
+    "readdress",
     "record",
     "retire",
     "ship",
@@ -141,6 +152,69 @@ class NoRestatement(ValueError):
             f"{task_id} is already recorded as {recorded.task.status} at line "
             f"{recorded.lineno}, so this call only closes its roadmap line: --why restates "
             f"the ledger's sentence, and the ledger is not written here"
+        )
+
+
+class NotRedundant(ValueError):
+    """Two entries for one id that are not one entry twice (RK127).
+
+    `drop` reads "duplicate" as "the same work recorded again", which holds when it is a
+    slip. Shio's `SH347` is the other kind: one entry records an unplanned fix and ends by
+    naming what it left open, the other records exactly that, shipped later — two true
+    entries, two deliveries, one id, because the first was written by hand before there was
+    a verb to give unplanned work an id of its own. Dropping either destroys a delivery, and
+    the one the verb picked is the entry that actually earned the id.
+
+    So the guess is refused rather than defaulted. What the tool can read is whether the two
+    entries state the same thing; what it cannot read is whether two that differ are one
+    correction or two deliveries, and both doors out of that are the caller's: `--line` says
+    which entry goes, and `record renumber` says this one is different work.
+    """
+
+    def __init__(self, task_id: str, where: str, linenos: tuple[int, ...]) -> None:
+        self.task_id = task_id
+        self.linenos = linenos
+        lines = ", ".join(str(n) for n in linenos)
+        super().__init__(
+            f"{where} states {task_id} at {lines}, and those entries do not say the same "
+            f"thing: two entries for one id can be one slip or two deliveries, and only a "
+            f"reader knows which — `record drop {task_id} --line <n>` removes the one you "
+            f"name, `record renumber {task_id} --line <n>` gives the other its own address"
+        )
+
+
+class Unchosen(ValueError):
+    """A re-addressing that did not say which of the entries moves (RK127).
+
+    There is no default to fall back on, and that absence is the point: the entry that
+    earned the id from a roadmap line is the one to leave alone, and nothing in the file
+    says which that is. So the candidates are named and the caller picks.
+    """
+
+    def __init__(self, task_id: str, where: str, linenos: tuple[int, ...]) -> None:
+        self.task_id = task_id
+        self.linenos = linenos
+        lines = ", ".join(str(n) for n in linenos)
+        super().__init__(
+            f"{where} states {task_id} at {lines} and which of them moves is yours to say: "
+            f"pass --line <n>, leaving the entry the rest of the repository already names"
+        )
+
+
+class NoSuchEntry(KeyError):
+    """A line number that is not one of the entries for this id (RK127).
+
+    Named rather than ignored, because the caller is choosing between two lines they were
+    just shown: an off-by-one that silently fell back to "the later one" would be the same
+    guess this door exists to stop making.
+    """
+
+    def __init__(self, task_id: str, lineno: int, linenos: tuple[int, ...]) -> None:
+        self.task_id = task_id
+        self.lineno = lineno
+        lines = ", ".join(str(n) for n in linenos)
+        super().__init__(
+            f"line {lineno} is not an entry for {task_id} (it is at {lines})"
         )
 
 
@@ -514,35 +588,146 @@ def amend(
     )
 
 
-def drop(config: Config, task_id: str) -> Dropped:
-    """Remove the later of two ledger entries for one id (RK67).
+@dataclass(frozen=True, slots=True)
+class Readdressed:
+    """One of two entries for an id, given an address of its own (RK127).
+
+    The ledger and nothing else, and the entry does not move: it keeps its line, so the file
+    still reads in the order work landed and the diff is the number. Nothing elsewhere is
+    re-derived either — every `(deps: <id> ✅)` in the backlog was written about the entry
+    that keeps the id, which is the one this leaves alone.
+    """
+
+    task_id: str
+    to: str
+    ledger: Document
+    entry: Entry
+    #: The line that keeps the original id — the delivery the rest of the repository names.
+    kept: int
+    kept_marker: str = ""
+
+    @property
+    def rendered(self) -> str:
+        return self.entry.raw
+
+    @property
+    def lineno(self) -> int:
+        return self.entry.lineno
+
+    def save(self) -> None:
+        """Write the ledger. Nothing else was opened, so nothing else can be touched."""
+        self.ledger.save()
+
+
+def drop(config: Config, task_id: str, *, lineno: int | None = None) -> Dropped:
+    """Remove one of two ledger entries for an id, and never guess which (RK67, RK127).
 
     Refused unless the id is recorded **twice**, so the operation is de-duplication and can
     never be a deletion of history: what stays is the first entry, where a reader who already
     found this decision found it. With three, the last goes and a second call is the next one —
     convergent by construction, rather than one command that decides how many to remove.
 
+    And refused again unless the entries **say the same thing**. "Duplicate" reads as "the
+    same work recorded again", which is a slip; two entries that state different outcomes are
+    two deliveries that were never one, and dropping either destroys one of them (RK127). The
+    reader who has both in front of them says which with `lineno`, and the entry they name is
+    the one that goes — including the first, which the default never picks.
+
     The whole write is the ledger, which is what makes this narrow enough to exist at all: no
     dep annotation changes when an id the file still records goes from two entries to one.
     """
     ledger = config.document("changelog")
+    where = config.relative(config.path("changelog"))
     twins = tuple(entry for entry in ledger.entries if entry.task.id == task_id)
     if len(twins) < 2:
-        raise NotDuplicated(
-            task_id,
-            config.relative(config.path("changelog")),
-            tuple(entry.lineno for entry in twins),
-        )
-    later = twins[-1]
+        raise NotDuplicated(task_id, where, tuple(entry.lineno for entry in twins))
+
+    linenos = tuple(entry.lineno for entry in twins)
+    if lineno is None:
+        if not _one_entry_twice(twins):
+            raise NotRedundant(task_id, where, linenos)
+        going = twins[-1]
+    else:
+        found = next((entry for entry in twins if entry.lineno == lineno), None)
+        if found is None:
+            raise NoSuchEntry(task_id, lineno, linenos)
+        going = found
+
+    kept = next(entry for entry in twins if entry.lineno != going.lineno)
     return Dropped(
         task_id=task_id,
-        ledger=remove_entry(ledger, later.index),
-        removed_from=later.lineno,
-        kept=twins[0].lineno,
-        kept_marker=twins[0].task.status,
-        block=twins[0].task.block,
-        marker=later.task.status,
+        ledger=remove_entry(ledger, going.index),
+        removed_from=going.lineno,
+        kept=kept.lineno,
+        kept_marker=kept.task.status,
+        block=kept.task.block,
+        marker=going.task.status,
     )
+
+
+def readdress(
+    config: Config, task_id: str, *, lineno: int | None = None, to: str | None = None
+) -> Readdressed:
+    """Give one of two entries for an id an address of its own (RK127).
+
+    The counterpart of `renumber` (RK97) for the file that verb deliberately never opens —
+    and the reason the two are not one door is the reason it does not: renumbering a *record*
+    is how a `git log -S` starts returning two unrelated designs. That argument holds for an
+    id one entry carries. It inverts for an id two carry, because the collision is already
+    what makes the history unreadable, and until one of them has its own number there is no
+    query that separates them.
+
+    So it is refused on anything but a collision, and which of the entries moves is the
+    caller's: the one that earned the id from a roadmap line is normally the one to leave
+    alone, and nothing in the file says which that is.
+    """
+    ledger = config.document("changelog")
+    where = config.relative(config.path("changelog"))
+    twins = tuple(entry for entry in ledger.entries if entry.task.id == task_id)
+    if len(twins) < 2:
+        raise NotDuplicated(task_id, where, tuple(entry.lineno for entry in twins))
+
+    linenos = tuple(entry.lineno for entry in twins)
+    if lineno is None:
+        raise Unchosen(task_id, where, linenos)
+    going = next((entry for entry in twins if entry.lineno == lineno), None)
+    if going is None:
+        raise NoSuchEntry(task_id, lineno, linenos)
+
+    if to is None:
+        to = next_id(config, family_of(config, task_id))
+    if to == task_id:
+        raise SameId(task_id)
+    if not config.schema.id_pattern().match(to):
+        raise NotAnId(to, config.schema.id_pattern().pattern)
+    refuse_reuse(config, to)
+
+    document = ledger.replace_task(going, ledger.schema.check(replace(going.task, id=to)))
+    kept = next(entry for entry in twins if entry.lineno != going.lineno)
+    return Readdressed(
+        task_id=task_id,
+        to=to,
+        ledger=document,
+        entry=document.by_id()[to],
+        kept=kept.lineno,
+        kept_marker=kept.task.status,
+    )
+
+
+def _one_entry_twice(twins: tuple[Entry, ...]) -> bool:
+    """Do these entries state the same thing, id and position aside?
+
+    What the tool can read, and the whole of it: a slip records the same work again, so the
+    marker, the symptom, the sentence and any qualifier all match. Anything else is a
+    difference somebody wrote on purpose, and reading prose to decide whether it was a
+    correction or a second delivery is the judgement L4 keeps out of this tool.
+
+    The **block** is deliberately not compared. It says where the entry was filed and not
+    what it records, and the same entry appearing under two headings is exactly the slip
+    this door was written for.
+    """
+    stated = {(t.task.status, t.task.symptom, t.task.why, t.task.part) for t in twins}
+    return len(stated) == 1
 
 
 def ship(

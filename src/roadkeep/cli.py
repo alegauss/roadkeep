@@ -83,6 +83,7 @@ from roadkeep.sections import pointers
 from roadkeep.serving import serve
 from roadkeep.shipping import Closure, Partial, record, retire, ship
 from roadkeep.shipping import amend as amend_record
+from roadkeep.shipping import readdress as readdress_record
 from roadkeep.weighing import Spread, Weights, weigh
 from roadkeep.shipping import drop as drop_record
 from roadkeep.showing import View, show
@@ -513,9 +514,39 @@ def build_parser() -> argparse.ArgumentParser:
     )
     record_drop.add_argument("id", help="the id the ledger carries twice, e.g. RK41")
     record_drop.add_argument(
+        "--line",
+        type=int,
+        help=(
+            "which of the two entries goes; required when they do not say the same thing, "
+            "because then they are two deliveries and not one recorded twice"
+        ),
+    )
+    record_drop.add_argument(
         "--json", action="store_true", help="which line went, and which one answers now"
     )
     record_drop.set_defaults(handler=_record_drop)
+
+    record_renumber = entries.add_parser(
+        "renumber",
+        help="give one of two entries for an id an address of its own",
+        description=(
+            "The counterpart of `renumber` for the file that verb never opens. Renumbering "
+            "a record is normally how a `git log -S` starts returning two unrelated "
+            "designs — and that argument inverts on a collision, where the shared id is "
+            "already what makes the history unreadable. Refused on anything but an id the "
+            "ledger states twice, and which of the entries moves is yours to name: the one "
+            "that earned the id from a roadmap line is the one to leave alone."
+        ),
+    )
+    record_renumber.add_argument("id", help="the id the ledger carries twice, e.g. RK41")
+    record_renumber.add_argument(
+        "--line", type=int, help="the entry that moves; named, never defaulted"
+    )
+    record_renumber.add_argument(
+        "--to", help="the new id (default: derived, one past the highest in its family)"
+    )
+    record_renumber.add_argument("--json", action="store_true", help=_JSON_HELP)
+    record_renumber.set_defaults(handler=_record_renumber)
 
     scope_parser = subcommands.add_parser(
         "non-goal",
@@ -2029,9 +2060,45 @@ def _record_amend(config: Config, args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _record_renumber(config: Config, args: argparse.Namespace) -> int:
+    try:
+        moved = readdress_record(config, args.id, lineno=args.line, to=args.to)
+        moved.save()
+    except REFUSALS as error:
+        return _refused(error)
+
+    ledger = config.relative(config.path("changelog"))
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "id": moved.task_id,
+                    "to": moved.to,
+                    "file": ledger,
+                    # The entry does not move: it keeps its line, so the ledger still reads
+                    # in the order work landed and the diff is the number.
+                    "line": moved.lineno,
+                    "rendered": moved.rendered,
+                    "kept": {"line": moved.kept, "marker": moved.kept_marker},
+                    "roadmap": {"touched": False},
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+
+    print(f"{moved.task_id} → {moved.to}  {ledger}:{moved.lineno}")
+    print(f"  {moved.rendered}")
+    print(
+        f"  kept     {moved.kept_marker} line {moved.kept} still carries {moved.task_id}: "
+        f"every annotation elsewhere was written about that delivery"
+    )
+    return EXIT_OK
+
+
 def _record_drop(config: Config, args: argparse.Namespace) -> int:
     try:
-        dropped = drop_record(config, args.id)
+        dropped = drop_record(config, args.id, lineno=args.line)
         dropped.save()
     except REFUSALS as error:
         return _refused(error)

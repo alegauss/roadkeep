@@ -53,7 +53,7 @@ from roadkeep.ids import id_scanner, next_id
 from roadkeep.markers import refresh
 from roadkeep.sections import Section, find, heading_of, nested
 
-__all__ = ["NotAnId", "Renumbering", "SameId", "renumber"]
+__all__ = ["NotAnId", "Renumbering", "SameId", "family_of", "renumber"]
 
 #: The files whose unit is a line, in the order a lookup asks them. The deferred store is
 #: one (RK96): a paused line carries an id like any other, and a collision does not wait.
@@ -143,7 +143,7 @@ def renumber(config: Config, task_id: str, to: str | None = None) -> Renumbering
     documents = _line_documents(config)
     role, entry = _locate(config, documents, task_id)
     if to is None:
-        to = next_id(config, _family(config, task_id))
+        to = next_id(config, family_of(config, task_id))
     if to == task_id:
         raise SameId(task_id)
     if not schema.id_pattern().match(to):
@@ -306,12 +306,16 @@ def _subsections(document: Document, anchor: str) -> tuple[Section, ...]:
     )
 
 
-def _family(config: Config, task_id: str) -> str:
+def family_of(config: Config, task_id: str) -> str:
     """Which track this id belongs to, read off the id itself (RK74).
 
     Off the id and never off the block: a track is not a block, and the destination of a
     move has to stay in the family the line was numbered in or the repair is a second
     collision waiting for the next `next_id`.
+
+    Public because the ledger's own re-addressing (RK127) asks the same question about the
+    same string, and two answers to "which family is this id in" is how one door mints a
+    destination the other would have refused.
     """
     match = id_scanner(config.schema).match(task_id)
     return match.group(1) if match else config.schema.prefix

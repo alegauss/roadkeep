@@ -114,7 +114,12 @@ _INSTEAD: Mapping[str, tuple[tuple[str, str], ...]] = {
         # The ledger's update (RK124), without which the honest answer to "a word is wrong
         # here" was drop-and-re-add, which moves the entry to the end of its block.
         ('record amend <id> --why "…"', "correct an entry's sentence where it already is"),
-        ("record drop <id>", "one of two entries for one id, when the ledger says it twice"),
+        ("record drop <id>", "one of two entries for one id, when they say the same thing"),
+        # And when they do not (RK127): two deliveries under one id, which the drop above
+        # refuses rather than resolving by picking the entry that earned the id. Offered
+        # without its `--line`, because the refusal names the two real line numbers and a
+        # placeholder here would be the guess this whole table exists to remove.
+        ("record renumber <id>", "two deliveries sharing an id; it names both, you pick --line"),
         ('retire <id> --reason "…"', "a line that left without shipping"),
         ("lint --fix", "a character that is not text, removed wherever it is"),
     ),

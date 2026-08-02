@@ -118,27 +118,6 @@ as one. RK122 is the same question one file up.
 
 ## Block B — Authoring
 
-### §RK127 Two entries for one id are not always one entry twice
-
-`record drop` removes "the later of two ledger entries for one id", and the guard's own
-refusal text advertises it as the answer "when the ledger says it twice". That reading
-holds when a duplicate is a slip — the same work recorded again.
-
-Shio's `SH347` is the other kind. One entry records an unplanned fix (Spring's
-context-cache ceiling raised to 64 after an unrelated test failed) and ends by saying
-what it left open: *"the ceiling is silent"*. The other records exactly that, shipped
-later, with the test that made the ceiling visible. Two true entries, two different
-deliveries, one id — because the first was written by hand before `record add` existed
-to give unplanned work an id of its own.
-
-Dropping either destroys a delivery, and the verb picks the **later**, which here is the
-entry that actually earned the id from a roadmap line. Running it on this corpus
-produces the wrong file and reports success.
-
-What is missing is a way to say *this entry is different work*: a renumber for the
-ledger, the counterpart of the one the roadmap has. Related to RK121, and not the same —
-that one is a task in halves under one id, this one is two tasks that were never one.
-
 ### §RK129 Retiring the rest is not a verdict on the half
 
 RK121 gave `_depart` a completion path: a ledger entry carrying a qualifier is not a

@@ -33,10 +33,14 @@ from roadkeep.schema import RETIRED, SHIPPED, SchemaError
 from roadkeep.shipping import (
     Ambiguous,
     NoQualifier,
+    NoSuchEntry,
     NotDuplicated,
     NotRecorded,
+    NotRedundant,
+    Unchosen,
     amend,
     drop,
+    readdress,
     record,
 )
 
@@ -308,16 +312,23 @@ def test_a_third_copy_takes_a_second_call(tmp_path):
     assert read(tmp_path, "CHANGELOG.md") == DEDUPED
 
 
-def test_two_entries_that_disagree_about_the_door_still_leave_the_first(tmp_path):
-    # A ✅ and a 🗑 for one id are two claims, not one written twice — and the reported
-    # markers are how the author sees which one the ledger is left stating.
+def test_two_entries_that_disagree_about_the_door_are_not_dropped_by_guess(tmp_path):
+    # A ✅ and a 🗑 for one id are two claims, not one written twice (RK127). This used to
+    # remove one and *report* the difference afterwards, which is the wrong file and a
+    # success message: now the two lines are named and the reader says which goes.
     config = project(
         tmp_path,
         roadmap=BARE_ROADMAP,
         ledger=DOUBLED.replace(f"- {SHIPPED} **RK1**", f"- {RETIRED} **RK1**", 1),
     )
-    dropped = drop(config, "RK1")
+    with pytest.raises(NotRedundant) as caught:
+        drop(config, "RK1")
+    assert "5, 10" in str(caught.value) and "record renumber" in str(caught.value)
+
+    dropped = drop(config, "RK1", lineno=10)
+    dropped.save()
     assert (dropped.kept_marker, dropped.marker) == (RETIRED, SHIPPED)
+    assert dropped.kept == 5
 
 
 def test_the_only_entry_for_an_id_is_refused(tmp_path):
@@ -494,3 +505,82 @@ def test_the_amend_json_says_the_line_did_not_move(tmp_path, capsys):
     payload = json.loads(capsys.readouterr().out)
     assert payload["line"] == 5 and payload["changed"] == ["why"]
     assert payload["file"] == "CHANGELOG.md"
+
+
+# -- two deliveries under one id (RK127) --------------------------------------
+
+#: Shio's SH347, in miniature: one entry records an unplanned fix and names what it left
+#: open, the other records exactly that, shipped later. Two true entries, one id.
+DELIVERIES = f"""# Shipped
+
+## Block A — The model
+
+- {SHIPPED} **RK1** **A ceiling nothing raised** — Raised to 64; the ceiling is silent.
+- {SHIPPED} **RK1** **A ceiling nothing reports** — The test that makes the ceiling visible.
+"""
+
+
+def test_two_deliveries_under_one_id_are_never_dropped_by_default(tmp_path):
+    # Running the old verb on this corpus produced the wrong file and reported success:
+    # the entry it picks is the later one, which here is the one that earned the id.
+    config = project(tmp_path, roadmap=BARE_ROADMAP, ledger=DELIVERIES)
+    with pytest.raises(NotRedundant):
+        drop(config, "RK1")
+    assert read(tmp_path, "CHANGELOG.md") == DELIVERIES
+
+
+def test_the_other_delivery_is_given_an_address_of_its_own(tmp_path):
+    config = project(tmp_path, roadmap=BARE_ROADMAP, ledger=DELIVERIES)
+    moved = readdress(config, "RK1", lineno=5, to="RK9")
+    moved.save()
+
+    assert (moved.to, moved.lineno, moved.kept) == ("RK9", 5, 6)
+    body = read(tmp_path, "CHANGELOG.md")
+    # It keeps its line: the ledger still reads in the order work landed.
+    assert body.splitlines()[4].startswith(f"- {SHIPPED} **RK9** **A ceiling nothing raised**")
+    assert body.splitlines()[5].startswith(f"- {SHIPPED} **RK1** **A ceiling nothing reports**")
+    assert lint(Config.discover(tmp_path)).findings == ()
+
+
+def test_the_destination_is_derived_and_refused_against_every_source(tmp_path):
+    config = project(tmp_path, roadmap=ROADMAP, ledger=DELIVERIES)
+    assert readdress(config, "RK1", lineno=5).to == "RK3"
+    with pytest.raises(IdInUse):
+        readdress(config, "RK1", lineno=5, to="RK2")
+
+
+def test_which_entry_moves_is_named_and_never_defaulted(tmp_path):
+    config = project(tmp_path, roadmap=BARE_ROADMAP, ledger=DELIVERIES)
+    with pytest.raises(Unchosen) as caught:
+        readdress(config, "RK1")
+    assert "5, 6" in str(caught.value)
+    with pytest.raises(NoSuchEntry):
+        readdress(config, "RK1", lineno=7)
+    assert read(tmp_path, "CHANGELOG.md") == DELIVERIES
+
+
+def test_an_id_the_ledger_states_once_is_not_re_addressed(tmp_path):
+    # The argument against renumbering a record still holds where there is no collision:
+    # it is how a `git log -S` starts returning two unrelated designs.
+    config = project(tmp_path, roadmap=BARE_ROADMAP, ledger=DEDUPED)
+    with pytest.raises(NotDuplicated):
+        readdress(config, "RK2", lineno=6, to="RK9")
+
+
+def test_the_renumber_command_says_which_line_keeps_the_id(tmp_path, capsys):
+    project(tmp_path, roadmap=BARE_ROADMAP, ledger=DELIVERIES)
+    code = main(
+        ["-C", str(tmp_path), "record", "renumber", "RK1", "--line", "5", "--to", "RK9"]
+    )
+    assert code == EXIT_OK
+    printed = capsys.readouterr().out
+    assert printed.startswith("RK1 → RK9  CHANGELOG.md:5")
+    assert "line 6 still carries RK1" in printed
+
+
+def test_the_drop_refusal_offers_both_doors(tmp_path, capsys):
+    project(tmp_path, roadmap=BARE_ROADMAP, ledger=DELIVERIES)
+    assert main(["-C", str(tmp_path), "record", "drop", "RK1"]) == EXIT_USAGE
+    err = capsys.readouterr().err
+    assert "record drop RK1 --line <n>" in err and "record renumber RK1" in err
+    assert read(tmp_path, "CHANGELOG.md") == DELIVERIES

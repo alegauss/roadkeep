@@ -16,7 +16,7 @@ not on PATH.
 When the `mcp__roadkeep__*` tools are available, **prefer them**: the whole write path and
 the reads a task needs are there — `add`, `status`, `amend`, `ship`, `retire`, `defer`, `resume`,
 `record_add`,
-`record_amend`, `record_drop`, `non_goal_add`, `non_goal_drop`, `section_add`, `section_amend`, `section_drop`, `brief`, `pick`, `list`, `deps`, `lint` — same engine and same
+`record_amend`, `record_drop`, `record_renumber`, `non_goal_add`, `non_goal_drop`, `section_add`, `section_amend`, `section_drop`, `brief`, `pick`, `list`, `deps`, `lint` — same engine and same
 refusals, with
 the fields arriving as a schema instead of flag names typed from memory. `init`, `adopt` and
 `install` run once per project and want the CLI — the last of them wires this file, the tools
@@ -48,8 +48,11 @@ A dep on a paused task resolves as **deferred**, and the line waiting on it as
 `blocked-paused` — not offered, counted apart, and unblocked by a `resume` rather than a ship.
 Reach for `retire` only when the work is not coming back. `record add --block <x> --symptom "…" --why "…"` is the fourth — never
 planned, so the ledger entry alone and the roadmap untouched, and `record drop <id>` is its inverse:
-refused unless the ledger states that id **twice**, then the later entry goes and the first stays,
-because removing the only record of a decision is deleting history. To *fix* an entry use
+refused unless the ledger states that id **twice** *and the two say the same thing*, then the
+later entry goes and the first stays,
+because removing the only record of a decision is deleting history. Two entries that differ are
+two deliveries under one id, not one recorded twice: `record drop <id> --line <n>` if you have
+read both, or `record renumber <id> --line <n>` to give one its own address. To *fix* an entry use
 `record amend <id> --why "…"` (or `--part` on a partial) — never drop-and-re-add, which moves
 the line to the end of its block and shows a reviewer a deletion where a word changed. `section add <id> --title "…"` is that
 same write for a line that already exists, and
