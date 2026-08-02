@@ -120,9 +120,9 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 0 | 18 | 0 |
 | C — Query (consult without reading the file) | 0 | 16 | 0 |
 | D — The gate | 0 | 15 | 0 |
-| E — Adoption | 2 | 17 | 0 |
+| E — Adoption | 1 | 17 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 17 | 1 |
-| **Total** | 2 | 97 | 1 |
+| **Total** | 1 | 97 | 2 |
 
 **Next ready:**
 
@@ -135,9 +135,10 @@ which is the cost the command existed to remove.
 
 Still open, and where to look:
 [docs/ROADMAP.md](https://github.com/alegauss/roadkeep/blob/main/docs/ROADMAP.md). Shio is
-adopted and governed, and so are Turing and Dumont — which is what the remaining two lines are
-about: finishing that rollout, and the one backlog whose marker, heading and ledger all differ
-so far that no configuration reaches it.
+adopted and governed, and so are Turing and Dumont — which is what the one remaining line is
+about: finishing that rollout. The fourth candidate was measured and **retired** rather than
+adopted, because its tasks are wrapped paragraphs with their deps on a line of their own, and
+reading those is a second grammar rather than a configuration key.
 
 ## Adopt it in a project — two commands, and the repository carries the rest
 

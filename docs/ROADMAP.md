@@ -31,7 +31,6 @@
 ## Block E — Adoption
 
 - ⏳ **RK21** (deps: RK20 ✅) **A standard adopted by one project is a preference** — roll out to Turing, Dumont and Cursarei, each with its own `roadmap.toml`. → §RK21
-- 📋 **RK77** (deps: RK74 ✅, RK75 ✅) **A backlog whose marker, heading and ledger all differ cannot be adopted at all** — cursarei needs four unrelated keys the format has none of, so 0 of its 16 open lines and 9 of its 12 ledger entries stay unread. → §RK77
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
@@ -52,3 +51,6 @@ Deliberately **not** built — check this list before proposing work:
 - **No backlog in an issue tracker** (Jira, Linear, GitHub Issues.) A backlog that lives
   in a service is one an agent cannot `Grep`; a one-way report about this tool, sent
   explicitly, moves nothing out of the files.
+- **No multi-line task line.** A task whose text wraps across paragraphs, with its deps
+  on a `↳` line of their own, is a second grammar; reading only the first line would
+  ship a truncated why and orphan the rest.
