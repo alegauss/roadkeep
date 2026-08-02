@@ -19,11 +19,25 @@ What this is for: **granularity, at the moment the line is written.** A block wh
 comparables shipped at 800+ lines is a block where the next line is probably two lines.
 What it is explicitly not for: **ranking work.** Every tier of `pick` is a fact, and a
 cheapness tier would defer exactly the nine tasks above — the ones with the most leverage.
+
+**A commit that wrote N entries is not N costs** (RK94). One task, one commit is the rule
+the whole derivation rests on, and history is full of files where it was not kept: a
+squashed adoption import writes the entire backlog at once, and this repository itself has
+three entries in one commit. Charging that commit's size to each of them put its value in
+every percentile at once, and the median offered for judging granularity then described
+the batch instead of a task. So a co-shipped entry is **named and left out of the
+distributions**, never divided across them: 20963 lines over 47 entries is 446 apiece, a
+number no commit contains and `git show` cannot refute, which is the one property a
+derived answer has. The entry stays in :attr:`Weights.weighed` carrying its real commit —
+that list was the only usable part when the percentiles collapsed, and it is what a reader
+checks the exclusion against.
 """
 
 from __future__ import annotations
 
 import statistics
+from collections import Counter
+from collections.abc import Mapping
 from dataclasses import dataclass
 
 from roadkeep.config import Config
@@ -46,6 +60,15 @@ class Weight:
     #: The abbreviated sha, so the number is checkable by hand — the whole claim of a
     #: derived answer is that it can be refuted with `git show`.
     commit: str
+    #: How many ledger entries this commit wrote (RK94). 1 is the rule kept, and then
+    #: `lines` and `files` are this task's own cost; above 1 they are the batch's, shared
+    #: by every entry in it and belonging to none of them.
+    shared: int = 1
+
+    @property
+    def alone(self) -> bool:
+        """Whether the commit's size is this task's cost, which is what a spread is over."""
+        return self.shared == 1
 
 
 @dataclass(frozen=True, slots=True)
@@ -106,11 +129,19 @@ class Weights:
     #: that never reached a commit. Counted and never guessed at, on RK28's reasoning: an
     #: absent answer is not a cheap task.
     unresolved: tuple[str, ...] = ()
+    #: Ids whose commit wrote more than one entry (RK94), in scope and left out of every
+    #: distribution above. Named for `unresolved`'s reason: an exclusion the answer does not
+    #: state is a count that reads as the whole ledger.
+    co_shipped: tuple[str, ...] = ()
 
     @property
     def recent(self) -> tuple[Weight, ...]:
-        """The last comparables, newest first — what the shipped order already implies."""
-        return tuple(reversed(self.weighed[-COMPARABLES:]))
+        """The last comparables, newest first — what the shipped order already implies.
+
+        Only entries whose commit is their own: "the last three comparables" is a question
+        about what a task costs, and a batch is not comparable to the line being written.
+        """
+        return tuple(reversed([w for w in self.weighed if w.alone][-COMPARABLES:]))
 
     def by_block(self) -> dict[str, Spread]:
         """The line spread per block, in the order the ledger states them.
@@ -120,7 +151,11 @@ class Weights:
         """
         grouped: dict[str, list[int]] = {}
         for weight in self.weighed:
-            grouped.setdefault(weight.block, []).append(weight.lines)
+            # The block keeps its row even when every entry in it was co-shipped: an empty
+            # spread reads as "nothing comparable here", and a missing row reads as no block.
+            values = grouped.setdefault(weight.block, [])
+            if weight.alone:
+                values.append(weight.lines)
         return {label: Spread.of(tuple(values)) for label, values in grouped.items()}
 
 
@@ -141,8 +176,15 @@ def weigh(config: Config, block: str | None = None) -> Weights:
     ledger = config.document("changelog")
     shipped = added_ids(config, "changelog")
     costs = costs_of(config, tuple(dict.fromkeys(shipped.values())))
+    # Counted over the whole ledger and never over the scope (RK94): how many entries a
+    # commit wrote is a fact about that commit, and a `--block` question that only saw its
+    # own two of the forty-seven would call a batch a task.
+    entries_per_commit = Counter(shipped.values())
 
-    every = tuple((entry, _weight(entry, shipped, costs)) for entry in ledger.entries)
+    every = tuple(
+        (entry, _weight(entry, shipped, costs, entries_per_commit))
+        for entry in ledger.entries
+    )
     scoped = tuple(
         pair for pair in every if block is None or pair[0].task.block == block
     )
@@ -156,23 +198,31 @@ def weigh(config: Config, block: str | None = None) -> Weights:
             key=lambda weight: order.get(weight.task_id, 0),
         )
     )
+    alone = tuple(w for w in weighed if w.alone)
     return Weights(
         weighed=weighed,
-        lines=Spread.of(tuple(w.lines for w in weighed)),
-        files=Spread.of(tuple(w.files for w in weighed)),
+        lines=Spread.of(tuple(w.lines for w in alone)),
+        files=Spread.of(tuple(w.files for w in alone)),
         # Always the whole ledger, scoped or not: a block's median says nothing without the
         # number it is being compared against.
-        everywhere=Spread.of(tuple(w.lines for _, w in every if w is not None)),
+        everywhere=Spread.of(
+            tuple(w.lines for _, w in every if w is not None and w.alone)
+        ),
         block=block,
         unresolved=tuple(entry.task.id for entry, weight in scoped if weight is None),
+        co_shipped=tuple(w.task_id for w in weighed if not w.alone),
     )
 
 
 def _weight(
-    entry: Entry, shipped: dict[str, str], costs: dict[str, Cost]
+    entry: Entry,
+    shipped: dict[str, str],
+    costs: dict[str, Cost],
+    entries_per_commit: Mapping[str, int],
 ) -> Weight | None:
     """One entry as a weight, or None when no commit accounts for it."""
-    cost = costs.get(shipped.get(entry.task.id, ""))
+    sha = shipped.get(entry.task.id, "")
+    cost = costs.get(sha)
     if cost is None:
         return None
     return Weight(
@@ -181,4 +231,5 @@ def _weight(
         lines=cost.lines,
         files=cost.files,
         commit=cost.short,
+        shared=entries_per_commit.get(sha, 1),
     )

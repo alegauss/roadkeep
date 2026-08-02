@@ -26,8 +26,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 💭 **RK94** (deps: —) **weight gives one commit's whole size to every task it shipped, so a bulk import pins the percentiles to itself** — Cost comes from the commit that wrote each entry, but one that shipped 47 tasks charges all its lines to each, so the median advertised for granularity has no signal here. → §RK94
-
 ## Block D — The gate
 
 - 💭 **RK84** (deps: —) **lint cannot answer whether this change made it worse** — On a corpus with 317 standing problems the absolute count carries no signal, and the only way to attribute a delta was to stash the files and run it twice. → §RK84

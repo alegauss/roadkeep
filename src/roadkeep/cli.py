@@ -763,8 +763,10 @@ def build_parser() -> argparse.ArgumentParser:
             "line is probably two lines. Derived from the commit that wrote each ledger "
             "entry, so nothing stores it and `git show` refutes it. Two axes and no score — "
             "lines vary 27-fold here and files, which is what an agent holds in context, do "
-            "not. This ranks nothing: every tier of `pick` is a fact, and a cheapness tier "
-            "would defer the architectural tasks, which is where the leverage is."
+            "not. An entry whose commit wrote several is named and left out rather than "
+            "given a share of it, a divided cost being one no commit contains. This ranks "
+            "nothing: every tier of `pick` is a fact, and a cheapness tier would defer the "
+            "architectural tasks, which is where the leverage is."
         ),
     )
     weight_parser.add_argument("--block", help="only this block's comparables, e.g. C")
@@ -2579,6 +2581,13 @@ def _weight(config: Config, args: argparse.Namespace) -> int:
     else:
         for label, spread in weights.by_block().items():
             print(f"  block {label:<3} {spread}")
+    if weights.co_shipped:
+        # Named for the reason `missing` is (RK94): the numbers above are over fewer entries
+        # than the ledger holds, and a spread that does not say so reads as all of it.
+        print(
+            f"  batched  {len(weights.co_shipped)} entr(ies) left out, whose commit wrote "
+            f"more than one: {', '.join(weights.co_shipped)}"
+        )
     if weights.unresolved:
         # An absent answer is not a cheap task (RK28): a squash or a shallow clone leaves an
         # entry no commit accounts for, and a count that hid them would read as complete.
@@ -2617,10 +2626,14 @@ def _weight_json(where: str, weights: Weights) -> dict[str, object]:
                 "lines": weight.lines,
                 "files": weight.files,
                 "commit": weight.commit,
+                # The entry keeps its real numbers and says what they are the size of, so
+                # the list stays checkable against `git show` (RK94).
+                "shared": weight.shared,
             }
             for weight in weights.weighed
         ],
         "unresolved": list(weights.unresolved),
+        "co_shipped": list(weights.co_shipped),
     }
 
 

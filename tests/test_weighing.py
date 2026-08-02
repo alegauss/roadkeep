@@ -131,6 +131,84 @@ def test_an_entry_no_commit_accounts_for_is_counted_and_never_guessed_at(tmp_pat
     assert [w.task_id for w in weights.weighed] == ["RK1"]
 
 
+def ship_together(config: Config, ids: tuple[str, ...], block: str = "A", weight: int = 3):
+    """Write several ledger entries in **one** commit — the adoption import's shape."""
+    ledger = config.path("changelog")
+    lines = ledger.read_text(encoding="utf-8").splitlines(keepends=True)
+    at = next(
+        (n for n, line in enumerate(lines) if line.startswith(f"## Block {block}")), 0
+    )
+    for task_id in reversed(ids):
+        lines.insert(at + 1, f"- {SHIPPED} **{task_id}** **A symptom** — a reason.\n")
+    ledger.write_text("".join(lines), encoding="utf-8")
+    (config.root / f"{'_'.join(ids)}.py").write_text(
+        "".join(f"line {n}\n" for n in range(weight)), encoding="utf-8"
+    )
+    return commit(config.root, f"feat: {', '.join(ids)}")
+
+
+# -- one commit, many entries, one number (RK94) ------------------------------
+
+
+def test_a_batch_is_left_out_of_the_distributions_rather_than_divided(tmp_path):
+    # Dividing invents a per-task cost: 20963 over 47 entries is 446 apiece, a number no
+    # commit contains and `git show` cannot refute — which is the one property this has.
+    config = repo(tmp_path)
+    ship(config, "RK1", weight=10)
+    ship_together(config, ("RK2", "RK3", "RK4"), weight=300)
+    weights = weigh(Config.discover(config.root))
+    assert weights.co_shipped == ("RK2", "RK3", "RK4")
+    # The percentiles describe the one entry whose commit is its own, and nothing else.
+    assert weights.lines.count == 1 and weights.lines.median == 11
+    # And the batch keeps its real numbers in the list, which is what a reader checks.
+    batched = {w.task_id: w for w in weights.weighed}
+    assert batched["RK2"].lines == 303 and batched["RK2"].shared == 3
+    assert not batched["RK2"].alone and batched["RK1"].alone
+
+
+def test_the_batch_is_the_same_batch_inside_a_scope(tmp_path):
+    # How many entries a commit wrote is a fact about the commit (RK94): a `--block` question
+    # seeing only its own two of the three would call a batch a task.
+    config = repo(tmp_path)
+    ship_together(config, ("RK1", "RK2"), block="A", weight=300)
+    ship_together(config, ("RK3",), block="B", weight=10)
+    weights = weigh(Config.discover(config.root), "A")
+    assert weights.co_shipped == ("RK1", "RK2") and weights.lines.count == 0
+    assert str(weights.lines) == "nothing shipped"
+
+
+def test_a_block_of_only_batched_entries_keeps_its_row(tmp_path):
+    # An empty spread reads as "nothing comparable here"; a missing row reads as no block.
+    config = repo(tmp_path)
+    ship(config, "RK1", block="A", weight=10)
+    ship_together(config, ("RK2", "RK3"), block="B", weight=50)
+    by_block = weigh(Config.discover(config.root)).by_block()
+    assert set(by_block) == {"A", "B"}
+    assert by_block["A"].count == 1 and by_block["B"].count == 0
+
+
+def test_a_batch_is_not_offered_as_a_recent_comparable(tmp_path):
+    # "The last three comparables" is a question about what a task costs, and a batch is
+    # not comparable to the line being written.
+    config = repo(tmp_path)
+    ship(config, "RK1", weight=10)
+    ship_together(config, ("RK2", "RK3"), weight=500)
+    assert [w.task_id for w in weigh(Config.discover(config.root)).recent] == ["RK1"]
+
+
+def test_the_command_names_what_it_left_out(tmp_path, capsys):
+    config = repo(tmp_path)
+    ship(config, "RK1", weight=10)
+    ship_together(config, ("RK2", "RK3"), weight=500)
+    assert main(["-C", str(config.root), "weight", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["co_shipped"] == ["RK2", "RK3"]
+    assert [w["shared"] for w in payload["weighed"]] == [1, 2, 2]
+    assert main(["-C", str(config.root), "weight"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "batched  2 entr(ies) left out" in out and "RK2, RK3" in out
+
+
 def test_a_block_is_weighed_against_the_whole_ledger(tmp_path):
     config = repo(tmp_path)
     ship(config, "RK1", block="A", weight=100)

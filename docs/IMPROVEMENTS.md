@@ -79,20 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK94 One commit, many tasks, one number
-
-Observed running `weight` this session to size these tasks. Cost is derived from the
-commit that wrote each ledger entry, which is right when one commit ships one task. But
-the initial history import, `4fc05f3`, wrote 47 entries at once, so `weight` attributed
-its whole size — 20963 lines, 87 files — to each of them, and every block's p25, median
-and p90 collapsed onto that one value. The summary the tool leads with, and the very
-number its description offers for judging whether a line is really two lines, then
-carries no signal; only the raw `weighed` list, read entry by entry, was usable. A
-commit that co-ships N entries should divide its size across them, or flag them as
-co-shipped so the percentiles can exclude the batch. This is not peculiar to this repo:
-any adopted project with a squashed import hits the same skew, which is RK77's adoption
-territory exactly.
-
 ## Block D — The gate
 
 ### §RK84 A gate on a corpus with standing debt

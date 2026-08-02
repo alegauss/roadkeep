@@ -62,6 +62,7 @@
 - ✅ **RK95** **an id no commit ever carried is reported as history being unreadable** — `gaps` answers "never carried" where a complete history mentions the id nowhere, and keeps "unresolvable" for the checkout that cannot see far enough to say.
 - ✅ **RK83** **pick offers an idea when a designed task is ready** — pick and brief now say when the line they chose still needs designing, and `--designed` sets those aside, so a caller asking to execute a block is never handed a design session.
 - ✅ **RK92** **The dep resolver has no answer for a dep blocked on paused work** — a dep on a paused task now resolves as deferred and the line waiting on it as blocked-paused, so pick neither offers it nor buries it and the gate stops calling the id missing.
+- ✅ **RK94** **weight gives one commit's whole size to every task it shipped, so a bulk import pins the percentiles to itself** — an entry whose commit wrote several is named under batched and left out of the percentiles, so a squashed import no longer pins the median that judges granularity to itself.
 
 ## Block D — The gate
 
