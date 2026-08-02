@@ -34,6 +34,7 @@ from roadkeep.schema import (
     OPEN_MARKERS,
     RETIRED,
     SHIPPED,
+    UNDESIGNED,
     Dep,
     DepKind,
     Schema,
@@ -102,7 +103,7 @@ _LIMIT_KEYS = {
     "section": "section_max",
     "prose": "prose_width",
 }
-_MARKER_KEYS = frozenset({"open", "shipped", "retired", "deferred"})
+_MARKER_KEYS = frozenset({"open", "shipped", "retired", "deferred", "undesigned"})
 # The invisible ones. A marker carrying U+FE0F renders identically and compares
 # unequal, so a config that declares one puts every line in the file permanently
 # out of round-trip. Refuse it where it is typed.
@@ -431,6 +432,7 @@ def _markers(raw: object, problems: list[str]) -> dict[str, object]:
         "shipped_marker": SHIPPED,
         "retired_marker": RETIRED,
         "deferred_marker": DEFERRED,
+        "undesigned": UNDESIGNED,
     }
     if raw is None:
         return default
@@ -457,6 +459,7 @@ def _markers(raw: object, problems: list[str]) -> dict[str, object]:
             "markers.deferred must differ from shipped and retired: a paused task that "
             "reads as a departure is the one distinction the state exists to make"
         )
+    undesigned = _undesigned(raw, open_markers or OPEN_MARKERS, problems)
     for marker in (*open_markers, shipped, retired, deferred):
         _reject_invisible(marker, problems)
     if "ledger" in raw:
@@ -472,6 +475,7 @@ def _markers(raw: object, problems: list[str]) -> dict[str, object]:
         "shipped_marker": shipped,
         "retired_marker": retired,
         "deferred_marker": deferred,
+        "undesigned": undesigned,
     }
 
 
@@ -503,6 +507,29 @@ def _flag(
         problems.append(f"ledger.{key} must be true or false")
         return default
     return value
+
+
+def _undesigned(
+    raw: Mapping[str, object], open_markers: tuple[str, ...], problems: list[str]
+) -> tuple[str, ...]:
+    """Which open markers mean the design is still to be written (RK83).
+
+    Undeclared, it is the built-in list narrowed to what this project actually opens with,
+    so a backlog whose marker set never spells 💭 gets an empty one instead of a default
+    naming a codepoint it does not use. Declared, every entry has to be an open marker:
+    a marker `pick` sets aside and no line can carry is a `--designed` that silently does
+    nothing, and this is the file it was typed in.
+    """
+    if "undesigned" not in raw:
+        return tuple(m for m in UNDESIGNED if m in open_markers)
+    declared = tuple(_string_list(raw.get("undesigned"), "markers.undesigned", problems))
+    stray = [m for m in declared if m not in open_markers]
+    if stray:
+        problems.append(
+            f"markers.undesigned names {' '.join(stray)}, which markers.open does not: "
+            "a marker no line may carry is a distinction `pick` can never act on"
+        )
+    return tuple(m for m in declared if m in open_markers)
 
 
 def _one_marker(

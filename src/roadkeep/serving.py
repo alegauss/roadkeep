@@ -141,8 +141,11 @@ TOOLS: tuple[Tool, ...] = (
     Tool("section drop", ("anchor", "role"), writes=True),
     Tool("non-goal list"),
     Tool("weight", ("block",)),
-    Tool("brief", ("id", "block")),
-    Tool("pick", ("block",)),
+    # `designed` is exposed on both for the reason it exists (RK83): the caller that asks
+    # to execute a block over MCP is the one that was handed a design session, and a flag
+    # only the CLI can reach is a flag the agent this ships for cannot pass.
+    Tool("brief", ("id", "block", "designed")),
+    Tool("pick", ("block", "designed")),
     Tool("list", ("block", "role", "marker")),
     Tool("deps", ("id",)),
     Tool("lint"),

@@ -17,7 +17,7 @@ from pathlib import Path
 import pytest
 
 from roadkeep.config import CONFIG_NAME, Config, ConfigError, find_config
-from roadkeep.schema import DESIGNED, SHIPPED
+from roadkeep.schema import DESIGNED, IDEA, SHIPPED
 
 HERE = Path(__file__).resolve().parents[1]
 
@@ -347,6 +347,30 @@ def test_a_marker_set_that_can_say_done_is_refused(tmp_path):
     path = write(tmp_path, f'[markers]\nopen = ["{DESIGNED}", "{SHIPPED}"]\n')
     with pytest.raises(ConfigError, match="shipped marker"):
         Config.load(path)
+
+
+def test_which_markers_still_need_designing_is_declared(tmp_path):
+    # RK83's whole configuration surface: `pick` acts on this distinction, and which
+    # codepoint carries it is the project's to say (L6).
+    path = write(tmp_path, f'[markers]\nopen = ["{DESIGNED}", "{IDEA}"]\nundesigned = ["{IDEA}"]\n')
+    assert Config.load(path).schema.undesigned == (IDEA,)
+    assert Config.load(path).schema.needs_design(IDEA)
+
+
+def test_an_undesigned_marker_no_line_may_carry_is_refused(tmp_path):
+    # Refused where it is typed, like the shipped/deferred clash: a `--designed` that
+    # silently sets nothing aside is a filter its author believes is in force and is not.
+    path = write(tmp_path, f'[markers]\nopen = ["{DESIGNED}"]\nundesigned = ["{IDEA}"]\n')
+    with pytest.raises(ConfigError, match="markers.open does not"):
+        Config.load(path)
+
+
+def test_the_default_narrows_to_the_markers_the_project_opens_with(tmp_path):
+    # Undeclared, and 💭 not in the open set: an empty list rather than a default naming
+    # a codepoint no line here can carry.
+    path = write(tmp_path, f'[markers]\nopen = ["{DESIGNED}"]\n')
+    assert Config.load(path).schema.undesigned == ()
+    assert Config.load(write(tmp_path, "prefix = \"RK\"\n")).schema.undesigned == (IDEA,)
 
 
 def test_a_budget_reaches_the_config_with_both_units(tmp_path):

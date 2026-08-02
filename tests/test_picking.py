@@ -304,6 +304,24 @@ def test_an_undeclared_block_exits_two(tmp_path, capsys):
     assert "no heading declares Block Z" in capsys.readouterr().err
 
 
+def test_the_command_names_what_designed_set_aside(tmp_path, capsys):
+    # Printed and not folded into `backlog`: a filter that hides its own effect is how
+    # "this block is finished" gets read off an answer that never looked at half of it.
+    project(tmp_path, BLOCKS + line("RK4", status=IDEA) + line("RK9"))
+    assert main(["-C", str(tmp_path), "pick", "--designed"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert out.splitlines()[0].startswith("RK9")
+    assert "skipped  1 ready and still needing designing" in out
+
+
+def test_the_command_says_the_pick_still_needs_designing(tmp_path, capsys):
+    project(tmp_path, BLOCKS + line("RK4", status=IDEA))
+    assert main(["-C", str(tmp_path), "pick", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["needs_design"] and payload["undesigned"] == 0
+    assert "still needs designing" in payload["reason"]
+
+
 def test_a_missing_roadmap_is_a_usage_error_not_a_traceback(tmp_path, capsys):
     (tmp_path / "roadkeep.toml").write_text(
         'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\n', encoding="utf-8"
@@ -313,7 +331,78 @@ def test_a_missing_roadmap_is_a_usage_error_not_a_traceback(tmp_path, capsys):
 
 
 def test_an_idea_is_pickable_because_maturity_is_not_readiness(tmp_path):
-    # 💭 is a maturity marker, not a gate: the deps decide, and a project that wanted
-    # ideas excluded would say so in its marker set (L6).
+    # 💭 is a maturity marker, not a gate: the deps decide, and a block whose ideas are
+    # never offered is a block whose ideas are never designed (RK83).
     config = project(tmp_path, BLOCKS + line("RK4", status=IDEA))
     assert pick(config).entry.task.id == "RK4"
+
+
+# -- ready and implementable are two different states (RK83) ------------------
+
+
+def test_the_answer_says_when_its_choice_still_needs_designing(tmp_path):
+    # The complaint RK83 records is not that `pick` chose wrongly — an idea *is* the
+    # lowest ready id — but that it chose silently, and the caller found out by reading
+    # the marker it had just been handed.
+    config = project(tmp_path, BLOCKS + line("RK4", status=IDEA) + line("RK9"))
+    choice = pick(config)
+    assert choice.entry.task.id == "RK4" and choice.needs_design
+    # The tier still fired and still says so: the caveat is added, never substituted.
+    assert choice.reason.startswith("lowest ready id")
+    assert "still needs designing" in choice.reason
+
+
+def test_a_designed_pick_carries_no_caveat(tmp_path):
+    config = project(tmp_path, BLOCKS + line("RK4"))
+    choice = pick(config)
+    assert not choice.needs_design and "designing" not in choice.reason
+
+
+def test_designed_sets_the_ideas_aside_and_takes_the_higher_id(tmp_path):
+    # What "execute Block A" means: the caller wants the implementable line, and the id
+    # order is not the axis that distinguishes it.
+    config = project(tmp_path, BLOCKS + line("RK4", status=IDEA) + line("RK9"))
+    choice = pick(config, designed=True)
+    assert choice.entry.task.id == "RK9" and not choice.needs_design
+    assert choice.undesigned == 1
+    # `ready` is a fact about the file, so the caller's intent does not change it.
+    assert choice.ready == 2 and choice.alternatives == ()
+
+
+def test_a_block_of_ideas_reads_differently_from_a_blocked_one(tmp_path):
+    # The third absence: not finished, not stuck — waiting on a design session, which is
+    # the one of the three a caller answers by writing prose rather than by shipping.
+    config = project(tmp_path, BLOCKS + line("RK4", status=IDEA))
+    choice = pick(config, designed=True)
+    assert not choice.found and choice.tier is None
+    assert choice.reason == (
+        "every ready task still needs designing, so there is nothing to implement"
+    )
+    assert choice.ready == 1 and choice.undesigned == 1
+
+
+def test_designed_and_a_scope_compose(tmp_path):
+    config = project(
+        tmp_path,
+        BLOCKS + line("RK2") + MORE + line("RK8", block="B", status=IDEA),
+    )
+    choice = pick(config, "B", designed=True)
+    assert not choice.found
+    assert choice.reason.startswith("every ready task in Block B still needs designing")
+
+
+def test_without_the_flag_nothing_is_set_aside(tmp_path):
+    # A count that moved without the caller asking would be the ranking taking the bias
+    # back, which is the one thing RK83's design rules out.
+    config = project(tmp_path, BLOCKS + line("RK4", status=IDEA))
+    assert pick(config).undesigned == 0
+
+
+def test_a_project_that_names_no_undesigned_marker_never_skips(tmp_path):
+    config = project(
+        tmp_path,
+        BLOCKS + line("RK4", status=IDEA),
+        extra='[markers]\nopen = ["📋", "💭", "⏳", "🛠"]\nundesigned = []\n\n',
+    )
+    choice = pick(config, designed=True)
+    assert choice.entry.task.id == "RK4" and not choice.needs_design

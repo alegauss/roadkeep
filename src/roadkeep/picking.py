@@ -26,6 +26,14 @@ sends the caller at something that cannot be finished (RK28).
 The stalled list is the other half of the same honesty: a 🛠 task that is *blocked* is
 reported beside the answer, because that is the state a reader most needs to know about
 and the one tier 1 cannot pick.
+
+**Ready and implementable are two different states** (RK83). The tiers rank by id and
+never by marker, so a block holding both designs and ideas answers a caller who asked to
+execute it with a design session. Two things follow, and neither is a fourth tier: the
+answer *says* when the line it chose still needs designing, because the complaint was
+never that it chose wrongly but that it chose silently; and ``designed`` sets those lines
+aside, because the bias belongs to the caller's intent and not to the ranking — a block
+whose ideas are never offered is a block whose ideas are never designed.
 """
 
 from __future__ import annotations
@@ -75,6 +83,12 @@ class Choice:
     blocked: int = 0
     outside: int = 0
     stalled: tuple[Stalled, ...] = ()
+    #: Whether the chosen line still needs designing (RK83). Said, never acted on: it is
+    #: the sentence that stops the pick being silent about which of the two states it is.
+    needs_design: bool = False
+    #: How many ready lines ``designed`` set aside. 0 whenever the flag was not passed, so
+    #: a non-zero value is always the caller's own filter and never a fact about the file.
+    undesigned: int = 0
 
     @property
     def found(self) -> bool:
@@ -89,13 +103,18 @@ class Choice:
         )
 
 
-def pick(config: Config, block: str | None = None) -> Choice:
+def pick(config: Config, block: str | None = None, designed: bool = False) -> Choice:
     """Apply the three tiers to the roadmap, and say which one answered.
 
     ``block`` scopes every part of the answer — the tiers, the counts, the alternatives —
     so that "nothing to pick" is a statement about *that* block (RK40). Unscoped, the
     lowest ready id can live in another block, and reading that as "this block is
     finished" is a mistake the ids being non-sequential makes easy.
+
+    ``designed`` sets aside the ready lines whose marker says the design is unwritten
+    (RK83), for a caller who asked to *execute* rather than to plan. It narrows what may
+    be chosen and nothing else: ``ready`` still counts every ready line, because the
+    number of lines this backlog could start is not a fact the caller's intent changes.
     """
     backlog = Backlog.load(config)
     prefixes = config.schema.prefixes
@@ -114,30 +133,51 @@ def pick(config: Config, block: str | None = None) -> Choice:
     ordered = sorted(
         survey.ready, key=lambda e: (number_of(e.task.id, prefixes) or 0, e.task.id)
     )
+    # Narrowed after the ordering and not before it, so `ready` keeps counting what the
+    # file holds: the caller's intent decides what may be offered, never what is true.
+    offered = [e for e in ordered if not config.schema.needs_design(e.task.status)]
+    set_aside = len(ordered) - len(offered) if designed else 0
+    if designed:
+        ordered = offered
     counts = {
         "block": block,
         "blocked": survey.blocked,
         "outside": survey.outside,
         "stalled": survey.stalled,
+        "undesigned": set_aside,
     }
     if not ordered:
-        # Two different absences, and telling them apart is the whole point of the scope:
-        # a block with nothing left is finished, one whose lines are all blocked is not.
-        reason = (
-            f"nothing is open{scope}"
-            if not considered
-            else f"every open task{scope} is blocked, so there is nothing to start"
+        # Three different absences now, and telling them apart is the whole point of the
+        # scope: a block with nothing left is finished, one whose lines are all blocked is
+        # not, and one whose ready lines are all ideas is waiting on a design session.
+        if set_aside:
+            reason = (
+                f"every ready task{scope} still needs designing, so there is nothing "
+                "to implement"
+            )
+        elif not considered:
+            reason = f"nothing is open{scope}"
+        else:
+            reason = f"every open task{scope} is blocked, so there is nothing to start"
+        return Choice(
+            entry=None, tier=None, reason=reason, ready=len(survey.ready), **counts
         )
-        return Choice(entry=None, tier=None, reason=reason, **counts)
 
     chosen, tier, why = _first(ordered, config)
     rest = tuple(e.task.id for e in ordered if e is not chosen)[:ALTERNATIVES]
+    needs_design = config.schema.needs_design(chosen.task.status)
+    reason = f"{why}{scope}" if tier is Tier.LOWEST else why
+    if needs_design:
+        # Appended to the tier's own reason rather than replacing it: the tier still fired
+        # and is still a fact, and what was missing was never the choice but the caveat.
+        reason = f"{reason} — it still needs designing, which `--designed` skips"
     return Choice(
         entry=chosen,
         tier=tier,
-        reason=f"{why}{scope}" if tier is Tier.LOWEST else why,
+        reason=reason,
         alternatives=rest,
         ready=len(survey.ready),
+        needs_design=needs_design,
         **counts,
     )
 

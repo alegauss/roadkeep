@@ -80,6 +80,12 @@ EXIT_GATE = 1
 EXIT_USAGE = 2
 
 _JSON_HELP = "machine-readable form"
+#: One sentence, on both `pick` and `brief`, because it is one flag (RK83): a caller asking
+#: to execute a block wants work whose design is written, and the markers already say which.
+_DESIGNED_HELP = (
+    "offer only work whose design is written, setting aside the markers "
+    "`[markers] undesigned` names (only without an id)"
+)
 
 
 class _Version(argparse.Action):
@@ -558,6 +564,11 @@ def build_parser() -> argparse.ArgumentParser:
     brief_parser.add_argument(
         "--block", help="scope the pick to one block, e.g. C (only without an id)"
     )
+    brief_parser.add_argument(
+        "--designed",
+        action="store_true",
+        help=_DESIGNED_HELP,
+    )
     brief_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     brief_parser.set_defaults(handler=_brief)
 
@@ -595,6 +606,11 @@ def build_parser() -> argparse.ArgumentParser:
             "scope every part of the answer to one block, so 'nothing to pick' is a "
             "statement about that block and not about a lower id somewhere else"
         ),
+    )
+    pick_parser.add_argument(
+        "--designed",
+        action="store_true",
+        help=_DESIGNED_HELP,
     )
     pick_parser.add_argument(
         "--json", action="store_true", help="the pick, the tier and the counts"
@@ -1958,16 +1974,17 @@ def _miss_json(miss: Reject) -> dict[str, object]:
 
 
 def _brief(config: Config, args: argparse.Namespace) -> int:
-    if args.id is not None and args.block is not None:
-        # Two answers to one question: the id names a task and the block names a search.
+    if args.id is not None and (args.block is not None or args.designed):
+        # Two answers to one question: the id names a task and the others name a search.
+        narrowed = "--block" if args.block is not None else "--designed"
         print(
-            "roadkeep: give an id or --block, not both: an id is already the answer "
-            "--block would look for",
+            f"roadkeep: give an id or {narrowed}, not both: an id is already the answer "
+            f"{narrowed} would look for",
             file=sys.stderr,
         )
         return EXIT_USAGE
     try:
-        gathered = brief(config, args.id, args.block)
+        gathered = brief(config, args.id, args.block, args.designed)
     except (KeyError, OSError) as error:
         return _refused(error)
 
@@ -2100,7 +2117,7 @@ def _view_json(view: View, no_body: bool) -> dict[str, object]:
 
 def _pick(config: Config, args: argparse.Namespace) -> int:
     try:
-        choice = pick(config, args.block)
+        choice = pick(config, args.block, args.designed)
     except (KeyError, OSError) as error:
         return _refused(error)
     stalled = [{"id": s.id, "blockers": list(s.blockers)} for s in choice.stalled]
@@ -2127,6 +2144,8 @@ def _pick(config: Config, args: argparse.Namespace) -> int:
                     "ready": choice.ready,
                     "blocked": choice.blocked,
                     "outside": choice.outside,
+                    "needs_design": choice.needs_design,
+                    "undesigned": choice.undesigned,
                     "stalled": stalled,
                 },
                 indent=2,
@@ -2139,6 +2158,7 @@ def _pick(config: Config, args: argparse.Namespace) -> int:
     if choice.entry is None:
         print(f"nothing to pick: {choice.reason}")
         print(f"  backlog  {choice.counts}")
+        _print_undesigned(choice)
         _print_stalled(choice)
         return EXIT_OK
 
@@ -2150,8 +2170,20 @@ def _pick(config: Config, args: argparse.Namespace) -> int:
     print(f"  symptom  {entry.task.symptom}")
     if choice.alternatives:
         print(f"  or       {', '.join(choice.alternatives)}")
+    _print_undesigned(choice)
     _print_stalled(choice)
     return EXIT_OK
+
+
+def _print_undesigned(choice: Choice) -> None:
+    """What `--designed` set aside, and never silently (RK83).
+
+    Printed rather than folded into `backlog`, whose three numbers are facts about the
+    file: this one is a fact about the question, and a filter that hides its own effect is
+    how "this block is finished" gets read off an answer that never looked at half of it.
+    """
+    if choice.undesigned:
+        print(f"  skipped  {choice.undesigned} ready and still needing designing")
 
 
 def _print_stalled(choice: Choice) -> None:

@@ -64,6 +64,10 @@ why = 200
 
 [markers]
 open = ["📋", "💭", "⏳", "🛠"]
+# which of those still have their design to write (RK83). Declared rather than defaulted,
+# because it is the one marker distinction `pick` acts on: `--designed` sets these aside for
+# a caller executing a block, and every answer says when the line it chose is one of them.
+undesigned = ["💭"]
 shipped = "✅"
 # the ledger's other door: a line that left without shipping (RK32). Never an open marker —
 # a roadmap that can say "retired" is a roadmap holding work nobody will do.

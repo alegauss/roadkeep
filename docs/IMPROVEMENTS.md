@@ -79,23 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK83 Ready is two different states
-
-`pick --block P` answered with the lowest ready id and said so. The block held both
-designed tasks and ideas, and the id it chose was an idea — a design session, not an
-implementation. A caller who asked to execute a block wants the second kind, and had to
-override the answer by hand on every iteration of a long run.
-
-The markers already carry the distinction and the tiers do not read them. Whether that
-is a new tier below the declared priority, or a flag, or only a sentence added to the
-`because` line — "the pick still needs designing" — is the open question. The last is
-the cheapest and may be enough: `pick` already explains which tier answered, and the
-complaint is not that it chose wrongly but that it chose silently.
-
-Worth noting what should not change: a block whose ideas are never offered is a block
-whose ideas are never designed. The bias belongs to the caller's intent, not to the
-tool's ranking, which argues for the flag over the tier.
-
 ### §RK92 A dep blocked on paused work
 
 The resolver has four outcomes — shipped, open, unknown, unresolvable — and a deferred

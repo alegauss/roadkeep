@@ -60,6 +60,7 @@
 - ✅ **RK69** **Non-goals are printed when a task starts, not when one is proposed** — The list is now `non-goal list` — beside the two write doors, over stdio, and in the guard's roadmap table — so it prints when work is *proposed* and not only when a task starts.
 - ✅ **RK71** **A task that should be two looks exactly like one that should be one** — `weight [--block <x>]` derives what comparable tasks cost from the commit that wrote each ledger entry — two axes, no score, no field on a line.
 - ✅ **RK95** **an id no commit ever carried is reported as history being unreadable** — `gaps` answers "never carried" where a complete history mentions the id nowhere, and keeps "unresolvable" for the checkout that cannot see far enough to say.
+- ✅ **RK83** **pick offers an idea when a designed task is ready** — pick and brief now say when the line they chose still needs designing, and `--designed` sets those aside, so a caller asking to execute a block is never handed a design session.
 
 ## Block D — The gate
 

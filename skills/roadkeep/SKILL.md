@@ -102,6 +102,10 @@ ways; `gaps` resolves an id in neither file against the commit that removed it; 
 then `priority` in `roadkeep.toml`, then the lowest ready id, never one blocked outside.
 **Scope it to finish a block**: only "nothing is open in Block <x>" means finished — unscoped,
 the answer may be another block's, and the block order is the headings' own (`list`).
+**Ready is not implementable**: the tiers rank by id, so add `--designed` when you asked to
+*execute* and not to plan — it sets aside the markers `[markers] undesigned` names, and says
+how many. Without it the answer still tells you, in the same sentence that names the tier,
+that the line it chose has its design to write — which is a `section add`, not a commit.
 
 ## One task, one commit
 

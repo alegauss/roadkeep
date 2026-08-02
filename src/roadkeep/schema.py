@@ -57,6 +57,12 @@ DEFERRED = "\N{DOUBLE VERTICAL BAR}"  # ⏸
 #: in the changelog, and a roadmap that can say "done" is a second source of truth.
 OPEN_MARKERS = (DESIGNED, IDEA, PARTIAL, IN_PROGRESS)
 
+#: Which of those mean the design is not written yet (RK83). Ready and implementable are
+#: two different states, and only the markers know the difference: a 💭 line offered to a
+#: caller who asked to execute a block hands it a design session. Not a readiness gate —
+#: `pick` still offers these — but a fact the answer states, and one `--designed` can skip.
+UNDESIGNED = (IDEA,)
+
 EM_DASH = "\N{EM DASH}"
 ARROW = "\N{RIGHTWARDS ARROW}"
 NO_DEPS = EM_DASH
@@ -253,6 +259,12 @@ class Schema:
     #: sits in is what says whether it is being worked, so a marker legal in two files is
     #: two files that can both claim one task.
     deferred_marker: str = DEFERRED
+    #: The open markers whose design is still to be written (RK83), `[markers] undesigned`.
+    #: A subset of :attr:`markers` — checked where it is typed, like the shipped/deferred
+    #: clash, because this list only ever meets the open set inside `pick`. Nothing here
+    #: refuses a line for carrying one: what it changes is what an answer *says*, and what
+    #: `--designed` sets aside, since the bias belongs to the caller and not to the ranking.
+    undesigned: tuple[str, ...] = UNDESIGNED
     symptom_max: int = 120
     why_max: int = 200
     #: Whether `why` is held to one sentence, and to ending in a stop. True everywhere by
@@ -453,6 +465,16 @@ class Schema:
         would be a re-add under a new id.
         """
         return replace(self, markers=(self.deferred_marker,), deferred_allowed=True)
+
+    def needs_design(self, status: str) -> bool:
+        """Whether a line carrying this marker still has its design to write (RK83).
+
+        A method rather than a comparison at the call site for the reason every other
+        marker question is one: which codepoint means "idea" is `[markers] undesigned` and
+        never a constant a query hardcoded. A ledger or deferred schema answers False for
+        its own markers by the same rule, which is right — neither file is picked from.
+        """
+        return status in self.undesigned
 
     @property
     def dep_markers(self) -> tuple[str, ...]:

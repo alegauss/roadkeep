@@ -20,7 +20,7 @@ from roadkeep.briefing import CHAINS, NON_GOALS, NothingToBrief, brief, non_goal
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config, Scope
 from roadkeep.document import Document
-from roadkeep.schema import DESIGNED, SHIPPED, Schema
+from roadkeep.schema import DESIGNED, IDEA, SHIPPED, Schema
 
 HERE = Path(__file__).resolve().parents[1]
 TURING = Path("D:/Git/viglet/turing/latest/docs/ROADMAP.md")
@@ -127,6 +127,29 @@ def test_an_id_and_a_block_together_are_refused(tmp_path, capsys):
     project(tmp_path)
     assert main(["-C", str(tmp_path), "brief", "RK1", "--block", "A"]) == EXIT_USAGE
     assert "not both" in capsys.readouterr().err
+
+
+def test_the_pick_can_be_narrowed_to_written_designs(tmp_path):
+    # "Execute Block A" and "plan Block A" are two questions, and only the markers tell
+    # them apart (RK83): with `designed`, RK4's idea is not the answer to the first.
+    roadmap = ROADMAP.replace(
+        f"- {DESIGNED} **RK4**", f"- {IDEA} **RK4**"
+    ).replace("(deps: RK1)", "(deps: —)")
+    config = project(tmp_path, roadmap=roadmap)
+    assert brief(config).task.id == "RK1"
+    assert brief(config, designed=True).task.id == "RK1"
+    # And with the design written on neither, the absence is about designing, not blocking.
+    only_ideas = roadmap.replace(f"- {DESIGNED} **RK1**", f"- {IDEA} **RK1**")
+    with pytest.raises(NothingToBrief) as caught:
+        brief(project(tmp_path, roadmap=only_ideas), designed=True)
+    assert "still needs designing" in caught.value.args[0]
+
+
+def test_an_id_and_designed_together_are_refused(tmp_path, capsys):
+    # For the reason `--block` is: an id is already the answer the search would look for.
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "brief", "RK1", "--designed"]) == EXIT_USAGE
+    assert "give an id or --designed, not both" in capsys.readouterr().err
 
 
 def test_a_finished_block_is_reported_as_finished(tmp_path):

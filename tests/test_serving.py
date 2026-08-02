@@ -250,6 +250,16 @@ def test_the_derived_fields_are_not_offered(tmp_path):
     }
 
 
+def test_the_pick_can_be_narrowed_to_written_designs_over_the_protocol(tmp_path):
+    # RK83's flag reaches the caller it was written for: the agent asking to execute a
+    # block is the one this server exists for, and a CLI-only flag is one it cannot pass.
+    properties = listed(project(tmp_path))["pick"]["inputSchema"]["properties"]
+    assert properties["designed"]["type"] == "boolean"
+    assert argv(tool_named("pick"), {"designed": True}) == ["pick", "--designed", "--json"]
+    # False is the default, and a flag argparse reads as present cannot say "no".
+    assert argv(tool_named("pick"), {"designed": False}) == ["pick", "--json"]
+
+
 def test_the_object_is_closed_so_a_misspelt_argument_never_reaches_the_parser(tmp_path):
     for tool in listed(project(tmp_path)).values():
         assert tool["inputSchema"]["additionalProperties"] is False
