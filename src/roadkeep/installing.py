@@ -1,0 +1,422 @@
+"""Wiring a project that runs this tool from a checkout instead of from the plugin (RK100).
+
+`init` scaffolds the format — the config and the files it declares. What it does *not*
+scaffold is the harness: the server that offers the tools, the hook that denies the
+hand-edit, and the skill that says which command to call. Those ride with the plugin, and a
+project can only install the plugin from a marketplace — which means the published ref, not
+the sibling checkout an early adopter is developing against. Measured on the first one: five
+hand-written surfaces against three scaffolded ones, and a copy of `SKILL.md` with a comment
+saying where it came from, which nothing keeps in step with the file it was taken from.
+
+**Every byte written here is a translation of what the plugin already ships**, never a second
+statement of it. The hook events, their matcher and their timeouts are read out of
+`hooks/hooks.json`; the server argv out of `.claude-plugin/mcp.json`; the skill is copied
+verbatim; the workflow names the action this repository publishes. The one thing substituted
+is where the launcher is — `${CLAUDE_PLUGIN_ROOT}` becomes the path from the adopting project
+to the checkout that is answering, which is the only fact the plugin's own files cannot hold.
+So a matcher added to the plugin reaches every installed project on its next `install`, and
+this module has no opinion to disagree with.
+
+Three surfaces, three different rules about re-running, because they are three different
+kinds of file:
+
+* **The skill is a copy, so it is refreshed** — always, unasked. It is the whole defect: a
+  vendored authority that drifts is worse than none, because it is read with the same trust.
+* **`.mcp.json` and `.claude/settings.json` are declarations**, and other tools declare in
+  them too. Only this project's entry is re-derived — the launcher path is the part that
+  moves — and everything else in the file is carried through untouched. An existing file that
+  is not a JSON object is refused rather than replaced: it is somebody's configuration.
+* **The CI workflow is created once and then the adopter's.** It takes a `baseline:` and a
+  `directory:` this command cannot know it wants, so refreshing it would overwrite the one
+  thing an adopting repository actually tunes.
+
+`--check` is what makes the first rule mean anything: it reports what `install` would change
+and exits non-zero, so the copy is held in step by a gate rather than by whoever remembers.
+
+The fifth surface is not written at all. A line in `CONTRIBUTING.md` telling a contributor
+not to hand-edit the governed files is prose about a project's own contribution policy, and
+this tool does not write prose (L4) — it is named in the report and left to its author.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+from dataclasses import dataclass
+from pathlib import Path
+
+from roadkeep.provenance import engine
+
+#: The server's name, which is also the prefix an agent reads on every tool it offers.
+SERVER = "roadkeep"
+
+#: What the plugin ships, relative to its root. Read, never rewritten: these four are the
+#: source this command translates, and a fifth would be a decision this module invented.
+LAUNCHER = "scripts/roadkeep.py"
+PLUGIN_HOOKS = "hooks/hooks.json"
+PLUGIN_MCP = ".claude-plugin/mcp.json"
+PLUGIN_SKILL = "skills/roadkeep/SKILL.md"
+PLUGIN_MANIFEST = ".claude-plugin/plugin.json"
+
+#: Where each lands in the adopting project. The skill path is the loader's convention —
+#: `.claude/skills/<name>/SKILL.md` — and the workflow is a file of its own rather than a job
+#: spliced into an existing one: merging YAML would need a parser this tool does not have,
+#: and a job appended to somebody's pipeline is an edit to a file they own.
+PROJECT_MCP = ".mcp.json"
+PROJECT_SETTINGS = ".claude/settings.json"
+PROJECT_SKILL = ".claude/skills/roadkeep/SKILL.md"
+PROJECT_WORKFLOW = ".github/workflows/roadkeep.yml"
+
+#: The directory whose presence decides whether the workflow is written. A repository with no
+#: workflows has not asked for CI, and a scaffold that leaves a file nobody runs is litter.
+WORKFLOWS = ".github/workflows"
+
+#: The placeholder the harness defines for a plugin-provided config, and the two spellings of
+#: the one it defines for a project's own. The `:-.` fallback is what the MCP declaration is
+#: written with here and in the first adopting project; a hook always runs with the variable
+#: set, so its command carries the bare form.
+PLUGIN_ROOT = "${CLAUDE_PLUGIN_ROOT}"
+PROJECT_DIR = "${CLAUDE_PROJECT_DIR}"
+PROJECT_DIR_OR_CWD = "${CLAUDE_PROJECT_DIR:-.}"
+
+#: The ref the generated workflow calls the action at. `main` and not the version, because
+#: the project reaching for this command is by definition running an unreleased checkout —
+#: an adopter that has pinned a release edits one line, which is the file's own from then on.
+ACTION_REF = "main"
+
+#: The surface this command names and does not write (L4), and why. Printed by `install`.
+CONTRIBUTING = (
+    "CONTRIBUTING.md: one line telling a contributor the governed files are written by "
+    "`roadkeep` and not by hand — prose about your project, so this command leaves it to you"
+)
+
+
+class NotShipped(ValueError):
+    """The running copy of this package carries no plugin surfaces to translate.
+
+    An installed wheel is `roadkeep/` alone: the hook declaration, the server declaration and
+    the skill live beside `src/` in the repository, not inside the package. That is not worth
+    fixing by shipping a second copy of them as package data — a copy is the defect this
+    command exists to remove. The answer for a wheel is the plugin, which carries all three.
+    """
+
+    def __init__(self, root: Path, missing: tuple[str, ...]) -> None:
+        self.root = root
+        self.missing = missing
+        super().__init__(
+            f"{root} does not carry the surfaces the plugin ships and nothing was written "
+            f"(missing: {', '.join(missing)}) — `install` translates a checkout of roadkeep "
+            f"for a project beside it; an installed copy has none to translate, and "
+            f"`/plugin install roadkeep@alegauss` is the route that carries them"
+        )
+
+
+class Unreadable(ValueError):
+    """An existing declaration this command would have to merge into and cannot parse."""
+
+    def __init__(self, path: Path, reason: str) -> None:
+        self.path = path
+        super().__init__(
+            f"{path} is not a JSON object and nothing was written ({reason}): this command "
+            f"merges its own entry into that file and never replaces one somebody wrote"
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class Surface:
+    """One file this command owns a part of, and what running it would do to that file."""
+
+    path: Path
+    text: str
+    #: False for the workflow, which is the adopter's after the first write. The distinction
+    #: is the whole re-run contract, so it is a field rather than a check at the call site.
+    refresh: bool
+    existed: bool
+    stale: bool
+
+    @property
+    def state(self) -> str:
+        if not self.existed:
+            return "created"
+        if not self.stale:
+            return "unchanged"
+        return "updated" if self.refresh else "kept"
+
+    @property
+    def writes(self) -> bool:
+        return self.state in ("created", "updated")
+
+
+@dataclass(frozen=True, slots=True)
+class Plan:
+    """What `install` would write, computed before a byte reaches disk (all-or-nothing)."""
+
+    root: Path
+    #: The checkout being wired in — the tree whose `scripts/roadkeep.py` the hook will run.
+    source: Path
+    #: That launcher, exactly as the declarations spell it.
+    launcher: str
+    surfaces: tuple[Surface, ...]
+    #: Paths not written, each with the reason — the report's other half. A surface that is
+    #: silently absent is one the adopter discovers is absent by needing it.
+    skipped: tuple[tuple[str, str], ...] = ()
+
+    @property
+    def changing(self) -> tuple[Surface, ...]:
+        return tuple(surface for surface in self.surfaces if surface.writes)
+
+
+def plan(root: str | Path = ".", *, source: str | Path | None = None) -> Plan:
+    """Read the plugin's surfaces and the project's, and answer what would change.
+
+    Writes nothing, which is what lets `install` and `install --check` be the same
+    computation — a check that ran a different code path would be checking something else.
+    """
+    base = Path(root).resolve()
+    origin = Path(source).resolve() if source is not None else _source()
+    _carried(origin)
+
+    launcher = _launcher(base, origin)
+    hooks = _hooks(origin, launcher)
+    server = _server(origin, launcher)
+
+    surfaces = [
+        _declaration(base / PROJECT_MCP, lambda current: _merged_mcp(current, server)),
+        _declaration(base / PROJECT_SETTINGS, lambda current: _merged_settings(current, hooks)),
+        _copy(base / PROJECT_SKILL, _read(origin / PLUGIN_SKILL)),
+    ]
+    skipped: list[tuple[str, str]] = [(CONTRIBUTING.split(":")[0], CONTRIBUTING)]
+    if (base / WORKFLOWS).is_dir():
+        surfaces.append(_once(base / PROJECT_WORKFLOW, _workflow(origin)))
+    else:
+        skipped.insert(0, (PROJECT_WORKFLOW, f"no {WORKFLOWS}/ — this project has no CI to gate"))
+    return Plan(
+        root=base,
+        source=origin,
+        launcher=launcher,
+        surfaces=tuple(surfaces),
+        skipped=tuple(skipped),
+    )
+
+
+def install(root: str | Path = ".", *, source: str | Path | None = None) -> Plan:
+    """Write every surface that would change, or write nothing.
+
+    The order is `init`'s and for `init`'s reason: everything that can refuse has refused by
+    the time the first file is opened, because a project wired for the tools but not for the
+    hook is a project that looks governed and is not.
+    """
+    intent = plan(root, source=source)
+    for surface in intent.changing:
+        surface.path.parent.mkdir(parents=True, exist_ok=True)
+        surface.path.write_text(surface.text, encoding="utf-8", newline="")
+    return intent
+
+
+# -- where the surfaces are read from ----------------------------------------
+
+
+def _source() -> Path:
+    """The tree that is answering, as a plugin root: the parent of the package's `src/`.
+
+    Taken from :func:`~roadkeep.provenance.engine`, which already resolves *which copy of
+    this package is running* — the same question, and the one thing a plugin cache and a
+    checkout disagree about (RK79). Deriving it a second way here would be a second answer.
+    """
+    return engine().home.parent.parent
+
+
+def _carried(root: Path) -> None:
+    """Refuse a tree that is not carrying the plugin, naming what it lacks."""
+    missing = tuple(
+        part
+        for part in (LAUNCHER, PLUGIN_HOOKS, PLUGIN_MCP, PLUGIN_SKILL, PLUGIN_MANIFEST)
+        if not (root / part).is_file()
+    )
+    if missing:
+        raise NotShipped(root, missing)
+
+
+def _launcher(base: Path, origin: Path) -> str:
+    """The launcher, addressed from the adopting project — the one substituted fact.
+
+    Relative wherever a relative path exists, so a pair of sibling checkouts wires up the
+    same on every machine that has them; absolute only when there is none to write, which on
+    Windows means the two trees are on different drives.
+    """
+    try:
+        relative = os.path.relpath(origin, base).replace(os.sep, "/")
+    except ValueError:
+        return (origin / LAUNCHER).as_posix()
+    return LAUNCHER if relative == "." else f"{relative}/{LAUNCHER}"
+
+
+def _rooted(command: str, launcher: str, placeholder: str) -> str:
+    """One plugin-rooted path, re-addressed to the project. Absolute paths lose the prefix."""
+    target = launcher if launcher.startswith("/") or ":" in launcher.split("/")[0] else None
+    if target is not None:
+        return command.replace(f"{PLUGIN_ROOT}/{LAUNCHER}", target)
+    return command.replace(f"{PLUGIN_ROOT}/{LAUNCHER}", f"{placeholder}/{launcher}")
+
+
+def _hooks(origin: Path, launcher: str) -> dict:
+    """The plugin's hook declaration with the launcher re-addressed, and nothing else moved.
+
+    The events, the matcher and the timeouts arrive from the file — so the matcher that
+    `tests/test_plugin.py` holds against :data:`~roadkeep.guarding.WRITE_TOOLS` is the matcher
+    every adopting project gets, and a fourth event reaches them all by being declared once.
+    """
+    declared = json.loads(_read(origin / PLUGIN_HOOKS))["hooks"]
+    return {
+        event: [
+            {
+                **group,
+                "hooks": [
+                    {**hook, "command": _rooted(hook["command"], launcher, PROJECT_DIR)}
+                    for hook in group["hooks"]
+                ],
+            }
+            for group in groups
+        ]
+        for event, groups in declared.items()
+    }
+
+
+def _server(origin: Path, launcher: str) -> dict:
+    """The plugin's server declaration, addressed the way a project's own `.mcp.json` is."""
+    server = json.loads(_read(origin / PLUGIN_MCP))["mcpServers"][SERVER]
+    return {
+        **server,
+        "args": [_rooted(arg, launcher, PROJECT_DIR_OR_CWD) for arg in server["args"]],
+    }
+
+
+def _workflow(origin: Path) -> str:
+    """The gate as CI calls it: the action this repository publishes, at one line.
+
+    The repository is read out of the plugin manifest rather than written here, because the
+    manifest is what an install already trusts to say where this tool comes from.
+    """
+    repository = json.loads(_read(origin / PLUGIN_MANIFEST))["repository"]
+    action = repository.removeprefix("https://github.com/").removesuffix(".git").strip("/")
+    return "\n".join(
+        (
+            "# The gate the write path already runs locally, called in CI through the action",
+            "# roadkeep publishes rather than a copied `run:` block, which drifts per",
+            "# repository. `roadkeep lint` exits 1 on a governed file that drifted, and that",
+            "# exit code is the whole contract.",
+            "#",
+            "# Yours from here: `with: {directory: .}` where roadkeep.toml is not at the root,",
+            "# and `with: {baseline: origin/main}` to fail on what a branch added rather than",
+            "# on a backlog's standing debt.",
+            "name: roadkeep",
+            "",
+            "on: [push, pull_request]",
+            "",
+            "jobs:",
+            "  lint:",
+            "    name: roadkeep lint",
+            "    runs-on: ubuntu-latest",
+            "    steps:",
+            "      - uses: actions/checkout@v4",
+            f"      - uses: {action}@{ACTION_REF}",
+            "",
+        )
+    )
+
+
+# -- what each kind of surface does to the file it lands in -------------------
+
+
+def _copy(path: Path, text: str) -> Surface:
+    """A verbatim copy, refreshed on every run: the drift RK100 is about."""
+    existed = path.is_file()
+    return Surface(
+        path=path,
+        text=text,
+        refresh=True,
+        existed=existed,
+        stale=not existed or _read(path) != text,
+    )
+
+
+def _once(path: Path, text: str) -> Surface:
+    """Written when absent, then left alone — the adopter tunes it and this does not."""
+    existed = path.is_file()
+    return Surface(
+        path=path,
+        text=text,
+        refresh=False,
+        existed=existed,
+        stale=not existed or _read(path) != text,
+    )
+
+
+def _declaration(path: Path, merge) -> Surface:
+    """This project's entry re-derived inside a file other tools also declare in.
+
+    Compared as parsed JSON and not as bytes: an adopter's own indentation is not staleness,
+    and a `--check` that failed on whitespace is a check nobody leaves switched on.
+    """
+    current: dict = {}
+    existed = path.is_file()
+    if existed:
+        try:
+            loaded = json.loads(_read(path))
+        except json.JSONDecodeError as error:
+            raise Unreadable(path, str(error)) from error
+        if not isinstance(loaded, dict):
+            raise Unreadable(path, f"read as {type(loaded).__name__}")
+        current = loaded
+    merged = merge(current)
+    return Surface(
+        path=path,
+        text=json.dumps(merged, indent=2, ensure_ascii=False) + "\n",
+        refresh=True,
+        existed=existed,
+        stale=merged != current,
+    )
+
+
+def _merged_mcp(current: dict, server: dict) -> dict:
+    merged = dict(current)
+    servers = dict(merged.get("mcpServers", {}))
+    servers[SERVER] = server
+    merged["mcpServers"] = servers
+    return merged
+
+
+def _merged_settings(current: dict, hooks: dict) -> dict:
+    """Approve the server and wire the guard, leaving every other setting where it is.
+
+    A project `.mcp.json` waits for approval, and a server awaiting approval is one that
+    never ran — indistinguishable, from the session's side, from one never declared.
+    """
+    merged = dict(current)
+    enabled = list(merged.get("enabledMcpjsonServers", []))
+    if SERVER not in enabled:
+        enabled.append(SERVER)
+    merged["enabledMcpjsonServers"] = enabled
+
+    events = dict(merged.get("hooks", {}))
+    for event, groups in hooks.items():
+        # Ours dropped and re-added rather than edited in place: the launcher path is what
+        # moves between runs, and a match on it is the one thing that would stop matching.
+        kept = [group for group in events.get(event, []) if not _ours(group)]
+        events[event] = kept + groups
+    merged["hooks"] = events
+    return merged
+
+
+def _ours(group: dict) -> bool:
+    """A hook group this command wrote, recognised by the launcher it runs."""
+    return any(LAUNCHER in hook.get("command", "") for hook in group.get("hooks", []))
+
+
+def _read(path: Path) -> str:
+    """Every file this module compares, read one way: UTF-8, newlines normalised.
+
+    A checkout on Windows can hold the skill with CRLF endings; a copy that differed from its
+    source only in those would be reported stale forever and rewritten on every run.
+    """
+    return path.read_text(encoding="utf-8")

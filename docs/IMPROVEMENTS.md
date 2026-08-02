@@ -156,24 +156,3 @@ failure this tool was built after, and the number that would have caught it is t
 number an adopting project currently guesses.
 
 ## Block F — The plugin
-
-### §RK100 Adoption has five surfaces and `init` scaffolds three
-
-`init` writes `roadkeep.toml` and the files it declares. What adopting commitclerk
-actually took, beyond that: a `.mcp.json` naming the server, a `.claude/settings.json`
-enabling it and wiring the guard to three hook events, a copy of
-`skills/roadkeep/SKILL.md`, a `docs` job in the CI workflow, and a line in
-`CONTRIBUTING.md` telling a contributor not to hand-edit the governed files. Five
-hand-written surfaces against three scaffolded ones.
-
-The skill is the one that cannot be left to the adopter. It is the authority on which
-command to call, and the plugin is what ships it — but a project can only install the
-plugin from a marketplace, which means the published ref rather than the checkout it is
-developing against. Using a sibling checkout, which is what a project adopting an
-unreleased version does, leaves the skill behind: commitclerk now carries a copy with a
-comment saying where it came from, and nothing tells either file that the other moved.
-
-`init --claude` (or an `install` beside it) writing those surfaces from the same source
-the plugin ships is the shape. Nothing in it invents content — the skill is copied, the
-hook command is the launcher's own path, the CI job is the action this repository
-already publishes — so it stays a scaffold rather than a generator (L4).

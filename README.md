@@ -121,8 +121,8 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 16 | 0 |
 | D — The gate | 0 | 15 | 0 |
 | E — Adoption | 4 | 15 | 0 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 16 | 1 |
-| **Total** | 5 | 94 | 1 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 17 | 1 |
+| **Total** | 4 | 95 | 1 |
 
 **Next ready:**
 
@@ -184,6 +184,26 @@ lines, a 618 KB ledger of 233 entries written years before this tool, and a `roa
 that declares exactly what that history is — `[ledger]` for the two slots its lines never
 carried, `[limits.changelog]` for a file whose median line is 1038 characters, and
 `[rules.changelog]` for the two prose rules history cannot obey.
+
+### Or from a checkout beside it
+
+A project adopting an *unreleased* version runs a sibling checkout rather than the published
+plugin — and then the hook, the tools and the skill arrive with nothing, because those ship
+with the plugin. `install` writes them itself, translated from the files the plugin carries,
+with the launcher's path as the only substituted fact:
+
+```sh
+python ../roadkeep/scripts/roadkeep.py -C . install
+python ../roadkeep/scripts/roadkeep.py -C . install --check   # in CI: still in step?
+```
+
+`.mcp.json`, the guard on its three hook events in `.claude/settings.json`, a verbatim
+`.claude/skills/roadkeep/SKILL.md`, and — only where the repository already has workflows — a
+job calling the action above. The skill is **refreshed on every run** and `--check` exits 1
+once it drifts, which is what a vendored copy otherwise has nothing to keep it in step with.
+Declarations are merged, so what another tool wrote in either file survives; the workflow is
+written once and tuned by you thereafter. The fifth surface is named and not written: the line
+in `CONTRIBUTING.md` is prose about your project, and this tool writes none (L4).
 
 ### Or just the CLI
 

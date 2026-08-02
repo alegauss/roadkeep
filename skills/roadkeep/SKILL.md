@@ -18,8 +18,10 @@ the reads a task needs are there — `add`, `status`, `amend`, `ship`, `retire`,
 `record_add`,
 `record_drop`, `non_goal_add`, `non_goal_drop`, `section_add`, `section_drop`, `brief`, `pick`, `list`, `deps`, `lint` — same engine and same
 refusals, with
-the fields arriving as a schema instead of flag names typed from memory. `init` and `adopt`
-run once per project and want the CLI. Every guarantee below holds either way.
+the fields arriving as a schema instead of flag names typed from memory. `init`, `adopt` and
+`install` run once per project and want the CLI — the last of them wires this file, the tools
+and the guard into a project running the tool from a checkout, and `install --check` is what
+holds its copy of this file in step. Every guarantee below holds either way.
 
 `roadkeep <add|status|amend|ship|retire|record|non-goal|section> --help` has the flags. What they guarantee,
 so it costs you no thought: the id, the `→ §<id>` pointer, the status default and every

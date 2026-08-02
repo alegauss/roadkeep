@@ -56,6 +56,7 @@ from roadkeep.deferring import defer, resume
 from roadkeep.guarding import START_EVENTS, STOP_EVENTS, announce, guard, review
 from roadkeep.history import Commit, HistoryUnavailable, Origin, gaps, origin_of
 from roadkeep.ids import highest, next_id
+from roadkeep.installing import install, plan
 from roadkeep.linting import Finding, Report, lint
 from roadkeep.picking import Choice, pick
 from roadkeep.provenance import engine
@@ -930,6 +931,39 @@ def build_parser() -> argparse.ArgumentParser:
     )
     adopt_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     adopt_parser.set_defaults(handler=_adopt)
+
+    install_parser = subcommands.add_parser(
+        "install",
+        help="wire this project to the checkout answering, the way the plugin would",
+        description=(
+            "Write the surfaces the plugin ships, for a project that runs roadkeep from a "
+            "checkout instead: the server, the guard on its three hook events, and the "
+            "skill that says which command to call — plus the CI workflow when the "
+            "repository already has one. Every byte is translated from what the plugin "
+            "carries, the launcher's path being the only substituted fact, so the skill "
+            "cannot drift from the file it was copied from. The skill is refreshed on "
+            "every run; the declarations keep everything they hold that is not this "
+            "project's entry; the workflow is written once and then yours."
+        ),
+    )
+    install_parser.add_argument(
+        "--check",
+        action="store_true",
+        help=(
+            "write nothing and exit 1 on anything that would change: the gate that keeps "
+            "the copied skill in step, for a CI job or a pre-commit hook"
+        ),
+    )
+    install_parser.add_argument(
+        "--source",
+        metavar="PATH",
+        help=(
+            "the roadkeep checkout to wire in (default: the one this command is running "
+            "from, which is the one whose hook and tools the project would get)"
+        ),
+    )
+    install_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    install_parser.set_defaults(handler=_install)
 
     guard_parser = subcommands.add_parser(
         "guard",
@@ -2819,6 +2853,74 @@ def _estimate_json(estimate: Estimate) -> dict[str, object]:
         "rejects": [{"reason": r, "count": n} for r, n in estimate.rejects],
         "non_canonical": estimate.non_canonical,
     }
+
+
+#: `install --check` reports the same four states as a run, in the tense of a run that has
+#: not happened. `kept` and `unchanged` are already that tense: neither describes a write.
+_WOULD = {
+    "created": "would create",
+    "updated": "would update",
+    "unchanged": "unchanged",
+    "kept": "kept, yours",
+}
+
+
+def _install(config: Config, args: argparse.Namespace) -> int:
+    """Wire the harness for a project the plugin did not install (RK100).
+
+    `config` is unused for `init`'s reason one step further along: this writes the surfaces
+    that decide *which* engine a session reaches, and none of it is read out of the governed
+    files. The exit code carries `--check`'s answer — 1 for a surface that would change,
+    because a copy held in step by a gate is the whole point of there being a check.
+    """
+    del config
+    try:
+        intent = plan(args.directory, source=args.source) if args.check else install(
+            args.directory, source=args.source
+        )
+    except (ValueError, OSError) as error:
+        return _refused(error)
+
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "root": intent.root.as_posix(),
+                    "source": intent.source.as_posix(),
+                    "launcher": intent.launcher,
+                    "checked": args.check,
+                    "surfaces": [
+                        {
+                            "path": surface.path.relative_to(intent.root).as_posix(),
+                            "state": surface.state,
+                            "writes": surface.writes,
+                        }
+                        for surface in intent.surfaces
+                    ],
+                    "skipped": [{"path": path, "why": why} for path, why in intent.skipped],
+                    "changing": len(intent.changing),
+                },
+                indent=2,
+            )
+        )
+    else:
+        print(f"{intent.source.as_posix()}  →  {intent.launcher}")
+        for surface in intent.surfaces:
+            # `--check` writes nothing, so it reports in the conditional: the same three
+            # words in the past tense would claim a file changed that did not.
+            state = _WOULD[surface.state] if args.check else surface.state
+            print(f"  {state:<14} {surface.path.relative_to(intent.root).as_posix()}")
+        for _, why in intent.skipped:
+            print(f"  by hand        {why}")
+        if args.check and intent.changing:
+            print(
+                f"{len(intent.changing)} surface(s) differ from what this checkout ships: "
+                f"`roadkeep install` writes them",
+                file=sys.stderr,
+            )
+    if args.check and intent.changing:
+        return EXIT_GATE
+    return EXIT_OK
 
 
 def _report(config: Config, args: argparse.Namespace) -> int:

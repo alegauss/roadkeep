@@ -37,8 +37,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK100** (deps: —) **A project that runs roadkeep from a checkout has no write-path skill** — The skill ships in the plugin alone, so commitclerk had to vendor a copy of SKILL.md into its own `.claude/skills/`, which nothing keeps in step with the file it was taken from. → §RK100
-
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:
