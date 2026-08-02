@@ -27,7 +27,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK141** (deps: —) **Opening a block needs a heading only a hand-edit can write, and the guard denies that edit** — ship refuses an undeclared block and writes nothing, the guard refuses the changelog edit that would declare it, and the verbs it offers instead contain none that adds a heading. → §RK141
 - 📋 **RK142** (deps: —) **The ledger inherits the roadmap's problem statement by default, and no verb can revise it** — ship copies the open line's why unless --why is passed, so the entry saying what shipped is written by omission — and amend refuses a shipped id while record drop needs a second entry. → §RK142
 
 ## Block C — Query (consult without reading the file)

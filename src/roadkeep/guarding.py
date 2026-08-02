@@ -92,6 +92,10 @@ _MOST_FINDINGS = 12
 _INSTEAD: Mapping[str, tuple[tuple[str, str], ...]] = {
     "roadmap": (
         ('add --block <x> --symptom "…" --why "…"', "a new task line, fields refused at input"),
+        # First, because it is the one the agent meets first (RK141): every write above
+        # refuses an undeclared block, and until this verb existed the only key to that
+        # door was the edit this refusal denies.
+        ('block add <x> --title "…"', "declare a block, in every file organised by them"),
         ("status <id> <marker>", "a marker, and only in this file"),
         ('amend <id> --why "…"', "correct the why, the deps or the pointer of a line"),
         ("ship <id>", "shipped: ledger entry, line gone, section dropped"),
@@ -111,6 +115,7 @@ _INSTEAD: Mapping[str, tuple[tuple[str, str], ...]] = {
     "changelog": (
         ("ship <id>", "the entry a planned task earns, in one transaction"),
         ('record add --block <x> --symptom "…" --why "…"', "work that was never planned"),
+        ('block add <x> --title "…"', "declare a block: `ship` refuses one this file lacks"),
         # The ledger's update (RK124), without which the honest answer to "a word is wrong
         # here" was drop-and-re-add, which moves the entry to the end of its block.
         ('record amend <id> --why "…"', "correct an entry's sentence where it already is"),

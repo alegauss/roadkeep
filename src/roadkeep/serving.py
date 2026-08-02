@@ -123,6 +123,10 @@ TOOLS: tuple[Tool, ...] = (
         ("block", "symptom", "why", "deps", "status", "section", "section_body"),
         writes=True,
     ),
+    # The key to a deadlock the agent meets first (RK141): `ship` refuses an undeclared
+    # block, the guard denies the edit that would declare it, and no other verb writes a
+    # heading — so a correctly wired project could not open a block at all.
+    Tool("block add", ("label", "title"), writes=True),
     Tool("status", ("id", "marker"), writes=True),
     Tool("amend", ("id", "why", "deps", "ref"), writes=True),
     # The repair a merge needs, exposed for the reason it exists at all (RK97): the agent

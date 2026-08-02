@@ -118,29 +118,6 @@ as one. RK122 is the same question one file up.
 
 ## Block B — Authoring
 
-### §RK141 Opening a block is a door with no key
-
-Measured in Claude Code Tray, shipping the first task of a new block. `ship T179`
-refused: *"no heading declares Block AE: a heading invented by a write files the text
-where nothing looks for it"*, and wrote nothing. Correct — naming a block is editorial,
-and a heading the tool guesses is a heading nobody looks under.
-
-The remedy is one line in the changelog. Calling `guard` with that `Edit` returns a `Refusal`:
-*"CHANGELOG.md is this project's changelog, and roadkeep owns its writes."* The refusal then lists
-every verb that may write there — `ship`, `record add`, `record drop`, `retire` — and none adds a
-heading.
-
-So a correctly wired project cannot open a block at all. Tray only got through because
-its plugin is installed against a different repository, leaving it with no hook: the
-discipline held because the guard was absent, which is the opposite of the arrangement
-being aimed at.
-
-Both refusals are right alone and the pair is a deadlock, so the fix is not to weaken
-either. Two shapes: a verb that declares a block and takes the title as the argument it
-is, symmetric with `non-goal`, which already writes the roadmap's other bullet; or the
-guard admitting an edit whose whole diff is a heading and a table row. The first costs a
-command, the second a rule about what a permitted diff looks like.
-
 ### §RK142 The sentence written by omission
 
 A roadmap line states a problem; that is what it is for. A ledger entry states an

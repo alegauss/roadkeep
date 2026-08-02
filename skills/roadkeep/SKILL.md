@@ -14,7 +14,7 @@ not on PATH.
 ## Writing and shipping
 
 When the `mcp__roadkeep__*` tools are available, **prefer them**: the whole write path and
-the reads a task needs are there — `add`, `status`, `amend`, `ship`, `retire`, `defer`, `resume`,
+the reads a task needs are there — `add`, `block_add`, `status`, `amend`, `ship`, `retire`, `defer`, `resume`,
 `record_add`,
 `record_amend`, `record_drop`, `record_renumber`, `non_goal_add`, `non_goal_drop`, `section_add`, `section_amend`, `section_drop`, `brief`, `pick`, `list`, `deps`, `lint` — same engine and same
 refusals, with
@@ -66,7 +66,7 @@ live design is corrected**: `--body -` replaces its own prose, `--title` its hea
 subtree and the anchor are untouched, and it is the only door — `section drop` is refused
 while an open line points at the anchor, which is right, and shipping is not a way to fix a
 paragraph. No write invents a block
-heading. `non-goal add --lead "…" --why "…"` writes the one bullet that is not a task line,
+heading — **`block add <x> --title "…"` is the one that declares one**, in every governed file already organised by blocks, placed after the last block's subtree and spelled at that file's own level and separator. Reach for it the moment any write refuses with "no heading declares". `non-goal add --lead "…" --why "…"` writes the one bullet that is not a task line,
 where `[non_goals]` declares the list governed: addressed by its lead, which is unique and
 checked, and carrying no marker, dep or pointer, because a constraint has no status to state.
 `non-goal drop <lead>` is the other half, and what a *correction* takes: the lead is the address,

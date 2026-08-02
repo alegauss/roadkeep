@@ -44,6 +44,7 @@ from pathlib import Path
 from roadkeep.adopting import Estimate, adopt, init
 from roadkeep.authoring import add, amend, set_status
 from roadkeep.backlog import Backlog
+from roadkeep.blocking import open_block
 from roadkeep.briefing import Brief, brief, non_goals
 from roadkeep.capturing import PARTS, body, capture, check, handoff, keep, offer, replay
 from roadkeep.config import Config, ConfigError
@@ -325,6 +326,32 @@ def build_parser() -> argparse.ArgumentParser:
     section_drop.add_argument("--role", default="improvements", help="which prose file")
     section_drop.add_argument("--json", action="store_true", help=_JSON_HELP)
     section_drop.set_defaults(handler=_section_drop)
+
+    block_parser = subcommands.add_parser(
+        "block",
+        help="declare a block, which no other write will invent for you",
+        description=(
+            "A block is declared by a heading and by nothing else, so every write refuses "
+            "an undeclared one — and the guard denies the hand-edit that would declare it. "
+            "Both refusals are right and the pair is a deadlock; this is the key."
+        ),
+    )
+    block_actions = block_parser.add_subparsers(dest="action", required=True)
+
+    block_add = block_actions.add_parser(
+        "add",
+        help="write the heading into every governed file already organised by blocks",
+        description=(
+            "The label and the title are yours; everything else is derived per file. It "
+            "goes after the last block's subtree — never at the end, where the roadmap's "
+            "Non-goals live — and is spelled at the level and with the separator that "
+            "file's own first block heading uses. All of the files, or none of them."
+        ),
+    )
+    block_add.add_argument("label", help="the block label, e.g. G")
+    block_add.add_argument("--title", required=True, help="what the block is for")
+    block_add.add_argument("--json", action="store_true", help=_JSON_HELP)
+    block_add.set_defaults(handler=_block_add)
 
     status_parser = subcommands.add_parser(
         "status",
@@ -1336,6 +1363,52 @@ def _add(config: Config, args: argparse.Namespace) -> int:
             f"(the pointer above resolves to nothing until then)"
         )
     _print_event(event)
+    return EXIT_OK
+
+
+def _block_add(config: Config, args: argparse.Namespace) -> int:
+    try:
+        opened = open_block(config, args.label, args.title)
+        opened.save()
+    except REFUSALS as error:
+        return _refused(error)
+
+    files = {
+        role: config.relative(config.path(role)) for role in opened.documents
+    }
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "label": opened.label,
+                    "title": opened.title,
+                    "written": [
+                        {
+                            "role": role,
+                            "file": files[role],
+                            "line": opened.placed[role],
+                            "rendered": opened.rendered[role],
+                        }
+                        for role in opened.documents
+                    ],
+                    # Named, never silent: a file skipped in silence is one the author
+                    # discovers was skipped by the next command that refuses on it.
+                    "skipped": [
+                        {"file": where, "reason": reason}
+                        for where, reason in opened.skipped
+                    ],
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+
+    print(f"{config.schema.block_named(opened.label)} declared: {opened.title}")
+    width = max((len(files[role]) for role in opened.documents), default=0)
+    for role in opened.documents:
+        print(f"  {files[role]:<{width}}:{opened.placed[role]}  {opened.rendered[role]}")
+    for where, reason in opened.skipped:
+        print(f"  not      {where}: {reason}")
     return EXIT_OK
 
 

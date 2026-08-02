@@ -130,6 +130,7 @@ def test_the_tools_are_what_a_task_needs_end_to_end():
     # calls, because since RK57 a plugin installs with no shell command to fall back to.
     assert [tool.name for tool in TOOLS] == [
         "add",
+        "block_add",
         "status",
         "amend",
         # The door a merge that spent one id twice needs (RK97) — beside `amend`, whose
@@ -278,6 +279,7 @@ def test_the_read_only_hint_says_which_tools_write(tmp_path):
     writes = {name for name, only_reads in hints.items() if not only_reads}
     assert writes == {
         "add",
+        "block_add",
         "status",
         "amend",
         "renumber",
