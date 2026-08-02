@@ -75,6 +75,31 @@ already written, not authorship.
 
 ## Block A — The model
 
+### §RK131 A pre-flight is narrower than a transaction
+
+RK116 made `save` refuse a write onto a file that moved, and RK6 says a transaction
+writes all its files or none. Those two meet badly: `save` checking each file as it
+reaches it would refuse the second write after the first had landed, so
+`assert_all_current` asks about every target *before* any of them is written.
+
+It asks, and then each `save` asks again. Between the pre-flight and the last write
+there is still a window, and a writer that lands inside it produces exactly the
+half-applied state the pre-flight exists to prevent — rarer, and not gone. The claim in
+`Departure.save`'s docstring is accurate about what it buys and the mechanism is weaker
+than it reads.
+
+RK117's lock closes this for roadkeep against roadkeep, which is the case that was
+measured. What is left is the case RK116 named as its own subject: an editor, a `git
+checkout`, a hand edit the hook missed. For those the window is real, and the tool
+currently states an all-or-nothing guarantee it holds only against writers that take its
+lock.
+
+Two honest directions. State the narrower guarantee where it is claimed, which costs
+nothing and stops the docstring from over-promising. Or close it: write every file to
+its scratch name first, check all the targets, then rename them in sequence — the
+renames are the only steps that touch anything, and they are the ones already made one
+step each by RK118.
+
 ## Block B — Authoring
 
 ### §RK113 Half a subtree renamed, and written
@@ -202,6 +227,55 @@ What is missing is a way to say *this entry is different work*: a renumber for t
 ledger, the counterpart of the one the roadmap has. Related to RK121, and not the same —
 that one is a task in halves under one id, this one is two tasks that were never one.
 
+### §RK129 Retiring the rest is not a verdict on the half
+
+RK121 gave `_depart` a completion path: a ledger entry carrying a qualifier is not a
+second record of one decision, it is the first half of this one, so the entry is
+replaced rather than added to. That is right for `ship`, whose entry describes the whole
+of the work that the partial described part of.
+
+`retire` reaches the same code with a different marker, and there replacing is a
+deletion. Run against a task whose `✅ **RK1 (local half)**` is already in the ledger, it
+leaves `🗑 **RK1** — abandoned: …` and nothing else: the sentence describing what
+actually shipped is gone from the file whose whole job is to answer "what happened to
+this".
+
+The two are not the same decision. Completing says *the rest landed too*, and
+superseding the partial's sentence is honest. Retiring says *the rest never will*, which
+leaves the half that did ship as history — the kind `drop` refuses to remove even when
+the id is stated twice, because removing the only record of a decision is deleting
+history rather than de-duplicating it.
+
+The narrow answer is a refusal: a task with a recorded part cannot be retired until
+somebody says what to do with the entry that exists. The wider one is a second entry,
+which `lint` reports as `id.duplicate` today and which RK127 is already about. Either
+way the choice belongs to the author, and the current behaviour makes it silently.
+
+### §RK130 The middle state is loud, and has no door
+
+RK118 ordered a departure's three writes so that every state a crash can leave is loud
+and lossless: the ledger goes first, so stopping after it puts the id in two files,
+which `lint` reports as `id.two-files`. Nothing is lost and the gate names it. What
+RK118 did not establish is a way out.
+
+Three commands look like the way out and none of them is. `ship` sees an entry the
+ledger already holds and raises `AlreadyRecorded`. `Closure` (RK62) exists for exactly
+this shape and is unreachable, because `_already_recorded` requires the roadmap line to
+carry ✅ or 🗑 — the marker that says it was already treated as gone — and a line a crash
+left behind still carries 📋. `record drop` refuses unless the id is recorded **twice**,
+which it is not.
+
+So the author is left with the edit the hook denies, on the file the tool exists to own.
+That is the shape of every defect in Block B: a state the tool can produce and cannot
+undo.
+
+The condition to widen is `_already_recorded`'s, and widening it is not free — its
+current narrowness is what stopped `ship` from closing Shio's live `⏳ SH238` and
+deleting a real task with a 224-word section. What separates the two is the *ledger*
+side rather than the roadmap's: an entry written by this tool for a line still open is a
+leftover, and an entry naming a half is not. Which is the distinction RK121 just made
+representable.
+
 ## Block C — Query
 
 ### §RK119 One backlog, two workers, one answer
@@ -311,6 +385,28 @@ That inversion is the argument for doing this with RK121 rather than after it: a
 whose only avoidance is a syntax error teaches the syntax error. Whatever form partial
 completion takes, this rule has to read it and stay quiet, and stay loud for the case it
 was written for — a line somebody shipped and forgot to delete.
+
+### §RK132 The write that has no document behind it
+
+Every write to a governed file now asks whether the target is still the file that was
+read (RK116) and lands in one step (RK118), because every one of them goes through
+`Document.save`. `export --readme` does not. `_splice_into` opens the README, splices
+the projection between the two roadkeep markers and writes the result, and the only
+thing it shares with the mechanism is `write_atomically`.
+
+The window is small — a read and a splice — and it is the same window the whole of RK116
+is about, on the one file this tool edits that it does not own. A README is also the
+file most likely to be open in an editor while a command runs, which is precisely the
+writer a lock does not order.
+
+Nothing here needs a `Document`: the README is not governed, its lines are not task
+lines, and parsing it would be claiming a format it does not have. What is needed is the
+same question asked by hand — remember the bytes that were read, compare them before the
+rename — which is three lines and the refusal the CLI already renders for `StaleFile`.
+
+This is not RK104, which is about the gate: that a stale README passes `lint` is a
+different failure from a fresh README overwriting somebody's edit. They share a file and
+nothing else, and fixing either leaves the other exactly as it is.
 
 ## Block E — Adoption
 

@@ -22,6 +22,8 @@
 
 ## Block A — The model (a task is data before it is a line)
 
+- 📋 **RK131** (deps: —) **The check that a transaction's files have not moved is taken before writes that take it again** — `assert_all_current` reads all three and every `save` reads its own again, so a writer landing between the two is refused on the second file after the first one has already been written. → §RK131
+
 ## Block B — Authoring (insert, never hand-edit)
 
 - 📋 **RK113** (deps: —) **renumber renames a section's heading and leaves the anchors of everything nested under it** — `renumber RK1 --to RK9` rewrote `§RK1` and left `§RK1.1` claiming a task the backlog no longer has, under a heading that names RK9, and lint called the file clean. → §RK113
@@ -30,6 +32,8 @@
 - 📋 **RK124** (deps: —) **A ledger entry can be written and deleted but never corrected** — record add and record drop are the pair, so fixing one word of a why means dropping the entry and re-adding it, which moves the line to the end of its block. → §RK124
 - 📋 **RK126** (deps: —) **Corruption inside a ledger entry is reported by lint and repairable by no verb** — The unit is the entry and the damage is inside one: Shio carries two U+0008 control characters and a dead link in entry prose, and add, drop, ship and retire all reach only the whole line. → §RK126
 - 📋 **RK127** (deps: RK121 ✅) **record drop assumes a duplicate is redundant, and picks the later entry either way** — Shio's two SH347 entries are two different pieces of work sharing an id, so dropping either destroys history, and the one the verb picks is the entry that earned the id. → §RK127
+- 📋 **RK129** (deps: —) **Retiring a task whose half already shipped deletes the record that it did** — The completion path replaces the partial entry and `retire` takes that path, so a ✅ naming what landed becomes a 🗑 and the sentence about the shipped half leaves the only file that held it. → §RK129
+- 📋 **RK130** (deps: —) **A transaction that stopped after its ledger write can be finished by no command** — `ship` refuses an id the ledger already holds, `Closure` needs a marker the roadmap line does not carry and `record drop` needs a second entry, so the only exit left is the hand-edit the hook denies. → §RK130
 
 ## Block C — Query (consult without reading the file)
 
@@ -41,6 +45,7 @@
 - 📋 **RK105** (deps: —) **A concurrent edit in another repository turns this project's suite red** — The round-trip property reads Shio's and Turing's working trees, so a run went red for a change neither this commit nor this repository made, and a red nobody caused is a red nobody reads. → §RK105
 - 📋 **RK114** (deps: —) **A subsection whose task is gone is exempt from the ownership check that would report it** — `_owners` matches the anchor against the id pattern, so `§RK34.1` is read as outline prose like `§0.1` and belongs to nobody — the exemption that let a half-renamed subtree lint clean. → §RK114
 - 📋 **RK122** (deps: RK121 ✅) **id.two-files calls a correct half-shipped state a contradiction** — Open in the roadmap and recorded in the ledger is exactly what a partial is, so Shio's SH238 is reported for spelling it plainly while six that hid it behind a parenthetical are not. → §RK122
+- 📋 **RK132** (deps: —) **The README block is read and written back with nothing checking the file did not move** — `_splice_into` opens the file, replaces what is between the markers and writes, holding no `Document`, so the one write this tool makes outside a governed file is the one that skips the check. → §RK132
 
 ## Block E — Adoption
 
