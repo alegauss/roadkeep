@@ -13,9 +13,12 @@ This is the door that leaves the work open. An id is an address, and a collision
 lines claiming one — so the move is an address change and nothing else:
 
 * **The whole address, or none of it.** The line, the `§id` heading its pointer resolves
-  to, and every `(deps: …)` naming it change in one transaction, validated before any file
-  is touched. A renumber that wrote the line and not the section would leave the pointer
-  dangling, which is the state RK93 exists to prevent one verb over.
+  to, **every `§id.n` nested under that heading**, and every `(deps: …)` naming it change in
+  one transaction, validated before any file is touched. A renumber that wrote the line and
+  not the section would leave the pointer dangling, which is the state RK93 exists to
+  prevent one verb over; one that wrote the heading and not the subtree beneath it leaves a
+  `§RK1.1` claiming a task the backlog no longer has, under a heading naming RK9 — half a
+  subtree renamed, written, and called clean by the gate (RK113).
 * **The destination is derived unless it is given.** `next_id` in the line's own family
   (RK74) is the answer the repair usually wants, and a given one is refused if *anything*
   mentions it — the same :func:`~roadkeep.authoring.refuse_reuse` `add` calls, because a
@@ -48,7 +51,7 @@ from roadkeep.config import Config
 from roadkeep.document import Document, Entry
 from roadkeep.ids import id_scanner, next_id
 from roadkeep.markers import refresh
-from roadkeep.sections import Section, find, heading_of
+from roadkeep.sections import Section, find, heading_of, nested
 
 __all__ = ["NotAnId", "Renumbering", "SameId", "renumber"]
 
@@ -100,6 +103,9 @@ class Renumbering:
     documents: Mapping[str, Document] = field(default_factory=dict)
     #: The heading that moved with the line, or None when the pointer had no section.
     section: Section | None = None
+    #: The nested anchors re-addressed with it, as they now read (`RK9.1`). A subsection is
+    #: the task's own numbering, so it carries the task's address (RK113).
+    subsections: tuple[str, ...] = ()
     #: Every line whose `(deps: …)` now names the new id. Named and never silent: which
     #: of two collided ids a dep meant is the one thing this transaction cannot read.
     moved: tuple[str, ...] = ()
@@ -157,9 +163,10 @@ def renumber(config: Config, task_id: str, to: str | None = None) -> Renumbering
     changed.update({name: documents[name] for name in moved})
 
     section = None
+    subsections: tuple[str, ...] = ()
     prose = _section_document(config, task_id, to) if entry.task.ref == task_id else None
     if prose is not None:
-        changed["improvements"], section = prose
+        changed["improvements"], section, subsections = prose
 
     derived = ()
     if "roadmap" in documents:
@@ -180,6 +187,7 @@ def renumber(config: Config, task_id: str, to: str | None = None) -> Renumbering
         entry=next(e for e in documents[role].entries if e.task.id == to),
         documents=changed,
         section=section,
+        subsections=subsections,
         moved=dependents,
         refreshed=tuple(n for n in derived if n != to and n not in dependents),
     )
@@ -246,12 +254,22 @@ def _locate(
 
 def _section_document(
     config: Config, anchor: str, to: str
-) -> tuple[Document, Section] | None:
-    """The prose file with this section's heading re-addressed, or None if it has none.
+) -> tuple[Document, Section, tuple[str, ...]] | None:
+    """The prose file with this section's whole address re-written, or None if it has none.
 
-    Only the heading. The prose under it is the author's (L4), and a nested `§<id>.1` is
-    their own numbering — it travels with the subtree it is written inside, which is where
-    a reader already finds it.
+    Every heading and no prose. The paragraphs under them are the author's (L4) — but a
+    `§<id>.1` is not prose, it is the same address one segment longer, and leaving it behind
+    is what RK113 measured: `renumber RK1 --to RK9` moved the line, moved the pointer, moved
+    `§RK1` to `§RK9`, and left `§RK1.1` nested under it naming a task the backlog no longer
+    has. `find` deliberately returns the subtree and this function rewrote one line of it;
+    that asymmetry was the whole defect.
+
+    Only the anchors this one owns. A nested heading is renamed when it *extends* the id
+    segment by segment, so a `§RK1.1` travels and a `§RK50` someone filed inside the subtree
+    keeps the address of the task that owns it — the same question :func:`_move_deps` cannot
+    answer about a dep, answered here by the anchor itself rather than by depth. The
+    destination cannot already carry one of these: `refuse_reuse` refused `to` if anything
+    in any configured source so much as mentions it, and `§RK9.1` mentions RK9.
     """
     if not config.has("improvements") or not config.path("improvements").is_file():
         return None
@@ -260,9 +278,31 @@ def _section_document(
     if section is None:
         return None
     moved = replace(section, anchor=to)
-    return (
-        document.replace_line(section.first - 1, heading_of(document.schema, moved)),
-        moved,
+    # Read before any of them is written, and applied by line number: `replace_line` is one
+    # line for one line, so no heading below the first edit moves under the edits above it.
+    edits = [(section.first - 1, heading_of(document.schema, moved))]
+    renamed: list[str] = []
+    for child in _subsections(document, anchor):
+        under = replace(child, anchor=f"{to}{child.anchor[len(anchor) :]}")
+        edits.append((child.first - 1, heading_of(document.schema, under)))
+        renamed.append(under.anchor)
+    for index, raw in edits:
+        document = document.replace_line(index, raw)
+    return document, moved, tuple(renamed)
+
+
+def _subsections(document: Document, anchor: str) -> tuple[Section, ...]:
+    """The nested anchors that are this id's own numbering — `RK1.1`, never `RK50`.
+
+    Segment by segment and not by string prefix, which is what keeps `§RK1` from claiming
+    `§RK10`'s subtree — the same care :func:`~roadkeep.sections._extends` takes at the other
+    end of the question.
+    """
+    segments = anchor.split(".")
+    return tuple(
+        child
+        for child in nested(document, anchor)
+        if child.anchor.split(".")[: len(segments)] == segments
     )
 
 

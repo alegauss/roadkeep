@@ -54,6 +54,7 @@
 - ✅ **RK97** **an id two branches allocated to different work has no door that moves either line** — renumber moves the line, its section and every dep naming it in one transaction, deriving a free id in the line's own family, so a merge that spent one id twice has a door that is not a departure.
 - ✅ **RK108** **The first line added to a block lands above the paragraph that introduces it** — An empty block's first task lands after the paragraph that introduces the block, not between the heading and that paragraph.
 - ✅ **RK112** **section drop deletes a section an open line points at** — section drop refuses when an open line points at the anchor it was given, before any write.
+- ✅ **RK113** **renumber renames a section's heading and leaves the anchors of everything nested under it** — renumber re-addresses the whole subtree: `§RK1.1` moves to `§RK9.1` with its heading, a stranger nested inside keeps the id that owns it, and the command names every anchor it moved.
 
 ## Block C — Query
 

@@ -66,6 +66,25 @@ STORE = """# Set aside
 ## Block A — The model
 """
 
+# The subtree RK113 measured: the task's own `.1` numbering, and — nested at the same
+# depth — a heading that belongs to the *other* line and must not move with this one.
+SUBTREE = """# Improvements
+
+## Block A — The model
+
+### §RK90 The branch's design
+
+Because the prose has to travel with the address.
+
+#### §RK90.1 The measurement under it
+
+Because a subsection is the same address, one segment longer.
+
+#### §RK91 The dependent's design
+
+Because it points somewhere too.
+"""
+
 CONFIG = (
     'prefix = "RK"\n[files]\n'
     f'roadmap = "{ROADMAP}"\nchangelog = "{CHANGELOG}"\nimprovements = "{IMPROVEMENTS}"\n'
@@ -140,6 +159,49 @@ def test_the_ledger_is_never_opened(tmp_path):
 def test_the_destination_is_derived_one_past_the_highest(tmp_path):
     config = project(tmp_path)
     assert renumber(config, "RK90").to == "RK92"
+
+
+# -- the subtree (RK113) -----------------------------------------------------
+
+
+def test_a_subsection_carries_the_address_it_extends(tmp_path):
+    # The measured defect: the heading moved and `§RK90.1` stayed, nested under a heading
+    # naming a different task and claiming one the backlog no longer has.
+    config = project(tmp_path, **{IMPROVEMENTS: SUBTREE})
+    moved = renumber(config, "RK90", "RK98")
+    moved.save()
+
+    assert moved.subsections == ("RK98.1",)
+    prose = source(config, "improvements")
+    assert "### §RK98 The branch's design" in prose
+    assert "#### §RK98.1 The measurement under it" in prose
+    assert "RK90" not in prose
+
+
+def test_a_stranger_nested_in_the_subtree_keeps_its_own_address(tmp_path):
+    # Bounded by ownership and not by depth: `§RK91` is inside the subtree `find` returns,
+    # and it is the other line's address — moving it would be the collision this repairs.
+    config = project(tmp_path, **{IMPROVEMENTS: SUBTREE})
+    moved = renumber(config, "RK90", "RK98")
+    moved.save()
+
+    assert moved.subsections == ("RK98.1",)
+    assert "#### §RK91 The dependent's design" in source(config, "improvements")
+
+
+def test_the_command_names_the_nested_anchors_it_re_addressed(tmp_path, capsys):
+    # Named for the same reason the moved deps are: a rewrite the author cannot see is one
+    # they cannot check, and this one reaches headings they did not name in the call.
+    project(tmp_path, **{IMPROVEMENTS: SUBTREE})
+    assert main(["-C", str(tmp_path), "renumber", "RK90", "--to", "RK98"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "  nested   §RK98.1 (the id's own numbering)" in printed
+
+
+def test_json_lists_the_nested_anchors(tmp_path, capsys):
+    project(tmp_path, **{IMPROVEMENTS: SUBTREE})
+    assert main(["-C", str(tmp_path), "renumber", "RK90", "--to", "RK98", "--json"]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["subsections"] == ["RK98.1"]
 
 
 # -- the refusals ------------------------------------------------------------

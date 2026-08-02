@@ -27,8 +27,7 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK113** (deps: —) **renumber renames a section's heading and leaves the anchors of everything nested under it** — `renumber RK1 --to RK9` rewrote `§RK1` and left `§RK1.1` claiming a task the backlog no longer has, under a heading that names RK9, and lint called the file clean. → §RK113
-- 📋 **RK120** (deps: RK113) **Two branches each spend the same id, and the merge git produces is a conflict in a file only this tool may write** — Every add appends inside the same block heading, so parallel worktrees collide on almost every task and resolving it by hand is the edit the hook denies. → §RK120
+- 📋 **RK120** (deps: RK113 ✅) **Two branches each spend the same id, and the merge git produces is a conflict in a file only this tool may write** — Every add appends inside the same block heading, so parallel worktrees collide on almost every task and resolving it by hand is the edit the hook denies. → §RK120
 - 📋 **RK123** (deps: —) **An open task's rationale cannot be corrected by any verb, and the hook denies the hand-edit** — section drop refuses while a live pointer names the anchor and section add refuses the duplicate, so a design is write-once until ship deletes it. → §RK123
 - 📋 **RK124** (deps: —) **A ledger entry can be written and deleted but never corrected** — record add and record drop are the pair, so fixing one word of a why means dropping the entry and re-adding it, which moves the line to the end of its block. → §RK124
 - 📋 **RK126** (deps: —) **Corruption inside a ledger entry is reported by lint and repairable by no verb** — The unit is the entry and the damage is inside one: Shio carries two U+0008 control characters and a dead link in entry prose, and add, drop, ship and retire all reach only the whole line. → §RK126

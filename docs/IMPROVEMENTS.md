@@ -118,28 +118,6 @@ as one. RK122 is the same question one file up.
 
 ## Block B — Authoring
 
-### §RK113 Half a subtree renamed, and written
-
-Reproduced in a scratch project: a roadmap carrying `RK1`, a prose file with `§RK1` and
-a `#### §RK1.1` under it, and one `renumber RK1 --to RK9`. The line moved, the pointer
-moved, `§RK1` became `§RK9` — and `§RK1.1` stayed exactly as written, nested under a
-heading naming a different task and claiming one that no longer exists.
-
-`_section_document` calls `find`, which deliberately returns the **subtree**, and then
-rewrites a single line: `section.first - 1`. One heading of the several the section
-owns. That asymmetry is the whole defect — the function that knows the subtree is the
-one renaming only its root.
-
-Two things earn it a line rather than a fix in passing. The write is not a round-trip
-failure, so L3 does not catch it; and `lint` reported the result **clean**, which is the
-second finding filed beside this one. The tool renamed half a subtree, wrote it, and the
-gate agreed.
-
-`ship` and `defer` do not have it: one deletes the subtree whole and the other carries
-it whole. `renumber` is the only door that rewrites an anchor in place, which is why it
-is the only one that can leave two spellings of one task under a single heading — the
-silence RK112 closed, one verb over.
-
 ### §RK120 Two branches spending one address
 
 `renumber` was written on the observation that an id is an address and a merge can spend

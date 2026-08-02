@@ -1445,6 +1445,8 @@ def _renumber(config: Config, args: argparse.Namespace) -> int:
                     "section": None
                     if moved.section is None
                     else _section_json(moved.section, prose),
+                    # The nested headings that carried the old address, as they now read.
+                    "subsections": list(moved.subsections),
                     # The lines this write changed on the author's behalf, because which
                     # of two collided ids a dep meant is not a fact any file holds.
                     "moved": list(moved.moved),
@@ -1461,6 +1463,8 @@ def _renumber(config: Config, args: argparse.Namespace) -> int:
     print(f"  {moved.rendered}")
     if moved.section is not None:
         print(f"  section  §{moved.to} → {prose}:{moved.section.first}")
+    if moved.subsections:
+        print(f"  nested   {', '.join('§' + a for a in moved.subsections)} (the id's own numbering)")
     if moved.moved:
         print(f"  deps     {', '.join(moved.moved)} now name {moved.to} — confirm each meant this line")
     if moved.refreshed:
