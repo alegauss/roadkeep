@@ -28,6 +28,7 @@ from roadkeep.document import Document, UnknownBlock
 from roadkeep.schema import Schema, SchemaError
 from roadkeep.sections import (
     NoSuchSection,
+    SectionClaimed,
     SectionExists,
     SectionOccupied,
     UnknownParent,
@@ -44,11 +45,13 @@ HERE = Path(__file__).resolve().parents[1]
 ROADMAP = "docs/ROADMAP.md"
 IMPROVEMENTS = "docs/IMPROVEMENTS.md"
 
-BACKLOG = """# Roadmap
+RK1_LINE = "- 📋 **RK1** (deps: —) **A first symptom** — Because of a reason. → §RK1"
+
+BACKLOG = f"""# Roadmap
 
 ## Block A — The model
 
-- 📋 **RK1** (deps: —) **A first symptom** — Because of a reason. → §RK1
+{RK1_LINE}
 
 - 📋 **RK3** (deps: —) **A third symptom** — Because of a third reason. → §RK3
 
@@ -371,6 +374,54 @@ def test_a_subtree_nobody_else_claims_still_goes_whole(tmp_path):
     assert "§RK1.1" not in read(config)
 
 
+# -- the anchor that was named, and who points at it (RK112) ------------------
+
+
+#: RK3's line pointing at RK1's design: two open owners for one anchor, which is the shape
+#: an outline gives a project by default and a hand-written `→ §…` gives any of them.
+CO_OWNED = BACKLOG.replace("→ §RK3", "→ §RK1")
+
+
+def test_the_named_anchor_is_refused_when_an_open_line_points_at_it(tmp_path):
+    # Found in Shio: `section drop VIII.11` succeeded and the next `lint` reported
+    # `ref.unresolved` for the open line that owned it. RK78 asked this about the subtree
+    # and `ship` about the anchor; the standalone verb asked neither.
+    config = project(tmp_path)
+    with pytest.raises(SectionClaimed) as raised:
+        drop(config.document("improvements"), "RK1", claimed=pointers(config))
+    assert "is pointed at by RK1" in str(raised.value)
+    assert "repoint the line, or ship the one that claims it" in str(raised.value)
+    assert read(config) == RATIONALE
+
+
+def test_every_owner_is_named_so_the_remedy_is_the_whole_list(tmp_path):
+    config = project(tmp_path, roadmap=CO_OWNED)
+    with pytest.raises(SectionClaimed) as raised:
+        drop(config.document("improvements"), "RK1", claimed=pointers(config))
+    assert raised.value.owners == ("RK1", "RK3")
+    assert "pointed at by RK1, RK3" in str(raised.value)
+    # One remedy per pointer, so the sentence counts them rather than assuming one.
+    assert "those pointers" in str(raised.value)
+
+
+def test_the_departing_line_s_own_claim_is_not_one_of_them(tmp_path):
+    # `ship` passes `leaving`, so the claim that is the *reason* for the drop is excluded
+    # and shipping still takes its own task's section — the case that is always right.
+    config = project(tmp_path, roadmap=CO_OWNED)
+    with pytest.raises(SectionClaimed) as raised:
+        drop(config.document("improvements"), "RK1", claimed=pointers(config, leaving="RK1"))
+    assert raised.value.owners == ("RK3",) and "that pointer" in str(raised.value)
+
+
+def test_a_section_no_open_line_claims_is_the_one_this_verb_drops(tmp_path):
+    # The orphan `lint` already reports: RK1 is gone from the roadmap and its design is
+    # what is left. Nothing points at it, so nothing is stranded by removing it.
+    config = project(tmp_path, roadmap=BACKLOG.replace(f"{RK1_LINE}\n\n", ""))
+    document, _ = drop(config.document("improvements"), "RK1", claimed=pointers(config))
+    document.save()
+    assert "§RK1" not in read(config)
+
+
 # -- adding ------------------------------------------------------------------
 
 
@@ -598,13 +649,24 @@ def test_show_of_nothing_exits_two(tmp_path, capsys):
 
 
 def test_drop_reports_what_it_removed(tmp_path, capsys):
-    config = project(tmp_path)
+    # RK1's line is gone from the roadmap, which is the state this verb is for: a section
+    # an open line still points at is refused one test down (RK112).
+    config = project(tmp_path, roadmap=BACKLOG.replace(f"{RK1_LINE}\n\n", ""))
     assert main(["-C", str(tmp_path), "section", "drop", "RK1"]) == EXIT_OK
     out = capsys.readouterr().out
     assert f"dropped §RK1 (11-18) from {IMPROVEMENTS}" in out
     # And the size the anchor does not state: one command, two headings (RK78).
     assert "nested   §RK1.1 went with it" in out
     assert "§RK1" not in read(config)
+
+
+def test_drop_of_a_claimed_anchor_exits_two_and_writes_nothing(tmp_path, capsys):
+    # The verb reads the roadmap for itself: no `leaving` to pass, because nothing is
+    # departing — which is exactly why this call had no owner check at all (RK112).
+    config = project(tmp_path)
+    assert main(["-C", str(tmp_path), "section", "drop", "RK1"]) == EXIT_USAGE
+    assert "is pointed at by RK1" in capsys.readouterr().err
+    assert read(config) == RATIONALE
 
 
 def test_drop_of_an_occupied_subtree_exits_two_and_writes_nothing(tmp_path, capsys):

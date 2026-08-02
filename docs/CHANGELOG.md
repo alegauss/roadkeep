@@ -47,6 +47,7 @@
 - ✅ **RK93** **add exits 0 on a line whose derived pointer fails lint at once, and names no follow-up** — add --section writes the rationale in the same transaction, and an add without one names the section add that answers its pointer, so the gate is no longer the first to mention it.
 - ✅ **RK97** **an id two branches allocated to different work has no door that moves either line** — renumber moves the line, its section and every dep naming it in one transaction, deriving a free id in the line's own family, so a merge that spent one id twice has a door that is not a departure.
 - ✅ **RK108** **The first line added to a block lands above the paragraph that introduces it** — An empty block's first task lands after the paragraph that introduces the block, not between the heading and that paragraph.
+- ✅ **RK112** **section drop deletes a section an open line points at** — section drop refuses when an open line points at the anchor it was given, before any write.
 
 ## Block C — Query
 

@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 💭 **RK112** (deps: RK78 ✅) **section drop deletes a section an open line points at** — RK78 refuses when a NESTED section has another owner, and the standalone verb never asks who points at the anchor it was given. → §RK112
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate

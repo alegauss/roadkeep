@@ -266,7 +266,9 @@ def build_parser() -> argparse.ArgumentParser:
         description=(
             "Delete one section and everything under it. Subsections included, because one "
             "left behind is orphaned prose under the next task's heading — which reads as "
-            "that task's design and is the outcome worse than deleting too much."
+            "that task's design and is the outcome worse than deleting too much. Refused "
+            "when an open line points at the anchor or at anything under it: the section a "
+            "live pointer names is `ship`'s to remove, and this verb's job is the orphan."
         ),
     )
     section_drop.add_argument("anchor", help="the anchor, e.g. RK9")

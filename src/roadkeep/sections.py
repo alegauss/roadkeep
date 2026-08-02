@@ -108,6 +108,32 @@ class SectionOccupied(ValueError):
         )
 
 
+class SectionClaimed(ValueError):
+    """A drop of the section an open line points at, refused before the write (RK112).
+
+    :class:`SectionOccupied` one level up, and the level that was missing: that one asks who
+    points at anything *nested* under the anchor, `ship` asks who else points *at* it — and
+    `section drop`, the verb whose whole job is removing one section, asked neither. Found by
+    using the tool: `section drop VIII.11` succeeded on a section stale by every other
+    measure, and the next `lint` reported `ref.unresolved` for an open line that owned it.
+
+    A refusal and not a report, because the drop was one of seven in a triage pass: `lint`
+    names the damage afterwards, and by then `git checkout` discards the six that were right
+    along with the one that was not. `ship` still drops its own task's section — that caller
+    passes ``leaving``, so the claim that is the reason for the drop is not one of these.
+    """
+
+    def __init__(self, anchor: str, owners: Sequence[str], where: str = "") -> None:
+        self.anchor = anchor
+        self.owners = tuple(owners)
+        file = f" in {where}" if where else ""
+        super().__init__(
+            f"§{anchor}{file} is pointed at by {', '.join(self.owners)} — dropping it "
+            f"leaves {'that pointer' if len(self.owners) == 1 else 'those pointers'} "
+            f"resolving to nothing: repoint the line, or ship the one that claims it"
+        )
+
+
 class UnknownParent(ValueError):
     """An anchor states its place, and this file declares nothing it extends (RK45).
 
@@ -260,12 +286,20 @@ def drop(
     level-3 designs is refused while a task's own `§RK34.1` still goes with `§RK34`. Omitted,
     nothing is claimed: a caller with no roadmap to read cannot be told about a pointer, and
     both callers that have one pass it.
+
+    The anchor that was **named** is asked first and answered the same way (RK112). It is the
+    obvious half and it was the missing one: `ship` made that check on its own path and the
+    standalone verb inherited nothing, so the one command that exists to delete a section was
+    the one that could strand a live pointer.
     """
     span = _span(document, anchor)
     section = find(document, anchor)
     if span is None or section is None:
         raise NoSuchSection(anchor, str(document.path or "the document"))
     if claimed:
+        owners = claimed.get(anchor)
+        if owners:
+            raise SectionClaimed(anchor, owners, str(document.path or ""))
         occupied = [
             (child.anchor, claimed[child.anchor])
             for child in nested(document, anchor)
