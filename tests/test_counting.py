@@ -171,7 +171,9 @@ def test_a_marker_filter_claims_no_misses(tmp_path):
 
 
 def test_the_longest_line_is_derived_not_asserted():
-    census = Census.read(Config.discover(HERE))
+    # Read off the ledger, which is where this repository's lines are: the roadmap is empty
+    # since RK21, and a longest derived from zero lines is derived from nothing.
+    census = Census.read(Config.discover(HERE), "changelog")
     longest = census.longest()
     assert longest is not None
     assert len(longest.raw) == max(len(e.raw) for e in census.counted)
@@ -182,8 +184,11 @@ def test_this_repositorys_own_files_have_nothing_uncounted():
     config = Config.discover(HERE)
     for role in ("roadmap", "changelog"):
         census = Census.read(config, role)
+        # `missed` is the claim, and it is the one that means something on an empty file too:
+        # nothing was read *and* nothing was skipped in silence. The total is the ledger's
+        # floor alone — the roadmap's finished state is zero lines (RK21).
         assert census.missed == (), f"{role}: {census.missed}"
-        assert census.total > 0
+        assert census.total > 0 or role == "roadmap"
 
 
 @pytest.mark.parametrize(

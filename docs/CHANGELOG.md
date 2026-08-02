@@ -103,6 +103,7 @@
 - ✅ **RK98** **A table-shaped backlog reads as zero lines, which is what an empty file reads as** — adopt counts the table rows filed under a block heading and names them, so a table-shaped backlog reports its rows as work instead of reading as the empty file it is not.
 - ✅ **RK99** **Nothing measures the rationale file an adopting project brings** — adopt --sections measures the rationale file too, so the longest section and the width its prose is wrapped to come from the corpus instead of a throwaway script or this repository's numbers.
 - 🗑 **RK77** **A backlog whose marker, heading and ledger all differ cannot be adopted at all** — abandoned: Measured, not estimated: cursarei carries no pointer at all, puts deps on 13 `↳` lines of their own and wraps every task across paragraphs, so the four keys still read 0 of its 16 lines.
+- ✅ **RK21** **A standard adopted by one project is a preference** — Turing and Dumont each carry their own `roadkeep.toml` and the measurement it produced, so four projects share one format; the fourth was measured and retired instead (RK77).
 
 ## Block F — The Claude Code plugin
 

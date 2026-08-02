@@ -28,6 +28,7 @@ from roadkeep import (
 )
 
 ROADMAP = Path(__file__).resolve().parents[1] / "docs" / "ROADMAP.md"
+CHANGELOG = Path(__file__).resolve().parents[1] / "docs" / "CHANGELOG.md"
 
 SCHEMA = Schema()
 OUTLINE = Schema(ref_scheme="outline")
@@ -97,16 +98,20 @@ def test_a_task_without_a_ref_renders_without_the_arrow():
 
 def test_corpus_is_not_empty():
     # A corpus test over zero lines passes for the wrong reason, and that is the whole claim
-    # this makes. This corpus is the *roadmap*, whose finished state is empty, so every floor
-    # above one is a count waiting to fail on progress: 10 fell when RK41 left 9, and 5 fell
-    # when RK23 left 4. The shipped lines are a corpus too, under the ledger's own schema, and
-    # test_document.py holds that half — with the bound on the file that only grows.
-    assert read_corpus()
+    # this makes. The floor is now the *ledger's*, which is where this comment was already
+    # heading: the roadmap's finished state is empty, so every floor above zero is a count
+    # waiting to fail on progress — 10 fell when RK41 left 9, 5 fell when RK23 left 4, and 1
+    # fell when RK21 shipped the last line there is. The shipped lines are the corpus that
+    # only grows, so the tests below read both halves, each under its own schema.
+    assert read_ledger()
 
 
 def test_every_corpus_line_conforms():
     offenders = {
-        t.id: SCHEMA.validate(t) for t in read_corpus() if SCHEMA.validate(t)
+        t.id: schema.validate(t)
+        for schema, corpus in ((SCHEMA, read_corpus()), (LEDGER, read_ledger()))
+        for t in corpus
+        if schema.validate(t)
     }
     assert offenders == {}
 
@@ -114,12 +119,17 @@ def test_every_corpus_line_conforms():
 def test_every_corpus_line_renders_back_to_itself():
     # A weaker statement than L3's round-trip (RK2), but it is the part that is
     # about the schema: the canonical form is the form already in the file.
-    for line, parsed in zip(read_corpus_lines(), read_corpus(), strict=True):
-        assert SCHEMA.render(parsed) == line
+    for schema, lines, corpus in (
+        (SCHEMA, read_corpus_lines(), read_corpus()),
+        (LEDGER, read_ledger_lines(), read_ledger()),
+    ):
+        for line, parsed in zip(lines, corpus, strict=True):
+            assert schema.render(parsed) == line
 
 
 def test_corpus_stays_inside_the_limits_it_was_measured_from():
     lines = [SCHEMA.render(t) for t in read_corpus()]
+    lines += [LEDGER.render(t) for t in read_ledger()]
     assert max(len(line) for line in lines) <= SCHEMA.line_max
 
 
@@ -348,6 +358,20 @@ def read_corpus_lines() -> list[str]:
 
 def read_corpus() -> list[Task]:
     return [e.task for e in Document.load(ROADMAP, SCHEMA).entries]
+
+
+#: The ledger's own schema, and the lines it holds. This half of the corpus is the one that
+#: only grows: a task leaves the roadmap the moment it ships, and this repository's roadmap
+#: is empty since RK21, so a corpus claim asked of the roadmap alone is now asked of nothing.
+LEDGER = SCHEMA.as_ledger()
+
+
+def read_ledger_lines() -> list[str]:
+    return [e.raw for e in Document.load(CHANGELOG, LEDGER).entries]
+
+
+def read_ledger() -> list[Task]:
+    return [e.task for e in Document.load(CHANGELOG, LEDGER).entries]
 
 
 # -- a backlog numbered by track (RK74) -------------------------------------

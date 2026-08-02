@@ -83,10 +83,4 @@ already written, not authorship.
 
 ## Block E — Adoption
 
-### §RK21 Rollout
-
-Turing, Dumont and Cursarei, each with its own `roadkeep.toml`. Four projects sharing
-one format is what makes cross-project context transferable; one project with a format
-is a preference.
-
 ## Block F — The plugin

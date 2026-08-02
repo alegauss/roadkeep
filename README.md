@@ -120,25 +120,26 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 0 | 18 | 0 |
 | C — Query (consult without reading the file) | 0 | 16 | 0 |
 | D — The gate | 0 | 15 | 0 |
-| E — Adoption | 1 | 17 | 1 |
+| E — Adoption | 0 | 18 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 17 | 1 |
-| **Total** | 1 | 97 | 2 |
-
-**Next ready:**
-
-- ⏳ **RK21** (deps: RK20 ✅) **A standard adopted by one project is a preference** — roll out to Turing, Dumont and Cursarei, each with its own `roadmap.toml`. → §RK21
+| **Total** | 0 | 98 | 2 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
 came from — because an answer an agent cannot audit gets verified by reading the file,
 which is the cost the command existed to remove.
 
-Still open, and where to look:
-[docs/ROADMAP.md](https://github.com/alegauss/roadkeep/blob/main/docs/ROADMAP.md). Shio is
-adopted and governed, and so are Turing and Dumont — which is what the one remaining line is
-about: finishing that rollout. The fourth candidate was measured and **retired** rather than
-adopted, because its tasks are wrapped paragraphs with their deps on a line of their own, and
-reading those is a second grammar rather than a configuration key.
+Nothing is open. What
+[docs/ROADMAP.md](https://github.com/alegauss/roadkeep/blob/main/docs/ROADMAP.md) still carries
+is the **non-goals**, which is the half of it that binds: `brief` prints them with every task,
+and they are what a proposal is checked against before it becomes a line.
+
+Four projects are adopted and governed — this one, Shio, Turing and Dumont — each with its own
+`roadkeep.toml` and the measurement that produced it. A fifth candidate was measured and
+**retired** rather than adopted: its tasks are wrapped paragraphs with their deps on a line of
+their own, and reading those is a second grammar rather than a configuration key. That refusal
+is the one worth reading, because a tool that stretched to fit it would have stopped being
+able to promise the round-trip.
 
 ## Adopt it in a project — two commands, and the repository carries the rest
 

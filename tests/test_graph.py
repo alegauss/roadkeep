@@ -196,6 +196,11 @@ def test_this_backlog_has_no_cycle_and_a_measurable_gap():
     ranked = sorted(
         ((g.leverage(task).count, task) for task in g.edges), reverse=True
     )
+    if not ranked:
+        # An empty backlog is not a broken graph, and it is this one's state since RK21: no
+        # node, so no cycle and no gap. The claim above — `cycles() == ()` — is the whole of
+        # what a graph over zero tasks can say, and it is still worth failing on.
+        return
     top, least = ranked[0], ranked[-1]
     if top[0] == 0:
         # The measurement is exhausted, not broken: RK23 was the last open task any other

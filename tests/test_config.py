@@ -50,7 +50,10 @@ def test_its_own_documents_validate_under_its_own_config():
     config = Config.discover(HERE)
     for role in ("roadmap", "changelog"):
         document = config.document(role)
-        assert document.entries
+        # The floor is the ledger's alone: a backlog's finished state is empty, and RK21
+        # shipped the last line this one had. A count that fails on progress is a count that
+        # gets edited by the commit that crossed it, which is a count nobody re-reads.
+        assert document.entries or role == "roadmap"
         assert document.non_canonical == ()
         assert [v for e in document.entries for v in document.schema.validate(e.task)] == []
 

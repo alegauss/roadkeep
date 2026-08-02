@@ -48,10 +48,12 @@ FOREIGN = [
 
 # Lower bounds, not counts: shipping a task moves a line between these two files every
 # commit, and a test that has to be edited by every commit gets edited without being read.
-# So the roadmap's is the weakest statement that still fails on an empty parse — its finished
-# state is zero lines, and every floor above one is a count that progress crosses (10 fell to
-# RK41, then 5 to RK23). The ledger's is the bound worth raising, because that file only grows.
-OWN = [(ROADMAP, Schema(), 1), (CHANGELOG, Schema().as_ledger(), 40)]
+# The roadmap's floor is **zero**, which is the end of a sequence this comment recorded twice
+# before it arrived: 10 fell to RK41, 5 fell to RK23, and 1 fell to RK21, which shipped the
+# last open line there is. A backlog's finished state is empty, so any floor at all is a count
+# progress crosses. The ledger's is the bound worth raising, because that file only grows —
+# and with the roadmap empty it is the only half of this corpus that proves anything.
+OWN = [(ROADMAP, Schema(), 0), (CHANGELOG, Schema().as_ledger(), 40)]
 
 LINE = (
     f"- {DESIGNED} **RK9** (deps: RK5 {SHIPPED}) **A symptom** "
@@ -564,9 +566,14 @@ def test_entries_are_reachable_by_id_and_by_block():
 
 
 def test_the_live_roadmap_files_every_task_under_a_block():
-    document = Document.load(ROADMAP, Schema())
-    assert document.entries
-    assert all(entry.task.block for entry in document.entries)
+    # Both governed files, because the claim is about the parser and not about the backlog:
+    # this repository's roadmap is empty (RK21 shipped its last line), so asked of that file
+    # alone the assertion would hold over nothing. The ledger carries the same 100 lines, each
+    # filed under the block it belonged to.
+    for path, schema in ((ROADMAP, Schema()), (CHANGELOG, Schema().as_ledger())):
+        document = Document.load(path, schema)
+        assert all(entry.task.block for entry in document.entries)
+    assert Document.load(CHANGELOG, Schema().as_ledger()).entries
 
 
 def vars_of(task: Task) -> dict:
