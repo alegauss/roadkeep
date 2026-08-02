@@ -75,6 +75,28 @@ already written, not authorship.
 
 ## Block A — The model
 
+### §RK101 The outline whose anchors are its own block letters
+
+`OUTLINE_ANCHOR_RE` admits a first segment of digits or roman numerals, which was
+measured off Shio (`VIII.1`) and Turing (`IX.4.d`). commitclerk numbers its rationale by
+the roadmap's own block letters — `§B.2`, `§D.1`, `§J.8` — and under `ref_scheme =
+"outline"` that file yields sections for the headings under C and D, because those
+letters happen to be roman numerals, and nothing for B, E, F, G, H, I and J.
+
+Half-read is worse than unread. A file that produces zero sections is a configuration
+mistake somebody notices on the first `lint`; one that produces eight sections out of
+thirty-nine reports thirty-one pointers resolving to nothing against a file that answers
+every one of them, which is RK15's argument inverted exactly as RK44 described it — and
+the eight it does read are chosen by an accident of the Latin alphabet.
+
+Admitting a single uppercase letter as a first segment is the change, and it is the same
+measured admission RK47 made for the lettered fourth level: `§B.2` and `§J.9` become
+anchors, `§VIII.1` still parses as roman, and a heading whose first word is a
+capitalised word is still prose because the segment is one letter and a dot follows it.
+What it does not fix is a project whose blocks and whose sections are numbered by the
+*same* letters, where `§D` names both a block heading and a section — which is an
+argument for the `id` scheme, not against reading the file the project already has.
+
 ## Block B — Authoring
 
 ## Block C — Query
@@ -115,4 +137,65 @@ where nothing looks.
 So the answer is not a `roadkeep.toml` here. A config whose every read is zero claims a
 governance it does not have, which is the drift this tool exists to refuse.
 
+### §RK98 The estimate that cannot tell a table from an empty file
+
+`adopt docs/ROADMAP.md --prefix T` on commitclerk answered `read 0 line(s), 0 conform, 0
+would change` and then listed nine blocks. Both halves are true and together they are
+misleading: the headings parsed, the 45 tasks under them did not, because each is a row
+in a `| ID | Status | Task | Depends on |` table rather than a bullet. The number that
+decides whether to adopt was the number a project with an empty roadmap gets.
+
+The estimate is the one command whose whole job is to be read *before* the commitment,
+so a zero it cannot explain is the failure mode it exists to prevent. It already reports
+`rejects` for a marker-bearing bullet the grammar refused; a row is the same category
+one shape further out — a line that is plainly a task and plainly not this format.
+Counting the pipe-delimited rows under a block heading and naming them (`45 line(s) in a
+table this format does not read`) costs no new grammar and turns "nothing to do" into
+"here is the conversion".
+
+Deliberately not a table parser. Reading the shape is an estimate's job; writing it is
+not, and a tool that adopted the table would be a tool with two line formats, which is
+the rule L3 exists to keep singular.
+
+### §RK99 The half of the corpus the estimate does not read
+
+`adopt` measures a backlog: the longest symptom, the longest why, the longest rendered
+line, each against its limit. A project adopting the tool has to declare
+`limits.section` and `limits.prose` in the same file, and about those the estimate says
+nothing — so setting them means either copying this repository's numbers, which is the
+template argument L6 refuses, or writing a script.
+
+Adopting commitclerk was the second: a fifteen-line script split the file on headings
+and counted words, found 226 as the longest section, and `section = 250` followed from
+that. The command that already parses headings, already knows the two ref schemes and
+already reports a longest-against-limit could have answered it — `adopt
+docs/IMPROVEMENTS.md --sections`, or the same run reading the prose file the config
+names once one exists.
+
+The measurement matters more here than on a task line, not less. A line over its limit
+is one refusal at insertion; a rationale file with no budget at all is the 539 KB
+failure this tool was built after, and the number that would have caught it is the
+number an adopting project currently guesses.
+
 ## Block F — The plugin
+
+### §RK100 Adoption has five surfaces and `init` scaffolds three
+
+`init` writes `roadkeep.toml` and the files it declares. What adopting commitclerk
+actually took, beyond that: a `.mcp.json` naming the server, a `.claude/settings.json`
+enabling it and wiring the guard to three hook events, a copy of
+`skills/roadkeep/SKILL.md`, a `docs` job in the CI workflow, and a line in
+`CONTRIBUTING.md` telling a contributor not to hand-edit the governed files. Five
+hand-written surfaces against three scaffolded ones.
+
+The skill is the one that cannot be left to the adopter. It is the authority on which
+command to call, and the plugin is what ships it — but a project can only install the
+plugin from a marketplace, which means the published ref rather than the checkout it is
+developing against. Using a sibling checkout, which is what a project adopting an
+unreleased version does, leaves the skill behind: commitclerk now carries a copy with a
+comment saying where it came from, and nothing tells either file that the other moved.
+
+`init --claude` (or an `install` beside it) writing those surfaces from the same source
+the plugin ships is the shape. Nothing in it invents content — the skill is copied, the
+hook command is the launcher's own path, the CI job is the action this repository
+already publishes — so it stays a scaffold rather than a generator (L4).

@@ -22,6 +22,8 @@
 
 ## Block A — The model (a task is data before it is a line)
 
+- 📋 **RK101** (deps: —) **An outline anchored by block letter declares no section, and one by block C declares one** — commitclerk numbers its rationale §B.2 to §J.9, of which only the C and D headings match the anchor pattern, so the same file is half-read under the scheme it was written for. → §RK101
+
 ## Block B — Authoring (insert, never hand-edit)
 
 ## Block C — Query (consult without reading the file)
@@ -32,8 +34,12 @@
 
 - ⏳ **RK21** (deps: RK20 ✅) **A standard adopted by one project is a preference** — roll out to Turing, Dumont and Cursarei, each with its own `roadmap.toml`. → §RK21
 - 📋 **RK77** (deps: RK74 ✅, RK75 ✅) **A backlog whose marker, heading and ledger all differ cannot be adopted at all** — cursarei needs four unrelated keys the format has none of, so 0 of its 16 open lines and 9 of its 12 ledger entries stay unread. → §RK77
+- 📋 **RK98** (deps: —) **A table-shaped backlog reads as zero lines, which is what an empty file reads as** — commitclerk keeps 45 tasks as rows in a Markdown table, so the estimate that decides whether to adopt reported nothing to change about a file it had not read at all. → §RK98
+- 📋 **RK99** (deps: —) **Nothing measures the rationale file an adopting project brings** — The section budget is the one limit `adopt` never reports, so commitclerk's was set by a throwaway script counting words per heading instead of by the command that exists to measure a corpus. → §RK99
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
+
+- 📋 **RK100** (deps: —) **A project that runs roadkeep from a checkout has no write-path skill** — The skill ships in the plugin alone, so commitclerk had to vendor a copy of SKILL.md into its own `.claude/skills/`, which nothing keeps in step with the file it was taken from. → §RK100
 
 ## Non-goals
 
