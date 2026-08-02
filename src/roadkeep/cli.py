@@ -929,6 +929,14 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="measure it as a changelog: shipped marker, no deps field, no pointer",
     )
+    adopt_parser.add_argument(
+        "--sections",
+        action="store_true",
+        help=(
+            "measure it as a rationale file: sections against `section`, and the width "
+            "its prose is already wrapped to — the two limits an adopter has to declare"
+        ),
+    )
     adopt_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     adopt_parser.set_defaults(handler=_adopt)
 
@@ -2777,6 +2785,7 @@ def _adopt(config: Config, args: argparse.Namespace) -> int:
             prefix=args.prefix,
             ref_scheme=args.ref_scheme,
             ledger=args.ledger,
+            sections=args.sections,
         )
     except (ValueError, OSError) as error:
         return _refused(error)
@@ -2793,9 +2802,12 @@ def _adopt(config: Config, args: argparse.Namespace) -> int:
 def _print_estimate(estimate: Estimate) -> None:
     where = estimate.path.as_posix()
     source = " (inferred from the ids)" if estimate.inferred else ""
-    print(f"{where}  prefix {'/'.join(estimate.families)}{source}")
+    # No prefix on a rationale file: a section is addressed by its §, not by a family, so
+    # naming one would be a claim the run never made (RK99).
+    under = f"prefix {'/'.join(estimate.families)}{source}, " if estimate.families else ""
+    print(f"{where}  {under}refs by {estimate.ref_scheme}")
     print(
-        f"  read     {estimate.parsed} line(s), {estimate.conforming} conform, "
+        f"  read     {estimate.parsed} {estimate.unit}(s), {estimate.conforming} conform, "
         f"{estimate.changing} would change"
     )
     if estimate.tabular:
@@ -2814,11 +2826,13 @@ def _print_estimate(estimate: Estimate) -> None:
                 f"--prefix {prefix} if it is a track of this backlog"
             )
     for measure in estimate.measures:
-        if measure.over:
-            print(
-                f"  {measure.field:<8} {measure.over} over {measure.limit}, "
-                f"longest {measure.longest}"
-            )
+        # Printed even at zero over: the number an adopting project is here for is the
+        # *longest*, which is what a limit gets set from, and a measure that appears only
+        # once it is exceeded is one nobody can declare a limit from (RK99).
+        print(
+            f"  {measure.field:<8} longest {measure.longest} of {measure.limit}, "
+            f"{measure.over} over"
+        )
     for marker, count in estimate.undeclared:
         print(f"  marker   {marker} on {count} line(s), declared by nothing in [markers]")
     for code, count in estimate.codes:
@@ -2838,6 +2852,8 @@ def _estimate_json(estimate: Estimate) -> dict[str, object]:
         "prefix": estimate.prefix,
         "families": list(estimate.families),
         "inferred": estimate.inferred,
+        "unit": estimate.unit,
+        "ref_scheme": estimate.ref_scheme,
         "parsed": estimate.parsed,
         "conforming": estimate.conforming,
         "changing": estimate.changing,

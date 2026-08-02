@@ -50,6 +50,7 @@ from pathlib import Path
 from roadkeep.config import CONFIG_NAME, DEFAULT_PATHS, PYPROJECT, Config
 from roadkeep.document import Document
 from roadkeep.schema import DEFAULT_HEADING_WORD, Schema
+from roadkeep.sections import anchored, structural
 
 #: The roles `init` scaffolds. `strategy` is absent and not empty: Turing has one and this
 #: project does not, and a declared file nobody writes is `file.missing` on the first lint.
@@ -143,6 +144,14 @@ class Estimate:
     inferred: bool
     parsed: int
     conforming: int
+    #: What ``parsed`` counts. A backlog is measured in lines and a rationale file in
+    #: sections (RK99) — one command and not two, because the corpus an adopting project
+    #: has to measure is both files, and a second command would be a second set of numbers
+    #: to keep in step with these.
+    unit: str = "line"
+    #: The scheme the pointers and anchors were read under (RK44). Reported because it
+    #: decides what was read at all: under the wrong one a file of 151 sections yields 0.
+    ref_scheme: str = "id"
     #: Marker-bearing bullets the grammar refused, grouped by reason, worst first.
     rejects: tuple[tuple[str, int], ...] = ()
     #: Schema violations per code, worst first — the same codes `lint` prints.
@@ -392,6 +401,7 @@ def adopt(
     prefix: str | Sequence[str] | None = None,
     ref_scheme: str | None = None,
     ledger: bool = False,
+    sections: bool = False,
 ) -> Estimate:
     """Read a backlog this tool does not own and report what it would cost to adopt it.
 
@@ -413,8 +423,23 @@ def adopt(
     They did not before, and an estimate taken under limits the gate does not apply is a
     measurement of a commitment nobody is being asked to make. A role and not a path
     because the caller names a file the project may not have declared at all.
+
+    ``sections`` names the *other half of the corpus* (RK99): a rationale file, whose unit
+    is a section and whose limits are `[limits] section` and `prose`. Those are two of the
+    numbers an adopting project has to declare, and until this they were the only ones the
+    estimate never reported — so setting them meant copying this repository's, which is
+    the template argument L6 refuses, or writing a throwaway script, which is what
+    adopting commitclerk actually did. A flag and not a second command, because a corpus
+    measured by two commands is two sets of numbers to keep in step.
     """
     target = Path(path)
+    if ledger and sections:
+        raise ValueError(
+            "--ledger and --sections measure different units — a ledger in lines and a "
+            "rationale file in sections — so each is its own run over its own file"
+        )
+    if sections:
+        return _prose(config, target, ref_scheme)
     schema = config.schema_for("changelog" if ledger else "roadmap")
     if ref_scheme is not None and ref_scheme != schema.ref_scheme:
         schema = replace(schema, ref_scheme=ref_scheme)  # raises on an unknown scheme
@@ -452,6 +477,7 @@ def adopt(
         inferred=inferred,
         parsed=len(document.entries),
         conforming=conforming,
+        ref_scheme=schema.ref_scheme,
         rejects=_grouped(reject.reason for reject in document.rejects),
         codes=_ranked(counts),
         measures=_measures(document, schema),
@@ -461,6 +487,81 @@ def adopt(
         non_canonical=len(document.non_canonical),
         tabular=len(document.tabular),
     )
+
+
+def _prose(config: Config, target: Path, ref_scheme: str | None) -> Estimate:
+    """A rationale file, measured in sections against the two limits nobody reported (RK99).
+
+    Read under the `improvements` role, so `[limits.improvements]` reaches it the same way
+    `[limits.changelog]` reaches a ledger — and under the caller's ``ref_scheme``, which
+    here decides not a count but *whether there is one*: an anchor is spelled `§RK9` under
+    `id` and `XVI.12` under an outline, and reading one as the other turned Shio's 151
+    headings into 0 sections. The scheme is on the result for that reason.
+
+    No prefix is reported and none is inferred, because a section is not addressed by one:
+    :func:`~roadkeep.sections.anchored` reads the § and not the family behind it, so a
+    prefix printed here would be a claim this run never made.
+
+    ``prose`` is a measurement and never a violation — the width is what a written section
+    is *filled to*, and nothing gates a hand-wrapped file at it. It is here because it is
+    the second number an adopting project has to declare, and the file it is declaring it
+    for is the one being read. Taken over the paragraphs the tool would actually fill
+    (:func:`~roadkeep.sections.structural` is the same predicate that decides), because the
+    widest line in a rationale file is a table row nobody would wrap to.
+    """
+    schema = config.schema_for("improvements")
+    if ref_scheme is not None and ref_scheme != schema.ref_scheme:
+        schema = replace(schema, ref_scheme=ref_scheme)  # raises on an unknown scheme
+    document = Document.load(target, schema)
+    found = anchored(document)
+    words = [section.words for section in found]
+    # Every prose paragraph, not only a section's: the width an author wraps to is a fact
+    # about the file, and a preamble above the first anchor is written to the same margin.
+    widths = [len(line) for line in _filled(document)]
+    return Estimate(
+        path=target,
+        prefix="",
+        families=(),
+        inferred=False,
+        unit="section",
+        ref_scheme=schema.ref_scheme,
+        parsed=len(found),
+        conforming=sum(1 for count in words if count <= schema.section_max),
+        measures=(
+            Measure(
+                field="section",
+                limit=schema.section_max,
+                longest=max(words, default=0),
+                over=sum(1 for count in words if count > schema.section_max),
+            ),
+            Measure(
+                field="prose",
+                limit=schema.prose_width,
+                longest=max(widths, default=0),
+                over=sum(1 for width in widths if width > schema.prose_width),
+            ),
+        ),
+        blocks=tuple(h.label for h in document.headings if h.label),
+    )
+
+
+def _filled(document: Document) -> list[str]:
+    """Every line of every paragraph the tool would re-wrap, stripped of its ending.
+
+    Blank-separated, because a paragraph is the unit the structure test judges — one table
+    row would otherwise read as prose the moment it was looked at on its own.
+    """
+    out: list[str] = []
+    paragraph: list[str] = []
+    for raw in (*document.lines, "\n"):
+        line = raw.rstrip("\r\n")
+        if line.strip():
+            paragraph.append(line)
+            continue
+        if paragraph and not structural(paragraph):
+            out += paragraph
+        paragraph = []
+    return out
 
 
 def _measures(document: Document, schema: Schema) -> tuple[Measure, ...]:

@@ -120,9 +120,9 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 0 | 18 | 0 |
 | C — Query (consult without reading the file) | 0 | 16 | 0 |
 | D — The gate | 0 | 15 | 0 |
-| E — Adoption | 3 | 16 | 0 |
+| E — Adoption | 2 | 17 | 0 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 17 | 1 |
-| **Total** | 3 | 96 | 1 |
+| **Total** | 2 | 97 | 1 |
 
 **Next ready:**
 
@@ -135,9 +135,9 @@ which is the cost the command existed to remove.
 
 Still open, and where to look:
 [docs/ROADMAP.md](https://github.com/alegauss/roadkeep/blob/main/docs/ROADMAP.md). Shio is
-adopted and governed, which is what the remaining three lines are about: a refusal that names
-a tool rather than a command the machine may lack, the rest of the commands as MCP tools, and
-the next three projects.
+adopted and governed, and so are Turing and Dumont — which is what the remaining two lines are
+about: finishing that rollout, and the one backlog whose marker, heading and ledger all differ
+so far that no configuration reaches it.
 
 ## Adopt it in a project — two commands, and the repository carries the rest
 
@@ -170,8 +170,14 @@ are the one thing that wants a shell — the plugin's own copy answers, with no 
 R=~/.claude/plugins/marketplaces/alegauss/scripts/roadkeep.py
 
 python $R adopt docs/ROADMAP.md --prefix SH   # measures first: what would change, and where
+python $R adopt docs/IMPROVEMENTS.md --sections   # the other half: sections, and the width
 python $R init                                # writes roadkeep.toml and the files it declares
 ```
+
+Both halves, because both are limits you have to declare. The backlog run reports the longest
+`symptom`, `why` and rendered line; the `--sections` run reports the longest section in words
+and the width your prose is already wrapped to — the numbers `[limits]` gets set from, taken
+from your corpus rather than copied from this one.
 
 Everything a *task* needs afterwards is already in the tools the plugin installed: `add`,
 `status`, `ship`, `retire`, `record_add`, `record_drop`, `section_add`, `section_drop`,

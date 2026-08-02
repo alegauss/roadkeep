@@ -414,11 +414,24 @@ def _normalize(body: str) -> str:
     return body.replace("\r\n", "\n").replace("\r", "\n").strip("\n")
 
 
+def structural(lines: Sequence[str]) -> bool:
+    """Is this paragraph a shape inserted verbatim, rather than prose the tool fills?
+
+    Public because `adopt --sections` measures the width a file's prose is *already*
+    wrapped to (RK99), and that number only means anything over the paragraphs
+    :func:`_reflow` would touch: the widest line in a rationale file is otherwise a table
+    row, a heading or a long link — none of which the tool ever wraps, and all of which an
+    adopter would read `prose` off by mistake. One predicate, so the width that is measured
+    is the width that would be written.
+    """
+    return any(
+        line.lstrip().startswith(_STRUCTURE) or line.startswith("    ") for line in lines
+    )
+
+
 def _reflow(paragraph: str, width: int) -> str:
     lines = paragraph.split("\n")
-    if any(
-        line.lstrip().startswith(_STRUCTURE) or line.startswith("    ") for line in lines
-    ):
+    if structural(lines):
         return paragraph.rstrip()
     return textwrap.fill(
         " ".join(line.strip() for line in lines),

@@ -32,7 +32,6 @@
 
 - ⏳ **RK21** (deps: RK20 ✅) **A standard adopted by one project is a preference** — roll out to Turing, Dumont and Cursarei, each with its own `roadmap.toml`. → §RK21
 - 📋 **RK77** (deps: RK74 ✅, RK75 ✅) **A backlog whose marker, heading and ledger all differ cannot be adopted at all** — cursarei needs four unrelated keys the format has none of, so 0 of its 16 open lines and 9 of its 12 ledger entries stay unread. → §RK77
-- 📋 **RK99** (deps: —) **Nothing measures the rationale file an adopting project brings** — The section budget is the one limit `adopt` never reports, so commitclerk's was set by a throwaway script counting words per heading instead of by the command that exists to measure a corpus. → §RK99
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 

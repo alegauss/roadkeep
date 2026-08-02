@@ -101,6 +101,7 @@
 - ✅ **RK76** **The estimate a project takes before adopting is not the one the gate applies** — adopt reads its file through Config.schema_for like every other command, so --ledger names the changelog role and that role's own limits and rules reach the estimate.
 - ✅ **RK75** **A backlog that files work under any other word cannot declare its headings** — The heading word is [headings] word in roadkeep.toml, read by the parser and the dep grammar from one place, so Dumont files under Track and its 34 entries stop reading as filed under nothing.
 - ✅ **RK98** **A table-shaped backlog reads as zero lines, which is what an empty file reads as** — adopt counts the table rows filed under a block heading and names them, so a table-shaped backlog reports its rows as work instead of reading as the empty file it is not.
+- ✅ **RK99** **Nothing measures the rationale file an adopting project brings** — adopt --sections measures the rationale file too, so the longest section and the width its prose is wrapped to come from the corpus instead of a throwaway script or this repository's numbers.
 
 ## Block F — The Claude Code plugin
 

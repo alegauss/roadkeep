@@ -115,24 +115,4 @@ where nothing looks.
 So the answer is not a `roadkeep.toml` here. A config whose every read is zero claims a
 governance it does not have, which is the drift this tool exists to refuse.
 
-### §RK99 The half of the corpus the estimate does not read
-
-`adopt` measures a backlog: the longest symptom, the longest why, the longest rendered
-line, each against its limit. A project adopting the tool has to declare
-`limits.section` and `limits.prose` in the same file, and about those the estimate says
-nothing — so setting them means either copying this repository's numbers, which is the
-template argument L6 refuses, or writing a script.
-
-Adopting commitclerk was the second: a fifteen-line script split the file on headings
-and counted words, found 226 as the longest section, and `section = 250` followed from
-that. The command that already parses headings, already knows the two ref schemes and
-already reports a longest-against-limit could have answered it — `adopt
-docs/IMPROVEMENTS.md --sections`, or the same run reading the prose file the config
-names once one exists.
-
-The measurement matters more here than on a task line, not less. A line over its limit
-is one refusal at insertion; a rationale file with no budget at all is the 539 KB
-failure this tool was built after, and the number that would have caught it is the
-number an adopting project currently guesses.
-
 ## Block F — The plugin

@@ -363,6 +363,115 @@ def test_the_table_row_is_named_in_the_report(tmp_path: Path, capsys) -> None:
     assert "3 line(s) in a table this format does not read" in out
 
 
+SENTENCE = "One two three four five six seven eight nine ten eleven twelve thirteen four."
+WIDE_ROW = (
+    "| A table row that nobody would ever wrap a paragraph to, and that is wider "
+    "than every line of prose in this file |"
+)
+
+RATIONALE = f"""# Improvements
+
+A preamble above every anchor, wrapped the way the rest of this file is.
+
+## Block A — The model
+
+### §RK1 The first design
+
+{SENTENCE}
+
+{WIDE_ROW}
+| --- |
+| one |
+
+### §RK2 The second design
+
+Short.
+"""
+
+#: §RK1's own prose, as `anchored` reads it: everything up to the next heading, table
+#: included — a section is charged for what is written under it.
+FIRST_BODY = RATIONALE.partition("### §RK1 The first design\n")[2].partition("### §RK2")[0]
+
+
+def test_the_other_half_of_the_corpus_is_measured(tmp_path: Path) -> None:
+    """`section` and `prose` are two of the limits an adopter declares, and until RK99
+    the estimate reported neither — so they were set by a script or copied from here."""
+    target = tmp_path / "IMPROVEMENTS.md"
+    target.write_text(RATIONALE, encoding="utf-8")
+    estimate = adopt(Config.default(tmp_path), target, sections=True)
+    assert (estimate.unit, estimate.parsed, estimate.conforming) == ("section", 2, 2)
+    measures = {m.field: m for m in estimate.measures}
+    assert measures["section"].limit == 250
+    assert measures["section"].longest == len(FIRST_BODY.split())  # the longer body
+    assert measures["prose"].limit == 88
+
+
+def test_the_width_measured_is_the_width_that_would_be_written(tmp_path: Path) -> None:
+    """A table row is the widest line in a rationale file and the tool never wraps one,
+    so an adopter reading `prose` off it would declare a width nothing produces."""
+    target = tmp_path / "IMPROVEMENTS.md"
+    target.write_text(RATIONALE, encoding="utf-8")
+    estimate = adopt(Config.default(tmp_path), target, sections=True)
+    prose = {m.field: m for m in estimate.measures}["prose"]
+    assert max(len(line) for line in RATIONALE.splitlines()) == len(WIDE_ROW) > 88
+    # The widest line the tool would have written is the sentence, not the row above it.
+    assert prose.longest == len(SENTENCE)
+
+
+def test_a_section_over_budget_is_what_would_change(tmp_path: Path) -> None:
+    target = tmp_path / "IMPROVEMENTS.md"
+    body = "word " * 300
+    target.write_text(f"# Improvements\n\n### §RK1 A design\n\n{body}\n", encoding="utf-8")
+    estimate = adopt(Config.default(tmp_path), target, sections=True)
+    assert (estimate.parsed, estimate.conforming, estimate.changing) == (1, 0, 1)
+    assert {m.field: m.over for m in estimate.measures}["section"] == 1
+
+
+def test_the_scheme_decides_whether_there_is_a_count_at_all(tmp_path: Path) -> None:
+    """RK44's measurement, from the estimate's side: 151 headings read as 0 sections."""
+    target = tmp_path / "IMPROVEMENTS.md"
+    target.write_text(
+        "# Improvements\n\n### VIII.1 A design\n\nProse.\n\n### VIII.2 Another\n\nProse.\n",
+        encoding="utf-8",
+    )
+    config = Config.default(tmp_path)
+    assert adopt(config, target, sections=True).parsed == 0
+    outlined = adopt(config, target, sections=True, ref_scheme="outline")
+    assert (outlined.parsed, outlined.ref_scheme) == (2, "outline")
+
+
+def test_a_rationale_file_claims_no_prefix(tmp_path: Path) -> None:
+    """A section is addressed by its §, not by a family — so none is named or guessed."""
+    target = tmp_path / "IMPROVEMENTS.md"
+    target.write_text(RATIONALE, encoding="utf-8")
+    estimate = adopt(Config.default(tmp_path), target, sections=True)
+    assert (estimate.families, estimate.prefix, estimate.inferred) == ((), "", False)
+
+
+def test_two_units_are_two_runs(tmp_path: Path) -> None:
+    target = tmp_path / "IMPROVEMENTS.md"
+    target.write_text(RATIONALE, encoding="utf-8")
+    with pytest.raises(ValueError, match="its own run"):
+        adopt(Config.default(tmp_path), target, ledger=True, sections=True)
+
+
+def test_the_longest_prints_even_when_nothing_is_over(tmp_path: Path, capsys) -> None:
+    """The number an adopter is here for is the longest: a measure that appears only once
+    it is exceeded is one nobody can set a limit from."""
+    target = tmp_path / "IMPROVEMENTS.md"
+    target.write_text(RATIONALE, encoding="utf-8")
+    argv = ["-C", str(tmp_path), "adopt", str(target), "--sections"]
+    assert main(argv) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "2 section(s), 2 conform, 0 would change" in out
+    assert f"section  longest {len(FIRST_BODY.split())} of 250, 0 over" in out
+    assert "prefix" not in out
+
+    assert main([*argv, "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert (payload["unit"], payload["ref_scheme"]) == ("section", "id")
+
+
 def test_adopt_writes_nothing(tmp_path: Path) -> None:
     target = tmp_path / "ROADMAP.md"
     target.write_text(FOREIGN, encoding="utf-8")
