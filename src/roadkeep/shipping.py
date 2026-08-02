@@ -17,9 +17,11 @@ Two decisions worth stating, because both are narrower than they could be:
 * **The roadmap line is removed, not replaced by a stub.** A pointer left behind is a
   second place a reader can ask about status, and the ledger is already greppable — the
   answer to "did RK5 ship?" has to have exactly one home (RK7).
-* **The `why` is copied verbatim unless the author restates it.** The roadmap's sentence
-  is a design and the ledger's is an outcome, so `--why` exists — but the tool never
-  rewrites the sentence itself (L4), and it validates whichever one it is given.
+* **The `why` is the author's, and it is required** (RK142). The roadmap's sentence is a
+  problem and the ledger's is an outcome, so copying it across was writing the entry by
+  omission — a defect report filed under a heading meaning "done". It is refused at input
+  now, where every other field of every other write is already refused (L1); the tool still
+  never writes the sentence itself (L4), it only declines to inherit the wrong one.
 
 The dep annotations of every line that named this task are re-derived in the same
 transaction (RK8), because `(deps: RK5)` becomes a false statement at exactly the moment
@@ -113,6 +115,7 @@ __all__ = [
     "Departure",
     "Divergent",
     "Dropped",
+    "NoOutcome",
     "NoQualifier",
     "NoRestatement",
     "NoSuchEntry",
@@ -173,6 +176,32 @@ class NoRestatement(ValueError):
             f"{task_id} is already recorded as {recorded.task.status} at line "
             f"{recorded.lineno}, so this call only closes its roadmap line: --why restates "
             f"the ledger's sentence, and the ledger is not written here"
+        )
+
+
+class NoOutcome(ValueError):
+    """A ledger entry that would inherit the roadmap's problem statement (RK142).
+
+    A roadmap line states a problem; that is what it is for. A ledger entry states an
+    **outcome**: what now works. This transaction used to bridge the two by copying the
+    `why` across verbatim unless `--why` said otherwise, so the default was the wrong genre
+    — and the default is what an author who does not know about the flag gets. Measured in
+    Claude Code Tray: a shipped entry reading *"`UsageSample` and `PaceSnapshot` carry four
+    numbers and none is overage"*, a defect report filed under a heading meaning "done".
+
+    Refused at input, which is where every other field of every other write is already
+    refused (L1). It is the one field that was accepted silently when it was merely the
+    wrong sentence — and one argument at the moment the author still has the context beats
+    a correction made later by somebody who does not.
+    """
+
+    def __init__(self, task_id: str, why: str) -> None:
+        self.task_id = task_id
+        self.why = why
+        super().__init__(
+            f"{task_id} needs the outcome it shipped: the roadmap's sentence states the "
+            f"problem ({why[:60]}…) and the ledger's states what now works, so it is not "
+            f"inherited — pass --why \"…\" while you still have the context to write it"
         )
 
 
@@ -944,6 +973,10 @@ def _partial(
             recorded.task.status,
         )
 
+    if why is None:
+        # A partial states an outcome too — this much of it works — so the half that
+        # landed is no more entitled to the problem statement than the whole (RK142).
+        raise NoOutcome(task_id, entry.task.why)
     landed = replace(
         _as_recorded(entry.task, config.schema.shipped_marker, why), part=part
     )
@@ -1004,6 +1037,9 @@ def _depart(
                 task_id, where, duplicate.lineno, duplicate.task.part, duplicate.task.status
             )
         raise AlreadyRecorded(task_id, where, duplicate.lineno, duplicate.task.status)
+    if why is None:
+        # `retire` always arrives with a derived sentence, so this is the ship path alone.
+        raise NoOutcome(task_id, entry.task.why)
 
     recorded = _as_recorded(entry.task, marker, why)
     if completing is not None:

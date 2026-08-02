@@ -122,7 +122,7 @@ def test_a_block_no_file_declares_can_be_opened_and_then_shipped_into(tmp_path):
         why="Because of a third reason.",
         section=("A third design", "The reasoning for it."),
     )
-    ship(Config.discover(tmp_path), "RK3").save()
+    ship(Config.discover(tmp_path), "RK3", why="It works now.").save()
     assert "**RK3**" in read(Config.discover(tmp_path), CHANGELOG)
     assert lint(Config.discover(tmp_path)).clean
     assert UnknownBlock  # imported to name what this test exists to stop happening

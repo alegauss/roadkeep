@@ -137,6 +137,9 @@ TOOLS: tuple[Tool, ...] = (
     # `part` is exposed because the agent shipping half of something is the one that needs
     # it (RK121): without it the only honest options are a ledger entry that overstates and
     # a hand-edited qualifier the grammar reads and no verb maintains.
+    # `why` is required on the write path and not merely offered (RK142): the roadmap's
+    # sentence is a problem statement, and the entry that inherited it read as a defect
+    # report filed under a heading meaning "done".
     Tool("ship", ("id", "why", "part"), writes=True),
     Tool("retire", ("id", "reason", "superseded_by"), writes=True),
     Tool("defer", ("id", "reason"), writes=True),

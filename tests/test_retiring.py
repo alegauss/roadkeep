@@ -241,7 +241,7 @@ def test_a_ledger_that_declares_no_marker_still_takes_a_shipment(tmp_path):
     # The other half of the same declaration: shipped is the status the *file* states, so
     # it is the one departure a markerless ledger can record.
     config = project(tmp_path, declare=NO_LEDGER_MARKER)
-    ship(config, "RK1").save()
+    ship(config, "RK1", why="Because of a reason.").save()
     (entry,) = [e for e in config.document("changelog").entries if e.task.id == "RK1"]
     assert entry.task.status == SHIPPED  # derived from the file, not read off the line
     assert entry.raw == "- **RK1** **A first symptom** — Because of a reason."

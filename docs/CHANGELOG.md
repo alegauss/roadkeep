@@ -63,6 +63,7 @@
 - ✅ **RK129** **Retiring a task whose half already shipped deletes the record that it did** — The completion path is a ship's alone: a retirement against a task whose half the ledger records is refused, so the sentence about what landed is not deleted silently.
 - ✅ **RK130** **A transaction that stopped after its ledger write can be finished by no command** — `ship` reads the ledger side too, so an entry for a still-open line closes it — unless the files say the work is in halves, or the two describe different work.
 - ✅ **RK141** **Opening a block needs a heading only a hand-edit can write, and the guard denies that edit** — `block add <label> --title` declares the heading in every file already organised by blocks, at that file's own level and separator, after the last block's subtree.
+- ✅ **RK142** **The ledger inherits the roadmap's problem statement by default, and no verb can revise it** — `ship` refuses at input where it would write an entry without an outcome, so the ledger's sentence is the author's rather than the roadmap's problem statement inherited by omission.
 
 ## Block C — Query
 

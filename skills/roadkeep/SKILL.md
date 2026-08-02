@@ -32,9 +32,11 @@ the limit and writes nothing; the shipped marker never reaches the roadmap. **A 
 pointer, and the pointer has to resolve**: `add --section "<title>"` writes the rationale in
 the same transaction — the prose on stdin or `--section-body`, both files validated before
 either is written — and an `add` without it answers with the `section add` that closes the
-pointer it just created, rather than leaving the gate to say so. `ship <id>` makes
-its three edits (ledger entry, roadmap line gone, `§<id>` deleted) plus the dependents'
-annotations, or none, and `retire <id> [--superseded-by <id>] --reason "…"` is the same
+pointer it just created, rather than leaving the gate to say so. **`ship <id> --why "<what now works>"` makes
+its three edits** (ledger entry, roadmap line gone, `§<id>` deleted) plus the dependents'
+annotations, or none — and `--why` is **required**, because the roadmap's sentence states a
+problem and the ledger's states an outcome, so inheriting it files a defect report under a
+heading meaning "done" (`record amend <id> --why` is the repair where one already did), and `retire <id> [--superseded-by <id>] --reason "…"` is the same
 transaction, two more doors. **`ship <id>` is also how one that stopped halfway is finished**:
 the ledger is written first, so a crash leaves the id in two files (`lint` says `id.two-files`)
 and re-running `ship` closes the line without writing a second entry. It refuses instead where

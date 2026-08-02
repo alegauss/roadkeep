@@ -28,6 +28,7 @@ from roadkeep.schema import PARTIAL, Schema, SchemaError
 from roadkeep.sections import SectionOccupied
 from roadkeep.shipping import (
     Divergent,
+    NoOutcome,
     PartRecorded,
     AlreadyShipped,
     Closure,
@@ -36,6 +37,7 @@ from roadkeep.shipping import (
     retire,
     ship,
 )
+from roadkeep.shipping import amend as amend_record
 
 ROADMAP = "docs/ROADMAP.md"
 CHANGELOG = "docs/CHANGELOG.md"
@@ -137,7 +139,7 @@ def files(config: Config) -> tuple[str, str, str]:
 
 def test_the_line_leaves_the_roadmap_and_arrives_in_the_ledger(tmp_path):
     config = project(tmp_path)
-    shipment = ship(config, "RK1")
+    shipment = ship(config, "RK1", why="Because of a reason.")
     shipment.save()
     roadmap, ledger, _ = files(config)
     # The line is gone and the two lines that named it now say so (RK8): the fourth edit
@@ -156,7 +158,7 @@ def test_the_ledger_entry_drops_the_deps_and_the_pointer(tmp_path):
     # Both are refused by the ledger schema: a shipped line has no dependency left to
     # state, and the section its pointer named is deleted in this same command.
     config = project(tmp_path)
-    shipment = ship(config, "RK2")
+    shipment = ship(config, "RK2", why="Because of another reason.")
     assert shipment.ledger.entry.task.deps == ()
     assert shipment.ledger.entry.task.ref is None
     assert shipment.ledger.rendered == (
@@ -166,7 +168,7 @@ def test_the_ledger_entry_drops_the_deps_and_the_pointer(tmp_path):
 
 def test_the_rationale_section_is_deleted_with_its_subsections(tmp_path):
     config = project(tmp_path)
-    shipment = ship(config, "RK1")
+    shipment = ship(config, "RK1", why="Because of a reason.")
     shipment.save()
     _, _, rationale = files(config)
     assert "§RK1" not in rationale
@@ -191,14 +193,14 @@ Which belongs to the section above and not to the next one.
 
 def test_the_last_section_in_the_file_leaves_no_trailing_blank(tmp_path):
     config = project(tmp_path)
-    ship(config, "RK3").save()
+    ship(config, "RK3", why="Because of a third reason.").save()
     _, _, rationale = files(config)
     assert rationale.endswith("## Block B — Authoring\n")
 
 
 def test_removing_the_last_task_of_a_block_leaves_one_blank_line(tmp_path):
     config = project(tmp_path)
-    ship(config, "RK3").save()
+    ship(config, "RK3", why="Because of a third reason.").save()
     roadmap, _, _ = files(config)
     # The block is left as an empty block reads everywhere else — heading, one blank,
     # next heading — and not as a paragraph break the file never had.
@@ -208,7 +210,7 @@ def test_removing_the_last_task_of_a_block_leaves_one_blank_line(tmp_path):
 
 def test_shipping_the_last_line_of_the_file_leaves_no_trailing_blank(tmp_path):
     config = project(tmp_path, roadmap=f"## Block A — The model\n\n{RK1}\n")
-    ship(config, "RK1").save()
+    ship(config, "RK1", why="Because of a reason.").save()
     assert read(config, ROADMAP) == "## Block A — The model\n"
 
 
@@ -219,7 +221,7 @@ def test_the_files_keep_their_line_endings(tmp_path):
         changelog=LEDGER.replace("\n", "\r\n"),
         improvements=RATIONALE.replace("\n", "\r\n"),
     )
-    ship(config, "RK1").save()
+    ship(config, "RK1", why="Because of a reason.").save()
     for name in (ROADMAP, CHANGELOG, IMPROVEMENTS):
         assert "\n" not in read(config, name).replace("\r\n", ""), name
 
@@ -231,17 +233,17 @@ def test_every_line_that_named_the_task_is_re_derived(tmp_path):
     # In the same transaction, because `(deps: RK1)` becomes false at exactly the moment
     # this command runs and nothing else would ever revisit it (RK8).
     config = project(tmp_path)
-    assert ship(config, "RK1").refreshed == ("RK2", "RK3")
+    assert ship(config, "RK1", why="Because of a reason.").refreshed == ("RK2", "RK3")
 
 
 def test_a_task_that_nothing_depends_on_re_derives_nothing(tmp_path):
     config = project(tmp_path)
-    assert ship(config, "RK3").refreshed == ()
+    assert ship(config, "RK3", why="Because of a third reason.").refreshed == ()
 
 
 def test_the_design_sentence_is_kept_unless_the_author_restates_it(tmp_path):
     config = project(tmp_path)
-    assert ship(config, "RK1").ledger.entry.task.why == "Because of a reason."
+    assert ship(config, "RK1", why="Because of a reason.").ledger.entry.task.why == "Because of a reason."
     restated = ship(config, "RK1", why="Which is now the outcome.")
     assert restated.ledger.rendered.endswith("— Which is now the outcome.")
 
@@ -260,7 +262,7 @@ def test_a_restated_why_is_validated_like_any_other(tmp_path):
 def test_a_task_that_is_not_open_is_refused(tmp_path):
     config = project(tmp_path)
     with pytest.raises(NotOpen) as raised:
-        ship(config, "RK9")
+        ship(config, "RK9", why="Because of a reason.")
     assert "nothing there carries that id" in str(raised.value)
     assert files(config) == (BACKLOG, LEDGER, RATIONALE)
 
@@ -274,7 +276,7 @@ def test_a_task_already_in_the_ledger_says_so(tmp_path):
         changelog=LEDGER + f"\n{SHIPPED_RK1}\n",
     )
     with pytest.raises(NotOpen) as raised:
-        ship(config, "RK1")
+        ship(config, "RK1", why="Because of a reason.")
     assert "already in the changelog" in str(raised.value)
 
 
@@ -293,11 +295,11 @@ def half_shipped(tmp_path, marker: str = "✅"):
 
 def test_shipping_twice_is_refused_by_the_ledger(tmp_path):
     config = project(tmp_path)
-    ship(config, "RK1").save()
+    ship(config, "RK1", why="Because of a reason.").save()
     # The roadmap line is gone, so the second call is refused by NotOpen — there is no line
     # to close and nothing to record.
     with pytest.raises(NotOpen):
-        ship(config, "RK1")
+        ship(config, "RK1", why="Because of a reason.")
 
 
 # -- a section more than one line points at (RK64) ----------------------------
@@ -342,7 +344,7 @@ def test_a_section_another_open_line_points_at_is_kept(tmp_path):
     # Shio's §VI.1 is one design for SH44–SH47; shipping the first deleted it and left three
     # live pointers resolving to nothing, with a lint finding as the only trace (RK64).
     config = outline_project(tmp_path)
-    shipment = ship(config, "RK1")
+    shipment = ship(config, "RK1", why="Because of a reason.")
     shipment.save()
     assert shipment.dropped is None
     assert shipment.kept == "§I.1 is also pointed at by RK2"
@@ -352,8 +354,8 @@ def test_a_section_another_open_line_points_at_is_kept(tmp_path):
 def test_the_last_line_pointing_at_a_shared_section_still_drops_it(tmp_path):
     # Not a permanent exemption: when the last owner leaves, the section leaves with it.
     config = outline_project(tmp_path)
-    ship(config, "RK1").save()
-    shipment = ship(Config.discover(tmp_path), "RK2")
+    ship(config, "RK1", why="Because of a reason.").save()
+    shipment = ship(Config.discover(tmp_path), "RK2", why="Because of another reason.")
     shipment.save()
     assert shipment.dropped is not None and shipment.dropped.anchor == "I.1"
     assert "§I.1" not in read(config, IMPROVEMENTS)
@@ -406,7 +408,7 @@ def test_a_subtree_holding_another_line_s_design_is_refused(tmp_path):
     config = nesting_project(tmp_path)
     before = files(config)
     with pytest.raises(SectionOccupied) as raised:
-        ship(config, "RK1")
+        ship(config, "RK1", why="Because of a reason.")
     # Every claim, not the first: a refusal that names one of two turns a single lift into
     # a conversation, which is the same argument the schema's violations make.
     assert "§I.2 (RK2)" in str(raised.value) and "§I.3 (RK3)" in str(raised.value)
@@ -417,9 +419,9 @@ def test_the_refusal_lifts_once_the_nested_lines_have_shipped(tmp_path):
     # Not a permanent exemption either: the epic is droppable the moment nothing else claims
     # anything under it, and the two ships that get there each drop their own section.
     config = nesting_project(tmp_path)
-    ship(config, "RK2").save()
-    ship(Config.discover(tmp_path), "RK3").save()
-    shipment = ship(Config.discover(tmp_path), "RK1")
+    ship(config, "RK2", why="Because of another reason.").save()
+    ship(Config.discover(tmp_path), "RK3", why="Because of a third reason.").save()
+    shipment = ship(Config.discover(tmp_path), "RK1", why="Because of a reason.")
     shipment.save()
     assert shipment.dropped is not None and shipment.dropped.anchor == "I.1"
     assert "§I.1" not in read(config, IMPROVEMENTS)
@@ -429,7 +431,7 @@ def test_a_subsection_of_the_line_s_own_prose_is_dropped_and_reported(tmp_path):
     # The other half of the rule: ownership bounds the deletion, not depth — §RK1.1 is RK1's
     # own and still goes, and the transaction states its real size rather than the anchor's.
     config = project(tmp_path)
-    shipment = ship(config, "RK1")
+    shipment = ship(config, "RK1", why="Because of a reason.")
     assert shipment.nested == ("RK1.1",)
     shipment.save()
     assert "§RK1.1" not in read(config, IMPROVEMENTS)
@@ -437,14 +439,14 @@ def test_a_subsection_of_the_line_s_own_prose_is_dropped_and_reported(tmp_path):
 
 def test_ship_prints_what_the_subtree_took(tmp_path, capsys):
     project(tmp_path)
-    assert main(["-C", str(tmp_path), "ship", "RK1"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "ship", "RK1", "--why", "Because of a reason."]) == EXIT_OK
     assert "nested   §RK1.1 went with it" in capsys.readouterr().out
 
 
 def test_a_refused_subtree_exits_two_and_writes_nothing(tmp_path, capsys):
     config = nesting_project(tmp_path)
     before = files(config)
-    assert main(["-C", str(tmp_path), "ship", "RK1"]) == EXIT_USAGE
+    assert main(["-C", str(tmp_path), "ship", "RK1", "--why", "Because of a reason."]) == EXIT_USAGE
     assert "resolving to nothing" in capsys.readouterr().err
     assert files(config) == before
 
@@ -491,7 +493,7 @@ def test_an_open_line_whose_id_the_ledger_mentions_is_not_closed(tmp_path):
     config = half_shipped(tmp_path, marker="⏳")
     before = files(config)
     with pytest.raises(AlreadyShipped) as raised:
-        ship(config, "RK1")
+        ship(config, "RK1", why="Because of a reason.")
     assert "disagree with itself" in str(raised.value)
     assert files(config) == before
 
@@ -508,7 +510,7 @@ def test_retiring_a_line_the_ledger_recorded_is_still_refused(tmp_path):
 def test_a_ledger_with_no_heading_for_the_block_is_refused(tmp_path):
     config = project(tmp_path, changelog="# Shipped\n\n## Block A — The model\n")
     with pytest.raises(UnknownBlock) as raised:
-        ship(config, "RK3")
+        ship(config, "RK3", why="Because of a third reason.")
     assert "Block B" in str(raised.value)
     assert read(config, ROADMAP) == BACKLOG
 
@@ -517,7 +519,7 @@ def test_a_drifted_roadmap_is_not_rewritten(tmp_path):
     drifted = BACKLOG.replace("→ §RK1", "→ §7.1")
     config = project(tmp_path, roadmap=drifted)
     with pytest.raises(RoundTripError):
-        ship(config, "RK2")
+        ship(config, "RK2", why="Because of another reason.")
     assert files(config) == (drifted, LEDGER, RATIONALE)
 
 
@@ -525,7 +527,7 @@ def test_a_missing_section_is_reported_and_not_an_error(tmp_path):
     # A task can ship without a rationale section; failing at the moment the author is
     # finishing would be an obstacle, and silence would read as a section that was there.
     config = project(tmp_path, improvements="# Improvements\n\n## Block A — The model\n")
-    shipment = ship(config, "RK1")
+    shipment = ship(config, "RK1", why="Because of a reason.")
     assert shipment.dropped is None
     assert "no §RK1 section" in shipment.kept
     shipment.save()
@@ -534,7 +536,7 @@ def test_a_missing_section_is_reported_and_not_an_error(tmp_path):
 
 def test_a_project_with_no_improvements_file_ships_two_edits(tmp_path):
     config = project(tmp_path, improvements=None)
-    shipment = ship(config, "RK1")
+    shipment = ship(config, "RK1", why="Because of a reason.")
     assert shipment.improvements is None
     assert shipment.kept == "this project declares no improvements file"
     shipment.save()
@@ -548,7 +550,7 @@ def test_a_project_with_no_improvements_file_ships_two_edits(tmp_path):
 
 def test_the_command_reports_every_edit_it_made(tmp_path, capsys):
     config = project(tmp_path)
-    assert main(["-C", str(tmp_path), "ship", "RK1"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "ship", "RK1", "--why", "Because of a reason."]) == EXIT_OK
     out = capsys.readouterr().out
     assert f"RK1 → {CHANGELOG}:5 under Block A" in out
     assert f"removed  {ROADMAP}:5" in out
@@ -559,7 +561,7 @@ def test_the_command_reports_every_edit_it_made(tmp_path, capsys):
 
 def test_json_carries_every_edit(tmp_path, capsys):
     project(tmp_path)
-    assert main(["-C", str(tmp_path), "ship", "RK2", "--json"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "ship", "RK2", "--why", "Because of another reason.", "--json"]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
     assert payload["changelog"]["file"] == CHANGELOG
     assert payload["roadmap"] == {"file": ROADMAP, "removed": 6}
@@ -569,14 +571,14 @@ def test_json_carries_every_edit(tmp_path, capsys):
 
 def test_a_refusal_exits_two_and_writes_nothing(tmp_path, capsys):
     config = project(tmp_path)
-    assert main(["-C", str(tmp_path), "ship", "RK9"]) == EXIT_USAGE
+    assert main(["-C", str(tmp_path), "ship", "RK9", "--why", "Because of a reason."]) == EXIT_USAGE
     assert "no open task RK9" in capsys.readouterr().err
     assert files(config) == (BACKLOG, LEDGER, RATIONALE)
 
 
 def test_a_drifted_file_exits_one_because_the_gate_says_no(tmp_path, capsys):
     project(tmp_path, roadmap=BACKLOG.replace("→ §RK1", "→ §7.1"))
-    assert main(["-C", str(tmp_path), "ship", "RK2"]) == EXIT_GATE
+    assert main(["-C", str(tmp_path), "ship", "RK2", "--why", "Because of another reason."]) == EXIT_GATE
     assert "will not be rewritten" in capsys.readouterr().err
 
 
@@ -588,7 +590,7 @@ def test_a_ship_whose_ledger_moved_under_it_writes_none_of_the_three(tmp_path):
     # check made per file would refuse the roadmap *after* the ledger had already landed —
     # the half-applied state RK6 exists to prevent, produced by the fix for RK116.
     config = project(tmp_path)
-    shipment = ship(config, "RK1")
+    shipment = ship(config, "RK1", why="Because of a reason.")
     moved = LEDGER.replace("## Block B", f"{SHIPPED_RK1.replace('RK1', 'RK8')}\n\n## Block B")
     with (config.root / CHANGELOG).open("w", encoding="utf-8", newline="") as handle:
         handle.write(moved)
@@ -600,7 +602,7 @@ def test_a_ship_whose_ledger_moved_under_it_writes_none_of_the_three(tmp_path):
 
 def test_a_ship_whose_roadmap_moved_under_it_leaves_the_ledger_alone(tmp_path):
     config = project(tmp_path)
-    shipment = ship(config, "RK1")
+    shipment = ship(config, "RK1", why="Because of a reason.")
     moved = BACKLOG.replace(f"{RK2}\n", "")
     with (config.root / ROADMAP).open("w", encoding="utf-8", newline="") as handle:
         handle.write(moved)
@@ -624,7 +626,7 @@ def test_a_second_writer_exits_one_and_says_to_re_run(tmp_path, capsys, monkeypa
         return shipment
 
     monkeypatch.setattr("roadkeep.cli.ship", racing)
-    assert main(["-C", str(tmp_path), "ship", "RK1"]) == EXIT_GATE
+    assert main(["-C", str(tmp_path), "ship", "RK1", "--why", "Because of a reason."]) == EXIT_GATE
     assert "re-run the command" in capsys.readouterr().err
     # Nothing of this transaction landed, and the other writer's line is untouched.
     assert read(config, ROADMAP) == BACKLOG
@@ -655,7 +657,7 @@ def test_the_ledger_is_written_first_and_the_rationale_file_last(tmp_path, monke
     # decides which halfway states a crash can leave. This is the sequence the two tests
     # below are about; asserted here so a reordering fails loudly rather than quietly.
     config = project(tmp_path)
-    shipment = ship(config, "RK1")
+    shipment = ship(config, "RK1", why="Because of a reason.")
     order = written_in_order(config, monkeypatch)
     shipment.save()
     assert order == [CHANGELOG, ROADMAP, IMPROVEMENTS]
@@ -667,7 +669,7 @@ def test_stopping_after_the_ledger_loses_nothing_and_is_reported(tmp_path):
     # id in two files, which `lint` names. Loud and lossless is the whole bar for a state a
     # crash can leave.
     config = project(tmp_path)
-    shipment = ship(config, "RK1")
+    shipment = ship(config, "RK1", why="Because of a reason.")
     shipment.ledger.document.save()  # and then the process dies
 
     roadmap, ledger, improvements = files(config)
@@ -684,7 +686,7 @@ def test_the_order_reversed_would_lose_the_task_silently(tmp_path):
     # gone, and `lint` has nothing to report because a roadmap with one fewer line is a
     # roadmap. That is the one state no gate can see, and it is what the order avoids.
     config = project(tmp_path)
-    shipment = ship(config, "RK1")
+    shipment = ship(config, "RK1", why="Because of a reason.")
     shipment.roadmap.save()  # the order this transaction deliberately does not use
 
     roadmap, ledger, _ = files(config)
@@ -697,7 +699,7 @@ def test_the_rationale_file_is_written_last_because_its_write_is_a_deletion(tmp_
     # `section drop` removes — with the design still on disk. The reverse would delete the
     # design while the line still named it: a pointer to nothing, recoverable only from git.
     config = project(tmp_path)
-    shipment = ship(config, "RK1")
+    shipment = ship(config, "RK1", why="Because of a reason.")
     shipment.ledger.document.save()
     shipment.roadmap.save()  # and then the process dies
 
@@ -716,7 +718,7 @@ def test_a_partial_records_what_landed_and_leaves_the_line_open(tmp_path):
     # The third state the model did not have: open in the roadmap and recorded in the
     # ledger were the only two, so work delivered in halves was neither.
     config = project(tmp_path)
-    landed = ship(config, "RK1", part="local half")
+    landed = ship(config, "RK1", part="local half", why="Because of a reason.")
     landed.save()
     roadmap, ledger, improvements = files(config)
     assert PARTIAL_RK1 in ledger
@@ -739,7 +741,7 @@ def test_a_line_a_project_cannot_mark_partial_keeps_the_marker_it_had(tmp_path):
         encoding="utf-8",
     )
     config = Config.discover(tmp_path)
-    landed = ship(config, "RK1", part="local half")
+    landed = ship(config, "RK1", part="local half", why="Because of a reason.")
     assert landed.status == "📋"
     landed.save()
     assert RK1 in read(config, ROADMAP)
@@ -749,7 +751,7 @@ def test_completing_a_partial_replaces_the_entry_instead_of_adding_a_second(tmp_
     # The half that can be *maintained*: only a verb knows when "local half" stops being
     # true, and five of the corpus's thirteen qualifiers name work that has since finished.
     config = project(tmp_path)
-    ship(config, "RK1", part="local half").save()
+    ship(config, "RK1", part="local half", why="Because of a reason.").save()
     ship(Config.discover(tmp_path), "RK1", why="All of it landed.").save()
 
     roadmap, ledger, improvements = files(config)
@@ -764,12 +766,12 @@ def test_the_completing_entry_keeps_the_line_the_partial_took(tmp_path):
     # Replaced in place, not removed and re-added: an entry that moved to the end of its
     # block on completion would reorder history for a reason that is not chronology.
     config = project(tmp_path)
-    ship(config, "RK2", part="the first half").save()
-    ship(Config.discover(tmp_path), "RK1").save()  # a later shipment lands after it
+    ship(config, "RK2", part="the first half", why="Because of another reason.").save()
+    ship(Config.discover(tmp_path), "RK1", why="Because of a reason.").save()  # a later shipment lands after it
     before = read(config, CHANGELOG).splitlines().index(
         "- ✅ **RK2 (the first half)** **A second symptom** — Because of another reason."
     )
-    ship(Config.discover(tmp_path), "RK2").save()
+    ship(Config.discover(tmp_path), "RK2", why="Because of another reason.").save()
     after = read(config, CHANGELOG).splitlines().index(
         "- ✅ **RK2** **A second symptom** — Because of another reason."
     )
@@ -780,31 +782,31 @@ def test_a_second_partial_for_one_id_is_refused(tmp_path):
     # It would state the id twice in the ledger, which is `id.duplicate` and the shape
     # RK127 is about. One partial, then a completion.
     config = project(tmp_path)
-    ship(config, "RK1", part="local half").save()
+    ship(config, "RK1", part="local half", why="Because of a reason.").save()
     with pytest.raises(AlreadyShipped, match="already recorded"):
-        ship(Config.discover(tmp_path), "RK1", part="the other half")
+        ship(Config.discover(tmp_path), "RK1", part="the other half", why="Half of it.")
 
 
 def test_a_partial_of_a_task_that_is_not_open_is_refused(tmp_path):
     config = project(tmp_path)
     with pytest.raises(NotOpen):
-        ship(config, "RK9", part="a half")
+        ship(config, "RK9", part="a half", why="Because of a reason.")
 
 
 def test_a_partial_and_its_completion_both_lint_clean(tmp_path):
     config = project(tmp_path)
-    ship(config, "RK1", part="local half").save()
+    ship(config, "RK1", part="local half", why="Because of a reason.").save()
     codes = {f.code for f in lint(Config.discover(tmp_path)).findings}
     # `id.two-files` is RK122's subject and is expected here: open plus recorded is exactly
     # what a partial *is*, and teaching the gate that is a separate task.
     assert codes <= {"id.two-files"}
-    ship(Config.discover(tmp_path), "RK1").save()
+    ship(Config.discover(tmp_path), "RK1", why="Because of a reason.").save()
     assert lint(Config.discover(tmp_path)).clean
 
 
 def test_the_cli_reports_the_qualifier_and_how_to_finish(tmp_path, capsys):
     project(tmp_path)
-    argv = ["-C", str(tmp_path), "ship", "RK1", "--part", "local half"]
+    argv = ["-C", str(tmp_path), "ship", "RK1", "--why", "Because of a reason.", "--part", "local half"]
     assert main(argv) == EXIT_OK
     out = capsys.readouterr().out
     assert "RK1 (local half)" in out
@@ -813,7 +815,7 @@ def test_the_cli_reports_the_qualifier_and_how_to_finish(tmp_path, capsys):
 
 def test_the_cli_json_says_the_line_is_still_open(tmp_path, capsys):
     project(tmp_path)
-    argv = ["-C", str(tmp_path), "ship", "RK1", "--part", "local half", "--json"]
+    argv = ["-C", str(tmp_path), "ship", "RK1", "--why", "Because of a reason.", "--part", "local half", "--json"]
     assert main(argv) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
     assert payload["part"] == "local half"
@@ -829,7 +831,7 @@ def test_retiring_a_task_whose_half_shipped_is_refused(tmp_path):
     # different marker: the ✅ naming what landed became a 🗑, and the sentence about the
     # shipped half left the only file whose job is to answer what happened to this.
     config = project(tmp_path)
-    ship(config, "RK1", part="local half").save()
+    ship(config, "RK1", part="local half", why="Because of a reason.").save()
 
     with pytest.raises(PartRecorded) as caught:
         retire(Config.discover(tmp_path), "RK1", reason="The rest is not coming.")
@@ -845,7 +847,7 @@ def test_the_refusal_leaves_all_three_files_exactly_as_they_were(tmp_path):
     # All-or-nothing at the one door that could half-write it: the roadmap line stays open
     # and the design stays where it is, so the author still has every option.
     config = project(tmp_path)
-    ship(config, "RK1", part="local half").save()
+    ship(config, "RK1", part="local half", why="Because of a reason.").save()
     before = files(Config.discover(tmp_path))
 
     with pytest.raises(PartRecorded):
@@ -858,7 +860,7 @@ def test_a_supersession_is_refused_by_the_same_rule(tmp_path):
     # Superseded and abandoned are one transaction with two prefixes (RK32), so a half
     # already recorded stops both — the deletion is the same deletion.
     config = project(tmp_path)
-    ship(config, "RK1", part="local half").save()
+    ship(config, "RK1", part="local half", why="Because of a reason.").save()
     with pytest.raises(PartRecorded):
         retire(
             Config.discover(tmp_path),
@@ -880,7 +882,7 @@ def test_a_retirement_with_no_recorded_half_is_untouched(tmp_path):
 
 def test_the_command_refuses_with_two_and_writes_nothing(tmp_path, capsys):
     config = project(tmp_path)
-    ship(config, "RK1", part="local half").save()
+    ship(config, "RK1", part="local half", why="Because of a reason.").save()
     before = files(Config.discover(tmp_path))
     code = main(["-C", str(tmp_path), "retire", "RK1", "--reason", "Not coming."])
     assert code == EXIT_USAGE
@@ -947,7 +949,7 @@ def test_a_live_partial_is_still_not_a_leftover(tmp_path):
         changelog=INTERRUPTED,
     )
     with pytest.raises(AlreadyShipped):
-        ship(config, "RK1")
+        ship(config, "RK1", why="Because of a reason.")
     assert "⏳ **RK1**" in read(config, ROADMAP)
     assert "§RK1 A first design" in read(config, IMPROVEMENTS)
 
@@ -979,7 +981,7 @@ def test_two_tasks_sharing_an_id_are_refused_rather_than_closed(tmp_path):
     )
     before = files(config)
     with pytest.raises(Divergent) as caught:
-        ship(config, "RK1")
+        ship(config, "RK1", why="Because of a reason.")
     assert "renumber RK1" in str(caught.value)
     assert files(Config.discover(tmp_path)) == before
 
@@ -995,3 +997,63 @@ def test_the_command_says_the_ledger_already_held_it(tmp_path, capsys):
     assert main(["-C", str(tmp_path), "ship", "RK1"]) == EXIT_OK
     printed = capsys.readouterr().out
     assert "RK1" in printed and "✅" in printed
+
+
+# -- the sentence written by omission (RK142) ---------------------------------
+
+
+def test_the_ledger_never_inherits_the_roadmaps_problem_statement(tmp_path):
+    # A roadmap line states a problem; a ledger entry states an outcome. Copying the first
+    # into the second wrote the entry by omission — a defect report under a heading that
+    # means "done" — and the default is what an author who does not know the flag gets.
+    config = project(tmp_path)
+    with pytest.raises(NoOutcome) as caught:
+        ship(config, "RK1")
+
+    assert "Because of a reason." in str(caught.value)
+    assert "--why" in str(caught.value)
+    assert files(Config.discover(tmp_path)) == files(config)
+
+
+def test_the_half_that_landed_is_held_to_the_same_rule(tmp_path):
+    # A partial states an outcome too — this much of it works — so it is no more entitled
+    # to the problem statement than the whole.
+    config = project(tmp_path)
+    with pytest.raises(NoOutcome):
+        ship(config, "RK1", part="local half")
+    assert read(config, CHANGELOG) == LEDGER
+
+
+def test_a_retirement_still_derives_its_own_sentence(tmp_path):
+    # `retire` arrives with a sentence this module composed from `--reason`, so the rule
+    # above is the ship path alone: the required argument is already required there.
+    config = project(tmp_path)
+    retire(config, "RK1", reason="Nobody will do it.").save()
+    assert "abandoned: Nobody will do it." in read(config, CHANGELOG)
+
+
+def test_closing_a_line_the_ledger_already_holds_needs_no_outcome(tmp_path):
+    # The other path that writes no entry (RK62, RK130): there is no sentence to state,
+    # which is why `--why` is refused there rather than required.
+    config = project(tmp_path, changelog=INTERRUPTED)
+    ship(config, "RK1").save()
+    assert read(config, CHANGELOG) == INTERRUPTED
+
+
+def test_the_command_refuses_at_input_and_writes_nothing(tmp_path, capsys):
+    config = project(tmp_path)
+    before = files(config)
+    assert main(["-C", str(tmp_path), "ship", "RK1"]) == EXIT_USAGE
+    assert "needs the outcome it shipped" in capsys.readouterr().err
+    assert files(Config.discover(tmp_path)) == before
+
+
+def test_an_entry_already_written_wrong_is_corrected_where_it_stands(tmp_path):
+    # The other half of RK142, which RK124 closed one task earlier: an entry that inherited
+    # the problem statement before this rule existed is reachable by `record amend`.
+    config = project(tmp_path, changelog=INTERRUPTED)
+    corrected = amend_record(config, "RK1", why="The first symptom no longer happens.")
+    corrected.save()
+
+    assert corrected.changed == ("why",) and corrected.lineno == 5
+    assert "The first symptom no longer happens." in read(config, CHANGELOG)

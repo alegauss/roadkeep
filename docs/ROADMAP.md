@@ -27,8 +27,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK142** (deps: —) **The ledger inherits the roadmap's problem statement by default, and no verb can revise it** — ship copies the open line's why unless --why is passed, so the entry saying what shipped is written by omission — and amend refuses a shipped id while record drop needs a second entry. → §RK142
-
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK119** (deps: RK117 ✅) **Every agent asking what to work on is handed the same line, including one another agent already started** — Tier 1 prefers an in-progress line so one worker finishes what they started, and the file has no way to say a task is taken, so a second caller is sent at work under way. → §RK119

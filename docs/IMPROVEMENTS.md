@@ -118,29 +118,6 @@ as one. RK122 is the same question one file up.
 
 ## Block B — Authoring
 
-### §RK142 The sentence written by omission
-
-A roadmap line states a problem; that is what it is for. A ledger entry states an
-outcome: what now works. `ship` bridges the two by copying the `why` across verbatim
-unless `--why` says otherwise, so the default is the wrong genre — and the default is
-what an author who does not know about the flag gets.
-
-It would be a small blemish if it were fixable. It is not. `amend` refuses: *"no open task T179 in
-ROADMAP.md: it is already in the changelog"*. `record drop` removes the later of two entries for one
-id and there is only one. `retire` needs an open line. The result in Tray is a shipped entry reading
-*"`UsageSample` and `PaceSnapshot` carry four numbers and none is overage"* — a defect report, filed
-under a heading that means "done".
-
-RK124 and RK126 are neighbours and neither is this. RK124 is about `record` entries,
-which can at least be dropped and re-added; RK126 is about corruption `lint` reports.
-This entry is well-formed, lints clean, and is wrong only in the way no check can see.
-
-Worth noting the asymmetry: every other field a write takes is refused at input when it
-fails, and this one is accepted silently when it is merely the wrong sentence. So the
-cheapest shape is probably at input — `ship` requiring the outcome rather than
-inheriting a problem statement — which costs one argument at the moment the author still
-has the context to write it.
-
 ## Block C — Query
 
 ### §RK119 One backlog, two workers, one answer

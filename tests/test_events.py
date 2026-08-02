@@ -89,7 +89,7 @@ def test_status_emits_the_event(tmp_path, capsys):
 
 def test_ship_emits_the_event(tmp_path, capsys):
     project(tmp_path)
-    assert main(["-C", str(tmp_path), "ship", "RK1"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "ship", "RK1", "--why", "It works now."]) == EXIT_OK
     assert capsys.readouterr().out.splitlines()[-1] == "  event    RK1  Block A  empty"
 
 
@@ -101,9 +101,9 @@ def test_the_block_reads_empty_only_when_its_last_line_goes(tmp_path, capsys):
     # is the whole reason the payload exists — nothing else can tell the two apart
     # without re-reading the file the command just wrote.
     project(tmp_path, roadmap=BACKLOG + f"{SECOND.replace('RK2', 'RK4')}\n")
-    assert main(["-C", str(tmp_path), "ship", "RK2"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "ship", "RK2", "--why", "It works now."]) == EXIT_OK
     assert capsys.readouterr().out.splitlines()[-1] == "  event    RK2  Block B  open"
-    assert main(["-C", str(tmp_path), "ship", "RK4"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "ship", "RK4", "--why", "It works now."]) == EXIT_OK
     assert capsys.readouterr().out.splitlines()[-1] == "  event    RK4  Block B  empty"
 
 
@@ -158,7 +158,7 @@ def test_json_carries_the_event_from_every_mutator(tmp_path, capsys):
         "block_empty": False,
     }
 
-    assert main(["-C", str(tmp_path), "ship", "RK2", "--json"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "ship", "RK2", "--why", "It works now.", "--json"]) == EXIT_OK
     assert json.loads(capsys.readouterr().out)["event"] == {
         "id": "RK2",
         "block": "B",

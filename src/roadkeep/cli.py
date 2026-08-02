@@ -448,15 +448,18 @@ def build_parser() -> argparse.ArgumentParser:
         description=(
             "Ship one task in three edits across three files. Everything is validated "
             "before anything is written, because whichever of the three is done by hand "
-            "last is the one that gets forgotten."
+            "last is the one that gets forgotten. `--why` is the outcome and is required: "
+            "the roadmap's sentence states the problem, and inheriting it files a defect "
+            "report under a heading that means done."
         ),
     )
     ship_parser.add_argument("id", help="the task to ship, e.g. RK5")
     ship_parser.add_argument(
         "--why",
         help=(
-            "restate the sentence as an outcome; the design's own sentence is kept "
-            "verbatim by default and the tool never rewrites either"
+            "the outcome this shipped — required where an entry is written, because the "
+            "roadmap's sentence states a problem and is not inherited; refused where the "
+            "ledger already holds the id and this call only closes the line"
         ),
     )
     ship_parser.add_argument(

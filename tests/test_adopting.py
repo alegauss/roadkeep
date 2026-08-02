@@ -105,7 +105,7 @@ def test_scaffold_takes_the_whole_lifecycle(tmp_path: Path, capsys, monkeypatch)
     )
     monkeypatch.setattr("sys.stdin", _Stdin("The reasoning the line has no room for."))
     assert main([*where, "section", "add", "RK1", "--title", "The first"]) == EXIT_OK
-    assert main([*where, "ship", "RK1"]) == EXIT_OK
+    assert main([*where, "ship", "RK1", "--why", "It works now."]) == EXIT_OK
     capsys.readouterr()
     assert main([*where, "lint"]) == EXIT_OK
     assert "clean" in capsys.readouterr().out
