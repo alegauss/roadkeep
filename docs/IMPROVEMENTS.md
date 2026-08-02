@@ -75,28 +75,6 @@ already written, not authorship.
 
 ## Block A — The model
 
-### §RK117 The id between the scan and the write
-
-`next_id` is one past the highest id *anywhere*, derived and never stored, because a
-counter file would be a second source of truth that drifts the first time somebody edits
-the roadmap by hand. The derivation is right. What is missing is that it is answered at
-one moment and spent at another.
-
-Two agents adding in the same checkout both scan a tree whose highest is RK115, are both
-told RK116, and both write it. `lint` reports the duplicate — `by_id` already calls it
-an error rather than a merge — but it reports it after two lines exist, two sections
-were written, and one of the two writes may already have erased the other.
-
-What has to become indivisible is the whole span from scan to save, not the scan. A
-mutating command lives for milliseconds and reads its own inputs, so serialising every
-one of them behind a single exclusive lock costs nothing measurable and closes the
-window entirely; the query surface never takes it, which is what keeps `pick` and
-`brief` free during a write.
-
-The lock is not state about tasks and so is not a second store (L2): it is transient, it
-lives outside the governed files, and a stale one has to be reaped by age rather than
-waited on, because the process that took it may have been killed.
-
 ### §RK118 The write a reader can catch halfway
 
 `save` calls `write_text`, which truncates the target and then fills it. A reader

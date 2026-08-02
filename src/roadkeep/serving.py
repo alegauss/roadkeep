@@ -55,6 +55,7 @@ from typing import Any, TextIO
 
 from roadkeep import __version__
 from roadkeep.config import Config, ConfigError, Scope
+from roadkeep.locking import LockBusy
 from roadkeep.provenance import engine
 
 #: The protocol revision this server answers with when the client asks for one it does not
@@ -327,7 +328,7 @@ def call(tool: Tool, arguments: Mapping[str, Any], directory: str = ".") -> Answ
     In-process rather than a subprocess: the tool is already running in one, and a second
     interpreter per call would make an `add` cost more over MCP than over `Bash`.
     """
-    from roadkeep.cli import build_parser
+    from roadkeep.cli import build_parser, dispatch
 
     try:
         line = argv(tool, arguments)
@@ -337,11 +338,16 @@ def call(tool: Tool, arguments: Mapping[str, Any], directory: str = ".") -> Answ
     try:
         with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
             args = build_parser().parse_args(["-C", directory, *line])
-            code = args.handler(Config.discover(directory), args)
+            # Through the CLI's own dispatch and not straight to the handler, so a write
+            # over MCP takes the same lock a write over `Bash` does (RK117) — this is the
+            # path an agent uses, so it is the path the duplicate id was minted on.
+            code = dispatch(Config.discover(directory), args)
     except SystemExit as exit_:  # argparse refused the argv: a missing required argument
         code = exit_.code if isinstance(exit_.code, int) else 2
     except ConfigError as error:
         return Answer(f"roadkeep: {error}", is_error=True)
+    except LockBusy as busy:
+        return Answer(f"roadkeep: {busy}", is_error=True)
     reported = "\n".join(part for part in (err.getvalue().strip(), out.getvalue().strip()) if part)
     return Answer(reported or f"{tool.name}: exit {code}", is_error=bool(code))
 

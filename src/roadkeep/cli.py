@@ -58,6 +58,7 @@ from roadkeep.history import Commit, HistoryUnavailable, Origin, gaps, origin_of
 from roadkeep.ids import highest, next_id
 from roadkeep.installing import install, plan
 from roadkeep.linting import Finding, Report, lint
+from roadkeep.locking import LockBusy, exclusive
 from roadkeep.picking import Choice, pick
 from roadkeep.provenance import engine
 from roadkeep.renumbering import renumber
@@ -151,7 +152,12 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="include where the highest id was found, so the answer can be audited",
     )
-    next_id_parser.set_defaults(handler=_next_id)
+    # `reads_only` is what keeps a command out of the write lock (RK117), declared here
+    # beside `tolerates_config_error` because both are claims about the command rather than
+    # about its arguments. Absent means locked, so a new command is serialised until someone
+    # says it only reads — and `next-id` only reads: the race is not in the scan, it is in
+    # the span between this answer and the `add` that spends it.
+    next_id_parser.set_defaults(handler=_next_id, reads_only=True)
 
     add_parser = subcommands.add_parser(
         "add",
@@ -264,7 +270,7 @@ def build_parser() -> argparse.ArgumentParser:
     section_show.add_argument("anchor", help="the anchor, e.g. RK9")
     section_show.add_argument("--role", default="improvements", help="which prose file")
     section_show.add_argument("--json", action="store_true", help=_JSON_HELP)
-    section_show.set_defaults(handler=_section_show)
+    section_show.set_defaults(handler=_section_show, reads_only=True)
 
     section_drop = actions.add_parser(
         "drop",
@@ -470,7 +476,7 @@ def build_parser() -> argparse.ArgumentParser:
     scope_list.add_argument(
         "--json", action="store_true", help="the leads, with the file and what was left"
     )
-    scope_list.set_defaults(handler=_non_goal_list)
+    scope_list.set_defaults(handler=_non_goal_list, reads_only=True)
 
     scope_drop = constraints.add_parser(
         "drop",
@@ -502,7 +508,7 @@ def build_parser() -> argparse.ArgumentParser:
     list_parser.add_argument(
         "--ids", action="store_true", help="print ids alone, one per line"
     )
-    list_parser.set_defaults(handler=_list)
+    list_parser.set_defaults(handler=_list, reads_only=True)
 
     stats_parser = subcommands.add_parser(
         "stats",
@@ -514,7 +520,7 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     _counting_flags(stats_parser)
-    stats_parser.set_defaults(handler=_stats)
+    stats_parser.set_defaults(handler=_stats, reads_only=True)
 
     audit_parser = subcommands.add_parser(
         "audit",
@@ -526,7 +532,7 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     _counting_flags(audit_parser)
-    audit_parser.set_defaults(handler=_audit)
+    audit_parser.set_defaults(handler=_audit, reads_only=True)
 
     lint_parser = subcommands.add_parser(
         "lint",
@@ -587,7 +593,7 @@ def build_parser() -> argparse.ArgumentParser:
         help=_DESIGNED_HELP,
     )
     brief_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
-    brief_parser.set_defaults(handler=_brief)
+    brief_parser.set_defaults(handler=_brief, reads_only=True)
 
     show_parser = subcommands.add_parser(
         "show",
@@ -606,7 +612,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="omit the section's prose, keeping the line and where the prose is",
     )
     show_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
-    show_parser.set_defaults(handler=_show)
+    show_parser.set_defaults(handler=_show, reads_only=True)
 
     pick_parser = subcommands.add_parser(
         "pick",
@@ -632,7 +638,7 @@ def build_parser() -> argparse.ArgumentParser:
     pick_parser.add_argument(
         "--json", action="store_true", help="the pick, the tier and the counts"
     )
-    pick_parser.set_defaults(handler=_pick)
+    pick_parser.set_defaults(handler=_pick, reads_only=True)
 
     retire_parser = subcommands.add_parser(
         "retire",
@@ -738,7 +744,7 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     gaps_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
-    gaps_parser.set_defaults(handler=_gaps)
+    gaps_parser.set_defaults(handler=_gaps, reads_only=True)
 
     deps_parser = subcommands.add_parser(
         "deps",
@@ -751,7 +757,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     deps_parser.add_argument("id", help="the task to resolve, e.g. RK5")
     deps_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
-    deps_parser.set_defaults(handler=_deps)
+    deps_parser.set_defaults(handler=_deps, reads_only=True)
 
     origin_parser = subcommands.add_parser(
         "origin",
@@ -769,7 +775,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="print the shipping commit's full message — the rationale the ledger drops",
     )
     origin_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
-    origin_parser.set_defaults(handler=_origin)
+    origin_parser.set_defaults(handler=_origin, reads_only=True)
 
     weight_parser = subcommands.add_parser(
         "weight",
@@ -788,7 +794,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     weight_parser.add_argument("--block", help="only this block's comparables, e.g. C")
     weight_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
-    weight_parser.set_defaults(handler=_weight)
+    weight_parser.set_defaults(handler=_weight, reads_only=True)
 
     report_parser = subcommands.add_parser(
         "report",
@@ -854,7 +860,7 @@ def build_parser() -> argparse.ArgumentParser:
         metavar="-- COMMAND",
         help="the roadkeep command that failed, after a bare --, without the program name",
     )
-    report_parser.set_defaults(handler=_report, tolerates_config_error=True)
+    report_parser.set_defaults(handler=_report, tolerates_config_error=True, reads_only=True)
 
     replay_parser = subcommands.add_parser(
         "replay",
@@ -870,7 +876,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     replay_parser.add_argument("path", help="a capture written by `report --json`")
     replay_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
-    replay_parser.set_defaults(handler=_replay, tolerates_config_error=True)
+    replay_parser.set_defaults(handler=_replay, tolerates_config_error=True, reads_only=True)
 
     init_parser = subcommands.add_parser(
         "init",
@@ -994,7 +1000,7 @@ def build_parser() -> argparse.ArgumentParser:
             "report a broken hook on every edit in the session."
         ),
     )
-    guard_parser.set_defaults(handler=_guard, tolerates_config_error=True)
+    guard_parser.set_defaults(handler=_guard, tolerates_config_error=True, reads_only=True)
 
     mcp_parser = subcommands.add_parser(
         "mcp",
@@ -1010,7 +1016,7 @@ def build_parser() -> argparse.ArgumentParser:
     # to start on a broken `roadkeep.toml` would take the tools away exactly when the gate
     # is what the project needs. `tools/list` describes the defaults and the first call
     # reports the error.
-    mcp_parser.set_defaults(handler=_mcp, tolerates_config_error=True)
+    mcp_parser.set_defaults(handler=_mcp, tolerates_config_error=True, reads_only=True)
 
     return parser
 
@@ -1060,7 +1066,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         # from the payload anyway — one hook process serves every project a session sees.
         config = Config.default(args.directory)
     try:
-        code = args.handler(config, args)
+        code = dispatch(config, args)
+    except LockBusy as busy:
+        print(f"roadkeep: {busy}", file=sys.stderr)
+        code = EXIT_GATE
     except Exception:
         # A traceback that reaches a terminal raw is a session that ends, and RK86's whole
         # subject is what an agent does next. Printed, then closed with the offer, then
@@ -1071,6 +1080,23 @@ def main(argv: Sequence[str] | None = None) -> int:
     if code != EXIT_OK:
         _may_offer(argv, args)
     return code
+
+
+def dispatch(config: Config, args: argparse.Namespace) -> int:
+    """Run one command's handler, under the write lock unless its parser only reads (RK117).
+
+    Here and not inside :func:`main`, because the MCP server dispatches the same parsed
+    args in-process and never goes through `main` (RK24) — which is the write path an agent
+    actually uses, so a lock only `main` took would be a lock the defect walks around.
+
+    Every command writes unless its parser said otherwise. The default is the locked one
+    because that is the safe way to be wrong: a query serialised against a write costs
+    milliseconds, and a write that is not serialised is two lines with one id.
+    """
+    if getattr(args, "reads_only", False):
+        return args.handler(config, args)
+    with exclusive(config.root):
+        return args.handler(config, args)
 
 
 def _may_offer(argv: Sequence[str], args: argparse.Namespace) -> None:
