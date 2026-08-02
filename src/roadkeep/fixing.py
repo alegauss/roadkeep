@@ -37,7 +37,7 @@ from pathlib import Path
 
 from roadkeep.backlog import Backlog, id_order
 from roadkeep.config import Config
-from roadkeep.document import Document, ending
+from roadkeep.document import Document, StaleFile, ending
 from roadkeep.linting import LINE_ROLES
 from roadkeep.markers import derive
 from roadkeep.schema import Dep, DepKind, Schema, Task
@@ -152,6 +152,14 @@ def _fix_file(config: Config, role: str, backlog: Backlog) -> Fix:
     if problem is not None:
         # Rule 3: the pass proves its own output before the disk sees any of it.
         return Fix(skipped=tuple(skipped), refused=(f"{file}: {problem}",))
+    try:
+        # The same question `save` asks (RK116), asked here because this pass writes the
+        # text and not the document: everything above happened after the file was read, and
+        # a repair applied on top of somebody else's write erases it as silently as any
+        # other. Reported rather than raised, because that is how this pass refuses.
+        document.assert_current()
+    except StaleFile as moved:
+        return Fix(skipped=tuple(skipped), refused=(str(moved),))
     Path(config.path(role)).write_text(text, encoding="utf-8", newline="")
     return Fix(repairs=tuple(repairs), skipped=tuple(skipped), files=(file,))
 

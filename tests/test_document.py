@@ -20,7 +20,7 @@ from pathlib import Path
 import pytest
 
 from roadkeep import DESIGNED, IDEA, PARTIAL, SHIPPED, Dep, Schema, Task
-from roadkeep.document import Document, RoundTripError
+from roadkeep.document import Document, RoundTripError, StaleFile
 from roadkeep.schema import RETIRED
 
 HERE = Path(__file__).resolve().parents[1]
@@ -548,6 +548,73 @@ def test_save_writes_what_render_says_and_nothing_else(tmp_path):
 def test_a_document_parsed_from_text_has_nowhere_to_save_to():
     with pytest.raises(ValueError, match="no path"):
         parse(LINE).save()
+
+
+# -- the file that moved under the writer (RK116) ---------------------------
+
+
+def loaded(tmp_path: Path, *lines: str) -> Document:
+    target = tmp_path / "ROADMAP.md"
+    target.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="")
+    return Document.load(target)
+
+
+def test_a_write_onto_a_file_that_changed_since_it_was_read_is_refused(tmp_path):
+    # The defect, staged: two processes read the same file, each removes its own line, and
+    # the second write used to land on top of the first — the loser's line gone, exit 0.
+    first = loaded(tmp_path, "## Block A — The model", LINE, LINE.replace("RK9", "RK1"))
+    second = Document.load(first.path)
+    first.remove_line(1).save()
+    losing = second.remove_line(2)
+    with pytest.raises(StaleFile, match="changed since it was read"):
+        losing.save()
+    # And the first writer's edit is still on disk, which is the whole claim.
+    assert "RK9" not in first.path.read_text(encoding="utf-8")
+    assert "RK1" in first.path.read_text(encoding="utf-8")
+
+
+def test_an_unchanged_file_is_written_without_complaint(tmp_path):
+    document = loaded(tmp_path, "## Block A — The model", LINE)
+    after = document.insert_line(len(document.lines), LINE.replace("RK9", "RK1"))
+    after.save()
+    assert "RK1" in document.path.read_text(encoding="utf-8")
+
+
+def test_a_write_repeated_on_the_same_document_is_refused_the_second_time(tmp_path):
+    # `save` does not re-baseline: the document still remembers the read, and its own
+    # first write is a change like any other. A caller that means to write twice re-reads.
+    document = loaded(tmp_path, "## Block A — The model", LINE)
+    after = document.remove_line(1)
+    after.save()
+    with pytest.raises(StaleFile):
+        after.save()
+
+
+def test_a_file_deleted_under_the_writer_is_named_as_gone_and_not_recreated(tmp_path):
+    document = loaded(tmp_path, "## Block A — The model", LINE)
+    after = document.remove_line(1)
+    document.path.unlink()
+    with pytest.raises(StaleFile, match="no longer exists"):
+        after.save()
+    assert not document.path.exists()
+
+
+def test_a_document_parsed_from_a_string_has_no_disk_state_to_have_moved(tmp_path):
+    # `save(path)` to a file this document was never read from is a write, not an overwrite
+    # of something it misremembers — `init` and every test above depend on it.
+    target = tmp_path / "ROADMAP.md"
+    target.write_text("something else\n", encoding="utf-8", newline="")
+    parse("## Block A — The model", LINE).save(target)
+    assert "RK9" in target.read_text(encoding="utf-8")
+
+
+def test_saving_a_loaded_document_elsewhere_is_a_different_file_and_not_a_changed_one(
+    tmp_path,
+):
+    document = loaded(tmp_path, "## Block A — The model", LINE)
+    document.path.write_text("moved on\n", encoding="utf-8", newline="")
+    document.save(tmp_path / "COPY.md")  # the target it names is untouched by that
+    assert "RK9" in (tmp_path / "COPY.md").read_text(encoding="utf-8")
 
 
 # -- lookups ---------------------------------------------------------------

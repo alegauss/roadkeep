@@ -27,6 +27,7 @@
 - ✅ **RK106** **An id a live backlog spells the same way every time is refused as malformed** — `[ids] pad` and `[ids] suffix` declare the spelling, so Dumont's 9 findings and Turing's 4 go to 0 with no other finding moved — measured against both working trees.
 - ✅ **RK109** **The id's shape is declared once and read by two parsers that answer differently** — `Schema.parse_id` is the one parse the pattern and the ordering both derive from, and `id_order` is the one sort key three callers used to spell by hand.
 - ✅ **RK115** **Where a heading's region ends is re-derived at every call site, under two rules that already differ** — `Document.subtree_end` and `Document.prose_end` are the two rules named once, and the four loops over `headings` that spelled them are gone.
+- ✅ **RK116** **A second write to a governed file erases the first one's line and both commands exit 0** — `save` re-reads the target and refuses a write onto a file that moved, and a transaction asks about every file it writes before writing any.
 
 ## Block B — Authoring
 

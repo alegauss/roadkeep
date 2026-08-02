@@ -58,7 +58,7 @@ from dataclasses import dataclass, replace
 from roadkeep.authoring import Insertion, place, refuse_reuse, remove_entry
 from roadkeep.backlog import Backlog, NotOpen
 from roadkeep.config import Config
-from roadkeep.document import Document, Entry, Heading
+from roadkeep.document import Document, Entry, Heading, assert_all_current
 from roadkeep.ids import next_id
 from roadkeep.markers import refresh
 from roadkeep.schema import Task
@@ -187,7 +187,12 @@ class Departure:
     dependents: tuple[str, ...] = ()
 
     def save(self) -> None:
-        """Write the files. Nothing here can fail on the format — that was decided."""
+        """Write the files. Nothing here can fail on the format — that was decided.
+
+        What can still fail is the disk: all three targets are asked whether they are
+        still the files that were read before any of them is written (RK116).
+        """
+        assert_all_current(self.ledger.document, self.roadmap, self.improvements)
         self.ledger.document.save()
         self.roadmap.save()
         if self.improvements is not None:
@@ -232,6 +237,7 @@ class Closure:
 
     def save(self) -> None:
         """Write the roadmap and the prose file. The ledger is never opened for writing."""
+        assert_all_current(self.roadmap, self.improvements)
         self.roadmap.save()
         if self.improvements is not None:
             self.improvements.save()
@@ -257,6 +263,7 @@ class Record:
 
     def save(self) -> None:
         """Write the ledger, and the roadmap only if a line in it actually changed."""
+        assert_all_current(self.ledger.document, self.roadmap if self.refreshed else None)
         self.ledger.document.save()
         if self.refreshed:
             # The roadmap is not part of this transaction, so it is not rewritten to the

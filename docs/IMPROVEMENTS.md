@@ -75,28 +75,6 @@ already written, not authorship.
 
 ## Block A — The model
 
-### §RK116 The file that moved under the writer
-
-`Document.load` reads a file whole and `save` writes it whole. Between those two calls a
-second roadkeep process can complete an entire transaction, and nothing in `save` looks
-at the target before it truncates it: the loser's line is gone, and both commands print
-their `event` line and exit 0.
-
-L3 makes the *format* unloseable — a line that would not render back refuses the file —
-and says nothing about the bytes underneath it. `ensure_writable` asks whether this
-document is canonical; the question it never asks is whether it is still the document
-that was read.
-
-The check is the same shape as the round-trip one and belongs beside it: remember what
-`load` saw, re-read the target inside `save`, and refuse the whole write when the two
-differ. That is one more refusal in a tool whose idiom is refusal — naming the id whose
-write was abandoned and the command to retry — and it costs one read of a file that is
-already open.
-
-It is also the only mechanism here that covers a writer roadkeep does not control: a
-hand edit the hook missed, an editor's save, a `git checkout` mid-session. A lock orders
-the processes that agree to take it; this notices everything else.
-
 ### §RK117 The id between the scan and the write
 
 `next_id` is one past the highest id *anywhere*, derived and never stored, because a

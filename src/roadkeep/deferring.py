@@ -41,7 +41,7 @@ from dataclasses import dataclass, replace
 from roadkeep.authoring import Insertion, place, remove_entry
 from roadkeep.backlog import Backlog, NotOpen
 from roadkeep.config import Config
-from roadkeep.document import Document
+from roadkeep.document import Document, assert_all_current
 from roadkeep.markers import refresh
 from roadkeep.schema import Task
 
@@ -145,6 +145,7 @@ class Pause:
 
     def save(self) -> None:
         """Write both files. Nothing here can fail on the format — that was decided."""
+        assert_all_current(self.store.document, self.roadmap)
         self.store.document.save()
         self.roadmap.save()
 
@@ -165,6 +166,7 @@ class Resumption:
     was: str | None = None
 
     def save(self) -> None:
+        assert_all_current(self.roadmap.document, self.store)
         self.roadmap.document.save()
         self.store.save()
 

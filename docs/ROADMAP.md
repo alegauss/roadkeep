@@ -22,8 +22,7 @@
 
 ## Block A — The model (a task is data before it is a line)
 
-- 📋 **RK116** (deps: —) **A second write to a governed file erases the first one's line and both commands exit 0** — `Document` reads every byte and `save` writes every byte back with nothing checking the file is still the one that was read, so two agents in one checkout lose a line silently. → §RK116
-- 📋 **RK117** (deps: RK116) **Two adds started together mint the same id, and the gate reports it only once both lines exist** — `next_id` derives one past the highest anywhere and nothing holds that maximum between the scan and the write, so the id is a claim two processes can both make. → §RK117
+- 📋 **RK117** (deps: RK116 ✅) **Two adds started together mint the same id, and the gate reports it only once both lines exist** — `next_id` derives one past the highest anywhere and nothing holds that maximum between the scan and the write, so the id is a claim two processes can both make. → §RK117
 - 📋 **RK118** (deps: —) **A reader can load a governed file truncated, and an interrupted ship leaves two of its three files written** — `save` truncates the target before it fills it and a departure writes three files in sequence, so an interrupted write leaves the state `Closure` was built to repair. → §RK118
 - 📋 **RK121** (deps: —) **A task delivered in halves has no representation, so the corpus invents one the grammar cannot read** — Shio writes seven ledger ids as SH96 (local half); the parser sees no id, so two deps report unknown against an id the roadmap annotates shipped. → §RK121
 

@@ -51,7 +51,15 @@ from dataclasses import dataclass, replace
 from roadkeep import sections
 from roadkeep.backlog import Backlog, NotOpen
 from roadkeep.config import ROLES, Config
-from roadkeep.document import Document, Entry, Heading, UnknownBlock, blank, read_deps
+from roadkeep.document import (
+    Document,
+    Entry,
+    Heading,
+    UnknownBlock,
+    assert_all_current,
+    blank,
+    read_deps,
+)
 from roadkeep.ids import next_id, scan
 from roadkeep.markers import derive, refresh
 from roadkeep.schema import Task
@@ -161,6 +169,7 @@ class Insertion:
 
     def save(self) -> None:
         """Write the files. Nothing here can fail on the format — that was decided."""
+        assert_all_current(self.document, self.prose)
         self.document.save()
         if self.prose is not None:
             self.prose.save()

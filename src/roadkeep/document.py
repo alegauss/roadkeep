@@ -125,6 +125,32 @@ class RoundTripError(RuntimeError):
         )
 
 
+class StaleFile(RuntimeError):
+    """The file moved between the read and the write, so the write is abandoned (RK116).
+
+    The second half of L3's question. :class:`RoundTripError` asks whether this document
+    is one the tool understood; this asks whether it is still the document that was read —
+    and `save` truncating a file it last saw seconds ago is how one agent's line disappears
+    while both commands exit 0.
+
+    Deliberately blind to *what* changed: a write that lands on top of a file somebody else
+    already rewrote is refused whether the other writer was a second roadkeep process, a
+    hand edit the hook missed, or a `git checkout` mid-session. Merging is the caller's
+    business, and the caller here is asked to re-run the command against the file as it now
+    is — which costs one command and loses nothing.
+    """
+
+    def __init__(self, path: Path | None = None, *, missing: bool = False) -> None:
+        self.path = path
+        self.missing = missing
+        where = f"{path}: " if path else ""
+        became = "no longer exists" if missing else "changed since it was read"
+        super().__init__(
+            f"{where}the file {became}, so this write was abandoned rather than "
+            f"applied on top of it — re-run the command"
+        )
+
+
 @dataclass(frozen=True, slots=True)
 class Entry:
     """A parsed task line, with the provenance needed to refuse or replace it."""
@@ -196,6 +222,11 @@ class Document:
     #: scanner would be a second fence state machine to keep in step with this one.
     tabular: tuple[Row, ...] = ()
     path: Path | None = None
+    #: The bytes :meth:`load` read, kept so :meth:`save` can ask whether the target is
+    #: still them (RK116). Carried through every mutation — the point is what was on disk
+    #: when this document was *read*, not what it holds now — and None for a document
+    #: parsed from a string, which has no disk state to have moved.
+    source: str | None = None
 
     # -- reading -----------------------------------------------------------
 
@@ -277,7 +308,10 @@ class Document:
         # (open(), not read_text(newline=…) — that keyword is 3.13+, and this
         # package supports 3.11.)
         with path.open("r", encoding="utf-8", newline="") as handle:
-            return cls.parse(handle.read(), schema=schema, path=path)
+            text = handle.read()
+        # `source` is set here and nowhere else: a document that was read from disk is the
+        # only one that can find the disk changed under it (RK116).
+        return replace(cls.parse(text, schema=schema, path=path), source=text)
 
     def render(self) -> str:
         """The source, exactly. This is what makes L3 a fact rather than a hope."""
@@ -391,11 +425,35 @@ class Document:
         """Re-render one entry from its data — the only way a task line changes."""
         return self.replace_line(entry.index, self.schema.render(task))
 
+    def assert_current(self, path: str | Path | None = None) -> None:
+        """Refuse if the target is no longer the file this document was read from (RK116).
+
+        The check `save` makes, callable on its own so a transaction that writes several
+        files can ask about all of them before it writes any (RK6): a refusal raised
+        halfway through leaves the state the all-or-nothing rule exists to prevent.
+
+        Silent in the two cases where there is nothing to compare: a document parsed from a
+        string, which never had disk state, and a save to a path other than the one it was
+        read from, where the target is a different file and not a changed one.
+        """
+        target = Path(path) if path is not None else self.path
+        if self.source is None or target is None or target != self.path:
+            return
+        if not target.is_file():
+            raise StaleFile(target, missing=True)
+        with target.open("r", encoding="utf-8", newline="") as handle:
+            if handle.read() != self.source:
+                raise StaleFile(target)
+
     def save(self, path: str | Path | None = None) -> Path:
         target = Path(path) if path is not None else self.path
         if target is None:
             raise ValueError("no path to save to")
         self.ensure_writable()
+        # Both halves of "may this file be rewritten": one the tool understood, and one
+        # nobody else has touched since (RK116). Re-read and not stat'd — a modification
+        # time is a second source of truth about the bytes, and the coarser one.
+        self.assert_current(target)
         target.write_text(self.render(), encoding="utf-8", newline="")
         return target
 
@@ -403,7 +461,22 @@ class Document:
         # Reparse rather than patch the entry tuples: line numbers shift, and a
         # document that reports stale ones is worse than one that costs a reparse.
         parsed = Document.parse("".join(lines), schema=self.schema, path=self.path)
-        return replace(parsed, path=self.path)
+        # `source` survives the edit: it is what the file held when it was *read*, and an
+        # edited document is exactly the one that needs to know that (RK116).
+        return replace(parsed, path=self.path, source=self.source)
+
+
+def assert_all_current(*documents: Document | None) -> None:
+    """Ask every file in a transaction before writing any of them (RK116, RK6).
+
+    `ship` writes three files and `defer` writes two, and :meth:`Document.save` checking
+    each one as it reaches it would refuse the second write after the first had already
+    landed — which is the half-applied state all-or-nothing exists to prevent. A None is
+    skipped, because a transaction's optional file is absent and not stale.
+    """
+    for document in documents:
+        if document is not None:
+            document.assert_current()
 
 
 def blank(line: str) -> bool:

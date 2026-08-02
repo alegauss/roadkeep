@@ -22,7 +22,7 @@ import pytest
 from roadkeep.authoring import UnknownBlock
 from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
-from roadkeep.document import RoundTripError
+from roadkeep.document import RoundTripError, StaleFile
 from roadkeep.schema import SchemaError
 from roadkeep.sections import SectionOccupied
 from roadkeep.shipping import (
@@ -575,3 +575,56 @@ def test_a_drifted_file_exits_one_because_the_gate_says_no(tmp_path, capsys):
     project(tmp_path, roadmap=BACKLOG.replace("→ §RK1", "→ §7.1"))
     assert main(["-C", str(tmp_path), "ship", "RK2"]) == EXIT_GATE
     assert "will not be rewritten" in capsys.readouterr().err
+
+
+# -- the file that moved under the writer (RK116) ----------------------------
+
+
+def test_a_ship_whose_ledger_moved_under_it_writes_none_of_the_three(tmp_path):
+    # The all-or-nothing claim, taken one layer down. `save` writes the ledger first, so a
+    # check made per file would refuse the roadmap *after* the ledger had already landed —
+    # the half-applied state RK6 exists to prevent, produced by the fix for RK116.
+    config = project(tmp_path)
+    shipment = ship(config, "RK1")
+    moved = LEDGER.replace("## Block B", f"{SHIPPED_RK1.replace('RK1', 'RK8')}\n\n## Block B")
+    with (config.root / CHANGELOG).open("w", encoding="utf-8", newline="") as handle:
+        handle.write(moved)
+
+    with pytest.raises(StaleFile, match="changed since it was read"):
+        shipment.save()
+    assert files(config) == (BACKLOG, moved, RATIONALE)
+
+
+def test_a_ship_whose_roadmap_moved_under_it_leaves_the_ledger_alone(tmp_path):
+    config = project(tmp_path)
+    shipment = ship(config, "RK1")
+    moved = BACKLOG.replace(f"{RK2}\n", "")
+    with (config.root / ROADMAP).open("w", encoding="utf-8", newline="") as handle:
+        handle.write(moved)
+
+    with pytest.raises(StaleFile):
+        shipment.save()
+    assert files(config) == (moved, LEDGER, RATIONALE)
+
+
+def test_a_second_writer_exits_one_and_says_to_re_run(tmp_path, capsys, monkeypatch):
+    # Through the CLI, because the exit code is the contract: a lost line that exits 0 is
+    # the whole symptom, and a gate refusal is exit 1 (RK116). The other process is staged
+    # in the window it actually occupies — after this command read the files, before it
+    # wrote them — which is the only place the race exists.
+    config = project(tmp_path)
+
+    def racing(*args, **kwargs):
+        shipment = ship(*args, **kwargs)
+        with (config.root / CHANGELOG).open("a", encoding="utf-8", newline="") as handle:
+            handle.write(SHIPPED_RK1.replace("RK1", "RK8") + "\n")
+        return shipment
+
+    monkeypatch.setattr("roadkeep.cli.ship", racing)
+    assert main(["-C", str(tmp_path), "ship", "RK1"]) == EXIT_GATE
+    assert "re-run the command" in capsys.readouterr().err
+    # Nothing of this transaction landed, and the other writer's line is untouched.
+    assert read(config, ROADMAP) == BACKLOG
+    assert read(config, IMPROVEMENTS) == RATIONALE
+    assert "RK8" in read(config, CHANGELOG)
+    assert "**RK1**" not in read(config, CHANGELOG)

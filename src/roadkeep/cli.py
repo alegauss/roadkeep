@@ -48,7 +48,7 @@ from roadkeep.briefing import Brief, brief, non_goals
 from roadkeep.capturing import PARTS, body, capture, check, handoff, keep, offer, replay
 from roadkeep.config import Config, ConfigError
 from roadkeep.counting import Census
-from roadkeep.document import Document, Entry, Reject, RoundTripError
+from roadkeep.document import Document, Entry, Reject, RoundTripError, StaleFile
 from roadkeep.exporting import Projection, project, splice
 from roadkeep.fixing import Fix, fix
 from roadkeep.graph import Graph, Leverage
@@ -79,6 +79,12 @@ from roadkeep.showing import View, show
 EXIT_OK = 0
 EXIT_GATE = 1
 EXIT_USAGE = 2
+
+#: What a write may fail with, listed once because every writing command catches the same
+#: set and :func:`_refused` decides the code. Written out at fourteen call sites, adding
+#: :class:`StaleFile` (RK116) to the tuple would have been fourteen edits and thirteen of
+#: them enough — a command that missed it would print a traceback instead of a refusal.
+REFUSALS = (RoundTripError, StaleFile, KeyError, ValueError, OSError)
 
 _JSON_HELP = "machine-readable form"
 #: One sentence, on both `pick` and `brief`, because it is one flag (RK83): a caller asking
@@ -1142,7 +1148,7 @@ def _add(config: Config, args: argparse.Namespace) -> int:
             family=args.family,
             section=section,
         )
-    except (RoundTripError, KeyError, ValueError, OSError) as error:
+    except REFUSALS as error:
         return _refused(error)  # a SchemaError arrives here as the ValueError it is
 
     event = _event(
@@ -1194,7 +1200,7 @@ def _section_add(config: Config, args: argparse.Namespace) -> int:
             config, args.role, args.anchor, args.title, body, level=args.level
         )
         document.save()
-    except (RoundTripError, KeyError, ValueError, OSError) as error:
+    except REFUSALS as error:
         return _refused(error)
 
     where = config.relative(config.path(args.role))
@@ -1232,7 +1238,7 @@ def _section_drop(config: Config, args: argparse.Namespace) -> int:
         taken = tuple(child.anchor for child in nested_sections(document, args.anchor))
         document, section = drop_section(document, args.anchor, claimed=pointers(config))
         document.save()
-    except (RoundTripError, KeyError, ValueError, OSError) as error:
+    except REFUSALS as error:
         return _refused(error)
 
     where = config.relative(config.path(args.role))
@@ -1260,7 +1266,7 @@ def _section_json(section: Section, where: str) -> dict[str, object]:
 def _status(config: Config, args: argparse.Namespace) -> int:
     try:
         change = set_status(config, args.id, args.marker)
-    except (RoundTripError, KeyError, ValueError, OSError) as error:
+    except REFUSALS as error:
         return _refused(error)
 
     where = f"{config.relative(config.path('roadmap'))}:{change.lineno}"
@@ -1318,9 +1324,11 @@ def _refused(error: Exception) -> int:
         for violation in error.violations:
             print(f"  {violation}", file=sys.stderr)
         return EXIT_USAGE
-    if isinstance(error, RoundTripError):
+    if isinstance(error, (RoundTripError, StaleFile)):
         # The file drifted before this command ran, so the gate says no: normalizing a
-        # line the parser may have misread is the corruption L3 forbids.
+        # line the parser may have misread is the corruption L3 forbids — and a file that
+        # moved between the read and the write is the same refusal one layer down (RK116),
+        # where what would be lost is somebody else's line rather than this one's shape.
         print(f"roadkeep: {error}", file=sys.stderr)
         return EXIT_GATE
     # KeyError renders its message in quotes, which reads as a stray token in a report.
@@ -1338,7 +1346,7 @@ def _amend(config: Config, args: argparse.Namespace) -> int:
         return EXIT_USAGE
     try:
         amended = amend(config, args.id, why=args.why, deps=args.deps, ref=args.ref)
-    except (RoundTripError, KeyError, ValueError, OSError) as error:
+    except REFUSALS as error:
         return _refused(error)
 
     where = config.relative(config.path("roadmap"))
@@ -1372,7 +1380,7 @@ def _renumber(config: Config, args: argparse.Namespace) -> int:
     try:
         moved = renumber(config, args.id, args.to)
         moved.save()
-    except (RoundTripError, KeyError, ValueError, OSError) as error:
+    except REFUSALS as error:
         return _refused(error)
 
     where = config.relative(config.path(moved.role))
@@ -1425,7 +1433,7 @@ def _ship(config: Config, args: argparse.Namespace) -> int:
     try:
         shipment = ship(config, args.id, why=args.why)
         shipment.save()
-    except (RoundTripError, KeyError, ValueError, OSError) as error:
+    except REFUSALS as error:
         return _refused(error)
 
     if isinstance(shipment, Closure):
@@ -1548,7 +1556,7 @@ def _record(config: Config, args: argparse.Namespace) -> int:
             task_id=args.task_id,
         )
         entry.save()
-    except (RoundTripError, KeyError, ValueError, OSError) as error:
+    except REFUSALS as error:
         return _refused(error)
 
     ledger = config.relative(config.path("changelog"))
@@ -1593,7 +1601,7 @@ def _non_goal_add(config: Config, args: argparse.Namespace) -> int:
     try:
         written = add_non_goal(config, lead=args.lead, why=args.why)
         written.save()
-    except (RoundTripError, KeyError, ValueError, OSError) as error:
+    except REFUSALS as error:
         return _refused(error)
 
     where = config.relative(config.path("roadmap"))
@@ -1670,7 +1678,7 @@ def _non_goal_drop(config: Config, args: argparse.Namespace) -> int:
     try:
         dropped = drop_non_goal(config, args.lead)
         dropped.save()
-    except (RoundTripError, KeyError, ValueError, OSError) as error:
+    except REFUSALS as error:
         return _refused(error)
 
     where = config.relative(config.path("roadmap"))
@@ -1706,7 +1714,7 @@ def _record_drop(config: Config, args: argparse.Namespace) -> int:
     try:
         dropped = drop_record(config, args.id)
         dropped.save()
-    except (RoundTripError, KeyError, ValueError, OSError) as error:
+    except REFUSALS as error:
         return _refused(error)
 
     ledger = config.relative(config.path("changelog"))
@@ -2292,7 +2300,7 @@ def _retire(config: Config, args: argparse.Namespace) -> int:
             superseded_by=args.superseded_by,
         )
         departure.save()
-    except (RoundTripError, KeyError, ValueError, OSError) as error:
+    except REFUSALS as error:
         return _refused(error)
 
     ledger = config.relative(config.path("changelog"))
@@ -2344,7 +2352,7 @@ def _defer(config: Config, args: argparse.Namespace) -> int:
     try:
         pause = defer(config, args.id, reason=args.reason)
         pause.save()
-    except (RoundTripError, KeyError, ValueError, OSError) as error:
+    except REFUSALS as error:
         return _refused(error)
 
     roadmap = config.relative(config.path("roadmap"))
@@ -2394,7 +2402,7 @@ def _resume(config: Config, args: argparse.Namespace) -> int:
     try:
         resumption = resume(config, args.id, marker=args.marker)
         resumption.save()
-    except (RoundTripError, KeyError, ValueError, OSError) as error:
+    except REFUSALS as error:
         return _refused(error)
 
     roadmap = config.relative(config.path("roadmap"))
