@@ -35,7 +35,7 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 from pathlib import Path
 
-from roadkeep.backlog import Backlog, number_of
+from roadkeep.backlog import Backlog, id_order
 from roadkeep.config import Config
 from roadkeep.document import Document, ending
 from roadkeep.linting import LINE_ROLES
@@ -210,12 +210,7 @@ def _deps(
     # Ordered only when every token is an id of this project. `Block P` and `real design
     # partners` have no order, and sorting a mixed field would move prose somebody wrote.
     if all(schema.classify_dep(d) is DepKind.TASK for d in deps):
-        ordered = tuple(
-            sorted(
-                deps,
-                key=lambda d: (number_of(d.id, schema.prefixes, schema.id_suffix) or 0, d.id),
-            )
-        )
+        ordered = tuple(sorted(deps, key=lambda d: id_order(d.id, schema)))
         if ordered != deps:
             reasons.append("deps ordered")
             deps = ordered

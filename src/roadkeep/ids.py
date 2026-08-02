@@ -26,7 +26,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from roadkeep.config import Config
-from roadkeep.schema import SUB_LETTER, Schema
+from roadkeep.schema import Schema
 
 
 @dataclass(frozen=True, slots=True)
@@ -46,19 +46,18 @@ class IdRef:
 def id_scanner(schema: Schema) -> re.Pattern[str]:
     """`<prefix><n>` as it appears in running text, spelled the way this project spells it.
 
-    Three groups, always: the family, the number the maximum is taken over, and the
-    sub-letter — empty where `[ids] suffix` declares none, so a caller reads the same
+    Three named groups, always: `family`, the `number` the maximum is taken over, and the
+    `sub` letter — empty where `[ids] suffix` declares none, so a caller reads the same
     shape whatever the project wrote.
 
     Takes the schema and not the prefixes alone (RK106), because padding and the
     sub-letter are two more declarations about what an id *is*: a scan that knew only the
     family would read `T24b` as no id at all, and the number a document already spends is
-    exactly what the next one must clear.
+    exactly what the next one must clear. It asks the schema to *join* them too (RK109) —
+    this used to assemble its own copy, and a scan spelling an id differently from the gate
+    is how a number the pattern refuses stays invisible to the counter that would clear it.
     """
-    tail = f"({SUB_LETTER}?)" if schema.id_suffix else "()"
-    return re.compile(
-        rf"\b({schema.prefix_alternation})({schema.number_fragment}){tail}\b"
-    )
+    return re.compile(rf"\b{schema.id_groups}\b")
 
 
 def scan(config: Config) -> tuple[IdRef, ...]:
@@ -79,10 +78,10 @@ def scan(config: Config) -> tuple[IdRef, ...]:
                     found.append(
                         IdRef(
                             id=match.group(0),
-                            number=int(match.group(2)),
+                            number=int(match.group("number")),
                             path=path,
                             lineno=lineno,
-                            family=match.group(1),
+                            family=match.group("family"),
                         )
                     )
     return tuple(found)

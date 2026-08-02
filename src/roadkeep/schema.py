@@ -221,6 +221,25 @@ class Task:
         return tuple(d.id for d in self.deps)
 
 
+@dataclass(frozen=True, slots=True)
+class Id:
+    """One id, taken apart by the declaration that spells it (RK109).
+
+    The three parts are exactly the three `[ids]` declares — the family (RK74), the
+    number the next-id maximum is taken over (RK4), and the sub-letter a split task
+    carries (RK106) — so a caller reads the same shape whatever the project wrote, and
+    ``sub`` is `""` at a project that declares none rather than a case to remember.
+
+    Produced only by :meth:`Schema.parse_id`, which is the *same* fragment
+    :meth:`Schema.id_pattern` refuses a line with: a string this exists for is a string
+    the gate admits, and the two used to be able to disagree.
+    """
+
+    family: str
+    number: int
+    sub: str = ""
+
+
 def number_fragment(pad: int = 1) -> str:
     """The numeric part of an id, as a regex fragment, for a project that pads to ``pad``.
 
@@ -441,6 +460,23 @@ class Schema:
         """The number an id of this project carries, as a regex fragment (RK106)."""
         return number_fragment(self.id_pad)
 
+    def _fragment(self, named: bool) -> str:
+        """The join itself, spelled once, with or without the three parts named (RK109).
+
+        Two spellings of one fragment and not two fragments: a caller that embeds an id in
+        a larger pattern cannot use named groups twice, and a caller that takes an id apart
+        cannot count anonymous ones — so the *joining* is here, and each caller asks for the
+        form it can read rather than reassembling the three declarations for itself.
+        """
+        family = self.prefix_alternation
+        number = self.number_fragment
+        tail = f"{SUB_LETTER}?" if self.id_suffix else ""
+        if not named:
+            return f"{family}{number}{tail}"
+        # An empty group where the project declares no sub-letter, so `parse_id` reads
+        # `sub` unconditionally and a project without one is not a second code path.
+        return f"(?P<family>{family})(?P<number>{number})(?P<sub>{tail})"
+
     @property
     def id_fragment(self) -> str:
         """A whole id as a regex fragment: the family, the number, and the sub-letter.
@@ -451,8 +487,32 @@ class Schema:
         four of them knew would make an id legal on the line and invisible to the counter,
         which is how a number gets minted twice.
         """
-        tail = SUB_LETTER + "?" if self.id_suffix else ""
-        return f"{self.prefix_alternation}{self.number_fragment}{tail}"
+        return self._fragment(named=False)
+
+    @property
+    def id_groups(self) -> str:
+        """The same fragment with its three parts named `family`, `number` and `sub`.
+
+        For the two callers that take an id *apart* rather than test one: :meth:`parse_id`,
+        and the scan the next id is a maximum over (RK4), which used to build its own
+        three-group copy — a third reader of a shape declared once. Embeddable exactly once
+        in a pattern, named groups being unique; :attr:`id_fragment` is the other form.
+        """
+        return self._fragment(named=True)
+
+    def parse_id(self, text: str) -> Id | None:
+        """An id of this project taken apart, or None if this is not one (RK109).
+
+        The single parse both the pattern and the ordering are derived from. Anything
+        :meth:`id_pattern` refuses returns None here — under `pad = 2` that includes the
+        `D1` the ordering used to read as 1 — so a caller cannot hold half the declaration:
+        it either has all three parts or it has no id, and there is no third answer where a
+        number was read out of a string the gate would reject.
+        """
+        match = re.fullmatch(self.id_groups, text)
+        if match is None:
+            return None
+        return Id(match.group("family"), int(match.group("number")), match.group("sub"))
 
     def spell_id(self, family: str, number: int) -> str:
         """How this project writes an id — the one place a number becomes a name (RK106).

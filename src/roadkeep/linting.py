@@ -84,7 +84,7 @@ from dataclasses import dataclass, field, replace
 from pathlib import Path
 
 from roadkeep import scoping
-from roadkeep.backlog import Backlog, DepStatus, number_of
+from roadkeep.backlog import Backlog, DepStatus, id_order
 from roadkeep.config import ROLES, Config
 from roadkeep.document import Document, ending
 from roadkeep.graph import Graph
@@ -1120,9 +1120,7 @@ def _cycles(backlog: Backlog, file: str) -> list[Finding]:
     out: list[Finding] = []
     schema = backlog.config.schema
     for group in Graph.of(backlog).cycles():
-        anchor = min(
-            group, key=lambda i: (number_of(i, schema.prefixes, schema.id_suffix) or 0, i)
-        )
+        anchor = min(group, key=lambda i: id_order(i, schema))
         entry = backlog.entry(anchor)
         # A group of one is the same defect through a `Block X` dep the task is itself a
         # member of: the block cannot empty until this line ships, so the line waits on

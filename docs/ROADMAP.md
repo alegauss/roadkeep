@@ -22,16 +22,18 @@
 
 ## Block A — The model (a task is data before it is a line)
 
-- 📋 **RK109** (deps: —) **The id's shape is declared once and read by two parsers that answer differently** — `id_pattern` refuses the `D1` that `number_of` reads as 1, and the sub-letter half is a flag four call sites pass by hand, so a fifth caller is a sort nobody checks. → §RK109
 - 💭 **RK115** (deps: —) **Where a heading's region ends is re-derived at every call site, under two rules that already differ** — `_span` and `_placement` stop at the next same-or-higher heading while `anchored` and `_after_preamble` stop at any heading, and the one reader of a file is meant to be Document. → §RK115
 - 📋 **RK116** (deps: —) **A second write to a governed file erases the first one's line and both commands exit 0** — `Document` reads every byte and `save` writes every byte back with nothing checking the file is still the one that was read, so two agents in one checkout lose a line silently. → §RK116
 - 📋 **RK117** (deps: RK116) **Two adds started together mint the same id, and the gate reports it only once both lines exist** — `next_id` derives one past the highest anywhere and nothing holds that maximum between the scan and the write, so the id is a claim two processes can both make. → §RK117
 - 📋 **RK118** (deps: —) **A reader can load a governed file truncated, and an interrupted ship leaves two of its three files written** — `save` truncates the target before it fills it and a departure writes three files in sequence, so an interrupted write leaves the state `Closure` was built to repair. → §RK118
+- 📋 **RK121** (deps: —) **A task delivered in halves has no representation, so the corpus invents one the grammar cannot read** — Shio writes seven ledger ids as SH96 (local half); the parser sees no id, so two deps report unknown against an id the roadmap annotates shipped. → §RK121
 
 ## Block B — Authoring (insert, never hand-edit)
 
 - 📋 **RK113** (deps: —) **renumber renames a section's heading and leaves the anchors of everything nested under it** — `renumber RK1 --to RK9` rewrote `§RK1` and left `§RK1.1` claiming a task the backlog no longer has, under a heading that names RK9, and lint called the file clean. → §RK113
 - 📋 **RK120** (deps: RK113) **Two branches each spend the same id, and the merge git produces is a conflict in a file only this tool may write** — Every add appends inside the same block heading, so parallel worktrees collide on almost every task and resolving it by hand is the edit the hook denies. → §RK120
+- 📋 **RK123** (deps: —) **An open task's rationale cannot be corrected by any verb, and the hook denies the hand-edit** — section drop refuses while a live pointer names the anchor and section add refuses the duplicate, so a design is write-once until ship deletes it. → §RK123
+- 📋 **RK124** (deps: —) **A ledger entry can be written and deleted but never corrected** — record add and record drop are the pair, so fixing one word of a why means dropping the entry and re-adding it, which moves the line to the end of its block. → §RK124
 
 ## Block C — Query (consult without reading the file)
 
@@ -42,12 +44,14 @@
 - 📋 **RK104** (deps: —) **Nothing gates the README block this tool writes, so a stale restatement passes lint** — `export --readme` is the one write no gate holds: a pytest fixture catches it here and an adopting project has none, so the derived table drifts from the files it was derived from. → §RK104
 - 📋 **RK105** (deps: —) **A concurrent edit in another repository turns this project's suite red** — The round-trip property reads Shio's and Turing's working trees, so a run went red for a change neither this commit nor this repository made, and a red nobody caused is a red nobody reads. → §RK105
 - 📋 **RK114** (deps: —) **A subsection whose task is gone is exempt from the ownership check that would report it** — `_owners` matches the anchor against the id pattern, so `§RK34.1` is read as outline prose like `§0.1` and belongs to nobody — the exemption that let a half-renamed subtree lint clean. → §RK114
+- 📋 **RK122** (deps: RK121) **id.two-files calls a correct half-shipped state a contradiction** — Open in the roadmap and recorded in the ledger is exactly what a partial is, so Shio's SH238 is reported for spelling it plainly while six that hid it behind a parenthetical are not. → §RK122
 
 ## Block E — Adoption
 
 - 📋 **RK103** (deps: —) **A bullet whose marker holds a space is read as prose and reported by nothing** — GitHub's `- [ ]` task list is the commonest Markdown backlog there is, and cursarei's 16 of them parse as 0 entries and 0 rejects — the silent miss the reject list exists to end. → §RK103
 - 📋 **RK107** (deps: RK106 ✅) **A project that declares the format still has nothing enforcing it** — Turing and Dumont each carry a roadkeep.toml and neither runs the gate in CI, so what they adopted is held by the same nobody a convention is held by. → §RK107
 - 📋 **RK110** (deps: —) **`adopt` counts the id findings without saying they are one declaration** — The estimate names the prefix delta and the `[markers]` delta but not this one, so measuring `pad = 2` against Dumont's nine findings took the throwaway script the estimate exists to replace. → §RK110
+- 📋 **RK125** (deps: —) **Declaring an unmarked ledger takes a whole verb away, and the refusal offers no way through** — Shio sets [ledger] marker = false so its 234 pre-tool entries parse, and that one line makes retire refuse every id: the adoption that made the file readable disabled a door. → §RK125
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 

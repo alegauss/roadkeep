@@ -25,6 +25,7 @@
 - ✅ **RK96** **There is no state for a task set aside but neither shipped nor abandoned** — The schema reads a fifth marker in a fifth governed file, so a paused line keeps its id, deps, symptom and section where neither the roadmap nor the ledger could hold it.
 - ✅ **RK101** **An outline anchored by block letter declares no section, and one by block C declares one** — An outline anchor may begin with one uppercase letter and a dot, so a rationale numbered by its own block letters is read whole instead of at the headings the Latin alphabet happened to allow.
 - ✅ **RK106** **An id a live backlog spells the same way every time is refused as malformed** — `[ids] pad` and `[ids] suffix` declare the spelling, so Dumont's 9 findings and Turing's 4 go to 0 with no other finding moved — measured against both working trees.
+- ✅ **RK109** **The id's shape is declared once and read by two parsers that answer differently** — `Schema.parse_id` is the one parse the pattern and the ordering both derive from, and `id_order` is the one sort key three callers used to spell by hand.
 
 ## Block B — Authoring
 

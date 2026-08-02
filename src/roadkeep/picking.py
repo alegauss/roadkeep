@@ -43,7 +43,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import StrEnum
 
-from roadkeep.backlog import Backlog, Readiness, number_of
+from roadkeep.backlog import Backlog, Readiness, id_order
 from roadkeep.config import Config
 from roadkeep.document import Entry
 from roadkeep.schema import IN_PROGRESS, Dep
@@ -123,8 +123,6 @@ def pick(config: Config, block: str | None = None, designed: bool = False) -> Ch
     number of lines this backlog could start is not a fact the caller's intent changes.
     """
     backlog = Backlog.load(config)
-    prefixes = config.schema.prefixes
-    sub_letters = config.schema.id_suffix
     if block is not None and block not in backlog.declared_blocks():
         raise KeyError(
             f"no heading declares {config.schema.block_named(block)} (declares: "
@@ -137,10 +135,7 @@ def pick(config: Config, block: str | None = None, designed: bool = False) -> Ch
         if block is None or entry.task.block == block
     ]
     survey = _survey(backlog, considered)
-    ordered = sorted(
-        survey.ready,
-        key=lambda e: (number_of(e.task.id, prefixes, sub_letters) or 0, e.task.id),
-    )
+    ordered = sorted(survey.ready, key=lambda e: id_order(e.task.id, config.schema))
     # Narrowed after the ordering and not before it, so `ready` keeps counting what the
     # file holds: the caller's intent decides what may be offered, never what is true.
     offered = [e for e in ordered if not config.schema.needs_design(e.task.status)]

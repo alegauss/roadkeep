@@ -11,6 +11,7 @@ schema says once they are read.
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import pytest
@@ -22,6 +23,7 @@ from roadkeep import (
     PARTIAL,
     SHIPPED,
     Dep,
+    Id,
     Schema,
     SchemaError,
     Task,
@@ -487,6 +489,41 @@ def test_a_refusal_spells_the_shape_this_project_declared():
 def test_a_width_below_one_is_not_a_width():
     with pytest.raises(ValueError, match="id_pad must be at least 1"):
         Schema(id_pad=0)
+
+
+# -- one parse, so the pattern and the ordering cannot disagree (RK109) -----
+
+
+def test_the_parse_takes_an_id_apart_into_the_three_things_declared():
+    assert Schema().parse_id("RK9") == Id("RK", 9, "")
+    assert PADDED.parse_id("D01") == Id("D", 1, "")
+    assert SPLIT.parse_id("T24b") == Id("T", 24, "b")
+    assert TRACKS.parse_id("V05") is None  # TRACKS declares no width
+    assert TRACKS.parse_id("C14") == Id("C", 14, "")
+
+
+def test_what_the_gate_refuses_the_parse_refuses():
+    # The defect: `id_pattern` refused the `D1` the ordering read as 1, so a line the file
+    # could not legally carry still got a number, and a number is a place in the queue.
+    for schema in (Schema(), PADDED, SPLIT, TRACKS):
+        for text in ("RK9", "D1", "D01", "D001", "T24", "T24b", "T24B", "C14", "V05", ""):
+            assert (schema.parse_id(text) is not None) == bool(
+                schema.id_pattern().match(text)
+            )
+
+
+def test_the_plain_fragment_stays_embeddable_twice_and_the_named_one_is_the_same_shape():
+    # `lint` and `origin` wrap the plain fragment in a group of their own and read group 1,
+    # and a range dep embeds it at both ends — neither survives a named group, which is why
+    # there are two forms of one join rather than one form everybody works around.
+    for schema in (Schema(), PADDED, SPLIT, TRACKS):
+        assert "(?P<" not in schema.id_fragment
+        both = re.compile(rf"^{schema.id_fragment}–{schema.id_fragment}$")
+        assert both.groups == 0
+        for text in ("RK9", "D1", "D01", "T24b", "C14", "V05"):
+            assert bool(re.fullmatch(schema.id_groups, text)) == bool(
+                re.fullmatch(schema.id_fragment, text)
+            )
 
 
 # -- the word a project files work under (RK75) -----------------------------

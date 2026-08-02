@@ -75,30 +75,6 @@ already written, not authorship.
 
 ## Block A — The model
 
-### §RK109 Two readers of one id shape
-
-RK106 put the shape on the `Schema` — `id_pad`, `id_suffix`, and the one `id_fragment`
-every regex is built from. The *parsing* half did not move with it. `backlog.number_of`
-and `family_of` are free functions over `prefixes` plus a `suffix` boolean, and they
-answer a different question from the pattern they are supposed to agree with: under `pad
-= 2`, `id_pattern` refuses `D1` and `number_of("D1", ("D",))` returns 1.
-
-Nothing is wrong today, because the four call sites were all updated in the commit that
-added the flag. That is exactly what makes it worth a line: correctness rests on four
-callers remembering an argument, and the near-miss was real — `picking` sorts on
-`number_of(...) or 0`, so a `T24b` it cannot read counts as zero, and zero is *first*.
-The split task a project deliberately numbered after `T24` would have been offered ahead
-of every line below it.
-
-The module docstring of `schema.py` already states the rule this breaks: a rule that
-lives in two places is a rule two places can disagree about, so the schema lives in
-exactly one. The shape is now in one place and its reader is in two.
-
-What is wanted is a single parse on the schema — family, number, sub-letter, or nothing
-— that both the pattern and the ordering are derived from, so a caller cannot hold half
-of the declaration. The ordering helpers stay public; `pick` still orders numerically,
-and a second implementation of *that* is the defect this is not.
-
 ### §RK115 What a heading owns, answered four times
 
 Four call sites answer “where does this heading's region end”, under two different
@@ -185,6 +161,29 @@ knows how to read. Ordering the three so that the recoverable middle is the only
 reachable one is the rest of the answer, and it is a choice about which file goes first
 rather than new machinery.
 
+### §RK121 Partial completion is a state the model does not have
+
+Every id is in exactly one of two states: open in the roadmap, or recorded in the
+ledger. Work that lands in halves is neither, and the projects using this have all
+invented the same escape — a parenthetical on the ledger id.
+
+Shio has seven: `- **SH96 (local half)** —`, `- **SH275 (partial)** —`, `- **SH84 (the
+SH22 half)** —`. It reads perfectly to a person and is invisible to the parser, which is
+worse than either half alone. An id it cannot parse is an id that is **not in the
+changelog**, and that is a different statement from "not done": two Shio lines declare
+`deps: SH96 ✅` and `lint` answers that SH96 is in neither file.
+
+**And the qualifier is write-only.** Five of the seven name a task that has since
+completed — nothing removes it when the second half lands, because `ship` deletes a
+roadmap line and never touches an entry already in the ledger. So the corpus carries five
+statements that were true when written and are now false, in the file whose whole job is
+to answer "is this done".
+
+Two directions. Teach the ledger grammar an optional qualifier after the id, or give
+partial completion a first-class form — an entry declaring which part shipped, with the
+line left open for `ship` to complete later. The second is more work and is the one that
+can be *maintained*, because only a verb can know when the qualifier stops being true.
+
 ## Block B — Authoring
 
 ### §RK113 Half a subtree renamed, and written
@@ -232,6 +231,42 @@ a half-renamed subtree).
 Registered per file in `.gitattributes`, it is opt-in configuration (L6), and it gates
 itself: a merge whose output `lint` refuses falls back to the conflict markers rather
 than writing a file nobody reviewed.
+
+### §RK123 The prose of a live task is the one thing no door opens
+
+`amend` reaches a line's `why`, `deps` and `ref`. `section drop` is refused while an
+open line points at the anchor — correctly, since that section is `ship`'s to remove.
+`section add` refuses an anchor that already exists. And the plugin's hook denies a
+hand-edit to any governed file. The union is a gap: **the rationale of an open task
+cannot be changed at all**, by anybody, until it ships and the section is deleted.
+
+Found twice in one session on Shio, both times on a ⏳ line. An investigation eliminated
+one of its two hypotheses and narrowed the other; the section still states both as open,
+and the sentence that would have said so had nowhere to go. That is the ordinary case,
+not an edge one: a design under a marker that is not ✅ is *expected* to change, and
+partial delivery (RK121) is the shape where it changes most.
+
+The verb is small — `section amend <anchor>`, the body on stdin, revalidated against the
+width and the word budget exactly as `add` validates it. What needs deciding is whether
+an amend that rewrites the whole argument should be refused in favour of a new task,
+which is the same question `amend` already answers for `symptom`.
+
+### §RK124 The ledger has an insert and a delete, and no update
+
+`record` has two doors, `add` and `drop`. The roadmap has `amend` for exactly the reason
+`record` does not: a `why` written under pressure is the field most likely to be wrong,
+and the cost of being wrong should be one command.
+
+Today it is two, and they are not equivalent to one. `drop` removes the entry and `add`
+appends a new one under its block, so a correction **moves the line** — a ledger read in
+the order work landed stops being one, and a reviewer diffing the file sees a deletion
+and an insertion where a word changed. On a shipped entry the loss is worse, because
+`ship` wrote it from a roadmap line that no longer exists to re-derive it from.
+
+`record amend <id> --why` is the missing half, validated at input the way `add` is.
+Whether it may also touch the block is the open question: an entry filed under the wrong
+block is a real mistake and moving it *is* a move, so that half may honestly belong to a
+separate verb rather than to a flag that pretends nothing happened.
 
 ## Block C — Query
 
@@ -327,6 +362,22 @@ What the anchor already spells is the fix's whole input. The parent of `RK34.1` 
 `RK34`, which `_extends` reads segment by segment for `section add` today — the question
 is asked one module over and never here.
 
+### §RK122 The gate reports the one project that did not hide it
+
+`id.two-files` says "open and recorded as gone are not both true". For a task delivered
+in halves both *are* true, and the finding has no way to be told so.
+
+The evidence is one corpus, read twice. Shio's SH238 is ⏳ in the roadmap and carries a
+bare id in the ledger, which is the honest way to write a half — and it is the only one
+`lint` reports. Six others are in the same state and are silent, because their ids carry
+a parenthetical the parser cannot read (RK121). The gate therefore reports **precisely
+the entries written correctly** and passes the ones that defeated it.
+
+That inversion is the argument for doing this with RK121 rather than after it: a finding
+whose only avoidance is a syntax error teaches the syntax error. Whatever form partial
+completion takes, this rule has to read it and stay quiet, and stay loud for the case it
+was written for — a line somebody shipped and forgot to delete.
+
 ## Block E — Adoption
 
 ### §RK103 The marker slot that holds two tokens
@@ -395,6 +446,25 @@ widths, and how many end in a lowercase letter. Both are counts over strings it 
 already parsed. Whether a corpus that pads *sometimes* should declare a width is a
 judgement, and stays the reader's — the report says what the ids spell, as it does for
 the prefix, and never that the project should therefore declare it.
+
+### §RK125 The declaration that makes a file parse removes a verb
+
+`[ledger] marker = false` exists so a ledger written before this tool can be read at all
+— Shio's 234 entries carry no marker, and declaring it is what lets 96 deps resolve
+instead of reading as "in neither file". It is adoption working exactly as designed.
+
+The cost is undeclared and total: `retire` refuses every id with `status:
+status.unrepresentable`, because `🗑` cannot be told from `✅` in a file with no marker
+column. So a project that adopted the tool the recommended way loses the ability to
+record a line leaving without shipping — one of the three doors RK's own design says the
+roadmap has, and the two undocumented ones were the reason `retire` was written.
+
+The refusal is honest and it is a dead end: it names the config and stops. At least
+three ways out, and the choice is a design decision, not a patch — carry the marker on
+retired entries only, since a file with no markers has nothing to be inconsistent with;
+or write the retirement to the roadmap rather than the ledger; or refuse at `adopt`
+time, so a project learns the cost before it inherits it rather than the first time it
+retires a line.
 
 ## Block F — The plugin
 

@@ -267,4 +267,14 @@ def test_a_sub_letter_nobody_declared_is_still_not_an_id(tmp_path):
 def test_a_single_family_scanner_is_the_pattern_it_always_was():
     # The list is what a backlog numbered by track needs; a project that numbers one
     # reads the same regex it always did, and `prefix = "RK"` stays a string in the file.
-    assert id_scanner(Schema()).pattern == r"\b(RK)([1-9][0-9]*)()\b"
+    # The groups are named because the schema joins them now (RK109) — one fragment, so
+    # the scan cannot spell an id the gate refuses.
+    assert (
+        id_scanner(Schema()).pattern
+        == r"\b(?P<family>RK)(?P<number>[1-9][0-9]*)(?P<sub>)\b"
+    )
+
+
+def test_the_scanner_is_the_schemas_own_join_and_not_a_second_copy():
+    for schema in (Schema(), Schema(prefixes=("D",), id_pad=2), Schema(id_suffix=True)):
+        assert id_scanner(schema).pattern == rf"\b{schema.id_groups}\b"

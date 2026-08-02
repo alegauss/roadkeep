@@ -17,7 +17,7 @@ from pathlib import Path
 
 import pytest
 
-from roadkeep.backlog import Backlog, DepStatus, Readiness
+from roadkeep.backlog import Backlog, DepStatus, Readiness, id_order, number_of
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.document import Document
@@ -378,3 +378,47 @@ def test_asking_about_a_shipped_task_says_where_it_went(tmp_path, capsys):
     )
     assert main(["-C", str(tmp_path), "deps", "RK1"]) == EXIT_USAGE
     assert "in the changelog" in capsys.readouterr().err
+
+
+# -- one ordering, so a fifth caller cannot write a fourth one (RK109) -------
+
+SPLIT = Schema(prefixes=("T",), id_suffix=True, ref_scheme="outline")
+PADDED = Schema(prefixes=("D",), id_pad=2, heading_word="Track")
+
+
+def test_the_ordering_is_numeric_and_not_lexical():
+    ids = ["RK10", "RK9", "RK100", "RK1"]
+    assert sorted(ids, key=lambda i: id_order(i, Schema())) == [
+        "RK1",
+        "RK9",
+        "RK10",
+        "RK100",
+    ]
+
+
+def test_a_split_task_sorts_directly_after_the_number_it_split():
+    # `T24b` is the task Turing numbered *after* T24 on purpose. Read as no id it counted
+    # as zero, and zero is first — so `pick` offered it ahead of T1.
+    ids = ["T25", "T24b", "T1", "T24"]
+    assert sorted(ids, key=lambda i: id_order(i, SPLIT)) == ["T1", "T24", "T24b", "T25"]
+
+
+def test_an_id_this_project_cannot_read_sorts_last_and_never_first():
+    # `D1` is a spelling this project's own gate refuses; the ordering used to read it as
+    # 1 and put it ahead of D02. A string the gate will not admit is not a claim on the
+    # front of the queue, so it goes to the end, by its own text.
+    ids = ["D02", "D1", "D01", "nonsense"]
+    assert sorted(ids, key=lambda i: id_order(i, PADDED)) == [
+        "D01",
+        "D02",
+        "D1",
+        "nonsense",
+    ]
+
+
+def test_the_number_is_read_within_one_family_when_a_range_asks_for_one():
+    tracks = Schema(prefixes=("C", "V"), ref_scheme="outline")
+    assert number_of("C14", tracks) == 14
+    assert number_of("C14", tracks, "C") == 14
+    assert number_of("V15", tracks, "C") is None
+    assert number_of("D1", PADDED) is None

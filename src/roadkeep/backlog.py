@@ -30,13 +30,12 @@ and on things that are not tracked work at all. So:
 
 from __future__ import annotations
 
-from collections.abc import Sequence
 from dataclasses import dataclass
 from enum import StrEnum
 
 from roadkeep.config import Config
 from roadkeep.document import Document, Entry
-from roadkeep.schema import Dep, DepKind, Task
+from roadkeep.schema import Dep, DepKind, Schema, Task
 
 
 class NotOpen(ValueError):
@@ -329,7 +328,7 @@ class Backlog:
             for entry in self.roadmap.entries
             # `number_of` against the *one* family, not all of them: `C14–C20` counts in
             # cursarei's product track and must not be satisfied by `V15` shipping.
-            if (number := number_of(entry.task.id, family, schema.id_suffix)) is not None
+            if (number := number_of(entry.task.id, schema, family)) is not None
             and first <= number <= last
         )
 
@@ -355,51 +354,38 @@ class Backlog:
         return Readiness.BLOCKED
 
 
-def number_of(
-    task_id: str, prefixes: str | Sequence[str], suffix: bool = False
-) -> int | None:
+def number_of(task_id: str, schema: Schema, family: str | None = None) -> int | None:
     """The numeric part of an id of this project, or None if it is not one.
 
-    Public because `pick` (RK11) orders by it: "lowest id" is a numeric comparison, and
-    a second implementation of it would sort RK9 after RK10 in exactly one of the two.
+    Public because a range dep is bounded by numbers: `C14–C20` asks which open lines fall
+    between two of them, and that is a question about the number alone.
 
-    Takes every family the project numbers (RK74), longest first so that a `C` declared
-    beside a `CX` cannot claim `CX7` — which :func:`~roadkeep.schema._check_prefixes`
-    already refuses, this being the second place that would have to know it.
-
-    ``suffix`` is `[ids] suffix` (RK106), passed and never assumed: a `T24b` read as no id
-    counts as zero here, and zero is *first* — so the split task a project deliberately
-    numbered after `T24` would be the one `pick` offered ahead of `T1`. Leading zeros need
-    no flag: a declared width is still digits, and `D01` counts as 1.
+    Takes the :class:`~roadkeep.schema.Schema` and not `prefixes` plus a flag (RK109). The
+    shape is one declaration — the families (RK74), the width and the sub-letter (RK106) —
+    and a signature that let a caller pass two thirds of it is how the ordering came to
+    read a `D1` its own gate refuses. ``family`` narrows the answer to one track, because
+    `C14–C20` counts in cursarei's product track and must not be satisfied by `V15`.
     """
-    if isinstance(prefixes, str):
-        prefixes = (prefixes,)
-    for prefix in sorted(prefixes, key=lambda p: (-len(p), p)):
-        if not task_id.startswith(prefix):
-            continue
-        tail = _digits(task_id[len(prefix) :], suffix)
-        if tail.isdigit():
-            return int(tail)
-    return None
+    parsed = schema.parse_id(task_id)
+    if parsed is None or (family is not None and parsed.family != family):
+        return None
+    return parsed.number
 
 
-def family_of(task_id: str, prefixes: Sequence[str], suffix: bool = False) -> str | None:
-    """Which family an id belongs to (RK74), or None if it belongs to none.
+def id_order(task_id: str, schema: Schema) -> tuple[int, int, str, str]:
+    """How ids sort — the one answer `pick`, `lint` and `--fix` all order by (RK109).
 
-    Separate from :func:`number_of` because `next-id` asks a different question of the
-    same string: not "how high does this backlog count" but "how high does *this track*",
-    two tracks sharing a counter being two tracks that renumber each other.
+    "Lowest id" is a numeric comparison, and three call sites each wrote it as
+    ``number_of(...) or 0``, which put anything unreadable *first*: the split task a
+    project deliberately numbered after `T24` would have been offered ahead of `T1`. Here
+    an id this project cannot read sorts **last**, by its own text, because a string the
+    gate refuses is not a claim on the front of the queue — and `T24b` sorts directly after
+    `T24`, the sub-letter being the tie-break it was written to be.
     """
-    for prefix in sorted(prefixes, key=lambda p: (-len(p), p)):
-        tail = task_id[len(prefix) :] if task_id.startswith(prefix) else ""
-        if _digits(tail, suffix).isdigit():
-            return prefix
-    return None
-
-
-def _digits(tail: str, suffix: bool) -> str:
-    """An id's tail with the sub-letter taken off, where the project declares one."""
-    return tail[:-1] if suffix and tail[-1:].islower() else tail
+    parsed = schema.parse_id(task_id)
+    if parsed is None:
+        return (1, 0, "", task_id)
+    return (0, parsed.number, parsed.sub, task_id)
 
 
 def _present(config: Config, role: str) -> Document | None:
