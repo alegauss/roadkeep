@@ -82,6 +82,7 @@ from roadkeep.sections import nested as nested_sections
 from roadkeep.sections import pointers
 from roadkeep.serving import serve
 from roadkeep.shipping import Closure, Partial, record, retire, ship
+from roadkeep.shipping import amend as amend_record
 from roadkeep.weighing import Spread, Weights, weigh
 from roadkeep.shipping import drop as drop_record
 from roadkeep.showing import View, show
@@ -478,6 +479,27 @@ def build_parser() -> argparse.ArgumentParser:
         "--json", action="store_true", help="the entry, with the file and line it landed on"
     )
     record_add.set_defaults(handler=_record)
+
+    record_amend = entries.add_parser(
+        "amend",
+        help="correct a ledger entry's sentence where it stands",
+        description=(
+            "Rewrite one entry's `why`, or a partial's qualifier, without moving the line. "
+            "`drop` and `add` are not equivalent to this: they would remove the entry and "
+            "append a new one under its block, so a ledger read in the order work landed "
+            "stops being one and a reviewer sees a deletion where a word changed. The "
+            "`symptom` is the claim and is not a field, the id is `renumber`'s, and the "
+            "block is not offered because filing an entry elsewhere is a move."
+        ),
+    )
+    record_amend.add_argument("id", help="the recorded id, e.g. RK41")
+    record_amend.add_argument("--why", help="the corrected sentence, one stop")
+    record_amend.add_argument(
+        "--part",
+        help="correct a partial's qualifier; refused where the entry carries none",
+    )
+    record_amend.add_argument("--json", action="store_true", help=_JSON_HELP)
+    record_amend.set_defaults(handler=_record_amend)
 
     record_drop = entries.add_parser(
         "drop",
@@ -1966,6 +1988,44 @@ def _non_goal_drop(config: Config, args: argparse.Namespace) -> int:
             f"  duplicate {dropped.carried} bullets carried this lead: the later one went, "
             f"the first is where the reader already found it"
         )
+    return EXIT_OK
+
+
+def _record_amend(config: Config, args: argparse.Namespace) -> int:
+    if args.why is None and args.part is None:
+        print("roadkeep: nothing to amend: pass --why or --part", file=sys.stderr)
+        return EXIT_USAGE
+    try:
+        corrected = amend_record(config, args.id, why=args.why, part=args.part)
+        corrected.save()
+    except REFUSALS as error:
+        return _refused(error)
+
+    where = config.relative(config.path("changelog"))
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "id": corrected.task_id,
+                    "file": where,
+                    # The line it was already on, because not moving it is the claim.
+                    "line": corrected.lineno,
+                    "rendered": corrected.rendered,
+                    "changed": list(corrected.changed),
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+
+    if not corrected.changed:
+        print(f"{corrected.task_id} unchanged: the entry already reads that way")
+        return EXIT_OK
+    print(
+        f"{corrected.task_id} amended  {where}:{corrected.lineno}  "
+        f"({', '.join(corrected.changed)})"
+    )
+    print(f"  {corrected.rendered}")
     return EXIT_OK
 
 

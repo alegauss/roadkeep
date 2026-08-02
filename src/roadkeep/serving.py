@@ -138,6 +138,10 @@ TOOLS: tuple[Tool, ...] = (
     Tool("defer", ("id", "reason"), writes=True),
     Tool("resume", ("id", "marker"), writes=True),
     Tool("record add", ("block", "symptom", "why"), writes=True),
+    # The ledger's update (RK124). `part` rides with it because a qualifier that stopped
+    # being true is the commonest correction an entry needs, and the agent that wrote it is
+    # the one the hook denies a hand-edit to.
+    Tool("record amend", ("id", "why", "part"), writes=True),
     Tool("record drop", ("id",), writes=True),
     Tool("non-goal add", ("lead", "why"), writes=True),
     Tool("non-goal drop", ("lead",), writes=True),

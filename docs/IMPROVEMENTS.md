@@ -118,23 +118,6 @@ as one. RK122 is the same question one file up.
 
 ## Block B — Authoring
 
-### §RK124 The ledger has an insert and a delete, and no update
-
-`record` has two doors, `add` and `drop`. The roadmap has `amend` for exactly the reason
-`record` does not: a `why` written under pressure is the field most likely to be wrong,
-and the cost of being wrong should be one command.
-
-Today it is two, and they are not equivalent to one. `drop` removes the entry and `add`
-appends a new one under its block, so a correction **moves the line** — a ledger read in
-the order work landed stops being one, and a reviewer diffing the file sees a deletion
-and an insertion where a word changed. On a shipped entry the loss is worse, because
-`ship` wrote it from a roadmap line that no longer exists to re-derive it from.
-
-`record amend <id> --why` is the missing half, validated at input the way `add` is.
-Whether it may also touch the block is the open question: an entry filed under the wrong
-block is a real mistake and moving it *is* a move, so that half may honestly belong to a
-separate verb rather than to a flag that pretends nothing happened.
-
 ### §RK126 The ledger's unit is the entry, and the damage is smaller than that
 
 `lint` finds four line-level defects in Shio's ledger and describes them exactly: two

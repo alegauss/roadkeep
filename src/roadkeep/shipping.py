@@ -47,8 +47,22 @@ twice states one decision twice, `lint`'s `id.duplicate` reports it, and until n
 the hand-edit the hook denies could act. :func:`drop` is the inverse of the door that wrote it
 and refuses unless the id is there **twice** — removing the only record of a decision is
 deleting history rather than de-duplicating it. The later entry goes: the first is where the
-reader already found it. Prose that is wrong is `amend`'s question one file over, and an entry
+reader already found it. Prose that is wrong is :func:`amend`'s, below, and an entry
 that should never have existed is a decision the author states in the commit that removes it.
+
+**And an update, because insert and delete are not one** (RK124). A `why` written under
+pressure is the field most likely to be wrong, and the two doors above are not equivalent to
+a correction: `drop` removes the entry and `add` appends a new one under its block, so fixing
+a word **moves the line** — a ledger read in the order work landed stops being one, and a
+reviewer diffing it sees a deletion and an insertion where a word changed. Worse on a shipped
+entry, where `ship` wrote it from a roadmap line that no longer exists to re-derive it from.
+:func:`amend` is that update, and it reaches exactly what the roadmap's own `amend` reaches:
+the sentence, and never the claim. `symptom` is refused there and absent here for the same
+reason, and the two fields this file adds are answered the same way — the **id** is
+`renumber`'s, and the **block** is not a field at all, because filing an entry elsewhere is a
+move and a flag that pretends nothing happened is the thing this verb exists to stop being.
+The one addition is `part`: the qualifier of a partial (RK121) is a phrase that stops being
+true, and correcting it is why that comment said `amend` all along.
 """
 
 from __future__ import annotations
@@ -68,17 +82,22 @@ from roadkeep.sections import drop as drop_section
 __all__ = [
     "AlreadyRecorded",
     "AlreadyShipped",
+    "Ambiguous",
     "Closure",
+    "Corrected",
     "Departure",
     "Dropped",
+    "NoQualifier",
     "NoRestatement",
     "NoSuchReplacement",
     "NotDuplicated",
     "NotOpen",
+    "NotRecorded",
     "Partial",
     "Record",
     "Section",
     "Shipment",
+    "amend",
     "drop",
     "record",
     "retire",
@@ -141,6 +160,59 @@ class NotDuplicated(ValueError):
         super().__init__(
             f"{task_id} is in {where} {found}: this removes the later of two entries for one "
             f"id, and the only record of a decision is history rather than a duplicate"
+        )
+
+
+class NotRecorded(KeyError):
+    """An id the ledger does not carry, at the one door that only reads the ledger (RK124).
+
+    Distinct from :class:`~roadkeep.backlog.NotOpen`, which is about the roadmap: a caller
+    correcting an entry is holding the ledger's own address, and being told "not open" would
+    send them to the file where it correctly is not.
+    """
+
+    def __init__(self, task_id: str, where: str, *, open_line: bool) -> None:
+        self.task_id = task_id
+        elsewhere = (
+            " — it is an open roadmap line, and `amend` is the verb for one"
+            if open_line
+            else ""
+        )
+        super().__init__(f"{task_id} is not in {where}{elsewhere}")
+
+
+class Ambiguous(ValueError):
+    """A correction against an id the ledger states twice (RK124).
+
+    Refused rather than applied to one of them: which entry a `--why` was written about is
+    the one thing this transaction cannot read, and the two may be two different pieces of
+    work sharing an id (RK127). `record drop` is the door for a real duplicate; a reader who
+    has two decisions here needs to decide that first.
+    """
+
+    def __init__(self, task_id: str, where: str, linenos: tuple[int, ...]) -> None:
+        self.task_id = task_id
+        self.linenos = linenos
+        lines = ", ".join(str(n) for n in linenos)
+        super().__init__(
+            f"{where} states {task_id} at {len(linenos)} lines ({lines}): which of them "
+            f"this corrects is not a fact any file holds — de-duplicate it first"
+        )
+
+
+class NoQualifier(ValueError):
+    """`--part` against an entry that records a whole shipment (RK121, RK124).
+
+    The qualifier is written by `ship --part` and removed by the completion, so this door
+    only ever *corrects* the phrase. Adding one here would make an entry claim a partial
+    delivery while the roadmap line it was written from is gone or closed.
+    """
+
+    def __init__(self, task_id: str, lineno: int) -> None:
+        self.task_id = task_id
+        super().__init__(
+            f"{task_id} at line {lineno} carries no qualifier, so there is none to "
+            f"correct: `ship --part` is what writes one, on a line that is still open"
         )
 
 
@@ -358,6 +430,88 @@ class Dropped:
     def save(self) -> None:
         """Write the ledger. Nothing else was opened, so nothing else can be touched."""
         self.ledger.save()
+
+
+@dataclass(frozen=True, slots=True)
+class Corrected:
+    """One ledger entry rewritten where it stands (RK124).
+
+    No `removed_from` and no insertion, which is the whole shape of the claim: the line
+    keeps its number, so the ledger still reads in the order work landed and the diff shows
+    a word. Nothing else is opened either — a `why` is prose, and no annotation anywhere is
+    derived from it.
+    """
+
+    task_id: str
+    #: The ledger as this write leaves it: one line rewritten, everything else verbatim.
+    ledger: Document
+    entry: Entry
+    #: Which fields moved — empty when the entry already read that way, so a caller can
+    #: tell "corrected" from "already correct" without diffing the file.
+    changed: tuple[str, ...] = ()
+
+    @property
+    def rendered(self) -> str:
+        return self.entry.raw
+
+    @property
+    def lineno(self) -> int:
+        return self.entry.lineno
+
+    def save(self) -> None:
+        """Write the ledger. Nothing else was opened, so nothing else can be touched."""
+        self.ledger.save()
+
+
+def amend(
+    config: Config, task_id: str, *, why: str | None = None, part: str | None = None
+) -> Corrected:
+    """Correct one ledger entry's sentence, or a partial's qualifier, in place (RK124).
+
+    Validated before the write exactly as `record add` validates its fields (L1), against
+    the ledger's own schema — so an over-length `why` is refused with the number, and the
+    line that reaches disk is one this tool can read back (L3).
+
+    Refused on an id the ledger states twice: which of two entries a correction was written
+    about is not a fact any file holds, and `record drop` is the door for a duplicate.
+    """
+    ledger = config.document("changelog")
+    where = config.relative(config.path("changelog"))
+    twins = tuple(entry for entry in ledger.entries if entry.task.id == task_id)
+    if not twins:
+        raise NotRecorded(
+            task_id, where, open_line=task_id in config.document("roadmap").by_id()
+        )
+    if len(twins) > 1:
+        raise Ambiguous(task_id, where, tuple(entry.lineno for entry in twins))
+
+    entry = twins[0]
+    if part is not None and entry.task.part is None:
+        raise NoQualifier(task_id, entry.lineno)
+
+    wanted = replace(
+        entry.task,
+        why=entry.task.why if why is None else why,
+        part=entry.task.part if part is None else part,
+    )
+    changed = tuple(
+        name
+        for name, before, after in (
+            ("why", entry.task.why, wanted.why),
+            ("part", entry.task.part, wanted.part),
+        )
+        if before != after
+    )
+    if not changed:
+        return Corrected(task_id=task_id, ledger=ledger, entry=entry)
+
+    document = ledger.replace_task(entry, ledger.schema.check(wanted))
+    return Corrected(
+        task_id=task_id,
+        ledger=document,
+        entry=document.by_id()[task_id],
+        changed=changed,
+    )
 
 
 def drop(config: Config, task_id: str) -> Dropped:

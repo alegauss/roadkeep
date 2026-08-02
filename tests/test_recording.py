@@ -30,7 +30,15 @@ from roadkeep.config import Config
 from roadkeep.history import gaps
 from roadkeep.linting import lint
 from roadkeep.schema import RETIRED, SHIPPED, SchemaError
-from roadkeep.shipping import NotDuplicated, drop, record
+from roadkeep.shipping import (
+    Ambiguous,
+    NoQualifier,
+    NotDuplicated,
+    NotRecorded,
+    amend,
+    drop,
+    record,
+)
 
 ROADMAP = f"""# Roadmap
 
@@ -369,3 +377,120 @@ def test_a_refused_drop_writes_nothing_and_exits_two(tmp_path, capsys):
     assert main(["-C", str(tmp_path), "record", "drop", "RK2"]) == EXIT_USAGE
     assert "once, at line 6" in capsys.readouterr().err
     assert read(tmp_path, "CHANGELOG.md") == DEDUPED
+
+
+# -- the update the pair was not (RK124) --------------------------------------
+
+#: One entry, and a partial beside it — the two shapes a correction lands on.
+RECORDED = f"""# Shipped
+
+## Block A — The model
+
+- {SHIPPED} **RK1** **A first symptom** — Because of a resaon.
+- {SHIPPED} **RK2 (local half)** **A second symptom** — Because half of it landed.
+
+## Block B — Authoring
+"""
+
+
+def test_the_sentence_is_corrected_where_the_line_already_is(tmp_path):
+    # The whole claim: `drop` + `add` would move the entry to the end of its block, so a
+    # ledger read in the order work landed stops being one over a spelling.
+    config = project(tmp_path, roadmap=BARE_ROADMAP, ledger=RECORDED)
+    corrected = amend(config, "RK1", why="Because of a reason.")
+    corrected.save()
+
+    assert corrected.changed == ("why",) and corrected.lineno == 5
+    body = read(tmp_path, "CHANGELOG.md")
+    assert "Because of a reason." in body and "resaon" not in body
+    # The line kept its place, and the entry after it kept theirs.
+    assert body.splitlines()[5].startswith(f"- {SHIPPED} **RK2 (local half)**")
+
+
+def test_a_partials_qualifier_is_the_other_field(tmp_path):
+    # The phrase that stops being true (RK121), which is why `_partial` said `amend` all
+    # along: only a command knows when "local half" became "local and remote".
+    config = project(tmp_path, roadmap=BARE_ROADMAP, ledger=RECORDED)
+    corrected = amend(config, "RK2", part="local and remote")
+    corrected.save()
+
+    assert corrected.changed == ("part",)
+    assert "**RK2 (local and remote)**" in read(tmp_path, "CHANGELOG.md")
+
+
+def test_a_qualifier_is_corrected_and_never_invented(tmp_path):
+    config = project(tmp_path, roadmap=BARE_ROADMAP, ledger=RECORDED)
+    with pytest.raises(NoQualifier):
+        amend(config, "RK1", part="local half")
+    assert read(tmp_path, "CHANGELOG.md") == RECORDED
+
+
+def test_an_id_the_ledger_states_twice_is_refused(tmp_path):
+    # Which of two entries a `--why` was written about is the one thing this transaction
+    # cannot read — and the two may be different work sharing an id (RK127).
+    config = project(tmp_path, roadmap=BARE_ROADMAP, ledger=DOUBLED)
+    with pytest.raises(Ambiguous) as raised:
+        amend(config, "RK1", why="Because of a reason.")
+    assert "5, 10" in str(raised.value)
+    assert read(tmp_path, "CHANGELOG.md") == DOUBLED
+
+
+def test_an_id_the_ledger_does_not_carry_says_where_it_is(tmp_path):
+    config = project(tmp_path, ledger=LEDGER)
+    with pytest.raises(NotRecorded) as raised:
+        amend(config, "RK1", why="Because of a reason.")
+    assert "open roadmap line" in str(raised.value)
+
+
+def test_the_sentence_is_refused_at_input_the_way_add_refuses_it(tmp_path):
+    # L1 at the one door that rewrites: a limit reported after the prose exists is a limit
+    # discovered too late to save the tokens it was meant to save.
+    config = project(tmp_path, roadmap=BARE_ROADMAP, ledger=RECORDED)
+    with pytest.raises(SchemaError):
+        amend(config, "RK1", why="Because " + "x" * 400 + ".")
+    assert read(tmp_path, "CHANGELOG.md") == RECORDED
+
+
+def test_an_entry_that_already_reads_that_way_is_not_rewritten(tmp_path):
+    config = project(tmp_path, roadmap=BARE_ROADMAP, ledger=RECORDED)
+    corrected = amend(config, "RK1", why="Because of a resaon.")
+    corrected.save()
+    assert corrected.changed == () and read(tmp_path, "CHANGELOG.md") == RECORDED
+
+
+def test_the_command_prints_the_line_it_left_in_place(tmp_path, capsys):
+    project(tmp_path, roadmap=BARE_ROADMAP, ledger=RECORDED)
+    code = main(
+        ["-C", str(tmp_path), "record", "amend", "RK1", "--why", "Because of a reason."]
+    )
+    assert code == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "RK1 amended  CHANGELOG.md:5  (why)" in printed
+    assert "Because of a reason." in printed
+
+
+def test_an_amend_with_neither_field_is_a_usage_error(tmp_path, capsys):
+    project(tmp_path, roadmap=BARE_ROADMAP, ledger=RECORDED)
+    assert main(["-C", str(tmp_path), "record", "amend", "RK1"]) == EXIT_USAGE
+    assert "nothing to amend" in capsys.readouterr().err
+    assert read(tmp_path, "CHANGELOG.md") == RECORDED
+
+
+def test_the_amend_json_says_the_line_did_not_move(tmp_path, capsys):
+    project(tmp_path, roadmap=BARE_ROADMAP, ledger=RECORDED)
+    code = main(
+        [
+            "-C",
+            str(tmp_path),
+            "record",
+            "amend",
+            "RK1",
+            "--why",
+            "Because of a reason.",
+            "--json",
+        ]
+    )
+    assert code == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["line"] == 5 and payload["changed"] == ["why"]
+    assert payload["file"] == "CHANGELOG.md"

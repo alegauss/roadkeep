@@ -27,7 +27,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK124** (deps: —) **A ledger entry can be written and deleted but never corrected** — record add and record drop are the pair, so fixing one word of a why means dropping the entry and re-adding it, which moves the line to the end of its block. → §RK124
 - 📋 **RK126** (deps: —) **Corruption inside a ledger entry is reported by lint and repairable by no verb** — The unit is the entry and the damage is inside one: Shio carries two U+0008 control characters and a dead link in entry prose, and add, drop, ship and retire all reach only the whole line. → §RK126
 - 📋 **RK127** (deps: RK121 ✅) **record drop assumes a duplicate is redundant, and picks the later entry either way** — Shio's two SH347 entries are two different pieces of work sharing an id, so dropping either destroys history, and the one the verb picks is the entry that earned the id. → §RK127
 - 📋 **RK129** (deps: —) **Retiring a task whose half already shipped deletes the record that it did** — The completion path replaces the partial entry and `retire` takes that path, so a ✅ naming what landed becomes a 🗑 and the sentence about the shipped half leaves the only file that held it. → §RK129
