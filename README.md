@@ -116,23 +116,28 @@ called unbuilt were already in the ledger.
 
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
-| A — The model (a task is data before it is a line) | 0 | 14 | 0 |
+| A — The model (a task is data before it is a line) | 1 | 14 | 0 |
 | B — Authoring (insert, never hand-edit) | 0 | 18 | 0 |
 | C — Query (consult without reading the file) | 0 | 16 | 0 |
-| D — The gate | 0 | 15 | 0 |
-| E — Adoption | 0 | 18 | 1 |
+| D — The gate | 2 | 15 | 0 |
+| E — Adoption | 2 | 18 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 17 | 1 |
-| **Total** | 0 | 98 | 2 |
+| **Total** | 5 | 98 | 2 |
+
+**Next ready:**
+
+- 📋 **RK103** (deps: —) **A bullet whose marker holds a space is read as prose and reported by nothing** — GitHub's `- [ ]` task list is the commonest Markdown backlog there is, and cursarei's 16 of them parse as 0 entries and 0 rejects — the silent miss the reject list exists to end. → §RK103
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
 came from — because an answer an agent cannot audit gets verified by reading the file,
 which is the cost the command existed to remove.
 
-Nothing is open. What
-[docs/ROADMAP.md](https://github.com/alegauss/roadkeep/blob/main/docs/ROADMAP.md) still carries
-is the **non-goals**, which is the half of it that binds: `brief` prints them with every task,
-and they are what a proposal is checked against before it becomes a line.
+Open work, and where to look:
+[docs/ROADMAP.md](https://github.com/alegauss/roadkeep/blob/main/docs/ROADMAP.md) — the count
+and the next ready line are in the derived block above, so this sentence states neither. The
+same file carries the **non-goals**, which is the half of it that binds: `brief` prints them
+with every task, and they are what a proposal is checked against before it becomes a line.
 
 Four projects are adopted and governed — this one, Shio, Turing and Dumont — each with its own
 `roadkeep.toml` and the measurement that produced it. A fifth candidate was measured and
