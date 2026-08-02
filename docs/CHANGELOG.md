@@ -81,6 +81,7 @@
 - ✅ **RK61** **Under the outline scheme no check can say which task a section belongs to** — A section's owners are the anchor under the id scheme and the ids its heading names under an outline, so Shio's 39 stale sections and 9 orphans are visible.
 - ✅ **RK63** **A heuristic read off this repository disabled the new check on the corpus it was written for** — Ownership is the claim a heading makes by naming a task, with no exemption for where the section sits, and this repository's own preface stopped making it.
 - ✅ **RK84** **lint cannot answer whether this change made it worse** — `lint --baseline REV` runs the same gate over the files as they were at REV and fails on the difference alone, so a corpus with 586 standing problems gets an exit code about its own commit.
+- ✅ **RK102** **A test over a live corpus fails when the other project ships the work it counted** — The live-corpus assertions name what the file spells instead of a floor, so Shio's progress no longer turns this suite red.
 
 ## Block E — Adoption
 

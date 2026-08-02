@@ -81,27 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK102 The floor that points at a number the corpus is trying to reduce
-
-`test_a_live_backlog_shows_where_the_abbreviation_hides_work` requires `Block P` to
-expand to more than twenty open tasks in Shio. It was written at 48, its own comment
-records 41, and it is 13 today — because those tasks shipped, and the `deps.collective`
-note counted the remainder correctly.
-
-The other live-corpus assertions take lower bounds on quantities that only grow: 120
-sections in Shio's rationale, 20 lettered headings in Turing's. A floor over an open
-backlog points the other way, a backlog being the one number a project is trying to
-empty. So this test goes red exactly when the corpus behaves, and it fails under
-roadkeep's own name while measuring somebody else's progress — a diagnosis a reader has
-to complete before being allowed to ignore it.
-
-What does not decay is a correctness assertion: count Block P's open lines out of the
-file and require the note to name that many. It proves the thing roadkeep controls —
-that `expand` resolves a collective dep to exactly the set the roadmap spells — and it
-holds at 48, at 13 and at 1, where the point the test is named for is still the one
-being made. A magnitude belongs in a fixture that owns its own numbers, never in a
-corpus another repository writes.
-
 ## Block E — Adoption
 
 ### §RK21 Rollout

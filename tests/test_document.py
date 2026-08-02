@@ -35,15 +35,15 @@ CHANGELOG = HERE / "docs" / "CHANGELOG.md"
 
 #: Real backlogs that predate the tool, with their own prefixes (L6). Absent on
 #: any machine but the author's, so every use is guarded.
-#: The bounds are deliberately slack: these files belong to other projects and shrink
-#: whenever those projects ship, so a tight floor fails on work that happened elsewhere
-#: (Shio crossed 90 mid-session) and says nothing about this parser.
-# The foreign bounds are slack for the reason the note below gives, and they were not slack
-# enough: 80 was one ship away from Shio's 79 and crossed the day Shio shipped SH270. A
-# bound set at the current reading is a count, whoever writes the comment saying it is not.
+#: The bound is 1 for the same reason `OWN`'s roadmap is: these files belong to other
+#: projects and empty as those projects ship, so any floor above one is a count that
+#: somebody else's progress crosses — 90, then 80, which fell the day Shio shipped SH270,
+#: and a comment calling it slack does not make it slack (RK102). What the corpus is read
+#: for is round-trip at a scale nothing here authored, and that needs no magnitude: the
+#: floor's whole job is to fail when a parse silently read nothing.
 FOREIGN = [
-    (Path("D:/Git/viglet/shio/latest/docs/ROADMAP.md"), OUTLINE_SH, 40),
-    (Path("D:/Git/viglet/turing/latest/docs/ROADMAP.md"), OUTLINE_T, 15),
+    (Path("D:/Git/viglet/shio/latest/docs/ROADMAP.md"), OUTLINE_SH, 1),
+    (Path("D:/Git/viglet/turing/latest/docs/ROADMAP.md"), OUTLINE_T, 1),
 ]
 
 # Lower bounds, not counts: shipping a task moves a line between these two files every
@@ -93,16 +93,19 @@ def test_no_marker_bearing_line_is_silently_dropped(case):
 
 
 def test_a_foreign_backlog_round_trips_while_failing_validation():
-    # The two halves are independent, and conflating them is what makes a
-    # formatter destructive: Shio's lines are far over the limits *and* every one
-    # of them renders back unchanged.
+    # The two halves are independent, and conflating them is what makes a formatter
+    # destructive: Shio's lines are over the limits *and* every one of them renders back
+    # unchanged. Not a floor on how many offend — Shio rewrites those lines, and a suite
+    # that counted them would go red for somebody else's progress (RK102). The magnitude
+    # is owned by the fixture below; what the corpus adds is scale nothing here authored.
     path, schema, _ = FOREIGN[0]
     if not path.exists():
         pytest.skip(f"{path} is not on this machine")
     document = Document.load(path, schema)
-    assert document.non_canonical == ()
     offenders = [e for e in document.entries if schema.validate(e.task)]
-    assert len(offenders) > 50
+    if not offenders:
+        pytest.skip(f"{path} no longer has a line to disagree with: nothing to prove here")
+    assert document.non_canonical == ()
 
 
 #: The two live ledgers, and a floor on what the parser must *say* about them. Lower
@@ -159,6 +162,20 @@ def test_fields_survive_the_round_trip_through_data():
         ref="RK9",
     )
     assert entry.lineno == 2
+
+
+def test_a_line_far_over_the_limits_still_renders_back_unchanged():
+    # What the foreign backlog above is read for, at a magnitude this file owns: a
+    # symptom many times the limit and a why of three sentences is rejected by
+    # `validate` and untouched by `render`, which is the independence that keeps a
+    # formatter from being destructive.
+    over = (
+        f"- {IDEA} **RK9** (deps: —) **{'A symptom that runs on ' * 8}and on** "
+        f"— A reason. And a second sentence. And a third. → §RK9"
+    )
+    (entry,) = parse_in_block(over).entries
+    assert {v.field for v in Schema().validate(entry.task)} == {"symptom", "why"}
+    assert Schema().render(entry.task) == over
 
 
 def test_the_pointer_is_taken_from_the_end_not_the_first_match():

@@ -363,13 +363,16 @@ def test_shio_is_readable_before_it_is_conforming() -> None:
     estimate = adopt(Config.default(SHIO.parent), SHIO, ref_scheme="outline")
     assert estimate.prefix == "SH"
     assert estimate.non_canonical == 0
+    assert estimate.parsed > 0  # the weakest bound that still fails on an empty read
     codes = dict(estimate.codes)
-    assert "id.format" not in codes
-    # Slack bounds, not readings: this file is another repository's live backlog and it
-    # shrinks every time Shio ships. A number set at today's count is a test that fails
-    # on somebody else's commit — which is how `test_document.py`'s bound was crossed.
-    assert estimate.parsed > 40
-    assert codes["why.too-long"] > 20
+    if not codes:
+        pytest.skip(f"{SHIO} now conforms: there is no adoption cost left to estimate")
+    # No count of the offences, slack or otherwise: this is another repository's live
+    # backlog, it shrinks every time Shio ships, and a bound set at today's reading is a
+    # count whatever the comment beside it claims (RK102) — which is how the one in
+    # `test_document.py` was crossed. The finding is which *kind* of code appears: none
+    # about the id, the deps, the marker or the block, so adoption is an editing cost.
+    assert [c for c in codes if not c.startswith(("why.", "line.", "ref."))] == []
 
 
 class _Stdin:

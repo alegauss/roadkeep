@@ -17,6 +17,7 @@ And the fixture that proves the format rather than asserting it: this repository
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -571,6 +572,23 @@ COLLECTIVE = """# Roadmap
 WITH_RK3 = PROSE + "\n### §RK3 The third design\n\nThe reasoning the third line lacks.\n"
 
 
+#: Eight open tasks behind one token — the magnitude in a fixture that owns its numbers,
+#: so no assertion about it depends on another repository still having a full backlog.
+CROWDED = (
+    "# Roadmap\n\n## Block A — The model\n"
+    + "".join(
+        f"- 📋 **RK{n}** (deps: —) **A symptom** — Because of a reason. → §RK{n}\n"
+        for n in range(11, 19)
+    )
+    + "\n## Block B — Authoring\n\n"
+    "- 📋 **RK19** (deps: Block A) **A ninth symptom** — Because of a reason. → §RK19\n"
+)
+CROWDED_PROSE = "# Design rationale\n\n## Block A — The model\n" + "".join(
+    f"\n### §RK{n} The design\n\nThe reasoning the line has no room for.\n"
+    for n in (*range(11, 19), 19)
+)
+
+
 def test_a_block_dep_says_what_it_expands_to_without_failing(tmp_path):
     # `Block P` resolved to forty-one open tasks in Shio and is one token on the page.
     # Legitimate (RK28), so the exit code cannot move — but a reader counting deps to
@@ -596,6 +614,16 @@ def test_a_range_dep_is_expanded_too(tmp_path):
     report = lint(project(tmp_path, roadmap=ranged, improvements=WITH_RK3))
     assert report.clean
     assert "RK1–RK2 is one token naming 2 open tasks" in report.notes[0].message
+
+
+def test_the_listing_stops_at_six_and_the_count_still_names_them_all(tmp_path):
+    # Where the count and the listing part company, which is the whole point of printing
+    # the number: past six the reader is told how much the token hides, not which ids.
+    report = lint(project(tmp_path, roadmap=CROWDED, improvements=CROWDED_PROSE))
+    assert report.clean
+    (note,) = report.notes
+    assert "Block A is one token naming 8 open tasks: " in note.message
+    assert note.message.endswith("RK11, RK12, RK13, RK14, RK15, RK16 …")
 
 
 def test_a_collective_dep_naming_one_task_says_nothing(tmp_path):
@@ -628,6 +656,23 @@ def test_json_carries_the_notes_beside_the_findings(tmp_path, capsys):
     assert note["code"] == "deps.collective" and note["id"] == "RK3"
 
 
+def _open_in_shio_block(roadmap: Path, label: str) -> list[str]:
+    """Block `label`'s open ids, read out of the raw text by nothing this suite tests.
+
+    The point of the assertion below is that `expand` names *exactly* the set the file
+    spells, so the expected side of it has to be counted independently — a second call
+    into `Backlog` would only prove the parser agrees with itself.
+    """
+    ids: list[str] = []
+    within = False
+    for line in roadmap.read_text(encoding="utf-8").splitlines():
+        if line.startswith("## "):
+            within = line.startswith(f"## {label} ")
+        elif within and (match := re.match(r"- \S+ \*\*(SH[1-9][0-9]*)\*\*", line)):
+            ids.append(match.group(1))
+    return ids
+
+
 def test_a_live_backlog_shows_where_the_abbreviation_hides_work():
     roadmap = SHIO / "docs" / "ROADMAP.md"
     if not roadmap.is_file():
@@ -640,9 +685,17 @@ def test_a_live_backlog_shows_where_the_abbreviation_hides_work():
         },
         root=SHIO,
     )
-    # A floor and not a count: Shio ships, and 41 today was 48 when this was measured.
-    (note,) = [n for n in lint(config).notes if "Block P" in n.message]
-    assert int(note.message.split("naming ")[1].split(" ")[0]) > 20
+    # Not a floor: Shio empties Block P, and 48 when this was measured is 12 today. What
+    # holds at every one of those is the note naming the count the file itself spells.
+    expected = _open_in_shio_block(roadmap, "Block P")
+    notes = [n for n in lint(config).notes if "Block P is one token" in n.message]
+    if len(expected) < 2:
+        # The block emptied to one: RK35 suppresses the note there, and that is the
+        # assertion, not a reason to go red.
+        assert notes == []
+        return
+    (note,) = notes
+    assert f"naming {len(expected)} open tasks: {expected[0]}" in note.message
 
 
 # -- the byte nobody can see (RK34) -------------------------------------------
