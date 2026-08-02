@@ -114,7 +114,14 @@ class Tool:
 #: `init` and `adopt` are deliberately absent — they run once, before the project is
 #: governed — and so are `guard` and `mcp`, which are the harness's own entry points.
 TOOLS: tuple[Tool, ...] = (
-    Tool("add", ("block", "symptom", "why", "deps", "status"), writes=True),
+    # `section` and `section_body` are exposed for the reason `section add`'s body is: the
+    # rationale is the second half of one write (RK93), and a client that cannot pass it
+    # here is one whose every `add` leaves a pointer for the gate to refuse.
+    Tool(
+        "add",
+        ("block", "symptom", "why", "deps", "status", "section", "section_body"),
+        writes=True,
+    ),
     Tool("status", ("id", "marker"), writes=True),
     Tool("amend", ("id", "why", "deps", "ref"), writes=True),
     Tool("ship", ("id", "why"), writes=True),

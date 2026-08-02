@@ -145,7 +145,9 @@ def build_parser() -> argparse.ArgumentParser:
         description=(
             "Compose, validate and insert one task line. Nothing is written unless "
             "every field passes: a limit reported after the prose exists is a limit "
-            "discovered too late to save the tokens it was meant to save."
+            "discovered too late to save the tokens it was meant to save. With "
+            "--section the rationale the line points at is written in the same "
+            "transaction; without it, the follow-up the pointer needs is named."
         ),
     )
     add_parser.add_argument("--block", required=True, help="the block label, e.g. B")
@@ -181,6 +183,19 @@ def build_parser() -> argparse.ArgumentParser:
     add_parser.add_argument(
         "--ref",
         help="the rationale anchor, for ref_scheme = 'outline' only; otherwise derived",
+    )
+    add_parser.add_argument(
+        "--section",
+        metavar="TITLE",
+        help=(
+            "write the rationale under this heading, in the same transaction: the "
+            "pointer every line carries resolves to nothing until a section exists"
+        ),
+    )
+    add_parser.add_argument(
+        "--section-body",
+        dest="section_body",
+        help="the rationale prose; omitted or '-' reads stdin. Read only with --section",
     )
     add_parser.add_argument(
         "--json", action="store_true", help="the line, with the file and line it landed on"
@@ -1013,6 +1028,18 @@ def _next_id(config: Config, args: argparse.Namespace) -> int:
 
 def _add(config: Config, args: argparse.Namespace) -> int:
     try:
+        # stdin inside the try for the reason `section add` reads it there: a paragraph
+        # that is not UTF-8 raises UnicodeDecodeError, which is a ValueError, and is
+        # refused with the exit code every other bad input gets. Read only when a title
+        # was given — an `add` with no rationale must never block on a pipe.
+        section = None
+        if args.section is not None:
+            body = (
+                sys.stdin.read()
+                if args.section_body in (None, "-")
+                else args.section_body
+            )
+            section = (args.section, body)
         insertion = add(
             config,
             block=args.block,
@@ -1023,6 +1050,7 @@ def _add(config: Config, args: argparse.Namespace) -> int:
             ref=args.ref,
             task_id=args.task_id,
             family=args.family,
+            section=section,
         )
     except (RoundTripError, KeyError, ValueError, OSError) as error:
         return _refused(error)  # a SchemaError arrives here as the ValueError it is
@@ -1030,6 +1058,8 @@ def _add(config: Config, args: argparse.Namespace) -> int:
     event = _event(
         insertion.entry.task.id, insertion.entry.task.block, insertion.document
     )
+    written = insertion.section
+    prose = config.relative(config.path("improvements")) if config.has("improvements") else ""
     if args.json:
         print(
             json.dumps(
@@ -1039,6 +1069,12 @@ def _add(config: Config, args: argparse.Namespace) -> int:
                     "line": insertion.lineno,
                     "rendered": insertion.rendered,
                     "length": len(insertion.rendered),
+                    "section": None if written is None else _section_json(written, prose),
+                    # The follow-up as data: null when the pointer already resolves, so a
+                    # caller acts on a field instead of matching a sentence (RK93).
+                    "needs": None
+                    if insertion.needs is None
+                    else f"section add {insertion.needs} --title …",
                     "event": event,
                 },
                 indent=2,
@@ -1046,6 +1082,13 @@ def _add(config: Config, args: argparse.Namespace) -> int:
         )
         return EXIT_OK
     print(insertion.rendered)
+    if written is not None:
+        print(f"design   §{written.anchor} → {prose}:{written.first}  {written.words} words")
+    elif insertion.needs is not None:
+        print(
+            f"needs    section add {insertion.needs} --title …  "
+            f"(the pointer above resolves to nothing until then)"
+        )
     _print_event(event)
     return EXIT_OK
 

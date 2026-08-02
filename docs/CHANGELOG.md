@@ -42,6 +42,7 @@
 - ✅ **RK72** **The non-goal against estimates names a schedule, not the field a size bucket would be** — The list now names the field and argues the field instead of the schedule, so a P/M/L proposal is settled by a lookup rather than the analysis it cost.
 - ✅ **RK78** **ship deletes the sections nested under the one it drops** — A drop is bounded by ownership: the subtree still goes whole, and a nested section another open line points at refuses the whole transaction before a byte is written.
 - ✅ **RK91** **Pausing a task means retiring it, losing its id, rationale section and every dependent that named it** — defer moves the line to the store keeping the id, the deps, the symptom and the section a departure deletes, and resume returns it under its block: a pause is a state, not a retirement.
+- ✅ **RK93** **add exits 0 on a line whose derived pointer fails lint at once, and names no follow-up** — add --section writes the rationale in the same transaction, and an add without one names the section add that answers its pointer, so the gate is no longer the first to mention it.
 
 ## Block C — Query
 

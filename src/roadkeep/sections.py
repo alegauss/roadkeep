@@ -287,14 +287,22 @@ def add(
     body: str,
     *,
     level: int = 3,
+    task: Task | None = None,
 ) -> tuple[Document, Section]:
     """Place one section under its block or its anchor, reflowed. Validates first.
 
     Returns the document unsaved, so a caller mid-transaction (`ship`, `init`) decides
     when the file is touched.
+
+    `task` is the line this anchor names, for the one caller holding a line the roadmap
+    does not carry yet: `add --section` (RK93) validates both files before writing either,
+    so its owner cannot be read back off disk — and read off disk it would be absent,
+    which is `anchor.unknown`, a refusal about a line that is one save away. Omitted, the
+    owner is read from the roadmap, which is every other caller.
     """
     document = config.document(role)
-    task = _task_for(config, anchor)
+    if task is None:
+        task = _task_for(config, anchor)
     _check(config, anchor, title, body, task)
     existing = find(document, anchor)
     if existing is not None:

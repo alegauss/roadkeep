@@ -51,6 +51,7 @@ from roadkeep.serving import (
 
 ROADMAP = "docs/ROADMAP.md"
 CHANGELOG = "docs/CHANGELOG.md"
+IMPROVEMENTS = "docs/IMPROVEMENTS.md"
 
 CLEAN = """# Roadmap
 
@@ -64,12 +65,30 @@ LEDGER = """# Shipped
 ## Block A — The model
 """
 
+DESIGN = """# Improvements
+
+## Block A — The model
+
+### §RK1 The first design
+
+Because a pointer resolving to nothing reads exactly like a design that exists.
+"""
+
 CONFIG = f'prefix = "RK"\n[files]\nroadmap = "{ROADMAP}"\nchangelog = "{CHANGELOG}"\n'
 
 
-def project(tmp_path: Path, *, roadmap: str = CLEAN, config: str = CONFIG) -> Path:
+def project(
+    tmp_path: Path,
+    *,
+    roadmap: str = CLEAN,
+    config: str = CONFIG,
+    improvements: str | None = None,
+) -> Path:
     (tmp_path / "roadkeep.toml").write_text(config, encoding="utf-8")
-    for name, body in {ROADMAP: roadmap, CHANGELOG: LEDGER}.items():
+    files = {ROADMAP: roadmap, CHANGELOG: LEDGER}
+    if improvements is not None:
+        files[IMPROVEMENTS] = improvements
+    for name, body in files.items():
         path = tmp_path / name
         path.parent.mkdir(parents=True, exist_ok=True)
         with path.open("w", encoding="utf-8", newline="") as handle:
@@ -213,7 +232,17 @@ def test_the_derived_fields_are_not_offered(tmp_path):
     what the tool derives, and a hand-set id is the one thing the schema cannot check."""
     properties = listed(project(tmp_path))["add"]["inputSchema"]["properties"]
     assert "task_id" not in properties and "ref" not in properties
-    assert set(properties) == {"block", "symptom", "why", "deps", "status"}
+    assert set(properties) == {
+        "block",
+        "symptom",
+        "why",
+        "deps",
+        "status",
+        # The rationale is the other half of one write (RK93), so it is offered here for
+        # the reason `section add`'s body is: stdin belongs to the protocol.
+        "section",
+        "section_body",
+    }
 
 
 def test_the_object_is_closed_so_a_misspelt_argument_never_reaches_the_parser(tmp_path):
@@ -264,6 +293,46 @@ def test_add_writes_the_line_the_cli_would_have_written(tmp_path):
     # answer an agent cannot audit is one it re-reads the file to check (L5).
     assert payload["id"] == "RK2" and payload["file"] == ROADMAP and payload["line"]
     assert "**RK2**" in (tmp_path / ROADMAP).read_text(encoding="utf-8")
+
+
+def test_a_rationale_arrives_as_an_argument_because_stdin_is_the_protocol(tmp_path):
+    # A client that could not pass the prose here would leave every `add` pointing at a
+    # section that does not exist (RK93) — and the pipe a shell uses is the JSON-RPC
+    # channel in this process, so the body has to be an argument.
+    project(
+        tmp_path,
+        config=CONFIG + f'improvements = "{IMPROVEMENTS}"\n',
+        improvements=DESIGN,
+    )
+    result = called(
+        tmp_path,
+        "add",
+        block="A",
+        symptom="A second symptom",
+        why="A reason.",
+        section="A design",
+        section_body="Because the gate said so.",
+    )
+    assert result["isError"] is False
+    payload = json.loads(text_of(result))
+    assert payload["needs"] is None
+    assert payload["section"]["anchor"] == "RK2"
+    written = (tmp_path / IMPROVEMENTS).read_text(encoding="utf-8")
+    assert "### §RK2 A design" in written
+    assert called(tmp_path, "lint")["isError"] is False
+
+
+def test_an_add_with_no_rationale_reports_the_follow_up_the_gate_would_find(tmp_path):
+    project(
+        tmp_path,
+        config=CONFIG + f'improvements = "{IMPROVEMENTS}"\n',
+        improvements=DESIGN,
+    )
+    payload = json.loads(
+        text_of(called(tmp_path, "add", block="A", symptom="A second", why="A reason."))
+    )
+    assert payload["needs"].startswith("section add RK2 --title")
+    assert called(tmp_path, "lint")["isError"] is True
 
 
 def test_a_repeated_dep_arrives_as_the_array_the_schema_declares(tmp_path):

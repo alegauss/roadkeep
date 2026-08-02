@@ -26,7 +26,11 @@ so it costs you no thought: the id, the `→ §<id>` pointer, the status default
 `(deps: … ✅)` annotation are **derived, never typed** — where a project declares `prefix` as a
 list it numbers by track, and then `add --prefix <letter>` says which track while the number
 stays derived, per family; a refusal exits 2 naming the length and
-the limit and writes nothing; the shipped marker never reaches the roadmap; `ship <id>` makes
+the limit and writes nothing; the shipped marker never reaches the roadmap. **A line renders a
+pointer, and the pointer has to resolve**: `add --section "<title>"` writes the rationale in
+the same transaction — the prose on stdin or `--section-body`, both files validated before
+either is written — and an `add` without it answers with the `section add` that closes the
+pointer it just created, rather than leaving the gate to say so. `ship <id>` makes
 its three edits (ledger entry, roadmap line gone, `§<id>` deleted) plus the dependents'
 annotations, or none, and `retire <id> [--superseded-by <id>] --reason "…"` is the same
 transaction, two more doors. **A pause is none of those three**: `defer <id> --reason "…"` moves
@@ -37,7 +41,8 @@ open marker is what the store could not keep, so `--marker` is where you say whi
 Reach for `retire` only when the work is not coming back. `record add --block <x> --symptom "…" --why "…"` is the fourth — never
 planned, so the ledger entry alone and the roadmap untouched, and `record drop <id>` is its inverse:
 refused unless the ledger states that id **twice**, then the later entry goes and the first stays,
-because removing the only record of a decision is deleting history. `section add <id> --title "…"`
+because removing the only record of a decision is deleting history. `section add <id> --title "…"` is that
+same write for a line that already exists, and
 takes prose on **stdin**, within the word budget, filled to the configured width, under the
 task's block — a table or list is inserted exactly as written. No write invents a block
 heading. `non-goal add --lead "…" --why "…"` writes the one bullet that is not a task line,

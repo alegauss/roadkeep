@@ -13,12 +13,21 @@ Two claims carry the task and neither is about convenience:
 
 from __future__ import annotations
 
+import io
 import json
 from pathlib import Path
 
 import pytest
 
-from roadkeep.authoring import DerivedPointer, IdInUse, UnknownBlock, add, amend
+from roadkeep.authoring import (
+    DerivedPointer,
+    IdInUse,
+    NoAnchor,
+    NoProseFile,
+    UnknownBlock,
+    add,
+    amend,
+)
 from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.backlog import NotOpen
@@ -26,6 +35,7 @@ from roadkeep.document import RoundTripError
 from roadkeep.schema import SchemaError
 
 ROADMAP = "docs/ROADMAP.md"
+IMPROVEMENTS = "docs/IMPROVEMENTS.md"
 
 FIRST = "- 📋 **RK1** (deps: —) **A first symptom** — Because of a reason. → §RK1"
 BODY = f"""# Roadmap
@@ -41,6 +51,13 @@ BODY = f"""# Roadmap
 - not a task line, and never reported as one
 """
 
+DESIGN = """# Improvements
+
+## Block A — The model
+
+## Block B — Authoring
+"""
+
 
 def project(
     tmp_path: Path,
@@ -48,11 +65,24 @@ def project(
     *,
     declares: tuple[str, ...] = (),
     files: dict[str, str] | None = None,
+    prose: str | None = None,
 ) -> Config:
-    """A throwaway project: a config, its roadmap, and whatever else it declares."""
+    """A throwaway project: a config, its roadmap, and whatever else it declares.
+
+    `prose` declares *and* writes the improvements file, which is the only state in
+    which a pointer resolves to anything at all (RK93). A project that declares none
+    is the third case those tests care about, and it stays this helper's default.
+    """
     lines = ['prefix = "RK"', *declares, "[files]", f'roadmap = "{ROADMAP}"']
+    if prose is not None:
+        lines.append(f'improvements = "{IMPROVEMENTS}"')
     (tmp_path / "roadkeep.toml").write_text("\n".join(lines) + "\n", encoding="utf-8")
-    for name, text in {ROADMAP: body, **(files or {})}.items():
+    written = {
+        ROADMAP: body,
+        **({IMPROVEMENTS: prose} if prose is not None else {}),
+        **(files or {}),
+    }
+    for name, text in written.items():
         path = tmp_path / name
         path.parent.mkdir(parents=True, exist_ok=True)
         # newline="" so a CRLF fixture stays CRLF on disk, which is the point of one
@@ -395,3 +425,193 @@ def test_the_symptom_is_not_amendable():
     import inspect
 
     assert "symptom" not in inspect.signature(amend).parameters
+
+# -- the rationale the pointer needs (RK93) ------------------------------------
+
+
+def design(config: Config) -> str:
+    with config.path("improvements").open("r", encoding="utf-8", newline="") as handle:
+        return handle.read()
+
+
+def test_the_line_and_the_design_it_points_at_are_one_write(tmp_path):
+    # The pointer is derived on every line and `lint` requires it resolve, so an `add`
+    # whose rationale is a second command can never leave a gate-clean tree.
+    config = project(tmp_path, prose=DESIGN)
+    added = task(config, section=("A design", "Because the gate said so."))
+    assert added.needs is None
+    assert added.section is not None and added.section.anchor == "RK2"
+    written = design(config)
+    assert "### §RK2 A design\n\nBecause the gate said so.\n" in written
+    # Under its own block in the prose file, which is a consequence of the backlog's
+    # order rather than a decision made per insertion (RK9).
+    assert written.index("§RK2") > written.index("## Block B")
+    assert added.rendered.endswith("→ §RK2")
+    assert added.rendered in source(config)
+
+
+def test_a_rationale_the_prose_file_refuses_leaves_no_line_either(tmp_path):
+    # The whole point of one transaction: a roadmap written before the section was
+    # validated is the dangling pointer this closes, arrived at by a refusal instead.
+    config = project(tmp_path, declares=("[limits]", "section = 3"), prose=DESIGN)
+    with pytest.raises(SchemaError) as raised:
+        task(config, section=("A design", "Five words is already too many."))
+    assert "body.too-long" in str(raised.value.violations[0])
+    assert source(config) == BODY
+    assert design(config) == DESIGN
+
+
+def test_an_undeclared_block_in_the_prose_file_refuses_the_whole_add(tmp_path):
+    # RK37 one file over: the section has nowhere to go, and the line would point at it.
+    config = project(tmp_path, prose="# Improvements\n\n## Block A — The model\n")
+    with pytest.raises(UnknownBlock):
+        task(config, block="B", section=("A design", "Because of a reason."))
+    assert source(config) == BODY
+
+
+def test_an_add_with_no_rationale_names_the_command_that_answers_its_pointer(tmp_path):
+    config = project(tmp_path, prose=DESIGN)
+    added = task(config)
+    assert added.needs == "RK2"
+    assert added.section is None and added.prose is None
+    assert design(config) == DESIGN  # named, never written: the tool has no prose (L4)
+
+
+def test_a_pointer_that_already_resolves_asks_for_nothing(tmp_path):
+    # Only an outline project reaches this state: under the id scheme the anchor is the
+    # id, and an id the prose file already mentions is one `add` refuses to mint (RK4).
+    config = project(
+        tmp_path,
+        declares=('ref_scheme = "outline"',),
+        prose=(
+            "# Improvements\n\n## Block B — Authoring\n\n"
+            "### VIII.1 A design\n\nPre-existing.\n"
+        ),
+    )
+    added = task(config, ref="VIII.1")
+    assert added.needs is None and added.section is None
+
+
+def test_a_project_with_no_prose_file_is_asked_for_nothing_it_cannot_do(tmp_path):
+    # A follow-up naming a command that cannot run is worse than the silence it replaces.
+    assert task(project(tmp_path)).needs is None
+    config = project(tmp_path)
+    with pytest.raises(NoProseFile):
+        task(config, section=("A design", "Because of a reason."))
+    assert source(config) == BODY
+
+
+def test_a_section_on_a_line_with_no_pointer_is_refused(tmp_path):
+    # A project that made the pointer optional (RK66) and wrote a line without one: the
+    # prose would be reachable from nothing, so there is no section to write.
+    config = project(
+        tmp_path,
+        declares=('ref_scheme = "outline"', "[rules.roadmap]", "ref = false"),
+        prose=DESIGN,
+    )
+    with pytest.raises(NoAnchor):
+        task(config, section=("A design", "Because of a reason."))
+    assert source(config) == BODY
+
+
+def test_the_command_writes_both_files_and_reports_both(tmp_path, capsys):
+    config = project(tmp_path, prose=DESIGN)
+    assert (
+        main(
+            [
+                "-C",
+                str(tmp_path),
+                "add",
+                "--block",
+                "B",
+                "--symptom",
+                "A second symptom",
+                "--why",
+                "Because of another reason.",
+                "--section",
+                "A design",
+                "--section-body",
+                "Because the gate said so.",
+            ]
+        )
+        == EXIT_OK
+    )
+    line, reported, event = capsys.readouterr().out.splitlines()
+    assert line.endswith("→ §RK2")
+    assert reported.startswith(f"design   §RK2 → {IMPROVEMENTS}:")
+    assert reported.endswith("5 words")
+    assert "Because the gate said so." in design(config)
+    assert event == "event    RK2  Block B  open"
+
+
+def test_the_command_names_the_follow_up_it_leaves_behind(tmp_path, capsys):
+    project(tmp_path, prose=DESIGN)
+    assert (
+        main(
+            [
+                "-C",
+                str(tmp_path),
+                "add",
+                "--block",
+                "B",
+                "--symptom",
+                "A second symptom",
+                "--why",
+                "Because of another reason.",
+            ]
+        )
+        == EXIT_OK
+    )
+    _, follow, event = capsys.readouterr().out.splitlines()
+    assert follow.startswith("needs    section add RK2 --title")
+    assert event == "event    RK2  Block B  open"
+
+
+def test_json_carries_the_section_and_the_follow_up_as_fields(tmp_path, capsys):
+    project(tmp_path, prose=DESIGN)
+    argv = [
+        "-C",
+        str(tmp_path),
+        "add",
+        "--block",
+        "B",
+        "--symptom",
+        "A second symptom",
+        "--why",
+        "Because of another reason.",
+        "--json",
+    ]
+    assert main(argv) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["section"] is None
+    assert payload["needs"].startswith("section add RK2 --title")
+
+    assert main([*argv, "--section", "A design", "--section-body", "A reason."]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["needs"] is None
+    assert payload["section"]["anchor"] == "RK3"
+    assert payload["section"]["file"] == IMPROVEMENTS
+
+
+def test_the_prose_arrives_on_stdin_when_only_a_title_is_given(tmp_path, capsys, monkeypatch):
+    config = project(tmp_path, prose=DESIGN)
+    monkeypatch.setattr("sys.stdin", io.StringIO("Because the gate said so."))
+    assert (
+        main(
+            [
+                "-C",
+                str(tmp_path),
+                "add",
+                "--block",
+                "B",
+                "--symptom",
+                "A second symptom",
+                "--why",
+                "Because of another reason.",
+                "--section",
+                "A design",
+            ]
+        )
+        == EXIT_OK
+    )
+    assert "Because the gate said so." in design(config)

@@ -25,9 +25,18 @@ Three decisions that are the point of the module rather than details of it:
   block (RK37), so `add` files a task under one and never creates one — a heading
   invented by a write puts the task where nothing looks for it.
 
+* **A success that fails the gate is not a success.** Under ``ref_scheme = "id"`` the
+  pointer above is derived on every line and `lint` requires it resolve, so `add` alone
+  left a tree the gate refused and said nothing about it (RK93). `--section` writes the
+  rationale in the *same* transaction — both files validated, then both saved — and
+  without it :attr:`Insertion.needs` names the anchor that resolves to nothing. The
+  obligation is stated by the command that created it, never discovered from the backstop.
+
 What it deliberately does not do: write prose (L4 — it has no opinion on the sentence,
-only its length and count), derive the dep markers (RK8 does that on every write, and
-until then a marker is passed through exactly as typed), or fix a file that has drifted.
+only its length and count, and `--section` carries the author's paragraph to
+:mod:`roadkeep.sections` without composing a word of it), derive the dep markers (RK8
+does that on every write, and until then a marker is passed through exactly as typed), or
+fix a file that has drifted.
 
 :func:`set_status` (RK7) lives here for the same reason `add` does — it is a write to the
 roadmap — and adds exactly one rule: the marker has one home, so a sibling file carrying
@@ -39,12 +48,14 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass, replace
 
+from roadkeep import sections
 from roadkeep.backlog import Backlog, NotOpen
 from roadkeep.config import ROLES, Config
 from roadkeep.document import Document, Entry, Heading, UnknownBlock, blank, read_deps
 from roadkeep.ids import next_id, scan
 from roadkeep.markers import derive, refresh
 from roadkeep.schema import Task
+from roadkeep.sections import Section
 
 
 class IdInUse(ValueError):
@@ -98,12 +109,47 @@ class DerivedPointer(ValueError):
         )
 
 
+class NoAnchor(ValueError):
+    """A rationale asked for on a line that carries no pointer to reach it by (RK93)."""
+
+    def __init__(self, task_id: str) -> None:
+        self.task_id = task_id
+        super().__init__(
+            f"{task_id} carries no pointer, so a section written now is one nothing "
+            f"names: pass --ref to give the line an anchor, or write the prose after"
+        )
+
+
+class NoProseFile(ValueError):
+    """A rationale asked for by a project that declares nowhere to put one (RK93)."""
+
+    def __init__(self, task_id: str, role: str = "improvements") -> None:
+        self.task_id = task_id
+        super().__init__(
+            f"this project declares no {role!r} file, so {task_id} has nowhere to "
+            f"carry a section: declare it under [files], or drop --section"
+        )
+
+
 @dataclass(frozen=True, slots=True)
 class Insertion:
-    """The line that was written, and the document that now holds it."""
+    """The line that was written, and the document that now holds it.
+
+    Plus, for the door that takes prose (RK93), the rationale written in the same
+    transaction — or, when it did not, the anchor the line points at that nothing
+    answers yet, which is what makes the follow-up the write's own report instead of
+    the gate's.
+    """
 
     document: Document
     entry: Entry
+    #: The prose file as this write leaves it, and the section it gained. Both None
+    #: unless `--section` was passed: `place` inserts one line into one file.
+    prose: Document | None = None
+    section: Section | None = None
+    #: The anchor this line points at that the prose file does not declare. Set only
+    #: when no section was written, because then there is nothing left to report.
+    needs: str | None = None
 
     @property
     def rendered(self) -> str:
@@ -112,6 +158,12 @@ class Insertion:
     @property
     def lineno(self) -> int:
         return self.entry.lineno
+
+    def save(self) -> None:
+        """Write the files. Nothing here can fail on the format — that was decided."""
+        self.document.save()
+        if self.prose is not None:
+            self.prose.save()
 
 
 def compose(
@@ -211,6 +263,7 @@ def add(
     ref: str | None = None,
     task_id: str | None = None,
     family: str | None = None,
+    section: tuple[str, str] | None = None,
 ) -> Insertion:
     """Insert one task into the roadmap and save it. The whole write path.
 
@@ -226,6 +279,15 @@ def add(
     The dep annotations are derived here too (RK8), so `--dep RK1` renders `RK1 ✅` when
     RK1 has shipped and the author never types a marker. Only this line is derived: no
     existing line can name an id that did not exist a moment ago.
+
+    ``section`` is the rationale as ``(title, body)``, and the reason this door takes
+    prose at all (RK93). Under ``ref_scheme = "id"`` every line renders a pointer `lint`
+    requires to resolve, so an `add` on its own could not leave a gate-clean tree and the
+    author learned the follow-up from the backstop — the inversion L1 exists to prevent.
+    Given, both files are validated and then both are written, so the line and the design
+    it points at arrive together or neither does. Omitted, nothing is invented (L4):
+    :attr:`Insertion.needs` carries the anchor that resolves to nothing, so the command
+    that created the obligation is the one that states it.
     """
     if task_id is None:
         task_id = next_id(config, family)
@@ -242,8 +304,43 @@ def add(
         ref=ref,
     )
     insertion = place(config.document("roadmap"), derive(Backlog.load(config), task))
-    insertion.document.save()
+    if section is not None:
+        insertion = _with_section(config, insertion, *section)
+    elif insertion.entry.task.ref and _unresolved(config, insertion.entry.task.ref):
+        insertion = replace(insertion, needs=insertion.entry.task.ref)
+    insertion.save()
     return insertion
+
+
+def _with_section(config: Config, insertion: Insertion, title: str, body: str) -> Insertion:
+    """Validate the rationale against the line that is not on disk yet (RK93).
+
+    Every refusal the prose file has — the word budget, an undeclared block, an anchor
+    already taken — arrives here, *before* the roadmap is written: a transaction that
+    wrote the line and then refused the section would leave exactly the dangling pointer
+    this closes, and one the author did not choose.
+    """
+    task = insertion.entry.task
+    if not task.ref:
+        raise NoAnchor(task.id)
+    if not config.has("improvements"):
+        raise NoProseFile(task.id)
+    prose, written = sections.add(
+        config, "improvements", task.ref, title, body, task=task
+    )
+    return replace(insertion, prose=prose, section=written)
+
+
+def _unresolved(config: Config, ref: str) -> bool:
+    """Does the prose file already answer this pointer? RK15's finding, asked early.
+
+    False when the project declares no prose file or has not created it yet: the pointer
+    is then unresolvable for a reason no `section add` fixes, and a follow-up naming a
+    command that cannot run is worse than the silence this replaces.
+    """
+    if not config.has("improvements") or not config.path("improvements").is_file():
+        return False
+    return sections.find(config.document("improvements"), ref) is None
 
 
 @dataclass(frozen=True, slots=True)

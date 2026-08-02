@@ -77,21 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK93 A success that fails the gate
-
-Observed filing RK91, RK92 and RK96 this session: three `add` calls each exited 0, and
-the very next `lint` failed with three `ref.unresolved`, one per line just written.
-Under `ref_scheme = "id"` the `→ §id` pointer is derived on every render and `lint`
-requires it resolve, but the section is a separate `section add`, so an `add` on its own
-can never leave a gate-clean tree. The follow-up was learned from the backstop rather
-than from the command that made it necessary, which is the exact inversion L1 exists to
-prevent: the write path should inform where the text is created, not leave the discovery
-to the gate. Options, none chosen here: `add` prints the required `section add <id>` the
-way a refusal names its command; or an `--section` reads both in one transaction; or the
-event line carries a `needs-section` flag a hook can act on. Worth reconciling with
-`_drop_section`'s rule that a task may ship without a section — true at ship, yet an
-open line under id-scheme cannot pass `lint` without one.
-
 ### §RK97 The merge the write path cannot repair
 
 Measured here, on 2026-08-01: a branch filed RK90-RK94 while main shipped a different
