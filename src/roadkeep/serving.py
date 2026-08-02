@@ -34,9 +34,9 @@ there is no shell command to fall back to. Starting a task needs `brief`, writin
 needs `section add`, a line that leaves without shipping needs `retire`.
 
 What stays out is what a tool cannot be: `init` and `adopt` run once, before the project is
-governed, and `guard` and `mcp` are the harness's own entry points. `lint` deliberately exposes
-**no** arguments — `--fix` writes, and RK16 belongs where a human is standing (the pre-commit
-hook), which keeps that one honestly read-only.
+governed, and `guard` and `mcp` are the harness's own entry points. `lint` exposes one argument
+and deliberately not `--fix` — that one writes, and RK16 belongs where a human is standing (the
+pre-commit hook), which is what keeps this tool honestly read-only.
 
 A nested subcommand is one tool: `section add` is `section_add` to the protocol, which has no
 space in a name, and two argv words here. One :class:`Tool` holds both spellings rather than a
@@ -148,7 +148,10 @@ TOOLS: tuple[Tool, ...] = (
     Tool("pick", ("block", "designed")),
     Tool("list", ("block", "role", "marker")),
     Tool("deps", ("id",)),
-    Tool("lint"),
+    # `baseline` and nothing else (RK84): it is the flag that makes the answer readable on a
+    # project with standing debt — "did what I just wrote add anything" rather than a count
+    # of 317 the caller cannot attribute — and it reads a revision without writing one.
+    Tool("lint", ("baseline",)),
 )
 
 #: The subcommands above by their first word. Kept because a caller asking "is this command

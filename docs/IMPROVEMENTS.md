@@ -81,24 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK84 A gate on a corpus with standing debt
-
-Adopting projects arrive with history. One live corpus lints at 317 problems, none of
-which the current change caused, and the number moves by one or two per task. `lint`
-exits non-zero on all of it, so on that repository the gate cannot be wired to CI, and
-the question actually asked after every write — did I add anything — has no command.
-
-It was answered by hand: stash the three files, run `lint`, unstash, run it again,
-compare the two summary lines. That worked and it is not something a hook can do. It
-also nearly hid a real defect: the count fell by eight on the run that deleted 160 lines
-of rationale it should not have (RK78), and the drop looked like an improvement until
-the two `ref.unresolved` entries were read individually.
-
-`--since REV` exists and answers a different question (a rationale edited without its
-line, RK36). What is missing is a baseline: the violations at a ref, subtracted from the
-violations now, exiting non-zero only on the difference. That is also the shape that
-lets a repository adopt the gate before it has paid off the debt.
-
 ## Block E — Adoption
 
 ### §RK21 Rollout

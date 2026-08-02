@@ -79,6 +79,7 @@
 - ✅ **RK58** **A refusal names a command the machine may not have, now that the plugin needs no install** — The refusal names mcp__roadkeep__add and ship before the shell form, so the route the same plugin certainly installed is the one it offers first.
 - ✅ **RK61** **Under the outline scheme no check can say which task a section belongs to** — A section's owners are the anchor under the id scheme and the ids its heading names under an outline, so Shio's 39 stale sections and 9 orphans are visible.
 - ✅ **RK63** **A heuristic read off this repository disabled the new check on the corpus it was written for** — Ownership is the claim a heading makes by naming a task, with no exemption for where the section sits, and this repository's own preface stopped making it.
+- ✅ **RK84** **lint cannot answer whether this change made it worse** — `lint --baseline REV` runs the same gate over the files as they were at REV and fails on the difference alone, so a corpus with 586 standing problems gets an exit code about its own commit.
 
 ## Block E — Adoption
 

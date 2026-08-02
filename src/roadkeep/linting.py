@@ -59,6 +59,17 @@ Everything above is decidable from the files as they are. The one check that is 
 *change* is opt-in through ``since``, because `lint` has to keep working in a checkout with
 no history: `--since HEAD` in a commit hook, the base branch in CI.
 
+**And one question the absolute count cannot answer: did this change make it worse (RK84).**
+An adopting project arrives with history — one live corpus lints at 317 problems, none of
+them the current change's — so the gate cannot be wired to its CI, and the number moving by
+one or two per task carries no signal. ``baseline`` reads the governed files *at a revision*,
+runs everything above over those, and reports only the excess: what this working tree added,
+with the standing debt named and forgiven. It exits non-zero on the difference alone, which
+is the shape that lets a repository adopt the gate before it has paid the debt off. Two
+things it deliberately does **not** vary: the configuration, because a limit is the ruler and
+not the thing measured, and the repository, because what a baseline run stashes is the three
+files — which is what the hand procedure it replaces did, four commands at a time.
+
 What is deliberately *not* here: normalizing what is mechanical, which is a write and lives
 in :mod:`roadkeep.fixing` (RK16). This module answers one question completely and never
 writes: *is every line in the governed files a line this format accepts, does everything it
@@ -69,7 +80,8 @@ from __future__ import annotations
 
 import re
 import unicodedata
-from dataclasses import dataclass
+from dataclasses import dataclass, field, replace
+from pathlib import Path
 
 from roadkeep import scoping
 from roadkeep.backlog import Backlog, DepStatus, number_of
@@ -78,9 +90,11 @@ from roadkeep.document import Document, ending
 from roadkeep.graph import Graph
 from roadkeep.history import (
     HistoryUnavailable,
+    blob_at,
     content_at,
     resolves,
     touched_since,
+    tracked_at,
 )
 from roadkeep.markers import derive
 from roadkeep.schema import DepKind, Task
@@ -163,6 +177,99 @@ class Note:
         return f"{where}  {self.code}  {subject}{self.message}"
 
 
+@dataclass(slots=True)
+class Tree:
+    """Where one run reads the governed files from: this working tree, or a revision (RK84).
+
+    Every disk touch a run makes on a file it *governs* goes through here, which is the whole
+    of how a baseline is taken — the documents, the budgeted files, and whether a declared
+    file is there at all. What does not go through here is the rest of the repository: a
+    baseline varies the three files and holds the code constant, because that is the question
+    being asked, and because resolving a whole tree would make the comparison a checkout.
+
+    Bytes, and not text: a governed file is compared to its own rendering byte for byte (L3)
+    and a budget is spent in them (RK30), so a revision read through newline translation
+    would answer both wrongly.
+    """
+
+    config: Config
+    #: ``None`` for the working tree — the run every other command makes.
+    rev: str | None = None
+    #: The revision's paths, read once and only if something asks (`ls-tree` is not free).
+    _names: frozenset[str] | None = field(default=None, repr=False)
+    #: One read per file: `_absent` asks whether it is there and everything else asks what
+    #: is in it, which at a revision is two subprocesses for one answer.
+    _blobs: dict[Path, bytes | None] = field(default_factory=dict, repr=False)
+
+    def document(self, role: str) -> Document | None:
+        """One governed file under its role's schema, or ``None`` when this tree lacks it."""
+        if not self.config.has(role):
+            return None
+        if self.rev is None:
+            path = self.config.path(role)
+            return self.config.document(role) if path.is_file() else None
+        raw = self.blob(self.config.path(role))
+        if raw is None:
+            return None
+        # Deliberately parsed without its path: a document of how a file *was* must not be
+        # one call away from being saved over the file as it is.
+        return Document.parse(
+            raw.decode("utf-8", errors="replace"), schema=self.config.schema_for(role)
+        )
+
+    def blob(self, path: Path) -> bytes | None:
+        if path in self._blobs:
+            return self._blobs[path]
+        if self.rev is not None:
+            found = blob_at(self.config, self.rev, path)
+        else:
+            found = path.read_bytes() if path.is_file() else None
+        self._blobs[path] = found
+        return found
+
+    def present(self, path: Path) -> bool:
+        """Whether this tree carried the file at all, without reading one to find out."""
+        return path.is_file() if self.rev is None else self.blob(path) is not None
+
+    def carries(self, token: str, near: Path) -> bool:
+        """Did this tree have the artefact a line names, under either convention (RK51)?
+
+        Asked only of a revision, and only to *withhold* a `path.missing` the baseline should
+        never have credited: a file that was there at the ref and is not here now was deleted
+        by this change, and forgiving that would forgive the one true finding this check has
+        produced on a live corpus — a class the ledger still names under the directory it was
+        renamed inside.
+        """
+        if self.rev is None:
+            return False
+        if self._names is None:
+            self._names = tracked_at(self.config, self.rev)
+        return any(
+            self.config.relative(base / token) in self._names
+            for base in (near, self.config.root)
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class Baseline:
+    """What the same gate said at a revision, so this run can report only what it added.
+
+    ``forgiven`` is the standing debt *as it still stands* — findings this working tree has
+    and the revision had too. ``resolved`` is the other direction, and it is here for the
+    reading that nearly hid a real defect: a run that deleted 160 lines of rationale it
+    should not have took the count down by eight, and the drop read as an improvement until
+    the two findings it *added* were looked at individually. One number cannot say both.
+    """
+
+    rev: str
+    forgiven: tuple[Finding, ...] = ()
+    resolved: tuple[Finding, ...] = ()
+
+    @property
+    def standing(self) -> int:
+        return len(self.forgiven)
+
+
 @dataclass(frozen=True, slots=True)
 class Report:
     """What was checked, and everything wrong with it. Emptiness is the pass."""
@@ -178,6 +285,9 @@ class Report:
     budgets: int = 0
     #: What the gate observed without failing on it (RK35). Never affects the exit code.
     notes: tuple[Note, ...] = ()
+    #: The revision this run was measured against, when it was (RK84). Present means
+    #: ``findings`` holds the difference and nothing else.
+    baseline: Baseline | None = None
 
     @property
     def clean(self) -> bool:
@@ -195,20 +305,43 @@ class Report:
         return dict(sorted(found.items(), key=lambda pair: (-pair[1], pair[0])))
 
 
-def lint(config: Config, since: str | None = None) -> Report:
+def lint(
+    config: Config, since: str | None = None, baseline: str | None = None
+) -> Report:
     """Read every governed file and return every defect. Writes nothing, ever.
 
     ``since`` adds the one check that is about a *change* rather than a state (RK36): a
     revision to diff the governed files against, `HEAD` in a pre-commit hook and the base
     branch in CI.
+
+    ``baseline`` answers the other question about a change (RK84): the same gate is run over
+    the governed files as they were at that revision, and what comes back is the excess —
+    so a repository with standing debt gets an exit code about *its own* commit. The two
+    compose, and the baseline run makes no ``since`` comparison of its own: a note about a
+    section edited since a ref is about this working tree either way.
     """
+    report = _examine(config, since=since, tree=Tree(config))
+    if baseline is None:
+        return report
+    if not resolves(config, baseline):
+        # Unlike `since`, this one cannot degrade to silence: the exit code is the answer,
+        # and a run that could not read its baseline would report the whole debt as new.
+        raise HistoryUnavailable(f"{baseline} is not a revision this repository knows")
+    return _subtract(
+        report, _examine(config, since=None, tree=Tree(config, baseline)), baseline
+    )
+
+
+def _examine(config: Config, since: str | None, tree: Tree) -> Report:
+    """Every check, over whichever tree is being judged."""
     findings: list[Finding] = []
-    findings.extend(_absent(config))
+    findings.extend(_absent(config, tree))
 
     documents: dict[str, Document] = {}
     for role in LINE_ROLES:
-        if config.has(role) and config.path(role).is_file():
-            documents[role] = config.document(role)
+        document = tree.document(role)
+        if document is not None:
+            documents[role] = document
 
     checked = [config.relative(config.path(role)) for role in documents]
     for role, document in documents.items():
@@ -218,7 +351,7 @@ def lint(config: Config, since: str | None = None) -> Report:
     findings.extend(_scope(config, documents.get("roadmap")))
     notes: list[Note] = _collective(config, documents)
 
-    prose = _prose_file(config)
+    prose = tree.document("improvements")
     sections = ()
     if prose is not None:
         checked.append(config.relative(config.path("improvements")))
@@ -227,11 +360,11 @@ def lint(config: Config, since: str | None = None) -> Report:
         findings.extend(_orphans(config, documents, prose, sections))
         if since is not None:
             notes.extend(_unpaired(config, sections, since))
-    findings.extend(_paths(config, documents))
+    findings.extend(_paths(config, documents, tree))
 
     for budget in config.budgets:
         checked.append(config.relative(budget.path))
-    findings.extend(_budgets(config))
+    findings.extend(_budgets(config, tree))
 
     # A line carrying a byte nobody typed is not a line this format can judge: the parser
     # read a string the author cannot see, so every other diagnosis of it names a
@@ -255,6 +388,55 @@ def lint(config: Config, since: str | None = None) -> Report:
         budgets=len(config.budgets),
         notes=tuple(notes),
     )
+
+
+def _subtract(now: Report, before: Report, rev: str) -> Report:
+    """The findings this working tree added, and the ones it inherited (RK84).
+
+    **Counted per (file, code, task), and never per line number.** A line moves when
+    anything above it is inserted, so an identity that included the position would report
+    the whole file as new the first time a task was added at the top — which is the failure
+    mode that makes a delta gate worth less than no gate. What is compared is therefore how
+    many findings of one kind one line has, and the excess is what this change wrote.
+
+    Within a kind the ones that did not move are forgiven first. It changes no count; it
+    means the finding *reported* is the one at a position the revision did not have, which
+    is the one a reader is being sent to look at.
+    """
+    standing: dict[tuple[str, str, str], list[Finding]] = {}
+    for finding in before.findings:
+        standing.setdefault(_debt(finding), []).append(finding)
+
+    here: dict[tuple[str, str, str], list[int]] = {}
+    for index, finding in enumerate(now.findings):
+        here.setdefault(_debt(finding), []).append(index)
+
+    forgiven: set[int] = set()
+    resolved: list[Finding] = []
+    for key, indices in here.items():
+        there = standing.pop(key, [])
+        places = {finding.lineno for finding in there}
+        stayed = [i for i in indices if now.findings[i].lineno in places]
+        moved = [i for i in indices if now.findings[i].lineno not in places]
+        forgiven.update((stayed + moved)[: len(there)])
+        resolved.extend(there[len(indices) :])
+    for left in standing.values():
+        resolved.extend(left)
+
+    return replace(
+        now,
+        findings=tuple(f for i, f in enumerate(now.findings) if i not in forgiven),
+        baseline=Baseline(
+            rev=rev,
+            forgiven=tuple(now.findings[i] for i in sorted(forgiven)),
+            resolved=tuple(resolved),
+        ),
+    )
+
+
+def _debt(finding: Finding) -> tuple[str, str, str]:
+    """What makes two findings the same standing problem: one kind, one line's worth."""
+    return (finding.file, finding.code, finding.id)
 
 
 def _characters(config: Config, role: str, document: Document) -> list[Finding]:
@@ -360,17 +542,21 @@ def _endings(document: Document, file: str) -> list[Finding]:
     ]
 
 
-def _budgets(config: Config) -> list[Finding]:
+def _budgets(config: Config, tree: Tree) -> list[Finding]:
     """Every always-loaded file, against what it declared it may cost (RK30).
 
-    Measured in bytes off the disk and lines by counting terminators, so nothing here has
+    Measured in bytes off the tree and lines by counting terminators, so nothing here has
     to decode a file the tool does not govern: a budget is about what a loader pays, and
-    an instruction file is not a format this tool has any business parsing (L4).
+    an instruction file is not a format this tool has any business parsing (L4). Off the
+    tree and not off disk for RK84's reason — an `agents.md` pushed over its budget by this
+    change is the finding a baseline exists to keep, and both runs reading the same bytes
+    would forgive it.
     """
     out: list[Finding] = []
     for budget in config.budgets:
         where = config.relative(budget.path)
-        if not budget.path.is_file():
+        raw = tree.blob(budget.path)
+        if raw is None:
             out.append(
                 Finding(
                     "budget.absent",
@@ -379,7 +565,6 @@ def _budgets(config: Config) -> list[Finding]:
                 )
             )
             continue
-        raw = budget.path.read_bytes()
         lines = raw.count(b"\n") + (0 if raw.endswith(b"\n") or not raw else 1)
         for unit, measured, allowed in (
             ("lines", lines, budget.lines),
@@ -517,19 +702,13 @@ def _section_at(sections: tuple[Section, ...], lineno: int) -> str | None:
     )
 
 
-def _prose_file(config: Config) -> Document | None:
-    """The improvements file, when this project has one on disk.
+def _absent(config: Config, tree: Tree) -> list[Finding]:
+    """A declared file that is not on disk (`init` creates it: RK18).
 
-    A project that declares none is Shio, not a Shio with an empty one, and a declared
-    file that is not there yet is already `file.missing` — neither is a pointer defect.
+    Asked of the tree and not of disk, so a baseline says *was it there then*: a governed
+    file deleted since the ref is a finding this change made, and one added since is a file
+    the ref cannot be asked to account for.
     """
-    if not config.has("improvements") or not config.path("improvements").is_file():
-        return None
-    return config.document("improvements")
-
-
-def _absent(config: Config) -> list[Finding]:
-    """A declared file that is not on disk (`init` creates it: RK18)."""
     return [
         Finding(
             "file.missing",
@@ -537,7 +716,7 @@ def _absent(config: Config) -> list[Finding]:
             f"declared as the {role} file and not on disk",
         )
         for role in ROLES
-        if config.has(role) and not config.path(role).is_file()
+        if config.has(role) and not tree.present(config.path(role))
     ]
 
 
@@ -895,7 +1074,7 @@ def _unowned(
     )
 
 
-def _paths(config: Config, documents: dict[str, Document]) -> list[Finding]:
+def _paths(config: Config, documents: dict[str, Document], tree: Tree) -> list[Finding]:
     """Paths a *shipped* line claims, resolved against disk (RK15, narrowed by RK46).
 
     Two exemptions, and both turn on which file is being read rather than on the token.
@@ -910,11 +1089,18 @@ def _paths(config: Config, documents: dict[str, Document]) -> list[Finding]:
     had eight such findings and all eight were false. A shipped line is the opposite
     claim — the work is done, so a path it names and the repository lacks is a real
     defect, and the only one here worth exit 1.
+
+    The one place a baseline run resolves against the *revision* rather than the working
+    tree (RK84). It has to: this finding is the only one whose subject is outside the
+    governed files, so an artefact deleted since the ref would otherwise be missing in both
+    runs and forgiven — and a rename the ledger did not follow is precisely the true finding
+    this check produced on the corpus that motivated it.
     """
     document = documents.get("changelog")
     if document is None:
         return []
     file = config.relative(config.path("changelog"))
+    near = config.path("changelog").parent
     return [
         Finding(
             "path.missing",
@@ -926,8 +1112,8 @@ def _paths(config: Config, documents: dict[str, Document]) -> list[Finding]:
         for entry in document.entries
         # `near` is the ledger's own directory (RK51): a link written the way Markdown
         # reads it points at a file that is there, and 886 of Shio's are written that way.
-        for referenced in paths_in(entry.raw, config.root, near=config.path("changelog").parent)
-        if not referenced.exists
+        for referenced in paths_in(entry.raw, config.root, near=near)
+        if not referenced.exists and not tree.carries(referenced.path, near)
     ]
 
 

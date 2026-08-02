@@ -291,8 +291,9 @@ def test_the_read_only_hint_says_which_tools_write(tmp_path):
         "section_add",
         "section_drop",
     }
-    # `lint` is read-only *because* `--fix` is not exposed, so it takes no arguments at all.
-    assert listed(project(tmp_path))["lint"]["inputSchema"]["properties"] == {}
+    # `lint` is read-only *because* `--fix` is not exposed, and `--baseline` (RK84) is the
+    # one argument it takes: a revision to subtract, which reads history and writes none.
+    assert set(listed(project(tmp_path))["lint"]["inputSchema"]["properties"]) == {"baseline"}
 
 
 # -- the same write path -----------------------------------------------------

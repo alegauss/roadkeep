@@ -1,0 +1,307 @@
+"""Did this change make it worse — the only question an absolute count cannot answer (RK84).
+
+A project adopting this tool arrives with history. One live corpus lints at 317 problems,
+none of them the current change's, and the number moves by one or two per task: the gate
+cannot be wired to its CI, and "did I add anything" has no command. It was answered by hand
+— stash the three files, lint, unstash, lint again, compare — which is four commands, is not
+something a hook can do, and once nearly hid a real defect behind a count that *fell*.
+
+So `--baseline REV` runs the same gate over the governed files as they were at REV and
+reports the difference. Three properties are what these tests are about:
+
+* **Only the excess fails.** Standing debt is named and forgiven; the exit code is the
+  difference alone, which is the shape a repository can adopt before it has paid off.
+* **Debt is counted per line and per kind, never per position.** A finding that only moved
+  down the file is the same finding, or the first task added at the top makes everything new.
+* **What is subtracted is the three files, not the repository.** The configuration is the
+  ruler, the code is where it is now — but a budget and a path claim are read at the
+  revision, because both are findings a change makes by touching something else.
+"""
+
+from __future__ import annotations
+
+import json
+import subprocess
+from pathlib import Path
+
+import pytest
+
+from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
+from roadkeep.config import Config
+from roadkeep.history import git_available
+from roadkeep.linting import lint
+
+pytestmark = pytest.mark.skipif(not git_available(), reason="git is not on PATH")
+
+CONFIG = """prefix = "RK"
+[files]
+roadmap = "ROADMAP.md"
+changelog = "CHANGELOG.md"
+improvements = "IMPROVEMENTS.md"
+"""
+
+ROADMAP = """# Roadmap
+
+## Block A — The model
+
+- 📋 **RK1** (deps: —) **A first symptom** — Because of a reason. → §RK1
+- 📋 **RK2** (deps: —) **A second symptom** — Because of another reason. → §RK2
+"""
+
+LEDGER = """# Shipped
+
+## Block A — The model
+
+- ✅ **RK5** **An earlier symptom** — Because it was done.
+"""
+
+#: §RK2 is deliberately absent: one `ref.unresolved` on RK2's line, and that finding is the
+#: standing debt every test below is written against.
+PROSE = """# Design rationale
+
+## Block A — The model
+
+### §RK1 The first design
+
+The reasoning the first line has no room for.
+"""
+
+
+def git(root: Path, *args: str) -> str:
+    result = subprocess.run(
+        ["git", "-C", str(root), *args],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=True,
+    )
+    return result.stdout
+
+
+def write(root: Path, name: str, body: str) -> None:
+    (root / name).parent.mkdir(parents=True, exist_ok=True)
+    with (root / name).open("w", encoding="utf-8", newline="") as handle:
+        handle.write(body)
+
+
+def repo(
+    tmp_path: Path, config: str = CONFIG, files: dict[str, str] | None = None
+) -> Config:
+    """A committed project carrying one standing problem, plus whatever a test adds."""
+    git(tmp_path, "init", "--quiet")
+    git(tmp_path, "config", "user.email", "test@example.invalid")
+    git(tmp_path, "config", "user.name", "Test")
+    git(tmp_path, "config", "commit.gpgsign", "false")
+    write(tmp_path, "roadkeep.toml", config)
+    write(tmp_path, "ROADMAP.md", ROADMAP)
+    write(tmp_path, "CHANGELOG.md", LEDGER)
+    write(tmp_path, "IMPROVEMENTS.md", PROSE)
+    for name, body in (files or {}).items():
+        write(tmp_path, name, body)
+    git(tmp_path, "add", "-A")
+    git(tmp_path, "commit", "--quiet", "-m", "chore: bootstrap")
+    return Config.discover(tmp_path)
+
+
+def codes(report) -> list[str]:
+    return [f"{f.code} {f.id}".strip() for f in report.findings]
+
+
+# -- the debt, and the difference ---------------------------------------------
+
+
+def test_the_debt_is_what_lint_reports_without_a_baseline(tmp_path):
+    # The premise of every test below: this project is not clean, and plain `lint` says so.
+    config = repo(tmp_path)
+    assert codes(lint(config)) == ["ref.unresolved RK2"]
+
+
+def test_a_problem_the_revision_already_had_is_forgiven(tmp_path):
+    config = repo(tmp_path)
+    report = lint(config, baseline="HEAD")
+    assert report.clean and report.findings == ()
+    assert report.baseline is not None
+    assert report.baseline.standing == 1
+    # Forgiven, not lost: the exit code is the difference and the debt is still named.
+    assert [f.code for f in report.baseline.forgiven] == ["ref.unresolved"]
+
+
+def test_a_problem_this_tree_added_is_the_whole_report(tmp_path):
+    config = repo(tmp_path)
+    write(tmp_path, "ROADMAP.md", ROADMAP + "- 📋 **RK3** (deps: —) **A third symptom** — Because of a third reason. → §RK3\n")
+    report = lint(config, baseline="HEAD")
+    assert codes(report) == ["ref.unresolved RK3"]
+    assert report.baseline.standing == 1
+
+
+def test_a_finding_that_only_moved_down_the_file_is_not_a_new_one(tmp_path):
+    # The property the whole design turns on: an id is not a line number, and the first task
+    # inserted above a standing problem would otherwise report the rest of the file as new.
+    config = repo(tmp_path)
+    write(tmp_path, "ROADMAP.md", ROADMAP.replace(
+        "- 📋 **RK2**",
+        "- 📋 **RK3** (deps: —) **A third symptom** — Because of a third reason. → §RK3\n"
+        "- 📋 **RK2**",
+    ))
+    write(tmp_path, "IMPROVEMENTS.md", PROSE + "\n### §RK3 The third design\n\nThe reasoning it lacks.\n")
+    report = lint(config, baseline="HEAD")
+    assert report.clean, codes(report)
+    assert report.baseline.forgiven[0].lineno == 7  # was 6, and is the same debt
+
+
+def test_a_problem_that_left_is_reported_as_resolved(tmp_path):
+    # The other direction, and it is here because a count that *fell* is what nearly hid a
+    # real defect: eight went away on the run that deleted the rationale it should not have.
+    config = repo(tmp_path)
+    write(tmp_path, "IMPROVEMENTS.md", PROSE + "\n### §RK2 The second design\n\nThe reasoning the second line has no room for.\n")
+    report = lint(config, baseline="HEAD")
+    assert report.clean
+    assert report.baseline.standing == 0
+    assert [f.code for f in report.baseline.resolved] == ["ref.unresolved"]
+
+
+def test_a_second_finding_of_a_kind_already_standing_is_still_new(tmp_path):
+    # Debt is counted, not matched by kind alone: one unresolved pointer already there does
+    # not buy the second one, because what a line owes is read per line.
+    config = repo(tmp_path)
+    write(tmp_path, "IMPROVEMENTS.md", "# Design rationale\n\n## Block A — The model\n")
+    report = lint(config, baseline="HEAD")
+    assert codes(report) == ["ref.unresolved RK1"]
+
+
+# -- what a baseline holds constant, and what it does not ---------------------
+
+
+def test_a_governed_file_deleted_since_the_revision_is_not_inherited(tmp_path):
+    # `file.missing` is asked of the tree and not of disk: absent in both runs would forgive
+    # the deletion of the file the whole format is about.
+    config = repo(tmp_path)
+    (tmp_path / "ROADMAP.md").unlink()
+    report = lint(config, baseline="HEAD")
+    # And §RK1 with it: a section whose line is gone is nobody's rationale, which is the
+    # second thing this change did and the second thing it is charged for.
+    assert codes(report) == ["section.orphan RK1", "file.missing"]
+
+
+def test_a_budget_this_change_broke_is_new_debt(tmp_path):
+    # RK30's finding is about a file this tool never writes, so both runs would otherwise
+    # measure the same bytes — and an `agents.md` pushed over by this commit is exactly the
+    # cost a baseline exists to charge.
+    config = repo(
+        tmp_path,
+        config=CONFIG + '[budgets]\n"agents.md" = { lines = 3 }\n',
+        files={"agents.md": "one\ntwo\n"},
+    )
+    write(tmp_path, "agents.md", "one\ntwo\nthree\nfour\n")
+    report = lint(config, baseline="HEAD")
+    assert codes(report) == ["budget.lines"]
+
+
+def test_a_budget_already_broken_stays_forgiven_while_it_is_one_finding(tmp_path):
+    # The honest edge of counting by kind: an overrun that merely grew is the same finding,
+    # so it is standing debt until it is paid off. `lint` without a baseline still fails it.
+    config = repo(
+        tmp_path,
+        config=CONFIG + '[budgets]\n"agents.md" = { lines = 3 }\n',
+        files={"agents.md": "one\ntwo\nthree\nfour\n"},
+    )
+    write(tmp_path, "agents.md", "one\ntwo\nthree\nfour\nfive\n")
+    report = lint(config, baseline="HEAD")
+    assert report.clean
+    assert "budget.lines" in [f.code for f in report.baseline.forgiven]
+    assert "budget.lines" in codes(lint(config))
+
+
+def test_an_artefact_deleted_since_the_revision_is_not_inherited_either(tmp_path):
+    # The one finding whose subject is outside the governed files, so it is the one place a
+    # baseline resolves against the revision: a rename the ledger did not follow is the true
+    # finding this check produced on the corpus it was measured on, and it would be forgiven
+    # by a run that asked the working tree twice.
+    config = repo(tmp_path, files={"src/kept.py": "x = 1\n"})
+    write(tmp_path, "CHANGELOG.md", LEDGER.replace(
+        "Because it was done.", "Because it was done, in `src/kept.py`."
+    ))
+    git(tmp_path, "add", "-A")
+    git(tmp_path, "commit", "--quiet", "-m", "docs: name the file")
+    (tmp_path / "src" / "kept.py").unlink()
+    report = lint(config, baseline="HEAD")
+    assert codes(report) == ["path.missing RK5"]
+
+
+def test_a_path_the_revision_did_not_have_either_is_standing_debt(tmp_path):
+    config = repo(tmp_path, files={"src/kept.py": "x = 1\n"})
+    write(tmp_path, "CHANGELOG.md", LEDGER.replace(
+        "Because it was done.", "Because it was done, in `src/gone.py`."
+    ))
+    git(tmp_path, "add", "-A")
+    git(tmp_path, "commit", "--quiet", "-m", "docs: name a file that is not there")
+    write(tmp_path, "ROADMAP.md", ROADMAP.replace("a reason", "another reason"))
+    report = lint(config, baseline="HEAD")
+    assert report.clean
+    assert "path.missing" in [f.code for f in report.baseline.forgiven]
+
+
+def test_the_configuration_is_the_ruler_and_not_the_thing_measured(tmp_path):
+    # Both runs are held to the config as it is now, so a limit lowered in this change makes
+    # the lines it now refuses *standing debt* and not new work. Deliberate, and the reason
+    # is one file up: `roadkeep.toml` declares which files are governed and where they are
+    # (L6), so two runs under two configs would not be comparing the same documents at all.
+    repo(tmp_path)
+    write(tmp_path, "roadkeep.toml", CONFIG + "[limits]\nwhy = 20\n")
+    config = Config.discover(tmp_path)
+    report = lint(config, baseline="HEAD")
+    assert report.clean
+    assert "why.too-long" in [f.code for f in report.baseline.forgiven]
+    # Which is only bearable because the absolute gate is still there and still fails.
+    assert "why.too-long" in [f.code for f in lint(config).findings]
+
+
+# -- the contract -------------------------------------------------------------
+
+
+def test_the_exit_code_is_the_difference(tmp_path, capsys):
+    repo(tmp_path)
+    assert main(["-C", str(tmp_path), "lint", "--baseline", "HEAD"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "clean against HEAD (1 standing)" in out
+    # And the same tree, judged absolutely, is still failing: the debt was forgiven, not
+    # declared paid.
+    assert main(["-C", str(tmp_path), "lint"]) == EXIT_GATE
+
+
+def test_the_summary_says_new_and_names_what_was_forgiven(tmp_path, capsys):
+    repo(tmp_path)
+    write(tmp_path, "ROADMAP.md", ROADMAP + "- 📋 **RK3** (deps: —) **A third symptom** — Because of a third reason. → §RK3\n")
+    assert main(["-C", str(tmp_path), "lint", "--baseline", "HEAD"]) == EXIT_GATE
+    out = capsys.readouterr().out
+    assert "1 new problem(s)" in out and "against HEAD (1 standing)" in out
+    # The 317 the corpus already has are not printed one by one: the point of the flag is
+    # that the report is the size of the change.
+    assert out.count("ref.unresolved") == 2  # the finding's own line, and the code summary
+
+
+def test_a_revision_that_is_not_one_is_a_usage_error(tmp_path, capsys):
+    # Louder than `--since`, which degrades to silence: here the revision *is* the answer,
+    # and a run that could not read its baseline would report the whole debt as new.
+    repo(tmp_path)
+    assert main(["-C", str(tmp_path), "lint", "--baseline", "no-such-rev"]) == EXIT_USAGE
+    assert "no history to resolve against" in capsys.readouterr().err
+
+
+def test_json_separates_the_difference_from_the_debt(tmp_path, capsys):
+    repo(tmp_path)
+    write(tmp_path, "ROADMAP.md", ROADMAP + "- 📋 **RK3** (deps: —) **A third symptom** — Because of a third reason. → §RK3\n")
+    assert main(["-C", str(tmp_path), "lint", "--baseline", "HEAD", "--json"]) == EXIT_GATE
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["problems"] == 1 and payload["clean"] is False
+    assert payload["baseline"]["rev"] == "HEAD"
+    assert payload["baseline"]["standing"] == 1
+    assert [f["id"] for f in payload["baseline"]["forgiven"]] == ["RK2"]
+    assert [f["id"] for f in payload["findings"]] == ["RK3"]
+
+
+def test_without_the_flag_nothing_is_compared(tmp_path, capsys):
+    # `lint` has to keep answering "is this file correct" — the gate three surfaces call.
+    repo(tmp_path)
+    assert main(["-C", str(tmp_path), "lint", "--json"]) == EXIT_GATE
+    assert "baseline" not in json.loads(capsys.readouterr().out)

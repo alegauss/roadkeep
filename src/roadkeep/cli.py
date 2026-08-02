@@ -542,6 +542,14 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     lint_parser.add_argument(
+        "--baseline",
+        metavar="REV",
+        help=(
+            "report only what this working tree added since REV, forgiving the standing "
+            "debt (RK84): the gate a repository can adopt before it has paid it off"
+        ),
+    )
+    lint_parser.add_argument(
         "--quiet",
         action="store_true",
         help="print only the summary line, for a hook that wants the exit code",
@@ -1832,7 +1840,7 @@ def _lint(config: Config, args: argparse.Namespace) -> int:
         # The mechanical pass runs first and the report is taken afterwards, so what is
         # printed is what is left — the whole point of RK16.
         applied = fix(config) if args.fix else Fix()
-        report = lint(config, since=args.since)
+        report = lint(config, since=args.since, baseline=args.baseline)
     except HistoryUnavailable as error:
         print(f"roadkeep: no history to resolve against ({error})", file=sys.stderr)
         return EXIT_USAGE
@@ -1858,14 +1866,18 @@ def _print_report(report: Report, applied: Fix, quiet: bool) -> None:
     if report.clean:
         # The files are named on the way out even when there is nothing to say: a gate
         # that passed by reading nothing looks exactly like a gate that passed.
-        print(f"{', '.join(report.checked) or 'nothing'}: {_scope(report)}, clean")
+        print(
+            f"{', '.join(report.checked) or 'nothing'}: {_scope(report)}, clean"
+            f"{_standing(report)}"
+        )
         return
     if not quiet:
         for finding in report.findings:
             print(str(finding))
+    added = "new " if report.baseline is not None else ""
     print(
-        f"{report.problems} problem(s) in {_scope(report)} across "
-        f"{len(report.checked)} file(s): {_codes(report)}"
+        f"{report.problems} {added}problem(s) in {_scope(report)} across "
+        f"{len(report.checked)} file(s): {_codes(report)}{_standing(report)}"
     )
 
 
@@ -1886,8 +1898,23 @@ def _print_refusals(applied: Fix) -> None:
 
 
 def _lint_json(report: Report, applied: Fix) -> dict[str, object]:
+    baseline = report.baseline
     return {
         "clean": report.clean and not applied.refused,
+        # Absent without `--baseline`, so a caller reading `problems` cannot mistake a
+        # difference for a total: with it, `findings` holds only what this tree added.
+        **(
+            {}
+            if baseline is None
+            else {
+                "baseline": {
+                    "rev": baseline.rev,
+                    "standing": baseline.standing,
+                    "forgiven": [_finding_json(f) for f in baseline.forgiven],
+                    "resolved": [_finding_json(f) for f in baseline.resolved],
+                }
+            }
+        ),
         "fixed": [
             {
                 "file": repair.file,
@@ -1922,6 +1949,22 @@ def _lint_json(report: Report, applied: Fix) -> dict[str, object]:
             for note in report.notes
         ],
     }
+
+
+def _standing(report: Report) -> str:
+    """What the baseline forgave, and what left — said out loud, both of them (RK84).
+
+    Both, because either number alone is the misreading §RK84 was written about: the run
+    that deleted 160 lines of rationale took the count *down* by eight, and the drop read as
+    an improvement right up until the two findings it added were looked at individually.
+    """
+    baseline = report.baseline
+    if baseline is None:
+        return ""
+    counts = f"{baseline.standing} standing"
+    if baseline.resolved:
+        counts += f", {len(baseline.resolved)} resolved"
+    return f" against {baseline.rev} ({counts})"
 
 
 def _scope(report: Report) -> str:

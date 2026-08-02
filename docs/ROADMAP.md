@@ -28,8 +28,6 @@
 
 ## Block D — The gate
 
-- 💭 **RK84** (deps: —) **lint cannot answer whether this change made it worse** — On a corpus with 317 standing problems the absolute count carries no signal, and the only way to attribute a delta was to stash the files and run it twice. → §RK84
-
 ## Block E — Adoption
 
 - ⏳ **RK21** (deps: RK20 ✅) **A standard adopted by one project is a preference** — roll out to Turing, Dumont and Cursarei, each with its own `roadmap.toml`. → §RK21

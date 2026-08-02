@@ -8,6 +8,10 @@
 # and gets the gate before the commit exists rather than after the push. Which is the
 # whole shape of this tool one layer out: the earlier a rule is enforced, the less work
 # it asks anybody to throw away.
+#
+# A repository that arrives with drift adds `args: [--baseline, HEAD]` under the hook and
+# gets the same gate about its own commit (RK84) — no third hook id here, because the
+# difference is the caller's to declare and pre-commit already appends it.
 - id: roadkeep-lint
   name: roadkeep lint
   description: Fail the commit when a governed file drifted from the format it declares.

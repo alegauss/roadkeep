@@ -68,6 +68,18 @@ def git_available() -> bool:
 
 
 def _run(root: Path, *args: str) -> str:
+    return _bytes(root, *args).decode("utf-8", errors="replace")
+
+
+def _bytes(root: Path, *args: str) -> bytes:
+    """The raw output, because one caller reads a file and not a report (RK84).
+
+    Bytes and not ``text=True``: universal newlines would translate CRLF to LF, and a
+    baseline that read the file at a revision through that translation would report every
+    ending as changed — on the two things `lint` measures in bytes, the round-trip (L3)
+    and a budget (RK30). Text callers decode here instead, which is the same string
+    `text=True` gave them minus the rewriting.
+    """
     if not git_available():
         raise HistoryUnavailable("git is not on PATH")
     try:
@@ -75,16 +87,15 @@ def _run(root: Path, *args: str) -> str:
         result = subprocess.run(
             ["git", "-C", str(root), *args],
             capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
             timeout=_TIMEOUT,
             check=False,
         )
     except (OSError, subprocess.TimeoutExpired) as error:
         raise HistoryUnavailable(str(error)) from error
     if result.returncode != 0:
-        raise HistoryUnavailable(result.stderr.strip() or "git failed")
+        raise HistoryUnavailable(
+            result.stderr.decode("utf-8", errors="replace").strip() or "git failed"
+        )
     return result.stdout
 
 
@@ -248,14 +259,41 @@ def content_at(config: Config, rev: str, role: str) -> str:
     """
     if not config.has(role):
         return ""
+    raw = blob_at(config, rev, config.path(role))
+    return "" if raw is None else raw.decode("utf-8", errors="replace")
+
+
+def blob_at(config: Config, rev: str, path: Path) -> bytes | None:
+    """One file's bytes as of ``rev``, or ``None`` when that tree did not carry it (RK84).
+
+    The two answers are kept apart because a baseline turns on the difference: an empty
+    file was there and said nothing, and an absent one is a file the change *added* — so
+    crediting it with the findings of a file it did not have would forgive every line of
+    it. Bytes, because the caller measuring a budget is counting them (RK30).
+    """
     try:
-        relative = config.path(role).relative_to(config.root)
+        relative = path.resolve().relative_to(config.root)
     except ValueError:
-        relative = config.path(role)
+        relative = path
     try:
-        return _run(config.root, "show", f"{rev}:{relative.as_posix()}")
+        return _bytes(config.root, "show", f"{rev}:{relative.as_posix()}")
     except HistoryUnavailable:
-        return ""
+        return None
+
+
+def tracked_at(config: Config, rev: str) -> frozenset[str]:
+    """Every path in the tree at ``rev``, as git spells them (RK84).
+
+    One `ls-tree` rather than a question per path: a ledger names 886 of them on the corpus
+    this was measured against, and a subprocess each is the difference between a check and
+    a thing nobody runs. `-z`, so a path holding a quote or a non-ASCII byte arrives as
+    itself instead of as git's escaped rendering of it.
+    """
+    try:
+        output = _run(config.root, "ls-tree", "-r", "--name-only", "-z", rev)
+    except HistoryUnavailable:
+        return frozenset()
+    return frozenset(name for name in output.split("\0") if name)
 
 
 @dataclass(frozen=True, slots=True)

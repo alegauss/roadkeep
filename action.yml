@@ -8,6 +8,7 @@
 #     - uses: alegauss/roadkeep@main
 #       with:
 #         directory: .          # where roadkeep.toml is, when it is not the root
+#         baseline: origin/main # optional: fail on what this branch added, not on the debt
 #
 # Deliberately not an input: `--fix`. A CI run that repaired the file would have to
 # commit it back, which turns a gate into a writer of the branch it is judging (RK16 is
@@ -24,6 +25,15 @@ inputs:
     description: Where to start looking for roadkeep.toml, as `-C` takes it.
     required: false
     default: "."
+  baseline:
+    # The input a repository with history needs (RK84). A corpus that lints at 317 problems
+    # cannot wire the gate to CI at all, and the number moving by one or two per pull request
+    # carries no signal — so `baseline: origin/${{ github.base_ref }}` fails the build on the
+    # difference alone, and the debt is reported and forgiven. Needs history: the default
+    # `actions/checkout` is `fetch-depth: 1`, which has no base branch to resolve.
+    description: A revision to subtract, so only what this branch added fails the build.
+    required: false
+    default: ""
   python-version:
     description: The interpreter to run on. 3.11 is the floor (tomllib is stdlib there).
     required: false
@@ -48,4 +58,15 @@ runs:
 
     - name: roadkeep lint
       shell: bash
-      run: roadkeep -C "${{ inputs.directory }}" lint
+      # Through the environment and not interpolated into the script: an input is a string
+      # somebody else's workflow supplies, and `${{ }}` inside a `run:` is that string
+      # becoming shell. The exit code is unchanged either way — it is the whole contract.
+      env:
+        ROADKEEP_DIRECTORY: ${{ inputs.directory }}
+        ROADKEEP_BASELINE: ${{ inputs.baseline }}
+      run: |
+        if [ -n "$ROADKEEP_BASELINE" ]; then
+          roadkeep -C "$ROADKEEP_DIRECTORY" lint --baseline "$ROADKEEP_BASELINE"
+        else
+          roadkeep -C "$ROADKEEP_DIRECTORY" lint
+        fi
