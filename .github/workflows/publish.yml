@@ -1,0 +1,196 @@
+# Publishing, as the one path that exists (RK19). A release cut by hand from a laptop is a
+# release whose provenance is a person's memory, and PyPI never lets a version number be
+# reused — so the only correction for a wrong upload is a version nobody asked for.
+#
+# Nobody types a version number: every run derives the next one from the current one.
+#
+#   * Run manually, target=testpypi (default) -> builds X.Y.(Z+1).devN and uploads to
+#     TestPyPI. Nothing is committed or tagged: a rehearsal leaves no trace.
+#   * Run manually, target=pypi -> bumps the version for real, commits it, tags it,
+#     publishes to PyPI and creates the GitHub Release.
+#   * Publishing a GitHub Release by hand -> publishes exactly that tag to PyPI.
+#
+# Four guards, in the order that makes each one cheap:
+#
+#   1. **The gate and the tests run before anything is bumped.** This repository's `docs/`
+#      are the conformance fixture, so a release that skipped `roadkeep lint` would
+#      publish the tool that cannot pass its own format. Running first is also what makes
+#      a rehearsal's `.devN` legal: `tests/test_packaging.py` rejects that suffix, because
+#      a `.devN` is exactly the number nobody should be able to tag.
+#   2. **The bump moves both files that state a version.** `scripts/bump_version.py`
+#      rewrites `src/roadkeep/__init__.py` and `.claude-plugin/plugin.json` together, the
+#      two numbers `tests/test_plugin.py` asserts are one.
+#   3. **A hand-cut tag must equal the package's own version.** On the `release` path there
+#      is no bump to trust — a tag that says v0.2.0 over a package that says 0.1.0 is
+#      otherwise discovered by whoever pins it.
+#   4. **Trusted Publishing, so no token is stored.** The `id-token: write` permission and
+#      the `pypi` / `testpypi` environments are the whole credential; there is no secret to
+#      leak or rotate. Configure the publishers once, naming **this** workflow file:
+#      https://pypi.org/manage/project/roadkeep/settings/publishing/ and
+#      https://test.pypi.org/manage/project/roadkeep/settings/publishing/
+#      (owner `alegauss`, repository `roadkeep`, workflow `publish.yml`, environment
+#      `pypi` / `testpypi`).
+name: publish
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Which index to publish to
+        type: choice
+        options: [testpypi, pypi]
+        default: testpypi
+      level:
+        description: Which part of the version to increment
+        type: choice
+        options: [patch, minor, major]
+        default: patch
+
+permissions:
+  contents: read
+
+# Two releases racing each other would fight over the tag and the version bump.
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: build and verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # only exercised when cutting a real release
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      # Full history for the same reason the gate needs it: the suite this job runs
+      # derives task origins from commit subjects, so a shallow clone fails a release.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # The gate this repository ships, on this repository's own docs — the same call CI
+      # makes on every push, repeated here because a release can be cut without one.
+      - uses: ./
+      - run: pip install ".[dev]"
+      - run: python -m pytest -q
+
+      - name: the tag must be the package's version
+        if: github.event_name == 'release'
+        run: |
+          declared=$(PYTHONPATH=src python -c "import roadkeep; print(roadkeep.__version__)")
+          tagged="${GITHUB_REF_NAME#v}"
+          if [ "$declared" != "$tagged" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match roadkeep.__version__ ($declared)"
+            exit 1
+          fi
+
+      # A rehearsal gets a throwaway .devN version so TestPyPI never sees a collision, and
+      # nothing is committed: the working tree is discarded with the runner.
+      - name: bump to a rehearsal version
+        if: github.event_name == 'workflow_dispatch' && inputs.target == 'testpypi'
+        run: python scripts/bump_version.py --level "${{ inputs.level }}" --dev "${{ github.run_number }}"
+
+      - name: bump the version
+        if: github.event_name == 'workflow_dispatch' && inputs.target == 'pypi'
+        run: python scripts/bump_version.py --level "${{ inputs.level }}"
+
+      # Read from `src/`, not from what `pip install` put in site-packages: this is a src
+      # layout, so a bare `import roadkeep` here answers with the version before the bump.
+      - name: read the resulting version
+        id: version
+        run: echo "version=$(PYTHONPATH=src python -c 'import roadkeep; print(roadkeep.__version__)')" >> "$GITHUB_OUTPUT"
+
+      - name: commit and tag the release
+        if: github.event_name == 'workflow_dispatch' && inputs.target == 'pypi'
+        run: |
+          version="${{ steps.version.outputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/roadkeep/__init__.py .claude-plugin/plugin.json
+          git commit -m "chore: release v${version}"
+          git tag -a "v${version}" -m "v${version}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
+          git push origin "v${version}"
+
+      - run: pip install build twine
+      - run: python -m build
+      - name: the metadata is one PyPI will take
+        run: python -m twine check dist/*
+
+      # Installed from the built wheel and run as the console script: what is uploaded is
+      # what gets tested, which a `pip install .` of the source tree cannot claim.
+      - name: the wheel runs as `roadkeep`
+        run: |
+          python -m venv /tmp/probe
+          /tmp/probe/bin/pip install --quiet dist/*.whl
+          /tmp/probe/bin/roadkeep --version
+          /tmp/probe/bin/roadkeep lint
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish-testpypi:
+    name: publish to TestPyPI
+    # The default dispatch. It stops here — no commit, no tag, no PyPI — which is what
+    # makes it safe for checking a release before committing to its number.
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'testpypi'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/roadkeep
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          skip-existing: true
+
+  publish-pypi:
+    name: publish to PyPI
+    if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.target == 'pypi')
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/roadkeep
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
+
+  github-release:
+    name: create the GitHub Release
+    # Only for the automated path: a release-triggered run already has one.
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'pypi'
+    needs: [build, publish-pypi]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      # Created with GITHUB_TOKEN on purpose: releases published by the built-in token do
+      # not trigger workflows, so this cannot re-enter publish.yml.
+      - env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "v${{ needs.build.outputs.version }}" \
+            --repo "${{ github.repository }}" \
+            --title "v${{ needs.build.outputs.version }}" \
+            --generate-notes
