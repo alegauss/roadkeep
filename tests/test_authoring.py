@@ -130,6 +130,43 @@ def test_an_empty_block_keeps_the_blank_line_before_the_next_heading(tmp_path):
     )
 
 
+def test_an_empty_block_keeps_the_paragraph_that_introduces_it_above_the_task(tmp_path):
+    # RK108: five of commitclerk's nine blocks open with a paragraph saying what the
+    # block is for. It only ever shows once a block empties and refills, and the wrong
+    # answer is legal, round-trips and lints clean — so nothing but this asserts it.
+    preamble = "*Where a task line is created, and what is refused there.*"
+    config = project(
+        tmp_path, BODY.replace("## Block B — Authoring\n", f"## Block B — Authoring\n\n{preamble}\n")
+    )
+    added = task(config)
+    assert source(config) == BODY.replace(
+        "## Block B — Authoring\n\n",
+        f"## Block B — Authoring\n\n{preamble}\n\n{added.rendered}\n\n",
+    )
+
+
+def test_prose_under_a_nested_heading_is_not_the_blocks_own_preamble(tmp_path):
+    # The boundary `section add` draws: a task placed after the nested heading's prose
+    # would read as belonging to that heading, which is the mistake one level down.
+    config = project(
+        tmp_path,
+        "## Block B — Authoring\n\n*What this block is for.*\n\n### A note\n\nProse.\n",
+    )
+    added = task(config)
+    assert source(config) == (
+        "## Block B — Authoring\n\n*What this block is for.*\n\n"
+        f"{added.rendered}\n\n### A note\n\nProse.\n"
+    )
+
+
+def test_a_block_whose_preamble_is_its_last_line_gains_the_task_after_it(tmp_path):
+    config = project(tmp_path, "# Roadmap\n\n## Block B — Authoring\n\n*What this is for.*\n")
+    added = task(config)
+    assert source(config) == (
+        f"# Roadmap\n\n## Block B — Authoring\n\n*What this is for.*\n\n{added.rendered}\n"
+    )
+
+
 def test_a_block_heading_on_the_last_line_gains_no_trailing_blank(tmp_path):
     config = project(tmp_path, "# Roadmap\n\n## Block B — Authoring\n")
     added = task(config)

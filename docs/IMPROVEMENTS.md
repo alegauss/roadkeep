@@ -101,31 +101,6 @@ and a second implementation of *that* is the defect this is not.
 
 ## Block B — Authoring
 
-### §RK108 The paragraph between a heading and its first task
-
-Where a task goes is derived, in two cases: after the block's last entry when it has
-one, and — when it has none — after the blank that follows the heading. The second
-reasons about blank lines, because a task glued to either side of a heading reads as
-belonging to the wrong block. It does not reason about what is *on* the line after the
-blank.
-
-Five of commitclerk's nine blocks open with an italic paragraph saying what the block is
-for. Block C had one entry, T17 shipped, and the next `add` landed the new line between
-the heading and that paragraph — legal, round-tripping, lint-clean, and against the
-shape every other block in that file has.
-
-Two things make this the interesting kind of defect. It is **invisible until a block
-empties and refills**, so a project meets it once and then not for months; and it cannot
-appear here, because these blocks carry no preamble. The corpus that would have caught
-it is the one that adopted the tool.
-
-The parser already holds that prose under a heading belongs to that heading, so the
-insertion point for an empty block is after the heading's own prose and not after its
-first blank — the question `section add` answers for a subsection, asked one file over.
-
-Hand-editing it into place was the alternative, and that is the edit RK22 denies: a tool
-whose output gets quietly corrected is a tool nobody finds the defect in.
-
 ### §RK112 section drop deletes a section an open line points at (RK112)
 
 Found by using the tool, in Shio: `section drop VIII.11` succeeded, and the next `lint`

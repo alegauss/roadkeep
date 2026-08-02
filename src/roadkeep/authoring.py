@@ -536,13 +536,17 @@ def _placement(
     all. An empty block does: the heading may be followed by a blank line, by the next
     heading, or by nothing, and a task glued to either side of a heading reads as
     belonging to the wrong one.
+
+    An empty block also carries its own prose down with it (RK108) — the paragraph that
+    says what the block is for stays above the first task, because the line after the
+    heading's blank is where the introduction is and not where the backlog starts.
     """
     entries = document.block(heading.label)
     if entries:
         return entries[-1].index + 1, [rendered]
 
     lines = document.lines
-    index = heading.lineno  # 0-based: the line after the heading
+    index = _after_preamble(document, heading)
     before: list[str] = []
     if index < len(lines) and blank(lines[index]):
         index += 1
@@ -551,3 +555,25 @@ def _placement(
     at_end = index >= len(lines)
     after = [] if at_end or blank(lines[index]) else [""]
     return index, [*before, rendered, *after]
+
+
+def _after_preamble(document: Document, heading: Heading) -> int:
+    """The line past the heading's own prose — 0-based, and the heading's own line when
+    there is none, which is every block in this repository and was the whole rule (RK108).
+
+    *Own* is the boundary `section add` already draws one file over: any heading ends it,
+    because prose under a nested heading belongs to that heading and a line placed after
+    it would sit under the wrong one. Trailing blanks are not prose, so what comes back is
+    the blank that separates the paragraph from the block — which the caller then reads
+    exactly as it reads the blank after a bare heading.
+    """
+    start = heading.lineno  # 0-based: the line after the heading
+    end = next(
+        (later.lineno - 1 for later in document.headings if later.lineno > heading.lineno),
+        len(document.lines),
+    )
+    index = start
+    for offset in range(start, end):
+        if not blank(document.lines[offset]):
+            index = offset + 1
+    return index

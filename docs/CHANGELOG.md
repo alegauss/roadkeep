@@ -46,6 +46,7 @@
 - ✅ **RK91** **Pausing a task means retiring it, losing its id, rationale section and every dependent that named it** — defer moves the line to the store keeping the id, the deps, the symptom and the section a departure deletes, and resume returns it under its block: a pause is a state, not a retirement.
 - ✅ **RK93** **add exits 0 on a line whose derived pointer fails lint at once, and names no follow-up** — add --section writes the rationale in the same transaction, and an add without one names the section add that answers its pointer, so the gate is no longer the first to mention it.
 - ✅ **RK97** **an id two branches allocated to different work has no door that moves either line** — renumber moves the line, its section and every dep naming it in one transaction, deriving a free id in the line's own family, so a merge that spent one id twice has a door that is not a departure.
+- ✅ **RK108** **The first line added to a block lands above the paragraph that introduces it** — An empty block's first task lands after the paragraph that introduces the block, not between the heading and that paragraph.
 
 ## Block C — Query
 

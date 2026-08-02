@@ -26,7 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK108** (deps: —) **The first line added to a block lands above the paragraph that introduces it** — commitclerk files five of its nine blocks under an italic preamble, and Block C emptied when T17 shipped, so the next `add` put the task between the heading and the prose that frames it. → §RK108
 - 💭 **RK112** (deps: RK78 ✅) **section drop deletes a section an open line points at** — RK78 refuses when a NESTED section has another owner, and the standalone verb never asks who points at the anchor it was given. → §RK112
 
 ## Block C — Query (consult without reading the file)
