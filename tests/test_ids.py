@@ -15,6 +15,7 @@ import pytest
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.ids import highest, id_scanner, next_id, scan
+from roadkeep.schema import Schema
 
 HERE = Path(__file__).resolve().parents[1]
 ROADMAP = "docs/ROADMAP.md"
@@ -129,7 +130,8 @@ def test_a_source_that_does_not_exist_is_skipped_not_raised(tmp_path):
     ],
 )
 def test_the_scanner_reads_ids_and_not_lookalikes(prefix, text, expected):
-    assert [m.group(0) for m in id_scanner(prefix).finditer(text)] == expected
+    scanner = id_scanner(Schema(prefixes=(prefix,)))
+    assert [m.group(0) for m in scanner.finditer(text)] == expected
 
 
 def test_another_projects_prefix_does_not_leak_into_the_count(tmp_path):
@@ -219,7 +221,50 @@ def test_the_scan_reads_every_family_and_says_which_matched(tmp_path):
     assert found == {"C45": "C", "V5": "V"}
 
 
-def test_a_single_family_scanner_is_the_pattern_it_always_was(tmp_path):
+# -- the shape the project declared (RK106) ---------------------------------
+
+
+def shaped(tmp_path: Path, prefix: str, table: str, body: str) -> Config:
+    (tmp_path / "roadkeep.toml").write_text(
+        f'prefix = "{prefix}"\n[ids]\n{table}[files]\nroadmap = "{ROADMAP}"\n',
+        encoding="utf-8",
+    )
+    target = tmp_path / ROADMAP
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(body, encoding="utf-8")
+    return Config.discover(tmp_path)
+
+
+def test_a_padded_project_mints_a_padded_id(tmp_path):
+    # A counter that answered `D10` here and `D9` one line earlier would be handing back
+    # an id this project's own gate refuses.
+    assert next_id(shaped(tmp_path, "D", "pad = 2\n", "- D01 and D09\n")) == "D10"
+
+
+def test_a_padded_project_with_no_ids_yet_opens_at_the_declared_width(tmp_path):
+    assert next_id(shaped(tmp_path, "D", "pad = 2\n", "# Roadmap\n")) == "D01"
+
+
+def test_the_padding_is_only_the_spelling_and_never_the_count(tmp_path):
+    config = shaped(tmp_path, "D", "pad = 2\n", "- D09\n")
+    assert next_id(config) == "D10"
+    assert highest(config).number == 9
+
+
+def test_the_scan_reads_a_split_id_the_project_declares(tmp_path):
+    # T24b is the number the next id has to clear. Read as no id at all it would be
+    # invisible to the maximum, and 25 would be minted on a backlog that already spent 24.
+    config = shaped(tmp_path, "T", "suffix = true\n", "- T24b is the split\n")
+    assert [(ref.id, ref.number) for ref in scan(config)] == [("T24b", 24)]
+    assert next_id(config) == "T25"
+
+
+def test_a_sub_letter_nobody_declared_is_still_not_an_id(tmp_path):
+    config = shaped(tmp_path, "T", "", "- T24b is the split\n")
+    assert scan(config) == ()
+
+
+def test_a_single_family_scanner_is_the_pattern_it_always_was():
     # The list is what a backlog numbered by track needs; a project that numbers one
     # reads the same regex it always did, and `prefix = "RK"` stays a string in the file.
-    assert id_scanner("RK").pattern == id_scanner(("RK",)).pattern
+    assert id_scanner(Schema()).pattern == r"\b(RK)([1-9][0-9]*)()\b"

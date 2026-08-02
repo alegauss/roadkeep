@@ -7,8 +7,8 @@ description: Call the roadkeep CLI instead of editing a project's governed ROADM
 
 The line format is a schema at the point of insertion, not a convention to remember. Every
 field is validated before a sentence exists, so a refusal costs a retry and never a deletion.
-Read `roadkeep.toml` for this project's prefix, paths, markers and limits (L6); nothing below
-hardcodes them. `roadkeep` is the installed entry point — `python -m roadkeep.cli` when it is
+Read `roadkeep.toml` for this project's prefix, id shape, paths, markers and limits (L6);
+nothing below hardcodes them. `roadkeep` is the installed entry point — `python -m roadkeep.cli` when it is
 not on PATH.
 
 ## Writing and shipping
@@ -63,8 +63,10 @@ and `lint` gates the turn's end.
 
 **An id is an address, and a merge can spend one twice.** `renumber <id> [--to <new>]` moves
 the line, the `§<id>` section its pointer resolves to and every dep naming it, in one
-transaction — the destination derived in the line's own family unless you name one, and refused
-if any source already mentions it. The ledger is never opened, so the id the other branch
+transaction — the destination derived in the line's own family unless you name one, spelled the
+way `[ids]` says this project spells one, and refused if any source already mentions it. That
+table is also where a **split** lives: where it declares a sub-letter, `--to <id>b` keeps the
+number commits and issues already cite, which is what renumbering the task would break. The ledger is never opened, so the id the other branch
 recorded stays theirs; the deps it moved are **named in the answer**, because which of two
 collided ids a dep meant is the one thing the files do not say. `ship` and `retire` are wrong
 here: both write a terminal entry for work nobody cancelled.

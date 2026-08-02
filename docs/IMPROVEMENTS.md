@@ -75,30 +75,6 @@ already written, not authorship.
 
 ## Block A — The model
 
-### §RK106 The two id shapes a real corpus already spells
-
-Two adopted projects raise the same question from opposite sides, and both configs
-record it as open rather than as a defect.
-
-**Dumont pads.** `D01` through `D09`, consistently, across every line. roadkeep refuses zero
-padding because `D01` and `D1` would be two spellings of one id — a real hazard, and not
-this one: a project that pads *always* has one spelling, and the ambiguity only exists for
-a project that pads sometimes. These 9 findings are the whole of Dumont's lint output, so
-answering this is what lets the fourth corpus wire the gate at all.
-
-**Turing sub-letters.** `T24b`, `T221a`, `T227a` and one more — a task split after its
-number was already cited in commits and issues, which is the thing ids are for. Renumbering
-would break the citations the id exists to keep stable.
-
-One question, two shapes: whether the *spelling* of an id is the format's to fix or the
-project's to declare. L6 has answered this for the prefix, the heading word, the markers
-and every limit, and the id is the one field still holding a shape nobody chose.
-
-The non-goal nearby is narrower than it looks: it refuses an enforced *scheme* —
-contiguity, reuse, ordering — because those are properties of real backlogs. A declared
-width or a declared sub-letter is the opposite, a project stating what it already
-writes.
-
 ## Block B — Authoring
 
 ### §RK108 The paragraph between a heading and its first task

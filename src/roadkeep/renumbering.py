@@ -273,7 +273,7 @@ def _family(config: Config, task_id: str) -> str:
     move has to stay in the family the line was numbered in or the repair is a second
     collision waiting for the next `next_id`.
     """
-    match = id_scanner(config.schema.prefixes).match(task_id)
+    match = id_scanner(config.schema).match(task_id)
     return match.group(1) if match else config.schema.prefix
 
 

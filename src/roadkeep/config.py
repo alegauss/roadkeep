@@ -58,6 +58,7 @@ DEFAULT_PATHS: Mapping[str, str] = {
 _TOP_KEYS = frozenset(
     {
         "prefix",
+        "ids",
         "ref_scheme",
         "files",
         "limits",
@@ -76,6 +77,10 @@ _TOP_KEYS = frozenset(
 #: key, because the heading is a shape with more than one part and the next question about
 #: it (a sub-block that carries no word at all) belongs under the same heading.
 _HEADING_KEYS = frozenset({"word"})
+#: `[ids]` — the shape of an id, where a project already spells one the format refused
+#: (RK106). Its own table for the reason `[headings]` is: the spelling has more than one
+#: part, and a bare `pad` beside `prefix` would read as one of the limits.
+_IDS_KEYS = frozenset({"pad", "suffix"})
 #: `[non_goals]` — the two fields the roadmap's other bullet has (RK70). Opt-in for RK66's
 #: reason: two live corpora wrote theirs as free prose, and a default that reported findings
 #: on the first run is a gate that gets bypassed instead of adopted.
@@ -227,6 +232,7 @@ class Config:
         _reject_unknown(data, _TOP_KEYS, "", problems)
 
         prefixes = _prefixes(data.get("prefix"), problems)
+        ids = _ids(data.get("ids"), problems)
         heading_word = _heading_word(data.get("headings"), problems)
         ref_scheme = _string(data, "ref_scheme", "id", problems)
         markers = _markers(data.get("markers"), problems)
@@ -248,6 +254,7 @@ class Config:
             try:
                 schema = Schema(
                     prefixes=prefixes,
+                    **ids,
                     heading_word=heading_word,
                     ref_scheme=ref_scheme,
                     **markers,
@@ -403,6 +410,39 @@ def _prefixes(raw: object, problems: list[str]) -> tuple[str, ...]:
         "by track"
     )
     return ("RK",)
+
+
+def _ids(raw: object, problems: list[str]) -> dict[str, object]:
+    """`[ids]` — the width the number is padded to, and whether a sub-letter is legal (RK106).
+
+    Both default to the shape every project had before this table existed, so a config that
+    declares nothing reads exactly as it did. Two live corpora declare one: Dumont pads `D01`
+    through `D09` on every line, and Turing carries `T24b`, `T221a` and `T227a` from tasks
+    split after their numbers were cited in commits and issues.
+
+    What is being declared is a *spelling*, never a scheme — the non-goal is contiguity,
+    reuse and ordering, which are properties of real backlogs, and a project stating the
+    width it already writes is the opposite of a scheme imposed on it (L6).
+    """
+    default: dict[str, object] = {"id_pad": 1, "id_suffix": False}
+    if raw is None:
+        return default
+    if not isinstance(raw, Mapping):
+        problems.append("ids must be a table with 'pad' and 'suffix'")
+        return default
+    _reject_unknown(raw, _IDS_KEYS, "ids.", problems)
+    pad = raw.get("pad", 1)
+    if not isinstance(pad, int) or isinstance(pad, bool) or pad < 1:
+        problems.append(
+            "ids.pad must be a positive integer: it is the width the number is "
+            "zero-filled to, and 1 is an unpadded id"
+        )
+        pad = 1
+    suffix = raw.get("suffix", False)
+    if not isinstance(suffix, bool):
+        problems.append("ids.suffix must be true or false")
+        suffix = False
+    return {"id_pad": pad, "id_suffix": suffix}
 
 
 def _heading_word(raw: object, problems: list[str]) -> str:

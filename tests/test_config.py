@@ -474,3 +474,28 @@ def test_an_unknown_heading_key_is_refused_like_any_other(tmp_path):
     path = write(tmp_path, '[headings]\nlevel = 2\n')
     with pytest.raises(ConfigError, match="headings.level"):
         Config.load(path)
+
+
+def test_a_project_declares_the_shape_its_ids_are_spelled_in(tmp_path):
+    # RK106: Dumont pads D01-D09 and Turing sub-letters T24b, and both were reported as
+    # malformed by a format that had never been asked whether a declared shape is legal.
+    write(tmp_path, '[ids]\npad = 2\nsuffix = true\n')
+    schema = Config.discover(tmp_path).schema
+    assert (schema.id_pad, schema.id_suffix) == (2, True)
+
+
+def test_a_project_that_declares_no_shape_reads_the_one_it_always_did(tmp_path):
+    assert Config.parse({}, root=tmp_path).schema.id_pad == 1
+    assert Config.parse({}, root=tmp_path).schema.id_suffix is False
+
+
+def test_a_width_that_is_not_a_positive_integer_is_refused(tmp_path):
+    path = write(tmp_path, "[ids]\npad = 0\n")
+    with pytest.raises(ConfigError, match="ids.pad must be a positive integer"):
+        Config.load(path)
+
+
+def test_an_unknown_id_key_is_refused_like_any_other(tmp_path):
+    path = write(tmp_path, '[ids]\nseparator = "-"\n')
+    with pytest.raises(ConfigError, match="ids.separator"):
+        Config.load(path)

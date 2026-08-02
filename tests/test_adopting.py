@@ -143,6 +143,17 @@ def test_only_the_ledger_slots_a_file_lacks_are_written_out() -> None:
         assert getattr(parsed, other) is True
 
 
+def test_only_a_declared_id_shape_is_written_out() -> None:
+    # RK106, and the same rule as the two above: `pad = 1` reads as a width somebody chose
+    # rather than as the unpadded id nobody had to.
+    paths = {"roadmap": "docs/ROADMAP.md"}
+    assert "[ids]" not in render_config(Schema(), paths)
+    rendered = render_config(Schema(prefixes=("D",), id_pad=2, id_suffix=True), paths)
+    assert "[ids]" in rendered and "pad = 2" in rendered and "suffix = true" in rendered
+    parsed = Config.parse(tomllib.loads(rendered), root=".").schema
+    assert (parsed.id_pad, parsed.id_suffix) == (2, True)
+
+
 def test_prefix_is_carried_into_the_first_id(tmp_path: Path, capsys) -> None:
     assert main(["-C", str(tmp_path), "init", "--prefix", "SH"]) == EXIT_OK
     capsys.readouterr()

@@ -63,6 +63,20 @@ def test_the_lowest_ready_id_wins_and_says_so(tmp_path):
     assert choice.alternatives == ("RK9", "RK10")
 
 
+def test_a_split_id_counts_at_its_own_number_and_not_at_zero(tmp_path):
+    # RK106: a `T24b` the ordering cannot read counts as zero, and zero is *first* — so
+    # the split task a project deliberately numbered after T24 would be offered ahead of
+    # every line below it. The letter is a tie-break, never a rank.
+    config = project(
+        tmp_path,
+        BLOCKS + line("RK24b") + line("RK24") + line("RK9"),
+        extra="[ids]\nsuffix = true\n",
+    )
+    choice = pick(config)
+    assert choice.entry.task.id == "RK9"
+    assert choice.alternatives == ("RK24", "RK24b")
+
+
 def test_a_blocked_task_is_never_offered(tmp_path):
     config = project(tmp_path, BLOCKS + line("RK1", "RK5") + line("RK4"))
     choice = pick(config)

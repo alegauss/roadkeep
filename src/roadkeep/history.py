@@ -336,7 +336,7 @@ def added_ids(config: Config, role: str) -> dict[str, str]:
         "--",
         str(relative),
     )
-    bold = re.compile(rf"\*\*({config.schema.prefix_alternation}[1-9][0-9]*)\*\*")
+    bold = re.compile(rf"\*\*({config.schema.id_fragment})\*\*")
     first: dict[str, str] = {}
     for head, rows in _records(output):
         added = "\n".join(

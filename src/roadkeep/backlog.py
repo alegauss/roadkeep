@@ -329,7 +329,7 @@ class Backlog:
             for entry in self.roadmap.entries
             # `number_of` against the *one* family, not all of them: `C14–C20` counts in
             # cursarei's product track and must not be satisfied by `V15` shipping.
-            if (number := number_of(entry.task.id, family)) is not None
+            if (number := number_of(entry.task.id, family, schema.id_suffix)) is not None
             and first <= number <= last
         )
 
@@ -355,7 +355,9 @@ class Backlog:
         return Readiness.BLOCKED
 
 
-def number_of(task_id: str, prefixes: str | Sequence[str]) -> int | None:
+def number_of(
+    task_id: str, prefixes: str | Sequence[str], suffix: bool = False
+) -> int | None:
     """The numeric part of an id of this project, or None if it is not one.
 
     Public because `pick` (RK11) orders by it: "lowest id" is a numeric comparison, and
@@ -364,19 +366,24 @@ def number_of(task_id: str, prefixes: str | Sequence[str]) -> int | None:
     Takes every family the project numbers (RK74), longest first so that a `C` declared
     beside a `CX` cannot claim `CX7` — which :func:`~roadkeep.schema._check_prefixes`
     already refuses, this being the second place that would have to know it.
+
+    ``suffix`` is `[ids] suffix` (RK106), passed and never assumed: a `T24b` read as no id
+    counts as zero here, and zero is *first* — so the split task a project deliberately
+    numbered after `T24` would be the one `pick` offered ahead of `T1`. Leading zeros need
+    no flag: a declared width is still digits, and `D01` counts as 1.
     """
     if isinstance(prefixes, str):
         prefixes = (prefixes,)
     for prefix in sorted(prefixes, key=lambda p: (-len(p), p)):
         if not task_id.startswith(prefix):
             continue
-        tail = task_id[len(prefix) :]
+        tail = _digits(task_id[len(prefix) :], suffix)
         if tail.isdigit():
             return int(tail)
     return None
 
 
-def family_of(task_id: str, prefixes: Sequence[str]) -> str | None:
+def family_of(task_id: str, prefixes: Sequence[str], suffix: bool = False) -> str | None:
     """Which family an id belongs to (RK74), or None if it belongs to none.
 
     Separate from :func:`number_of` because `next-id` asks a different question of the
@@ -385,9 +392,14 @@ def family_of(task_id: str, prefixes: Sequence[str]) -> str | None:
     """
     for prefix in sorted(prefixes, key=lambda p: (-len(p), p)):
         tail = task_id[len(prefix) :] if task_id.startswith(prefix) else ""
-        if tail.isdigit():
+        if _digits(tail, suffix).isdigit():
             return prefix
     return None
+
+
+def _digits(tail: str, suffix: bool) -> str:
+    """An id's tail with the sub-letter taken off, where the project declares one."""
+    return tail[:-1] if suffix and tail[-1:].islower() else tail
 
 
 def _present(config: Config, role: str) -> Document | None:

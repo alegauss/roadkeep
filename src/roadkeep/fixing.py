@@ -211,7 +211,10 @@ def _deps(
     # partners` have no order, and sorting a mixed field would move prose somebody wrote.
     if all(schema.classify_dep(d) is DepKind.TASK for d in deps):
         ordered = tuple(
-            sorted(deps, key=lambda d: (number_of(d.id, schema.prefixes) or 0, d.id))
+            sorted(
+                deps,
+                key=lambda d: (number_of(d.id, schema.prefixes, schema.id_suffix) or 0, d.id),
+            )
         )
         if ordered != deps:
             reasons.append("deps ordered")

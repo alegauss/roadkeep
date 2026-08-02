@@ -26,6 +26,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from roadkeep.config import Config
+from roadkeep.schema import SUB_LETTER, Schema
 
 
 @dataclass(frozen=True, slots=True)
@@ -42,21 +43,22 @@ class IdRef:
     family: str = ""
 
 
-def id_scanner(prefixes: str | Sequence[str]) -> re.Pattern[str]:
-    """`<prefix><n>` as it appears in running text, with no zero padding.
+def id_scanner(schema: Schema) -> re.Pattern[str]:
+    """`<prefix><n>` as it appears in running text, spelled the way this project spells it.
 
-    Padding is excluded on purpose: `RK007` and `RK7` would otherwise be two
-    spellings of one id, and the maximum is taken over the numbers these capture.
+    Three groups, always: the family, the number the maximum is taken over, and the
+    sub-letter — empty where `[ids] suffix` declares none, so a caller reads the same
+    shape whatever the project wrote.
 
-    Every family the project declares matches (RK74), longest first so the alternation
-    reads as though the order mattered even where :func:`~roadkeep.schema._check_prefixes`
-    has already made it impossible for it to.
+    Takes the schema and not the prefixes alone (RK106), because padding and the
+    sub-letter are two more declarations about what an id *is*: a scan that knew only the
+    family would read `T24b` as no id at all, and the number a document already spends is
+    exactly what the next one must clear.
     """
-    if isinstance(prefixes, str):
-        prefixes = (prefixes,)
-    ordered = sorted(prefixes, key=lambda p: (-len(p), p))
-    families = "|".join(re.escape(prefix) for prefix in ordered)
-    return re.compile(rf"\b({families})([1-9][0-9]*)\b")
+    tail = f"({SUB_LETTER}?)" if schema.id_suffix else "()"
+    return re.compile(
+        rf"\b({schema.prefix_alternation})({schema.number_fragment}){tail}\b"
+    )
 
 
 def scan(config: Config) -> tuple[IdRef, ...]:
@@ -66,7 +68,7 @@ def scan(config: Config) -> tuple[IdRef, ...]:
     the files, and refusing to answer "what is the next id" because a strategy file is
     absent would be an obstacle rather than a guardrail.
     """
-    pattern = id_scanner(config.schema.prefixes)
+    pattern = id_scanner(config.schema)
     found: list[IdRef] = []
     for path in config.id_sources():
         if not path.is_file():
@@ -107,13 +109,16 @@ def next_id(config: Config, family: str | None = None) -> str:
     Nothing infers it: the letter is which track the work belongs to, and a tool that
     guessed it from a block heading would be holding an opinion about someone else's
     backlog (RK74).
+
+    Spelled by :meth:`Schema.spell_id`, so a project that declared a width gets `D10` and
+    not the `D1` its own gate would refuse a moment later (RK106).
     """
     chosen = family or config.schema.prefix
     if chosen not in config.schema.prefixes:
         raise UnknownFamily(chosen, config.schema.prefixes)
     top = highest(config, chosen)
     number = top.number + 1 if top else 1
-    return f"{chosen}{number}"
+    return config.schema.spell_id(chosen, number)
 
 
 class UnknownFamily(ValueError):

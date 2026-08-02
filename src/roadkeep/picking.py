@@ -124,6 +124,7 @@ def pick(config: Config, block: str | None = None, designed: bool = False) -> Ch
     """
     backlog = Backlog.load(config)
     prefixes = config.schema.prefixes
+    sub_letters = config.schema.id_suffix
     if block is not None and block not in backlog.declared_blocks():
         raise KeyError(
             f"no heading declares {config.schema.block_named(block)} (declares: "
@@ -137,7 +138,8 @@ def pick(config: Config, block: str | None = None, designed: bool = False) -> Ch
     ]
     survey = _survey(backlog, considered)
     ordered = sorted(
-        survey.ready, key=lambda e: (number_of(e.task.id, prefixes) or 0, e.task.id)
+        survey.ready,
+        key=lambda e: (number_of(e.task.id, prefixes, sub_letters) or 0, e.task.id),
     )
     # Narrowed after the ordering and not before it, so `ready` keeps counting what the
     # file holds: the caller's intent decides what may be offered, never what is true.

@@ -829,6 +829,60 @@ def test_a_budget_is_read_from_the_configuration_and_not_from_the_file(tmp_path)
     assert not lint(Config.discover(tmp_path)).clean
 
 
+# -- the id shape a project declares (RK106) ----------------------------------
+
+PADDED = """# Roadmap
+
+## Track A — Structured sources
+
+- 📋 **D01** (deps: —) **A first symptom** — Because of a reason. → §D01
+- 📋 **D09** (deps: D01) **A ninth symptom** — Because of another reason. → §D09
+"""
+
+PADDED_PROSE = """# Design rationale
+
+## Track A — Structured sources
+
+### §D01 The first design
+
+The reasoning the first line has no room for.
+
+### §D09 The ninth design
+
+The reasoning the ninth line has no room for.
+"""
+
+PADDED_CONFIG = (
+    'prefix = "D"\n[ids]\npad = 2\n[headings]\nword = "Track"\n'
+    '[files]\nroadmap = "ROADMAP.md"\nimprovements = "IMPROVEMENTS.md"\n'
+)
+
+
+def test_a_backlog_that_pads_every_line_passes_once_it_declares_the_width(tmp_path):
+    # The nine findings that were the whole of Dumont's lint output, and the reason a
+    # fourth corpus could not wire the gate at all: one question about the id's spelling,
+    # answered by the project rather than by the format.
+    config = project(
+        tmp_path,
+        roadmap=PADDED,
+        changelog=None,
+        improvements=PADDED_PROSE,
+        config=PADDED_CONFIG,
+    )
+    assert lint(config).clean, [str(f) for f in lint(config).findings]
+
+
+def test_the_same_file_without_the_declaration_is_a_finding_per_line(tmp_path):
+    config = project(
+        tmp_path,
+        roadmap=PADDED,
+        changelog=None,
+        improvements=PADDED_PROSE,
+        config=PADDED_CONFIG.replace("[ids]\npad = 2\n", ""),
+    )
+    assert codes(lint(config)).count("id.format") == 2
+
+
 # -- the contract -------------------------------------------------------------
 
 

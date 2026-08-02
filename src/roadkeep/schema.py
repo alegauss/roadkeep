@@ -115,6 +115,10 @@ DEFAULT_HEADING_WORD = "Block"
 #: this one on the first `**Delete**`.
 ID_SHAPE = r"[A-Za-z]{1,8}[0-9][A-Za-z0-9]*"
 _ID_SHAPE_RE = re.compile(rf"^{ID_SHAPE}$")
+#: The sub-letter a split id may carry where a project declares one (RK106). Lowercase, so
+#: it can never be read as a family — those are uppercase by :data:`_PREFIX_RE` — and one,
+#: because `T24b` is what Turing writes and `T24beta` would put the letter back in prose.
+SUB_LETTER = r"[a-z]"
 # The shape of a range, without judging its direction, so that `RK9–RK5` can be
 # reported instead of quietly becoming "outside the backlog".
 _RANGE_SHAPE_RE = re.compile(r"^[A-Za-z]{1,8}[0-9]+\s*[-–—]\s*[A-Za-z]{0,8}[0-9]+$")
@@ -217,6 +221,30 @@ class Task:
         return tuple(d.id for d in self.deps)
 
 
+def number_fragment(pad: int = 1) -> str:
+    """The numeric part of an id, as a regex fragment, for a project that pads to ``pad``.
+
+    **One spelling per number** is the whole rule (RK106). A number shorter than the
+    declared width is zero-filled to it, a longer one is written out, and nothing else
+    matches — so ``pad = 2`` admits `01`…`09`, `10`…`99` and `100` upward while refusing
+    both `1` and `001`. That is what makes a declared width safe where padding in general
+    is not: the hazard is a backlog that pads *sometimes*, and a project stating a width
+    has said which of `D1` and `D01` is the id.
+
+    ``pad = 1`` is the unpadded default, spelled as the bare ``[1-9][0-9]*`` a reader
+    recognises rather than a one-branch alternation that means the same thing.
+    """
+    if pad < 2:
+        return "[1-9][0-9]*"
+    # One branch per significant-digit count below the width, each with the zeros that
+    # fill it out, then one for everything at or above it. Written as repeated literals
+    # rather than `{n}` counts because a declared width is 2 or 3 in practice, and
+    # `0[1-9]` is read at a glance where `0{1}[1-9][0-9]{0}` is decoded.
+    branches = ["0" * (pad - k) + "[1-9]" + "[0-9]" * (k - 1) for k in range(1, pad)]
+    branches.append("[1-9]" + "[0-9]" * (pad - 1) + "[0-9]*")
+    return "(?:" + "|".join(branches) + ")"
+
+
 def _check_prefixes(prefixes: tuple[str, ...]) -> None:
     """Every family this backlog numbers has to be readable, and readable as one thing."""
     if not prefixes:
@@ -253,6 +281,19 @@ class Schema:
     #: string would have made 521 of its lines unreadable rather than non-conforming.
     #: Nothing maps a family to anything — a track is not a block and not an owner.
     prefixes: tuple[str, ...] = ("RK",)
+    #: The width the number is zero-filled to, `[ids] pad` (RK106). 1 is unpadded, which is
+    #: what three of the four live corpora write; Dumont writes `D01` through `D09` on every
+    #: line and was getting a finding for each. Declared rather than tolerated: the tool
+    #: refuses padding in general because `D1` and `D01` would be two names for one task,
+    #: and a *width* is the project answering that — every number has exactly one spelling
+    #: again, and both the unpadded `D1` and the over-padded `D001` stay refused.
+    id_pad: int = 1
+    #: Whether an id may end in one lowercase letter, `[ids] suffix` (RK106) — Turing's
+    #: `T24b`, a task split after its number was already cited in commits and issues, which
+    #: is the thing an id is for. Off by default, because a letter is a second address for
+    #: one number and only a backlog that already spells it should be able to. Never
+    #: minted: :meth:`spell_id` counts, and a split is a `renumber --to`.
+    id_suffix: bool = False
     markers: tuple[str, ...] = OPEN_MARKERS
     shipped_marker: str = SHIPPED
     #: The ledger's other legal marker (RK32). Not an open marker: a retired line is a
@@ -340,6 +381,11 @@ class Schema:
                 f"got {self.ref_scheme!r}"
             )
         _check_prefixes(self.prefixes)
+        if self.id_pad < 1:
+            raise ValueError(
+                f"id_pad must be at least 1, got {self.id_pad}: 1 is an unpadded id, and "
+                f"there is no width below it to declare"
+            )
         if not self.heading_word.strip() or self.heading_word != self.heading_word.strip():
             raise ValueError(
                 f"heading word must be one bare word: {self.heading_word!r} — it is "
@@ -390,6 +436,33 @@ class Schema:
         ordered = sorted(self.prefixes, key=lambda p: (-len(p), p))
         return "(?:" + "|".join(re.escape(prefix) for prefix in ordered) + ")"
 
+    @property
+    def number_fragment(self) -> str:
+        """The number an id of this project carries, as a regex fragment (RK106)."""
+        return number_fragment(self.id_pad)
+
+    @property
+    def id_fragment(self) -> str:
+        """A whole id as a regex fragment: the family, the number, and the sub-letter.
+
+        The one place the three declarations are joined, because an id is matched in five —
+        :meth:`id_pattern`, the scan the next id is a maximum over, both ends of a range
+        dep, and the bold id `lint` and `origin` read out of prose — and a spelling only
+        four of them knew would make an id legal on the line and invisible to the counter,
+        which is how a number gets minted twice.
+        """
+        tail = SUB_LETTER + "?" if self.id_suffix else ""
+        return f"{self.prefix_alternation}{self.number_fragment}{tail}"
+
+    def spell_id(self, family: str, number: int) -> str:
+        """How this project writes an id — the one place a number becomes a name (RK106).
+
+        Zero-filled to `[ids] pad`, so a project that pads gets `D10` from the counter and
+        never a `D1` its own gate would then refuse. No sub-letter: the letter addresses a
+        split of an id that already exists, and nothing derives that.
+        """
+        return f"{family}{number:0{self.id_pad}d}"
+
     def block_dep_pattern(self) -> re.Pattern[str]:
         """`<word> <label>` as a dep names it (RK28, RK75)."""
         return re.compile(rf"^{re.escape(self.heading_word)} ({BLOCK_LABEL})$")
@@ -417,6 +490,20 @@ class Schema:
         who wrote the config and a reordering they did not make reads as a second list.
         """
         return "/".join(self.prefixes)
+
+    def _id_shape(self) -> str:
+        """How a refusal spells this project's id, including what `[ids]` declared (RK106).
+
+        Derived, because the alternative is a message naming the built-in shape at a
+        project whose own config legalised another — which is a refusal that reads as a
+        bug in the tool and gets the config edited back.
+        """
+        shape = (
+            f"{self._families()}<n> with no leading zero"
+            if self.id_pad == 1
+            else f"{self._families()}<n> zero-filled to {self.id_pad} digits"
+        )
+        return shape + (", plus at most one lowercase letter" if self.id_suffix else "")
 
     @property
     def is_ledger(self) -> bool:
@@ -531,14 +618,16 @@ class Schema:
     # -- validation --------------------------------------------------------
 
     def id_pattern(self) -> re.Pattern[str]:
-        """Ids are ``<prefix><n>``, non-contiguous, and never zero-padded.
+        """Ids are ``<prefix><n>``, non-contiguous, and spelled as this project spells them.
 
-        Padding would make ``RK01`` and ``RK1`` two spellings of one id, and the
-        next-id maximum (RK4) is taken over these strings. Every declared family matches
-        (RK74): a backlog that numbers by track is one backlog, so `C14` and `V05` are
-        both ids of it and a dep from one to the other is an ordinary dep.
+        Unpadded by default, because ``RK01`` and ``RK1`` would otherwise be two spellings
+        of one id and the next-id maximum (RK4) is taken over these strings. A project that
+        pads *every* line has already answered that, and says so as `[ids] pad` (RK106) —
+        as it says `[ids] suffix` for the sub-letter a split task carries. Every declared
+        family matches (RK74): a backlog that numbers by track is one backlog, so `C14` and
+        `V05` are both ids of it and a dep from one to the other is an ordinary dep.
         """
-        return re.compile(rf"^{self.prefix_alternation}[1-9][0-9]*$")
+        return re.compile(rf"^{self.id_fragment}$")
 
     def validate(self, task: Task) -> tuple[Violation, ...]:
         """Every violation, in field order. Empty means the task conforms."""
@@ -569,8 +658,7 @@ class Schema:
                 Violation(
                     "id.format",
                     "id",
-                    f"expected {self._families()}<n> with no leading zero, "
-                    f"got {task.id!r}",
+                    f"expected {self._id_shape()}, got {task.id!r}",
                 )
             )
         if not self.marker_field and task.status != self.shipped_marker:
@@ -666,10 +754,15 @@ class Schema:
         return match.group("family") if match else None
 
     def _range_match(self, dep: Dep) -> re.Match[str] | None:
+        # Both ends are spelled the way this project spells a number (RK106), so a padded
+        # backlog's `D01–D09` is the range it reads as rather than a `deps.range` finding.
+        # The sub-letter is not admitted here and nowhere else is it withheld: a range is
+        # bounded by numbers, and `T24b` is a name for a task and not for a bound.
         families = self.prefix_alternation
+        number = self.number_fragment
         pattern = re.compile(
-            rf"^(?P<family>{families})([1-9][0-9]*)"
-            rf"\s*[-–—]\s*(?P=family)?([1-9][0-9]*)$"
+            rf"^(?P<family>{families})({number})"
+            rf"\s*[-–—]\s*(?P=family)?({number})$"
         )
         return pattern.match(dep.id)
 

@@ -22,8 +22,6 @@
 
 ## Block A — The model (a task is data before it is a line)
 
-- 📋 **RK106** (deps: —) **An id a live backlog spells the same way every time is refused as malformed** — Dumont pads D01-D09 and Turing sub-letters T24b, so all 9 of Dumont's findings and 4 of Turing's are one question the format never answered: whether a declared shape is legal. → §RK106
-
 ## Block B — Authoring (insert, never hand-edit)
 
 - 📋 **RK108** (deps: —) **The first line added to a block lands above the paragraph that introduces it** — commitclerk files five of its nine blocks under an italic preamble, and Block C emptied when T17 shipped, so the next `add` put the task between the heading and the prose that frames it. → §RK108
@@ -38,7 +36,7 @@
 ## Block E — Adoption
 
 - 📋 **RK103** (deps: —) **A bullet whose marker holds a space is read as prose and reported by nothing** — GitHub's `- [ ]` task list is the commonest Markdown backlog there is, and cursarei's 16 of them parse as 0 entries and 0 rejects — the silent miss the reject list exists to end. → §RK103
-- 📋 **RK107** (deps: RK106) **A project that declares the format still has nothing enforcing it** — Turing and Dumont each carry a roadkeep.toml and neither runs the gate in CI, so what they adopted is held by the same nobody a convention is held by. → §RK107
+- 📋 **RK107** (deps: RK106 ✅) **A project that declares the format still has nothing enforcing it** — Turing and Dumont each carry a roadkeep.toml and neither runs the gate in CI, so what they adopted is held by the same nobody a convention is held by. → §RK107
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 

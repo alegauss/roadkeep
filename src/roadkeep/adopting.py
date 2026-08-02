@@ -290,6 +290,19 @@ def render_config(schema: Schema, paths: Mapping[str, str]) -> str:
         f"shipped = {_quote(schema.shipped_marker)}",
         f"retired = {_quote(schema.retired_marker)}",
     ]
+    shape = [
+        # Same rule as the heading word and the `[ledger]` absences: only what differs from
+        # the shape every project starts with, because `pad = 1` reads as a width somebody
+        # chose rather than as the unpadded id nobody had to (RK106).
+        line
+        for declared, line in (
+            (schema.id_pad != 1, f"# the width the number is zero-filled to\npad = {schema.id_pad}"),
+            (schema.id_suffix, "# a split task keeps its number and takes a letter\nsuffix = true"),
+        )
+        if declared
+    ]
+    if shape:
+        lines += ["", "[ids]", *shape]
     if schema.heading_word != DEFAULT_HEADING_WORD:
         # Only when it differs, for the same reason the `[ledger]` absences below are only
         # written when they are absences: `word = "Block"` reads as a decision about a word

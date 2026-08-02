@@ -424,6 +424,71 @@ def test_a_project_that_numbers_one_family_reads_the_pattern_it_always_did():
     assert Schema().id_pattern().pattern == "^RK[1-9][0-9]*$"
 
 
+# -- the id shape a live corpus already spells (RK106) ----------------------
+
+PADDED = Schema(prefixes=("D",), id_pad=2, heading_word="Track")
+SPLIT = Schema(prefixes=("T",), id_suffix=True, ref_scheme="outline")
+
+
+def test_a_declared_width_admits_the_padding_and_still_refuses_the_second_spelling():
+    # Dumont writes D01 through D09 on every line. The hazard the tool refuses padding for
+    # is a backlog that pads *sometimes*, and a declared width is the project answering it:
+    # every number has exactly one spelling again.
+    for identifier in ("D01", "D09", "D10", "D99", "D100"):
+        assert PADDED.id_pattern().match(identifier)
+    for identifier in ("D1", "D001", "D0", "D00"):
+        assert not PADDED.id_pattern().match(identifier)
+
+
+def test_an_undeclared_width_is_still_refused():
+    assert not Schema(prefixes=("D",)).id_pattern().match("D01")
+
+
+def test_the_number_the_counter_mints_is_spelled_at_the_declared_width():
+    # `D10` and never the `D1` this project's own gate would refuse a moment later.
+    assert PADDED.spell_id("D", 1) == "D01"
+    assert PADDED.spell_id("D", 100) == "D100"
+    assert Schema().spell_id("RK", 7) == "RK7"
+
+
+def test_a_padded_range_dep_is_the_range_it_reads_as():
+    # Without the width the ends would not parse, and `D01–D09` would be reported as a
+    # token that reads like a range instead of resolved as one.
+    assert PADDED.range_of_dep(Dep("D01–D09")) == (1, 9)
+    assert PADDED.family_of_dep(Dep("D01–D09")) == "D"
+
+
+def test_a_sub_letter_is_an_id_only_where_the_project_declares_one():
+    # T24b is a task split after its number was cited in commits and issues, which is the
+    # thing an id is for; renumbering it would break the citations.
+    assert SPLIT.id_pattern().match("T24b")
+    assert SPLIT.id_pattern().match("T24")
+    assert not SPLIT.id_pattern().match("T24beta")
+    assert not SPLIT.id_pattern().match("T24B")
+    assert not Schema(prefixes=("T",)).id_pattern().match("T24b")
+
+
+def test_a_split_task_and_its_parent_are_two_lines_that_both_validate():
+    parent = task(id="T24", ref="1.2")
+    split = task(id="T24b", deps=("T24",), ref="1.3")
+    assert SPLIT.validate(parent) == ()
+    assert SPLIT.validate(split) == ()
+
+
+def test_a_refusal_spells_the_shape_this_project_declared():
+    # A message naming the built-in shape at a project whose config legalised another
+    # reads as a bug in the tool, and gets the config edited back.
+    padded = {v.code: v.message for v in PADDED.validate(task(id="D1", block="A", ref="D1"))}
+    assert "zero-filled to 2 digits" in padded["id.format"]
+    split = {v.code: v.message for v in SPLIT.validate(task(id="T24beta", ref="1.2"))}
+    assert "one lowercase letter" in split["id.format"]
+
+
+def test_a_width_below_one_is_not_a_width():
+    with pytest.raises(ValueError, match="id_pad must be at least 1"):
+        Schema(id_pad=0)
+
+
 # -- the word a project files work under (RK75) -----------------------------
 
 TRACKS_WORD = Schema(heading_word="Track", ref_scheme="outline")
