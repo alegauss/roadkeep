@@ -25,6 +25,14 @@ The dep annotations of every line that named this task are re-derived in the sam
 transaction (RK8), because `(deps: RK5)` becomes a false statement at exactly the moment
 this command runs and nothing else would ever revisit it.
 
+**Half of it is a state, and retiring the rest is not a verdict on the half** (RK121, RK129).
+A ledger entry carrying a qualifier is the first half of *this* decision, so the departure
+completes it in place — and only where the departure is a **ship**. Reaching the same code
+with the retired marker replaced a `✅ **RK1 (local half)**` with a `🗑 **RK1**`, taking the
+sentence about what actually landed out of the only file that held it: completing says the
+rest landed too, retiring says it never will, and the second leaves the half that did ship as
+history. That choice is refused back to the author rather than made silently.
+
 **A line leaves by three doors and this module now records all three** (RK32). `ship` is
 the first; :func:`retire` is the other two, superseded and abandoned, and it is the *same*
 transaction with a different marker rather than a second one — because the failure being
@@ -102,6 +110,7 @@ __all__ = [
     "NotRecorded",
     "NotRedundant",
     "Partial",
+    "PartRecorded",
     "Readdressed",
     "Record",
     "Section",
@@ -152,6 +161,41 @@ class NoRestatement(ValueError):
             f"{task_id} is already recorded as {recorded.task.status} at line "
             f"{recorded.lineno}, so this call only closes its roadmap line: --why restates "
             f"the ledger's sentence, and the ledger is not written here"
+        )
+
+
+class PartRecorded(ValueError):
+    """A retirement against a task whose half the ledger already records (RK129).
+
+    RK121 gave the departure a completion path: an entry carrying a qualifier is not a second
+    record of one decision, it is the *first half* of this one, so it is replaced rather than
+    added to. That is right for `ship`, whose entry describes the whole of the work the
+    partial described part of.
+
+    `retire` reached the same code with a different marker, and there replacing is a
+    **deletion**: `✅ **RK1 (local half)**` became `🗑 **RK1** — abandoned: …`, and the
+    sentence describing what actually shipped left the only file whose job is to answer what
+    happened to this. The two are not one decision — completing says *the rest landed too*
+    and superseding that sentence is honest; retiring says *the rest never will*, which
+    leaves the half that did ship as history, the kind :func:`drop` refuses to remove even
+    when the id is stated twice.
+
+    So the choice is handed back rather than made silently, which is the whole defect: the
+    current behaviour made it, and made it in the direction that loses work.
+    """
+
+    def __init__(
+        self, task_id: str, where: str, lineno: int, part: str, marker: str
+    ) -> None:
+        self.task_id = task_id
+        self.lineno = lineno
+        self.part = part
+        super().__init__(
+            f"{where}:{lineno} already records {marker} {task_id} ({part}), and retiring "
+            f"{task_id} would replace that entry: the half that shipped would leave the "
+            f"only file that holds it — say what happens to it first (`ship {task_id}` if "
+            f"the rest landed after all, or `record amend {task_id} --part \"…\" --why "
+            f"\"…\"` to restate the entry as the whole of what ever will)"
         )
 
 
@@ -900,19 +944,29 @@ def _depart(
             config.relative(config.path("roadmap")),
             shipped=task_id in ledger.by_id(),
         )
+    where = config.relative(config.path("changelog"))
     duplicate = ledger.by_id().get(task_id)
     # A duplicate carrying a qualifier is not a second record of one decision — it is the
-    # *first* half of this one (RK121), and this call is the completion. So the entry is
+    # *first* half of this one (RK121), and a **ship** is the completion. So the entry is
     # replaced rather than added to, which is what keeps "local half" from outliving the
     # local half: five of the corpus's thirteen say something that stopped being true.
-    completing = duplicate if duplicate is not None and duplicate.task.part else None
+    #
+    # Only a ship. `retire` reaches this same transaction with a different marker, and there
+    # the replacement is a deletion of the record that a half landed (RK129) — the one
+    # decision this module hands back rather than making.
+    completing = (
+        duplicate
+        if duplicate is not None
+        and duplicate.task.part
+        and marker == config.schema.shipped_marker
+        else None
+    )
     if duplicate is not None and completing is None:
-        raise AlreadyRecorded(
-            task_id,
-            config.relative(config.path("changelog")),
-            duplicate.lineno,
-            duplicate.task.status,
-        )
+        if duplicate.task.part:
+            raise PartRecorded(
+                task_id, where, duplicate.lineno, duplicate.task.part, duplicate.task.status
+            )
+        raise AlreadyRecorded(task_id, where, duplicate.lineno, duplicate.task.status)
 
     recorded = _as_recorded(entry.task, marker, why)
     if completing is not None:

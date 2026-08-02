@@ -27,7 +27,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK129** (deps: —) **Retiring a task whose half already shipped deletes the record that it did** — The completion path replaces the partial entry and `retire` takes that path, so a ✅ naming what landed becomes a 🗑 and the sentence about the shipped half leaves the only file that held it. → §RK129
 - 📋 **RK130** (deps: —) **A transaction that stopped after its ledger write can be finished by no command** — `ship` refuses an id the ledger already holds, `Closure` needs a marker the roadmap line does not carry and `record drop` needs a second entry, so the only exit left is the hand-edit the hook denies. → §RK130
 - 📋 **RK141** (deps: —) **Opening a block needs a heading only a hand-edit can write, and the guard denies that edit** — ship refuses an undeclared block and writes nothing, the guard refuses the changelog edit that would declare it, and the verbs it offers instead contain none that adds a heading. → §RK141
 - 📋 **RK142** (deps: —) **The ledger inherits the roadmap's problem statement by default, and no verb can revise it** — ship copies the open line's why unless --why is passed, so the entry saying what shipped is written by omission — and amend refuses a shipped id while record drop needs a second entry. → §RK142

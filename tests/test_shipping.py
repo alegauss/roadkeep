@@ -27,6 +27,7 @@ from roadkeep.linting import lint
 from roadkeep.schema import PARTIAL, Schema, SchemaError
 from roadkeep.sections import SectionOccupied
 from roadkeep.shipping import (
+    PartRecorded,
     AlreadyShipped,
     Closure,
     NoRestatement,
@@ -817,3 +818,70 @@ def test_the_cli_json_says_the_line_is_still_open(tmp_path, capsys):
     assert payload["part"] == "local half"
     assert payload["roadmap"]["open"] is True
     assert payload["roadmap"]["status"] == "⏳"
+
+
+# -- retiring the rest is not a verdict on the half (RK129) -------------------
+
+
+def test_retiring_a_task_whose_half_shipped_is_refused(tmp_path):
+    # The completion path replaces the partial entry, and `retire` reached it with a
+    # different marker: the ✅ naming what landed became a 🗑, and the sentence about the
+    # shipped half left the only file whose job is to answer what happened to this.
+    config = project(tmp_path)
+    ship(config, "RK1", part="local half").save()
+
+    with pytest.raises(PartRecorded) as caught:
+        retire(Config.discover(tmp_path), "RK1", reason="The rest is not coming.")
+
+    message = str(caught.value)
+    assert "(local half)" in message and "ship RK1" in message
+    ledger = read(config, CHANGELOG)
+    assert "- ✅ **RK1 (local half)** **A first symptom** — Because of a reason." in ledger
+    assert "🗑" not in ledger
+
+
+def test_the_refusal_leaves_all_three_files_exactly_as_they_were(tmp_path):
+    # All-or-nothing at the one door that could half-write it: the roadmap line stays open
+    # and the design stays where it is, so the author still has every option.
+    config = project(tmp_path)
+    ship(config, "RK1", part="local half").save()
+    before = files(Config.discover(tmp_path))
+
+    with pytest.raises(PartRecorded):
+        retire(Config.discover(tmp_path), "RK1", reason="The rest is not coming.")
+
+    assert files(Config.discover(tmp_path)) == before
+
+
+def test_a_supersession_is_refused_by_the_same_rule(tmp_path):
+    # Superseded and abandoned are one transaction with two prefixes (RK32), so a half
+    # already recorded stops both — the deletion is the same deletion.
+    config = project(tmp_path)
+    ship(config, "RK1", part="local half").save()
+    with pytest.raises(PartRecorded):
+        retire(
+            Config.discover(tmp_path),
+            "RK1",
+            reason="RK2 does it instead.",
+            superseded_by="RK2",
+        )
+
+
+def test_a_retirement_with_no_recorded_half_is_untouched(tmp_path):
+    # The refusal is about the qualifier and nothing else: an ordinary retirement is the
+    # same transaction it always was.
+    config = project(tmp_path)
+    retire(config, "RK1", reason="Nobody will do it.").save()
+    assert "- 🗑 **RK1** **A first symptom** — abandoned: Nobody will do it." in read(
+        config, CHANGELOG
+    )
+
+
+def test_the_command_refuses_with_two_and_writes_nothing(tmp_path, capsys):
+    config = project(tmp_path)
+    ship(config, "RK1", part="local half").save()
+    before = files(Config.discover(tmp_path))
+    code = main(["-C", str(tmp_path), "retire", "RK1", "--reason", "Not coming."])
+    assert code == EXIT_USAGE
+    assert "already records" in capsys.readouterr().err
+    assert files(Config.discover(tmp_path)) == before

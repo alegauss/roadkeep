@@ -118,30 +118,6 @@ as one. RK122 is the same question one file up.
 
 ## Block B — Authoring
 
-### §RK129 Retiring the rest is not a verdict on the half
-
-RK121 gave `_depart` a completion path: a ledger entry carrying a qualifier is not a
-second record of one decision, it is the first half of this one, so the entry is
-replaced rather than added to. That is right for `ship`, whose entry describes the whole
-of the work that the partial described part of.
-
-`retire` reaches the same code with a different marker, and there replacing is a
-deletion. Run against a task whose `✅ **RK1 (local half)**` is already in the ledger, it
-leaves `🗑 **RK1** — abandoned: …` and nothing else: the sentence describing what
-actually shipped is gone from the file whose whole job is to answer "what happened to
-this".
-
-The two are not the same decision. Completing says *the rest landed too*, and
-superseding the partial's sentence is honest. Retiring says *the rest never will*, which
-leaves the half that did ship as history — the kind `drop` refuses to remove even when
-the id is stated twice, because removing the only record of a decision is deleting
-history rather than de-duplicating it.
-
-The narrow answer is a refusal: a task with a recorded part cannot be retired until
-somebody says what to do with the entry that exists. The wider one is a second entry,
-which `lint` reports as `id.duplicate` today and which RK127 is already about. Either
-way the choice belongs to the author, and the current behaviour makes it silently.
-
 ### §RK130 The middle state is loud, and has no door
 
 RK118 ordered a departure's three writes so that every state a crash can leave is loud
