@@ -14,7 +14,11 @@ reads a file it does not own and writes nothing at all.
   change for `lint` to pass it. A migration estimate is only worth taking *before* the
   migration commitment, which is why it is a separate command from `lint` and not a flag
   on it: `lint` is a gate over files this project declared, and the file `adopt` reads is
-  by definition not one of them yet.
+  by definition not one of them yet. It counts what it could not read as well as what it
+  could — a backlog kept as table rows parses as nothing, and a zero the reader cannot
+  tell from an empty file is the one answer an estimate may not give (RK98). Counting the
+  rows is not parsing them: reading the shape is an estimate's job, and a tool that read
+  the cells would be a tool with two line formats.
 
 Three decisions that are the point rather than details of it:
 
@@ -159,11 +163,26 @@ class Estimate:
     #: Lines whose schema rendering differs from how they are written. Not a defect to fix
     #: here — it is the reason the tool would refuse to write the file at all (L3).
     non_canonical: int = 0
+    #: Rows of a Markdown table filed under a block heading (RK98). A backlog kept as rows
+    #: parses as nothing at all — no entry and no reject — so without this the headline is
+    #: the one an empty file gets, and the estimate that decides whether to adopt reports
+    #: nothing to change about a file it has not read.
+    tabular: int = 0
 
     @property
     def changing(self) -> int:
-        """Lines that would have to change: everything read that does not conform."""
-        return self.parsed - self.conforming + sum(count for _, count in self.rejects)
+        """Lines that would have to change: everything that does not conform *or* read.
+
+        Table rows count here for the same reason rejects do — neither is an entry, and a
+        number that only added up what parsed would be smallest on the file furthest from
+        the format.
+        """
+        return (
+            self.parsed
+            - self.conforming
+            + sum(count for _, count in self.rejects)
+            + self.tabular
+        )
 
 
 # -- init ------------------------------------------------------------------
@@ -440,6 +459,7 @@ def adopt(
         prefixes=spelled,
         blocks=tuple(h.label for h in document.headings if h.label),
         non_canonical=len(document.non_canonical),
+        tabular=len(document.tabular),
     )
 
 

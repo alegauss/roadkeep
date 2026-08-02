@@ -100,6 +100,7 @@
 - ✅ **RK66** **A project whose convention is no section means no pointer cannot declare it** — ref is a per-role rule in [rules.<role>], so a project whose convention is no section means no pointer declares it and lint stops reporting a pointer nobody promised.
 - ✅ **RK76** **The estimate a project takes before adopting is not the one the gate applies** — adopt reads its file through Config.schema_for like every other command, so --ledger names the changelog role and that role's own limits and rules reach the estimate.
 - ✅ **RK75** **A backlog that files work under any other word cannot declare its headings** — The heading word is [headings] word in roadkeep.toml, read by the parser and the dep grammar from one place, so Dumont files under Track and its 34 entries stop reading as filed under nothing.
+- ✅ **RK98** **A table-shaped backlog reads as zero lines, which is what an empty file reads as** — adopt counts the table rows filed under a block heading and names them, so a table-shaped backlog reports its rows as work instead of reading as the empty file it is not.
 
 ## Block F — The Claude Code plugin
 

@@ -115,26 +115,6 @@ where nothing looks.
 So the answer is not a `roadkeep.toml` here. A config whose every read is zero claims a
 governance it does not have, which is the drift this tool exists to refuse.
 
-### §RK98 The estimate that cannot tell a table from an empty file
-
-`adopt docs/ROADMAP.md --prefix T` on commitclerk answered `read 0 line(s), 0 conform, 0
-would change` and then listed nine blocks. Both halves are true and together they are
-misleading: the headings parsed, the 45 tasks under them did not, because each is a row
-in a `| ID | Status | Task | Depends on |` table rather than a bullet. The number that
-decides whether to adopt was the number a project with an empty roadmap gets.
-
-The estimate is the one command whose whole job is to be read *before* the commitment,
-so a zero it cannot explain is the failure mode it exists to prevent. It already reports
-`rejects` for a marker-bearing bullet the grammar refused; a row is the same category
-one shape further out — a line that is plainly a task and plainly not this format.
-Counting the pipe-delimited rows under a block heading and naming them (`45 line(s) in a
-table this format does not read`) costs no new grammar and turns "nothing to do" into
-"here is the conversion".
-
-Deliberately not a table parser. Reading the shape is an estimate's job; writing it is
-not, and a tool that adopted the table would be a tool with two line formats, which is
-the rule L3 exists to keep singular.
-
 ### §RK99 The half of the corpus the estimate does not read
 
 `adopt` measures a backlog: the longest symptom, the longest why, the longest rendered

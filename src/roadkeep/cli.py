@@ -2798,6 +2798,10 @@ def _print_estimate(estimate: Estimate) -> None:
         f"  read     {estimate.parsed} line(s), {estimate.conforming} conform, "
         f"{estimate.changing} would change"
     )
+    if estimate.tabular:
+        # Directly under the headline, because it is the headline it explains: a table-shaped
+        # backlog reads as 0 lines, which is what an empty file reads as (RK98).
+        print(f"  table    {estimate.tabular} line(s) in a table this format does not read")
     if estimate.blocks:
         print(f"  blocks   {', '.join(estimate.blocks)}")
     for prefix, count in estimate.prefixes:
@@ -2852,6 +2856,7 @@ def _estimate_json(estimate: Estimate) -> dict[str, object]:
         "codes": [{"code": c, "count": n} for c, n in estimate.codes],
         "rejects": [{"reason": r, "count": n} for r, n in estimate.rejects],
         "non_canonical": estimate.non_canonical,
+        "tabular": estimate.tabular,
     }
 
 

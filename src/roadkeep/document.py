@@ -74,6 +74,11 @@ _FENCE_RE = re.compile(r"^\s*(?P<marks>`{3,}|~{3,})")
 #: A bullet that puts *something* where a marker goes and a bold id after it — how an
 #: undeclared marker is caught instead of read as prose (see `_wears_the_marker_slot`).
 _MARKER_SLOT_RE = re.compile(r"^\S+ \*\*[A-Za-z0-9]+\*\*")
+#: A line that is nothing but pipe-delimited cells, and the `|---|` rule that makes a run
+#: of them a table rather than prose that happens to use pipes. Two shapes and no grammar:
+#: what is *inside* the cells is deliberately never read (RK98).
+_ROW_RE = re.compile(r"^\s*\|.*\|\s*$")
+_RULE_RE = re.compile(r"^\s*\|(?:\s*:?-+:?\s*\|)+\s*$")
 #: A bullet whose first token *is* the bold id, so the marker slot is empty rather than
 #: wrong (see `_leads_with_the_id`). Id-shaped and nothing else: the shape is what tells
 #: `- **T1** — …` from `- **Delete** the 3 old files`.
@@ -150,6 +155,24 @@ class Reject:
 
 
 @dataclass(frozen=True, slots=True)
+class Row:
+    """A table row under a block heading — a task in a shape this format has no reader for.
+
+    A backlog kept as `| ID | Status | Task |` rows parses as **nothing**: not an entry,
+    and not a :class:`Reject` either, because a reject is a bullet that claimed the task
+    line's shape and a row never claims it. So the file reads exactly as an empty one does,
+    which is the single answer an adoption estimate may not give (RK98).
+
+    Never parsed, only counted. Reading the shape is what tells a table from an empty file;
+    reading the cells would be a second line format, and one is what L3 keeps singular.
+    """
+
+    raw: str
+    lineno: int
+    block: str
+
+
+@dataclass(frozen=True, slots=True)
 class Heading:
     """A Markdown heading. ``label`` is set when it names a block."""
 
@@ -168,6 +191,10 @@ class Document:
     entries: tuple[Entry, ...] = ()
     rejects: tuple[Reject, ...] = ()
     headings: tuple[Heading, ...] = ()
+    #: Rows of a Markdown table filed under a block heading (RK98). Read here and nowhere
+    #: else, because this is the only reader of a file — and a count taken by a second
+    #: scanner would be a second fence state machine to keep in step with this one.
+    tabular: tuple[Row, ...] = ()
     path: Path | None = None
 
     # -- reading -----------------------------------------------------------
@@ -181,6 +208,7 @@ class Document:
         entries: list[Entry] = []
         rejects: list[Reject] = []
         headings: list[Heading] = []
+        pipes: list[Row] = []
         block: str | None = None
 
         fence: str | None = None
@@ -212,6 +240,13 @@ class Document:
                 block = label
                 continue
 
+            if _ROW_RE.match(body):
+                # Collected raw and resolved after the loop: whether a run of pipe lines is
+                # a table is decided by a rule row further down, which a single pass over
+                # the file cannot know at the line it is looking at.
+                pipes.append(Row(raw=body, lineno=number, block=block or ""))
+                continue
+
             outcome = _read_bullet(body, schema, block or "")
             if outcome is None:
                 continue
@@ -230,6 +265,7 @@ class Document:
             entries=tuple(entries),
             rejects=tuple(rejects),
             headings=tuple(headings),
+            tabular=_tables(pipes),
             path=path,
         )
 
@@ -464,6 +500,38 @@ def _fenced(open_marks: str | None, marks: str) -> str | None:
     if marks[0] == open_marks[0] and len(marks) >= len(open_marks):
         return None
     return open_marks
+
+
+def _tables(pipes: Sequence[Row]) -> tuple[Row, ...]:
+    """The data rows of every table in the file, from the pipe lines it collected (RK98).
+
+    Split into runs of adjacent lines first, because two tables in one file are two
+    questions about where the rule row is, and a run interrupted by prose is two runs.
+    """
+    out: list[Row] = []
+    run: list[Row] = []
+    for row in pipes:
+        if run and row.lineno != run[-1].lineno + 1:
+            out += _below_the_rule(run)
+            run = []
+        run.append(row)
+    out += _below_the_rule(run)
+    return tuple(out)
+
+
+def _below_the_rule(run: Sequence[Row]) -> list[Row]:
+    """One run's task rows: what sits under the `|---|`, filed under a block.
+
+    Two filters, and each drops a whole class of false report. **Without a rule row** a run
+    of pipes is prose that uses them — a leading `|` is not a table, and counting one would
+    make this report name itself. **Outside a block** a table is documentation: the legend
+    in a roadmap's preamble is not 6 tasks, and a heading is the only thing that says a line
+    is filed work (RK37).
+    """
+    for index, row in enumerate(run):
+        if _RULE_RE.match(row.raw):
+            return [below for below in run[index + 1 :] if below.block]
+    return []
 
 
 def _block_label(text: str, schema: Schema) -> str | None:

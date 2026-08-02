@@ -295,6 +295,74 @@ def test_the_ref_scheme_is_an_override_and_never_a_guess(tmp_path: Path) -> None
     assert adopt(Config.default(tmp_path), target, ref_scheme="outline").conforming == 1
 
 
+TABULAR = """# Roadmap
+
+Legend, and not a backlog — it is above every block heading:
+
+| Marker | Means |
+| --- | --- |
+| 📋 | designed |
+
+## Block A — The model
+
+| ID | Status | Task | Depends on |
+| --- | --- | --- | --- |
+| T1 | 📋 | A first symptom | — |
+| T2 | 📋 | A second symptom | T1 |
+
+Prose that uses a pipe | like this is not a row.
+
+## Block B — Authoring
+
+| ID | Status | Task | Depends on |
+|---|---|---|---|
+| T3 | 💭 | A third symptom | — |
+"""
+
+
+def test_a_table_is_not_an_empty_file(tmp_path: Path) -> None:
+    """The zero RK98 is about: 0 parsed and 0 rejected is what a file with no tasks gets."""
+    target = tmp_path / "ROADMAP.md"
+    target.write_text(TABULAR, encoding="utf-8")
+    estimate = adopt(Config.default(tmp_path), target, prefix="T")
+    assert (estimate.parsed, estimate.rejects) == (0, ())
+    # Three task rows: the two under Block A and the one under Block B. Neither header row
+    # nor rule row is one, the legend is above every block, and the prose is prose.
+    assert estimate.tabular == 3
+    assert estimate.changing == 3
+
+
+def test_counting_the_rows_is_not_reading_them(tmp_path: Path) -> None:
+    """Deliberately not a table parser (RK98): the shape is measured, the cells are not."""
+    target = tmp_path / "ROADMAP.md"
+    target.write_text(TABULAR, encoding="utf-8")
+    estimate = adopt(Config.default(tmp_path), target, prefix="T")
+    # No id was read out of a cell, so nothing about the ids is claimed — `prefixes` is what
+    # the *entries* spell, and a table contributes none.
+    assert estimate.prefixes == ()
+    assert estimate.conforming == 0
+    assert all(measure.longest == 0 for measure in estimate.measures)
+
+
+def test_a_fenced_table_is_an_example(tmp_path: Path) -> None:
+    """A rationale file quotes the shape it is arguing about; a fence is what says so."""
+    target = tmp_path / "ROADMAP.md"
+    target.write_text(
+        "# Roadmap\n\n## Block A\n\n```\n| ID | Task |\n| --- | --- |\n| T1 | one |\n```\n",
+        encoding="utf-8",
+    )
+    assert adopt(Config.default(tmp_path), target, prefix="T").tabular == 0
+
+
+def test_the_table_row_is_named_in_the_report(tmp_path: Path, capsys) -> None:
+    target = tmp_path / "ROADMAP.md"
+    target.write_text(TABULAR, encoding="utf-8")
+    assert main(["-C", str(tmp_path), "adopt", str(target), "--prefix", "T"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "3 would change" in out
+    assert "3 line(s) in a table this format does not read" in out
+
+
 def test_adopt_writes_nothing(tmp_path: Path) -> None:
     target = tmp_path / "ROADMAP.md"
     target.write_text(FOREIGN, encoding="utf-8")
@@ -332,6 +400,7 @@ def test_json_carries_every_number_the_report_prints(tmp_path: Path, capsys) -> 
     assert payload["inferred"] is True
     assert payload["parsed"] == 2
     assert payload["undeclared"] == [{"marker": "✨", "count": 1}]
+    assert payload["tabular"] == 0
     assert {m["field"] for m in payload["measures"]} == {"symptom", "why", "line"}
 
 
