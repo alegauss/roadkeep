@@ -64,9 +64,10 @@ and `lint` gates the turn's end.
 **An id is an address, and a merge can spend one twice.** `renumber <id> [--to <new>]` moves
 the line, the `§<id>` section its pointer resolves to and every dep naming it, in one
 transaction — the destination derived in the line's own family unless you name one, spelled the
-way `[ids]` says this project spells one, and refused if any source already mentions it. That
-table is also where a **split** lives: where it declares a sub-letter, `--to <id>b` keeps the
-number commits and issues already cite, which is what renumbering the task would break. The ledger is never opened, so the id the other branch
+way `[ids]` says this project spells one, and refused if any source already mentions it. A
+**split** is the other direction and not this command: the cited number stays where it is, and
+the half that is new is an `add --id <id>b` where `[ids] suffix` declares
+one. The ledger is never opened, so the id the other branch
 recorded stays theirs; the deps it moved are **named in the answer**, because which of two
 collided ids a dep meant is the one thing the files do not say. `ship` and `retire` are wrong
 here: both write a terminal entry for work nobody cancelled.
