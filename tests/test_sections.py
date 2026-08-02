@@ -147,7 +147,8 @@ def test_an_anchor_that_is_a_prefix_of_another_is_not_a_match(tmp_path):
 
 #: An outline document numbers its own headings and puts the § on the pointer alone. The
 #: shapes are the live ones: Shio's terminating period, Turing's depth, a container with
-#: no number at all, and a `.10` that must not be claimed by `.1`.
+#: no number at all, a `.10` that must not be claimed by `.1`, and commitclerk's block
+#: letters (RK101), measured on that file before it moved to the `id` scheme.
 OUTLINE_RATIONALE = """# Improvements
 
 ## Table of contents
@@ -175,6 +176,14 @@ A fourth level spelled with a letter, which Turing writes twenty times.
 #### IX.4.beta Not a segment
 
 A word after the dot, which nothing writes and which no anchor claims.
+
+## B — Context beyond the diff
+
+A block letter on its own, which names a block and so claims no section.
+
+### B.2 Ticket trailers
+
+A rationale numbered by the roadmap's own block letters, which commitclerk writes.
 """
 
 
@@ -193,7 +202,7 @@ def test_an_outline_document_numbers_its_headings_and_they_are_still_sections(tm
     # Measured on Shio: 151 headings, 0 sections, and 74 pointers reported as resolving to
     # nothing against a file that answers every one of them — RK15's argument inverted.
     sections = {s.anchor: s for s in anchored(outline(tmp_path).document("improvements"))}
-    assert list(sections) == ["VIII", "VIII.1", "VIII.10", "XIV.8.7", "IX.4.d"]
+    assert list(sections) == ["VIII", "VIII.1", "VIII.10", "XIV.8.7", "IX.4.d", "B.2"]
     assert sections["VIII"].title == "The Agent Gateway"  # the period is not the anchor
     assert sections["VIII.1"].title == "MCP server host (SH75)"
 
@@ -202,13 +211,17 @@ def test_an_outline_heading_with_no_number_is_prose_and_not_a_section(tmp_path):
     config = outline(tmp_path)
     assert find(config.document("improvements"), "Table") is None
     # `IX.4.beta` is here too: a segment no corpus writes stays prose, which is what keeps
-    # `§IX.4` from having to tell an anchor from a title's first word (RK47).
+    # `§IX.4` from having to tell an anchor from a title's first word (RK47). `## B —` is
+    # the same rule one level up (RK101): the dot is what makes a letter an anchor, so a
+    # block heading stays a block heading even where `### B.2` under it is a section.
+    assert find(config.document("improvements"), "B") is None
     assert {s.anchor for s in anchored(config.document("improvements"))} == {
         "VIII",
         "VIII.1",
         "VIII.10",
         "XIV.8.7",
         "IX.4.d",
+        "B.2",
     }
 
 

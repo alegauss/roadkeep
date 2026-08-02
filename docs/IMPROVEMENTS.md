@@ -75,28 +75,6 @@ already written, not authorship.
 
 ## Block A — The model
 
-### §RK101 The outline whose anchors are its own block letters
-
-`OUTLINE_ANCHOR_RE` admits a first segment of digits or roman numerals, which was
-measured off Shio (`VIII.1`) and Turing (`IX.4.d`). commitclerk numbers its rationale by
-the roadmap's own block letters — `§B.2`, `§D.1`, `§J.8` — and under `ref_scheme =
-"outline"` that file yields sections for the headings under C and D, because those
-letters happen to be roman numerals, and nothing for B, E, F, G, H, I and J.
-
-Half-read is worse than unread. A file that produces zero sections is a configuration
-mistake somebody notices on the first `lint`; one that produces eight sections out of
-thirty-nine reports thirty-one pointers resolving to nothing against a file that answers
-every one of them, which is RK15's argument inverted exactly as RK44 described it — and
-the eight it does read are chosen by an accident of the Latin alphabet.
-
-Admitting a single uppercase letter as a first segment is the change, and it is the same
-measured admission RK47 made for the lettered fourth level: `§B.2` and `§J.9` become
-anchors, `§VIII.1` still parses as roman, and a heading whose first word is a
-capitalised word is still prose because the segment is one letter and a dot follows it.
-What it does not fix is a project whose blocks and whose sections are numbered by the
-*same* letters, where `§D` names both a block heading and a section — which is an
-argument for the `id` scheme, not against reading the file the project already has.
-
 ## Block B — Authoring
 
 ## Block C — Query

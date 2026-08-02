@@ -79,7 +79,12 @@ _BLOCK_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9.\-]{0,15}$")
 #: guessed: it admits exactly Turing's 20 `VII.2.a` headings across both prose files, and
 #: a general alphanumeric segment admits not one thing more while also admitting
 #: `VII.2.beta`, where `§VII.2` stops telling an anchor from a title's first word.
-OUTLINE_ANCHOR_RE = re.compile(r"^[0-9IVXLCDM]+(?:\.[0-9]+)*(?:\.[a-z])?$")
+#: The *first* segment may be **one uppercase letter followed by a dot** (RK101), the same
+#: measured admission one level up: commitclerk numbers its rationale by the roadmap's own
+#: block letters, `§B.2` to `§J.9`, of which only C and D were read before — because those
+#: letters happen to be roman numerals. The dot is what keeps a title's capitalised first
+#: word prose, and a bare `§B` names a block rather than a section, so it stays refused.
+OUTLINE_ANCHOR_RE = re.compile(r"^(?:[0-9IVXLCDM]+|[A-Z](?=\.))(?:\.[0-9]+)*(?:\.[a-z])?$")
 
 # A terminator followed by whitespace, i.e. a sentence that has a successor. A
 # trailing period never matches because the field is measured stripped.

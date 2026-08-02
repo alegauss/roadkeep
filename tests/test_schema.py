@@ -238,7 +238,16 @@ def test_a_lettered_final_segment_is_an_anchor_at_both_ends_of_the_pointer():
     assert OUTLINE.validate(task(ref="IX.4.d")) == ()
 
 
-@pytest.mark.parametrize("ref", ["VII.2.beta", "VII.2.A", "VII.a.2", "III.2–III.5"])
+def test_a_block_letter_first_segment_is_an_anchor_and_a_bare_one_is_not():
+    # commitclerk numbers its rationale §B.2 to §J.9 (RK101), of which only C and D parsed
+    # — they happen to be roman numerals — so the same file was half-read under the scheme
+    # it was written for. A bare `§B` stays refused: there it names a block, not a section.
+    assert OUTLINE.validate(task(ref="B.2")) == ()
+    assert OUTLINE.validate(task(ref="J.9")) == ()
+    assert {v.code for v in OUTLINE.validate(task(ref="B"))} == {"ref.format"}
+
+
+@pytest.mark.parametrize("ref", ["VII.2.beta", "VII.2.A", "VII.a.2", "III.2–III.5", "AB.2"])
 def test_a_segment_no_corpus_writes_is_still_refused(ref):
     # One lowercase letter, last: measured, not guessed. A general alphanumeric segment
     # admits nothing more across either corpus and costs `§VII.2` its ability to tell an

@@ -544,7 +544,9 @@ def _anchor_of(text: str, schema: Schema) -> str | None:
     * ``id`` — `§RK9 A design` → `RK9`. The anchor is a task id, so the § is what marks
       it as an anchor rather than a word, and it is required.
     * ``outline`` — `VIII.1 MCP server host` → `VIII.1`, Shio's `0. Strategy` → `0`, and
-      Turing's lettered fourth level `IX.4.d The pivot` → `IX.4.d` (RK47): the number *is*
+      Turing's lettered fourth level `IX.4.d The pivot` → `IX.4.d` (RK47) and commitclerk's
+      block letters `B.2 Ticket trailers` → `B.2` (RK101), where the bare `B — Context`
+      above it is still a block: the number *is*
       the announcement, so the sigil belongs on the pointer alone. It is accepted where an
       author wrote one anyway, because a heading nothing can see is the defect this closes
       and not a spelling to punish. What a segment may be is

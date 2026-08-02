@@ -22,8 +22,6 @@
 
 ## Block A — The model (a task is data before it is a line)
 
-- 📋 **RK101** (deps: —) **An outline anchored by block letter declares no section, and one by block C declares one** — commitclerk numbers its rationale §B.2 to §J.9, of which only the C and D headings match the anchor pattern, so the same file is half-read under the scheme it was written for. → §RK101
-
 ## Block B — Authoring (insert, never hand-edit)
 
 ## Block C — Query (consult without reading the file)
