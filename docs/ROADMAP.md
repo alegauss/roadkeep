@@ -22,6 +22,8 @@
 
 ## Block A — The model (a task is data before it is a line)
 
+- 📋 **RK109** (deps: —) **The id's shape is declared once and read by two parsers that answer differently** — `id_pattern` refuses the `D1` that `number_of` reads as 1, and the sub-letter half is a flag four call sites pass by hand, so a fifth caller is a sort nobody checks. → §RK109
+
 ## Block B — Authoring (insert, never hand-edit)
 
 - 📋 **RK108** (deps: —) **The first line added to a block lands above the paragraph that introduces it** — commitclerk files five of its nine blocks under an italic preamble, and Block C emptied when T17 shipped, so the next `add` put the task between the heading and the prose that frames it. → §RK108
@@ -37,8 +39,11 @@
 
 - 📋 **RK103** (deps: —) **A bullet whose marker holds a space is read as prose and reported by nothing** — GitHub's `- [ ]` task list is the commonest Markdown backlog there is, and cursarei's 16 of them parse as 0 entries and 0 rejects — the silent miss the reject list exists to end. → §RK103
 - 📋 **RK107** (deps: RK106 ✅) **A project that declares the format still has nothing enforcing it** — Turing and Dumont each carry a roadkeep.toml and neither runs the gate in CI, so what they adopted is held by the same nobody a convention is held by. → §RK107
+- 📋 **RK110** (deps: —) **`adopt` counts the id findings without saying they are one declaration** — The estimate names the prefix delta and the `[markers]` delta but not this one, so measuring `pad = 2` against Dumont's nine findings took the throwaway script the estimate exists to replace. → §RK110
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
+
+- 📋 **RK111** (deps: —) **The MCP write path cannot write an id the deriver never mints** — `add --id` is withheld because a chosen id is what a schema cannot check, but a sub-letter is derived by nothing, so a project declaring `[ids] suffix` has a shape only the CLI can write. → §RK111
 
 ## Non-goals
 

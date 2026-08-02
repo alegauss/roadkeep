@@ -75,6 +75,30 @@ already written, not authorship.
 
 ## Block A — The model
 
+### §RK109 Two readers of one id shape
+
+RK106 put the shape on the `Schema` — `id_pad`, `id_suffix`, and the one `id_fragment`
+every regex is built from. The *parsing* half did not move with it. `backlog.number_of`
+and `family_of` are free functions over `prefixes` plus a `suffix` boolean, and they
+answer a different question from the pattern they are supposed to agree with: under `pad
+= 2`, `id_pattern` refuses `D1` and `number_of("D1", ("D",))` returns 1.
+
+Nothing is wrong today, because the four call sites were all updated in the commit that
+added the flag. That is exactly what makes it worth a line: correctness rests on four
+callers remembering an argument, and the near-miss was real — `picking` sorts on
+`number_of(...) or 0`, so a `T24b` it cannot read counts as zero, and zero is *first*.
+The split task a project deliberately numbered after `T24` would have been offered ahead
+of every line below it.
+
+The module docstring of `schema.py` already states the rule this breaks: a rule that
+lives in two places is a rule two places can disagree about, so the schema lives in
+exactly one. The shape is now in one place and its reader is in two.
+
+What is wanted is a single parse on the schema — family, number, sub-letter, or nothing
+— that both the pattern and the ordering are derived from, so a caller cannot hold half
+of the declaration. The ordering helpers stay public; `pick` still orders numerically,
+and a second implementation of *that* is the defect this is not.
+
 ## Block B — Authoring
 
 ### §RK108 The paragraph between a heading and its first task
@@ -200,4 +224,49 @@ What it proves is the claim RK21's ledger entry stops short of. Four projects ca
 config is four projects that agreed; four projects failing a build on the format is four
 projects that cannot drift from it, and only the second is a standard.
 
+### §RK110 The delta the estimate does not name
+
+`adopt` on Dumont's roadmap reports `id.format 5`, and one line above it reports the
+prefix the ids actually spell — `also 5 id(s) spell RK, unread here: --prefix RK if it
+is a track of this backlog`. That second line is the shape the report already has for a
+config delta: a count, and the key that would close it. `undeclared` does the same for
+`[markers]`, naming the tokens sitting in the marker slot that the project has not
+declared.
+
+The id shape has no such line, so the five findings arrive as five defects rather than
+as one unwritten key. Confirming that `[ids] pad = 2` clears them, and clears nothing
+else, meant loading the config, `dataclasses.replace`-ing the schema and diffing two
+lint runs by hand — for Dumont, 9 findings to 0; for Turing, 4 of 361 to 0. That is the
+throwaway script RK99 already names as the thing the estimate replaces, written again
+for a different column.
+
+What the estimate can say without a model: how many ids carry a leading zero and at what
+widths, and how many end in a lowercase letter. Both are counts over strings it has
+already parsed. Whether a corpus that pads *sometimes* should declare a width is a
+judgement, and stays the reader's — the report says what the ids spell, as it does for
+the prefix, and never that the project should therefore declare it.
+
 ## Block F — The plugin
+
+### §RK111 An id the deriver never mints
+
+`serving.py` whitelists what an agent may set, and `add --id` is deliberately outside
+it: it "would let a caller choose an id the tool derives, which is the one thing a
+schema cannot then check". That reasoning held while every legal id was one the counter
+could produce.
+
+RK106 broke it. A sub-letter is never derived — `spell_id` counts, and `T24b` is a split
+of a number already cited in commits and issues. So on a project that declares `[ids]
+suffix`, the write path an agent is told to prefer cannot produce a legal id, and the
+skill's own instruction for a split is a CLI invocation the MCP surface has no tool for.
+The declaration is readable by the gate and writable only by a human at a terminal,
+which is a split between the two surfaces this project does not otherwise have.
+
+The check the original reasoning wanted already exists twice over: `add --id` refuses an
+id any configured source mentions, and `id_pattern` refuses one this project's shape
+does not admit. What stays unchecked is only whether the caller *should* have chosen
+rather than derived — and where a sub-letter is declared, deriving is not on offer.
+
+Narrowly, expose `id` only where the project declares a shape the counter cannot reach;
+bluntly, expose it always and let the two refusals do the work. Which is right is the
+open question, and the narrow one has the cost that a tool schema then varies by config.
