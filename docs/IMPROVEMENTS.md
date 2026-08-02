@@ -99,7 +99,50 @@ What is wanted is a single parse on the schema — family, number, sub-letter, o
 of the declaration. The ordering helpers stay public; `pick` still orders numerically,
 and a second implementation of *that* is the defect this is not.
 
+### §RK115 What a heading owns, answered four times
+
+Four call sites answer “where does this heading's region end”, under two different
+rules. `_span` and `_placement` in `sections.py` stop at the next heading of the **same
+or higher** level; `anchored` stops at the next heading of **any** level; and RK108
+added `_after_preamble` in `authoring.py`, which stops at any heading too.
+
+Each is right for what it asks. `find` returns a subtree because a drop deletes one;
+`anchored` returns own prose because a budget charges one paragraph; `_after_preamble`
+stops early because a task placed past a nested heading would read as that heading's.
+The rules are not in conflict. They are in four places, spelled as loops over
+`document.headings` rather than as a question the document answers.
+
+This is RK109's shape one structure over: declared once, read by parsers that answer
+differently. There it is the id; here it is what a heading owns. The cost is the same,
+and it is not hypothetical — this session added the fourth loop, and added it in the
+module that is not `document.py`, which agents.md names as the only reader of a file.
+
+Nothing is broken yet, which is why this is an idea and not a design. It is worth
+carrying because the next writer adds a fifth.
+
 ## Block B — Authoring
+
+### §RK113 Half a subtree renamed, and written
+
+Reproduced in a scratch project: a roadmap carrying `RK1`, a prose file with `§RK1` and
+a `#### §RK1.1` under it, and one `renumber RK1 --to RK9`. The line moved, the pointer
+moved, `§RK1` became `§RK9` — and `§RK1.1` stayed exactly as written, nested under a
+heading naming a different task and claiming one that no longer exists.
+
+`_section_document` calls `find`, which deliberately returns the **subtree**, and then
+rewrites a single line: `section.first - 1`. One heading of the several the section
+owns. That asymmetry is the whole defect — the function that knows the subtree is the
+one renaming only its root.
+
+Two things earn it a line rather than a fix in passing. The write is not a round-trip
+failure, so L3 does not catch it; and `lint` reported the result **clean**, which is the
+second finding filed beside this one. The tool renamed half a subtree, wrote it, and the
+gate agreed.
+
+`ship` and `defer` do not have it: one deletes the subtree whole and the other carries
+it whole. `renumber` is the only door that rewrites an anchor in place, which is why it
+is the only one that can leave two spellings of one task under a single heading — the
+silence RK112 closed, one verb over.
 
 ## Block C — Query
 
@@ -151,6 +194,27 @@ The material is already there: the corpora are git checkouts, so a read at a pin
 revision is a read that cannot move underneath the run, and `lint --baseline` (RK84)
 established that this tool can read a file as it was at a revision. Reading the live
 tree stays worth doing — as an advisory run, not as the assertion.
+
+### §RK114 The sub-anchor the ownership check cannot see
+
+`_owners` decides who a section belongs to by matching its anchor against the project's
+id pattern. Under `ref_scheme = "id"` that pattern is `RK\d+`, so `§RK34.1` does not
+match; its title names no id either, and the section comes back owned by nobody.
+
+That is deliberate for `§0.1`, and written down as such: prose belonging to no task is
+nobody's orphan. The cost is that the rule cannot tell the two cases apart. A sub-anchor
+under the id scheme is *derived from* an id — `RK34.1` is `RK34`'s subsection and the
+anchor says so — but the check reads it the way it reads an outline heading, which is to
+say not at all.
+
+The consequence is measured rather than argued: after `renumber RK1 --to RK9` left
+`§RK1.1` behind, `lint` reported the file clean, two sections. Neither side sees it. No
+pointer resolves to a sub-anchor, so `_pointers` cannot; `_owners` exempts it, so
+`_orphans` does not.
+
+What the anchor already spells is the fix's whole input. The parent of `RK34.1` is
+`RK34`, which `_extends` reads segment by segment for `section add` today — the question
+is asked one module over and never here.
 
 ## Block E — Adoption
 

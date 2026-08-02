@@ -23,8 +23,11 @@
 ## Block A — The model (a task is data before it is a line)
 
 - 📋 **RK109** (deps: —) **The id's shape is declared once and read by two parsers that answer differently** — `id_pattern` refuses the `D1` that `number_of` reads as 1, and the sub-letter half is a flag four call sites pass by hand, so a fifth caller is a sort nobody checks. → §RK109
+- 💭 **RK115** (deps: —) **Where a heading's region ends is re-derived at every call site, under two rules that already differ** — `_span` and `_placement` stop at the next same-or-higher heading while `anchored` and `_after_preamble` stop at any heading, and the one reader of a file is meant to be Document. → §RK115
 
 ## Block B — Authoring (insert, never hand-edit)
+
+- 📋 **RK113** (deps: —) **renumber renames a section's heading and leaves the anchors of everything nested under it** — `renumber RK1 --to RK9` rewrote `§RK1` and left `§RK1.1` claiming a task the backlog no longer has, under a heading that names RK9, and lint called the file clean. → §RK113
 
 ## Block C — Query (consult without reading the file)
 
@@ -32,6 +35,7 @@
 
 - 📋 **RK104** (deps: —) **Nothing gates the README block this tool writes, so a stale restatement passes lint** — `export --readme` is the one write no gate holds: a pytest fixture catches it here and an adopting project has none, so the derived table drifts from the files it was derived from. → §RK104
 - 📋 **RK105** (deps: —) **A concurrent edit in another repository turns this project's suite red** — The round-trip property reads Shio's and Turing's working trees, so a run went red for a change neither this commit nor this repository made, and a red nobody caused is a red nobody reads. → §RK105
+- 📋 **RK114** (deps: —) **A subsection whose task is gone is exempt from the ownership check that would report it** — `_owners` matches the anchor against the id pattern, so `§RK34.1` is read as outline prose like `§0.1` and belongs to nobody — the exemption that let a half-renamed subtree lint clean. → §RK114
 
 ## Block E — Adoption
 
