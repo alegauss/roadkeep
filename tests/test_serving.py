@@ -146,6 +146,7 @@ def test_the_tools_are_what_a_task_needs_end_to_end():
         "non_goal_add",
         "non_goal_drop",
         "section_add",
+        "section_amend",
         "section_drop",
         # The two reads a session that is *proposing* makes, so they head the reads: what
         # may not be proposed at all (RK69), and what a comparable one cost (RK71).
@@ -289,6 +290,7 @@ def test_the_read_only_hint_says_which_tools_write(tmp_path):
         "non_goal_add",
         "non_goal_drop",
         "section_add",
+        "section_amend",
         "section_drop",
     }
     # `lint` is read-only *because* `--fix` is not exposed, and `--baseline` (RK84) is the

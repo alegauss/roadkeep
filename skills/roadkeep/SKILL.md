@@ -16,7 +16,7 @@ not on PATH.
 When the `mcp__roadkeep__*` tools are available, **prefer them**: the whole write path and
 the reads a task needs are there — `add`, `status`, `amend`, `ship`, `retire`, `defer`, `resume`,
 `record_add`,
-`record_drop`, `non_goal_add`, `non_goal_drop`, `section_add`, `section_drop`, `brief`, `pick`, `list`, `deps`, `lint` — same engine and same
+`record_drop`, `non_goal_add`, `non_goal_drop`, `section_add`, `section_amend`, `section_drop`, `brief`, `pick`, `list`, `deps`, `lint` — same engine and same
 refusals, with
 the fields arriving as a schema instead of flag names typed from memory. `init`, `adopt` and
 `install` run once per project and want the CLI — the last of them wires this file, the tools
@@ -52,7 +52,11 @@ refused unless the ledger states that id **twice**, then the later entry goes an
 because removing the only record of a decision is deleting history. `section add <id> --title "…"` is that
 same write for a line that already exists, and
 takes prose on **stdin**, within the word budget, filled to the configured width, under the
-task's block — a table or list is inserted exactly as written. No write invents a block
+task's block — a table or list is inserted exactly as written. **`section amend <id>` is how a
+live design is corrected**: `--body -` replaces its own prose, `--title` its heading, the
+subtree and the anchor are untouched, and it is the only door — `section drop` is refused
+while an open line points at the anchor, which is right, and shipping is not a way to fix a
+paragraph. No write invents a block
 heading. `non-goal add --lead "…" --why "…"` writes the one bullet that is not a task line,
 where `[non_goals]` declares the list governed: addressed by its lead, which is unique and
 checked, and carrying no marker, dep or pointer, because a constraint has no status to state.

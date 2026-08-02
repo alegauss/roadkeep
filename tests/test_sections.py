@@ -30,9 +30,11 @@ from roadkeep.sections import (
     NoSuchSection,
     SectionClaimed,
     SectionExists,
+    SectionError,
     SectionOccupied,
     UnknownParent,
     add,
+    amend,
     anchored,
     drop,
     find,
@@ -696,6 +698,158 @@ def test_a_refusal_exits_two_and_writes_nothing(tmp_path, capsys):
     )
     assert "anchor.unknown" in capsys.readouterr().err
     assert read(config) == RATIONALE
+
+
+# -- amending a live section (RK123) ------------------------------------------
+
+
+def test_the_rationale_of_an_open_task_can_be_corrected(tmp_path):
+    # The gap, stated as its two halves: the drop is refused — correctly, RK1 is open and
+    # points here — and the same anchor is amendable, which is what was missing.
+    config = project(tmp_path)
+    with pytest.raises(SectionClaimed):
+        drop(config.document("improvements"), "RK1", claimed=pointers(config))
+
+    document, section, changed = amend(
+        config, "improvements", "RK1", body="One hypothesis is eliminated."
+    )
+    document.save()
+
+    assert changed == ("body",)
+    assert "One hypothesis is eliminated." in read(config)
+    assert "The reasoning the line has no room for." not in read(config)
+
+
+def test_the_subtree_survives_an_amend_of_its_root(tmp_path):
+    # Its own prose and never the subtree: a subsection has an anchor to be named by, and
+    # deleting one as a side effect of correcting a paragraph is `drop`'s job, with
+    # `drop`'s refusals.
+    config = project(tmp_path)
+    document, _, _ = amend(config, "improvements", "RK1", body="A shorter reasoning.")
+    document.save()
+
+    body = read(config)
+    assert "#### §RK1.1 A subsection" in body
+    assert "Which belongs to the section above." in body
+    assert "## Block B — Authoring" in body
+
+
+def test_a_subsection_is_amended_by_its_own_anchor(tmp_path):
+    config = project(tmp_path)
+    document, section, changed = amend(
+        config, "improvements", "RK1.1", body="Corrected in place."
+    )
+    document.save()
+
+    assert (section.anchor, changed) == ("RK1.1", ("body",))
+    assert "Corrected in place." in read(config)
+    assert "The reasoning the line has no room for." in read(config)
+
+
+def test_the_heading_text_moves_without_the_prose(tmp_path):
+    config = project(tmp_path)
+    document, section, changed = amend(
+        config, "improvements", "RK1", title="A first design, restated"
+    )
+    document.save()
+
+    assert changed == ("title",) and section.title == "A first design, restated"
+    assert "### §RK1 A first design, restated" in read(config)
+    assert "The reasoning the line has no room for." in read(config)
+
+
+def test_an_amend_that_changes_nothing_writes_nothing(tmp_path):
+    config = project(tmp_path)
+    document, _, changed = amend(
+        config, "improvements", "RK1", body="The reasoning the line has no room for."
+    )
+    document.save()
+    assert changed == () and read(config) == RATIONALE
+
+
+def test_the_replacement_is_reflowed_and_a_table_is_not(tmp_path):
+    # The same narrow rule `add` writes under, because it is the same function: prose is
+    # filled to the width and a shape the tool did not author is inserted as written.
+    config = project(tmp_path, extra="[limits]\nprose = 40\n")
+    document, _, _ = amend(
+        config,
+        "improvements",
+        "RK1",
+        body="A paragraph long enough that the configured width has to break it somewhere.\n\n| a | b |\n|---|---|\n| 1 | 2 |",
+    )
+    document.save()
+
+    body = read(config)
+    assert "| a | b |\n" in body and "|---|---|\n" in body
+    assert max(len(line) for line in body.splitlines() if not line.startswith("|")) <= 40
+
+
+def test_the_budget_is_charged_what_the_gate_charges(tmp_path):
+    # The subtree, not the paragraph: a body that clears the limit alone and puts the
+    # section over it with its subsections is an amend that passes and a `lint` that
+    # refuses — which is the one way this write can be wrong while looking right.
+    config = project(tmp_path, extra="[limits]\nsection = 12\n")
+    with pytest.raises(SectionError) as raised:
+        amend(config, "improvements", "RK1", body="Six words, which is under twelve.")
+    assert "with its subsections" in str(raised.value)
+    assert read(config) == RATIONALE
+
+
+def test_an_anchor_this_file_does_not_declare_is_refused(tmp_path):
+    config = project(tmp_path)
+    with pytest.raises(NoSuchSection):
+        amend(config, "improvements", "RK9", body="Prose for nobody.")
+    assert read(config) == RATIONALE
+
+
+def test_an_empty_body_is_refused_rather_than_written(tmp_path):
+    config = project(tmp_path)
+    with pytest.raises(SectionError):
+        amend(config, "improvements", "RK1", body="   ")
+    assert read(config) == RATIONALE
+
+
+def test_the_command_reads_the_replacement_from_stdin(tmp_path, capsys, monkeypatch):
+    config = project(tmp_path)
+    monkeypatch.setattr("sys.stdin", _Stdin("The corrected reasoning, by pipe."))
+    assert (
+        main(["-C", str(tmp_path), "section", "amend", "RK1", "--body", "-"]) == EXIT_OK
+    )
+    assert "(body)" in capsys.readouterr().out
+    assert "The corrected reasoning, by pipe." in read(config)
+
+
+def test_an_amend_with_neither_field_never_opens_the_pipe(tmp_path, capsys):
+    # Refused rather than defaulted to stdin: a command with nothing to amend that blocks
+    # on a pipe nobody opened is a session that stops.
+    config = project(tmp_path)
+    assert main(["-C", str(tmp_path), "section", "amend", "RK1"]) == EXIT_USAGE
+    assert "nothing to amend" in capsys.readouterr().err
+    assert read(config) == RATIONALE
+
+
+def test_json_says_which_fields_changed(tmp_path, capsys):
+    project(tmp_path)
+    assert (
+        main(
+            [
+                "-C",
+                str(tmp_path),
+                "section",
+                "amend",
+                "RK1",
+                "--title",
+                "Restated",
+                "--body",
+                "And rewritten.",
+                "--json",
+            ]
+        )
+        == EXIT_OK
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["changed"] == ["title", "body"]
+    assert payload["anchor"] == "RK1" and payload["title"] == "Restated"
 
 
 class _Stdin:

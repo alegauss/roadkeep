@@ -18,6 +18,13 @@ about a paragraph. What a section *does* have is:
   §0.4 after §0.3, §RK34.1 inside §RK34. So the file's shape is a consequence of the
   backlog's and of the outline's, and nobody chooses where to type.
 
+`amend` is the door that was missing (RK123). Three correct refusals — `drop` while a live
+pointer names the anchor, `add` on the duplicate, and the guard on the hand edit — added up
+to a rationale that could not be corrected at all while its task was open, which is exactly
+when a design changes. It rewrites the heading text and the section's **own** prose, never
+the subtree and never the anchor: a subsection has an anchor of its own to be named by, and
+an address is `renumber`'s.
+
 `drop` is the operation `ship` (RK6) calls for rule one of its three edits — it lives here
 rather than there because deleting a section is a fact about this file's grammar, not
 about shipping, and the two would otherwise disagree about where a section ends. It takes
@@ -38,7 +45,7 @@ from __future__ import annotations
 import re
 import textwrap
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from roadkeep.config import Config
 from roadkeep.document import Document, Heading, UnknownBlock, blank
@@ -357,6 +364,104 @@ def add(
     return document, placed
 
 
+def amend(
+    config: Config,
+    role: str,
+    anchor: str,
+    *,
+    title: str | None = None,
+    body: str | None = None,
+) -> tuple[Document, Section, tuple[str, ...]]:
+    """Rewrite one live section's heading text or its prose, in place (RK123).
+
+    The gap this closes is a union of three correct refusals: `drop` refuses while an open
+    line points at the anchor, `add` refuses the duplicate, and the guard denies the hand
+    edit — so the rationale of an **open** task could not be changed at all, by anybody,
+    until it shipped and the section was deleted. That is the ordinary case and not an edge
+    one: a design under a marker that is not ✅ is expected to change.
+
+    Its **own** prose and never the subtree. A `§<id>.1` is a section with an anchor of its
+    own, amended by naming it — replacing the subtree here would delete somebody's
+    subsection as a side effect of correcting a paragraph, which is `drop`'s job and
+    `drop`'s refusals.
+
+    The anchor is not a field. An address is `renumber`'s (RK97) at one end and nothing's at
+    the other, and a section that changed anchor is a section no pointer resolves to.
+
+    A rewrite that leaves nothing of the original is **not** refused, and the question the
+    design left open is answered here: the falsifiable claim is the `symptom` on the task
+    line, which `amend` already refuses to touch (RK7). A rationale rewritten under an
+    unchanged symptom is still that symptom's rationale; one rewritten because the symptom
+    changed is a line the other verb will not let you rewrite. A second guard here would be
+    a second opinion about a question already answered one file over.
+    """
+    document = config.document(role)
+    span = _span(document, anchor)
+    section = find(document, anchor)
+    if span is None or section is None:
+        raise NoSuchSection(anchor, config.relative(config.path(role)))
+    _, _, heading = span
+    own = "".join(document.lines[heading.lineno : document.prose_end(heading)]).strip("\r\n")
+
+    wanted_title = section.title if title is None else title
+    wanted_body = own if body is None else body
+    changed = tuple(
+        name
+        for name, before, after in (
+            ("title", section.title, wanted_title.strip()),
+            ("body", own, _normalize(wanted_body)),
+        )
+        if before != after
+    )
+    if not changed:
+        return document, section, ()
+
+    _check(config, anchor, wanted_title, wanted_body, _task_for(config, anchor))
+    updated = _rewrite(config, document, heading, replace(section, title=wanted_title.strip()), wanted_body)
+    amended = find(updated, anchor)
+    assert amended is not None  # the heading this function just wrote
+    # Charged against the **subtree**, because that is the number the gate charges a
+    # pointed-at section (RK50): a body that clears the limit alone and puts the section
+    # over it with its subsections is an amend that passes and a `lint` that refuses.
+    if amended.words > config.schema_for(role).section_max:
+        raise SectionError(
+            (
+                Violation(
+                    "body.too-long",
+                    "body",
+                    f"{amended.words} words with its subsections, limit is "
+                    f"{config.schema_for(role).section_max}: a section this long is two "
+                    f"sections, or a paragraph that belongs in the commit",
+                ),
+            )
+        )
+    return updated, amended, changed
+
+
+def _rewrite(
+    config: Config, document: Document, heading: Heading, section: Section, body: str
+) -> Document:
+    """Swap a heading's line and the prose under it for the reflowed replacement.
+
+    One removal and one insertion per line rather than a patch, because every mutator in
+    :mod:`roadkeep.document` reparses — so the region is taken out first and the new lines
+    go in at the heading's own index, where nothing below has moved yet.
+    """
+    end = document.prose_end(heading)
+    payload = ["", *_body_lines(config, body)]
+    if end < len(document.lines):
+        # The blank that separates this section's prose from the next heading. Kept when
+        # there is a next heading and omitted at the end of the file, which is where a
+        # trailing blank is one nobody put there.
+        payload.append("")
+    updated = document.remove_lines(heading.lineno, end)
+    for offset, raw in enumerate(payload):
+        updated = updated.insert_line(heading.lineno + offset, raw)
+    # The heading last and through :func:`heading_of`, so the one writer of that spelling
+    # stays one (RK44) — an amend that composed it here would be the second.
+    return updated.replace_line(heading.lineno - 1, heading_of(document.schema, section))
+
+
 def words(body: str) -> int:
     return len(body.split())
 
@@ -432,8 +537,18 @@ def _render(
     config: Config, anchor: str, title: str, body: str, level: int
 ) -> tuple[str, ...]:
     heading = f"{'#' * level} {anchor_text(config.schema, anchor)} {title.strip()}"
+    return (heading, "", *_body_lines(config, body))
+
+
+def _body_lines(config: Config, body: str) -> tuple[str, ...]:
+    """The prose as the file carries it: paragraphs filled, structures verbatim.
+
+    Apart from :func:`_render` because `amend` (RK123) writes exactly this and not the
+    heading above it — and a second copy of the reflow rules is the one that would fill a
+    table the day this one learned not to.
+    """
     paragraphs = [p for p in _normalize(body).split("\n\n") if p.strip()]
-    out: list[str] = [heading, ""]
+    out: list[str] = []
     for position, paragraph in enumerate(paragraphs):
         if position:
             out.append("")

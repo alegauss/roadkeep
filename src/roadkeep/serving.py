@@ -142,6 +142,10 @@ TOOLS: tuple[Tool, ...] = (
     Tool("non-goal add", ("lead", "why"), writes=True),
     Tool("non-goal drop", ("lead",), writes=True),
     Tool("section add", ("anchor", "title", "body", "role"), writes=True),
+    # The correction an open task's design needs (RK123). Exposed for the reason the whole
+    # write path is: the agent that narrowed a hypothesis is the one the hook denies a hand
+    # edit to, and until this verb existed the only way through was shipping the task.
+    Tool("section amend", ("anchor", "title", "body", "role"), writes=True),
     Tool("section drop", ("anchor", "role"), writes=True),
     Tool("non-goal list"),
     Tool("weight", ("block",)),

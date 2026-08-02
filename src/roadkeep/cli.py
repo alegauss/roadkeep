@@ -75,6 +75,7 @@ from roadkeep.scoping import add as add_non_goal
 from roadkeep.scoping import drop as drop_non_goal
 from roadkeep.sections import Section, heading_of
 from roadkeep.sections import add as add_section
+from roadkeep.sections import amend as amend_section
 from roadkeep.sections import drop as drop_section
 from roadkeep.sections import find as find_section
 from roadkeep.sections import nested as nested_sections
@@ -266,6 +267,33 @@ def build_parser() -> argparse.ArgumentParser:
     )
     section_add.add_argument("--json", action="store_true", help=_JSON_HELP)
     section_add.set_defaults(handler=_section_add)
+
+    section_amend = actions.add_parser(
+        "amend",
+        help="correct a live section's prose or its heading text, in place",
+        description=(
+            "Rewrite one section's own prose, or its heading text, without deleting it. "
+            "The door that was missing: `drop` refuses while an open line points at the "
+            "anchor, `add` refuses the duplicate and the guard denies the hand edit, so a "
+            "design was write-once until it shipped — which is the opposite of when it "
+            "changes. The subtree is not touched: a subsection is amended by its own "
+            "anchor. Neither is the anchor itself, which is `renumber`'s."
+        ),
+    )
+    section_amend.add_argument("anchor", help="the anchor, e.g. RK9 (no §)")
+    section_amend.add_argument("--title", help="replace the heading text")
+    section_amend.add_argument(
+        "--body",
+        help=(
+            "the replacement prose; '-' reads stdin, and stdin is the default unless "
+            "--title is the only thing being changed"
+        ),
+    )
+    section_amend.add_argument(
+        "--role", default="improvements", help="which prose file (default: improvements)"
+    )
+    section_amend.add_argument("--json", action="store_true", help=_JSON_HELP)
+    section_amend.set_defaults(handler=_section_amend)
 
     section_show = actions.add_parser(
         "show",
@@ -1277,6 +1305,44 @@ def _section_add(config: Config, args: argparse.Namespace) -> int:
         print(json.dumps(_section_json(section, where), indent=2))
         return EXIT_OK
     print(f"§{section.anchor} → {where}:{section.first}  {section.words} words")
+    return EXIT_OK
+
+
+def _section_amend(config: Config, args: argparse.Namespace) -> int:
+    if args.title is None and args.body is None:
+        # Refused rather than defaulted to stdin: an `amend` with neither field is a
+        # command that would block on a pipe nobody meant to open.
+        print(
+            "roadkeep: nothing to amend: pass --body (or '-' for stdin) or --title",
+            file=sys.stderr,
+        )
+        return EXIT_USAGE
+    try:
+        # Inside the try for `section add`'s reason: prose that is not UTF-8 raises
+        # UnicodeDecodeError, which is a ValueError, and is refused with the same code.
+        body = sys.stdin.read() if args.body == "-" else args.body
+        document, section, changed = amend_section(
+            config, args.role, args.anchor, title=args.title, body=body
+        )
+        document.save()
+    except REFUSALS as error:
+        return _refused(error)
+
+    where = config.relative(config.path(args.role))
+    if args.json:
+        print(
+            json.dumps(
+                {**_section_json(section, where), "changed": list(changed)}, indent=2
+            )
+        )
+        return EXIT_OK
+    if not changed:
+        print(f"§{section.anchor} unchanged: it already reads that way")
+        return EXIT_OK
+    print(
+        f"§{section.anchor} amended  {where}:{section.first}  "
+        f"({', '.join(changed)})  {section.words} words"
+    )
     return EXIT_OK
 
 

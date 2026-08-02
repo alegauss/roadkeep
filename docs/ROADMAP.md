@@ -27,12 +27,13 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK123** (deps: —) **An open task's rationale cannot be corrected by any verb, and the hook denies the hand-edit** — section drop refuses while a live pointer names the anchor and section add refuses the duplicate, so a design is write-once until ship deletes it. → §RK123
 - 📋 **RK124** (deps: —) **A ledger entry can be written and deleted but never corrected** — record add and record drop are the pair, so fixing one word of a why means dropping the entry and re-adding it, which moves the line to the end of its block. → §RK124
 - 📋 **RK126** (deps: —) **Corruption inside a ledger entry is reported by lint and repairable by no verb** — The unit is the entry and the damage is inside one: Shio carries two U+0008 control characters and a dead link in entry prose, and add, drop, ship and retire all reach only the whole line. → §RK126
 - 📋 **RK127** (deps: RK121 ✅) **record drop assumes a duplicate is redundant, and picks the later entry either way** — Shio's two SH347 entries are two different pieces of work sharing an id, so dropping either destroys history, and the one the verb picks is the entry that earned the id. → §RK127
 - 📋 **RK129** (deps: —) **Retiring a task whose half already shipped deletes the record that it did** — The completion path replaces the partial entry and `retire` takes that path, so a ✅ naming what landed becomes a 🗑 and the sentence about the shipped half leaves the only file that held it. → §RK129
 - 📋 **RK130** (deps: —) **A transaction that stopped after its ledger write can be finished by no command** — `ship` refuses an id the ledger already holds, `Closure` needs a marker the roadmap line does not carry and `record drop` needs a second entry, so the only exit left is the hand-edit the hook denies. → §RK130
+- 📋 **RK141** (deps: —) **Opening a block needs a heading only a hand-edit can write, and the guard denies that edit** — ship refuses an undeclared block and writes nothing, the guard refuses the changelog edit that would declare it, and the verbs it offers instead contain none that adds a heading. → §RK141
+- 📋 **RK142** (deps: —) **The ledger inherits the roadmap's problem statement by default, and no verb can revise it** — ship copies the open line's why unless --why is passed, so the entry saying what shipped is written by omission — and amend refuses a shipped id while record drop needs a second entry. → §RK142
 
 ## Block C — Query (consult without reading the file)
 

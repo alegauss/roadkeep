@@ -118,25 +118,6 @@ as one. RK122 is the same question one file up.
 
 ## Block B — Authoring
 
-### §RK123 The prose of a live task is the one thing no door opens
-
-`amend` reaches a line's `why`, `deps` and `ref`. `section drop` is refused while an
-open line points at the anchor — correctly, since that section is `ship`'s to remove.
-`section add` refuses an anchor that already exists. And the plugin's hook denies a
-hand-edit to any governed file. The union is a gap: **the rationale of an open task
-cannot be changed at all**, by anybody, until it ships and the section is deleted.
-
-Found twice in one session on Shio, both times on a ⏳ line. An investigation eliminated
-one of its two hypotheses and narrowed the other; the section still states both as open,
-and the sentence that would have said so had nowhere to go. That is the ordinary case,
-not an edge one: a design under a marker that is not ✅ is *expected* to change, and
-partial delivery (RK121) is the shape where it changes most.
-
-The verb is small — `section amend <anchor>`, the body on stdin, revalidated against the
-width and the word budget exactly as `add` validates it. What needs deciding is whether
-an amend that rewrites the whole argument should be refused in favour of a new task,
-which is the same question `amend` already answers for `symptom`.
-
 ### §RK124 The ledger has an insert and a delete, and no update
 
 `record` has two doors, `add` and `drop`. The roadmap has `amend` for exactly the reason
@@ -245,6 +226,52 @@ deleting a real task with a 224-word section. What separates the two is the *led
 side rather than the roadmap's: an entry written by this tool for a line still open is a
 leftover, and an entry naming a half is not. Which is the distinction RK121 just made
 representable.
+
+### §RK141 Opening a block is a door with no key
+
+Measured in Claude Code Tray, shipping the first task of a new block. `ship T179`
+refused: *"no heading declares Block AE: a heading invented by a write files the text
+where nothing looks for it"*, and wrote nothing. Correct — naming a block is editorial,
+and a heading the tool guesses is a heading nobody looks under.
+
+The remedy is one line in the changelog. Calling `guard` with that `Edit` returns a `Refusal`:
+*"CHANGELOG.md is this project's changelog, and roadkeep owns its writes."* The refusal then lists
+every verb that may write there — `ship`, `record add`, `record drop`, `retire` — and none adds a
+heading.
+
+So a correctly wired project cannot open a block at all. Tray only got through because
+its plugin is installed against a different repository, leaving it with no hook: the
+discipline held because the guard was absent, which is the opposite of the arrangement
+being aimed at.
+
+Both refusals are right alone and the pair is a deadlock, so the fix is not to weaken
+either. Two shapes: a verb that declares a block and takes the title as the argument it
+is, symmetric with `non-goal`, which already writes the roadmap's other bullet; or the
+guard admitting an edit whose whole diff is a heading and a table row. The first costs a
+command, the second a rule about what a permitted diff looks like.
+
+### §RK142 The sentence written by omission
+
+A roadmap line states a problem; that is what it is for. A ledger entry states an
+outcome: what now works. `ship` bridges the two by copying the `why` across verbatim
+unless `--why` says otherwise, so the default is the wrong genre — and the default is
+what an author who does not know about the flag gets.
+
+It would be a small blemish if it were fixable. It is not. `amend` refuses: *"no open task T179 in
+ROADMAP.md: it is already in the changelog"*. `record drop` removes the later of two entries for one
+id and there is only one. `retire` needs an open line. The result in Tray is a shipped entry reading
+*"`UsageSample` and `PaceSnapshot` carry four numbers and none is overage"* — a defect report, filed
+under a heading that means "done".
+
+RK124 and RK126 are neighbours and neither is this. RK124 is about `record` entries,
+which can at least be dropped and re-added; RK126 is about corruption `lint` reports.
+This entry is well-formed, lints clean, and is wrong only in the way no check can see.
+
+Worth noting the asymmetry: every other field a write takes is refused at input when it
+fails, and this one is accepted silently when it is merely the wrong sentence. So the
+cheapest shape is probably at input — `ship` requiring the outcome rather than
+inheriting a problem statement — which costs one argument at the moment the author still
+has the context to write it.
 
 ## Block C — Query
 

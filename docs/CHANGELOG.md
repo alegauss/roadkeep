@@ -56,6 +56,7 @@
 - ✅ **RK112** **section drop deletes a section an open line points at** — section drop refuses when an open line points at the anchor it was given, before any write.
 - ✅ **RK113** **renumber renames a section's heading and leaves the anchors of everything nested under it** — renumber re-addresses the whole subtree: `§RK1.1` moves to `§RK9.1` with its heading, a stranger nested inside keeps the id that owns it, and the command names every anchor it moved.
 - ✅ **RK120** **Two branches each spend the same id, and the merge git produces is a conflict in a file only this tool may write** — `merge` is git's driver for the governed files: every id decided against the ancestor, an id both branches created named for `renumber`, and anything unprovable handed back as markers.
+- ✅ **RK123** **An open task's rationale cannot be corrected by any verb, and the hook denies the hand-edit** — `section amend` rewrites a live section's own prose or its heading text, leaving the subtree and the anchor alone and charging the budget what the gate charges.
 
 ## Block C — Query
 
