@@ -120,6 +120,71 @@ module that is not `document.py`, which agents.md names as the only reader of a 
 Nothing is broken yet, which is why this is an idea and not a design. It is worth
 carrying because the next writer adds a fifth.
 
+### §RK116 The file that moved under the writer
+
+`Document.load` reads a file whole and `save` writes it whole. Between those two calls a
+second roadkeep process can complete an entire transaction, and nothing in `save` looks
+at the target before it truncates it: the loser's line is gone, and both commands print
+their `event` line and exit 0.
+
+L3 makes the *format* unloseable — a line that would not render back refuses the file —
+and says nothing about the bytes underneath it. `ensure_writable` asks whether this
+document is canonical; the question it never asks is whether it is still the document
+that was read.
+
+The check is the same shape as the round-trip one and belongs beside it: remember what
+`load` saw, re-read the target inside `save`, and refuse the whole write when the two
+differ. That is one more refusal in a tool whose idiom is refusal — naming the id whose
+write was abandoned and the command to retry — and it costs one read of a file that is
+already open.
+
+It is also the only mechanism here that covers a writer roadkeep does not control: a
+hand edit the hook missed, an editor's save, a `git checkout` mid-session. A lock orders
+the processes that agree to take it; this notices everything else.
+
+### §RK117 The id between the scan and the write
+
+`next_id` is one past the highest id *anywhere*, derived and never stored, because a
+counter file would be a second source of truth that drifts the first time somebody edits
+the roadmap by hand. The derivation is right. What is missing is that it is answered at
+one moment and spent at another.
+
+Two agents adding in the same checkout both scan a tree whose highest is RK115, are both
+told RK116, and both write it. `lint` reports the duplicate — `by_id` already calls it
+an error rather than a merge — but it reports it after two lines exist, two sections
+were written, and one of the two writes may already have erased the other.
+
+What has to become indivisible is the whole span from scan to save, not the scan. A
+mutating command lives for milliseconds and reads its own inputs, so serialising every
+one of them behind a single exclusive lock costs nothing measurable and closes the
+window entirely; the query surface never takes it, which is what keeps `pick` and
+`brief` free during a write.
+
+The lock is not state about tasks and so is not a second store (L2): it is transient, it
+lives outside the governed files, and a stale one has to be reaped by age rather than
+waited on, because the process that took it may have been killed.
+
+### §RK118 The write a reader can catch halfway
+
+`save` calls `write_text`, which truncates the target and then fills it. A reader
+arriving between those two moments does not see an old file or a new one; it sees a
+shorter file that parses, because every line left in it is a line the schema accepts.
+The roadmap simply has fewer tasks, and nothing about that is loud.
+
+The transaction above the file has the same shape. `Departure.save` writes the ledger,
+then the roadmap, then the rationale file, and each of the three is a separate moment.
+`Closure` (RK62) exists precisely because the middle state is reachable — a roadmap line
+whose id the ledger already records — which is the evidence that this is observed rather
+than theorised.
+
+A temporary file in the target's own directory and `os.replace` makes each file's write
+one step on both platforms this runs on, so no reader ever sees a partial one. That does
+not make the three-file transaction atomic, and it must not pretend to: what it buys is
+that every intermediate state is a *whole* file, which is the state `Closure` already
+knows how to read. Ordering the three so that the recoverable middle is the only
+reachable one is the rest of the answer, and it is a choice about which file goes first
+rather than new machinery.
+
 ## Block B — Authoring
 
 ### §RK113 Half a subtree renamed, and written
@@ -144,7 +209,53 @@ it whole. `renumber` is the only door that rewrites an anchor in place, which is
 is the only one that can leave two spellings of one task under a single heading — the
 silence RK112 closed, one verb over.
 
+### §RK120 Two branches spending one address
+
+`renumber` was written on the observation that an id is an address and a merge can spend
+one twice. It is the repair. Nothing makes the collision visible, and nothing makes the
+merge that produced it survivable.
+
+Two worktrees on two branches each scan their own tree, each derive the same next id,
+and each append under the same block heading. Git sees two insertions at one line and
+writes a conflict into a file whose only legal writer is this tool — so the resolution
+is a hand edit of the format, which the hook denies and the gate refuses. Worse is the
+case that does not conflict: two branches touching different blocks merge clean, and the
+duplicate id lands silently for `lint` to find later.
+
+The file is a schema, which makes a structural merge decidable where a textual one
+guesses. Entries are keyed by id and grouped under declared headings, so a driver can
+take the union of both sides, keep each side's line wherever the id is unique to it, and
+single out only the ids both sides spent — moving one of those with `renumber`, which
+already carries the section and the dependents along (RK113 first, or the merge inherits
+a half-renamed subtree).
+
+Registered per file in `.gitattributes`, it is opt-in configuration (L6), and it gates
+itself: a merge whose output `lint` refuses falls back to the conflict markers rather
+than writing a file nobody reviewed.
+
 ## Block C — Query
+
+### §RK119 One backlog, two workers, one answer
+
+Tier 1 is the reason `pick` is not simply "lowest": a 🛠 line says someone started, and
+picking around it leaves work half-done. That is exactly right for one worker and
+inverted for two — the second agent to ask is handed the line the first is holding, with
+the tier name saying so, and starts it.
+
+Tiers 2 and 3 are no better. They are pure functions of the file, so N callers reading
+an unchanged file get N identical answers. Nothing in the current design is wrong; it
+answers a question that assumed a single reader.
+
+What the backlog cannot express is *taken*. The marker set can say in-progress, which is
+about the work, not about who holds it or whether the claim is still live. A claim is a
+write — flip the marker inside the same serialised transaction that answers, so the
+answer and the claim are one step and the next caller reads a file that already moved.
+
+Two things this must not become. A claim held by nobody is a task nobody can pick, so it
+needs an expiry a later caller can see and step over, rather than a lock nobody can
+break. And an owner field would be a schema change carrying a fact that lives outside
+the repository — what is durable is *claimed*, and the identity behind it belongs in the
+commit.
 
 ## Block D — The gate
 

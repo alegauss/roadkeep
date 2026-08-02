@@ -24,12 +24,18 @@
 
 - 📋 **RK109** (deps: —) **The id's shape is declared once and read by two parsers that answer differently** — `id_pattern` refuses the `D1` that `number_of` reads as 1, and the sub-letter half is a flag four call sites pass by hand, so a fifth caller is a sort nobody checks. → §RK109
 - 💭 **RK115** (deps: —) **Where a heading's region ends is re-derived at every call site, under two rules that already differ** — `_span` and `_placement` stop at the next same-or-higher heading while `anchored` and `_after_preamble` stop at any heading, and the one reader of a file is meant to be Document. → §RK115
+- 📋 **RK116** (deps: —) **A second write to a governed file erases the first one's line and both commands exit 0** — `Document` reads every byte and `save` writes every byte back with nothing checking the file is still the one that was read, so two agents in one checkout lose a line silently. → §RK116
+- 📋 **RK117** (deps: RK116) **Two adds started together mint the same id, and the gate reports it only once both lines exist** — `next_id` derives one past the highest anywhere and nothing holds that maximum between the scan and the write, so the id is a claim two processes can both make. → §RK117
+- 📋 **RK118** (deps: —) **A reader can load a governed file truncated, and an interrupted ship leaves two of its three files written** — `save` truncates the target before it fills it and a departure writes three files in sequence, so an interrupted write leaves the state `Closure` was built to repair. → §RK118
 
 ## Block B — Authoring (insert, never hand-edit)
 
 - 📋 **RK113** (deps: —) **renumber renames a section's heading and leaves the anchors of everything nested under it** — `renumber RK1 --to RK9` rewrote `§RK1` and left `§RK1.1` claiming a task the backlog no longer has, under a heading that names RK9, and lint called the file clean. → §RK113
+- 📋 **RK120** (deps: RK113) **Two branches each spend the same id, and the merge git produces is a conflict in a file only this tool may write** — Every add appends inside the same block heading, so parallel worktrees collide on almost every task and resolving it by hand is the edit the hook denies. → §RK120
 
 ## Block C — Query (consult without reading the file)
+
+- 📋 **RK119** (deps: RK117) **Every agent asking what to work on is handed the same line, including one another agent already started** — Tier 1 prefers an in-progress line so one worker finishes what they started, and the file has no way to say a task is taken, so a second caller is sent at work under way. → §RK119
 
 ## Block D — The gate
 
