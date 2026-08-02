@@ -12,6 +12,7 @@ schema says once they are read.
 from __future__ import annotations
 
 import re
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -558,3 +559,44 @@ def test_a_heading_word_that_is_not_one_bare_word_is_refused():
         Schema(heading_word=" Track")
     with pytest.raises(ValueError, match="one bare word"):
         Schema(heading_word="")
+
+
+# -- the qualifier a partial entry carries (RK121) ---------------------------
+
+LEDGER = Schema().as_ledger()
+
+
+def test_a_partial_entry_renders_the_qualifier_inside_the_bold():
+    # Inside the bold because that is where the corpus writes it — a second spelling would
+    # be a line the tool renders differently from the one it read.
+    entry = Task(id="RK9", status=SHIPPED, block="A", symptom="A symptom", why="Landed.")
+    assert LEDGER.render(entry) == "- ✅ **RK9** **A symptom** — Landed."
+    half = replace(entry, part="local half")
+    assert LEDGER.render(half) == "- ✅ **RK9 (local half)** **A symptom** — Landed."
+
+
+def test_a_qualifier_on_a_roadmap_line_is_refused():
+    # The roadmap already has a word for work in halves: ⏳, an open marker. A line saying
+    # it twice would be two places to read one claim.
+    line = task(id="RK9", ref="RK9")
+    codes = {v.code for v in SCHEMA.validate(replace(line, part="half"))}
+    assert "part.unexpected" in codes
+
+
+def test_a_qualifier_that_is_a_second_summary_is_refused():
+    entry = Task(
+        id="RK9",
+        status=SHIPPED,
+        block="A",
+        symptom="A symptom",
+        why="Landed.",
+        part="the half that does the thing the other half does not do yet at all",
+    )
+    codes = {v.code: v.message for v in LEDGER.validate(entry)}
+    assert "it names which half" in codes["part.too-long"]
+
+
+def test_an_ordinary_entry_carries_no_qualifier_and_is_not_asked_for_one():
+    entry = Task(id="RK9", status=SHIPPED, block="A", symptom="A symptom", why="Landed.")
+    assert entry.part is None
+    assert LEDGER.validate(entry) == ()

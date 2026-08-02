@@ -35,7 +35,11 @@ either is written — and an `add` without it answers with the `section add` tha
 pointer it just created, rather than leaving the gate to say so. `ship <id>` makes
 its three edits (ledger entry, roadmap line gone, `§<id>` deleted) plus the dependents'
 annotations, or none, and `retire <id> [--superseded-by <id>] --reason "…"` is the same
-transaction, two more doors. **A pause is none of those three**: `defer <id> --reason "…"` moves
+transaction, two more doors. **Half of it landing is a third answer, not a full ship
+with a hedge in the sentence**: `ship <id> --part "<which half>"` records the entry as
+`✅ **<id> (which half)**` and *leaves the line open* at ⏳ with its section intact, and the
+later `ship <id>` completes it — replacing that entry in place and dropping the qualifier,
+which is the only thing that keeps "local half" from outliving the local half. **A pause is none of those three**: `defer <id> --reason "…"` moves
 the line to the deferred store, keeping the id, the deps, the symptom and the section a
 departure deletes, and `resume <id> [--marker <m>]` is the return direction the ledger has
 none of — the reason wraps the `why` on the way out and is unwrapped on the way back, and the

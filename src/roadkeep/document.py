@@ -57,7 +57,15 @@ from roadkeep.schema import ARROW, EM_DASH, ID_SHAPE, NO_DEPS, Dep, Schema, Task
 _REPLACE_TRIES = 5
 _REPLACE_PAUSE = 0.05
 
-_TASK_HEAD = r"\*\*(?P<id>[A-Za-z0-9]+)\*\*(?: \(deps: (?P<deps>[^)]*)\))?"
+#: The bold head, and the qualifier a **partial** entry carries inside it (RK121). Inside
+#: the bold because that is where the corpus already writes it — Shio has seven, from
+#: `- **SH96 (local half)** —` to `- **SH275 (partial)** —` — and a grammar that demanded
+#: the qualifier somewhere else would read those seven as no id at all, which is how two
+#: deps came to report `SH96` as being in neither file while the roadmap annotated it ✅.
+_TASK_HEAD = (
+    r"\*\*(?P<id>[A-Za-z0-9]+)(?: \((?P<part>[^)]+)\))?\*\*"
+    r"(?: \(deps: (?P<deps>[^)]*)\))?"
+)
 #: The two slots a file may not have (`[ledger]`, RK43 and RK48), composed rather than
 #: written out four times: a grammar per combination is four things that drift apart.
 _SYMPTOM = rf" \*\*(?P<symptom>.+?)\*\* {EM_DASH} "
@@ -82,7 +90,11 @@ _BULLET_RE = re.compile(r"^(?P<indent>\s*)[-*+] (?P<rest>.*)$")
 _FENCE_RE = re.compile(r"^\s*(?P<marks>`{3,}|~{3,})")
 #: A bullet that puts *something* where a marker goes and a bold id after it — how an
 #: undeclared marker is caught instead of read as prose (see `_wears_the_marker_slot`).
-_MARKER_SLOT_RE = re.compile(r"^\S+ \*\*[A-Za-z0-9]+\*\*")
+#: The qualifier as it appears inside the bold, for the two shape tests below (RK121).
+#: They decide whether a bullet *claims* the task line's shape, and a claim they declined
+#: is prose — which is how Shio's seven partial entries came to be read as no line at all.
+_PART = r"(?: \([^)]+\))?"
+_MARKER_SLOT_RE = re.compile(rf"^\S+ \*\*[A-Za-z0-9]+{_PART}\*\*")
 #: A line that is nothing but pipe-delimited cells, and the `|---|` rule that makes a run
 #: of them a table rather than prose that happens to use pipes. Two shapes and no grammar:
 #: what is *inside* the cells is deliberately never read (RK98).
@@ -91,7 +103,7 @@ _RULE_RE = re.compile(r"^\s*\|(?:\s*:?-+:?\s*\|)+\s*$")
 #: A bullet whose first token *is* the bold id, so the marker slot is empty rather than
 #: wrong (see `_leads_with_the_id`). Id-shaped and nothing else: the shape is what tells
 #: `- **T1** — …` from `- **Delete** the 3 old files`.
-_BOLD_ID_RE = re.compile(rf"^\*\*{ID_SHAPE}\*\*(?=\s|$)")
+_BOLD_ID_RE = re.compile(rf"^\*\*{ID_SHAPE}{_PART}\*\*(?=\s|$)")
 _POINTER = f" {ARROW} §"
 
 
@@ -749,6 +761,10 @@ def _read_bullet(body: str, schema: Schema, block: str) -> Task | str | None:
 
     return Task(
         id=match.group("id"),
+        # The qualifier a partial entry carries (RK121). Read wherever the grammar finds
+        # one and refused by the schema where it is not legal, which is the split every
+        # other slot takes: the parser's job is to lose nothing, the schema's is to judge.
+        part=match.group("part"),
         # Where the file declares no marker, the status is the file's own: every entry in
         # a ledger that carries none shipped, which is the whole content of the claim.
         status=match.group("status") if schema.marker_field else schema.shipped_marker,

@@ -130,7 +130,10 @@ TOOLS: tuple[Tool, ...] = (
     # human can reach is no door. `to` is offered because the derived answer is not always
     # the wanted one — it is refused against every source either way.
     Tool("renumber", ("id", "to"), writes=True),
-    Tool("ship", ("id", "why"), writes=True),
+    # `part` is exposed because the agent shipping half of something is the one that needs
+    # it (RK121): without it the only honest options are a ledger entry that overstates and
+    # a hand-edited qualifier the grammar reads and no verb maintains.
+    Tool("ship", ("id", "why", "part"), writes=True),
     Tool("retire", ("id", "reason", "superseded_by"), writes=True),
     Tool("defer", ("id", "reason"), writes=True),
     Tool("resume", ("id", "marker"), writes=True),

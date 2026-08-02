@@ -204,6 +204,13 @@ class Task:
     why: str
     deps: tuple[Dep, ...] = ()
     ref: str | None = None
+    #: Which part of the work this entry records, where only part of it landed (RK121).
+    #: A **ledger** field and the third state the model did not have: open in the roadmap
+    #: and recorded in the changelog were the only two, so work delivered in halves was
+    #: neither, and every project using this invented the same escape — `SH96 (local
+    #: half)`, `SH275 (partial)` — in a spelling the grammar could not read. None is the
+    #: ordinary entry: a shipment that needs no qualifier is not a partial one.
+    part: str | None = None
     #: The whitespace the line starts with, kept verbatim (RK49). Part of the line and so
     #: part of the model: Shio nests four live tasks under the line that shipped their
     #: parent, and a render that dropped two spaces would stop 4 files from round-tripping.
@@ -332,6 +339,11 @@ class Schema:
     undesigned: tuple[str, ...] = UNDESIGNED
     symptom_max: int = 120
     why_max: int = 200
+    #: How long a partial entry's qualifier may be (RK121). Short by design — it names
+    #: *which half*, and the sentence about what landed is the `why` two characters away.
+    #: The default clears the longest the corpus wrote (`the SH22 half`, 13) many times over
+    #: and still refuses a qualifier that has become a second summary.
+    part_max: int = 40
     #: Whether `why` is held to one sentence, and to ending in a stop. True everywhere by
     #: default, because the rule is what keeps a `why` from becoming the rationale — and
     #: switchable per role (`[rules.<role>]`, RK52) because a ledger written before the
@@ -423,7 +435,14 @@ class Schema:
                 "open marker: a roadmap that can say 'paused' is a backlog `pick` reads "
                 "as work waiting to be started"
             )
-        for name in ("symptom_max", "why_max", "line_max", "section_max", "prose_width"):
+        for name in (
+            "symptom_max",
+            "why_max",
+            "part_max",
+            "line_max",
+            "section_max",
+            "prose_width",
+        ):
             if getattr(self, name) < 1:
                 raise ValueError(f"{name} must be positive")
 
@@ -656,8 +675,12 @@ class Schema:
         # The indentation is the line's, not the format's (RK49): read off the file and
         # written back unchanged, so a nested follow-up is a task instead of prose.
         dash = f"{task.indent}-"
+        # The qualifier of a partial entry goes *inside* the bold, after the id (RK121):
+        # that is where the corpus writes it, and a second spelling would be a line the
+        # tool renders differently from the one it read.
+        named = f"{task.id} ({task.part})" if task.part else task.id
         head = (
-            f"{dash} {task.status} **{task.id}**" if self.marker_field else f"{dash} **{task.id}**"
+            f"{dash} {task.status} **{named}**" if self.marker_field else f"{dash} **{named}**"
         )
         if self.deps_field:
             deps = ", ".join(d.render() for d in task.deps) or NO_DEPS
@@ -721,6 +744,7 @@ class Schema:
                     f"expected {self._id_shape()}, got {task.id!r}",
                 )
             )
+        out.extend(self._check_part(task))
         if not self.marker_field and task.status != self.shipped_marker:
             # The one thing a markerless ledger cannot record is a departure that is not
             # a shipment (RK32): with no slot to carry 🗑, a retired line would read as
@@ -764,6 +788,42 @@ class Schema:
                 Violation("block.format", "block", f"not a block label: {task.block!r}")
             )
         return out
+
+    def _check_part(self, task: Task) -> list[Violation]:
+        """A partial entry's qualifier: legal in the ledger, and nowhere else (RK121).
+
+        Refused on a roadmap line because the roadmap already has a word for work in
+        halves — ⏳, an open marker — and a line that said it twice would be two places to
+        read the same claim. The ledger is where the statement is new: *this much of it is
+        done*, which an entry could not previously make without leaving the grammar.
+        """
+        if task.part is None:
+            return []
+        if not self.is_ledger:
+            return [
+                Violation(
+                    "part.unexpected",
+                    "id",
+                    f"({task.part}) qualifies a partial entry and this is not the ledger: "
+                    f"an open line says the same thing with a marker",
+                )
+            ]
+        if not task.part.strip() or task.part != task.part.strip():
+            return [
+                Violation(
+                    "part.blank", "id", f"the qualifier is not a phrase: {task.part!r}"
+                )
+            ]
+        if len(task.part) > self.part_max:
+            return [
+                Violation(
+                    "part.too-long",
+                    "id",
+                    f"the qualifier is {len(task.part)} characters, limit is "
+                    f"{self.part_max}: it names which half, it is not the why",
+                )
+            ]
+        return []
 
     def classify_dep(self, dep: Dep) -> DepKind:
         """What this dep names — a task, a block, a range, or work outside the backlog.

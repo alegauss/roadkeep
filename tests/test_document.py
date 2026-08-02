@@ -761,3 +761,47 @@ def vars_of(task: Task) -> dict:
         "deps": task.deps,
         "ref": task.ref,
     }
+
+
+# -- the qualifier a partial entry carries (RK121) ---------------------------
+
+
+LEDGER = Schema().as_ledger()
+PARTIAL_LINE = "- ✅ **RK9 (local half)** **A symptom** — a reason."
+
+
+def test_a_partial_entry_round_trips():
+    document = Document.parse(f"## Block A — The model\n{PARTIAL_LINE}\n", LEDGER)
+    assert document.entries[0].task.part == "local half"
+    assert document.entries[0].task.id == "RK9"
+    assert document.render() == f"## Block A — The model\n{PARTIAL_LINE}\n"
+    assert document.non_canonical == ()
+
+
+def test_a_partial_entry_is_found_by_its_id_and_not_by_the_whole_bold():
+    # The defect: the parser saw no id at all, so two Shio deps reported `SH96` as being in
+    # neither file while the roadmap annotated it shipped.
+    document = Document.parse(f"## Block A — The model\n{PARTIAL_LINE}\n", LEDGER)
+    assert "RK9" in document.by_id()
+    assert "RK9 (local half)" not in document.by_id()
+
+
+def test_a_markerless_ledger_reads_the_qualifier_too():
+    # Both live ledgers write `- **T1** — …`, and Shio's thirteen partials are all in one.
+    schema = replace(LEDGER, marker_field=False, symptom_field=False)
+    line = "- **SH96 (local half)** — What landed."
+    document = Document.parse(f"## Block A — The model\n{line}\n", schema)
+    assert (document.entries[0].task.id, document.entries[0].task.part) == (
+        "SH96",
+        "local half",
+    )
+    assert document.render() == f"## Block A — The model\n{line}\n"
+
+
+def test_prose_that_puts_a_parenthetical_in_bold_is_still_prose():
+    # The shape tests decide whether a bullet *claims* a task line, and widening them is
+    # what let the corpus's partials be read at all — so the other side has to hold.
+    schema = replace(LEDGER, marker_field=False, symptom_field=False)
+    for line in ("- **Delete (soon)** the 3 old files", "- **Notes (draft)** on the plan"):
+        document = Document.parse(f"## Block A — The model\n{line}\n", schema)
+        assert document.entries == () and document.rejects == (), line

@@ -61,7 +61,7 @@ from roadkeep.config import Config
 from roadkeep.document import Document, Entry, Heading, assert_all_current
 from roadkeep.ids import next_id
 from roadkeep.markers import refresh
-from roadkeep.schema import Task
+from roadkeep.schema import PARTIAL, Task
 from roadkeep.sections import NoSuchSection, Section, nested, pointers
 from roadkeep.sections import drop as drop_section
 
@@ -75,6 +75,7 @@ __all__ = [
     "NoSuchReplacement",
     "NotDuplicated",
     "NotOpen",
+    "Partial",
     "Record",
     "Section",
     "Shipment",
@@ -221,6 +222,46 @@ Shipment = Departure
 
 
 @dataclass(frozen=True, slots=True)
+class Partial:
+    """Half a departure: the ledger records what landed, the roadmap keeps the line (RK121).
+
+    The third state the model did not have. Open in the roadmap and recorded in the ledger
+    were the only two, so work delivered in halves was neither — and every project using
+    this invented the same escape, a parenthetical on the ledger id that the grammar could
+    not read. This is that escape given a verb, which is the half that can be *maintained*:
+    only a command knows when the qualifier stops being true, and :func:`ship` completing
+    the line is what removes it.
+
+    Not a :class:`Departure` with a flag: a departure's subject is a line that left, and
+    this one's is a line that stayed. Nothing is removed and nothing is deleted — in
+    particular the rationale section stays, because the design still has work left to
+    describe.
+    """
+
+    task_id: str
+    ledger: Insertion
+    #: The roadmap as this write leaves it: the same line, marked ⏳ where the project
+    #: declares that marker, and every dependent's annotation re-derived from it (RK8).
+    roadmap: Document
+    part: str
+    #: What the roadmap line's marker became — ⏳, or the one it already carried at a
+    #: project that declares no such marker. Reported because the two differ and a caller
+    #: reading "partial" would otherwise not know which of them happened.
+    status: str = ""
+    refreshed: tuple[str, ...] = ()
+    #: The marker the ledger entry carries: ✅, on the part that shipped.
+    marker: str = ""
+
+    def save(self) -> None:
+        # The ledger first, as everywhere else (RK118): the record of what landed is the
+        # thing that cannot be reconstructed, and a marker not yet ⏳ is a state a second
+        # run of the same command corrects.
+        assert_all_current(self.ledger.document, self.roadmap)
+        self.ledger.document.save()
+        self.roadmap.save()
+
+
+@dataclass(frozen=True, slots=True)
 class Closure:
     """The rest of a transaction that never completed (RK62).
 
@@ -350,7 +391,9 @@ def drop(config: Config, task_id: str) -> Dropped:
     )
 
 
-def ship(config: Config, task_id: str, *, why: str | None = None) -> Departure | Closure:
+def ship(
+    config: Config, task_id: str, *, why: str | None = None, part: str | None = None
+) -> Departure | Closure | Partial:
     """Move one task from the backlog to the ledger. Validates all three edits first.
 
     Or, when the ledger already records the id, close the roadmap line alone (RK62): that is
@@ -361,7 +404,15 @@ def ship(config: Config, task_id: str, *, why: str | None = None) -> Departure |
     `why` is refused on that path rather than ignored: it restates the *ledger's* sentence, and
     the ledger is not written here. A flag silently dropped is a flag the caller believes took
     effect.
+
+    `part` is the third answer (RK121): **this much of it landed**. The entry is written with
+    the qualifier and the roadmap line stays, because the work is not finished. A later
+    `ship` with no `part` *completes* it — replacing the entry rather than adding a second —
+    which is the whole reason this is a verb and not a spelling convention: only a command
+    knows when "local half" stopped being true.
     """
+    if part is not None:
+        return _partial(config, task_id, part, why)
     recorded = _already_recorded(config, task_id)
     if recorded is None:
         return _depart(config, task_id, config.schema.shipped_marker, why)
@@ -447,6 +498,55 @@ def record(
     )
 
 
+def _partial(
+    config: Config, task_id: str, part: str, why: str | None
+) -> Partial:
+    """Record the half that landed and leave the line open (RK121)."""
+    roadmap = config.document("roadmap")
+    ledger = config.document("changelog")
+
+    entry = roadmap.by_id().get(task_id)
+    if entry is None:
+        raise NotOpen(
+            task_id,
+            config.relative(config.path("roadmap")),
+            shipped=task_id in ledger.by_id(),
+        )
+    recorded = ledger.by_id().get(task_id)
+    if recorded is not None:
+        # A second partial would state the id twice in the ledger, which `lint` reports as
+        # `id.duplicate` and which is the shape RK127 is about. One partial per task and
+        # then a completion: `amend` is where a qualifier that has changed is corrected.
+        raise AlreadyRecorded(
+            task_id,
+            config.relative(config.path("changelog")),
+            recorded.lineno,
+            recorded.task.status,
+        )
+
+    landed = replace(
+        _as_recorded(entry.task, config.schema.shipped_marker, why), part=part
+    )
+    insertion = place(ledger, landed)
+    # ⏳ where the project declares it, and the line's own marker where it does not: the
+    # marker set is the project's (L6), and a command that invented one would write a line
+    # its own gate refuses. Either way the line stays open, which is the claim.
+    status = PARTIAL if PARTIAL in config.schema.markers else entry.task.status
+    remaining = roadmap.replace_task(entry, replace(entry.task, status=status))
+    derived = refresh(
+        Backlog.during(config, roadmap=remaining, ledger=insertion.document)
+    )
+    return Partial(
+        task_id=task_id,
+        ledger=insertion,
+        roadmap=derived.document,
+        part=part,
+        status=status,
+        refreshed=derived.changed,
+        marker=config.schema.shipped_marker,
+    )
+
+
 def _depart(
     config: Config, task_id: str, marker: str, why: str | None
 ) -> Departure:
@@ -462,7 +562,12 @@ def _depart(
             shipped=task_id in ledger.by_id(),
         )
     duplicate = ledger.by_id().get(task_id)
-    if duplicate is not None:
+    # A duplicate carrying a qualifier is not a second record of one decision — it is the
+    # *first* half of this one (RK121), and this call is the completion. So the entry is
+    # replaced rather than added to, which is what keeps "local half" from outliving the
+    # local half: five of the corpus's thirteen say something that stopped being true.
+    completing = duplicate if duplicate is not None and duplicate.task.part else None
+    if duplicate is not None and completing is None:
         raise AlreadyRecorded(
             task_id,
             config.relative(config.path("changelog")),
@@ -470,7 +575,12 @@ def _depart(
             duplicate.task.status,
         )
 
-    insertion = place(ledger, _as_recorded(entry.task, marker, why))
+    recorded = _as_recorded(entry.task, marker, why)
+    if completing is not None:
+        replaced = ledger.replace_task(completing, recorded)
+        insertion = Insertion(document=replaced, entry=replaced.by_id()[task_id])
+    else:
+        insertion = place(ledger, recorded)
     remaining = remove_entry(roadmap, entry.index)
     improvements, dropped, kept, taken = _drop_section(
         config, entry.task.ref, leaving=task_id

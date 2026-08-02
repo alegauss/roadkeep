@@ -103,6 +103,10 @@ _RULE_KEYS = {
 _LIMIT_KEYS = {
     "symptom": "symptom_max",
     "why": "why_max",
+    # What a partial entry's qualifier may cost (RK121). Per project like every other
+    # limit (L6): `local half` and `the SH22 half` are one corpus's answer to "which part",
+    # and a project whose halves have longer names has not made the qualifier a summary.
+    "part": "part_max",
     "line": "line_max",
     # A section is prose, so its budget is words and its shape is a width (RK9).
     "section": "section_max",

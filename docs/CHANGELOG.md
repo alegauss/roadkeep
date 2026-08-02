@@ -30,6 +30,7 @@
 - ✅ **RK116** **A second write to a governed file erases the first one's line and both commands exit 0** — `save` re-reads the target and refuses a write onto a file that moved, and a transaction asks about every file it writes before writing any.
 - ✅ **RK117** **Two adds started together mint the same id, and the gate reports it only once both lines exist** — Every mutating command holds one exclusive lock for the whole span from scan to save, and the query surface never takes it.
 - ✅ **RK118** **A reader can load a governed file truncated, and an interrupted ship leaves two of its three files written** — Every file is replaced in one step rather than truncated and refilled, and the order of a transaction's writes is chosen so each middle state is loud and lossless.
+- ✅ **RK121** **A task delivered in halves has no representation, so the corpus invents one the grammar cannot read** — A ledger entry may carry the qualifier the corpus already writes, and `ship --part` is the verb that sets it and the later `ship` that removes it.
 
 ## Block B — Authoring
 

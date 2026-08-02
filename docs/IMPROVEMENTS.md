@@ -75,29 +75,6 @@ already written, not authorship.
 
 ## Block A — The model
 
-### §RK121 Partial completion is a state the model does not have
-
-Every id is in exactly one of two states: open in the roadmap, or recorded in the
-ledger. Work that lands in halves is neither, and the projects using this have all
-invented the same escape — a parenthetical on the ledger id.
-
-Shio has seven: `- **SH96 (local half)** —`, `- **SH275 (partial)** —`, `- **SH84 (the
-SH22 half)** —`. It reads perfectly to a person and is invisible to the parser, which is
-worse than either half alone. An id it cannot parse is an id that is **not in the
-changelog**, and that is a different statement from "not done": two Shio lines declare
-`deps: SH96 ✅` and `lint` answers that SH96 is in neither file.
-
-**And the qualifier is write-only.** Five of the seven name a task that has since
-completed — nothing removes it when the second half lands, because `ship` deletes a
-roadmap line and never touches an entry already in the ledger. So the corpus carries five
-statements that were true when written and are now false, in the file whose whole job is
-to answer "is this done".
-
-Two directions. Teach the ledger grammar an optional qualifier after the id, or give
-partial completion a first-class form — an entry declaring which part shipped, with the
-line left open for `ship` to complete later. The second is more work and is the one that
-can be *maintained*, because only a verb can know when the qualifier stops being true.
-
 ## Block B — Authoring
 
 ### §RK113 Half a subtree renamed, and written

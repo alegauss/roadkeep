@@ -24,7 +24,7 @@ from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.document import Document, RoundTripError, StaleFile
 from roadkeep.linting import lint
-from roadkeep.schema import SchemaError
+from roadkeep.schema import PARTIAL, Schema, SchemaError
 from roadkeep.sections import SectionOccupied
 from roadkeep.shipping import (
     AlreadyShipped,
@@ -702,3 +702,118 @@ def test_the_rationale_file_is_written_last_because_its_write_is_a_deletion(tmp_
     improvements = read(config, IMPROVEMENTS)
     assert "§RK1 A first design" in improvements
     assert "The reasoning that the line has no room for." in improvements
+
+
+# -- a task delivered in halves (RK121) --------------------------------------
+
+
+PARTIAL_RK1 = "- ✅ **RK1 (local half)** **A first symptom** — Because of a reason."
+
+
+def test_a_partial_records_what_landed_and_leaves_the_line_open(tmp_path):
+    # The third state the model did not have: open in the roadmap and recorded in the
+    # ledger were the only two, so work delivered in halves was neither.
+    config = project(tmp_path)
+    landed = ship(config, "RK1", part="local half")
+    landed.save()
+    roadmap, ledger, improvements = files(config)
+    assert PARTIAL_RK1 in ledger
+    assert RK1.replace("📋", "⏳") in roadmap
+    # The design stays: it still has the rest of the work to describe.
+    assert "§RK1 A first design" in improvements
+
+
+def test_a_partial_marks_the_line_as_partial_where_the_project_declares_that_marker():
+    assert PARTIAL in Schema().markers  # the default set, which is where ⏳ comes from
+
+
+def test_a_line_a_project_cannot_mark_partial_keeps_the_marker_it_had(tmp_path):
+    # The marker set is the project's (L6), so a command that invented one would write a
+    # line the project's own gate refuses. The line still stays open, which is the claim.
+    config = project(tmp_path)
+    (tmp_path / "roadkeep.toml").write_text(
+        (tmp_path / "roadkeep.toml").read_text(encoding="utf-8")
+        + '\n[markers]\nopen = ["📋"]\n',
+        encoding="utf-8",
+    )
+    config = Config.discover(tmp_path)
+    landed = ship(config, "RK1", part="local half")
+    assert landed.status == "📋"
+    landed.save()
+    assert RK1 in read(config, ROADMAP)
+
+
+def test_completing_a_partial_replaces_the_entry_instead_of_adding_a_second(tmp_path):
+    # The half that can be *maintained*: only a verb knows when "local half" stops being
+    # true, and five of the corpus's thirteen qualifiers name work that has since finished.
+    config = project(tmp_path)
+    ship(config, "RK1", part="local half").save()
+    ship(Config.discover(tmp_path), "RK1", why="All of it landed.").save()
+
+    roadmap, ledger, improvements = files(config)
+    assert ledger.count("**RK1") == 1
+    assert "local half" not in ledger
+    assert "- ✅ **RK1** **A first symptom** — All of it landed." in ledger
+    assert RK1 not in roadmap  # the line finally leaves
+    assert "§RK1 A first design" not in improvements  # and the design goes with it
+
+
+def test_the_completing_entry_keeps_the_line_the_partial_took(tmp_path):
+    # Replaced in place, not removed and re-added: an entry that moved to the end of its
+    # block on completion would reorder history for a reason that is not chronology.
+    config = project(tmp_path)
+    ship(config, "RK2", part="the first half").save()
+    ship(Config.discover(tmp_path), "RK1").save()  # a later shipment lands after it
+    before = read(config, CHANGELOG).splitlines().index(
+        "- ✅ **RK2 (the first half)** **A second symptom** — Because of another reason."
+    )
+    ship(Config.discover(tmp_path), "RK2").save()
+    after = read(config, CHANGELOG).splitlines().index(
+        "- ✅ **RK2** **A second symptom** — Because of another reason."
+    )
+    assert before == after
+
+
+def test_a_second_partial_for_one_id_is_refused(tmp_path):
+    # It would state the id twice in the ledger, which is `id.duplicate` and the shape
+    # RK127 is about. One partial, then a completion.
+    config = project(tmp_path)
+    ship(config, "RK1", part="local half").save()
+    with pytest.raises(AlreadyShipped, match="already recorded"):
+        ship(Config.discover(tmp_path), "RK1", part="the other half")
+
+
+def test_a_partial_of_a_task_that_is_not_open_is_refused(tmp_path):
+    config = project(tmp_path)
+    with pytest.raises(NotOpen):
+        ship(config, "RK9", part="a half")
+
+
+def test_a_partial_and_its_completion_both_lint_clean(tmp_path):
+    config = project(tmp_path)
+    ship(config, "RK1", part="local half").save()
+    codes = {f.code for f in lint(Config.discover(tmp_path)).findings}
+    # `id.two-files` is RK122's subject and is expected here: open plus recorded is exactly
+    # what a partial *is*, and teaching the gate that is a separate task.
+    assert codes <= {"id.two-files"}
+    ship(Config.discover(tmp_path), "RK1").save()
+    assert lint(Config.discover(tmp_path)).clean
+
+
+def test_the_cli_reports_the_qualifier_and_how_to_finish(tmp_path, capsys):
+    project(tmp_path)
+    argv = ["-C", str(tmp_path), "ship", "RK1", "--part", "local half"]
+    assert main(argv) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "RK1 (local half)" in out
+    assert "roadkeep ship RK1" in out
+
+
+def test_the_cli_json_says_the_line_is_still_open(tmp_path, capsys):
+    project(tmp_path)
+    argv = ["-C", str(tmp_path), "ship", "RK1", "--part", "local half", "--json"]
+    assert main(argv) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["part"] == "local half"
+    assert payload["roadmap"]["open"] is True
+    assert payload["roadmap"]["status"] == "⏳"

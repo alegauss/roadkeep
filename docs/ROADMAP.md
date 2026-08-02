@@ -22,8 +22,6 @@
 
 ## Block A — The model (a task is data before it is a line)
 
-- 📋 **RK121** (deps: —) **A task delivered in halves has no representation, so the corpus invents one the grammar cannot read** — Shio writes seven ledger ids as SH96 (local half); the parser sees no id, so two deps report unknown against an id the roadmap annotates shipped. → §RK121
-
 ## Block B — Authoring (insert, never hand-edit)
 
 - 📋 **RK113** (deps: —) **renumber renames a section's heading and leaves the anchors of everything nested under it** — `renumber RK1 --to RK9` rewrote `§RK1` and left `§RK1.1` claiming a task the backlog no longer has, under a heading that names RK9, and lint called the file clean. → §RK113
@@ -31,7 +29,7 @@
 - 📋 **RK123** (deps: —) **An open task's rationale cannot be corrected by any verb, and the hook denies the hand-edit** — section drop refuses while a live pointer names the anchor and section add refuses the duplicate, so a design is write-once until ship deletes it. → §RK123
 - 📋 **RK124** (deps: —) **A ledger entry can be written and deleted but never corrected** — record add and record drop are the pair, so fixing one word of a why means dropping the entry and re-adding it, which moves the line to the end of its block. → §RK124
 - 📋 **RK126** (deps: —) **Corruption inside a ledger entry is reported by lint and repairable by no verb** — The unit is the entry and the damage is inside one: Shio carries two U+0008 control characters and a dead link in entry prose, and add, drop, ship and retire all reach only the whole line. → §RK126
-- 📋 **RK127** (deps: RK121) **record drop assumes a duplicate is redundant, and picks the later entry either way** — Shio's two SH347 entries are two different pieces of work sharing an id, so dropping either destroys history, and the one the verb picks is the entry that earned the id. → §RK127
+- 📋 **RK127** (deps: RK121 ✅) **record drop assumes a duplicate is redundant, and picks the later entry either way** — Shio's two SH347 entries are two different pieces of work sharing an id, so dropping either destroys history, and the one the verb picks is the entry that earned the id. → §RK127
 
 ## Block C — Query (consult without reading the file)
 
@@ -42,7 +40,7 @@
 - 📋 **RK104** (deps: —) **Nothing gates the README block this tool writes, so a stale restatement passes lint** — `export --readme` is the one write no gate holds: a pytest fixture catches it here and an adopting project has none, so the derived table drifts from the files it was derived from. → §RK104
 - 📋 **RK105** (deps: —) **A concurrent edit in another repository turns this project's suite red** — The round-trip property reads Shio's and Turing's working trees, so a run went red for a change neither this commit nor this repository made, and a red nobody caused is a red nobody reads. → §RK105
 - 📋 **RK114** (deps: —) **A subsection whose task is gone is exempt from the ownership check that would report it** — `_owners` matches the anchor against the id pattern, so `§RK34.1` is read as outline prose like `§0.1` and belongs to nobody — the exemption that let a half-renamed subtree lint clean. → §RK114
-- 📋 **RK122** (deps: RK121) **id.two-files calls a correct half-shipped state a contradiction** — Open in the roadmap and recorded in the ledger is exactly what a partial is, so Shio's SH238 is reported for spelling it plainly while six that hid it behind a parenthetical are not. → §RK122
+- 📋 **RK122** (deps: RK121 ✅) **id.two-files calls a correct half-shipped state a contradiction** — Open in the roadmap and recorded in the ledger is exactly what a partial is, so Shio's SH238 is reported for spelling it plainly while six that hid it behind a parenthetical are not. → §RK122
 
 ## Block E — Adoption
 

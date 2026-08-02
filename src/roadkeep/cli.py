@@ -79,7 +79,7 @@ from roadkeep.sections import find as find_section
 from roadkeep.sections import nested as nested_sections
 from roadkeep.sections import pointers
 from roadkeep.serving import serve
-from roadkeep.shipping import Closure, record, retire, ship
+from roadkeep.shipping import Closure, Partial, record, retire, ship
 from roadkeep.weighing import Spread, Weights, weigh
 from roadkeep.shipping import drop as drop_record
 from roadkeep.showing import View, show
@@ -371,6 +371,13 @@ def build_parser() -> argparse.ArgumentParser:
         help=(
             "restate the sentence as an outcome; the design's own sentence is kept "
             "verbatim by default and the tool never rewrites either"
+        ),
+    )
+    ship_parser.add_argument(
+        "--part",
+        help=(
+            "record only the half that landed and leave the line open, e.g. 'local "
+            "half'; a later ship with no --part completes it and removes the qualifier"
         ),
     )
     ship_parser.add_argument("--json", action="store_true", help="every edit, as data")
@@ -1464,11 +1471,15 @@ def _renumber(config: Config, args: argparse.Namespace) -> int:
 
 def _ship(config: Config, args: argparse.Namespace) -> int:
     try:
-        shipment = ship(config, args.id, why=args.why)
+        shipment = ship(config, args.id, why=args.why, part=args.part)
         shipment.save()
     except REFUSALS as error:
         return _refused(error)
 
+    if isinstance(shipment, Partial):
+        # Nothing was removed and nothing was dropped, so the departure's report would be
+        # three lines of None (RK121): what happened is an entry and a marker.
+        return _partly(config, shipment, args)
     if isinstance(shipment, Closure):
         # The ledger already holds the entry, so there is none to report (RK62): what this
         # call did is remove the line that was left behind, and the evidence is where the
@@ -1525,6 +1536,52 @@ def _ship(config: Config, args: argparse.Namespace) -> int:
         print(f"  kept     nothing dropped: {shipment.kept}")
     if shipment.refreshed:
         print(f"  derived  {', '.join(shipment.refreshed)} (dep annotations re-derived)")
+    _print_event(event, "  ")
+    return EXIT_OK
+
+
+def _partly(config: Config, partial: Partial, args: argparse.Namespace) -> int:
+    """Half of a task recorded, with its roadmap line still open (RK121)."""
+    roadmap = config.relative(config.path("roadmap"))
+    ledger = config.relative(config.path("changelog"))
+    block = partial.ledger.entry.task.block
+    event = _event(partial.task_id, block, partial.roadmap)
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "id": partial.task_id,
+                    "part": partial.part,
+                    "changelog": {
+                        "file": ledger,
+                        "line": partial.ledger.lineno,
+                        "rendered": partial.ledger.rendered,
+                    },
+                    "roadmap": {
+                        "file": roadmap,
+                        "line": partial.roadmap.by_id()[partial.task_id].lineno,
+                        "status": partial.status,
+                        "open": True,
+                    },
+                    "refreshed": list(partial.refreshed),
+                    "event": event,
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+
+    print(
+        f"{partial.task_id} ({partial.part}) → {ledger}:{partial.ledger.lineno} "
+        f"under Block {block}"
+    )
+    print(
+        f"  open     {roadmap}:{partial.roadmap.by_id()[partial.task_id].lineno} "
+        f"{partial.status} — the rest of it is still a task"
+    )
+    print(f"  finish   roadkeep ship {partial.task_id}  (drops the qualifier)")
+    if partial.refreshed:
+        print(f"  derived  {', '.join(partial.refreshed)} (dep annotations re-derived)")
     _print_event(event, "  ")
     return EXIT_OK
 
