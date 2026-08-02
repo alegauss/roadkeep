@@ -66,6 +66,7 @@ from roadkeep.ids import highest, next_id
 from roadkeep.installing import install, plan
 from roadkeep.linting import Finding, Report, lint
 from roadkeep.locking import LockBusy, exclusive
+from roadkeep.merging import markers, merge, register, role_of
 from roadkeep.picking import Choice, pick
 from roadkeep.provenance import engine
 from roadkeep.renumbering import renumber
@@ -355,6 +356,34 @@ def build_parser() -> argparse.ArgumentParser:
     )
     renumber_parser.add_argument("--json", action="store_true", help="every edit, as data")
     renumber_parser.set_defaults(handler=_renumber)
+
+    merge_parser = subcommands.add_parser(
+        "merge",
+        help="git's merge driver for a governed file: entries by id, prose by one side",
+        description=(
+            "Merge three versions of one governed file structurally. Every id is decided "
+            "on its own against the ancestor, so two branches appending under one heading "
+            "is two additions and not a conflict; an id both branches created is reported "
+            "by name, because `renumber` moves one of them and a driver that picked a side "
+            "would be choosing whose task disappears. Anything it cannot prove falls back "
+            "to git's conflict markers and exits 1. `--register` wires it up."
+        ),
+    )
+    merge_parser.add_argument("base", nargs="?", help="the ancestor version (git's %%O)")
+    merge_parser.add_argument(
+        "ours", nargs="?", help="this branch's version, and where the result is written (%%A)"
+    )
+    merge_parser.add_argument("theirs", nargs="?", help="the other branch's version (%%B)")
+    merge_parser.add_argument(
+        "--path",
+        help="the file's pathname in the repository (%%P) — which governed file this is",
+    )
+    merge_parser.add_argument(
+        "--register",
+        action="store_true",
+        help="write the .gitattributes lines and print the git config this driver needs",
+    )
+    merge_parser.set_defaults(handler=_merge)
 
     ship_parser = subcommands.add_parser(
         "ship",
@@ -1471,6 +1500,76 @@ def _renumber(config: Config, args: argparse.Namespace) -> int:
         print(f"  derived  {', '.join(moved.refreshed)} (dep annotations re-derived)")
     _print_event(event, "  ")
     return EXIT_OK
+
+
+def _merge(config: Config, args: argparse.Namespace) -> int:
+    """Git's driver contract: leave the result in `ours`, exit 0 clean and 1 conflicted.
+
+    The refusal writes too, and that is deliberate: git has handed the merge over by the
+    time this runs, so a non-zero exit that left `%A` untouched would leave the reviewer a
+    file that reads as though one side simply won.
+    """
+    if args.register:
+        return _merge_register(config)
+    if not (args.base and args.ours and args.theirs):
+        print(
+            "roadkeep: merge takes three files (git's %O %A %B), or --register",
+            file=sys.stderr,
+        )
+        return EXIT_USAGE
+
+    role = role_of(config, args.path or args.ours)
+    if role is None:
+        print(
+            f"roadkeep: {args.path or args.ours} is not a file this project declares "
+            f"(has: {', '.join(sorted(config.paths)) or 'none'}) — the driver merges "
+            f"governed files and declines everything else",
+            file=sys.stderr,
+        )
+        return EXIT_USAGE
+    try:
+        base, ours, theirs = (_verbatim(Path(p)) for p in (args.base, args.ours, args.theirs))
+        merged = merge(config, role, base, ours, theirs)
+    except REFUSALS as error:
+        return _refused(error)
+
+    if merged.clean:
+        write_atomically(Path(args.ours), merged.text or "")
+        summary = [f"merged {config.relative(config.path(role))} as {role}"]
+        if merged.took:
+            summary.append(f"took {', '.join(merged.took)}")
+        if merged.removed:
+            summary.append(f"removed {', '.join(merged.removed)}")
+        if merged.reason:
+            summary.append(merged.reason)
+        print("roadkeep: " + "; ".join(summary))
+        return EXIT_OK
+
+    write_atomically(Path(args.ours), markers(ours, theirs))
+    print(f"roadkeep: {merged.reason}", file=sys.stderr)
+    return EXIT_GATE
+
+
+def _merge_register(config: Config) -> int:
+    try:
+        registration = register(config)
+    except REFUSALS as error:
+        return _refused(error)
+    where = config.relative(registration.attributes)
+    for line in registration.added:
+        print(f"{where}  + {line}")
+    for line in registration.present:
+        print(f"{where}    {line} (already there)")
+    # Printed and not run: a driver command names a path into this checkout, and setting
+    # somebody's git config is a write outside the files this tool was given (L2).
+    print(f"  then     {registration.command}")
+    return EXIT_OK
+
+
+def _verbatim(path: Path) -> str:
+    """One of git's three versions, read the way `Document.load` reads a governed file."""
+    with path.open("r", encoding="utf-8", newline="") as handle:
+        return handle.read()
 
 
 def _ship(config: Config, args: argparse.Namespace) -> int:

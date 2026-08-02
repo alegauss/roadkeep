@@ -55,6 +55,7 @@
 - ✅ **RK108** **The first line added to a block lands above the paragraph that introduces it** — An empty block's first task lands after the paragraph that introduces the block, not between the heading and that paragraph.
 - ✅ **RK112** **section drop deletes a section an open line points at** — section drop refuses when an open line points at the anchor it was given, before any write.
 - ✅ **RK113** **renumber renames a section's heading and leaves the anchors of everything nested under it** — renumber re-addresses the whole subtree: `§RK1.1` moves to `§RK9.1` with its heading, a stranger nested inside keeps the id that owns it, and the command names every anchor it moved.
+- ✅ **RK120** **Two branches each spend the same id, and the merge git produces is a conflict in a file only this tool may write** — `merge` is git's driver for the governed files: every id decided against the ancestor, an id both branches created named for `renumber`, and anything unprovable handed back as markers.
 
 ## Block C — Query
 

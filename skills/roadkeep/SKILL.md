@@ -83,6 +83,13 @@ fact or a compression — and never its `symptom`, which is the claim the line i
 which is what `renumber` is for. That is the door
 a project adopting the tool needs; a greenfield one rarely calls it.
 
+A **merge conflict inside a governed file** is not a hand edit either. `merge --register`
+wires `roadkeep merge` in as git's driver for the files `roadkeep.toml` declares, and it
+merges by id: two branches appending under one heading is two additions, not a conflict, and
+an id **both branches created** is reported by name for `renumber` to move. What it cannot
+prove — prose changed on both sides, a line that does not round-trip, an output `lint` would
+refuse — it hands back as git's own conflict markers and exits 1.
+
 1. **`symptom` states what does not work** — never a solution name: a line named after its fix
    cannot be falsified, so it never gets closed, only abandoned.
 2. **`why` is one sentence.** A second sentence is the signal the content belongs in the

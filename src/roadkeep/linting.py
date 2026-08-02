@@ -345,7 +345,7 @@ def _examine(config: Config, since: str | None, tree: Tree) -> Report:
 
     checked = [config.relative(config.path(role)) for role in documents]
     for role, document in documents.items():
-        findings.extend(_within(config, role, document))
+        findings.extend(within(config, role, document))
         findings.extend(_characters(config, role, document))
     findings.extend(_across(config, documents))
     findings.extend(_scope(config, documents.get("roadmap")))
@@ -718,8 +718,14 @@ def _absent(config: Config, tree: Tree) -> list[Finding]:
     ]
 
 
-def _within(config: Config, role: str, document: Document) -> list[Finding]:
-    """Everything decidable from one file alone."""
+def within(config: Config, role: str, document: Document) -> list[Finding]:
+    """Everything decidable from one file alone.
+
+    Public because the merge driver gates its own output with it (RK120): a driver holds
+    three versions of one file and none of the others, so this is exactly the half of the
+    gate it can run — and a second statement of these rules would be a second gate to keep
+    in step with this one.
+    """
     file = config.relative(config.path(role))
     out: list[Finding] = []
 

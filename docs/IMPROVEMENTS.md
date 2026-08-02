@@ -118,30 +118,6 @@ as one. RK122 is the same question one file up.
 
 ## Block B — Authoring
 
-### §RK120 Two branches spending one address
-
-`renumber` was written on the observation that an id is an address and a merge can spend
-one twice. It is the repair. Nothing makes the collision visible, and nothing makes the
-merge that produced it survivable.
-
-Two worktrees on two branches each scan their own tree, each derive the same next id,
-and each append under the same block heading. Git sees two insertions at one line and
-writes a conflict into a file whose only legal writer is this tool — so the resolution
-is a hand edit of the format, which the hook denies and the gate refuses. Worse is the
-case that does not conflict: two branches touching different blocks merge clean, and the
-duplicate id lands silently for `lint` to find later.
-
-The file is a schema, which makes a structural merge decidable where a textual one
-guesses. Entries are keyed by id and grouped under declared headings, so a driver can
-take the union of both sides, keep each side's line wherever the id is unique to it, and
-single out only the ids both sides spent — moving one of those with `renumber`, which
-already carries the section and the dependents along (RK113 first, or the merge inherits
-a half-renamed subtree).
-
-Registered per file in `.gitattributes`, it is opt-in configuration (L6), and it gates
-itself: a merge whose output `lint` refuses falls back to the conflict markers rather
-than writing a file nobody reviewed.
-
 ### §RK123 The prose of a live task is the one thing no door opens
 
 `amend` reaches a line's `why`, `deps` and `ref`. `section drop` is refused while an
