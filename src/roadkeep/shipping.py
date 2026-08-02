@@ -190,7 +190,25 @@ class Departure:
         """Write the files. Nothing here can fail on the format — that was decided.
 
         What can still fail is the disk: all three targets are asked whether they are
-        still the files that were read before any of them is written (RK116).
+        still the files that were read before any of them is written (RK116), and each write
+        lands whole (RK118). Three writes are still three moments, so **the order is the
+        rest of the answer** — it decides which halfway states a crash can leave:
+
+        * **Ledger first**, because it is the only one of the three that records that this
+          shipped. Stopping here leaves the id in two files, which `lint` reports as
+          `id.two-files`. Reversed, stopping after the roadmap would remove the line while
+          nothing recorded where it went — the task simply gone, and no gate able to say so,
+          because a roadmap with one fewer line is a roadmap.
+        * **Roadmap second.** Stopping here leaves a rationale section nothing points at,
+          which `lint` reports as an orphan (RK15) and `section drop` removes.
+        * **The rationale file last**, because its write is the only *deletion*. Earlier, it
+          would take the design out while the line still named it: a pointer to nothing, and
+          prose recoverable only from git.
+
+        So the bar every reachable middle state clears is the same one: **loud and
+        lossless** — every file still holds what it held, and the gate names the state.
+        Nothing here claims the three writes are one; what is claimed is that stopping
+        between them costs a command and never a design.
         """
         assert_all_current(self.ledger.document, self.roadmap, self.improvements)
         self.ledger.document.save()

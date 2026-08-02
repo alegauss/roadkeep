@@ -14,13 +14,19 @@ CI tests what it has.
 
 from __future__ import annotations
 
+import os
 from dataclasses import replace
 from pathlib import Path
 
 import pytest
 
 from roadkeep import DESIGNED, IDEA, PARTIAL, SHIPPED, Dep, Schema, Task
-from roadkeep.document import Document, RoundTripError, StaleFile
+from roadkeep.document import (
+    Document,
+    RoundTripError,
+    StaleFile,
+    write_atomically,
+)
 from roadkeep.schema import RETIRED
 
 HERE = Path(__file__).resolve().parents[1]
@@ -630,6 +636,64 @@ def test_entries_are_reachable_by_id_and_by_block():
     assert document.by_id()["RK9"].task.block == "B"
     assert [e.task.id for e in document.block("A")] == ["RK1"]
     assert document.heading("B").text.startswith("Block B")
+
+
+# -- the write a reader can catch halfway (RK118) ---------------------------
+
+
+def test_the_target_is_replaced_and_never_truncated_in_place(tmp_path):
+    # The defect is not that a write can fail — it is that a reader arriving mid-write gets
+    # a *shorter* file that parses, because every line left in it is one the schema accepts.
+    # So the assertion is about the file the reader would open: it is never opened for
+    # writing at all, it is renamed over.
+    target = tmp_path / "ROADMAP.md"
+    target.write_text("## Block A — The model\n" + LINE + "\n", encoding="utf-8")
+    opened: list[str] = []
+    real = Path.write_text
+
+    def watched(self, *args, **kwargs):
+        opened.append(self.name)
+        return real(self, *args, **kwargs)
+
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(Path, "write_text", watched)
+        write_atomically(target, "## Block B — Authoring\n")
+    assert opened == [f".{target.name}.roadkeep-{os.getpid()}.tmp"]
+    assert target.read_text(encoding="utf-8") == "## Block B — Authoring\n"
+
+
+def test_the_scratch_file_is_in_the_targets_own_directory_and_does_not_survive(tmp_path):
+    # Its own directory, or the rename would be a copy across filesystems and stop being
+    # one step. And gone afterwards, in a directory the tool asked to be trusted with.
+    target = tmp_path / "docs" / "ROADMAP.md"
+    target.parent.mkdir()
+    target.write_text("before\n", encoding="utf-8")
+    write_atomically(target, "after\n")
+    assert list(target.parent.iterdir()) == [target]
+    assert target.read_text(encoding="utf-8") == "after\n"
+
+
+def test_a_write_that_fails_leaves_neither_a_scratch_file_nor_a_damaged_target(tmp_path):
+    target = tmp_path / "ROADMAP.md"
+    target.write_text("the file as it was\n", encoding="utf-8")
+    def refusing(*args, **kwargs):
+        raise PermissionError("something holds the target")
+
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr("roadkeep.document.os.replace", refusing)
+        patch.setattr("roadkeep.document._REPLACE_PAUSE", 0.0)
+        with pytest.raises(PermissionError):
+            write_atomically(target, "the file as it would have been\n")
+    assert target.read_text(encoding="utf-8") == "the file as it was\n"
+    assert list(tmp_path.iterdir()) == [target]
+
+
+def test_a_saved_document_lands_whole(tmp_path):
+    target = tmp_path / "ROADMAP.md"
+    document = parse("## Block A — The model", LINE)
+    document.save(target)
+    with target.open("r", encoding="utf-8", newline="") as handle:
+        assert handle.read() == document.render()
 
 
 # -- what a heading owns, asked of the document (RK115) ---------------------

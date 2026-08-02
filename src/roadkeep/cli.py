@@ -48,7 +48,14 @@ from roadkeep.briefing import Brief, brief, non_goals
 from roadkeep.capturing import PARTS, body, capture, check, handoff, keep, offer, replay
 from roadkeep.config import Config, ConfigError
 from roadkeep.counting import Census
-from roadkeep.document import Document, Entry, Reject, RoundTripError, StaleFile
+from roadkeep.document import (
+    Document,
+    Entry,
+    Reject,
+    RoundTripError,
+    StaleFile,
+    write_atomically,
+)
 from roadkeep.exporting import Projection, project, splice
 from roadkeep.fixing import Fix, fix
 from roadkeep.graph import Graph, Leverage
@@ -2507,7 +2514,7 @@ def _splice_into(
         # The point of idempotence, said out loud: nothing changed, so nothing is written
         # and the file's mtime does not move either.
         return f"{config.relative(target)} is already current"
-    target.write_text(after, encoding="utf-8", newline="")
+    write_atomically(target, after)
     return f"{config.relative(target)} refreshed between the roadkeep markers"
     return EXIT_OK
 

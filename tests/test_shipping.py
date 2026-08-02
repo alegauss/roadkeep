@@ -22,7 +22,8 @@ import pytest
 from roadkeep.authoring import UnknownBlock
 from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
-from roadkeep.document import RoundTripError, StaleFile
+from roadkeep.document import Document, RoundTripError, StaleFile
+from roadkeep.linting import lint
 from roadkeep.schema import SchemaError
 from roadkeep.sections import SectionOccupied
 from roadkeep.shipping import (
@@ -628,3 +629,76 @@ def test_a_second_writer_exits_one_and_says_to_re_run(tmp_path, capsys, monkeypa
     assert read(config, IMPROVEMENTS) == RATIONALE
     assert "RK8" in read(config, CHANGELOG)
     assert "**RK1**" not in read(config, CHANGELOG)
+
+
+# -- which halfway state a crash can leave (RK118) ---------------------------
+
+
+def written_in_order(config: Config, monkeypatch) -> list[str]:
+    """The three files in the order the transaction writes them."""
+    order: list[str] = []
+    real = Document.save
+
+    def watched(self, path=None):
+        target = Path(path) if path is not None else self.path
+        order.append(config.relative(target))
+        return real(self, path)
+
+    monkeypatch.setattr(Document, "save", watched)
+    return order
+
+
+def test_the_ledger_is_written_first_and_the_rationale_file_last(tmp_path, monkeypatch):
+    # Three writes are three moments even when each one lands whole (RK118), so the order
+    # decides which halfway states a crash can leave. This is the sequence the two tests
+    # below are about; asserted here so a reordering fails loudly rather than quietly.
+    config = project(tmp_path)
+    shipment = ship(config, "RK1")
+    order = written_in_order(config, monkeypatch)
+    shipment.save()
+    assert order == [CHANGELOG, ROADMAP, IMPROVEMENTS]
+
+
+def test_stopping_after_the_ledger_loses_nothing_and_is_reported(tmp_path):
+    # The property the order buys, run rather than asserted: write only the first of the
+    # three and everything is still on disk — the line, the entry and the design — with the
+    # id in two files, which `lint` names. Loud and lossless is the whole bar for a state a
+    # crash can leave.
+    config = project(tmp_path)
+    shipment = ship(config, "RK1")
+    shipment.ledger.document.save()  # and then the process dies
+
+    roadmap, ledger, improvements = files(config)
+    assert RK1 in roadmap
+    assert SHIPPED_RK1 in ledger
+    assert "The reasoning that the line has no room for." in improvements
+    codes = {f.code for f in lint(Config.discover(tmp_path)).findings}
+    assert "id.two-files" in codes
+
+
+def test_the_order_reversed_would_lose_the_task_silently(tmp_path):
+    # Why the ledger goes first, stated as the thing that does not happen. Writing the
+    # roadmap alone removes the line while no file records that it shipped: the task is
+    # gone, and `lint` has nothing to report because a roadmap with one fewer line is a
+    # roadmap. That is the one state no gate can see, and it is what the order avoids.
+    config = project(tmp_path)
+    shipment = ship(config, "RK1")
+    shipment.roadmap.save()  # the order this transaction deliberately does not use
+
+    roadmap, ledger, _ = files(config)
+    assert RK1 not in roadmap and "**RK1**" not in ledger
+    assert "id.two-files" not in {f.code for f in lint(Config.discover(tmp_path)).findings}
+
+
+def test_the_rationale_file_is_written_last_because_its_write_is_a_deletion(tmp_path):
+    # Stopping before it leaves a section nothing points at, which `lint` reports and
+    # `section drop` removes — with the design still on disk. The reverse would delete the
+    # design while the line still named it: a pointer to nothing, recoverable only from git.
+    config = project(tmp_path)
+    shipment = ship(config, "RK1")
+    shipment.ledger.document.save()
+    shipment.roadmap.save()  # and then the process dies
+
+    improvements = read(config, IMPROVEMENTS)
+    assert "§RK1 A first design" in improvements
+    assert "The reasoning that the line has no room for." in improvements

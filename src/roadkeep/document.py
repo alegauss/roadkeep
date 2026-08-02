@@ -38,8 +38,11 @@ is the reject instead.
 
 from __future__ import annotations
 
+import contextlib
 import functools
+import os
 import re
+import time
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, replace
 from pathlib import Path
@@ -48,6 +51,12 @@ from roadkeep.schema import ARROW, EM_DASH, ID_SHAPE, NO_DEPS, Dep, Schema, Task
 
 #: Everything after the marker slot, up to the symptom. `deps` is optional because the
 #: ledger has none; the trailing pointer is stripped before this runs (see `_split_ref`).
+#: How many times :func:`write_atomically` retries the rename, and how long it pauses
+#: between them. Small: the case this covers is a Windows indexer holding the target open
+#: for a moment, and anything longer than that is a file somebody means to be holding.
+_REPLACE_TRIES = 5
+_REPLACE_PAUSE = 0.05
+
 _TASK_HEAD = r"\*\*(?P<id>[A-Za-z0-9]+)\*\*(?: \(deps: (?P<deps>[^)]*)\))?"
 #: The two slots a file may not have (`[ledger]`, RK43 and RK48), composed rather than
 #: written out four times: a grammar per combination is four things that drift apart.
@@ -454,7 +463,7 @@ class Document:
         # nobody else has touched since (RK116). Re-read and not stat'd — a modification
         # time is a second source of truth about the bytes, and the coarser one.
         self.assert_current(target)
-        target.write_text(self.render(), encoding="utf-8", newline="")
+        write_atomically(target, self.render())
         return target
 
     def _reparse(self, lines: list[str]) -> Document:
@@ -464,6 +473,43 @@ class Document:
         # `source` survives the edit: it is what the file held when it was *read*, and an
         # edited document is exactly the one that needs to know that (RK116).
         return replace(parsed, path=self.path, source=self.source)
+
+
+def write_atomically(target: Path, text: str) -> None:
+    """Replace a file's whole content in one step, so no reader ever sees half of it (RK118).
+
+    `write_text` truncates the target and then fills it, and a reader arriving between those
+    two moments does not get an old file or a new one — it gets a **shorter** file that
+    parses, because every line still in it is a line the schema accepts. The roadmap simply
+    has fewer tasks, and nothing about that is loud enough to notice.
+
+    So the content is written to a temporary file in the target's **own directory** — same
+    filesystem, or the rename would be a copy — and :func:`os.replace` puts it in place,
+    which is one step on both platforms this runs on. What that buys is not an atomic
+    transaction across the three files a `ship` writes: it is that every state a reader can
+    catch is a *whole* file, which is the state the tool already knows how to read.
+
+    The retry is Windows: a rename over a file another process has open can fail while an
+    indexer or a virus scanner holds it for a moment. A failure that outlasts the retries is
+    raised as the :class:`OSError` it is, and every writing command already refuses on one.
+    """
+    scratch = target.with_name(f".{target.name}.roadkeep-{os.getpid()}.tmp")
+    try:
+        scratch.write_text(text, encoding="utf-8", newline="")
+        for remaining in reversed(range(_REPLACE_TRIES)):
+            try:
+                os.replace(scratch, target)
+                return
+            except PermissionError:
+                if not remaining:
+                    raise
+                time.sleep(_REPLACE_PAUSE)
+    finally:
+        # The scratch file is this process's own and named after it, so removing it can
+        # never take somebody else's — and a temporary file left behind by a failed write
+        # is litter in a directory the tool asked to be trusted with.
+        with contextlib.suppress(OSError):
+            scratch.unlink()
 
 
 def assert_all_current(*documents: Document | None) -> None:

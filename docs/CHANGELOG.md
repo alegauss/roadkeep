@@ -29,6 +29,7 @@
 - ✅ **RK115** **Where a heading's region ends is re-derived at every call site, under two rules that already differ** — `Document.subtree_end` and `Document.prose_end` are the two rules named once, and the four loops over `headings` that spelled them are gone.
 - ✅ **RK116** **A second write to a governed file erases the first one's line and both commands exit 0** — `save` re-reads the target and refuses a write onto a file that moved, and a transaction asks about every file it writes before writing any.
 - ✅ **RK117** **Two adds started together mint the same id, and the gate reports it only once both lines exist** — Every mutating command holds one exclusive lock for the whole span from scan to save, and the query surface never takes it.
+- ✅ **RK118** **A reader can load a governed file truncated, and an interrupted ship leaves two of its three files written** — Every file is replaced in one step rather than truncated and refilled, and the order of a transaction's writes is chosen so each middle state is loud and lossless.
 
 ## Block B — Authoring
 

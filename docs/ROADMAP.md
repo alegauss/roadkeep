@@ -22,7 +22,6 @@
 
 ## Block A — The model (a task is data before it is a line)
 
-- 📋 **RK118** (deps: —) **A reader can load a governed file truncated, and an interrupted ship leaves two of its three files written** — `save` truncates the target before it fills it and a departure writes three files in sequence, so an interrupted write leaves the state `Closure` was built to repair. → §RK118
 - 📋 **RK121** (deps: —) **A task delivered in halves has no representation, so the corpus invents one the grammar cannot read** — Shio writes seven ledger ids as SH96 (local half); the parser sees no id, so two deps report unknown against an id the roadmap annotates shipped. → §RK121
 
 ## Block B — Authoring (insert, never hand-edit)

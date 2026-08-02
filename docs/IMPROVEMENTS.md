@@ -75,27 +75,6 @@ already written, not authorship.
 
 ## Block A — The model
 
-### §RK118 The write a reader can catch halfway
-
-`save` calls `write_text`, which truncates the target and then fills it. A reader
-arriving between those two moments does not see an old file or a new one; it sees a
-shorter file that parses, because every line left in it is a line the schema accepts.
-The roadmap simply has fewer tasks, and nothing about that is loud.
-
-The transaction above the file has the same shape. `Departure.save` writes the ledger,
-then the roadmap, then the rationale file, and each of the three is a separate moment.
-`Closure` (RK62) exists precisely because the middle state is reachable — a roadmap line
-whose id the ledger already records — which is the evidence that this is observed rather
-than theorised.
-
-A temporary file in the target's own directory and `os.replace` makes each file's write
-one step on both platforms this runs on, so no reader ever sees a partial one. That does
-not make the three-file transaction atomic, and it must not pretend to: what it buys is
-that every intermediate state is a *whole* file, which is the state `Closure` already
-knows how to read. Ordering the three so that the recoverable middle is the only
-reachable one is the rest of the answer, and it is a choice about which file goes first
-rather than new machinery.
-
 ### §RK121 Partial completion is a state the model does not have
 
 Every id is in exactly one of two states: open in the roadmap, or recorded in the

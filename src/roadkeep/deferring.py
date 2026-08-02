@@ -144,7 +144,12 @@ class Pause:
     dependents: tuple[str, ...] = ()
 
     def save(self) -> None:
-        """Write both files. Nothing here can fail on the format — that was decided."""
+        """Write both files. Nothing here can fail on the format — that was decided.
+
+        The store first, for the reason the ledger goes first in a departure (RK118): the
+        arrival is written before the removal, so a crash between them leaves the line in
+        both files — visible, and a `resume` away — rather than in neither.
+        """
         assert_all_current(self.store.document, self.roadmap)
         self.store.document.save()
         self.roadmap.save()
@@ -166,6 +171,9 @@ class Resumption:
     was: str | None = None
 
     def save(self) -> None:
+        # The same rule read backwards: the roadmap is the arrival now, so it goes first
+        # and the store's removal second (RK118). A line in both files is a state a reader
+        # can see and a second `resume` can finish; a line in neither is one nobody can.
         assert_all_current(self.roadmap.document, self.store)
         self.roadmap.document.save()
         self.store.save()
