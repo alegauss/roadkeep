@@ -1,0 +1,16 @@
+{
+    // Identify this project in the window title / taskbar
+    "window.title": "🆁 roadkeep ${separator} ${dirty}${activeEditorShort} ${separator} ${appName}",
+
+    // Brown status bar so this project is easy to spot
+    "workbench.colorCustomizations": {
+        "statusBar.background": "#8B4513",
+        "statusBar.foreground": "#FFFFFF",
+        "statusBar.border": "#5C2E0D",
+        "statusBar.noFolderBackground": "#8B4513",
+        "statusBar.debuggingBackground": "#8B4513",
+        "statusBarItem.hoverBackground": "#5C2E0D",
+        "statusBarItem.remoteBackground": "#5C2E0D",
+        "statusBarItem.remoteForeground": "#FFFFFF"
+    }
+}
