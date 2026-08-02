@@ -479,6 +479,30 @@ def suspect(char: str) -> bool:
     return category in ("Cc", "Cf", "Zl", "Zp") or (category == "Zs" and char != " ")
 
 
+#: A control character with a rendering, and one the model keeps: the indentation of a
+#: nested line is read off the file and written back (RK49), so a tab is text here.
+_RENDERED_CONTROLS = "\t"
+
+
+def removable(char: str) -> bool:
+    """Which of the suspect codepoints `--fix` may simply delete (RK126).
+
+    :func:`suspect` is what the gate reports; this is the subset a normalizer may act on,
+    and the split is RK16's own: a control or format character is **not text under any
+    reading**, so removing it is not a decision about anybody's prose — while a `Zs` that
+    is not U+0020 *renders* as a space, and turning one into a space is a change to text
+    that the author is the one to make.
+
+    Here rather than in :mod:`roadkeep.fixing` because it is the same law as the report
+    one function up, and a second list of codepoints is the one that would drift.
+    """
+    if char in _RENDERED_CONTROLS:
+        return False
+    if char in _VARIATION_SELECTORS:
+        return True
+    return unicodedata.category(char) in ("Cc", "Cf", "Zl", "Zp")
+
+
 def _named(file: str, lineno: int, column: int, char: str, task_id: str) -> Finding:
     point = f"U+{ord(char):04X}"
     name = unicodedata.name(char, "unnamed control character").lower()

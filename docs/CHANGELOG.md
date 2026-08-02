@@ -58,6 +58,7 @@
 - ✅ **RK120** **Two branches each spend the same id, and the merge git produces is a conflict in a file only this tool may write** — `merge` is git's driver for the governed files: every id decided against the ancestor, an id both branches created named for `renumber`, and anything unprovable handed back as markers.
 - ✅ **RK123** **An open task's rationale cannot be corrected by any verb, and the hook denies the hand-edit** — `section amend` rewrites a live section's own prose or its heading text, leaving the subtree and the anchor alone and charging the budget what the gate charges.
 - ✅ **RK124** **A ledger entry can be written and deleted but never corrected** — `record amend` rewrites an entry's why, or a partial's qualifier, where the line already is — the symptom is the claim and the block is a move, so neither is a field.
+- ✅ **RK126** **Corruption inside a ledger entry is reported by lint and repairable by no verb** — `lint --fix` deletes every codepoint that is not text wherever it sits, including lines no parse reaches; a Zs that renders as a space and a rejected bullet stay the author's.
 
 ## Block C — Query
 

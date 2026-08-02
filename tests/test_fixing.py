@@ -154,7 +154,9 @@ def test_an_invisible_codepoint_on_the_marker_is_dropped(tmp_path):
     # repaired here, because a marker is a field the format derives rather than prose.
     assert [f.code for f in lint(config).findings] == ["char.invisible"]
     applied = fix(config)
-    assert reasons(applied) == ["invisible codepoint dropped from the marker"]
+    # One rule and not two (RK126): the character pass removes what is not text wherever it
+    # is, so the marker slot is no longer a case of its own.
+    assert reasons(applied) == ["control character(s) removed: U+FE0F"]
     assert "️" not in roadmap_of(config)
     assert lint(config).clean
 
@@ -219,7 +221,7 @@ def test_nothing_is_written_when_the_pass_cannot_prove_its_own_output(tmp_path, 
     before = (tmp_path / "ROADMAP.md").read_bytes()
     applied = fixing.fix(config)
     assert applied.repairs == () and applied.files == ()
-    assert applied.refused and "which ids" in applied.refused[0]
+    assert applied.refused and "lost RK1" in applied.refused[0]
     assert (tmp_path / "ROADMAP.md").read_bytes() == before
 
 
@@ -260,3 +262,82 @@ def test_the_file_keeps_its_line_endings(tmp_path):
     fix(config)
     text = roadmap_of(config)
     assert "\r\n" in text and "\n" not in text.replace("\r\n", "")
+
+
+# -- the damage inside a line, which no verb reached (RK126) ------------------
+
+#: Shio's shape: an entry whose prose wraps onto a line the parser reads as nothing, with
+#: two U+0008 in it. Every write verb takes a whole entry, so this had no repair at all.
+CONTINUED = """# Shipped
+
+## Block A — The model
+
+- ✅ **RK1** **An earlier symptom** — Because it was done.
+  A continuation line, carrying \b\b two control characters.
+"""
+
+
+def test_a_control_character_outside_any_entry_is_removed(tmp_path):
+    config = project(tmp_path)
+    with (tmp_path / "CHANGELOG.md").open("w", encoding="utf-8", newline="") as handle:
+        handle.write(CONTINUED)
+    config = Config.discover(tmp_path)
+    assert [f.code for f in lint(config).findings] == ["char.invisible", "char.invisible"]
+
+    applied = fix(config)
+
+    assert reasons(applied) == ["control character(s) removed: U+0008"]
+    body = (tmp_path / "CHANGELOG.md").read_text(encoding="utf-8")
+    assert "\b" not in body
+    assert "A continuation line, carrying  two control characters." in body
+    # The entry above it is untouched: rule 2, on a pass that reached past the entries.
+    assert "- ✅ **RK1** **An earlier symptom** — Because it was done." in body
+    assert lint(Config.discover(tmp_path)).findings == ()
+
+
+def test_the_repair_names_the_line_and_not_a_task_that_is_not_there(tmp_path):
+    config = project(tmp_path)
+    with (tmp_path / "CHANGELOG.md").open("w", encoding="utf-8", newline="") as handle:
+        handle.write(CONTINUED)
+    applied = fix(Config.discover(tmp_path))
+    (repair,) = applied.repairs
+    assert repair.id == "" and repair.lineno == 6
+    assert str(repair).startswith("CHANGELOG.md:6  fixed  control character(s)")
+
+
+def test_a_tab_is_text_and_is_left_where_it_is(tmp_path):
+    # A control character with a rendering, and the indentation of a nested line is part of
+    # the model (RK49): a pass that stripped it would re-parent somebody's task.
+    config = project(tmp_path, roadmap=CLEAN.replace("- 💭 **RK3**", "\t- 💭 **RK3**"))
+    applied = fix(config)
+    assert "control character" not in " ".join(reasons(applied))
+    assert "\t- 💭 **RK3**" in roadmap_of(config)
+
+
+def test_a_space_that_is_not_a_space_is_reported_and_never_replaced(tmp_path):
+    # The other half of the split: a `Zs` renders as a space, so turning one into a space
+    # is a change to somebody's text and stays the author's.
+    config = project(tmp_path, roadmap=CLEAN.replace("Because of a reason.", "Because of\u00a0a reason."))
+    applied = fix(config)
+    assert applied.repairs == ()
+    assert "\u00a0" in roadmap_of(config)
+    assert [f.code for f in lint(config).findings] == ["char.space"]
+
+
+def test_a_bullet_rejected_because_of_a_control_character_becomes_an_entry(tmp_path):
+    # The one case rule 3 had to be asked in the other direction: the pass removed a
+    # reject and added an id, which is the outcome and not a failure.
+    marred = CLEAN.replace("- 📋 **RK2**", "- 📋​ **RK2**")
+    config = project(tmp_path, roadmap=marred)
+    # Named as the character and nothing else, which is RK34's rule: the reject the line
+    # also is would only be reported as a consequence of the byte above.
+    assert [f.code for f in lint(config).findings][0] == "char.invisible"
+    assert [e.task.id for e in config.document("roadmap").entries] == ["RK3"]
+
+    applied = fix(config)
+
+    assert applied.refused == () and applied.files == ("ROADMAP.md",)
+    assert "- 📋 **RK2** (deps: RK1 ✅) **A second symptom**" in roadmap_of(config)
+    after = Config.discover(tmp_path)
+    assert [e.task.id for e in after.document("roadmap").entries] == ["RK2", "RK3"]
+    assert after.document("roadmap").rejects == ()

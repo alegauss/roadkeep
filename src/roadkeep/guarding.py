@@ -104,19 +104,30 @@ _INSTEAD: Mapping[str, tuple[tuple[str, str], ...]] = {
         # sentence because this is the file whose first bullet decides whether `add` may be
         # called at all: a denial that teaches the write and not the check teaches half.
         ("non-goal list", "what may not be proposed at all — before `add`, not after"),
+        # The repair for damage smaller than a line (RK126). Listed on both line files,
+        # because a control character is the one defect no verb above reaches.
+        ("lint --fix", "a derived field or a character that is not text, repaired"),
     ),
     "changelog": (
         ("ship <id>", "the entry a planned task earns, in one transaction"),
         ('record add --block <x> --symptom "…" --why "…"', "work that was never planned"),
+        # The ledger's update (RK124), without which the honest answer to "a word is wrong
+        # here" was drop-and-re-add, which moves the entry to the end of its block.
+        ('record amend <id> --why "…"', "correct an entry's sentence where it already is"),
         ("record drop <id>", "one of two entries for one id, when the ledger says it twice"),
         ('retire <id> --reason "…"', "a line that left without shipping"),
+        ("lint --fix", "a character that is not text, removed wherever it is"),
     ),
     "improvements": (
         ('section add <id> --title "…"', "the prose on stdin, within the word budget"),
+        # The correction an open task's design needs (RK123): `drop` is refused while a live
+        # pointer names the anchor, so without this the table named nothing that applied.
+        ("section amend <id> --body -", "correct a live section's prose, or its --title"),
         ("section drop <id>", "delete one section whole, subsections included"),
     ),
     "strategy": (
         ('section add <id> --title "…" --role strategy', "the prose on stdin, filled"),
+        ("section amend <id> --body - --role strategy", "correct a live section's prose"),
         ("section drop <id> --role strategy", "delete one section whole"),
     ),
 }

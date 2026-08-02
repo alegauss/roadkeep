@@ -118,28 +118,6 @@ as one. RK122 is the same question one file up.
 
 ## Block B — Authoring
 
-### §RK126 The ledger's unit is the entry, and the damage is smaller than that
-
-`lint` finds four line-level defects in Shio's ledger and describes them exactly: two
-`U+0008` control characters inside an entry's continuation line, an entry naming a file
-the repository no longer contains, a bullet with no `—` separator, and a duplicate id.
-Shio's own rationale calls them "corruption rather than prose, and `lint --fix` does not
-touch it" — which is true, and the reason is worth stating: **nothing can**.
-
-Every write verb takes a whole entry. `record add` appends one, `record drop` removes
-one, `ship` writes one from a roadmap line, `retire` writes a departure. The damage is a
-character inside an entry somebody wrote correctly two years ago, and the only
-expressible repair is to delete that entry and write it again — losing its position, and
-requiring whoever fixes a control character to retype 900 words of history.
-
-The guard makes it airtight: it denies `Edit` on the file, and the four commands its
-refusal names are the four above. A guard that says "call these instead" has to be right
-that one of them applies.
-
-The smallest honest shape is `lint --fix` growing the cases that need no judgement — an
-invisible control character has one correct reading, and a missing separator has one.
-The link and the duplicate need a decision and should stay reported.
-
 ### §RK127 Two entries for one id are not always one entry twice
 
 `record drop` removes "the later of two ledger entries for one id", and the guard's own

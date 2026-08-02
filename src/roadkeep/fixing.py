@@ -28,6 +28,27 @@ module does not relax the invariant, it discharges it per line:
 
 A line the grammar rejected is never touched: there is no parse to re-render, so a
 "fix" would be a guess, and a guess is what rule 1 exists to forbid.
+
+**One repair is not a re-render, and it is the one nothing else could reach** (RK126). Every
+write verb takes a whole entry — `record add` appends one, `record drop` removes one, `ship`
+writes one from a roadmap line — so a control character *inside* a line somebody wrote
+correctly two years ago had no expressible repair at all: the guard denies the edit, and the
+four commands its refusal names all operate on the entry. Measured on Shio: two `U+0008` in
+an entry's continuation line, which is not an entry at all and which no parse reaches.
+
+So the character pass runs **before** the re-render, over every raw line of a line-bearing
+file, and deletes only what :func:`~roadkeep.linting.removable` allows — codepoints that are
+not text under any reading. It is exempt from rule 1 and from nothing else: rule 2 still
+carries every other byte through, and rule 3 still proves the whole file before the disk sees
+it. What that pass may *not* do is lose work, so the verification asks the weaker question it
+was always about — no id gone, no new line the grammar cannot read — because a control
+character removed from a bullet the grammar was rejecting *because of it* turns a reject into
+an entry, which is the outcome and not a failure.
+
+The other two defects in that file stay where the split above puts them. The dead link in an
+entry's prose is `record amend`'s (RK124), and a bullet with no `—` separator is a reject:
+where the separator goes is a decision about where the symptom ends, and rule 1 is exactly
+the rule that forbids guessing it.
 """
 
 from __future__ import annotations
@@ -38,14 +59,9 @@ from pathlib import Path
 from roadkeep.backlog import Backlog, id_order
 from roadkeep.config import Config
 from roadkeep.document import Document, StaleFile, ending, write_atomically
-from roadkeep.linting import LINE_ROLES
+from roadkeep.linting import LINE_ROLES, removable
 from roadkeep.markers import derive
 from roadkeep.schema import Dep, DepKind, Schema, Task
-
-#: The codepoints that make a marker compare unequal to the one it renders as. Stripped
-#: here and refused in `roadkeep.toml` (RK3), which is the same rule at both ends.
-INVISIBLE = "\ufe0f\u200d\u200b"  # variation selector, ZWJ, zero-width space
-
 
 @dataclass(frozen=True, slots=True)
 class Repair:
@@ -59,7 +75,10 @@ class Repair:
     reasons: tuple[str, ...]
 
     def __str__(self) -> str:
-        return f"{self.file}:{self.lineno}  fixed  {self.id}: {', '.join(self.reasons)}"
+        # The id is empty on a line that is not an entry — the continuation line RK126 is
+        # about — and a report reading "fixed  :" names a task that does not exist.
+        named = f"{self.id}: " if self.id else ""
+        return f"{self.file}:{self.lineno}  fixed  {named}{', '.join(self.reasons)}"
 
 
 @dataclass(frozen=True, slots=True)
@@ -120,9 +139,19 @@ def fix(config: Config) -> Fix:
 def _fix_file(config: Config, role: str, backlog: Backlog) -> Fix:
     document = config.document(role)
     file = config.relative(config.path(role))
-    lines = list(document.lines)
+    before = document
     repairs: list[Repair] = []
     skipped: list[Skipped] = []
+
+    # The character pass first, and the document re-read from its result (RK126): a control
+    # character can be the whole reason a bullet was rejected, so the re-render below has to
+    # see the file as this pass leaves it rather than as it was read.
+    lines, stripped = _decontrol(document, file)
+    if stripped:
+        repairs.extend(stripped)
+        document = Document.parse(
+            "".join(lines), schema=document.schema, path=document.path
+        )
 
     for entry in document.entries:
         fixed, reasons = _normalize(document.schema, entry.task, backlog, role)
@@ -148,7 +177,9 @@ def _fix_file(config: Config, role: str, backlog: Backlog) -> Fix:
         return Fix(skipped=tuple(skipped))
 
     text = "".join(lines)
-    problem = _verify(text, document, {r.lineno for r in repairs})
+    # Against the file as it was **read**, not as the character pass left it: the question
+    # rule 3 asks is whether this whole run lost anything.
+    problem = _verify(text, before, {r.lineno for r in repairs})
     if problem is not None:
         # Rule 3: the pass proves its own output before the disk sees any of it.
         return Fix(skipped=tuple(skipped), refused=(f"{file}: {problem}",))
@@ -164,6 +195,39 @@ def _fix_file(config: Config, role: str, backlog: Backlog) -> Fix:
     return Fix(repairs=tuple(repairs), skipped=tuple(skipped), files=(file,))
 
 
+def _decontrol(document: Document, file: str) -> tuple[list[str], list[Repair]]:
+    """Delete every codepoint that is not text, on every line, keeping the endings (RK126).
+
+    The line **body** only, because `\\r` and `\\n` are control characters too and a pass
+    that took them would join the file into one line. The ending is put back exactly as it
+    was read, which is :func:`~roadkeep.document.ending`'s whole reason for being public.
+    """
+    lines = list(document.lines)
+    ids = {entry.lineno: entry.task.id for entry in document.entries}
+    repairs: list[Repair] = []
+    for index, raw in enumerate(lines):
+        body = raw.rstrip("\r\n")
+        kept = "".join(char for char in body if not removable(char))
+        if kept == body:
+            continue
+        lineno = index + 1
+        lines[index] = kept + ending(raw)
+        removed = ", ".join(
+            dict.fromkeys(f"U+{ord(c):04X}" for c in body if removable(c))
+        )
+        repairs.append(
+            Repair(
+                file,
+                lineno,
+                ids.get(lineno, ""),
+                body,
+                kept,
+                (f"control character(s) removed: {removed}",),
+            )
+        )
+    return lines, repairs
+
+
 def _normalize(
     schema: Schema, task: Task, backlog: Backlog, role: str
 ) -> tuple[Task, list[str]]:
@@ -171,11 +235,9 @@ def _normalize(
     reasons: list[str] = []
     fixed = task
 
-    marker = fixed.status.strip(INVISIBLE)
-    if marker != fixed.status:
-        fixed = replace(fixed, status=marker)
-        reasons.append("invisible codepoint dropped from the marker")
-
+    # The variation selector on a marker used to be stripped here. It is not, any more: the
+    # character pass (RK126) removes every codepoint that is not text wherever it occurs, so
+    # a second rule about the marker slot alone would be the narrower half of one law.
     for field in ("symptom", "why"):
         value = getattr(fixed, field)
         if value != value.strip():
@@ -235,15 +297,24 @@ def _introduced(schema: Schema, before: Task, after: Task) -> str:
 def _verify(text: str, before: Document, changed: set[int]) -> str | None:
     """Rule 3: re-parse, and refuse unless every line this pass wrote came back canonical.
 
-    Also refuses a pass that changed how many lines the file has or which ids they carry:
-    a normalizer that dropped a task is the failure no per-line check would notice.
+    Also refuses a pass that changed how many lines the file has or **lost** an id or made a
+    line the grammar no longer reads: a normalizer that dropped a task is the failure no
+    per-line check would notice.
+
+    Lost, and not merely changed. The character pass (RK126) can turn a bullet the grammar
+    was rejecting *because of* a control character into an entry, which adds an id and
+    removes a reject — the outcome, not a failure. So the question is asked in the direction
+    that only a loss can fail.
     """
     after = Document.parse(text, schema=before.schema, path=before.path)
     if len(after.lines) != len(before.lines):
         return f"the pass changed the line count ({len(before.lines)} → {len(after.lines)})"
-    if [e.task.id for e in after.entries] != [e.task.id for e in before.entries]:
-        return "the pass changed which ids the file carries"
-    if len(after.rejects) != len(before.rejects):
+    lost = [
+        e.task.id for e in before.entries if e.task.id not in {a.task.id for a in after.entries}
+    ]
+    if lost:
+        return f"the pass lost {', '.join(dict.fromkeys(lost))} out of the file"
+    if len(after.rejects) > len(before.rejects):
         return "the pass made a line the grammar no longer reads"
     offenders = [e.lineno for e in after.non_canonical if e.lineno in changed]
     if offenders:
