@@ -26,6 +26,8 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK108** (deps: —) **The first line added to a block lands above the paragraph that introduces it** — commitclerk files five of its nine blocks under an italic preamble, and Block C emptied when T17 shipped, so the next `add` put the task between the heading and the prose that frames it. → §RK108
+
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
