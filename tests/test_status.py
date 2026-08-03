@@ -242,6 +242,10 @@ def test_the_command_prints_the_transition(tmp_path, capsys):
     # is finished — which is all a hook gets, and all it needs.
     assert capsys.readouterr().out.splitlines() == [
         f"RK1 📋 → 🛠  {ROADMAP}:5",
+        # Writing the in-progress marker is one of the three ways to start work, so it takes
+        # a claim and says so (RK158): a claim moved without being named is the silence
+        # RK119 argued against for the answer itself.
+        "  claimed  held for 60m unless a marker moves it sooner",
         "  event    RK1  Block A  open",
     ]
 

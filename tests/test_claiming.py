@@ -28,7 +28,8 @@ import pytest
 
 from roadkeep import claiming
 from roadkeep.briefing import NothingToBrief, brief
-from roadkeep.claiming import AlreadyHeld, Held, window
+from roadkeep.authoring import add, set_status
+from roadkeep.claiming import AlreadyHeld, Followed, Held, window
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import CLAIM_HELD, CLAIM_HELD_MAX, Config, ConfigError
 from roadkeep.deferring import defer, resume
@@ -370,10 +371,74 @@ def test_deferring_a_claimed_line_drops_the_claim(tmp_path):
     hold(config, "RK2")
     defer(config, "RK2", reason="waiting on a decision").save()
     assert "RK2" not in claiming._read(claiming.path(tmp_path))  # noqa: SLF001
-    resume(config, "RK2", marker=IN_PROGRESS).save()
-    # Back at 🛠 and unheld, which is what tier 1 is for.
+    resume(config, "RK2", marker=DESIGNED).save()
+    # Back, and unheld: the claim the pause dropped is not one the return brings with it.
     revived = pick(Config.discover(tmp_path))
-    assert (revived.entry.task.id, revived.tier) == ("RK2", Tier.STARTED)
+    assert revived.entry.task.id == "RK2" and revived.held == ()
+
+
+def test_resuming_a_line_in_progress_is_an_assertion_like_any_other(tmp_path):
+    # The wrinkle RK158's design named: `--marker 🛠` says somebody is on it, so it claims —
+    # a *fresh* claim, the pause having dropped the one that was there (RK156).
+    project(tmp_path, BLOCKS + line("RK2") + line("RK9"))
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
+        'deferred = "DEFERRED.md"\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "DEFERRED.md").write_text(
+        "# Set aside\n\n## Block A — The model\n", encoding="utf-8"
+    )
+    config = Config.discover(tmp_path)
+    defer(config, "RK2", reason="waiting on a decision").save()
+    resume(config, "RK2", marker=IN_PROGRESS).save()
+    assert [h.id for h in pick(Config.discover(tmp_path)).held] == ["RK2"]
+
+
+# -- the claim follows the marker (RK158) --------------------------------------
+
+
+def test_marking_a_line_in_progress_claims_it(tmp_path):
+    # The third way to start work, and the one that asserted nothing: the next `pick` read the
+    # line as work somebody abandoned and offered it with tier 1's own reason.
+    config = project(tmp_path, BLOCKS + line("RK2") + line("RK9"))
+    change = set_status(config, "RK2", IN_PROGRESS)
+    assert change.claim is Followed.CLAIMED
+    assert pick(config).entry.task.id == "RK9"
+
+
+def test_marking_it_anything_else_releases_the_claim(tmp_path):
+    # The half that was implicit — inferred by the read — made explicit at the write.
+    config = project(tmp_path, BLOCKS + line("RK2") + line("RK9"))
+    take(config)
+    change = set_status(config, "RK2", DESIGNED)
+    assert change.claim is Followed.RELEASED
+    assert "RK2" not in claiming._read(claiming.path(tmp_path))  # noqa: SLF001
+    assert pick(config).entry.task.id == "RK2"
+
+
+def test_a_marker_that_released_nothing_says_nothing(tmp_path):
+    config = project(tmp_path, BLOCKS + line("RK2"))
+    assert set_status(config, "RK2", IDEA).claim is Followed.NEITHER
+
+
+def test_re_asserting_the_marker_a_line_carries_is_a_new_claim(tmp_path):
+    # The no-op path: nothing is written to the file, because an unchanged file with a moved
+    # mtime reads as an edit — and the claim is dated again, a re-assertion being an assertion.
+    config = project(tmp_path, BLOCKS + line("RK2", status=IN_PROGRESS))
+    before = (tmp_path / "ROADMAP.md").read_bytes()
+    change = set_status(config, "RK2", IN_PROGRESS)
+    assert not change.changed and change.claim is Followed.CLAIMED
+    assert (tmp_path / "ROADMAP.md").read_bytes() == before
+    assert [h.id for h in pick(config).held] == ["RK2"]
+
+
+def test_adding_a_line_in_progress_is_not_one_of_the_three_doors(tmp_path):
+    # A stated boundary rather than a silent gap: the three ways to *start* work are the two
+    # `--claim` flags and `status`, and a line being created is not one the backlog handed out.
+    config = project(tmp_path, BLOCKS)
+    add(config, block="A", symptom="A symptom", why="A reason.", status=IN_PROGRESS)
+    assert not claiming.path(tmp_path).exists()
 
 
 # -- not a second store (L2) -------------------------------------------------

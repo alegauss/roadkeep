@@ -90,6 +90,7 @@
 - ✅ **RK152** **A started task that is blocked is reported to every caller with nothing saying somebody holds it** — A stalled line now reports the live claim on it, so `started and stuck` reads apart from `somebody is on this` — while `held` stays the candidates the ranking stepped around.
 - ✅ **RK154** **The one call a session starts a task with never names the lines a claim kept out of its answer** — A brief carries the pick's own answer instead of its reason sentence, so the door a session starts a task with names the held ids — and so does the absence where a claim is what emptied it.
 - ✅ **RK156** **Renaming an id drops the claim on that line, so work somebody is holding is offered again** — A renumber carries the claim to the new address with its age intact, and a defer drops it — the two doors that change a claim without the marker it is read against moving.
+- ✅ **RK158** **Marking a line in progress by hand asserts nothing, so the next caller is sent at it** — A marker write now moves the claim with it: the in-progress one dates a claim and any other drops it, which is the rule the read already assumed of every door but this one.
 
 ## Block D — The gate
 

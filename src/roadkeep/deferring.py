@@ -162,8 +162,9 @@ class Pause:
         self.roadmap.save()
         if self.root is not None:
             # Last, and never a condition of the write: the worker who set this aside is not
-            # holding it, and a claim left behind would greet the `resume` (RK156).
-            claiming.release(self.root, self.task_id)
+            # holding it, and a claim left behind would greet the `resume` (RK156). The same
+            # rule every marker write obeys (RK158), the marker here being ⏸.
+            claiming.follow(self.root, self.task_id, self.marker, self.roadmap.entries)
 
 
 @dataclass(frozen=True, slots=True)
@@ -180,6 +181,11 @@ class Resumption:
     #: The reason the pause recorded, removed from the `why` and reported once — the last
     #: place it is visible, because the line that comes back is a design and not a history.
     was: str | None = None
+    #: The checkout, so the claim can follow the marker this returns the line at (RK158): a
+    #: `resume --marker 🛠` is an assertion that somebody is on it, like every other 🛠 write.
+    #: What it did is not a field here — the command prints the marker, which is the fact, and
+    #: a second copy of it would be a second thing to keep true.
+    root: Path | None = None
 
     def save(self) -> None:
         # The same rule read backwards: the roadmap is the arrival now, so it goes first
@@ -188,6 +194,10 @@ class Resumption:
         assert_all_current(self.roadmap.document, self.store)
         self.roadmap.document.save()
         self.store.save()
+        if self.root is not None:
+            claiming.follow(
+                self.root, self.task_id, self.marker, self.roadmap.document.entries
+            )
 
 
 def defer(config: Config, task_id: str, *, reason: str) -> Pause:
@@ -281,6 +291,7 @@ def resume(config: Config, task_id: str, *, marker: str | None = None) -> Resump
         refreshed=tuple(name for name in derived.changed if name != task_id),
         marker=status,
         was=_reason(held.task.why),
+        root=config.root,
     )
 
 

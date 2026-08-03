@@ -28,11 +28,12 @@ write lock lives (RK117), for the same three reasons:
   rather than only counting them: recognising one's own claim is the caller's to do, and it
   cannot be done against a number.
 
-A claim is only ever read against a 🛠 line, so **releasing one is a marker change that
-already has a door**: `status <id> 📋`, `ship`, `retire`. Nothing here is told, and nothing
-here can go stale by not being told — with the two exceptions the marker cannot express
-(RK156): `renumber` moves the *address* and not the marker (:func:`rename`), and `defer` takes
-the line out of the file the marker is read in (:func:`release`).
+A claim is only ever read against a 🛠 line, so **the marker is what a claim follows** — which
+:func:`follow` makes true in both directions (RK158) rather than leaving half of it to be
+inferred by the read: a write that puts a line in progress dates a claim, and a write that
+takes it out of progress drops one. Two doors change a claim without moving that marker at all
+(RK156): `renumber` moves the *address* (:func:`rename`), and `defer` takes the line out of the
+file the marker is read in (:func:`release`).
 """
 
 from __future__ import annotations
@@ -41,6 +42,7 @@ import os
 import time
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
+from enum import StrEnum
 from pathlib import Path
 
 from roadkeep.config import Config
@@ -134,6 +136,36 @@ def record(root: Path | str, task_id: str, entries: Iterable[Entry]) -> None:
     dated = {name: when for name, when in _read(target).items() if name in still}
     dated[task_id] = time.time()
     _write(target, dated)
+
+
+class Followed(StrEnum):
+    """What a marker write did to the claim on its line (RK158). Printed, so it is not silent."""
+
+    CLAIMED = "claimed"
+    RELEASED = "released"
+    NEITHER = ""
+
+
+def follow(
+    root: Path | str, task_id: str, marker: str, entries: Iterable[Entry]
+) -> Followed:
+    """Make the claim follow the marker, on any door that writes one (RK158).
+
+    A claim is *read* against 🛠, so the marker is already the thing a claim is about — and
+    until this existed, the door that writes exactly that marker was the one door that did not
+    date it: `status <id> 🛠` is a legitimate way to say "I am on this", and the next `pick`
+    read the line as work somebody abandoned and offered it with tier 1's own reason.
+
+    Both directions, because half of this rule was already implicit: writing 🛠 dates a claim
+    (again, if one had expired — a re-assertion is a new claim), and writing anything else
+    drops it, which is the release the read used to infer. `add` is deliberately not one of
+    these doors: the three ways to *start* work are the two `--claim` flags and this one, and a
+    line being created is not one the backlog was handing out.
+    """
+    if marker == IN_PROGRESS:
+        record(root, task_id, entries)
+        return Followed.CLAIMED
+    return Followed.RELEASED if release(root, task_id) else Followed.NEITHER
 
 
 def rename(root: Path | str, old: str, new: str) -> bool:

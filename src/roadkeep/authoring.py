@@ -48,8 +48,9 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass, replace
 
-from roadkeep import sections
+from roadkeep import claiming, sections
 from roadkeep.backlog import Backlog, NotOpen
+from roadkeep.claiming import Followed
 from roadkeep.config import ROLES, Config
 from roadkeep.document import (
     Document,
@@ -361,6 +362,10 @@ class StatusChange:
     before: str
     #: Other lines whose dep annotation this write made true again (RK8).
     refreshed: tuple[str, ...] = ()
+    #: What this write did to the claim on the line (RK158). Reported, because a marker change
+    #: is not obviously an assertion of ownership to whoever typed it — and a claim taken or
+    #: dropped without being said is the silence RK119 argued against for the answer itself.
+    claim: Followed = Followed.NEITHER
 
     @property
     def after(self) -> str:
@@ -393,6 +398,12 @@ def set_status(config: Config, task_id: str, marker: str) -> StatusChange:
 
     A marker this task's dependents cached is stale the moment it changes, so the write
     re-derives every annotation in the file (RK8) and names the lines it corrected.
+
+    The claim follows the marker (RK158): 🛠 dates one and any other marker drops one, which is
+    the rule the *read* already assumed and this door was the one exception to. It happens on
+    the no-op path too — re-asserting the marker a line already carries is a re-assertion of
+    the claim, the same way re-taking an expired one is a new claim — while the file itself is
+    still left untouched, an unchanged file with a moved mtime reading as an edit.
     """
     backlog = Backlog.load(config)
     roadmap = backlog.roadmap
@@ -412,7 +423,12 @@ def set_status(config: Config, task_id: str, marker: str) -> StatusChange:
     if updated.status == entry.task.status:
         # Nothing to write: rewriting the same bytes would make a no-op look like an
         # edit to every tool that watches the file.
-        return StatusChange(document=roadmap, entry=entry, before=entry.task.status)
+        return StatusChange(
+            document=roadmap,
+            entry=entry,
+            before=entry.task.status,
+            claim=claiming.follow(config.root, task_id, marker, roadmap.entries),
+        )
     derived = refresh(replace(backlog, roadmap=roadmap.replace_task(entry, updated)))
     derived.document.save()
     return StatusChange(
@@ -420,6 +436,9 @@ def set_status(config: Config, task_id: str, marker: str) -> StatusChange:
         entry=next(e for e in derived.document.entries if e.lineno == entry.lineno),
         before=entry.task.status,
         refreshed=tuple(name for name in derived.changed if name != task_id),
+        # After the save, and never a condition of it: the registry is transient state whose
+        # worst failure is a claim lost, which is the behaviour before claims existed.
+        claim=claiming.follow(config.root, task_id, marker, derived.document.entries),
     )
 
 

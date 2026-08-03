@@ -43,7 +43,7 @@ from pathlib import Path
 
 from roadkeep import claiming
 from roadkeep.adopting import Estimate, adopt, init
-from roadkeep.authoring import add, amend, set_status
+from roadkeep.authoring import StatusChange, add, amend, set_status
 from roadkeep.backlog import Backlog
 from roadkeep.blocking import open_block
 from roadkeep.briefing import Brief, brief, non_goals
@@ -69,7 +69,7 @@ from roadkeep.installing import install, plan
 from roadkeep.linting import Finding, Report, lint
 from roadkeep.locking import LockBusy, exclusive
 from roadkeep.merging import markers, merge, register, role_of
-from roadkeep.claiming import Held
+from roadkeep.claiming import Followed, Held
 from roadkeep.picking import Choice, Claim, pick, take
 from roadkeep.provenance import engine
 from roadkeep.renumbering import renumber
@@ -1568,6 +1568,7 @@ def _status(config: Config, args: argparse.Namespace) -> int:
                     "line": change.lineno,
                     "rendered": change.rendered,
                     "refreshed": list(change.refreshed),
+                    "claim": str(change.claim) or None,
                     "event": event,
                 },
                 indent=2,
@@ -1576,13 +1577,28 @@ def _status(config: Config, args: argparse.Namespace) -> int:
         return EXIT_OK
     if not change.changed:
         print(f"{args.id} is already {change.after}  {where}")
+        _print_followed(change, config)
         _print_event(event, "  ")
         return EXIT_OK
     print(f"{args.id} {change.before} → {change.after}  {where}")
     if change.refreshed:
         print(f"  derived  {', '.join(change.refreshed)} (dep annotations re-derived)")
+    _print_followed(change, config)
     _print_event(event, "  ")
     return EXIT_OK
+
+
+def _print_followed(change: StatusChange, config: Config) -> None:
+    """What the marker did to the claim on its line (RK158), and never silently.
+
+    A marker change is not obviously an assertion of ownership to whoever typed it, so the
+    door says which of the two it just made — the same reason `pick` names the claim it took
+    rather than only moving it.
+    """
+    if change.claim is Followed.CLAIMED:
+        print(f"  claimed  held for {config.held}m unless a marker moves it sooner")
+    elif change.claim is Followed.RELEASED:
+        print("  released  the claim on this line is dropped")
 
 
 def _event(task_id: str, block: str, roadmap: Document) -> dict[str, object]:
