@@ -128,6 +128,7 @@ __all__ = [
     "Departure",
     "Divergent",
     "Dropped",
+    "NoCompletion",
     "NoOutcome",
     "NoQualifier",
     "NoRestatement",
@@ -479,10 +480,20 @@ class Wrapped(ValueError):
     idiom `record drop --line` already uses, where naming what you read *is* the door — and
     a count that does not match the span is refused too, an off-by-one here being the
     deletion of somebody's paragraph.
+
+    `verb` is the second door reaching it (RK193): `ship <id>` completing a partial replaces
+    that entry too, and replaces it with a *different sentence*, so it is the same write and
+    owes the same count. Only the word for what the caller asked for changes.
     """
 
     def __init__(
-        self, task_id: str, where: str, entry: Entry, *, given: int | None
+        self,
+        task_id: str,
+        where: str,
+        entry: Entry,
+        *,
+        given: int | None,
+        verb: str = "correcting it",
     ) -> None:
         self.task_id = task_id
         self.lineno = entry.lineno
@@ -496,7 +507,7 @@ class Wrapped(ValueError):
         said = (
             (
                 f"the parse holds only as much of its sentence as fits on line "
-                f"{entry.lineno}, so correcting it replaces all {self.owned} — read them "
+                f"{entry.lineno}, so {verb} replaces all {self.owned} — read them "
                 f"with `show {task_id}`, which prints them, and pass --lines {self.owned}, "
                 f"which is you saying the text below the first line is the rest of the "
                 f"sentence being replaced"
@@ -508,6 +519,24 @@ class Wrapped(ValueError):
             )
         )
         super().__init__(f"{where}:{entry.lineno}: {task_id} is written over {span} and {said}")
+
+
+class NoCompletion(ValueError):
+    """`--lines` on a ship that replaces no entry (RK193).
+
+    The count is the caller saying they read the span a write deletes, so it is only ever
+    about the partial entry a completion rewrites. On every other path `ship` *places* a new
+    entry and deletes nothing, and a count accepted there is a flag the caller believes took
+    effect — the reason `--why` is refused on the closure path rather than ignored.
+    """
+
+    def __init__(self, task_id: str, where: str) -> None:
+        self.task_id = task_id
+        super().__init__(
+            f"--lines says how many lines a completion replaces, and this call replaces "
+            f"none: {where} records no partial for {task_id}, so the entry is placed and "
+            f"nothing is deleted"
+        )
 
 
 class NoSuchReplacement(KeyError):
@@ -760,6 +789,24 @@ class Corrected:
         self.ledger.save()
 
 
+def _counted(
+    task_id: str, where: str, entry: Entry, lines: int | None, *, verb: str
+) -> None:
+    """Refuse a span rewrite the caller has not said they read (RK179, RK193).
+
+    One rule and not two, because the two doors reaching :meth:`Document.rewrite_entry` —
+    `record amend` and the `ship` that completes a partial — delete the same lines for the
+    same reason. A count that matches is silence; an absent one on a wrapped entry and a
+    wrong one anywhere are both the same refusal, the second because an off-by-one here is
+    somebody's paragraph.
+    """
+    if lines is None:
+        if entry.wrapped:
+            raise Wrapped(task_id, where, entry, given=None, verb=verb)
+    elif lines != entry.stop - entry.index:
+        raise Wrapped(task_id, where, entry, given=lines, verb=verb)
+
+
 def amend(
     config: Config,
     task_id: str,
@@ -814,12 +861,7 @@ def amend(
 
     # Asked after `changed`, so an amend that alters nothing never demands a count for a
     # write it is not going to make.
-    owned = entry.stop - entry.index
-    if lines is None:
-        if entry.wrapped:
-            raise Wrapped(task_id, where, entry, given=None)
-    elif lines != owned:
-        raise Wrapped(task_id, where, entry, given=lines)
+    _counted(task_id, where, entry, lines, verb="correcting it")
 
     document = ledger.rewrite_entry(entry, ledger.schema.check(wanted))
     return Corrected(
@@ -1091,7 +1133,12 @@ def _wrapped_onto(document: Document, entry: Entry) -> tuple[str, ...]:
 
 
 def ship(
-    config: Config, task_id: str, *, why: str | None = None, part: str | None = None
+    config: Config,
+    task_id: str,
+    *,
+    why: str | None = None,
+    part: str | None = None,
+    lines: int | None = None,
 ) -> Departure | Closure | Partial:
     """Move one task from the backlog to the ledger. Validates all three edits first.
 
@@ -1109,14 +1156,24 @@ def ship(
     `ship` with no `part` *completes* it — replacing the entry rather than adding a second —
     which is the whole reason this is a verb and not a spelling convention: only a command
     knows when "local half" stopped being true.
+
+    That completion is a **span** rewrite where the ledger arrived wrapped (RK193), and
+    `lines` is the caller saying how many it replaces — the count `record amend` already
+    takes, at the one other door reaching the same write. It is a flag on this verb rather
+    than a detour through that one because the caller asked to finish work; it is refused on
+    every path that replaces no entry, and its absence over a wrapped partial is refused too.
     """
     if part is not None:
+        if lines is not None:
+            raise NoCompletion(task_id, config.relative(config.path("changelog")))
         return _partial(config, task_id, part, why)
     recorded = _already_recorded(config, task_id)
     if recorded is None:
-        return _depart(config, task_id, config.schema.shipped_marker, why)
+        return _depart(config, task_id, config.schema.shipped_marker, why, lines)
     if why is not None:
         raise NoRestatement(task_id, recorded)
+    if lines is not None:
+        raise NoCompletion(task_id, config.relative(config.path("changelog")))
     return _close(config, task_id, recorded)
 
 
@@ -1260,7 +1317,7 @@ def _partial(
 
 
 def _depart(
-    config: Config, task_id: str, marker: str, why: str | None
+    config: Config, task_id: str, marker: str, why: str | None, lines: int | None = None
 ) -> Departure:
     """The one transaction both doors are: validate everything, then write nothing yet."""
     roadmap = config.document("roadmap")
@@ -1300,9 +1357,23 @@ def _depart(
         # `retire` always arrives with a derived sentence, so this is the ship path alone.
         raise NoOutcome(task_id, entry.task.why)
 
+    # The count is about the entry a completion rewrites, so it is refused wherever there is
+    # no such entry rather than dropped (RK193): every other path places a new one.
+    if completing is None and lines is not None:
+        raise NoCompletion(task_id, where)
+
     recorded = _as_recorded(entry.task, marker, why)
     if completing is not None:
-        replaced = ledger.replace_task(completing, recorded)
+    # The same write `record amend` makes, so the same count (RK193). A completion drops
+        # the qualifier *and states a different outcome*, and a wrapped entry's `why` is only
+        # as much of the sentence as fits on line one — so rewriting that line alone leaves
+        # the half's old tail under a sentence claiming the whole delivery, which is the
+        # majority shape on the corpus (10 of Shio's 12 partials wrap). The count is a flag on
+        # `ship` and not a detour through `record amend` because the caller asked to finish
+        # work, not to fix a word; what it may never be is absent, `rewrite_entry` deleting
+        # prose no field of this task holds.
+        _counted(task_id, where, completing, lines, verb="completing it")
+        replaced = ledger.rewrite_entry(completing, recorded)
         insertion = Insertion(document=replaced, entry=replaced.by_id()[task_id])
     else:
         insertion = place(ledger, recorded)

@@ -280,7 +280,9 @@ TOOLS: tuple[Tool, ...] = (
     # `why` is required on the write path and not merely offered (RK142): the roadmap's
     # sentence is a problem statement, and the entry that inherited it read as a defect
     # report filed under a heading meaning "done".
-    Tool("ship", ("id", "why", "part")),
+    # `lines` for `record amend`'s reason (RK193): the ship that completes a partial rewrites
+    # that entry's span, and where the ledger arrived wrapped the count is the same door.
+    Tool("ship", ("id", "why", "part", "lines")),
     Tool("retire", ("id", "reason", "superseded_by")),
     Tool("defer", ("id", "reason")),
     Tool("resume", ("id", "marker")),

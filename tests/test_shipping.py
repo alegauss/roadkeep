@@ -30,12 +30,14 @@ from roadkeep.shipping import SecondPartial
 from roadkeep.sections import SectionOccupied
 from roadkeep.shipping import (
     Divergent,
+    NoCompletion,
     NoOutcome,
     PartRecorded,
     AlreadyShipped,
     Closure,
     NoRestatement,
     NotOpen,
+    Wrapped,
     retire,
     ship,
 )
@@ -893,6 +895,112 @@ def test_the_cli_json_says_the_line_is_still_open(tmp_path, capsys):
     assert payload["part"] == "local half"
     assert payload["roadmap"]["open"] is True
     assert payload["roadmap"]["status"] == "⏳"
+
+
+# -- the half RK179 did not reach (RK193) -------------------------------------
+
+#: The shape adoption produces and RK179 measured: a hand-written partial whose sentence
+#: runs past the line the parse holds — 10 of Shio's 12 partial entries do. `RK9` beneath
+#: it is the neighbour a span that overran would take, and it deliberately does not wrap.
+WRAPPED_PARTIAL = """# Shipped
+
+## Block A — The model
+
+- ✅ **RK1 (local half)** **A first symptom** — Because the local half landed,
+  and the rest is still being written
+  against the other end.
+- ✅ **RK9** **A ninth symptom** — Because of another.
+
+## Block B — Authoring
+"""
+
+#: The line that partial left open, which is what makes the next `ship` a completion.
+PARTLY = BACKLOG.replace("- 📋 **RK1**", "- ⏳ **RK1**")
+
+
+def test_completing_a_wrapped_partial_is_refused_until_the_count_is_given(tmp_path):
+    # The defect: `replace_task` reproduces the first line and nothing below it, so the
+    # entry stated the whole delivery followed by the tail of the half's old sentence —
+    # and the command reported a completion.
+    config = project(tmp_path, roadmap=PARTLY, changelog=WRAPPED_PARTIAL)
+    with pytest.raises(Wrapped) as raised:
+        ship(config, "RK1", why="All of it landed.")
+    message = str(raised.value)
+    assert "CHANGELOG.md:5" in message and "lines 5-7" in message
+    # The verb is the caller's own, because a completion is not a correction (RK193).
+    assert "completing it replaces all 3" in message and "--lines 3" in message
+    assert files(config)[1] == WRAPPED_PARTIAL
+
+
+def test_the_count_replaces_the_span_and_stops_at_the_next_entry(tmp_path):
+    config = project(tmp_path, roadmap=PARTLY, changelog=WRAPPED_PARTIAL)
+    ship(config, "RK1", why="All of it landed.", lines=3).save()
+
+    roadmap, ledger, improvements = files(config)
+    assert "- ✅ **RK1** **A first symptom** — All of it landed." in ledger
+    # The qualifier goes *and* so does the tail it was written with, which is the pair the
+    # first line alone could never move together.
+    assert "local half" not in ledger
+    assert "still being written" not in ledger and "the other end" not in ledger
+    # The neighbour is untouched: a span that overran by one would have taken it.
+    assert "- ✅ **RK9** **A ninth symptom** — Because of another." in ledger
+    assert "⏳ **RK1**" not in roadmap  # the line finally leaves
+    assert "§RK1 A first design" not in improvements
+    assert lint(Config.discover(tmp_path)).clean
+
+
+def test_a_count_that_is_not_the_span_is_refused_rather_than_trusted(tmp_path):
+    # An off-by-one here is the neighbour's entry, so the number is checked and not taken.
+    config = project(tmp_path, roadmap=PARTLY, changelog=WRAPPED_PARTIAL)
+    with pytest.raises(Wrapped) as raised:
+        ship(config, "RK1", why="All of it landed.", lines=2)
+    assert "--lines 2 is not that count" in str(raised.value)
+    assert files(config)[1] == WRAPPED_PARTIAL
+
+
+def test_a_partial_this_tool_wrote_needs_no_count(tmp_path):
+    # The count is the door out of a refusal and not a new field on every completion: a
+    # governed ledger has no wrapped entry at all, so nothing changes for one.
+    config = project(tmp_path)
+    ship(config, "RK1", part="local half", why="Because of a reason.").save()
+    ship(Config.discover(tmp_path), "RK1", why="All of it landed.").save()
+    assert "- ✅ **RK1** **A first symptom** — All of it landed." in read(config, CHANGELOG)
+
+
+def test_the_count_is_refused_where_the_ship_replaces_no_entry(tmp_path):
+    # A flag silently dropped is a flag the caller believes took effect, and on all three
+    # of these paths `ship` places a new entry rather than rewriting one.
+    config = project(tmp_path)
+    with pytest.raises(NoCompletion, match="records no partial for RK1"):
+        ship(config, "RK1", why="Because of a reason.", lines=3)
+    with pytest.raises(NoCompletion):
+        ship(config, "RK1", why="Because of a reason.", part="local half", lines=3)
+    assert files(config) == (BACKLOG, LEDGER, RATIONALE)
+
+
+def test_the_count_is_refused_on_the_line_a_crash_left_behind(tmp_path):
+    # The closure path writes no entry at all (RK62) — it removes the line the ledger was
+    # already written from — so there is nothing for a span count to be about.
+    config = project(tmp_path)
+    ship(config, "RK1", why="Because of a reason.").save()
+    config = project(tmp_path, roadmap=BACKLOG, changelog=read(config, CHANGELOG))
+    with pytest.raises(NoCompletion):
+        ship(config, "RK1", lines=1)
+
+
+def test_the_flag_reaches_the_command_line(tmp_path, capsys):
+    project(tmp_path, roadmap=PARTLY, changelog=WRAPPED_PARTIAL)
+    argv = ["-C", str(tmp_path), "ship", "RK1", "--why", "All of it landed.", "--lines", "3"]
+    assert main(argv) == EXIT_OK
+    assert "RK1" in capsys.readouterr().out
+    assert "still being written" not in read(Config.discover(tmp_path), CHANGELOG)
+
+
+def test_the_refusal_names_the_count_rather_than_writing_half_of_it(tmp_path, capsys):
+    project(tmp_path, roadmap=PARTLY, changelog=WRAPPED_PARTIAL)
+    argv = ["-C", str(tmp_path), "ship", "RK1", "--why", "All of it landed."]
+    assert main(argv) == EXIT_USAGE
+    assert "--lines 3" in capsys.readouterr().err
 
 
 # -- retiring the rest is not a verdict on the half (RK129) -------------------

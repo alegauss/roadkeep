@@ -546,6 +546,14 @@ def build_parser() -> argparse.ArgumentParser:
             "half'; a later ship with no --part completes it and removes the qualifier"
         ),
     )
+    ship_parser.add_argument(
+        "--lines",
+        type=int,
+        help=(
+            "how many lines the completion replaces; required where the partial entry it "
+            "completes wraps, and refused where this call replaces no entry"
+        ),
+    )
     ship_parser.add_argument("--json", action="store_true", help="every edit, as data")
     ship_parser.set_defaults(handler=_ship)
 
@@ -2129,7 +2137,7 @@ def _verbatim(path: Path) -> str:
 
 def _ship(config: Config, args: argparse.Namespace) -> int:
     try:
-        shipment = ship(config, args.id, why=args.why, part=args.part)
+        shipment = ship(config, args.id, why=args.why, part=args.part, lines=args.lines)
         shipment.save()
     except REFUSALS as error:
         return _refused(error)

@@ -53,7 +53,11 @@ the entry describe different work, which is two tasks sharing an id and `renumbe
 with a hedge in the sentence**: `ship <id> --part "<which half>"` records the entry as
 `✅ **<id> (which half)**` and *leaves the line open* at ⏳ with its section intact, and the
 later `ship <id>` completes it — replacing that entry in place and dropping the qualifier,
-which is the only thing that keeps "local half" from outliving the local half. A **second**
+which is the only thing that keeps "local half" from outliving the local half. That
+replacement states a *different* sentence, so on a ledger written before the tool, where the
+partial's bullet **wraps**, it takes `--lines <n>` for the same reason `record amend` does and
+is refused without it; the count is a flag on this verb rather than a detour through that one
+because you asked to finish work, and it is refused on every path that replaces no entry. A **second**
 `--part` is refused and says why: one id carries one partial and then the completion, so work
 arriving in more halves than that files each delivered step as its own line, and the refusal
 spells the id that line takes under this project's `[ids]`. **A pause is none of those three**: `defer <id> --reason "…"` moves

@@ -100,28 +100,6 @@ overrun would be back to guessing, with a smaller number to guess against.
 
 ## Block B — Authoring
 
-### §RK193 The half RK179 did not reach
-
-RK179 closed `record amend`: a correction on a wrapped entry is refused until `--lines`
-says how many it replaces, and the whole span is then rewritten. The completion path was
-left out of that commit deliberately, as work for an id of its own, and this is it.
-
-`ship <id>` completing a partial replaces the entry in place — dropping the qualifier
-and writing the outcome — through `replace_task`, which reproduces the first line and
-nothing below it. So the same failure: the entry states the whole delivery followed by
-the tail of the half's sentence, and the command reports a completion.
-
-Measured rather than assumed, on the corpus that motivated RK179: **10 of Shio's 12
-partial entries wrap**, so this is the majority case there and not an edge of it. Turing
-has 3 partials and none wraps.
-
-What makes it a separate decision from RK179 and not a copy of it: a completion is not a
-correction. The caller asked to finish work, not to rewrite a sentence, so demanding a
-count is a flag on the wrong verb — and refusing outright would block a legitimate ship
-until the entry is repaired. Which of "refuse and name `record amend`", "take the count
-here too", or "replace the span, the entry being this transaction's own" is right is the
-task.
-
 ### §RK195 The same door, on the file the corpus says is clean
 
 `amend` and `restate` rewrite a roadmap line's prose through `replace_task`, which is

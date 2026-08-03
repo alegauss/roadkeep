@@ -80,6 +80,7 @@
 - ✅ **RK180** **A subsection is written at a fixed depth, so in a file whose top level is deeper it is no subsection** — A subsection is written one level under the section it extends, read off that heading rather than fixed at 3, so it stays inside the subtree its anchor names whatever depth the file nests at.
 - ✅ **RK181** **A section refusal names the file by its whole filesystem path, where the gate beside it names it relatively** — Every section refusal names the file through `config.relative`, the caller rendering the address and passing it in as it already passes `claimed`, so one file has one spelling.
 - ✅ **RK191** **The refusal on a second partial names the entry in the way, not the id the step needs** — A second `ship --part` gets its own refusal, naming the id the delivered step is filed under in the spelling this project's `[ids]` declares.
+- ✅ **RK193** **Completing a partial rewrites the first line of an entry whose sentence runs past it** — `ship` completing a partial rewrites the entry's whole span, taking `--lines <n>` where the ledger arrived wrapped and refusing the count where it replaces no entry.
 
 ## Block C — Query
 
