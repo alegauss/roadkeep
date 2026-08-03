@@ -56,7 +56,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK199** (deps: —) **Every entry point pays a schema import to reach a module that does not read one** — RK176's screen answers before `roadkeep.cli` loads and still costs 23ms of its 43ms floor, because `roadkeep/__init__` re-exports `schema` and importing any module runs it. → §RK199
 - 💭 **RK202** (deps: —) **The CLI parser is a pure function of the code and is rebuilt for every message** — RK198 left one build at 3.2ms of a 5.0ms call, and whether holding it across messages would stop a mid-session config edit being described was argued rather than counted. → §RK202
 
 ## Non-goals

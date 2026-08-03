@@ -484,28 +484,6 @@ git configuration and should stay a flag rather than a default.
 
 ## Block F — The plugin
 
-### §RK199 The floor RK176 could not reach
-
-RK176 took the guard from 184ms to 77ms by answering a `Bash` payload before importing
-`roadkeep.cli`. Measured after it, 23ms of what is left is not the screen's work at all:
-`roadkeep/__init__` re-exports fourteen names from `schema`, so `import
-roadkeep.screening` loads `schema`, `dataclasses`, `inspect`, `re` and `enum` to reach a
-module whose whole argument is that it imports only the standard library.
-
-It is not the hook's cost alone. Every `tools/call` pays it, every CLI invocation pays
-it, and `scripts/roadkeep.py` pays it twice over — the package `__init__` runs before
-any module in it does, so this is the one import no entry point can decline.
-
-The shape is PEP 562: `__getattr__` on the package, resolving each re-exported name on
-first use. What that costs is a claim to check rather than assume — `from roadkeep
-import claiming` and `from roadkeep import __version__` are submodule and attribute
-access rather than the re-exports, and whether any caller reaches `Schema` through the
-package at all is the thing to count first. If nothing does, the re-export list is the
-question and not the laziness.
-
-Measure the floor after, not the saving: the number worth having is what a screened
-`Bash` command costs when the package is out of its way.
-
 ### §RK202 The last build, and whether it is buying anything
 
 RK174 took `tools/list` from 58 builds to one; RK198 took `tools/call` from three to

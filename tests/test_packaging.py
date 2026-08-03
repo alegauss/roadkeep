@@ -192,3 +192,60 @@ def test_the_version_costs_nothing_until_it_is_asked_for() -> None:
     action = next(a for a in build_parser()._actions if "--version" in a.option_strings)
     assert not hasattr(action, "version")
     assert action.nargs == 0
+
+
+# -- the surface a lazy `__init__` still owes (RK199) -------------------------
+
+
+def test_every_re_export_resolves_to_the_schemas_own_object():
+    """`__all__` is a promise, and PEP 562 is what keeps it without paying for it.
+
+    The package `__init__` runs before any module in it does, so re-exporting `schema`
+    eagerly cost 27.7ms on every entry point — including the screen (RK176) whose whole
+    argument is that it imports nothing but the standard library. Resolved on first access
+    it is 0.6ms, and what the eager import used to guarantee is guaranteed here instead.
+    """
+    import roadkeep
+    from roadkeep import schema
+
+    for name in roadkeep.__all__:
+        assert getattr(roadkeep, name) is getattr(schema, name), name
+
+
+def test_a_name_the_package_does_not_export_still_raises():
+    import roadkeep
+
+    with pytest.raises(AttributeError, match="no attribute 'Nope'"):
+        roadkeep.Nope  # noqa: B018 - the access is the assertion
+
+
+def test_dir_answers_what_all_promises():
+    # A lazy name is invisible to `dir` until it is touched, and a surface that cannot be
+    # discovered is one a reader has to already know about.
+    import roadkeep
+
+    assert set(roadkeep.__all__) <= set(dir(roadkeep))
+
+
+def test_importing_the_package_does_not_import_the_schema():
+    """The saving itself, asserted rather than measured — a timing test would be flaky.
+
+    In a fresh interpreter, because `sys.modules` in this one is full of everything the
+    suite has already imported.
+    """
+    import subprocess
+    import sys
+
+    done = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            "import sys; sys.path.insert(0, r'"
+            + str(Path(__file__).parents[1] / "src")
+            + "'); import roadkeep; print('roadkeep.schema' in sys.modules)",
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert done.stdout.strip() == "False", done.stderr
