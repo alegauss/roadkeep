@@ -100,6 +100,7 @@ _TERMINATORS = (".", "!", "?")
 #: (RK183), and therefore the ones `line.too-long` stands down for.
 _LENGTH_CODES = frozenset({"symptom.too-long", "why.too-long", "part.too-long"})
 
+
 #: The pointer's two addressing schemes (RK27). "id" is the default because it is the
 #: one an author cannot get wrong; "outline" exists for backlogs already numbered.
 REF_SCHEMES = frozenset({"id", "outline"})
@@ -126,6 +127,33 @@ SUB_LETTER = r"[a-z]"
 # The shape of a range, without judging its direction, so that `RK9–RK5` can be
 # reported instead of quietly becoming "outside the backlog".
 _RANGE_SHAPE_RE = re.compile(r"^[A-Za-z]{1,8}[0-9]+\s*[-–—]\s*[A-Za-z]{0,8}[0-9]+$")
+
+
+def over_by(actual: int, limit: int, unit: str = "character", because: str = "") -> str:
+    """The arithmetic every length refusal opens with, spelled in one place (RK184).
+
+    An author handed a total and a limit derives the surplus and then does not act on it:
+    the sequence measured against 320 was 327, then 303, then 300 — three rewrites where
+    one subtraction would have done, because "move the remainder" is editorial advice and
+    an author who takes it recomposes the sentence. A rewrite re-rolls the length.
+
+    So the number to remove is stated, and the verb is **delete**: subtracting a count
+    from a sentence is an operation that succeeds on the first attempt, where writing to a
+    target length is one that converges by feedback. Where the text goes is still true and
+    still said — after the arithmetic, because it answers a different question.
+
+    One function, because a refusal spelled five ways is five things that drift apart, and
+    the unit is a parameter for the two refusals counted in words rather than characters.
+    """
+    surplus = actual - limit
+    return (
+        f"{actual} {_plural(actual, unit)}, limit is {limit}{because}: "
+        f"delete {surplus} {_plural(surplus, unit)}"
+    )
+
+
+def _plural(count: int, unit: str) -> str:
+    return unit if count == 1 else f"{unit}s"
 
 
 class DepKind(StrEnum):
@@ -796,9 +824,9 @@ class Schema:
                 Violation(
                     "line.too-long",
                     "line",
-                    f"rendered line is {len(rendered)} characters, "
-                    f"limit is {self.line_max}: move the remainder to "
-                    f"the improvements section",
+                    f"the rendered line is {over_by(len(rendered), self.line_max)}; "
+                    f"no field is over the budget this line left it, so what does "
+                    f"not fit is the structure around them",
                 )
             )
         return tuple(out)
@@ -888,8 +916,8 @@ class Schema:
                 Violation(
                     "part.too-long",
                     "id",
-                    f"the qualifier is {len(task.part)} characters, limit is "
-                    f"{self.part_max}: it names which half, it is not the why",
+                    f"the qualifier is {over_by(len(task.part), self.part_max)}; "
+                    f"it names which half, it is not the why",
                 )
             ]
         return []
@@ -1130,9 +1158,8 @@ class Schema:
                 Violation(
                     f"{field}.too-long",
                     field,
-                    f"{len(value)} characters, limit is {limit}{because}: move the "
-                    f"remainder to the improvements section rather than compressing "
-                    f"it away",
+                    f"{over_by(len(value), limit, because=because)}; the remainder "
+                    f"belongs in the improvements section rather than compressed away",
                 )
             )
         return out

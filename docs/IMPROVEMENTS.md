@@ -75,29 +75,6 @@ already written, not authorship.
 
 ## Block A — The model
 
-### §RK184 A refusal an author can subtract from, not one they recompose against
-
-The refusal `line.too-long` reads `rendered line is 327 characters, limit is 320: move
-the remainder to the improvements section`. Both numbers are there, so the surplus is
-derivable — seven characters — and that is not what the message asks for. "Move the
-remainder" is editorial advice, and an author who takes it rewrites the sentence; a
-rewrite re-rolls the length, which is why the observed sequence was 327, then 303, then
-300 rather than 327 then 320.
-
-The unit is the second half of it. A limit on the rendered line is not a limit on any
-field the author wrote, so the message names a total nobody composed and leaves which of
-`symptom` and `why` is over unsaid. `_check_text` already does better for a single field
-— it names the field, its length and its limit — and the section refusal does better
-still: 253 words, limit is 250 states the unit and the excess, and one deletion answers
-it.
-
-So the shape to copy is already in the tool. A length refusal should name the field to
-cut, the characters to remove from it, and say to delete rather than to move:
-subtraction is an operation an author performs reliably, where composing to a target
-length is one that succeeds by feedback. The advice about the improvements section is
-still true, and belongs after the arithmetic instead of in place of it — it answers
-where the text goes, not how much has to leave.
-
 ### §RK187 Two targets, one command, no transaction
 
 RK132 closed the half that was measured: the README splice now compares the bytes it

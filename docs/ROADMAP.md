@@ -22,7 +22,6 @@
 
 ## Block A — The model (a task is data before it is a line)
 
-- 📋 **RK184** (deps: —) **A length refusal names the rendered total and not the field that is over or the surplus** — line.too-long reports 327 against 320 and advises moving the remainder, so the author rewrites the sentence instead of deleting seven characters and the next attempt re-rolls the length. → §RK184
 - 📋 **RK187** (deps: —) **`export --readme --site` writes the first file and then refuses the second, leaving one refreshed** — RK132 gave the splice the staleness check every governed write makes and not the all-or-nothing rule beside it, so one target lands and the other's staleness survives the command. → §RK187
 
 ## Block B — Authoring (insert, never hand-edit)

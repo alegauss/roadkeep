@@ -106,7 +106,7 @@ from roadkeep.history import (
     tracked_now,
 )
 from roadkeep.markers import derive
-from roadkeep.schema import PARTIAL, DepKind, Task
+from roadkeep.schema import PARTIAL, DepKind, Task, over_by
 from roadkeep.sections import Section, anchored, find
 from roadkeep.showing import paths_in
 
@@ -1331,8 +1331,8 @@ def _budget(
         Finding(
             "section.too-long",
             file,
-            f"{handed.words} words, limit is {limit}: a section "
-            f"this long is two sections, or a paragraph that belongs in the commit",
+            f"{over_by(handed.words, limit, unit='word')}; a section this long is "
+            f"two sections, or a paragraph that belongs in the commit",
             section.first,
             section.anchor,
         )

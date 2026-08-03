@@ -49,7 +49,14 @@ from dataclasses import dataclass, replace
 
 from roadkeep.config import Config
 from roadkeep.document import Document, Heading, UnknownBlock, blank
-from roadkeep.schema import OUTLINE_ANCHOR_RE, Schema, SchemaError, Task, Violation
+from roadkeep.schema import (
+    OUTLINE_ANCHOR_RE,
+    Schema,
+    SchemaError,
+    Task,
+    Violation,
+    over_by,
+)
 
 #: A paragraph whose first characters are any of these is a structure, not prose.
 _STRUCTURE = ("|", ">", "-", "*", "+", "#", "```", "~~~", "1.")
@@ -490,14 +497,19 @@ def amend(
     # pointed-at section (RK50): a body that clears the limit alone and puts the section
     # over it with its subsections is an amend that passes and a `lint` that refuses.
     if amended.words > document.schema.section_max:
+        counted = over_by(
+            amended.words,
+            document.schema.section_max,
+            unit="word",
+            because=" with its subsections",
+        )
         raise SectionError(
             (
                 Violation(
                     "body.too-long",
                     "body",
-                    f"{amended.words} words with its subsections, limit is "
-                    f"{document.schema.section_max}: a section this long is two "
-                    f"sections, or a paragraph that belongs in the commit",
+                    f"{counted}; a section this long is two sections, or a paragraph "
+                    f"that belongs in the commit",
                 ),
             )
         )
@@ -620,8 +632,8 @@ def _check(
             Violation(
                 "body.too-long",
                 "body",
-                f"{words(body)} words, limit is {schema.section_max}: a section this "
-                f"long is two sections, or a paragraph that belongs in the commit",
+                f"{over_by(words(body), schema.section_max, unit='word')}; a section "
+                f"this long is two sections, or a paragraph that belongs in the commit",
             )
         )
     if out:

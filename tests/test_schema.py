@@ -29,6 +29,7 @@ from roadkeep import (
     SchemaError,
     Task,
 )
+from roadkeep.schema import over_by
 
 ROADMAP = Path(__file__).resolve().parents[1] / "docs" / "ROADMAP.md"
 CHANGELOG = Path(__file__).resolve().parents[1] / "docs" / "CHANGELOG.md"
@@ -144,6 +145,28 @@ def test_over_length_symptom_is_refused_with_limit_and_actual():
     assert violation.code == "symptom.too-long"
     assert "121" in violation.message and "120" in violation.message
     assert "improvements" in violation.message
+
+
+def test_a_length_refusal_names_the_surplus_and_asks_for_a_deletion():
+    # RK184: both numbers were already there and the surplus was left to be derived, so
+    # the message asked for a rewrite — 327, then 303, then 300. It states the subtraction.
+    (violation,) = SCHEMA.validate(task(symptom="x" * 127))
+    assert "delete 7 characters" in violation.message
+    # And the advice about where the text goes survives, after the arithmetic rather
+    # than in place of it: it answers where, not how much.
+    assert violation.message.index("delete 7") < violation.message.index("improvements")
+
+
+def test_a_surplus_of_one_is_singular():
+    (violation,) = SCHEMA.validate(task(symptom="x" * 121))
+    assert "delete 1 character;" in violation.message
+
+
+def test_the_arithmetic_is_spelled_in_one_place():
+    # Five refusals count a length and one function writes all of them, so a message that
+    # improves improves everywhere rather than in the one the author happened to hit.
+    assert over_by(327, 320) == "327 characters, limit is 320: delete 7 characters"
+    assert over_by(253, 250, unit="word") == "253 words, limit is 250: delete 3 words"
 
 
 def test_symptom_at_the_limit_is_accepted():
