@@ -33,7 +33,7 @@ from pathlib import Path
 
 from roadkeep.config import PROSE_ROLES, Config
 from roadkeep.document import Document, Entry
-from roadkeep.history import tracked_now
+from roadkeep.history import indexed
 from roadkeep.schema import Task
 from roadkeep.sections import Section, find
 
@@ -291,8 +291,12 @@ def known_directories(
     token is a claim about *this* repository, and that one asks whether the repository said
     it would never hold the file.
 
-    ``names`` is the tracked listing a caller already holds, so a `lint` run at a revision
-    passes that revision's and this does not ask twice. Absent, the working tree's is read.
+    ``names`` is the listing a caller already holds, so a run at a revision passes that
+    revision's and this does not ask twice. Absent, the **index** is read and not
+    :func:`tracked_now` (RK221): that one subtracts what git calls deleted, which is right
+    for "does the tree still have this artefact" and exactly wrong here — a ledger naming
+    `lib/gone.py` after the file went would stop being a claim instead of becoming a
+    finding, and `show` said the task named no path at all while `lint` reported it missing.
 
     **None where git cannot answer**, and the caller falls back to the disk. An absent
     answer is not a negative one (RK95, and RK28 one file up): a checkout with no history
@@ -304,7 +308,7 @@ def known_directories(
     the repository certainly knows that directory.
     """
     if names is None:
-        names = tracked_now(config)
+        names = indexed(config)
     if not names:
         return None
     return frozenset(

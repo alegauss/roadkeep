@@ -32,6 +32,7 @@ from roadkeep.config import Config
 from roadkeep.history import HistoryUnavailable, git_available
 from roadkeep import linting as linting_module
 from roadkeep.linting import Tree, lint
+from roadkeep.showing import show
 
 pytestmark = pytest.mark.skipif(not git_available(), reason="git is not on PATH")
 
@@ -702,3 +703,31 @@ def test_a_repeated_question_costs_no_second_subprocess(tmp_path):
         tree.declared_untracked([("bin/a.exe", near), ("src/b.py", near)])
         tree.declared_untracked([("bin/c.exe", near)])
     assert len(calls) == 2  # the repeat asked nothing; the new token asked once
+
+
+def test_the_reader_and_the_gate_agree_about_a_deleted_artefact(tmp_path):
+    """RK221: two readers of one rule, and the reader was the wrong one.
+
+    RK217 established that a claim is decided against the **index** rather than the working
+    tree, because `tracked_now` subtracts what git calls deleted — right for "does the tree
+    still have this artefact" and exactly wrong for "is this a directory the repository
+    knows". `Tree.directories` got that; `show` fell through to the default and did not, so
+    `lint` reported `path.missing` while `show` said the task named no path at all.
+
+    RK186 already named which half is worse to leave wrong: `lint` is the backstop and is
+    read once, while `show` and `brief` are what start a task.
+    """
+    config = repo(tmp_path, files={"lib/gone.py": "x = 1\n"})
+    write(tmp_path, "CHANGELOG.md", naming("lib/gone.py"))
+    git(tmp_path, "add", "-A")
+    git(tmp_path, "commit", "--quiet", "-m", "docs: name the file")
+    assert [(r.path, r.exists) for r in show(config, "RK5").paths] == [("lib/gone.py", True)]
+    assert paths(lint(config)) == []
+
+    (tmp_path / "lib" / "gone.py").unlink()
+    assert [(r.path, r.exists) for r in show(config, "RK5").paths] == [("lib/gone.py", False)]
+    assert paths(lint(config)) == ["path.missing RK5"]
+
+    shutil.rmtree(tmp_path / "lib")
+    assert [(r.path, r.exists) for r in show(config, "RK5").paths] == [("lib/gone.py", False)]
+    assert paths(lint(config)) == ["path.missing RK5"]

@@ -166,6 +166,7 @@
 - ✅ **RK217** **Deleting a whole tracked directory silences the check that exists to notice a deleted artefact** — A path claim is decided against the directories the repository tracks rather than against this disk, so deleting a directory reports what deleting one file already did.
 - ✅ **RK218** **The same revision answers two different things about a path depending on an untracked working file** — A run naming a revision asks git for both a file and a directory and never asks this disk, so an untracked file created since the ref stops silencing the revision's own finding.
 - ✅ **RK219** **A cache on the tree answers whichever question it was asked first, and its key is nothing** — The ignore answer is stored per token, so a second caller is answered about what it asked, and a repeat costs no second subprocess.
+- ✅ **RK221** **show and lint disagree about whether a deleted artefact is a path the task names** — The directory set is read from the index by default, so show and lint give the same answer about an artefact the working tree no longer has.
 
 ## Block E — Adoption
 

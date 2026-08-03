@@ -361,8 +361,11 @@ class Tree:
         there being no working tree to have deleted anything from.
         """
         if self._directories is _UNASKED:
-            names = indexed(self.config) if self.rev is None else self.listing()
-            self._directories = known_directories(self.config, names)
+            # At HEAD the function's own default is the index, which is the listing this
+            # question wants (RK221); at a revision the tree's listing already is that.
+            self._directories = known_directories(
+                self.config, None if self.rev is None else self.listing()
+            )
         return self._directories
 
     def anywhere(self, token: str) -> bool:

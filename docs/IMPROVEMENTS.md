@@ -287,28 +287,6 @@ and may not need a second.
 
 ## Block D — The gate
 
-### §RK221 The same fix, not applied to the reader
-
-RK217 established that a claim is decided against the directories the repository
-*knows*, and that the listing to ask is the index rather than the working tree:
-`tracked_now` subtracts what git calls deleted, which is right for "does the tree still
-have this artefact" and exactly wrong for "is this a directory the repository knows" — a
-ledger naming `lib/gone.py` after the file went would stop being a claim instead of
-becoming a finding.
-
-`Tree.directories` got that right and `show` did not. It calls
-`known_directories(config)` with no listing, which falls through to `tracked_now`, so
-the reader carries the defect the gate no longer has.
-
-Measured on a fixture: with `lib/gone.py` committed and then deleted, `lint` reports
-`path.missing` and `show RK1` lists **no paths at all** — not the artefact as missing,
-but the token dropped as though the sentence never named a file.
-
-Two readers of one rule disagreeing is the shape RK186 already names once: `lint` is the
-backstop and is read once, while `show` and `brief` are what start a task, so the reader
-is the worse half to leave wrong. The fix is which listing is asked for, and the answer
-is the one `Tree.directories` already reaches for.
-
 ### §RK222 An answer bought before the question
 
 RK217 needed the directories the repository knows in order to decide whether a token is
