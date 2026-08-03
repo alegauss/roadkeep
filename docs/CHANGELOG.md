@@ -96,6 +96,7 @@
 - ✅ **RK161** **Which lines are claimed is answerable only as a side effect of asking for work** — `claims` lists the registry against the roadmap — held, expired or stale, oldest first, with the window and the file — so the last question about a claim is a command like every other.
 - ✅ **RK162** **A shipped line leaves an entry in the registry that nothing will ever read again** — The terminal doors release the claim on the line they take out, so the listing holds what somebody is looking for and not one row per shipped task.
 - ✅ **RK163** **A release drops one id and reconciles nothing, so every row no door reported stays in the listing** — Every write of the registry is a reconciliation against the lines it was given, and `follow` is the only thing that writes it — so a row no door reported is cleared by the next marker write.
+- ✅ **RK164** **A claim on a paused or shipped id is reported as though no line ever carried it** — The listing joins the ledger and the store as well, so an id that left the roadmap says which door it left by and only the leftover reads as one.
 
 ## Block D — The gate
 

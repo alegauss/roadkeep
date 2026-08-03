@@ -54,10 +54,11 @@ from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
 
+from roadkeep.backlog import Backlog
 from roadkeep.config import Config
 from roadkeep.document import Entry
 from roadkeep.locking import sidecar
-from roadkeep.schema import IN_PROGRESS
+from roadkeep.schema import IN_PROGRESS, Task
 
 
 def window(config: Config) -> float:
@@ -129,8 +130,27 @@ class State(StrEnum):
     #: 🛠, past the window: stepped over, so the line is offered again as half-done work.
     EXPIRED = "expired"
     #: The marker moved on, or no line carries the id at all. Nothing reads it; the next
-    #: claim prunes it.
+    #: marker write reconciles it away.
     STALE = "stale"
+
+
+class Where(StrEnum):
+    """Where the id is now — the *cause* a stale row used to report as its consequence (RK164).
+
+    "No line carries this id" is true of four different situations and useful in one of them.
+    The other three left the roadmap by a door and are recorded: the reader scanning this
+    column is deciding whether to act, and only the last of these is anything to act on.
+    """
+
+    #: A line in the roadmap. Its own marker and block say the rest.
+    OPEN = "open"
+    SHIPPED = "shipped"
+    RETIRED = "retired"
+    PAUSED = "set aside"
+    #: In no governed file at all — the leftover, and the one row worth a second look. What
+    #: removed it is `gaps`' answer (RK31) and stays one command away: this resolves against
+    #: the files it already has open, and history is not one of them.
+    NOWHERE = "in no file at all"
 
 
 @dataclass(frozen=True, slots=True)
@@ -140,6 +160,8 @@ class Dated:
     id: str
     age: float
     state: State
+    #: Where the id is now (RK164) — a roadmap line, or which door it left by.
+    where: Where = Where.OPEN
     #: The marker the line carries, or empty where no line carries the id.
     marker: str = ""
     block: str = ""
@@ -149,13 +171,17 @@ class Dated:
         return since(self.age)
 
 
-def survey(config: Config, entries: Iterable[Entry]) -> tuple[Dated, ...]:
-    """Every dated id, oldest first, with what the roadmap makes of it (RK161).
+def survey(backlog: Backlog) -> tuple[Dated, ...]:
+    """Every dated id, oldest first, with what the files make of it (RK161).
 
     The one question about a claim that was not a command: `pick` names the ready lines it
     stepped around and its stalled list annotates a started one, so seeing *all* of them meant
     two questions and a union — and neither reaches an entry on a line that is neither, which
     is exactly the one somebody is looking for.
+
+    Takes the whole backlog and not the roadmap alone (RK164), because "no line carries this id"
+    is true of four situations and worth acting on in one: the ledger and the store say which
+    door the other three left by, and the reader scanning the column is deciding exactly that.
 
     Oldest first, because the axis a reader is scanning is age: the entry most likely to belong
     to a worker who is gone is the one at the top. It **ranks nothing and offers nothing** —
@@ -164,28 +190,51 @@ def survey(config: Config, entries: Iterable[Entry]) -> tuple[Dated, ...]:
     already name the claims an agent's own answer stepped around, and this is the read a person
     makes about a checkout.
     """
+    config = backlog.config
     dated = _read(path(config.root))
     if not dated:
         return ()
-    tasks = {entry.task.id: entry.task for entry in entries}
+    tasks = {entry.task.id: entry.task for entry in backlog.roadmap.entries}
+    elsewhere = (
+        (Where.SHIPPED, backlog.shipped()),
+        (Where.RETIRED, backlog.retired()),
+        (Where.PAUSED, backlog.deferred()),
+    )
     now, held = time.time(), window(config)
-    rows = []
-    for task_id, when in dated.items():
-        task = tasks.get(task_id)
-        if task is None or task.status != IN_PROGRESS:
-            state = State.STALE
-        else:
-            state = State.HELD if now - when < held else State.EXPIRED
-        rows.append(
-            Dated(
-                id=task_id,
-                age=now - when,
-                state=state,
-                marker="" if task is None else task.status,
-                block="" if task is None else task.block,
-            )
-        )
+    rows = [
+        _row(task_id, now - when, tasks.get(task_id), elsewhere, held)
+        for task_id, when in dated.items()
+    ]
     return tuple(sorted(rows, key=lambda row: -row.age))
+
+
+def _row(
+    task_id: str,
+    age: float,
+    task: Task | None,
+    elsewhere: tuple[tuple[Where, object], ...],
+    held: float,
+) -> Dated:
+    """One registry entry as the two questions a reader is asking: is it a claim, and where."""
+    if task is None:
+        return Dated(
+            id=task_id,
+            age=age,
+            state=State.STALE,
+            where=next((name for name, ids in elsewhere if task_id in ids), Where.NOWHERE),  # type: ignore[operator]
+        )
+    if task.status != IN_PROGRESS:
+        state = State.STALE
+    else:
+        state = State.HELD if age < held else State.EXPIRED
+    return Dated(
+        id=task_id,
+        age=age,
+        state=state,
+        where=Where.OPEN,
+        marker=task.status,
+        block=task.block,
+    )
 
 
 def path(root: Path | str) -> Path:

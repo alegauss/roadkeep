@@ -34,8 +34,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK164** (deps: —) **A claim on a paused or shipped id is reported as though no line ever carried it** — `claims` joins the registry against the roadmap alone, so the three ids that left it by a door — shipped, retired, set aside — all read as the same absence, which names a consequence and not a cause. → §RK164
-
 ## Block D — The gate
 
 - 📋 **RK104** (deps: —) **Nothing gates the README block this tool writes, so a stale restatement passes lint** — `export --readme` is the one write no gate holds: a pytest fixture catches it here and an adopting project has none, so the derived table drifts from the files it was derived from. → §RK104

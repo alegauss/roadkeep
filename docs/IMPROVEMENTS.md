@@ -202,27 +202,6 @@ stop guessing at — and the roadmap needs none of it, `add` refusing a line tha
 
 ## Block C — Query
 
-### §RK164 Stale is three different absences
-
-The listing RK161 added reads the registry against the roadmap and nothing else, so
-every entry whose id is not an open line gets one sentence: *no line carries this id*.
-That is true and it is the consequence rather than the cause, which is the distinction
-the gate is held to everywhere else — a finding names `file:line:column`, not what went
-wrong downstream of it.
-
-Three causes are behind it, and the tool already knows all three. The ledger says
-shipped or retired; the deferred store says set aside; and neither says anything about
-an id that is in no file at all, which is the only one that is genuinely a leftover.
-`gaps` (RK31) resolves that last case against the commit that removed it, so there is
-even a fourth answer available for the price of a read nobody has to make here.
-
-The reason it matters is what the row is *for*. A reader scanning this listing is
-deciding whether to act, and "shipped" needs nothing while "in no file at all" is the
-row RK163's reconciliation missed. One word per row separates them.
-
-What this must not turn into is a second `gaps`: the listing resolves against the files
-it already loads, and the history stays one command away.
-
 ## Block D — The gate
 
 ### §RK104 The block the gate does not read

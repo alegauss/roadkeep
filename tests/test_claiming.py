@@ -29,6 +29,7 @@ import pytest
 from roadkeep import claiming
 from roadkeep.briefing import NothingToBrief, brief
 from roadkeep.authoring import add, set_status
+from roadkeep.backlog import Backlog
 from roadkeep.claiming import AlreadyHeld, Followed, Held, window
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import CLAIM_HELD, CLAIM_HELD_MAX, Config, ConfigError
@@ -361,7 +362,7 @@ def test_shipping_a_claimed_line_leaves_no_entry_behind(tmp_path):
     config = project(tmp_path, BLOCKS + line("RK2") + line("RK9"))
     take(config)
     assert main(["-C", str(tmp_path), "ship", "RK2", "--why", "It works now."]) == EXIT_OK
-    assert claiming.survey(config, config.document("roadmap").entries) == ()
+    assert claiming.survey(Backlog.load(config)) == ()
 
 
 def test_retiring_a_claimed_line_leaves_no_entry_either(tmp_path):
@@ -575,7 +576,7 @@ def test_the_registry_reads_as_three_different_things(tmp_path):
         )
     age(tmp_path, "RK9", HELD + 60)
     age(tmp_path, "RK5", 120)
-    rows = {row.id: row for row in claiming.survey(config, config.document("roadmap").entries)}
+    rows = {row.id: row for row in claiming.survey(Backlog.load(config))}
     assert rows["RK2"].state is claiming.State.HELD
     assert rows["RK9"].state is claiming.State.EXPIRED
     # 📋: the marker moved, so the entry is not a claim at all.
@@ -583,12 +584,53 @@ def test_the_registry_reads_as_three_different_things(tmp_path):
 
 
 def test_an_entry_for_an_id_no_line_carries_is_stale_and_not_an_error(tmp_path):
-    # What a `ship` leaves behind until the next claim prunes it, and what a hand-edited file
-    # can leave for ever: reported, because that is the entry a reader is looking for.
+    # What a `ship` leaves behind until the next marker write reconciles it, and what a
+    # hand-edited file can leave for ever: reported, because it is the entry a reader wants.
     config = project(tmp_path, BLOCKS + line("RK2"))
     claiming._write(claiming.path(tmp_path), {"RK99": time.time()})  # noqa: SLF001
-    row = claiming.survey(config, config.document("roadmap").entries)[0]
+    row = claiming.survey(Backlog.load(config))[0]
     assert (row.id, row.state, row.marker) == ("RK99", claiming.State.STALE, "")
+    # And the one of the four absences that is worth acting on (RK164).
+    assert row.where is claiming.Where.NOWHERE
+
+
+def test_the_three_ids_that_left_by_a_door_say_which_one(tmp_path):
+    # RK164: "no line carries this id" was true of four situations and useful in one, so the
+    # listing named a consequence where every other answer in this tool names a cause.
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
+        'deferred = "DEFERRED.md"\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "ROADMAP.md").write_text(BLOCKS + line("RK2"), encoding="utf-8")
+    (tmp_path / "CHANGELOG.md").write_text(
+        "# Shipped\n\n## Block A — The model\n\n"
+        "- ✅ **RK7** **A shipped symptom** — it works now.\n"
+        "- 🗑 **RK8** **An abandoned symptom** — superseded by RK7.\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "DEFERRED.md").write_text(
+        "# Set aside\n\n## Block A — The model\n\n"
+        "- ⏸ **RK9** (deps: —) **A paused symptom** — set aside (waiting): a reason. → §RK9\n",
+        encoding="utf-8",
+    )
+    config = Config.discover(tmp_path)
+    now = time.time()
+    claiming._write(  # noqa: SLF001
+        claiming.path(tmp_path),
+        {"RK7": now, "RK8": now, "RK9": now, "RK99": now},
+    )
+    where = {row.id: row.where for row in claiming.survey(Backlog.load(config))}
+    assert where == {
+        "RK7": claiming.Where.SHIPPED,
+        "RK8": claiming.Where.RETIRED,
+        "RK9": claiming.Where.PAUSED,
+        "RK99": claiming.Where.NOWHERE,
+    }
+    # Every one of them is still `stale`: what it *is* and where it went are two facts.
+    assert {row.state for row in claiming.survey(Backlog.load(config))} == {
+        claiming.State.STALE
+    }
 
 
 def test_the_listing_is_oldest_first_because_age_is_the_axis(tmp_path):
@@ -600,7 +642,7 @@ def test_the_listing_is_oldest_first_because_age_is_the_axis(tmp_path):
             tmp_path, task_id, IN_PROGRESS, config.document("roadmap").entries
         )
     age(tmp_path, "RK9", 600)
-    assert [row.id for row in claiming.survey(config, config.document("roadmap").entries)] == [
+    assert [row.id for row in claiming.survey(Backlog.load(config))] == [
         "RK9",
         "RK2",
     ]
@@ -632,7 +674,16 @@ def test_the_listing_offers_nothing_and_ranks_nothing(tmp_path, capsys):
     assert main(["-C", str(tmp_path), "claims", "--json"]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
     assert set(payload) == {"window", "registry", "held", "claims"}
-    assert set(payload["claims"][0]) == {"id", "state", "age", "since", "marker", "block"}
+    assert set(payload["claims"][0]) == {
+        "id",
+        "state",
+        # Where the id is, which is a fact and not an offer (RK164).
+        "where",
+        "age",
+        "since",
+        "marker",
+        "block",
+    }
 
 
 # -- not a second store (L2) -------------------------------------------------

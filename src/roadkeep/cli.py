@@ -2409,7 +2409,9 @@ def _audit(config: Config, args: argparse.Namespace) -> int:
 def _claims(config: Config, args: argparse.Namespace) -> int:
     """The registry read against the roadmap (RK161). Nothing here is a failure, so exit 0."""
     try:
-        rows = claiming.survey(config, config.document("roadmap").entries)
+        # The whole backlog and not the roadmap alone (RK164): three of the four ways an id can
+        # be absent from it are recorded in the other two files.
+        rows = claiming.survey(Backlog.load(config))
     except (KeyError, OSError) as error:
         return _refused(error)
 
@@ -2425,6 +2427,7 @@ def _claims(config: Config, args: argparse.Namespace) -> int:
                         {
                             "id": row.id,
                             "state": str(row.state),
+                            "where": str(row.where),
                             "age": round(row.age),
                             "since": row.since,
                             "marker": row.marker or None,
@@ -2441,9 +2444,14 @@ def _claims(config: Config, args: argparse.Namespace) -> int:
     held = sum(1 for row in rows if row.state is claiming.State.HELD)
     print(f"{len(rows)} dated, {held} held  (window {config.held}m)")
     for row in rows:
-        # The marker is dropped from the line rather than left as a gap: an id no line carries
-        # has no marker, and a column that is sometimes blank reads as one that failed to load.
-        where = f"{row.marker} Block {row.block}" if row.block else "no line carries this id"
+        # An open line says where it is with its own marker and block; anything else says which
+        # door it left by (RK164), which is the cause and not the consequence — and the marker
+        # column is dropped rather than left blank, a gap reading as something that failed.
+        where = (
+            f"{row.marker} Block {row.block}"
+            if row.where is claiming.Where.OPEN
+            else str(row.where)
+        )
         print(f"  {row.state:<8} {row.id}  claimed {row.since} ago  {where}")
     # Named because the release is a marker and the *file* is what an operator deletes when a
     # whole checkout's worth of claims outlived their workers (RK161).
