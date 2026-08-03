@@ -202,6 +202,29 @@ stop guessing at — and the roadmap needs none of it, `add` refusing a line tha
 
 ## Block C — Query
 
+### §RK161 The one question about a claim with no door
+
+Every other question this tool answers is a command, because the alternative is reading
+a file to learn one fact (L5). Claims are the exception left standing: `pick` names the
+ready lines it stepped around and `pick`'s stalled list annotates a blocked one, so the
+only way to see *all* of them is to ask two questions and union the answers — and
+neither reaches a claim on a line that is neither ready nor started, which the registry
+can hold after an id moves or a marker is hand-set.
+
+The operator's version is worse. The registry lives outside the repository under a name
+that is the checkout's path digested, which is right (L2: nothing in the tree to
+gitignore) and leaves "clear the claim of an agent that died" as a hunt through a temp
+directory. The release is already a command — a marker — but knowing *which* id to
+release is not.
+
+So: a read that lists what is claimed, each with its age against `[claims] held`, and
+where the registry is. It is the smallest command in the query surface and the one that
+makes the mechanism inspectable rather than inferred.
+
+What it must not become is a second answer to "what should I work on". `pick` decides
+that, and a listing that ranked or offered anything would be a fourth tier nobody
+declared.
+
 ## Block D — The gate
 
 ### §RK104 The block the gate does not read
