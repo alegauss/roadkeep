@@ -60,7 +60,7 @@ from roadkeep.authoring import StatusChange, set_status
 from roadkeep.backlog import Backlog, Readiness, id_order
 from roadkeep.claiming import Held
 from roadkeep.config import Config
-from roadkeep.document import Entry
+from roadkeep.document import Entry, shading
 from roadkeep.locking import exclusive
 from roadkeep.schema import IN_PROGRESS, Dep
 
@@ -165,9 +165,13 @@ def pick(
     if backlog is None:
         backlog = Backlog.load(config)
     if block is not None and block not in backlog.declared_blocks():
+        declared = sorted(backlog.declared_blocks())
         raise KeyError(
             f"no heading declares {config.schema.block_named(block)} (declares: "
-            f"{', '.join(sorted(backlog.declared_blocks())) or 'none'})"
+            f"{', '.join(declared) or 'none'})"
+            # As at the write refusal (RK216): scoping a pick to `A` where `AJ` is declared
+            # would otherwise read as "that block is empty" dressed as "that block is absent".
+            f"{shading(block, declared)}"
         )
     scope = f" in {config.schema.block_named(block)}" if block else ""
     considered = [

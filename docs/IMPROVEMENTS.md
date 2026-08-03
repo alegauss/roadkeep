@@ -100,29 +100,6 @@ overrun would be back to guessing, with a smaller number to guess against.
 
 ## Block B — Authoring
 
-### §RK216 A diagnosis that sends the caller to the wrong file
-
-`ship T226 --why '<four sentences>'` refused twice with *no heading declares Block A in
-ROADMAP.md (declares: AG, AE, AB, AC, AI, AJ, G, D, N, E, S, Q)*. T226 is in **AJ**,
-which that very list contains. The same command with a short `--why`, and later with the
-full text passed through an environment variable instead of typed inline, succeeded.
-
-So the cause is most likely argv reaching the parser differently — this was PowerShell
-5.1, whose native-argument handling is its own subject — and the tool wrote nothing
-either time, which is the half that worked.
-
-The finding is the message. `A` is a prefix of `AJ`, and a refusal naming a prefix of
-the caller's block, drawn from a list containing the caller's block, cannot be acted on:
-it tells somebody to declare a heading that already exists under a letter they never
-typed. Whatever mangled the input, the label the resolution used was never checked
-against the label the id itself carries.
-
-Two things worth having. The refusal could quote the id's own block beside the one it
-resolved, which turns an impossible sentence into an obvious one. And where a `--why`
-arrives empty or partial, say so rather than proceeding to a lookup with whatever is
-left — the second attempt ran with a short `--why` and shipped it, which is how a
-placeholder reaches a ledger that `amend` then refuses to correct.
-
 ## Block C — Query
 
 ### §RK200 The record with no way to read it

@@ -32,7 +32,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 
 from roadkeep.config import Config
-from roadkeep.document import Document, Entry, Reject
+from roadkeep.document import Document, Entry, Reject, shading
 from roadkeep.schema import DEFAULT_HEADING_WORD, Schema
 
 
@@ -109,6 +109,9 @@ class Census:
                 raise KeyError(
                     f"no heading declares {self.schema.block_named(block)} in {self.file} (declares: "
                     f"{', '.join(self.blocks) or 'none'})"
+                    # The same diagnosis the write refusal gives (RK216): `--block A` against
+                    # a list containing AJ is a filter nobody can correct from the list alone.
+                    f"{shading(block, self.blocks)}"
                 )
             counted = tuple(e for e in counted if e.task.block == block)
             missed = tuple(r for r in missed if r.block == block)

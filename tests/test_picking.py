@@ -220,6 +220,24 @@ def test_a_block_no_heading_declares_is_refused(tmp_path):
         pick(config, "Z")
     assert "no heading declares Block Z" in caught.value.args[0]
     assert "declares: A" in caught.value.args[0]
+    # Nothing extra where nothing shades into it (RK216): `Z` against A and B is already
+    # actionable, and a hint on every refusal is output nobody reads.
+    assert "prefix" not in caught.value.args[0]
+
+
+def test_a_block_that_shades_into_a_declared_one_says_so(tmp_path):
+    # The read side of RK216: scoping a pick to `A` where the heading says `AJ` would
+    # otherwise read as "that block is absent" for a block that is right there.
+    # Both files, because a block is declared by a heading in either of them (RK37).
+    config = project(
+        tmp_path,
+        "## Block AJ — The late block\n" + line("RK2", block="AJ"),
+        changelog="# Shipped\n\n## Block AJ — The late block\n",
+    )
+    with pytest.raises(KeyError) as caught:
+        pick(config, "A")
+    assert "AJ shares a prefix with A" in caught.value.args[0]
+    assert "check that the label reached this command whole" in caught.value.args[0]
 
 
 def test_a_block_whose_last_task_shipped_still_resolves(tmp_path):

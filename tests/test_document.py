@@ -31,7 +31,9 @@ from roadkeep.document import (
     Document,
     RoundTripError,
     StaleFile,
+    UnknownBlock,
     _parsed,
+    shading,
     write_atomically,
 )
 from roadkeep.schema import RETIRED
@@ -1024,3 +1026,52 @@ def test_a_cached_document_is_never_the_one_a_caller_mutates(tmp_path):
     first.remove_lines(entry.index, entry.stop)
     assert len(Document.load(path).entries) == 1
     assert first.path == path and Document.load(path).path == path
+
+
+# -- a diagnosis that sends the caller to the wrong file (RK216) ---------------
+
+#: Claude Code Tray's own list, at the incident. `AJ` is in it and `A` is not, and `A` is a
+#: prefix of six of them — which is what made the refusal impossible to act on.
+TRAY_BLOCKS = ("AG", "AE", "AB", "AC", "AI", "AJ", "G", "D", "N", "E", "S", "Q")
+
+
+def test_a_label_that_shades_into_a_declared_one_is_named_as_such():
+    # The finding: `ship` on a task in AJ refused with "no heading declares Block A" from a
+    # list containing AJ, so the only thing the sentence asked for was a heading already
+    # there under a letter the caller never typed.
+    error = UnknownBlock("A", TRAY_BLOCKS, where="ROADMAP.md")
+    message = str(error)
+    assert "no heading declares Block A" in message  # the fact, unchanged
+    assert "shares a prefix with A" not in message  # six of them, so the plural
+    assert "AG, AE, AB, AC, AI, AJ share a prefix with A" in message
+    assert "check that the label reached this command whole" in message
+    # And the advice the base sentence gives is the one that is now unsafe to follow.
+    assert "before declaring a second heading over the first one's work" in message
+
+
+def test_the_confusion_is_reported_from_either_end():
+    # `A` against a declared `AJ` and `AJ` against a declared `A` are one mistake seen from
+    # two ends, and only one of them is the direction the incident arrived from.
+    assert "AJ shares a prefix with A" in str(UnknownBlock("A", ("AJ", "G")))
+    assert "A shares a prefix with AJ" in str(UnknownBlock("AJ", ("A", "G")))
+
+
+def test_a_label_that_shades_into_nothing_says_nothing_extra():
+    # The sentence every project already saw stays what it was: a hint on every refusal is
+    # output nobody reads, and `Z` against A and B is already actionable.
+    message = str(UnknownBlock("Z", ("A", "B"), where="ROADMAP.md"))
+    assert "no heading declares Block Z" in message
+    assert "prefix" not in message and "reached this command whole" not in message
+
+
+def test_the_declared_label_itself_is_never_reported_as_shading_into_itself():
+    # Every label is a prefix of itself, so the check has to exclude the equal case or a
+    # refusal that cannot happen would carry a hint about the block it is refusing.
+    assert shading("AJ", ("AJ",)) == ""
+
+
+def test_the_diagnosis_is_written_once_and_used_by_the_reads_too(tmp_path):
+    # Three places compose this refusal — the write, `Census.select` and `pick` — and a fix
+    # in one that left two copies unactionable would be a half-fix of the finding itself.
+    assert "AJ shares a prefix with A" in shading("A", ("AJ", "G"))
+    assert shading("A", ()) == ""

@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK216** (deps: —) **A refusal named a block the caller never mentioned, and it is a prefix of theirs** — ship on a task in Block AJ refused with 'no heading declares Block A', from a list that contains AJ, so the sentence asks for a heading that is already there under another letter. → §RK216
-
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK200** (deps: —) **Which governed files no verb wrote is answerable only by trying to end the turn** — RK175 records a digest per write and states one change once at the `Stop` hook, so the only way to ask is to be blocked — and it re-baselines as it reports, so the fact is gone. → §RK200

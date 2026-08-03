@@ -117,12 +117,56 @@ _BOLD_ID_RE = re.compile(rf"^\*\*{ID_SHAPE}{_PART}\*\*(?=\s|$)")
 _POINTER = f" {ARROW} §"
 
 
+def shading(label: str, declared: Sequence[str]) -> str:
+    """The clause that makes an undeclared-block refusal actionable, or "" (RK216).
+
+    A label sharing a prefix with a declared one turns *no heading declares Block A
+    (declares: … AJ …)* into a sentence nobody can act on: the only thing it asks for is a
+    heading already there under a letter the caller never typed. Measured in Claude Code
+    Tray, on a `ship` whose task was in AJ.
+
+    One function and not one sentence per raiser, because three places compose this refusal —
+    this module's write refusal, `Census.select` and `pick` — and their *other* clauses
+    legitimately differ: a write may not invent a heading, while a read is simply asking
+    about a block that is not there. The confusion is the same in all three, so it is written
+    once and the tails stay their own.
+
+    Both directions, `A` against a declared `AJ` and `AJ` against a declared `A` being one
+    mistake seen from two ends.
+    """
+    shades = tuple(
+        other
+        for other in declared
+        if other != label and (other.startswith(label) or label.startswith(other))
+    )
+    if not shades:
+        return ""
+    verb = "share" if len(shades) > 1 else "shares"
+    return (
+        f" — but {', '.join(shades)} {verb} a prefix with {label}, so check that the label "
+        f"reached this command whole"
+    )
+
+
 class UnknownBlock(ValueError):
     """A block is declared by a heading and by nothing else (RK37).
 
     Raised by every write that files something under a block — a task line (RK5) and a
     rationale section (RK9) — because a heading invented by a write puts the text where
     nothing looks for it, and one that is merely missing is a heading the author can add.
+
+    Which is the advice that stops being safe when the label **shares a prefix with a
+    declared one** (RK216). Measured in Claude Code Tray: a `ship` on a task in Block AJ
+    refused with *no heading declares Block A (declares: AG, AE, AB, AC, AI, AJ, …)*, from a
+    list containing AJ — a sentence nobody can act on, because the only thing it asks for is
+    a heading that is already there under a letter the caller never typed, and taking it at
+    its word opens a second heading over the first one's work.
+
+    So the confusion is named here rather than at a caller. Every write that files under a
+    block raises this one exception, and the two things needed to spot it — the label asked
+    for and the labels declared — are the two it already carries. Whatever mangled the input
+    (that incident was PowerShell 5.1 and a long inline argument), the file is untouched and
+    the message is the only thing the author has to go on.
     """
 
     def __init__(
@@ -132,9 +176,14 @@ class UnknownBlock(ValueError):
         self.declared = tuple(declared)
         known = ", ".join(self.declared) or "none"
         file = f"{where} " if where else ""
+        # The tail this refusal adds to the shared diagnosis: at a *write* the danger is
+        # taking "add the heading" at its word and opening a second one over the first's work.
+        shades = shading(label, self.declared)
+        if shades:
+            shades += " before declaring a second heading over the first one's work"
         super().__init__(
             f"no heading declares {word} {label} ({file}declares: {known}): a heading "
-            f"invented by a write files the text where nothing looks for it"
+            f"invented by a write files the text where nothing looks for it{shades}"
         )
 
 
