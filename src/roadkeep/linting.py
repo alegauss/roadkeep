@@ -102,6 +102,7 @@ from roadkeep.graph import Graph
 from roadkeep.history import (
     HistoryUnavailable,
     check_ignore,
+    indexed,
     blob_at,
     content_at,
     resolves,
@@ -112,12 +113,16 @@ from roadkeep.history import (
 from roadkeep.markers import derive
 from roadkeep.schema import PARTIAL, DepKind, Task, over_by
 from roadkeep.sections import Section, anchored, find
-from roadkeep.showing import paths_in
+from roadkeep.showing import known_directories, paths_in
 
 #: The governed files whose unit is a task line. The prose files are paragraphs, so
 #: their gate is a pointer and a budget — RK15 and RK30, not this. The deferred store is
 #: one of them (RK96): a line set aside is still a line, and a store nothing gated would
 #: be the one place the format is a convention again.
+#: "Nobody has asked yet", which None cannot say here: None is the answer meaning "git
+#: could not tell us", and the two have to be different things (RK217).
+_UNASKED = object()
+
 LINE_ROLES = ("roadmap", "changelog", "deferred")
 
 #: The two whose lines are still alive, so their rationale section is still there: open
@@ -221,6 +226,9 @@ class Tree:
     #: in one `check-ignore` for all of them and cached — the candidates are the handful
     #: that already failed every other reader, so one subprocess covers a whole run.
     _ignored: frozenset[str] | None = field(default=None, repr=False)
+    #: The directories a path claim is decided against (RK217), or None where git could not
+    #: say — a sentinel rather than None-means-unasked, because None is itself the answer.
+    _directories: frozenset[str] | None | object = field(default=_UNASKED, repr=False)
 
     def document(self, role: str) -> Document | None:
         """One governed file under its role's schema, or ``None`` when this tree lacks it."""
@@ -263,10 +271,8 @@ class Tree:
         """
         if self.rev is None:
             return False
-        if self._names is None:
-            self._names = tracked_at(self.config, self.rev)
         return any(
-            self.config.relative(base / token) in self._names
+            self.config.relative(base / token) in self.listing()
             for base in (near, self.config.root)
         )
 
@@ -300,6 +306,34 @@ class Tree:
             self._ignored = _ignored(self.config, tokens)
         return self._ignored
 
+    def listing(self) -> frozenset[str]:
+        """Every path this tree still **has**, read once (RK173, RK217).
+
+        Two checks want it — the tail index and the revision's membership test — so it is
+        the tree's rather than each one's, and a run costs one listing however many ask.
+        """
+        if self._names is None:
+            self._names = (
+                tracked_now(self.config)
+                if self.rev is None
+                else tracked_at(self.config, self.rev)
+            )
+        return self._names
+
+    def directories(self) -> frozenset[str] | None:
+        """Which directories this repository knows, for deciding a claim (RK217).
+
+        Not :meth:`listing`, and the difference is the defect: that one drops a file
+        deleted from the working tree, which is right for "does the tree still have it" and
+        exactly wrong here — a ledger naming `lib/gone.py` after `lib/` was removed would
+        stop being a claim instead of becoming a finding. At a revision the two coincide,
+        there being no working tree to have deleted anything from.
+        """
+        if self._directories is _UNASKED:
+            names = indexed(self.config) if self.rev is None else self.listing()
+            self._directories = known_directories(self.config, names)
+        return self._directories
+
     def anywhere(self, token: str) -> bool:
         """Does this tree hold the artefact this token names, under **any** prefix? (RK173)
 
@@ -327,11 +361,7 @@ class Tree:
         and `tests/test_linting.py` is where all four numbers are held.
         """
         if self._tails is None:
-            names = (
-                tracked_now(self.config)
-                if self.rev is None
-                else tracked_at(self.config, self.rev)
-            )
+            names = self.listing()
             self._tails = frozenset(
                 "/".join(segments[start:])
                 for name in names
@@ -1470,12 +1500,15 @@ def _paths(config: Config, documents: dict[str, Document], tree: Tree) -> list[F
         return []
     file = config.relative(config.path("changelog"))
     near = config.path("changelog").parent
+    # Which directories the repository knows, at whichever tree this run is judging (RK217):
+    # a claim is about the repository, so the disk's current shape is not what decides it.
+    known = tree.directories()
     # Every token that survived the three readers above, asked of `.gitignore` in one call
     # (RK213). Collected first because the question is cheap in bulk and dear one at a time.
     candidates = [
         referenced.path
         for entry in document.entries
-        for referenced in paths_in(entry.raw, config.root, near=near)
+        for referenced in paths_in(entry.raw, config.root, near=near, known=known)
         if not referenced.exists
         and not tree.carries(referenced.path, near)
         and not tree.anywhere(referenced.path)
@@ -1492,7 +1525,7 @@ def _paths(config: Config, documents: dict[str, Document], tree: Tree) -> list[F
         for entry in document.entries
         # `near` is the ledger's own directory (RK51): a link written the way Markdown
         # reads it points at a file that is there, and 886 of Shio's are written that way.
-        for referenced in paths_in(entry.raw, config.root, near=near)
+        for referenced in paths_in(entry.raw, config.root, near=near, known=known)
         if not referenced.exists
         and not tree.carries(referenced.path, near)
         # And not somewhere else in the repository under a prefix the entry did not write

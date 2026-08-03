@@ -348,6 +348,23 @@ def tracked_at(config: Config, rev: str) -> frozenset[str]:
     return frozenset(name for name in output.split("\0") if name)
 
 
+def indexed(config: Config) -> frozenset[str]:
+    """Every path the index carries, including one deleted from the working tree (RK217).
+
+    :func:`tracked_now` without its subtraction, because the two answer different questions.
+    *Does the repository still have this artefact* must not credit a file somebody deleted
+    and did not stage — that is the finding the path check exists for. *Is this a directory
+    the repository knows about* must: a ledger naming `lib/gone.py` after `lib/` was removed
+    is precisely the case worth reporting, and a listing that had already forgotten `lib/`
+    would make the token stop being a claim rather than become a finding.
+    """
+    try:
+        listed = _run(config.root, "ls-files", "-z")
+    except HistoryUnavailable:
+        return frozenset()
+    return frozenset(name for name in listed.split(chr(0)) if name)
+
+
 def tracked_now(config: Config) -> frozenset[str]:
     """Every tracked path the working tree still **has**, as git spells them (RK173).
 
@@ -360,15 +377,18 @@ def tracked_now(config: Config) -> frozenset[str]:
     Minus what git calls deleted, which is the whole reason this is not `ls-files` alone:
     the index still carries a file removed from the tree and not yet staged, and crediting
     one would forgive exactly the finding this check exists for — an artefact that was there
-    at the revision and is gone now.
+    at the revision and is gone now. :func:`indexed` is the same listing without that
+    subtraction, for the caller asking the other question.
     """
+    listed = indexed(config)
+    if not listed:
+        return frozenset()
     try:
-        listed = _run(config.root, "ls-files", "-z")
         removed = _run(config.root, "ls-files", "--deleted", "-z")
     except HistoryUnavailable:
         return frozenset()
-    gone = {name for name in removed.split("\0") if name}
-    return frozenset(name for name in listed.split("\0") if name and name not in gone)
+    gone = {name for name in removed.split(chr(0)) if name}
+    return frozenset(name for name in listed if name not in gone)
 
 
 @dataclass(frozen=True, slots=True)

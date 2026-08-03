@@ -287,29 +287,6 @@ and may not need a second.
 
 ## Block D — The gate
 
-### §RK217 The proxy RK55 used for a question git now answers
-
-RK55 was right that a token needs to be a *decidable* claim before it is reported: 60 of
-Shio's 61 findings were a MIME type, an i18n key or two method names sharing a slash,
-and the existing directory is what told those from a file the repository lost. That
-reasoning holds.
-
-What it did not anticipate is the direction the proxy fails in. `_claims_a_file` asks
-the **filesystem** whether the token's directory is there, so a ledger naming
-`lib/gone.py` reports when that one file goes and reports **nothing** when `lib/` goes
-with it — the larger deletion, and the one a reader is more likely to be surprised by.
-Measured on a fixture: one finding, then zero.
-
-RK213 established that git answers this class directly. `tracked_now` already knows
-every path the repository carries, `check-ignore` knows every path it has declared it
-never will, and between them the question "is this token a claim about this repository"
-has an answer that does not depend on what is on this disk right now.
-
-Whether that replaces the directory test or narrows it is the decision. Replacing it
-re-opens the 60 findings RK55 closed, so the measurement is which of them a
-tracked-prefix test would still admit — over both pinned corpora, before anything
-changes.
-
 ### §RK218 Half a revision
 
 RK84's whole claim is that a baseline run judges the governed files **as they were**, so

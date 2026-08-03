@@ -426,6 +426,15 @@ def naming(path: str) -> str:
     return LEDGER.replace("Because it was done.", f"Because it was done, in `{path}`.")
 
 
+def project(tmp_path: Path) -> Config:
+    """The same files with no repository around them, for the fallback case."""
+    write(tmp_path, "roadkeep.toml", CONFIG)
+    write(tmp_path, "ROADMAP.md", ROADMAP)
+    write(tmp_path, "CHANGELOG.md", LEDGER)
+    write(tmp_path, "IMPROVEMENTS.md", PROSE)
+    return Config.discover(tmp_path)
+
+
 def paths(report) -> list[str]:
     """Only this check's findings: the fixture carries one standing problem of its own."""
     return [c for c in codes(report) if c.startswith("path.missing")]
@@ -532,3 +541,56 @@ def test_one_escaping_path_does_not_take_the_whole_batch_with_it(tmp_path):
     assert "bin/out/app.exe" not in " ".join(
         f.message for f in lint(config).findings
     )
+
+
+# -- a claim is about the repository, not about this disk (RK217) -------------
+
+
+def test_deleting_the_directory_reports_what_deleting_the_file_reported(tmp_path):
+    """The defect, and the shape of it: the larger deletion was the silent one.
+
+    RK55 asked the **filesystem** whether the token's directory was there, so a ledger
+    naming `lib/gone.py` reported when that one file went and reported nothing when `lib/`
+    went with it. Measured before the change over both pins — 7246 distinct tokens, the
+    two rules disagreeing on none — so what RK55 closed stays closed.
+    """
+    config = repo(tmp_path, files={"lib/gone.py": "x = 1\n"})
+    write(tmp_path, "CHANGELOG.md", naming("lib/gone.py"))
+    git(tmp_path, "add", "-A")
+    git(tmp_path, "commit", "--quiet", "-m", "docs: name the file")
+    assert paths(lint(config)) == []
+
+    (tmp_path / "lib" / "gone.py").unlink()
+    assert paths(lint(config)) == ["path.missing RK5"]
+    shutil.rmtree(tmp_path / "lib")
+    assert paths(lint(config)) == ["path.missing RK5"]
+
+
+def test_a_token_under_no_directory_the_repository_knows_is_still_not_a_claim(tmp_path):
+    """What RK55 closed, and what a tracked-prefix test has to keep closed: 60 of Shio's 61
+    findings were a MIME type, an i18n key or two method names sharing a slash. None of
+    their heads is a directory anything tracks."""
+    config = repo(tmp_path, files={"src/kept.py": "x = 1\n"})
+    write(tmp_path, "CHANGELOG.md", naming("application/json"))
+    assert paths(lint(config)) == []
+    write(tmp_path, "CHANGELOG.md", naming("common/errors.not_found"))
+    assert paths(lint(config)) == []
+
+
+def test_a_directory_on_disk_that_nothing_tracks_is_not_the_repository_s(tmp_path):
+    """The other direction, and the one that made the answer per machine: an untracked
+    directory somebody happens to have is not evidence about this repository."""
+    config = repo(tmp_path, files={"src/kept.py": "x = 1\n"})
+    (tmp_path / "scratch").mkdir()
+    write(tmp_path, "CHANGELOG.md", naming("scratch/notes.md"))
+    assert paths(lint(config)) == []
+
+
+def test_a_checkout_with_no_history_keeps_the_filesystem_answer(tmp_path):
+    """An absent answer is not a negative one (RK95). A tree git cannot list tracks nothing
+    and declares nothing, so reading its silence as "no directory here is the repository's"
+    would drop every path claim in the file rather than decide any of them."""
+    config = project(tmp_path)  # no `git init`
+    (tmp_path / "docs" / "specs").mkdir(parents=True)
+    write(tmp_path, "CHANGELOG.md", naming("docs/specs/absent.md"))
+    assert paths(lint(config)) == ["path.missing RK5"]

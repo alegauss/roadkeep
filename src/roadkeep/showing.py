@@ -26,12 +26,14 @@ Three things it derives rather than trusts:
 
 from __future__ import annotations
 
+import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
 
 from roadkeep.config import PROSE_ROLES, Config
 from roadkeep.document import Document, Entry
+from roadkeep.history import tracked_now
 from roadkeep.schema import Task
 from roadkeep.sections import Section, find
 
@@ -118,7 +120,9 @@ def show(config: Config, task_id: str) -> View:
         section_absence=absence,
         # Both bases, for the reason RK51 gives: the line and its section are read from a
         # file, and a link relative to that file names an artefact the repository has.
-        paths=paths_in(text, config.root, near=config.path(role).parent),
+        paths=paths_in(
+            text, config.root, near=config.path(role).parent, known=known_directories(config)
+        ),
     )
 
 
@@ -186,7 +190,13 @@ def _rationale(
     return None, where, f"§{anchor} is not in {named}: the pointer resolves to nothing"
 
 
-def paths_in(text: str, root: Path, *, near: Path | None = None) -> tuple[Referenced, ...]:
+def paths_in(
+    text: str,
+    root: Path,
+    *,
+    near: Path | None = None,
+    known: frozenset[str] | None = None,
+) -> tuple[Referenced, ...]:
     """Quoted paths, deduplicated, in order of appearance.
 
     Public because RK29 joins the same list onto a wider answer, and a second
@@ -197,6 +207,11 @@ def paths_in(text: str, root: Path, *, near: Path | None = None) -> tuple[Refere
     root-relative tokens in its own lines, Shio writes the file-relative ones Markdown
     itself reads — 886 of them — and the question being asked is whether the repository
     has the artefact, not whether the link would render from where it is written.
+
+    `known` is every directory the repository knows about, which is what decides whether a
+    token is a *claim* at all (RK217, and see :func:`_claims_a_file`). Passed in rather than
+    computed here, because it costs two git calls and this function is called per entry —
+    and omitted by a caller with no repository, which keeps the filesystem answer.
     """
     out: dict[str, Referenced] = {}
     for match in _QUOTED.finditer(text):
@@ -217,25 +232,93 @@ def paths_in(text: str, root: Path, *, near: Path | None = None) -> tuple[Refere
         # Either the repository really has it, or the token is a decidable claim that it
         # should: a filename whose directory is there (RK55). A slash alone is not — 60 of
         # Shio's 61 findings were a MIME type, an i18n key or two method names sharing one.
-        if exists or _claims_a_file(token, root, near):
+        if exists or _claims_a_file(token, root, near, known):
             out.setdefault(token, Referenced(path=token, exists=exists))
     return tuple(out.values())
 
 
-def _claims_a_file(token: str, root: Path, near: Path | None) -> bool:
+def _claims_a_file(
+    token: str, root: Path, near: Path | None, known: frozenset[str] | None
+) -> bool:
     """Whether a token that does not resolve is nonetheless a claim about a file (RK55).
 
     Both halves are needed. The extension is what tells `lib/shio.ts` from
-    `ShPostUnifiedWriteService.update/publish`; the existing directory is what tells a file
-    this repository lost from one that was never in it — the `app/api/…` of a template it
+    `ShPostUnifiedWriteService.update/publish`; the directory is what tells a file this
+    repository lost from one that was never in it — the `app/api/…` of a template it
     generates elsewhere. Together they took Shio's 61 findings to the one true row: a Java
     class the ledger still names under the directory it was renamed inside.
+
+    ``known`` is the second half asked of the **repository** rather than of this disk
+    (RK217). The filesystem was a proxy, and it failed in the direction that costs most: a
+    ledger naming `lib/gone.py` reported when that one file went and reported *nothing*
+    when `lib/` went with it, which is the larger deletion. Given the directories the
+    repository tracks or has declared it never will, the answer stops depending on what
+    somebody last built or cleaned.
+
+    Measured before the change, over both pins: 7246 distinct tokens, and the two rules
+    disagree on **none** of them — so what RK55 closed stays closed and nothing new is
+    admitted. The difference only appears once the disk stops matching the repository,
+    which is exactly the state the gate has to survive. ``None`` keeps the filesystem
+    answer, for a caller with no repository to ask.
     """
     head, _, name = token.rpartition("/")
     if not head or "." not in name:
         return False
     bases = (root,) if near is None else (near, root)
-    return any((base / head).is_dir() for base in bases)
+    if known is None:
+        return any((base / head).is_dir() for base in bases)
+    return any(_within(base / head, root) in known for base in bases)
+
+
+def known_directories(
+    config: Config, names: frozenset[str] | None = None
+) -> frozenset[str] | None:
+    """Every directory this repository knows about, tracked or declared untracked (RK217).
+
+    The set `_claims_a_file` asks instead of the disk: every prefix of every tracked path,
+    built once per command from one listing rather than a stat per token.
+
+    **Tracked only, and no ignored directory in it.** A `bin/Release/app.exe` under an
+    ignored `bin/` would be admitted here and then withheld by `declared_untracked` (RK213)
+    one step later, so adding it would be a `check-ignore` per head for an answer that does
+    not change. The two rules compose in that order on purpose: this one asks whether the
+    token is a claim about *this* repository, and that one asks whether the repository said
+    it would never hold the file.
+
+    ``names`` is the tracked listing a caller already holds, so a `lint` run at a revision
+    passes that revision's and this does not ask twice. Absent, the working tree's is read.
+
+    **None where git cannot answer**, and the caller falls back to the disk. An absent
+    answer is not a negative one (RK95, and RK28 one file up): a checkout with no history
+    tracks nothing and declares nothing, so reading its silence as "no directory here is
+    the repository's" would drop every path claim in the file rather than decide it.
+
+    The root is in the set, because a token written from a governed file's own directory
+    can name it — `../outside.txt` from `docs/` is a path at the top of the repository, and
+    the repository certainly knows that directory.
+    """
+    if names is None:
+        names = tracked_now(config)
+    if not names:
+        return None
+    return frozenset(
+        {"."}
+        | {
+            "/".join(segments[:cut])
+            for name in names
+            for segments in (name.split("/"),)
+            for cut in range(1, len(segments))
+        }
+    )
+
+
+def _within(path: Path, root: Path) -> str | None:
+    """A path as the repository spells it, or None where it climbs out of the tree."""
+    try:
+        spelled = os.path.relpath(path.resolve(), root.resolve()).replace(os.sep, "/")
+    except ValueError:  # a different mount, so not this repository's at all
+        return None
+    return None if spelled.startswith("..") else spelled
 
 
 def _resolves(token: str, root: Path, near: Path | None) -> bool:
