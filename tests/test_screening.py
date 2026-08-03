@@ -29,6 +29,7 @@ from pathlib import Path
 
 import pytest
 
+from roadkeep import guarding, screening
 from roadkeep.config import CONFIG_NAME
 from roadkeep.guarding import GUARDED_TOOLS, WRITE_TOOLS, guard
 from roadkeep.screening import NAMING, SCREENED, worth_loading
@@ -270,3 +271,22 @@ def test_the_write_screen_agrees_with_the_guard_in_both_directions(tmp_path, pat
         assert not refused
     if refused:
         assert worth_loading(text, root)
+
+
+def test_the_path_keys_are_the_guards_own():
+    # The silent hole this file's docstring is about, and the one place it can open now:
+    # a key added to `guarding._PATH_KEYS` and not here means the screen skips a write the
+    # guard would have refused, with no refusal printed to say anything happened.
+    assert screening._PATH_KEYS == guarding._PATH_KEYS
+
+
+@pytest.mark.parametrize(
+    "spelling",
+    ["docs/ROADMAP.md", "docs\\ROADMAP.md", "./docs/ROADMAP.md", "docs/roadmap.md"],
+)
+def test_the_two_path_comparisons_agree(tmp_path, spelling):
+    # `screening._comparable` is `guarding._comparable` written again, because importing it
+    # would import the package the screen exists not to import. So they are compared.
+    root = project(tmp_path)
+    target = root / spelling
+    assert screening._comparable(target) == guarding._comparable(target)
