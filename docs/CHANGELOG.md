@@ -172,6 +172,7 @@
 - ✅ **RK225** **A run judging a revision stats the working tree once per token and throws every answer away** — A revision run asks the tree it is judging and spells paths lexically, so Turing's check costs 270 ms and no filesystem call instead of 559 ms and 34070.
 - ✅ **RK226** **A path written with Windows separators is a path on one platform and a filename on the other** — A path token is normalised to forward slashes before anything asks, so one spelling reaches the disk, git and the report whichever platform wrote the line.
 - ✅ **RK227** **The invisible-codepoint check calls a Python predicate once per character of every governed file** — The check asks which codepoints occur before asking where, so a clean file is cleared in 6 ms instead of 148 and the whole gate costs 517 ms.
+- ✅ **RK228** **How git spells a token is recomputed from scratch per token, and twice for most of them** — The root is normalised once and a token is spelled once per base, so the path check costs 81 ms of a 306 ms gate instead of 270 of 529.
 
 ## Block E — Adoption
 

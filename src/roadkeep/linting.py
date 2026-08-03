@@ -228,6 +228,8 @@ class Tree:
     #: The directories a path claim is decided against (RK217), or None where git could not
     #: say — a sentinel rather than None-means-unasked, because None is itself the answer.
     _directories: frozenset[str] | None | object = field(default=_UNASKED, repr=False)
+    #: The root as a normalised string, so the constant half of a spelling is built once.
+    _root: str | None = field(default=None, repr=False)
 
     def document(self, role: str) -> Document | None:
         """One governed file under its role's schema, or ``None`` when this tree lacks it."""
@@ -270,10 +272,7 @@ class Tree:
         """
         if self.rev is None:
             return False
-        return any(
-            _spelled(self.config, base, token) in self.listing()
-            for base in (near, self.config.root)
-        )
+        return any(spelling in self.listing() for spelling in self.spellings(token, near))
 
     def declared_untracked(self, tokens: Sequence[tuple[str, Path]]) -> frozenset[str]:
         """Which tokens name a path the repository has declared it will never track (RK213).
@@ -313,6 +312,30 @@ class Tree:
                 self._ignored[token] = token in declared
         return frozenset(token for token, _ in tokens if self._ignored[token])
 
+    def spellings(self, token: str, near: Path) -> tuple[str, ...]:
+        """How git could spell this token, from each base it may be relative to (RK51).
+
+        Computed once and passed down (RK228): `holds` used to ask `carries`, which spelled
+        the token, and then spell it again for the directory set — two answers to one
+        question, and the profile's largest remaining row was the second one.
+
+        The root prefix is the constant half, so it is normalised once for the whole run
+        rather than 34133 times through `os.path.relpath`, which normcases both ends of
+        every call. Nothing about the answer changes; only how often the part that cannot
+        differ is recomputed.
+        """
+        return tuple(
+            spelling
+            for base in (near, self.config.root)
+            if (spelling := _spelled(self._prefix(), str(base), token)) is not None
+        )
+
+    def _prefix(self) -> str:
+        """The repository root as a normalised prefix, with its separator, built once."""
+        if self._root is None:
+            self._root = os.path.normpath(str(self.config.root))
+        return self._root
+
     def listing(self) -> frozenset[str]:
         """Every path this tree still **has**, read once (RK173, RK217).
 
@@ -342,13 +365,11 @@ class Tree:
         """
         if self.rev is None:
             return on_disk(token, self.config.root, near)
-        if self.carries(token, near):
+        spellings = self.spellings(token, near)
+        if any(spelling in self.listing() for spelling in spellings):
             return True
         directories = self.directories() or frozenset()
-        return any(
-            _spelled(self.config, base, token) in directories
-            for base in (near, self.config.root)
-        )
+        return any(spelling in directories for spelling in spellings)
 
     def directories(self) -> frozenset[str] | None:
         """Which directories this repository knows, for deciding a claim (RK217).
@@ -1612,7 +1633,7 @@ def _declared_untracked(
     asked: dict[str, str] = {}
     for token, near in tokens:
         for base in (near, config.root):
-            spelling = _spelled(config, base, token)
+            spelling = _spelled(os.path.normpath(str(config.root)), str(base), token)
             # None is a path above the root, which is nothing this repository's
             # `.gitignore` could have declared — and git refuses the **whole**
             # invocation over one of them (RK220), through the same door as "there is
@@ -1631,7 +1652,7 @@ def _declared_untracked(
     return frozenset(asked[name] for name in answered if name in asked)
 
 
-def _spelled(config: Config, base: Path, token: str) -> str | None:
+def _spelled(root: str, base: str, token: str) -> str | None:
     """How git would spell this token from this base — decided **lexically** (RK225).
 
     `Config.relative` resolves the path, which is right where a junction has to be followed
@@ -1644,13 +1665,16 @@ def _spelled(config: Config, base: Path, token: str) -> str | None:
     None where the spelling climbs out of the repository: git has nothing to say about a
     path above the root, and one of them refuses a whole `check-ignore` batch (RK220).
     """
-    joined = os.path.normpath(os.path.join(str(base), token))
-    try:
-        relative = os.path.relpath(joined, str(config.root))
-    except ValueError:  # a different mount, so not this repository's at all
+    joined = os.path.normpath(os.path.join(base, token))
+    if joined == root:
+        return "."
+    if not joined.startswith(root + os.sep):
+        # Above the root, or on another mount: either way not a path git can be asked
+        # about. A prefix test rather than `os.path.relpath`, which normcases and splits
+        # both ends per call — 342330 `normcase` calls under 34133 of them (RK228) — and
+        # cannot say more here, because both sides are built from the same config root.
         return None
-    spelling = relative.replace(os.sep, "/")
-    return None if spelling == ".." or spelling.startswith("../") else spelling
+    return joined[len(root) + 1 :].replace(os.sep, "/")
 
 
 @dataclass(frozen=True, slots=True)

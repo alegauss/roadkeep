@@ -21,6 +21,7 @@ reports the difference. Three properties are what these tests are about:
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -833,10 +834,15 @@ def test_a_spelling_is_decided_without_asking_the_filesystem(tmp_path):
     of which 7.4 s was `realpath`. Every path compared against git's listing is built from
     the config's own root, so the prefix already agrees and `..` normalises textually."""
     config = repo(tmp_path, files={"docs/deep/kept.py": "x = 1\n"})
-    assert _spelled(config, tmp_path / "docs", "deep/kept.py") == "docs/deep/kept.py"
-    assert _spelled(config, tmp_path / "docs", "../top.md") == "top.md"
+    # The root arrives already normalised, because it is the half that cannot vary (RK228).
+    root = os.path.normpath(str(config.root))
+    docs = str(tmp_path / "docs")
+    assert _spelled(root, docs, "deep/kept.py") == "docs/deep/kept.py"
+    assert _spelled(root, docs, "../top.md") == "top.md"
     # Above the root: git has nothing to say, and one of them refuses a batch (RK220).
-    assert _spelled(config, tmp_path, "../outside.txt") is None
+    assert _spelled(root, str(tmp_path), "../outside.txt") is None
+    # The root itself keeps the spelling `known_directories` holds it under (RK217).
+    assert _spelled(root, docs, "..") == "."
 
 
 def test_a_windows_spelling_and_a_posix_one_are_one_claim(tmp_path):
@@ -870,3 +876,27 @@ def test_a_drive_relative_spelling_is_still_a_claim_about_one_machine(tmp_path):
     config = repo(tmp_path, files={"docs/specs/kept.md": "x\n"})
     write(tmp_path, "CHANGELOG.md", naming(r"\etc\passwd"))
     assert paths(lint(config)) == []
+
+
+def test_a_token_is_spelled_once_per_base_and_not_once_per_question(tmp_path):
+    """RK228: `holds` asked `carries`, which spelled the token, and then spelled it again
+    for the directory set — two answers to one question, and the profile's largest row was
+    the second one. One spelling per base, computed once and passed down."""
+    config = repo(tmp_path, files={"lib/kept.py": "x = 1\n"})
+    write(tmp_path, "CHANGELOG.md", naming("lib/gone.py"))
+    git(tmp_path, "add", "-A")
+    git(tmp_path, "commit", "--quiet", "-m", "docs: name a file that is not there")
+    tree = Tree(config, rev="HEAD")
+    tree.directories()
+    spelled: list[str] = []
+    real = linting_module._spelled
+
+    def counted(root, base, token):
+        spelled.append(token)
+        return real(root, base, token)
+
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(linting_module, "_spelled", counted)
+        assert tree.holds("lib/gone.py", tmp_path) is False
+    # Two bases, one spelling each — never four for the two questions `holds` asks.
+    assert len(spelled) == 2
