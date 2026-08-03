@@ -202,6 +202,28 @@ stop guessing at — and the roadmap needs none of it, `add` refusing a line tha
 
 ## Block C — Query
 
+### §RK160 The assertion that overwrites another
+
+RK158 made writing 🛠 an assertion that somebody is on the line, and applied it at
+`set_status` — which is where every marker write goes, including the one `hold` calls
+after refusing a line somebody else holds. So the refusal guards the named door and not
+the marker door beneath it: `status <id> 🛠` on a live claim re-dates it in the holder's
+name and says nothing, which is two workers on one line arriving through the verb that
+was meant to close that.
+
+The shape of the fix is not obvious, and that is the whole of this task. `hold` refuses
+*any* live claim, including the caller's own, because a claim names no owner — and
+lifting that refusal into `set_status` would make the marker door the only one in the
+tool that refuses a marker the schema accepts. It would also make a release harder than
+it should be: writing any *other* marker must never be refused, so the rule can only
+ever be about the in-progress one.
+
+Three candidates. Refuse, and make `hold`'s message the marker door's too. Take it, and
+*say* so — "the claim held for 12m is now yours" — which keeps the door open and removes
+the silence, which is the actual complaint. Or leave the marker door alone and treat
+`hold`'s refusal as the door that has it, which is today, and is only defensible if
+`status` is documented as the override.
+
 ## Block D — The gate
 
 ### §RK104 The block the gate does not read
