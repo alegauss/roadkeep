@@ -1598,7 +1598,9 @@ def _print_followed(change: StatusChange, config: Config) -> None:
     if change.claim is Followed.CLAIMED:
         print(f"  claimed  held for {config.held}m unless a marker moves it sooner")
     elif change.claim is Followed.RELEASED:
-        print("  released  the claim on this line is dropped")
+        # `dropped` and not `released`: every label in this output is padded to one width, and
+        # the eight-letter word is the one that would not fit it.
+        print("  dropped  the claim on this line is released")
 
 
 def _event(task_id: str, block: str, roadmap: Document) -> dict[str, object]:
