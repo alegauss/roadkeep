@@ -432,6 +432,74 @@ def outline(tmp_path, improvements=OUTLINE_PROSE):
     )
 
 
+#: A project whose positioning prose lives where `[files]` declares it — Turing's shape,
+#: and the outline scheme it numbers by: under `id` the pointer is derived from the id, so
+#: a line addressing another file's section is `ref.mismatch` before RK172 is reached.
+STRATEGY_CONFIG = OUTLINE_CONFIG + 'strategy = "STRATEGY.md"\n'
+STRATEGY = """# Strategy
+
+## X. Positioning
+
+### §X.3 Content calendar
+
+What the positioning prose the roadmap points at says.
+"""
+#: A line whose design is positioning and lives where positioning prose lives — added
+#: rather than repointed, so the two sections `§I.1` and `§I.2` stay reachable (RK135).
+POINTING_OUT = OUTLINE_CLEAN + (
+    "- 📋 **RK4** (deps: —) **A fourth symptom** — Because of a fourth. → §X.3\n"
+)
+
+
+def strategic(tmp_path, roadmap=OUTLINE_CLEAN, strategy=STRATEGY, improvements=OUTLINE_PROSE):
+    config = project(
+        tmp_path, roadmap=roadmap, improvements=improvements, config=STRATEGY_CONFIG
+    )
+    (tmp_path / "STRATEGY.md").write_text(strategy, encoding="utf-8")
+    return Config.discover(config.root)
+
+
+def test_a_pointer_into_the_strategy_file_resolves(tmp_path):
+    # RK172, measured adopting Turing: six open GEO lines carry `→ §X.3` and `→ §X.4`,
+    # `docs/STRATEGY.md` declares both, and the gate called all six unresolved — clearable
+    # only by repointing a line at an unrelated section or by moving positioning prose out
+    # of the file the config declares for it.
+    assert lint(strategic(tmp_path, roadmap=POINTING_OUT)).clean
+
+
+def test_a_pointer_into_neither_prose_file_names_both(tmp_path):
+    report = lint(strategic(tmp_path, roadmap=POINTING_OUT.replace("§X.3", "§X.9")))
+    unresolved = next(f for f in report.findings if f.code == "ref.unresolved")
+    assert "IMPROVEMENTS.md or STRATEGY.md" in unresolved.message
+
+
+def test_an_anchor_two_prose_files_declare_is_named_and_not_read(tmp_path):
+    # The seventh line's cost: T354 points at `§X.1`, an unrelated `§X.1` exists in the
+    # improvements file, and reading the first billed it 365 words of somebody else's
+    # subtree — so splitting that section into four moved the number *up* by five.
+    both = OUTLINE_PROSE + "\n### §X.3 Why bypass the framework\n\nOther prose.\n"
+    report = lint(strategic(tmp_path, roadmap=POINTING_OUT, improvements=both))
+    ambiguous = next(f for f in report.findings if f.code == "ref.ambiguous")
+    assert ambiguous.id == "RK4" and "IMPROVEMENTS.md and STRATEGY.md" in ambiguous.message
+    # And never read as one of the two: the improvements `§X.3` is charged its own prose,
+    # not the subtree a pointer would hand a reader.
+    assert "section.too-long" not in codes(report)
+
+
+def test_a_strategy_section_is_budgeted_like_any_other(tmp_path):
+    # A strategy file is a prose file: a gate that read one of the two would leave the
+    # other ungoverned in exactly the way the roadmap is not (RK30/RK50).
+    long = STRATEGY.replace("What the positioning prose the roadmap points at says.", "word " * 40)
+    config = project(
+        tmp_path, roadmap=OUTLINE_CLEAN, improvements=OUTLINE_PROSE,
+        config=STRATEGY_CONFIG + "[limits]\nsection = 10\n",
+    )
+    (tmp_path / "STRATEGY.md").write_text(long, encoding="utf-8")
+    report = lint(Config.discover(config.root))
+    over = next(f for f in report.findings if f.code == "section.too-long")
+    assert over.file == "STRATEGY.md" and over.id == "X.3"
+
+
 def test_an_outline_project_passes_when_every_section_names_a_live_task(tmp_path):
     assert lint(outline(tmp_path)).clean
 

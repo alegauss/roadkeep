@@ -120,6 +120,11 @@ LINE_ROLES = ("roadmap", "changelog", "deferred")
 #: delete the section in the transaction that writes the entry.
 LIVE_ROLES = ("roadmap", "deferred")
 
+#: The governed files a `→ §<anchor>` pointer may address (RK172). Both, because `[files]`
+#: declares strategy as a governed role and a line pointing at it is already in the model —
+#: the gate was the only part that resolved against one file and called the rest missing.
+PROSE_ROLES = ("improvements", "strategy")
+
 #: Variation selectors, which are `Mn` and not a format category: invisible all the same,
 #: and the class the parser already had to defend against (`_looks_like_marker`, RK2).
 _VARIATION_SELECTORS = frozenset(
@@ -359,15 +364,20 @@ def _examine(config: Config, since: str | None, tree: Tree) -> Report:
     findings.extend(_scope(config, documents.get("roadmap")))
     notes: list[Note] = _collective(config, documents)
 
-    prose = tree.document("improvements")
-    sections = ()
-    if prose is not None:
-        checked.append(config.relative(config.path("improvements")))
-        sections = anchored(prose)
-        findings.extend(_pointers(config, documents, sections))
-        findings.extend(_orphans(config, documents, prose, sections))
+    prose: dict[str, Document] = {}
+    for role in PROSE_ROLES:
+        document = tree.document(role)
+        if document is not None:
+            prose[role] = document
+    anchors = {role: anchored(document) for role, document in prose.items()}
+    sections = tuple(section for found in anchors.values() for section in found)
+    if prose:
+        checked.extend(config.relative(config.path(role)) for role in prose)
+        findings.extend(_pointers(config, documents, anchors))
+        for role, document in prose.items():
+            findings.extend(_orphans(config, documents, document, anchors, role=role))
         if since is not None:
-            notes.extend(_unpaired(config, sections, since))
+            notes.extend(_unpaired(config, anchors.get("improvements", ()), since))
     findings.extend(_paths(config, documents, tree))
 
     targets = _targets(config, tree)
@@ -1007,44 +1017,96 @@ def _deps(backlog: Backlog, task: Task, file: str, lineno: int) -> list[Finding]
 
 
 def _pointers(
-    config: Config, documents: dict[str, Document], sections: tuple[Section, ...]
+    config: Config,
+    documents: dict[str, Document],
+    anchors: dict[str, tuple[Section, ...]],
 ) -> list[Finding]:
-    """Every `→ §<anchor>` on a line that still has a design, resolved against the prose
-    file (RK15) — open, or set aside and still pointing at the rationale a resume needs
-    (RK96).
+    """Every `→ §<anchor>` on a line that still has a design, resolved against **every**
+    governed prose file (RK15, widened by RK172) — open, or set aside and still pointing at
+    the rationale a resume needs (RK96).
 
     Read from the parsed ``ref`` and never from the line's text, which is the whole
     subtlety: §RK15's own sentence quotes a pointer as an example of one, and a scan
     over the raw line reports that quotation as a design that does not exist.
+
+    Measured adopting Turing: six open GEO lines carry `→ §X.3` and `→ §X.4`, which
+    `docs/STRATEGY.md` declares and this resolved against the improvements file alone — so
+    the gate called six correct pointers unresolved, and the only ways to satisfy it were to
+    repoint a line at an unrelated section or to move positioning prose out of the file the
+    config declares for it. Where **two** roles declare one anchor the answer is neither
+    file: `ref.ambiguous` names both, because reading the first is what billed T354's `§X.1`
+    365 words of somebody else's subtree without saying so.
     """
-    where = config.relative(config.path("improvements"))
-    anchors = {section.anchor for section in sections}
-    return [
-        Finding(
-            "ref.unresolved",
-            config.relative(config.path(role)),
-            f"points at §{entry.task.ref}, which is not in {where}: a pointer to a "
-            f"section that does not exist reads as a design that does",
-            entry.lineno,
-            entry.task.id,
-        )
-        for role in LIVE_ROLES
-        if role in documents
-        for entry in documents[role].entries
-        if entry.task.ref and entry.task.ref not in anchors
-    ]
+    declared = _declared(anchors)
+    where = " or ".join(config.relative(config.path(role)) for role in anchors)
+    out: list[Finding] = []
+    for role in LIVE_ROLES:
+        if role not in documents:
+            continue
+        file = config.relative(config.path(role))
+        for entry in documents[role].entries:
+            ref = entry.task.ref
+            if not ref:
+                continue
+            found = declared.get(ref, ())
+            if not found:
+                out.append(
+                    Finding(
+                        "ref.unresolved",
+                        file,
+                        f"points at §{ref}, which is not in {where}: a pointer to a "
+                        f"section that does not exist reads as a design that does",
+                        entry.lineno,
+                        entry.task.id,
+                    )
+                )
+            elif len(found) > 1:
+                named = " and ".join(
+                    config.relative(config.path(other)) for other in found
+                )
+                out.append(
+                    Finding(
+                        "ref.ambiguous",
+                        file,
+                        f"points at §{ref}, which {named} both declare: one anchor names "
+                        f"one section, and a pointer resolving to two resolves to neither",
+                        entry.lineno,
+                        entry.task.id,
+                    )
+                )
+    return out
+
+
+def _declared(anchors: dict[str, tuple[Section, ...]]) -> dict[str, tuple[str, ...]]:
+    """Which prose roles declare which anchor — one index, read by resolution and by budget.
+
+    A role that declares an anchor twice says so once here: `section.duplicate` is that
+    file's own finding, and counting it again would make one file's mistake read as two
+    files disagreeing.
+    """
+    out: dict[str, list[str]] = {}
+    for role, found in anchors.items():
+        for anchor in dict.fromkeys(section.anchor for section in found):
+            out.setdefault(anchor, []).append(role)
+    return {anchor: tuple(roles) for anchor, roles in out.items()}
 
 
 def _orphans(
     config: Config,
     documents: dict[str, Document],
     prose: Document,
-    sections: tuple[Section, ...],
+    anchors: dict[str, tuple[Section, ...]],
+    *,
+    role: str,
 ) -> list[Finding]:
-    """The prose file read from its own side: a section, and what points at it.
+    """One prose file read from its own side: a section, and what points at it.
 
     A pointer resolves one way only, so nothing in `_pointers` can see a section that
     survived its task. Three ways that happens and one budget, all at the anchor's line.
+
+    Called **per governed prose role** (RK172), because a strategy file is a prose file: its
+    sections are pointed at, budgeted and orphaned by the same rules, and a gate that read
+    one of the two would leave the other ungoverned in exactly the way the roadmap is not.
 
     The budget is charged against **what a pointer hands a reader**, which is the one
     reading that keeps RK9's rule and this repository's own file both true: a section a
@@ -1052,8 +1114,13 @@ def _orphans(
     that doubled by growing a `§RK34.1` is caught), and one nothing points at is measured
     on its own prose (`§0` is a container whose three anchored children are each inside
     the budget, and charging it 461 words would fail a file with no long paragraph in it).
+    An anchor **two** files declare is charged as pointed at by nobody: which of the two a
+    line meant is what `ref.ambiguous` asks the author, and billing one of them 365 words of
+    the other's subtree in the meantime is the silent half of that defect.
     """
-    file = config.relative(config.path("improvements"))
+    file = config.relative(config.path(role))
+    sections = anchors[role]
+    declared = _declared(anchors)
     # A deferred task's section is carried, not deleted (RK96), so the line that owns it is
     # in the store rather than the roadmap — and reporting it orphaned would make the gate
     # demand the deletion of exactly what a resume restores.
@@ -1069,7 +1136,7 @@ def _orphans(
         entry.task.ref
         for document in documents.values()
         for entry in document.entries
-        if entry.task.ref
+        if entry.task.ref and len(declared.get(entry.task.ref, ())) == 1
     }
     claimed = _claimed(documents)
     ids = config.schema.id_pattern()

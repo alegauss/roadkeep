@@ -259,30 +259,6 @@ own construction, the number to report is one build, not fifty-two.
 
 ## Block D — The gate
 
-### §RK172 A pointer addresses a governed prose file, and the gate knows one
-
-Measured adopting Turing. Six open lines in its GEO block carry `→ §X.3` and `→ §X.4`,
-and the block's own preamble says what they mean: "`→` pointers are STRATEGY §X." Both
-exist — `docs/STRATEGY.md` declares `### X.3 Content calendar` and `### X.4 Measurement`
-— and `lint` reports `ref.unresolved` on all six, because it resolves a ref against the
-improvements file and no other.
-
-**The seventh line shows the cost.** T354 carries `→ §X.1`, and an unrelated `§X.1` exists in
-the improvements file — "Why bypass Spring AI for some features". So instead of a false
-`ref.unresolved` it gets a silent false *match*: `_budget` charges a **pointed** section with
-its whole subtree, so that one is billed 365 words for prose about a GEO task, and splitting it
-into four subsections moved the number *up* by five. A finding that cannot be cleared by doing
-what it asks is worse than a missing one.
-
-Nor can the six be cleared honestly: the only ways to satisfy them are to repoint a line
-at an unrelated section, or to move positioning prose out of the file the config
-declares for it.
-
-`[files]` already declares strategy as a governed role, so a pointer addressing it is in
-the model — the gate is the only part that does not know. Resolve against every declared
-prose role, and let T354 say what to do when two roles declare one anchor: name the
-ambiguity, never read the first and bill it.
-
 ### §RK173 A path is relative to something, and the root is a guess
 
 Measured adopting Turing. Eight `path.missing` findings, and six name files that are in
