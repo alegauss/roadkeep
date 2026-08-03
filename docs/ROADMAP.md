@@ -39,7 +39,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK146** (deps: —) **A tab is reported as an invisible character and repaired by nothing, for ever** — suspect reads Unicode categories and a tab is Cc, while --fix withholds it because indentation is part of the model — so a file with one carries a finding no verb can clear. → §RK146
 - 📋 **RK147** (deps: —) **A prose file's own limits are enforced by the gate and ignored by the write that creates the text** — section add and amend check the body against config.schema while lint charges schema_for(role), so a project declaring [limits.improvements] has a budget only the backstop holds. → §RK147
 - 📋 **RK172** (deps: —) **A pointer resolving to a section in the strategy file is reported as resolving to nothing** — Resolution is charged against the improvements file alone, so Turing's six GEO lines point at STRATEGY `§X.3`/`§X.4`, which exist, and the gate calls the correct pointer unresolved. → §RK172
 - 📋 **RK173** (deps: —) **A path a ledger entry names relative to its own module is reported as not in the repository** — Every path is resolved from the repository root, so Turing's `./package.json` and `scripts/prerender.mjs` are reported missing while both exist under the frontend app the entry is about. → §RK173

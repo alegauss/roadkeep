@@ -259,28 +259,6 @@ own construction, the number to report is one build, not fifty-two.
 
 ## Block D — The gate
 
-### §RK146 A control character with a rendering
-
-`suspect` is defined by Unicode category rather than a hand-kept list, which is the
-right call: a format character nobody has met yet is caught too. It also catches U+0009,
-because a tab is `Cc` — and the message it prints is *"invisible in an editor, so every
-other diagnosis of this line names the consequence instead"*, which of a tab is simply
-untrue.
-
-RK126 then had to withhold it from `--fix` for a reason that is also right: the
-indentation of a nested line is read off the file and written back verbatim (RK49), so
-deleting a tab re-parents somebody's task. The two correct decisions leave a project
-that indents with tabs holding a `char.invisible` per line, permanently, cleared by no
-command — a standing finding, which is what teaches a reader to stop reading the report.
-
-What separates a tab from the rest of `Cc` is that it **renders**, and the gate already
-knows that distinction: `removable` was written to name it. So the report should read it
-too — either by exempting a tab from `suspect` outright, or by giving it a finding of
-its own that says what is actually wrong (a tab where the format writes spaces) and can
-be fixed where the line's `indent` is empty. Which of those is right depends on whether
-any live corpus indents with tabs, and that is a measurement this task should take
-first.
-
 ### §RK147 The limit the writing door does not read
 
 L1 is the project's first law: the schema is enforced **where the text is created**, and

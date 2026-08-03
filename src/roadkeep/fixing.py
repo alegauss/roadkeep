@@ -37,8 +37,9 @@ four commands its refusal names all operate on the entry. Measured on Shio: two 
 an entry's continuation line, which is not an entry at all and which no parse reaches.
 
 So the character pass runs **before** the re-render, over every raw line of a line-bearing
-file, and deletes only what :func:`~roadkeep.linting.removable` allows — codepoints that are
-not text under any reading. It is exempt from rule 1 and from nothing else: rule 2 still
+file, and writes only what :func:`~roadkeep.linting.repaired` allows — a deletion for
+codepoints that are not text under any reading, and a space for the tab past an indentation
+that this format writes as one. It is exempt from rule 1 and from nothing else: rule 2 still
 carries every other byte through, and rule 3 still proves the whole file before the disk sees
 it. What that pass may *not* do is lose work, so the verification asks the weaker question it
 was always about — no id gone, no new line the grammar cannot read — because a control
@@ -59,7 +60,7 @@ from pathlib import Path
 from roadkeep.backlog import Backlog, id_order
 from roadkeep.config import Config
 from roadkeep.document import Document, StaleFile, ending, write_atomically
-from roadkeep.linting import LINE_ROLES, removable
+from roadkeep.linting import LINE_ROLES, indentation, repaired
 from roadkeep.markers import derive
 from roadkeep.schema import Dep, DepKind, Schema, Task
 
@@ -201,19 +202,32 @@ def _decontrol(document: Document, file: str) -> tuple[list[str], list[Repair]]:
     The line **body** only, because `\\r` and `\\n` are control characters too and a pass
     that took them would join the file into one line. The ending is put back exactly as it
     was read, which is :func:`~roadkeep.document.ending`'s whole reason for being public.
+
+    The **indentation** is where a codepoint stops being decidable by itself (RK146): a tab
+    there is the nesting RK49 reads off the file, and past it the format writes a space —
+    so the position is passed and :func:`~roadkeep.linting.repaired` answers with the text,
+    which is a deletion for everything that is not text and a space for the one thing that
+    renders as one.
     """
     lines = list(document.lines)
     ids = {entry.lineno: entry.task.id for entry in document.entries}
     repairs: list[Repair] = []
     for index, raw in enumerate(lines):
         body = raw.rstrip("\r\n")
-        kept = "".join(char for char in body if not removable(char))
+        head = indentation(body)
+        changed = [
+            (char, repaired(char, indent=position < head))
+            for position, char in enumerate(body)
+        ]
+        kept = "".join(
+            char if written is None else written for char, written in changed
+        )
         if kept == body:
             continue
         lineno = index + 1
         lines[index] = kept + ending(raw)
-        removed = ", ".join(
-            dict.fromkeys(f"U+{ord(c):04X}" for c in body if removable(c))
+        touched = ", ".join(
+            dict.fromkeys(f"U+{ord(c):04X}" for c, written in changed if written is not None)
         )
         repairs.append(
             Repair(
@@ -222,7 +236,7 @@ def _decontrol(document: Document, file: str) -> tuple[list[str], list[Repair]]:
                 ids.get(lineno, ""),
                 body,
                 kept,
-                (f"control character(s) removed: {removed}",),
+                (f"control character(s) removed: {touched}",),
             )
         )
     return lines, repairs

@@ -314,6 +314,17 @@ def test_a_tab_is_text_and_is_left_where_it_is(tmp_path):
     assert "\t- 💭 **RK3**" in roadmap_of(config)
 
 
+def test_a_tab_past_the_indentation_becomes_the_space_the_format_writes(tmp_path):
+    # RK146: the finding a tab used to carry could be cleared by no verb. Past the
+    # indentation it is a separator this format writes as a space, so the repair is a
+    # substitution — deleting it would glue two fields into a line that no longer parses.
+    config = project(tmp_path, roadmap=CLEAN.replace("A second symptom", "A second\tsymptom"))
+    applied = fix(config)
+    assert "**A second symptom**" in roadmap_of(config)
+    assert "U+0009" in " ".join(reasons(applied))
+    assert lint(Config.discover(tmp_path)).clean
+
+
 def test_a_space_that_is_not_a_space_is_reported_and_never_replaced(tmp_path):
     # The other half of the split: a `Zs` renders as a space, so turning one into a space
     # is a change to somebody's text and stays the author's.

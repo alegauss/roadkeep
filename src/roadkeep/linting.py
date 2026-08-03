@@ -469,14 +469,16 @@ def _characters(config: Config, role: str, document: Document) -> list[Finding]:
     ids = {entry.lineno: entry.task.id for entry in document.entries}
     out = _endings(document, file)
     for number, raw in enumerate(document.lines, start=1):
-        for column, char in enumerate(raw.rstrip("\r\n"), start=1):
-            if not suspect(char):
+        body = raw.rstrip("\r\n")
+        head = indentation(body)
+        for column, char in enumerate(body, start=1):
+            if not suspect(char, indent=column <= head):
                 continue
             out.append(_named(file, number, column, char, ids.get(number, "")))
     return out
 
 
-def suspect(char: str) -> bool:
+def suspect(char: str, *, indent: bool = False) -> bool:
     """Is this codepoint invisible, or a space that is not the space?
 
     Defined by Unicode category rather than a hand-kept list, so a control or format
@@ -484,35 +486,64 @@ def suspect(char: str) -> bool:
     are line breaks inside a line, and a `Zs` other than U+0020 renders as a space while
     comparing unequal to one. Variation selectors are `Mn` and named explicitly — U+FE0F
     on a marker is the case the parser already had to defend against (RK2).
+
+    `indent` is where the one control character that **renders** stops being suspect at all
+    (RK146). A tab is `Cc`, so this reported it as "invisible in an editor", which of a tab
+    is untrue — and RK126 rightly withheld it from `--fix`, because the indentation of a
+    nested line is read off the file and written back verbatim (RK49). Two correct decisions
+    left a project that indents with tabs holding a finding no command could ever clear,
+    which is what teaches a reader to stop reading the report. In the indentation a tab is
+    text; past it, it is a separator where this format writes a space, and :func:`_named`
+    says so instead.
     """
     if char in _VARIATION_SELECTORS:
         return True
+    if char == TAB:
+        return not indent
     category = unicodedata.category(char)
     return category in ("Cc", "Cf", "Zl", "Zp") or (category == "Zs" and char != " ")
 
 
-#: A control character with a rendering, and one the model keeps: the indentation of a
-#: nested line is read off the file and written back (RK49), so a tab is text here.
-_RENDERED_CONTROLS = "\t"
+#: The one control character with a rendering, and the one the model keeps (RK49).
+TAB = "\t"
+#: What a line may be indented with, and the span :func:`suspect` reads a tab as text in.
+_INDENT = " \t"
 
 
-def removable(char: str) -> bool:
-    """Which of the suspect codepoints `--fix` may simply delete (RK126).
+def indentation(body: str) -> int:
+    """How many leading characters of this line are its indentation, tabs included.
 
-    :func:`suspect` is what the gate reports; this is the subset a normalizer may act on,
-    and the split is RK16's own: a control or format character is **not text under any
-    reading**, so removing it is not a decision about anybody's prose — while a `Zs` that
-    is not U+0020 *renders* as a space, and turning one into a space is a change to text
-    that the author is the one to make.
-
-    Here rather than in :mod:`roadkeep.fixing` because it is the same law as the report
-    one function up, and a second list of codepoints is the one that would drift.
+    One reading, shared by the gate and the fixer, because a tab is text in this span and a
+    separator past it — and two functions deciding where the span ends is one pair that
+    would disagree about a line somebody nested (RK146).
     """
-    if char in _RENDERED_CONTROLS:
-        return False
+    return len(body) - len(body.lstrip(_INDENT))
+
+
+def repaired(char: str, *, indent: bool = False) -> str | None:
+    """What `--fix` writes in place of a suspect codepoint, or None to leave it (RK126).
+
+    :func:`suspect` is what the gate reports; this is what a normalizer may act on, and the
+    split is RK16's own: a control or format character is **not text under any reading**, so
+    removing it is not a decision about anybody's prose — while a `Zs` that is not U+0020
+    *renders* as a space, and turning one into a space is a change to text that the author
+    is the one to make.
+
+    A tab is the case that needs the position (RK146): inside the indentation it is left
+    alone, because deleting it re-parents somebody's task, and past it the repair is a
+    **space** rather than a deletion — the format writes one there, and removing the
+    separator would glue two fields into a line that no longer parses.
+
+    Here rather than in :mod:`roadkeep.fixing` because it is the same law as the report one
+    function up, and a second list of codepoints is the one that would drift.
+    """
+    if char == TAB:
+        return None if indent else " "
     if char in _VARIATION_SELECTORS:
-        return True
-    return unicodedata.category(char) in ("Cc", "Cf", "Zl", "Zp")
+        return ""
+    if unicodedata.category(char) in ("Cc", "Cf", "Zl", "Zp"):
+        return ""
+    return None
 
 
 def _named(file: str, lineno: int, column: int, char: str, task_id: str) -> Finding:
@@ -526,6 +557,19 @@ def _named(file: str, lineno: int, column: int, char: str, task_id: str) -> Find
             file,
             f"{point} byte-order mark at the start of the file: not text, and a byte the "
             f"round-trip compares",
+            lineno,
+            task_id,
+            column,
+        )
+    if char == TAB:
+        # Past the indentation, which is the only place `suspect` still reports one: the
+        # defect is not that it cannot be seen but that it is a separator this format does
+        # not write, and `--fix` turns it into the space that was meant (RK146).
+        return Finding(
+            "char.tab",
+            file,
+            f"{point} tab at column {column}: the format separates fields with a space, "
+            f"so a tab here is a separator the grammar reads as part of a field",
             lineno,
             task_id,
             column,

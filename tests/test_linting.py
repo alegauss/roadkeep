@@ -896,11 +896,21 @@ def test_a_byte_order_mark_answers_for_itself(tmp_path):
     assert "not text" in report.findings[0].message
 
 
-def test_a_tab_inside_a_line_is_a_control_character(tmp_path):
-    # Category `Cc`, caught by the same rule and with no entry in any list: the definition
-    # is Unicode's, so a control nobody has met yet is reported too.
+def test_a_tab_inside_a_line_says_what_is_wrong_with_a_tab(tmp_path):
+    # RK146: it is `Cc`, so it was reported as "invisible in an editor", which of a tab is
+    # untrue — and RK126 withheld it from `--fix` because the indentation of a nested line
+    # is part of the model. Two correct decisions, one finding no command could clear.
     report = lint(project(tmp_path, roadmap=CLEAN.replace("A first symptom", "A first\tsymptom")))
-    assert [f.code for f in report.findings] == ["char.invisible"]
+    (tab,) = report.findings
+    assert tab.code == "char.tab" and tab.column == 32
+    assert "separates fields with a space" in tab.message
+
+
+def test_a_tab_in_the_indentation_is_the_nesting_and_is_reported_by_nothing(tmp_path):
+    # The other half of the same reading: there a tab is the text RK49 writes back verbatim,
+    # so reporting it would be the standing finding that teaches a reader to stop reading.
+    nested = CLEAN.replace("- 💭 **RK2**", "\t- 💭 **RK2**")
+    assert lint(project(tmp_path, roadmap=nested)).clean
 
 
 def test_two_kinds_of_line_ending_in_one_file_are_reported(tmp_path):
