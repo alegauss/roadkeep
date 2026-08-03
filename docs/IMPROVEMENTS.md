@@ -75,6 +75,29 @@ already written, not authorship.
 
 ## Block A — The model
 
+### §RK201 The one surface RK185 did not reach
+
+RK185 made the case in one sentence: a model has no characters, so a limit published
+only in them is a target reached by trial. It then published the word aim on every
+surface an author reads *before* composing — the MCP field schema, `budget`, `brief`,
+the skill.
+
+The refusal is the surface they reach after, and it still says "delete 9 characters".
+That is exact and it is unactionable in the same way the ceiling was: the author
+subtracts a number they cannot measure, and the observed loop is five retries against
+one gate in a single session of this repository's own work.
+
+The correction is small and it is not a second opinion: RK184 already computes the
+surplus, and stating it as words alongside is the same conversion `budget` makes, from
+the same constant. "Delete 9 characters — about two words" is a sentence an author can
+act on without re-composing.
+
+Two things to be careful of. The word figure here is a *surplus* and not an aim, so it
+rounds the other way: rounding down would name a cut that does not clear the gate. And
+the refusal must keep the character number first, because that one is exact and the word
+one is an approximation of it — an author told only "two words" and given a 9-character
+overrun would be back to guessing, with a smaller number to guess against.
+
 ## Block B — Authoring
 
 ### §RK193 The half RK179 did not reach
@@ -170,6 +193,29 @@ than the first one declared.
 
 ## Block C — Query
 
+### §RK200 The record with no way to read it
+
+RK175 closed the symptom it was filed for: a governed file whose bytes no verb wrote is
+named as the turn ends. What it did not give is a way to *ask*. The digest sidecar is a
+temp file whose name is a digest, the comparison happens inside a hook, and the answer
+reaches exactly one reader at exactly one moment.
+
+That is the arrangement RK161 ended for claims, and the argument is the same one: L5
+says every question is a command, and "which lines are claimed" had to be answered by
+finding a temp file. Here it is worse in one way — reporting **re-baselines**,
+deliberately, so a turn that ends is a turn whose evidence is consumed. A session asking
+afterwards what happened has nothing to read, and neither has the next one.
+
+The obvious shape is the one `claims --prune` has: a read that says which governed files
+are attested, which are not, and where the record lives — without moving the baseline,
+because a query that changes the answer to the next query is not a query. Whether the
+`Stop` block should stop re-baselining once such a read exists is the second question
+and not this one.
+
+What to check first is whether anybody wants it. The claim registry earned its read
+because `pick` stepped over ids and could not say whose; this record has one consumer
+and may not need a second.
+
 ## Block D — The gate
 
 ### §RK188 A gate held against a file no verb maintains
@@ -242,6 +288,29 @@ file.
 
 Either way the live read stays available and stays named, because the advisory in
 `test_corpora.py` is the one that finds a parser defect in content nobody here authored.
+
+### §RK203 A budget that cannot tell an index from an essay
+
+RK30 gave `agents.md` a line and byte budget, and it is doing its job: the file that
+motivated this tool reached 186 KB one paragraph at a time, and a number the gate holds
+is what stops that. Nothing here proposes raising it.
+
+What Block F surfaced is that the file holds two kinds of text under one number. Most of
+it is prose that should be pushed back on — a rule restated, a rationale that belongs in
+the improvements file. The layout block is not that: it is an index of `src/roadkeep/`,
+one entry per module, and it grows for exactly one reason, which is that the package
+grew. Two modules shipped in this block, and naming them cost two unrelated entries
+their second line — a compression that improved nothing and lost a clause each time.
+
+The honest options are not obviously ranked. The index could be **derived**, the way the
+README block is (RK104), which makes it free and makes `lint` hold it — but a module's
+one-line purpose is prose the tool would then be writing, which is L4. It could be
+budgeted separately, which is two numbers where one was the point. Or the index could
+leave `agents.md` for a file that is not resident, which costs the turn that needs it a
+read.
+
+Measure first: how much of the budget the index actually holds, and how much of the rest
+is what the budget was written to refuse.
 
 ## Block E — Adoption
 
@@ -414,3 +483,48 @@ tool was given (L2), so it is named there for the same reason. The wider one is 
 git configuration and should stay a flag rather than a default.
 
 ## Block F — The plugin
+
+### §RK199 The floor RK176 could not reach
+
+RK176 took the guard from 184ms to 77ms by answering a `Bash` payload before importing
+`roadkeep.cli`. Measured after it, 23ms of what is left is not the screen's work at all:
+`roadkeep/__init__` re-exports fourteen names from `schema`, so `import
+roadkeep.screening` loads `schema`, `dataclasses`, `inspect`, `re` and `enum` to reach a
+module whose whole argument is that it imports only the standard library.
+
+It is not the hook's cost alone. Every `tools/call` pays it, every CLI invocation pays
+it, and `scripts/roadkeep.py` pays it twice over — the package `__init__` runs before
+any module in it does, so this is the one import no entry point can decline.
+
+The shape is PEP 562: `__getattr__` on the package, resolving each re-exported name on
+first use. What that costs is a claim to check rather than assume — `from roadkeep
+import claiming` and `from roadkeep import __version__` are submodule and attribute
+access rather than the re-exports, and whether any caller reaches `Schema` through the
+package at all is the thing to count first. If nothing does, the re-export list is the
+question and not the laziness.
+
+Measure the floor after, not the saving: the number worth having is what a screened
+`Bash` command costs when the package is out of its way.
+
+### §RK202 The last build, and whether it is buying anything
+
+RK174 took `tools/list` from 58 builds to one; RK198 took `tools/call` from three to
+one. What is left is the one build each message makes, 3.2ms of a 5.0ms call, and the
+reason it is not zero is a sentence in `_parsers`: a parser held across messages would
+stop a config edited mid-session from being described.
+
+That sentence is worth checking rather than inheriting. `build_parser` is a function of
+`cli.py` and nothing else — the config reaches the schema through `descriptor`, which
+reads `roadkeep.toml` per call and applies `_BOUNDS` to a parser it was handed. If the
+parser carries no configured value, then holding one for the life of the process
+describes exactly what rebuilding it describes, and the claim it was protecting is
+protected by the config read that is already per-message.
+
+Two things a memo would break if it is wrong, and both are why this is an idea and not a
+plan. RK155 reports code that moved after it was imported, and a parser built once at
+startup is one more thing that predates a change on disk. And RK177 now sends
+`notifications/tools/list_changed` off a config stat — a memoised parser and a live
+config is precisely the pair that can disagree.
+
+So: count what a parser holds from the config, and only then decide. 3.2ms a message is
+a small prize for a cache that can be wrong about which code answered.

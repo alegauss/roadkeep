@@ -22,6 +22,8 @@
 
 ## Block A — The model (a task is data before it is a line)
 
+- 📋 **RK201** (deps: —) **A length refusal states its surplus in the one unit the author composing the retry cannot count** — RK185 published every budget in words as well as characters and left RK184's refusal in characters alone, so the retry after an overrun is the guess the aim exists to remove. → §RK201
+
 ## Block B — Authoring (insert, never hand-edit)
 
 - 📋 **RK193** (deps: —) **Completing a partial rewrites the first line of an entry whose sentence runs past it** — RK179 gave the correction a span and `_complete` still calls `replace_task`, so on 10 of Shio's 12 partial entries the qualifier goes and the half's old sentence stays below it. → §RK193
@@ -31,11 +33,14 @@
 
 ## Block C — Query (consult without reading the file)
 
+- 📋 **RK200** (deps: —) **Which governed files no verb wrote is answerable only by trying to end the turn** — RK175 records a digest per write and states one change once at the `Stop` hook, so the only way to ask is to be blocked — and it re-baselines as it reports, so the fact is gone. → §RK200
+
 ## Block D — The gate
 
 - 📋 **RK188** (deps: —) **Every write stales the derived README block, so the gate fails until somebody remembers `export`** — RK104 made `lint` hold the block and no verb refreshes it, so ten consecutive claims and ships each left this repository failing its own gate on a file no task touched. → §RK188
 - 💭 **RK189** (deps: —) **A path claim is satisfied by a file of that name anywhere in the tree, and the floor was never measured** — RK173 indexes every tail of every tracked path, so a one-segment token resolves against any file sharing its name, and what that silences was argued rather than counted. → §RK189
 - 📋 **RK192** (deps: —) **A pinned corpus hands out a config whose file reads go to the live tree instead** — RK105 pinned every corpus assertion and `corpora.config` still roots at the checkout, so a read through it takes today's bytes while the helper beside it takes the revision. → §RK192
+- 💭 **RK203** (deps: —) **The layout index grows with the package and the budget holding it cannot tell it from prose** — agents.md sits at 125 of 125 lines, so naming two modules this block added took compressing two unrelated entries — a budget written against rationale creep spent on a fact about the tree. → §RK203
 
 ## Block E — Adoption
 
@@ -50,6 +55,9 @@
 - 📋 **RK148** (deps: —) **install wires four surfaces and leaves the merge driver to whoever remembers it** — merge --register is the opt-in RK120 shipped, and nothing offers it during adoption — so a wired project gets the tools, the guard and the skill, and its first parallel branch still conflicts by hand. → §RK148
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
+
+- 📋 **RK199** (deps: —) **Every entry point pays a schema import to reach a module that does not read one** — RK176's screen answers before `roadkeep.cli` loads and still costs 23ms of its 43ms floor, because `roadkeep/__init__` re-exports `schema` and importing any module runs it. → §RK199
+- 💭 **RK202** (deps: —) **The CLI parser is a pure function of the code and is rebuilt for every message** — RK198 left one build at 3.2ms of a 5.0ms call, and whether holding it across messages would stop a mid-session config edit being described was argued rather than counted. → §RK202
 
 ## Non-goals
 
