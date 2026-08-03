@@ -119,28 +119,6 @@ is some, the fix is RK179's, already written, moved one module over.
 
 ## Block C — Query
 
-### §RK190 A budget that is only ever a refusal
-
-RK183 made the `why`'s limit the smaller of its own and what the line has left, and
-RK184 made the refusal state the surplus. Both act at the same moment: after a sentence
-has been composed. The number they report is derived from the id, the marker, the deps
-and the pointer — every one of which `add` knows before the prose exists — so nothing
-about it had to wait for a draft.
-
-That is the arrangement L1 exists to end, one layer in. A `maxLength` refuses before a
-sentence is written to fill it; a derived budget delivered only as a refusal has the
-shape of a linter again, and the author pays a retry to learn a number the tool could
-have handed them. The saving is the analysis: "how long may this sentence be, under this
-block, with these deps" has an answer, and asking it costs no context (L5).
-
-Two shapes, and the difference is whether it is asked or already on the desk. A `budget`
-query takes what an `add` takes — the block, the deps — and reports the prose the line
-will have and each field's share. Or `brief`, the call that starts a task anyway, prints
-the budget of the line it handed over, which an amend is about to rewrite.
-
-What it must not become is a second statement of the limits: the number is
-`Schema.prose_budget` and nothing else, or this is one more thing to keep true.
-
 ### §RK194 A span every writer holds and no reader prints
 
 RK157 gave every entry a span and RK179 made a correction replace it, so the write path

@@ -16,7 +16,7 @@ not on PATH.
 When the `mcp__roadkeep__*` tools are available, **prefer them**: the whole write path and
 the reads a task needs are there — `add`, `block_add`, `block_drop`, `claim`, `status`, `amend`, `restate`, `ship`, `retire`, `defer`, `resume`,
 `record_add`,
-`record_amend`, `record_move`, `record_drop`, `record_renumber`, `non_goal_add`, `non_goal_drop`, `section_add`, `section_amend`, `section_drop`, `brief`, `pick`, `list`, `deps`, `lint` — same engine and same
+`record_amend`, `record_move`, `record_drop`, `record_renumber`, `non_goal_add`, `non_goal_drop`, `section_add`, `section_amend`, `section_drop`, `budget`, `brief`, `pick`, `list`, `deps`, `lint` — same engine and same
 refusals, with
 the fields arriving as a schema instead of flag names typed from memory. `init`, `adopt` and
 `install` run once per project and want the CLI — the last of them wires this file, the tools
@@ -154,7 +154,12 @@ project that arrived with drift, an absolute count answers nothing: `--baseline 
 
 ## Ask, don't count
 
-Every query takes `--json`. **`weight [--block <x>]` is the other pre-`add` read**: what
+Every query takes `--json`. **`budget` is the pre-`add` read that saves a retry**: what a
+line leaves its prose fields, derived from the id, the marker, the deps and the pointer — all of which are known before the first word exists. `budget --block <x> --dep <id>
+[--symptom "…"]` is the line an `add` is about to write, and `budget <id>` the one an `amend`
+is about to rewrite; the field's own `maxLength` is the ceiling, and what comes back is the
+lower number that actually binds. `brief` prints the `why`'s share of the line it hands over,
+so a task started through it never has to ask. **`weight [--block <x>]` is the other pre-`add` read**: what
 comparable tasks cost, derived from the commits that shipped them, so whether the line being
 written is one task or two is a question with an answer. An entry whose commit wrote several
 is named under `batched` and left out of the percentiles, so a squashed adoption import

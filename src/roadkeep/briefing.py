@@ -37,6 +37,7 @@ import textwrap
 from dataclasses import dataclass
 
 from roadkeep.backlog import Backlog, Readiness, Resolution
+from roadkeep.budgeting import Budget, budget_of
 from roadkeep.config import Config, Scope
 from roadkeep.document import Document
 from roadkeep.graph import Chain, Graph, Leverage
@@ -109,6 +110,11 @@ class Brief:
     #: The line taken, where the caller asked for it (RK149). Absent otherwise, so a brief
     #: that claimed nothing cannot be read as one that did.
     claim: Claim | None = None
+    #: What this line has left for prose (RK190). Here because a brief is the call that
+    #: starts a task, and the next write on the line it handed over is an `amend` — so the
+    #: number that would otherwise arrive as a refusal is already on the desk. None for a
+    #: shipped task: the ledger is a different grammar and holds no line to amend.
+    budget: Budget | None = None
 
     @property
     def task(self) -> Task:
@@ -191,6 +197,7 @@ def _gather(
         non_goals=non_goals(config, backlog.roadmap),
         choice=chosen,
         claim=claim,
+        budget=None if view.shipped else budget_of(config, task, open_line=True),
     )
 
 

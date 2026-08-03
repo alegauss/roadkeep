@@ -188,6 +188,9 @@ def test_the_tools_are_what_a_task_needs_end_to_end():
         # may not be proposed at all (RK69), and what a comparable one cost (RK71).
         "non_goal_list",
         "weight",
+        # And the third (RK190): what the line being proposed leaves its prose, which
+        # `maxLength` cannot publish because it moves with the deps and the symptom.
+        "budget",
         "brief",
         "pick",
         "list",

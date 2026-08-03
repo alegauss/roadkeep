@@ -118,6 +118,7 @@
 - ✅ **RK168** **A busy checkout makes the gate exit like a violation, so a clean file reads as a failing one** — The gate is declared a read and `--fix` the write in it, so a lint during somebody else's write answers about the format instead of about the lock — and `readOnlyHint` is derived.
 - ✅ **RK174** **Listing the tools rebuilds the whole CLI parser fifty-two times and costs a sixth of a second** — `tools/list` builds the CLI parser once and indexes every subcommand path off it, so 29 descriptors cost 1 build and 3.4ms where 58 builds cost 195ms.
 - ✅ **RK186** **`brief` reports a pointer into the strategy file as resolving to nothing** — `show` and `brief` look the anchor up in every declared prose role, name the file that declares it, and state the ambiguity where two do — the resolution RK172 gave the gate.
+- ✅ **RK190** **A line's prose budget is discoverable only by writing a sentence and being refused** — `budget` answers what a line leaves its prose fields — the deps and symptom an `add` names, or the line an `amend` holds — and `brief` prints the `why`'s share of the line it hands over.
 
 ## Block D — The gate
 

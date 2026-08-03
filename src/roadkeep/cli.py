@@ -48,6 +48,7 @@ from roadkeep.authoring import StatusChange, add, amend, restate, set_status
 from roadkeep.backlog import Backlog
 from roadkeep.blocking import drop_block, open_block
 from roadkeep.briefing import Brief, brief, non_goals
+from roadkeep.budgeting import Budget, budget
 from roadkeep.capturing import PARTS, body, capture, check, handoff, keep, offer, replay
 from roadkeep.config import Config, ConfigError
 from roadkeep.counting import Census
@@ -890,6 +891,49 @@ def build_parser() -> argparse.ArgumentParser:
     )
     brief_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     brief_parser.set_defaults(handler=_brief, reads_only=True, writes_when="claim")
+
+    budget_parser = subcommands.add_parser(
+        "budget",
+        help="how many characters a line has left for prose, before one is written",
+        description=(
+            "Report what a line leaves its prose fields. Every number is derived from "
+            "the id, the marker, the deps and the pointer — all of which are known before "
+            "the first word exists — so the budget is a fact about the line you are about "
+            "to write rather than a verdict on one you already wrote. With an id that the "
+            "roadmap holds, it is that line's own, which is what an amend has."
+        ),
+    )
+    budget_parser.add_argument(
+        "id",
+        nargs="?",
+        help="an existing line, e.g. RK12 — omitted, the line `add` would write next",
+    )
+    budget_parser.add_argument(
+        "--block", default="", help="the block the line would be filed under, e.g. B"
+    )
+    budget_parser.add_argument(
+        "--dep",
+        action="append",
+        default=[],
+        dest="deps",
+        metavar="DEP",
+        help="a dep the line would carry, repeatable: the group is what moves the budget",
+    )
+    budget_parser.add_argument(
+        "--status", help="the marker the line would carry (default: the first declared)"
+    )
+    budget_parser.add_argument(
+        "--symptom",
+        default="",
+        help="the symptom, where it is written: what it takes is what the why loses",
+    )
+    budget_parser.add_argument(
+        "--prefix",
+        dest="family",
+        help="count the derived id in this track (default: the first declared)",
+    )
+    budget_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    budget_parser.set_defaults(handler=_budget, reads_only=True)
 
     show_parser = subcommands.add_parser(
         "show",
@@ -2981,6 +3025,11 @@ def _brief(config: Config, args: argparse.Namespace) -> int:
         _print_event(event, "  ")
     print(f"  symptom  {task.symptom}")
     print(f"  why      {task.why}")
+    if gathered.budget is not None:
+        # One line, and only the field an amend rewrites (RK190): the whole table is
+        # `budget`'s answer, and a brief that grew one would stop being a bounded one.
+        why = gathered.budget.share("why")
+        print(f"  budget   why {why.left} of {why.allowed} left, {gathered.budget.prose} for prose")
     for resolution in gathered.deps:
         print(f"  dep      {resolution.dep.id}  {resolution.status}  {resolution.detail}")
     for chain in gathered.chains:
@@ -3033,6 +3082,9 @@ def _brief_json(gathered: Brief) -> dict[str, object]:
         },
         "non_goals": list(gathered.non_goals.leads),
         "non_goals_elided": gathered.non_goals.elided,
+        # The whole table here and one line on stdout (RK190): a tool result is read by
+        # something that can hold it, and this is the number the next write is measured on.
+        "budget": None if gathered.budget is None else _budget_json(gathered.budget),
         # Same key and same shape as `pick`'s (RK154): one fact spelled two ways is two facts.
         "held": [{"id": h.id, "age": round(h.age), "since": h.since} for h in gathered.held],
         "claimed": None
@@ -3082,6 +3134,62 @@ def _show(config: Config, args: argparse.Namespace) -> int:
         print()
         print(section.body)
     return EXIT_OK
+
+
+def _budget(config: Config, args: argparse.Namespace) -> int:
+    try:
+        answer = budget(
+            config,
+            args.id,
+            block=args.block,
+            deps=args.deps,
+            status=args.status,
+            symptom=args.symptom,
+            family=args.family,
+        )
+    except REFUSALS as error:
+        return _refused(error)
+
+    if args.json:
+        print(json.dumps(_budget_json(answer), indent=2))
+        return EXIT_OK
+
+    task = answer.task
+    state = "open line" if answer.open_line else "the line add would write next"
+    deps = ", ".join(dep.render() for dep in task.deps) or "—"
+    print(f"{task.id}  {task.status}  deps {deps}  ({state})")
+    print(f"  line       {answer.line_max}, of which {answer.structure} is structure")
+    print(f"  prose      {answer.prose}")
+    for share in answer.shares:
+        # The field's own limit is what the schema publishes; what this line allows is what
+        # refuses. Both, and which one binds, because that difference is the whole finding.
+        bound = "  ← the line binds, not the field" if share.bound_by_line else ""
+        taken = f", {share.taken} written, {share.left} left" if share.taken else ""
+        print(f"  {share.field:<11}{share.allowed} of {share.limit}{taken}{bound}")
+    return EXIT_OK
+
+
+def _budget_json(answer: Budget) -> dict[str, object]:
+    return {
+        "id": answer.task.id,
+        "status": answer.task.status,
+        "deps": [dep.render() for dep in answer.task.deps],
+        "open_line": answer.open_line,
+        "line_max": answer.line_max,
+        "structure": answer.structure,
+        "prose": answer.prose,
+        "fields": [
+            {
+                "field": share.field,
+                "limit": share.limit,
+                "allowed": share.allowed,
+                "taken": share.taken,
+                "left": share.left,
+                "bound_by_line": share.bound_by_line,
+            }
+            for share in answer.shares
+        ],
+    }
 
 
 def _view_json(view: View, no_body: bool) -> dict[str, object]:

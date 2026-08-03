@@ -304,6 +304,10 @@ TOOLS: tuple[Tool, ...] = (
     Tool("section drop", ("anchor", "role")),
     Tool("non-goal list"),
     Tool("weight", ("block",)),
+    # The other pre-`add` read, and the one this transport needs most (RK190): `maxLength`
+    # publishes the field's own ceiling and cannot publish the line's, so without this the
+    # binding number reaches the author only as a refusal — a linter, one layer in.
+    Tool("budget", ("id", "block", "deps", "status", "symptom")),
     # `designed` is exposed on both for the reason it exists (RK83): the caller that asks
     # to execute a block over MCP is the one that was handed a design session, and a flag
     # only the CLI can reach is a flag the agent this ships for cannot pass.
@@ -338,7 +342,8 @@ _BOUNDS = {
             f"The binding limit is the rendered line ({config.schema.line_max}), which "
             f"this sentence shares with the symptom and with the line's own structure, so "
             f"the usable maximum is lower than {config.schema.why_max} and lower again "
-            f"where the line carries deps; the refusal names what was left."
+            f"where the line carries deps. `budget` answers it before a word is written "
+            f"(RK190); the refusal names what was left."
         ),
     },
     "status": lambda config: {"enum": list(config.schema.markers)},
