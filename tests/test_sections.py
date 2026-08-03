@@ -947,6 +947,65 @@ class _Stdin:
         return self._text
 
 
+# -- one address for a file (RK181) -------------------------------------------
+
+
+def refused(config: Config, capsys, *argv: str) -> str:
+    """The refusal alone, with the whole filesystem path it must not contain checked here.
+
+    `str(config.path(...))` and not `str(tmp_path)`: the harness echoes the `-C` it was
+    invoked with, so the root is in every stderr — what RK181 is about is the *file's*
+    absolute path, which is what a reader has to read past to reach the anchor.
+    """
+    assert main(["-C", str(config.root), *argv]) == EXIT_USAGE
+    message = capsys.readouterr().err
+    assert str(config.path("improvements")) not in message
+    return message
+
+
+def test_a_refused_drop_names_the_file_the_way_the_gate_names_it(tmp_path, capsys):
+    # RK14 fixed the form of a report: the reader acts on the address, and it is the same
+    # string `lint` will print for the same file a moment later. These were absolute.
+    config = project(tmp_path)
+    assert f"§RK1 in {IMPROVEMENTS} is pointed at" in refused(
+        config, capsys, "section", "drop", "RK1"
+    )
+
+
+def test_a_claim_on_a_name_under_the_anchor_names_it_the_same_way(tmp_path, capsys):
+    # `AnchorClaimed`, the widest of the four: measured while shipping RK169, where the
+    # refusal ran past the terminal width on the path alone. `§RK1` itself is unclaimed
+    # here, so the check that fires is the one reading the *name* and not the headings.
+    config = project(tmp_path, roadmap=BACKLOG.replace(RK1_LINE, "").replace("§RK3", "§RK1.2"))
+    assert f"§RK1 in {IMPROVEMENTS} is above" in refused(
+        config, capsys, "section", "drop", "RK1"
+    )
+
+
+def test_an_anchor_the_file_does_not_declare_names_it_the_same_way(tmp_path, capsys):
+    config = project(tmp_path)
+    assert f"no §RK9 section in {IMPROVEMENTS}" in refused(
+        config, capsys, "section", "drop", "RK9"
+    )
+
+
+def test_a_missing_parent_names_the_directory_it_is_in(tmp_path, capsys):
+    # The other of the three spellings: `UnknownParent` and `UnknownBlock` were handed
+    # `document.path.name`, which is not absolute and is not an address either — two files
+    # of the same name in one project are named identically by it.
+    config = project(tmp_path, top='ref_scheme = "outline"\n')
+    assert f"({IMPROVEMENTS} declares:" in refused(
+        config, capsys, "section", "add", "IX.4", "--title", "A design", "--body", "Prose."
+    )
+
+
+def test_an_undeclared_block_names_the_directory_it_is_in(tmp_path, capsys):
+    config = project(tmp_path, improvements="# Improvements\n\n## Block A — The model\n")
+    assert f"({IMPROVEMENTS} declares: A)" in refused(
+        config, capsys, "section", "add", "RK2", "--title", "A design", "--body", "Prose."
+    )
+
+
 # -- the first section of a new block (RK166) ----------------------------------
 
 

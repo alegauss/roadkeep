@@ -1419,7 +1419,10 @@ def _drop_section(
     taken = tuple(child.anchor for child in nested(improvements, anchor))
     try:
         document, section = drop_section(
-            improvements, anchor, claimed=pointers(config, leaving=leaving)
+            improvements,
+            anchor,
+            claimed=pointers(config, leaving=leaving),
+            where=config.relative(config.path("improvements")),
         )
     except NoSuchSection:
         return (

@@ -1724,7 +1724,12 @@ def _section_drop(config: Config, args: argparse.Namespace) -> int:
         # Read before the drop, because afterwards the headings are gone: what a subtree
         # took is the part of this command's size that the anchor does not state (RK78).
         taken = tuple(child.anchor for child in nested_sections(document, args.anchor))
-        document, section = drop_section(document, args.anchor, claimed=pointers(config))
+        document, section = drop_section(
+            document,
+            args.anchor,
+            claimed=pointers(config),
+            where=config.relative(config.path(args.role)),
+        )
         document.save()
     except REFUSALS as error:
         return _refused(error)

@@ -78,9 +78,9 @@ class SectionError(SchemaError):
 class NoSuchSection(ValueError):
     """An anchor nothing in this file declares."""
 
-    def __init__(self, anchor: str, where: str) -> None:
+    def __init__(self, anchor: str, where: str = "") -> None:
         self.anchor = anchor
-        super().__init__(f"no §{anchor} section in {where}")
+        super().__init__(f"no §{anchor} section in {where or 'the document'}")
 
 
 class SectionExists(ValueError):
@@ -338,6 +338,7 @@ def drop(
     anchor: str,
     *,
     claimed: Mapping[str, Sequence[str]] | None = None,
+    where: str = "",
 ) -> tuple[Document, Section]:
     """Delete the section whole — subsections included — and report what went.
 
@@ -355,29 +356,35 @@ def drop(
     obvious half and it was the missing one: `ship` made that check on its own path and the
     standalone verb inherited nothing, so the one command that exists to delete a section was
     the one that could strand a live pointer.
+
+    ``where`` is the file as the report spells it, rendered by the caller and passed in the
+    way ``claimed`` is (RK181): this function takes a :class:`Document` and not a
+    :class:`Config`, so `config.relative` — the one function that renders an address — is out
+    of its reach, and building the string here from ``document.path`` is what printed an
+    absolute path beside a `lint` naming the same file as `IMPROVEMENTS.md:5`.
     """
     span = _span(document, anchor)
     section = find(document, anchor)
     if span is None or section is None:
-        raise NoSuchSection(anchor, str(document.path or "the document"))
+        raise NoSuchSection(anchor, where)
     if claimed:
         owners = claimed.get(anchor)
         if owners:
-            raise SectionClaimed(anchor, owners, str(document.path or ""))
+            raise SectionClaimed(anchor, owners, where)
         occupied = [
             (child.anchor, claimed[child.anchor])
             for child in nested(document, anchor)
             if child.anchor in claimed
         ]
         if occupied:
-            raise SectionOccupied(anchor, occupied, str(document.path or ""))
+            raise SectionOccupied(anchor, occupied, where)
         # And the same question asked of the **name** rather than of the headings (RK169),
         # which is the half a corpus addressing its prose as bullets fell through: the check
         # above proves containment and misses everything that is not a heading, and this one
         # proves nothing about the file and misses nothing an open line has claimed.
         descended = _descended(anchor, claimed)
         if descended:
-            raise AnchorClaimed(anchor, descended, str(document.path or ""))
+            raise AnchorClaimed(anchor, descended, where)
     start, end, _ = span
     # One edit, not one per line (RK54): a loop validates every half-deleted state, and a
     # section quoting a fenced example is briefly a file whose fence has no opening line.
@@ -413,17 +420,16 @@ def add(
     owner is read from the roadmap, which is every other caller.
     """
     document = config.document(role)
+    where = config.relative(config.path(role))
     if task is None:
         task = _task_for(config, anchor)
     _check(document.schema, anchor, title, body, task)
     existing = find(document, anchor)
     if existing is not None:
-        raise SectionExists(
-            anchor, config.relative(config.path(role)), existing.first
-        )
+        raise SectionExists(anchor, where, existing.first)
 
     lines = _render(document.schema, anchor, title, body, _depth(document, anchor, level))
-    index = _placement(document, anchor, task)
+    index = _placement(document, anchor, task, where)
     payload = list(lines)
     if index > 0 and not blank(document.lines[index - 1]):
         payload.insert(0, "")
@@ -706,7 +712,7 @@ def _reflow(paragraph: str, width: int) -> str:
     )
 
 
-def _placement(document: Document, anchor: str, task: Task | None) -> int:
+def _placement(document: Document, anchor: str, task: Task | None, where: str = "") -> int:
     """Where the section goes: after the last one under its block, or after what it extends.
 
     A section for a task belongs under that task's block, so the prose file's order is a
@@ -731,7 +737,7 @@ def _placement(document: Document, anchor: str, task: Task | None) -> int:
     derive from either side, and only that one goes last.
     """
     if task is None or document.schema.ref_scheme != "id":
-        return _extended(document, anchor)
+        return _extended(document, anchor, where)
     if not task.block:
         return len(document.lines)
     heading = document.heading(task.block)
@@ -739,13 +745,13 @@ def _placement(document: Document, anchor: str, task: Task | None) -> int:
         raise UnknownBlock(
             task.block,
             sorted({h.label for h in document.headings if h.label}),
-            str(document.path.name if document.path else ""),
+            where,
             word=document.schema.heading_word,
         )
     return document.subtree_end(heading)
 
 
-def _extended(document: Document, anchor: str) -> int:
+def _extended(document: Document, anchor: str, where: str = "") -> int:
     """The end of the subtree of the section this anchor extends, or a refusal (RK45).
 
     Or, for a top-level anchor under an outline, the end of the last top-level section
@@ -767,7 +773,7 @@ def _extended(document: Document, anchor: str) -> int:
         raise UnknownParent(
             anchor,
             [section.anchor for section in anchored(document)],
-            str(document.path.name if document.path else ""),
+            where,
         )
     span = _span(document, parent)
     assert span is not None  # `_extends` read the anchor out of this document

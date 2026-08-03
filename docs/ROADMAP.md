@@ -24,7 +24,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK181** (deps: —) **A section refusal names the file by its whole filesystem path, where the gate beside it names it relatively** — Every message in `sections.py` is built from `document.path`, so a refused drop prints an absolute path while `lint` in the same terminal prints `IMPROVEMENTS.md:5`. → §RK181
 - 📋 **RK191** (deps: —) **The refusal on a second partial names the entry in the way, not the id the step needs** — `_partial` answers a second `ship --part` with the line already recorded, and Shio settled in SH361 that a delivered step gets its own id, so the caller is left to invent it. → §RK191
 
 ## Block C — Query (consult without reading the file)

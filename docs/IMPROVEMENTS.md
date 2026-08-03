@@ -77,28 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK181 One address for a file, and three spellings of it
-
-RK14 fixed the form of a report: name the place as `file:line:column`, so the reader
-acts on the address rather than on the consequence. `lint` does, and `config.relative`
-is the one function that renders it — every refusal on the line files goes through it.
-
-The prose file's refusals do not. `NoSuchSection`, `SectionClaimed`, `SectionOccupied`
-and `AnchorClaimed` are handed `str(document.path or "")`, which is absolute, while
-`_placement` hands `UnknownBlock` a bare `document.path.name`, which loses the
-directory. Three spellings of one address, in one module, and the widest of them is what
-an agent reads first — measured while shipping RK169, where the refusal ran past the
-terminal width on the path alone.
-
-None of the three is wrong about the file. What they cost is the thing RK14 bought: an
-address that pastes into an editor, is stable across machines, and is the same string
-the gate reporting the same file will print a moment later.
-
-The obstacle is real and is why it stayed: `drop` takes a `Document` and not a `Config`,
-so it cannot relativise anything. So either the caller renders the address and passes it
-in, the way `ship` already passes `claimed`, or the refusals carry the path and the CLI
-renders it at the boundary where a `Config` exists.
-
 ### §RK191 The refusal that knows the answer and does not give it
 
 `ship --part` refuses a second partial with `AlreadyRecorded`: the id, the marker it
