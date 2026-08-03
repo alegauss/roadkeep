@@ -287,6 +287,49 @@ and may not need a second.
 
 ## Block D — The gate
 
+### §RK221 The same fix, not applied to the reader
+
+RK217 established that a claim is decided against the directories the repository
+*knows*, and that the listing to ask is the index rather than the working tree:
+`tracked_now` subtracts what git calls deleted, which is right for "does the tree still
+have this artefact" and exactly wrong for "is this a directory the repository knows" — a
+ledger naming `lib/gone.py` after the file went would stop being a claim instead of
+becoming a finding.
+
+`Tree.directories` got that right and `show` did not. It calls
+`known_directories(config)` with no listing, which falls through to `tracked_now`, so
+the reader carries the defect the gate no longer has.
+
+Measured on a fixture: with `lib/gone.py` committed and then deleted, `lint` reports
+`path.missing` and `show RK1` lists **no paths at all** — not the artefact as missing,
+but the token dropped as though the sentence never named a file.
+
+Two readers of one rule disagreeing is the shape RK186 already names once: `lint` is the
+backstop and is read once, while `show` and `brief` are what start a task, so the reader
+is the worse half to leave wrong. The fix is which listing is asked for, and the answer
+is the one `Tree.directories` already reaches for.
+
+### §RK222 An answer bought before the question
+
+RK217 needed the directories the repository knows in order to decide whether a token is
+a claim. `show` builds that set eagerly, at the top of the call, and it is needed only
+for a token that **fails** `exists` — which on a healthy repository is none of them.
+
+Measured, median of eleven, one shipped id: 1.1 ms to 36.6 ms on this repository, 4.2 ms
+to 73.4 ms on Turing. Thirty-three times and seventeen times, and `brief` calls `show`,
+so it is on the path that starts every task — the same economics RK202 and RK211 were
+each worth a line for.
+
+Two costs and they are not the same size. The listing is two subprocesses (`ls-files`
+and `ls-files --deleted`), and only one of them is the right question anyway (RK221);
+building every prefix of every tracked path is a set comprehension over 5329 names on
+Turing, which is real but small beside a process.
+
+So the shape is laziness rather than a cache: the set is a function of the tree and the
+tree does not change inside one call, so computing it on first need costs the same in
+the case that needs it and nothing in the case that does not. Whether `lint` also
+benefits is a second measurement — there, at least one token usually does fail.
+
 ## Block E — Adoption
 
 ### §RK103 The marker slot that holds two tokens
