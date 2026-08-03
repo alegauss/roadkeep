@@ -226,29 +226,6 @@ Either `block add` writes the prose heading too, deriving the next outline numbe
 
 ## Block C — Query
 
-### §RK167 The lock the dispatcher stopped deciding
-
-`dispatch` holds one rule: a command runs under the write lock unless its parser
-declared `reads_only`, and the default is the locked one because that is the safe way to
-be wrong. Three commands now declare read-only and write anyway when a flag is passed —
-`pick --claim`, `brief --claim`, `claims --prune` — and each arranges the lock somewhere
-else: `take` does it, `brief` does it, and the `claims` handler does it inline.
-
-Nothing is unlocked today, and that is exactly the state a copied comment preserves
-until it does not. The declaration `reads_only=True` has stopped describing the command
-and now describes its default flags, so the one place that could check anything checks
-the wrong thing.
-
-The shape worth comparing is a parser saying which flag makes it a write —
-`writes_when="claim"` — so `dispatch` keeps deciding and the answer stays derivable from
-the parser it already reads. Against that: three call sites is not many, and a
-dispatcher that reads a flag name off `args` is a dispatcher that can be wrong about a
-renamed flag.
-
-Either way the property to end with is one a test can hold: for every subcommand, the
-argv that writes runs under the lock, and no query waits on one. That test does not
-exist for any of the three.
-
 ## Block D — The gate
 
 ### §RK104 The block the gate does not read

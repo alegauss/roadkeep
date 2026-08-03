@@ -709,9 +709,9 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     claims_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
-    # `reads_only` for the listing it is without `--prune`, the same split `pick --claim` has
-    # (RK119): the write takes the lock itself, so reading the registry never waits on one.
-    claims_parser.set_defaults(handler=_claims, reads_only=True)
+    # A read that can write, so it declares which flag makes it one (RK167): `dispatch` keeps
+    # deciding the lock, and reading the registry never waits on one.
+    claims_parser.set_defaults(handler=_claims, reads_only=True, writes_when="prune")
 
     lint_parser = subcommands.add_parser(
         "lint",
@@ -780,7 +780,7 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     brief_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
-    brief_parser.set_defaults(handler=_brief, reads_only=True)
+    brief_parser.set_defaults(handler=_brief, reads_only=True, writes_when="claim")
 
     show_parser = subcommands.add_parser(
         "show",
@@ -833,10 +833,10 @@ def build_parser() -> argparse.ArgumentParser:
     pick_parser.add_argument(
         "--json", action="store_true", help="the pick, the tier and the counts"
     )
-    # `reads_only` for the query it is without `--claim` (RK119): `take` holds the lock over
-    # the answer *and* the write, because that pair is what has to be indivisible — a lock
-    # taken out here would cover the same span and cost every plain `pick` the wait.
-    pick_parser.set_defaults(handler=_pick, reads_only=True)
+    # The query it is without `--claim`, and the write it is with one (RK167). `take` still
+    # holds a lock of its own over the answer *and* the marker, that pair being what has to be
+    # indivisible for every caller — re-entrant, so declaring it here costs nothing twice.
+    pick_parser.set_defaults(handler=_pick, reads_only=True, writes_when="claim")
 
     retire_parser = subcommands.add_parser(
         "retire",
@@ -1290,11 +1290,31 @@ def dispatch(config: Config, args: argparse.Namespace) -> int:
     Every command writes unless its parser said otherwise. The default is the locked one
     because that is the safe way to be wrong: a query serialised against a write costs
     milliseconds, and a write that is not serialised is two lines with one id.
+
+    A read that *can* write says which flag makes it one (RK167). Three commands do —
+    `pick --claim`, `brief --claim`, `claims --prune` — and until they declared it, each
+    arranged its own lock somewhere else while `reads_only=True` described their default flags
+    rather than the command. The decision stays here, where the one rule is; what the flag's
+    own writer still keeps is a re-entrant lock of its own, because indivisibility is a promise
+    to *every* caller and not only to this dispatcher (RK117).
     """
-    if getattr(args, "reads_only", False):
+    if _only_reads(args):
         return args.handler(config, args)
     with exclusive(config.root):
         return args.handler(config, args)
+
+
+def _only_reads(args: argparse.Namespace) -> bool:
+    """Whether this argv is the query its parser declared, or the write a flag turned it into.
+
+    Read off `args` and not from a list here, so the answer comes from the parser that already
+    declares it — and a `writes_when` naming an argument that parser does not accept is a test
+    failure rather than a lock silently not taken (`tests/test_locking.py`).
+    """
+    if not getattr(args, "reads_only", False):
+        return False
+    flag = getattr(args, "writes_when", "")
+    return not (flag and getattr(args, flag, False))
 
 
 def _may_offer(argv: Sequence[str], args: argparse.Namespace) -> None:
@@ -2422,8 +2442,7 @@ def _claims(config: Config, args: argparse.Namespace) -> int:
         # The whole backlog and not the roadmap alone (RK164): three of the four ways an id can
         # be absent from it are recorded in the other two files.
         if args.prune:
-            with exclusive(config.root):
-                pruning = claiming.prune(Backlog.load(config))
+            pruning = claiming.prune(config)
             rows, dropped = pruning.kept, pruning.dropped
         else:
             rows, dropped = claiming.survey(Backlog.load(config)), ()

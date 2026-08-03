@@ -12,6 +12,7 @@ on itself, and the write path an agent actually uses — MCP — takes it.
 
 from __future__ import annotations
 
+import argparse
 import os
 import time
 from pathlib import Path
@@ -205,3 +206,55 @@ def test_an_mcp_query_is_not_blocked_by_a_held_lock(tmp_path):
     seize(root)
     answer = call(tool_named("pick"), {}, directory=str(root))
     assert "another roadkeep process" not in answer.text
+
+
+# -- a read that can write says so, and the dispatcher decides (RK167) --------
+
+
+def declared() -> dict[str, str]:
+    """Every subcommand that declares itself a read with a flag that makes it a write."""
+    from roadkeep.cli import build_parser
+
+    return {
+        name: parser.get_default("writes_when")
+        for action in build_parser()._actions  # noqa: SLF001
+        if isinstance(action, argparse._SubParsersAction)  # noqa: SLF001
+        for name, parser in action.choices.items()
+        if parser.get_default("writes_when")
+    }
+
+
+def test_the_three_reads_that_can_write_are_the_ones_that_say_so():
+    # Named here rather than counted, because the list is the point: any fourth one is a
+    # deliberate addition and not something a copied comment brought along.
+    assert declared() == {"pick": "claim", "brief": "claim", "claims": "prune"}
+
+
+def test_every_declared_flag_is_one_its_own_parser_accepts():
+    # The way this mechanism can be wrong is a renamed flag leaving `dispatch` reading an
+    # attribute nobody sets — a lock silently not taken. Read off the real parser, so it fails
+    # here instead.
+    from roadkeep.cli import build_parser
+
+    subparsers = {
+        name: parser
+        for action in build_parser()._actions  # noqa: SLF001
+        if isinstance(action, argparse._SubParsersAction)  # noqa: SLF001
+        for name, parser in action.choices.items()
+    }
+    for command, flag in declared().items():
+        assert flag in {a.dest for a in subparsers[command]._actions}, command  # noqa: SLF001
+
+
+@pytest.mark.parametrize(
+    ("command", "flag"),
+    [("pick", "--claim"), ("brief", "--claim"), ("claims", "--prune")],
+)
+def test_the_argv_that_writes_waits_and_the_one_that_reads_does_not(tmp_path, command, flag):
+    # The property RK167 asked for, and the one no call site could state: with the flag it is a
+    # write and a held lock refuses it; without, it answers while somebody else is writing.
+    root = project(tmp_path)
+    seize(root)
+    assert main(["-C", str(root), command]) == EXIT_OK
+    assert main(["-C", str(root), command, flag]) == EXIT_GATE
+    assert lock_path(root).exists()  # somebody else's, and still theirs

@@ -37,4 +37,4 @@ __all__ = [
 ]
 #: The one place the version is written (RK19). `pyproject.toml` declares it `dynamic` and
 #: reads this literal, so a release cannot ship a number the package disagrees with.
-__version__ = "0.1.28"
+__version__ = "0.1.29"

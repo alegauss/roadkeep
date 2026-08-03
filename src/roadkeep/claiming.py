@@ -57,7 +57,7 @@ from pathlib import Path
 from roadkeep.backlog import Backlog
 from roadkeep.config import Config
 from roadkeep.document import Entry
-from roadkeep.locking import sidecar
+from roadkeep.locking import exclusive, sidecar
 from roadkeep.schema import IN_PROGRESS, Task
 
 
@@ -246,8 +246,13 @@ class Pruning:
     dropped: tuple[Dated, ...] = ()
 
 
-def prune(backlog: Backlog) -> Pruning:
+def prune(config: Config) -> Pruning:
     """Drop every row that is not a claim, and leave every row that is (RK165).
+
+    Loads the backlog inside its own lock (RK167), the way :func:`roadkeep.picking.take` does:
+    the read decides what is dropped, so a read outside the lock would decide from a state the
+    write no longer applies to. Re-entrant, so the dispatcher declaring the same thing about the
+    argv costs nothing twice — and a library caller gets the guarantee either way.
 
     The reconciliation :func:`follow` performs, reachable without a marker to write. It exists
     because the other remedy is the whole file: a checkout between tasks has no marker to move,
@@ -260,12 +265,13 @@ def prune(backlog: Backlog) -> Pruning:
     claim is never dropped here; taking a line from a worker is a marker, and the door that
     refuses it is the one RK160 closed.
     """
-    rows = survey(backlog)
-    dropped = tuple(row for row in rows if row.state is State.STALE)
-    if dropped:
-        target = path(backlog.config.root)
-        gone = {row.id for row in dropped}
-        _write(target, {n: w for n, w in _read(target).items() if n not in gone})
+    with exclusive(config.root):
+        rows = survey(Backlog.load(config))
+        dropped = tuple(row for row in rows if row.state is State.STALE)
+        if dropped:
+            target = path(config.root)
+            gone = {row.id for row in dropped}
+            _write(target, {n: w for n, w in _read(target).items() if n not in gone})
     return Pruning(
         kept=tuple(row for row in rows if row.state is not State.STALE), dropped=dropped
     )

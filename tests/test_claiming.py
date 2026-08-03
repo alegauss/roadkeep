@@ -671,7 +671,7 @@ def test_a_prune_drops_what_is_not_a_claim_and_keeps_what_is(tmp_path, capsys):
             claiming.path(tmp_path),
             {**claiming._read(claiming.path(tmp_path)), task_id: time.time()},  # noqa: SLF001
         )
-    pruning = claiming.prune(Backlog.load(config))
+    pruning = claiming.prune(config)
     assert [row.id for row in pruning.kept] == ["RK2"]
     assert {row.id for row in pruning.dropped} == {"RK5", "RK99"}
     assert set(claiming._read(claiming.path(tmp_path))) == {"RK2"}  # noqa: SLF001
@@ -683,7 +683,7 @@ def test_a_prune_keeps_an_expired_claim_because_it_is_still_one(tmp_path, capsys
     config = project(tmp_path, BLOCKS + line("RK2"))
     take(config)
     age(tmp_path, "RK2", HELD + 60)
-    pruning = claiming.prune(Backlog.load(config))
+    pruning = claiming.prune(config)
     assert [row.state for row in pruning.kept] == [claiming.State.EXPIRED]
     assert pruning.dropped == ()
 
@@ -692,7 +692,7 @@ def test_a_prune_never_takes_a_live_claim(tmp_path):
     # Taking a line from a worker is a marker, and the door that refuses it is RK160's.
     config = project(tmp_path, BLOCKS + line("RK2") + line("RK9"))
     take(config)
-    claiming.prune(Backlog.load(config))
+    claiming.prune(config)
     assert [h.id for h in pick(config).held] == ["RK2"]
 
 

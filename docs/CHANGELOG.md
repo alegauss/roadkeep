@@ -98,6 +98,7 @@
 - ✅ **RK163** **A release drops one id and reconciles nothing, so every row no door reported stays in the listing** — Every write of the registry is a reconciliation against the lines it was given, and `follow` is the only thing that writes it — so a row no door reported is cleared by the next marker write.
 - ✅ **RK164** **A claim on a paused or shipped id is reported as though no line ever carried it** — The listing joins the ledger and the store as well, so an id that left the roadmap says which door it left by and only the leftover reads as one.
 - ✅ **RK165** **Clearing a stale row without a marker write means deleting every live claim with it** — `claims --prune` drops the rows that are not claims and keeps every one that is, so the precise remedy no longer means deleting a whole checkout's registry.
+- ✅ **RK167** **Three read-only commands take the write lock themselves, each in a different place** — A read that can write declares which flag makes it one, so `dispatch` decides the lock again — and a test names the three and holds the property no call site could state.
 
 ## Block D — The gate
 
