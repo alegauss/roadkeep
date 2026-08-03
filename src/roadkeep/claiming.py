@@ -39,8 +39,10 @@ inferred by the read: a write that puts a line in progress dates a claim, and a 
 takes it out of progress drops one. Two doors change a claim without moving that marker at all
 (RK156): `renumber` moves the *address* (:func:`rename`), and `defer` takes the line out of the
 file the marker is read in, which the same rule then reads as a release. :func:`follow` is the
-only thing that writes this file, and every write of it is a reconciliation against the lines
-it was given (RK163) — one door, so the rule cannot come to have two behaviours.
+only thing that writes a *claim*, and every write it makes is a reconciliation against the lines
+it was given (RK163) — one door, so the rule cannot come to have two behaviours. :func:`rename`
+touches the same file and is not a second door to that rule: it moves an **address**, which is
+the one thing about a claim the marker cannot express.
 """
 
 from __future__ import annotations
@@ -260,8 +262,9 @@ def follow(
     the entries are the truth, so what is kept is what they still carry at 🛠 — and the id being
     followed is dated on top of that, or left out by having stopped being one of them. Dropping
     a single key instead left every row *no door reported* in place, which a `git checkout`
-    creates and only a later claim used to clear. Nothing else may write this file, for the
-    reason two entry points to one rule is how it comes to have two behaviours (RK159).
+    creates and only a later claim used to clear. Nothing else writes a claim, for the reason
+    two entry points to one rule is how it comes to have two behaviours (RK159) —
+    :func:`rename` is not one of them, moving an address rather than following a marker.
 
     It writes only when the result differs, so a project that never claims never gets a file:
     a `status` on a backlog with no registry is a read and a comparison.
@@ -288,6 +291,10 @@ def rename(root: Path | str, old: str, new: str) -> bool:
     that exists because a merge spent an id twice. The date travels rather than restarting:
     the work is the same age, and a claim that renewed itself on a rename would be an expiry
     a rename could postpone for ever.
+
+    It re-addresses and does not reconcile, unlike :func:`follow` (RK163): the lines are not in
+    hand here, and a rename is rare while the next marker write is not — so a row this leaves
+    unpruned is cleared by the first `ship` or `status` after it.
     """
     target = path(root)
     dated = _read(target)
