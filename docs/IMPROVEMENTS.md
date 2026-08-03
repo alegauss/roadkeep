@@ -287,6 +287,51 @@ and may not need a second.
 
 ## Block D — The gate
 
+### §RK226 The separator the gate inherits from its host
+
+RK213 named the shape once: a gate green for whoever ran it and red in CI is worse than
+one that is simply wrong, because nobody can reconstruct the disagreement. This is that
+shape through the separator.
+
+A backslash is a path separator on Windows and an ordinary filename character everywhere
+else, and both halves of this check defer to the host. `_resolves` asks `Path`, which
+splits on it here and not there, so `docs\specs\file.md` reports `exists` on the
+author's machine. `_spelled` normalises with `os.path`, so the same token becomes
+`docs/specs/file.md` on Windows and stays one backslash-laden name on Linux — where
+git's listing has never held it, so the finding fires.
+
+Demonstrated by construction rather than on a corpus: neither pinned ledger writes one,
+which is why this has not bitten yet and also why nothing would catch it if it did.
+
+RK218 refused a token made only of separators for exactly this reason — what it resolves
+to may not depend on the platform running the gate — and stopped at the degenerate case.
+The rest of the class is the same decision: either the format says a token is spelled
+with forward slashes and the check normalises before asking anything, or a backslash
+token is not a path claim at all. Which of the two is what this line settles.
+
+### §RK227 A predicate per codepoint
+
+RK34 is right that a line carrying a byte nobody typed is not a line this format can
+judge, and the check has to see every character to say so. What it does not have to do
+is enter a Python function for each one.
+
+Measured at Turing's pin, unprofiled: 148 ms of a 660 ms gate — 4.4 ms over the
+roadmap's 25044 codepoints and 143.8 ms over the ledger's 801394. Under the profiler it
+is 825000 calls to one predicate, and the answer is *no* for every single one, because
+these files are clean. It is now the largest item left in the run, the path check having
+gone from 2.9 s to 270 ms across RK223 and RK225.
+
+The shape is a sweep rather than a loop. The suspect set is small, fixed and known
+before any file is read — the format categories, the variation selectors, the marker
+lookalikes — so a `str.translate` table or one compiled character class answers "does
+this file hold any of them" in C, and the per-character walk is entered only for a file
+that said yes.
+
+Filed as an idea because the win is a constant factor on a check nobody has complained
+about, and 660 ms may simply be fast enough. The number is what decides, and the number
+that matters is not this one — it is what the same sweep costs on the file that is
+clean.
+
 ## Block E — Adoption
 
 ### §RK103 The marker slot that holds two tokens
