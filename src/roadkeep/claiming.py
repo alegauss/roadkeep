@@ -237,6 +237,40 @@ def _row(
     )
 
 
+@dataclass(frozen=True, slots=True)
+class Pruning:
+    """What a prune left and what it dropped (RK165). Both, because a filter that hides its
+    own effect is how "the registry is clean" gets read off a command that emptied it."""
+
+    kept: tuple[Dated, ...] = ()
+    dropped: tuple[Dated, ...] = ()
+
+
+def prune(backlog: Backlog) -> Pruning:
+    """Drop every row that is not a claim, and leave every row that is (RK165).
+
+    The reconciliation :func:`follow` performs, reachable without a marker to write. It exists
+    because the other remedy is the whole file: a checkout between tasks has no marker to move,
+    so clearing one row nobody can act on meant deleting the claims of every worker beside it —
+    a blast radius the size of the checkout for a problem the size of an id.
+
+    So it decides nothing new. What it keeps is what `follow` keeps: every id the roadmap still
+    carries at 🛠, which is a **live claim and an expired one alike** — an expired row is still a
+    statement about a started line, and the caller that wants it gone moves the marker. A live
+    claim is never dropped here; taking a line from a worker is a marker, and the door that
+    refuses it is the one RK160 closed.
+    """
+    rows = survey(backlog)
+    dropped = tuple(row for row in rows if row.state is State.STALE)
+    if dropped:
+        target = path(backlog.config.root)
+        gone = {row.id for row in dropped}
+        _write(target, {n: w for n, w in _read(target).items() if n not in gone})
+    return Pruning(
+        kept=tuple(row for row in rows if row.state is not State.STALE), dropped=dropped
+    )
+
+
 def path(root: Path | str) -> Path:
     """Where this checkout's claims are dated — beside its lock, and outside it."""
     return sidecar(root, "claims")

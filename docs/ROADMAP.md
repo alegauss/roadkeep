@@ -35,8 +35,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK165** (deps: —) **Clearing a stale row without a marker write means deleting every live claim with it** — `follow` reconciles only when a marker moves and the listing's own remedy is the file, so a checkout with no write to make chooses between a row nobody can act on and dropping somebody's claim. → §RK165
-
 ## Block D — The gate
 
 - 📋 **RK104** (deps: —) **Nothing gates the README block this tool writes, so a stale restatement passes lint** — `export --readme` is the one write no gate holds: a pytest fixture catches it here and an adopting project has none, so the derived table drifts from the files it was derived from. → §RK104

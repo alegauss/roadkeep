@@ -700,7 +700,17 @@ def build_parser() -> argparse.ArgumentParser:
             "on, and the release is a marker."
         ),
     )
+    claims_parser.add_argument(
+        "--prune",
+        action="store_true",
+        help=(
+            "drop the rows that are not claims and keep the ones that are, which is the "
+            "reconciliation a marker write performs and the only other remedy is the file"
+        ),
+    )
     claims_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    # `reads_only` for the listing it is without `--prune`, the same split `pick --claim` has
+    # (RK119): the write takes the lock itself, so reading the registry never waits on one.
     claims_parser.set_defaults(handler=_claims, reads_only=True)
 
     lint_parser = subcommands.add_parser(
@@ -2411,52 +2421,66 @@ def _claims(config: Config, args: argparse.Namespace) -> int:
     try:
         # The whole backlog and not the roadmap alone (RK164): three of the four ways an id can
         # be absent from it are recorded in the other two files.
-        rows = claiming.survey(Backlog.load(config))
+        if args.prune:
+            with exclusive(config.root):
+                pruning = claiming.prune(Backlog.load(config))
+            rows, dropped = pruning.kept, pruning.dropped
+        else:
+            rows, dropped = claiming.survey(Backlog.load(config)), ()
     except (KeyError, OSError) as error:
         return _refused(error)
 
     registry = str(claiming.path(config.root))
+    held = sum(1 for row in rows if row.state is claiming.State.HELD)
     if args.json:
         print(
             json.dumps(
                 {
                     "window": config.held,
                     "registry": registry,
-                    "held": sum(1 for row in rows if row.state is claiming.State.HELD),
-                    "claims": [
-                        {
-                            "id": row.id,
-                            "state": str(row.state),
-                            "where": str(row.where),
-                            "age": round(row.age),
-                            "since": row.since,
-                            "marker": row.marker or None,
-                            "block": row.block or None,
-                        }
-                        for row in rows
-                    ],
+                    "held": held,
+                    "claims": [_claim_row(row) for row in rows],
+                    # Named and not counted, and present as an empty list when the flag was
+                    # passed and dropped nothing (RK165): a prune that hides its own effect is
+                    # how "the registry is clean" gets read off a command that emptied it.
+                    "pruned": None if not args.prune else [_claim_row(r) for r in dropped],
                 },
                 indent=2,
             )
         )
         return EXIT_OK
 
-    held = sum(1 for row in rows if row.state is claiming.State.HELD)
     print(f"{len(rows)} dated, {held} held  (window {config.held}m)")
-    for row in rows:
-        # An open line says where it is with its own marker and block; anything else says which
-        # door it left by (RK164), which is the cause and not the consequence — and the marker
-        # column is dropped rather than left blank, a gap reading as something that failed.
-        where = (
-            f"{row.marker} Block {row.block}"
-            if row.where is claiming.Where.OPEN
-            else str(row.where)
-        )
-        print(f"  {row.state:<8} {row.id}  claimed {row.since} ago  {where}")
+    for row in (*rows, *dropped):
+        print(f"  {'pruned' if row in dropped else str(row.state):<8} {row.id}  "
+              f"claimed {row.since} ago  {_claim_where(row)}")
+    if args.prune and not dropped:
+        print("  pruned   nothing: every row is a claim")
     # Named because the release is a marker and the *file* is what an operator deletes when a
     # whole checkout's worth of claims outlived their workers (RK161).
     print(f"  registry {registry}")
     return EXIT_OK
+
+
+def _claim_where(row: claiming.Dated) -> str:
+    """An open line says where it is with its own marker and block; anything else says which
+    door it left by (RK164), which is the cause and not the consequence — and the marker
+    column is dropped rather than left blank, a gap reading as something that failed."""
+    if row.where is claiming.Where.OPEN:
+        return f"{row.marker} Block {row.block}"
+    return str(row.where)
+
+
+def _claim_row(row: claiming.Dated) -> dict[str, object]:
+    return {
+        "id": row.id,
+        "state": str(row.state),
+        "where": str(row.where),
+        "age": round(row.age),
+        "since": row.since,
+        "marker": row.marker or None,
+        "block": row.block or None,
+    }
 
 
 def _lint(config: Config, args: argparse.Namespace) -> int:

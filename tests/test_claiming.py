@@ -660,6 +660,62 @@ def test_the_command_names_the_window_and_the_registry(tmp_path, capsys):
     assert str(claiming.path(tmp_path)) in out
 
 
+def test_a_prune_drops_what_is_not_a_claim_and_keeps_what_is(tmp_path, capsys):
+    # RK165: the other remedy is the whole file, so clearing one row nobody can act on meant
+    # deleting the claims of every worker beside it.
+    config = project(
+        tmp_path, BLOCKS + line("RK2", status=IN_PROGRESS) + line("RK5") + line("RK9")
+    )
+    for task_id in ("RK2", "RK5", "RK99"):
+        claiming._write(  # noqa: SLF001
+            claiming.path(tmp_path),
+            {**claiming._read(claiming.path(tmp_path)), task_id: time.time()},  # noqa: SLF001
+        )
+    pruning = claiming.prune(Backlog.load(config))
+    assert [row.id for row in pruning.kept] == ["RK2"]
+    assert {row.id for row in pruning.dropped} == {"RK5", "RK99"}
+    assert set(claiming._read(claiming.path(tmp_path))) == {"RK2"}  # noqa: SLF001
+
+
+def test_a_prune_keeps_an_expired_claim_because_it_is_still_one(tmp_path, capsys):
+    # What `follow` keeps is every id the roadmap carries at 🛠, live or expired: an expired row
+    # is still a statement about a started line, and moving the marker is how it goes.
+    config = project(tmp_path, BLOCKS + line("RK2"))
+    take(config)
+    age(tmp_path, "RK2", HELD + 60)
+    pruning = claiming.prune(Backlog.load(config))
+    assert [row.state for row in pruning.kept] == [claiming.State.EXPIRED]
+    assert pruning.dropped == ()
+
+
+def test_a_prune_never_takes_a_live_claim(tmp_path):
+    # Taking a line from a worker is a marker, and the door that refuses it is RK160's.
+    config = project(tmp_path, BLOCKS + line("RK2") + line("RK9"))
+    take(config)
+    claiming.prune(Backlog.load(config))
+    assert [h.id for h in pick(config).held] == ["RK2"]
+
+
+def test_the_prune_names_what_it_dropped_and_says_when_it_dropped_nothing(tmp_path, capsys):
+    project(tmp_path, BLOCKS + line("RK2"))
+    claiming._write(claiming.path(tmp_path), {"RK99": time.time()})  # noqa: SLF001
+    assert main(["-C", str(tmp_path), "claims", "--prune"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "pruned   RK99  claimed 0m ago  in no file at all" in out
+    # And a second run has nothing to do, which it says rather than printing an empty listing.
+    assert main(["-C", str(tmp_path), "claims", "--prune"]) == EXIT_OK
+    assert "pruned   nothing: every row is a claim" in capsys.readouterr().out
+
+
+def test_the_prune_carries_what_it_dropped_in_the_json(tmp_path, capsys):
+    project(tmp_path, BLOCKS + line("RK2"))
+    claiming._write(claiming.path(tmp_path), {"RK99": time.time()})  # noqa: SLF001
+    assert main(["-C", str(tmp_path), "claims", "--prune", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["claims"] == [] and len(payload["pruned"]) == 1
+    assert payload["pruned"][0]["where"] == "in no file at all"
+
+
 def test_an_empty_registry_is_an_answer_and_not_a_failure(tmp_path, capsys):
     project(tmp_path, BLOCKS + line("RK2"))
     assert main(["-C", str(tmp_path), "claims"]) == EXIT_OK
@@ -673,7 +729,10 @@ def test_the_listing_offers_nothing_and_ranks_nothing(tmp_path, capsys):
     take(Config.discover(tmp_path))
     assert main(["-C", str(tmp_path), "claims", "--json"]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
-    assert set(payload) == {"window", "registry", "held", "claims"}
+    assert set(payload) == {"window", "registry", "held", "claims", "pruned"}
+    # `null` and not an empty list, because the flag was not passed: nothing was dropped and
+    # nothing was asked to be (RK165).
+    assert payload["pruned"] is None
     assert set(payload["claims"][0]) == {
         "id",
         "state",

@@ -226,28 +226,6 @@ Either `block add` writes the prose heading too, deriving the next outline numbe
 
 ## Block C — Query
 
-### §RK165 A blunt remedy and a precise one
-
-RK163 made every marker write reconcile the whole registry, which is what keeps a `git
-checkout` from leaving a permanent row — as long as somebody writes a marker afterwards.
-A checkout between tasks has no marker to write, and the row `claims` is printing is
-precisely the one that says nothing will happen by itself.
-
-What the listing offers instead is its last line: the path. Deleting the file clears the
-stale row and every live claim beside it, including the ones belonging to workers who
-are mid-task — a remedy whose blast radius is the whole checkout, offered for a problem
-the size of one id.
-
-The precise one is the reconciliation `follow` already performs, reachable without a
-marker: drop every row that is not a claim and leave every row that is. It decides
-nothing new, which is the argument for putting it on the read that already loads both
-files — one flag on `claims`, not a verb.
-
-Two things to keep out. It must not release a **live** claim: that is a marker, and a
-flag that could take a line from a worker is the door RK160 closed. And it must not
-become a schedule — nothing here runs on its own, and a registry that pruned itself in
-the background would be state this tool maintains rather than reconciles.
-
 ## Block D — The gate
 
 ### §RK104 The block the gate does not read
