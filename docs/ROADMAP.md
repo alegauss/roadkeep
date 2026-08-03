@@ -48,11 +48,13 @@
 - 📋 **RK136** (deps: —) **The section budget charges a measured table exactly what it charges a paragraph** — `words` splits the whole body on whitespace, so a section that is 230 of its 269 words of measurement is judged by a limit written for prose and offered a remedy that fits neither. → §RK136
 - 📋 **RK146** (deps: —) **A tab is reported as an invisible character and repaired by nothing, for ever** — suspect reads Unicode categories and a tab is Cc, while --fix withholds it because indentation is part of the model — so a file with one carries a finding no verb can clear. → §RK146
 - 📋 **RK147** (deps: —) **A prose file's own limits are enforced by the gate and ignored by the write that creates the text** — section add and amend check the body against config.schema while lint charges schema_for(role), so a project declaring [limits.improvements] has a budget only the backstop holds. → §RK147
+- 📋 **RK172** (deps: —) **A pointer resolving to a section in the strategy file is reported as resolving to nothing** — Resolution is charged against the improvements file alone, so Turing's six GEO lines point at STRATEGY `§X.3`/`§X.4`, which exist, and the gate calls the correct pointer unresolved. → §RK172
+- 📋 **RK173** (deps: —) **A path a ledger entry names relative to its own module is reported as not in the repository** — Every path is resolved from the repository root, so Turing's `./package.json` and `scripts/prerender.mjs` are reported missing while both exist under the frontend app the entry is about. → §RK173
 
 ## Block E — Adoption
 
 - 📋 **RK103** (deps: —) **A bullet whose marker holds a space is read as prose and reported by nothing** — GitHub's `- [ ]` task list is the commonest Markdown backlog there is, and cursarei's 16 of them parse as 0 entries and 0 rejects — the silent miss the reject list exists to end. → §RK103
-- 📋 **RK107** (deps: RK106 ✅) **A project that declares the format still has nothing enforcing it** — Turing and Dumont each carry a roadkeep.toml and neither runs the gate in CI, so what they adopted is held by the same nobody a convention is held by. → §RK107
+- 📋 **RK107** (deps: RK106 ✅) **A project that declares the format still has nothing enforcing it** — Dumont carries a roadkeep.toml and runs the gate nowhere, so what it adopted is held by the same nobody a convention is held by — Turing's own was wired in with `install` and a baseline. → §RK107
 - 📋 **RK110** (deps: —) **`adopt` counts the id findings without saying they are one declaration** — The estimate names the prefix delta and the `[markers]` delta but not this one, so measuring `pad = 2` against Dumont's nine findings took the throwaway script the estimate exists to replace. → §RK110
 - 📋 **RK125** (deps: —) **Declaring an unmarked ledger takes a whole verb away, and the refusal offers no way through** — Shio sets [ledger] marker = false so its 234 pre-tool entries parse, and that one line makes retire refuse every id: the adoption that made the file readable disabled a door. → §RK125
 - 📋 **RK137** (deps: —) **The copied skill names a shell command that does not exist in the project it was copied into** — `install` substitutes the launcher into the hook and into the server and not into the skill's own examples, so a checkout-wired project is told to run `roadkeep`, which is on no PATH here. → §RK137
@@ -67,6 +69,7 @@
 - 📋 **RK128** (deps: —) **The guard denies Edit and Write and answers silence to a shell command writing the same file** — A PreToolUse payload naming Bash is passed through whatever the command does, so sed, python -c or a heredoc rewrites a governed file with no refusal and no record. → §RK128
 - 📋 **RK155** (deps: —) **A tool call answers with the code the session started, so a refusal can name a key the config declares** — The stdio server imports the package once per session, so a new config key or an upgrade is invisible to every tool while the CLI beside it agrees with the file. → §RK155
 - 📋 **RK170** (deps: —) **A tool call that reads stdin eats the transport it arrived on** — `call` redirects stdout and stderr and not stdin, so `add --section` with no body blocks in `sys.stdin.read()` for ever — wedged 18 minutes in Shio, holding the RK117 lock. → §RK170
+- 📋 **RK171** (deps: —) **Nothing asks which exposed tool can reach a read of the transport** — The one guard is a comment in `_add`, and `section add` and `section amend` reach the same read on an argv the schema permits, so two paths wait their turn. → §RK171
 
 ## Non-goals
 

@@ -449,6 +449,47 @@ declaration will find the same seam.
 The fix itself is one argument threaded through: `_check` takes the role, or takes the
 schema the caller already loaded the document under.
 
+### §RK172 A pointer addresses a governed prose file, and the gate knows one
+
+Measured adopting Turing. Six open lines in its GEO block carry `→ §X.3` and `→ §X.4`,
+and the block's own preamble says what they mean: "`→` pointers are STRATEGY §X." Both
+sections exist — `docs/STRATEGY.md` declares `### X.3 Content calendar` and `### X.4
+Measurement` — and `lint` reports `ref.unresolved` on all six, because it resolves a ref
+against the improvements file and no other.
+
+The finding is worse than noise. It names the pointer as the thing to fix, and the two
+ways to satisfy it are both wrong: repoint the lines at an unrelated `§X.3` that happens
+to exist in the improvements file, or move business-positioning prose out of the file
+the config declares for it. A gate that can only be satisfied by damaging the corpus is
+a gate an adopter learns to ignore, which is the standing debt this tool exists to end.
+
+`[files]` already declares strategy as a governed role and `section add --role` already
+writes into it, so a pointer addressing it is inside the model — the gate is the only
+part that does not know. Resolving against every declared prose role is the fix; if a
+ref must be unambiguous, the answer is to report the ambiguity when two roles declare
+one anchor, not to read only the first.
+
+### §RK173 A path is relative to something, and the root is a guess
+
+Measured adopting Turing. Eight `path.missing` findings, and six name files that are in
+the repository: `./package.json` and `scripts/prerender.mjs` resolve under
+`frontend/apps/site/`, `references/return-policy.md` and `scripts/rma.py` under
+`frontend/apps/showcase/skills/returns-rma/`, and two more carry a `#L35` line anchor
+that is part of a GitHub URL rather than of a filename. Only two are genuinely gone.
+
+A monorepo entry writes the path its reader is standing in — the frontend app, the
+showcase skill — because that is the path a developer pastes from a terminal already
+inside it. The check resolves from the repository root and reports the difference as a
+missing file, so the signal-to-noise is 2 in 8 and the finding class stops being read.
+Worse, it points at history: these are shipped ledger entries, so the remedy the wording
+implies is editing what already happened.
+
+Two candidate fixes, and the cheap one may be enough: treat a path as satisfied when it
+resolves anywhere the repository declares a module root, or let `[paths]` declare the
+roots to try. Stripping a `#L…` anchor before the existence test is separate, smaller
+and unambiguous. Either way the class needs to distinguish "the entry is wrong" from
+"the entry is relative", which today it cannot.
+
 ## Block E — Adoption
 
 ### §RK103 The marker slot that holds two tokens
@@ -709,3 +750,23 @@ Measured in Shio: 18 minutes at 0% CPU, no children, holding the lock it claimed
 against a throwaway project in three calls.
 
 **Two writes, and stdin is the one that matters.** An exhausted stream substituted for `sys.stdin` in `call` turns the deadlock into a refusal about an empty body — a sentence the caller can act on, and the same answer on every handler that reads it. Refusing `section` without `section_body` in `argv` is the second, because an empty body is not the body the caller meant to send.
+
+### §RK171 The instrument the fix needs first
+
+Three exposed tools can reach the read, not one. `add` reaches it with `section` and no
+`section_body`; `section add` reaches it with `body` omitted, which its own schema
+permits; `section amend` reaches it with `body` set to the `-` the CLI help documents.
+`record add` cannot, because it exposes no body at all — and that asymmetry is the
+point: which paths are live is a property of `TOOLS` and the handlers together, and
+neither file states it.
+
+The deadlock was met on `add`, because that is the verb a task is filed with. Fix the
+path that was met and the other two are a first instance waiting for the session that
+meets them — the shape of a defect this backlog has already carried twice.
+
+So the question worth automating is not which handler reads stdin but which one *can*: a
+pytest over `TOOLS` that resolves each exposed subcommand to its handler and fails
+naming any that can reach `sys.stdin` on an argv the schema permits. A test and not a
+lint, because the surface is this repository's own and no adopting project can widen it.
+It is also the fixture that says RK170 is closed rather than local: the assertion
+survives a fourth tool being exposed, which a reviewer reading two diffs does not.
