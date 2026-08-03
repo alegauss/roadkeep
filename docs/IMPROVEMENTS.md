@@ -475,21 +475,25 @@ schema the caller already loaded the document under.
 
 Measured adopting Turing. Six open lines in its GEO block carry `→ §X.3` and `→ §X.4`,
 and the block's own preamble says what they mean: "`→` pointers are STRATEGY §X." Both
-sections exist — `docs/STRATEGY.md` declares `### X.3 Content calendar` and `### X.4
-Measurement` — and `lint` reports `ref.unresolved` on all six, because it resolves a ref
-against the improvements file and no other.
+exist — `docs/STRATEGY.md` declares `### X.3 Content calendar` and `### X.4 Measurement`
+— and `lint` reports `ref.unresolved` on all six, because it resolves a ref against the
+improvements file and no other.
 
-The finding is worse than noise. It names the pointer as the thing to fix, and the two
-ways to satisfy it are both wrong: repoint the lines at an unrelated `§X.3` that happens
-to exist in the improvements file, or move business-positioning prose out of the file
-the config declares for it. A gate that can only be satisfied by damaging the corpus is
-a gate an adopter learns to ignore, which is the standing debt this tool exists to end.
+**The seventh line shows the cost.** T354 carries `→ §X.1`, and an unrelated `§X.1` exists in
+the improvements file — "Why bypass Spring AI for some features". So instead of a false
+`ref.unresolved` it gets a silent false *match*: `_budget` charges a **pointed** section with
+its whole subtree, so that one is billed 365 words for prose about a GEO task, and splitting it
+into four subsections moved the number *up* by five. A finding that cannot be cleared by doing
+what it asks is worse than a missing one.
 
-`[files]` already declares strategy as a governed role and `section add --role` already
-writes into it, so a pointer addressing it is inside the model — the gate is the only
-part that does not know. Resolving against every declared prose role is the fix; if a
-ref must be unambiguous, the answer is to report the ambiguity when two roles declare
-one anchor, not to read only the first.
+Nor can the six be cleared honestly: the only ways to satisfy them are to repoint a line
+at an unrelated section, or to move positioning prose out of the file the config
+declares for it.
+
+`[files]` already declares strategy as a governed role, so a pointer addressing it is in
+the model — the gate is the only part that does not know. Resolve against every declared
+prose role, and let T354 say what to do when two roles declare one anchor: name the
+ambiguity, never read the first and bill it.
 
 ### §RK173 A path is relative to something, and the root is a guess
 
