@@ -141,6 +141,43 @@ class SectionClaimed(ValueError):
         )
 
 
+class AnchorClaimed(ValueError):
+    """A drop whose anchor an open line's pointer descends from, by name (RK169).
+
+    :class:`SectionOccupied` decides ownership by walking the *sections* inside the span, and
+    a section is a **heading**. Measured adopting Turing: `section drop XIV` was accepted and
+    took `§XIV.8` with it, and under that heading sat
+    `- **XIV.8.7 — ship Cloud default config as a GLOBAL seed ZIP (T373).**` — the design of
+    an open task, deleted without a word, because a bullet is not a section and the subtree
+    looked unowned.
+
+    Two things were true there and only one of them was a defect. That T373's pointer did not
+    resolve is Turing's, and `lint` says so. That the verb whose whole job is *the orphan*
+    deleted a live design **because** the pointer was already broken is this tool's: the
+    finding made the content invisible to the guard that would have protected it, so two
+    reports compounded into data loss.
+
+    So the guard reads the **name** and not the shape. An address under the anchor is claimed
+    prose whether the corpus writes it as a heading, as a bullet or as a table row — which
+    needs no parsing of the prose at all, and is exactly the check the adoption script had to
+    write by hand before it could proceed safely.
+    """
+
+    def __init__(
+        self, anchor: str, claimed: Sequence[tuple[str, Sequence[str]]], where: str = ""
+    ) -> None:
+        self.anchor = anchor
+        self.claimed = tuple((ref, tuple(owners)) for ref, owners in claimed)
+        named = ", ".join(f"§{ref} ({', '.join(owners)})" for ref, owners in self.claimed)
+        file = f" in {where}" if where else ""
+        super().__init__(
+            f"§{anchor}{file} is above {named}, which an open line points at: a drop takes "
+            f"everything under the anchor, and an address under it is claimed prose whether "
+            f"this file writes it as a heading or as a bullet — repoint the line, or ship "
+            f"the one that claims it"
+        )
+
+
 class UnknownParent(ValueError):
     """An anchor states its place, and this file declares nothing it extends (RK45).
 
@@ -321,6 +358,13 @@ def drop(
         ]
         if occupied:
             raise SectionOccupied(anchor, occupied, str(document.path or ""))
+        # And the same question asked of the **name** rather than of the headings (RK169),
+        # which is the half a corpus addressing its prose as bullets fell through: the check
+        # above proves containment and misses everything that is not a heading, and this one
+        # proves nothing about the file and misses nothing an open line has claimed.
+        descended = _descended(anchor, claimed)
+        if descended:
+            raise AnchorClaimed(anchor, descended, str(document.path or ""))
     start, end, _ = span
     # One edit, not one per line (RK54): a loop validates every half-deleted state, and a
     # section quoting a fenced example is briefly a file whose fence has no opening line.
@@ -695,6 +739,25 @@ def _depth(document: Document, anchor: str, level: int | None) -> int:
         return tops[0]
     levels = [h.level for h in document.headings]
     return min(levels) + 1 if levels else NESTED_LEVEL - 1
+
+
+def _descended(
+    anchor: str, claimed: Mapping[str, Sequence[str]]
+) -> list[tuple[str, tuple[str, ...]]]:
+    """Every claimed pointer that descends from this anchor, segment by segment (RK169).
+
+    Segment-wise and never as a string, the care :func:`_extends` already takes: `§0.1` is
+    not above `§0.10`, and a guard that read it as one would refuse a drop nobody claimed.
+    The anchor itself is not a descendant of itself — that is :class:`SectionClaimed`, asked
+    first and answered with the message about the pointer that names it exactly.
+    """
+    segments = anchor.split(".")
+    out: list[tuple[str, tuple[str, ...]]] = []
+    for ref, owners in claimed.items():
+        parts = ref.split(".")
+        if len(parts) > len(segments) and parts[: len(segments)] == segments:
+            out.append((ref, tuple(owners)))
+    return out
 
 
 def _is_top(anchor: str) -> bool:

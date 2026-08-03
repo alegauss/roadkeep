@@ -16,6 +16,12 @@ The fourth claim is where RK166 lands: under an outline the **anchor** is that d
 even for a task, no outline project's prose file declaring a block heading at all — and a
 top-level anchor is placed after the last top-level section rather than refused, because "a
 heading they can add" was an argument about an edit the guard denies.
+
+And the first is where RK169 does. "Deleted whole" is only safe while the guard sees
+everything the deletion would take, and it saw **headings**: a corpus addressing a design as
+`- **XIV.8.7 — …**` had that design deleted with its shipped parent, because a bullet is not a
+section. So ownership is decided from the *name* as well — an address under the anchor is
+claimed prose whatever shape the file writes it in.
 """
 
 from __future__ import annotations
@@ -31,7 +37,9 @@ from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.document import Document, UnknownBlock
 from roadkeep.schema import Schema, SchemaError
+from roadkeep.linting import lint
 from roadkeep.sections import (
+    AnchorClaimed,
     NoSuchSection,
     SectionClaimed,
     SectionExists,
@@ -988,3 +996,100 @@ def test_the_whole_deadlock_ends_with_a_clean_gate(tmp_path):
     prose = (tmp_path / "IMPROVEMENTS.md").read_text(encoding="utf-8")
     assert "## XXII A new theme (Block AI)" in prose
     assert "### XXII.1 A design" in prose
+
+
+# -- the guard reads the name, not the shape (RK169) ---------------------------
+
+#: Turing's shape, verbatim from the adoption that measured it: a design addressed as a
+#: bullet under the heading a drop was aimed at, which is not a section and so was invisible
+#: to the guard that walks the sections.
+BULLETED = """# Turing — Design rationale
+
+## XIV — Cloud
+
+### XIV.8 The seed config
+
+- **XIV.8.7 — ship Cloud default config as a GLOBAL seed ZIP (T373).**
+"""
+
+BULLET_BACKLOG = """# Roadmap
+
+## Block A — Themes
+
+- 📋 **RK373** (deps: —) **A symptom** — Because of a reason. → §XIV.8.7
+"""
+
+
+def bulleted(tmp_path: Path) -> Config:
+    return project(
+        tmp_path,
+        improvements=BULLETED,
+        roadmap=BULLET_BACKLOG,
+        top='ref_scheme = "outline"\n',
+    )
+
+
+def test_a_bullet_an_open_line_points_at_is_not_deleted_with_its_parent(tmp_path):
+    # `section drop XIV` was accepted and took §XIV.8 with it, and the design of an open task
+    # went with it without a word: a bullet is not a section, so the subtree looked unowned.
+    config = bulleted(tmp_path)
+    with pytest.raises(AnchorClaimed) as raised:
+        drop(config.document("improvements"), "XIV", claimed=pointers(config))
+    assert "§XIV.8.7 (RK373)" in str(raised.value)
+    assert read(config) == BULLETED
+
+
+def test_the_two_findings_stay_two_reports_instead_of_becoming_data_loss(tmp_path):
+    # That the pointer does not resolve is the project's, and `lint` says so. That the verb
+    # whose whole job is the orphan deleted a live design *because* the pointer was already
+    # broken was this tool's — the finding made the content invisible to its own guard.
+    config = bulleted(tmp_path)
+    codes = [finding.code for finding in lint(config).findings]
+    assert "ref.unresolved" in codes
+    with pytest.raises(AnchorClaimed):
+        drop(config.document("improvements"), "XIV", claimed=pointers(config))
+    assert read(config) == BULLETED
+
+
+def test_the_immediate_parent_is_refused_the_same_way(tmp_path):
+    # Not only the grandparent: the check is every claimed pointer below the anchor.
+    config = bulleted(tmp_path)
+    with pytest.raises(AnchorClaimed):
+        drop(config.document("improvements"), "XIV.8", claimed=pointers(config))
+    assert read(config) == BULLETED
+
+
+def test_the_name_is_read_segment_by_segment(tmp_path):
+    # `§XIV.8.7` does not descend from `§XIV.8.70`, and a guard that compared strings would
+    # refuse a drop nobody claimed — the care `_extends` already takes about where one ends.
+    config = project(
+        tmp_path,
+        improvements=BULLETED.replace("### XIV.8 The", "### XIV.80 The"),
+        roadmap=BULLET_BACKLOG,
+        top='ref_scheme = "outline"\n',
+    )
+    document, section = drop(
+        config.document("improvements"), "XIV.80", claimed=pointers(config)
+    )
+    document.save()
+    assert section.anchor == "XIV.80" and "XIV.80" not in read(config)
+
+
+def test_the_anchor_itself_is_still_the_other_refusal(tmp_path):
+    # Asked first, because its message names the pointer that claims this exact section
+    # rather than one under it — the same remedy, a more precise sentence.
+    config = outline(tmp_path)  # here §XIV.8.7 is a heading, and RK2 points at it
+    with pytest.raises(SectionClaimed):
+        drop(config.document("improvements"), "XIV.8.7", claimed=pointers(config))
+    assert read(config) == OUTLINE_RATIONALE
+
+
+def test_the_line_that_is_leaving_does_not_claim_its_own_subtree(tmp_path):
+    # `ship` passes `leaving`, so the claim that is the *reason* for the drop is not one of
+    # these — otherwise a task pointing at a descendant could never ship at all.
+    config = bulleted(tmp_path)
+    document, section = drop(
+        config.document("improvements"), "XIV", claimed=pointers(config, leaving="RK373")
+    )
+    document.save()
+    assert section.anchor == "XIV" and read(config) == "# Turing — Design rationale\n"

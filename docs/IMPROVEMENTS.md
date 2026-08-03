@@ -118,28 +118,6 @@ as one. RK122 is the same question one file up.
 
 ## Block B — Authoring
 
-### §RK169 The guard sees headings, and an outline corpus addresses prose with bullets
-
-Measured adopting Turing. `section drop XIV` was accepted and took §XIV.8 with it, and
-under that heading sat `- **XIV.8.7 — ship Cloud default config as a GLOBAL seed ZIP
-(T373).**` — the design of an open task, deleted without a word. The refusal exists and
-did not fire: `section drop` is documented as refused "when an open line points at the
-anchor or at anything under it", and it decides that by walking the *sections* under the
-anchor. T373's pointer named a bullet, which is not a section, so the subtree looked
-unowned.
-
-Two things are true at once and only one is a defect. That the pointer does not resolve
-is Turing's, and `lint` says so — `ref.unresolved`. That a verb whose whole job is "the
-orphan" deleted a live design *because* the pointer was already broken is this tool's:
-the finding made the content invisible to the guard that would have protected it, so two
-findings compounded into data loss instead of two reports.
-
-The fix is to decide the guard from the same text a reader would: any occurrence of an
-anchor at-or-under the target inside the span, whichever shape the corpus writes it in —
-or, narrower and enough, refuse the drop while any open line's ref is a descendant of
-the anchor by name, which needs no parsing of the prose at all and is the test the
-adoption script had to write by hand to proceed safely.
-
 ### §RK178 The one field a correction cannot reach
 
 A field report from claude-tray. T210 was written from a list of response headers: *the

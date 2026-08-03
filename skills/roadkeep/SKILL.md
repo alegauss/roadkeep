@@ -76,8 +76,9 @@ three writes that read one (`add`'s `section_body`, `section_add`'s and `section
 take it **as a string** and refuse the omission rather than waiting for it. **`section amend <id>` is how a
 live design is corrected**: `--body -` replaces its own prose, `--title` its heading, the
 subtree and the anchor are untouched, and it is the only door — `section drop` is refused
-while an open line points at the anchor, which is right, and shipping is not a way to fix a
-paragraph. No write invents a block
+while an open line points at the anchor **or at any address under it**, named in the refusal,
+whether this file writes that address as a heading or as a bullet; that is right, and shipping
+is not a way to fix a paragraph. No write invents a block
 heading — **`block add <x> --title "…"` is the one that declares one**, in every governed file already organised by blocks, placed after the last block's subtree and spelled at that file's own level and separator. Reach for it the moment any write refuses with "no heading declares".
 Block order is what `list` reports and what a reader takes for the shape of the plan, so
 `--after <label>` opens one **between** two existing blocks: it names a neighbour rather than an

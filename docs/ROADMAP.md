@@ -27,7 +27,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK169** (deps: —) **section drop deletes rationale a live line points at, when the anchor is a bullet** — The guard reads the sections under the anchor, so an outline project addressing prose as `- **XIV.8.7 — …**` has its live design deleted with the shipped parent and no refusal. → §RK169
 - 📋 **RK178** (deps: —) **A line whose bold symptom turns out to be false has no repair** — amend excludes the symptom by design because it is the line's identity, so the answer is retire and re-file — which RK125 shows a project can lack, and which spends an id and a section either way. → §RK178
 
 ## Block C — Query (consult without reading the file)
