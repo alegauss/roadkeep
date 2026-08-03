@@ -19,10 +19,13 @@ What that costs, and how each cost is avoided here:
   description is the subcommand's own `description`, so a flag renamed in `cli.py` cannot
   leave the schema describing something that is gone.
 * **stdio, and no listener.** "No server" is a non-goal about *the store*: this speaks
-  JSON-RPC on stdin and stdout, holds no state between messages, binds no port and caches no
-  file. The config is re-read per message, so a `roadkeep.toml` edited mid-session is the one
-  the next `tools/list` describes — and because the *code* reading it is not, a refusal says so
-  when this package's own modules moved after they were imported (RK155).
+  JSON-RPC on stdin and stdout, binds no port and caches no file. The config is re-read per
+  message, so a `roadkeep.toml` edited mid-session is the one the next `tools/list`
+  describes — and because the *code* reading it is not, a refusal says so when this package's
+  own modules moved after they were imported (RK155). The one thing held between messages is
+  :class:`Watch`, and it holds no fact about the project: only a digest of the tool list this
+  connection was **sent**, so `notifications/tools/list_changed` can be sent when it ages
+  (RK177). A stateless server cannot derive what it already told somebody.
 * **stdin is the transport, so a handler never gets it.** `call` dispatches in-process through
   the CLI's own parser, and three handlers read a paragraph from a pipe (RK9). Given the
   client's pipe, one of them waits for an EOF no live client sends and eats every message queued
@@ -55,12 +58,14 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import hashlib
 import io
 import json
 import re
 import sys
 from collections.abc import Iterator, Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, TextIO
 
 from roadkeep import __version__
@@ -748,11 +753,82 @@ def tool_named(name: str) -> Tool:
 # -- the protocol -----------------------------------------------------------
 
 
-def handle(message: Any, directory: str = ".") -> dict[str, Any] | None:
+@dataclass
+class Watch:
+    """What this connection was told the tool list is — the one thing held between messages.
+
+    The schema *varies by config* (RK111): `[ids] suffix` decides whether `add` accepts a
+    `task_id` at all, and `[limits]`, `[markers]` and the id shape decide the bounds on
+    every field. The server already re-reads `roadkeep.toml` per message, so a `tools/list`
+    always describes the file as it is now — but a client asks once, at the handshake, and
+    then validates every call against what it cached. Edit the config mid-session and the
+    call it refuses is one this server would have accepted, with a message the *client*
+    composed from a schema nobody told it was out of date.
+
+    The protocol's answer is `notifications/tools/list_changed`, and sending it costs the
+    claim that this holds no state between messages. That claim is kept where it means
+    something: nothing here is a fact about the project, about a task or about a file's
+    contents — it is a memory of *what this connection was sent*, which is the one thing a
+    stateless server cannot derive and the one thing the notification is about. The
+    alternative considered was to leave it and say "restart the session" in the refusal,
+    which is a workaround for a message this server is able to send.
+
+    Two costs kept small on purpose. Nothing is computed until the client has actually asked
+    for a list, so a session that never lists pays nothing; and after that the per-message
+    cost is one `stat` of the config file, with the descriptors rebuilt only when its bytes
+    moved — the build is what RK174 and RK198 are about, and doing it per message to detect
+    a change nobody made would cost more than the staleness it fixes.
+    """
+
+    #: The digest of the descriptors last handed to this client, or ``None`` before it asked.
+    described: str | None = None
+    #: The config file as it was when that answer was composed: path, mtime and size. Not the
+    #: digest of its bytes — this is read on every message and the point is that it is a stat.
+    stamp: tuple[str, int, int] | None = None
+    #: Whether a list has ever been sent. Distinct from :attr:`stamp`, which is ``None`` both
+    #: before the first list and on a project that declares no config at all.
+    told: bool = field(default=False)
+
+    def describing(self, config: Config, described: list[dict[str, Any]]) -> None:
+        """Remember the answer being sent, so a later message can tell that it aged."""
+        self.described = _digest(described)
+        self.stamp = _stamp(config)
+        self.told = True
+
+    def moved(self, directory: str) -> dict[str, Any] | None:
+        """The notification this connection is owed, or ``None`` — and never twice for one edit.
+
+        The new digest is kept rather than cleared: a client that ignores the notification
+        is not told again about the same edit, and a *second* edit still reaches it.
+        """
+        if not self.told:
+            return None
+        try:
+            config = _config(directory)
+        except OSError:
+            return None
+        stamp = _stamp(config)
+        if stamp == self.stamp:
+            return None
+        self.stamp = stamp
+        digest = _digest(descriptors(config))
+        if digest == self.described:
+            # The file moved and the schema did not — a comment edited, a `[report]` line
+            # added. Nothing to tell the client, and the new stamp above means nothing to
+            # rebuild until it moves again.
+            return None
+        self.described = digest
+        return {"jsonrpc": "2.0", "method": "notifications/tools/list_changed"}
+
+
+def handle(message: Any, directory: str = ".", watch: Watch | None = None) -> dict[str, Any] | None:
     """One JSON-RPC message in, one response out — or `None`, which is a notification.
 
     A notification answered is a protocol violation, and `notifications/initialized` is the
     first thing every client sends, so the `None` here is load-bearing rather than tidy.
+
+    ``watch`` is the connection's memory of what it was last told (RK177), optional because
+    a caller answering one message in isolation has no connection to keep one for.
     """
     if not isinstance(message, Mapping) or message.get("jsonrpc") != "2.0":
         return _error(None, INVALID_REQUEST, "expected a JSON-RPC 2.0 object")
@@ -766,17 +842,42 @@ def handle(message: Any, directory: str = ".") -> dict[str, Any] | None:
     if method == "ping":
         return _result(identifier, {})
     if method == "tools/list":
-        return _result(identifier, {"tools": descriptors(_config(directory))})
+        config = _config(directory)
+        described = descriptors(config)
+        if watch is not None:
+            watch.describing(config, described)
+        return _result(identifier, {"tools": described})
     if method == "tools/call":
         return _result(identifier, _called(params, directory))
     return _error(identifier, METHOD_NOT_FOUND, f"unsupported method {method!r}")
+
+
+def _digest(described: list[dict[str, Any]]) -> str:
+    """The tool list as one comparable string, ordered so equal lists compare equal."""
+    return hashlib.sha256(
+        json.dumps(described, sort_keys=True, ensure_ascii=False).encode("utf-8")
+    ).hexdigest()
+
+
+def _stamp(config: Config) -> tuple[str, int, int] | None:
+    """The config file as a stat, or ``None`` where this project declares none."""
+    source = config.source
+    if source is None:
+        return None
+    try:
+        info = Path(source).stat()
+    except OSError:
+        return None
+    return (str(source), info.st_mtime_ns, info.st_size)
 
 
 def _handshake(params: Mapping[str, Any]) -> dict[str, Any]:
     asked = params.get("protocolVersion")
     return {
         "protocolVersion": asked if asked in KNOWN_PROTOCOLS else PROTOCOL,
-        "capabilities": {"tools": {}},
+        # `listChanged` is what makes the notification above mean anything: a client that was
+        # never told the list can change is entitled to ignore one that says it did (RK177).
+        "capabilities": {"tools": {"listChanged": True}},
         "serverInfo": {"name": "roadkeep", "version": __version__},
         # The startup line RK79 asks for. `serverInfo.version` stays the release number a
         # client may have pinned against, so which tree answered goes here — the one field
@@ -818,7 +919,12 @@ def serve(reader: TextIO, writer: TextIO, directory: str = ".") -> int:
 
     The loop never raises: a malformed line is a parse error the client can read, and a
     server that dies on one takes every tool in the session with it.
+
+    The :class:`Watch` is the connection, and lives exactly as long as it (RK177): a second
+    message may find `roadkeep.toml` describing different tools than the first one answered
+    with, and the client is told so rather than left validating against what it cached.
     """
+    watch = Watch()
     for line in reader:
         if not line.strip():
             continue
@@ -827,8 +933,17 @@ def serve(reader: TextIO, writer: TextIO, directory: str = ".") -> int:
         except ValueError:
             response: dict[str, Any] | None = _error(None, PARSE_ERROR, "invalid JSON")
         else:
-            response = handle(message, directory)
+            response = handle(message, directory, watch)
         if response is not None:
-            writer.write(json.dumps(response) + "\n")
-            writer.flush()
+            _send(writer, response)
+        # After the answer, never instead of it: the response is what the client is waiting
+        # on, and a notification that arrived first would sit in front of it in the pipe.
+        notice = watch.moved(directory)
+        if notice is not None:
+            _send(writer, notice)
     return 0
+
+
+def _send(writer: TextIO, message: Mapping[str, Any]) -> None:
+    writer.write(json.dumps(message) + "\n")
+    writer.flush()

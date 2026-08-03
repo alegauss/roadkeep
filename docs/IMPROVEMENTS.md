@@ -415,29 +415,6 @@ git configuration and should stay a flag rather than a default.
 
 ## Block F — The plugin
 
-### §RK177 The schema that varies and the client that cached it
-
-RK111 opened `add`'s id where a project declares a shape the counter cannot spell, and
-named the cost: a tool schema that varies by config. RK24 already had a milder version —
-`maxLength` and `enum` are read from `roadkeep.toml` — but a *bound* changing is a value
-a client refuses wrongly, while a *field* appearing is a call it cannot make at all.
-
-The server does its half right: the config is re-read per message, so the next
-`tools/list` describes the file as it is now. What is missing is the message that makes
-a client ask again. The protocol has one — `notifications/tools/list_changed` — and this
-server sends no notifications, so a session that edits `roadkeep.toml` keeps validating
-against what the handshake handed it. The refusal a caller then gets is `no such
-argument task_id`, which RK111 made say *why* the field is absent — and on a config that
-now declares a suffix, that sentence is wrong.
-
-The cheap correction is to send the notification when a config read yields a different
-descriptor set than the last one answered. That means holding one thing between
-messages, which this server deliberately does not — a hash is small, but "holds no
-state" is a claim to break on purpose rather than by accident.
-
-The alternative is to accept it and say so in the refusal: a field this project declares
-may want the session restarted. Cheaper, and it makes the wrong sentence a right one.
-
 ### §RK185 Validate in characters, publish in words
 
 An LLM does not have characters. The tokenizer exposes tokens, so "200 characters" is a

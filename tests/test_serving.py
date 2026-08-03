@@ -57,6 +57,7 @@ from roadkeep.serving import (
     call,
     descriptor,
     descriptors,
+    Watch,
     handle,
     prose_of,
     serve,
@@ -653,7 +654,10 @@ def test_the_handshake_answers_with_the_version_the_client_asked_for(asked):
         }
     )
     assert response["result"]["protocolVersion"] == asked
-    assert response["result"]["capabilities"] == {"tools": {}}
+    # `listChanged` is declared because the schema varies by config and this server now
+    # sends the notification (RK177): a client never told the list can change is entitled
+    # to ignore one saying it did.
+    assert response["result"]["capabilities"] == {"tools": {"listChanged": True}}
     assert response["result"]["serverInfo"]["name"] == "roadkeep"
 
 
@@ -928,3 +932,145 @@ def _moved(tmp_path: Path) -> Path:
     (home / "config.py").write_text("x = 1\n", encoding="utf-8")
     os.utime(home / "config.py", (_LOADED_AT + 300, _LOADED_AT + 300))
     return home
+
+
+# -- the list that changed under the client (RK177) ---------------------------
+
+
+def _messages(tmp_path: Path, *sent: dict, between=None) -> list[dict]:
+    """Drive the real loop, optionally editing the config between the two messages.
+
+    Through :func:`serve` and not through `handle`, because the notification is the loop's
+    to write: `handle` answers one message and the whole point here is the second one.
+    """
+    written: list[dict] = []
+    reader = _Edited(sent, tmp_path, between)
+    writer = io.StringIO()
+    assert serve(reader, writer, str(tmp_path)) == 0
+    for line in writer.getvalue().splitlines():
+        if line.strip():
+            written.append(json.loads(line))
+    return written
+
+
+class _Edited(io.StringIO):
+    """The client's pipe, with a side effect between the first message and the second.
+
+    A `StringIO` holding both lines would be read before the edit happened, and the defect
+    is precisely that the config moves *while* a session is open.
+    """
+
+    def __init__(self, sent, tmp_path: Path, between) -> None:
+        super().__init__()
+        self._sent = [json.dumps(message) + "\n" for message in sent]
+        self._tmp_path = tmp_path
+        self._between = between
+        self._read = 0
+
+    def __iter__(self):
+        for line in self._sent:
+            yield line
+            self._read += 1
+            if self._read == 1 and self._between is not None:
+                self._between(self._tmp_path)
+
+
+def _lists(identifier: int = 1) -> dict:
+    return {"jsonrpc": "2.0", "id": identifier, "method": "tools/list"}
+
+
+def _declare_a_suffix(tmp_path: Path) -> None:
+    # The exact edit RK111 opened `add`'s id for: on this config `task_id` exists, and on
+    # the one the client cached it does not.
+    (tmp_path / "roadkeep.toml").write_text(SUFFIXED, encoding="utf-8")
+
+
+def _pings(identifier: int) -> dict:
+    return {"jsonrpc": "2.0", "id": identifier, "method": "ping"}
+
+
+def test_a_config_that_gains_a_field_mid_session_is_announced(tmp_path):
+    # The shape of a real session: a client lists once at the handshake and then only calls.
+    # Between those, `[ids] suffix` appears and `add` gains an argument the client has no
+    # schema for — which is the call it refuses on this server's behalf.
+    project(tmp_path, config=PROSE, improvements=DESIGN)
+    written = _messages(tmp_path, _lists(1), _pings(2), between=_declare_a_suffix)
+    assert [m.get("id", m.get("method")) for m in written] == [
+        1,
+        2,
+        "notifications/tools/list_changed",
+    ]
+    first = {tool["name"]: tool for tool in written[0]["result"]["tools"]}
+    assert "task_id" not in first["add"]["inputSchema"]["properties"]
+
+
+def test_the_field_is_there_when_the_client_asks_again(tmp_path):
+    # The notification is only worth sending if the answer behind it differs, so the answer
+    # is asserted rather than assumed: a re-list carries the argument the cached one lacked.
+    project(tmp_path, config=PROSE, improvements=DESIGN)
+    written = _messages(tmp_path, _lists(1), _pings(2), _lists(3), between=_declare_a_suffix)
+    third = {tool["name"]: tool for tool in written[-1]["result"]["tools"]}
+    assert "task_id" in third["add"]["inputSchema"]["properties"]
+
+
+def test_the_notification_arrives_after_the_answer_it_follows(tmp_path):
+    # A notification written first would sit in front of the response the client is blocked
+    # on, which turns a staleness fix into a stall.
+    project(tmp_path, config=PROSE, improvements=DESIGN)
+    written = _messages(tmp_path, _lists(1), _pings(2), between=_declare_a_suffix)
+    assert written[1]["id"] == 2
+    assert written[2]["method"] == "notifications/tools/list_changed"
+
+
+def test_a_session_that_never_listed_is_never_told(tmp_path):
+    # Nothing was cached, so there is nothing to correct — and the descriptors are never
+    # built, which is the cost this is arranged to avoid paying per message.
+    project(tmp_path, config=PROSE, improvements=DESIGN)
+    written = _messages(tmp_path, _pings(1), _pings(2), between=_declare_a_suffix)
+    assert [m["id"] for m in written] == [1, 2]
+
+
+def test_a_config_that_did_not_move_says_nothing(tmp_path):
+    project(tmp_path, config=PROSE, improvements=DESIGN)
+    written = _messages(tmp_path, _lists(1), _pings(2), _pings(3))
+    assert [m["id"] for m in written] == [1, 2, 3]
+
+
+def test_an_edit_that_leaves_the_schema_alone_says_nothing(tmp_path):
+    # A comment added, a `[report]` line changed: the file moved and the tools did not, so
+    # a client that re-listed would be handed exactly what it already has.
+    project(tmp_path, config=PROSE, improvements=DESIGN)
+
+    def comment(root: Path) -> None:
+        (root / "roadkeep.toml").write_text(
+            PROSE + "\n# a sentence about nothing the schema reads\n", encoding="utf-8"
+        )
+
+    written = _messages(tmp_path, _lists(1), _pings(2), between=comment)
+    assert [m["id"] for m in written] == [1, 2]
+
+
+def test_one_edit_is_announced_once(tmp_path):
+    # A client that ignores the notification is not told again about the same edit, which
+    # is what keeps this from becoming a message on every message.
+    project(tmp_path, config=PROSE, improvements=DESIGN)
+    written = _messages(tmp_path, _lists(1), _pings(2), _pings(3), between=_declare_a_suffix)
+    assert sum("method" in m for m in written) == 1
+
+
+def test_the_watch_holds_nothing_about_the_project(tmp_path):
+    # The claim the module docstring makes, asserted: a digest of what was *sent*, a stat of
+    # the config, and a flag. No task, no path, no file contents.
+    project(tmp_path, config=PROSE, improvements=DESIGN)
+    watch = Watch()
+    handle(_lists(1), str(tmp_path), watch)
+    assert set(vars(watch)) == {"described", "stamp", "told"}
+    assert watch.told is True
+    assert watch.stamp[0].endswith("roadkeep.toml")
+
+
+def test_the_capability_is_declared_wherever_the_notification_can_be_sent():
+    # A client never told the list can change may ignore one that says it did, so the two
+    # halves are asserted together rather than in two files that can drift.
+    handshake = handle({"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {}})
+    assert handshake["result"]["capabilities"]["tools"]["listChanged"] is True
