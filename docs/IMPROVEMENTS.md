@@ -259,22 +259,6 @@ own construction, the number to report is one build, not fifty-two.
 
 ## Block D — The gate
 
-### §RK136 A budget for prose, applied to a table
-
-`sections.words` is `len(body.split())`, so every cell of a Markdown table costs what a
-word of argument costs. Measured while adopting Claude Tray: its `III` is 269 words of
-which 230 are the measured-baseline table the file keeps *because it is data, not
-design*, and its `XVI.3` is 293 of which 72 are a timing table. Both are under 250
-counting prose alone. The remedy the finding offers - "this is two sections, or a
-paragraph that belongs in the commit" - is advice about prose, and neither applies:
-splitting a six-row measurement in half helps nobody, and the rows are the evidence the
-design rests on. The adoption ended by declaring `section = 300`, a number that
-describes two tables rather than budgeting anybody's prose, which is the outcome L6 is
-supposed to prevent. What the limit is for is an agent's attention on an argument, so
-the honest count excludes what is not argument: a table, a fenced block, a blockquote of
-somebody else's words. `sections.structural` already knows how to recognise the first
-two.
-
 ### §RK146 A control character with a rendering
 
 `suspect` is defined by Unicode category rather than a hand-kept list, which is the

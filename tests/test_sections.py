@@ -54,6 +54,7 @@ from roadkeep.sections import (
     find,
     nested,
     pointers,
+    words,
 )
 
 #: This repository, whose `docs/` are the conformance fixture — read, never written.
@@ -137,6 +138,27 @@ def test_a_section_owns_its_subsections(tmp_path):
     # The budget counts the subsection's words too: the unit is the section, and prose
     # that escapes the count by gaining a heading is the drift the budget exists to stop.
     assert section.words == 18
+
+
+def test_a_table_a_fence_and_a_quote_cost_the_budget_nothing(tmp_path):
+    # RK136: Claude Tray's `III` is 269 words of which 230 are the measured-baseline table
+    # the file keeps *because it is data, not design*. Charged as prose, the only remedies
+    # on offer were splitting a six-row measurement in half or declaring `section = 300`.
+    body = (
+        "One two three four five.\n\n"
+        "| a header | and another |\n| --- | --- |\n| twelve words | that are not prose |\n\n"
+        "```\nnine ten eleven twelve thirteen fourteen\n```\n\n"
+        "> Somebody else's fifteen sixteen seventeen words.\n"
+    )
+    assert words(body) == 5
+    assert len(body.split()) == 41  # what the same section used to be charged
+
+
+def test_a_list_is_argument_and_is_charged(tmp_path):
+    # Deliberately not exempt: a bullet is how an argument is written in these files, and a
+    # budget a reformat reopens is not one. `structural` reads them as shapes for *width*,
+    # which is a different question with a different answer (RK99).
+    assert words("- One two three.\n- Four five six.\n") == 8  # the markers included
 
 
 def test_every_anchor_is_enumerable_with_its_own_prose(tmp_path):

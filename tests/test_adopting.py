@@ -36,6 +36,7 @@ from roadkeep.adopting import (
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.schema import Schema
+from roadkeep.sections import words
 
 SHIO = Path("D:/Git/viglet/shio/latest/docs/ROADMAP.md")
 
@@ -400,9 +401,11 @@ A preamble above every anchor, wrapped the way the rest of this file is.
 Short.
 """
 
-#: §RK1's own prose, as `anchored` reads it: everything up to the next heading, table
-#: included — a section is charged for what is written under it.
+#: §RK1's own prose, as `anchored` reads it: everything up to the next heading. The table
+#: under it is **not** charged (RK136) — the limit budgets an argument, and a row of data is
+#: not asking for an agent's attention — so the number an adopter is shown is 14 and not 45.
 FIRST_BODY = RATIONALE.partition("### §RK1 The first design\n")[2].partition("### §RK2")[0]
+FIRST_ARGUMENT = words(FIRST_BODY)
 
 
 def test_the_other_half_of_the_corpus_is_measured(tmp_path: Path) -> None:
@@ -414,7 +417,8 @@ def test_the_other_half_of_the_corpus_is_measured(tmp_path: Path) -> None:
     assert (estimate.unit, estimate.parsed, estimate.conforming) == ("section", 2, 2)
     measures = {m.field: m for m in estimate.measures}
     assert measures["section"].limit == 250
-    assert measures["section"].longest == len(FIRST_BODY.split())  # the longer body
+    assert measures["section"].longest == FIRST_ARGUMENT == 14  # the longer body
+    assert len(FIRST_BODY.split()) == 45  # what the table would have cost it (RK136)
     assert measures["prose"].limit == 88
 
 
@@ -476,7 +480,7 @@ def test_the_longest_prints_even_when_nothing_is_over(tmp_path: Path, capsys) ->
     assert main(argv) == EXIT_OK
     out = capsys.readouterr().out
     assert "2 section(s), 2 conform, 0 would change" in out
-    assert f"section  longest {len(FIRST_BODY.split())} of 250, 0 over" in out
+    assert f"section  longest {FIRST_ARGUMENT} of 250, 0 over" in out
     assert "prefix" not in out
 
     assert main([*argv, "--json"]) == EXIT_OK

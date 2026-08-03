@@ -53,6 +53,11 @@ from roadkeep.schema import OUTLINE_ANCHOR_RE, Schema, SchemaError, Task, Violat
 
 #: A paragraph whose first characters are any of these is a structure, not prose.
 _STRUCTURE = ("|", ">", "-", "*", "+", "#", "```", "~~~", "1.")
+#: What opens a block whose contents are quoted or generated rather than written (RK136).
+_FENCES = ("```", "~~~")
+#: A line that is data rather than argument, so the budget does not charge for it. A list
+#: marker is deliberately absent: a bullet is how an argument is written in these files.
+_DATA = ("|", ">")
 
 
 class SectionError(SchemaError):
@@ -221,7 +226,8 @@ class Section:
 
     @property
     def words(self) -> int:
-        return len(self.body.split())
+        """What the budget charges this section: its argument, not its whole text (RK136)."""
+        return words(self.body)
 
     def names(self, pattern: re.Pattern[str]) -> tuple[str, ...]:
         """The task ids this heading names, in order (RK61).
@@ -523,7 +529,35 @@ def _rewrite(
 
 
 def words(body: str) -> int:
-    return len(body.split())
+    """The words of **argument** in a body — the budget's unit, and never its whole text.
+
+    `len(body.split())` charged every cell of a Markdown table what a word of argument
+    costs. Measured while adopting Claude Tray: its `III` is 269 words of which 230 are the
+    measured-baseline table the file keeps *because it is data, not design*, and its `XVI.3`
+    is 293 of which 72 are a timing table — both under 250 counting prose alone. The remedy
+    the finding offered, "this is two sections, or a paragraph that belongs in the commit",
+    is advice about prose and applied to neither: splitting a six-row measurement in half
+    helps nobody, and the rows are the evidence the design rests on. That adoption ended by
+    declaring `section = 300`, a number describing two tables rather than budgeting anybody's
+    prose, which is the outcome L6 exists to prevent (RK136).
+
+    So three shapes are data and cost nothing: a **table** row, a **fenced** block with
+    everything in it, and a **blockquote**, which is somebody else's words being cited. A
+    list is not among them — a bullet is how an argument is written here, and exempting one
+    would reopen the budget by reformatting. What the limit is for is an agent's attention
+    on an argument, and a row of numbers is not asking for any.
+    """
+    total = 0
+    fence: str | None = None
+    for raw in body.splitlines():
+        line = raw.lstrip()
+        if fence is not None:
+            fence = None if line.startswith(fence) else fence
+        elif line.startswith(_FENCES):
+            fence = line[:3]
+        elif not (line.startswith(_DATA) or raw.startswith("    ")):
+            total += len(raw.split())
+    return total
 
 
 # -- validation --------------------------------------------------------------
