@@ -21,6 +21,7 @@ reports the difference. Three properties are what these tests are about:
 from __future__ import annotations
 
 import json
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -416,3 +417,85 @@ def test_a_revision_the_repository_does_not_know_is_refused(tmp_path):
     config = repo(tmp_path)
     with pytest.raises(HistoryUnavailable):
         lint(config, at="not-a-revision")
+
+
+# -- a path the repository declared it will never track (RK213) ---------------
+
+
+def naming(path: str) -> str:
+    return LEDGER.replace("Because it was done.", f"Because it was done, in `{path}`.")
+
+
+def paths(report) -> list[str]:
+    """Only this check's findings: the fixture carries one standing problem of its own."""
+    return [c for c in codes(report) if c.startswith("path.missing")]
+
+
+def test_a_path_the_repository_ignores_is_not_a_missing_artefact(tmp_path):
+    """The state an adopter's CI was red in, and the machine's own state decided it.
+
+    Reproduced against Claude Code Tray at the commit before it edited the sentence: a
+    bare checkout is clean, a built tree is clean, and the tree with the directory and no
+    file is one finding. So the gate answered by whichever of three states a machine
+    happened to be in — which is not a defect in the ledger's sentence.
+    """
+    config = repo(tmp_path, files={".gitignore": "bin/\n"})
+    (tmp_path / "bin" / "Release").mkdir(parents=True)
+    write(tmp_path, "CHANGELOG.md", naming("bin/Release/app.exe"))
+    assert "path.missing" not in codes(lint(config))
+
+
+def test_the_three_states_the_machine_can_be_in_now_answer_alike(tmp_path):
+    """What the fix is *for*: one answer, whatever the developer last ran.
+
+    Bare was already silent (RK55 withholds a claim whose directory is absent) and built was
+    already silent, so the whole defect was the third — and the value of the fix is that all
+    three agree rather than that any one of them changed.
+    """
+    config = repo(tmp_path, files={".gitignore": "bin/\n"})
+    write(tmp_path, "CHANGELOG.md", naming("bin/Release/app.exe"))
+    answers = []
+    for state in ("bare", "directory", "built"):
+        shutil.rmtree(tmp_path / "bin", ignore_errors=True)
+        if state != "bare":
+            (tmp_path / "bin" / "Release").mkdir(parents=True)
+        if state == "built":
+            write(tmp_path, "bin/Release/app.exe", "")
+        answers.append(paths(lint(config)))
+    assert answers == [[], [], []]
+
+
+def test_a_path_nothing_ignores_is_still_the_finding_this_check_exists_for(tmp_path):
+    """The one true finding the widening may not swallow: a rename the ledger did not
+    follow, under a directory the repository tracks."""
+    config = repo(tmp_path, files={".gitignore": "bin/\n", "src/kept.py": "x = 1\n"})
+    write(tmp_path, "CHANGELOG.md", naming("src/renamed.py"))
+    assert paths(lint(config)) == ["path.missing RK5"]
+
+
+def test_the_declaration_is_the_project_s_and_not_a_table_in_this_tool(tmp_path):
+    """L6, and the case a list of conventional directory names gets wrong: a project that
+    tracks its `dist/` on purpose has said so, and the gate reads what it said."""
+    config = repo(tmp_path, files={".gitignore": "bin/\n", "dist/app.js": "x\n"})
+    (tmp_path / "dist").mkdir(exist_ok=True)
+    write(tmp_path, "CHANGELOG.md", naming("dist/missing.js"))
+    assert paths(lint(config)) == ["path.missing RK5"]
+
+
+def test_a_repository_that_ignores_nothing_is_unchanged(tmp_path):
+    config = repo(tmp_path, files={"src/kept.py": "x = 1\n"})
+    write(tmp_path, "CHANGELOG.md", naming("src/gone.py"))
+    assert paths(lint(config)) == ["path.missing RK5"]
+
+
+def test_both_spellings_of_a_token_are_asked_about(tmp_path):
+    """A token resolves against the ledger's own directory as well as the root (RK51), so
+    the ignored one may be either — and the answer has to come back keyed to the token."""
+    config = repo(
+        tmp_path,
+        config=CONFIG.replace('changelog = "CHANGELOG.md"', 'changelog = "docs/CHANGELOG.md"'),
+        files={".gitignore": "docs/build/\n", "docs/CHANGELOG.md": LEDGER},
+    )
+    (tmp_path / "docs" / "build").mkdir(parents=True)
+    write(tmp_path, "docs/CHANGELOG.md", naming("build/out.js"))
+    assert "path.missing" not in codes(lint(config))

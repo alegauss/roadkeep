@@ -24,6 +24,7 @@ from __future__ import annotations
 import re
 import shutil
 import subprocess
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -34,6 +35,8 @@ _UNIT = "\x1f"  # between fields
 _RECORD = "\x1e"  # between commits — a body may hold newlines, so lines will not do
 _FORMAT = _UNIT.join(["%H", "%h", "%aI", "%an", "%s", "%b"]) + _RECORD
 _TIMEOUT = 20
+#: What `-z` separates paths by, on both ends of `check-ignore` (RK213).
+_NUL = chr(0)
 
 
 class HistoryUnavailable(RuntimeError):
@@ -157,6 +160,41 @@ def commits_touching(
     if path is not None:
         args += ["--", str(path)]
     return _parse(_run(root, *args))
+
+
+def check_ignore(root: Path, paths: Sequence[str]) -> frozenset[str]:
+    """Which of these paths the repository has declared it will never track (RK213).
+
+    `check-ignore` and not a table of directory names, because the repository already
+    carries the declaration: the same `.gitignore`, `.git/info/exclude` and
+    `core.excludesFile` a developer's own `git status` reads, so the gate and the author
+    cannot disagree about what is tracked here (L6, answered by the project rather than by
+    this tool). Exit 1 means *none matched*, which is an answer and not a failure — the only
+    reason this cannot go through :func:`_run`.
+
+    `-z` on both ends: a path holding a quote or a non-ASCII byte arrives as itself rather
+    than as git's escaped rendering, which is :func:`tracked_at`'s reason one command along.
+    """
+    if not paths:
+        return frozenset()
+    if not git_available():
+        raise HistoryUnavailable("git is not on PATH")
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(root), "check-ignore", "--stdin", "-z"],
+            input=_NUL.join(paths).encode("utf-8"),
+            capture_output=True,
+            timeout=_TIMEOUT,
+            check=False,
+        )
+    except (OSError, subprocess.TimeoutExpired) as error:
+        raise HistoryUnavailable(str(error)) from error
+    if result.returncode not in (0, 1):
+        raise HistoryUnavailable(
+            result.stderr.decode("utf-8", errors="replace").strip() or "git failed"
+        )
+    listed = result.stdout.decode("utf-8", errors="replace")
+    return frozenset(name for name in listed.split(_NUL) if name)
 
 
 @dataclass(frozen=True, slots=True)

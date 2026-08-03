@@ -287,32 +287,6 @@ and may not need a second.
 
 ## Block D — The gate
 
-### §RK213 The artefact the repository produces and deliberately does not track
-
-Measured in Claude Code Tray. Its ledger's T151 entry names
-`bin/Release/net10.0-windows/win-x64/ClaudeTray.exe` while explaining why that project's
-CI job builds rather than publishes — a correct sentence about where the build output
-lands. `bin/` is the first line of its `.gitignore`, and its roadkeep workflow is
-`actions/checkout` followed by the action, with no build step at all.
-
-So `lint` exits 1 on every push and 0 on the machine of anyone who has just compiled. It
-went unnoticed for both reasons at once: invisible locally, and in CI it is the only
-finding, so the job has simply been red.
-
-`anywhere()` widened this rule once already, because six of Turing's eight findings
-named artefacts the repository has. This is the next shape along — an artefact the
-repository *produces* and deliberately does not track — and the docstring names the
-discomfort itself: the finding points at history, and the remedy its wording implies is
-editing what already happened, which `amend` refuses for a shipped id by design.
-
-Three candidates, and the choice is the tool's rather than the adopter's: consult
-`.gitignore` and withhold a finding for a path it covers; treat a token under a
-conventionally ignored directory as not a claim about a tracked file; or make it
-advisory when the token resolves nowhere and names a directory no tree has ever tracked.
-
-`baseline` does not answer it here. That project commits to `main`, so `origin/main`
-makes the rule vacuous exactly where it runs.
-
 ## Block E — Adoption
 
 ### §RK103 The marker slot that holds two tokens

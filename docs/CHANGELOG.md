@@ -161,6 +161,7 @@
 - ✅ **RK210** **A pinned corpus config reports six artefacts missing from a tree it deliberately does not carry** — A pinned corpus is gated with lint at the revision, which moves the governed files and the tree together, so the three false path findings per corpus are gone.
 - ✅ **RK211** **Every governed write now re-derives two projections and nothing measured what that costs** — A parse is memoised by the bytes it came from, so the refresh re-reads nothing the command already read: a status write on the largest live backlog went from 94 ms to 46 ms.
 - ✅ **RK212** **A citation of a shipped design cannot be told from a citation of one that never existed** — origin takes an anchor, so a citation of a shipped design resolves to the commit that wrote it and the one that took it, and a typo answers that nobody ever wrote it.
+- ✅ **RK213** **A gate whose answer turns on whether an ignored build directory happens to be on this machine** — The gate asks git check-ignore before reporting a path, so a build output the repository declared untracked answers the same on every machine.
 
 ## Block E — Adoption
 

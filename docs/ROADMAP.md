@@ -40,8 +40,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK213** (deps: —) **A gate that is green for whoever just built and red for a bare checkout** — lint asks whether the repository has the artefact a line names, and a build output is tracked by nobody, so an adopter's own CI has been failing on a path that is correct. → §RK213
-
 ## Block E — Adoption
 
 - 📋 **RK103** (deps: —) **A bullet whose marker holds a space is read as prose and reported by nothing** — GitHub's `- [ ]` task list is the commonest Markdown backlog there is, and cursarei's 16 of them parse as 0 entries and 0 rejects — the silent miss the reject list exists to end. → §RK103

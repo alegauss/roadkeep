@@ -85,8 +85,11 @@ points at exist, and did anything loaded every turn outgrow what it was allowed?
 
 from __future__ import annotations
 
+import contextlib
+import os
 import re
 import unicodedata
+from collections.abc import Sequence
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 
@@ -98,6 +101,7 @@ from roadkeep.exporting import BEGIN, DEFAULTS, NoMarkers, project, splice
 from roadkeep.graph import Graph
 from roadkeep.history import (
     HistoryUnavailable,
+    check_ignore,
     blob_at,
     content_at,
     resolves,
@@ -213,6 +217,10 @@ class Tree:
     #: because only one check needs it and a `ls-files` per run of `show` would be a cost
     #: paid by the callers that never ask about an artefact at all.
     _tails: frozenset[str] | None = field(default=None, repr=False)
+    #: Which of the tokens asked about the repository declares untracked (RK213), answered
+    #: in one `check-ignore` for all of them and cached — the candidates are the handful
+    #: that already failed every other reader, so one subprocess covers a whole run.
+    _ignored: frozenset[str] | None = field(default=None, repr=False)
 
     def document(self, role: str) -> Document | None:
         """One governed file under its role's schema, or ``None`` when this tree lacks it."""
@@ -261,6 +269,36 @@ class Tree:
             self.config.relative(base / token) in self._names
             for base in (near, self.config.root)
         )
+
+    def declared_untracked(self, tokens: Sequence[tuple[str, Path]]) -> frozenset[str]:
+        """Which tokens name a path the repository has declared it will never track (RK213).
+
+        The next shape along from RK173's widening, and the one an adopter hit first. Claude
+        Code Tray's ledger names `bin/Release/net10.0-windows/win-x64/ClaudeTray.exe` while
+        explaining why its CI builds rather than publishes — a correct sentence about where
+        the build output lands. `bin/` is the first line of its `.gitignore`, and its
+        roadkeep job is `checkout` then the action, so `lint` exited 1 on every push and 0
+        on the machine of anyone who had just compiled. Invisible locally, and in CI the
+        only finding, so the job was simply red.
+
+        **Asked of git, not of a list.** A table of `bin/`, `dist/`, `target/`, `build/`
+        here would be convention where the repository already has a declaration (L6), and
+        it would be wrong for the project that tracks its `dist/` on purpose.
+        `check-ignore` reads the same `.gitignore`, `.git/info/exclude` and core.excludesFile
+        the developer's own `git status` reads, so the tool and the author cannot disagree
+        about what this repository tracks.
+
+        One call for every candidate, because the candidates are what survived `exists`,
+        `carries` and `anywhere` — one or two on a live corpus — and a subprocess each would
+        price a check by how broken the file is. Both spellings are asked (RK51): a token is
+        relative to the ledger's directory or to the root, and either may be the ignored one.
+
+        No git, no answer, and the finding stands: withholding where the question could not
+        be asked would turn "this repository says so" into "nobody could say otherwise".
+        """
+        if self._ignored is None:
+            self._ignored = _ignored(self.config, tokens)
+        return self._ignored
 
     def anywhere(self, token: str) -> bool:
         """Does this tree hold the artefact this token names, under **any** prefix? (RK173)
@@ -1432,6 +1470,17 @@ def _paths(config: Config, documents: dict[str, Document], tree: Tree) -> list[F
         return []
     file = config.relative(config.path("changelog"))
     near = config.path("changelog").parent
+    # Every token that survived the three readers above, asked of `.gitignore` in one call
+    # (RK213). Collected first because the question is cheap in bulk and dear one at a time.
+    candidates = [
+        referenced.path
+        for entry in document.entries
+        for referenced in paths_in(entry.raw, config.root, near=near)
+        if not referenced.exists
+        and not tree.carries(referenced.path, near)
+        and not tree.anywhere(referenced.path)
+    ]
+    untracked = tree.declared_untracked([(token, near) for token in candidates])
     return [
         Finding(
             "path.missing",
@@ -1449,7 +1498,41 @@ def _paths(config: Config, documents: dict[str, Document], tree: Tree) -> list[F
         # And not somewhere else in the repository under a prefix the entry did not write
         # (RK173): a path relative to the module it is about is not a path that is wrong.
         and not tree.anywhere(referenced.path)
+        # And not a path this repository has declared it will never track (RK213): a
+        # build output is absent from a bare checkout and present for whoever just
+        # compiled, so a gate that read the filesystem alone answered by machine.
+        and referenced.path not in untracked
     ]
+
+
+def _ignored(config: Config, tokens: Sequence[tuple[str, Path]]) -> frozenset[str]:
+    """The tokens `check-ignore` says this repository will never track (RK213).
+
+    Both spellings per token — under the ledger's own directory and under the root (RK51) —
+    so a `bin/…` written from `docs/` is asked about as the repository spells it. The answer
+    is mapped back to the token, because that is what the finding names.
+    """
+    if not tokens:
+        return frozenset()
+    asked: dict[str, str] = {}
+    for token, near in tokens:
+        for base in (near, config.root):
+            with contextlib.suppress(ValueError):
+                asked.setdefault(_posix(config, base / token), token)
+    if not asked:
+        return frozenset()
+    try:
+        answered = check_ignore(config.root, tuple(asked))
+    except HistoryUnavailable:
+        # The question could not be asked, so nothing is withheld: silence here would read
+        # as "this repository declared it untracked", which is the one thing it did not.
+        return frozenset()
+    return frozenset(asked[name] for name in answered if name in asked)
+
+
+def _posix(config: Config, path: Path) -> str:
+    """A path as git spells it: relative to the root, forward slashes, no `..`."""
+    return os.path.relpath(path.resolve(), config.root).replace(os.sep, "/")
 
 
 @dataclass(frozen=True, slots=True)
