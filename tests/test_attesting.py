@@ -1,0 +1,181 @@
+"""The record an approved shell write does not leave (RK175).
+
+RK128 answers `ask` for a `Bash` command naming a governed path, and the user may say yes.
+What is asserted here is the half that begins after they do: `lint` narrowed to the turn's
+lines has no quarrel with a **conforming** hand-edit, so without this the file changed, no
+verb wrote it, and every gate agreed it was correct.
+
+Four failure modes, each of which would make it worse than nothing:
+
+* **It must not fire on the normal path.** A verb's own write is the overwhelming majority
+  of changes to these files, and a report that fires on `add` is one nobody reads.
+* **It must be silent where it knows nothing.** A checkout in which no verb has run has no
+  baseline, and reporting every file in it would report the history the project arrived with.
+* **It must state one change once.** The record is the value; blocking every turn until
+  somebody commits is the loop `stop_hook_active` exists to end, arrived at another way.
+* **A query must not adopt bytes as attested.** `list` between two hand-edits reads the
+  files, and a read that re-baselined would launder exactly the write this is about.
+"""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+from roadkeep.attesting import attest, record_path, unattested
+from roadkeep.cli import EXIT_OK, main
+from roadkeep.config import Config
+from roadkeep.guarding import attested, review
+
+ROADMAP = "docs/ROADMAP.md"
+CHANGELOG = "docs/CHANGELOG.md"
+
+CLEAN = """# Roadmap
+
+## Block A — The model
+
+- 📋 **RK1** (deps: —) **A first symptom** — Because of a reason. → §RK1
+"""
+
+LEDGER = """# Shipped
+
+## Block A — The model
+"""
+
+CONFIG = f'prefix = "RK"\n[files]\nroadmap = "{ROADMAP}"\nchangelog = "{CHANGELOG}"\n'
+
+
+def project(tmp_path: Path) -> Path:
+    """A minimal governed project, written with `newline=""` like every other fixture."""
+    tmp_path.mkdir(parents=True, exist_ok=True)
+    (tmp_path / "roadkeep.toml").write_text(CONFIG, encoding="utf-8")
+    for name, body in {ROADMAP: CLEAN, CHANGELOG: LEDGER}.items():
+        path = tmp_path / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("w", encoding="utf-8", newline="") as handle:
+            handle.write(body)
+    return tmp_path
+
+
+def edit(root: Path, old: str, new: str) -> None:
+    """What `sed -i` leaves behind: bytes in the file that no verb put there."""
+    path = root / ROADMAP
+    with path.open("r+", encoding="utf-8", newline="") as handle:
+        text = handle.read().replace(old, new)
+        handle.seek(0)
+        handle.truncate()
+        handle.write(text)
+
+
+def test_a_conforming_hand_edit_is_reported_where_lint_has_nothing_to_say(tmp_path):
+    # The whole symptom in one assertion: the reworded `why` is a legal `why`, the pointer
+    # still resolves, and the annotation is right — so the format is happy and the question
+    # of who wrote it had no answer at all before this.
+    root = project(tmp_path)
+    config = Config.discover(root)
+    attest(config)
+    edit(root, "Because of a reason.", "Because of another reason.")
+    assert review({"hook_event_name": "Stop"}, root) is None
+    found = unattested(config)
+    assert found is not None
+    assert [role for role, _ in found.files] == ["roadmap"]
+    assert "ROADMAP.md" in str(found)
+
+
+def test_a_verbs_own_write_is_not_reported(tmp_path):
+    # `dispatch` records under the same lock the write took, so the bytes a command left are
+    # the baseline the next turn is judged against — otherwise every `add` would report.
+    root = project(tmp_path)
+    assert main(["-C", str(root), "status", "RK1", "🛠"]) == EXIT_OK
+    assert unattested(Config.discover(root)) is None
+
+
+def test_nothing_recorded_is_silence(tmp_path):
+    # No verb has run here, so there is no claim to make: the drift such a project arrives
+    # with is `lint`'s subject and never this one's.
+    root = project(tmp_path)
+    edit(root, "Because of a reason.", "Because of another reason.")
+    assert unattested(Config.discover(root)) is None
+
+
+def test_one_change_is_stated_once(tmp_path):
+    root = project(tmp_path)
+    config = Config.discover(root)
+    attest(config)
+    edit(root, "Because of a reason.", "Because of another reason.")
+    assert unattested(config) is not None
+    assert unattested(config) is None
+
+
+def test_a_deleted_governed_file_is_the_change_it_most_wants_to_state(tmp_path):
+    root = project(tmp_path)
+    config = Config.discover(root)
+    attest(config)
+    (root / ROADMAP).unlink()
+    found = unattested(config)
+    assert found is not None
+    assert [role for role, _ in found.files] == ["roadmap"]
+
+
+def test_a_query_does_not_adopt_the_bytes_it_read(tmp_path):
+    # `list` takes no lock and writes nothing, so it must not re-baseline either: a read
+    # between two hand-edits would otherwise launder the first one.
+    root = project(tmp_path)
+    config = Config.discover(root)
+    attest(config)
+    edit(root, "Because of a reason.", "Because of another reason.")
+    assert main(["-C", str(root), "list"]) == EXIT_OK
+    assert unattested(config) is not None
+
+
+def test_the_stop_answer_states_the_fact_without_asking_the_bytes_back(tmp_path):
+    # The alternative RK128 left open was to *refuse* a change no verb made, and that is
+    # deliberately not what this says: the user approved the command, and re-litigating the
+    # approval at the end of the turn spends what the `ask` was collected for.
+    root = project(tmp_path)
+    config = Config.discover(root)
+    attest(config)
+    edit(root, "Because of a reason.", "Because of another reason.")
+    found = attested({"hook_event_name": "Stop", "cwd": str(root)}, root)
+    assert found is not None
+    assert "roadkeep verb" in str(found)
+    assert "the approval stands" in str(found)
+
+
+def test_a_second_pass_never_blocks(tmp_path):
+    # Blocking a turn the agent has already been told about is the loop `review` refuses,
+    # and this one honours the same flag rather than inventing a second rule.
+    root = project(tmp_path)
+    config = Config.discover(root)
+    attest(config)
+    edit(root, "Because of a reason.", "Because of another reason.")
+    payload = {"hook_event_name": "Stop", "cwd": str(root), "stop_hook_active": True}
+    assert attested(payload, root) is None
+
+
+def test_a_project_that_declares_nothing_is_never_judged(tmp_path):
+    # The guard's rule, kept: silence outside a roadkeep project, and silence on failure.
+    (tmp_path / "notes.md").write_text("nothing here\n", encoding="utf-8")
+    assert attested({"hook_event_name": "Stop", "cwd": str(tmp_path)}, tmp_path) is None
+
+
+def test_an_unreadable_record_is_silence_and_not_a_blocked_turn(tmp_path):
+    root = project(tmp_path)
+    config = Config.discover(root)
+    attest(config)
+    record_path(root).write_text("{not json", encoding="utf-8")
+    edit(root, "Because of a reason.", "Because of another reason.")
+    assert unattested(config) is None
+
+
+def test_the_record_lives_outside_the_repository(tmp_path):
+    # A file the tool creates in a project's root is one every adopting project has to add
+    # to its `.gitignore` before the first `git status` reads as dirty (RK117).
+    root = project(tmp_path)
+    config = Config.discover(root)
+    attest(config)
+    assert root not in record_path(root).parents
+    assert set(json.loads(record_path(root).read_text(encoding="utf-8"))) == {
+        "roadmap",
+        "changelog",
+    }

@@ -37,7 +37,8 @@ Five decisions, each because the opposite breaks a session rather than a rule:
   command at all, and where it does, what the command *does* to it is the harness's user to
   answer. `deny` would refuse `git add docs/ROADMAP.md` and every `git log --` of a governed
   file; `allow` is not this hook's to give. So the third answer is the honest one, and the
-  `Stop` hook still runs `lint` behind it.
+  `Stop` hook still runs `lint` behind it — and, since RK175, :func:`attested`, because a
+  `sed` the user approves leaves a *conforming* line `lint` has no quarrel with.
 * **The decision travels in the payload, never in the exit code.** The harness reads a
   non-zero exit as *the hook itself failed*, so this is the one command in the package that
   always exits 0 (see :func:`roadkeep.cli._guard`) and says everything in its output.
@@ -62,6 +63,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass, replace
 from pathlib import Path
 
+from roadkeep.attesting import Unattested, unattested
 from roadkeep.config import Config, ConfigError, find_config
 from roadkeep.history import changed_lines
 from roadkeep.linting import Report, lint
@@ -450,6 +452,30 @@ def review(payload: Mapping[str, object], root: str | Path = ".") -> Review | No
         return None
     narrowed = _this_turn(config, report)
     return Review(report=narrowed) if narrowed.findings else None
+
+
+def attested(payload: Mapping[str, object], root: str | Path = ".") -> Unattested | None:
+    """The other half of the same `Stop`: bytes no verb wrote, stated once (RK175).
+
+    Beside :func:`review` rather than inside it, because the two answer different questions
+    and only one of them is about the format: `lint` asks whether the file is correct, and
+    this asks whether roadkeep put it there. A conforming hand-edit passes the first and is
+    the entire subject of the second, so folding them would hide it behind a clean report.
+
+    Silence on every failure and on `stop_hook_active`, on the rules the rest of this module
+    keeps: a broken config must not pin a session open, and blocking twice on one fact is a
+    loop. :mod:`roadkeep.attesting` re-baselines as it reports, so the second pass is silent
+    even where the harness never sets the flag.
+    """
+    if payload.get("stop_hook_active") is True:
+        return None
+    try:
+        config = Config.discover(_cwd(payload, root))
+    except (ConfigError, OSError, tomllib.TOMLDecodeError):
+        return None
+    if config.source is None:
+        return None
+    return unattested(config)
 
 
 def _this_turn(config: Config, report: Report) -> Report:

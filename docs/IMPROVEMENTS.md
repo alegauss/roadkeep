@@ -415,30 +415,6 @@ git configuration and should stay a flag rather than a default.
 
 ## Block F — The plugin
 
-### §RK175 The half of the boundary that asking does not close
-
-RK128 gave the guard three options and took the second: match a governed path in a
-`Bash` command, and answer `ask` because `deny` would refuse `git add docs/ROADMAP.md`.
-That closes the *silence* — an agent reaching for `sed -i` is surfaced instead of
-passing unnoticed.
-
-It does not close what the third option was about. Once the user approves, the only
-thing left is `review`, which runs `lint` narrowed to the lines the turn changed. A
-hand-edit producing a **conforming** line passes: the annotations are right because
-nothing was inserted, the pointer resolves because the anchor existed, and a reworded
-`why` is a legal `why`. The file changed, no verb wrote it, and every gate agrees it is
-correct.
-
-The third option was to compare the governed files against `git` and refuse a change no
-verb made. That needs what the process does not have: a record of which verbs ran. Every
-write prints an `event <id> Block <x>` line (RK38) and `capturing` (RK85) replays a
-session's facts, so the material may exist — whether a turn-scoped ledger of verbs is
-worth holding is the open question.
-
-Worth deciding against the honest alternative: that this is what `ask` is for, and a
-user who approved a `sed` made a choice the tool should not re-litigate at the end of
-the turn. That reading is defensible, and is why this is filed rather than built.
-
 ### §RK176 The tax RK128 agreed to pay unmeasured
 
 `Bash` was kept out of the `PreToolUse` matcher on one sentence: matching every shell

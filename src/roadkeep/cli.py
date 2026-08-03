@@ -44,6 +44,7 @@ from pathlib import Path
 
 from roadkeep import claiming
 from roadkeep.adopting import Estimate, adopt, init
+from roadkeep.attesting import attest
 from roadkeep.authoring import StatusChange, add, amend, restate, set_status
 from roadkeep.backlog import Backlog
 from roadkeep.blocking import drop_block, open_block
@@ -66,7 +67,7 @@ from roadkeep.exporting import DEFAULTS, Projection, project, splice
 from roadkeep.fixing import Fix, fix
 from roadkeep.graph import Graph, Leverage
 from roadkeep.deferring import defer, resume
-from roadkeep.guarding import START_EVENTS, STOP_EVENTS, announce, guard, review
+from roadkeep.guarding import START_EVENTS, STOP_EVENTS, announce, attested, guard, review
 from roadkeep.history import Commit, HistoryUnavailable, Origin, gaps, origin_of
 from roadkeep.ids import highest, next_id
 from roadkeep.installing import install, plan
@@ -1457,7 +1458,13 @@ def dispatch(config: Config, args: argparse.Namespace) -> int:
     if _only_reads(args):
         return args.handler(config, args)
     with exclusive(config.root):
-        return args.handler(config, args)
+        code = args.handler(config, args)
+        # Still under the lock, and after the handler rather than before: what is recorded
+        # is the bytes a verb left, so a later turn can say that bytes which are not these
+        # arrived some other way (RK175). A refusal wrote nothing and re-records the same
+        # digests, which is the right answer and not a special case.
+        attest(config)
+        return code
 
 
 def _only_reads(args: argparse.Namespace) -> bool:
@@ -4197,9 +4204,17 @@ def _guard(config: Config, args: argparse.Namespace) -> int:
             )
         return EXIT_OK
     if payload.get("hook_event_name") in STOP_EVENTS:
-        found = review(payload, root)
-        if found is not None:
-            print(json.dumps({"decision": "block", "reason": str(found)}, indent=2))
+        # Two questions and one answer: RK175's attestation says whether roadkeep wrote the
+        # file, `lint` says whether it is correct, and the harness reads a single
+        # `decision`. Attestation first because where both fire it is the cause of the
+        # other, and a conforming hand-edit is the case where only it has anything to say.
+        said = [
+            str(found)
+            for found in (attested(payload, root), review(payload, root))
+            if found is not None
+        ]
+        if said:
+            print(json.dumps({"decision": "block", "reason": "\n\n".join(said)}, indent=2))
         return EXIT_OK
     refusal = guard(payload, root)
     if refusal is not None:
