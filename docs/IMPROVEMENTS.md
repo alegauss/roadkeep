@@ -140,6 +140,30 @@ or, narrower and enough, refuse the drop while any open line's ref is a descenda
 the anchor by name, which needs no parsing of the prose at all and is the test the
 adoption script had to write by hand to proceed safely.
 
+### §RK178 The one field a correction cannot reach
+
+A field report from claude-tray. T210 was written from a list of response headers: *the
+API names which window is binding and three files work it out again*. Executing it meant
+reading those files, and the premise was false — nothing there derives a binding window,
+because every surface is scoped to a window the user picks. The `why` was corrected, the
+marker dropped to an idea, the rationale rewritten to open by refuting itself. The bold
+symptom could not be touched, so the roadmap still asserts it — the file this tool
+exists to keep true, stating something false in the field a reader sees first.
+
+RK65 excluded the symptom deliberately and the reason is sound: a different symptom is a
+different task. That holds when the *work* changed. It does not obviously hold when the
+description was wrong about work that never changed, and the sound reason with the wrong
+outcome is this task.
+
+The designed exit is retire and re-file, and it costs twice. RK125 shows a project can
+be unable to retire at all. Even where it can, a correction spends an id, deletes a
+section that was already right, and records a departure where none happened.
+
+Three ways through, and the choice is a design decision. Let `amend` take a symptom
+behind a flag making the intent explicit; give the correction its own verb, so it is
+recorded rather than hidden; or decide the exclusion is right and RK125 is the only
+defect here.
+
 ## Block C — Query
 
 ### §RK174 One parser, fifty-two times
