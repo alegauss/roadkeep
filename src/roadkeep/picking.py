@@ -158,7 +158,7 @@ def pick(config: Config, block: str | None = None, designed: bool = False) -> Ch
     # Before the tiers and before `designed`, because a claim is a fact about the checkout
     # while the flag is the caller's intent (RK119) — and because tier 1 would otherwise
     # prefer exactly the held line, its premise being that a 🛠 line is work to continue.
-    held = claiming.live(config.root, ordered)
+    held = claiming.live(config, ordered)
     if held:
         taken = {entry.id for entry in held}
         ordered = [e for e in ordered if e.task.id not in taken]
@@ -261,7 +261,7 @@ def hold(config: Config, task_id: str) -> Claim:
     """
     with exclusive(config.root):
         roadmap = config.document("roadmap")
-        for entry in claiming.live(config.root, roadmap.entries):
+        for entry in claiming.live(config, roadmap.entries):
             if entry.id == task_id:
                 raise claiming.AlreadyHeld(task_id, entry.since, IN_PROGRESS)
         change = set_status(config, task_id, IN_PROGRESS)

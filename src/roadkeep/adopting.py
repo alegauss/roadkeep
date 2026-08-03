@@ -47,7 +47,7 @@ from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, replace
 from pathlib import Path
 
-from roadkeep.config import CONFIG_NAME, DEFAULT_PATHS, PYPROJECT, Config
+from roadkeep.config import CLAIM_HELD, CONFIG_NAME, DEFAULT_PATHS, PYPROJECT, Config
 from roadkeep.document import Document
 from roadkeep.schema import DEFAULT_HEADING_WORD, Schema
 from roadkeep.sections import anchored, structural
@@ -289,6 +289,13 @@ def render_config(schema: Schema, paths: Mapping[str, str]) -> str:
         f"open = [{', '.join(_quote(marker) for marker in schema.markers)}]",
         f"shipped = {_quote(schema.shipped_marker)}",
         f"retired = {_quote(schema.retired_marker)}",
+        "",
+        "[claims]",
+        # Written even at its default, and with the unit in the comment, for the reason every
+        # limit above carries one: minutes is the one thing `held` does not say, and a project
+        # that meant seconds is refused rather than given a claim nobody would wait out (RK151).
+        "# minutes a claim on a line reads as held, before a later caller steps over it",
+        f"held = {CLAIM_HELD}",
     ]
     shape = [
         # Same rule as the heading word and the `[ledger]` absences: only what differs from

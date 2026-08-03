@@ -16,10 +16,12 @@ write lock lives (RK117), for the same three reasons:
   *claimed* — the 🛠 the roadmap carries, which git moves between checkouts — and this file
   only dates it. Delete it while nothing is running and every claim reads as expired, which
   is precisely the behaviour before this existed: a 🛠 line nobody holds is offered again.
-* **An expiry, not a lock.** Past :data:`HELD` seconds a claim is stepped over and the line
-  is offered as ordinary half-done work. There is no portable way to ask whether the worker
-  is still alive, and an agent that was killed must not take a task out of the backlog for
-  ever — a claim nobody can break is the failure, not the fix.
+* **An expiry, not a lock.** Past `[claims] held` a claim is stepped over and the line is
+  offered as ordinary half-done work. There is no portable way to ask whether the worker is
+  still alive, and an agent that was killed must not take a task out of the backlog for
+  ever — a claim nobody can break is the failure, not the fix. How long that window is is
+  the one number here that is a judgement about how long work takes, so it is the project's
+  to declare (L6) and bounded at both ends where it is read (RK151).
 * **No owner.** An owner field would be a schema change carrying a fact that lives outside
   the repository; the identity behind a claim belongs in the commit. So a claim is
   recognised and never attributed, which is why `pick` *names* the ids it stepped around
@@ -39,21 +41,21 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 
+from roadkeep.config import Config
 from roadkeep.document import Entry
 from roadkeep.locking import sidecar
 from roadkeep.schema import IN_PROGRESS
 
-#: How long a claim reads as held before it reads as abandoned. Three orders of magnitude
-#: above the write lock's own :data:`~roadkeep.locking.STALE`, because the two measure
-#: different spans: a lock covers one command and a claim covers the work. Generous on
-#: purpose — expiring on a worker who is still going costs the duplicate answer this exists
-#: to stop, while expiring late costs one line staying unoffered for an hour.
-#:
-#: A constant and not configuration, unlike every limit in `roadkeep.toml` (L6): this dates
-#: a transient file outside the repository, so it is a property of the mechanism rather than
-#: of the format a project declares — and being wrong about it degrades to the old
-#: behaviour instead of to a wrong file.
-HELD = 3600.0
+
+def window(config: Config) -> float:
+    """This project's claim window, in seconds (RK151).
+
+    Orders of magnitude above the write lock's own :data:`~roadkeep.locking.STALE`, because
+    the two measure different spans: a lock covers one command and a claim covers the work.
+    Declared in minutes and used in seconds — the declaration is a judgement a person makes
+    about a backlog, and the arithmetic is nobody's to repeat at a call site.
+    """
+    return config.held * 60.0
 
 
 class AlreadyHeld(ValueError):
@@ -96,23 +98,23 @@ def path(root: Path | str) -> Path:
     return sidecar(root, "claims")
 
 
-def live(root: Path | str, entries: Iterable[Entry]) -> tuple[Held, ...]:
+def live(config: Config, entries: Iterable[Entry]) -> tuple[Held, ...]:
     """The claims still held, over the lines given, in the order they were given.
 
     Read *against the lines* and never alone: a claim is a statement about a 🛠 line, so an
     id whose marker has moved on is not held — which is what makes every existing marker
     door a release, with nothing to wire and nothing to forget to call.
     """
-    dated = _read(path(root))
+    dated = _read(path(config.root))
     if not dated:
         return ()
-    now = time.time()
+    now, held = time.time(), window(config)
     return tuple(
         Held(entry.task.id, now - when)
         for entry in entries
         if entry.task.status == IN_PROGRESS
         and (when := dated.get(entry.task.id)) is not None
-        and now - when < HELD
+        and now - when < held
     )
 
 

@@ -28,9 +28,9 @@ import pytest
 
 from roadkeep import claiming
 from roadkeep.briefing import NothingToBrief, brief
-from roadkeep.claiming import HELD, AlreadyHeld, Held
+from roadkeep.claiming import AlreadyHeld, Held, window
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
-from roadkeep.config import Config
+from roadkeep.config import CLAIM_HELD, CLAIM_HELD_MAX, Config, ConfigError
 from roadkeep.picking import Tier, hold, pick, take
 from roadkeep.schema import DESIGNED, IDEA, IN_PROGRESS
 
@@ -41,6 +41,11 @@ def line(task_id: str, deps: str = "—", block: str = "A", status: str = DESIGN
         f"— a reason. → §{task_id}\n"
     )
 
+
+#: The default window, in seconds. `[claims] held` is minutes and nothing here declares one,
+#: so this is what a project gets until it does (RK151) — read rather than written, because a
+#: test that hardcoded the number would pass while the default said something else.
+HELD = window(Config.default())
 
 BLOCKS = "## Block A — The model\n"
 MORE = "\n## Block B — Authoring\n"
@@ -151,6 +156,53 @@ def test_a_claim_younger_than_the_window_is_still_held(tmp_path):
     take(config)
     age(tmp_path, "RK2", HELD - 60)
     assert pick(config).entry.task.id == "RK9"
+
+
+def test_a_project_declares_its_own_window_in_minutes(tmp_path):
+    # RK151: how long a task takes is the one thing about a claim that differs between
+    # backlogs, so the number is the project's (L6) — declared in minutes and used in seconds.
+    config = project(tmp_path, BLOCKS + line("RK2"), extra="[claims]\nheld = 5\n")
+    assert config.held == 5 and window(config) == 300.0
+    take(config)
+    age(tmp_path, "RK2", 301)
+    # Past its own window, not past the default's: the same claim is still inside that one.
+    assert pick(config).entry.task.id == "RK2" and pick(config).held == ()
+
+
+def test_a_window_nobody_would_wait_out_is_refused_and_names_the_unit(tmp_path):
+    # The one way to be badly wrong here is to write seconds in a key that reads minutes, so
+    # the bound turns that into a refusal rather than a claim that outlives the project.
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[claims]\nheld = 3600\n', encoding="utf-8"
+    )
+    with pytest.raises(ConfigError) as caught:
+        Config.discover(tmp_path)
+    assert "must be minutes" in str(caught.value)
+    assert str(CLAIM_HELD_MAX) in str(caught.value)
+
+
+def test_a_window_shorter_than_reading_the_brief_is_refused_too(tmp_path):
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[claims]\nheld = 0\n', encoding="utf-8"
+    )
+    with pytest.raises(ConfigError):
+        Config.discover(tmp_path)
+
+
+def test_the_command_names_the_projects_own_window_and_not_the_default(tmp_path, capsys):
+    project(tmp_path, BLOCKS + line("RK2"), extra="[claims]\nheld = 25\n")
+    assert main(["-C", str(tmp_path), "brief", "--claim"]) == EXIT_OK
+    assert "held for 25m" in capsys.readouterr().out
+
+
+def test_the_scaffold_writes_the_window_with_its_unit(tmp_path):
+    # The scaffold's own job (RK18): every limit it writes carries the unit the key name does
+    # not say, and this is the key where getting the unit wrong is the whole hazard.
+    assert main(["-C", str(tmp_path), "init"]) == EXIT_OK
+    written = (tmp_path / "roadkeep.toml").read_text(encoding="utf-8")
+    assert "[claims]" in written and f"held = {CLAIM_HELD}" in written
+    assert "minutes a claim" in written
+    assert Config.discover(tmp_path).held == CLAIM_HELD
 
 
 # -- named, never counted ----------------------------------------------------
@@ -386,7 +438,7 @@ def test_the_brief_command_reports_a_held_line_and_writes_nothing(tmp_path, caps
     assert main(["-C", str(tmp_path), "brief", "RK2", "--claim"]) == EXIT_USAGE
     assert "may be yours" in capsys.readouterr().err
     # The refusal wrote nothing, so the claim is still the first one's.
-    assert [h.id for h in claiming.live(tmp_path, config.document("roadmap").entries)] == [
+    assert [h.id for h in claiming.live(config, config.document("roadmap").entries)] == [
         "RK2"
     ]
 

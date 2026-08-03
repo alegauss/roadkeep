@@ -72,3 +72,10 @@ shipped = "✅"
 # the ledger's other door: a line that left without shipping (RK32). Never an open marker —
 # a roadmap that can say "retired" is a roadmap holding work nobody will do.
 retired = "🗑"
+
+[claims]
+# minutes a claim on a line reads as held, before a later caller steps over it (RK151). One
+# task per commit here and the ledger's own commits say what that costs, so an hour is a
+# working session and not a guess — the bound at 8h is what stops this becoming the lock an
+# expiry exists not to be.
+held = 60

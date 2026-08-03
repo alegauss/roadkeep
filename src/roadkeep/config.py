@@ -71,8 +71,14 @@ _TOP_KEYS = frozenset(
         "non_goals",
         "headings",
         "report",
+        "claims",
     }
 )
+#: `[claims]` — how long a claim on a line reads as held (RK151). Its own table for the reason
+#: `[headings]` has one: a bare `held` beside `prefix` would read as one of the limits, and it
+#: is not a limit on any field — it is the one number in the claim mechanism that is a
+#: judgement about how long work takes.
+_CLAIMS_KEYS = frozenset({"held"})
 #: `[headings]` — the word a project files work under (RK75). Its own table and not a top
 #: key, because the heading is a shape with more than one part and the next question about
 #: it (a sub-block that carries no word at all) belongs under the same heading.
@@ -153,6 +159,18 @@ class Scope:
     why: int = 320
 
 
+#: `[claims] held`, in **minutes** — how long a claim reads as held before a later caller
+#: steps over it (RK119, RK151). An hour by default: long enough that a worker mid-task still
+#: holds the line, short enough that a claim nobody released clears inside one session.
+CLAIM_HELD = 60
+#: The longest window this will accept. The reason there is an expiry rather than a lock is
+#: that a killed worker must not take a line out of the backlog for ever, so a window nobody
+#: would wait out is the defect coming back under a config key (RK151) — one working day is
+#: where that starts, an abandoned claim past it surviving a night. It is also what turns the
+#: unit into a refusal: `held = 3600`, meant as seconds, is refused rather than obeyed.
+CLAIM_HELD_MAX = 480
+
+
 class ConfigError(ValueError):
     """Every problem with the file, not the first one found."""
 
@@ -199,6 +217,11 @@ class Config:
     #: tracker. Nothing is ever sent from here — this only addresses the command a person
     #: runs.
     upstream: str | None = None
+    #: `[claims] held` — how many **minutes** a claim on a line reads as held (RK151). Per
+    #: project, because how long a task takes is the one thing about a claim that differs
+    #: between backlogs (L6), and bounded by :data:`CLAIM_HELD_MAX`, because a window nobody
+    #: would wait out is the lock this was designed not to be.
+    held: int = CLAIM_HELD
     source: Path | None = None
 
     # -- construction ------------------------------------------------------
@@ -252,6 +275,7 @@ class Config:
         budgets = _budgets(data.get("budgets"), base, problems)
         non_goals = _scope(data.get("non_goals"), problems)
         upstream = _upstream(data.get("report"), problems)
+        held = _held(data.get("claims"), problems)
 
         schema = None
         if not problems:
@@ -284,6 +308,7 @@ class Config:
             rules=rules,
             non_goals=non_goals,
             upstream=upstream,
+            held=held,
             source=source,
         )
 
@@ -762,6 +787,35 @@ _REPORT_KEYS = frozenset({"upstream"})
 #: `owner/repo`, which is what `gh --repo` takes. Checked because the alternative to a
 #: shape here is a shape guessed by whatever the operator pipes the capture into.
 _UPSTREAM = re.compile(r"^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$")
+
+
+def _held(raw: object, problems: list[str]) -> int:
+    """`[claims] held` — minutes, bounded at both ends (RK151).
+
+    The bound is the design and not a guard rail. Below a minute a claim expires before the
+    worker has read the brief it came with; above :data:`CLAIM_HELD_MAX` an abandoned claim
+    outlives the session that abandoned it, which is the lock this mechanism exists not to be.
+    Between them the number is a judgement about this backlog, which is why it is declarable
+    at all — and the refusal names the unit, because the one way to be badly wrong here is to
+    write seconds in a key that reads minutes.
+    """
+    if raw is None:
+        return CLAIM_HELD
+    if not isinstance(raw, Mapping):
+        problems.append("claims must be a table of held = <minutes>")
+        return CLAIM_HELD
+    _reject_unknown(raw, _CLAIMS_KEYS, "claims.", problems)
+    value = raw.get("held")
+    if value is None:
+        return CLAIM_HELD
+    if not isinstance(value, int) or isinstance(value, bool) or not 1 <= value <= CLAIM_HELD_MAX:
+        problems.append(
+            f"claims.held must be minutes, from 1 to {CLAIM_HELD_MAX}: a claim shorter than "
+            f"that expires before the brief is read, and a longer one is the lock an expiry "
+            f"exists not to be"
+        )
+        return CLAIM_HELD
+    return value
 
 
 def _upstream(raw: object, problems: list[str]) -> str | None:

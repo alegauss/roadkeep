@@ -180,26 +180,6 @@ would make `--after` a per-file argument or a refusal when the files disagree.
 
 ## Block C — Query
 
-### §RK151 The one number in this that is a judgement
-
-RK119 argued the window is a property of the mechanism rather than of the format: it
-dates a transient file outside the repository, nothing in `roadkeep.toml` describes it,
-and being wrong about it degrades to the behaviour before claims existed. That argument
-holds for the *placement* and is weaker about the *value*, because an hour is a guess
-about how long work takes, and L6 exists because every such guess was wrong in the
-second project.
-
-The measurement is available and this project already makes it: `weight` derives what
-comparable tasks cost from the commits that shipped them. So the question a design
-should answer is whether the window is declared — one more key an adopter reads and gets
-wrong — or derived from what this backlog's own history says a task takes, which cannot
-be stated wrongly and cannot be stated at all on a repository with no history yet.
-
-What must not happen either way is a window long enough to need breaking. The whole
-reason there is an expiry rather than a lock is that a killed worker must not take a
-line out of the backlog, and a configurable one invites a project to set it to a day and
-rediscover the lock.
-
 ### §RK152 The line that is both stalled and held
 
 The stalled list exists because tier 1 cannot pick a blocked 🛠 line and must not hide

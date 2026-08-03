@@ -150,8 +150,8 @@ next caller is sent elsewhere. `brief --claim` is the one to reach for, being th
 starts a task anyway — and over MCP it is its own tool, `claim`, so that `brief` and `pick`
 keep the read-only hint that makes asking free; `brief <id> --claim` takes a line you were
 told to work on, and is **refused** where somebody already holds that one, there being nothing
-for it to choose instead. It is an expiry and not a lock: a claim nobody released is stepped over after an
-hour, and every marker door already releases one — `ship`, `defer`, or the marker back. A
+for it to choose instead. It is an expiry and not a lock: a claim nobody released is stepped over once
+`[claims] held` has passed, and every marker door already releases one — `ship`, `defer`, or the marker back. A
 held line is **named** in the answer and never hidden, because a claim carries no owner and
 the id is the only thing you can recognise your own by; who took it belongs in the commit.
 

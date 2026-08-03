@@ -86,6 +86,7 @@
 - ✅ **RK119** **Every agent asking what to work on is handed the same line, including one another agent already started** — `pick --claim` answers and flips the marker in one locked transaction, a claim expires and is stepped over rather than waited on, and the ids it held are named in every answer.
 - ✅ **RK149** **The door the skill sends an agent through to start work cannot take the line it hands over** — `brief --claim` takes the line it describes inside one lock, and `brief <id> --claim` takes a named one — refused, not re-dated, where another worker already holds it.
 - ✅ **RK150** **The query an agent runs most may now ask permission, for a flag it did not pass** — The claiming flag is its own tool, `claim`, whose argv and description are still `brief --claim`'s own — so `brief` and `pick` carry `readOnlyHint` again and a client has nothing to ask about.
+- ✅ **RK151** **Every project's claims expire after the same hour, and how long a task takes is not the same everywhere** — `[claims] held` declares the window in minutes, bounded at both ends where it is read, so a project states how long its work takes and `held = 3600` is refused instead of becoming a lock.
 
 ## Block D — The gate
 

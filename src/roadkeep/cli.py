@@ -2581,7 +2581,7 @@ def _brief(config: Config, args: argparse.Namespace) -> int:
           f"{view.file}:{view.entry.lineno}")
     if gathered.picked:
         print(f"  picked   {gathered.picked}")
-    if _print_claim(claim) and event is not None:
+    if _print_claim(claim, config) and event is not None:
         # Beside the claim and not at the end: the rationale section closes this output, and
         # an event line after a paragraph of prose is one a hook reader has to hunt for.
         _print_event(event, "  ")
@@ -2790,7 +2790,7 @@ def _pick(config: Config, args: argparse.Namespace) -> int:
     _print_undesigned(choice)
     _print_held(choice)
     _print_stalled(choice)
-    if _print_claim(claim) and event is not None:
+    if _print_claim(claim, config) and event is not None:
         _print_event(event, "  ")
     return EXIT_OK
 
@@ -2803,17 +2803,19 @@ def _claim_event(claim: Claim | None) -> dict[str, object] | None:
     return _event(entry.task.id, entry.task.block, claim.change.document)
 
 
-def _print_claim(claim: Claim | None) -> bool:
+def _print_claim(claim: Claim | None, config: Config) -> bool:
     """What a claim moved, on the two commands that can take one (RK119, RK149).
 
     One sentence and one place, because two commands printing the same fact in two wordings
     is two answers to "what did I just take". Returns whether it printed, which is what tells
-    `pick` there is an event line to close with.
+    `pick` there is an event line to close with. The window comes from the config and is not
+    a constant here (RK151): a project that declared its own would otherwise be told the
+    default's number by the command that just applied its own.
     """
     if claim is None or claim.change is None:
         return False
     print(f"  claimed  {claim.change.before} → {claim.change.after}, held for "
-          f"{int(claiming.HELD // 60)}m unless a marker moves it sooner")
+          f"{config.held}m unless a marker moves it sooner")
     return True
 
 
