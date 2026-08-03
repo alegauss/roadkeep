@@ -433,6 +433,50 @@ def test_re_asserting_the_marker_a_line_carries_is_a_new_claim(tmp_path):
     assert [h.id for h in pick(config).held] == ["RK2"]
 
 
+def test_the_marker_door_refuses_a_line_a_live_claim_holds(tmp_path):
+    # RK160: the refusal guarded the named door and not the marker write beneath it, so
+    # `status <id> 🛠` re-dated somebody's claim in their name and said nothing.
+    config = project(tmp_path, BLOCKS + line("RK2") + line("RK9"))
+    take(config)
+    with pytest.raises(AlreadyHeld) as caught:
+        set_status(config, "RK2", IN_PROGRESS)
+    assert "RK2 was claimed 0m ago" in str(caught.value)
+    assert main(["-C", str(tmp_path), "status", "RK2", IN_PROGRESS]) == EXIT_USAGE
+
+
+def test_nothing_re_dates_a_live_claim(tmp_path):
+    # The invariant that falls out of it, and the one worth having: the window is the expiry,
+    # not something a second call can postpone.
+    config = project(tmp_path, BLOCKS + line("RK2") + line("RK9"))
+    take(config)
+    age(tmp_path, "RK2", 600)
+    for door in (lambda: hold(config, "RK2"), lambda: set_status(config, "RK2", IN_PROGRESS)):
+        with pytest.raises(AlreadyHeld):
+            door()
+    assert claiming.live(config, config.document("roadmap").entries)[0].age > 600
+
+
+def test_a_release_is_never_refused(tmp_path):
+    # The constraint that holds whichever way this went: writing any other marker is how a
+    # claim is given back, and a release that could be refused is a line nobody can hand over.
+    config = project(tmp_path, BLOCKS + line("RK2"))
+    take(config)
+    assert set_status(config, "RK2", DESIGNED).claim is Followed.RELEASED
+    # And the line is claimable again, by the door that was just refused.
+    assert set_status(config, "RK2", IN_PROGRESS).claim is Followed.CLAIMED
+
+
+def test_the_refusal_writes_nothing_at_all(tmp_path):
+    config = project(tmp_path, BLOCKS + line("RK2", status=IN_PROGRESS))
+    set_status(config, "RK2", IN_PROGRESS)  # the first claim, on a line already 🛠
+    dated = claiming._read(claiming.path(tmp_path))  # noqa: SLF001
+    before = (tmp_path / "ROADMAP.md").read_bytes()
+    with pytest.raises(AlreadyHeld):
+        set_status(config, "RK2", IN_PROGRESS)
+    assert (tmp_path / "ROADMAP.md").read_bytes() == before
+    assert claiming._read(claiming.path(tmp_path)) == dated  # noqa: SLF001
+
+
 def test_every_door_that_claims_leaves_the_same_registry(tmp_path):
     """The property RK159 asked for, which no door's own tests stated: `take`, `hold` and
     `status` write a claim through one rule, so what they leave behind is one thing. This is

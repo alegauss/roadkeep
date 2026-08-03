@@ -63,23 +63,26 @@ def window(config: Config) -> float:
 
 
 class AlreadyHeld(ValueError):
-    """A named line is already claimed, so taking it would be the two workers again (RK149).
+    """Taking a line a live claim already holds would be the two workers again (RK149).
 
-    Only the *named* door raises it. A pick was choosing anyway, so it steps around a live
-    claim and answers with something else; a caller that said which id it wants has nothing
-    to step to, and a claim that quietly re-dated itself would send a second worker at one
-    line, which is the defect and not the door.
+    Raised by the **marker write** and therefore by every door that names an id (RK160): a
+    pick was choosing anyway, so it steps around a live claim and answers with something else,
+    while a caller that said which id it wants has nothing to step to. What made this one
+    door's refusal rather than the rule's was that `status <id> 🛠` writes the same marker and
+    took the claim in the holder's name, silently — two workers on one line arriving through
+    the verb that exists to stop that.
 
-    Says what to do, because a claim names nobody and this one may be the caller's own: the
-    read is one call without the flag, and the release is a marker.
+    So **nothing re-dates a live claim**, which is the invariant worth having: the window is
+    the expiry, not something a second call can postpone. Says what to do, because a claim
+    names nobody and this one may be the caller's own: the read is one call without the flag,
+    and the release is a marker.
     """
 
     def __init__(self, task_id: str, since: str, marker: str) -> None:
         self.task_id = task_id
         super().__init__(
             f"{task_id} was claimed {since} ago and a claim names nobody, so it may be "
-            f"yours: brief it without --claim to read it, or move the marker off {marker} "
-            f"to release it"
+            f"yours: read it without --claim, or move the marker off {marker} to release it"
         )
 
 
@@ -144,6 +147,27 @@ class Followed(StrEnum):
     CLAIMED = "claimed"
     RELEASED = "released"
     NEITHER = ""
+
+
+def refuse_taken(
+    config: Config, task_id: str, marker: str, entries: Iterable[Entry]
+) -> None:
+    """Refuse a marker write that would take a claim this line already carries (RK160).
+
+    Called **before** the write and never from inside :func:`follow`, which runs after one: a
+    refusal that arrives once the file has moved is a refusal about a state that already
+    happened. Beside :func:`~roadkeep.authoring.refuse_reuse` in shape and for the same
+    reason — the check that a write is allowed belongs at the write, not at whichever caller
+    remembered it.
+
+    Only the in-progress marker. Writing any other one is how a claim is *released*, and a
+    release that could be refused is a line nobody can give back.
+    """
+    if marker != IN_PROGRESS:
+        return
+    for one in live(config, entries):
+        if one.id == task_id:
+            raise AlreadyHeld(task_id, one.since, IN_PROGRESS)
 
 
 def follow(

@@ -151,9 +151,11 @@ starts a task anyway — and over MCP it is its own tool, `claim`, so that `brie
 keep the read-only hint that makes asking free; `brief <id> --claim` takes a line you were
 told to work on, and is **refused** where somebody already holds that one, there being nothing
 for it to choose instead. **The claim follows the marker**, so `status <id>` on the in-progress
-one is the third way to start work and takes one too, and any other marker drops it. It is an
-expiry and not a lock: a claim nobody released is stepped over once `[claims] held` has
-passed, and `ship`, `defer` and `renumber` each do the right thing with one. A
+one is the third way to start work and takes one too — refused the same way where somebody
+already holds that line — while any other marker drops it and is never refused, that being how
+a claim is given back. Nothing re-dates a live claim: it is an expiry and not a lock, stepped
+over once `[claims] held` has passed, and `ship`, `defer` and `renumber` each do the right
+thing with one. A
 held line is **named** in the answer and never hidden, because a claim carries no owner and
 the id is the only thing you can recognise your own by; who took it belongs in the commit.
 

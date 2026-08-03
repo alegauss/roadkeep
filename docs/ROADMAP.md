@@ -34,8 +34,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK160** (deps: —) **Setting the in-progress marker on a line another worker holds takes the claim without a word** — `hold` refuses a held line and `status` writes that same marker through the rule that dates it, so the door RK158 opened is the one that takes a live claim over somebody's head. → §RK160
-
 ## Block D — The gate
 
 - 📋 **RK104** (deps: —) **Nothing gates the README block this tool writes, so a stale restatement passes lint** — `export --readme` is the one write no gate holds: a pytest fixture catches it here and an adopting project has none, so the derived table drifts from the files it was derived from. → §RK104

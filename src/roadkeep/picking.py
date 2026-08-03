@@ -271,14 +271,11 @@ def hold(config: Config, task_id: str) -> Claim:
     that named an id may be about to unblock it; the marker door this goes through has always
     allowed that, and a policy here would be this command re-deciding what `status` decides.
 
-    It **reads** the registry and does not write it (RK159): the refusal is this door's own,
-    and the claim is the marker write's, which is one name for one rule.
+    It neither writes the registry nor reads it (RK159, RK160): the claim *and* the refusal
+    both belong to the marker write, which is one name for one rule — and the refusal had to
+    move there anyway, `status <id> 🛠` being the same write with nothing guarding it.
     """
     with exclusive(config.root):
-        roadmap = config.document("roadmap")
-        for entry in claiming.live(config, roadmap.entries):
-            if entry.id == task_id:
-                raise claiming.AlreadyHeld(task_id, entry.since, IN_PROGRESS)
         return Claim(choice=None, change=set_status(config, task_id, IN_PROGRESS))
 
 

@@ -404,6 +404,10 @@ def set_status(config: Config, task_id: str, marker: str) -> StatusChange:
     the no-op path too — re-asserting the marker a line already carries is a re-assertion of
     the claim, the same way re-taking an expired one is a new claim — while the file itself is
     still left untouched, an unchanged file with a moved mtime reading as an edit.
+
+    Which makes this the door that refuses a **taken** line (RK160), because it is the door
+    every claim is written by: writing 🛠 over a live claim used to re-date it in the holder's
+    name and say nothing. A release is never refused — that is any other marker.
     """
     backlog = Backlog.load(config)
     roadmap = backlog.roadmap
@@ -418,6 +422,10 @@ def set_status(config: Config, task_id: str, marker: str) -> StatusChange:
     if len(twins) > 1:
         raise DuplicateId(task_id, config.relative(config.path("roadmap")), twins)
     _refuse_sibling_status(config, task_id)
+    # Before the write, beside every other refusal this door already makes (RK160): the
+    # in-progress marker is an assertion that somebody is on the line, and one live claim is
+    # all it takes for that to be somebody else's.
+    claiming.refuse_taken(config, task_id, marker, roadmap.entries)
 
     updated = config.schema.check(replace(entry.task, status=marker))
     if updated.status == entry.task.status:
