@@ -9,13 +9,15 @@ decisions those two files encode live here, next to the assertions that hold the
   the payload. A `roadkeep lint` in the `Stop` slot would exit 1, which the harness reads as
   a *non-blocking* error — the report would go to the user and never to the agent that wrote
   the drift, which is the one reader who can fix it in the same turn.
-* **The matcher and the code agree.** The `PreToolUse` matcher lists the writing tools, and
-  :data:`~roadkeep.guarding.WRITE_TOOLS` filters them again inside the command. Two lists
+* **The matcher and the code agree.** The `PreToolUse` matcher lists the guarded tools, and
+  :data:`~roadkeep.guarding.GUARDED_TOOLS` filters them again inside the command. Two lists
   that can disagree is exactly the failure this project exists to remove, so a test compares
   them rather than a reviewer.
-* **`Bash` is not matched, on purpose.** `sed -i` on the roadmap is a real bypass; matching
-  every shell command to catch it is a tax on every command in the session. The `Stop` hook
-  is the answer, and that trade is asserted so it stays a decision rather than an oversight.
+* **`Bash` is matched, and answered with `ask`** (RK128). It used not to be, on the argument
+  that catching one `sed -i` taxes every command — but the refusal claims the barrier owns
+  these writes, so silence there was the claim being false. Nothing parses shell: a governed
+  path mentioned in the command is the decidable half, and what the command does with it is
+  the user's to say, since `deny` would refuse `git add` on a governed file.
 * **Every hook has a timeout.** A `PreToolUse` hook is synchronous: an unbounded one turns a
   hung interpreter into a session that cannot write anything at all.
 * **The MCP server is declared too, and starts the same way the hook does.** It is named in
@@ -55,7 +57,7 @@ from pathlib import Path
 
 import roadkeep
 from roadkeep.cli import build_parser
-from roadkeep.guarding import STOP_EVENTS, WRITE_TOOLS
+from roadkeep.guarding import ASK_TOOLS, GUARDED_TOOLS, STOP_EVENTS, WRITE_TOOLS
 
 HERE = Path(__file__).resolve().parents[1]
 MANIFEST = HERE / ".claude-plugin" / "plugin.json"
@@ -115,14 +117,17 @@ def test_the_plugin_points_at_the_repository_the_package_does():
 def test_the_matcher_lists_the_tools_the_command_filters_for():
     matchers = [group["matcher"] for group in read(HOOKS)["hooks"]["PreToolUse"]]
     assert len(matchers) == 1
-    assert tuple(sorted(matchers[0].split("|"))) == tuple(sorted(WRITE_TOOLS))
+    assert tuple(sorted(matchers[0].split("|"))) == tuple(sorted(GUARDED_TOOLS))
 
 
-def test_no_hook_matches_bash():
-    """The bypass the `Stop` hook exists to catch. Matching every shell command for it
-    would cost every command in the session, so the trade is recorded as an assertion."""
-    declared = json.dumps(read(HOOKS))
-    assert "Bash" not in declared
+def test_the_matcher_reaches_the_bypass_the_barrier_used_to_claim(tmp_path):
+    """RK128: `Bash` was unmatched, so the hook that prints "roadkeep owns its writes" said
+    nothing at all to a `sed -i` on the same file. Matched now, and answered with `ask` — the
+    payload the harness never resolves into a path is the one whose decision is not the
+    hook's to make, and `deny` there would refuse `git add` on a governed file."""
+    matcher = read(HOOKS)["hooks"]["PreToolUse"][0]["matcher"]
+    assert "Bash" in matcher.split("|")
+    assert set(ASK_TOOLS).isdisjoint(WRITE_TOOLS)
 
 
 def test_the_turn_cannot_end_on_a_drifted_file():

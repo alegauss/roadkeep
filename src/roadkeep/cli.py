@@ -3781,10 +3781,10 @@ def _guard(config: Config, args: argparse.Namespace) -> int:
 
     Three shapes of answer, because the harness reads three: a `SessionStart` line of
     context, a `PreToolUse` decision, and a `Stop` block. None of them is ever an
-    *approval* — a governed file is denied and everything else is answered with an empty
-    stdout, since `permissionDecision: "allow"` would grant the write rather than decline
-    to judge it, waving through the permission rules the user set for every other file in
-    the repository.
+    *approval* — a governed file is denied or asked about, and everything else is answered
+    with an empty stdout, since `permissionDecision: "allow"` would grant the write rather
+    than decline to judge it, waving through the permission rules the user set for every
+    other file in the repository.
 
     The config discovered from `-C` is only this command's fallback: the payload names the
     directory, and the paths in it may belong to another project entirely.
@@ -3818,7 +3818,10 @@ def _guard(config: Config, args: argparse.Namespace) -> int:
                 {
                     "hookSpecificOutput": {
                         "hookEventName": "PreToolUse",
-                        "permissionDecision": "deny",
+                        # Derived from the tool the payload named (RK128): `deny` where it
+                        # said which file it writes, `ask` where a shell command only
+                        # mentioned one and what it does with it is nobody's to guess here.
+                        "permissionDecision": refusal.decision,
                         "permissionDecisionReason": str(refusal),
                     }
                 },

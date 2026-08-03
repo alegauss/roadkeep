@@ -7,7 +7,8 @@ reading a `--help`. `lint` catches it at the commit, which is a whole turn of pr
 by then the tokens are spent and what the report asks for is a deletion. So this is the one
 enforcement point an agent cannot route around — a `PreToolUse` hook, run by the harness
 *before* the tool call, answering one question: **is this path a file that some project's
-`roadkeep.toml` says is governed?**
+`roadkeep.toml` says is governed?** For a `Bash` payload, which names no path, it is the same
+question asked of the command's characters, and the answer is `ask` rather than `deny` (RK128).
 
 If it is, the write is denied and the reason *is the command to call instead*, with its
 flags. That second half is the whole value: a refusal that names no alternative is a refusal
@@ -28,10 +29,15 @@ Five decisions, each because the opposite breaks a session rather than a rule:
   input carrying no path: all allow. A guard that denies on its own errors turns one typo
   in a config file into a repository nobody can edit, and RK14 still refuses the file at
   the commit — the gate is the backstop for the barrier, not the other way round.
-* **`Bash` is not matched.** `sed -i` on the roadmap is a real bypass, and matching every
-  shell command in order to catch one is not a barrier, it is a tax on every command. The
-  `Stop` hook runs `lint` instead, so the bypass is caught before the turn ends — which is
-  the difference between a report somebody reads and a report nobody was sent.
+* **`Bash` is matched, and answered with `ask` rather than `deny`** (RK128). It used not to be
+  matched at all, on the argument that parsing shell to catch one `sed -i` is a tax on every
+  command — but the refusal above says *roadkeep owns its writes*, and an agent told that will
+  believe it, so silence there was the barrier claiming a side it did not hold. Nothing parses
+  shell: the one decidable question is whether a path this project declares appears in the
+  command at all, and where it does, what the command *does* to it is the harness's user to
+  answer. `deny` would refuse `git add docs/ROADMAP.md` and every `git log --` of a governed
+  file; `allow` is not this hook's to give. So the third answer is the honest one, and the
+  `Stop` hook still runs `lint` behind it.
 * **The decision travels in the payload, never in the exit code.** The harness reads a
   non-zero exit as *the hook itself failed*, so this is the one command in the package that
   always exits 0 (see :func:`roadkeep.cli._guard`) and says everything in its output.
@@ -65,6 +71,16 @@ from roadkeep.serving import TOOLS
 #: harness happens to call it this month: a writing tool that is missing here is the hole
 #: the whole hook exists to close, so the set is wider than the two RK22 names.
 WRITE_TOOLS = ("Edit", "MultiEdit", "NotebookEdit", "Write")
+
+#: The tools that put bytes in a file the payload does not name (RK128). One, and it is the
+#: hole every other measure in this module was arranged around: a `command` is a string the
+#: harness never resolves into a path, so the only thing knowable without parsing shell is
+#: whether a governed path is *mentioned* — which is why these are asked about, not denied.
+ASK_TOOLS = ("Bash",)
+
+#: Both, in the order the plugin's `PreToolUse` matcher lists them. Kept as one name because
+#: the matcher and this module have to agree or the hook never sees the payload it decides.
+GUARDED_TOOLS = (*WRITE_TOOLS, *ASK_TOOLS)
 
 #: The events that mean the turn is trying to end, and `lint` is the last thing to say.
 STOP_EVENTS = ("Stop", "SubagentStop")
@@ -176,6 +192,18 @@ class Refusal:
     exists: bool = True
 
     @property
+    def decision(self) -> str:
+        """What the harness is told: `deny`, or `ask` where the target was only mentioned.
+
+        Derived from the tool and not stated, so the two cannot disagree (RK128). A tool that
+        *names* the file it writes is certain, and the command table below is then the cheaper
+        path forward. A shell command only mentions the path — `sed -i` and `git log --` are
+        one payload shape — so the answer belongs to whoever owns the repository, which is the
+        one response that is neither a lie about the boundary nor a hole in it.
+        """
+        return "ask" if self.tool in ASK_TOOLS else "deny"
+
+    @property
     def commands(self) -> tuple[tuple[str, str], ...]:
         return _INSTEAD.get(self.role, ()) if self.exists else _SCAFFOLD
 
@@ -194,11 +222,30 @@ class Refusal:
                 found.append((f"mcp__roadkeep__{name}", purpose))
         return tuple(found)
 
+    @property
+    def _opening(self) -> str:
+        """The one sentence the two decisions do not share (RK128).
+
+        Everything under it is the same text, because the value of a denial is the command
+        table and a project that printed two of those would have two that could drift. What
+        differs is only the claim being made: one states that the write was refused, the other
+        that this hook cannot tell a read from a write and is not going to pretend.
+        """
+        if self.decision == "ask":
+            return (
+                f"{self.tool} names {self.path}, this project's {self.role}, and roadkeep "
+                f"owns its writes. A shell command is not read to see which it does, so the "
+                f"decision is yours: reading it is fine, and writing it wants a verb below."
+            )
+        return (
+            f"{self.tool} refused: {self.path} is this project's {self.role}, and "
+            f"roadkeep owns its writes."
+        )
+
     def __str__(self) -> str:
         """The reason, as the agent reads it: what was refused, why, and what to run."""
         lines = [
-            f"{self.tool} refused: {self.path} is this project's {self.role}, and "
-            f"roadkeep owns its writes.",
+            self._opening,
             "",
             "The id, the pointer and every (deps: … ✅) annotation are derived on render, "
             "so a hand-edit is the one path that can leave a line the format rejects — "
@@ -312,9 +359,12 @@ def guard(payload: Mapping[str, object], root: str | Path = ".") -> Refusal | No
     every repository the session touches.
     """
     tool = payload.get("tool_name")
-    if not isinstance(tool, str) or tool not in WRITE_TOOLS:
+    if not isinstance(tool, str) or tool not in GUARDED_TOOLS:
         return None
-    for path in _targets(payload.get("tool_input"), _cwd(payload, root)):
+    base = _cwd(payload, root)
+    if tool in ASK_TOOLS:
+        return _mentioned(payload.get("tool_input"), base, tool)
+    for path in _targets(payload.get("tool_input"), base):
         found = governed(path)
         if found is None:
             continue
@@ -322,6 +372,41 @@ def guard(payload: Mapping[str, object], root: str | Path = ".") -> Refusal | No
         return Refusal(
             tool=tool, path=config.relative(path), role=role, exists=path.is_file()
         )
+    return None
+
+
+def _mentioned(raw: object, base: Path, tool: str) -> Refusal | None:
+    """The governed path a shell command spells, or ``None`` (RK128).
+
+    Not a parse and not a heuristic about what the command *is*: the question is only whether
+    one of the handful of paths this project declares occurs in the string at all, which is the
+    single thing decidable without knowing what `sed`, a heredoc or a `python -c` would do with
+    it. A command naming none of them is the overwhelming majority and costs one config read.
+
+    Nothing is allowlisted, because nothing needs to be: roadkeep's own commands address a
+    task by **id and role**, never by path, so the verbs this refusal recommends do not
+    trip it — which is a fact `tests/test_guarding.py` holds rather than a hope.
+    """
+    if not isinstance(raw, Mapping):
+        return None
+    command = raw.get("command")
+    if not isinstance(command, str) or not command:
+        return None
+    try:
+        config = Config.discover(base)
+    except (ConfigError, OSError, tomllib.TOMLDecodeError):
+        return None
+    if config.source is None:
+        return None
+    spelled = _comparable_text(command)
+    for role, declared in config.paths.items():
+        relative = config.relative(declared)
+        # Both spellings, because a command may name the file either way and the substring is
+        # the whole test: `./docs/ROADMAP.md` and a quoted absolute path both contain one.
+        if any(_comparable_text(form) in spelled for form in (relative, str(declared))):
+            return Refusal(
+                tool=tool, path=relative, role=role, exists=declared.is_file()
+            )
     return None
 
 
@@ -405,6 +490,16 @@ def _comparable(path: Path) -> str:
     file, and a comparison that misses that allows the write it exists to refuse.
     """
     return os.path.normcase(str(path.resolve()))
+
+
+def _comparable_text(text: str) -> str:
+    """A path *inside* a longer string, as this filesystem compares them (RK128).
+
+    The same `normcase` rule as above and for the same reason — on Windows it also settles the
+    separator, so a command written with `/` and a declaration held as `\\` are one string. Not
+    `resolve`: there is no path here to resolve, only characters that may contain one.
+    """
+    return os.path.normcase(text)
 
 
 def _targets(raw: object, base: Path) -> tuple[Path, ...]:

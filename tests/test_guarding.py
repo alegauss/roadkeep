@@ -245,6 +245,112 @@ def test_a_governed_file_that_is_absent_wants_init_and_not_add(tmp_path):
     assert "roadkeep init" in str(refusal)
 
 
+# -- the side the barrier used to leave open (RK128) ---------------------------
+
+
+def shell(command: str, cwd: Path | None = None) -> dict[str, object]:
+    """A `Bash` payload, which names a command and never a path."""
+    payload: dict[str, object] = {
+        "hook_event_name": "PreToolUse",
+        "tool_name": "Bash",
+        "tool_input": {"command": command},
+    }
+    if cwd is not None:
+        payload["cwd"] = str(cwd)
+    return payload
+
+
+def test_a_shell_command_writing_a_governed_file_is_no_longer_silence(tmp_path):
+    # The defect: the refusal says "roadkeep owns its writes", and an agent that reached for
+    # `sed -i` instead of `Edit` got nothing back at all — no refusal, no record, and no lint
+    # until the turn tried to end.
+    root = project(tmp_path)
+    for command in (
+        f"sed -i 's/RK1/RK2/' {ROADMAP}",
+        f"python -c \"open('{ROADMAP}','a').write('x')\"",
+        f"cat > {ROADMAP} <<'EOF'\n- nope\nEOF",
+        f'echo x >> "./{ROADMAP}"',
+    ):
+        refusal = guard(shell(command, cwd=root), root)
+        assert refusal is not None, command
+        assert refusal.role == "roadmap" and refusal.path == ROADMAP
+
+
+def test_the_shell_answer_is_ask_because_the_command_is_not_read(tmp_path):
+    # `deny` would refuse `git add docs/ROADMAP.md` and every `git log --` of a governed file,
+    # and `allow` is not this hook's to give: the third answer is the only honest one.
+    root = project(tmp_path)
+    refusal = guard(shell(f"git add {ROADMAP}", cwd=root), root)
+    assert refusal is not None and refusal.decision == "ask"
+    reason = str(refusal)
+    assert "the decision is yours" in reason
+    # The claim the two decisions do not share, and neither one makes the other's.
+    assert "Bash refused" not in reason
+    # Everything of value is still there: one command table, not two that can drift.
+    assert "roadkeep add --block" in reason and "mcp__roadkeep__add" in reason
+
+
+def test_a_named_write_stays_a_denial(tmp_path):
+    root = project(tmp_path)
+    for tool in ("Edit", "MultiEdit", "NotebookEdit", "Write"):
+        refusal = guard(write(str(root / ROADMAP), tool=tool), root)
+        assert refusal is not None and refusal.decision == "deny", tool
+        assert f"{tool} refused" in str(refusal)
+
+
+def test_a_shell_command_naming_no_governed_path_is_silence(tmp_path):
+    # The tax this used to be avoided for: the overwhelming majority of commands, answered
+    # with one config read and a handful of substring tests.
+    root = project(tmp_path)
+    for command in (
+        "python -m pytest -q",
+        "git status",
+        "sed -i 's/a/b/' README.md",
+        "cat docs/notes.md",
+        "grep -rn TODO src/",
+    ):
+        assert guard(shell(command, cwd=root), root) is None, command
+
+
+def test_the_verbs_the_refusal_recommends_do_not_trip_it(tmp_path):
+    """Nothing is allowlisted because nothing needs to be: roadkeep addresses a task by id
+    and role, never by path, so the advice this hook prints is advice it lets through."""
+    root = project(tmp_path)
+    commands = [command for table in _INSTEAD.values() for command, _ in table]
+    commands += [command for command, _ in _SCAFFOLD]
+    for command in commands:
+        assert guard(shell(f"roadkeep {command}", cwd=root), root) is None, command
+
+
+def test_the_path_is_matched_however_the_command_spells_it(tmp_path):
+    root = project(tmp_path)
+    absolute = (root / CHANGELOG).resolve()
+    for command in (f'sed -i s/a/b/ "{absolute}"', f"sed -i s/a/b/ {absolute.as_posix()}"):
+        refusal = guard(shell(command, cwd=root), root)
+        assert refusal is not None and refusal.role == "changelog", command
+        # Still spelled as the project spells it: the reason is read on another machine.
+        assert refusal.path == CHANGELOG
+
+
+def test_a_shell_command_outside_a_project_is_silence(tmp_path):
+    (tmp_path / "elsewhere").mkdir()
+    assert guard(shell(f"sed -i s/a/b/ {ROADMAP}", cwd=tmp_path / "elsewhere")) is None
+
+
+def test_a_shell_payload_with_no_command_allows(tmp_path):
+    root = project(tmp_path)
+    for raw in ({}, {"command": ""}, {"command": 7}, "not a mapping"):
+        payload = {"hook_event_name": "PreToolUse", "tool_name": "Bash", "tool_input": raw}
+        assert guard(payload, root) is None, raw
+
+
+def test_a_broken_config_allows_the_shell_too(tmp_path):
+    # The same failure rule as every other path here: one typo must not make a repository
+    # unshellable, and `lint` still refuses the file at the commit.
+    (tmp_path / "roadkeep.toml").write_text("prefix = [\n", encoding="utf-8")
+    assert guard(shell(f"sed -i s/a/b/ {ROADMAP}", cwd=tmp_path), tmp_path) is None
+
+
 # -- what is allowed, and why each one has to be ------------------------------
 
 
@@ -263,8 +369,11 @@ def test_the_configuration_is_not_governed(tmp_path):
 
 def test_a_tool_that_does_not_write_is_never_judged(tmp_path):
     root = project(tmp_path)
-    for tool in ("Read", "Bash", "Grep", "Glob", "TodoWrite"):
+    for tool in ("Read", "Grep", "Glob", "TodoWrite"):
         assert guard(write(str(root / ROADMAP), tool=tool), root) is None, tool
+    # `Bash` is guarded since RK128 but only through its `command`: a payload carrying a
+    # `file_path` it never sends is not a second way in.
+    assert guard(write(str(root / ROADMAP), tool="Bash"), root) is None
 
 
 def test_a_file_under_no_project_is_allowed(tmp_path):

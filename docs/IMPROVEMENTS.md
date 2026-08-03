@@ -688,29 +688,6 @@ git configuration and should stay a flag rather than a default.
 
 ## Block F — The plugin
 
-### §RK128 The boundary the guard defends has one side open
-
-`guard` reads a `PreToolUse` payload and denies a governed path with a refusal naming
-the verb to call instead. It matches on the tool: `Edit` and `Write` carry a
-`file_path`, so they are checked. `Bash` carries a `command`, and the payload is
-answered with silence.
-
-Verified against this project's own hook on Shio: an `Edit` payload naming
-`docs/CHANGELOG.md` is denied with the four-verb refusal; a `Bash` payload whose command
-writes the same path returns nothing at all. Any agent that reaches for `sed -i`, `python
--c`, or a heredoc rewrites the ledger with no refusal, no record, and no lint until the
-`Stop` payload — which reports the damage as findings rather than preventing it.
-
-This is not an argument for parsing shell. It is an argument for the guard **saying**
-what it does not cover, because the refusal it prints reads as a boundary rather than as
-a filter over two tool names — and an agent told "roadkeep owns its writes" will believe
-it.
-
-Three options, cheapest first: name the gap in the refusal text; match a governed path
-appearing anywhere in a `Bash` command and deny on the suspicion, since a read is served
-by `brief` and `show` anyway; or let `Stop` compare the governed files against `git` and
-refuse a change no verb in this session made.
-
 ### §RK155 The server outlives the code it loaded
 
 Observed twice in one session, developing this tool with its own server wired in:
