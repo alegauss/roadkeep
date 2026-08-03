@@ -994,6 +994,73 @@ def test_a_nested_anchor_whose_parent_is_missing_is_still_refused(tmp_path):
     assert read(config) == OUTLINE_RATIONALE
 
 
+#: The shape a project gets by nesting its rationale under a `##` part heading: the outline's
+#: own top level is `###` and its designs are `####`. Nothing about it is exotic — it is
+#: OUTLINE_RATIONALE one `#` deeper — and it is the file the fixed depth was wrong in.
+DEEPER_RATIONALE = """# Improvements
+
+## Part two — the designs
+
+### XXI A theme
+
+The part that is not numbered by anybody.
+
+#### XXI.1 A first design
+
+The reasoning the line has no room for.
+"""
+
+
+def deeper(tmp_path: Path) -> Config:
+    return project(
+        tmp_path,
+        improvements=DEEPER_RATIONALE,
+        top='ref_scheme = "outline"\n',
+        roadmap=BACKLOG.replace("§RK1", "§XXI.1"),
+    )
+
+
+def test_a_subsection_takes_the_depth_of_the_section_it_extends(tmp_path):
+    # RK180: the level was 3 flat, so here `XXI.6` was written as a *sibling* of `### XXI` —
+    # which ends the subtree it was meant to be inside, nothing refusing it.
+    config = deeper(tmp_path)
+    document, section = add(config, "improvements", "XXI.6", "A sixth design", "Prose.")
+    assert section.level == 4
+    document.save()
+    assert "#### XXI.6 A sixth design" in read(config)
+
+
+def test_the_subsection_stays_inside_the_subtree_its_anchor_names(tmp_path):
+    # The consequence, and the reason a depth is not cosmetic (RK115): depth is what says
+    # where a section ends, so a sibling would leave `drop XXI` taking the parent alone.
+    config = deeper(tmp_path)
+    document, _ = add(config, "improvements", "XXI.6", "A sixth design", "Prose.")
+    document.save()
+    config = Config.discover(config.root)
+    assert find(config.document("improvements"), "XXI").body.count("XXI.6") == 1
+
+
+def test_a_subsection_in_a_shallower_file_is_written_exactly_where_it_was(tmp_path):
+    # The other direction, which is what keeps this a fix rather than a move: in a file whose
+    # top level is `##`, one under the parent is the 3 the constant always gave.
+    config = outline(tmp_path)
+    document, section = add(config, "improvements", "VIII.2", "A second design", "Prose.")
+    assert section.level == 3
+    document.save()
+    assert "### VIII.2 A second design" in read(config)
+
+
+def test_a_task_s_own_design_still_takes_the_nested_depth(tmp_path):
+    # Under the id scheme a one-segment anchor is a task's design and has no parent by
+    # construction — reading a depth off the file's other one-segment sections would find
+    # this repository's own `§0` container and write every design a level too shallow.
+    config = project(tmp_path)
+    document, section = add(config, "improvements", "RK3", "A third design", "Prose.")
+    assert section.level == 3
+    document.save()
+    assert "### §RK3 A third design" in read(config)
+
+
 def test_the_id_scheme_refuses_a_top_level_anchor_as_it_always_did(tmp_path):
     # Under `id` the anchor *is* the id, so it carries no place and no level: reaching the
     # top level with one means the id names no open line, which stays a refusal.

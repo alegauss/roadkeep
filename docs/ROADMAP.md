@@ -24,7 +24,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK180** (deps: —) **A subsection is written at a fixed depth, so in a file whose top level is deeper it is no subsection** — RK166 derived the depth of a new top level and left the nested one at 3, so `section add X.Y` under a level-3 `X` renders a sibling that ends the subtree it was meant to be inside. → §RK180
 - 📋 **RK181** (deps: —) **A section refusal names the file by its whole filesystem path, where the gate beside it names it relatively** — Every message in `sections.py` is built from `document.path`, so a refused drop prints an absolute path while `lint` in the same terminal prints `IMPROVEMENTS.md:5`. → §RK181
 - 📋 **RK191** (deps: —) **The refusal on a second partial names the entry in the way, not the id the step needs** — `_partial` answers a second `ship --part` with the line already recorded, and Shio settled in SH361 that a delivered step gets its own id, so the caller is left to invent it. → §RK191
 

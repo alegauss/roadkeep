@@ -774,9 +774,8 @@ def _extended(document: Document, anchor: str) -> int:
     return span[1]
 
 
-#: The depth a subsection is written at, and what every caller of :func:`add` got before a
-#: level could be derived at all. Kept as the answer for anything nested, because deriving
-#: that too would move headings in files this task is not about.
+#: The depth a section with nothing to derive one from is written at: a one-segment anchor
+#: under the id scheme, which is a task's own design, and the last resort for anything else.
 NESTED_LEVEL = 3
 
 
@@ -784,19 +783,37 @@ def _depth(document: Document, anchor: str, level: int | None) -> int:
     """The heading level this section is written at — the caller's, or the file's own (RK166).
 
     Named, it is used: a project whose outline nests four deep has a depth no rule here
-    knows. Omitted, a subsection gets :data:`NESTED_LEVEL` and a **new top level** gets the
-    depth this file already writes one at — falling back to one under its shallowest
-    heading, which is the file's title in every corpus read here.
+    knows. Omitted, a **new top level** gets the depth this file already writes one at —
+    falling back to one under its shallowest heading, which is the file's title in every
+    corpus read here — and a **subsection** gets one under the section it extends (RK180).
+
+    That last one was :data:`NESTED_LEVEL` flat, which is the same defect one level down:
+    in a file whose designs are `####` under `###` parts, `section add XXI.6` wrote `###
+    XXI.6`, a *sibling* of `### XXI` that ends the subtree it was meant to be inside — and
+    depth is what says where a section ends (RK115), so `drop XXI` then takes the parent and
+    orphans this one.
+
+    The parent's level and not the depth of the file's other sections at the same number of
+    segments: those are the same answer in a consistently nested file and different in one
+    that mixes schemes, and there the sibling count is wrong in exactly this task's
+    direction — this repository declares `§0.3` at level 3, so a `§RK34.1` read off it would
+    be written level with the `§RK34` it belongs inside.
     """
     if level is not None:
         return level
-    if not _top_level(document, anchor):
+    if _top_level(document, anchor):
+        tops = [s.level for s in anchored(document) if _is_top(s.anchor)]
+        if tops:
+            return tops[0]
+        levels = [h.level for h in document.headings]
+        return min(levels) + 1 if levels else NESTED_LEVEL - 1
+    parent = _extends(document, anchor)
+    if parent is None:
+        # Either a one-segment anchor under the id scheme — a task's design, which has no
+        # parent by construction — or a nested one whose parent this file does not declare,
+        # and that one never reaches a write: `_extended` refuses it by name.
         return NESTED_LEVEL
-    tops = [s.level for s in anchored(document) if _is_top(s.anchor)]
-    if tops:
-        return tops[0]
-    levels = [h.level for h in document.headings]
-    return min(levels) + 1 if levels else NESTED_LEVEL - 1
+    return next(s.level for s in anchored(document) if s.anchor == parent) + 1
 
 
 def _descended(

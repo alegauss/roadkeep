@@ -77,29 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK180 Half a derivation is a heading in the wrong place
-
-RK166 made the level of a *new top level* the file's own, and left `NESTED_LEVEL = 3`
-for everything under it — stated as being what every caller already got, and out of
-scope there. It is the same defect one level down.
-
-Reproduced on a file whose top level is `###` and whose designs are `####`, which is the
-shape a project gets by nesting its rationale under a `##` part heading: `section add
-XXI.6` wrote `### XXI.6`, a *sibling* of `### XXI`. Nothing refused it and the answer
-reported a section placed.
-
-A heading at the wrong depth is not cosmetic, because depth is what says where a section
-ends (RK115). `find` no longer owns it, `nested` does not report it, the budget charges
-the parent for prose it no longer contains, and `section drop XXI` takes the parent and
-leaves this one behind — an orphan under whatever precedes it, which is the outcome RK9
-calls worse than deleting too much.
-
-The narrow fix is the one already written for the top level: read the depth off the
-sections this file declares at the same number of segments, and fall back to one under
-the parent that was found. Both facts are in hand at the moment of placement —
-`_extended` has already resolved the parent's heading, and that heading's level plus one
-is the answer no default can be right about.
-
 ### §RK181 One address for a file, and three spellings of it
 
 RK14 fixed the form of a report: name the place as `file:line:column`, so the reader
