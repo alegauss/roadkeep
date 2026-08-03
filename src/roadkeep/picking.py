@@ -244,13 +244,16 @@ def take(config: Config, block: str | None = None, designed: bool = False) -> Cl
     The marker is written through `set_status`, so every refusal that guards a marker guards
     this one too — a sibling file already stating status, a duplicated id — and a line
     already at 🛠 whose claim expired is re-dated without a write it does not need.
+
+    **The claim is that marker write and nothing else** (RK159). Dating it here as well would
+    be a second writer of the one rule this design states out loud — a claim follows the
+    marker — and two writers of one rule is how the doors came to disagree to begin with.
     """
     with exclusive(config.root):
         choice = pick(config, block, designed)
         if choice.entry is None:
             return Claim(choice=choice)
         change = set_status(config, choice.entry.task.id, IN_PROGRESS)
-        claiming.record(config.root, change.entry.task.id, change.document.entries)
         # The entry is replaced by the line as written, so the answer shows the marker the
         # caller now holds rather than the one it was chosen under.
         return Claim(choice=replace(choice, entry=change.entry), change=change)
@@ -267,15 +270,16 @@ def hold(config: Config, task_id: str) -> Claim:
     What it does not do is judge the line. `pick` never offers blocked work, and a caller
     that named an id may be about to unblock it; the marker door this goes through has always
     allowed that, and a policy here would be this command re-deciding what `status` decides.
+
+    It **reads** the registry and does not write it (RK159): the refusal is this door's own,
+    and the claim is the marker write's, which is one name for one rule.
     """
     with exclusive(config.root):
         roadmap = config.document("roadmap")
         for entry in claiming.live(config, roadmap.entries):
             if entry.id == task_id:
                 raise claiming.AlreadyHeld(task_id, entry.since, IN_PROGRESS)
-        change = set_status(config, task_id, IN_PROGRESS)
-        claiming.record(config.root, task_id, change.document.entries)
-        return Claim(choice=None, change=change)
+        return Claim(choice=None, change=set_status(config, task_id, IN_PROGRESS))
 
 
 def _absence(

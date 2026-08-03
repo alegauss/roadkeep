@@ -91,6 +91,7 @@
 - ✅ **RK154** **The one call a session starts a task with never names the lines a claim kept out of its answer** — A brief carries the pick's own answer instead of its reason sentence, so the door a session starts a task with names the held ids — and so does the absence where a claim is what emptied it.
 - ✅ **RK156** **Renaming an id drops the claim on that line, so work somebody is holding is offered again** — A renumber carries the claim to the new address with its age intact, and a defer drops it — the two doors that change a claim without the marker it is read against moving.
 - ✅ **RK158** **Marking a line in progress by hand asserts nothing, so the next caller is sent at it** — A marker write now moves the claim with it: the in-progress one dates a claim and any other drops it, which is the rule the read already assumed of every door but this one.
+- ✅ **RK159** **Two places write the claim on the one path that takes one, and the second overwrites the first** — The marker write is the only writer of a claim: `take` and `hold` read the registry and no longer date it, and one test states that all three doors leave the same thing behind.
 
 ## Block D — The gate
 

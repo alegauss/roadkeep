@@ -433,6 +433,28 @@ def test_re_asserting_the_marker_a_line_carries_is_a_new_claim(tmp_path):
     assert [h.id for h in pick(config).held] == ["RK2"]
 
 
+def test_every_door_that_claims_leaves_the_same_registry(tmp_path):
+    """The property RK159 asked for, which no door's own tests stated: `take`, `hold` and
+    `status` write a claim through one rule, so what they leave behind is one thing. This is
+    what would have caught a *disagreement* between them — the duplication it removed was
+    only visible in the code."""
+    left: list[dict[str, float]] = []
+    for door in ("take", "hold", "status"):
+        config = project(tmp_path, BLOCKS + line("RK2") + line("RK9"))
+        claiming.path(tmp_path).unlink(missing_ok=True)
+        if door == "take":
+            take(config)
+        elif door == "hold":
+            hold(config, "RK2")
+        else:
+            set_status(config, "RK2", IN_PROGRESS)
+        dated = claiming._read(claiming.path(tmp_path))  # noqa: SLF001
+        left.append({name: round(when) for name, when in dated.items()})
+    assert [set(one) for one in left] == [{"RK2"}, {"RK2"}, {"RK2"}]
+    # And each of them leaves a line the next caller is not sent at.
+    assert pick(Config.discover(tmp_path)).entry.task.id == "RK9"
+
+
 def test_adding_a_line_in_progress_is_not_one_of_the_three_doors(tmp_path):
     # A stated boundary rather than a silent gap: the three ways to *start* work are the two
     # `--claim` flags and `status`, and a line being created is not one the backlog handed out.
