@@ -354,6 +354,38 @@ def test_the_renumber_command_says_the_claim_moved(tmp_path, capsys):
     assert "claimed  the claim taken 0m ago moved with it" in capsys.readouterr().out
 
 
+def test_shipping_a_claimed_line_leaves_no_entry_behind(tmp_path):
+    # RK162, found by the first `claims` run after RK161 shipped: the entry is inert, an id
+    # never being reused — and a row that can never mean anything is noise in the one listing
+    # that exists to surface the row somebody is hunting.
+    config = project(tmp_path, BLOCKS + line("RK2") + line("RK9"))
+    take(config)
+    assert main(["-C", str(tmp_path), "ship", "RK2", "--why", "It works now."]) == EXIT_OK
+    assert claiming.survey(config, config.document("roadmap").entries) == ()
+
+
+def test_retiring_a_claimed_line_leaves_no_entry_either(tmp_path):
+    # The same door with the other marker: 🗑 is not the in-progress one, so the rule every
+    # marker write obeys already said release.
+    config = project(tmp_path, BLOCKS + line("RK2") + line("RK9"))
+    take(config)
+    argv = ["-C", str(tmp_path), "retire", "RK2", "--reason", "Not happening."]
+    assert main(argv) == EXIT_OK
+    assert claiming._read(claiming.path(tmp_path)) == {}  # noqa: SLF001
+
+
+def test_the_prune_still_reconciles_what_no_door_reported(tmp_path):
+    # Why the prune stays and is not a second writer of the release rule (RK159's argument):
+    # git moves markers under the tool, and a checkout fires no door at all.
+    config = project(tmp_path, BLOCKS + line("RK2") + line("RK9"))
+    hold(config, "RK2")
+    # As a `git checkout` would leave it: RK2 reads 📋 again and no door was told.
+    (tmp_path / "ROADMAP.md").write_text(BLOCKS + line("RK2") + line("RK9"), encoding="utf-8")
+    assert "RK2" in claiming._read(claiming.path(tmp_path))  # noqa: SLF001
+    hold(Config.discover(tmp_path), "RK9")
+    assert set(claiming._read(claiming.path(tmp_path))) == {"RK9"}  # noqa: SLF001
+
+
 def test_deferring_a_claimed_line_drops_the_claim(tmp_path):
     # The other door the marker cannot express: the line leaves the file the marker is read
     # in, so nothing would clear the entry — and a `resume` inside the window would read as

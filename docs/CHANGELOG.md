@@ -94,6 +94,7 @@
 - ✅ **RK159** **Two places write the claim on the one path that takes one, and the second overwrites the first** — The marker write is the only writer of a claim: `take` and `hold` read the registry and no longer date it, and one test states that all three doors leave the same thing behind.
 - ✅ **RK160** **Setting the in-progress marker on a line another worker holds takes the claim without a word** — The marker write is where a taken line is refused, so `status <id>` on the in-progress marker cannot re-date somebody's claim — and nothing re-dates a live one at all.
 - ✅ **RK161** **Which lines are claimed is answerable only as a side effect of asking for work** — `claims` lists the registry against the roadmap — held, expired or stale, oldest first, with the window and the file — so the last question about a claim is a command like every other.
+- ✅ **RK162** **A shipped line leaves an entry in the registry that nothing will ever read again** — The terminal doors release the claim on the line they take out, so the listing holds what somebody is looking for and not one row per shipped task.
 
 ## Block D — The gate
 

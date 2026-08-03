@@ -94,7 +94,9 @@ true, and correcting it is why that comment said `amend` all along.
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
+from pathlib import Path
 
+from roadkeep import claiming
 from roadkeep.authoring import Insertion, place, refuse_reuse, remove_entry
 from roadkeep.backlog import Backlog, NotOpen
 from roadkeep.config import Config
@@ -442,6 +444,9 @@ class Departure:
     #: Open lines that still name this id. Reported and not refused: a supersession is
     #: legitimate and those lines are the author's next edit, which `lint` (RK14) gates.
     dependents: tuple[str, ...] = ()
+    #: The checkout, so the claim on a line that left for good is released (RK162) — the one
+    #: thing this transaction touches that is not a governed file.
+    root: Path | None = None
 
     def save(self) -> None:
         """Write the files. Nothing here can fail on the format — that was decided.
@@ -472,6 +477,12 @@ class Departure:
         self.roadmap.save()
         if self.improvements is not None:
             self.improvements.save()
+        if self.root is not None:
+            # Last, and never a condition of the writes: a terminal marker is not the
+            # in-progress one, so the rule every marker write obeys says *release* (RK162).
+            # The entry is inert either way — an id is never reused — but a row that can never
+            # mean anything is noise in the listing `claims` exists to be read (RK161).
+            claiming.follow(self.root, self.task_id, self.marker, self.roadmap.entries)
 
 
 Shipment = Departure
@@ -1072,6 +1083,7 @@ def _depart(
         dependents=tuple(
             e.task.id for e in derived.document.entries if task_id in e.task.dep_ids
         ),
+        root=config.root,
     )
 
 

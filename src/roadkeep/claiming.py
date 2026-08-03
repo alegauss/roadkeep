@@ -217,6 +217,12 @@ def record(root: Path | str, task_id: str, entries: Iterable[Entry]) -> None:
     inside the write lock, so the read-modify-write is not a race — and a claim only ever
     accompanies a marker this transaction just wrote, which is why the id is dated whether
     or not the marker changed: re-taking a line whose claim expired is a new claim.
+
+    The prune **stays** now that every door releases explicitly (RK162), and it is not RK159's
+    second writer of one rule: a release is an *event* this tool performed, and this is
+    reconciliation with the file, which git moves under the tool. A `checkout` onto a branch
+    where the line reads 📋 fired no door at all, and the entry it leaves behind is one only a
+    read of the roadmap can find.
     """
     target = path(root)
     still = {entry.task.id for entry in entries if entry.task.status == IN_PROGRESS}
