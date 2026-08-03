@@ -57,7 +57,7 @@ from roadkeep.document import (
     Entry,
     Heading,
     UnknownBlock,
-    assert_all_current,
+    save_all,
     blank,
     read_deps,
 )
@@ -170,10 +170,7 @@ class Insertion:
 
     def save(self) -> None:
         """Write the files. Nothing here can fail on the format — that was decided."""
-        assert_all_current(self.document, self.prose)
-        self.document.save()
-        if self.prose is not None:
-            self.prose.save()
+        save_all(self.document, self.prose)
 
 
 def compose(

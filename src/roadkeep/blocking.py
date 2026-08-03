@@ -61,7 +61,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 
 from roadkeep.config import Config
-from roadkeep.document import Document, Heading, assert_all_current, blank
+from roadkeep.document import Document, Heading, blank, save_all
 from roadkeep.schema import Schema
 
 __all__ = [
@@ -232,9 +232,7 @@ class Closed:
 
     def save(self) -> None:
         """Write every file, having asked all of them first (RK116, RK6)."""
-        assert_all_current(*self.documents.values())
-        for document in self.documents.values():
-            document.save()
+        save_all(*self.documents.values())
 
 
 def drop_block(config: Config, label: str) -> Closed:
@@ -379,9 +377,7 @@ class Opened:
 
     def save(self) -> None:
         """Write every file, having asked all of them first (RK116, RK6)."""
-        assert_all_current(*self.documents.values())
-        for document in self.documents.values():
-            document.save()
+        save_all(*self.documents.values())
 
 
 def open_block(

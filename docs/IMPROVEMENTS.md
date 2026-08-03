@@ -75,31 +75,6 @@ already written, not authorship.
 
 ## Block A — The model
 
-### §RK131 A pre-flight is narrower than a transaction
-
-RK116 made `save` refuse a write onto a file that moved, and RK6 says a transaction
-writes all its files or none. Those two meet badly: `save` checking each file as it
-reaches it would refuse the second write after the first had landed, so
-`assert_all_current` asks about every target *before* any of them is written.
-
-It asks, and then each `save` asks again. Between the pre-flight and the last write
-there is still a window, and a writer that lands inside it produces exactly the
-half-applied state the pre-flight exists to prevent — rarer, and not gone. The claim in
-`Departure.save`'s docstring is accurate about what it buys and the mechanism is weaker
-than it reads.
-
-RK117's lock closes this for roadkeep against roadkeep, which is the case that was
-measured. What is left is the case RK116 named as its own subject: an editor, a `git
-checkout`, a hand edit the hook missed. For those the window is real, and the tool
-currently states an all-or-nothing guarantee it holds only against writers that take its
-lock.
-
-Two honest directions. State the narrower guarantee where it is claimed, which costs
-nothing and stops the docstring from over-promising. Or close it: write every file to
-its scratch name first, check all the targets, then rename them in sequence — the
-renames are the only steps that touch anything, and they are the ones already made one
-step each by RK118.
-
 ### §RK133 The part is read and then dropped
 
 RK121 taught the parser to read `SH96 (local half)`, and the two `deps.unknown` it was

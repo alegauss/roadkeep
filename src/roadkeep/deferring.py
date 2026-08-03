@@ -43,7 +43,7 @@ from roadkeep import claiming
 from roadkeep.authoring import Insertion, place, remove_entry
 from roadkeep.backlog import Backlog, NotOpen
 from roadkeep.config import Config
-from roadkeep.document import Document, assert_all_current
+from roadkeep.document import Document, save_all
 from roadkeep.markers import refresh
 from roadkeep.schema import Task
 
@@ -157,9 +157,7 @@ class Pause:
         arrival is written before the removal, so a crash between them leaves the line in
         both files — visible, and a `resume` away — rather than in neither.
         """
-        assert_all_current(self.store.document, self.roadmap)
-        self.store.document.save()
-        self.roadmap.save()
+        save_all(self.store.document, self.roadmap)
         if self.root is not None:
             # Last, and never a condition of the write: the worker who set this aside is not
             # holding it, and a claim left behind would greet the `resume` (RK156). The same
@@ -191,9 +189,7 @@ class Resumption:
         # The same rule read backwards: the roadmap is the arrival now, so it goes first
         # and the store's removal second (RK118). A line in both files is a state a reader
         # can see and a second `resume` can finish; a line in neither is one nobody can.
-        assert_all_current(self.roadmap.document, self.store)
-        self.roadmap.document.save()
-        self.store.save()
+        save_all(self.roadmap.document, self.store)
         if self.root is not None:
             claiming.follow(
                 self.root, self.task_id, self.marker, self.roadmap.document.entries

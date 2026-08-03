@@ -111,7 +111,7 @@ from roadkeep import claiming
 from roadkeep.authoring import Insertion, place, refuse_reuse, remove_entry
 from roadkeep.backlog import Backlog, NotOpen
 from roadkeep.config import Config
-from roadkeep.document import Document, Entry, Heading, assert_all_current
+from roadkeep.document import Document, Entry, Heading, save_all
 from roadkeep.ids import next_id
 from roadkeep.markers import refresh
 from roadkeep.renumbering import NotAnId, SameId, family_of
@@ -468,10 +468,11 @@ class Departure:
     def save(self) -> None:
         """Write the files. Nothing here can fail on the format — that was decided.
 
-        What can still fail is the disk: all three targets are asked whether they are
-        still the files that were read before any of them is written (RK116), and each write
-        lands whole (RK118). Three writes are still three moments, so **the order is the
-        rest of the answer** — it decides which halfway states a crash can leave:
+        What can still fail is the disk: all three files are rendered to their scratch
+        names, then asked whether they are still the files that were read, and only then
+        renamed into place (RK116, RK131), each write landing whole (RK118). Three renames
+        are still three moments, so **the order is the rest of the answer** — it decides
+        which halfway states a crash can leave:
 
         * **Ledger first**, because it is the only one of the three that records that this
           shipped. Stopping here leaves the id in two files, which `lint` reports as
@@ -489,11 +490,7 @@ class Departure:
         Nothing here claims the three writes are one; what is claimed is that stopping
         between them costs a command and never a design.
         """
-        assert_all_current(self.ledger.document, self.roadmap, self.improvements)
-        self.ledger.document.save()
-        self.roadmap.save()
-        if self.improvements is not None:
-            self.improvements.save()
+        save_all(self.ledger.document, self.roadmap, self.improvements)
         if self.root is not None:
             # Last, and never a condition of the writes: a terminal marker is not the
             # in-progress one, so the rule every marker write obeys says *release* (RK162).
@@ -540,9 +537,7 @@ class Partial:
         # The ledger first, as everywhere else (RK118): the record of what landed is the
         # thing that cannot be reconstructed, and a marker not yet ⏳ is a state a second
         # run of the same command corrects.
-        assert_all_current(self.ledger.document, self.roadmap)
-        self.ledger.document.save()
-        self.roadmap.save()
+        save_all(self.ledger.document, self.roadmap)
 
 
 @dataclass(frozen=True, slots=True)
@@ -580,10 +575,7 @@ class Closure:
 
     def save(self) -> None:
         """Write the roadmap and the prose file. The ledger is never opened for writing."""
-        assert_all_current(self.roadmap, self.improvements)
-        self.roadmap.save()
-        if self.improvements is not None:
-            self.improvements.save()
+        save_all(self.roadmap, self.improvements)
 
 
 @dataclass(frozen=True, slots=True)
@@ -606,13 +598,10 @@ class Record:
 
     def save(self) -> None:
         """Write the ledger, and the roadmap only if a line in it actually changed."""
-        assert_all_current(self.ledger.document, self.roadmap if self.refreshed else None)
-        self.ledger.document.save()
-        if self.refreshed:
-            # The roadmap is not part of this transaction, so it is not rewritten to the
-            # same bytes: an untouched file with a moved mtime reads as an edit to every
-            # hook watching it, and "touched nothing else" has to be true on disk.
-            self.roadmap.save()
+        # The roadmap is passed only where a line in it changed, so it is not rewritten to
+        # the same bytes: an untouched file with a moved mtime reads as an edit to every
+        # hook watching it, and "touched nothing else" has to be true on disk.
+        save_all(self.ledger.document, self.roadmap if self.refreshed else None)
 
 
 @dataclass(frozen=True, slots=True)

@@ -544,40 +544,92 @@ def write_atomically(target: Path, text: str) -> None:
     transaction across the three files a `ship` writes: it is that every state a reader can
     catch is a *whole* file, which is the state the tool already knows how to read.
 
+    The two halves are :func:`stage` and :func:`commit` because a transaction needs them
+    apart (RK131); a single-file write is the pair called back to back.
+    """
+    scratch = stage(target, text)
+    try:
+        commit(scratch, target)
+    finally:
+        discard(scratch)
+
+
+def stage(target: Path, text: str) -> Path:
+    """Write the new content beside its target, under a name only this process uses.
+
+    The target's **own directory**, or the rename that follows would be a copy across
+    filesystems and no longer one step. Nothing about the target is touched here, which is
+    what lets a transaction stage every file it writes before it commits any of them.
+    """
+    scratch = target.with_name(f".{target.name}.roadkeep-{os.getpid()}.tmp")
+    scratch.write_text(text, encoding="utf-8", newline="")
+    return scratch
+
+
+def commit(scratch: Path, target: Path) -> None:
+    """Put a staged file in place with :func:`os.replace`, which is one step on both platforms.
+
     The retry is Windows: a rename over a file another process has open can fail while an
     indexer or a virus scanner holds it for a moment. A failure that outlasts the retries is
     raised as the :class:`OSError` it is, and every writing command already refuses on one.
     """
-    scratch = target.with_name(f".{target.name}.roadkeep-{os.getpid()}.tmp")
-    try:
-        scratch.write_text(text, encoding="utf-8", newline="")
-        for remaining in reversed(range(_REPLACE_TRIES)):
-            try:
-                os.replace(scratch, target)
-                return
-            except PermissionError:
-                if not remaining:
-                    raise
-                time.sleep(_REPLACE_PAUSE)
-    finally:
-        # The scratch file is this process's own and named after it, so removing it can
-        # never take somebody else's — and a temporary file left behind by a failed write
-        # is litter in a directory the tool asked to be trusted with.
-        with contextlib.suppress(OSError):
-            scratch.unlink()
+    for remaining in reversed(range(_REPLACE_TRIES)):
+        try:
+            os.replace(scratch, target)
+            return
+        except PermissionError:
+            if not remaining:
+                raise
+            time.sleep(_REPLACE_PAUSE)
 
 
-def assert_all_current(*documents: Document | None) -> None:
-    """Ask every file in a transaction before writing any of them (RK116, RK6).
+def discard(scratch: Path) -> None:
+    # The scratch file is this process's own and named after it, so removing it can never
+    # take somebody else's — and a temporary file left behind by a failed write is litter
+    # in a directory the tool asked to be trusted with.
+    with contextlib.suppress(OSError):
+        scratch.unlink()
 
-    `ship` writes three files and `defer` writes two, and :meth:`Document.save` checking
-    each one as it reaches it would refuse the second write after the first had already
-    landed — which is the half-applied state all-or-nothing exists to prevent. A None is
+
+def save_all(*documents: Document | None) -> tuple[Path, ...]:
+    """Write a transaction's files: stage all, ask all, then rename in order (RK131, RK6).
+
+    The obvious arrangement — ask every target first, then call :meth:`Document.save` on
+    each — leaves the rendering and the writing of file *n-1* inside the window between the
+    question and file *n*'s write, and a writer landing in it is refused on the second file
+    after the first has already been written. That is the half-applied state the question
+    was asked to prevent, made rarer rather than impossible.
+
+    So the order is inverted: every file is rendered to its scratch name first, where it
+    costs nothing and is visible to nobody, *then* every target is asked whether it is still
+    the file that was read, and only then are the renames made. What is left between the
+    question and the last write is the renames themselves — no rendering, no I/O on any
+    source, nothing that can raise for a reason of its own — which is as close to one step
+    as three files on a filesystem get.
+
+    The argument order is the rename order, and every caller's ordering rationale is about
+    which halfway state a crash leaves (see :meth:`shipping.Departure.save`). A None is
     skipped, because a transaction's optional file is absent and not stale.
     """
-    for document in documents:
-        if document is not None:
-            document.assert_current()
+    staged: list[tuple[Path, Path]] = []
+    try:
+        for document in documents:
+            if document is None:
+                continue
+            target = document.path
+            if target is None:
+                raise ValueError("no path to save to")
+            document.ensure_writable()
+            staged.append((stage(target, document.render()), target))
+        for document in documents:
+            if document is not None:
+                document.assert_current()
+        for scratch, target in staged:
+            commit(scratch, target)
+    finally:
+        for scratch, _ in staged:
+            discard(scratch)
+    return tuple(target for _, target in staged)
 
 
 def _spanned(entries: list[Entry], loose: set[int]) -> tuple[Entry, ...]:

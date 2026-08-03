@@ -19,6 +19,7 @@ from pathlib import Path
 
 import pytest
 
+from roadkeep import document
 from roadkeep.authoring import UnknownBlock
 from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
@@ -612,6 +613,30 @@ def test_a_ship_whose_roadmap_moved_under_it_leaves_the_ledger_alone(tmp_path):
     assert files(config) == (moved, LEDGER, RATIONALE)
 
 
+def test_a_writer_landing_after_the_first_file_is_staged_still_writes_none(tmp_path, monkeypatch):
+    # The window the pre-flight left open (RK131): asking every target and *then* rendering
+    # and writing each one puts the second file's question after the first file's write, so
+    # a writer landing between them produces the half-applied state the question exists to
+    # prevent. Staged first, asked second, renamed last — and the intruder is caught with
+    # nothing of this transaction on disk.
+    config = project(tmp_path)
+    shipment = ship(config, "RK1", why="Because of a reason.")
+    moved = BACKLOG.replace(f"{RK2}\n", "")
+    real = document.stage
+
+    def racing(target: Path, text: str) -> Path:
+        staged = real(target, text)
+        if target.name == "CHANGELOG.md":  # the first file the transaction stages
+            with (config.root / ROADMAP).open("w", encoding="utf-8", newline="") as handle:
+                handle.write(moved)
+        return staged
+
+    monkeypatch.setattr("roadkeep.document.stage", racing)
+    with pytest.raises(StaleFile, match="changed since it was read"):
+        shipment.save()
+    assert files(config) == (moved, LEDGER, RATIONALE)
+
+
 def test_a_second_writer_exits_one_and_says_to_re_run(tmp_path, capsys, monkeypatch):
     # Through the CLI, because the exit code is the contract: a lost line that exits 0 is
     # the whole symptom, and a gate refusal is exit 1 (RK116). The other process is staged
@@ -639,21 +664,20 @@ def test_a_second_writer_exits_one_and_says_to_re_run(tmp_path, capsys, monkeypa
 
 
 def written_in_order(config: Config, monkeypatch) -> list[str]:
-    """The three files in the order the transaction writes them."""
+    """The three files in the order the transaction renames them into place (RK131)."""
     order: list[str] = []
-    real = Document.save
+    real = document.commit
 
-    def watched(self, path=None):
-        target = Path(path) if path is not None else self.path
+    def watched(scratch, target):
         order.append(config.relative(target))
-        return real(self, path)
+        return real(scratch, target)
 
-    monkeypatch.setattr(Document, "save", watched)
+    monkeypatch.setattr("roadkeep.document.commit", watched)
     return order
 
 
 def test_the_ledger_is_written_first_and_the_rationale_file_last(tmp_path, monkeypatch):
-    # Three writes are three moments even when each one lands whole (RK118), so the order
+    # Three renames are three moments even when each one lands whole (RK118), so the order
     # decides which halfway states a crash can leave. This is the sequence the two tests
     # below are about; asserted here so a reordering fails loudly rather than quietly.
     config = project(tmp_path)

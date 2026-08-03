@@ -51,7 +51,7 @@ from roadkeep.authoring import refuse_reuse
 from roadkeep.claiming import Held
 from roadkeep.backlog import Backlog, NotOpen
 from roadkeep.config import Config
-from roadkeep.document import Document, Entry
+from roadkeep.document import Document, Entry, save_all
 from roadkeep.ids import id_scanner, next_id
 from roadkeep.markers import refresh
 from roadkeep.sections import Section, find, heading_of, nested
@@ -137,8 +137,7 @@ class Renumbering:
         failure is a claim lost, which is the behaviour before claims existed — and putting it
         before the files would move an address the files had not moved yet.
         """
-        for document in self.documents.values():
-            document.save()
+        save_all(*self.documents.values())
         if self.root is not None and self.claim is not None:
             claiming.rename(self.root, self.task_id, self.to)
 
