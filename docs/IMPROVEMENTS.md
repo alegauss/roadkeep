@@ -162,6 +162,27 @@ length is one that succeeds by feedback. The advice about the improvements secti
 still true, and belongs after the arithmetic instead of in place of it — it answers
 where the text goes, not how much has to leave.
 
+### §RK187 Two targets, one command, no transaction
+
+RK132 closed the half that was measured: the README splice now compares the bytes it
+read against the file before the rename, so a write landing on top of somebody else's
+edit is refused. It did not close the half beside it, and RK6's rule names that one — a
+transaction writing several files asks about all of them before it writes any.
+
+`_export` does not. Both destinations are refreshed in one run on purpose, because a
+README and a page restating one backlog refreshed by two commands are one command nobody
+remembers (RK39). But `_splice_into` reads, checks and writes per target, so a
+`StaleFile` raised on the site leaves the README already rewritten and the command exits
+at the gate. The author is told to re-run, and the re-run is against a tree where one
+projection is current and the other is not — which the gate reports on a file the failed
+command was in the middle of.
+
+The shape of the answer is the one `assert_all_current` already has for governed files,
+and RK131 is open about the ordering defect in *that* one: read every target, hold its
+bytes, check every target, then write. The two are not one task — a projection has no
+`Document` behind it (RK132) and no round-trip to prove — but they are one rule, and a
+fix here that invented a second phrasing of it would be the drift both exist to stop.
+
 ## Block B — Authoring
 
 ### §RK179 The half of a sentence the parse never held
@@ -257,7 +278,78 @@ mid-session edit from being described.
 Worth measuring afterwards rather than assuming: if the remaining cost is the parser's
 own construction, the number to report is one build, not fifty-two.
 
+### §RK186 The reader that did not learn what the gate learned
+
+RK172 taught resolution that a pointer addresses **every** governed prose file, because
+`[files]` declares strategy as a governed role and a line pointing at it is already in
+the model. It taught the gate. It did not teach the reader.
+
+`showing._rationale` still asks `config.has("improvements")`, loads that one document
+and calls `find` on it. So on the corpus RK172 was measured against, Turing's six GEO
+lines now lint clean and `brief T354` answers `§X.3 is not in docs/IMPROVEMENTS.md: the
+pointer resolves to nothing` — for a section `docs/STRATEGY.md` declares and the gate
+resolves.
+
+Which is the worse half of the two. `lint` is the backstop and is read once; `brief` is
+the call that *starts* a task, is read every time, and its whole promise is that a task
+begins in one call with the rationale in hand. An agent handed "the pointer resolves to
+nothing" writes the design again, under an anchor the line does not name, and the second
+draft is exactly the `section.unreachable` RK135 exists to report.
+
+The fix is the shape RK172 already established: the anchor is looked for in each
+declared prose role, the file that declares it is what `section_file` names, and two
+roles declaring one anchor is the ambiguity `ref.ambiguous` states rather than a first
+match. `show` is the same call underneath, so both doors close together — and `section
+show`, which reads its own document by role, is the one place that already had the
+answer.
+
 ## Block D — The gate
+
+### §RK188 A gate held against a file no verb maintains
+
+RK104 was right that a README restating the backlog has to be held by the gate that
+reads the files it came from: a projection nothing checks is a second source of truth
+with a grace period. What it left is that **nothing writes it except a human remembering
+to**.
+
+Measured over one block. Every one of ten tasks went the same way: `claim` moved a
+marker from 📋 to 🛠, the block carries markers, and `lint` reported `export.stale` on
+`README.md`. Ten more after each `ship`. Every run of this repository's own conformance
+test failed on it, on a file the task did not touch, and the fix was the same command
+twenty times. A finding that appears after every write and is cleared by one command no
+write runs is not a gate — it is a chore with an exit code.
+
+The projection is derived, wholly, from files the verb already holds open. So the verb
+is where it belongs: a write that changes what the block would render refreshes it in
+the same transaction, which is what makes it derived in the sense the annotation and the
+pointer are. The alternative — leaving it to `--fix`, which repairs only what is derived
+— is defensible and weaker, because the gate still fails first and the author still runs
+a second command.
+
+Whichever, RK187 is the write this goes through, and its all-or-nothing rule is what
+stops a refresh from half-writing a transaction.
+
+### §RK189 A widening whose cost is an argument, not a number
+
+RK173 was measured going in: six of Turing's eight `path.missing` findings named
+artefacts the repository has, because a monorepo entry writes the path its reader is
+standing in. The answer was to ask whether the repository holds a file whose path *ends*
+in the token, which is the question RK51 already says this check is asking.
+
+It was not measured coming out. The tail index admits a one-segment match, so
+`./package.json` resolves — the case that motivated it — and so does any bare
+`index.ts`, `README.md` or `main.py` a ledger names, against a file of that name
+anywhere in the tree. The reasoning for allowing it is real: a repository holding a
+`package.json` does satisfy "the repository has package.json", and a bare token with no
+slash is already unreportable. The reasoning for suspecting it is equally real: a file
+*moved between modules* now resolves, and that is a rename the ledger did not follow,
+which is the one true finding this check has produced.
+
+What is missing is a count. Run the check over both pinned corpora with and without the
+tail rule, and read the difference line by line: how many findings it removes, and how
+many of those a reader would call true. If a one-segment tail buys nothing over a
+two-segment one, requiring a slash is a smaller widening for the same six. An idea
+rather than a design, because which of the three it is depends entirely on that number.
 
 ## Block E — Adoption
 

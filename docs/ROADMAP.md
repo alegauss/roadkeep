@@ -26,6 +26,7 @@
 - 📋 **RK133** (deps: —) **Every part of a split delivery carries the base id, so a four-step ship is four contradictions** — RK121 reads the part and does not carry it into identity, so Shio's four SH348 entries became six duplicate findings and three two-files findings against correct history. → §RK133
 - 📋 **RK183** (deps: —) **The two field limits sum to the line limit, so a line obeying both is refused by the third** — symptom 120 plus why 200 is exactly line 320 while the rendered structure costs 38 to 52, so an author writing to the limits it was given is refused by one it cannot compute. → §RK183
 - 📋 **RK184** (deps: —) **A length refusal names the rendered total and not the field that is over or the surplus** — line.too-long reports 327 against 320 and advises moving the remainder, so the author rewrites the sentence instead of deleting seven characters and the next attempt re-rolls the length. → §RK184
+- 📋 **RK187** (deps: —) **`export --readme --site` writes the first file and then refuses the second, leaving one refreshed** — RK132 gave the splice the staleness check every governed write makes and not the all-or-nothing rule beside it, so one target lands and the other's staleness survives the command. → §RK187
 
 ## Block B — Authoring (insert, never hand-edit)
 
@@ -36,8 +37,12 @@
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK174** (deps: —) **Listing the tools rebuilds the whole CLI parser fifty-two times and costs a sixth of a second** — `_subparser` calls `build_parser` per lookup and each descriptor needs two — the schema and whether the tool writes — so a client's first message pays 165ms rebuilding what never changed. → §RK174
+- 📋 **RK186** (deps: —) **`brief` reports a pointer into the strategy file as resolving to nothing** — `showing._rationale` reads the improvements file alone, so RK172's widening stopped at the gate and the call that starts a task denies a design the file declares. → §RK186
 
 ## Block D — The gate
+
+- 📋 **RK188** (deps: —) **Every write stales the derived README block, so the gate fails until somebody remembers `export`** — RK104 made `lint` hold the block and no verb refreshes it, so ten consecutive claims and ships each left this repository failing its own gate on a file no task touched. → §RK188
+- 💭 **RK189** (deps: —) **A path claim is satisfied by a file of that name anywhere in the tree, and the floor was never measured** — RK173 indexes every tail of every tracked path, so a one-segment token resolves against any file sharing its name, and what that silences was argued rather than counted. → §RK189
 
 ## Block E — Adoption
 
