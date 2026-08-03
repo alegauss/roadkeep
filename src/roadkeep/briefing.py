@@ -16,6 +16,11 @@ Nothing here is stored and nothing is composed of new prose (L4): every field is
 module's answer, gathered in one place. Call it with no id and it briefs whatever `pick`
 would choose, which makes the first call of a session the only one.
 
+What it carries of the pick is the pick's own :class:`~roadkeep.picking.Choice` and not a
+sentence copied out of it (RK154): a held line has to be *named* here for the reason it is
+named there — a claim carries no owner, so an id is the only thing a caller recognises its own
+by — and a field lifted out one at a time is a second place to keep in step.
+
 **Which is why the claim has to be reachable from here** (RK149). RK119 made answering "what
 next" a write so two agents get two lines, and put the flag on `pick` — the command a session
 following the skill does not call, this one being the door that starts a task in one call. So
@@ -36,8 +41,9 @@ from roadkeep.config import Config, Scope
 from roadkeep.document import Document
 from roadkeep.graph import Chain, Graph, Leverage
 from roadkeep import scoping
+from roadkeep.claiming import Held
 from roadkeep.locking import exclusive
-from roadkeep.picking import Claim, hold, pick, take
+from roadkeep.picking import Choice, Claim, hold, pick, take
 from roadkeep.schema import Task
 from roadkeep.showing import View, show
 
@@ -56,10 +62,18 @@ ELLIPSIS = " …"
 
 
 class NothingToBrief(KeyError):
-    """`pick` found no ready task, so there is nothing to start. Not a failure."""
+    """`pick` found no ready task, so there is nothing to start. Not a failure.
 
-    def __init__(self, reason: str) -> None:
-        super().__init__(f"nothing to brief: {reason}")
+    Carries the held ids where a claim is what emptied the answer (RK154): "every ready task
+    is claimed by a worker who has not finished it" is the one absence in this design a
+    caller cannot act on without them, a claim naming no owner and its own being the one it
+    would otherwise ask about again next turn.
+    """
+
+    def __init__(self, reason: str, held: tuple[Held, ...] = ()) -> None:
+        self.held = held
+        named = ", ".join(f"{one.id} ({one.since} ago)" for one in held)
+        super().__init__(f"nothing to brief: {reason}" + (f" — held: {named}" if named else ""))
 
 
 @dataclass(frozen=True, slots=True)
@@ -85,8 +99,13 @@ class Brief:
     chains: tuple[Chain, ...]
     leverage: Leverage
     non_goals: NonGoals
-    #: Set when the id came from `pick` rather than from the caller, with its reason.
-    picked: str = ""
+    #: The pick that chose this id, absent where the caller named one (RK154). The whole
+    #: answer and not the sentence it used to be: `held` is the ids a live claim was stepped
+    #: around, and with no owner field a caller recognises its own only by reading them. One
+    #: field rather than five, so the next question `pick` already answers is a field here and
+    #: not a change — while what this *prints* stays bounded, which is why the counts are left
+    #: to the command that is about them.
+    choice: Choice | None = None
     #: The line taken, where the caller asked for it (RK149). Absent otherwise, so a brief
     #: that claimed nothing cannot be read as one that did.
     claim: Claim | None = None
@@ -94,6 +113,16 @@ class Brief:
     @property
     def task(self) -> Task:
         return self.view.task
+
+    @property
+    def picked(self) -> str:
+        """Why this id was chosen, or empty where the caller named it."""
+        return "" if self.choice is None else self.choice.reason
+
+    @property
+    def held(self) -> tuple[Held, ...]:
+        """The ready lines a live claim kept out of the pick this brief came from."""
+        return () if self.choice is None else self.choice.held
 
 
 def brief(
@@ -118,30 +147,32 @@ def brief(
     if claim:
         with exclusive(config.root):
             return _gather(config, *_claimed(config, task_id, block, designed))
-    picked = ""
     if task_id is None:
-        choice = pick(config, block, designed)
-        if choice.entry is None:
-            raise NothingToBrief(choice.reason)
-        task_id, picked = choice.entry.task.id, choice.reason
-    return _gather(config, task_id, picked, None)
+        chosen = pick(config, block, designed)
+        if chosen.entry is None:
+            raise NothingToBrief(chosen.reason, chosen.held)
+        return _gather(config, chosen.entry.task.id, chosen, None)
+    return _gather(config, task_id, None, None)
 
 
 def _claimed(
     config: Config, task_id: str | None, block: str | None, designed: bool
-) -> tuple[str, str, Claim]:
+) -> tuple[str, Choice | None, Claim]:
     """Take a line, by the tiers or by the id the caller gave, and say which happened."""
     if task_id is not None:
-        return task_id, "", hold(config, task_id)
+        return task_id, None, hold(config, task_id)
     taken = take(config, block, designed)
     if taken.choice is None or taken.choice.entry is None:
         # The same absence `pick` reports and not a refusal: a caller asking for work and
         # being told there is none got the fact it asked for, and nothing was written.
-        raise NothingToBrief("" if taken.choice is None else taken.choice.reason)
-    return taken.choice.entry.task.id, taken.choice.reason, taken
+        held = () if taken.choice is None else taken.choice.held
+        raise NothingToBrief("" if taken.choice is None else taken.choice.reason, held)
+    return taken.choice.entry.task.id, taken.choice, taken
 
 
-def _gather(config: Config, task_id: str, picked: str, claim: Claim | None) -> Brief:
+def _gather(
+    config: Config, task_id: str, chosen: Choice | None, claim: Claim | None
+) -> Brief:
     """Every derived fact about one task, joined. This half reads and never writes."""
     view = show(config, task_id)
     backlog = Backlog.load(config)
@@ -158,7 +189,7 @@ def _gather(config: Config, task_id: str, picked: str, claim: Claim | None) -> B
         chains=graph.chains(task_id)[:CHAINS] if entry is not None else (),
         leverage=graph.leverage(task_id),
         non_goals=non_goals(config, backlog.roadmap),
-        picked=picked,
+        choice=chosen,
         claim=claim,
     )
 

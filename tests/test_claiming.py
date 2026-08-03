@@ -500,6 +500,53 @@ def test_the_brief_command_reports_a_held_line_and_writes_nothing(tmp_path, caps
     ]
 
 
+def test_the_brief_names_the_lines_its_pick_stepped_around(tmp_path):
+    # RK154: the call a session starts a task with was the one reporting the least, and the
+    # claiming caller is precisely the one that will ask about the missing id again.
+    config = project(tmp_path, BLOCKS + line("RK2") + line("RK9"))
+    take(config)
+    gathered = brief(config)
+    assert gathered.task.id == "RK9" and [h.id for h in gathered.held] == ["RK2"]
+    # Carried as the pick's own answer, so the next thing `pick` knows is a field and not a
+    # change — and `picked` is still that answer's reason.
+    assert gathered.choice is not None and gathered.picked == gathered.choice.reason
+
+
+def test_a_brief_the_caller_addressed_reports_no_pick_at_all(tmp_path):
+    config = project(tmp_path, BLOCKS + line("RK2") + line("RK9"))
+    take(config)
+    named = brief(config, "RK9")
+    assert named.choice is None and named.picked == "" and named.held == ()
+
+
+def test_the_absence_of_an_answer_names_the_claims_that_emptied_it(tmp_path):
+    # The one absence in this design a caller cannot act on without the ids: with no owner
+    # field, "somebody holds it" and "you hold it" read identically.
+    config = project(tmp_path, BLOCKS + line("RK2"))
+    take(config)
+    with pytest.raises(NothingToBrief) as caught:
+        brief(config)
+    assert [h.id for h in caught.value.held] == ["RK2"]
+    assert "held: RK2 (0m ago)" in str(caught.value)
+    # And on the claiming path too, where nothing was written either.
+    with pytest.raises(NothingToBrief):
+        brief(config, claim=True)
+
+
+def test_the_brief_command_and_the_pick_report_a_hold_the_same_way(tmp_path, capsys):
+    project(tmp_path, BLOCKS + line("RK2") + line("RK9"))
+    config = Config.discover(tmp_path)
+    take(config)
+    assert main(["-C", str(tmp_path), "brief", "--json"]) == EXIT_OK
+    briefed = json.loads(capsys.readouterr().out)
+    assert main(["-C", str(tmp_path), "pick", "--json"]) == EXIT_OK
+    picked = json.loads(capsys.readouterr().out)
+    # One fact spelled two ways is two facts.
+    assert briefed["held"] == picked["held"] == [{"id": "RK2", "age": 0, "since": "0m"}]
+    assert main(["-C", str(tmp_path), "brief"]) == EXIT_OK
+    assert "held     RK2 was claimed 0m ago and is not offered" in capsys.readouterr().out
+
+
 def test_claiming_a_brief_composes_with_the_flags_that_narrow_the_pick(tmp_path, capsys):
     project(tmp_path, BLOCKS + line("RK2", status=IDEA) + MORE + line("RK8", block="B"))
     argv = ["-C", str(tmp_path), "brief", "--block", "B", "--claim", "--json"]

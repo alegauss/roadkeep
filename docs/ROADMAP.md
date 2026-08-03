@@ -33,8 +33,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK154** (deps: —) **The one call a session starts a task with never names the lines a claim kept out of its answer** — `pick` names them so a caller can recognise its own claim, and `brief` carries only the tier's reason — so the door RK149 made the recommended one is the door that reports nothing. → §RK154
-
 ## Block D — The gate
 
 - 📋 **RK104** (deps: —) **Nothing gates the README block this tool writes, so a stale restatement passes lint** — `export --readme` is the one write no gate holds: a pytest fixture catches it here and an adopting project has none, so the derived table drifts from the files it was derived from. → §RK104

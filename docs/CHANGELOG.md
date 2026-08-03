@@ -88,6 +88,7 @@
 - ✅ **RK150** **The query an agent runs most may now ask permission, for a flag it did not pass** — The claiming flag is its own tool, `claim`, whose argv and description are still `brief --claim`'s own — so `brief` and `pick` carry `readOnlyHint` again and a client has nothing to ask about.
 - ✅ **RK151** **Every project's claims expire after the same hour, and how long a task takes is not the same everywhere** — `[claims] held` declares the window in minutes, bounded at both ends where it is read, so a project states how long its work takes and `held = 3600` is refused instead of becoming a lock.
 - ✅ **RK152** **A started task that is blocked is reported to every caller with nothing saying somebody holds it** — A stalled line now reports the live claim on it, so `started and stuck` reads apart from `somebody is on this` — while `held` stays the candidates the ranking stepped around.
+- ✅ **RK154** **The one call a session starts a task with never names the lines a claim kept out of its answer** — A brief carries the pick's own answer instead of its reason sentence, so the door a session starts a task with names the held ids — and so does the absence where a claim is what emptied it.
 
 ## Block D — The gate
 

@@ -180,28 +180,6 @@ would make `--after` a per-file argument or a refusal when the files disagree.
 
 ## Block C — Query
 
-### §RK154 The recommended door reports the least
-
-RK119's argument for naming a held line rather than counting it was that a claim carries
-no owner: the id is the only thing by which a caller recognises its own, and a line
-silently absent is one it asks about again next turn. `pick` prints `held` and carries
-it in `--json`. `brief` carries neither.
-
-RK149 then made `brief --claim` the door to reach for, so the call a session actually
-makes is the one that reports the least. It is worse than symmetrical loss: the claiming
-caller is precisely the one that will ask again, and the absence it sees is
-indistinguishable from a backlog with nothing ready.
-
-Two shapes. The narrow one is a `held` field on the brief, printed and in the JSON,
-which is a field copied from `Choice` and a second place to keep in step. The wider one
-is that a brief carries the pick's *answer* — its tier, its counts, what it stepped
-around — rather than the reason sentence alone, which is one field instead of five and
-makes the composition the module already claims to be.
-
-The absence path needs it too: `NothingToBrief` raises with the reason, and "every ready
-task is claimed by a worker who has not finished it" is the one sentence in this design
-that a caller cannot act on without the ids.
-
 ## Block D — The gate
 
 ### §RK104 The block the gate does not read

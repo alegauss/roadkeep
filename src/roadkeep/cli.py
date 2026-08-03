@@ -2582,6 +2582,10 @@ def _brief(config: Config, args: argparse.Namespace) -> int:
           f"{view.file}:{view.entry.lineno}")
     if gathered.picked:
         print(f"  picked   {gathered.picked}")
+    if gathered.choice is not None:
+        # The ids a live claim was stepped around (RK154), on the door a session starts a task
+        # with: without them the caller cannot tell one of them is its own.
+        _print_held(gathered.choice)
     if _print_claim(claim, config) and event is not None:
         # Beside the claim and not at the end: the rationale section closes this output, and
         # an event line after a paragraph of prose is one a hook reader has to hunt for.
@@ -2640,6 +2644,8 @@ def _brief_json(gathered: Brief) -> dict[str, object]:
         },
         "non_goals": list(gathered.non_goals.leads),
         "non_goals_elided": gathered.non_goals.elided,
+        # Same key and same shape as `pick`'s (RK154): one fact spelled two ways is two facts.
+        "held": [{"id": h.id, "age": round(h.age), "since": h.since} for h in gathered.held],
         "claimed": None
         if gathered.claim is None or gathered.claim.change is None
         else {
