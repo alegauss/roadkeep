@@ -35,6 +35,7 @@
 - 🗑 **RK133** **Every part of a split delivery carries the base id, so a four-step ship is four contradictions** — abandoned: Shio answered it by minting one id per step (SH366-SH371, each qualifier naming its parent), so the six findings were correct and the pinned ledger now states no id twice.
 - ✅ **RK183** **The two field limits sum to the line limit, so a line obeying both is refused by the third** — The why is held to the smaller of its own limit and what the line has left after its structure and symptom, so no pair obeying the published numbers is refused by a third.
 - ✅ **RK184** **A length refusal names the rendered total and not the field that is over or the surplus** — Every length refusal names the field, the surplus and the word delete, so the author subtracts a stated number instead of recomposing a sentence against a total nobody wrote.
+- ✅ **RK187** **`export --readme --site` writes the first file and then refuses the second, leaving one refreshed** — The two projections are planned, both targets are asked, and only then are they renamed into place, so a refusal on either leaves neither refreshed.
 
 ## Block B — Authoring
 

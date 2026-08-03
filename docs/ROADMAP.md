@@ -22,8 +22,6 @@
 
 ## Block A — The model (a task is data before it is a line)
 
-- 📋 **RK187** (deps: —) **`export --readme --site` writes the first file and then refuses the second, leaving one refreshed** — RK132 gave the splice the staleness check every governed write makes and not the all-or-nothing rule beside it, so one target lands and the other's staleness survives the command. → §RK187
-
 ## Block B — Authoring (insert, never hand-edit)
 
 - 📋 **RK179** (deps: —) **Correcting a wrapped entry's why leaves the rest of the old sentence below the new one** — `replace_task` rewrites the first line because that is all the parse held, so an amend reports success on a line whose sentence now runs into two lines of the one it replaced. → §RK179

@@ -20,7 +20,7 @@ from pathlib import Path
 
 import pytest
 
-from roadkeep import cli
+from roadkeep import cli, document
 from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.document import Document
@@ -399,6 +399,36 @@ def test_both_destinations_refresh_in_one_call(tmp_path, capsys):
     assert "index.html refreshed" in out
     assert "stale text" not in (tmp_path / "README.md").read_text(encoding="utf-8")
     assert "stale markup" not in (tmp_path / "index.html").read_text(encoding="utf-8")
+
+
+def test_a_site_that_moved_under_the_command_leaves_the_readme_alone(tmp_path, capsys):
+    """Both targets or neither (RK187): the README is spliced first, so a refusal on the
+    site used to exit at the gate with one projection refreshed and one stale — and the
+    re-run it advises met a tree the failed command had already half-written."""
+    project_files(tmp_path)
+    (tmp_path / "index.html").write_text(PAGE, encoding="utf-8", newline="")
+    readme_before = (tmp_path / "README.md").read_text(encoding="utf-8")
+
+    # The other writer lands in the window the command actually occupies: after both
+    # files were read, before either is renamed into place.
+    real = document.stage
+
+    def racing(target: Path, text: str) -> Path:
+        staged = real(target, text)
+        if target.name == "README.md":
+            with (tmp_path / "index.html").open("a", encoding="utf-8", newline="") as f:
+                f.write("<!-- somebody else -->\n")
+        return staged
+
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr("roadkeep.document.stage", racing)
+        assert (
+            main(["-C", str(tmp_path), "export", "--readme", "--site", "index.html"])
+            == EXIT_GATE
+        )
+    assert (tmp_path / "README.md").read_text(encoding="utf-8") == readme_before
+    assert "stale markup" in (tmp_path / "index.html").read_text(encoding="utf-8")
+    assert "re-run the command" in capsys.readouterr().err
 
 
 def test_a_page_with_no_markers_is_refused_with_the_lines_to_paste(tmp_path, capsys):

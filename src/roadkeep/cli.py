@@ -33,6 +33,7 @@ pays for every dependency, and the whole command surface is argument parsing.
 from __future__ import annotations
 
 import argparse
+import functools
 import json
 import sys
 import tempfile
@@ -56,6 +57,8 @@ from roadkeep.document import (
     Reject,
     RoundTripError,
     StaleFile,
+    Write,
+    write_all,
     write_atomically,
 )
 from roadkeep.exporting import DEFAULTS, Projection, project, splice
@@ -3418,30 +3421,36 @@ def _export(config: Config, args: argparse.Namespace) -> int:
         if not chosen:
             print(projection.json() if args.json else projection.markdown())
             return EXIT_OK
-        written = [_splice_into(config, projection, name, shape) for name, shape in chosen]
+        planned = [_splice_into(config, projection, name, shape) for name, shape in chosen]
+        # Both targets or neither (RK187, RK6): the splice is planned per file and the
+        # writes are made together, so a README refreshed beside a site refused is a state
+        # the command cannot leave — and the re-run it advises meets a whole tree.
+        write_all(*[write for write, _ in planned if write is not None])
     except (KeyError, ValueError, OSError, StaleFile) as error:
         return _refused(error)
 
-    for line in written:
+    for _, line in planned:
         print(line)
     return EXIT_OK
 
 
 def _splice_into(
     config: Config, projection: Projection, name: str, shape: str
-) -> str:
-    """Replace one file's marked block, and report which of the two things happened."""
+) -> tuple[Write | None, str]:
+    """Plan one file's marked block: the write to make, and which of two things happened."""
     target = config.root / name
     with target.open("r", encoding="utf-8", newline="") as handle:
         before = handle.read()
     after = splice(before, projection.body(shape), config.relative(target))
+    where = config.relative(target)
     if after == before:
         # The point of idempotence, said out loud: nothing changed, so nothing is written
         # and the file's mtime does not move either.
-        return f"{config.relative(target)} is already current"
-    _assert_unmoved(target, before)
-    write_atomically(target, after)
-    return f"{config.relative(target)} refreshed between the roadkeep markers"
+        return None, f"{where} is already current"
+    return (
+        Write(target, after, functools.partial(_assert_unmoved, target, before)),
+        f"{where} refreshed between the roadkeep markers",
+    )
 
 
 def _assert_unmoved(target: Path, before: str) -> None:

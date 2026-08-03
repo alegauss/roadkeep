@@ -591,14 +591,31 @@ def discard(scratch: Path) -> None:
         scratch.unlink()
 
 
-def save_all(*documents: Document | None) -> tuple[Path, ...]:
-    """Write a transaction's files: stage all, ask all, then rename in order (RK131, RK6).
+@dataclass(frozen=True, slots=True)
+class Write:
+    """One file a transaction will replace, as :func:`write_all` needs it (RK187).
 
-    The obvious arrangement — ask every target first, then call :meth:`Document.save` on
-    each — leaves the rendering and the writing of file *n-1* inside the window between the
-    question and file *n*'s write, and a writer landing in it is refused on the second file
-    after the first has already been written. That is the half-applied state the question
-    was asked to prevent, made rarer rather than impossible.
+    Three things and no document: where the bytes go, what they are, and the question that
+    still has to be true when they land. The third is a callable rather than a source
+    string because what "unchanged" means is the caller's — a governed file compares the
+    text it parsed (RK116), and a README this tool does not own compares the bytes it read
+    (RK132), which is the same question asked of a file with no format to parse.
+    """
+
+    target: Path
+    text: str
+    #: Raises :class:`StaleFile` where the target stopped being the file that was read.
+    assert_current: Callable[[], None]
+
+
+def write_all(*writes: Write) -> tuple[Path, ...]:
+    """Stage every file, ask every target, then rename in order (RK131, RK187, RK6).
+
+    The obvious arrangement — ask every target first, then write each in turn — leaves the
+    rendering and the writing of file *n-1* inside the window between the question and file
+    *n*'s write, and a writer landing in it is refused on the second file after the first
+    has already been written. That is the half-applied state the question was asked to
+    prevent, made rarer rather than impossible.
 
     So the order is inverted: every file is rendered to its scratch name first, where it
     costs nothing and is visible to nobody, *then* every target is asked whether it is still
@@ -608,28 +625,43 @@ def save_all(*documents: Document | None) -> tuple[Path, ...]:
     as three files on a filesystem get.
 
     The argument order is the rename order, and every caller's ordering rationale is about
-    which halfway state a crash leaves (see :meth:`shipping.Departure.save`). A None is
-    skipped, because a transaction's optional file is absent and not stale.
+    which halfway state a crash leaves (see :meth:`shipping.Departure.save`).
+
+    One function for the rule, because the two callers are two kinds of file and one
+    guarantee: `ship` writes three documents it parsed, `export` splices two projections
+    into files it does not own, and a second phrasing of "all or none" is a second thing to
+    keep true.
     """
-    staged: list[tuple[Path, Path]] = []
+    staged: list[tuple[Path, Write]] = []
     try:
-        for document in documents:
-            if document is None:
-                continue
-            target = document.path
-            if target is None:
-                raise ValueError("no path to save to")
-            document.ensure_writable()
-            staged.append((stage(target, document.render()), target))
-        for document in documents:
-            if document is not None:
-                document.assert_current()
-        for scratch, target in staged:
-            commit(scratch, target)
+        for write in writes:
+            staged.append((stage(write.target, write.text), write))
+        for _, write in staged:
+            write.assert_current()
+        for scratch, write in staged:
+            commit(scratch, write.target)
     finally:
         for scratch, _ in staged:
             discard(scratch)
-    return tuple(target for _, target in staged)
+    return tuple(write.target for _, write in staged)
+
+
+def save_all(*documents: Document | None) -> tuple[Path, ...]:
+    """:func:`write_all` for the files this tool parsed. A None is skipped, because a
+    transaction's optional file is absent and not stale.
+    """
+    writes: list[Write] = []
+    for document in documents:
+        if document is None:
+            continue
+        target = document.path
+        if target is None:
+            raise ValueError("no path to save to")
+        # Before anything is staged: a document that would not round-trip is refused for
+        # the whole transaction, not for the file it happened to be discovered on (L3).
+        document.ensure_writable()
+        writes.append(Write(target, document.render(), document.assert_current))
+    return write_all(*writes)
 
 
 def _spanned(entries: list[Entry], loose: set[int]) -> tuple[Entry, ...]:

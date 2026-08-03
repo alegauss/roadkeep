@@ -75,27 +75,6 @@ already written, not authorship.
 
 ## Block A — The model
 
-### §RK187 Two targets, one command, no transaction
-
-RK132 closed the half that was measured: the README splice now compares the bytes it
-read against the file before the rename, so a write landing on top of somebody else's
-edit is refused. It did not close the half beside it, and RK6's rule names that one — a
-transaction writing several files asks about all of them before it writes any.
-
-`_export` does not. Both destinations are refreshed in one run on purpose, because a
-README and a page restating one backlog refreshed by two commands are one command nobody
-remembers (RK39). But `_splice_into` reads, checks and writes per target, so a
-`StaleFile` raised on the site leaves the README already rewritten and the command exits
-at the gate. The author is told to re-run, and the re-run is against a tree where one
-projection is current and the other is not — which the gate reports on a file the failed
-command was in the middle of.
-
-The shape of the answer is the one `assert_all_current` already has for governed files,
-and RK131 is open about the ordering defect in *that* one: read every target, hold its
-bytes, check every target, then write. The two are not one task — a projection has no
-`Document` behind it (RK132) and no round-trip to prove — but they are one rule, and a
-fix here that invented a second phrasing of it would be the drift both exist to stop.
-
 ## Block B — Authoring
 
 ### §RK179 The half of a sentence the parse never held
