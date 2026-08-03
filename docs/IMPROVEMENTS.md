@@ -248,6 +248,28 @@ adoption script had to write by hand to proceed safely.
 
 ## Block C — Query
 
+### §RK174 One parser, fifty-two times
+
+Measured: 26 tools, 52 `build_parser()` calls, 165 ms for one `tools/list`. Half of that
+is RK168's derivation — `descriptor` resolves the subparser for the schema and
+`Tool.writes` resolves it again — and the other half was already there, because
+`_subparser` has always built the entire CLI to reach one subcommand.
+
+It is the first message a client sends, so the cost lands on every session that loads
+the plugin, and it buys nothing: the parser is a pure function of the code. Nothing here
+is *wrong* — the schema and the hint are both derived, which is what RK24 and RK168 were
+for — so this is only about paying for the derivation once.
+
+The shape is a parser built once per `descriptors()` call and indexed by subcommand
+path, which is what `_subparser` walks to anyway. Two things to keep while doing it:
+`descriptor(tool, config)` is public and called with one tool in tests, so it cannot
+require a prepared index; and nothing may cache across calls, because `mcp` re-reads the
+config per message on purpose and a memoised parser is the one thing that would stop a
+mid-session edit from being described.
+
+Worth measuring afterwards rather than assuming: if the remaining cost is the parser's
+own construction, the number to report is one build, not fifty-two.
+
 ## Block D — The gate
 
 ### §RK104 The block the gate does not read
