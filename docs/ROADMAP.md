@@ -34,6 +34,8 @@
 
 ## Block C — Query (consult without reading the file)
 
+- 📋 **RK159** (deps: —) **Two places write the claim on the one path that takes one, and the second overwrites the first** — `take` and `hold` each record after `set_status`, which records the same entry itself since RK158 — so the rule that a claim follows the marker is applied twice on the door that answers. → §RK159
+
 ## Block D — The gate
 
 - 📋 **RK104** (deps: —) **Nothing gates the README block this tool writes, so a stale restatement passes lint** — `export --readme` is the one write no gate holds: a pytest fixture catches it here and an adopting project has none, so the derived table drifts from the files it was derived from. → §RK104

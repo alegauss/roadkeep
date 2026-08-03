@@ -202,6 +202,29 @@ stop guessing at — and the roadmap needs none of it, `add` refusing a line tha
 
 ## Block C — Query
 
+### §RK159 One rule, three writers
+
+RK158 made the marker the thing a claim follows, and put that rule inside `set_status`.
+The two doors that took a claim before it — `take` and `hold` — still call `record`
+after the marker write, so the entry is dated twice on every claim the answering path
+makes.
+
+Nothing is wrong in the file: `record` is a whole-registry rewrite and the second one
+writes the same id a few microseconds later. What is wrong is the shape, and it is the
+shape this design argued for out loud — a claim is read against 🛠, so the door that
+writes 🛠 is the one place that should date it. Three writers of one rule is how the
+doors came to disagree in the first place, one layer down.
+
+Removing the two calls is the whole change, and what it needs is a test that would have
+caught the disagreement rather than the duplication: a claim taken through `take` and
+one taken through `status` should be indistinguishable afterwards, which is a property
+neither door's own tests state today.
+
+Worth noticing while there: `hold` reads the live claims to refuse a held line and
+`set_status` then writes one, so the refusal and the write read the registry twice
+inside one lock. That is a read, not a rule, and it can stay — but the answer to "who
+writes a claim" should be one name.
+
 ## Block D — The gate
 
 ### §RK104 The block the gate does not read
