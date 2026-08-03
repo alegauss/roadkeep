@@ -30,6 +30,9 @@
 - 💭 **RK195** (deps: —) **The roadmap's own amend would strand the same tail, and nobody has counted whether a line wraps there** — RK179 gave the ledger a span-aware correction and `authoring` still rewrites the first line, while both pinned roadmaps carry 0 wrapped entries — so the shape is uncounted. → §RK195
 - 📋 **RK196** (deps: —) **A pointer into the strategy file survives the ship that deletes the line pointing at it** — `_dropped` asks the improvements file alone, so shipping reports "no §X.1 section" and leaves one the config declares — and `lint` exits 0, so nothing says a shipped design stayed. → §RK196
 - 📋 **RK197** (deps: —) **`add` asks for a rationale section that another declared prose file already holds** — `_unresolved` reads the improvements file alone, so a line pointing into the strategy file is told its pointer resolves to nothing, and the second copy that invites is `ref.ambiguous`. → §RK197
+- 📋 **RK214** (deps: —) **A ledger that declares no marker closes one of the three doors out of the roadmap** — retire refuses when [ledger] marker = false because a retired entry cannot be told from a shipped one, so a project with reconstructed history has no exit for abandoned work. → §RK214
+- 📋 **RK215** (deps: —) **A top-level section's own prose cannot be corrected once it has subsections** — amend measures the whole subtree against the section limit, so a two-sentence intro reports 934 words and is refused, while the guard denies the hand-edit that would fix it. → §RK215
+- 📋 **RK216** (deps: —) **A refusal named a block the caller never mentioned, and it is a prefix of theirs** — ship on a task in Block AJ refused with 'no heading declares Block A', from a list that contains AJ, so the sentence asks for a heading that is already there under another letter. → §RK216
 
 ## Block C — Query (consult without reading the file)
 
@@ -37,9 +40,10 @@
 
 ## Block D — The gate
 
-- 📋 **RK210** (deps: —) **A pinned corpus config reports six artefacts missing from a tree it deliberately does not carry** — RK192 rooted the config at a copy of the governed files alone, so the one check whose subject is the repository resolves against a directory holding four files and no git. → §RK210
+- 🛠 **RK210** (deps: —) **A pinned corpus config reports six artefacts missing from a tree it deliberately does not carry** — RK192 rooted the config at a copy of the governed files alone, so the one check whose subject is the repository resolves against a directory holding four files and no git. → §RK210
 - 💭 **RK211** (deps: —) **Every governed write now re-derives two projections and nothing measured what that costs** — RK188 put the refresh inside the transaction, so each write reads the roles it does not hold, runs pick and splices two files, on a tool whose parser build was worth a task of its own. → §RK211
 - 💭 **RK212** (deps: —) **A citation of a shipped design cannot be told from a citation of one that never existed** — as_ledger keeps no pointer, so once a line is in the changelog nothing records which anchor its rationale had, and 37 such references across four trees are unreadable either way. → §RK212
+- 📋 **RK213** (deps: —) **A gate that is green for whoever just built and red for a bare checkout** — lint asks whether the repository has the artefact a line names, and a build output is tracked by nobody, so an adopter's own CI has been failing on a path that is correct. → §RK213
 
 ## Block E — Adoption
 

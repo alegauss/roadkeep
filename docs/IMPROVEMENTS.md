@@ -191,6 +191,75 @@ project declaring several roles has more than one place a section could go, and 
 --section` writes to improvements, so the follow-up has to name the role it means rather
 than the first one declared.
 
+### §RK214 The door a ledger's own shape closes, discovered by being refused
+
+`retire` is the door for a task decided against, and it refuses in any project declaring
+`[ledger] marker = false`: a retired entry cannot be told from a shipped one when
+neither writes a glyph. The refusal is right and it writes nothing, which is also right.
+
+What it leaves behind is a project with no recorded exit for abandoned work. Measured in
+Claude Code Tray, whose ledger declares no marker because 163 of its entries were
+reconstructed from git history before this grammar existed. A task there was measured,
+the premise did not survive the measurement, and there was nowhere to record that — so
+the reachable alternative was `ship` with an outcome saying it was decided against. A ✅
+against work nobody did is the ledger lying that `marker = false` was declared to
+prevent.
+
+Nothing warns in advance. The skill names `retire` among the verbs, and the refusal
+arrives at the moment somebody has already done the work of deciding.
+
+Two shapes. Let `retire` write without a marker, distinguished by the sentence it
+carries — the ledger already tells its entries apart by what they say, and *decided
+against* is a sentence. Or refuse earlier: a project declaring no marker is told once,
+at `init` or by `lint`, which door it has closed, rather than at the moment it needs to
+walk through it.
+
+### §RK215 Refused by the writer for a state the gate calls clean
+
+`section amend XXII --body '<nine words>'` was refused in Claude Code Tray with *934
+words, limit is 300 with its subsections*. That anchor's own prose is two sentences; its
+three subsections are the other 900.
+
+The intro had gone stale in the ordinary way — it described a budget as full that a
+shipped task had since emptied — and its subsections were live, so `drop` refuses as
+well, and the guard denies the `Edit`. Every door closed, and the file left saying
+something untrue. That is RK141's deadlock one level over.
+
+The sharper half is that `lint` does not agree with `amend`: the same file passes the
+gate. So the limit enforced at the writer is not the limit the project is held to, and a
+writer is refused for a state nothing else calls a problem.
+
+The measurement `amend` wants looks like the one `add` already makes — a section's *own*
+prose against `section`, with each subsection measured as itself. RK166 unblocked the
+top level for `add` on the argument that a heading merely missing is one the author can
+add; the same argument covers a heading whose prose is merely wrong.
+
+Worth deciding with it whether an anchor carrying subsections should be amendable at
+all, or whether its intro is a section like any other.
+
+### §RK216 A diagnosis that sends the caller to the wrong file
+
+`ship T226 --why '<four sentences>'` refused twice with *no heading declares Block A in
+ROADMAP.md (declares: AG, AE, AB, AC, AI, AJ, G, D, N, E, S, Q)*. T226 is in **AJ**,
+which that very list contains. The same command with a short `--why`, and later with the
+full text passed through an environment variable instead of typed inline, succeeded.
+
+So the cause is most likely argv reaching the parser differently — this was PowerShell
+5.1, whose native-argument handling is its own subject — and the tool wrote nothing
+either time, which is the half that worked.
+
+The finding is the message. `A` is a prefix of `AJ`, and a refusal naming a prefix of
+the caller's block, drawn from a list containing the caller's block, cannot be acted on:
+it tells somebody to declare a heading that already exists under a letter they never
+typed. Whatever mangled the input, the label the resolution used was never checked
+against the label the id itself carries.
+
+Two things worth having. The refusal could quote the id's own block beside the one it
+resolved, which turns an impossible sentence into an obvious one. And where a `--why`
+arrives empty or partial, say so rather than proceeding to a lookup with whatever is
+left — the second attempt ran with a short `--why` and shipped it, which is how a
+placeholder reaches a ledger that `amend` then refuses to correct.
+
 ## Block C — Query
 
 ### §RK200 The record with no way to read it
@@ -278,6 +347,32 @@ anchor resolves in the changelog for as long as history exists, which is where a
 design's record already lives. That would be a format decision, so it is an idea and not
 a design: it changes what prose may say, and this tool has never told an author how to
 write a sentence (L4).
+
+### §RK213 The artefact the repository produces and deliberately does not track
+
+Measured in Claude Code Tray. Its ledger's T151 entry names
+`bin/Release/net10.0-windows/win-x64/ClaudeTray.exe` while explaining why that project's
+CI job builds rather than publishes — a correct sentence about where the build output
+lands. `bin/` is the first line of its `.gitignore`, and its roadkeep workflow is
+`actions/checkout` followed by the action, with no build step at all.
+
+So `lint` exits 1 on every push and 0 on the machine of anyone who has just compiled. It
+went unnoticed for both reasons at once: invisible locally, and in CI it is the only
+finding, so the job has simply been red.
+
+`anywhere()` widened this rule once already, because six of Turing's eight findings
+named artefacts the repository has. This is the next shape along — an artefact the
+repository *produces* and deliberately does not track — and the docstring names the
+discomfort itself: the finding points at history, and the remedy its wording implies is
+editing what already happened, which `amend` refuses for a shipped id by design.
+
+Three candidates, and the choice is the tool's rather than the adopter's: consult
+`.gitignore` and withhold a finding for a path it covers; treat a token under a
+conventionally ignored directory as not a claim about a tracked file; or make it
+advisory when the token resolves nowhere and names a directory no tree has ever tracked.
+
+`baseline` does not answer it here. That project commits to `main`, so `origin/main`
+makes the rule vacuous exactly where it runs.
 
 ## Block E — Adoption
 

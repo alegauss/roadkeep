@@ -117,16 +117,16 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 1 | 25 | 1 |
-| B — Authoring (insert, never hand-edit) | 4 | 41 | 0 |
+| B — Authoring (insert, never hand-edit) | 7 | 41 | 0 |
 | C — Query (consult without reading the file) | 1 | 37 | 0 |
-| D — The gate | 3 | 35 | 0 |
+| D — The gate | 4 | 35 | 0 |
 | E — Adoption | 10 | 18 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 32 | 1 |
-| **Total** | 19 | 188 | 3 |
+| **Total** | 23 | 188 | 3 |
 
 **Next ready:**
 
-- 📋 **RK103** (deps: —) **A bullet whose marker holds a space is read as prose and reported by nothing** — GitHub's `- [ ]` task list is the commonest Markdown backlog there is, and cursarei's 16 of them parse as 0 entries and 0 rejects — the silent miss the reject list exists to end. → §RK103
+- 🛠 **RK210** (deps: —) **A pinned corpus config reports six artefacts missing from a tree it deliberately does not carry** — RK192 rooted the config at a copy of the governed files alone, so the one check whose subject is the repository resolves against a directory holding four files and no git. → §RK210
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
