@@ -259,30 +259,6 @@ own construction, the number to report is one build, not fifty-two.
 
 ## Block D — The gate
 
-### §RK147 The limit the writing door does not read
-
-L1 is the project's first law: the schema is enforced **where the text is created**, and
-`lint` is only the backstop. RK50 made the limits declarable per file,
-`[limits.improvements]` beside `[limits.changelog]`, and `Config.schema_for` is what
-resolves them.
-
-The section write path does not call it. `sections._check` reads `config.schema` — the
-project's top-level numbers — while `linting._budget` charges
-`prose.schema.section_max`, which came from `config.document(role)` and therefore from
-`schema_for`. So a project that declares a *tighter* rationale budget gets it enforced
-only after the paragraph exists, which is the exact failure L1 names; and one that
-declares a *looser* one has `section add` refusing prose the gate would accept, which is
-worse, because a refusal on legal text is a refusal an author routes around.
-
-Neither half was visible here: this repository declares `[limits] section` and no
-per-role override, so both readings return the same number and the fixture proves
-nothing. That is the finding as much as the bug is — the conformance corpus has no file
-whose own limits differ, so one has to be added with the fix, or the next per-role
-declaration will find the same seam.
-
-The fix itself is one argument threaded through: `_check` takes the role, or takes the
-schema the caller already loaded the document under.
-
 ### §RK172 A pointer addresses a governed prose file, and the gate knows one
 
 Measured adopting Turing. Six open lines in its GEO block carry `→ §X.3` and `→ §X.4`,

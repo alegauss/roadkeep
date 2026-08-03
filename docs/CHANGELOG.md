@@ -134,6 +134,7 @@
 - ✅ **RK135** **A rationale section whose task points at a different one is reported by nothing** — A section whose title names a live task no pointer reaches — its own or another's, directly or through a parent anchor — is reported as `section.unreachable`.
 - ✅ **RK136** **The section budget charges a measured table exactly what it charges a paragraph** — A table row, a fenced block and a blockquote cost the section budget nothing, so the limit charges the argument an agent has to read and a list stays charged.
 - ✅ **RK146** **A tab is reported as an invisible character and repaired by nothing, for ever** — A tab in the indentation is the nesting RK49 keeps and is reported by nothing; past it, `char.tab` names the separator and `--fix` writes the space the format meant.
+- ✅ **RK147** **A prose file's own limits are enforced by the gate and ignored by the write that creates the text** — `section add` and `amend` are held to the schema the document was loaded under, so a `[limits.improvements]` declaration binds the write that creates the text and not only the gate.
 
 ## Block E — Adoption
 

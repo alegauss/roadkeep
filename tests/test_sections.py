@@ -591,6 +591,52 @@ def test_a_section_over_its_word_budget_is_refused(tmp_path):
     assert read(config) == RATIONALE
 
 
+#: The seam RK147 closed, and the fixture that had been missing: a project whose *prose
+#: file* declares limits of its own, so `config.schema` and `config.schema_for(role)` stop
+#: returning the same number. Without one, both readings agree and neither door is proven.
+PER_ROLE = "[limits]\nsection = 10\n[limits.improvements]\nsection = 30\n"
+
+
+def test_the_writing_door_reads_the_limit_the_file_declares(tmp_path):
+    # L1: the schema is enforced where the text is created. `_check` read the project's
+    # top-level numbers while the gate charged `schema_for(role)`, so a *looser* rationale
+    # budget had `section add` refusing prose `lint` would accept — and a refusal on legal
+    # text is a refusal an author routes around.
+    config = project(tmp_path, extra=PER_ROLE)
+    document, section = add(config, "improvements", "RK2", "A design", "word " * 20)
+    document.save()
+    assert section.words == 20
+    assert "section.too-long" not in {
+        f.code for f in lint(Config.discover(tmp_path)).findings
+    }
+
+
+def test_the_tighter_declaration_is_refused_before_the_paragraph_exists(tmp_path):
+    # The other direction, and the one L1 is actually about: a project that declares a
+    # tighter rationale budget used to get it only from the backstop, after the prose was
+    # written — which is the analysis this tool exists to spend nobody's tokens on.
+    config = project(tmp_path, extra="[limits]\nsection = 30\n[limits.improvements]\nsection = 10\n")
+    with pytest.raises(SchemaError) as raised:
+        add(config, "improvements", "RK2", "A design", "word " * 20)
+    assert [v.code for v in raised.value.violations] == ["body.too-long"]
+    assert "limit is 10" in raised.value.violations[0].message
+
+
+def test_an_amend_is_held_to_the_same_number_as_the_add(tmp_path):
+    # Both doors, one reading: `amend`'s subtree check was the one place already calling
+    # `schema_for`, so a project with a per-role limit had `add` and `amend` disagreeing.
+    config = project(tmp_path, extra=PER_ROLE)
+    add(config, "improvements", "RK2", "A design", "word " * 20)[0].save()
+    document, amended, changed = amend(
+        Config.discover(tmp_path), "improvements", "RK2", body="word " * 25
+    )
+    document.save()
+    assert changed == ("body",) and amended.words == 25
+    assert "section.too-long" not in {
+        f.code for f in lint(Config.discover(tmp_path)).findings
+    }
+
+
 def test_an_id_anchor_that_names_no_open_task_is_refused(tmp_path):
     # The pointer is the id (RK27), so this section is an orphan the moment it exists.
     config = project(tmp_path)

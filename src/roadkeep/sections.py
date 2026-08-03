@@ -408,14 +408,14 @@ def add(
     document = config.document(role)
     if task is None:
         task = _task_for(config, anchor)
-    _check(config, anchor, title, body, task)
+    _check(document.schema, anchor, title, body, task)
     existing = find(document, anchor)
     if existing is not None:
         raise SectionExists(
             anchor, config.relative(config.path(role)), existing.first
         )
 
-    lines = _render(config, anchor, title, body, _depth(document, anchor, level))
+    lines = _render(document.schema, anchor, title, body, _depth(document, anchor, level))
     index = _placement(document, anchor, task)
     payload = list(lines)
     if index > 0 and not blank(document.lines[index - 1]):
@@ -482,21 +482,21 @@ def amend(
     if not changed:
         return document, section, ()
 
-    _check(config, anchor, wanted_title, wanted_body, _task_for(config, anchor))
-    updated = _rewrite(config, document, heading, replace(section, title=wanted_title.strip()), wanted_body)
+    _check(document.schema, anchor, wanted_title, wanted_body, _task_for(config, anchor))
+    updated = _rewrite(document, heading, replace(section, title=wanted_title.strip()), wanted_body)
     amended = find(updated, anchor)
     assert amended is not None  # the heading this function just wrote
     # Charged against the **subtree**, because that is the number the gate charges a
     # pointed-at section (RK50): a body that clears the limit alone and puts the section
     # over it with its subsections is an amend that passes and a `lint` that refuses.
-    if amended.words > config.schema_for(role).section_max:
+    if amended.words > document.schema.section_max:
         raise SectionError(
             (
                 Violation(
                     "body.too-long",
                     "body",
                     f"{amended.words} words with its subsections, limit is "
-                    f"{config.schema_for(role).section_max}: a section this long is two "
+                    f"{document.schema.section_max}: a section this long is two "
                     f"sections, or a paragraph that belongs in the commit",
                 ),
             )
@@ -505,7 +505,7 @@ def amend(
 
 
 def _rewrite(
-    config: Config, document: Document, heading: Heading, section: Section, body: str
+    document: Document, heading: Heading, section: Section, body: str
 ) -> Document:
     """Swap a heading's line and the prose under it for the reflowed replacement.
 
@@ -514,7 +514,7 @@ def _rewrite(
     go in at the heading's own index, where nothing below has moved yet.
     """
     end = document.prose_end(heading)
-    payload = ["", *_body_lines(config, body)]
+    payload = ["", *_body_lines(document.schema, body)]
     if end < len(document.lines):
         # The blank that separates this section's prose from the next heading. Kept when
         # there is a next heading and omitted at the end of the file, which is where a
@@ -563,8 +563,20 @@ def words(body: str) -> int:
 # -- validation --------------------------------------------------------------
 
 
-def _check(config: Config, anchor: str, title: str, body: str, task: Task | None) -> None:
-    schema = config.schema
+def _check(
+    schema: Schema, anchor: str, title: str, body: str, task: Task | None
+) -> None:
+    """Every rule a section is refused by, under **this file's** schema (RK147).
+
+    The schema is the one the caller loaded the document under — `config.schema_for(role)`,
+    which is what `[limits.improvements]` declares (RK50) — and never `config.schema`, which
+    is the project's top-level numbers. L1 is the first law: the format is enforced where
+    the text is created, and reading a different limit here than the gate charges is exactly
+    the failure it names. A project declaring a *tighter* rationale budget got it only after
+    the paragraph existed; one declaring a *looser* one had this door refusing prose the gate
+    would accept, which is worse — a refusal on legal text is a refusal an author routes
+    around. Threaded rather than looked up again, so the two readings cannot disagree.
+    """
     out: list[Violation] = []
     if not anchor or anchor.startswith("§"):
         out.append(
@@ -628,13 +640,13 @@ def _task_for(config: Config, anchor: str) -> Task | None:
 
 
 def _render(
-    config: Config, anchor: str, title: str, body: str, level: int
+    schema: Schema, anchor: str, title: str, body: str, level: int
 ) -> tuple[str, ...]:
-    heading = f"{'#' * level} {anchor_text(config.schema, anchor)} {title.strip()}"
-    return (heading, "", *_body_lines(config, body))
+    heading = f"{'#' * level} {anchor_text(schema, anchor)} {title.strip()}"
+    return (heading, "", *_body_lines(schema, body))
 
 
-def _body_lines(config: Config, body: str) -> tuple[str, ...]:
+def _body_lines(schema: Schema, body: str) -> tuple[str, ...]:
     """The prose as the file carries it: paragraphs filled, structures verbatim.
 
     Apart from :func:`_render` because `amend` (RK123) writes exactly this and not the
@@ -646,7 +658,7 @@ def _body_lines(config: Config, body: str) -> tuple[str, ...]:
     for position, paragraph in enumerate(paragraphs):
         if position:
             out.append("")
-        out.extend(_reflow(paragraph, config.schema.prose_width).split("\n"))
+        out.extend(_reflow(paragraph, schema.prose_width).split("\n"))
     return tuple(out)
 
 
