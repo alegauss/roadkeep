@@ -156,6 +156,7 @@
 - ✅ **RK192** **A pinned corpus hands out a config whose file reads go to the live tree instead** — A corpus config is rooted at a copy of the pinned bytes, so document and lint answer about the revision, and checkout is the named door for the reads that run git.
 - ✅ **RK203** **The layout index grows with the package and the budget holding it cannot tell it from prose** — A test holds the Layout index against the package, the two modules it had already lost are named, and the measurement says compress the prose first.
 - ✅ **RK206** **A section other prose cites is deleted by ship, and the gate reads only the pointer a task line carries** — Ship names every section whose prose cited the design it deleted, so the dangling citation is repaired in the commit that creates it.
+- ✅ **RK208** **A block only the ledger declares made every projection raise instead of counting it as finished** — project asked the roadmap census for a label it took from both files, so a block whose work all shipped answered KeyError — found the moment every write started projecting.
 
 ## Block E — Adoption
 

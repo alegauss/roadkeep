@@ -218,6 +218,84 @@ and may not need a second.
 
 ## Block D — The gate
 
+### §RK209 The second door onto the same deletion
+
+RK206 put the citation report where the dangling reference is created: `_drop_section`,
+which `ship` and `retire` both call. `section drop` does not go through it. It has
+refusals of its own — `SectionClaimed` when an open line points at the anchor,
+`SectionOccupied` and `AnchorClaimed` for the subtree — and every one of them reads a
+*pointer*, which is the end of the reference RK206 measured as unread.
+
+So the same deletion names who is left dangling through two doors and stays silent
+through the third, and the third is the one an author reaches for deliberately.
+
+It is not automatic, which is why this is a line rather than an oversight:
+`sections.drop` returns `(document, section)`, so the answer has to travel somewhere. A
+third element on that tuple keeps one statement of the question and changes a signature
+two modules read; a second call to `citing` in the CLI is one line and a second place
+that can forget. Which of those is right is what the line is for.
+
+### §RK210 The cost of the root that cannot reach the tree
+
+RK192 was right that a config handed out for a pinned corpus must not reach the
+checkout: `document` and `lint` were ordinary calls that read this afternoon's bytes,
+and the answer looked like a result. What it did not price is the one check whose
+subject is **outside** the governed files.
+
+`path.missing` asks whether the repository holds an artefact a shipped entry names, and
+it asks the tree. Through the pinned config the tree is a temporary directory holding
+the governed files and nothing else, so `lint` reports six artefacts absent that both
+corpora carry: `../package.json` and two `../agents.md` in Shio, `./package.json` and
+two `docs/` files in Turing. Every one is false, and each was silent before because the
+root was live — which is to say the leak was also what made this check answer.
+
+Three shapes, and the measurement is which. The materialised root could be a git
+repository with the pinned tree's file *names* committed, which makes `Tree` answer
+without carrying anyone's content. The projection could take the checkout for path
+resolution alone, which is two roots in one config and needs saying out loud. Or the
+corpus config could declare the check off, which is honest and loses the only assertion
+this repository makes about that check on a real ledger.
+
+### §RK211 A refresh whose price is assumed
+
+RK188 is right that the write which stales the block is the write that owes it, and the
+transaction is the right place. What it did not do is measure the addition. Every `add`,
+`status`, `amend`, `ship`, `defer` and `renumber` now reads the counted roles it is not
+already holding, builds a `Census` for each, runs `pick` over the whole backlog and
+splices two target files — on a repository where building the CLI parser once per
+message rather than once per process was worth RK202.
+
+The costs are not obviously alike. Reading a governed file the transaction does not hold
+is a parse this project already pays elsewhere; `pick` is a graph walk over every open
+line; the splice is two file reads that produce no write on the common path, because
+most writes move no count.
+
+So the number is what decides whether anything is owed here at all. Measure a write on
+this repository's own `docs/` and on the larger of the two pinned corpora, with and
+without the refresh, and read the difference against what a command already costs. If it
+is inside the noise, this line retires with the number in the ledger, which is a better
+outcome than a cache nobody needed.
+
+### §RK212 The anchor a shipped line stops carrying
+
+RK206 named what `ship` breaks at the moment it breaks it, and that is the half a verb
+can do. The other half is what a reader meets afterwards, and the measurement says it is
+not decidable: `as_ledger` drops the pointer, deliberately and for a good reason — the
+section is deleted when the task leaves, so a pointer to it could not resolve. The
+consequence is that `§XVIII.12` in somebody's prose is either a design that shipped or a
+typo, and no file holds the difference.
+
+Counted: 37 such references across this repository, claude-tray, Shio and Turing, in
+files whose prose is correct. That is why RK206 added no finding.
+
+The obvious move — let the ledger keep the anchor — is a slot on a line the ledger's own
+grammar removed, and it re-opens a question RK6 closed. The narrower one is a
+**cross-reference the tool understands**: a citation that names the task rather than the
+anchor resolves in the changelog for as long as history exists, which is where a shipped
+design's record already lives. That would be a format decision, so it is an idea and not
+a design: it changes what prose may say, and this tool has never told an author how to
+write a sentence (L4).
+
 ## Block E — Adoption
 
 ### §RK103 The marker slot that holds two tokens

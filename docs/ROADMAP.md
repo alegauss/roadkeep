@@ -37,6 +37,11 @@
 
 ## Block D — The gate
 
+- 📋 **RK209** (deps: —) **section drop deletes prose other sections cite and reports nothing, the door the ship fix did not reach** — The citation report was wired into the departure path, so the verb whose whole job is removing one section is the one that still leaves the reference silently unresolved. → §RK209
+- 📋 **RK210** (deps: —) **A pinned corpus config reports six artefacts missing from a tree it deliberately does not carry** — RK192 rooted the config at a copy of the governed files alone, so the one check whose subject is the repository resolves against a directory holding four files and no git. → §RK210
+- 💭 **RK211** (deps: —) **Every governed write now re-derives two projections and nothing measured what that costs** — RK188 put the refresh inside the transaction, so each write reads the roles it does not hold, runs pick and splices two files, on a tool whose parser build was worth a task of its own. → §RK211
+- 💭 **RK212** (deps: —) **A citation of a shipped design cannot be told from a citation of one that never existed** — as_ledger keeps no pointer, so once a line is in the changelog nothing records which anchor its rationale had, and 37 such references across four trees are unreadable either way. → §RK212
+
 ## Block E — Adoption
 
 - 📋 **RK103** (deps: —) **A bullet whose marker holds a space is read as prose and reported by nothing** — GitHub's `- [ ]` task list is the commonest Markdown backlog there is, and cursarei's 16 of them parse as 0 entries and 0 rejects — the silent miss the reject list exists to end. → §RK103
