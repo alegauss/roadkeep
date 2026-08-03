@@ -130,6 +130,7 @@
 - ✅ **RK114** **A subsection whose task is gone is exempt from the ownership check that would report it** — A sub-anchor is owned by its first segment, so `§RK34.1` belongs to `RK34` and a subtree a renumber left behind is reported stale or orphaned instead of exempt.
 - ✅ **RK122** **id.two-files calls a correct half-shipped state a contradiction** — A ⏳ line or an entry naming a half is read as a live partial and passes, so the gate stays loud only for the shape it was written for — a line shipped and not deleted.
 - ✅ **RK132** **The README block is read and written back with nothing checking the file did not move** — The bytes read from the README are compared against the file before the rename, so a splice landing on top of somebody else's write is refused at the gate instead of applied.
+- ✅ **RK134** **A section that four open lines point at is reported stale, and the drop it names is refused** — The ownership check reads the same pointer index `section drop` refuses from, so a section open lines still point at is silent and the finding names only remedies the tool allows.
 
 ## Block E — Adoption
 

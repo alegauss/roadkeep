@@ -259,22 +259,6 @@ own construction, the number to report is one build, not fifty-two.
 
 ## Block D — The gate
 
-### §RK134 Two readers of one fact, disagreeing
-
-Reproduced minimally: a heading `### II.1 Shared design (ZZ1)` whose only named id has
-shipped, with two open lines carrying `-> II.1`. `lint` reports `section.stale` - "ZZ1
-is in the changelog and this rationale is still here" - and `section drop II.1` refuses,
-naming ZZ2 and ZZ3 as the lines whose pointers would stop resolving. Both are behaving
-as written: `_unowned` reads the ids in the title (RK61) and `drop` reads the pointer
-index. Shio's `VI.1` is the live case, where SH22 shipped and SH44-SH47 are still open
-against the same design, and the only way out was to retitle the heading by hand so the
-pointers and the title agreed. RK64 already settled this question for `ship`: a section
-another open line points at is kept, and the reason is reported. The gate never learned
-it. A finding whose remedy the tool refuses is worse than no finding - it is the shape
-RK16 splits mechanical from editorial to avoid - so the fix is to give `_unowned` the
-pointer index it already builds, and to say "still pointed at by" rather than "survived
-a hand edit".
-
 ### §RK135 The dead draft no check can see
 
 Shio carried `XV.21` and `XV.22` under the same title - "A raster is still the only

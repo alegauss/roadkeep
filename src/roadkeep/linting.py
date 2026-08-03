@@ -1026,6 +1026,7 @@ def _orphans(
         for entry in document.entries
         if entry.task.ref
     }
+    claimed = _claimed(documents)
     ids = config.schema.id_pattern()
     seen: dict[str, int] = {}
     out: list[Finding] = []
@@ -1050,14 +1051,29 @@ def _orphans(
         # Prose that belongs to no task is nobody's orphan — `§0.1` under the id scheme, and
         # any outline heading that names no id — the same rule `section add` applies (RK9).
         if owners and not any(owner in kept for owner in owners):
-            out.append(
-                _unowned(
-                    section,
-                    file,
-                    shipped=any(owner in gone for owner in owners),
-                    owners=owners,
-                )
+            finding = _unowned(
+                section,
+                file,
+                shipped=any(owner in gone for owner in owners),
+                owners=owners,
+                claimants=tuple(claimed.get(anchor, ())),
             )
+            if finding is not None:
+                out.append(finding)
+    return out
+
+
+def _claimed(documents: dict[str, Document]) -> dict[str, list[str]]:
+    """Which open lines point at which anchor — :func:`~roadkeep.sections.pointers`' index.
+
+    Rebuilt from the documents this run already read rather than from disk, because a
+    baseline run judges a revision and the gate has to ask its questions of that tree.
+    """
+    out: dict[str, list[str]] = {}
+    for role in LIVE_ROLES:
+        for entry in documents[role].entries if role in documents else ():
+            if entry.task.ref:
+                out.setdefault(entry.task.ref, []).append(entry.task.id)
     return out
 
 
@@ -1113,14 +1129,31 @@ def _budget(
 
 
 def _unowned(
-    section: Section, file: str, *, shipped: bool, owners: tuple[str, ...]
-) -> Finding:
+    section: Section,
+    file: str,
+    *,
+    shipped: bool,
+    owners: tuple[str, ...],
+    claimants: tuple[str, ...] = (),
+) -> Finding | None:
     """A section whose task no open line carries — gone, or never there.
 
     `owners` is what the section says it belongs to, which is the anchor under the id scheme
     and the ids in the heading under an outline (RK61). Named in the message, because
     `§XVI.12` alone tells a reader nothing about which task left.
+
+    `claimants` is the other reader of the same fact, and until RK134 the two disagreed:
+    this check decided from the ids in the heading while `section drop` decides from the
+    pointers that resolve, so a section **still pointed at by** four open lines was reported
+    stale and the only remedy the finding named was the one the tool refuses. RK64 already
+    settled it for `ship` — a section another open line points at is kept, and the reason is
+    reported — so the state this reports is the one `ship` itself writes. Shio's `VI.1` is
+    the live case: SH22 shipped, SH44-SH47 are open against the same design, and the only
+    way out was to retitle the heading by hand. A finding whose remedy the tool refuses is
+    worse than no finding, which is the split RK16 exists to keep.
     """
+    if claimants:
+        return None
     named = ", ".join(owners)
     if shipped:
         return Finding(

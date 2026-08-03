@@ -445,6 +445,31 @@ def test_a_shipped_task_named_in_an_outline_heading_is_stale_too(tmp_path):
     assert stale.id == "I.9" and "RK5" in stale.message
 
 
+SHARED = OUTLINE_PROSE + "\n### §I.9 A shared design (RK5)\n\nProse two lines want.\n"
+
+
+def test_a_shared_design_whose_named_task_shipped_is_not_reported(tmp_path):
+    # RK134, reproduced minimally and measured live in Shio's `VI.1`: SH22 shipped and
+    # SH44-SH47 are still open against the same design. `_unowned` read the ids in the
+    # heading and `section drop` reads the pointers, so the gate named a remedy the tool
+    # refuses — and the state it named is the one RK64 makes `ship` write on purpose.
+    both = OUTLINE_CLEAN.replace("→ §I.1", "→ §I.9").replace("→ §I.2", "→ §I.9")
+    report = lint(outline(tmp_path, improvements=SHARED))
+    (tmp_path / "ROADMAP.md").write_text(both, encoding="utf-8")
+    assert "section.stale" in codes(report)  # nothing points at it yet
+    assert "section.stale" not in codes(lint(Config.discover(tmp_path)))
+
+
+def test_the_pointer_and_not_the_heading_is_what_buys_the_silence(tmp_path):
+    # The falsifying half: one open line moved off the shared design is still enough, and
+    # moving both back leaves the heading saying exactly what it said before.
+    one = OUTLINE_CLEAN.replace("→ §I.1", "→ §I.9")
+    report = lint(outline(tmp_path, improvements=SHARED))
+    (tmp_path / "ROADMAP.md").write_text(one, encoding="utf-8")
+    assert "section.stale" in codes(report)
+    assert "section.stale" not in codes(lint(Config.discover(tmp_path)))
+
+
 def test_an_outline_heading_naming_no_live_task_is_an_orphan(tmp_path):
     orphaned = OUTLINE_PROSE + "\n### §I.9 A design for nothing (RK7)\n\nProse.\n"
     report = lint(outline(tmp_path, improvements=orphaned))
