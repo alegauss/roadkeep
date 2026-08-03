@@ -116,7 +116,7 @@ from roadkeep.ids import next_id
 from roadkeep.markers import refresh
 from roadkeep.renumbering import NotAnId, SameId, family_of
 from roadkeep.schema import PARTIAL, Task
-from roadkeep.sections import NoSuchSection, Section, nested, pointers
+from roadkeep.sections import NoSuchSection, Section, citing, nested, pointers
 from roadkeep.sections import drop as drop_section
 
 __all__ = [
@@ -545,6 +545,9 @@ class Departure:
     #: drop is a subtree, and a transaction that says "one section" about five is one whose
     #: size the author only learns from the diff.
     nested: tuple[str, ...] = ()
+    #: Sections whose prose cited what this drop deleted (RK206). Named and never refused:
+    #: the ship is right and the citing prose is the author's next edit, in this commit.
+    cited: tuple[str, ...] = ()
     #: Open lines whose `(deps: …)` this write made true again (RK8).
     refreshed: tuple[str, ...] = ()
     #: The marker the ledger line carries: ✅ shipped, 🗑 retired.
@@ -657,6 +660,8 @@ class Closure:
     kept: str | None = None
     #: The anchors nested under the one dropped, as :class:`Departure` reports them (RK78).
     nested: tuple[str, ...] = ()
+    #: Sections left citing what the drop deleted, as :class:`Departure` reports them (RK206).
+    cited: tuple[str, ...] = ()
     refreshed: tuple[str, ...] = ()
     dependents: tuple[str, ...] = ()
 
@@ -1302,7 +1307,7 @@ def _depart(
     else:
         insertion = place(ledger, recorded)
     remaining = remove_entry(roadmap, entry)
-    improvements, dropped, kept, taken = _drop_section(
+    improvements, dropped, kept, taken, cited = _drop_section(
         config, entry.task.ref, leaving=task_id
     )
     # Resolved against the state this write *creates* — the id is in the ledger and gone
@@ -1321,6 +1326,7 @@ def _depart(
         dropped=dropped,
         kept=kept,
         nested=taken,
+        cited=cited,
         refreshed=derived.changed,
         marker=marker,
         dependents=tuple(
@@ -1398,7 +1404,7 @@ def _close(config: Config, task_id: str, recorded: Entry) -> Closure:
     roadmap = config.document("roadmap")
     entry = roadmap.by_id()[task_id]
     remaining = remove_entry(roadmap, entry)
-    improvements, dropped, kept, taken = _drop_section(
+    improvements, dropped, kept, taken, cited = _drop_section(
         config, entry.task.ref, leaving=task_id
     )
     derived = refresh(
@@ -1413,6 +1419,7 @@ def _close(config: Config, task_id: str, recorded: Entry) -> Closure:
         dropped=dropped,
         kept=kept,
         nested=taken,
+        cited=cited,
         refreshed=derived.changed,
         dependents=tuple(
             e.task.id for e in derived.document.entries if task_id in e.task.dep_ids
@@ -1440,9 +1447,30 @@ def _as_recorded(task: Task, marker: str, why: str | None) -> Task:
     )
 
 
+def _cited_by(document: Document, anchors: Sequence[str]) -> tuple[str, ...]:
+    """Sections whose prose cites what this drop is deleting, reported not refused (RK206).
+
+    The gate reads a pointer from one end: `ref.unresolved` resolves the ref a task line
+    carries and `section.orphan` reads what points at a section, so a design citing another
+    design is read by neither — and `ship`, the verb that deletes the section, is what
+    creates the dangling reference. Measured on claude-tray, where `lint` called that clean
+    for a day; and there are 56 live cross-references across this repository, claude-tray,
+    Shio and Turing for it to happen to again.
+
+    **Named, never refused**, and never a `lint` finding either — which the same measurement
+    decides. The ship is correct: the design shipped, and its section is *supposed* to go.
+    The citing prose is the edit, and this is the one moment the author is holding both. A
+    gate could not say it afterwards even if it wanted to: `as_ledger` keeps no pointer, so
+    once the line is in the changelog nothing records which anchor its rationale had, and a
+    citation of a section that shipped is indistinguishable from a citation of one that
+    never existed — 37 of them across the four trees, in files whose prose is correct.
+    """
+    return tuple(dict.fromkeys(by for _, by in citing(document, anchors, ignore=anchors)))
+
+
 def _drop_section(
     config: Config, anchor: str | None, *, leaving: str = ""
-) -> tuple[Document | None, Section | None, str | None, tuple[str, ...]]:
+) -> tuple[Document | None, Section | None, str | None, tuple[str, ...], tuple[str, ...]]:
     """Delete the rationale section the departing line pointed at, if it is only that line's.
 
     Absence is reported, never refused: a task can ship without a section, and a command
@@ -1462,12 +1490,12 @@ def _drop_section(
     same defect stayed invisible for 160 lines.
     """
     if anchor is None:
-        return None, None, "the line carried no pointer", ()
+        return None, None, "the line carried no pointer", (), ()
     if not config.has("improvements"):
-        return None, None, "this project declares no improvements file", ()
+        return None, None, "this project declares no improvements file", (), ()
     others = _others_pointing(config, anchor, leaving)
     if others:
-        return None, None, f"§{anchor} is also pointed at by {', '.join(others)}", ()
+        return None, None, f"§{anchor} is also pointed at by {', '.join(others)}", (), ()
     # The grammar of a section lives in one place (RK9), so shipping calls it rather than
     # keeping a second opinion about where a section ends.
     improvements = config.document("improvements")
@@ -1485,7 +1513,10 @@ def _drop_section(
             None,
             f"no §{anchor} section in {config.relative(config.path('improvements'))}",
             (),
+            (),
         )
-    return document, section, None, taken
+    # Asked of the file *before* the drop, which is the only tree that still holds both the
+    # section and the prose about to be left pointing at nothing.
+    return document, section, None, taken, _cited_by(improvements, (anchor, *taken))
 
 

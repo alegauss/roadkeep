@@ -218,30 +218,6 @@ and may not need a second.
 
 ## Block D — The gate
 
-### §RK206 The pointer read from one end only
-
-`_pointers` resolves `entry.task.ref` — the pointer a *task line* carries — and nothing
-resolves the pointers a *section* carries. §RK15's own reasoning is why: a scan over raw
-text reports its quoted examples as designs, so the reader was narrowed to the parsed
-field. That narrowing left every cross-reference written inside prose unread.
-
-Measured on claude-tray: `IMPROVEMENTS §XVIII.9` cited `§XVIII.12`, `ship` deleted
-§XVIII.12 with the line that owned it, and `lint` answered `223 line(s), 37 section(s),
-1 budget(s), clean` — exit 0, for a day. No existing finding can fire: `ref.unresolved`
-reads task lines, `section.orphan` reads what points at a section, and the citing prose
-is neither.
-
-What makes it the gate's defect and not an editorial one is `ship`. It deletes the
-section its departing line points at without asking who else points there, so the verb
-that owns the write is the one creating the dangling reference — and the backstop that
-exists for what bypassed `add` calls the result clean.
-
-The design question is RK15's quotation problem, now unavoidable: a section body is
-prose, and prose about pointers holds pointer-shaped text. Whether an anchor inside a
-code span, a blockquote or a `→` arrow counts is what has to be decided and counted
-across the three corpora before a finding is added — a false positive here fails a file
-whose prose is correct, which is the failure mode a gate cannot afford.
-
 ## Block E — Adoption
 
 ### §RK103 The marker slot that holds two tokens

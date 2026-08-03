@@ -37,8 +37,6 @@
 
 ## Block D — The gate
 
-- 💭 **RK206** (deps: —) **A section other prose cites is deleted by ship, and the gate reads only the pointer a task line carries** — `_pointers` resolves the ref a task line carries and nothing reads a section's own, so claude-tray cited a §XVIII.12 that ship deleted and the gate answered clean for a day. → §RK206
-
 ## Block E — Adoption
 
 - 📋 **RK103** (deps: —) **A bullet whose marker holds a space is read as prose and reported by nothing** — GitHub's `- [ ]` task list is the commonest Markdown backlog there is, and cursarei's 16 of them parse as 0 entries and 0 rejects — the silent miss the reject list exists to end. → §RK103

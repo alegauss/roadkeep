@@ -34,7 +34,9 @@ the same transaction — the prose on stdin or `--section-body`, both files vali
 either is written — and an `add` without it answers with the `section add` that closes the
 pointer it just created, rather than leaving the gate to say so. **`ship <id> --why "<what now works>"` makes
 its three edits** (ledger entry, roadmap line gone, `§<id>` deleted) plus the dependents'
-annotations, or none — and `--why` is **required**, because the roadmap's sentence states a
+annotations, or none. It **names any section whose prose cited what it deleted**: the ship is
+right and that citation is your next edit, in *this* commit, because a shipped entry keeps no
+pointer and from the next command on the reference reads exactly like a typo. And `--why` is **required**, because the roadmap's sentence states a
 problem and the ledger's states an outcome, so inheriting it files a defect report under a
 heading meaning "done" (`record amend <id> --why` is the repair where one already did), and `retire <id> [--superseded-by <id>] --reason "…"` is the same
 transaction, two more doors. **The `symptom` is not one of `amend`'s fields** — it is the

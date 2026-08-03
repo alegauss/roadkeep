@@ -50,6 +50,7 @@ from roadkeep.sections import (
     add,
     amend,
     anchored,
+    citing,
     drop,
     find,
     nested,
@@ -1291,3 +1292,129 @@ def test_the_line_that_is_leaving_does_not_claim_its_own_subtree(tmp_path):
     )
     document.save()
     assert section.anchor == "XIV" and read(config) == "# Turing — Design rationale\n"
+
+
+# -- the pointer read from the other end (RK206) ------------------------------
+
+
+CITING = """# Improvements
+
+## Block A — The model
+
+### §RK1 A first design
+
+The reasoning the line has no room for.
+
+#### §RK1.1 A subsection
+
+Which belongs to the section above.
+
+### §RK3 A third design
+
+This extends §RK1, and the argument in §RK1.1 is why.
+
+## Block B — Authoring
+
+### §RK2 A second design
+
+`§RK1` is what this quotes, and → §RK1 is how the line spells it.
+
+> Somebody else's mail said §RK1 was wrong.
+
+```
+a fence naming §RK1
+```
+"""
+
+
+def shippable(tmp_path: Path, improvements: str) -> Config:
+    """The same project with a ledger, so a departure has somewhere to file its entry."""
+    project(
+        tmp_path,
+        improvements=improvements,
+        extra='changelog = "docs/CHANGELOG.md"\n',
+    )
+    ledger = "# Shipped\n\n## Block A — The model\n\n## Block B — Authoring\n"
+    with (tmp_path / "docs" / "CHANGELOG.md").open(
+        "w", encoding="utf-8", newline=""
+    ) as handle:
+        handle.write(ledger)
+    return Config.discover(tmp_path)
+
+
+def test_the_sections_citing_a_dropped_anchor_are_named(tmp_path, capsys):
+    """The other end of the pointer, and the one nothing read (RK206).
+
+    `ref.unresolved` resolves the ref a task line carries, `section.orphan` reads what
+    points at a section, and a design citing another design is neither — so `ship` deleted
+    §XVIII.12 out of claude-tray and `lint` answered `clean` for a day.
+    """
+    shippable(tmp_path, CITING)
+    assert main(["-C", str(tmp_path), "ship", "RK1", "--why", "It works now."]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "cited    §RK3 cites it in prose — now resolving to nothing" in out
+    # The subtree went too, so a citation of §RK1.1 is the same dangling reference.
+    assert "nested   §RK1.1 went with it" in out
+
+
+def test_a_quotation_is_not_a_citation(tmp_path, capsys):
+    """The three exclusions, each measured rather than guessed.
+
+    §RK2 names §RK1 four times — in a code span, after a `→` that reproduces a task line,
+    inside a blockquote and inside a fence — and none of them is a reference this drop
+    breaks. A false positive here fails a file whose prose is correct, which is the one
+    thing a gate over prose cannot afford; the same reasoning §RK15 made about scanning a
+    raw task line, one file down.
+    """
+    shippable(tmp_path, CITING)
+    assert main(["-C", str(tmp_path), "ship", "RK1", "--why", "It works now."]) == EXIT_OK
+    cited = [line for line in capsys.readouterr().out.splitlines() if "cited" in line]
+    assert cited and "RK2" not in cited[0]
+
+
+def test_a_ship_with_nobody_citing_it_says_nothing(tmp_path, capsys):
+    """Silence is the common case, so it has to stay silent: a line per ship about nobody
+    is the noise that makes the line about somebody unread."""
+    shippable(tmp_path, RATIONALE)
+    assert main(["-C", str(tmp_path), "ship", "RK1", "--why", "It works now."]) == EXIT_OK
+    assert "cited" not in capsys.readouterr().out
+
+
+def test_the_citation_is_reported_and_never_refused(tmp_path):
+    """The ship is correct — the design shipped and its section is supposed to go — so the
+    citing prose is the author's next edit and not a reason to refuse a right transaction.
+    `section drop`'s refusals (RK78, RK112) are the other case: there an *open line* points
+    at the anchor, which is a pointer the format promises resolves."""
+    config = shippable(tmp_path, CITING)
+    assert main(["-C", str(tmp_path), "ship", "RK1", "--why", "It works now."]) == EXIT_OK
+    assert find(config.document("improvements"), "RK1") is None
+    assert "RK1" in config.document("changelog").by_id()
+
+
+def test_the_json_carries_the_same_list(tmp_path, capsys):
+    shippable(tmp_path, CITING)
+    main(["-C", str(tmp_path), "ship", "RK1", "--why", "It works now.", "--json"])
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["improvements"]["cited"] == ["RK3"]
+
+
+@pytest.mark.parametrize("corpus", corpora.BOTH, ids=lambda c: c.name)
+def test_a_live_corpus_carries_cross_references_a_ship_would_break(corpus):
+    """The exposure, counted at the pin: this is not a defect one project happened to hit.
+
+    Read over every declared anchor at once, so the number is "how many citations exist"
+    rather than "how many a particular ship breaks" — which is what makes it a floor. It
+    also fixes the shape of the answer: these resolve today, so nothing here is a finding
+    and none of these files is failing anything.
+    """
+    corpora.require(corpus)
+    settings = corpora.config(corpus)
+    found = []
+    for role in ("improvements", "strategy"):
+        if not corpora.has(corpus, role):
+            continue
+        document = settings.document(role)
+        found += list(citing(document, [s.anchor for s in anchored(document)]))
+    assert found
+    for cited, by in found:
+        assert cited and by and cited != by or cited == by

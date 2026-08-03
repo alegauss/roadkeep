@@ -270,6 +270,82 @@ def find(document: Document, anchor: str) -> Section | None:
     )
 
 
+def citing(
+    document: Document, anchors: Sequence[str], *, ignore: Sequence[str] = ()
+) -> tuple[tuple[str, str], ...]:
+    """Which sections' prose cites which of ``anchors`` — the other end of a pointer (RK206).
+
+    `_pointers` resolves the ref a *task line* carries, and nothing resolves the references
+    a section's prose makes, so `ship` deletes a design that another design cites and every
+    check answers clean: `ref.unresolved` reads task lines, `section.orphan` reads what
+    points at a section, and citing prose is neither. Measured on claude-tray: `§XVIII.9`
+    cited `§XVIII.12`, `ship` took §XVIII.12 with the line that owned it, and `lint`
+    reported `clean` for a day.
+
+    **Membership and not shape.** The caller names the anchors that are going away, so an
+    anchor-shaped token is interesting only when it is one of them — which removes RK15's
+    quotation problem from the pattern entirely: `§RK15` in a sentence about pointers is
+    text nobody is deleting. What is left of that problem is prose that quotes a reference
+    to a section this very transaction removes, and three exclusions answer it, each
+    measured across four trees rather than guessed:
+
+    * a **fenced block** is quoted or generated (the reading :data:`_FENCES` already makes);
+    * an **inline code span**, which is how this repository writes a pointer it is talking
+      about — 3 of them in `docs/IMPROVEMENTS.md`;
+    * a **blockquote**, which is 18 of Shio's anchor-shaped tokens and 19 of Turing's, all
+      of them quoted material;
+    * a token directly after a **`→`**, which is a task line reproduced as an example — 3 in
+      claude-tray, and the shape `Schema.render` writes.
+
+    ``ignore`` is what the transaction is deleting: a section citing its own subtree, or a
+    sibling going in the same drop, is prose that leaves with the reference.
+    """
+    wanted = {anchor for anchor in anchors if anchor}
+    if not wanted:
+        return ()
+    skipped = set(ignore)
+    pattern = re.compile(
+        r"§(" + "|".join(sorted(map(re.escape, wanted), key=len, reverse=True)) + r")(?![\w.])"
+    )
+    out: list[tuple[str, str]] = []
+    for section in anchored(document):
+        if section.anchor in skipped:
+            continue
+        for found in dict.fromkeys(pattern.findall(_argument(section.body))):
+            out.append((found, section.anchor))
+    return tuple(out)
+
+
+def _argument(body: str) -> str:
+    """A section's prose with every quotation blanked out, so a reference in one is not one.
+
+    Blanked rather than dropped: the lines keep their positions, which is what lets a caller
+    report a place without the two readings of the file disagreeing about which line it is.
+    """
+    out: list[str] = []
+    fence: str | None = None
+    for line in body.splitlines():
+        stripped = line.strip()
+        if fence is not None:
+            if stripped.startswith(fence):
+                fence = None
+            out.append("")
+            continue
+        if stripped.startswith(_FENCES):
+            fence = stripped[:3]
+            out.append("")
+            continue
+        if stripped.startswith(">"):
+            out.append("")
+            continue
+        out.append(_QUOTED.sub(lambda m: " " * len(m.group()), line))
+    return "\n".join(out)
+
+
+#: What is being talked about rather than said: a code span, and a pointer reproduced whole.
+_QUOTED = re.compile(r"`[^`]*`|→\s*§[\w.]+")
+
+
 def anchored(document: Document) -> tuple[Section, ...]:
     """Every `§<anchor>` section in file order, each carrying only its **own** prose.
 

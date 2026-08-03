@@ -2152,6 +2152,7 @@ def _ship(config: Config, args: argparse.Namespace) -> int:
                             "last": shipment.dropped.last,
                         },
                         "nested": list(shipment.nested),
+                        "cited": list(shipment.cited),
                         "kept": shipment.kept,
                     },
                     "refreshed": list(shipment.refreshed),
@@ -2173,12 +2174,30 @@ def _ship(config: Config, args: argparse.Namespace) -> int:
             print(
                 f"  nested   {', '.join(f'§{a}' for a in shipment.nested)} went with it"
             )
+        _print_cited(shipment.cited)
     else:
         print(f"  kept     nothing dropped: {shipment.kept}")
     if shipment.refreshed:
         print(f"  derived  {', '.join(shipment.refreshed)} (dep annotations re-derived)")
     _print_event(event, "  ")
     return EXIT_OK
+
+
+def _print_cited(cited: Sequence[str]) -> None:
+    """Who is left pointing at prose this command deleted (RK206).
+
+    Said here and gated nowhere, because this is the only moment it can be said: `ship`
+    creates the dangling citation, `as_ledger` keeps no pointer, and from the next command
+    on a reference to a section that shipped reads exactly like a typo. The ship is right —
+    what the author owes is one edit in the same commit, and this is the sentence that asks
+    for it.
+    """
+    if not cited:
+        return
+    print(
+        f"  cited    {', '.join(f'§{a}' for a in cited)} "
+        f"{'cites' if len(cited) == 1 else 'cite'} it in prose — now resolving to nothing"
+    )
 
 
 def _partly(config: Config, partial: Partial, args: argparse.Namespace) -> int:
@@ -2249,6 +2268,7 @@ def _closed(config: Config, closure: Closure, args: argparse.Namespace) -> int:
                         if closure.dropped is None
                         else {"anchor": closure.dropped.anchor, "title": closure.dropped.title},
                         "nested": list(closure.nested),
+                        "cited": list(closure.cited),
                         "kept": closure.kept,
                     },
                     "refreshed": list(closure.refreshed),
@@ -2271,6 +2291,7 @@ def _closed(config: Config, closure: Closure, args: argparse.Namespace) -> int:
         )
         if closure.nested:
             print(f"  nested   {', '.join(f'§{a}' for a in closure.nested)} went with it")
+        _print_cited(closure.cited)
     if closure.refreshed:
         print(f"  derived  {', '.join(closure.refreshed)} (dep annotations re-derived)")
     _print_event(event, "  ")
