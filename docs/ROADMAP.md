@@ -34,6 +34,8 @@
 
 ## Block C — Query (consult without reading the file)
 
+- 📋 **RK162** (deps: —) **A shipped line leaves an entry in the registry that nothing will ever read again** — `defer` releases its claim and the terminal doors do not, so an id that left for good sits in the listing until some later claim prunes it — on top of the one row somebody is looking for. → §RK162
+
 ## Block D — The gate
 
 - 📋 **RK104** (deps: —) **Nothing gates the README block this tool writes, so a stale restatement passes lint** — `export --readme` is the one write no gate holds: a pytest fixture catches it here and an adopting project has none, so the derived table drifts from the files it was derived from. → §RK104

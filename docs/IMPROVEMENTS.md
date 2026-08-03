@@ -202,6 +202,28 @@ stop guessing at — and the roadmap needs none of it, `add` refusing a line tha
 
 ## Block C — Query
 
+### §RK162 The entry a terminal door leaves
+
+RK156 made `defer` release, because the marker a claim is read against goes to the store
+with the line. `ship` and `retire` take the line out of the roadmap for good and release
+nothing, on the argument that the entry is inert: an id is never reused, so nothing will
+ever read it and the next claim prunes it.
+
+Inert stopped being harmless when RK161 gave the registry a listing. This was found by
+the first `claims` run after shipping RK161 itself, whose only row was the entry that
+ship had left — `stale`, permanent until some later claim writes the file. The listing
+exists to surface the one entry somebody is hunting, and a row that can never mean
+anything is the noise it has to be read through.
+
+The fix is `follow` on the way out, with the marker each door writes: ✅ and 🗑 are not
+the in-progress one, so the existing rule already says *release* and the change is one
+call at each of two `save` methods. Nothing new is decided.
+
+Worth deciding while there whether `record`'s pruning should stay. It keeps only ids the
+roadmap still carries at 🛠, which was the whole cleanup before any door released
+explicitly; with every door releasing, it becomes a second mechanism doing the same work
+— and the argument against two of those is RK159's.
+
 ## Block D — The gate
 
 ### §RK104 The block the gate does not read
