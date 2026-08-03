@@ -91,6 +91,17 @@ class Tool:
     #: writes when `--fix` is passed, and is only read-only here because that flag is not
     #: exposed above.
     writes: bool = False
+    #: Arguments this tool always passes, by dest — never exposed, so a caller cannot unset
+    #: one. This is how a **flag becomes a tool** (RK150): `readOnlyHint` is one boolean per
+    #: tool and `brief --claim` writes while `brief` does not, so the two are two tools over
+    #: one command, and the query keeps the hint that makes it free to ask (L5). By dest and
+    #: not as literal argv, so the flag is resolved through the same parser every exposed
+    #: argument is and a rename cannot leave a tool passing something that is gone.
+    always: tuple[str, ...] = ()
+    #: The protocol name where it is not the command path. Needed only where :attr:`always`
+    #: has put two tools on one command, and it names the **act** rather than the command,
+    #: because two names for one path is what a client would otherwise have to tell apart.
+    named: str = ""
 
     @property
     def name(self) -> str:
@@ -101,7 +112,7 @@ class Tool:
         same way (RK70): `non-goal add` is one command spelled in two conventions, and the
         name a client renders should not be where that shows.
         """
-        return self.command.replace(" ", "_").replace("-", "_")
+        return self.named or self.command.replace(" ", "_").replace("-", "_")
 
     @property
     def argv_head(self) -> list[str]:
@@ -127,6 +138,17 @@ TOOLS: tuple[Tool, ...] = (
     # block, the guard denies the edit that would declare it, and no other verb writes a
     # heading — so a correctly wired project could not open a block at all.
     Tool("block add", ("label", "title"), writes=True),
+    # The write a session makes first, and the one flag that became a tool (RK149, RK150): it
+    # is `brief --claim`, so the answer is everything needed to start the task *and* the
+    # marker that stops the next agent being handed it — while `brief` and `pick` below stay
+    # honestly read-only, which is what keeps consulting the backlog free.
+    Tool(
+        "brief",
+        ("id", "block", "designed"),
+        writes=True,
+        always=("claim",),
+        named="claim",
+    ),
     Tool("status", ("id", "marker"), writes=True),
     Tool("amend", ("id", "why", "deps", "ref"), writes=True),
     # The repair a merge needs, exposed for the reason it exists at all (RK97): the agent
@@ -166,14 +188,8 @@ TOOLS: tuple[Tool, ...] = (
     # `designed` is exposed on both for the reason it exists (RK83): the caller that asks
     # to execute a block over MCP is the one that was handed a design session, and a flag
     # only the CLI can reach is a flag the agent this ships for cannot pass.
-    # `claim` rides with `brief` for the reason RK149 exists: this is the call a session starts
-    # a task with, so a claim it cannot take is a claim the second agent never takes.
-    Tool("brief", ("id", "block", "designed", "claim"), writes=True),
-    # `claim` is exposed, and it is why this tool is not read-only (RK119): the defect is two
-    # agents in one checkout, the agent boundary is this server, and a claim only the CLI can
-    # take is a claim the caller this ships for cannot take. The cost is the honest one — a
-    # client may ask before a `pick`, because with that flag a `pick` writes.
-    Tool("pick", ("block", "designed", "claim"), writes=True),
+    Tool("brief", ("id", "block", "designed")),
+    Tool("pick", ("block", "designed")),
     Tool("list", ("block", "role", "marker")),
     Tool("deps", ("id",)),
     # `baseline` and nothing else (RK84): it is the flag that makes the answer readable on a
@@ -256,6 +272,22 @@ def _required(action: argparse.Action) -> bool:
     return bool(action.required) or (not action.option_strings and action.nargs != "?")
 
 
+def _description(tool: Tool, parser: argparse.ArgumentParser) -> str:
+    """The subcommand's own description, plus what an always-passed flag adds to it (RK150).
+
+    Derived and never written here: the flag's help is the sentence the CLI prints for it, so
+    two tools over one command cannot come to describe that difference in two ways — and a
+    tool whose whole point is a flag it never mentioned would be a tool a client mistakes for
+    the read it was split off from.
+    """
+    described = (parser.description or "").strip()
+    for dest in tool.always:
+        action = _action(parser, dest)
+        flag, help_ = action.option_strings[0], (action.help or "").strip()
+        described = f"{described} This tool always passes {flag}, which is to {help_}."
+    return described
+
+
 def descriptor(tool: Tool, config: Config) -> dict[str, Any]:
     parser = _subparser(tool.command)
     # Which table holds this tool's numbers: the non-goals are governed by `[non_goals]` and
@@ -270,7 +302,7 @@ def descriptor(tool: Tool, config: Config) -> dict[str, Any]:
             required.append(dest)
     payload: dict[str, Any] = {
         "name": tool.name,
-        "description": (parser.description or "").strip(),
+        "description": _description(tool, parser),
         "inputSchema": {
             "type": "object",
             "properties": properties,
@@ -320,9 +352,12 @@ def argv(tool: Tool, arguments: Mapping[str, Any]) -> list[str]:
         action = _action(parser, dest)
         fragment = _rendered(action, dest, arguments[dest])
         (optional if action.option_strings else positional).extend(fragment)
+    # What makes this tool the act it is named for (RK150), resolved through the parser like
+    # every exposed argument: a client cannot pass these and cannot unset them.
+    always = [_action(parser, dest).option_strings[0] for dest in tool.always]
     # `--json` is never exposed and always passed: the provenance is the difference between
     # an answer an agent can audit and one it re-reads the file to check (L5).
-    return [*tool.argv_head, *positional, *optional, "--json"]
+    return [*tool.argv_head, *positional, *optional, *always, "--json"]
 
 
 def _rendered(action: argparse.Action, dest: str, value: Any) -> list[str]:

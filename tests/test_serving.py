@@ -31,6 +31,7 @@ from pathlib import Path
 
 import pytest
 
+from roadkeep import claiming
 from roadkeep.cli import build_parser
 from roadkeep.config import Config
 from roadkeep.serving import (
@@ -41,6 +42,7 @@ from roadkeep.serving import (
     TOOLS,
     Tool,
     ToolError,
+    _action,
     _subparser,
     argv,
     descriptor,
@@ -131,6 +133,9 @@ def test_the_tools_are_what_a_task_needs_end_to_end():
     assert [tool.name for tool in TOOLS] == [
         "add",
         "block_add",
+        # `brief --claim` under the name of the act (RK149, RK150): the write a session makes
+        # first, split off so the two reads below keep the hint that makes them free to ask.
+        "claim",
         "status",
         "amend",
         # The door a merge that spent one id twice needs (RK97) — beside `amend`, whose
@@ -225,7 +230,18 @@ def test_a_description_is_the_subcommands_own():
     for tool in TOOLS:
         described = _subparser(tool.command).description
         assert described
-        assert descriptor(tool, Config.default())["description"] == described.strip()
+        assert descriptor(tool, Config.default())["description"].startswith(described.strip())
+
+
+def test_a_flag_that_became_a_tool_describes_itself_out_of_its_own_help():
+    # RK150: `claim` is `brief --claim`, and what it adds over `brief` is the flag's own help
+    # — quoted rather than restated, so two tools over one command cannot describe the
+    # difference in two ways, and neither can go stale when the help is reworded.
+    tool = tool_named("claim")
+    described = descriptor(tool, Config.default())["description"]
+    assert described.startswith(_subparser("brief").description.strip())
+    assert "always passes --claim" in described
+    assert _action(_subparser("brief"), "claim").help in described
 
 
 def test_a_write_that_needs_prose_takes_it_as_a_bounded_string(tmp_path):
@@ -252,6 +268,49 @@ def test_the_derived_fields_are_not_offered(tmp_path):
         "section",
         "section_body",
     }
+
+
+def test_a_flag_that_became_a_tool_is_always_passed_and_never_settable(tmp_path):
+    # RK150's mechanism: the act is the name, the flag is not an argument, and the argv is
+    # still the CLI's own — so nothing is reachable here that a terminal cannot run.
+    tool = tool_named("claim")
+    assert argv(tool, {}) == ["brief", "--claim", "--json"]
+    assert argv(tool, {"id": "RK1"}) == ["brief", "RK1", "--claim", "--json"]
+    # Unsettable in both directions: a caller cannot ask a claiming tool not to claim.
+    with pytest.raises(ToolError) as caught:
+        argv(tool, {"claim": False})
+    assert "no such argument claim" in str(caught.value)
+    assert "claim" not in listed(project(tmp_path))["claim"]["inputSchema"]["properties"]
+
+
+def test_the_two_reads_a_claim_was_split_off_from_stay_free_to_ask(tmp_path):
+    # The cost RK150 records: `readOnlyHint` is one boolean per tool, so a `pick` that could
+    # write is a `pick` a client may prompt for — and consulting the backlog is meant to be
+    # the thing that costs nothing (L5).
+    hints = listed(project(tmp_path))
+    assert hints["pick"]["annotations"]["readOnlyHint"] is True
+    assert hints["brief"]["annotations"]["readOnlyHint"] is True
+    assert hints["claim"]["annotations"]["readOnlyHint"] is False
+    for name in ("pick", "brief"):
+        assert "claim" not in hints[name]["inputSchema"]["properties"]
+
+
+def test_claiming_over_the_protocol_moves_the_marker(tmp_path):
+    project(tmp_path)
+    answer = called(tmp_path, "claim")
+    assert not answer["isError"]
+    assert json.loads(text_of(answer))["claimed"]["to"] == "🛠"
+    # And the read that was split off from it still answers, now about a different line.
+    assert json.loads(text_of(called(tmp_path, "pick")))["held"][0]["id"] == "RK1"
+    claiming.path(tmp_path).unlink(missing_ok=True)  # it lives outside the checkout
+
+
+def test_the_guard_never_names_the_claiming_tool_for_a_plain_read(tmp_path):
+    # `_tool_for` matches by argv head and two tools now share one (RK150): a suggestion to
+    # run `brief` must not be answered with the tool that also takes the line.
+    from roadkeep.guarding import _tool_for
+
+    assert _tool_for("brief RK1") == "brief"
 
 
 def test_the_pick_can_be_narrowed_to_written_designs_over_the_protocol(tmp_path):
@@ -298,11 +357,10 @@ def test_the_read_only_hint_says_which_tools_write(tmp_path):
         "section_add",
         "section_amend",
         "section_drop",
-        # The two reads here that can write (RK119, RK149): `--claim` moves a marker, so the
-        # hint says so — `lint` stays read-only for the opposite reason, its writing flag
-        # being the one deliberately left unexposed.
-        "pick",
-        "brief",
+        # `brief --claim` moves a marker, so the tool that always passes it says so — and
+        # `brief` and `pick` stay read-only *because* it is a separate tool (RK150), which is
+        # the same reason `lint` is read-only: the writing flag is not reachable from it.
+        "claim",
     }
     # `lint` is read-only *because* `--fix` is not exposed, and `--baseline` (RK84) is the
     # one argument it takes: a revision to subtract, which reads history and writes none.

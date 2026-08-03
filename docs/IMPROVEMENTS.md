@@ -180,29 +180,6 @@ would make `--after` a per-file argument or a refusal when the files disagree.
 
 ## Block C — Query
 
-### §RK150 One hint, two commands
-
-The annotation is per tool and the behaviour is per call. `lint` avoided this by not
-exposing `--fix`, which was right for a repair belonging where a human is standing;
-RK119 could not, the whole subject being the agent boundary — so `pick` is declared a
-write, and a client using the hint to decide whether to prompt now prompts for every
-plain pick as well.
-
-That is the query surface paying for the write. L5's claim is that consulting the
-backlog costs nothing, and a confirmation dialog is a cost of exactly the kind it rules
-out.
-
-Three shapes are worth comparing. A second tool name — `claim`, dispatching `pick
---claim` — restores the hint on both and adds a name the CLI does not have, which is a
-surface that can drift. A per-call hint is not in the protocol. Declaring the hint from
-the *arguments* the client sent is possible here, since the server builds the argv, but
-`tools/list` is answered before any call, so the honest reading is that the list cannot
-know.
-
-Whichever is chosen, the thing to hold on to is that the hint is advice about asking,
-and being wrong in the safe direction costs a prompt while being wrong the other way
-lets a marker move unannounced.
-
 ### §RK151 The one number in this that is a judgement
 
 RK119 argued the window is a property of the mechanism rather than of the format: it

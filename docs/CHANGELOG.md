@@ -85,6 +85,7 @@
 - ✅ **RK94** **weight gives one commit's whole size to every task it shipped, so a bulk import pins the percentiles to itself** — an entry whose commit wrote several is named under batched and left out of the percentiles, so a squashed import no longer pins the median that judges granularity to itself.
 - ✅ **RK119** **Every agent asking what to work on is handed the same line, including one another agent already started** — `pick --claim` answers and flips the marker in one locked transaction, a claim expires and is stepped over rather than waited on, and the ids it held are named in every answer.
 - ✅ **RK149** **The door the skill sends an agent through to start work cannot take the line it hands over** — `brief --claim` takes the line it describes inside one lock, and `brief <id> --claim` takes a named one — refused, not re-dated, where another worker already holds it.
+- ✅ **RK150** **The query an agent runs most may now ask permission, for a flag it did not pass** — The claiming flag is its own tool, `claim`, whose argv and description are still `brief --claim`'s own — so `brief` and `pick` carry `readOnlyHint` again and a client has nothing to ask about.
 
 ## Block D — The gate
 

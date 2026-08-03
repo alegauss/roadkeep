@@ -33,7 +33,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK150** (deps: —) **The query an agent runs most may now ask permission, for a flag it did not pass** — `readOnlyHint` is one boolean per tool and `pick` carries `--claim`, so the reads that answer without writing are annotated as writes and a client that asks before those prices L5's free query. → §RK150
 - 💭 **RK151** (deps: —) **Every project's claims expire after the same hour, and how long a task takes is not the same everywhere** — The window is a constant beside the lock's, so a backlog whose tasks run a day hands a line out mid-work, and one whose tasks run minutes waits an hour on a claim nobody holds. → §RK151
 - 📋 **RK152** (deps: —) **A started task that is blocked is reported to every caller with nothing saying somebody holds it** — Claims are read over the ready lines, so the stalled report — the one place a blocked in-progress line is named — says only that a dep is missing, never that a worker is on it. → §RK152
 

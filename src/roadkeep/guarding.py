@@ -151,7 +151,9 @@ def _tool_for(command: str) -> str | None:
     words = command.split()
     for length in (2, 1):
         for tool in TOOLS:
-            if tool.argv_head == words[:length]:
+            # A tool that always passes a flag serves a *narrower* command than the one asked
+            # about (RK150), so `claim` is not the answer to "which tool runs `brief`".
+            if not tool.always and tool.argv_head == words[:length]:
                 return tool.name
     return None
 

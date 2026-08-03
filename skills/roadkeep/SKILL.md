@@ -14,7 +14,7 @@ not on PATH.
 ## Writing and shipping
 
 When the `mcp__roadkeep__*` tools are available, **prefer them**: the whole write path and
-the reads a task needs are there — `add`, `block_add`, `status`, `amend`, `ship`, `retire`, `defer`, `resume`,
+the reads a task needs are there — `add`, `block_add`, `claim`, `status`, `amend`, `ship`, `retire`, `defer`, `resume`,
 `record_add`,
 `record_amend`, `record_drop`, `record_renumber`, `non_goal_add`, `non_goal_drop`, `section_add`, `section_amend`, `section_drop`, `brief`, `pick`, `list`, `deps`, `lint` — same engine and same
 refusals, with
@@ -147,9 +147,10 @@ a function of the file, so a second caller reading an unchanged backlog is hande
 first one took — most confidently by the in-progress tier, a 🛠 line being evidence somebody
 started. `--claim` answers *and* moves the marker to in-progress in one transaction, so the
 next caller is sent elsewhere. `brief --claim` is the one to reach for, being the call that
-starts a task anyway; `brief <id> --claim` takes a line you were told to work on, and is
-**refused** where somebody already holds that one, there being nothing for it to choose
-instead. It is an expiry and not a lock: a claim nobody released is stepped over after an
+starts a task anyway — and over MCP it is its own tool, `claim`, so that `brief` and `pick`
+keep the read-only hint that makes asking free; `brief <id> --claim` takes a line you were
+told to work on, and is **refused** where somebody already holds that one, there being nothing
+for it to choose instead. It is an expiry and not a lock: a claim nobody released is stepped over after an
 hour, and every marker door already releases one — `ship`, `defer`, or the marker back. A
 held line is **named** in the answer and never hidden, because a claim carries no owner and
 the id is the only thing you can recognise your own by; who took it belongs in the commit.
