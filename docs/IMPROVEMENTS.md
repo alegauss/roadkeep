@@ -100,29 +100,6 @@ overrun would be back to guessing, with a smaller number to guess against.
 
 ## Block B — Authoring
 
-### §RK215 Refused by the writer for a state the gate calls clean
-
-`section amend XXII --body '<nine words>'` was refused in Claude Code Tray with *934
-words, limit is 300 with its subsections*. That anchor's own prose is two sentences; its
-three subsections are the other 900.
-
-The intro had gone stale in the ordinary way — it described a budget as full that a
-shipped task had since emptied — and its subsections were live, so `drop` refuses as
-well, and the guard denies the `Edit`. Every door closed, and the file left saying
-something untrue. That is RK141's deadlock one level over.
-
-The sharper half is that `lint` does not agree with `amend`: the same file passes the
-gate. So the limit enforced at the writer is not the limit the project is held to, and a
-writer is refused for a state nothing else calls a problem.
-
-The measurement `amend` wants looks like the one `add` already makes — a section's *own*
-prose against `section`, with each subsection measured as itself. RK166 unblocked the
-top level for `add` on the argument that a heading merely missing is one the author can
-add; the same argument covers a heading whose prose is merely wrong.
-
-Worth deciding with it whether an anchor carrying subsections should be amendable at
-all, or whether its intro is a section like any other.
-
 ### §RK216 A diagnosis that sends the caller to the wrong file
 
 `ship T226 --why '<four sentences>'` refused twice with *no heading declares Block A in

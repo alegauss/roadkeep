@@ -85,6 +85,7 @@
 - ✅ **RK196** **A pointer into the strategy file survives the ship that deletes the line pointing at it** — The drop resolves the anchor across every declared prose role and rewrites the file that has it, reporting that file rather than assuming the improvements one.
 - ✅ **RK197** **`add` asks for a rationale section that another declared prose file already holds** — The follow-up asks every declared prose role, so a resolved pointer is silent, and where none answers it names the role it means rather than `section add`'s default.
 - ✅ **RK214** **A ledger that declares no marker closes one of the three doors out of the roadmap** — The refusal stands and the surprise does not: `lint` names the closed door every run and the generated declaration says so where the choice is made.
+- ✅ **RK215** **A top-level section's own prose cannot be corrected once it has subsections** — `section amend` charges the subtree only where a line points at the anchor, which is what the gate charges, so an unpointed container's intro is amendable on its own prose.
 
 ## Block C — Query
 

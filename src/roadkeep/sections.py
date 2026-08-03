@@ -591,10 +591,19 @@ def amend(
     updated = _rewrite(document, heading, replace(section, title=wanted_title.strip()), wanted_body)
     amended = find(updated, anchor)
     assert amended is not None  # the heading this function just wrote
-    # Charged against the **subtree**, because that is the number the gate charges a
-    # pointed-at section (RK50): a body that clears the limit alone and puts the section
-    # over it with its subsections is an amend that passes and a `lint` that refuses.
-    if amended.words > document.schema.section_max:
+    # Charged against the subtree **only where a line points at this anchor**, which is
+    # exactly what the gate charges (RK215). The subtree unconditionally was a writer holding
+    # a file to a limit `lint` does not: measured in Claude Code Tray, a nine-word correction
+    # to a two-sentence intro was refused for 934 words — 900 of them three live
+    # subsections' — on a file that passes the gate. With `drop` refused by those same live
+    # pointers and the guard denying the hand edit, every door was closed and the file left
+    # saying something untrue, which is RK141's deadlock one level over.
+    #
+    # So an intro **is** a section like any other, which is the question the design left open:
+    # `add` already writes a top-level anchor's own prose (RK166), `_rewrite` above already
+    # replaces only that prose, and where nothing points at the anchor `_check` has already
+    # charged it — so there is nothing further to ask.
+    if _pointed_at(config, anchor) and amended.words > document.schema.section_max:
         counted = over_by(
             amended.words,
             document.schema.section_max,
@@ -736,6 +745,28 @@ def _check(
         )
     if out:
         raise SectionError(tuple(out))
+
+
+def _pointed_at(config: Config, anchor: str) -> bool:
+    """Does a live task line point at this anchor — the gate's own question (RK215).
+
+    What decides which of the two numbers a section is charged. A pointer hands a reader the
+    whole subtree, so a *pointed-at* section is measured with it; a container nothing points
+    at is measured on its own prose, because counting its children against it would measure
+    the file's shape rather than anybody's paragraph. That is `lint`'s rule, and this asks it
+    the same way so the writer and the gate cannot disagree — the disagreement being the
+    defect, not the limit.
+
+    Both live roles, as the gate reads them: a deferred line keeps its pointer and its
+    section (RK96), so work set aside still claims its rationale. The ledger is not among
+    them — a departure deletes the section in the transaction that writes the entry.
+    """
+    for role in ("roadmap", "deferred"):
+        if not config.has(role) or not config.path(role).is_file():
+            continue
+        if any(entry.task.ref == anchor for entry in config.document(role).entries):
+            return True
+    return False
 
 
 def _task_for(config: Config, anchor: str) -> Task | None:

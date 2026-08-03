@@ -881,6 +881,129 @@ def test_the_budget_is_charged_what_the_gate_charges(tmp_path):
     assert read(config) == RATIONALE
 
 
+#: Claude Code Tray's `§XXII`, minimised: a container whose own prose is two sentences and
+#: whose three live subsections are the rest. Every piece is inside a 40-word budget and the
+#: subtree is not, which is the state `lint` calls clean and the writer refused.
+CONTAINED = """# Improvements
+
+## §XXII The container
+
+Two sentences of intro. It describes a budget as full.
+
+### §RK1 A first design
+
+The reasoning the first line has no room for, at some length.
+
+### §RK2 A second design
+
+The reasoning the second line has no room for, at some length.
+
+### §RK3 A third design
+
+The reasoning the third line has no room for, at some length.
+"""
+
+OUTLINED_BACKLOG = """# Roadmap
+
+## Block A — The model
+
+- 📋 **RK1** (deps: —) **A first symptom** — Because of a reason. → §RK1
+- 📋 **RK2** (deps: —) **A second symptom** — Because of another reason. → §RK2
+- 📋 **RK3** (deps: —) **A third symptom** — Because of a third reason. → §RK3
+"""
+
+
+def contained(tmp_path: Path, *, limit: int = 40) -> Config:
+    return project(
+        tmp_path,
+        roadmap=OUTLINED_BACKLOG,
+        improvements=CONTAINED,
+        extra=f"[limits]\nsection = {limit}\n",
+    )
+
+
+def test_a_container_nothing_points_at_is_charged_its_own_prose(tmp_path):
+    # The defect: the subtree was charged unconditionally, so a nine-word correction to a
+    # two-sentence intro was refused for the 900 words of three live subsections — on a file
+    # that passes the gate. `drop` refuses by those same pointers and the guard denies the
+    # hand edit, so every door was closed and the file left saying something untrue.
+    config = contained(tmp_path)
+    assert lint(config).clean  # the gate's own verdict on this file, before and after
+    whole = find(config.document("improvements"), "XXII")
+    assert whole.words > 40  # the number that used to refuse
+    (own,) = [s for s in anchored(config.document("improvements")) if s.anchor == "XXII"]
+    assert own.words <= 40  # the number the gate actually charges it
+
+    document, amended, changed = amend(
+        config, "improvements", "XXII", body="A shorter intro that is now true."
+    )
+    document.save()
+    assert changed == ("body",)
+    body = read(config)
+    assert "A shorter intro that is now true." in body
+    assert "It describes a budget as full." not in body
+    # The subsections are untouched: an intro is its own section, and correcting one is not
+    # a deletion of what sits under it.
+    for anchor in ("RK1", "RK2", "RK3"):
+        assert f"§{anchor}" in body
+    assert lint(Config.discover(tmp_path)).clean
+
+
+def test_a_pointed_at_section_is_still_charged_its_subtree(tmp_path):
+    # The other half, and the reason this is a split rather than a removal: a pointer hands
+    # a reader the whole subtree, so that is what the gate charges — and a writer that let
+    # the subtree over the limit would be an amend that passes and a `lint` that refuses.
+    config = project(tmp_path, extra="[limits]\nsection = 12\n")
+    with pytest.raises(SectionError) as raised:
+        amend(config, "improvements", "RK1", body="Six words, which is under twelve.")
+    assert "with its subsections" in str(raised.value)
+    assert read(config) == RATIONALE
+
+
+def test_a_container_is_still_held_to_the_limit_by_its_own_prose(tmp_path):
+    # Unpointed does not mean unbudgeted: `_check` charges the body before the write, which
+    # is the same number `lint` charges the section — so the door is open and not unguarded.
+    config = contained(tmp_path)
+    with pytest.raises(SectionError) as raised:
+        amend(config, "improvements", "XXII", body=" ".join(f"word{n}" for n in range(50)))
+    assert "50 words, limit is 40" in str(raised.value)
+    assert "with its subsections" not in str(raised.value)
+    assert read(config) == CONTAINED
+
+
+def test_a_deferred_line_still_claims_the_subtree(tmp_path):
+    # Both live roles, as the gate reads them: work set aside keeps its pointer and its
+    # section (RK96), so a deferred line is a claim and not an absence. The roadmap is empty
+    # here, so a reader of it alone would charge this container its own prose and let a
+    # subtree the gate refuses through.
+    config = project(
+        tmp_path,
+        roadmap="# Roadmap\n\n## Block A — The model\n",
+        improvements=CONTAINED,
+        extra='deferred = "docs/DEFERRED.md"\n[limits]\nsection = 40\n',
+    )
+    store = config.root / "docs" / "DEFERRED.md"
+    with store.open("w", encoding="utf-8", newline="") as handle:
+        handle.write(
+            "# Deferred\n\n## Block A — The model\n\n"
+            "- ⏸ **RK9** (deps: —) **A paused symptom** — paused: later. → §XXII\n"
+        )
+    config = Config.discover(tmp_path)
+    with pytest.raises(SectionError) as raised:
+        amend(config, "improvements", "XXII", body="A shorter intro that is now true.")
+    assert "with its subsections" in str(raised.value)
+    assert read(config) == CONTAINED
+
+
+def test_the_command_amends_the_container(tmp_path, capsys, monkeypatch):
+    config = contained(tmp_path)
+    monkeypatch.setattr(sys, "stdin", io.StringIO("A shorter intro that is now true."))
+    argv = ["-C", str(tmp_path), "section", "amend", "XXII", "--body", "-"]
+    assert main(argv) == EXIT_OK
+    assert "XXII" in capsys.readouterr().out
+    assert "A shorter intro that is now true." in read(config)
+
+
 def test_an_anchor_this_file_does_not_declare_is_refused(tmp_path):
     config = project(tmp_path)
     with pytest.raises(NoSuchSection):
