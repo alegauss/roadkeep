@@ -206,6 +206,7 @@ def paths_in(
     *,
     near: Path | None = None,
     known: Callable[[], frozenset[str] | None] | None = None,
+    has: Callable[[str], bool] | None = None,
 ) -> tuple[Referenced, ...]:
     """Quoted paths, deduplicated, in order of appearance.
 
@@ -225,6 +226,12 @@ def paths_in(
     1.1 ms to 36.6 ms here and 4.2 ms to 73.4 ms on Turing by computing it up front, on the
     read that starts every task. Called at most once per run of this function, and never
     where every path resolves. Omitted, or answering None, keeps the filesystem answer.
+
+    `has` answers *does the tree being judged hold this artefact*, and the disk is only its
+    default (RK225). A run naming a revision may not consult the disk (RK218) and used to
+    consult it anyway — 34070 `stat` calls at Turing's pin, every one discarded — and worse,
+    `exists` decides **candidacy** here, so the candidate set was still half decided by this
+    afternoon while the findings were about a commit.
     """
     out: dict[str, Referenced] = {}
     directories: frozenset[str] | None = None
@@ -243,7 +250,7 @@ def paths_in(
         if _UNRESOLVABLE.search(token) or _SEPARATORS_ONLY.match(token):
             # Nothing on disk can settle it either way, so there is no question to ask.
             continue
-        exists = _resolves(token, root, near)
+        exists = has(token) if has is not None else on_disk(token, root, near)
         # Either the repository really has it, or the token is a decidable claim that it
         # should: a filename whose directory the repository knows (RK55, RK217). A slash
         # alone is not — 60 of Shio's 61 findings were a MIME type, an i18n key or two
@@ -343,8 +350,13 @@ def _within(path: Path, root: Path) -> str | None:
     return None if spelled.startswith("..") else spelled
 
 
-def _resolves(token: str, root: Path, near: Path | None) -> bool:
-    """Whether the repository has this artefact, under either convention (RK51)."""
+def on_disk(token: str, root: Path, near: Path | None) -> bool:
+    """Whether *this working tree* has the artefact, under either convention (RK51).
+
+    Public because it is the default answer to "does the tree being judged hold this" and
+    a caller judging a **revision** supplies a different one (RK225). Named for what it
+    reads rather than for what it decides, so the two cannot be confused at a call site.
+    """
     if Path(token).is_absolute():
         # Refused in a config and meaningless in a line: it is a claim about one machine.
         return False

@@ -40,8 +40,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK225** (deps: —) **A run judging a revision stats the working tree once per token and throws every answer away** — paths_in resolves each token against two bases before anything asks which tree is being judged, so Turing's pin costs 34070 filesystem calls that RK218 then declines to read. → §RK225
-
 ## Block E — Adoption
 
 - 📋 **RK103** (deps: —) **A bullet whose marker holds a space is read as prose and reported by nothing** — GitHub's `- [ ]` task list is the commonest Markdown backlog there is, and cursarei's 16 of them parse as 0 entries and 0 rejects — the silent miss the reject list exists to end. → §RK103

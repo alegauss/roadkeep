@@ -287,27 +287,6 @@ and may not need a second.
 
 ## Block D — The gate
 
-### §RK225 The disk asked after it stopped being a reader
-
-RK218 established that a run naming a revision does not consult the disk: `holds`
-answers from git, file and directory both, and `referenced.exists` is ignored. What it
-did not change is that `paths_in` still **computes** it — `_resolves` tries each token
-against the ledger's directory and against the root, and both are a `stat`.
-
-Profiled at Turing's pin: 17076 calls to `_resolves` producing **34070** `nt.stat`
-calls, 0.95 s of the 2.9 s `_paths` costs. Every one of them is discarded, because that
-run is judging a revision.
-
-It is not only waste. `paths_in` also uses `exists` to decide *candidacy* — a token is
-kept when it resolves or when its directory is one the repository knows — so at a
-revision the candidate set is still half decided by this afternoon's disk, which is the
-same half-read RK218 closed one layer up and left open here.
-
-So the two halves are one change: the tree that a run is judging answers whether it has
-the artefact, and `paths_in` asks that instead of `Path.exists`. Where there is no tree
-to ask — a checkout with no history — the disk is still the answer, which is what RK217
-already settled.
-
 ## Block E — Adoption
 
 ### §RK103 The marker slot that holds two tokens

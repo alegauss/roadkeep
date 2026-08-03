@@ -85,7 +85,6 @@ points at exist, and did anything loaded every turn outgrow what it was allowed?
 
 from __future__ import annotations
 
-import contextlib
 import os
 import re
 import unicodedata
@@ -113,7 +112,7 @@ from roadkeep.history import (
 from roadkeep.markers import derive
 from roadkeep.schema import PARTIAL, DepKind, Task, over_by
 from roadkeep.sections import Section, anchored, find
-from roadkeep.showing import known_directories, paths_in
+from roadkeep.showing import known_directories, on_disk, paths_in
 
 #: The governed files whose unit is a task line. The prose files are paragraphs, so
 #: their gate is a pointer and a budget — RK15 and RK30, not this. The deferred store is
@@ -272,7 +271,7 @@ class Tree:
         if self.rev is None:
             return False
         return any(
-            self.config.relative(base / token) in self.listing()
+            _spelled(self.config, base, token) in self.listing()
             for base in (near, self.config.root)
         )
 
@@ -328,7 +327,7 @@ class Tree:
             )
         return self._names
 
-    def holds(self, token: str, near: Path, on_disk: bool) -> bool:
+    def holds(self, token: str, near: Path) -> bool:
         """Does the tree this run is judging have what this token names? (RK84, RK218)
 
         The working tree answers from the disk, which is its subject. A revision answers
@@ -342,12 +341,12 @@ class Tree:
         finding that revision genuinely had.
         """
         if self.rev is None:
-            return on_disk
+            return on_disk(token, self.config.root, near)
         if self.carries(token, near):
             return True
         directories = self.directories() or frozenset()
         return any(
-            self.config.relative(base / token) in directories
+            _spelled(self.config, base, token) in directories
             for base in (near, self.config.root)
         )
 
@@ -1555,9 +1554,14 @@ def _paths(config: Config, documents: dict[str, Document], tree: Tree) -> list[F
     unresolved = [
         (entry, referenced.path)
         for entry in document.entries
-        for referenced in paths_in(entry.raw, config.root, near=near, known=known)
-        if not tree.holds(referenced.path, near, referenced.exists)
-        and not tree.anywhere(referenced.path)
+        for referenced in paths_in(
+            entry.raw,
+            config.root,
+            near=near,
+            known=known,
+            has=lambda token: tree.holds(token, near),
+        )
+        if not referenced.exists and not tree.anywhere(referenced.path)
     ]
     untracked = tree.declared_untracked([(token, near) for _, token in unresolved])
     return [
@@ -1590,17 +1594,14 @@ def _declared_untracked(
     asked: dict[str, str] = {}
     for token, near in tokens:
         for base in (near, config.root):
-            with contextlib.suppress(ValueError):
-                spelling = _posix(config, base / token)
-                # A path above the root is nothing this repository's `.gitignore` could
-                # have declared, and git refuses the **whole** invocation over one of them
-                # (RK220): `fatal: '../x' is outside repository`, arriving through the same
-                # door as "there is no git here", where nothing is withheld. One `../` in a
-                # ledger would therefore return the gate to its pre-RK213 behaviour for
-                # every other path in the file. The *spelling* is dropped and not the
-                # token, because the other base may still be inside.
-                if not spelling.startswith("../"):
-                    asked.setdefault(spelling, token)
+            spelling = _spelled(config, base, token)
+            # None is a path above the root, which is nothing this repository's
+            # `.gitignore` could have declared — and git refuses the **whole**
+            # invocation over one of them (RK220), through the same door as "there is
+            # no git here", where nothing is withheld. The *spelling* is dropped and
+            # not the token, because the other base may still be inside.
+            if spelling is not None:
+                asked.setdefault(spelling, token)
     if not asked:
         return frozenset()
     try:
@@ -1612,9 +1613,26 @@ def _declared_untracked(
     return frozenset(asked[name] for name in answered if name in asked)
 
 
-def _posix(config: Config, path: Path) -> str:
-    """A path as git spells it: relative to the root, forward slashes, no `..`."""
-    return os.path.relpath(path.resolve(), config.root).replace(os.sep, "/")
+def _spelled(config: Config, base: Path, token: str) -> str | None:
+    """How git would spell this token from this base — decided **lexically** (RK225).
+
+    `Config.relative` resolves the path, which is right where a junction has to be followed
+    and ruinous where a check asks it per token: 34326 `realpath` calls at Turing's pin,
+    7.4 s of an 11.5 s run. Every path compared against git's listing here is built from the
+    config's own root, so the prefix already agrees and normalising the `..` segments
+    textually gives the answer that listing holds — without touching the filesystem, which
+    is the whole point of judging a revision.
+
+    None where the spelling climbs out of the repository: git has nothing to say about a
+    path above the root, and one of them refuses a whole `check-ignore` batch (RK220).
+    """
+    joined = os.path.normpath(os.path.join(str(base), token))
+    try:
+        relative = os.path.relpath(joined, str(config.root))
+    except ValueError:  # a different mount, so not this repository's at all
+        return None
+    spelling = relative.replace(os.sep, "/")
+    return None if spelling == ".." or spelling.startswith("../") else spelling
 
 
 @dataclass(frozen=True, slots=True)

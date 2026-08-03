@@ -31,7 +31,7 @@ from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.history import HistoryUnavailable, git_available
 from roadkeep import linting as linting_module
-from roadkeep.linting import Tree, lint
+from roadkeep.linting import Tree, _spelled, lint
 from roadkeep import showing as showing_module
 from roadkeep.showing import show
 
@@ -792,3 +792,48 @@ def test_every_ledger_entry_is_read_once(tmp_path):
         patch.setattr(linting_module, "paths_in", counted)
         assert paths(lint(config)) == ["path.missing RK5"]
     assert len(seen) == entries
+
+
+def test_a_revision_run_touches_the_filesystem_for_no_path(tmp_path):
+    """RK225: `exists` was computed before anything asked which tree was being judged.
+
+    RK218 established that a run naming a revision does not *read* the disk, and `paths_in`
+    went on computing the read anyway — 34070 `stat` calls at Turing's pin, all discarded.
+    Worse, `exists` also decides **candidacy**, so the candidate set stayed half decided by
+    this afternoon while the findings were about a commit.
+    """
+    config = repo(tmp_path, files={"lib/kept.py": "x = 1\n"})
+    write(tmp_path, "CHANGELOG.md", naming("lib/later.py"))
+    git(tmp_path, "add", "-A")
+    git(tmp_path, "commit", "--quiet", "-m", "docs: name a file that is not there yet")
+
+    touched: list[str] = []
+    real = linting_module.on_disk
+
+    def counted(token, root, near):
+        touched.append(token)
+        return real(token, root, near)
+
+    # `Tree.holds` is the one door to the disk once `has` is supplied, so this is the
+    # module that has to be watched rather than the one the function is defined in.
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(linting_module, "on_disk", counted)
+        assert paths(lint(config, at="HEAD")) == ["path.missing RK5"]
+    assert touched == []
+    # And the working tree run still reads the working tree, which is its subject.
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(linting_module, "on_disk", counted)
+        lint(config)
+    assert touched
+
+
+def test_a_spelling_is_decided_without_asking_the_filesystem(tmp_path):
+    """`Config.relative` resolves, which is right where a junction has to be followed and
+    ruinous per token: the first attempt at RK225 took Turing's run from 559 ms to 11.5 s,
+    of which 7.4 s was `realpath`. Every path compared against git's listing is built from
+    the config's own root, so the prefix already agrees and `..` normalises textually."""
+    config = repo(tmp_path, files={"docs/deep/kept.py": "x = 1\n"})
+    assert _spelled(config, tmp_path / "docs", "deep/kept.py") == "docs/deep/kept.py"
+    assert _spelled(config, tmp_path / "docs", "../top.md") == "top.md"
+    # Above the root: git has nothing to say, and one of them refuses a batch (RK220).
+    assert _spelled(config, tmp_path, "../outside.txt") is None
