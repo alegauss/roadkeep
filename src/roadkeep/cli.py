@@ -3419,7 +3419,7 @@ def _export(config: Config, args: argparse.Namespace) -> int:
             print(projection.json() if args.json else projection.markdown())
             return EXIT_OK
         written = [_splice_into(config, projection, name, shape) for name, shape in chosen]
-    except (KeyError, ValueError, OSError) as error:
+    except (KeyError, ValueError, OSError, StaleFile) as error:
         return _refused(error)
 
     for line in written:
@@ -3439,8 +3439,26 @@ def _splice_into(
         # The point of idempotence, said out loud: nothing changed, so nothing is written
         # and the file's mtime does not move either.
         return f"{config.relative(target)} is already current"
+    _assert_unmoved(target, before)
     write_atomically(target, after)
     return f"{config.relative(target)} refreshed between the roadkeep markers"
+
+
+def _assert_unmoved(target: Path, before: str) -> None:
+    """The question `Document.save` asks (RK116), on the one file with no document (RK132).
+
+    Every governed write goes through `save` and is refused if the target stopped being the
+    file that was read. This one splices text into a README, which this tool does not own
+    and would be claiming a format it does not have by parsing — so the check is the same
+    question asked by hand: the bytes that were read, compared before the rename. A README
+    is the file most likely to be open in an editor while a command runs, which is exactly
+    the writer a lock does not order, and `--site` is the same splice on a second file.
+    """
+    if not target.is_file():
+        raise StaleFile(target, missing=True)
+    with target.open("r", encoding="utf-8", newline="") as handle:
+        if handle.read() != before:
+            raise StaleFile(target)
 
 
 def _gaps(config: Config, args: argparse.Namespace) -> int:

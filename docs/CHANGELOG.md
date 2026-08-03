@@ -129,6 +129,7 @@
 - ✅ **RK105** **A concurrent edit in another repository turns this project's suite red** — Every assertion about a foreign corpus reads a pinned revision, so an edit next door cannot turn this suite red, and the live tree is read as an advisory that warns rather than fails.
 - ✅ **RK114** **A subsection whose task is gone is exempt from the ownership check that would report it** — A sub-anchor is owned by its first segment, so `§RK34.1` belongs to `RK34` and a subtree a renumber left behind is reported stale or orphaned instead of exempt.
 - ✅ **RK122** **id.two-files calls a correct half-shipped state a contradiction** — A ⏳ line or an entry naming a half is read as a live partial and passes, so the gate stays loud only for the shape it was written for — a line shipped and not deleted.
+- ✅ **RK132** **The README block is read and written back with nothing checking the file did not move** — The bytes read from the README are compared against the file before the rename, so a splice landing on top of somebody else's write is refused at the gate instead of applied.
 
 ## Block E — Adoption
 

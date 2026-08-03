@@ -20,7 +20,8 @@ from pathlib import Path
 
 import pytest
 
-from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
+from roadkeep import cli
+from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.document import Document
 from roadkeep.exporting import BEGIN, END, NoMarkers, project, splice
@@ -197,6 +198,37 @@ def test_the_command_writes_once_and_then_says_it_is_current(tmp_path, capsys):
     assert main(["-C", str(tmp_path), "export", "--readme"]) == EXIT_OK
     assert "already current" in capsys.readouterr().out
     assert (tmp_path / "README.md").read_text(encoding="utf-8") == written
+
+
+def test_a_readme_that_moved_between_the_read_and_the_write_is_refused(
+    tmp_path, capsys, monkeypatch
+):
+    # RK132: the one write this tool makes outside a governed file was the one skipping the
+    # question every `save` asks (RK116) — and a README is the file most likely to be open
+    # in an editor while a command runs. `splice` is where the other writer lands here.
+    project_files(tmp_path)
+    readme = tmp_path / "README.md"
+    theirs = readme.read_text(encoding="utf-8") + "\nA paragraph somebody else wrote.\n"
+    spliced = cli.splice
+
+    def landing(text, body, where):
+        readme.write_text(theirs, encoding="utf-8")
+        return spliced(text, body, where)
+
+    monkeypatch.setattr(cli, "splice", landing)
+    assert main(["-C", str(tmp_path), "export", "--readme"]) == EXIT_GATE
+    assert "changed since it was read" in capsys.readouterr().err
+    assert readme.read_text(encoding="utf-8") == theirs  # their paragraph is still there
+
+
+def test_a_readme_that_is_already_current_asks_nothing(tmp_path, capsys):
+    # Idempotence comes first: nothing is written, so there is no write to refuse, and a
+    # file deleted after the read is not a failure of a command that changes nothing.
+    project_files(tmp_path)
+    assert main(["-C", str(tmp_path), "export", "--readme"]) == EXIT_OK
+    capsys.readouterr()
+    assert main(["-C", str(tmp_path), "export", "--readme"]) == EXIT_OK
+    assert "already current" in capsys.readouterr().out
 
 
 # -- what is outside the markers is the author's ------------------------------

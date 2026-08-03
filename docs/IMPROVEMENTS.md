@@ -259,28 +259,6 @@ own construction, the number to report is one build, not fifty-two.
 
 ## Block D — The gate
 
-### §RK132 The write that has no document behind it
-
-Every write to a governed file now asks whether the target is still the file that was
-read (RK116) and lands in one step (RK118), because every one of them goes through
-`Document.save`. `export --readme` does not. `_splice_into` opens the README, splices
-the projection between the two roadkeep markers and writes the result, and the only
-thing it shares with the mechanism is `write_atomically`.
-
-The window is small — a read and a splice — and it is the same window the whole of RK116
-is about, on the one file this tool edits that it does not own. A README is also the
-file most likely to be open in an editor while a command runs, which is precisely the
-writer a lock does not order.
-
-Nothing here needs a `Document`: the README is not governed, its lines are not task
-lines, and parsing it would be claiming a format it does not have. What is needed is the
-same question asked by hand — remember the bytes that were read, compare them before the
-rename — which is three lines and the refusal the CLI already renders for `StaleFile`.
-
-This is not RK104, which is about the gate: that a stale README passes `lint` is a
-different failure from a fresh README overwriting somebody's edit. They share a file and
-nothing else, and fixing either leaves the other exactly as it is.
-
 ### §RK134 Two readers of one fact, disagreeing
 
 Reproduced minimally: a heading `### II.1 Shared design (ZZ1)` whose only named id has

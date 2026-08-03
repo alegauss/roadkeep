@@ -39,7 +39,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK132** (deps: —) **The README block is read and written back with nothing checking the file did not move** — `_splice_into` opens the file, replaces what is between the markers and writes, holding no `Document`, so the one write this tool makes outside a governed file is the one that skips the check. → §RK132
 - 📋 **RK134** (deps: —) **A section that four open lines point at is reported stale, and the drop it names is refused** — `_unowned` decides from the ids in the heading while `section drop` decides from the pointers that resolve, so the only door the finding offers is the one the tool closes. → §RK134
 - 📋 **RK135** (deps: —) **A rationale section whose task points at a different one is reported by nothing** — `section.orphan` clears because the id in the title is open and no check asks whether the pointer naming it resolves here, so a superseded draft lints clean for ever. → §RK135
 - 📋 **RK136** (deps: —) **The section budget charges a measured table exactly what it charges a paragraph** — `words` splits the whole body on whitespace, so a section that is 230 of its 269 words of measurement is judged by a limit written for prose and offered a remedy that fits neither. → §RK136
