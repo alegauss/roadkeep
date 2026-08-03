@@ -200,7 +200,53 @@ line before the next bullet, heading or blank. `remove_entry` and `replace_task`
 that same single line and want the same answer, so the span is one field three writes
 stop guessing at — and the roadmap needs none of it, `add` refusing a line that wraps.
 
+### §RK166 The first section of a new block has no write path (outline scheme)
+
+Found opening two blocks in `alegauss/claude-tray` (`ref_scheme = "outline"`; sections
+run `§I…§XXI`, each heading naming its block in parentheses: `## §XX — … (Block AG)`).
+
+`block add AI` writes the heading into ROADMAP.md and CHANGELOG.md and says of the third
+file: *"IMPROVEMENTS.md: declares no block, so there is none to open beside"*. Then `add
+--block AI --section …` refuses: *"no heading declares Block AI (IMPROVEMENTS.md
+declares: none)"* — the file the first command declined to write is the one the second
+demands. `add --ref XXII.1` alone succeeds and names the follow-up: *"needs section add
+XXII.1 --title …"*. That command refuses — *"no section §XXII.1 extends"* — and `section
+add XXII --level 2` refuses the same for §XXII. The reason is its own trailing clause,
+*"an anchor states its own place"*: a new top-level section has none to state.
+
+`lint` then rejects the line step three inserted (`ref.unresolved`), so CI is red and
+the only exits are a hand-edit the plugin's hook denies, or reverting the task.
+
+`section add XXI.6` — a subsection under an existing parent — succeeds, isolating this
+to the top-level case. The consequence is wider than one block: a task can be added only
+to a block that already owns a section, which there meant five themes of nineteen.
+
+Either `block add` writes the prose heading too, deriving the next outline number; or
+`section add` accepts a top-level anchor that succeeds the highest existing one.
+
 ## Block C — Query
+
+### §RK165 A blunt remedy and a precise one
+
+RK163 made every marker write reconcile the whole registry, which is what keeps a `git
+checkout` from leaving a permanent row — as long as somebody writes a marker afterwards.
+A checkout between tasks has no marker to write, and the row `claims` is printing is
+precisely the one that says nothing will happen by itself.
+
+What the listing offers instead is its last line: the path. Deleting the file clears the
+stale row and every live claim beside it, including the ones belonging to workers who
+are mid-task — a remedy whose blast radius is the whole checkout, offered for a problem
+the size of one id.
+
+The precise one is the reconciliation `follow` already performs, reachable without a
+marker: drop every row that is not a claim and leave every row that is. It decides
+nothing new, which is the argument for putting it on the read that already loads both
+files — one flag on `claims`, not a verb.
+
+Two things to keep out. It must not release a **live** claim: that is a marker, and a
+flag that could take a line from a worker is the door RK160 closed. And it must not
+become a schedule — nothing here runs on its own, and a registry that pruned itself in
+the background would be state this tool maintains rather than reconciles.
 
 ## Block D — The gate
 

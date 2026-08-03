@@ -31,8 +31,11 @@
 - 📋 **RK144** (deps: —) **Declaring a block writes three files and nothing takes the heading back out** — block add is the only verb that writes a heading, so a label opened by mistake or emptied by a retirement leaves a heading in every governed file that only a hand-edit removes. → §RK144
 - 📋 **RK145** (deps: —) **A block can only be opened last, and where it sits is what every ordered answer reads** — block add places the heading after the last block's subtree, so a phase belonging between two existing ones can only be appended — and the order a list reports is the headings' own. → §RK145
 - 📋 **RK157** (deps: —) **A new ledger entry lands between the last entry and its own wrapped lines** — `Entry` carries a lineno and no span, so `place` inserts at the last entry's line plus one and the block's final entry's continuation lines are re-attributed to whatever ships next. → §RK157
+- 📋 **RK166** (deps: —) **A newly declared block cannot receive its first rationale section** — Under ref_scheme = 'outline' nothing creates a top-level section: block add skips the prose file, section add refuses an anchor nothing extends, and add leaves a pointer lint rejects. → §RK166
 
 ## Block C — Query (consult without reading the file)
+
+- 📋 **RK165** (deps: —) **Clearing a stale row without a marker write means deleting every live claim with it** — `follow` reconciles only when a marker moves and the listing's own remedy is the file, so a checkout with no write to make chooses between a row nobody can act on and dropping somebody's claim. → §RK165
 
 ## Block D — The gate
 
