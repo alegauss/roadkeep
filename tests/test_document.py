@@ -6,10 +6,15 @@ exactly what was written.** It is a property test over a corpus of real backlogs
 rather than an example test, because the corruption it guards against is precisely
 the case nobody thought to write an example for.
 
-The corpus is this repository's `docs/` plus Shio's and Turing's roadmaps when
-they are on this machine — 144 task lines across four files, three prefixes and
-two projects that never heard of this tool. Those two skip cleanly elsewhere, so
-CI tests what it has.
+The corpus is this repository's `docs/` plus **both governed line files** of Shio and
+Turing when they are on this machine — six files, three prefixes and two projects that
+never heard of this tool. The foreign halves skip cleanly elsewhere, so CI tests what it
+has, and they are read at a pin (RK105) so somebody else's afternoon cannot turn this red.
+
+The ledgers were added last and for a measured reason (RK182): RK157 was a silent
+misfiling of an entry whose bullet **wraps**, 146 of Shio's 290 entries do and 3 of
+Turing's 801, and a governed roadmap has none by construction — so the property read every
+file except the kind the defect was in, and passed throughout.
 """
 
 from __future__ import annotations
@@ -85,9 +90,19 @@ def _read(path: Path) -> str:
 #: crosses — 90, then 80, which fell the day Shio shipped SH270, then 1, which is a number
 #: that proves only that the parse read *something*. Re-measured when a pin moves, on
 #: purpose and in that commit.
+#:
+#: **The ledgers are here because the wrapped shape lives in them** (RK182). RK157 was a
+#: silent misfiling of an entry whose bullet wraps, and a governed roadmap has none by
+#: construction — the format has no multi-line task line. Counted while fixing it: 146 of
+#: Shio's 290 entries wrap and 3 of Turing's 801, so the one place the shape occurs at scale
+#: was the one kind of file this property did not read, and it passed on every file for as
+#: long as the defect existed. What made two more files affordable is RK105: they are read
+#: at a pin, so they cannot turn this suite red for somebody else's afternoon.
 PINNED = {
     ("shio", "roadmap"): 48,
+    ("shio", "changelog"): 290,
     ("turing", "roadmap"): 37,
+    ("turing", "changelog"): 801,
 }
 
 
@@ -137,12 +152,31 @@ def test_every_understood_line_renders_back_to_what_was_written(case):
 def test_no_two_entries_claim_the_same_line(case):
     # The span RK157 gave every entry, as a property: an entry ends before the next one
     # starts, so no write can insert into one or remove part of another. The shape that
-    # motivated it — a bullet that wraps — lives in a *ledger* this corpus does not read,
-    # which is exactly why the property test did not catch it.
+    # motivated it — a bullet that wraps — lived in a *ledger* this corpus did not read,
+    # which is exactly why the property test did not catch it (RK182).
     document = Document.parse(case.source, schema=case.schema)
     for earlier, later in zip(document.entries, document.entries[1:]):
         assert earlier.stop < later.lineno, (earlier.task.id, later.task.id)
     assert all(entry.stop <= len(document.lines) for entry in document.entries)
+
+
+#: How many entries wrap in each pinned ledger. Counted while fixing RK157 and asserted
+#: here, because the widening above is only worth what the corpus actually carries: a pin
+#: that moved to a ledger with no wrapped bullet would leave the property reading four files
+#: and testing the same three shapes, which is the failure this task was filed about.
+WRAPPING = {"shio": 146, "turing": 3}
+
+
+@pytest.mark.parametrize("corpus", corpora.BOTH, ids=lambda c: c.name)
+def test_the_pinned_ledgers_carry_the_shape_this_property_is_read_for(corpus):
+    corpora.require(corpus)
+    document = corpora.document(corpus, "changelog")
+    wrapped = [entry for entry in document.entries if entry.stop > entry.lineno]
+    assert len(wrapped) == WRAPPING[corpus.name]
+    # And the roadmaps have none, by construction: "no multi-line task line" is a non-goal,
+    # so the one file kind the corpus already read could never have contained the shape.
+    roadmap = corpora.document(corpus, "roadmap")
+    assert [e for e in roadmap.entries if e.stop > e.lineno] == []
 
 
 @pytest.mark.parametrize("case", corpus(), ids=lambda c: c.name)

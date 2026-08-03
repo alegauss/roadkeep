@@ -39,8 +39,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK182** (deps: —) **The round-trip corpus reads two foreign roadmaps and no foreign ledger, where the wrapped shape lives** — RK157's silent misfiling needed an entry that wraps, and 146 of Shio's 290 do while both roadmaps have none, so the property read every file except the one the defect was in. → §RK182
-
 ## Block E — Adoption
 
 - 📋 **RK103** (deps: —) **A bullet whose marker holds a space is read as prose and reported by nothing** — GitHub's `- [ ]` task list is the commonest Markdown backlog there is, and cursarei's 16 of them parse as 0 entries and 0 rejects — the silent miss the reject list exists to end. → §RK103

@@ -259,27 +259,6 @@ own construction, the number to report is one build, not fifty-two.
 
 ## Block D — The gate
 
-### §RK182 A property test is only as wide as its corpus
-
-The round-trip property is the tool's ownership test (L3), and it is a property test
-over real files precisely because the corruption it guards against is the case nobody
-thought to write an example for. `FOREIGN` lists two files: Shio's roadmap and Turing's.
-
-RK157 was in neither. Its shape is a bullet that wraps, and a governed roadmap has none
-by construction — the format has no multi-line task line. Counted while fixing it: 146
-of Shio's 290 ledger entries wrap, and 3 of Turing's 801. So the one place the shape
-occurs at scale is the one kind of file the corpus does not read, and the property
-passed on every file for as long as the defect existed.
-
-What extending it costs is the reason it was not done in that commit. A ledger written
-before the tool needs the rules that hold a `why` to one sentence turned off for the
-role, so the schema each file is read under stops being one line in a list. And RK105 is
-already open about foreign trees turning this suite red for a change nobody here made —
-two more files is twice the exposure.
-
-Which makes the honest order visible: RK105 decides how a foreign file is read at all,
-and this one is what that decision is worth doing for.
-
 ## Block E — Adoption
 
 ### §RK103 The marker slot that holds two tokens
