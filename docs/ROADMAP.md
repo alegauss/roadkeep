@@ -40,8 +40,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK222** (deps: —) **show pays two git listings on every call, on the read that starts every task** — RK217 builds the directory set before the tokens are known, so a task whose paths all resolve pays for an answer nothing asks: 1.1 ms became 36.6 ms here and 4.2 ms became 73.4 ms on Turing. → §RK222
-
 ## Block E — Adoption
 
 - 📋 **RK103** (deps: —) **A bullet whose marker holds a space is read as prose and reported by nothing** — GitHub's `- [ ]` task list is the commonest Markdown backlog there is, and cursarei's 16 of them parse as 0 entries and 0 rejects — the silent miss the reject list exists to end. → §RK103

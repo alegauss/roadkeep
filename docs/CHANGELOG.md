@@ -167,6 +167,7 @@
 - ✅ **RK218** **The same revision answers two different things about a path depending on an untracked working file** — A run naming a revision asks git for both a file and a directory and never asks this disk, so an untracked file created since the ref stops silencing the revision's own finding.
 - ✅ **RK219** **A cache on the tree answers whichever question it was asked first, and its key is nothing** — The ignore answer is stored per token, so a second caller is answered about what it asked, and a repeat costs no second subprocess.
 - ✅ **RK221** **show and lint disagree about whether a deleted artefact is a path the task names** — The directory set is read from the index by default, so show and lint give the same answer about an artefact the working tree no longer has.
+- ✅ **RK222** **show pays two git listings on every call, on the read that starts every task** — The directory listing is a callable resolved on first need, so a task whose paths all resolve asks git nothing and show is back to 1.0 ms here.
 
 ## Block E — Adoption
 

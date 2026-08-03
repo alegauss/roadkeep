@@ -32,6 +32,7 @@ from roadkeep.config import Config
 from roadkeep.history import HistoryUnavailable, git_available
 from roadkeep import linting as linting_module
 from roadkeep.linting import Tree, lint
+from roadkeep import showing as showing_module
 from roadkeep.showing import show
 
 pytestmark = pytest.mark.skipif(not git_available(), reason="git is not on PATH")
@@ -731,3 +732,36 @@ def test_the_reader_and_the_gate_agree_about_a_deleted_artefact(tmp_path):
     shutil.rmtree(tmp_path / "lib")
     assert [(r.path, r.exists) for r in show(config, "RK5").paths] == [("lib/gone.py", False)]
     assert paths(lint(config)) == ["path.missing RK5"]
+
+
+def test_a_task_whose_paths_all_resolve_asks_git_nothing(tmp_path):
+    """RK222: the directory listing is bought only where the question is actually asked.
+
+    RK217 needed it to decide whether a token is a claim, and it is needed only for a token
+    that **fails** `exists` — which on a healthy repository is none of them. Computing it up
+    front took `show` from 1.1 ms to 36.6 ms here and 4.2 ms to 73.4 ms on Turing, on the
+    read `brief` makes to start every task.
+    """
+    config = repo(tmp_path, files={"lib/kept.py": "x = 1\n"})
+    write(tmp_path, "CHANGELOG.md", naming("lib/kept.py"))
+    calls: list[str] = []
+    real = showing_module.indexed
+
+    def counted(cfg):
+        calls.append("indexed")
+        return real(cfg)
+
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(showing_module, "indexed", counted)
+        view = show(config, "RK5")
+    assert [(r.path, r.exists) for r in view.paths] == [("lib/kept.py", True)]
+    assert calls == []
+
+
+def test_a_task_naming_something_absent_still_gets_the_answer(tmp_path):
+    """The other half: lazy is not absent. A token that fails `exists` is exactly the one
+    the listing was for, and it is bought then."""
+    config = repo(tmp_path, files={"lib/kept.py": "x = 1\n"})
+    write(tmp_path, "CHANGELOG.md", naming("lib/gone.py"))
+    view = show(config, "RK5")
+    assert [(r.path, r.exists) for r in view.paths] == [("lib/gone.py", False)]

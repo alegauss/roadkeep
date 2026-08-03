@@ -1544,7 +1544,9 @@ def _paths(config: Config, documents: dict[str, Document], tree: Tree) -> list[F
     near = config.path("changelog").parent
     # Which directories the repository knows, at whichever tree this run is judging (RK217):
     # a claim is about the repository, so the disk's current shape is not what decides it.
-    known = tree.directories()
+    # The bound method and not its answer (RK222): it caches, so passing it makes the
+    # listing lazy for free — a ledger whose every path resolves asks git nothing.
+    known = tree.directories
     # Every token that survived the three readers above, asked of `.gitignore` in one call
     # (RK213). Collected first because the question is cheap in bulk and dear one at a time.
     candidates = [

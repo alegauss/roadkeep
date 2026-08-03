@@ -287,27 +287,6 @@ and may not need a second.
 
 ## Block D — The gate
 
-### §RK222 An answer bought before the question
-
-RK217 needed the directories the repository knows in order to decide whether a token is
-a claim. `show` builds that set eagerly, at the top of the call, and it is needed only
-for a token that **fails** `exists` — which on a healthy repository is none of them.
-
-Measured, median of eleven, one shipped id: 1.1 ms to 36.6 ms on this repository, 4.2 ms
-to 73.4 ms on Turing. Thirty-three times and seventeen times, and `brief` calls `show`,
-so it is on the path that starts every task — the same economics RK202 and RK211 were
-each worth a line for.
-
-Two costs and they are not the same size. The listing is two subprocesses (`ls-files`
-and `ls-files --deleted`), and only one of them is the right question anyway (RK221);
-building every prefix of every tracked path is a set comprehension over 5329 names on
-Turing, which is real but small beside a process.
-
-So the shape is laziness rather than a cache: the set is a function of the tree and the
-tree does not change inside one call, so computing it on first need costs the same in
-the case that needs it and nothing in the case that does not. Whether `lint` also
-benefits is a second measurement — there, at least one token usually does fail.
-
 ## Block E — Adoption
 
 ### §RK103 The marker slot that holds two tokens

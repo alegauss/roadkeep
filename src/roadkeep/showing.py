@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import os
 import re
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -127,7 +128,10 @@ def show(config: Config, task_id: str) -> View:
         # Both bases, for the reason RK51 gives: the line and its section are read from a
         # file, and a link relative to that file names an artefact the repository has.
         paths=paths_in(
-            text, config.root, near=config.path(role).parent, known=known_directories(config)
+            text,
+            config.root,
+            near=config.path(role).parent,
+            known=lambda: known_directories(config),
         ),
     )
 
@@ -201,7 +205,7 @@ def paths_in(
     root: Path,
     *,
     near: Path | None = None,
-    known: frozenset[str] | None = None,
+    known: Callable[[], frozenset[str] | None] | None = None,
 ) -> tuple[Referenced, ...]:
     """Quoted paths, deduplicated, in order of appearance.
 
@@ -214,12 +218,17 @@ def paths_in(
     itself reads — 886 of them — and the question being asked is whether the repository
     has the artefact, not whether the link would render from where it is written.
 
-    `known` is every directory the repository knows about, which is what decides whether a
-    token is a *claim* at all (RK217, and see :func:`_claims_a_file`). Passed in rather than
-    computed here, because it costs two git calls and this function is called per entry —
-    and omitted by a caller with no repository, which keeps the filesystem answer.
+    `known` answers *which directories the repository knows about*, which is what decides
+    whether a token is a claim at all (RK217, and see :func:`_claims_a_file`). A **callable**
+    and not the set, because the set costs a git listing and is needed only for a token that
+    fails `exists` — which on a healthy repository is none of them (RK222): `show` went from
+    1.1 ms to 36.6 ms here and 4.2 ms to 73.4 ms on Turing by computing it up front, on the
+    read that starts every task. Called at most once per run of this function, and never
+    where every path resolves. Omitted, or answering None, keeps the filesystem answer.
     """
     out: dict[str, Referenced] = {}
+    directories: frozenset[str] | None = None
+    asked = False
     for match in _QUOTED.finditer(text):
         token = (match.group(1) or match.group(2)).rstrip(".,;:")
         if not token or _SCHEME.match(token) or token.startswith("#"):
@@ -236,9 +245,12 @@ def paths_in(
             continue
         exists = _resolves(token, root, near)
         # Either the repository really has it, or the token is a decidable claim that it
-        # should: a filename whose directory is there (RK55). A slash alone is not — 60 of
-        # Shio's 61 findings were a MIME type, an i18n key or two method names sharing one.
-        if exists or _claims_a_file(token, root, near, known):
+        # should: a filename whose directory the repository knows (RK55, RK217). A slash
+        # alone is not — 60 of Shio's 61 findings were a MIME type, an i18n key or two
+        # method names sharing one.
+        if not exists and known is not None and not asked:
+            directories, asked = known(), True
+        if exists or _claims_a_file(token, root, near, directories):
             out.setdefault(token, Referenced(path=token, exists=exists))
     return tuple(out.values())
 
