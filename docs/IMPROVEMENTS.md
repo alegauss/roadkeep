@@ -415,30 +415,6 @@ git configuration and should stay a flag rather than a default.
 
 ## Block F — The plugin
 
-### §RK185 Validate in characters, publish in words
-
-An LLM does not have characters. The tokenizer exposes tokens, so "200 characters" is a
-target reached by trial, and every retry in the observed loop was a re-guess. Words are
-different: they survive tokenization well enough that "one sentence, at most 25 words"
-lands inside 200 characters on the first attempt, with margin — 25 words at the corpus
-average of 6 characters is 150.
-
-That makes the unit a publishing decision rather than a validation one. Validation stays
-in characters: `line_max` is a real bound on a real string, and a word count cannot
-express it. What changes is what the author is given before composing — the `maxLength`
-in the MCP field schema and the two rules in the skill — where a character count is a
-number nobody can act on directly.
-
-The two are not in conflict, because the word figure is an aim and the character figure
-is the gate. Publishing both is what makes a first attempt land: the aim is hit reliably
-and sits inside the bound with slack, so the gate stops being reached. Deriving the word
-figure from the effective prose budget is why this waits on RK183 — a target computed
-from the published 200 would inherit the overrun and aim at prose the line has no room
-for.
-
-Nothing here writes prose or grades it (L4): a word budget is a number, stated in the
-schema the client already reads, and what fills it is still the author's.
-
 ### §RK198 The half of the parser cost RK174 left
 
 RK174 took `tools/list` from 58 builds and 195 ms to one build and 3.4 ms, by building

@@ -21,6 +21,13 @@ Nothing here restates a limit. Every number is :meth:`Schema.prose_budget`,
 :meth:`Schema.why_budget` or a field's own declared maximum, read off the schema — a
 constant here would be one more thing to keep true, and the first slot to move would make
 this the second opinion an author trusts.
+
+**Validated in characters, published in words** (RK185). A model has no characters: the
+tokenizer exposes tokens, so "200 characters" is a target reached by trial and every retry
+is a re-guess. Words survive tokenization well enough to be aimed at, so every number above
+is also stated as one — the aim, beside the gate. They are not in conflict, because the
+character figure is what refuses and the word figure is what an author can act on before a
+sentence exists; publishing only the first is the arrangement L1 exists to end.
 """
 
 from __future__ import annotations
@@ -32,6 +39,27 @@ from roadkeep.authoring import compose
 from roadkeep.config import Config
 from roadkeep.ids import next_id
 from roadkeep.schema import Task
+
+#: Characters per word, for turning a budget that refuses into one that can be aimed at
+#: (RK185). Measured over this repository's 392 written `symptom` and `why` fields: the
+#: median is 5.5 and the 95th percentile 6.36, so this is the first round number above it
+#: — an author who lands on the word aim clears the character gate about nineteen times in
+#: twenty, and the twentieth is the refusal that already names the surplus (RK184).
+#:
+#: Not configuration (L6). A project declares how long its lines may be; this is a property
+#: of the prose those lines are written in, and a `roadkeep.toml` field for it would be a
+#: project declaring a fact about English. The corpus that fixes it is the one the format is
+#: proven by, and `tests/test_budgeting.py` re-measures it rather than trusting this comment.
+CHARS_PER_WORD = 6.5
+
+
+def words(chars: int) -> int:
+    """A character budget as the word count it is safe to aim at.
+
+    Floored, never rounded: an aim that rounds up is an aim that lands over the gate half
+    the time it is hit exactly, which is the retry this exists to remove.
+    """
+    return max(0, int(chars // CHARS_PER_WORD))
 
 
 @dataclass(frozen=True, slots=True)
@@ -48,6 +76,16 @@ class Share:
     @property
     def left(self) -> int:
         return max(0, self.allowed - self.taken)
+
+    @property
+    def aim(self) -> int:
+        """What this field allows, in the unit an author can count (RK185).
+
+        Derived from :attr:`allowed` and not from :attr:`limit`, which is the whole reason
+        it waited on RK183: an aim computed from the published ceiling would inherit the
+        overrun and send the author at prose the line has no room for.
+        """
+        return words(self.allowed)
 
     @property
     def bound_by_line(self) -> bool:

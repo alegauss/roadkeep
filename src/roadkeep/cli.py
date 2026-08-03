@@ -3036,7 +3036,10 @@ def _brief(config: Config, args: argparse.Namespace) -> int:
         # One line, and only the field an amend rewrites (RK190): the whole table is
         # `budget`'s answer, and a brief that grew one would stop being a bounded one.
         why = gathered.budget.share("why")
-        print(f"  budget   why {why.left} of {why.allowed} left, {gathered.budget.prose} for prose")
+        print(
+            f"  budget   why {why.left} of {why.allowed} left, aim {why.aim} words, "
+            f"{gathered.budget.prose} for prose"
+        )
     for resolution in gathered.deps:
         print(f"  dep      {resolution.dep.id}  {resolution.status}  {resolution.detail}")
     for chain in gathered.chains:
@@ -3179,7 +3182,12 @@ def _budget(config: Config, args: argparse.Namespace) -> int:
         # refuses. Both, and which one binds, because that difference is the whole finding.
         bound = "  ← the line binds, not the field" if share.bound_by_line else ""
         taken = f", {share.taken} written, {share.left} left" if share.taken else ""
-        print(f"  {share.field:<11}{share.allowed} of {share.limit}{taken}{bound}")
+        # The aim, beside the gate (RK185): the characters are what refuses and the words
+        # are what a model can count towards, so both are stated and neither is converted.
+        print(
+            f"  {share.field:<11}{share.allowed} of {share.limit}{taken}"
+            f"  aim {share.aim} words{bound}"
+        )
     return EXIT_OK
 
 
@@ -3197,6 +3205,7 @@ def _budget_json(answer: Budget) -> dict[str, object]:
                 "field": share.field,
                 "limit": share.limit,
                 "allowed": share.allowed,
+                "aim": share.aim,
                 "taken": share.taken,
                 "left": share.left,
                 "bound_by_line": share.bound_by_line,

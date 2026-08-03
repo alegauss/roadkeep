@@ -155,7 +155,9 @@ project that arrived with drift, an absolute count answers nothing: `--baseline 
 ## Ask, don't count
 
 Every query takes `--json`. **`budget` is the pre-`add` read that saves a retry**: what a
-line leaves its prose fields, derived from the id, the marker, the deps and the pointer — all of which are known before the first word exists. `budget --block <x> --dep <id>
+line leaves its prose fields, derived from the id, the marker, the deps and the pointer — all of which are known before the first word exists. It answers in **both units**: the
+characters are what refuses, and the word aim beside them is the one a sentence can be
+composed towards, so write to the words and let the gate stay unreached. `budget --block <x> --dep <id>
 [--symptom "…"]` is the line an `add` is about to write, and `budget <id>` the one an `amend`
 is about to rewrite; the field's own `maxLength` is the ceiling, and what comes back is the
 lower number that actually binds. `brief` prints the `why`'s share of the line it hands over,

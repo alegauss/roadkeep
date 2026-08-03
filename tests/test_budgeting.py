@@ -16,7 +16,7 @@ from pathlib import Path
 
 import pytest
 
-from roadkeep.budgeting import budget, budget_of
+from roadkeep.budgeting import CHARS_PER_WORD, budget, budget_of, words
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.schema import DESIGNED
@@ -161,3 +161,73 @@ def test_a_shipped_task_has_no_line_to_budget(tmp_path, capsys):
 def test_an_unspellable_family_is_refused_rather_than_guessed(tmp_path, capsys):
     assert main(["-C", str(tmp_path), "budget", "--prefix", "ZZ"]) == EXIT_USAGE
     assert "ZZ" in capsys.readouterr().err
+
+
+# -- the aim, beside the gate (RK185) ----------------------------------------
+
+
+def test_the_conversion_is_the_corpus_and_not_a_comment():
+    """`CHARS_PER_WORD` is a measurement, so it is re-measured rather than asserted.
+
+    A model has no characters: publishing a ceiling only in them makes the first attempt a
+    guess. The figure that turns one into an aim is a property of the prose these files are
+    written in, so it is derived from the prose these files are written in — and a corpus
+    that drifted past it should fail here rather than quietly make every aim optimistic.
+    """
+    config = Config.discover(Path(__file__).parents[1])
+    ratios = sorted(
+        len(text) / len(text.split())
+        for role in ("roadmap", "changelog")
+        for entry in config.document(role).entries
+        for text in (entry.task.symptom or "", entry.task.why or "")
+        if text
+    )
+    assert len(ratios) > 100, "too small a corpus to fix a constant from"
+    p95 = ratios[int(len(ratios) * 0.95)]
+    # Above the 95th percentile, so an aim that is hit lands inside the gate about nineteen
+    # times in twenty; and not far above it, or the aim is tighter than the format allows.
+    assert p95 <= CHARS_PER_WORD <= p95 + 0.75
+
+
+def test_an_aim_that_is_hit_clears_the_gate_on_this_repositorys_own_lines():
+    # The claim the constant makes, on the artefact the format is proven by: no line whose
+    # word count is at or under its field's aim is over that field's character limit.
+    config = Config.discover(Path(__file__).parents[1])
+    schema = config.schema
+    for role in ("roadmap", "changelog"):
+        for entry in config.document(role).entries:
+            for text, limit in (
+                (entry.task.symptom or "", schema.symptom_max),
+                (entry.task.why or "", schema.why_max),
+            ):
+                if text and len(text.split()) <= words(limit):
+                    assert len(text) <= limit, text
+
+
+def test_the_aim_is_derived_from_what_the_line_allows_not_from_the_ceiling(tmp_path):
+    # Why this waited on RK183: an aim computed from the published `why` limit would send
+    # the author at prose the line has no room for, which is the overrun it inherits.
+    config = project(tmp_path)
+    answer = budget(config, block="A", symptom="x" * config.schema.symptom_max)
+    why = answer.share("why")
+    assert why.bound_by_line
+    assert why.aim == words(why.allowed) < words(why.limit)
+
+
+def test_the_command_states_both_units(tmp_path, capsys):
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "budget"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "aim" in printed and "words" in printed
+
+
+def test_the_json_carries_the_aim_per_field(tmp_path):
+    project(tmp_path)
+    answer = budget(Config.discover(tmp_path))
+    for share in answer.shares:
+        assert share.aim == words(share.allowed)
+
+
+def test_a_zero_budget_aims_at_nothing_rather_than_at_a_negative():
+    assert words(0) == 0
+    assert words(1) == 0

@@ -51,7 +51,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK185** (deps: RK183 ✅) **The budget an author is given is in characters, the one unit a model cannot count** — The MCP field schema and the skill publish 120 and 200, so a first attempt is a guess and the retries converge by feedback, where a word count would land inside on the first call. → §RK185
 - 📋 **RK198** (deps: —) **Every tool call rebuilds the whole CLI parser twice, and the argument check is what pays** — RK174 indexed the parser for `tools/list` and left `argv` resolving its subcommand per lookup — once for the arguments and again through `prose_of` — so each call spends 6.7ms on it. → §RK198
 
 ## Non-goals

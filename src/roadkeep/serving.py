@@ -69,6 +69,7 @@ from pathlib import Path
 from typing import Any, TextIO
 
 from roadkeep import __version__
+from roadkeep.budgeting import words
 from roadkeep.config import Config, ConfigError, Scope
 from roadkeep.locking import LockBusy
 from roadkeep.provenance import engine
@@ -335,7 +336,14 @@ TOOL_NAMES = frozenset(tool.argv_head[0] for tool in TOOLS)
 #: id shape. This is the whole of RK24 — the bound that refuses the prose and the bound the
 #: client validates against are read from the same `roadkeep.toml` (L6).
 _BOUNDS = {
-    "symptom": lambda config: {"maxLength": config.schema.symptom_max},
+    # `maxLength` is what refuses; the word figure is what an author can aim at (RK185). A
+    # model has no characters, so a ceiling published only in them is a target reached by
+    # trial — and the aim is stated in the sentence rather than as a second keyword, because
+    # a client validating word counts would refuse prose this server accepts.
+    "symptom": lambda config: {
+        "maxLength": config.schema.symptom_max,
+        "note": _aimed(config.schema.symptom_max),
+    },
     # `maxLength` is the field's own ceiling and not the one that binds (RK183): the line
     # is, and how much of it this field has left depends on the symptom and the deps of the
     # call being composed, which no static number can state. So the ceiling is published as
@@ -344,11 +352,12 @@ _BOUNDS = {
     "why": lambda config: {
         "maxLength": config.schema.why_max,
         "note": (
-            f"The binding limit is the rendered line ({config.schema.line_max}), which "
-            f"this sentence shares with the symptom and with the line's own structure, so "
-            f"the usable maximum is lower than {config.schema.why_max} and lower again "
-            f"where the line carries deps. `budget` answers it before a word is written "
-            f"(RK190); the refusal names what was left."
+            f"{_aimed(config.schema.why_max)} The binding limit is the rendered line "
+            f"({config.schema.line_max}), which this sentence shares with the symptom and "
+            f"with the line's own structure, so the usable maximum is lower than "
+            f"{config.schema.why_max} and lower again where the line carries deps. "
+            f"`budget` answers it in both units before a word is written (RK190); the "
+            f"refusal names what was left."
         ),
     },
     "status": lambda config: {"enum": list(config.schema.markers)},
@@ -372,9 +381,20 @@ _CONDITIONAL: Mapping[str, Any] = {
 #: here — a client validating a bullet against the *task* limit would refuse prose the tool
 #: accepts, which is the one way this derivation can be wrong while looking right.
 _SCOPE_BOUNDS = {
-    "lead": lambda config: {"maxLength": (config.non_goals or Scope()).lead},
-    "why": lambda config: {"maxLength": (config.non_goals or Scope()).why},
+    "lead": lambda config: {
+        "maxLength": (config.non_goals or Scope()).lead,
+        "note": _aimed((config.non_goals or Scope()).lead),
+    },
+    "why": lambda config: {
+        "maxLength": (config.non_goals or Scope()).why,
+        "note": _aimed((config.non_goals or Scope()).why),
+    },
 }
+
+
+def _aimed(limit: int) -> str:
+    """The character ceiling restated as the word count a model can count towards (RK185)."""
+    return f"Aim for {words(limit)} words; {limit} characters is what refuses."
 
 
 class ToolError(Exception):
@@ -439,9 +459,7 @@ def _property(
     # cannot say what else the length depends on, so the part that is a *joint* rule is
     # appended to the sentence the CLI already prints for the flag rather than dropped.
     note = bounds.pop("note", "")
-    described = {
-        "description": " ".join(part for part in ((action.help or "").strip(), note) if part)
-    }
+    described = {"description": _joined((action.help or "").strip(), note)}
     if isinstance(action, argparse._StoreTrueAction):  # noqa: SLF001
         return {"type": "boolean", **described}
     if isinstance(action, argparse._AppendAction):  # noqa: SLF001
@@ -453,6 +471,21 @@ def _required(action: argparse.Action) -> bool:
     # A positional is required by being one; `nargs="?"` is the exception, and `ship id` is
     # not one. Reading it off the action keeps the two lists from disagreeing.
     return bool(action.required) or (not action.option_strings and action.nargs != "?")
+
+
+def _joined(help_: str, note: str) -> str:
+    """The flag's own sentence and what the config adds to it, as one readable string.
+
+    The CLI's `help` is a fragment with no full stop — it is read under a column heading —
+    so a note appended with a space ran the two together into "never a fix Aim for 18
+    words". Ending the first is the whole fix, and it is here rather than in each note
+    because the notes are composed by the config and the fragment by argparse.
+    """
+    if not note:
+        return help_
+    if help_ and help_[-1] not in ".!?:;":
+        help_ += "."
+    return " ".join(part for part in (help_, note) if part)
 
 
 def _description(tool: Tool, parser: argparse.ArgumentParser) -> str:
