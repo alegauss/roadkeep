@@ -49,6 +49,13 @@ PYPROJECT = "pyproject.toml"
 #: a project that never pauses anything has no store, rather than an empty one.
 ROLES = ("roadmap", "changelog", "improvements", "strategy", "deferred")
 
+#: The governed files a `→ §<anchor>` pointer may address (RK172). Both, because `[files]`
+#: declares strategy as a governed role and a line pointing at it is already in the model.
+#: Here rather than beside either reader, because the gate and `show` resolving against
+#: different sets is exactly what RK186 was: one of them called a section the other found.
+#: Order is where a design goes when there is none yet — improvements first.
+PROSE_ROLES = ("improvements", "strategy")
+
 DEFAULT_PATHS: Mapping[str, str] = {
     "roadmap": "docs/ROADMAP.md",
     "changelog": "docs/CHANGELOG.md",

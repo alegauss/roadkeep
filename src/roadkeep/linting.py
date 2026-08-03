@@ -92,7 +92,7 @@ from pathlib import Path
 
 from roadkeep import scoping
 from roadkeep.backlog import Backlog, DepStatus, id_order
-from roadkeep.config import ROLES, Config
+from roadkeep.config import PROSE_ROLES, ROLES, Config
 from roadkeep.document import Document, Entry, ending
 from roadkeep.exporting import BEGIN, DEFAULTS, NoMarkers, project, splice
 from roadkeep.graph import Graph
@@ -120,11 +120,6 @@ LINE_ROLES = ("roadmap", "changelog", "deferred")
 #: work, and work set aside (RK96). The ledger is not among them — `ship` and `retire`
 #: delete the section in the transaction that writes the entry.
 LIVE_ROLES = ("roadmap", "deferred")
-
-#: The governed files a `→ §<anchor>` pointer may address (RK172). Both, because `[files]`
-#: declares strategy as a governed role and a line pointing at it is already in the model —
-#: the gate was the only part that resolved against one file and called the rest missing.
-PROSE_ROLES = ("improvements", "strategy")
 
 #: Variation selectors, which are `Mn` and not a format category: invisible all the same,
 #: and the class the parser already had to defend against (`_looks_like_marker`, RK2).

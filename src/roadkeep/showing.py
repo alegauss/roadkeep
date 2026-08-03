@@ -30,7 +30,7 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
-from roadkeep.config import Config
+from roadkeep.config import PROSE_ROLES, Config
 from roadkeep.document import Entry
 from roadkeep.schema import Task
 from roadkeep.sections import Section, find
@@ -122,21 +122,50 @@ def _locate(config: Config, task_id: str) -> tuple[Entry, str]:
 def _rationale(
     config: Config, entry: Entry, shipped: bool
 ) -> tuple[Section | None, str | None, str]:
-    if not config.has("improvements"):
-        return None, None, "this project declares no improvements file"
-    path = config.path("improvements")
-    where = config.relative(path)
-    if not path.is_file():
-        return None, where, f"{where} is not on disk yet"
-    section = find(config.document("improvements"), entry.task.ref or entry.task.id)
-    if section is not None:
-        return section, where, ""
+    """The section the pointer addresses, from **whichever** prose role declares it (RK186).
+
+    RK172 taught resolution that a pointer addresses every governed prose file, because
+    `[files]` declares strategy as a role and a line pointing at it is already in the model.
+    It taught the gate and not this reader — and this is the worse half to leave: `lint` is
+    the backstop and is read once, while `show` and `brief` are what *start* a task. An agent
+    told the pointer resolves to nothing writes the design a second time, under an anchor the
+    line does not name, which is the `section.unreachable` RK135 exists to report.
+
+    Two roles declaring one anchor is the ambiguity, not a first match: reading the first is
+    what billed T354's `§X.1` 365 words of somebody else's subtree without saying so, and
+    `ref.ambiguous` is the gate's own word for it.
+    """
+    anchor = entry.task.ref or entry.task.id
+    roles = tuple(role for role in PROSE_ROLES if config.has(role))
+    if not roles:
+        return None, None, f"this project declares no {' or '.join(PROSE_ROLES)} file"
+    named = " or ".join(config.relative(config.path(role)) for role in roles)
+    # Where the design would go, for every answer that has no section: the first declared
+    # role, which is `improvements` wherever a project declares one.
+    where = config.relative(config.path(roles[0]))
+    on_disk = tuple(role for role in roles if config.path(role).is_file())
+    if not on_disk:
+        return None, where, f"{named} is not on disk yet"
+    found = [
+        (config.relative(config.path(role)), section)
+        for role in on_disk
+        if (section := find(config.document(role), anchor)) is not None
+    ]
+    if len(found) == 1:
+        return found[0][1], found[0][0], ""
+    if found:
+        both = " and ".join(file for file, _ in found)
+        return (
+            None,
+            None,
+            f"§{anchor} is declared by {both}: one anchor names one section, and a "
+            f"pointer resolving to two resolves to neither",
+        )
     if shipped:
         # Not a defect: `ship` deletes the section, which is what keeps the prose file a
         # design file rather than a second changelog (RK6).
         return None, where, "deleted on ship, which is where the rationale ends"
-    anchor = entry.task.ref or entry.task.id
-    return None, where, f"§{anchor} is not in {where}: the pointer resolves to nothing"
+    return None, where, f"§{anchor} is not in {named}: the pointer resolves to nothing"
 
 
 def paths_in(text: str, root: Path, *, near: Path | None = None) -> tuple[Referenced, ...]:

@@ -54,11 +54,15 @@ def project(
     roadmap: str = BACKLOG,
     changelog: str = LEDGER,
     improvements: str | None = RATIONALE,
+    strategy: str | None = None,
 ) -> Config:
     files = 'roadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
     if improvements is not None:
         files += 'improvements = "IMPROVEMENTS.md"\n'
         (tmp_path / "IMPROVEMENTS.md").write_text(improvements, encoding="utf-8")
+    if strategy is not None:
+        files += 'strategy = "STRATEGY.md"\n'
+        (tmp_path / "STRATEGY.md").write_text(strategy, encoding="utf-8")
     (tmp_path / "roadkeep.toml").write_text(
         f'prefix = "RK"\n[files]\n{files}', encoding="utf-8"
     )
@@ -124,7 +128,52 @@ def test_a_pointer_that_resolves_to_nothing_says_so(tmp_path):
 def test_a_project_with_no_prose_file_is_a_configuration_not_a_fault(tmp_path):
     view = show(project(tmp_path, improvements=None), "RK1")
     assert view.section is None and view.section_file is None
-    assert view.section_absence == "this project declares no improvements file"
+    # Both roles named, because both are roles a pointer may address (RK172): a message
+    # naming one would describe a project that declares the other as declaring nothing.
+    assert view.section_absence == "this project declares no improvements or strategy file"
+
+
+# -- the pointer addresses every prose file, not the first one ---------------
+
+POSITIONING = """# Strategy
+
+## Block A — The model
+
+### §RK4 Where this sits
+
+The positioning prose, which `[files]` declares a governed role for.
+"""
+
+
+def test_a_pointer_into_the_strategy_file_resolves(tmp_path):
+    # RK186: RK172 taught the gate that a pointer addresses every governed prose role and
+    # left this reader asking the improvements file alone — so `brief` denied a design the
+    # config declares, on the call that *starts* a task.
+    view = show(project(tmp_path, strategy=POSITIONING), "RK4")
+    assert view.section is not None and view.section.title == "Where this sits"
+    assert view.section_file == "STRATEGY.md" and view.section_absence == ""
+
+
+def test_an_anchor_two_prose_files_declare_resolves_to_neither(tmp_path):
+    # The gate's own answer, in the reader's words: reading the first is what bills a task
+    # somebody else's subtree without saying so, so the ambiguity is stated.
+    config = project(
+        tmp_path,
+        improvements=RATIONALE + "\n### §RK4 A fourth design\n\nWritten here too.\n",
+        strategy=POSITIONING,
+    )
+    view = show(config, "RK4")
+    assert view.section is None and view.section_file is None
+    assert "IMPROVEMENTS.md and STRATEGY.md" in view.section_absence
+    assert "resolves to neither" in view.section_absence
+
+
+def test_an_unresolved_pointer_names_every_file_it_was_looked_for_in(tmp_path):
+    view = show(project(tmp_path, strategy=POSITIONING.replace("RK4", "RK9")), "RK4")
+    assert view.section is None
+    assert "§RK4 is not in IMPROVEMENTS.md or STRATEGY.md" in view.section_absence
+    # And where a design would go is still named: the first declared role.
+    assert view.section_file == "IMPROVEMENTS.md"
 
 
 # -- the paths its text names ------------------------------------------------

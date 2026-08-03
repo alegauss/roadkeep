@@ -119,31 +119,6 @@ is some, the fix is RK179's, already written, moved one module over.
 
 ## Block C — Query
 
-### §RK186 The reader that did not learn what the gate learned
-
-RK172 taught resolution that a pointer addresses **every** governed prose file, because
-`[files]` declares strategy as a governed role and a line pointing at it is already in
-the model. It taught the gate. It did not teach the reader.
-
-`showing._rationale` still asks `config.has("improvements")`, loads that one document
-and calls `find` on it. So on the corpus RK172 was measured against, Turing's six GEO
-lines now lint clean and `brief T354` answers `§X.3 is not in docs/IMPROVEMENTS.md: the
-pointer resolves to nothing` — for a section `docs/STRATEGY.md` declares and the gate
-resolves.
-
-Which is the worse half of the two. `lint` is the backstop and is read once; `brief` is
-the call that *starts* a task, is read every time, and its whole promise is that a task
-begins in one call with the rationale in hand. An agent handed "the pointer resolves to
-nothing" writes the design again, under an anchor the line does not name, and the second
-draft is exactly the `section.unreachable` RK135 exists to report.
-
-The fix is the shape RK172 already established: the anchor is looked for in each
-declared prose role, the file that declares it is what `section_file` names, and two
-roles declaring one anchor is the ambiguity `ref.ambiguous` states rather than a first
-match. `show` is the same call underneath, so both doors close together — and `section
-show`, which reads its own document by role, is the one place that already had the
-answer.
-
 ### §RK190 A budget that is only ever a refusal
 
 RK183 made the `why`'s limit the smaller of its own and what the line has left, and

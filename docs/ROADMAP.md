@@ -29,7 +29,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK186** (deps: —) **`brief` reports a pointer into the strategy file as resolving to nothing** — `showing._rationale` reads the improvements file alone, so RK172's widening stopped at the gate and the call that starts a task denies a design the file declares. → §RK186
 - 📋 **RK190** (deps: —) **A line's prose budget is discoverable only by writing a sentence and being refused** — RK183 derives what a line has left for prose from fields `add` knows before the first word exists, and no command answers it, so the number arrives as a refusal. → §RK190
 - 📋 **RK194** (deps: —) **No query shows the lines a wrapped entry owns, so what a correction replaces is read off the file** — `list` prints the entry's first line and `show` its parsed fields, so confirming what RK179's `--lines` deletes means opening a 290-entry ledger — the read L5 exists to replace. → §RK194
 
