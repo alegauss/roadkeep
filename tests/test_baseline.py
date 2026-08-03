@@ -499,3 +499,36 @@ def test_both_spellings_of_a_token_are_asked_about(tmp_path):
     (tmp_path / "docs" / "build").mkdir(parents=True)
     write(tmp_path, "docs/CHANGELOG.md", naming("build/out.js"))
     assert "path.missing" not in codes(lint(config))
+
+
+def test_one_escaping_path_does_not_take_the_whole_batch_with_it(tmp_path):
+    """RK220: git refuses the whole `check-ignore` invocation over a single path outside
+    the repository, and that refusal arrives through the same door as "there is no git" —
+    where RK213 withholds nothing. So one `../` in a ledger silently returned the gate to
+    its pre-RK213 behaviour for every other path in the file.
+
+    Found by RK217's own measurement, on Shio, whose ledger writes `../package.json`
+    because its governed files live under `docs/` — the RK51 convention this check exists
+    to accommodate.
+    """
+    config = repo(
+        tmp_path,
+        config=CONFIG.replace('changelog = "CHANGELOG.md"', 'changelog = "docs/CHANGELOG.md"'),
+        files={".gitignore": "bin/\n", "docs/CHANGELOG.md": LEDGER},
+    )
+    (tmp_path / "bin" / "out").mkdir(parents=True)
+    write(
+        tmp_path,
+        "docs/CHANGELOG.md",
+        LEDGER.replace(
+            "Because it was done.",
+            "Because it was done, in `bin/out/app.exe` and `../outside.txt`.",
+        ),
+    )
+    reported = paths(lint(config))
+    # The ignored one is still withheld, and the escaping one is still reported: a path
+    # above the root is not something this repository declared either way.
+    assert reported == ["path.missing RK5"]
+    assert "bin/out/app.exe" not in " ".join(
+        f.message for f in lint(config).findings
+    )

@@ -1518,7 +1518,16 @@ def _ignored(config: Config, tokens: Sequence[tuple[str, Path]]) -> frozenset[st
     for token, near in tokens:
         for base in (near, config.root):
             with contextlib.suppress(ValueError):
-                asked.setdefault(_posix(config, base / token), token)
+                spelling = _posix(config, base / token)
+                # A path above the root is nothing this repository's `.gitignore` could
+                # have declared, and git refuses the **whole** invocation over one of them
+                # (RK220): `fatal: '../x' is outside repository`, arriving through the same
+                # door as "there is no git here", where nothing is withheld. One `../` in a
+                # ledger would therefore return the gate to its pre-RK213 behaviour for
+                # every other path in the file. The *spelling* is dropped and not the
+                # token, because the other base may still be inside.
+                if not spelling.startswith("../"):
+                    asked.setdefault(spelling, token)
     if not asked:
         return frozenset()
     try:
