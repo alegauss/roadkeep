@@ -116,17 +116,17 @@ called unbuilt were already in the ledger.
 
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
-| A — The model (a task is data before it is a line) | 2 | 21 | 0 |
+| A — The model (a task is data before it is a line) | 4 | 21 | 0 |
 | B — Authoring (insert, never hand-edit) | 3 | 37 | 0 |
 | C — Query (consult without reading the file) | 1 | 33 | 0 |
 | D — The gate | 12 | 16 | 0 |
 | E — Adoption | 9 | 18 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 3 | 23 | 1 |
-| **Total** | 30 | 148 | 2 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 4 | 23 | 1 |
+| **Total** | 33 | 148 | 2 |
 
 **Next ready:**
 
-- 📋 **RK103** (deps: —) **A bullet whose marker holds a space is read as prose and reported by nothing** — GitHub's `- [ ]` task list is the commonest Markdown backlog there is, and cursarei's 16 of them parse as 0 entries and 0 rejects — the silent miss the reject list exists to end. → §RK103
+- 🛠 **RK105** (deps: —) **A concurrent edit in another repository turns this project's suite red** — The round-trip property reads Shio's and Turing's working trees, so a run went red for a change neither this commit nor this repository made, and a red nobody caused is a red nobody reads. → §RK105
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

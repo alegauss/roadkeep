@@ -116,6 +116,52 @@ already answers the second in prose - a line waits on the whole - so the cheap s
 an id that is one identity with several entries, and a duplicate check that counts parts
 as one. RK122 is the same question one file up.
 
+### §RK183 Three limits, and the two that are published are the two that do not bind
+
+Measured here and in claude-tray, same numbers in both: `symptom_max` 120 plus `why_max`
+200 is exactly `line_max` 320, while the rendered structure — the dash, the marker, the
+bold id, the `(deps: …)` group, the em dash and the `→ §<id>` pointer — costs 38
+characters with no deps, 43 with one and 51 with two. The sum overruns the line budget
+by the whole structure, always: no prose satisfies all three, and an author writing to
+120 and 200 is refused by construction.
+
+Which of the three is published matters more than the arithmetic. The MCP field schema
+advertises `maxLength` 120 and 200, and those are the numbers the author composes
+against; the one that refuses is `line.too-long`, measured on a string the author never
+writes and whose overhead varies with the dep count. The binding limit is the
+unpublished one, so the retry loop is not an author failing to obey a budget — it is an
+author obeying the wrong one.
+
+The fix belongs here and not in `roadkeep.toml`: lowering `why` to 160 would leave the
+same defect in every project that declares its own numbers. `add` knows the id, the
+marker, the deps and the pointer before the prose exists, so this line's prose budget is
+derivable as `line_max` minus the structure it will render, and a field may hold the
+smaller of its own limit and what the line has left — which is the promise `maxLength`
+already makes and cannot keep.
+
+### §RK184 A refusal an author can subtract from, not one they recompose against
+
+The refusal `line.too-long` reads `rendered line is 327 characters, limit is 320: move
+the remainder to the improvements section`. Both numbers are there, so the surplus is
+derivable — seven characters — and that is not what the message asks for. "Move the
+remainder" is editorial advice, and an author who takes it rewrites the sentence; a
+rewrite re-rolls the length, which is why the observed sequence was 327, then 303, then
+300 rather than 327 then 320.
+
+The unit is the second half of it. A limit on the rendered line is not a limit on any
+field the author wrote, so the message names a total nobody composed and leaves which of
+`symptom` and `why` is over unsaid. `_check_text` already does better for a single field
+— it names the field, its length and its limit — and the section refusal does better
+still: 253 words, limit is 250 states the unit and the excess, and one deletion answers
+it.
+
+So the shape to copy is already in the tool. A length refusal should name the field to
+cut, the characters to remove from it, and say to delete rather than to move:
+subtraction is an operation an author performs reliably, where composing to a target
+length is one that succeeds by feedback. The advice about the improvements section is
+still true, and belongs after the arithmetic instead of in place of it — it answers
+where the text goes, not how much has to leave.
+
 ## Block B — Authoring
 
 ### §RK179 The half of a sentence the parse never held
@@ -696,3 +742,27 @@ state" is a claim to break on purpose rather than by accident.
 
 The alternative is to accept it and say so in the refusal: a field this project declares
 may want the session restarted. Cheaper, and it makes the wrong sentence a right one.
+
+### §RK185 Validate in characters, publish in words
+
+An LLM does not have characters. The tokenizer exposes tokens, so "200 characters" is a
+target reached by trial, and every retry in the observed loop was a re-guess. Words are
+different: they survive tokenization well enough that "one sentence, at most 25 words"
+lands inside 200 characters on the first attempt, with margin — 25 words at the corpus
+average of 6 characters is 150.
+
+That makes the unit a publishing decision rather than a validation one. Validation stays
+in characters: `line_max` is a real bound on a real string, and a word count cannot
+express it. What changes is what the author is given before composing — the `maxLength`
+in the MCP field schema and the two rules in the skill — where a character count is a
+number nobody can act on directly.
+
+The two are not in conflict, because the word figure is an aim and the character figure
+is the gate. Publishing both is what makes a first attempt land: the aim is hit reliably
+and sits inside the bound with slack, so the gate stops being reached. Deriving the word
+figure from the effective prose budget is why this waits on RK183 — a target computed
+from the published 200 would inherit the overrun and aim at prose the line has no room
+for.
+
+Nothing here writes prose or grades it (L4): a word budget is a number, stated in the
+schema the client already reads, and what fills it is still the author's.
