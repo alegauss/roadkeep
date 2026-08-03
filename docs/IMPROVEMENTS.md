@@ -287,6 +287,47 @@ and may not need a second.
 
 ## Block D — The gate
 
+### §RK223 Two passes over one question
+
+RK213 needed every candidate token before asking `check-ignore`, because one call for
+all of them is what keeps the question cheap. It got them with a comprehension of its
+own, and the comprehension that builds the findings then repeats the same scan — same
+entries, same regex, same three readers.
+
+Measured at Turing's pin: `paths_in` is entered **1602 times** for 801 entries, and
+`_paths` costs 2.9 s. One pass over every entry is 559 ms, so the repetition is not a
+rounding error in it — it is most of it, and the rest is what RK224 names.
+
+Seconds matter here because this is the gate: RK17 wires it into a pre-commit hook and
+an Action, and a check somebody waits three seconds for on every commit is one they
+start passing `--no-verify` to.
+
+The shape is a single pass that keeps what it found. A candidate is a `Referenced` plus
+the entry it came from, and the finding is built from the same pair — so what is needed
+is a list of those, gathered once, filtered by the ignore answer afterwards. Nothing
+about the order of the three readers changes; only how many times each entry is read.
+
+### §RK225 The disk asked after it stopped being a reader
+
+RK218 established that a run naming a revision does not consult the disk: `holds`
+answers from git, file and directory both, and `referenced.exists` is ignored. What it
+did not change is that `paths_in` still **computes** it — `_resolves` tries each token
+against the ledger's directory and against the root, and both are a `stat`.
+
+Profiled at Turing's pin: 17076 calls to `_resolves` producing **34070** `nt.stat`
+calls, 0.95 s of the 2.9 s `_paths` costs. Every one of them is discarded, because that
+run is judging a revision.
+
+It is not only waste. `paths_in` also uses `exists` to decide *candidacy* — a token is
+kept when it resolves or when its directory is one the repository knows — so at a
+revision the candidate set is still half decided by this afternoon's disk, which is the
+same half-read RK218 closed one layer up and left open here.
+
+So the two halves are one change: the tree that a run is judging answers whether it has
+the artefact, and `paths_in` asks that instead of `Path.exists`. Where there is no tree
+to ask — a checkout with no history — the disk is still the answer, which is what RK217
+already settled.
+
 ## Block E — Adoption
 
 ### §RK103 The marker slot that holds two tokens
