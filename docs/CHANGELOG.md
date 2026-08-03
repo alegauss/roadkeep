@@ -32,6 +32,7 @@
 - ✅ **RK118** **A reader can load a governed file truncated, and an interrupted ship leaves two of its three files written** — Every file is replaced in one step rather than truncated and refilled, and the order of a transaction's writes is chosen so each middle state is loud and lossless.
 - ✅ **RK121** **A task delivered in halves has no representation, so the corpus invents one the grammar cannot read** — A ledger entry may carry the qualifier the corpus already writes, and `ship --part` is the verb that sets it and the later `ship` that removes it.
 - ✅ **RK131** **The check that a transaction's files have not moved is taken before writes that take it again** — A transaction renders every file to a scratch name, then checks all of its targets, then renames them, so a writer landing between the check and the last write is caught before anything has landed.
+- 🗑 **RK133** **Every part of a split delivery carries the base id, so a four-step ship is four contradictions** — abandoned: Shio answered it by minting one id per step (SH366-SH371, each qualifier naming its parent), so the six findings were correct and the pinned ledger now states no id twice.
 
 ## Block B — Authoring
 

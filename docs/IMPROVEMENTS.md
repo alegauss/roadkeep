@@ -75,22 +75,6 @@ already written, not authorship.
 
 ## Block A — The model
 
-### §RK133 The part is read and then dropped
-
-RK121 taught the parser to read `SH96 (local half)`, and the two `deps.unknown` it was
-filed for went to zero. Measured on the same tree immediately after: `id.duplicate` went
-0 -> 6 and `id.two-files` 1 -> 3. Nothing in Shio changed; the ids simply became
-readable, and every part resolved to the same base id. Four entries spell `SH348 (the
-measurement)`, `(step 1 of 4)`, `(steps 2 and 3)` and `(step 4 - the sibling link)`: one
-task delivered in four commits, which is the state RK121 exists to represent, now
-reported as four answers to whether it is done. The `part` is parsed and then discarded
-before anything asks what identity it confers. Two questions the fix has to answer, and
-neither is obvious: whether `SH348 (step 1 of 4)` and `SH348 (step 2)` are one id or
-two, and what `deps: SH348` means when three of four parts have landed. The corpus
-already answers the second in prose - a line waits on the whole - so the cheap shape is
-an id that is one identity with several entries, and a duplicate check that counts parts
-as one. RK122 is the same question one file up.
-
 ### §RK183 Three limits, and the two that are published are the two that do not bind
 
 Measured here and in claude-tray, same numbers in both: `symptom_max` 120 plus `why_max`

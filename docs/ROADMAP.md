@@ -22,7 +22,6 @@
 
 ## Block A — The model (a task is data before it is a line)
 
-- 📋 **RK133** (deps: —) **Every part of a split delivery carries the base id, so a four-step ship is four contradictions** — RK121 reads the part and does not carry it into identity, so Shio's four SH348 entries became six duplicate findings and three two-files findings against correct history. → §RK133
 - 📋 **RK183** (deps: —) **The two field limits sum to the line limit, so a line obeying both is refused by the third** — symptom 120 plus why 200 is exactly line 320 while the rendered structure costs 38 to 52, so an author writing to the limits it was given is refused by one it cannot compute. → §RK183
 - 📋 **RK184** (deps: —) **A length refusal names the rendered total and not the field that is over or the surplus** — line.too-long reports 327 against 320 and advises moving the remainder, so the author rewrites the sentence instead of deleting seven characters and the next attempt re-rolls the length. → §RK184
 - 📋 **RK187** (deps: —) **`export --readme --site` writes the first file and then refuses the second, leaving one refreshed** — RK132 gave the splice the staleness check every governed write makes and not the all-or-nothing rule beside it, so one target lands and the other's staleness survives the command. → §RK187
