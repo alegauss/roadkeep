@@ -1058,9 +1058,20 @@ def _owners(section: Section, ids: re.Pattern[str]) -> tuple[str, ...]:
     was written for: Shio files its rationale under `## VIII. The Agent Gateway (Block H)`,
     which is an outline heading, so all 146 of its sections looked unowned. A section that
     means to cite a task rather than belong to it says so in its prose, which this never reads.
+
+    A **sub-anchor under the id scheme is derived from an id** and belongs to it (RK114):
+    `§RK34.1` is `RK34`'s subsection and the anchor says so, segment by segment — the same
+    reading :func:`~roadkeep.sections._extends` gives it one module over. Matching the whole
+    anchor cannot see that, which exempted every sub-anchor from both checks and let a
+    `renumber RK1 --to RK9` leave `§RK1.1` behind on a file `lint` then called clean. Only
+    the first segment is asked, so `§0.1` and `§XVI.12` still reach the heading below: prose
+    belonging to no task stays nobody's orphan.
     """
     if ids.match(section.anchor):
         return (section.anchor,)
+    root = section.anchor.split(".")[0]
+    if root != section.anchor and ids.match(root):
+        return (root,)
     return section.names(re.compile(rf"\b{ids.pattern.strip('^$')}\b"))
 
 

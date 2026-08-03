@@ -259,27 +259,6 @@ own construction, the number to report is one build, not fifty-two.
 
 ## Block D — The gate
 
-### §RK114 The sub-anchor the ownership check cannot see
-
-`_owners` decides who a section belongs to by matching its anchor against the project's
-id pattern. Under `ref_scheme = "id"` that pattern is `RK\d+`, so `§RK34.1` does not
-match; its title names no id either, and the section comes back owned by nobody.
-
-That is deliberate for `§0.1`, and written down as such: prose belonging to no task is
-nobody's orphan. The cost is that the rule cannot tell the two cases apart. A sub-anchor
-under the id scheme is *derived from* an id — `RK34.1` is `RK34`'s subsection and the
-anchor says so — but the check reads it the way it reads an outline heading, which is to
-say not at all.
-
-The consequence is measured rather than argued: after `renumber RK1 --to RK9` left
-`§RK1.1` behind, `lint` reported the file clean, two sections. Neither side sees it. No
-pointer resolves to a sub-anchor, so `_pointers` cannot; `_owners` exempts it, so
-`_orphans` does not.
-
-What the anchor already spells is the fix's whole input. The parent of `RK34.1` is
-`RK34`, which `_extends` reads segment by segment for `section add` today — the question
-is asked one module over and never here.
-
 ### §RK122 The gate reports the one project that did not hide it
 
 `id.two-files` says "open and recorded as gone are not both true". For a task delivered

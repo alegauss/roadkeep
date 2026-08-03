@@ -354,6 +354,33 @@ def test_a_section_no_line_points_at_is_an_orphan(tmp_path):
     assert [f.id for f in report.findings if f.code == "section.orphan"] == ["RK7"]
 
 
+def test_a_subsection_of_a_live_task_belongs_to_it(tmp_path):
+    # RK114: the anchor is derived from the id, so `§RK1.1` is RK1's — and RK1 is open.
+    # Nothing points at a sub-anchor, so if it were owned by nobody it would also be
+    # measured by nobody, which is the exemption the two assertions below close.
+    nested = PROSE + "\n#### §RK1.1 A part of the first design\n\nMore reasoning.\n"
+    assert lint(project(tmp_path, improvements=nested)).clean
+
+
+def test_a_subsection_left_behind_by_a_renumber_is_an_orphan(tmp_path):
+    # The measurement in §RK114: `renumber RK1 --to RK9` moves `§RK1` and leaves `§RK1.1`,
+    # and the file came back clean — no pointer resolves to a sub-anchor, so `_pointers`
+    # cannot see it, and matching the whole anchor against the id pattern exempted it here.
+    stranded = PROSE + "\n#### §RK7.1 A part of a design for nothing\n\nProse.\n"
+    report = lint(project(tmp_path, improvements=stranded))
+    orphan = next(f for f in report.findings if f.code == "section.orphan")
+    assert orphan.id == "RK7.1" and "RK7" in orphan.message
+
+
+def test_a_subsection_of_a_shipped_task_is_stale(tmp_path):
+    # `ship` deletes the section, and a section's subtree goes with it — so one that is
+    # still here outlived the ship the same way its parent would have.
+    survived = PROSE + "\n#### §RK5.1 A part of the shipped design\n\nStill here.\n"
+    report = lint(project(tmp_path, improvements=survived))
+    stale = next(f for f in report.findings if f.code == "section.stale")
+    assert stale.id == "RK5.1" and "RK5" in stale.message
+
+
 #: A project that numbers its rationale by hand, which is what both live corpora do (RK44).
 #: The id is in the heading, not the anchor: `§XIV.15 A design (RK5)`.
 OUTLINE_CONFIG = CONFIG.replace('prefix = "RK"', 'prefix = "RK"\nref_scheme = "outline"')
@@ -395,6 +422,13 @@ def test_an_outline_heading_naming_no_live_task_is_an_orphan(tmp_path):
     orphaned = OUTLINE_PROSE + "\n### §I.9 A design for nothing (RK7)\n\nProse.\n"
     report = lint(outline(tmp_path, improvements=orphaned))
     assert [f.id for f in report.findings if f.code == "section.orphan"] == ["I.9"]
+
+
+def test_an_outline_subsection_still_owns_only_what_its_heading_names(tmp_path):
+    # RK114 asks the anchor's *first segment*, so an outline sub-anchor reaches the heading
+    # rule unchanged — `I` is no id, and prose belonging to no task is nobody's orphan.
+    unowned = OUTLINE_PROSE + "\n#### §I.1.1 A shape of the file\n\nProse.\n"
+    assert lint(outline(tmp_path, improvements=unowned)).clean
 
 
 def test_an_outline_heading_that_names_no_task_owns_nothing(tmp_path):

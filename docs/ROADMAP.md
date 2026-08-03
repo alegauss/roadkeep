@@ -39,7 +39,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK114** (deps: —) **A subsection whose task is gone is exempt from the ownership check that would report it** — `_owners` matches the anchor against the id pattern, so `§RK34.1` is read as outline prose like `§0.1` and belongs to nobody — the exemption that let a half-renamed subtree lint clean. → §RK114
 - 📋 **RK122** (deps: RK121 ✅) **id.two-files calls a correct half-shipped state a contradiction** — Open in the roadmap and recorded in the ledger is exactly what a partial is, so Shio's SH238 is reported for spelling it plainly while six that hid it behind a parenthetical are not. → §RK122
 - 📋 **RK132** (deps: —) **The README block is read and written back with nothing checking the file did not move** — `_splice_into` opens the file, replaces what is between the markers and writes, holding no `Document`, so the one write this tool makes outside a governed file is the one that skips the check. → §RK132
 - 📋 **RK134** (deps: —) **A section that four open lines point at is reported stale, and the drop it names is refused** — `_unowned` decides from the ids in the heading while `section drop` decides from the pointers that resolve, so the only door the finding offers is the one the tool closes. → §RK134
