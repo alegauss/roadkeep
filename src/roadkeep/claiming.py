@@ -28,6 +28,11 @@ write lock lives (RK117), for the same three reasons:
   rather than only counting them: recognising one's own claim is the caller's to do, and it
   cannot be done against a number.
 
+What the registry holds is a **date**, and what that date *means* is three different things
+depending on the line and the window — so :func:`survey` is the read that says which (RK161),
+and where the file is. Every other question this tool answers is a command (L5); this was the
+one that had to be answered by finding a temp file whose name is a digest.
+
 A claim is only ever read against a 🛠 line, so **the marker is what a claim follows** — which
 :func:`follow` makes true in both directions (RK158) rather than leaving half of it to be
 inferred by the read: a write that puts a line in progress dates a claim, and a write that
@@ -86,6 +91,15 @@ class AlreadyHeld(ValueError):
         )
 
 
+def since(age: float) -> str:
+    """`14m`, `2h05m` — the figure a reader checks against how long the work should take.
+
+    One formatter, because two would eventually disagree about the same number in two answers.
+    """
+    minutes = int(age // 60)
+    return f"{minutes}m" if minutes < 60 else f"{minutes // 60}h{minutes % 60:02d}m"
+
+
 @dataclass(frozen=True, slots=True)
 class Held:
     """One claim a caller was not offered: which line, and how long it has been held."""
@@ -95,9 +109,79 @@ class Held:
 
     @property
     def since(self) -> str:
-        """`14m`, `2h05m` — the figure a reader checks against how long the work should take."""
-        minutes = int(self.age // 60)
-        return f"{minutes}m" if minutes < 60 else f"{minutes // 60}h{minutes % 60:02d}m"
+        return since(self.age)
+
+
+class State(StrEnum):
+    """What the registry's entry for one id actually is (RK161).
+
+    Three, because the registry holds one thing and means three: a claim is a *date* read
+    against a 🛠 line and a window, so an entry outliving either is not a claim and is what an
+    operator is hunting when a listing is what they wanted.
+    """
+
+    #: 🛠, inside the window: a line no answer will offer.
+    HELD = "held"
+    #: 🛠, past the window: stepped over, so the line is offered again as half-done work.
+    EXPIRED = "expired"
+    #: The marker moved on, or no line carries the id at all. Nothing reads it; the next
+    #: claim prunes it.
+    STALE = "stale"
+
+
+@dataclass(frozen=True, slots=True)
+class Dated:
+    """One entry in the registry, and what the files make of it (RK161)."""
+
+    id: str
+    age: float
+    state: State
+    #: The marker the line carries, or empty where no line carries the id.
+    marker: str = ""
+    block: str = ""
+
+    @property
+    def since(self) -> str:
+        return since(self.age)
+
+
+def survey(config: Config, entries: Iterable[Entry]) -> tuple[Dated, ...]:
+    """Every dated id, oldest first, with what the roadmap makes of it (RK161).
+
+    The one question about a claim that was not a command: `pick` names the ready lines it
+    stepped around and its stalled list annotates a started one, so seeing *all* of them meant
+    two questions and a union — and neither reaches an entry on a line that is neither, which
+    is exactly the one somebody is looking for.
+
+    Oldest first, because the axis a reader is scanning is age: the entry most likely to belong
+    to a worker who is gone is the one at the top. It **ranks nothing and offers nothing** —
+    `pick` decides what to work on, and a listing that answered that would be a fourth tier
+    nobody declared. Deliberately not an MCP tool for the same reason: `pick` and `brief`
+    already name the claims an agent's own answer stepped around, and this is the read a person
+    makes about a checkout.
+    """
+    dated = _read(path(config.root))
+    if not dated:
+        return ()
+    tasks = {entry.task.id: entry.task for entry in entries}
+    now, held = time.time(), window(config)
+    rows = []
+    for task_id, when in dated.items():
+        task = tasks.get(task_id)
+        if task is None or task.status != IN_PROGRESS:
+            state = State.STALE
+        else:
+            state = State.HELD if now - when < held else State.EXPIRED
+        rows.append(
+            Dated(
+                id=task_id,
+                age=now - when,
+                state=state,
+                marker="" if task is None else task.status,
+                block="" if task is None else task.block,
+            )
+        )
+    return tuple(sorted(rows, key=lambda row: -row.age))
 
 
 def path(root: Path | str) -> Path:

@@ -690,6 +690,19 @@ def build_parser() -> argparse.ArgumentParser:
     _counting_flags(audit_parser)
     audit_parser.set_defaults(handler=_audit, reads_only=True)
 
+    claims_parser = subcommands.add_parser(
+        "claims",
+        help="which lines a worker is holding, oldest first, and where that is recorded",
+        description=(
+            "List the claim registry against the roadmap: held, expired — stepped over, so "
+            "the line is offered again — or stale, meaning the marker moved and nothing "
+            "reads the entry. Ranks nothing and offers nothing: `pick` decides what to work "
+            "on, and the release is a marker."
+        ),
+    )
+    claims_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    claims_parser.set_defaults(handler=_claims, reads_only=True)
+
     lint_parser = subcommands.add_parser(
         "lint",
         help="validate every governed line; exit 1 when anything drifted",
@@ -2390,6 +2403,49 @@ def _audit(config: Config, args: argparse.Namespace) -> int:
         print(f"{census.file}:{miss.lineno}  ({where})  {miss.reason}")
         print(f"    {miss.raw.strip()}")
     print(f"{census.file}: {census.total} counted, {census.uncounted} uncounted")
+    return EXIT_OK
+
+
+def _claims(config: Config, args: argparse.Namespace) -> int:
+    """The registry read against the roadmap (RK161). Nothing here is a failure, so exit 0."""
+    try:
+        rows = claiming.survey(config, config.document("roadmap").entries)
+    except (KeyError, OSError) as error:
+        return _refused(error)
+
+    registry = str(claiming.path(config.root))
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "window": config.held,
+                    "registry": registry,
+                    "held": sum(1 for row in rows if row.state is claiming.State.HELD),
+                    "claims": [
+                        {
+                            "id": row.id,
+                            "state": str(row.state),
+                            "age": round(row.age),
+                            "since": row.since,
+                            "marker": row.marker or None,
+                            "block": row.block or None,
+                        }
+                        for row in rows
+                    ],
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+
+    held = sum(1 for row in rows if row.state is claiming.State.HELD)
+    print(f"{len(rows)} dated, {held} held  (window {config.held}m)")
+    for row in rows:
+        where = f"Block {row.block}" if row.block else "no line carries this id"
+        print(f"  {row.state:<8} {row.id}  claimed {row.since} ago  {row.marker} {where}")
+    # Named because the release is a marker and the *file* is what an operator deletes when a
+    # whole checkout's worth of claims outlived their workers (RK161).
+    print(f"  registry {registry}")
     return EXIT_OK
 
 

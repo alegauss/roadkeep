@@ -34,8 +34,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK161** (deps: —) **Which lines are claimed is answerable only as a side effect of asking for work** — `pick` names the ones it stepped around and nothing lists them, so a claim on a line no answer offers is found by reading a temp file whose name is a digest — the read L5 says is a command. → §RK161
-
 ## Block D — The gate
 
 - 📋 **RK104** (deps: —) **Nothing gates the README block this tool writes, so a stale restatement passes lint** — `export --readme` is the one write no gate holds: a pytest fixture catches it here and an adopting project has none, so the derived table drifts from the files it was derived from. → §RK104

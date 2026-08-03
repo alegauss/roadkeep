@@ -507,6 +507,78 @@ def test_adding_a_line_in_progress_is_not_one_of_the_three_doors(tmp_path):
     assert not claiming.path(tmp_path).exists()
 
 
+# -- the listing L5 was missing (RK161) ----------------------------------------
+
+
+def test_the_registry_reads_as_three_different_things(tmp_path):
+    # One date means three states, and the two that are not `held` are what somebody hunting a
+    # claim is looking for: the entry nothing reads, and the one already stepped over.
+    config = project(
+        tmp_path,
+        BLOCKS + line("RK2", status=IN_PROGRESS) + line("RK9", status=IN_PROGRESS) + line("RK5"),
+    )
+    for task_id in ("RK2", "RK9", "RK5"):
+        claiming.record(tmp_path, task_id, config.document("roadmap").entries)
+    age(tmp_path, "RK9", HELD + 60)
+    age(tmp_path, "RK5", 120)
+    rows = {row.id: row for row in claiming.survey(config, config.document("roadmap").entries)}
+    assert rows["RK2"].state is claiming.State.HELD
+    assert rows["RK9"].state is claiming.State.EXPIRED
+    # 📋: the marker moved, so the entry is not a claim at all.
+    assert rows["RK5"].state is claiming.State.STALE and rows["RK5"].marker == DESIGNED
+
+
+def test_an_entry_for_an_id_no_line_carries_is_stale_and_not_an_error(tmp_path):
+    # What a `ship` leaves behind until the next claim prunes it, and what a hand-edited file
+    # can leave for ever: reported, because that is the entry a reader is looking for.
+    config = project(tmp_path, BLOCKS + line("RK2"))
+    claiming._write(claiming.path(tmp_path), {"RK99": time.time()})  # noqa: SLF001
+    row = claiming.survey(config, config.document("roadmap").entries)[0]
+    assert (row.id, row.state, row.marker) == ("RK99", claiming.State.STALE, "")
+
+
+def test_the_listing_is_oldest_first_because_age_is_the_axis(tmp_path):
+    config = project(
+        tmp_path, BLOCKS + line("RK2", status=IN_PROGRESS) + line("RK9", status=IN_PROGRESS)
+    )
+    for task_id in ("RK2", "RK9"):
+        claiming.record(tmp_path, task_id, config.document("roadmap").entries)
+    age(tmp_path, "RK9", 600)
+    assert [row.id for row in claiming.survey(config, config.document("roadmap").entries)] == [
+        "RK9",
+        "RK2",
+    ]
+
+
+def test_the_command_names_the_window_and_the_registry(tmp_path, capsys):
+    project(tmp_path, BLOCKS + line("RK2"), extra="[claims]\nheld = 25\n")
+    take(Config.discover(tmp_path))
+    assert main(["-C", str(tmp_path), "claims"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert out.splitlines()[0] == "1 dated, 1 held  (window 25m)"
+    assert "held     RK2  claimed 0m ago" in out
+    # The file, because the release is a marker and the *file* is what is deleted when a
+    # whole checkout's claims outlived their workers.
+    assert str(claiming.path(tmp_path)) in out
+
+
+def test_an_empty_registry_is_an_answer_and_not_a_failure(tmp_path, capsys):
+    project(tmp_path, BLOCKS + line("RK2"))
+    assert main(["-C", str(tmp_path), "claims"]) == EXIT_OK
+    assert capsys.readouterr().out.startswith("0 dated, 0 held")
+
+
+def test_the_listing_offers_nothing_and_ranks_nothing(tmp_path, capsys):
+    # It must not become a second answer to "what should I work on": `pick` decides that, and
+    # a listing that offered anything would be a fourth tier nobody declared.
+    project(tmp_path, BLOCKS + line("RK2") + line("RK9"))
+    take(Config.discover(tmp_path))
+    assert main(["-C", str(tmp_path), "claims", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert set(payload) == {"window", "registry", "held", "claims"}
+    assert set(payload["claims"][0]) == {"id", "state", "age", "since", "marker", "block"}
+
+
 # -- not a second store (L2) -------------------------------------------------
 
 
