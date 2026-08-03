@@ -35,6 +35,8 @@
 
 ## Block C — Query (consult without reading the file)
 
+- 📋 **RK167** (deps: —) **Three read-only commands take the write lock themselves, each in a different place** — `dispatch` locks every command whose parser did not opt out, so a writing flag on a read is a lock its own caller arranges — and the next one is written by copying a comment rather than a mechanism. → §RK167
+
 ## Block D — The gate
 
 - 📋 **RK104** (deps: —) **Nothing gates the README block this tool writes, so a stale restatement passes lint** — `export --readme` is the one write no gate holds: a pytest fixture catches it here and an adopting project has none, so the derived table drifts from the files it was derived from. → §RK104
