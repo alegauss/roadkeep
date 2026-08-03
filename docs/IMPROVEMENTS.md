@@ -202,6 +202,27 @@ stop guessing at — and the roadmap needs none of it, `add` refusing a line tha
 
 ## Block C — Query
 
+### §RK163 Half a reconciliation
+
+RK162 put a release on the terminal doors, and the `claims` run straight after shipping
+it still printed a stale row: the one an *earlier* ship had left, before that fix
+existed. The release had done exactly what it was asked — popped its own id — and
+reconciled nothing else.
+
+So there are two cleanups with different reaches. `record` keeps only the ids the
+roadmap still carries at 🛠, which is a reconciliation against the file and the reason a
+`git checkout` cannot leave a permanent row. `release` pops one key. A checkout that
+clears a claim, therefore, is only cleaned by the next *claim* — and a project that
+claims rarely keeps rows nobody can act on for as long as the temp directory lives.
+
+`follow` already holds the entries in both directions, so the change is that the release
+branch writes the pruned mapping rather than the popped one. That makes every marker
+write a reconciliation, which is the shape `record` has had all along.
+
+What to check while there is whether `release` should keep existing as a public
+function: its only remaining caller would be `follow`, and RK159's lesson is that the
+way one rule gets two behaviours is by having two entry points to it.
+
 ## Block D — The gate
 
 ### §RK104 The block the gate does not read
