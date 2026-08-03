@@ -218,28 +218,6 @@ and may not need a second.
 
 ## Block D — The gate
 
-### §RK189 A widening whose cost is an argument, not a number
-
-RK173 was measured going in: six of Turing's eight `path.missing` findings named
-artefacts the repository has, because a monorepo entry writes the path its reader is
-standing in. The answer was to ask whether the repository holds a file whose path *ends*
-in the token, which is the question RK51 already says this check is asking.
-
-It was not measured coming out. The tail index admits a one-segment match, so
-`./package.json` resolves — the case that motivated it — and so does any bare
-`index.ts`, `README.md` or `main.py` a ledger names, against a file of that name
-anywhere in the tree. The reasoning for allowing it is real: a repository holding a
-`package.json` does satisfy "the repository has package.json", and a bare token with no
-slash is already unreportable. The reasoning for suspecting it is equally real: a file
-*moved between modules* now resolves, and that is a rename the ledger did not follow,
-which is the one true finding this check has produced.
-
-What is missing is a count. Run the check over both pinned corpora with and without the
-tail rule, and read the difference line by line: how many findings it removes, and how
-many of those a reader would call true. If a one-segment tail buys nothing over a
-two-segment one, requiring a slash is a smaller widening for the same six. An idea
-rather than a design, because which of the three it is depends entirely on that number.
-
 ### §RK192 A helper that is safe only by convention
 
 `corpora.config` parses the corpus's own `roadkeep.toml` **at the pin** and then roots

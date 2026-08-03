@@ -276,6 +276,17 @@ class Tree:
         The question this check asks is whether the **repository has the artefact** (RK51),
         so the tail is what answers it, and a rename inside a directory — the one true
         finding this check has produced on a live corpus — still matches nothing.
+
+        **Measured coming out, too** (RK189), because a widening whose cost is an argument
+        is a widening nobody can price. Over both pins: Shio exercises the rule zero times
+        in 1278 files, and Turing's ledger leaves six tokens unresolved, of which this
+        silences five and reports the moved file. Four of the five are two-segment tokens
+        matching exactly one tracked file — the match identifies the artefact rather than
+        finding a name — and the fifth is the `./package.json` that motivated the rule,
+        matching thirteen. So a one-segment token is admitted deliberately: requiring a
+        slash would re-report that one and change none of the others. The exposure it
+        accepts is real and unrealised — 17% of the files in each tree share a basename —
+        and `tests/test_linting.py` is where all four numbers are held.
         """
         if self._tails is None:
             names = (

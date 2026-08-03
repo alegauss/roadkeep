@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import json
 import re
+from collections import Counter
 from pathlib import Path
 
 import pytest
@@ -27,7 +28,8 @@ from roadkeep.cli import EXIT_GATE, EXIT_OK, main
 from roadkeep.config import Config
 from roadkeep.exporting import BEGIN, END
 from roadkeep.exporting import project as exported
-from roadkeep.linting import lint, within
+from roadkeep.history import tracked_at
+from roadkeep.linting import Tree, _paths, lint, within
 from roadkeep.picking import take
 
 HERE = Path(__file__).resolve().parents[1]
@@ -159,6 +161,105 @@ def test_the_gate_runs_over_a_foreign_backlog_and_writes_nothing():
     report = lint(config)
     assert report.lines == len(config.document("roadmap").entries)
     assert roadmap.read_bytes() == before
+
+
+# -- what the tail rule silences, counted rather than argued (RK189) ----------
+
+
+def _unresolved(corpus):
+    """Every `path.missing` the pinned ledger produces, with and without RK173's tail rule.
+
+    `_paths` is called rather than re-derived: it is the function being measured, and the
+    three conditions it composes — on disk, beside the ledger, anywhere in the tree — are
+    stated there once. A test that restated them would measure a copy, and the copy is what
+    would still pass the day the original changed.
+    """
+    corpora.require(corpus)
+    config = corpora.config(corpus)
+    documents = {"changelog": corpora.document(corpus, "changelog")}
+    tree = Tree(config, rev=corpus.rev)
+    with_tail = _paths(config, documents, tree)
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(Tree, "anywhere", lambda self, token: False)
+        without_tail = _paths(config, documents, Tree(config, rev=corpus.rev))
+    return config, with_tail, without_tail
+
+
+def test_the_tail_rule_silences_nothing_at_all_on_shio():
+    """Half the population RK173 was justified over contributes no evidence either way.
+
+    Every path Shio's ledger names resolves from the root or from the ledger's own directory
+    (RK51), so the widening is exercised zero times across 1278 tracked files. Worth an
+    assertion rather than a shrug: a widening argued from one corpus and measured on two is
+    a widening measured on one, and the day this stops being zero is the day Shio grew the
+    monorepo shape the rule is for.
+    """
+    _, with_tail, without_tail = _unresolved(corpora.SHIO)
+    assert with_tail == [] and without_tail == []
+
+
+def test_the_tail_rule_earns_four_of_its_five_silences_on_a_unique_file():
+    """The floor §RK189 asked for, and it refuses the narrowing it proposed.
+
+    Turing's ledger leaves six tokens unresolved from the root and from `docs/`. The tail
+    rule silences five and reports one — `frontend/apps/site/scripts/emit-model-catalog.mjs`,
+    a file that moved, which is the only true finding this check has ever produced on a live
+    corpus and is still produced.
+
+    Four of the five silences are two-segment tokens matching **exactly one** tracked file,
+    so the match identifies the artefact rather than merely finding a name. The fifth is the
+    one-segment `./package.json` that motivated RK173, and it matches thirteen — the widening
+    at its widest, on the one token where "does the repository have it" is genuinely all a
+    reader means.
+
+    So requiring a slash, the narrowing the idea proposed, buys nothing: it would re-report
+    that `package.json` — false by this check's own question — and change none of the other
+    five. Measured, not argued, and this is the number that says so.
+    """
+    config, with_tail, without_tail = _unresolved(corpora.TURING)
+    assert [f.id for f in with_tail] == ["T759"]
+    assert len(without_tail) == 6
+
+    silenced = sorted(
+        f.message.removeprefix("names ").removesuffix(", which is not in the repository")
+        for f in without_tail
+        if f not in with_tail
+    )
+    assert silenced == [
+        "./package.json",
+        "references/return-policy.md",
+        "scripts/check-size.mjs",
+        "scripts/prerender.mjs",
+        "scripts/rma.py",
+    ]
+    names = [name for name in tracked_at(config, corpora.TURING.rev) if name]
+    matches = {
+        token: sum(1 for name in names if name.endswith(token.removeprefix(".")))
+        for token in silenced
+    }
+    assert matches == {
+        "./package.json": 13,
+        "references/return-policy.md": 1,
+        "scripts/check-size.mjs": 1,
+        "scripts/prerender.mjs": 1,
+        "scripts/rma.py": 1,
+    }
+
+
+@pytest.mark.parametrize("corpus", corpora.BOTH, ids=lambda c: c.name)
+def test_the_exposure_the_tail_rule_accepts_is_a_sixth_of_the_tree(corpus):
+    """What a one-segment match *could* be wrong about, so the ledgers' record is readable.
+
+    17% of the files in each corpus share a basename with at least one other file — 16
+    `package.json` in Shio, 23 `README.md` in Turing. That is the risk the rule takes, and
+    the two tests above are what say it was not realised: the ledgers write two segments
+    where they mean a file and one segment only where they mean the repository.
+    """
+    corpora.require(corpus)
+    names = [name for name in tracked_at(corpora.config(corpus), corpus.rev) if name]
+    counts = Counter(name.split("/")[-1] for name in names)
+    ambiguous = sum(count for count in counts.values() if count > 1)
+    assert 15 <= ambiguous * 100 // len(names) <= 19
 
 
 # -- the schema, re-read where nothing was watching --------------------------
