@@ -33,8 +33,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK152** (deps: —) **A started task that is blocked is reported to every caller with nothing saying somebody holds it** — Claims are read over the ready lines, so the stalled report — the one place a blocked in-progress line is named — says only that a dep is missing, never that a worker is on it. → §RK152
-
 ## Block D — The gate
 
 - 📋 **RK104** (deps: —) **Nothing gates the README block this tool writes, so a stale restatement passes lint** — `export --readme` is the one write no gate holds: a pytest fixture catches it here and an adopting project has none, so the derived table drifts from the files it was derived from. → §RK104

@@ -51,6 +51,7 @@ aside — and the only way a caller can recognise a claim as its own.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, replace
 from enum import StrEnum
 
@@ -82,6 +83,12 @@ class Stalled:
 
     id: str
     blockers: tuple[str, ...]
+    #: The live claim on this line, where there is one (RK152). Its own field and not
+    #: :attr:`Choice.held`, which is the ready lines a claim kept out of the ranking: one word
+    #: for both facts is how this report came to be silent about the second. The two states it
+    #: separates are "somebody started this and hit a wall", which invites unblocking it, and
+    #: "somebody is on this now, and the dep is what they are waiting for", which does not.
+    claimed: Held | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -153,15 +160,17 @@ def pick(config: Config, block: str | None = None, designed: bool = False) -> Ch
         for entry in backlog.roadmap.entries
         if block is None or entry.task.block == block
     ]
-    survey = _survey(backlog, considered)
+    # Over every line in scope and not only the ready ones (RK152): a blocked 🛠 line was
+    # never a candidate and is still the line a reader most needs to know somebody is on.
+    claimed = {entry.id: entry for entry in claiming.live(config, considered)}
+    survey = _survey(backlog, considered, claimed)
     ordered = sorted(survey.ready, key=lambda e: id_order(e.task.id, config.schema))
     # Before the tiers and before `designed`, because a claim is a fact about the checkout
     # while the flag is the caller's intent (RK119) — and because tier 1 would otherwise
     # prefer exactly the held line, its premise being that a 🛠 line is work to continue.
-    held = claiming.live(config, ordered)
+    held = tuple(claimed[e.task.id] for e in ordered if e.task.id in claimed)
     if held:
-        taken = {entry.id for entry in held}
-        ordered = [e for e in ordered if e.task.id not in taken]
+        ordered = [e for e in ordered if e.task.id not in claimed]
     # Narrowed after the ordering and not before it, so `ready` keeps counting what the
     # file holds: the caller's intent decides what may be offered, never what is true.
     offered = [e for e in ordered if not config.schema.needs_design(e.task.status)]
@@ -302,7 +311,9 @@ class _Survey:
     paused: int = 0
 
 
-def _survey(backlog: Backlog, considered: list[Entry]) -> _Survey:
+def _survey(
+    backlog: Backlog, considered: list[Entry], claimed: Mapping[str, Held]
+) -> _Survey:
     ready: list[Entry] = []
     blocked = outside = paused = 0
     stalled: list[Stalled] = []
@@ -324,6 +335,7 @@ def _survey(backlog: Backlog, considered: list[Entry]) -> _Survey:
                     blockers=tuple(
                         r.dep.id for r in backlog.resolve(entry.task) if not r.satisfied
                     ),
+                    claimed=claimed.get(entry.task.id),
                 )
             )
     return _Survey(

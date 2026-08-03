@@ -302,7 +302,9 @@ def test_json_carries_the_tier_and_the_stalled_work(tmp_path, capsys):
     assert main(["-C", str(tmp_path), "pick", "--json"]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
     assert payload["pick"]["id"] == "RK2" and payload["tier"] == "declared-priority"
-    assert payload["stalled"] == [{"id": "RK7", "blockers": ["RK5"]}]
+    # `claimed` is null because nothing took RK7: a stalled line says whether somebody is on
+    # it, and "started and stuck" is the answer when nobody is (RK152).
+    assert payload["stalled"] == [{"id": "RK7", "blockers": ["RK5"], "claimed": None}]
     assert payload["ready"] == 1 and payload["blocked"] == 1
 
 

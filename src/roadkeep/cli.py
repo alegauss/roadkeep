@@ -69,6 +69,7 @@ from roadkeep.installing import install, plan
 from roadkeep.linting import Finding, Report, lint
 from roadkeep.locking import LockBusy, exclusive
 from roadkeep.merging import markers, merge, register, role_of
+from roadkeep.claiming import Held
 from roadkeep.picking import Choice, Claim, pick, take
 from roadkeep.provenance import engine
 from roadkeep.renumbering import renumber
@@ -2724,49 +2725,9 @@ def _pick(config: Config, args: argparse.Namespace) -> int:
         # marker, so every refusal that guards a marker — a stale file, a sibling stating
         # status — reaches here, and a traceback is what the caller would otherwise read.
         return _refused(error)
-    stalled = [{"id": s.id, "blockers": list(s.blockers)} for s in choice.stalled]
-    held = [{"id": h.id, "age": round(h.age), "since": h.since} for h in choice.held]
     event = _claim_event(claim)
     if args.json:
-        entry = choice.entry
-        print(
-            json.dumps(
-                {
-                    "pick": None
-                    if entry is None
-                    else {
-                        "id": entry.task.id,
-                        "block": entry.task.block,
-                        "status": entry.task.status,
-                        "file": config.relative(config.path("roadmap")),
-                        "line": entry.lineno,
-                        "symptom": entry.task.symptom,
-                        "ref": entry.task.ref,
-                    },
-                    "tier": None if choice.tier is None else str(choice.tier),
-                    "reason": choice.reason,
-                    "scope": choice.block,
-                    "alternatives": list(choice.alternatives),
-                    "ready": choice.ready,
-                    "blocked": choice.blocked,
-                    "outside": choice.outside,
-                    "paused": choice.paused,
-                    "needs_design": choice.needs_design,
-                    "undesigned": choice.undesigned,
-                    "stalled": stalled,
-                    "held": held,
-                    "claimed": None
-                    if claim is None
-                    else {
-                        "taken": claim.taken,
-                        "from": None if claim.change is None else claim.change.before,
-                        "to": None if claim.change is None else claim.change.after,
-                    },
-                    "event": event,
-                },
-                indent=2,
-            )
-        )
+        print(json.dumps(_pick_json(config, choice, claim, event), indent=2))
         return EXIT_OK
 
     # Nothing ready is an answer, not a failure: exit stays 0 and the reason carries the
@@ -2793,6 +2754,62 @@ def _pick(config: Config, args: argparse.Namespace) -> int:
     if _print_claim(claim, config) and event is not None:
         _print_event(event, "  ")
     return EXIT_OK
+
+
+def _pick_json(
+    config: Config,
+    choice: Choice,
+    claim: Claim | None,
+    event: dict[str, object] | None,
+) -> dict[str, object]:
+    """The answer as one object, beside `_brief_json` and for the same reason it exists."""
+    entry = choice.entry
+    return {
+        "pick": None
+        if entry is None
+        else {
+            "id": entry.task.id,
+            "block": entry.task.block,
+            "status": entry.task.status,
+            "file": config.relative(config.path("roadmap")),
+            "line": entry.lineno,
+            "symptom": entry.task.symptom,
+            "ref": entry.task.ref,
+        },
+        "tier": None if choice.tier is None else str(choice.tier),
+        "reason": choice.reason,
+        "scope": choice.block,
+        "alternatives": list(choice.alternatives),
+        "ready": choice.ready,
+        "blocked": choice.blocked,
+        "outside": choice.outside,
+        "paused": choice.paused,
+        "needs_design": choice.needs_design,
+        "undesigned": choice.undesigned,
+        # `claimed` on a stalled line and `held` beside it are two facts with two names
+        # (RK152): one is a line somebody is on that nothing could offer, the other is a
+        # candidate the ranking stepped around.
+        "stalled": [
+            {"id": s.id, "blockers": list(s.blockers), "claimed": _held_json(s.claimed)}
+            for s in choice.stalled
+        ],
+        "held": [{"id": h.id, "age": round(h.age), "since": h.since} for h in choice.held],
+        "claimed": None
+        if claim is None
+        else {
+            "taken": claim.taken,
+            "from": None if claim.change is None else claim.change.before,
+            "to": None if claim.change is None else claim.change.after,
+        },
+        "event": event,
+    }
+
+
+def _held_json(held: Held | None) -> dict[str, object] | None:
+    """One claim as an age and a duration, or nothing where the line is not held."""
+    if held is None:
+        return None
+    return {"age": round(held.age), "since": held.since}
 
 
 def _claim_event(claim: Claim | None) -> dict[str, object] | None:
@@ -2842,9 +2859,17 @@ def _print_undesigned(choice: Choice) -> None:
 
 
 def _print_stalled(choice: Choice) -> None:
-    """A started task that cannot be continued is the one thing a pick must not hide."""
+    """A started task that cannot be continued is the one thing a pick must not hide.
+
+    And whether somebody is holding it (RK152), because "started and stuck" invites
+    unblocking the line while "claimed and waiting" invites leaving it alone — two answers
+    one sentence used to serve.
+    """
     for stalled in choice.stalled:
-        print(f"  stalled  {stalled.id} is in progress, waiting on "
+        whose = (
+            "" if stalled.claimed is None else f" and claimed {stalled.claimed.since} ago"
+        )
+        print(f"  stalled  {stalled.id} is in progress{whose}, waiting on "
               f"{', '.join(stalled.blockers) or 'nothing this backlog names'}")
 
 

@@ -180,25 +180,6 @@ would make `--after` a per-file argument or a refusal when the files disagree.
 
 ## Block C — Query
 
-### §RK152 The line that is both stalled and held
-
-The stalled list exists because tier 1 cannot pick a blocked 🛠 line and must not hide
-it. RK119 reads claims over the ready lines only, which is right for the ranking — a
-blocked line was never a candidate — and leaves the one report about 🛠 lines unable to
-say the thing a claim was invented to say.
-
-The two states a reader is telling apart are "somebody started this and hit a wall" and
-"somebody is on this right now, and its dep is what they are waiting for". The first is
-an invitation to unblock it; the second is an invitation to leave it alone. One sentence
-serves both today.
-
-The fix is small and the ordering is the whole of it: claims have to be read over the
-lines in scope rather than over the ready ones, and the ranking must keep using the
-ready subset, or a blocked line comes back into a queue nothing could have offered it
-from. Worth noticing that this makes `held` two different facts — a candidate stepped
-around, and a stalled line annotated — and one word for two facts is how the stalled
-report came to be silent about this in the first place.
-
 ## Block D — The gate
 
 ### §RK104 The block the gate does not read

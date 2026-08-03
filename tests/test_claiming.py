@@ -230,6 +230,63 @@ def test_how_long_it_has_been_held_reads_as_a_duration(tmp_path):
     assert Held("RK1", 7_500.0).since == "2h05m"
 
 
+# -- the line that is both stalled and held (RK152) ---------------------------
+
+
+def test_a_stalled_line_says_whether_somebody_is_on_it(tmp_path):
+    # Two states one sentence used to serve: "started and hit a wall", which invites
+    # unblocking the line, and "somebody is on this and the dep is what they are waiting
+    # for", which invites leaving it alone.
+    config = project(tmp_path, BLOCKS + line("RK2") + line("RK7", "RK5", status=IN_PROGRESS))
+    unheld = pick(config)
+    assert unheld.stalled[0].id == "RK7" and unheld.stalled[0].claimed is None
+    hold(config, "RK7")
+    stalled = pick(config).stalled[0]
+    assert stalled.claimed is not None and stalled.blockers == ("RK5",)
+
+
+def test_a_claim_on_a_blocked_line_is_not_a_candidate_stepped_around(tmp_path):
+    # Two facts, two names: `held` is the ready lines the ranking stepped around, and a
+    # blocked line was never in the ranking to be stepped around.
+    config = project(tmp_path, BLOCKS + line("RK2") + line("RK7", "RK5", status=IN_PROGRESS))
+    hold(config, "RK7")
+    choice = pick(config)
+    assert choice.held == () and choice.stalled[0].claimed is not None
+    # And the answer is unchanged: a claim on something unpickable cannot move the pick.
+    assert choice.entry.task.id == "RK2"
+
+
+def test_the_command_says_a_stalled_line_is_claimed(tmp_path, capsys):
+    project(tmp_path, BLOCKS + line("RK2") + line("RK7", "RK5", status=IN_PROGRESS))
+    config = Config.discover(tmp_path)
+    hold(config, "RK7")
+    assert main(["-C", str(tmp_path), "pick"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "stalled  RK7 is in progress and claimed 0m ago, waiting on RK5" in out
+
+
+def test_the_json_names_the_two_kinds_of_claim_apart(tmp_path, capsys):
+    project(tmp_path, BLOCKS + line("RK2") + line("RK7", "RK5", status=IN_PROGRESS))
+    config = Config.discover(tmp_path)
+    hold(config, "RK7")
+    take(config)  # RK2, the ready one
+    assert main(["-C", str(tmp_path), "pick", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["stalled"][0] == {
+        "id": "RK7",
+        "blockers": ["RK5"],
+        "claimed": {"age": 0, "since": "0m"},
+    }
+    assert payload["held"] == [{"id": "RK2", "age": 0, "since": "0m"}]
+
+
+def test_an_expired_claim_on_a_stalled_line_says_nothing(tmp_path):
+    config = project(tmp_path, BLOCKS + line("RK7", "RK5", status=IN_PROGRESS))
+    hold(config, "RK7")
+    age(tmp_path, "RK7", HELD + 1)
+    assert pick(config).stalled[0].claimed is None
+
+
 # -- every marker door is a release ------------------------------------------
 
 
