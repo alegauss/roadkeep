@@ -16,7 +16,7 @@ not on PATH.
 When the `mcp__roadkeep__*` tools are available, **prefer them**: the whole write path and
 the reads a task needs are there — `add`, `block_add`, `claim`, `status`, `amend`, `ship`, `retire`, `defer`, `resume`,
 `record_add`,
-`record_amend`, `record_drop`, `record_renumber`, `non_goal_add`, `non_goal_drop`, `section_add`, `section_amend`, `section_drop`, `brief`, `pick`, `list`, `deps`, `lint` — same engine and same
+`record_amend`, `record_move`, `record_drop`, `record_renumber`, `non_goal_add`, `non_goal_drop`, `section_add`, `section_amend`, `section_drop`, `brief`, `pick`, `list`, `deps`, `lint` — same engine and same
 refusals, with
 the fields arriving as a schema instead of flag names typed from memory. `init`, `adopt` and
 `install` run once per project and want the CLI — the last of them wires this file, the tools
@@ -60,7 +60,11 @@ because removing the only record of a decision is deleting history. Two entries 
 two deliveries under one id, not one recorded twice: `record drop <id> --line <n>` if you have
 read both, or `record renumber <id> --line <n>` to give one its own address. To *fix* an entry use
 `record amend <id> --why "…"` (or `--part` on a partial) — never drop-and-re-add, which moves
-the line to the end of its block and shows a reviewer a deletion where a word changed. `section add <id> --title "…"` is that
+the line to the end of its block and shows a reviewer a deletion where a word changed. The
+block is not one of its fields, because filing an entry elsewhere **is** a move:
+`record move <id> --to-block <x>` is that one, and it says so — the line is re-placed under the
+named heading, both positions are reported, and a heading nothing declares is refused. Reach
+for it when `ship` filed an entry under the block its roadmap line was wrongly under. `section add <id> --title "…"` is that
 same write for a line that already exists, and
 takes prose on **stdin**, within the word budget, filled to the configured width, under the
 task's block — a table or list is inserted exactly as written. Over MCP there is no pipe, so the

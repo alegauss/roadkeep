@@ -86,6 +86,7 @@ from roadkeep.sections import pointers
 from roadkeep.serving import Prose, serve
 from roadkeep.shipping import Closure, Partial, record, retire, ship
 from roadkeep.shipping import amend as amend_record
+from roadkeep.shipping import move as move_record
 from roadkeep.shipping import readdress as readdress_record
 from roadkeep.weighing import Spread, Weights, weigh
 from roadkeep.shipping import drop as drop_record
@@ -546,6 +547,31 @@ def build_parser() -> argparse.ArgumentParser:
     )
     record_amend.add_argument("--json", action="store_true", help=_JSON_HELP)
     record_amend.set_defaults(handler=_record_amend)
+
+    record_move = entries.add_parser(
+        "move",
+        help="re-file a ledger entry under another block heading",
+        description=(
+            "The move `amend` deliberately does not pretend is a correction. `ship` files an "
+            "entry under the block its roadmap line sat in, so a line filed under the wrong "
+            "one ships to the wrong one — and no other verb reaches it: `record add` refuses "
+            "an id that exists, `drop` wants the id stated twice, `renumber` changes the "
+            "address and not the heading. This removes the line and re-places it under the "
+            "named heading, reporting both positions, and refuses a heading the ledger does "
+            "not declare — `block add` is what writes one."
+        ),
+    )
+    record_move.add_argument("id", help="the recorded id, e.g. RK41")
+    record_move.add_argument(
+        "--to-block",
+        required=True,
+        dest="to_block",
+        help="the block label to file it under, e.g. B; refused unless a heading declares it",
+    )
+    record_move.add_argument(
+        "--json", action="store_true", help="both positions, and the blocks they are under"
+    )
+    record_move.set_defaults(handler=_record_move)
 
     record_drop = entries.add_parser(
         "drop",
@@ -2241,6 +2267,54 @@ def _record_amend(config: Config, args: argparse.Namespace) -> int:
         f"({', '.join(corrected.changed)})"
     )
     print(f"  {corrected.rendered}")
+    return EXIT_OK
+
+
+def _record_move(config: Config, args: argparse.Namespace) -> int:
+    try:
+        refiled = move_record(config, args.id, to_block=args.to_block)
+        if refiled.moved:
+            refiled.save()
+    except REFUSALS as error:
+        return _refused(error)
+
+    where = config.relative(config.path("changelog"))
+    # The roadmap is read and never written (RK67's rule, for the same reason): a block is
+    # where an entry is filed, so re-filing one leaves every open line exactly as it was.
+    event = _event(refiled.task_id, refiled.to_block, config.document("roadmap"))
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "id": refiled.task_id,
+                    "file": where,
+                    # Both, because the entry does not keep its number and a payload naming
+                    # one position would be the pretence this verb exists not to make.
+                    "from": {"block": refiled.from_block, "line": refiled.from_line},
+                    "to": {"block": refiled.to_block, "line": refiled.lineno},
+                    "moved": refiled.moved,
+                    "rendered": refiled.rendered,
+                    "roadmap": {"touched": False},
+                    "event": event,
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+
+    if not refiled.moved:
+        print(
+            f"{refiled.task_id} unchanged: the ledger already files it under "
+            f"Block {refiled.to_block}"
+        )
+        return EXIT_OK
+    print(
+        f"{refiled.task_id} moved  Block {refiled.from_block} → Block {refiled.to_block}  "
+        f"{where}:{refiled.from_line} → :{refiled.lineno}"
+    )
+    print(f"  {refiled.rendered}")
+    print("  roadmap  untouched: a block is where an entry is filed, not what it records")
+    _print_event(event, "  ")
     return EXIT_OK
 
 

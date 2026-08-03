@@ -89,6 +89,17 @@ reason, and the two fields this file adds are answered the same way — the **id
 move and a flag that pretends nothing happened is the thing this verb exists to stop being.
 The one addition is `part`: the qualifier of a partial (RK121) is a phrase that stops being
 true, and correcting it is why that comment said `amend` all along.
+
+**And the move that reasoning was right about, which no verb then made** (RK143). That
+argument holds and what it left is a hole: `ship` derives the block from the roadmap line it
+read, so a line filed under the wrong one ships to the wrong one — and from there `record add
+--block` is refused for an id that exists, `drop` wants the id stated twice, `readdress`
+changes the address and not the heading. So the only route left was the hand-edit the hook
+denies. :func:`move` is the verb that *says* it is a move: the line is taken out and re-placed
+under the named heading, **both** positions are reported because the entry does not keep its
+number, and a heading the ledger does not declare is refused naming the ones it does — the
+heading being `block add`'s to write (RK141). A move is what the diff shows either way, and a
+command that names it is not the same as a flag that hides one inside a correction.
 """
 
 from __future__ import annotations
@@ -130,11 +141,13 @@ __all__ = [
     "PartRecorded",
     "Readdressed",
     "Record",
+    "Refiled",
     "Section",
     "Shipment",
     "Unchosen",
     "amend",
     "drop",
+    "move",
     "readdress",
     "record",
     "retire",
@@ -368,12 +381,16 @@ class NotRecorded(KeyError):
 
 
 class Ambiguous(ValueError):
-    """A correction against an id the ledger states twice (RK124).
+    """A write against a single entry, on an id the ledger states twice (RK124, RK143).
 
-    Refused rather than applied to one of them: which entry a `--why` was written about is
-    the one thing this transaction cannot read, and the two may be two different pieces of
-    work sharing an id (RK127). `record drop` is the door for a real duplicate; a reader who
-    has two decisions here needs to decide that first.
+    Refused rather than applied to one of them: which entry a `--why` — or a `--to-block` —
+    was written about is the one thing this transaction cannot read, and the two may be two
+    different pieces of work sharing an id (RK127). `record drop` is the door for a real
+    duplicate; a reader who has two decisions here needs to decide that first.
+
+    Shared by both doors that address one entry by its id alone, and the reason neither takes
+    a `--line` the way `drop` and `readdress` do: there the choice *is* the fix, and here two
+    entries under one id is a defect to resolve before either of them is rewritten.
     """
 
     def __init__(self, task_id: str, where: str, linenos: tuple[int, ...]) -> None:
@@ -382,7 +399,7 @@ class Ambiguous(ValueError):
         lines = ", ".join(str(n) for n in linenos)
         super().__init__(
             f"{where} states {task_id} at {len(linenos)} lines ({lines}): which of them "
-            f"this corrects is not a fact any file holds — de-duplicate it first"
+            f"this call is about is not a fact any file holds — de-duplicate it first"
         )
 
 
@@ -706,6 +723,100 @@ def amend(
         ledger=document,
         entry=document.by_id()[task_id],
         changed=changed,
+    )
+
+
+@dataclass(frozen=True, slots=True)
+class Refiled:
+    """One ledger entry taken out from under one heading and re-placed under another (RK143).
+
+    The shape is the difference from :class:`Corrected`, and it is the whole argument for
+    this being a verb rather than a flag on that one: **two positions**, because the line
+    does not keep its number and a report that named one would be the pretence `amend`
+    refused to make. The ledger and nothing else is opened, for the reason :class:`Dropped`
+    is — a block says where an entry is filed and not what it records, so no annotation, dep
+    or pointer anywhere is derived from it.
+    """
+
+    task_id: str
+    #: The ledger as this write leaves it: the line gone from one block and re-placed under
+    #: the other, and the blank a block emptied by the removal no longer needs.
+    ledger: Document
+    entry: Entry
+    from_block: str
+    to_block: str
+    #: The line it was filed on, which is the half a caller cannot read off the file after.
+    from_line: int
+
+    @property
+    def moved(self) -> bool:
+        """False where the entry was already filed there, and then nothing was written."""
+        return self.from_block != self.to_block
+
+    @property
+    def rendered(self) -> str:
+        return self.entry.raw
+
+    @property
+    def lineno(self) -> int:
+        return self.entry.lineno
+
+    def save(self) -> None:
+        """Write the ledger. Nothing else was opened, so nothing else can be touched."""
+        self.ledger.save()
+
+
+def move(config: Config, task_id: str, *, to_block: str) -> Refiled:
+    """Re-file one ledger entry under another block heading (RK143).
+
+    The door :func:`amend` was right to leave shut and nothing else opened. `ship` files an
+    entry under the block its roadmap line sat in, so a line filed wrongly ships wrongly —
+    and every other verb here declines the repair for a reason of its own: `record add`
+    refuses an id that exists, `drop` wants the id stated twice, :func:`readdress` changes
+    the address and not the heading. What was left was the hand-edit the guard denies.
+
+    Nothing is written until everything validates, as everywhere on the write path (L1): the
+    line is removed and re-placed in memory, so a heading the ledger does not declare raises
+    :class:`~roadkeep.authoring.UnknownBlock` — naming the labels it *does* — over a file
+    still holding every byte it held. Re-placed and not spliced, so the entry lands after the
+    destination's last one exactly as any other write to that block would leave it.
+
+    Refused on an id the ledger states twice, for the reason :func:`amend` is: which of two
+    entries a move was meant for is not a fact any file holds.
+    """
+    ledger = config.document("changelog")
+    where = config.relative(config.path("changelog"))
+    twins = tuple(entry for entry in ledger.entries if entry.task.id == task_id)
+    if not twins:
+        raise NotRecorded(
+            task_id, where, open_line=task_id in config.document("roadmap").by_id()
+        )
+    if len(twins) > 1:
+        raise Ambiguous(task_id, where, tuple(entry.lineno for entry in twins))
+
+    entry = twins[0]
+    if entry.task.block == to_block:
+        # Already there. Reported rather than refused, and the file is not rewritten to the
+        # same bytes: an unchanged file with a moved mtime reads as an edit to every hook
+        # watching it, which is the rule `amend`'s no-op path holds too.
+        return Refiled(
+            task_id=task_id,
+            ledger=ledger,
+            entry=entry,
+            from_block=entry.task.block,
+            to_block=to_block,
+            from_line=entry.lineno,
+        )
+    insertion = place(
+        remove_entry(ledger, entry.index), replace(entry.task, block=to_block)
+    )
+    return Refiled(
+        task_id=task_id,
+        ledger=insertion.document,
+        entry=insertion.entry,
+        from_block=entry.task.block,
+        to_block=to_block,
+        from_line=entry.lineno,
     )
 
 

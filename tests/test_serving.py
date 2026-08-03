@@ -165,6 +165,10 @@ def test_the_tools_are_what_a_task_needs_end_to_end():
         "resume",
         "record_add",
         "record_amend",
+        # The move `record_amend` refuses to spell as a correction (RK143): an entry filed
+        # under the wrong block is what a wrongly filed roadmap line ships to, which is the
+        # agent's own slip and the hand-edit the guard denies that agent.
+        "record_move",
         "record_drop",
         "record_renumber",
         "non_goal_add",
@@ -445,6 +449,7 @@ def test_the_read_only_hint_says_which_tools_write(tmp_path):
         "resume",
         "record_add",
         "record_amend",
+        "record_move",
         "record_drop",
         "record_renumber",
         "non_goal_add",

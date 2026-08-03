@@ -118,26 +118,6 @@ as one. RK122 is the same question one file up.
 
 ## Block B — Authoring
 
-### §RK143 The move record amend was right not to pretend was a correction
-
-RK124 gave the ledger an update and deliberately withheld `--block`: filing an entry
-under a different heading relocates the line, and a flag that pretends nothing happened
-is the thing that verb exists to stop being. That reasoning holds. What it left is a
-hole.
-
-`ship` derives the block from the roadmap line, so an entry lands wherever that line sat
-— and a line filed under the wrong block ships to the wrong block. `record add --block`
-takes one at input and is refused for an id that exists. `record drop` needs the id
-stated twice. `record renumber` changes the address and not the heading. So an entry
-under the wrong block is reachable by nothing, which is the shape of every defect Block
-B just closed.
-
-The honest shape is a verb that says it is a move: `record move <id> --to-block <x>`,
-which removes the line and re-places it under the named heading, reports both positions,
-and refuses a block the ledger does not declare — the heading being `block add`'s to
-write (RK141). A move is what the diff will show either way, and a command that names it
-is not the same as a flag that hides it inside a correction.
-
 ### §RK144 The key opens the door and cannot close it
 
 RK141 gave block declaration a verb because the pair of correct refusals around it was a

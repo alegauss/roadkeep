@@ -14,6 +14,11 @@ same grammar (`as_ledger`) rather than a fourth one that happens to accept ✅.
 ledger that lets one entry go is a ledger that can lose a decision, so what has to hold is that
 the id must be there *twice*, that the entry the reader already found is the one that stays, and
 that the write is still the ledger alone.
+
+**And the move the update deliberately was not** (RK143). `amend` withheld `--block` because
+filing an entry elsewhere relocates the line, and what the tests below hold is that the verb
+which does it *says* so: two positions reported rather than one, a heading nothing declares
+refused over an untouched file, and still the ledger alone opened.
 """
 
 from __future__ import annotations
@@ -40,6 +45,7 @@ from roadkeep.shipping import (
     Unchosen,
     amend,
     drop,
+    move,
     readdress,
     record,
 )
@@ -584,3 +590,127 @@ def test_the_drop_refusal_offers_both_doors(tmp_path, capsys):
     err = capsys.readouterr().err
     assert "record drop RK1 --line <n>" in err and "record renumber RK1" in err
     assert read(tmp_path, "CHANGELOG.md") == DELIVERIES
+
+
+# -- the move `amend` would not call a correction (RK143) ---------------------
+
+#: The same file with RK1 filed under the other heading, and the blank the removal doubled
+#: gone: what "the wrong block, corrected" has to leave behind.
+REFILED = f"""# Shipped
+
+## Block A — The model
+
+- {SHIPPED} **RK2 (local half)** **A second symptom** — Because half of it landed.
+
+## Block B — Authoring
+
+- {SHIPPED} **RK1** **A first symptom** — Because of a resaon.
+"""
+
+
+def test_the_entry_is_re_filed_under_the_named_heading(tmp_path):
+    # The hole RK124 left: `ship` files an entry under the block its roadmap line sat in, so
+    # a line filed wrongly ships wrongly, and every other verb here declined the repair.
+    config = project(tmp_path, roadmap=BARE_ROADMAP, ledger=RECORDED)
+    refiled = move(config, "RK1", to_block="B")
+    refiled.save()
+
+    assert (refiled.from_block, refiled.to_block) == ("A", "B")
+    assert refiled.moved and read(tmp_path, "CHANGELOG.md") == REFILED
+
+
+def test_both_positions_are_reported_because_the_line_does_not_keep_its_number(tmp_path):
+    # The whole reason this is a verb and not a flag on `amend`: that one's claim is that the
+    # line stays put, and a move reported as one position would be exactly that pretence.
+    config = project(tmp_path, roadmap=BARE_ROADMAP, ledger=RECORDED)
+    refiled = move(config, "RK1", to_block="B")
+    assert (refiled.from_line, refiled.lineno) == (5, 9)
+    assert refiled.rendered.startswith(f"- {SHIPPED} **RK1** **A first symptom**")
+
+
+def test_a_heading_the_ledger_does_not_declare_is_refused_with_the_ones_it_does(tmp_path):
+    # A block is declared by a heading and by nothing else (RK37), so this door cannot write
+    # one — and the refusal has to name the labels, because "no such block" is the message a
+    # caller answers by guessing.
+    config = project(tmp_path, roadmap=BARE_ROADMAP, ledger=RECORDED)
+    with pytest.raises(UnknownBlock) as caught:
+        move(config, "RK1", to_block="Z")
+    assert "A" in str(caught.value) and "B" in str(caught.value)
+    assert read(tmp_path, "CHANGELOG.md") == RECORDED
+
+
+def test_an_entry_already_filed_there_is_not_rewritten(tmp_path):
+    # Not refused, and not written either: an unchanged file with a moved mtime reads as an
+    # edit to every hook watching it, which is the rule `amend`'s no-op path holds too.
+    config = project(tmp_path, roadmap=BARE_ROADMAP, ledger=RECORDED)
+    before = (tmp_path / "CHANGELOG.md").stat().st_mtime_ns
+    refiled = move(config, "RK1", to_block="A")
+    assert not refiled.moved and refiled.from_line == refiled.lineno
+    assert read(tmp_path, "CHANGELOG.md") == RECORDED
+    assert (tmp_path / "CHANGELOG.md").stat().st_mtime_ns == before
+
+
+def test_an_id_the_ledger_states_twice_is_not_moved_by_guess(tmp_path):
+    # Which of two entries a `--to-block` was written about is the fact no file holds, which
+    # is the same refusal `amend` makes and for the same reason (RK127).
+    config = project(tmp_path, roadmap=BARE_ROADMAP, ledger=DOUBLED)
+    with pytest.raises(Ambiguous) as caught:
+        move(config, "RK1", to_block="B")
+    assert "5, 10" in str(caught.value)
+    assert read(tmp_path, "CHANGELOG.md") == DOUBLED
+
+
+def test_an_id_the_ledger_does_not_carry_says_where_it_is_instead(tmp_path):
+    config = project(tmp_path, ledger=LEDGER)
+    with pytest.raises(NotRecorded) as caught:
+        move(config, "RK1", to_block="B")
+    assert "open roadmap line" in str(caught.value)
+
+
+def test_the_move_is_the_ledger_and_nothing_else(tmp_path):
+    # A block says where an entry is filed and not what it records, so no annotation and no
+    # dep anywhere is derived from it — which is what keeps this door at one file.
+    config = project(tmp_path, ledger=RECORDED)
+    before = (tmp_path / "ROADMAP.md").stat().st_mtime_ns
+    move(config, "RK1", to_block="B").save()
+    assert read(tmp_path, "ROADMAP.md") == ROADMAP
+    assert (tmp_path / "ROADMAP.md").stat().st_mtime_ns == before
+
+
+def test_the_ledger_still_round_trips_after_a_move(tmp_path):
+    config = project(tmp_path, roadmap=BARE_ROADMAP, ledger=DEDUPED)
+    move(config, "RK1", to_block="B").save()
+    document = Config.discover(tmp_path).document("changelog")
+    assert document.render() == read(tmp_path, "CHANGELOG.md")  # L3
+    assert document.non_canonical == () and document.rejects == ()
+    assert lint(Config.discover(tmp_path)).findings == ()
+
+
+def test_the_move_command_names_both_positions(tmp_path, capsys):
+    project(tmp_path, roadmap=BARE_ROADMAP, ledger=RECORDED)
+    code = main(["-C", str(tmp_path), "record", "move", "RK1", "--to-block", "B"])
+    assert code == EXIT_OK
+    out = capsys.readouterr().out
+    assert out.startswith("RK1 moved  Block A → Block B  CHANGELOG.md:5 → :9")
+    assert "roadmap  untouched" in out
+    assert out.splitlines()[-1] == "  event    RK1  Block B  empty"
+
+
+def test_the_move_json_carries_the_block_it_left(tmp_path, capsys):
+    project(tmp_path, roadmap=BARE_ROADMAP, ledger=RECORDED)
+    code = main(
+        ["-C", str(tmp_path), "record", "move", "RK1", "--to-block", "B", "--json"]
+    )
+    assert code == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["from"] == {"block": "A", "line": 5}
+    assert payload["to"] == {"block": "B", "line": 9}
+    assert payload["moved"] is True and payload["roadmap"] == {"touched": False}
+
+
+def test_a_refused_move_writes_nothing_and_exits_two(tmp_path, capsys):
+    project(tmp_path, roadmap=BARE_ROADMAP, ledger=RECORDED)
+    code = main(["-C", str(tmp_path), "record", "move", "RK1", "--to-block", "Z"])
+    assert code == EXIT_USAGE
+    assert "no heading" in capsys.readouterr().err
+    assert read(tmp_path, "CHANGELOG.md") == RECORDED

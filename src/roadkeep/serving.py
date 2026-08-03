@@ -263,6 +263,11 @@ TOOLS: tuple[Tool, ...] = (
     # being true is the commonest correction an entry needs, and the agent that wrote it is
     # the one the hook denies a hand-edit to.
     Tool("record amend", ("id", "why", "part")),
+    # The move `record amend` refuses to spell as a correction (RK143). Exposed beside it
+    # because an entry filed under the wrong block is what `ship` writes from a line filed
+    # under the wrong block — an agent's own slip, and the hand-edit that repaired it is the
+    # one the guard denies that agent.
+    Tool("record move", ("id", "to_block")),
     # `line` rides with both because the choice is the fix (RK127): two entries for one id
     # can be one slip or two deliveries, and the default picked the entry that earned the id.
     Tool("record drop", ("id", "line")),
