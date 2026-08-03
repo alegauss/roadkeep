@@ -688,25 +688,6 @@ git configuration and should stay a flag rather than a default.
 
 ## Block F — The plugin
 
-### §RK170 The read that eats the transport
-
-The server speaks JSON-RPC on stdin and stdout, and `call` dispatches in-process through
-the CLI's own parser — which is what makes a write over MCP take the RK117 lock a write
-over `Bash` takes, and is right. What it captures is half of it: `redirect_stdout` and
-`redirect_stderr` hand the handler a `StringIO`, and stdin is left as the client's pipe.
-
-`_add` reads that pipe. With `--section` and no `--section-body` the body comes from
-`sys.stdin.read()`, and the guard against it is a comment — *an `add` with no rationale
-must never block on a pipe* — which holds for the `add` that names no section, and not
-for the one that names a section and no body. Over `Bash` the read sees EOF. Over MCP it
-waits for an EOF no live client sends, and consumes every message queued behind it.
-
-Measured in Shio: 18 minutes at 0% CPU, no children, holding the lock it claimed at
-07:37:59, the `add` unanswered and a `status` sent afterwards unanswered too. Reproduced
-against a throwaway project in three calls.
-
-**Two writes, and stdin is the one that matters.** An exhausted stream substituted for `sys.stdin` in `call` turns the deadlock into a refusal about an empty body — a sentence the caller can act on, and the same answer on every handler that reads it. Refusing `section` without `section_body` in `argv` is the second, because an empty body is not the body the caller meant to send.
-
 ### §RK171 The instrument the fix needs first
 
 Three exposed tools can reach the read, not one. `add` reaches it with `section` and no

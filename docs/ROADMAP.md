@@ -67,7 +67,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK170** (deps: —) **A tool call that reads stdin eats the transport it arrived on** — `call` redirects stdout and stderr and not stdin, so `add --section` with no body blocks in `sys.stdin.read()` for ever — wedged 18 minutes in Shio, holding the RK117 lock. → §RK170
 - 📋 **RK171** (deps: —) **Nothing asks which exposed tool can reach a read of the transport** — The one guard is a comment in `_add`, and `section add` and `section amend` reach the same read on an argv the schema permits, so two paths wait their turn. → §RK171
 
 ## Non-goals

@@ -29,6 +29,7 @@ import io
 import json
 import os
 import re
+import sys
 from dataclasses import replace
 from pathlib import Path
 
@@ -47,6 +48,7 @@ from roadkeep.serving import (
     Tool,
     ToolError,
     _action,
+    _spent_stdin,
     _subparser,
     argv,
     descriptor,
@@ -83,9 +85,12 @@ Because a pointer resolving to nothing reads exactly like a design that exists.
 """
 
 CONFIG = f'prefix = "RK"\n[files]\nroadmap = "{ROADMAP}"\nchangelog = "{CHANGELOG}"\n'
+#: A project whose pointers have somewhere to resolve, which is what any call touching a
+#: rationale needs — `section add` refuses a role the project declares no file for.
+PROSE = CONFIG + f'improvements = "{IMPROVEMENTS}"\n'
 #: A project that declares the one id shape the counter cannot spell (RK111). Turing's, and
 #: the only config under which `add` offers an id at all.
-SUFFIXED = CONFIG + f'improvements = "{IMPROVEMENTS}"\n[ids]\nsuffix = true\n'
+SUFFIXED = PROSE + "[ids]\nsuffix = true\n"
 
 
 def project(
@@ -662,6 +667,67 @@ def test_the_server_subcommand_tolerates_a_broken_config():
     # `main` reads this flag; without it a typo in `roadkeep.toml` would stop the process
     # the session started once, and take the four tools with it.
     assert build_parser().parse_args(["mcp"]).tolerates_config_error is True
+
+
+# -- the read that ate the transport (RK170) -----------------------------------
+
+
+def test_a_handler_that_reads_a_pipe_answers_instead_of_waiting(tmp_path):
+    # The measured deadlock: `add --section` with no body reaches `sys.stdin.read()`, and over
+    # MCP that waits for an EOF no live client sends. 18 minutes at 0% CPU in Shio, holding the
+    # RK117 lock, with the `add` unanswered and a `status` sent after it unanswered too.
+    # `section_add` is the same read reached by a different argv, and it must answer too.
+    tree = project(tmp_path, config=PROSE, improvements=DESIGN)
+    answered = called(tree, "section_add", anchor="RK2", title="A second design")
+    assert answered["isError"] is True
+    assert "no prose" in text_of(answered)
+
+
+def test_the_transport_is_intact_after_a_call_that_reads_it(tmp_path):
+    # The half that matters most: the deadlock was not that one call failed, it was that every
+    # message queued behind it was consumed. A second call on the same server must answer.
+    tree = project(tmp_path, config=PROSE, improvements=DESIGN)
+    called(tree, "section_add", anchor="RK2", title="A second design")
+    answered = called(tree, "list", block="A")
+    assert answered["isError"] is False and "RK1" in text_of(answered)
+
+
+def test_the_substituted_stream_is_exhausted_and_not_closed():
+    # The distinction the fix rests on: `read()` on a *closed* stream raises `ValueError`,
+    # which `REFUSALS` would report as bad input — a second wrong answer instead of the one
+    # the format already owns for prose that is not there.
+    with _spent_stdin():
+        assert sys.stdin.read() == ""
+        assert sys.stdin.closed is False
+
+
+def test_the_real_stdin_is_given_back(tmp_path):
+    # A server whose loop reads the next message off a `StringIO` it substituted for one call
+    # is a server that answers exactly one.
+    before = sys.stdin
+    called(project(tmp_path), "lint")
+    assert sys.stdin is before
+
+
+def test_a_section_title_without_its_body_names_the_argument(tmp_path):
+    # `_spent_stdin` closes the deadlock whatever this says, so what this buys is which refusal
+    # is read: `body.empty` is true and about the prose, when the fact is that one of two
+    # arguments travelling together did not arrive.
+    refused = text_of(
+        called(project(tmp_path), "add", block="A", symptom="s", why="w.", section="A design")
+    )
+    assert "section without section_body" in refused
+    # And the pair still goes through when both halves are there, which is RK93's whole point.
+    written = called(
+        project(tmp_path, config=PROSE, improvements=DESIGN),
+        "add",
+        block="A",
+        symptom="A second symptom",
+        why="Because of a reason.",
+        section="A second design",
+        section_body="Because a pointer resolving to nothing reads like a design that exists.",
+    )
+    assert written["isError"] is False
 
 
 # -- the refusal that was about the code and read as being about the project ----

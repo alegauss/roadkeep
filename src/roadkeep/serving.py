@@ -23,6 +23,11 @@ What that costs, and how each cost is avoided here:
   file. The config is re-read per message, so a `roadkeep.toml` edited mid-session is the one
   the next `tools/list` describes — and because the *code* reading it is not, a refusal says so
   when this package's own modules moved after they were imported (RK155).
+* **stdin is the transport, so a handler never gets it.** `call` dispatches in-process through
+  the CLI's own parser, and three handlers read a paragraph from a pipe (RK9). Given the
+  client's pipe, one of them waits for an EOF no live client sends and eats every message queued
+  behind it — 18 minutes, holding the lock (RK170). :func:`_spent_stdin` substitutes a stream
+  already at EOF, which turns the deadlock into the refusal the format already owns.
 * **A broken config still starts.** `mcp` tolerates a `ConfigError` for the reason `guard`
   does: the process is launched once for the whole session, and refusing to start would take
   the tools away exactly when a typo in the config most needs the gate. `tools/list` then
@@ -51,7 +56,8 @@ import contextlib
 import io
 import json
 import re
-from collections.abc import Mapping, Sequence
+import sys
+from collections.abc import Iterator, Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any, TextIO
 
@@ -263,6 +269,14 @@ _BOUNDS = {
     "task_id": lambda config: {"pattern": config.schema.split_id_pattern().pattern},
 }
 
+#: An argument that must arrive with its partner, per tool (RK170). `section` without
+#: `section_body` is the argv that reaches `sys.stdin.read()`, and :func:`_spent_stdin` already
+#: keeps that from hanging — this is so the refusal names the **argument** rather than the prose
+#: it then found missing: an empty body is not the body the caller meant to send.
+_COMPANIONS: Mapping[str, tuple[str, str]] = {
+    "add": ("section", "section_body"),
+}
+
 #: What opens a :attr:`Tool.conditional` argument: the declaration that makes the field the
 #: only way to write something legal (RK111). One entry, and a table rather than a flag on the
 #: dest, because the question is about the *project* and the answer has to be re-read per call
@@ -409,6 +423,7 @@ def argv(tool: Tool, arguments: Mapping[str, Any], config: Config) -> list[str]:
             f"this tool takes {', '.join(exposed) or 'no arguments'}"
             + _withheld(tool, unknown)
         )
+    _companioned(tool, arguments)
     positional: list[str] = []
     optional: list[str] = []
     for dest in exposed:  # declaration order, so the argv is stable and diffable
@@ -424,6 +439,27 @@ def argv(tool: Tool, arguments: Mapping[str, Any], config: Config) -> list[str]:
     # `--json` is never exposed and always passed: the provenance is the difference between
     # an answer an agent can audit and one it re-reads the file to check (L5).
     return [*tool.argv_head, *positional, *optional, *always, "--json"]
+
+
+def _companioned(tool: Tool, arguments: Mapping[str, Any]) -> None:
+    """Refuse an argument whose partner is what keeps the handler off the transport (RK170).
+
+    The deadlock is closed by :func:`_spent_stdin` whatever this says, so what is bought here is
+    only *which* refusal the caller reads: without it, `add` with a section title and no body
+    answers `body.empty` — true, and about the prose, when the fact is that one of two arguments
+    that travel together did not arrive. Who checks that no other exposed argv reaches the same
+    read is RK171 and not this.
+    """
+    pair = _COMPANIONS.get(tool.name)
+    if pair is None:
+        return
+    first, second = pair
+    if first in arguments and second not in arguments:
+        raise ToolError(
+            f"{tool.name}: {first} without {second} — the rationale is the second half of "
+            f"one write, and over this transport there is no pipe to read it from, so an "
+            f"omitted {second} is an empty one and a section with no prose is a heading"
+        )
 
 
 def _withheld(tool: Tool, unknown: Sequence[str]) -> str:
@@ -510,7 +546,7 @@ def call(tool: Tool, arguments: Mapping[str, Any], directory: str = ".") -> Answ
         return _answered(str(error), is_error=True)
     out, err = io.StringIO(), io.StringIO()
     try:
-        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err), _spent_stdin():
             args = build_parser().parse_args(["-C", directory, *line])
             # Through the CLI's own dispatch and not straight to the handler, so a write
             # over MCP takes the same lock a write over `Bash` does (RK117) — this is the
@@ -522,6 +558,32 @@ def call(tool: Tool, arguments: Mapping[str, Any], directory: str = ".") -> Answ
         return _answered(f"roadkeep: {busy}", is_error=True)
     reported = "\n".join(part for part in (err.getvalue().strip(), out.getvalue().strip()) if part)
     return _answered(reported or f"{tool.name}: exit {code}", is_error=bool(code))
+
+
+@contextlib.contextmanager
+def _spent_stdin() -> Iterator[None]:
+    """Hand the handler a stream already at EOF, for the length of one call (RK170).
+
+    stdout and stderr are redirected because their output *is* the answer. stdin is redirected
+    because it is the **transport**: `_add --section` with no `--section-body` reads
+    `sys.stdin.read()`, and the only guard against that was a comment true of the `add` that
+    names no section at all. Over `Bash` the read sees EOF and the call refuses. Over MCP it
+    waits for an EOF no live client sends, and swallows every message queued behind it —
+    measured in Shio at 18 minutes, 0% CPU, still holding the lock it claimed (RK117), with the
+    `add` unanswered and a `status` sent after it unanswered too.
+
+    Exhausted and not closed: `read()` on a closed stream raises `ValueError`, which
+    :data:`~roadkeep.cli.REFUSALS` reports as bad input, and the honest answer is the refusal
+    the format already owns for prose that is not there — `body.empty`, *a section with no prose
+    is a heading*. So every handler that reads the pipe answers the same way instead of hanging,
+    whether or not this surface knew it could.
+    """
+    saved = sys.stdin
+    sys.stdin = io.StringIO("")
+    try:
+        yield
+    finally:
+        sys.stdin = saved
 
 
 def _answered(text: str, *, is_error: bool) -> Answer:
