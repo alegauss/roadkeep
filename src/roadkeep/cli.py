@@ -50,7 +50,7 @@ from roadkeep.blocking import drop_block, open_block
 from roadkeep.briefing import Brief, brief, non_goals
 from roadkeep.budgeting import Budget, budget
 from roadkeep.capturing import PARTS, body, capture, check, handoff, keep, offer, replay
-from roadkeep.config import Config, ConfigError
+from roadkeep.config import PROSE_ROLES, Config, ConfigError
 from roadkeep.counting import Census
 from roadkeep.document import (
     Document,
@@ -2183,6 +2183,9 @@ def _ship(config: Config, args: argparse.Namespace) -> int:
                     },
                     "roadmap": {"file": roadmap, "removed": shipment.removed_from},
                     "improvements": {
+                        # The file the drop actually rewrote, which is whichever prose role
+                        # declared the anchor (RK196) — not always the improvements file.
+                        "file": _prose_file(config, shipment.prose),
                         "dropped": None
                         if shipment.dropped is None
                         else {
@@ -2206,10 +2209,7 @@ def _ship(config: Config, args: argparse.Namespace) -> int:
     print(f"{shipment.task_id} → {ledger}:{shipment.ledger.lineno} under Block {block}")
     print(f"  removed  {roadmap}:{shipment.removed_from}")
     if shipment.dropped is not None:
-        print(
-            f"  dropped  {shipment.dropped} from "
-            f"{config.relative(config.path('improvements'))}"
-        )
+        print(f"  dropped  {shipment.dropped} from {_prose_file(config, shipment.prose)}")
         if shipment.nested:
             print(
                 f"  nested   {', '.join(f'§{a}' for a in shipment.nested)} went with it"
@@ -2221,6 +2221,21 @@ def _ship(config: Config, args: argparse.Namespace) -> int:
         print(f"  derived  {', '.join(shipment.refreshed)} (dep annotations re-derived)")
     _print_event(event, "  ")
     return EXIT_OK
+
+
+def _prose_file(config: Config, prose: Document | None) -> str:
+    """The prose file a drop actually rewrote, as the project spells it (RK196).
+
+    Read off the document rather than off `config.path("improvements")`, because which role
+    declared the anchor is what the drop resolved and a caller restating it would be
+    guessing — the guess that reported "no §X.1 section in IMPROVEMENTS.md" about a section
+    sitting in `STRATEGY.md`. Nothing dropped means no document, and then the answer is the
+    first declared prose role, which is where a design would have been.
+    """
+    if prose is not None and prose.path is not None:
+        return config.relative(prose.path)
+    declared = tuple(role for role in PROSE_ROLES if config.has(role))
+    return config.relative(config.path(declared[0])) if declared else ""
 
 
 def _print_cited(cited: Sequence[str]) -> None:
@@ -2304,6 +2319,7 @@ def _closed(config: Config, closure: Closure, args: argparse.Namespace) -> int:
                         "written": False,
                     },
                     "improvements": {
+                        "file": _prose_file(config, closure.prose),
                         "dropped": None
                         if closure.dropped is None
                         else {"anchor": closure.dropped.anchor, "title": closure.dropped.title},
@@ -2325,10 +2341,7 @@ def _closed(config: Config, closure: Closure, args: argparse.Namespace) -> int:
     )
     print("  ledger   untouched: the entry was already there")
     if closure.dropped is not None:
-        print(
-            f"  dropped  {closure.dropped} from "
-            f"{config.relative(config.path('improvements'))}"
-        )
+        print(f"  dropped  {closure.dropped} from {_prose_file(config, closure.prose)}")
         if closure.nested:
             print(f"  nested   {', '.join(f'§{a}' for a in closure.nested)} went with it")
         _print_cited(closure.cited)
@@ -3509,8 +3522,7 @@ def _retire(config: Config, args: argparse.Namespace) -> int:
     )
     print(f"  removed  {roadmap}:{departure.removed_from}")
     if departure.dropped is not None:
-        print(f"  dropped  {departure.dropped} from "
-              f"{config.relative(config.path('improvements'))}")
+        print(f"  dropped  {departure.dropped} from {_prose_file(config, departure.prose)}")
     if departure.dependents:
         # Reported, not refused: a supersession is legitimate and these lines are the
         # author's next edit. `deps` now resolves them as unresolvable, not as satisfied.

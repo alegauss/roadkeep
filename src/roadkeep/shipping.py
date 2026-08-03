@@ -110,13 +110,13 @@ from pathlib import Path
 from roadkeep import claiming
 from roadkeep.authoring import Insertion, place, refuse_reuse, remove_entry
 from roadkeep.backlog import Backlog, NotOpen
-from roadkeep.config import Config
+from roadkeep.config import PROSE_ROLES, Config
 from roadkeep.document import Document, Entry, Heading, Wrapped, counted, save_all
 from roadkeep.ids import next_id
 from roadkeep.markers import refresh
 from roadkeep.renumbering import NotAnId, SameId, family_of
 from roadkeep.schema import PARTIAL, Task
-from roadkeep.sections import NoSuchSection, Section, citing, nested, pointers
+from roadkeep.sections import NoSuchSection, Section, citing, find, nested, pointers
 from roadkeep.sections import drop as drop_section
 
 __all__ = [
@@ -509,7 +509,9 @@ class Departure:
     ledger: Insertion
     roadmap: Document
     removed_from: int
-    improvements: Document | None = None
+    #: The prose file this drop rewrote — **whichever role declared the anchor** (RK196), so
+    #: it carries its own path and a caller naming the improvements file would be guessing.
+    prose: Document | None = None
     dropped: Section | None = None
     #: Why nothing was dropped, when nothing was: a task can ship without a rationale
     #: section, and silence about that would read as a section that was deleted.
@@ -557,7 +559,7 @@ class Departure:
         Nothing here claims the three writes are one; what is claimed is that stopping
         between them costs a command and never a design.
         """
-        save_all(self.ledger.document, self.roadmap, self.improvements)
+        save_all(self.ledger.document, self.roadmap, self.prose)
         if self.root is not None:
             # Last, and never a condition of the writes: a terminal marker is not the
             # in-progress one, so the rule every marker write obeys says *release* (RK162).
@@ -628,7 +630,8 @@ class Closure:
     #: The ledger entry that already existed, and its marker — ✅ or 🗑, because a reader has
     #: to know which door this id went through before its line was left behind.
     recorded: Entry
-    improvements: Document | None = None
+    #: The prose file this drop rewrote, as :class:`Departure` carries it (RK196).
+    prose: Document | None = None
     dropped: Section | None = None
     kept: str | None = None
     #: The anchors nested under the one dropped, as :class:`Departure` reports them (RK78).
@@ -644,7 +647,7 @@ class Closure:
 
     def save(self) -> None:
         """Write the roadmap and the prose file. The ledger is never opened for writing."""
-        save_all(self.roadmap, self.improvements)
+        save_all(self.roadmap, self.prose)
 
 
 @dataclass(frozen=True, slots=True)
@@ -1304,7 +1307,7 @@ def _depart(
     else:
         insertion = place(ledger, recorded)
     remaining = remove_entry(roadmap, entry)
-    improvements, dropped, kept, taken, cited = _drop_section(
+    prose, dropped, kept, taken, cited = _drop_section(
         config, entry.task.ref, leaving=task_id
     )
     # Resolved against the state this write *creates* — the id is in the ledger and gone
@@ -1319,7 +1322,7 @@ def _depart(
         ledger=insertion,
         roadmap=derived.document,
         removed_from=entry.lineno,
-        improvements=improvements,
+        prose=prose,
         dropped=dropped,
         kept=kept,
         nested=taken,
@@ -1401,7 +1404,7 @@ def _close(config: Config, task_id: str, recorded: Entry) -> Closure:
     roadmap = config.document("roadmap")
     entry = roadmap.by_id()[task_id]
     remaining = remove_entry(roadmap, entry)
-    improvements, dropped, kept, taken, cited = _drop_section(
+    prose, dropped, kept, taken, cited = _drop_section(
         config, entry.task.ref, leaving=task_id
     )
     derived = refresh(
@@ -1412,7 +1415,7 @@ def _close(config: Config, task_id: str, recorded: Entry) -> Closure:
         roadmap=derived.document,
         removed_from=entry.lineno,
         recorded=recorded,
-        improvements=improvements,
+        prose=prose,
         dropped=dropped,
         kept=kept,
         nested=taken,
@@ -1464,33 +1467,58 @@ def _drop_section(
     already guarantees, no file has been touched when it does. What the drop *did* take is
     returned with it, because a deletion that reports one section and removes five is how the
     same defect stayed invisible for 160 lines.
+
+    **Which file, is asked and not assumed** (RK196). RK172 taught the gate that a pointer
+    addresses every governed prose role and RK186 taught the reader; this is the third and the
+    one that *writes*. Reading `improvements` alone meant a project declaring `strategy` was
+    told "this project declares no improvements file" while the section the departing line
+    pointed at stayed — a prose file becoming a second changelog, which is what RK6 exists to
+    stop. So the anchor is resolved across the declared roles, exactly as :func:`show` resolves
+    it, and the drop is made against the file that declares it.
+
+    Two roles declaring one anchor is **reported and not resolved**, for the reason absence is:
+    which of the two a line meant is what `ref.ambiguous` asks the author, and a ship that
+    deleted one of them would be answering that question by picking. The section stays, the
+    ship is right, and the gate still says so.
     """
     if anchor is None:
         return None, None, "the line carried no pointer", (), ()
-    if not config.has("improvements"):
-        return None, None, "this project declares no improvements file", (), ()
+    roles = tuple(role for role in PROSE_ROLES if config.has(role))
+    if not roles:
+        return None, None, f"this project declares no {' or '.join(PROSE_ROLES)} file", (), ()
     others = _others_pointing(config, anchor, leaving)
     if others:
         return None, None, f"§{anchor} is also pointed at by {', '.join(others)}", (), ()
-    # The grammar of a section lives in one place (RK9), so shipping calls it rather than
-    # keeping a second opinion about where a section ends.
-    improvements = config.document("improvements")
-    taken = tuple(child.anchor for child in nested(improvements, anchor))
-    try:
-        document, section, cited = drop_section(
-            improvements,
-            anchor,
-            claimed=pointers(config, leaving=leaving),
-            where=config.relative(config.path("improvements")),
-        )
-    except NoSuchSection:
+
+    on_disk = tuple(role for role in roles if config.path(role).is_file())
+    named = " or ".join(config.relative(config.path(role)) for role in roles)
+    declaring = tuple(
+        role for role in on_disk if find(config.document(role), anchor) is not None
+    )
+    if len(declaring) > 1:
+        both = " and ".join(config.relative(config.path(role)) for role in declaring)
         return (
             None,
             None,
-            f"no §{anchor} section in {config.relative(config.path('improvements'))}",
+            f"§{anchor} is declared by {both}: one anchor names one section, and a ship "
+            f"that deleted one of two would be choosing which the line meant",
             (),
             (),
         )
+    if not declaring:
+        return None, None, f"no §{anchor} section in {named}", (), ()
+
+    role = declaring[0]
+    # The grammar of a section lives in one place (RK9), so shipping calls it rather than
+    # keeping a second opinion about where a section ends.
+    prose = config.document(role)
+    taken = tuple(child.anchor for child in nested(prose, anchor))
+    document, section, cited = drop_section(
+        prose,
+        anchor,
+        claimed=pointers(config, leaving=leaving),
+        where=config.relative(config.path(role)),
+    )
     # `cited` is `drop`'s own answer (RK209): the deletion knows what it breaks, and a
     # second reading of the same file here would be a second thing to keep true.
     return document, section, None, taken, cited

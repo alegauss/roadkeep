@@ -100,32 +100,6 @@ overrun would be back to guessing, with a smaller number to guess against.
 
 ## Block B — Authoring
 
-### §RK196 The other half of the reader that did not learn
-
-RK172 taught the gate that a pointer addresses every governed prose role and RK186
-taught the reader. `shipping._dropped` is the third, and it is the one that *writes*: it
-opens `config.document("improvements")`, finds no `§X.1` there, and reports "nothing
-dropped" while `docs/STRATEGY.md` keeps the section the departing line pointed at.
-
-Measured on a project declaring `strategy` under `ref_scheme = "outline"`: `lint` is
-clean before, `show RK1` resolves the pointer into `STRATEGY.md` (RK186 working), `ship
-RK1 --why …` prints `kept nothing dropped: no §X.1 section in IMPROVEMENTS.md`, and
-`lint` exits 0 afterwards with the section still there.
-
-Both halves are wrong and only one is visible. A section outliving its line is what RK6
-exists to stop — the prose file becoming a second changelog — and the gate is why nobody
-noticed: `section.unreachable` should report a design no line points at, and it is not
-asked of every declared role either.
-
-The fix is the shape RK186 used and not a second one: resolve the anchor across the
-declared prose roles, drop from the file that declares it, and let the multi-owner
-report (RK64) and the nesting refusal (RK78) work against that file rather than a
-hardcoded role. The `no improvements file` early return becomes the "no prose role
-declares it" the reader now states.
-
-To decide while doing it: whether the gate half is this task or the separate finding it
-looks like.
-
 ### §RK197 The follow-up that names work already done
 
 The write path's own half of RK186, and the one that costs prose rather than a read.

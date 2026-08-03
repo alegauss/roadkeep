@@ -547,8 +547,11 @@ def test_a_missing_section_is_reported_and_not_an_error(tmp_path):
 def test_a_project_with_no_improvements_file_ships_two_edits(tmp_path):
     config = project(tmp_path, improvements=None)
     shipment = ship(config, "RK1", why="Because of a reason.")
-    assert shipment.improvements is None
-    assert shipment.kept == "this project declares no improvements file"
+    assert shipment.prose is None
+    # Every prose role, because a project declaring only a strategy file declares one (RK196):
+    # the old sentence named the improvements file and was the reason a strategy section
+    # outlived the line pointing at it.
+    assert shipment.kept == "this project declares no improvements or strategy file"
     shipment.save()
     assert read(config, ROADMAP) == BACKLOG.replace(f"{RK1}\n", "").replace(
         "(deps: RK1)", "(deps: RK1 ✅)"
@@ -895,6 +898,124 @@ def test_the_cli_json_says_the_line_is_still_open(tmp_path, capsys):
     assert payload["part"] == "local half"
     assert payload["roadmap"]["open"] is True
     assert payload["roadmap"]["status"] == "⏳"
+
+
+# -- which prose file the drop is made against (RK196) ------------------------
+
+STRATEGY = "docs/STRATEGY.md"
+
+#: An outline project whose rationale lives in the strategy file — the shape RK172 taught
+#: the gate and RK186 taught the reader, arriving at the third reader, the one that writes.
+OUTLINED = """# Roadmap
+
+## Block A — The model
+
+- 📋 **RK1** (deps: —) **A first symptom** — Because of a reason. → §X.1
+- 📋 **RK2** (deps: —) **A second symptom** — Because of another. → §X.2
+"""
+
+PLAN = """# Strategy
+
+## Block A — The model
+
+### §X.1 The first design (RK1)
+
+Prose that belongs to RK1 and to nothing else.
+
+### §X.2 The second design (RK2)
+
+Prose that belongs to RK2.
+"""
+
+
+def outlined(tmp_path: Path, *, improvements: str | None = None, strategy: str | None = PLAN) -> Config:
+    """A project declaring `strategy`, and `improvements` only when a test wants both."""
+    lines = ['prefix = "RK"', 'ref_scheme = "outline"', "[files]"]
+    written = {ROADMAP: OUTLINED, CHANGELOG: LEDGER}
+    lines += [f'roadmap = "{ROADMAP}"', f'changelog = "{CHANGELOG}"']
+    if improvements is not None:
+        lines.append(f'improvements = "{IMPROVEMENTS}"')
+        written[IMPROVEMENTS] = improvements
+    if strategy is not None:
+        lines.append(f'strategy = "{STRATEGY}"')
+        written[STRATEGY] = strategy
+    (tmp_path / "roadkeep.toml").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    for path, body in written.items():
+        target = tmp_path / path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        with target.open("w", encoding="utf-8", newline="") as handle:
+            handle.write(body)
+    return Config.discover(tmp_path)
+
+
+def test_shipping_drops_the_section_from_the_role_that_declares_it(tmp_path):
+    # The defect: `_drop_section` opened the improvements file alone, so a project declaring
+    # only a strategy file was told it declared no prose file at all — and the section the
+    # departing line pointed at stayed, which is the prose file becoming a second changelog.
+    config = outlined(tmp_path)
+    shipment = ship(config, "RK1", why="It works now.")
+    assert shipment.dropped is not None and shipment.dropped.anchor == "X.1"
+    assert shipment.kept is None
+    shipment.save()
+
+    plan = read(config, STRATEGY)
+    assert "§X.1" not in plan and "belongs to RK1" not in plan
+    # The neighbour's design is untouched: a drop is one subtree, not the rest of the file.
+    assert "### §X.2 The second design (RK2)" in plan
+    assert lint(Config.discover(tmp_path)).clean
+
+
+def test_the_report_names_the_file_it_actually_wrote(tmp_path, capsys):
+    # The silent half: a command that dropped from STRATEGY.md and printed IMPROVEMENTS.md
+    # sends the next reader to the wrong file, which is the defect one level up.
+    outlined(tmp_path)
+    argv = ["-C", str(tmp_path), "ship", "RK1", "--why", "It works now."]
+    assert main(argv) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "dropped  §X.1" in out and STRATEGY in out
+    assert IMPROVEMENTS not in out
+
+
+def test_the_json_carries_the_file_the_drop_was_made_against(tmp_path, capsys):
+    outlined(tmp_path)
+    argv = ["-C", str(tmp_path), "ship", "RK1", "--why", "It works now.", "--json"]
+    assert main(argv) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["improvements"]["file"] == STRATEGY
+    assert payload["improvements"]["dropped"]["anchor"] == "X.1"
+
+
+def test_a_project_declaring_both_still_drops_from_the_one_that_has_it(tmp_path):
+    # Declaring an improvements file must not shadow the strategy file: the anchor decides.
+    empty = "# Improvements\n\n## Block A — The model\n"
+    config = outlined(tmp_path, improvements=empty)
+    shipment = ship(config, "RK1", why="It works now.")
+    shipment.save()
+    assert "§X.1" not in read(config, STRATEGY)
+    assert read(config, IMPROVEMENTS) == empty  # untouched, and not reported as the source
+
+
+def test_an_anchor_two_prose_files_declare_is_kept_and_named(tmp_path):
+    # Which of the two the line meant is what `ref.ambiguous` asks the author, and a ship
+    # that deleted one of them would be answering it by picking. So the ship is right, the
+    # section stays, and the reason says both files.
+    doubled = "# Improvements\n\n## Block A — The model\n\n### §X.1 Also here (RK1)\n\nA second copy.\n"
+    config = outlined(tmp_path, improvements=doubled)
+    shipment = ship(config, "RK1", why="It works now.")
+    assert shipment.dropped is None
+    assert shipment.kept is not None
+    assert STRATEGY in shipment.kept and IMPROVEMENTS in shipment.kept
+    shipment.save()
+    # Neither file lost a section, and the line still left the roadmap.
+    assert "§X.1" in read(config, STRATEGY) and "§X.1" in read(config, IMPROVEMENTS)
+    assert "RK1" not in read(config, ROADMAP)
+
+
+def test_an_anchor_no_prose_file_declares_names_every_file_it_looked_in(tmp_path):
+    config = outlined(tmp_path, strategy="# Strategy\n\n## Block A — The model\n")
+    shipment = ship(config, "RK1", why="It works now.")
+    assert shipment.dropped is None
+    assert shipment.kept == f"no §X.1 section in {STRATEGY}"
 
 
 # -- the half RK179 did not reach (RK193) -------------------------------------

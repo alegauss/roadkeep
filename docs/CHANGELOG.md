@@ -82,6 +82,7 @@
 - ✅ **RK191** **The refusal on a second partial names the entry in the way, not the id the step needs** — A second `ship --part` gets its own refusal, naming the id the delivered step is filed under in the spelling this project's `[ids]` declares.
 - ✅ **RK193** **Completing a partial rewrites the first line of an entry whose sentence runs past it** — `ship` completing a partial rewrites the entry's whole span, taking `--lines <n>` where the ledger arrived wrapped and refusing the count where it replaces no entry.
 - ✅ **RK195** **The roadmap's own amend would strand the same tail, and nobody has counted whether a line wraps there** — The count is now the rule `rewrite_entry` holds rather than one caller's, and `amend` and `restate` take `--lines` — measured: cursarei wraps 19 of 19.
+- ✅ **RK196** **A pointer into the strategy file survives the ship that deletes the line pointing at it** — The drop resolves the anchor across every declared prose role and rewrites the file that has it, reporting that file rather than assuming the improvements one.
 
 ## Block C — Query
 
