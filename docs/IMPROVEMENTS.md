@@ -146,6 +146,29 @@ so it cannot relativise anything. So either the caller renders the address and p
 in, the way `ship` already passes `claimed`, or the refusals carry the path and the CLI
 renders it at the boundary where a `Config` exists.
 
+### §RK191 The refusal that knows the answer and does not give it
+
+`ship --part` refuses a second partial with `AlreadyRecorded`: the id, the marker it
+went through and the line it is on. That message was written for the door it is shared
+with — an id the ledger already closed — where naming the entry in the way is the whole
+answer. Here it is not. A caller reaching this refusal has work that came in more halves
+than the model allows, and is told where the first one is.
+
+The answer exists and is not this tool's guess. Shio hit exactly this and shipped SH361
+as *a step delivered gets an id, not a share of one*: SH366 through SH371 carry the six
+steps of two tasks, each qualifier naming its parent in prose. That is also what this
+tool enforces — one partial per id, then a completion — so the refusal is right and only
+its sentence is incomplete.
+
+So this entry point needs its own: the id already records a half, a second would be two
+answers about one piece of work, and a step is filed as its own line. Where `[ids]
+suffix` is declared, `add --id <id>b` is the spelling and the refusal can say so; where
+it is not, it is an ordinary `add` whose `why` names the parent.
+
+Not a new verb, and no relaxation of the duplicate check: RK133 was retired on the
+measurement that the findings were correct. What is missing is a sentence at the one
+place a caller asks.
+
 ## Block C — Query
 
 ### §RK174 One parser, fifty-two times
@@ -195,6 +218,28 @@ match. `show` is the same call underneath, so both doors close together — and 
 show`, which reads its own document by role, is the one place that already had the
 answer.
 
+### §RK190 A budget that is only ever a refusal
+
+RK183 made the `why`'s limit the smaller of its own and what the line has left, and
+RK184 made the refusal state the surplus. Both act at the same moment: after a sentence
+has been composed. The number they report is derived from the id, the marker, the deps
+and the pointer — every one of which `add` knows before the prose exists — so nothing
+about it had to wait for a draft.
+
+That is the arrangement L1 exists to end, one layer in. A `maxLength` refuses before a
+sentence is written to fill it; a derived budget delivered only as a refusal has the
+shape of a linter again, and the author pays a retry to learn a number the tool could
+have handed them. The saving is the analysis: "how long may this sentence be, under this
+block, with these deps" has an answer, and asking it costs no context (L5).
+
+Two shapes, and the difference is whether it is asked or already on the desk. A `budget`
+query takes what an `add` takes — the block, the deps — and reports the prose the line
+will have and each field's share. Or `brief`, the call that starts a task anyway, prints
+the budget of the line it handed over, which an amend is about to rewrite.
+
+What it must not become is a second statement of the limits: the number is
+`Schema.prose_budget` and nothing else, or this is one more thing to keep true.
+
 ## Block D — The gate
 
 ### §RK188 A gate held against a file no verb maintains
@@ -242,6 +287,31 @@ tail rule, and read the difference line by line: how many findings it removes, a
 many of those a reader would call true. If a one-segment tail buys nothing over a
 two-segment one, requiring a slash is a smaller widening for the same six. An idea
 rather than a design, because which of the three it is depends entirely on that number.
+
+### §RK192 A helper that is safe only by convention
+
+`corpora.config` parses the corpus's own `roadkeep.toml` **at the pin** and then roots
+the `Config` at the working tree. Every caller today is careful with it: each passes
+`corpora.document(corpus, role)` explicitly and uses the config for the declaration
+alone, which is the discipline RK105 established. Nothing enforces it.
+`config.document(role)` and `lint(config)` are ordinary calls on an ordinary `Config`,
+and both read the file as it is this afternoon.
+
+The failure is silent and reads as a result. A count taken that way is a true statement
+about somebody else's uncommitted afternoon and a false one about the revision the test
+names — the exact shape RK105 was written to remove, arriving through the helper that
+was written to remove it. It was hit while measuring a retirement:
+`lint(corpora.config(SHIO))` returned five findings, which happened to agree with the
+pin and would not have to.
+
+Two directions, and the second is the one this repository's own laws point at. Give the
+corpus a config whose paths resolve to the pinned bytes — materialised once per revision
+under a cache — so a read through it cannot reach the tree. Or make the type say what it
+is: a declaration, not a config, with the roles it can answer and nothing that opens a
+file.
+
+Either way the live read stays available and stays named, because the advisory in
+`test_corpora.py` is the one that finds a parser defect in content nobody here authored.
 
 ## Block E — Adoption
 

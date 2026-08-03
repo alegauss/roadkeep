@@ -27,16 +27,19 @@
 - 📋 **RK179** (deps: —) **Correcting a wrapped entry's why leaves the rest of the old sentence below the new one** — `replace_task` rewrites the first line because that is all the parse held, so an amend reports success on a line whose sentence now runs into two lines of the one it replaced. → §RK179
 - 📋 **RK180** (deps: —) **A subsection is written at a fixed depth, so in a file whose top level is deeper it is no subsection** — RK166 derived the depth of a new top level and left the nested one at 3, so `section add X.Y` under a level-3 `X` renders a sibling that ends the subtree it was meant to be inside. → §RK180
 - 📋 **RK181** (deps: —) **A section refusal names the file by its whole filesystem path, where the gate beside it names it relatively** — Every message in `sections.py` is built from `document.path`, so a refused drop prints an absolute path while `lint` in the same terminal prints `IMPROVEMENTS.md:5`. → §RK181
+- 📋 **RK191** (deps: —) **The refusal on a second partial names the entry in the way, not the id the step needs** — `_partial` answers a second `ship --part` with the line already recorded, and Shio settled in SH361 that a delivered step gets its own id, so the caller is left to invent it. → §RK191
 
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK174** (deps: —) **Listing the tools rebuilds the whole CLI parser fifty-two times and costs a sixth of a second** — `_subparser` calls `build_parser` per lookup and each descriptor needs two — the schema and whether the tool writes — so a client's first message pays 165ms rebuilding what never changed. → §RK174
 - 📋 **RK186** (deps: —) **`brief` reports a pointer into the strategy file as resolving to nothing** — `showing._rationale` reads the improvements file alone, so RK172's widening stopped at the gate and the call that starts a task denies a design the file declares. → §RK186
+- 📋 **RK190** (deps: —) **A line's prose budget is discoverable only by writing a sentence and being refused** — RK183 derives what a line has left for prose from fields `add` knows before the first word exists, and no command answers it, so the number arrives as a refusal. → §RK190
 
 ## Block D — The gate
 
 - 📋 **RK188** (deps: —) **Every write stales the derived README block, so the gate fails until somebody remembers `export`** — RK104 made `lint` hold the block and no verb refreshes it, so ten consecutive claims and ships each left this repository failing its own gate on a file no task touched. → §RK188
 - 💭 **RK189** (deps: —) **A path claim is satisfied by a file of that name anywhere in the tree, and the floor was never measured** — RK173 indexes every tail of every tracked path, so a one-segment token resolves against any file sharing its name, and what that silences was argued rather than counted. → §RK189
+- 📋 **RK192** (deps: —) **A pinned corpus hands out a config whose file reads go to the live tree instead** — RK105 pinned every corpus assertion and `corpora.config` still roots at the checkout, so a read through it takes today's bytes while the helper beside it takes the revision. → §RK192
 
 ## Block E — Adoption
 
