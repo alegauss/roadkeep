@@ -180,6 +180,88 @@ would make `--after` a per-file argument or a refusal when the files disagree.
 
 ## Block C — Query
 
+### §RK149 A claim on the door nobody uses is no claim
+
+RK119 put the claim where the choice is made, and `pick` is not where a session makes
+it. The skill says `brief [<id>]` starts a task in one call, and with no id it briefs
+whatever `pick` would choose — so the agent following the instructions gets the line,
+the rationale and the deps, and leaves the marker untouched for the next caller to be
+handed the same line.
+
+Exposing `--claim` on `brief` is most of the answer, and the part worth thinking about
+is what a *briefing* claim means when the caller was only reading. Two callers are
+plausible: one asking what to do next, and one asking about a specific id. The second
+passes an id, and claiming what somebody named is a different act from claiming what the
+tool chose — a fact the flag can carry, but not one it should decide silently.
+
+The alternative is to make the claim `pick`'s alone and have `brief` say that the line
+it describes is unclaimed, which trades one round trip for a boundary that stays clean.
+That is the cheaper implementation and the worse instruction: two calls to start a task
+is exactly the cost `brief` exists to remove, and an agent that has to remember the
+second one is an agent that will not.
+
+### §RK150 One hint, two commands
+
+The annotation is per tool and the behaviour is per call. `lint` avoided this by not
+exposing `--fix`, which was right for a repair belonging where a human is standing;
+RK119 could not, the whole subject being the agent boundary — so `pick` is declared a
+write, and a client using the hint to decide whether to prompt now prompts for every
+plain pick as well.
+
+That is the query surface paying for the write. L5's claim is that consulting the
+backlog costs nothing, and a confirmation dialog is a cost of exactly the kind it rules
+out.
+
+Three shapes are worth comparing. A second tool name — `claim`, dispatching `pick
+--claim` — restores the hint on both and adds a name the CLI does not have, which is a
+surface that can drift. A per-call hint is not in the protocol. Declaring the hint from
+the *arguments* the client sent is possible here, since the server builds the argv, but
+`tools/list` is answered before any call, so the honest reading is that the list cannot
+know.
+
+Whichever is chosen, the thing to hold on to is that the hint is advice about asking,
+and being wrong in the safe direction costs a prompt while being wrong the other way
+lets a marker move unannounced.
+
+### §RK151 The one number in this that is a judgement
+
+RK119 argued the window is a property of the mechanism rather than of the format: it
+dates a transient file outside the repository, nothing in `roadkeep.toml` describes it,
+and being wrong about it degrades to the behaviour before claims existed. That argument
+holds for the *placement* and is weaker about the *value*, because an hour is a guess
+about how long work takes, and L6 exists because every such guess was wrong in the
+second project.
+
+The measurement is available and this project already makes it: `weight` derives what
+comparable tasks cost from the commits that shipped them. So the question a design
+should answer is whether the window is declared — one more key an adopter reads and gets
+wrong — or derived from what this backlog's own history says a task takes, which cannot
+be stated wrongly and cannot be stated at all on a repository with no history yet.
+
+What must not happen either way is a window long enough to need breaking. The whole
+reason there is an expiry rather than a lock is that a killed worker must not take a
+line out of the backlog, and a configurable one invites a project to set it to a day and
+rediscover the lock.
+
+### §RK152 The line that is both stalled and held
+
+The stalled list exists because tier 1 cannot pick a blocked 🛠 line and must not hide
+it. RK119 reads claims over the ready lines only, which is right for the ranking — a
+blocked line was never a candidate — and leaves the one report about 🛠 lines unable to
+say the thing a claim was invented to say.
+
+The two states a reader is telling apart are "somebody started this and hit a wall" and
+"somebody is on this right now, and its dep is what they are waiting for". The first is
+an invitation to unblock it; the second is an invitation to leave it alone. One sentence
+serves both today.
+
+The fix is small and the ordering is the whole of it: claims have to be read over the
+lines in scope rather than over the ready ones, and the ranking must keep using the
+ready subset, or a blocked line comes back into a queue nothing could have offered it
+from. Worth noticing that this makes `held` two different facts — a candidate stepped
+around, and a stalled line annotated — and one word for two facts is how the stalled
+report came to be silent about this in the first place.
+
 ## Block D — The gate
 
 ### §RK104 The block the gate does not read
