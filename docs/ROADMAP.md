@@ -33,6 +33,8 @@
 
 ## Block C — Query (consult without reading the file)
 
+- 📋 **RK154** (deps: —) **The one call a session starts a task with never names the lines a claim kept out of its answer** — `pick` names them so a caller can recognise its own claim, and `brief` carries only the tier's reason — so the door RK149 made the recommended one is the door that reports nothing. → §RK154
+
 ## Block D — The gate
 
 - 📋 **RK104** (deps: —) **Nothing gates the README block this tool writes, so a stale restatement passes lint** — `export --readme` is the one write no gate holds: a pytest fixture catches it here and an adopting project has none, so the derived table drifts from the files it was derived from. → §RK104
@@ -62,6 +64,7 @@
 
 - 📋 **RK111** (deps: —) **The MCP write path cannot write an id the deriver never mints** — `add --id` is withheld because a chosen id is what a schema cannot check, but a sub-letter is derived by nothing, so a project declaring `[ids] suffix` has a shape only the CLI can write. → §RK111
 - 📋 **RK128** (deps: —) **The guard denies Edit and Write and answers silence to a shell command writing the same file** — A PreToolUse payload naming Bash is passed through whatever the command does, so sed, python -c or a heredoc rewrites a governed file with no refusal and no record. → §RK128
+- 📋 **RK155** (deps: —) **A tool call answers with the code the session started, so a refusal can name a key the config declares** — The stdio server imports the package once per session, so a new config key or an upgrade is invisible to every tool while the CLI beside it agrees with the file. → §RK155
 
 ## Non-goals
 

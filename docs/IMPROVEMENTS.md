@@ -180,6 +180,28 @@ would make `--after` a per-file argument or a refusal when the files disagree.
 
 ## Block C — Query
 
+### §RK154 The recommended door reports the least
+
+RK119's argument for naming a held line rather than counting it was that a claim carries
+no owner: the id is the only thing by which a caller recognises its own, and a line
+silently absent is one it asks about again next turn. `pick` prints `held` and carries
+it in `--json`. `brief` carries neither.
+
+RK149 then made `brief --claim` the door to reach for, so the call a session actually
+makes is the one that reports the least. It is worse than symmetrical loss: the claiming
+caller is precisely the one that will ask again, and the absence it sees is
+indistinguishable from a backlog with nothing ready.
+
+Two shapes. The narrow one is a `held` field on the brief, printed and in the JSON,
+which is a field copied from `Choice` and a second place to keep in step. The wider one
+is that a brief carries the pick's *answer* — its tier, its counts, what it stepped
+around — rather than the reason sentence alone, which is one field instead of five and
+makes the composition the module already claims to be.
+
+The absence path needs it too: `NothingToBrief` raises with the reason, and "every ready
+task is claimed by a worker who has not finished it" is the one sentence in this design
+that a caller cannot act on without the ids.
+
 ## Block D — The gate
 
 ### §RK104 The block the gate does not read
@@ -598,3 +620,27 @@ Three options, cheapest first: name the gap in the refusal text; match a governe
 appearing anywhere in a `Bash` command and deny on the suspicion, since a read is served
 by `brief` and `show` anyway; or let `Stop` compare the governed files against `git` and
 refuse a change no verb in this session made.
+
+### §RK155 The server outlives the code it loaded
+
+Observed twice in one session, developing this tool with its own server wired in:
+`[claims] held` was added to `roadkeep.toml` and to `config.py` in the same commit, and
+every MCP write then refused with `unknown key 'claims'` while the CLI in a terminal
+accepted it. The fallback was to stop using the tools — which is the write path this
+project ships.
+
+The cause is that `mcp` is launched once per session and imports the package then.
+Nothing is stale about the *files*: the config is re-read per message, deliberately, so
+a `roadkeep.toml` edited mid-session is the one the next `tools/list` describes. What is
+stale is the code that reads it.
+
+Two directions, and they answer different questions. A refusal could *say* which build
+answered — `provenance.engine()` already knows, and "the server is running 0.1.1, the
+file wants 0.1.2" turns a puzzling refusal into an instruction. Or the server could
+notice: it holds no state between messages, so re-executing the package when its own
+files are newer than its import is possible, and is the kind of cleverness that fails in
+the direction of a half-reloaded module.
+
+Only the second is a fix; the first is what makes the failure legible, costs nothing,
+and cannot be wrong. Worth deciding whether the second belongs here at all, or is the
+harness's to do on a plugin whose version moved.
