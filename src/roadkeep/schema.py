@@ -479,17 +479,24 @@ class Schema:
         """The number an id of this project carries, as a regex fragment (RK106)."""
         return number_fragment(self.id_pad)
 
-    def _fragment(self, named: bool) -> str:
+    def _fragment(self, named: bool, *, sub_required: bool = False) -> str:
         """The join itself, spelled once, with or without the three parts named (RK109).
 
         Two spellings of one fragment and not two fragments: a caller that embeds an id in
         a larger pattern cannot use named groups twice, and a caller that takes an id apart
         cannot count anonymous ones — so the *joining* is here, and each caller asks for the
         form it can read rather than reassembling the three declarations for itself.
+
+        ``sub_required`` makes the sub-letter mandatory instead of optional, which is the
+        one caller that wants the ids :meth:`spell_id` cannot reach rather than the ids a
+        line may carry (:meth:`split_id_pattern`, RK111). A third form and not a third
+        fragment, for the same reason there are two: the three declarations still join here.
         """
         family = self.prefix_alternation
         number = self.number_fragment
-        tail = f"{SUB_LETTER}?" if self.id_suffix else ""
+        tail = ""
+        if self.id_suffix:
+            tail = SUB_LETTER if sub_required else f"{SUB_LETTER}?"
         if not named:
             return f"{family}{number}{tail}"
         # An empty group where the project declares no sub-letter, so `parse_id` reads
@@ -711,6 +718,23 @@ class Schema:
         `V05` are both ids of it and a dep from one to the other is an ordinary dep.
         """
         return re.compile(rf"^{self.id_fragment}$")
+
+    def split_id_pattern(self) -> re.Pattern[str]:
+        """The ids :meth:`spell_id` cannot reach: the same shape with the letter **required**.
+
+        :meth:`id_pattern` admits the sub-letter where `[ids] suffix` declares one, because a
+        line may carry it. This one demands it, which makes the two patterns exactly the ids
+        the counter derives and the ids it never will — and the second set is the whole reason
+        a caller is ever allowed to *choose* an id instead (RK111).
+
+        Matches nothing where no suffix is declared, which is the honest answer rather than a
+        second code path: there, every legal id is one the counter produces. Spelled as an
+        empty character class rather than an empty lookahead, because this string is handed to
+        a client to validate against and the class is the form every regex engine reads.
+        """
+        if not self.id_suffix:
+            return re.compile(r"[^\s\S]")
+        return re.compile(rf"^{self._fragment(named=False, sub_required=True)}$")
 
     def validate(self, task: Task) -> tuple[Violation, ...]:
         """Every violation, in field order. Empty means the task conforms."""

@@ -684,29 +684,6 @@ git configuration and should stay a flag rather than a default.
 
 ## Block F — The plugin
 
-### §RK111 An id the deriver never mints
-
-`serving.py` whitelists what an agent may set, and `add --id` is deliberately outside
-it: it "would let a caller choose an id the tool derives, which is the one thing a
-schema cannot then check". That reasoning held while every legal id was one the counter
-could produce.
-
-RK106 broke it. A sub-letter is never derived — `spell_id` counts, and `T24b` is a split
-of a number already cited in commits and issues. So on a project that declares `[ids]
-suffix`, the write path an agent is told to prefer cannot produce a legal id, and the
-skill's own instruction for a split is a CLI invocation the MCP surface has no tool for.
-The declaration is readable by the gate and writable only by a human at a terminal,
-which is a split between the two surfaces this project does not otherwise have.
-
-The check the original reasoning wanted already exists twice over: `add --id` refuses an
-id any configured source mentions, and `id_pattern` refuses one this project's shape
-does not admit. What stays unchecked is only whether the caller *should* have chosen
-rather than derived — and where a sub-letter is declared, deriving is not on offer.
-
-Narrowly, expose `id` only where the project declares a shape the counter cannot reach;
-bluntly, expose it always and let the two refusals do the work. Which is right is the
-open question, and the narrow one has the cost that a tool schema then varies by config.
-
 ### §RK128 The boundary the guard defends has one side open
 
 `guard` reads a `PreToolUse` payload and denies a governed path with a refusal naming

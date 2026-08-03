@@ -49,6 +49,7 @@ import argparse
 import contextlib
 import io
 import json
+import re
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any, TextIO
@@ -76,9 +77,13 @@ METHOD_NOT_FOUND = -32601
 class Tool:
     """One subcommand, and which of its arguments an agent is allowed to set.
 
-    `exposes` is a whitelist and not a filter: `add --id` and `add --ref` exist for adoption
-    (RK18) and would let a caller choose an id the tool derives, which is the one thing a
-    schema cannot then check.
+    `exposes` is a whitelist and not a filter: `add --ref` exists for adoption (RK18) and
+    would let a caller choose a pointer the tool derives, which is the one thing a schema
+    cannot then check.
+
+    :attr:`conditional` is the exception that proves the rule (RK111): where a project
+    declares a shape the deriver cannot spell, withholding the field leaves that surface
+    unable to write a legal id at all.
     """
 
     #: The subcommand path, space-separated where it is nested (`"section add"`). The argv
@@ -97,6 +102,23 @@ class Tool:
     #: has put two tools on one command, and it names the **act** rather than the command,
     #: because two names for one path is what a client would otherwise have to tell apart.
     named: str = ""
+    #: Arguments exposed only where this project's config makes them the **one** way to spell
+    #: a legal value, by dest — the predicate is :data:`_CONDITIONAL` and the bound that then
+    #: narrows them to exactly that value is :data:`_BOUNDS` (RK111). By dest and by config,
+    #: never by hand: a field a caller may set on one project and not another is a difference
+    #: `roadkeep.toml` states (L6), so the tool schema varying is the config being read rather
+    #: than this surface holding a second opinion about it.
+    conditional: tuple[str, ...] = ()
+
+    def exposed(self, config: Config) -> tuple[str, ...]:
+        """Every argument a caller may set on *this* project, in declaration order.
+
+        The conditional ones come last, so the argv stays stable and diffable when a project
+        turns one on — a field that reordered the others would make the same call render two
+        command lines.
+        """
+        opened = tuple(dest for dest in self.conditional if _CONDITIONAL[dest](config))
+        return (*self.exposes, *opened)
 
     @property
     def name(self) -> str:
@@ -125,12 +147,16 @@ class Tool:
         Two clauses and no table: a command whose parser does not call itself a read writes, and
         a read writes exactly when this tool passes the flag its parser names — exposed, so a
         caller may, or in :attr:`always`, so it always does.
+
+        :attr:`conditional` counts as exposed without asking the config, which is the safe
+        direction: a hint that flipped to read-only on some projects would be a client caching
+        "free to ask" for a tool that writes, and `readOnlyHint` is a promise or it is noise.
         """
         parser = _subparser(self.command)
         if not parser.get_default("reads_only"):
             return True
         flag = parser.get_default("writes_when") or ""
-        return bool(flag) and flag in (*self.exposes, *self.always)
+        return bool(flag) and flag in (*self.exposes, *self.conditional, *self.always)
 
 
 #: What a task needs end to end (RK24's four, extended by RK59). Order is the order
@@ -143,9 +169,15 @@ TOOLS: tuple[Tool, ...] = (
     # `section` and `section_body` are exposed for the reason `section add`'s body is: the
     # rationale is the second half of one write (RK93), and a client that cannot pass it
     # here is one whose every `add` leaves a pointer for the gate to refuse.
+    # `task_id` is conditional and every other id on the write path is derived (RK111): a
+    # project that declares `[ids] suffix` has a legal shape `spell_id` never produces, so the
+    # split the skill prescribes was an invocation only the CLI could make. Opened only there,
+    # and bounded to *require* the letter — so what the field buys is the id the counter cannot
+    # reach, and never the number it would have handed out.
     Tool(
         "add",
         ("block", "symptom", "why", "deps", "status", "section", "section_body"),
+        conditional=("task_id",),
     ),
     # The key to a deadlock the agent meets first (RK141): `ship` refuses an undeclared
     # block, the guard denies the edit that would declare it, and no other verb writes a
@@ -223,6 +255,19 @@ _BOUNDS = {
     "why": lambda config: {"maxLength": config.schema.why_max},
     "status": lambda config: {"enum": list(config.schema.markers)},
     "id": lambda config: {"pattern": config.schema.id_pattern().pattern},
+    # Not `id_pattern` (RK111): this is the *chosen* id, and the shape that admits a bare
+    # number would admit exactly the choice deriving already makes. The narrower pattern is
+    # what keeps the field from being a way around the counter, so it is also checked here and
+    # not only published — a bound a client may skip is a bound on the client.
+    "task_id": lambda config: {"pattern": config.schema.split_id_pattern().pattern},
+}
+
+#: What opens a :attr:`Tool.conditional` argument: the declaration that makes the field the
+#: only way to write something legal (RK111). One entry, and a table rather than a flag on the
+#: dest, because the question is about the *project* and the answer has to be re-read per call
+#: — a config edited mid-session is the one this server answers with (RK155's neighbour).
+_CONDITIONAL: Mapping[str, Any] = {
+    "task_id": lambda config: config.schema.id_suffix,
 }
 
 #: The non-goals are their own two limits (RK70), so the same `why` means a different number
@@ -307,7 +352,7 @@ def descriptor(tool: Tool, config: Config) -> dict[str, Any]:
     bounds_for = _SCOPE_BOUNDS if tool.argv_head[0] == "non-goal" else _BOUNDS
     properties: dict[str, Any] = {}
     required: list[str] = []
-    for dest in tool.exposes:
+    for dest in tool.exposed(config):
         action = _action(parser, dest)
         properties[dest] = _property(action, config, bounds_for)
         if _required(action):
@@ -347,22 +392,30 @@ class Answer:
         return {"content": [{"type": "text", "text": self.text}], "isError": self.is_error}
 
 
-def argv(tool: Tool, arguments: Mapping[str, Any]) -> list[str]:
-    """The command line the CLI accepts, or `ToolError` naming what may be set instead."""
+def argv(tool: Tool, arguments: Mapping[str, Any], config: Config) -> list[str]:
+    """The command line the CLI accepts, or `ToolError` naming what may be set instead.
+
+    Takes the config because what may be set is a question about the project (RK111), and
+    because a bound the descriptor published is a bound this has to hold: a client that
+    validated is not the same as a call that was checked.
+    """
     parser = _subparser(tool.command)
-    unknown = [name for name in arguments if name not in tool.exposes]
+    exposed = tool.exposed(config)
+    unknown = [name for name in arguments if name not in exposed]
     if unknown:
         raise ToolError(
             f"{tool.name}: no such argument {', '.join(sorted(unknown))} — "
-            f"this tool takes {', '.join(tool.exposes) or 'no arguments'}"
+            f"this tool takes {', '.join(exposed) or 'no arguments'}"
+            + _withheld(tool, unknown)
         )
     positional: list[str] = []
     optional: list[str] = []
-    for dest in tool.exposes:  # declaration order, so the argv is stable and diffable
+    for dest in exposed:  # declaration order, so the argv is stable and diffable
         if dest not in arguments:
             continue
         action = _action(parser, dest)
         fragment = _rendered(action, dest, arguments[dest])
+        _bounded(dest, arguments[dest], config)
         (optional if action.option_strings else positional).extend(fragment)
     # What makes this tool the act it is named for (RK150), resolved through the parser like
     # every exposed argument: a client cannot pass these and cannot unset them.
@@ -370,6 +423,42 @@ def argv(tool: Tool, arguments: Mapping[str, Any]) -> list[str]:
     # `--json` is never exposed and always passed: the provenance is the difference between
     # an answer an agent can audit and one it re-reads the file to check (L5).
     return [*tool.argv_head, *positional, *optional, *always, "--json"]
+
+
+def _withheld(tool: Tool, unknown: Sequence[str]) -> str:
+    """The clause a refusal adds when the argument exists and this project closed it (RK111).
+
+    Without it the message reads as a misspelling and the caller retries the same spelling:
+    which arguments a tool takes is a fact about `roadkeep.toml` (L6), so the refusal says
+    which declaration would have opened it rather than only that it is absent.
+    """
+    closed = sorted(set(unknown) & set(tool.conditional))
+    if not closed:
+        return ""
+    return (
+        f". {', '.join(closed)}: offered only where `roadkeep.toml` declares an id shape "
+        f"the counter cannot spell (`[ids] suffix`), and this project declares none — so "
+        f"every legal id here is the one `add` derives"
+    )
+
+
+def _bounded(dest: str, value: Any, config: Config) -> None:
+    """Hold a conditional argument to the bound that opened it (RK111).
+
+    Only the conditional ones, and only their `pattern`: every other bound in :data:`_BOUNDS`
+    is the schema's, so the write path beneath refuses a violation whatever a client sent. A
+    conditional field's is this surface's alone — `add --id T24` stays legal at a terminal,
+    where `adopt` writes ids a corpus already spent — so unchecked here is unchecked.
+    """
+    if dest not in _CONDITIONAL:
+        return
+    pattern = _BOUNDS[dest](config).get("pattern")
+    if pattern and not re.match(pattern, _one(dest, value)):
+        raise ToolError(
+            f"{dest} must match {pattern}, got {_one(dest, value)!r} — the id you may "
+            f"choose is the split of one that already exists, and a number without the "
+            f"letter is one the counter derives: leave the field out and it is derived"
+        )
 
 
 def _rendered(action: argparse.Action, dest: str, value: Any) -> list[str]:
@@ -404,8 +493,15 @@ def call(tool: Tool, arguments: Mapping[str, Any], directory: str = ".") -> Answ
     """
     from roadkeep.cli import build_parser, dispatch
 
+    # Discovered before the argv is built, because which arguments this tool takes is read
+    # from it (RK111) — and discovered once, so the call cannot be checked against one config
+    # and dispatched against another.
     try:
-        line = argv(tool, arguments)
+        config = Config.discover(directory)
+    except ConfigError as error:
+        return Answer(f"roadkeep: {error}", is_error=True)
+    try:
+        line = argv(tool, arguments, config)
     except ToolError as error:
         return Answer(str(error), is_error=True)
     out, err = io.StringIO(), io.StringIO()
@@ -415,11 +511,9 @@ def call(tool: Tool, arguments: Mapping[str, Any], directory: str = ".") -> Answ
             # Through the CLI's own dispatch and not straight to the handler, so a write
             # over MCP takes the same lock a write over `Bash` does (RK117) — this is the
             # path an agent uses, so it is the path the duplicate id was minted on.
-            code = dispatch(Config.discover(directory), args)
+            code = dispatch(config, args)
     except SystemExit as exit_:  # argparse refused the argv: a missing required argument
         code = exit_.code if isinstance(exit_.code, int) else 2
-    except ConfigError as error:
-        return Answer(f"roadkeep: {error}", is_error=True)
     except LockBusy as busy:
         return Answer(f"roadkeep: {busy}", is_error=True)
     reported = "\n".join(part for part in (err.getvalue().strip(), out.getvalue().strip()) if part)

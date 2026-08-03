@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import io
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -79,6 +80,9 @@ Because a pointer resolving to nothing reads exactly like a design that exists.
 """
 
 CONFIG = f'prefix = "RK"\n[files]\nroadmap = "{ROADMAP}"\nchangelog = "{CHANGELOG}"\n'
+#: A project that declares the one id shape the counter cannot spell (RK111). Turing's, and
+#: the only config under which `add` offers an id at all.
+SUFFIXED = CONFIG + f'improvements = "{IMPROVEMENTS}"\n[ids]\nsuffix = true\n'
 
 
 def project(
@@ -181,14 +185,14 @@ def test_a_nested_command_is_one_tool_name_and_two_argv_words():
     # both spellings rather than a table mapping between them.
     tool = tool_named("section_add")
     assert tool.argv_head == ["section", "add"]
-    assert argv(tool, {"anchor": "RK1", "title": "A design"})[:2] == ["section", "add"]
+    assert argv(tool, {"anchor": "RK1", "title": "A design"}, Config.default())[:2] == ["section", "add"]
 
 
 def test_every_tool_is_a_subcommand_the_cli_accepts():
     # The same argument the Action and the pre-commit hook get: a surface that drifts from
     # `cli.py` fails a test instead of failing a call.
     for tool in TOOLS:
-        parsed = build_parser().parse_args(argv(tool, _minimal(tool)))
+        parsed = build_parser().parse_args(argv(tool, _minimal(tool), Config.default()))
         assert parsed.command == tool.argv_head[0]
         assert parsed.json is True  # never exposed, always passed
 
@@ -254,7 +258,10 @@ def test_a_write_that_needs_prose_takes_it_as_a_bounded_string(tmp_path):
 
 def test_the_derived_fields_are_not_offered(tmp_path):
     """`add --id` and `add --ref` exist for adoption; offering them lets a caller choose
-    what the tool derives, and a hand-set id is the one thing the schema cannot check."""
+    what the tool derives, and a hand-set id is the one thing the schema cannot check.
+
+    `task_id` is absent *here* because this project declares no suffix — where one is
+    declared it is offered, which is RK111 and the test below."""
     properties = listed(project(tmp_path))["add"]["inputSchema"]["properties"]
     assert "task_id" not in properties and "ref" not in properties
     assert set(properties) == {
@@ -270,15 +277,67 @@ def test_the_derived_fields_are_not_offered(tmp_path):
     }
 
 
+def test_a_declared_suffix_opens_the_one_id_the_counter_cannot_spell(tmp_path):
+    # RK111: `spell_id` counts and never letters, so on a project declaring `[ids] suffix`
+    # the write path an agent is told to prefer could not produce a legal split id at all.
+    # Offered there, bounded to *require* the letter, and required nowhere — the number is
+    # still derived when the field is left out.
+    properties = listed(project(tmp_path, config=SUFFIXED))["add"]["inputSchema"]
+    assert "task_id" in properties["properties"]
+    assert "task_id" not in properties.get("required", [])
+    pattern = properties["properties"]["task_id"]["pattern"]
+    assert re.match(pattern, "RK7b") and not re.match(pattern, "RK7")
+    # And it is the schema's own spelling of the shape, not a second copy written here.
+    schema = Config.discover(project(tmp_path, config=SUFFIXED)).schema
+    assert pattern == schema.split_id_pattern().pattern
+
+
+def test_a_chosen_id_is_refused_when_it_is_one_deriving_would_have_reached(tmp_path):
+    # The narrowing is the whole of RK111: the field buys the id the counter cannot mint, so
+    # a bare number through it is the choice the surface withholds — checked here and not
+    # only published, because a bound a client may skip is a bound on the client.
+    config = Config.discover(project(tmp_path, config=SUFFIXED))
+    chosen = {"block": "A", "symptom": "s", "why": "w.", "task_id": "RK9"}
+    add = tool_named("add")
+    with pytest.raises(ToolError) as caught:
+        argv(add, chosen, config)
+    assert "leave the field out and it is derived" in str(caught.value)
+
+
+def test_the_refusal_names_the_declaration_that_would_open_the_field(tmp_path):
+    # Without the clause the message reads as a misspelling and the caller retries the same
+    # spelling: which arguments a tool takes is a fact about `roadkeep.toml` (L6).
+    refused = text_of(
+        called(project(tmp_path), "add", block="A", symptom="s", why="w.", task_id="RK9b")
+    )
+    assert "no such argument task_id" in refused
+    assert "[ids] suffix" in refused and "this project declares none" in refused
+
+
+def test_a_split_id_reaches_the_roadmap_over_the_protocol(tmp_path):
+    # End to end, because the defect was that this call could not be made: the id is written
+    # verbatim, and the same refusals hold — `refuse_reuse` and the project's own id shape.
+    tree = project(tmp_path, config=SUFFIXED, improvements=DESIGN)
+    written = json.loads(
+        text_of(called(tree, "add", block="A", symptom="A split half", why="Because.",
+                       task_id="RK1b"))
+    )
+    assert written["id"] == "RK1b"
+    assert "**RK1b**" in (tree / ROADMAP).read_text(encoding="utf-8")
+    # The id is still never reused, whichever surface chose it.
+    again = text_of(called(tree, "add", block="A", symptom="s", why="w.", task_id="RK1b"))
+    assert "already occurs" in again
+
+
 def test_a_flag_that_became_a_tool_is_always_passed_and_never_settable(tmp_path):
     # RK150's mechanism: the act is the name, the flag is not an argument, and the argv is
     # still the CLI's own — so nothing is reachable here that a terminal cannot run.
     tool = tool_named("claim")
-    assert argv(tool, {}) == ["brief", "--claim", "--json"]
-    assert argv(tool, {"id": "RK1"}) == ["brief", "RK1", "--claim", "--json"]
+    assert argv(tool, {}, Config.default()) == ["brief", "--claim", "--json"]
+    assert argv(tool, {"id": "RK1"}, Config.default()) == ["brief", "RK1", "--claim", "--json"]
     # Unsettable in both directions: a caller cannot ask a claiming tool not to claim.
     with pytest.raises(ToolError) as caught:
-        argv(tool, {"claim": False})
+        argv(tool, {"claim": False}, Config.default())
     assert "no such argument claim" in str(caught.value)
     assert "claim" not in listed(project(tmp_path))["claim"]["inputSchema"]["properties"]
 
@@ -329,9 +388,13 @@ def test_the_pick_can_be_narrowed_to_written_designs_over_the_protocol(tmp_path)
     # block is the one this server exists for, and a CLI-only flag is one it cannot pass.
     properties = listed(project(tmp_path))["pick"]["inputSchema"]["properties"]
     assert properties["designed"]["type"] == "boolean"
-    assert argv(tool_named("pick"), {"designed": True}) == ["pick", "--designed", "--json"]
+    assert argv(tool_named("pick"), {"designed": True}, Config.default()) == [
+        "pick",
+        "--designed",
+        "--json",
+    ]
     # False is the default, and a flag argparse reads as present cannot say "no".
-    assert argv(tool_named("pick"), {"designed": False}) == ["pick", "--json"]
+    assert argv(tool_named("pick"), {"designed": False}, Config.default()) == ["pick", "--json"]
 
 
 def test_the_object_is_closed_so_a_misspelt_argument_never_reaches_the_parser(tmp_path):
@@ -445,7 +508,11 @@ def test_the_merge_repair_is_reachable_by_the_caller_the_hook_denies(tmp_path):
 
 def test_a_repeated_dep_arrives_as_the_array_the_schema_declares(tmp_path):
     project(tmp_path)
-    line = argv(tool_named("add"), {"block": "A", "symptom": "s", "why": "w.", "deps": ["RK1", "Block A"]})
+    line = argv(
+        tool_named("add"),
+        {"block": "A", "symptom": "s", "why": "w.", "deps": ["RK1", "Block A"]},
+        Config.default(),
+    )
     assert line.count("--dep") == 2
     result = called(tmp_path, "add", block="A", symptom="A second", why="A reason.", deps=["RK1"])
     assert result["isError"] is False
@@ -494,9 +561,9 @@ def test_an_unknown_tool_names_the_tools_that_exist(tmp_path):
 
 def test_a_value_of_the_wrong_type_is_refused_before_dispatch():
     with pytest.raises(ToolError, match="must be a string"):
-        argv(tool_named("ship"), {"id": 5})
+        argv(tool_named("ship"), {"id": 5}, Config.default())
     with pytest.raises(ToolError, match="must be an array"):
-        argv(tool_named("add"), {"deps": "RK1"})
+        argv(tool_named("add"), {"deps": "RK1"}, Config.default())
 
 
 # -- the protocol ------------------------------------------------------------

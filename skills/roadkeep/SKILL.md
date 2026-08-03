@@ -86,7 +86,8 @@ transaction — the destination derived in the line's own family unless you name
 way `[ids]` says this project spells one, and refused if any source already mentions it. A
 **split** is the other direction and not this command: the cited number stays where it is, and
 the half that is new is an `add --id <id>b` where `[ids] suffix` declares
-one. The ledger is never opened, so the id the other branch
+one — the one id a caller may choose, `task_id` over MCP, offered only on such a project and
+refused without the letter, because a bare number is derived. The ledger is never opened, so the id the other branch
 recorded stays theirs; the deps it moved are **named in the answer**, because which of two
 collided ids a dep meant is the one thing the files do not say. `ship` and `retire` are wrong
 here: both write a terminal entry for work nobody cancelled.
