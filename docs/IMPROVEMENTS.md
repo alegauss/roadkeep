@@ -100,29 +100,6 @@ overrun would be back to guessing, with a smaller number to guess against.
 
 ## Block B — Authoring
 
-### §RK214 The door a ledger's own shape closes, discovered by being refused
-
-`retire` is the door for a task decided against, and it refuses in any project declaring
-`[ledger] marker = false`: a retired entry cannot be told from a shipped one when
-neither writes a glyph. The refusal is right and it writes nothing, which is also right.
-
-What it leaves behind is a project with no recorded exit for abandoned work. Measured in
-Claude Code Tray, whose ledger declares no marker because 163 of its entries were
-reconstructed from git history before this grammar existed. A task there was measured,
-the premise did not survive the measurement, and there was nowhere to record that — so
-the reachable alternative was `ship` with an outcome saying it was decided against. A ✅
-against work nobody did is the ledger lying that `marker = false` was declared to
-prevent.
-
-Nothing warns in advance. The skill names `retire` among the verbs, and the refusal
-arrives at the moment somebody has already done the work of deciding.
-
-Two shapes. Let `retire` write without a marker, distinguished by the sentence it
-carries — the ledger already tells its entries apart by what they say, and *decided
-against* is a sentence. Or refuse earlier: a project declaring no marker is told once,
-at `init` or by `lint`, which door it has closed, rather than at the moment it needs to
-walk through it.
-
 ### §RK215 Refused by the writer for a state the gate calls clean
 
 `section amend XXII --body '<nine words>'` was refused in Claude Code Tray with *934

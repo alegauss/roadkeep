@@ -84,6 +84,7 @@
 - ✅ **RK195** **The roadmap's own amend would strand the same tail, and nobody has counted whether a line wraps there** — The count is now the rule `rewrite_entry` holds rather than one caller's, and `amend` and `restate` take `--lines` — measured: cursarei wraps 19 of 19.
 - ✅ **RK196** **A pointer into the strategy file survives the ship that deletes the line pointing at it** — The drop resolves the anchor across every declared prose role and rewrites the file that has it, reporting that file rather than assuming the improvements one.
 - ✅ **RK197** **`add` asks for a rationale section that another declared prose file already holds** — The follow-up asks every declared prose role, so a resolved pointer is silent, and where none answers it names the role it means rather than `section add`'s default.
+- ✅ **RK214** **A ledger that declares no marker closes one of the three doors out of the roadmap** — The refusal stands and the surprise does not: `lint` names the closed door every run and the generated declaration says so where the choice is made.
 
 ## Block C — Query
 

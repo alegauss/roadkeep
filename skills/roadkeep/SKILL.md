@@ -39,7 +39,10 @@ right and that citation is your next edit, in *this* commit, because a shipped e
 pointer and from the next command on the reference reads exactly like a typo. And `--why` is **required**, because the roadmap's sentence states a
 problem and the ledger's states an outcome, so inheriting it files a defect report under a
 heading meaning "done" (`record amend <id> --why` is the repair where one already did), and `retire <id> [--superseded-by <id>] --reason "…"` is the same
-transaction, two more doors. **The `symptom` is not one of `amend`'s fields** — it is the
+transaction, two more doors — **closed where the project declares `[ledger] marker = false`**,
+a departure that is not a shipment having no slot to be told from one there. `lint` names that
+every run, and `ship` is not the way round it: an outcome filed under ✅ is the record that
+declaration exists to prevent, and declaring the marker is what opens the door. **The `symptom` is not one of `amend`'s fields** — it is the
 falsifiable claim the line is, so a different one is a different task — and where the premise
 itself turned out false, `restate <id> --symptom "…"` is that correction and the only door to
 it: the id, the deps, the marker and the section all stay, because the work never changed and

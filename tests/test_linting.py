@@ -992,6 +992,90 @@ def test_the_note_does_not_move_the_exit_code(tmp_path, capsys):
     assert "deps.collective" in out and "clean" in out
 
 
+# -- the door a ledger's own shape closes (RK214) ------------------------------
+
+#: Shio's and Claude Code Tray's shape: a ledger reconstructed before this grammar, whose
+#: entries carry no glyph because the file's heading is the marker.
+MARKERLESS_CONFIG = CONFIG + "[ledger]\nmarker = false\n"
+MARKERLESS_LEDGER = """# Shipped
+
+## Block A — The model
+
+- **RK5** **An earlier symptom** — Because it was done.
+"""
+
+
+def test_a_markerless_ledger_is_told_which_door_that_closes(tmp_path):
+    # The refusal was right and its timing was not: it arrived after somebody had already
+    # done the work of deciding against a task, and the reachable alternative was `ship`
+    # with an outcome saying so — a ✅ over work nobody did.
+    report = lint(
+        project(tmp_path, changelog=MARKERLESS_LEDGER, config=MARKERLESS_CONFIG)
+    )
+    # A note and not a finding: the declaration is legitimate, and failing a build over it
+    # would fail the honest project it describes.
+    assert report.clean and report.problems == 0
+    (note,) = [n for n in report.notes if n.code == "ledger.no-marker"]
+    assert "`retire` is refused here" in note.message
+    assert "Declaring the marker is what opens that door" in note.message
+    assert str(note).startswith("CHANGELOG.md  ledger.no-marker")
+
+
+def test_a_ledger_that_declares_its_marker_is_told_nothing(tmp_path):
+    # Said where it applies and nowhere else: a note on every project would be output
+    # nobody reads, which is the failure mode RK16 exists to avoid.
+    report = lint(project(tmp_path))
+    assert not [n for n in report.notes if n.code == "ledger.no-marker"]
+
+
+def test_a_project_with_no_ledger_at_all_is_told_nothing(tmp_path):
+    # There is no door to close where there is no file: `retire` refuses for a different
+    # reason, and naming this one would send the reader to the wrong declaration.
+    report = lint(
+        project(
+            tmp_path,
+            changelog=None,
+            config='prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\n'
+            'improvements = "IMPROVEMENTS.md"\n[ledger]\nmarker = false\n',
+        )
+    )
+    assert not [n for n in report.notes if n.code == "ledger.no-marker"]
+
+
+def test_the_note_does_not_move_the_exit_code_either(tmp_path, capsys):
+    project(tmp_path, changelog=MARKERLESS_LEDGER, config=MARKERLESS_CONFIG)
+    assert main(["-C", str(tmp_path), "lint"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "ledger.no-marker" in out and "clean" in out
+
+
+def test_the_refusal_it_warns_about_is_still_the_refusal(tmp_path):
+    # The note replaces no gate: `retire` still writes nothing, because a retirement
+    # recorded without a marker is one this tool would go on to count as a shipment.
+    from roadkeep.schema import SchemaError
+    from roadkeep.shipping import retire
+
+    config = project(tmp_path, changelog=MARKERLESS_LEDGER, config=MARKERLESS_CONFIG)
+    before = (tmp_path / "CHANGELOG.md").read_text(encoding="utf-8")
+    with pytest.raises(SchemaError, match="status.unrepresentable"):
+        retire(config, "RK1", reason="The premise did not survive the measurement.")
+    assert (tmp_path / "CHANGELOG.md").read_text(encoding="utf-8") == before
+
+
+def test_the_declaration_names_the_door_where_the_choice_is_made(tmp_path):
+    # `lint` repeats it every run, and this is where it is first read: a project told at
+    # `init` never reaches the refusal by surprise.
+    from dataclasses import replace as replaced
+
+    from roadkeep.adopting import render_config
+    from roadkeep.schema import Schema
+
+    rendered = render_config(
+        replaced(Schema(), ledger_marker=False), {"roadmap": "docs/ROADMAP.md"}
+    )
+    assert "marker = false" in rendered and "closes `retire`" in rendered
+
+
 def test_a_range_dep_is_expanded_too(tmp_path):
     # Turing's `(deps: T451–T457)` is one token naming seven.
     ranged = COLLECTIVE.replace("(deps: Block A)", "(deps: RK1–RK2)")

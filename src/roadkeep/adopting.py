@@ -325,7 +325,15 @@ def render_config(schema: Schema, paths: Mapping[str, str]) -> str:
         # a slot the file carries anyway (RK43, RK48).
         line
         for present, line in (
-            (schema.ledger_marker, "# every entry in it shipped, so no line repeats it\nmarker = false"),
+            (
+                schema.ledger_marker,
+                # Named where the choice is made, not where it is hit (RK214): this one
+                # closes `retire`, there being no slot for a departure that is not a
+                # shipment, and `lint` repeats it every run.
+                "# every entry in it shipped, so no line repeats it\n"
+                "# (this closes `retire`: a departure that is not a shipment has no slot)\n"
+                "marker = false",
+            ),
             (schema.ledger_symptom, "# its lines are `- **id** — <prose>`, with no symptom slot\nsymptom = false"),
         )
         if not present
