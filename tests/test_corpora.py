@@ -28,7 +28,7 @@ import pytest
 
 import corpora
 from roadkeep.document import Document
-from roadkeep.linting import within
+from roadkeep.linting import lint, within
 
 #: The roles a corpus is read for. The prose file has no task line to round-trip, so it is
 #: read by the section tests at the pin and not here.
@@ -130,3 +130,69 @@ def test_the_gate_reads_the_live_tree_without_throwing(corpus):
         document = Document.parse(source, schema=settings.schema_for(role))
         for finding in within(settings, role, document):
             assert finding.message, finding.code
+
+
+# -- the helper cannot reach the tree it is pinned against (RK192) ------------
+
+
+@pytest.mark.parametrize("corpus", corpora.BOTH, ids=lambda c: c.name)
+def test_a_read_through_the_pinned_config_cannot_reach_the_checkout(corpus):
+    """The property that replaces the discipline RK105 left every caller holding.
+
+    `corpora.config` used to root the pinned declaration at the corpus, so
+    `config.document(role)` and `lint(config)` were ordinary calls that read this
+    afternoon's file — and the answer looked like a result, which is what made the failure
+    silent. It was hit while measuring a retirement: five findings that happened to agree
+    with the pin and would not have to.
+
+    So the assertion is structural rather than about a number. The root is not inside the
+    checkout, which is what makes reaching it impossible instead of merely discouraged, and
+    what comes back through the ordinary door is byte for byte what the revision holds.
+    """
+    corpora.require(corpus)
+    settings = corpora.config(corpus)
+    assert not settings.root.is_relative_to(corpus.where)
+    for role in settings.paths:
+        if not corpora.has(corpus, role):
+            continue
+        assert settings.document(role).render() == corpora.text(corpus, role)
+
+
+@pytest.mark.parametrize("corpus", corpora.BOTH, ids=lambda c: c.name)
+def test_the_gate_run_through_it_judges_the_revision_and_writes_nothing(corpus):
+    """The call that motivated RK192, now safe by construction rather than by care.
+
+    `lint(corpora.config(...))` is the natural thing to write and was the wrong thing to
+    write. No magnitude is asserted — a foreign backlog's finding count is that project's
+    business — only that the run reads the pinned bytes and leaves the corpus untouched.
+    """
+    corpora.require(corpus)
+    settings = corpora.config(corpus)
+    before = {
+        role: settings.path(role).read_bytes()
+        for role in settings.paths
+        if corpora.has(corpus, role)
+    }
+    report = lint(settings)
+    assert report.checked
+    assert {
+        role: settings.path(role).read_bytes()
+        for role in settings.paths
+        if corpora.has(corpus, role)
+    } == before
+
+
+@pytest.mark.parametrize("corpus", corpora.BOTH, ids=lambda c: c.name)
+def test_the_live_root_is_still_reachable_and_still_named(corpus):
+    """`checkout` is the door RK192 kept open, because two reads legitimately need it.
+
+    `Tree(config, rev)` and `tracked_at(config, rev)` run git, so they need the repository
+    and are pinned by the argument they already carry; the advisory read is the tree on
+    purpose. Naming that config is the whole point — a live root that reads like a live
+    root is not the mistake, it is the input.
+    """
+    corpora.require(corpus)
+    settings = corpora.checkout(corpus)
+    assert settings.root == corpus.where
+    for role in ROLES:
+        assert settings.path(role).is_relative_to(corpus.where)

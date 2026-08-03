@@ -218,31 +218,6 @@ and may not need a second.
 
 ## Block D — The gate
 
-### §RK192 A helper that is safe only by convention
-
-`corpora.config` parses the corpus's own `roadkeep.toml` **at the pin** and then roots
-the `Config` at the working tree. Every caller today is careful with it: each passes
-`corpora.document(corpus, role)` explicitly and uses the config for the declaration
-alone, which is the discipline RK105 established. Nothing enforces it.
-`config.document(role)` and `lint(config)` are ordinary calls on an ordinary `Config`,
-and both read the file as it is this afternoon.
-
-The failure is silent and reads as a result. A count taken that way is a true statement
-about somebody else's uncommitted afternoon and a false one about the revision the test
-names — the exact shape RK105 was written to remove, arriving through the helper that
-was written to remove it. It was hit while measuring a retirement:
-`lint(corpora.config(SHIO))` returned five findings, which happened to agree with the
-pin and would not have to.
-
-Two directions, and the second is the one this repository's own laws point at. Give the
-corpus a config whose paths resolve to the pinned bytes — materialised once per revision
-under a cache — so a read through it cannot reach the tree. Or make the type say what it
-is: a declaration, not a config, with the roles it can answer and nothing that opens a
-file.
-
-Either way the live read stays available and stays named, because the advisory in
-`test_corpora.py` is the one that finds a parser defect in content nobody here authored.
-
 ### §RK203 A budget that cannot tell an index from an essay
 
 RK30 gave `agents.md` a line and byte budget, and it is doing its job: the file that

@@ -37,7 +37,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK192** (deps: —) **A pinned corpus hands out a config whose file reads go to the live tree instead** — RK105 pinned every corpus assertion and `corpora.config` still roots at the checkout, so a read through it takes today's bytes while the helper beside it takes the revision. → §RK192
 - 💭 **RK203** (deps: —) **The layout index grows with the package and the budget holding it cannot tell it from prose** — agents.md sits at 125 of 125 lines, so naming two modules this block added took compressing two unrelated entries — a budget written against rationale creep spent on a fact about the tree. → §RK203
 - 💭 **RK206** (deps: —) **A section other prose cites is deleted by ship, and the gate reads only the pointer a task line carries** — `_pointers` resolves the ref a task line carries and nothing reads a section's own, so claude-tray cited a §XVIII.12 that ship deleted and the gate answered clean for a day. → §RK206
 

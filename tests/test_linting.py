@@ -175,7 +175,9 @@ def _unresolved(corpus):
     would still pass the day the original changed.
     """
     corpora.require(corpus)
-    config = corpora.config(corpus)
+    # `checkout` and not `config` (RK192): every read below names the revision itself —
+    # `Tree(…, rev)` runs git — so this is the one place a live root is the input.
+    config = corpora.checkout(corpus)
     documents = {"changelog": corpora.document(corpus, "changelog")}
     tree = Tree(config, rev=corpus.rev)
     with_tail = _paths(config, documents, tree)
@@ -256,7 +258,7 @@ def test_the_exposure_the_tail_rule_accepts_is_a_sixth_of_the_tree(corpus):
     where they mean a file and one segment only where they mean the repository.
     """
     corpora.require(corpus)
-    names = [name for name in tracked_at(corpora.config(corpus), corpus.rev) if name]
+    names = [name for name in tracked_at(corpora.checkout(corpus), corpus.rev) if name]
     counts = Counter(name.split("/")[-1] for name in names)
     ambiguous = sum(count for count in counts.values() if count > 1)
     assert 15 <= ambiguous * 100 // len(names) <= 19

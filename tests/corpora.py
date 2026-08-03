@@ -32,10 +32,27 @@ Three consequences worth stating, because each is a decision:
 
 Updating a pin is a commit of its own: the numbers below it are what that revision holds,
 so moving it is re-measuring on purpose rather than absorbing somebody else's afternoon.
+
+**A pin held by discipline is not held** (RK192). :func:`config` used to parse the pinned
+declaration and then root it at the checkout, so `config.document(role)` and `lint(config)`
+were ordinary calls that read the file as it is this afternoon — the exact shape RK105 was
+written to remove, arriving through the helper written to remove it, and silently, because
+the answer looks like a result. So the config a corpus hands out is rooted at a **copy of
+the pinned bytes**: nothing reached through it can reach the tree, which is a property
+rather than a rule to remember.
+
+That leaves the reads that are pinned by *carrying the revision themselves* — `Tree(…, rev)`
+and `tracked_at`, which run git and therefore need the checkout. :func:`checkout` is that
+config, named so the one legitimate use of a live root is visible at the call site instead
+of indistinguishable from the mistake. The advisory live read (`test_corpora.py`) goes
+through :func:`live`, and is the only thing here that is *supposed* to move.
 """
 
 from __future__ import annotations
 
+import atexit
+import shutil
+import tempfile
 import tomllib
 from dataclasses import dataclass
 from functools import lru_cache
@@ -86,6 +103,48 @@ def _root(corpus: Corpus) -> Config:
 
 
 @lru_cache(maxsize=None)
+def _materialised(corpus: Corpus) -> Path:
+    """The pinned governed files, written once per revision into a directory of our own.
+
+    Under the system temp and removed at exit, never inside the corpus: a suite that wrote
+    into somebody else's checkout would be RK105 with the arrow reversed. Written with
+    ``newline=""`` because the bytes are the point — a corpus read through newline
+    translation would fail the round-trip it is the corpus *for*.
+    """
+    declared = raw(corpus, "roadkeep.toml")
+    if declared is None:
+        raise AssertionError(f"{corpus} carries no roadkeep.toml to read a format from")
+    into = Path(tempfile.mkdtemp(prefix=f"roadkeep-{corpus.name}-{corpus.rev}-"))
+    atexit.register(shutil.rmtree, into, True)
+    with (into / "roadkeep.toml").open("w", encoding="utf-8", newline="") as handle:
+        handle.write(declared)
+    settings = checkout(corpus)
+    for role in settings.paths:
+        found = raw(corpus, settings.relative(settings.path(role)))
+        if found is None:
+            # A role the declaration names and the revision does not carry. Left absent, so
+            # `missing()` answers here exactly what it answers at the checkout.
+            continue
+        target = into / settings.relative(settings.path(role))
+        target.parent.mkdir(parents=True, exist_ok=True)
+        with target.open("w", encoding="utf-8", newline="") as handle:
+            handle.write(found)
+    return into
+
+
+@lru_cache(maxsize=None)
+def checkout(corpus: Corpus) -> Config:
+    """The declaration rooted where git can run — for reads that name the revision (RK192).
+
+    `Tree(config, rev)` and `tracked_at(config, rev)` ask git what a revision held, so they
+    need the repository and are pinned by the argument they already take. Everything else
+    wants :func:`config`, and the two names are what keep those apart: a live root is not a
+    mistake here, it is the input, and it should read like one.
+    """
+    return Config.parse(_declaration(corpus), root=corpus.where)
+
+
+@lru_cache(maxsize=None)
 def present(corpus: Corpus) -> bool:
     """Is the corpus here *and* does it still know the pin?
 
@@ -118,9 +177,8 @@ def raw(corpus: Corpus, relative: str) -> str | None:
     return None if found is None else found.decode("utf-8")
 
 
-@lru_cache(maxsize=None)
-def config(corpus: Corpus) -> Config:
-    """The corpus's own declaration, as it stood at the pin (L6).
+def _declaration(corpus: Corpus) -> dict[str, object]:
+    """The corpus's own `roadkeep.toml`, as it stood at the pin (L6).
 
     Read from the file rather than restated here: a test that spelled the prefix and the
     ref scheme for itself would hold somebody else's format to what this repository last
@@ -129,7 +187,23 @@ def config(corpus: Corpus) -> Config:
     declared = raw(corpus, "roadkeep.toml")
     if declared is None:
         raise AssertionError(f"{corpus} carries no roadkeep.toml to read a format from")
-    return Config.parse(tomllib.loads(declared), root=corpus.where)
+    return tomllib.loads(declared)
+
+
+@lru_cache(maxsize=None)
+def config(corpus: Corpus) -> Config:
+    """The corpus as a project every one of whose files **is** the pin (RK192).
+
+    The declaration is the corpus's own and the root is a copy of the pinned bytes, so the
+    two doors that used to reach this afternoon's tree — `config.document(role)` and
+    `lint(config)` — now answer about the revision the test names. Nothing about a caller
+    changes; what changes is that being careful is no longer how it holds.
+
+    What it is *not* is a checkout: git cannot run there, no artefact outside the governed
+    files exists, and so a check about the repository rather than about a file wants
+    :func:`checkout` and the revision it already takes.
+    """
+    return Config.parse(_declaration(corpus), root=_materialised(corpus))
 
 
 def text(corpus: Corpus, role: str) -> str:
@@ -140,7 +214,7 @@ def text(corpus: Corpus, role: str) -> str:
     that expects the slot it does not carry — which is a *deliberate* misconfiguration and
     therefore not the one :func:`config` reports.
     """
-    settings = config(corpus)
+    settings = checkout(corpus)
     found = raw(corpus, settings.relative(settings.path(role)))
     if found is None:
         raise AssertionError(f"{corpus} declares a {role} its pinned tree does not carry")
@@ -155,7 +229,7 @@ def document(corpus: Corpus, role: str) -> Document:
 
 def has(corpus: Corpus, role: str) -> bool:
     """Does the corpus declare this role and carry it at the pin?"""
-    settings = config(corpus)
+    settings = checkout(corpus)
     if not settings.has(role):
         return False
     return raw(corpus, settings.relative(settings.path(role))) is not None
@@ -169,7 +243,7 @@ def materialise(corpus: Corpus, role: str, into: Path) -> Path:
     a suite that wrote into somebody else's checkout would be the defect RK105 names, with
     the arrow reversed.
     """
-    settings = config(corpus)
+    settings = checkout(corpus)
     target = into / Path(settings.relative(settings.path(role))).name
     with target.open("w", encoding="utf-8", newline="") as handle:
         handle.write(text(corpus, role))
@@ -177,8 +251,13 @@ def materialise(corpus: Corpus, role: str, into: Path) -> Path:
 
 
 def live(corpus: Corpus, role: str) -> str | None:
-    """The working tree's text — the advisory read, and the only one that can move."""
-    path = config(corpus).path(role)
+    """The working tree's text — the advisory read, and the only one that can move.
+
+    Through :func:`checkout` and never :func:`config` (RK192): this is the one read whose
+    subject *is* the tree, and taking it through the pinned copy would turn the advisory
+    that finds parser defects in content nobody here authored into a tautology.
+    """
+    path = checkout(corpus).path(role)
     if not path.is_file():
         return None
     with path.open("r", encoding="utf-8", newline="") as handle:
