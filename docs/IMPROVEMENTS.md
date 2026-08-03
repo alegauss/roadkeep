@@ -287,29 +287,6 @@ and may not need a second.
 
 ## Block D — The gate
 
-### §RK219 A memo whose key is the call order
-
-`Tree` caches three things and two of them are keyed by what they are about: `_blobs` by
-path, `_names` and `_tails` by the tree itself, which is the whole object. `_ignored` is
-keyed by nothing at all — the first `declared_untracked(tokens)` fills it and every
-later call gets that answer whatever it asked.
-
-Correct today, and only for a reason that is invisible where the trap is: `_paths` is
-the one caller and it asks once, having gathered every candidate first precisely so the
-subprocess is one. A second caller — or a `_paths` that grew a second pass — would be
-handed the first question's answer and would agree with it silently, which is the
-failure mode this repository writes memos to avoid (RK211: the key *is* the text, so
-there is nothing to invalidate).
-
-Three shapes, and they are not equally honest. A dict keyed by the token is the same
-memo the other two are, at the cost of a subprocess per distinct question. Asking every
-token the *ledger* names, once, makes the cache a property of the tree like `_tails` and
-pays for tokens no finding will ever reach. Refusing a second call outright says what is
-actually true — this is a one-shot — and costs a reader nothing to understand.
-
-Filed as an idea because nothing is broken: what is wrong is that being right depends on
-a caller reading a different function.
-
 ## Block E — Adoption
 
 ### §RK103 The marker slot that holds two tokens

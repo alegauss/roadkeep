@@ -222,10 +222,10 @@ class Tree:
     #: because only one check needs it and a `ls-files` per run of `show` would be a cost
     #: paid by the callers that never ask about an artefact at all.
     _tails: frozenset[str] | None = field(default=None, repr=False)
-    #: Which of the tokens asked about the repository declares untracked (RK213), answered
-    #: in one `check-ignore` for all of them and cached — the candidates are the handful
-    #: that already failed every other reader, so one subprocess covers a whole run.
-    _ignored: frozenset[str] | None = field(default=None, repr=False)
+    #: What the repository declared untracked, per token (RK213, keyed by RK219). A dict
+    #: and not a set-of-the-first-answer: the key is the question, so a second caller — or
+    #: a second pass — is answered about what it asked rather than about what came first.
+    _ignored: dict[str, bool] = field(default_factory=dict, repr=False)
     #: The directories a path claim is decided against (RK217), or None where git could not
     #: say — a sentinel rather than None-means-unasked, because None is itself the answer.
     _directories: frozenset[str] | None | object = field(default=_UNASKED, repr=False)
@@ -301,10 +301,18 @@ class Tree:
 
         No git, no answer, and the finding stands: withholding where the question could not
         be asked would turn "this repository says so" into "nobody could say otherwise".
+
+        Every token asked is recorded, ignored or not, so a repeat costs nothing and a new
+        one costs the batch it arrives in (RK219). What is *not* recorded is the difference
+        between "git said no" and "git could not be asked", because within one tree that
+        cannot change: a run has one repository, and it either has git or it does not.
         """
-        if self._ignored is None:
-            self._ignored = _ignored(self.config, tokens)
-        return self._ignored
+        unknown = [(token, near) for token, near in tokens if token not in self._ignored]
+        if unknown:
+            declared = _declared_untracked(self.config, unknown)
+            for token, _ in unknown:
+                self._ignored[token] = token in declared
+        return frozenset(token for token, _ in tokens if self._ignored[token])
 
     def listing(self) -> frozenset[str]:
         """Every path this tree still **has**, read once (RK173, RK217).
@@ -1569,7 +1577,9 @@ def _paths(config: Config, documents: dict[str, Document], tree: Tree) -> list[F
     ]
 
 
-def _ignored(config: Config, tokens: Sequence[tuple[str, Path]]) -> frozenset[str]:
+def _declared_untracked(
+    config: Config, tokens: Sequence[tuple[str, Path]]
+) -> frozenset[str]:
     """The tokens `check-ignore` says this repository will never track (RK213).
 
     Both spellings per token — under the ledger's own directory and under the root (RK51) —

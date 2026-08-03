@@ -30,7 +30,8 @@ import pytest
 from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.history import HistoryUnavailable, git_available
-from roadkeep.linting import lint
+from roadkeep import linting as linting_module
+from roadkeep.linting import Tree, lint
 
 pytestmark = pytest.mark.skipif(not git_available(), reason="git is not on PATH")
 
@@ -663,3 +664,41 @@ def test_a_token_that_is_only_separators_names_no_artefact(tmp_path):
     git(tmp_path, "commit", "--quiet", "-m", "docs: quote a backslash")
     assert paths(lint(config)) == []
     assert paths(lint(config, at="HEAD")) == []
+
+
+def test_the_ignore_answer_is_keyed_by_the_token_it_is_about(tmp_path):
+    """RK219: the cache used to store the first call's answer and return it for every
+    later one, which was correct only because `_paths` asks once — a fact no reader of
+    that method could see. Keyed by the token, a second question gets a second answer.
+    """
+    config = repo(tmp_path, files={".gitignore": "bin/\n", "src/kept.py": "x = 1\n"})
+    tree = Tree(config)
+    near = tmp_path
+    assert tree.declared_untracked([("bin/app.exe", near)]) == frozenset({"bin/app.exe"})
+    # A different question, asked second: it used to come back with the first one's answer.
+    assert tree.declared_untracked([("src/gone.py", near)]) == frozenset()
+    # And the first one is still remembered rather than asked again.
+    assert tree.declared_untracked(
+        [("bin/app.exe", near), ("src/gone.py", near)]
+    ) == frozenset({"bin/app.exe"})
+
+
+def test_a_repeated_question_costs_no_second_subprocess(tmp_path):
+    """The property that makes keying it free: every token asked is recorded either way,
+    so the batch a caller arrives with shrinks to what is genuinely new."""
+    config = repo(tmp_path, files={".gitignore": "bin/\n"})
+    tree = Tree(config)
+    near = tmp_path
+    calls: list[int] = []
+    real = linting_module.check_ignore
+
+    def counted(root, paths):
+        calls.append(len(paths))
+        return real(root, paths)
+
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(linting_module, "check_ignore", counted)
+        tree.declared_untracked([("bin/a.exe", near), ("src/b.py", near)])
+        tree.declared_untracked([("bin/a.exe", near), ("src/b.py", near)])
+        tree.declared_untracked([("bin/c.exe", near)])
+    assert len(calls) == 2  # the repeat asked nothing; the new token asked once

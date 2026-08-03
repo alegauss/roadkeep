@@ -40,8 +40,6 @@
 
 ## Block D — The gate
 
-- 💭 **RK219** (deps: —) **A cache on the tree answers whichever question it was asked first, and its key is nothing** — declared_untracked stores the first token list's answer and returns it for every later one, which is correct only because one caller asks once — a fact no reader of that method can see. → §RK219
-
 ## Block E — Adoption
 
 - 📋 **RK103** (deps: —) **A bullet whose marker holds a space is read as prose and reported by nothing** — GitHub's `- [ ]` task list is the commonest Markdown backlog there is, and cursarei's 16 of them parse as 0 entries and 0 rejects — the silent miss the reject list exists to end. → §RK103
