@@ -25,6 +25,7 @@ since both are processes a session starts once.
 
 from __future__ import annotations
 
+import contextlib
 import io
 import json
 import os
@@ -45,14 +46,17 @@ from roadkeep.serving import (
     PARSE_ERROR,
     PROTOCOL,
     TOOLS,
+    Prose,
     Tool,
     ToolError,
     _action,
     _spent_stdin,
     _subparser,
     argv,
+    call,
     descriptor,
     handle,
+    prose_of,
     serve,
     tool_named,
 )
@@ -193,7 +197,8 @@ def test_a_nested_command_is_one_tool_name_and_two_argv_words():
     # both spellings rather than a table mapping between them.
     tool = tool_named("section_add")
     assert tool.argv_head == ["section", "add"]
-    assert argv(tool, {"anchor": "RK1", "title": "A design"}, Config.default())[:2] == ["section", "add"]
+    passed = {"anchor": "RK1", "title": "A design", "body": "Because of a reason."}
+    assert argv(tool, passed, Config.default())[:2] == ["section", "add"]
 
 
 def test_every_tool_is_a_subcommand_the_cli_accepts():
@@ -206,9 +211,17 @@ def test_every_tool_is_a_subcommand_the_cli_accepts():
 
 
 def _minimal(tool: Tool) -> dict[str, str]:
-    """The required arguments, filled with anything: this is about the argv, not the values."""
+    """The required arguments, filled with anything: this is about the argv, not the values.
+
+    Plus the prose argument where leaving it out would go to the pipe (RK171): that argv is one
+    this surface refuses, so it is not part of any minimum that is meant to parse.
+    """
     required = descriptor(tool, Config.default())["inputSchema"].get("required", [])
-    return {name: "RK1" if name == "id" else "x" for name in required}
+    filled = {name: "RK1" if name == "id" else "x" for name in required}
+    prose = prose_of(tool.command)
+    if prose is not None and prose.dest in tool.exposes and prose.reached_by(filled):
+        filled[prose.dest] = "The prose, passed as a string because there is no pipe."
+    return filled
 
 
 def test_the_limits_in_the_schema_are_the_projects_own(tmp_path):
@@ -672,15 +685,96 @@ def test_the_server_subcommand_tolerates_a_broken_config():
 # -- the read that ate the transport (RK170) -----------------------------------
 
 
-def test_a_handler_that_reads_a_pipe_answers_instead_of_waiting(tmp_path):
-    # The measured deadlock: `add --section` with no body reaches `sys.stdin.read()`, and over
-    # MCP that waits for an EOF no live client sends. 18 minutes at 0% CPU in Shio, holding the
-    # RK117 lock, with the `add` unanswered and a `status` sent after it unanswered too.
-    # `section_add` is the same read reached by a different argv, and it must answer too.
-    tree = project(tmp_path, config=PROSE, improvements=DESIGN)
-    answered = called(tree, "section_add", anchor="RK2", title="A second design")
-    assert answered["isError"] is True
-    assert "no prose" in text_of(answered)
+class _Transport(io.StringIO):
+    """A stand-in for the client's pipe that reports being read rather than blocking on one."""
+
+    def read(self, *args, **kwargs):  # noqa: ANN002, ANN003 - matches the stream it replaces
+        raise AssertionError("the transport this call arrived on was read")
+
+
+@contextlib.contextmanager
+def _watched_transport():
+    saved = sys.stdin
+    sys.stdin = _Transport()
+    try:
+        yield
+    finally:
+        sys.stdin = saved
+
+
+def _variants(tool: Tool) -> list[dict[str, str]]:
+    """The argvs worth trying: the minimum, plus the two shapes a `Prose` calls a pipe read."""
+    base = _minimal(tool)
+    out = [dict(base)]
+    prose = prose_of(tool.command)
+    if prose is None or prose.dest not in tool.exposes:
+        return out
+    omitted = {name: value for name, value in base.items() if name != prose.dest}
+    if prose.gated_by:
+        omitted[prose.gated_by] = "A design"
+    return [*out, omitted, {**base, prose.dest: prose.sentinel}]
+
+
+def test_no_exposed_argv_reaches_a_read_of_the_transport():
+    """RK171: the question is not which handler reads stdin, it is which one *can*.
+
+    Three tools could, and neither `TOOLS` nor `cli.py` said so — `add` on a section named with
+    no body, `section add` on a body omitted, `section amend` on the `-` its help documents. The
+    deadlock was met on `add` because that is the verb a task is filed with, and fixing the path
+    that was met leaves the other two waiting for the session that meets them.
+
+    Asserted at the argv, which is where the answer is decided and where `_spent_stdin` is not in
+    scope to mask it: every tool, over every shape a `Prose` calls a pipe read, either refused
+    here or declared unreachable. The assertion survives a fourth tool being exposed, which a
+    reviewer reading two diffs does not.
+    """
+    for tool in TOOLS:
+        prose = prose_of(tool.command)
+        for arguments in _variants(tool):
+            reaches = prose is not None and prose.dest in tool.exposes
+            reaches = reaches and prose.reached_by(arguments)
+            if not reaches:
+                argv(tool, arguments, Config.default())  # parses, and goes nowhere near a pipe
+                continue
+            with pytest.raises(ToolError) as caught:
+                argv(tool, arguments, Config.default())
+            assert "no pipe to read it from" in str(caught.value), (tool.name, arguments)
+
+
+def test_a_call_can_never_be_handed_the_transport_either(tmp_path):
+    # The belt behind that brace (RK170): even an argv the refusal above did not catch — a
+    # handler this surface does not expose the body of, a flag added tomorrow — is dispatched
+    # against a stream at EOF, so the worst case is a refusal and never a session that stops.
+    tree = str(project(tmp_path, config=PROSE, improvements=DESIGN))
+    for tool in TOOLS:
+        for arguments in _variants(tool):
+            with _watched_transport():
+                answered = call(tool, arguments, tree)
+            # What it answers is not this test's business — only that it answered at all.
+            assert answered.text
+
+
+def test_the_three_paths_that_could_reach_it_are_the_ones_declared():
+    # The inventory §RK171 says neither file stated, now derived from the parsers. `record add`
+    # is the asymmetry that makes it a real question: it writes a ledger entry and exposes no
+    # body at all, so it cannot reach the read however it is called.
+    reaching = {tool.name for tool in TOOLS if prose_of(tool.command) is not None}
+    assert reaching == {"add", "section_add", "section_amend"}
+    assert prose_of("record add") is None
+
+
+def test_each_declaration_says_which_argv_goes_to_the_pipe():
+    # Three commands, three different answers, which is why one comment in one handler was not
+    # the statement of it: `add` is gated on a section being named, `section add` reads on a
+    # plain omission, and `section amend` only on the `-` it documents.
+    assert prose_of("add") == Prose(dest="section_body", gated_by="section")
+    assert prose_of("section add") == Prose(dest="body")
+    assert prose_of("section amend") == Prose(dest="body", omitted=False)
+    # An `add` naming no section must never block on a pipe — the comment that was the guard.
+    assert not prose_of("add").reached_by({"block": "A", "symptom": "s", "why": "w."})
+    assert prose_of("add").reached_by({"section": "A design"})
+    assert not prose_of("section amend").reached_by({"title": "A new heading"})
+    assert prose_of("section amend").reached_by({"body": "-"})
 
 
 def test_the_transport_is_intact_after_a_call_that_reads_it(tmp_path):
@@ -709,14 +803,19 @@ def test_the_real_stdin_is_given_back(tmp_path):
     assert sys.stdin is before
 
 
-def test_a_section_title_without_its_body_names_the_argument(tmp_path):
+def test_an_argv_that_would_have_gone_to_the_pipe_names_the_argument(tmp_path):
     # `_spent_stdin` closes the deadlock whatever this says, so what this buys is which refusal
-    # is read: `body.empty` is true and about the prose, when the fact is that one of two
-    # arguments travelling together did not arrive.
-    refused = text_of(
-        called(project(tmp_path), "add", block="A", symptom="s", why="w.", section="A design")
-    )
-    assert "section without section_body" in refused
+    # is read: `body.empty` is true and about the prose, when the fact is that the argument
+    # carrying it did not arrive. All three declared paths answer the same way (RK171).
+    tree = project(tmp_path, config=PROSE, improvements=DESIGN)
+    refusals = [
+        text_of(called(tree, "add", block="A", symptom="s", why="w.", section="A design")),
+        text_of(called(tree, "section_add", anchor="RK2", title="A second design")),
+        text_of(called(tree, "section_amend", anchor="RK1", body="-")),
+    ]
+    for refused in refusals:
+        assert "there is no pipe to read it from" in refused
+        assert "pass it as a string" in refused
     # And the pair still goes through when both halves are there, which is RK93's whole point.
     written = called(
         project(tmp_path, config=PROSE, improvements=DESIGN),

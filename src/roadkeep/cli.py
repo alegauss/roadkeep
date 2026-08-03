@@ -83,7 +83,7 @@ from roadkeep.sections import drop as drop_section
 from roadkeep.sections import find as find_section
 from roadkeep.sections import nested as nested_sections
 from roadkeep.sections import pointers
-from roadkeep.serving import serve
+from roadkeep.serving import Prose, serve
 from roadkeep.shipping import Closure, Partial, record, retire, ship
 from roadkeep.shipping import amend as amend_record
 from roadkeep.shipping import readdress as readdress_record
@@ -234,7 +234,14 @@ def build_parser() -> argparse.ArgumentParser:
     add_parser.add_argument(
         "--json", action="store_true", help="the line, with the file and line it landed on"
     )
-    add_parser.set_defaults(handler=_add)
+    # `reads_stdin` is declared here for the reason `reads_only` is (RK171): it is a claim about
+    # this command that a surface serving it has to know, and the only statement of it used to be
+    # the comment two lines above the read. Gated, because an `add` naming no section must never
+    # block on a pipe — which is what that comment said and nothing enforced.
+    add_parser.set_defaults(
+        handler=_add,
+        reads_stdin=Prose(dest="section_body", gated_by="section"),
+    )
 
     section_parser = subcommands.add_parser(
         "section",
@@ -271,7 +278,9 @@ def build_parser() -> argparse.ArgumentParser:
         "--level", type=int, default=3, help="heading depth (default: 3)"
     )
     section_add.add_argument("--json", action="store_true", help=_JSON_HELP)
-    section_add.set_defaults(handler=_section_add)
+    # Ungated and reached by omission: this command's whole input is a paragraph, so `--body`
+    # left out *is* the pipe, which the help above states and RK171 makes readable by a surface.
+    section_add.set_defaults(handler=_section_add, reads_stdin=Prose(dest="body"))
 
     section_amend = actions.add_parser(
         "amend",
@@ -298,7 +307,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--role", default="improvements", help="which prose file (default: improvements)"
     )
     section_amend.add_argument("--json", action="store_true", help=_JSON_HELP)
-    section_amend.set_defaults(handler=_section_amend)
+    # `omitted=False` and not an oversight: an amend with neither field is refused below rather
+    # than defaulted to the pipe, so only the documented `-` reaches the read here.
+    section_amend.set_defaults(
+        handler=_section_amend, reads_stdin=Prose(dest="body", omitted=False)
+    )
 
     section_show = actions.add_parser(
         "show",

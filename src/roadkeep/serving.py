@@ -27,7 +27,9 @@ What that costs, and how each cost is avoided here:
   the CLI's own parser, and three handlers read a paragraph from a pipe (RK9). Given the
   client's pipe, one of them waits for an EOF no live client sends and eats every message queued
   behind it — 18 minutes, holding the lock (RK170). :func:`_spent_stdin` substitutes a stream
-  already at EOF, which turns the deadlock into the refusal the format already owns.
+  already at EOF, which turns the deadlock into the refusal the format already owns. *Which*
+  three is :class:`Prose` on their own parsers rather than a comment in one handler (RK171), so
+  the argv is refused before it gets there and a fourth is named by a test and not by a session.
 * **A broken config still starts.** `mcp` tolerates a `ConfigError` for the reason `guard`
   does: the process is launched once for the whole session, and refusing to start would take
   the tools away exactly when a typo in the config most needs the gate. `tools/list` then
@@ -78,6 +80,45 @@ KNOWN_PROTOCOLS = (PROTOCOL, "2025-03-26", "2024-11-05")
 PARSE_ERROR = -32700
 INVALID_REQUEST = -32600
 METHOD_NOT_FOUND = -32601
+
+
+@dataclass(frozen=True, slots=True)
+class Prose:
+    """A command that takes a paragraph off a pipe, declared beside the argument (RK171).
+
+    Three exposed tools reach `sys.stdin.read()` and neither `TOOLS` nor `cli.py` said which:
+    `add` on a section named with no body, `section add` on a body omitted, `section amend` on
+    the `-` its own help documents. `record add` cannot, exposing no body at all — and that
+    asymmetry is the point, because it is a property of the two files together and a comment in
+    one handler was the whole of it. So the parser declares it, the way :attr:`Tool.writes` made
+    `reads_only`/`writes_when` the parser's claim rather than a table beside it (RK167).
+
+    What it buys is not the deadlock — :func:`_spent_stdin` closed that whatever this says — but
+    that every one of the three refuses by *naming the argument*, and that a fourth exposed
+    tomorrow is named by a test rather than by the session that meets it.
+    """
+
+    #: The argument carrying the prose. Omitting it or setting it to :attr:`sentinel` is what
+    #: sends the handler to the pipe.
+    dest: str
+    #: The spelling the CLI documents for "read it from stdin". One string, because a second
+    #: sentinel would be a second thing a caller has to know.
+    sentinel: str = "-"
+    #: Whether *omitting* the argument reads the pipe too, or only the sentinel does. False for
+    #: `section amend`, which refuses an amend with neither field rather than defaulting to it.
+    omitted: bool = True
+    #: The argument whose presence makes the read happen at all, where one does. `add` reads
+    #: only when a section was named: an `add` with no rationale must never block on a pipe,
+    #: which used to be a comment and is now the thing that says so.
+    gated_by: str = ""
+
+    def reached_by(self, arguments: Mapping[str, Any]) -> bool:
+        """Whether this argv sends the handler to the pipe."""
+        if self.gated_by and self.gated_by not in arguments:
+            return False
+        if self.dest not in arguments:
+            return self.omitted
+        return arguments[self.dest] == self.sentinel
 
 
 @dataclass(frozen=True, slots=True)
@@ -269,14 +310,6 @@ _BOUNDS = {
     "task_id": lambda config: {"pattern": config.schema.split_id_pattern().pattern},
 }
 
-#: An argument that must arrive with its partner, per tool (RK170). `section` without
-#: `section_body` is the argv that reaches `sys.stdin.read()`, and :func:`_spent_stdin` already
-#: keeps that from hanging — this is so the refusal names the **argument** rather than the prose
-#: it then found missing: an empty body is not the body the caller meant to send.
-_COMPANIONS: Mapping[str, tuple[str, str]] = {
-    "add": ("section", "section_body"),
-}
-
 #: What opens a :attr:`Tool.conditional` argument: the declaration that makes the field the
 #: only way to write something legal (RK111). One entry, and a table rather than a flag on the
 #: dest, because the question is about the *project* and the answer has to be re-read per call
@@ -441,25 +474,34 @@ def argv(tool: Tool, arguments: Mapping[str, Any], config: Config) -> list[str]:
     return [*tool.argv_head, *positional, *optional, *always, "--json"]
 
 
+def prose_of(command: str) -> Prose | None:
+    """What this subcommand takes off a pipe, as its own parser declares it (RK171).
+
+    The inventory neither `TOOLS` nor `cli.py` stated. Read from the parser rather than held
+    here, so exposing a fourth command that reads a paragraph declares itself instead of being
+    found by the session that hangs on it — and so `tests/test_serving.py` can ask the question
+    over every tool at once, which is the instrument RK170 was fixed without.
+    """
+    return _subparser(command).get_default("reads_stdin")
+
+
 def _companioned(tool: Tool, arguments: Mapping[str, Any]) -> None:
-    """Refuse an argument whose partner is what keeps the handler off the transport (RK170).
+    """Refuse an argv that would have gone to the pipe, naming the argument (RK170, RK171).
 
     The deadlock is closed by :func:`_spent_stdin` whatever this says, so what is bought here is
     only *which* refusal the caller reads: without it, `add` with a section title and no body
-    answers `body.empty` — true, and about the prose, when the fact is that one of two arguments
-    that travel together did not arrive. Who checks that no other exposed argv reaches the same
-    read is RK171 and not this.
+    answers `body.empty` — true, and about the prose, when the fact is that the argument carrying
+    it did not arrive. Derived from :func:`prose_of` and not a table beside it, so all three
+    declared paths answer the same way and a fourth cannot be the one that was forgotten.
     """
-    pair = _COMPANIONS.get(tool.name)
-    if pair is None:
+    prose = prose_of(tool.command)
+    if prose is None or prose.dest not in tool.exposes or not prose.reached_by(arguments):
         return
-    first, second = pair
-    if first in arguments and second not in arguments:
-        raise ToolError(
-            f"{tool.name}: {first} without {second} — the rationale is the second half of "
-            f"one write, and over this transport there is no pipe to read it from, so an "
-            f"omitted {second} is an empty one and a section with no prose is a heading"
-        )
+    raise ToolError(
+        f"{tool.name}: {prose.dest} is the prose itself, and over this transport there is no "
+        f"pipe to read it from — pass it as a string. Omitted, or {prose.sentinel!r}, it is an "
+        f"empty body, and a section with no prose is a heading"
+    )
 
 
 def _withheld(tool: Tool, unknown: Sequence[str]) -> str:

@@ -63,7 +63,9 @@ read both, or `record renumber <id> --line <n>` to give one its own address. To 
 the line to the end of its block and shows a reviewer a deletion where a word changed. `section add <id> --title "…"` is that
 same write for a line that already exists, and
 takes prose on **stdin**, within the word budget, filled to the configured width, under the
-task's block — a table or list is inserted exactly as written. **`section amend <id>` is how a
+task's block — a table or list is inserted exactly as written. Over MCP there is no pipe, so the
+three writes that read one (`add`'s `section_body`, `section_add`'s and `section_amend`'s `body`)
+take it **as a string** and refuse the omission rather than waiting for it. **`section amend <id>` is how a
 live design is corrected**: `--body -` replaces its own prose, `--title` its heading, the
 subtree and the anchor are untouched, and it is the only door — `section drop` is refused
 while an open line points at the anchor, which is right, and shipping is not a way to fix a

@@ -688,23 +688,3 @@ tool was given (L2), so it is named there for the same reason. The wider one is 
 git configuration and should stay a flag rather than a default.
 
 ## Block F — The plugin
-
-### §RK171 The instrument the fix needs first
-
-Three exposed tools can reach the read, not one. `add` reaches it with `section` and no
-`section_body`; `section add` reaches it with `body` omitted, which its own schema
-permits; `section amend` reaches it with `body` set to the `-` the CLI help documents.
-`record add` cannot, because it exposes no body at all — and that asymmetry is the
-point: which paths are live is a property of `TOOLS` and the handlers together, and
-neither file states it.
-
-The deadlock was met on `add`, because that is the verb a task is filed with. Fix the
-path that was met and the other two are a first instance waiting for the session that
-meets them — the shape of a defect this backlog has already carried twice.
-
-So the question worth automating is not which handler reads stdin but which one *can*: a
-pytest over `TOOLS` that resolves each exposed subcommand to its handler and fails
-naming any that can reach `sys.stdin` on an argv the schema permits. A test and not a
-lint, because the surface is this repository's own and no adopting project can widen it.
-It is also the fixture that says RK170 is closed rather than local: the assertion
-survives a fourth tool being exposed, which a reviewer reading two diffs does not.
