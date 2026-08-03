@@ -168,6 +168,7 @@
 - ✅ **RK219** **A cache on the tree answers whichever question it was asked first, and its key is nothing** — The ignore answer is stored per token, so a second caller is answered about what it asked, and a repeat costs no second subprocess.
 - ✅ **RK221** **show and lint disagree about whether a deleted artefact is a path the task names** — The directory set is read from the index by default, so show and lint give the same answer about an artefact the working tree no longer has.
 - ✅ **RK222** **show pays two git listings on every call, on the read that starts every task** — The directory listing is a callable resolved on first need, so a task whose paths all resolve asks git nothing and show is back to 1.0 ms here.
+- ✅ **RK223** **The path check reads every ledger entry twice, and the gate takes seconds on a large ledger** — The check gathers candidates and findings in one pass, so Turing's ledger costs 559 ms of the gate instead of 2.9 s and every entry is read once.
 
 ## Block E — Adoption
 

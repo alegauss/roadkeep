@@ -40,7 +40,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK223** (deps: —) **The path check reads every ledger entry twice, and the gate takes seconds on a large ledger** — RK213 gathers candidates in a pass of its own and the comprehension below repeats it, so paths_in runs 1602 times over Turing's 801 entries and lint spends 2.9 s there. → §RK223
 - 📋 **RK225** (deps: —) **A run judging a revision stats the working tree once per token and throws every answer away** — paths_in resolves each token against two bases before anything asks which tree is being judged, so Turing's pin costs 34070 filesystem calls that RK218 then declines to read. → §RK225
 
 ## Block E — Adoption

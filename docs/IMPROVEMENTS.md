@@ -287,26 +287,6 @@ and may not need a second.
 
 ## Block D — The gate
 
-### §RK223 Two passes over one question
-
-RK213 needed every candidate token before asking `check-ignore`, because one call for
-all of them is what keeps the question cheap. It got them with a comprehension of its
-own, and the comprehension that builds the findings then repeats the same scan — same
-entries, same regex, same three readers.
-
-Measured at Turing's pin: `paths_in` is entered **1602 times** for 801 entries, and
-`_paths` costs 2.9 s. One pass over every entry is 559 ms, so the repetition is not a
-rounding error in it — it is most of it, and the rest is what RK224 names.
-
-Seconds matter here because this is the gate: RK17 wires it into a pre-commit hook and
-an Action, and a check somebody waits three seconds for on every commit is one they
-start passing `--no-verify` to.
-
-The shape is a single pass that keeps what it found. A candidate is a `Referenced` plus
-the entry it came from, and the finding is built from the same pair — so what is needed
-is a list of those, gathered once, filtered by the ignore answer afterwards. Nothing
-about the order of the three readers changes; only how many times each entry is read.
-
 ### §RK225 The disk asked after it stopped being a reader
 
 RK218 established that a run naming a revision does not consult the disk: `holds`

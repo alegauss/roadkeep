@@ -765,3 +765,30 @@ def test_a_task_naming_something_absent_still_gets_the_answer(tmp_path):
     write(tmp_path, "CHANGELOG.md", naming("lib/gone.py"))
     view = show(config, "RK5")
     assert [(r.path, r.exists) for r in view.paths] == [("lib/gone.py", False)]
+
+
+def test_every_ledger_entry_is_read_once(tmp_path):
+    """RK223: the gate is what a pre-commit hook waits for (RK17), so a pass it makes twice
+    is a pass somebody starts passing `--no-verify` to.
+
+    RK213 has to gather every candidate before asking `.gitignore`, because one call for
+    all of them is what keeps that question cheap — and gathering them with a comprehension
+    of its own made the findings comprehension repeat the whole scan. Measured at Turing's
+    pin: `paths_in` entered 1602 times for 801 entries, and `_paths` cost 2.9 s; one pass
+    is 559 ms, so the repetition was most of it rather than half.
+    """
+    config = repo(tmp_path, files={"lib/kept.py": "x = 1\n"})
+    write(tmp_path, "CHANGELOG.md", naming("lib/gone.py"))
+    entries = len(config.document("changelog").entries)
+    assert entries
+    seen: list[str] = []
+    real = linting_module.paths_in
+
+    def counted(text, root, **kwargs):
+        seen.append(text)
+        return real(text, root, **kwargs)
+
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(linting_module, "paths_in", counted)
+        assert paths(lint(config)) == ["path.missing RK5"]
+    assert len(seen) == entries

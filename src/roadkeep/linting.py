@@ -1547,38 +1547,32 @@ def _paths(config: Config, documents: dict[str, Document], tree: Tree) -> list[F
     # The bound method and not its answer (RK222): it caches, so passing it makes the
     # listing lazy for free — a ledger whose every path resolves asks git nothing.
     known = tree.directories
-    # Every token that survived the three readers above, asked of `.gitignore` in one call
-    # (RK213). Collected first because the question is cheap in bulk and dear one at a time.
-    candidates = [
-        referenced.path
+    # One pass, keeping what it found (RK223). The candidates have to be gathered before
+    # `.gitignore` is asked, because one call for all of them is what keeps that question
+    # cheap (RK213) — and gathering them with a comprehension of its own made the findings
+    # comprehension repeat the whole scan: 1602 entries into `paths_in` for 801 entries,
+    # and 2.9 s of a `lint` that a pre-commit hook waits for (RK17).
+    unresolved = [
+        (entry, referenced.path)
         for entry in document.entries
         for referenced in paths_in(entry.raw, config.root, near=near, known=known)
         if not tree.holds(referenced.path, near, referenced.exists)
         and not tree.anywhere(referenced.path)
     ]
-    untracked = tree.declared_untracked([(token, near) for token in candidates])
+    untracked = tree.declared_untracked([(token, near) for _, token in unresolved])
     return [
         Finding(
             "path.missing",
             file,
-            f"names {referenced.path}, which is not in the repository",
+            f"names {token}, which is not in the repository",
             entry.lineno,
             entry.task.id,
         )
-        for entry in document.entries
-        # `near` is the ledger's own directory (RK51): a link written the way Markdown
-        # reads it points at a file that is there, and 886 of Shio's are written that way.
-        for referenced in paths_in(entry.raw, config.root, near=near, known=known)
-        # Whichever tree this run is judging, asked its own way (RK218): the disk for the
-        # working tree, and git — file *and* directory — for a revision.
-        if not tree.holds(referenced.path, near, referenced.exists)
-        # And not somewhere else in the repository under a prefix the entry did not write
-        # (RK173): a path relative to the module it is about is not a path that is wrong.
-        and not tree.anywhere(referenced.path)
-        # And not a path this repository has declared it will never track (RK213): a
-        # build output is absent from a bare checkout and present for whoever just
-        # compiled, so a gate that read the filesystem alone answered by machine.
-        and referenced.path not in untracked
+        for entry, token in unresolved
+        # Not a path this repository has declared it will never track (RK213): a build
+        # output is absent from a bare checkout and present for whoever just compiled, so
+        # a gate that read the filesystem alone answered by machine.
+        if token not in untracked
     ]
 
 
