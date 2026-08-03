@@ -446,6 +446,43 @@ def test_a_shipped_task_named_in_an_outline_heading_is_stale_too(tmp_path):
 
 
 SHARED = OUTLINE_PROSE + "\n### §I.9 A shared design (RK5)\n\nProse two lines want.\n"
+#: An earlier draft of `§I.1`, left behind under a heading that still names its task. Only
+#: reachable under an outline: the id scheme derives the pointer from the id, so a line
+#: pointing anywhere else is `ref.mismatch` before this check is reached (RK27).
+DRAFTED = OUTLINE_PROSE + "\n### §I.0 The first design (RK1)\n\nAn earlier draft.\n"
+
+
+def test_a_superseded_draft_whose_task_points_elsewhere_is_a_finding(tmp_path):
+    # RK135, minimally: Shio carried `XV.21` and `XV.22` under one title, one an earlier
+    # draft of the other, and SH265 points at `XV.22`. Twenty-three lines of superseded
+    # design lint clean — `orphan` sees an open id, `duplicate` sees two anchors, and
+    # `ref.unresolved` sees a pointer that resolves somewhere.
+    report = lint(outline(tmp_path, improvements=DRAFTED))
+    unreachable = next(f for f in report.findings if f.code == "section.unreachable")
+    assert unreachable.id == "I.0" and "RK1 points at §I.1" in unreachable.message
+
+
+def test_moving_the_pointer_moves_the_finding_to_the_other_draft(tmp_path):
+    # The falsifying half, and the reason the remedy is not a deletion: which of the two
+    # is the design is a reading, and the pointer is the whole of what states it.
+    moved = OUTLINE_CLEAN.replace("→ §I.1", "→ §I.0")
+    report = lint(
+        project(tmp_path, roadmap=moved, improvements=DRAFTED, config=OUTLINE_CONFIG)
+    )
+    stranded = [f.id for f in report.findings if f.code == "section.unreachable"]
+    assert stranded == ["I.1"]
+
+
+def test_a_draft_some_other_open_line_points_at_is_reached(tmp_path):
+    # Reachability is the pointer index and never the title (RK134), so any open line's
+    # pointer is enough: a second task reading that design is what keeps it live.
+    third = OUTLINE_CLEAN + (
+        "- 📋 **RK4** (deps: —) **A fourth symptom** — Because of a fourth. → §I.0\n"
+    )
+    report = lint(
+        project(tmp_path, roadmap=third, improvements=DRAFTED, config=OUTLINE_CONFIG)
+    )
+    assert "section.unreachable" not in codes(report)
 
 
 def test_a_shared_design_whose_named_task_shipped_is_not_reported(tmp_path):

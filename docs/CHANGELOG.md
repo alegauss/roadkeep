@@ -131,6 +131,7 @@
 - ✅ **RK122** **id.two-files calls a correct half-shipped state a contradiction** — A ⏳ line or an entry naming a half is read as a live partial and passes, so the gate stays loud only for the shape it was written for — a line shipped and not deleted.
 - ✅ **RK132** **The README block is read and written back with nothing checking the file did not move** — The bytes read from the README are compared against the file before the rename, so a splice landing on top of somebody else's write is refused at the gate instead of applied.
 - ✅ **RK134** **A section that four open lines point at is reported stale, and the drop it names is refused** — The ownership check reads the same pointer index `section drop` refuses from, so a section open lines still point at is silent and the finding names only remedies the tool allows.
+- ✅ **RK135** **A rationale section whose task points at a different one is reported by nothing** — A section whose title names a live task no pointer reaches — its own or another's, directly or through a parent anchor — is reported as `section.unreachable`.
 
 ## Block E — Adoption
 

@@ -39,7 +39,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK135** (deps: —) **A rationale section whose task points at a different one is reported by nothing** — `section.orphan` clears because the id in the title is open and no check asks whether the pointer naming it resolves here, so a superseded draft lints clean for ever. → §RK135
 - 📋 **RK136** (deps: —) **The section budget charges a measured table exactly what it charges a paragraph** — `words` splits the whole body on whitespace, so a section that is 230 of its 269 words of measurement is judged by a limit written for prose and offered a remedy that fits neither. → §RK136
 - 📋 **RK146** (deps: —) **A tab is reported as an invisible character and repaired by nothing, for ever** — suspect reads Unicode categories and a tab is Cc, while --fix withholds it because indentation is part of the model — so a file with one carries a finding no verb can clear. → §RK146
 - 📋 **RK147** (deps: —) **A prose file's own limits are enforced by the gate and ignored by the write that creates the text** — section add and amend check the body against config.schema while lint charges schema_for(role), so a project declaring [limits.improvements] has a budget only the backstop holds. → §RK147

@@ -1013,12 +1013,13 @@ def _orphans(
     # A deferred task's section is carried, not deleted (RK96), so the line that owns it is
     # in the store rather than the roadmap — and reporting it orphaned would make the gate
     # demand the deletion of exactly what a resume restores.
-    kept = {
-        task_id
+    lines = {
+        task_id: entry
         for role in LIVE_ROLES
         if role in documents
-        for task_id in documents[role].by_id()
+        for task_id, entry in documents[role].by_id().items()
     }
+    kept = set(lines)
     gone = documents["changelog"].by_id() if "changelog" in documents else {}
     pointed = {
         entry.task.ref
@@ -1050,7 +1051,11 @@ def _orphans(
         owners = _owners(section, ids)
         # Prose that belongs to no task is nobody's orphan — `§0.1` under the id scheme, and
         # any outline heading that names no id — the same rule `section add` applies (RK9).
-        if owners and not any(owner in kept for owner in owners):
+        if not owners:
+            continue
+        if any(owner in kept for owner in owners):
+            finding = _unreachable(section, file, owners=owners, lines=lines, claimed=claimed)
+        else:
             finding = _unowned(
                 section,
                 file,
@@ -1058,8 +1063,8 @@ def _orphans(
                 owners=owners,
                 claimants=tuple(claimed.get(anchor, ())),
             )
-            if finding is not None:
-                out.append(finding)
+        if finding is not None:
+            out.append(finding)
     return out
 
 
@@ -1105,6 +1110,64 @@ def _owners(section: Section, ids: re.Pattern[str]) -> tuple[str, ...]:
     if root != section.anchor and ids.match(root):
         return (root,)
     return section.names(re.compile(rf"\b{ids.pattern.strip('^$')}\b"))
+
+
+def _unreachable(
+    section: Section,
+    file: str,
+    *,
+    owners: tuple[str, ...],
+    lines: dict[str, Entry],
+    claimed: dict[str, list[str]],
+) -> Finding | None:
+    """A section whose task is alive and points somewhere else (RK135).
+
+    The gap the three neighbouring checks leave between them, measured on Shio: `XV.21` and
+    `XV.22` carried the same title — one an earlier draft of the other — and SH265 points at
+    `XV.22`. `section.orphan` did not fire, the id in the title being an open line;
+    `section.duplicate` did not fire, the anchors differing; `ref.unresolved` did not fire,
+    the pointer resolving somewhere. Twenty-three lines of superseded design lint clean, and
+    the only reason it was found is that a reader compared two adjacent headings.
+
+    Reachability is the pointer index and never the title, so the two readers RK134 split
+    apart stay one: a section **any** open line points at is reached, and so is one under an
+    anchor a pointer names — `§RK34.1` is handed to a reader by the `§RK34` its parent's
+    pointer resolves to, which is the same subtree `show` prints and `_budget` measures.
+
+    Not an orphan, and the remedy is not a drop: the task is alive, one of the two sections
+    is its design and the other is history, and which is which is a reading.
+    """
+    if _reached(section.anchor, claimed):
+        return None
+    elsewhere = [
+        (owner, lines[owner].task.ref)
+        for owner in owners
+        if owner in lines and lines[owner].task.ref
+    ]
+    if not elsewhere:
+        return None
+    named = ", ".join(f"{owner} points at §{ref}" for owner, ref in elsewhere)
+    return Finding(
+        "section.unreachable",
+        file,
+        f"{named}, so no pointer resolves here: the task is alive and its design is "
+        f"somewhere else, which makes one of the two history rather than a deletion",
+        section.first,
+        section.anchor,
+    )
+
+
+def _reached(anchor: str, claimed: dict[str, list[str]]) -> bool:
+    """Does an open line's pointer hand a reader this section — directly or by its parent?
+
+    Segment by segment and never by string, the care :func:`~roadkeep.sections._extends`
+    takes at the other end: `§0.1` is not under `§0.10`, and reading it as one would silence
+    a check on a section nobody can reach.
+    """
+    segments = anchor.split(".")
+    return any(
+        ".".join(segments[:depth]) in claimed for depth in range(1, len(segments) + 1)
+    )
 
 
 def _budget(

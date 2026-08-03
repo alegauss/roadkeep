@@ -259,21 +259,6 @@ own construction, the number to report is one build, not fifty-two.
 
 ## Block D — The gate
 
-### §RK135 The dead draft no check can see
-
-Shio carried `XV.21` and `XV.22` under the same title - "A raster is still the only
-answer to most of 'looks wrong' (SH265)" - one an earlier draft of the other. SH265
-points at `XV.22`. `section.orphan` did not fire, because the id in `XV.21`'s title is
-an open line; `section.duplicate` did not fire, because the anchors differ;
-`ref.unresolved` did not fire, because the pointer resolves somewhere. Twenty-three
-lines of superseded design lint clean, and the only reason it was found is that a reader
-happened to compare two adjacent headings. Reproduced minimally in four lines of
-fixture. The check that is missing is cheap and already has both halves in hand: a
-section whose title names an id, where that id's pointer resolves to a *different*
-anchor, is a section nothing can ever reach. It is not the same as an orphan - the task
-is alive - and the remedy is different too, because one of the two is the design and the
-other is history, which is a reading rather than a deletion.
-
 ### §RK136 A budget for prose, applied to a table
 
 `sections.words` is `len(body.split())`, so every cell of a Markdown table costs what a
