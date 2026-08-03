@@ -482,4 +482,52 @@ tool was given (L2), so it is named there for the same reason. The wider one is 
 --register-merge` doing both halves for a caller that asks, which is a decision about somebody's
 git configuration and should stay a flag rather than a default.
 
+### §RK205 A typed package nobody may type-check
+
+Every module in `src/roadkeep/` is annotated, and several carry `from __future__ import
+annotations` for the sake of it. None of that reaches anybody who installs the package:
+PEP 561 says a checker must ignore inline annotations in a distribution that does not
+ship a `py.typed` marker, and `pyproject.toml` declares none.
+
+It surfaced from the other side. RK199 wanted the 5.6ms `typing` costs at every startup
+and dropped a `TYPE_CHECKING` re-export block, on the argument that no external checker
+reads this package anyway. That argument is true, and it is true of the other
+thirty-five modules too — which makes it a fact about the distribution rather than a
+licence.
+
+Two coherent answers, and the wrong one is doing neither. Ship the marker: one empty
+file, one line of package data, and every annotation already written starts paying off
+for a consumer. Or decide the package is a CLI whose Python surface is not a promise,
+and say so where somebody looks — which is a smaller claim than the annotations
+currently imply.
+
+What tips it is whether `from roadkeep import Schema` is a surface this project intends
+to support. `__all__` says yes and nothing else does: no documentation names it, no test
+outside `tests/test_packaging.py` depends on it, and the whole tool is shipped as a
+plugin and a console script. Answer that first; the marker is a consequence and not the
+question.
+
 ## Block F — The plugin
+
+### §RK204 The half of the hook the screen does not cover
+
+RK176 took a `Bash` payload from 184ms to 77ms, and RK199 took what was left to 57ms.
+Both of them only ever look at one tool. `Edit`, `MultiEdit`, `NotebookEdit` and `Write`
+— the four the guard was written for — still import `roadkeep.cli` before deciding
+anything, and that is now the largest single cost on the whole hook.
+
+The reason given was a real one and it is not that it cannot be done: a write tool names
+the file it writes, so the config that decides is the one above **that path** rather
+than the one above `cwd`, and the screen resolves `cwd`. What it would take is walking
+up from the tool input's path instead — the same `roadkeep.toml` search, from a
+different starting point, in the same stdlib the screen already imports.
+
+The asymmetry worth checking first is how often it fires. A `Bash` payload naming a
+governed path is rare, which is why screening it pays; an `Edit` payload naming one is
+the whole reason the hook exists, and if most `Edit` calls in a governed project are
+edits to governed files then the screen would load every time and cost a stat for
+nothing. Count that before building it — the answer is a property of how sessions
+actually work, not of the code.
+
+What must not change either way: silence is the allow, and every failure allows. A
+screen that skipped a governed `Write` is not slow, it is a hole.

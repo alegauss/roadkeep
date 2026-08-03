@@ -1096,7 +1096,6 @@ def _builds(monkeypatch) -> list[int]:
 
     monkeypatch.setattr(cli, "build_parser", build)
     serving._root.cache_clear()
-    monkeypatch.setattr(serving._root, "cache_clear", lambda: None, raising=False)
     return counted
 
 

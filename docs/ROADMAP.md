@@ -53,8 +53,11 @@
 - 📋 **RK139** (deps: —) **`adopt` measures the task lines and says nothing about the non-goals it will govern** — The estimate reports symptom, why and line against their limits and never the lead and reason it will hold the other bullet to, so nine findings arrived after the commitment. → §RK139
 - 📋 **RK140** (deps: —) **The CI workflow `install` writes is red on its first run for every backlog with debt** — The baseline that fails on what a branch added is named in a comment and left unset, so the gate an adopter meets first is one reporting work nobody was going to redo. → §RK140
 - 📋 **RK148** (deps: —) **install wires four surfaces and leaves the merge driver to whoever remembers it** — merge --register is the opt-in RK120 shipped, and nothing offers it during adoption — so a wired project gets the tools, the guard and the skill, and its first parallel branch still conflicts by hand. → §RK148
+- 💭 **RK205** (deps: —) **The package publishes annotations that no checker is allowed to read** — Every module is annotated and `pyproject.toml` ships no `py.typed`, so PEP 561 makes a consumer's checker ignore all of it — and RK199 dropped a TYPE_CHECKING block on exactly that ground. → §RK205
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
+
+- 💭 **RK204** (deps: —) **A denied Edit pays the whole package import that a shell command no longer does** — RK176 screens `Bash` alone because a write tool needs the config found from its path and not from `cwd`, so the tool the guard exists to deny is the one still costing 110ms a call. → §RK204
 
 ## Non-goals
 
