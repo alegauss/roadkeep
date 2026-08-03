@@ -92,6 +92,19 @@ def test_every_understood_line_renders_back_to_what_was_written(case):
 
 
 @pytest.mark.parametrize("case", corpus(), ids=lambda c: c[0].parent.parent.name)
+def test_no_two_entries_claim_the_same_line(case):
+    # The span RK157 gave every entry, as a property: an entry ends before the next one
+    # starts, so no write can insert into one or remove part of another. The shape that
+    # motivated it — a bullet that wraps — lives in a *ledger* this corpus does not read,
+    # which is exactly why the property test did not catch it.
+    path, schema, _ = case
+    document = Document.load(path, schema)
+    for earlier, later in zip(document.entries, document.entries[1:]):
+        assert earlier.stop < later.lineno, (earlier.task.id, later.task.id)
+    assert all(entry.stop <= len(document.lines) for entry in document.entries)
+
+
+@pytest.mark.parametrize("case", corpus(), ids=lambda c: c[0].parent.parent.name)
 def test_no_marker_bearing_line_is_silently_dropped(case):
     path, schema, _ = case
     document = Document.load(path, schema)
@@ -805,3 +818,70 @@ def test_prose_that_puts_a_parenthetical_in_bold_is_still_prose():
     for line in ("- **Delete (soon)** the 3 old files", "- **Notes (draft)** on the plan"):
         document = Document.parse(f"## Block A — The model\n{line}\n", schema)
         assert document.entries == () and document.rejects == (), line
+
+
+# -- where an entry ends (RK157) ----------------------------------------------
+
+#: A ledger written before this tool existed, at the shape Shio's is: the rules that hold a
+#: `why` to one sentence ending in a stop are off for the role, so the bullet wraps and the
+#: lines under it parse as nothing at all.
+WRAPPED = replace(LEDGER, one_sentence=False, terminator=False)
+WRAPPED_LEDGER = (
+    "## Block A — The model\n"
+    "\n"
+    "- ✅ **RK1** **A first symptom** — Because of a reason that continues\n"
+    "  on a second line, and finishes\n"
+    "  on a third one.\n"
+)
+
+
+def test_an_entry_that_wraps_knows_where_it_ends():
+    # The fact no reader held: `place` answered "after the last entry" with the line after
+    # that entry's *first* line, so a new bullet landed inside the previous entry.
+    document = Document.parse(WRAPPED_LEDGER, WRAPPED)
+    entry = document.entries[0]
+    assert (entry.lineno, entry.last, entry.stop) == (3, 5, 5)
+    assert entry.wrapped
+
+
+def test_an_entry_that_does_not_wrap_owns_one_line():
+    # Every line of a governed roadmap: the format has no multi-line task line.
+    document = Document.parse(f"## Block A — The model\n{PARTIAL_LINE}\n", LEDGER)
+    entry = document.entries[0]
+    assert (entry.lineno, entry.stop) == (2, 2) and not entry.wrapped
+
+
+def test_a_blank_line_ends_an_entry_and_a_paragraph_below_belongs_to_the_block():
+    # A block's own introduction (RK108) is not the last entry of the block above it.
+    document = Document.parse(WRAPPED_LEDGER + "\nWhat this block is for.\n", WRAPPED)
+    assert document.entries[0].stop == 5
+
+
+def test_a_following_bullet_ends_an_entry_even_with_no_blank_between():
+    document = Document.parse(
+        WRAPPED_LEDGER + "- ✅ **RK2** **A second symptom** — It works now.\n", WRAPPED
+    )
+    assert [(e.task.id, e.stop) for e in document.entries] == [("RK1", 5), ("RK2", 6)]
+
+
+def test_a_fence_below_an_entry_is_not_its_continuation():
+    # Nothing inside a fence is a line this parser claims, so nothing inside one is a line
+    # an entry owns either — a quoted example would otherwise be swallowed by the bullet.
+    document = Document.parse(
+        "## Block A — The model\n"
+        "- ✅ **RK1** **A first symptom** — It works now.\n"
+        "```\n- not a bullet\n```\n",
+        LEDGER,
+    )
+    assert document.entries[0].stop == 2
+
+
+def test_a_rewrite_keeps_the_lines_it_cannot_reproduce():
+    # `replace_task` is deliberately not span-aware: every field the schema renders was read
+    # off the first line, so replacing the whole span with one rendered line would delete
+    # somebody's paragraph in the name of changing an id.
+    document = Document.parse(WRAPPED_LEDGER, WRAPPED)
+    entry = document.entries[0]
+    updated = document.replace_task(entry, replace(entry.task, id="RK9"))
+    assert "**RK9**" in updated.lines[2]
+    assert updated.lines[3:5] == ("  on a second line, and finishes\n", "  on a third one.\n")

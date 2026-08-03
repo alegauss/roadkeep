@@ -230,7 +230,7 @@ def defer(config: Config, task_id: str, *, reason: str) -> Pause:
 
     marker = config.schema.deferred_marker
     insertion = place(store, _as_paused(entry.task, marker, reason))
-    remaining = remove_entry(roadmap, entry.index)
+    remaining = remove_entry(roadmap, entry)
     # Derived against the state this write *creates* — the line is out of the roadmap — for
     # the same reason a departure does it (RK8): an annotation left un-derived by one door
     # is one nothing else revisits.
@@ -278,7 +278,7 @@ def resume(config: Config, task_id: str, *, marker: str | None = None) -> Resump
 
     status = marker or config.schema.markers[0]
     insertion = place(backlog.roadmap, _as_open(held.task, status))
-    remaining = remove_entry(store, held.index)
+    remaining = remove_entry(store, held)
     # The store this write leaves behind, for `defer`'s reason read backwards: a dependent
     # still annotated ⏸ after the pause ended is the stale cache RK8 exists to prevent.
     derived = refresh(replace(backlog, roadmap=insertion.document, store=remaining))

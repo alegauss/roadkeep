@@ -179,11 +179,39 @@ class Entry:
     task: Task
     raw: str
     lineno: int  # 1-based, as an editor counts
+    #: The last line this entry owns — its own, unless the bullet wraps (RK157). A ledger
+    #: written before this tool existed wraps at the median, and the lines under a bullet
+    #: parse as nothing at all, so an entry's *end* was a fact no reader held: `place`
+    #: answered "the line after the last entry" with the line after that entry's **first**
+    #: line, and every continuation below it was re-attributed to whatever shipped next.
+    #: 0 means the entry is one line, which is every line of a governed roadmap (the
+    #: format has no multi-line task line) — read through :attr:`stop`, never directly.
+    last: int = 0
 
     @property
     def index(self) -> int:
         """0-based index into :attr:`Document.lines`."""
         return self.lineno - 1
+
+    @property
+    def stop(self) -> int:
+        """0-based index one past the last line this entry owns — where the next one starts.
+
+        What an insertion inserts at and a removal removes up to. The two writes wanted the
+        same answer and each had its own arithmetic for it, which is the whole reason this is
+        a field: a span computed twice is a span two writes can disagree about.
+        """
+        return max(self.last, self.lineno)
+
+    @property
+    def wrapped(self) -> bool:
+        """Does this entry own lines the parse read nothing from?
+
+        True only where a project turns the one-sentence and terminator rules off for a role
+        (RK52), which is what a ledger of history written by hand needs — the format itself
+        has no multi-line task line, and `add` refuses one.
+        """
+        return self.last > self.lineno
 
 
 @dataclass(frozen=True, slots=True)
@@ -261,6 +289,7 @@ class Document:
         rejects: list[Reject] = []
         headings: list[Heading] = []
         pipes: list[Row] = []
+        loose: set[int] = set()
         block: str | None = None
 
         fence: str | None = None
@@ -301,6 +330,12 @@ class Document:
 
             outcome = _read_bullet(body, schema, block or "")
             if outcome is None:
+                if body.strip():
+                    # A non-blank line this pass read nothing from: the continuation of the
+                    # bullet above it, or a paragraph. Which of the two is decided after the
+                    # loop, by whether anything is directly above — and it has to be decided,
+                    # because until RK157 an entry's end was nobody's fact (see `Entry.last`).
+                    loose.add(number)
                 continue
             if isinstance(outcome, str):
                 rejects.append(
@@ -314,7 +349,7 @@ class Document:
         return cls(
             schema=schema,
             lines=lines,
-            entries=tuple(entries),
+            entries=_spanned(entries, loose),
             rejects=tuple(rejects),
             headings=tuple(headings),
             tabular=_tables(pipes),
@@ -443,7 +478,15 @@ class Document:
         return self._reparse(lines)
 
     def replace_task(self, entry: Entry, task: Task) -> Document:
-        """Re-render one entry from its data — the only way a task line changes."""
+        """Re-render one entry from its data — the only way a task line changes.
+
+        The **first** line, and deliberately not the span (RK157): every field the schema
+        renders was read off that line, so rewriting it is lossless, while replacing the
+        whole span with one rendered line would delete continuation lines whose text this
+        task never held — somebody's paragraph, removed by a command that was asked to
+        change an id. The span is what an insertion and a removal need; a rewrite needs the
+        line it can actually reproduce.
+        """
         return self.replace_line(entry.index, self.schema.render(task))
 
     def assert_current(self, path: str | Path | None = None) -> None:
@@ -535,6 +578,27 @@ def assert_all_current(*documents: Document | None) -> None:
     for document in documents:
         if document is not None:
             document.assert_current()
+
+
+def _spanned(entries: list[Entry], loose: set[int]) -> tuple[Entry, ...]:
+    """Give every entry its end: the run of non-blank unparsed lines directly beneath it.
+
+    The rule §RK157 names, and the reason it is the parser's to state rather than a writer's
+    guess: an entry ends at the line before the next bullet, heading, table row or blank. A
+    blank breaks the run because a paragraph one line down belongs to the block, not to the
+    bullet above it — which is also what keeps a block's own introduction (RK108) out of the
+    last entry of the block before it.
+    """
+    return tuple(
+        replace(entry, last=_run(entry.lineno, loose)) for entry in entries
+    )
+
+
+def _run(lineno: int, loose: set[int]) -> int:
+    last = lineno
+    while last + 1 in loose:
+        last += 1
+    return last
 
 
 def blank(line: str) -> bool:

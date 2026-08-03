@@ -15,6 +15,13 @@ ledger that lets one entry go is a ledger that can lose a decision, so what has 
 the id must be there *twice*, that the entry the reader already found is the one that stays, and
 that the write is still the ledger alone.
 
+**And where an entry ends** (RK157), which is the one defect here that damaged a file rather
+than refusing to. A ledger written before this tool existed wraps, the lines under a bullet
+parse as nothing, and every write took the entry's *first* line for the whole of it — so an
+insertion landed inside the previous entry and a removal stranded its paragraph. The tests
+below hold all three directions: the new entry lands after the whole last one, a move carries
+the lines the schema does not render, and a dropped duplicate takes its own and no others.
+
 **And the move the update deliberately was not** (RK143). `amend` withheld `--block` because
 filing an entry elsewhere relocates the line, and what the tests below hold is that the verb
 which does it *says* so: two positions reported rather than one, a heading nothing declares
@@ -714,3 +721,91 @@ def test_a_refused_move_writes_nothing_and_exits_two(tmp_path, capsys):
     assert code == EXIT_USAGE
     assert "no heading" in capsys.readouterr().err
     assert read(tmp_path, "CHANGELOG.md") == RECORDED
+
+
+# -- the line an entry starts on is not the line it ends on (RK157) -----------
+
+#: Shio's shape, in miniature: `[rules.changelog]` turns off the one-sentence and terminator
+#: rules so a ledger of history written by hand parses, and then every entry wraps.
+WRAPPING_CONFIG = (
+    'prefix = "SH"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
+    "[rules.changelog]\none_sentence = false\nterminator = false\n"
+)
+
+WRAPPED_LEDGER = f"""# Shipped
+
+## Block A — The model
+
+- {SHIPPED} **SH1** **A first symptom** — Because of a reason that continues
+  on a second line, and finishes
+  on a third one.
+
+## Block B — Authoring
+"""
+
+
+def wrapping(tmp_path: Path) -> Config:
+    (tmp_path / "roadkeep.toml").write_text(WRAPPING_CONFIG, encoding="utf-8")
+    for name, body in {
+        "ROADMAP.md": "# Roadmap\n\n## Block A — The model\n\n## Block B — Authoring\n",
+        "CHANGELOG.md": WRAPPED_LEDGER,
+    }.items():
+        with (tmp_path / name).open("w", encoding="utf-8", newline="") as handle:
+            handle.write(body)
+    return Config.discover(tmp_path)
+
+
+def test_a_new_entry_lands_after_the_whole_last_entry(tmp_path):
+    # The defect, reproduced: the new bullet went to line 6 and left the previous entry's
+    # second and third lines below it, so one author's paragraph read as somebody else's
+    # shipped sentence — and `lint` passed, both bullets round-tripping.
+    config = wrapping(tmp_path)
+    entry = record(config, block="A", symptom="A second symptom", why="It works now.")
+    entry.save()
+
+    lines = read(tmp_path, "CHANGELOG.md").splitlines()
+    assert lines[4].startswith(f"- {SHIPPED} **SH1**")
+    assert lines[5] == "  on a second line, and finishes"
+    assert lines[6] == "  on a third one."
+    assert lines[7].startswith(f"- {SHIPPED} **SH2**")
+    assert entry.ledger.lineno == 8
+
+
+def test_a_moved_entry_takes_its_continuation_lines_with_it(tmp_path):
+    # The same fact in the other direction: the removal takes the whole entry, so the
+    # re-placement has to carry the lines the schema does not render — a move that rendered
+    # alone would take the paragraph out of the file in the name of re-filing it.
+    config = wrapping(tmp_path)
+    move(config, "SH1", to_block="B").save()
+
+    body = read(tmp_path, "CHANGELOG.md")
+    assert body == """# Shipped
+
+## Block A — The model
+
+## Block B — Authoring
+
+- {marker} **SH1** **A first symptom** — Because of a reason that continues
+  on a second line, and finishes
+  on a third one.
+""".format(marker=SHIPPED)
+    assert lint(Config.discover(tmp_path)).findings == ()
+
+
+def test_a_dropped_duplicate_takes_its_own_continuation_and_no_others(tmp_path):
+    # A duplicate removed whole, and the entry the reader already found left untouched —
+    # including the two lines it owns, which the old arithmetic would have left stranded
+    # under the bullet the deletion put above them.
+    config = wrapping(tmp_path)
+    twin = WRAPPED_LEDGER.replace(
+        "## Block B — Authoring\n",
+        f"## Block B — Authoring\n\n- {SHIPPED} **SH1** **A first symptom** — "
+        "Because of a reason that continues\n  on a second line, and finishes\n"
+        "  on a third one.\n",
+    )
+    with (tmp_path / "CHANGELOG.md").open("w", encoding="utf-8", newline="") as handle:
+        handle.write(twin)
+    config = Config.discover(tmp_path)
+
+    drop(config, "SH1").save()
+    assert read(tmp_path, "CHANGELOG.md") == WRAPPED_LEDGER

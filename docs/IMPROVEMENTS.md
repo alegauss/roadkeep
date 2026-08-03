@@ -118,28 +118,6 @@ as one. RK122 is the same question one file up.
 
 ## Block B — Authoring
 
-### §RK157 The line an entry starts on is not the line it ends on
-
-`Document` reads a bullet per line: a wrapped ledger entry is one `Entry` whose `raw` is
-its first line, and the lines under it parse as nothing at all. `_placement` then
-answers `entries[-1].index + 1`, which is the line after the *first line* of the last
-entry rather than the line after the entry.
-
-Reproduced on a three-line entry: `record add` put the new bullet on line 6 and left the
-previous entry's second and third lines below it, so a paragraph one author wrote now
-reads as the sentence somebody else shipped. `ship` calls the same `place`.
-
-This is Shio's shape and not a corner: `[ledger] marker = false`, 234 entries written
-before the tool existed, 1038 characters at the median — every one of them wrapped. Two
-of its sessions reported it. The damage is silent, because both bullets round-trip and
-no rule says a continuation line belongs to the bullet above it, so `lint` passes on the
-file the write just scrambled.
-
-The fix is a span on `Entry`: the parser already knows where an entry ends, it being the
-line before the next bullet, heading or blank. `remove_entry` and `replace_task` read
-that same single line and want the same answer, so the span is one field three writes
-stop guessing at — and the roadmap needs none of it, `add` refusing a line that wraps.
-
 ### §RK166 The first section of a new block has no write path (outline scheme)
 
 Found opening two blocks in `alegauss/claude-tray` (`ref_scheme = "outline"`, sections

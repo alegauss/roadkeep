@@ -210,13 +210,20 @@ def compose(
     )
 
 
-def place(document: Document, task: Task) -> Insertion:
+def place(
+    document: Document, task: Task, *, carrying: Sequence[str] = ()
+) -> Insertion:
     """Validate, render, insert — in memory, and refuse before any of it.
 
     Raises :class:`~roadkeep.schema.SchemaError` with every violation,
     :class:`UnknownBlock` when no heading declares the block, and
     :class:`~roadkeep.document.RoundTripError` when either the file already carries a
     line the schema would rewrite or the new line does not read back as it was written.
+
+    ``carrying`` is the lines an entry owns **beyond** the one the schema renders (RK157),
+    and only a *move* passes it: re-placing a wrapped ledger entry under another heading has
+    to carry its continuation with it, since the schema renders one line and the rest is
+    prose no task holds. A newly composed line carries nothing, which is every other caller.
     """
     document.schema.check(task)
     heading = document.heading(task.block)
@@ -228,7 +235,7 @@ def place(document: Document, task: Task) -> Insertion:
         )
 
     rendered = document.schema.render(task)
-    index, payload = _placement(document, heading, rendered)
+    index, payload = _placement(document, heading, rendered, tuple(carrying))
     updated = document
     for offset, raw in enumerate(payload):
         updated = updated.insert_line(index + offset, raw)
@@ -241,18 +248,25 @@ def place(document: Document, task: Task) -> Insertion:
     return Insertion(document=updated, entry=entry)
 
 
-def remove_entry(document: Document, index: int) -> Document:
-    """Take the line out, and the blank line the removal doubled. The inverse of `place`.
+def remove_entry(document: Document, entry: Entry) -> Document:
+    """Take the entry out, and the blank line the removal doubled. The inverse of `place`.
 
     A task line sits between blanks when it is the last one in its block, so removing it
     leaves a paragraph break the file never had. Both spellings round-trip, which is
     exactly why nothing downstream would catch it.
 
+    The **whole** entry, which is the same fact `place` needed (RK157): a wrapped ledger
+    entry's continuation lines are the removal's to take, and leaving them behind would file
+    somebody's paragraph under whatever bullet the deletion left above them. Takes the entry
+    rather than its index for exactly that reason — an index is the half of the answer that
+    was wrong.
+
     Here rather than in one caller because a line now leaves the roadmap by four doors —
     three of them departures (RK6, RK32) and one of them reversible (RK91) — and a second
     copy of this rule is a second opinion about the shape of the file it leaves behind.
     """
-    updated = document.remove_line(index)
+    index = entry.index
+    updated = document.remove_lines(index, entry.stop)
     lines = updated.lines
     if index > 0 and index < len(lines) and blank(lines[index - 1]) and blank(lines[index]):
         return updated.remove_line(index)
@@ -564,7 +578,7 @@ def refuse_reuse(config: Config, task_id: str) -> None:
 
 
 def _placement(
-    document: Document, heading: Heading, rendered: str
+    document: Document, heading: Heading, rendered: str, carrying: tuple[str, ...] = ()
 ) -> tuple[int, list[str]]:
     """Where the line goes, and the lines to insert there — blank ones included.
 
@@ -579,7 +593,12 @@ def _placement(
     """
     entries = document.block(heading.label)
     if entries:
-        return entries[-1].index + 1, [rendered]
+        # The last entry's *end*, not the line after its first line (RK157): a ledger entry
+        # written before this tool existed wraps, and the lines under it parse as nothing —
+        # so inserting one line down put the new bullet inside the previous entry and left
+        # its paragraph reading as the sentence somebody else shipped. Silent, because both
+        # bullets round-trip and no rule says a continuation line belongs to the bullet above.
+        return entries[-1].stop, [rendered, *carrying]
 
     lines = document.lines
     index = _after_preamble(document, heading)
@@ -590,7 +609,7 @@ def _placement(
         before = [""]
     at_end = index >= len(lines)
     after = [] if at_end or blank(lines[index]) else [""]
-    return index, [*before, rendered, *after]
+    return index, [*before, rendered, *carrying, *after]
 
 
 def _after_preamble(document: Document, heading: Heading) -> int:

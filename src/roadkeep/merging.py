@@ -281,7 +281,7 @@ def _materialize(frame: Document, decided: dict[str, Entry | None]) -> Document:
     for task_id, entry in decided.items():
         held = result.by_id().get(task_id)
         if entry is None and held is not None:
-            result = remove_entry(result, held.index)
+            result = remove_entry(result, held)
     for task_id, entry in decided.items():
         if entry is not None and task_id not in result.by_id():
             # `place` re-renders from the task, which is the same bytes: every version was

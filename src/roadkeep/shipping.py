@@ -807,8 +807,16 @@ def move(config: Config, task_id: str, *, to_block: str) -> Refiled:
             to_block=to_block,
             from_line=entry.lineno,
         )
+    # The whole entry moves, continuation lines included (RK157): the schema renders one line
+    # and a wrapped entry's remaining lines are prose no task holds, so a move that re-rendered
+    # alone would take the paragraph out of the file in the name of re-filing it.
+    carrying = tuple(
+        line.rstrip("\r\n") for line in ledger.lines[entry.lineno : entry.stop]
+    )
     insertion = place(
-        remove_entry(ledger, entry.index), replace(entry.task, block=to_block)
+        remove_entry(ledger, entry),
+        replace(entry.task, block=to_block),
+        carrying=carrying,
     )
     return Refiled(
         task_id=task_id,
@@ -888,7 +896,7 @@ def drop(config: Config, task_id: str, *, lineno: int | None = None) -> Dropped:
     kept = next(entry for entry in twins if entry.lineno != going.lineno)
     return Dropped(
         task_id=task_id,
-        ledger=remove_entry(ledger, going.index),
+        ledger=remove_entry(ledger, going),
         removed_from=going.lineno,
         kept=kept.lineno,
         kept_marker=kept.task.status,
@@ -1169,7 +1177,7 @@ def _depart(
         insertion = Insertion(document=replaced, entry=replaced.by_id()[task_id])
     else:
         insertion = place(ledger, recorded)
-    remaining = remove_entry(roadmap, entry.index)
+    remaining = remove_entry(roadmap, entry)
     improvements, dropped, kept, taken = _drop_section(
         config, entry.task.ref, leaving=task_id
     )
@@ -1265,7 +1273,7 @@ def _close(config: Config, task_id: str, recorded: Entry) -> Closure:
     """Everything a departure does except the entry, which is already on disk (RK62)."""
     roadmap = config.document("roadmap")
     entry = roadmap.by_id()[task_id]
-    remaining = remove_entry(roadmap, entry.index)
+    remaining = remove_entry(roadmap, entry)
     improvements, dropped, kept, taken = _drop_section(
         config, entry.task.ref, leaving=task_id
     )
