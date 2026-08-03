@@ -796,10 +796,9 @@ def test_a_partial_of_a_task_that_is_not_open_is_refused(tmp_path):
 def test_a_partial_and_its_completion_both_lint_clean(tmp_path):
     config = project(tmp_path)
     ship(config, "RK1", part="local half", why="Because of a reason.").save()
-    codes = {f.code for f in lint(Config.discover(tmp_path)).findings}
-    # `id.two-files` is RK122's subject and is expected here: open plus recorded is exactly
-    # what a partial *is*, and teaching the gate that is a separate task.
-    assert codes <= {"id.two-files"}
+    # Both halves of the name are the assertion: open plus recorded is exactly what a
+    # partial *is*, so the gate that once called it `id.two-files` now says nothing (RK122).
+    assert lint(Config.discover(tmp_path)).clean
     ship(Config.discover(tmp_path), "RK1", why="Because of a reason.").save()
     assert lint(Config.discover(tmp_path)).clean
 

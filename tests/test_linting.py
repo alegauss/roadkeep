@@ -236,6 +236,33 @@ def test_an_id_in_both_files_is_a_finding(tmp_path):
     assert "id.two-files" in codes(report)
 
 
+def test_an_entry_naming_a_half_is_not_a_contradiction(tmp_path):
+    # RK122: the ledger's own way of saying "this much landed" (RK121). Reporting it would
+    # make the gate loud about precisely the entries written the way the tool writes them.
+    half = LEDGER + "- ✅ **RK1 (local half)** **The same task** — Because half shipped.\n"
+    report = lint(project(tmp_path, changelog=half))
+    assert "id.two-files" not in codes(report)
+
+
+def test_a_partial_line_the_ledger_names_plainly_is_not_a_contradiction(tmp_path):
+    # The measured case: Shio's ⏳ SH238 carries a bare id in the ledger, which is the
+    # honest way to write a half — and it was the *only one of seven* the gate reported,
+    # the six others being silent behind a parenthetical the parser could not read.
+    both = LEDGER + "- ✅ **RK1** **The same task** — Because half of it shipped.\n"
+    halved = CLEAN.replace("- 📋 **RK1**", "- ⏳ **RK1**")
+    report = lint(project(tmp_path, roadmap=halved, changelog=both))
+    assert "id.two-files" not in codes(report)
+
+
+def test_a_line_shipped_and_left_behind_is_still_the_finding(tmp_path):
+    # The shape the rule was written for stays loud: an ordinary open marker, and an entry
+    # qualifying nothing. Neither file says halves, so open and gone are not both true.
+    both = LEDGER + "- ✅ **RK2** **The same task** — Because it shipped.\n"
+    report = lint(project(tmp_path, changelog=both))
+    two_files = next(f for f in report.findings if f.code == "id.two-files")
+    assert two_files.id == "RK2" and "CHANGELOG.md" in two_files.message
+
+
 # -- deps nothing will satisfy ------------------------------------------------
 
 

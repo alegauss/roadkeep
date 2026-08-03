@@ -128,6 +128,7 @@
 - ✅ **RK104** **Nothing gates the README block this tool writes, so a stale restatement passes lint** — `lint` splices the derived block into every file carrying the markers and compares, so a projection nobody re-derived fails the commit rather than a pytest fixture an adopting project never installs.
 - ✅ **RK105** **A concurrent edit in another repository turns this project's suite red** — Every assertion about a foreign corpus reads a pinned revision, so an edit next door cannot turn this suite red, and the live tree is read as an advisory that warns rather than fails.
 - ✅ **RK114** **A subsection whose task is gone is exempt from the ownership check that would report it** — A sub-anchor is owned by its first segment, so `§RK34.1` belongs to `RK34` and a subtree a renumber left behind is reported stale or orphaned instead of exempt.
+- ✅ **RK122** **id.two-files calls a correct half-shipped state a contradiction** — A ⏳ line or an entry naming a half is read as a live partial and passes, so the gate stays loud only for the shape it was written for — a line shipped and not deleted.
 
 ## Block E — Adoption
 

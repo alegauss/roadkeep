@@ -93,7 +93,7 @@ from pathlib import Path
 from roadkeep import scoping
 from roadkeep.backlog import Backlog, DepStatus, id_order
 from roadkeep.config import ROLES, Config
-from roadkeep.document import Document, ending
+from roadkeep.document import Document, Entry, ending
 from roadkeep.exporting import BEGIN, DEFAULTS, NoMarkers, project, splice
 from roadkeep.graph import Graph
 from roadkeep.history import (
@@ -105,7 +105,7 @@ from roadkeep.history import (
     tracked_at,
 )
 from roadkeep.markers import derive
-from roadkeep.schema import DepKind, Task
+from roadkeep.schema import PARTIAL, DepKind, Task
 from roadkeep.sections import Section, anchored, find
 from roadkeep.showing import paths_in
 
@@ -866,7 +866,7 @@ def _across(config: Config, documents: dict[str, Document]) -> list[Finding]:
     if ledger is not None:
         shipped = ledger.by_id()
         for task_id, entry in roadmap.by_id().items():
-            if task_id in shipped:
+            if task_id in shipped and not _in_halves(entry, shipped[task_id]):
                 out.append(
                     Finding(
                         "id.two-files",
@@ -897,6 +897,22 @@ def _across(config: Config, documents: dict[str, Document]) -> list[Finding]:
 
     out.extend(_cycles(backlog, file))
     return out
+
+
+def _in_halves(open_line: Entry, recorded: Entry) -> bool:
+    """Do the two files *say* this id is a live partial, rather than contradict each other?
+
+    `id.two-files` was written for one shape — a line somebody shipped and forgot to delete
+    — and half a delivery is the other one, where open and recorded are both true (RK122).
+    The two are told apart by what the files declare, and the test is the one
+    :func:`~roadkeep.shipping._already_recorded` already applies at the door `ship` refuses
+    at: a ⏳ line, or an entry naming a half. Either alone is enough, because a project that
+    adopted the format writes only the first — Shio's ⏳ SH238 carries a bare id in the
+    ledger, and it was **the only one of seven** in that state the gate reported, the six
+    others being silent behind a parenthetical the parser could not read (RK121). A finding
+    whose only avoidance is a syntax error teaches the syntax error.
+    """
+    return open_line.task.status == PARTIAL or bool(recorded.task.part)
 
 
 def _deps(backlog: Backlog, task: Task, file: str, lineno: int) -> list[Finding]:

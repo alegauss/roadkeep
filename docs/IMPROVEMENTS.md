@@ -259,22 +259,6 @@ own construction, the number to report is one build, not fifty-two.
 
 ## Block D — The gate
 
-### §RK122 The gate reports the one project that did not hide it
-
-`id.two-files` says "open and recorded as gone are not both true". For a task delivered
-in halves both *are* true, and the finding has no way to be told so.
-
-The evidence is one corpus, read twice. Shio's SH238 is ⏳ in the roadmap and carries a
-bare id in the ledger, which is the honest way to write a half — and it is the only one
-`lint` reports. Six others are in the same state and are silent, because their ids carry
-a parenthetical the parser cannot read (RK121). The gate therefore reports **precisely
-the entries written correctly** and passes the ones that defeated it.
-
-That inversion is the argument for doing this with RK121 rather than after it: a finding
-whose only avoidance is a syntax error teaches the syntax error. Whatever form partial
-completion takes, this rule has to read it and stay quiet, and stay loud for the case it
-was written for — a line somebody shipped and forgot to delete.
-
 ### §RK132 The write that has no document behind it
 
 Every write to a governed file now asks whether the target is still the file that was
