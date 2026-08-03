@@ -632,17 +632,35 @@ def _characters(config: Config, role: str, document: Document) -> list[Finding]:
     Only the line-bearing files. A paragraph has no parse for an invisible byte to corrupt,
     and §RK34 had to *quote* a variation selector to explain the defect — which a scan over
     prose would have reported as the defect itself.
+
+    **Which codepoints occur is asked before where they are** (RK227). The rule stays
+    :func:`suspect`'s — a Unicode category and not a hand-kept list, so a format character
+    nobody has met yet is still caught — but it is asked once per *distinct* codepoint
+    instead of once per character: 800215 calls over Turing's ledger, every answer no, for
+    148 ms of a 660 ms gate. A clean file leaves the walk below unentered, and every file
+    this gate passes is a clean file.
+
+    The bodies and not the raw lines, because a line ending is `Cc` and therefore the one
+    thing every file would have flagged — :func:`_endings` is what judges those, and a
+    sweep that always said "dirty" would have been the loop with a longer preamble.
     """
     file = config.relative(config.path(role))
     ids = {entry.lineno: entry.task.id for entry in document.entries}
     out = _endings(document, file)
-    for number, raw in enumerate(document.lines, start=1):
-        body = raw.rstrip("\r\n")
+    bodies = [raw.rstrip("\r\n") for raw in document.lines]
+    # `indent=False`, so a tab counts as a candidate wherever it sits; the walk is what
+    # knows whether one is indentation, which is the only place it reads as text (RK146).
+    candidates = {char for char in set("".join(bodies)) if suspect(char)}
+    if not candidates:
+        return out
+    found = re.compile(f"[{''.join(re.escape(char) for char in sorted(candidates))}]")
+    for number, body in enumerate(bodies, start=1):
         head = indentation(body)
-        for column, char in enumerate(body, start=1):
-            if not suspect(char, indent=column <= head):
+        for match in found.finditer(body):
+            column = match.start() + 1
+            if not suspect(match.group(), indent=column <= head):
                 continue
-            out.append(_named(file, number, column, char, ids.get(number, "")))
+            out.append(_named(file, number, column, match.group(), ids.get(number, "")))
     return out
 
 

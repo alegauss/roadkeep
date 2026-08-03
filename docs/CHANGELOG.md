@@ -171,6 +171,7 @@
 - ✅ **RK223** **The path check reads every ledger entry twice, and the gate takes seconds on a large ledger** — The check gathers candidates and findings in one pass, so Turing's ledger costs 559 ms of the gate instead of 2.9 s and every entry is read once.
 - ✅ **RK225** **A run judging a revision stats the working tree once per token and throws every answer away** — A revision run asks the tree it is judging and spells paths lexically, so Turing's check costs 270 ms and no filesystem call instead of 559 ms and 34070.
 - ✅ **RK226** **A path written with Windows separators is a path on one platform and a filename on the other** — A path token is normalised to forward slashes before anything asks, so one spelling reaches the disk, git and the report whichever platform wrote the line.
+- ✅ **RK227** **The invisible-codepoint check calls a Python predicate once per character of every governed file** — The check asks which codepoints occur before asking where, so a clean file is cleared in 6 ms instead of 148 and the whole gate costs 517 ms.
 
 ## Block E — Adoption
 

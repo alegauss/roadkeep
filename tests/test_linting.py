@@ -24,6 +24,7 @@ from pathlib import Path
 import pytest
 
 import corpora
+from roadkeep import linting
 from roadkeep.cli import EXIT_GATE, EXIT_OK, main
 from roadkeep.config import Config
 from roadkeep.exporting import BEGIN, END
@@ -1412,3 +1413,52 @@ def test_json_carries_every_finding_and_still_exits_one(tmp_path, capsys):
     (finding,) = payload["findings"]
     assert finding["file"] == "ROADMAP.md" and finding["line"] == 5
     assert finding["id"] == "RK1"
+
+
+# -- the sweep before the walk (RK227) ----------------------------------------
+
+
+def test_a_clean_file_is_cleared_without_asking_about_a_character(tmp_path):
+    """The rule stays `suspect`'s and only the number of times it is asked changes.
+
+    800215 calls over Turing's ledger, every answer no, for 148 ms of a 660 ms gate. Asking
+    which codepoints *occur* first — one `set` in C — leaves the walk unentered on a clean
+    file, and every file this gate passes is a clean file.
+    """
+    config = project(tmp_path)
+    asked: list[str] = []
+    real = linting.suspect
+
+    def counted(char, *, indent=False):
+        asked.append(char)
+        return real(char, indent=indent)
+
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(linting, "suspect", counted)
+        assert lint(config).clean
+    # One question per distinct codepoint of each scanned file, never one per character.
+    scanned = [
+        "".join(config.document(role).lines)
+        for role in ("roadmap", "changelog")
+        if config.has(role)
+    ]
+    assert len(asked) <= sum(len(set(text)) for text in scanned)
+    assert len(asked) * 4 < sum(len(text) for text in scanned)
+
+
+def test_the_line_ending_is_not_what_makes_every_file_dirty(tmp_path):
+    """A line ending is `Cc`, so a sweep over the raw lines would have said "dirty" for
+    every file ever written and been the walk with a longer preamble. `_endings` is what
+    judges those, and the sweep reads the bodies."""
+    config = project(tmp_path)
+    asked: list[str] = []
+    real = linting.suspect
+
+    def counted(char, *, indent=False):
+        asked.append(char)
+        return real(char, indent=indent)
+
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(linting, "suspect", counted)
+        lint(config)
+    assert "\n" not in asked and "\r" not in asked

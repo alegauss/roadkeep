@@ -40,8 +40,6 @@
 
 ## Block D — The gate
 
-- 💭 **RK227** (deps: —) **The invisible-codepoint check calls a Python predicate once per character of every governed file** — It is 148 ms of a 660 ms gate on Turing, and 825000 calls whose answer is no every time, on a file whose bytes one sweep in C would clear. → §RK227
-
 ## Block E — Adoption
 
 - 📋 **RK103** (deps: —) **A bullet whose marker holds a space is read as prose and reported by nothing** — GitHub's `- [ ]` task list is the commonest Markdown backlog there is, and cursarei's 16 of them parse as 0 entries and 0 rejects — the silent miss the reject list exists to end. → §RK103
