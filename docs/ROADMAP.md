@@ -33,8 +33,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK119** (deps: RK117 ✅) **Every agent asking what to work on is handed the same line, including one another agent already started** — Tier 1 prefers an in-progress line so one worker finishes what they started, and the file has no way to say a task is taken, so a second caller is sent at work under way. → §RK119
-
 ## Block D — The gate
 
 - 📋 **RK104** (deps: —) **Nothing gates the README block this tool writes, so a stale restatement passes lint** — `export --readme` is the one write no gate holds: a pytest fixture catches it here and an adopting project has none, so the derived table drifts from the files it was derived from. → §RK104

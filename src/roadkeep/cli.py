@@ -41,6 +41,7 @@ import traceback
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 
+from roadkeep import claiming
 from roadkeep.adopting import Estimate, adopt, init
 from roadkeep.authoring import add, amend, set_status
 from roadkeep.backlog import Backlog
@@ -68,7 +69,7 @@ from roadkeep.installing import install, plan
 from roadkeep.linting import Finding, Report, lint
 from roadkeep.locking import LockBusy, exclusive
 from roadkeep.merging import markers, merge, register, role_of
-from roadkeep.picking import Choice, pick
+from roadkeep.picking import Choice, Claim, pick, take
 from roadkeep.provenance import engine
 from roadkeep.renumbering import renumber
 from roadkeep.schema import SchemaError
@@ -790,8 +791,19 @@ def build_parser() -> argparse.ArgumentParser:
         help=_DESIGNED_HELP,
     )
     pick_parser.add_argument(
+        "--claim",
+        action="store_true",
+        help=(
+            "take the line as well as read it: the marker moves to in-progress in the same "
+            "transaction, so the next caller is answered with something else"
+        ),
+    )
+    pick_parser.add_argument(
         "--json", action="store_true", help="the pick, the tier and the counts"
     )
+    # `reads_only` for the query it is without `--claim` (RK119): `take` holds the lock over
+    # the answer *and* the write, because that pair is what has to be indivisible — a lock
+    # taken out here would cover the same span and cost every plain `pick` the wait.
     pick_parser.set_defaults(handler=_pick, reads_only=True)
 
     retire_parser = subcommands.add_parser(
@@ -2675,11 +2687,29 @@ def _view_json(view: View, no_body: bool) -> dict[str, object]:
 
 
 def _pick(config: Config, args: argparse.Namespace) -> int:
+    claim: Claim | None = None
     try:
-        choice = pick(config, args.block, args.designed)
-    except (KeyError, OSError) as error:
+        if args.claim:
+            claim = take(config, args.block, args.designed)
+            choice = claim.choice
+        else:
+            choice = pick(config, args.block, args.designed)
+    except REFUSALS as error:
+        # The whole tuple and not `(KeyError, OSError)`: with `--claim` this command writes a
+        # marker, so every refusal that guards a marker — a stale file, a sibling stating
+        # status — reaches here, and a traceback is what the caller would otherwise read.
         return _refused(error)
     stalled = [{"id": s.id, "blockers": list(s.blockers)} for s in choice.stalled]
+    held = [{"id": h.id, "age": round(h.age), "since": h.since} for h in choice.held]
+    event = (
+        None
+        if claim is None or claim.change is None
+        else _event(
+            claim.change.entry.task.id,
+            claim.change.entry.task.block,
+            claim.change.document,
+        )
+    )
     if args.json:
         entry = choice.entry
         print(
@@ -2707,6 +2737,15 @@ def _pick(config: Config, args: argparse.Namespace) -> int:
                     "needs_design": choice.needs_design,
                     "undesigned": choice.undesigned,
                     "stalled": stalled,
+                    "held": held,
+                    "claimed": None
+                    if claim is None
+                    else {
+                        "taken": claim.taken,
+                        "from": None if claim.change is None else claim.change.before,
+                        "to": None if claim.change is None else claim.change.after,
+                    },
+                    "event": event,
                 },
                 indent=2,
             )
@@ -2719,6 +2758,7 @@ def _pick(config: Config, args: argparse.Namespace) -> int:
         print(f"nothing to pick: {choice.reason}")
         print(f"  backlog  {choice.counts}")
         _print_undesigned(choice)
+        _print_held(choice)
         _print_stalled(choice)
         return EXIT_OK
 
@@ -2731,8 +2771,24 @@ def _pick(config: Config, args: argparse.Namespace) -> int:
     if choice.alternatives:
         print(f"  or       {', '.join(choice.alternatives)}")
     _print_undesigned(choice)
+    _print_held(choice)
     _print_stalled(choice)
+    if claim is not None and claim.change is not None:
+        print(f"  claimed  {claim.change.before} → {claim.change.after}, held for "
+              f"{int(claiming.HELD // 60)}m unless a marker moves it sooner")
+        _print_event(event or {}, "  ")
     return EXIT_OK
+
+
+def _print_held(choice: Choice) -> None:
+    """Which ready lines a live claim kept out of the answer (RK119).
+
+    Named and not counted, for the reason a claim carries no owner: the caller cannot be
+    told whose it is, so the id is the only thing it can recognise its own by — and a line
+    silently absent is one the caller asks about again on the next turn.
+    """
+    for held in choice.held:
+        print(f"  held     {held.id} was claimed {held.since} ago and is not offered")
 
 
 def _print_undesigned(choice: Choice) -> None:

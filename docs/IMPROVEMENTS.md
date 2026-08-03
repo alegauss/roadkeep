@@ -180,28 +180,6 @@ would make `--after` a per-file argument or a refusal when the files disagree.
 
 ## Block C — Query
 
-### §RK119 One backlog, two workers, one answer
-
-Tier 1 is the reason `pick` is not simply "lowest": a 🛠 line says someone started, and
-picking around it leaves work half-done. That is exactly right for one worker and
-inverted for two — the second agent to ask is handed the line the first is holding, with
-the tier name saying so, and starts it.
-
-Tiers 2 and 3 are no better. They are pure functions of the file, so N callers reading
-an unchanged file get N identical answers. Nothing in the current design is wrong; it
-answers a question that assumed a single reader.
-
-What the backlog cannot express is *taken*. The marker set can say in-progress, which is
-about the work, not about who holds it or whether the claim is still live. A claim is a
-write — flip the marker inside the same serialised transaction that answers, so the
-answer and the claim are one step and the next caller reads a file that already moved.
-
-Two things this must not become. A claim held by nobody is a task nobody can pick, so it
-needs an expiry a later caller can see and step over, rather than a lock nobody can
-break. And an owner field would be a schema change carrying a fact that lives outside
-the repository — what is durable is *claimed*, and the identity behind it belongs in the
-commit.
-
 ## Block D — The gate
 
 ### §RK104 The block the gate does not read

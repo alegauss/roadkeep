@@ -78,19 +78,28 @@ class LockBusy(RuntimeError):
         )
 
 
-def lock_path(root: Path | str) -> Path:
-    """Where this checkout's lock lives — outside it, keyed by its resolved path.
+def sidecar(root: Path | str, suffix: str) -> Path:
+    """One transient file belonging to this checkout, living outside it.
 
     In the temp directory and not in the repository, because a file the tool creates in a
     project's root is a file every adopting project has to add to its `.gitignore` before
     the first `git status` reads as dirty. Keyed by the *resolved* root so two checkouts of
-    one project lock independently — which is the scope the defect has: two agents in one
+    one project are independent — which is the scope the defect has: two agents in one
     working tree. The digest carries the directory's name in front of it so a human looking
     at a temp directory can tell which project the file belongs to.
+
+    Shared with the claim registry (RK119) rather than copied: two transient files keyed by
+    one checkout through two digests would be two answers to "which project is this", and
+    the one that drifts is whichever was written second.
     """
     resolved = Path(root).resolve()
     digest = hashlib.sha256(str(resolved).encode("utf-8")).hexdigest()[:16]
-    return Path(tempfile.gettempdir()) / f"roadkeep-{resolved.name}-{digest}.lock"
+    return Path(tempfile.gettempdir()) / f"roadkeep-{resolved.name}-{digest}.{suffix}"
+
+
+def lock_path(root: Path | str) -> Path:
+    """Where this checkout's lock lives — outside it, keyed by its resolved path."""
+    return sidecar(root, "lock")
 
 
 @contextlib.contextmanager

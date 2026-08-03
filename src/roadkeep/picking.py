@@ -36,16 +36,31 @@ answer *says* when the line it chose still needs designing, because the complain
 never that it chose wrongly but that it chose silently; and ``designed`` sets those lines
 aside, because the bias belongs to the caller's intent and not to the ranking — a block
 whose ideas are never offered is a block whose ideas are never designed.
+
+**One backlog and two workers is one answer too few** (RK119). Every tier above is a pure
+function of the file, so a second caller reading an unchanged roadmap is handed the line the
+first one took — tier 1 most confidently of all, since a 🛠 line is *evidence* somebody
+started. So a claim that is still live is stepped around before the tiers see it, and
+:func:`take` is the door that makes one: it answers and flips the marker inside a single
+serialised transaction, because a pick that answered and then wrote would be two steps with
+the race in the middle. What a claim is, how it expires and why it names nobody is
+:mod:`roadkeep.claiming`; what is here is that a held line is **named** in the answer rather
+than silently absent, which is the same rule ``designed`` follows for the lines it sets
+aside — and the only way a caller can recognise a claim as its own.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from enum import StrEnum
 
+from roadkeep import claiming
+from roadkeep.authoring import StatusChange, set_status
 from roadkeep.backlog import Backlog, Readiness, id_order
+from roadkeep.claiming import Held
 from roadkeep.config import Config
 from roadkeep.document import Entry
+from roadkeep.locking import exclusive
 from roadkeep.schema import IN_PROGRESS, Dep
 
 #: How many runners-up an answer carries. Bounded on purpose: the value of `pick` is that
@@ -94,6 +109,10 @@ class Choice:
     #: How many ready lines ``designed`` set aside. 0 whenever the flag was not passed, so
     #: a non-zero value is always the caller's own filter and never a fact about the file.
     undesigned: int = 0
+    #: The ready lines a live claim kept out of the ranking (RK119). Named and not counted,
+    #: because a claim names nobody: a caller can only tell one of these is its own by
+    #: reading the id, and a number it cannot read is a line it will ask about twice.
+    held: tuple[Held, ...] = ()
 
     @property
     def found(self) -> bool:
@@ -136,6 +155,13 @@ def pick(config: Config, block: str | None = None, designed: bool = False) -> Ch
     ]
     survey = _survey(backlog, considered)
     ordered = sorted(survey.ready, key=lambda e: id_order(e.task.id, config.schema))
+    # Before the tiers and before `designed`, because a claim is a fact about the checkout
+    # while the flag is the caller's intent (RK119) — and because tier 1 would otherwise
+    # prefer exactly the held line, its premise being that a 🛠 line is work to continue.
+    held = claiming.live(config.root, ordered)
+    if held:
+        taken = {entry.id for entry in held}
+        ordered = [e for e in ordered if e.task.id not in taken]
     # Narrowed after the ordering and not before it, so `ready` keeps counting what the
     # file holds: the caller's intent decides what may be offered, never what is true.
     offered = [e for e in ordered if not config.schema.needs_design(e.task.status)]
@@ -149,22 +175,15 @@ def pick(config: Config, block: str | None = None, designed: bool = False) -> Ch
         "paused": survey.paused,
         "stalled": survey.stalled,
         "undesigned": set_aside,
+        "held": held,
     }
     if not ordered:
-        # Three different absences now, and telling them apart is the whole point of the
-        # scope: a block with nothing left is finished, one whose lines are all blocked is
-        # not, and one whose ready lines are all ideas is waiting on a design session.
-        if set_aside:
-            reason = (
-                f"every ready task{scope} still needs designing, so there is nothing "
-                "to implement"
-            )
-        elif not considered:
-            reason = f"nothing is open{scope}"
-        else:
-            reason = f"every open task{scope} is blocked, so there is nothing to start"
         return Choice(
-            entry=None, tier=None, reason=reason, ready=len(survey.ready), **counts
+            entry=None,
+            tier=None,
+            reason=_absence(scope, open_lines=bool(considered), held=held, set_aside=set_aside),
+            ready=len(survey.ready),
+            **counts,
         )
 
     chosen, tier, why = _first(ordered, config)
@@ -184,6 +203,67 @@ def pick(config: Config, block: str | None = None, designed: bool = False) -> Ch
         needs_design=needs_design,
         **counts,
     )
+
+
+@dataclass(frozen=True, slots=True)
+class Claim:
+    """A pick that also took the line, and the marker change that took it (RK119)."""
+
+    choice: Choice
+    #: Absent when there was nothing to claim — an empty answer, not a refused write.
+    change: StatusChange | None = None
+
+    @property
+    def taken(self) -> bool:
+        return self.change is not None
+
+
+def take(config: Config, block: str | None = None, designed: bool = False) -> Claim:
+    """Answer and claim in one indivisible step (RK119).
+
+    The lock is around **both**, and that is the whole mechanism: a pick that answered and
+    then flipped the marker would be two commands with the race between them, which is the
+    defect one layer along rather than the fix. What the claim consists of is the 🛠 the
+    roadmap now carries — durable, and git's to move — plus its date in
+    :mod:`roadkeep.claiming`, which is neither.
+
+    Nothing ready is not a failure: the empty answer comes back exactly as `pick` gave it,
+    because a caller asking for work and being told there is none got the fact it asked for.
+    The marker is written through `set_status`, so every refusal that guards a marker guards
+    this one too — a sibling file already stating status, a duplicated id — and a line
+    already at 🛠 whose claim expired is re-dated without a write it does not need.
+    """
+    with exclusive(config.root):
+        choice = pick(config, block, designed)
+        if choice.entry is None:
+            return Claim(choice=choice)
+        change = set_status(config, choice.entry.task.id, IN_PROGRESS)
+        claiming.record(config.root, change.entry.task.id, change.document.entries)
+        # The entry is replaced by the line as written, so the answer shows the marker the
+        # caller now holds rather than the one it was chosen under.
+        return Claim(choice=replace(choice, entry=change.entry), change=change)
+
+
+def _absence(
+    scope: str, *, open_lines: bool, held: tuple[Held, ...], set_aside: int
+) -> str:
+    """Why nothing was offered — four sentences, because they are four different states.
+
+    Telling them apart is the whole point of the scope (RK40): a block with nothing left is
+    finished, one whose lines are all blocked is not, one whose ready lines are all ideas is
+    waiting on a design session, and one whose ready lines are all claimed is waiting on the
+    workers holding them — which is the only one of the four that ends by itself.
+    """
+    if held and not set_aside:
+        return f"every ready task{scope} is claimed by a worker who has not finished it"
+    if set_aside:
+        return (
+            f"every ready task{scope} still needs designing, so there is nothing "
+            "to implement"
+        )
+    if not open_lines:
+        return f"nothing is open{scope}"
+    return f"every open task{scope} is blocked, so there is nothing to start"
 
 
 @dataclass(frozen=True, slots=True)

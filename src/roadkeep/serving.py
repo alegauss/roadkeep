@@ -167,7 +167,11 @@ TOOLS: tuple[Tool, ...] = (
     # to execute a block over MCP is the one that was handed a design session, and a flag
     # only the CLI can reach is a flag the agent this ships for cannot pass.
     Tool("brief", ("id", "block", "designed")),
-    Tool("pick", ("block", "designed")),
+    # `claim` is exposed, and it is why this tool is not read-only (RK119): the defect is two
+    # agents in one checkout, the agent boundary is this server, and a claim only the CLI can
+    # take is a claim the caller this ships for cannot take. The cost is the honest one — a
+    # client may ask before a `pick`, because with that flag a `pick` writes.
+    Tool("pick", ("block", "designed", "claim"), writes=True),
     Tool("list", ("block", "role", "marker")),
     Tool("deps", ("id",)),
     # `baseline` and nothing else (RK84): it is the flag that makes the answer readable on a

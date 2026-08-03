@@ -298,6 +298,10 @@ def test_the_read_only_hint_says_which_tools_write(tmp_path):
         "section_add",
         "section_amend",
         "section_drop",
+        # The one read here that can write (RK119): `pick --claim` moves a marker, so the
+        # hint says so — `lint` stays read-only for the opposite reason, its writing flag
+        # being the one deliberately left unexposed.
+        "pick",
     }
     # `lint` is read-only *because* `--fix` is not exposed, and `--baseline` (RK84) is the
     # one argument it takes: a revision to subtract, which reads history and writes none.
