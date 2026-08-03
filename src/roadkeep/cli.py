@@ -1773,7 +1773,7 @@ def _section_drop(config: Config, args: argparse.Namespace) -> int:
         # Read before the drop, because afterwards the headings are gone: what a subtree
         # took is the part of this command's size that the anchor does not state (RK78).
         taken = tuple(child.anchor for child in nested_sections(document, args.anchor))
-        document, section = drop_section(
+        document, section, cited = drop_section(
             document,
             args.anchor,
             claimed=pointers(config),
@@ -1785,11 +1785,17 @@ def _section_drop(config: Config, args: argparse.Namespace) -> int:
 
     where = config.relative(config.path(args.role))
     if args.json:
-        print(json.dumps({**_section_json(section, where), "nested": list(taken)}, indent=2))
+        print(
+            json.dumps(
+                {**_section_json(section, where), "nested": list(taken), "cited": list(cited)},
+                indent=2,
+            )
+        )
         return EXIT_OK
     print(f"dropped {section} from {where}")
     if taken:
         print(f"  nested   {', '.join(f'§{a}' for a in taken)} went with it")
+    _print_cited(cited)
     return EXIT_OK
 
 

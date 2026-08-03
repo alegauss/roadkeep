@@ -218,23 +218,6 @@ and may not need a second.
 
 ## Block D — The gate
 
-### §RK209 The second door onto the same deletion
-
-RK206 put the citation report where the dangling reference is created: `_drop_section`,
-which `ship` and `retire` both call. `section drop` does not go through it. It has
-refusals of its own — `SectionClaimed` when an open line points at the anchor,
-`SectionOccupied` and `AnchorClaimed` for the subtree — and every one of them reads a
-*pointer*, which is the end of the reference RK206 measured as unread.
-
-So the same deletion names who is left dangling through two doors and stays silent
-through the third, and the third is the one an author reaches for deliberately.
-
-It is not automatic, which is why this is a line rather than an oversight:
-`sections.drop` returns `(document, section)`, so the answer has to travel somewhere. A
-third element on that tuple keeps one statement of the question and changes a signature
-two modules read; a second call to `citing` in the CLI is one line and a second place
-that can forget. Which of those is right is what the line is for.
-
 ### §RK210 The cost of the root that cannot reach the tree
 
 RK192 was right that a config handed out for a pinned corpus must not reach the

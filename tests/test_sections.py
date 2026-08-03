@@ -341,7 +341,7 @@ def test_a_lettered_heading_in_the_live_corpus_becomes_a_section_the_budget_char
 
 def test_dropping_takes_the_subsections_and_leaves_the_shape(tmp_path):
     config = project(tmp_path)
-    document, section = drop(config.document("improvements"), "RK1")
+    document, section, _ = drop(config.document("improvements"), "RK1")
     document.save()
     assert section.first == 11
     assert read(config) == RATIONALE.replace(
@@ -360,7 +360,7 @@ Which belongs to the section above.
 
 def test_dropping_the_last_section_leaves_no_trailing_blank(tmp_path):
     config = project(tmp_path, improvements=RATIONALE + "\n### §RK2 A last design\n\nProse.\n")
-    document, _ = drop(config.document("improvements"), "RK2")
+    document, _, _ = drop(config.document("improvements"), "RK2")
     document.save()
     assert read(config) == RATIONALE
 
@@ -409,7 +409,7 @@ def test_a_subtree_nobody_else_claims_still_goes_whole(tmp_path):
     # Ownership bounds the deletion and not depth: §RK1.1 carries no pointer of its own, so
     # it is RK1's prose and leaves with it — which is what keeps the refusal above narrow.
     config = project(tmp_path)
-    document, _ = drop(
+    document, _, _ = drop(
         config.document("improvements"), "RK1", claimed=pointers(config, leaving="RK1")
     )
     document.save()
@@ -459,7 +459,7 @@ def test_a_section_no_open_line_claims_is_the_one_this_verb_drops(tmp_path):
     # The orphan `lint` already reports: RK1 is gone from the roadmap and its design is
     # what is left. Nothing points at it, so nothing is stranded by removing it.
     config = project(tmp_path, roadmap=BACKLOG.replace(f"{RK1_LINE}\n\n", ""))
-    document, _ = drop(config.document("improvements"), "RK1", claimed=pointers(config))
+    document, _, _ = drop(config.document("improvements"), "RK1", claimed=pointers(config))
     document.save()
     assert "§RK1" not in read(config)
 
@@ -1267,7 +1267,7 @@ def test_the_name_is_read_segment_by_segment(tmp_path):
         roadmap=BULLET_BACKLOG,
         top='ref_scheme = "outline"\n',
     )
-    document, section = drop(
+    document, section, _ = drop(
         config.document("improvements"), "XIV.80", claimed=pointers(config)
     )
     document.save()
@@ -1287,7 +1287,7 @@ def test_the_line_that_is_leaving_does_not_claim_its_own_subtree(tmp_path):
     # `ship` passes `leaving`, so the claim that is the *reason* for the drop is not one of
     # these — otherwise a task pointing at a descendant could never ship at all.
     config = bulleted(tmp_path)
-    document, section = drop(
+    document, section, _ = drop(
         config.document("improvements"), "XIV", claimed=pointers(config, leaving="RK373")
     )
     document.save()
@@ -1418,3 +1418,96 @@ def test_a_live_corpus_carries_cross_references_a_ship_would_break(corpus):
     assert found
     for cited, by in found:
         assert cited and by and cited != by or cited == by
+
+
+# -- the third door says it too (RK209) ---------------------------------------
+
+
+#: A section no task line owns — so `section drop` is not refused — that another design
+#: cites, plus the four quotations of it that are not citations.
+DROPPABLE = """# Improvements
+
+## §0 — Why this exists
+
+### §0.2 A shared reading
+
+The argument two designs lean on.
+
+## Block A — The model
+
+### §RK1 A first design
+
+The reasoning the line has no room for.
+
+#### §RK1.1 A subsection
+
+Which belongs to the section above.
+
+### §RK3 A third design
+
+This extends §0.2, and the argument in §0.2.1 is why.
+
+## Block B — Authoring
+
+### §RK2 A second design
+
+`§0.2` is what this quotes, and → §0.2 is how the line spells it.
+
+> Somebody else's mail said §0.2 was wrong.
+
+```
+a fence naming §0.2
+```
+"""
+
+
+def test_section_drop_names_who_was_left_citing_it(tmp_path, capsys):
+    """The door RK206 did not reach, and the one an author reaches for on purpose.
+
+    `ship` and `retire` go through `_drop_section` and named it; the verb whose whole job is
+    deleting a section inherited nothing — the same shape RK112 already fixed once here, one
+    end of the reference along.
+    """
+    project(tmp_path, improvements=DROPPABLE)
+    assert main(["-C", str(tmp_path), "section", "drop", "0.2"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "cited    §RK3 cites it in prose — now resolving to nothing" in out
+    assert "§RK2" not in out  # its four mentions are quotations, not citations
+
+
+def test_the_answer_is_the_deletion_s_own_and_not_a_second_reading(tmp_path):
+    """One statement of the question (§RK209's first option), which is why it is a return
+    value: what a deletion breaks is a fact about this file's grammar — the same argument
+    that puts `drop` in this module rather than in `shipping` — so both callers are handed
+    it instead of each asking the file again."""
+    config = project(tmp_path, improvements=DROPPABLE)
+    document = config.document("improvements")
+    _, section, cited = drop(document, "0.2", where=IMPROVEMENTS)
+    assert section.anchor == "0.2" and cited == ("RK3",)
+    # Computed before the removal: afterwards the prose is the only end still in the file.
+    assert find(document, "0.2") is not None
+
+
+def test_a_pointer_still_refuses_where_a_citation_only_reports(tmp_path, capsys):
+    """The line between the two, said in one test.
+
+    A pointer is a promise the format makes — a line spells `→ §<anchor>` and the anchor has
+    to be there — so `SectionClaimed` refuses and writes nothing (RK112). A citation is a
+    sentence, and a sentence that needs re-wording is an edit rather than a transaction to
+    abandon. Same file, same deletion, two answers on purpose.
+    """
+    config = project(tmp_path, improvements=DROPPABLE)
+    before = read(config)
+    # RK3's own line points at §RK3, so dropping that section is the refusal.
+    assert main(["-C", str(tmp_path), "section", "drop", "RK3"]) == EXIT_USAGE
+    assert "pointed at by RK3" in capsys.readouterr().err
+    assert read(config) == before
+    # §0.2 is nobody's pointer and somebody's citation, so it goes and is reported.
+    assert main(["-C", str(tmp_path), "section", "drop", "0.2"]) == EXIT_OK
+    assert "cited" in capsys.readouterr().out
+
+
+def test_the_json_form_carries_it_too(tmp_path, capsys):
+    project(tmp_path, improvements=DROPPABLE)
+    main(["-C", str(tmp_path), "section", "drop", "0.2", "--json"])
+    assert json.loads(capsys.readouterr().out)["cited"] == ["RK3"]

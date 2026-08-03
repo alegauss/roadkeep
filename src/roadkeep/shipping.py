@@ -1447,27 +1447,6 @@ def _as_recorded(task: Task, marker: str, why: str | None) -> Task:
     )
 
 
-def _cited_by(document: Document, anchors: Sequence[str]) -> tuple[str, ...]:
-    """Sections whose prose cites what this drop is deleting, reported not refused (RK206).
-
-    The gate reads a pointer from one end: `ref.unresolved` resolves the ref a task line
-    carries and `section.orphan` reads what points at a section, so a design citing another
-    design is read by neither — and `ship`, the verb that deletes the section, is what
-    creates the dangling reference. Measured on claude-tray, where `lint` called that clean
-    for a day; and there are 56 live cross-references across this repository, claude-tray,
-    Shio and Turing for it to happen to again.
-
-    **Named, never refused**, and never a `lint` finding either — which the same measurement
-    decides. The ship is correct: the design shipped, and its section is *supposed* to go.
-    The citing prose is the edit, and this is the one moment the author is holding both. A
-    gate could not say it afterwards even if it wanted to: `as_ledger` keeps no pointer, so
-    once the line is in the changelog nothing records which anchor its rationale had, and a
-    citation of a section that shipped is indistinguishable from a citation of one that
-    never existed — 37 of them across the four trees, in files whose prose is correct.
-    """
-    return tuple(dict.fromkeys(by for _, by in citing(document, anchors, ignore=anchors)))
-
-
 def _drop_section(
     config: Config, anchor: str | None, *, leaving: str = ""
 ) -> tuple[Document | None, Section | None, str | None, tuple[str, ...], tuple[str, ...]]:
@@ -1501,7 +1480,7 @@ def _drop_section(
     improvements = config.document("improvements")
     taken = tuple(child.anchor for child in nested(improvements, anchor))
     try:
-        document, section = drop_section(
+        document, section, cited = drop_section(
             improvements,
             anchor,
             claimed=pointers(config, leaving=leaving),
@@ -1515,8 +1494,8 @@ def _drop_section(
             (),
             (),
         )
-    # Asked of the file *before* the drop, which is the only tree that still holds both the
-    # section and the prose about to be left pointing at nothing.
-    return document, section, None, taken, _cited_by(improvements, (anchor, *taken))
+    # `cited` is `drop`'s own answer (RK209): the deletion knows what it breaks, and a
+    # second reading of the same file here would be a second thing to keep true.
+    return document, section, None, taken, cited
 
 

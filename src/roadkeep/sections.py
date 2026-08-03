@@ -415,8 +415,9 @@ def drop(
     *,
     claimed: Mapping[str, Sequence[str]] | None = None,
     where: str = "",
-) -> tuple[Document, Section]:
-    """Delete the section whole — subsections included — and report what went.
+) -> tuple[Document, Section, tuple[str, ...]]:
+    """Delete the section whole — subsections included — and report what went, and who is
+    left citing it.
 
     A subsection left behind is orphaned prose under the *next* task's heading, which
     reads as that task's design and is the one outcome worse than deleting too much.
@@ -438,6 +439,19 @@ def drop(
     :class:`Config`, so `config.relative` — the one function that renders an address — is out
     of its reach, and building the string here from ``document.path`` is what printed an
     absolute path beside a `lint` naming the same file as `IMPROVEMENTS.md:5`.
+
+    The **third** answer is who cited what just went (RK206, RK209), and it is returned
+    rather than left to the callers for this module's own reason: what a deletion breaks is
+    a fact about this file's grammar, the same argument that puts `drop` here instead of in
+    `shipping`. It arrived through the departure path first, so `ship` and `retire` named it
+    and the one verb whose whole job is deleting a section stayed silent — and every refusal
+    above reads a *pointer*, which is the end of the reference that was already read.
+
+    Reported and never refused, unlike everything above it. Those refuse because a pointer is
+    a promise the format makes: a line says `→ §<anchor>` and the anchor has to be there. A
+    citation in prose is a sentence, and a sentence that has to be re-worded is an edit and
+    not a transaction to abandon. Computed **before** the removal, because afterwards the
+    prose is the only end of the reference still in the file.
     """
     span = _span(document, anchor)
     section = find(document, anchor)
@@ -461,10 +475,12 @@ def drop(
         descended = _descended(anchor, claimed)
         if descended:
             raise AnchorClaimed(anchor, descended, where)
+    leaving = (anchor, *(child.anchor for child in nested(document, anchor)))
+    cited = tuple(dict.fromkeys(by for _, by in citing(document, leaving, ignore=leaving)))
     start, end, _ = span
     # One edit, not one per line (RK54): a loop validates every half-deleted state, and a
     # section quoting a fenced example is briefly a file whose fence has no opening line.
-    return document.remove_lines(start, end), section
+    return document.remove_lines(start, end), section, cited
 
 
 def add(
