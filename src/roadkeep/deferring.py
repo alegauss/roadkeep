@@ -37,7 +37,9 @@ silently became a rewrite of the design sentence.
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
+from pathlib import Path
 
+from roadkeep import claiming
 from roadkeep.authoring import Insertion, place, remove_entry
 from roadkeep.backlog import Backlog, NotOpen
 from roadkeep.config import Config
@@ -143,6 +145,11 @@ class Pause:
     #: is a legitimate state, and it is what `deps` and RK92 are for.
     dependents: tuple[str, ...] = ()
 
+    #: The checkout, so a claim on the paused line can be dropped (RK156). Every other door
+    #: releases one by moving the marker; this one takes the line out of the file the marker
+    #: is read in, which no later read can tell from a claim still held.
+    root: Path | None = None
+
     def save(self) -> None:
         """Write both files. Nothing here can fail on the format — that was decided.
 
@@ -153,6 +160,10 @@ class Pause:
         assert_all_current(self.store.document, self.roadmap)
         self.store.document.save()
         self.roadmap.save()
+        if self.root is not None:
+            # Last, and never a condition of the write: the worker who set this aside is not
+            # holding it, and a claim left behind would greet the `resume` (RK156).
+            claiming.release(self.root, self.task_id)
 
 
 @dataclass(frozen=True, slots=True)
@@ -228,6 +239,7 @@ def defer(config: Config, task_id: str, *, reason: str) -> Pause:
         dependents=tuple(
             e.task.id for e in derived.document.entries if task_id in e.task.dep_ids
         ),
+        root=config.root,
     )
 
 

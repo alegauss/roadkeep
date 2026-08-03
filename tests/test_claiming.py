@@ -31,7 +31,9 @@ from roadkeep.briefing import NothingToBrief, brief
 from roadkeep.claiming import AlreadyHeld, Held, window
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import CLAIM_HELD, CLAIM_HELD_MAX, Config, ConfigError
+from roadkeep.deferring import defer, resume
 from roadkeep.picking import Tier, hold, pick, take
+from roadkeep.renumbering import renumber
 from roadkeep.schema import DESIGNED, IDEA, IN_PROGRESS
 
 
@@ -307,6 +309,71 @@ def test_a_claim_on_a_line_that_left_the_roadmap_is_forgotten(tmp_path):
     assert main(["-C", str(tmp_path), "ship", "RK2", "--why", "It works now."]) == EXIT_OK
     take(config)
     assert "RK2" not in claiming._read(claiming.path(tmp_path))  # noqa: SLF001
+
+
+# -- the two doors the marker cannot express (RK156) ---------------------------
+
+
+def test_a_renumber_carries_the_claim_to_the_new_address(tmp_path):
+    # `renumber` does not move the marker, it moves the *address* — so without this the new
+    # id reads as started work nobody holds, which is RK119's defect reopened by the one
+    # command that exists because a merge spent an id twice.
+    config = project(tmp_path, BLOCKS + line("RK2") + line("RK9"))
+    hold(config, "RK2")
+    moved = renumber(config, "RK2", "RK20")
+    assert moved.claim is not None
+    moved.save()
+    held = pick(config).held
+    assert [h.id for h in held] == ["RK20"]
+    assert "RK2" not in claiming._read(claiming.path(tmp_path))  # noqa: SLF001
+
+
+def test_the_carried_claim_keeps_its_age_rather_than_restarting(tmp_path):
+    # The work is the same age, and a claim that renewed itself on a rename would be an
+    # expiry a rename could postpone for ever.
+    config = project(tmp_path, BLOCKS + line("RK2"))
+    hold(config, "RK2")
+    age(tmp_path, "RK2", HELD - 30)
+    renumber(config, "RK2", "RK20").save()
+    dated = claiming._read(claiming.path(tmp_path))  # noqa: SLF001
+    assert time.time() - dated["RK20"] > HELD - 60
+
+
+def test_a_renumber_of_an_unheld_line_carries_nothing(tmp_path):
+    config = project(tmp_path, BLOCKS + line("RK2", status=IN_PROGRESS))
+    moved = renumber(config, "RK2", "RK20")
+    moved.save()
+    assert moved.claim is None and not claiming.path(tmp_path).exists()
+
+
+def test_the_renumber_command_says_the_claim_moved(tmp_path, capsys):
+    config = project(tmp_path, BLOCKS + line("RK2"))
+    hold(config, "RK2")
+    assert main(["-C", str(tmp_path), "renumber", "RK2", "--to", "RK20"]) == EXIT_OK
+    assert "claimed  the claim taken 0m ago moved with it" in capsys.readouterr().out
+
+
+def test_deferring_a_claimed_line_drops_the_claim(tmp_path):
+    # The other door the marker cannot express: the line leaves the file the marker is read
+    # in, so nothing would clear the entry — and a `resume` inside the window would read as
+    # held by the worker who gave it up.
+    project(tmp_path, BLOCKS + line("RK2") + line("RK9"))
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
+        'deferred = "DEFERRED.md"\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "DEFERRED.md").write_text(
+        "# Set aside\n\n## Block A — The model\n", encoding="utf-8"
+    )
+    config = Config.discover(tmp_path)
+    hold(config, "RK2")
+    defer(config, "RK2", reason="waiting on a decision").save()
+    assert "RK2" not in claiming._read(claiming.path(tmp_path))  # noqa: SLF001
+    resume(config, "RK2", marker=IN_PROGRESS).save()
+    # Back at 🛠 and unheld, which is what tier 1 is for.
+    revived = pick(Config.discover(tmp_path))
+    assert (revived.entry.task.id, revived.tier) == ("RK2", Tier.STARTED)
 
 
 # -- not a second store (L2) -------------------------------------------------

@@ -1697,6 +1697,7 @@ def _renumber(config: Config, args: argparse.Namespace) -> int:
                     "moved": list(moved.moved),
                     "refreshed": list(moved.refreshed),
                     "files": sorted(config.relative(config.path(role)) for role in moved.documents),
+                    "claimed": _held_json(moved.claim),
                     "event": event,
                 },
                 indent=2,
@@ -1714,6 +1715,10 @@ def _renumber(config: Config, args: argparse.Namespace) -> int:
         print(f"  deps     {', '.join(moved.moved)} now name {moved.to} — confirm each meant this line")
     if moved.refreshed:
         print(f"  derived  {', '.join(moved.refreshed)} (dep annotations re-derived)")
+    if moved.claim is not None:
+        # The half the files do not hold (RK156): the worker holding this will next ask for it
+        # by a number that no longer exists, and that it is still theirs is what to say.
+        print(f"  claimed  the claim taken {moved.claim.since} ago moved with it")
     _print_event(event, "  ")
     return EXIT_OK
 

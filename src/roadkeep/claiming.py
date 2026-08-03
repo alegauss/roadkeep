@@ -29,8 +29,10 @@ write lock lives (RK117), for the same three reasons:
   cannot be done against a number.
 
 A claim is only ever read against a 🛠 line, so **releasing one is a marker change that
-already has a door**: `status <id> 📋`, `defer`, `ship`, `retire`. Nothing here is told, and
-nothing here can go stale by not being told.
+already has a door**: `status <id> 📋`, `ship`, `retire`. Nothing here is told, and nothing
+here can go stale by not being told — with the two exceptions the marker cannot express
+(RK156): `renumber` moves the *address* and not the marker (:func:`rename`), and `defer` takes
+the line out of the file the marker is read in (:func:`release`).
 """
 
 from __future__ import annotations
@@ -132,6 +134,43 @@ def record(root: Path | str, task_id: str, entries: Iterable[Entry]) -> None:
     dated = {name: when for name, when in _read(target).items() if name in still}
     dated[task_id] = time.time()
     _write(target, dated)
+
+
+def rename(root: Path | str, old: str, new: str) -> bool:
+    """Carry a claim to the id its line was moved to (RK156). True where one moved.
+
+    The exception to "every marker door is a release": `renumber` does not move the marker,
+    it moves the **address**, so the registry keeps an id no line carries while the new one
+    reads as started work nobody holds — which is RK119's defect reopened by the one command
+    that exists because a merge spent an id twice. The date travels rather than restarting:
+    the work is the same age, and a claim that renewed itself on a rename would be an expiry
+    a rename could postpone for ever.
+    """
+    target = path(root)
+    dated = _read(target)
+    when = dated.pop(old, None)
+    if when is None:
+        return False
+    dated[new] = when
+    _write(target, dated)
+    return True
+
+
+def release(root: Path | str, task_id: str) -> bool:
+    """Drop a claim outright, for the door where the line leaves the roadmap (RK156).
+
+    `defer` is the case: the worker who set a line aside is not holding it, and the marker
+    that a claim is read against goes to the store with the line — so nothing would clear the
+    entry until some later claim pruned it, and a `resume` inside the window would read as
+    held by whoever gave it up. Every *other* release stays implicit, because every other door
+    moves the marker and the marker is what a claim is read against.
+    """
+    target = path(root)
+    dated = _read(target)
+    if dated.pop(task_id, None) is None:
+        return False
+    _write(target, dated)
+    return True
 
 
 def _read(target: Path) -> dict[str, float]:

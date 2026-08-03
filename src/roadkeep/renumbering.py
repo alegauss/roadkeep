@@ -44,8 +44,11 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from dataclasses import dataclass, field, replace
+from pathlib import Path
 
+from roadkeep import claiming
 from roadkeep.authoring import refuse_reuse
+from roadkeep.claiming import Held
 from roadkeep.backlog import Backlog, NotOpen
 from roadkeep.config import Config
 from roadkeep.document import Document, Entry
@@ -111,6 +114,13 @@ class Renumbering:
     moved: tuple[str, ...] = ()
     #: Lines whose annotation this write made true again (RK8).
     refreshed: tuple[str, ...] = ()
+    #: The live claim this move carries to the new id, where there is one (RK156). Reported,
+    #: because a worker whose line changed number will next ask for it by an id that no longer
+    #: exists, and that it is still theirs is the half of the answer the files do not hold.
+    claim: Held | None = None
+    #: The checkout, because one thing this move carries is *not* a governed file: the claim
+    #: registry lives outside the repository (L2) and is keyed by the address that just moved.
+    root: Path | None = None
 
     @property
     def rendered(self) -> str:
@@ -121,9 +131,16 @@ class Renumbering:
         return self.entry.lineno
 
     def save(self) -> None:
-        """Write the files. Nothing here can fail on the format — that was decided."""
+        """Write the files. Nothing here can fail on the format — that was decided.
+
+        The claim goes last and never conditions the write: it is transient state whose worst
+        failure is a claim lost, which is the behaviour before claims existed — and putting it
+        before the files would move an address the files had not moved yet.
+        """
         for document in self.documents.values():
             document.save()
+        if self.root is not None and self.claim is not None:
+            claiming.rename(self.root, self.task_id, self.to)
 
 
 def renumber(config: Config, task_id: str, to: str | None = None) -> Renumbering:
@@ -180,6 +197,9 @@ def renumber(config: Config, task_id: str, to: str | None = None) -> Renumbering
             changed["roadmap"] = refreshed.document
 
     dependents = tuple(name for names in moved.values() for name in names)
+    # Read against the line as it was *before* the move, which is the only state the registry's
+    # key still matches (RK156).
+    held = claiming.live(config, [entry])
     return Renumbering(
         task_id=task_id,
         to=to,
@@ -190,6 +210,8 @@ def renumber(config: Config, task_id: str, to: str | None = None) -> Renumbering
         subsections=subsections,
         moved=dependents,
         refreshed=tuple(n for n in derived if n != to and n not in dependents),
+        claim=held[0] if held else None,
+        root=config.root,
     )
 
 
