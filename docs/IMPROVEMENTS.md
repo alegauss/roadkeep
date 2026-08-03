@@ -118,31 +118,6 @@ as one. RK122 is the same question one file up.
 
 ## Block B — Authoring
 
-### §RK166 The first section of a new block has no write path (outline scheme)
-
-Found opening two blocks in `alegauss/claude-tray` (`ref_scheme = "outline"`, sections
-`§I…§XXI`), where every heading names its block in a trailing parenthesis: `## §XX — …
-(Block AG)`. A label is read as a `Block <x>` prefix, so those are declarations the tool
-cannot see.
-
-`block add AI` writes the heading into ROADMAP.md and CHANGELOG.md and skips the third —
-*"declares no block, so there is none to open beside"*. Then `add --block AI --section
-…` refuses *"no heading declares Block AI"*: the file the first command declined to
-write is the one the second demands. `add --ref XXII.1` alone succeeds and names
-`section add XXII.1`, which refuses *"no section §XXII.1 extends"*, as does `section add
-XXII --level 2` on its own clause *"an anchor states its own place"* — which a new
-top-level section has not. `section add XXI.6` succeeds, isolating the top-level case.
-
-`lint` then rejects the line step three inserted (`ref.unresolved`), so CI is red and
-the exits are a hand-edit the hook denies, or a revert. A task reaches only a block that
-already owns a section — five themes of nineteen.
-
-Block AJ, reported next, prices the first remedy: re-running `block add AJ` refuses
-*"already declared in ROADMAP.md, CHANGELOG.md"*, the label missing only from the file
-that wanted it. So either `block add` writes the prose heading too, deriving the next
-outline number and reachable per file rather than only on a fresh label; or `section
-add` accepts a top-level anchor succeeding the highest existing one.
-
 ### §RK169 The guard sees headings, and an outline corpus addresses prose with bullets
 
 Measured adopting Turing. `section drop XIV` was accepted and took §XIV.8 with it, and

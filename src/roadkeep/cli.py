@@ -276,7 +276,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="which prose file (default: improvements)",
     )
     section_add.add_argument(
-        "--level", type=int, default=3, help="heading depth (default: 3)"
+        "--level",
+        type=int,
+        help=(
+            "heading depth; derived where omitted — a subsection at 3, and a new top level "
+            "at the depth this file already writes one at"
+        ),
     )
     section_add.add_argument("--json", action="store_true", help=_JSON_HELP)
     # Ungated and reached by omission: this command's whole input is a paragraph, so `--body`

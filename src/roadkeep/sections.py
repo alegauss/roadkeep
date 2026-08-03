@@ -146,9 +146,18 @@ class UnknownParent(ValueError):
 
     The counterpart of :class:`~roadkeep.document.UnknownBlock`, for prose that belongs to
     no task: a §0.4 appended after the last block reads as that block's rationale, which is
-    the mistake this module already refuses one case over. So the top level of the file is
-    the author's to declare — a heading that is merely missing is a heading they can add —
-    and everything under it is derived.
+    the mistake this module already refuses one case over. So everything under the top level
+    is derived, and a **nested** anchor whose parent is missing stays a refusal — that is a
+    typo in an address, and appending it would file somebody's paragraph under a design it
+    does not extend.
+
+    What is no longer refused is the **top level itself** (RK166). "A heading that is merely
+    missing is a heading they can add" was this class's own argument, and the guard denies
+    exactly that edit — RK141's deadlock, one file over: `block add` skips a prose file
+    organised by an outline rather than by blocks, so a newly declared block's first section
+    was reachable by nothing at all. A top-level anchor under an outline is now placed after
+    the last top-level section, which is the same derivation this file already makes one
+    level down.
     """
 
     def __init__(self, anchor: str, declared: Sequence[str], where: str = "") -> None:
@@ -325,13 +334,20 @@ def add(
     title: str,
     body: str,
     *,
-    level: int = 3,
+    level: int | None = None,
     task: Task | None = None,
 ) -> tuple[Document, Section]:
     """Place one section under its block or its anchor, reflowed. Validates first.
 
     Returns the document unsaved, so a caller mid-transaction (`ship`, `init`) decides
     when the file is touched.
+
+    ``level`` is **derived** where the caller names none (RK166), and it has to be: a
+    top-level section written at the depth a subsection uses is not a top-level section at
+    all — it lands inside the previous one's subtree, where every reader that asks a heading
+    where it ends would find it. So the depth of a new top level is read off the file's own
+    existing top level, the way `block add` reads a heading's level off the first block
+    heading, and a subsection keeps the depth every caller already got.
 
     `task` is the line this anchor names, for the one caller holding a line the roadmap
     does not carry yet: `add --section` (RK93) validates both files before writing either,
@@ -349,7 +365,7 @@ def add(
             anchor, config.relative(config.path(role)), existing.first
         )
 
-    lines = _render(config, anchor, title, body, level)
+    lines = _render(config, anchor, title, body, _depth(document, anchor, level))
     index = _placement(document, anchor, task)
     payload = list(lines)
     if index > 0 and not blank(document.lines[index - 1]):
@@ -598,14 +614,21 @@ def _placement(document: Document, anchor: str, task: Task | None) -> int:
     inside `§RK34`, so the place is the end of the subtree of the longest anchor this file
     declares that the new one extends.
 
+    **Under an outline the anchor decides even for a task** (RK166), because there the
+    author chose that anchor and it states a place, while the prose file is organised by the
+    outline and not by blocks — measured on all three outline projects on this machine, whose
+    prose files declare no block heading at all, so the block branch could only ever refuse.
+    Under the id scheme the anchor is the id and carries no place, which is why that scheme
+    is the one that reads the block.
+
     Neither is ever appended at the end as a fallback. A block the prose file does not
-    declare is refused (RK37) and so is an anchor extending nothing: a Block A section
+    declare is refused (RK37) and so is a *nested* anchor extending nothing: a Block A section
     landing after Block F's reads as Block F's, which is the same mistake `add` refuses one
     file over, and appending is the one answer that is always plausible and frequently
     wrong. A task whose line sits under no heading at all is the one case with nothing to
     derive from either side, and only that one goes last.
     """
-    if task is None:
+    if task is None or document.schema.ref_scheme != "id":
         return _extended(document, anchor)
     if not task.block:
         return len(document.lines)
@@ -621,9 +644,24 @@ def _placement(document: Document, anchor: str, task: Task | None) -> int:
 
 
 def _extended(document: Document, anchor: str) -> int:
-    """The end of the subtree of the section this anchor extends, or a refusal (RK45)."""
+    """The end of the subtree of the section this anchor extends, or a refusal (RK45).
+
+    Or, for a top-level anchor under an outline, the end of the last top-level section
+    (RK166): that is the one place a section extending nothing can go without reading as
+    somebody else's, and until this existed a new block's first design was reachable by no
+    verb at all. The file's *own* order decides it — after the last one, never sorted, since
+    whether `XXII` follows `XXI` is a question about somebody's numbering (L4, L6) and the
+    author is the one who wrote the anchor.
+    """
     parent = _extends(document, anchor)
     if parent is None:
+        if _top_level(document, anchor):
+            tops = [s for s in anchored(document) if _is_top(s.anchor)]
+            if not tops:
+                return len(document.lines)
+            span = _span(document, tops[-1].anchor)
+            assert span is not None  # read out of this document a line ago
+            return span[1]
         raise UnknownParent(
             anchor,
             [section.anchor for section in anchored(document)],
@@ -632,6 +670,47 @@ def _extended(document: Document, anchor: str) -> int:
     span = _span(document, parent)
     assert span is not None  # `_extends` read the anchor out of this document
     return span[1]
+
+
+#: The depth a subsection is written at, and what every caller of :func:`add` got before a
+#: level could be derived at all. Kept as the answer for anything nested, because deriving
+#: that too would move headings in files this task is not about.
+NESTED_LEVEL = 3
+
+
+def _depth(document: Document, anchor: str, level: int | None) -> int:
+    """The heading level this section is written at — the caller's, or the file's own (RK166).
+
+    Named, it is used: a project whose outline nests four deep has a depth no rule here
+    knows. Omitted, a subsection gets :data:`NESTED_LEVEL` and a **new top level** gets the
+    depth this file already writes one at — falling back to one under its shallowest
+    heading, which is the file's title in every corpus read here.
+    """
+    if level is not None:
+        return level
+    if not _top_level(document, anchor):
+        return NESTED_LEVEL
+    tops = [s.level for s in anchored(document) if _is_top(s.anchor)]
+    if tops:
+        return tops[0]
+    levels = [h.level for h in document.headings]
+    return min(levels) + 1 if levels else NESTED_LEVEL - 1
+
+
+def _is_top(anchor: str) -> bool:
+    """One segment, so there is nothing above it in the outline: `XXII`, `0`, `IX`."""
+    return "." not in anchor
+
+
+def _top_level(document: Document, anchor: str) -> bool:
+    """May this anchor open a new top level of the file? (RK166)
+
+    Only under an outline, and only for a one-segment anchor. Under the id scheme the anchor
+    *is* the id, so it carries no place and no level: a `§RK9` that extends nothing is a
+    section for a task, placed under that task's block, and reaching here with one means the
+    id names no open line — which stays the refusal it was.
+    """
+    return document.schema.ref_scheme != "id" and _is_top(anchor)
 
 
 def _extends(document: Document, anchor: str) -> str | None:

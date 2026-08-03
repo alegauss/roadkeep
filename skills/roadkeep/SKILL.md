@@ -67,7 +67,11 @@ named heading, both positions are reported, and a heading nothing declares is re
 for it when `ship` filed an entry under the block its roadmap line was wrongly under. `section add <id> --title "…"` is that
 same write for a line that already exists, and
 takes prose on **stdin**, within the word budget, filled to the configured width, under the
-task's block — a table or list is inserted exactly as written. Over MCP there is no pipe, so the
+task's block — or, where the pointer is an outline anchor, under the section that anchor extends,
+since there the anchor is what states the place. A one-segment anchor **opens a new top level**,
+placed after the last one and at the depth that file writes one at, which is how a block declared
+in the line files gets its first design at all; a *nested* anchor whose parent is missing is still
+refused, that being a typo in an address. A table or list is inserted exactly as written. Over MCP there is no pipe, so the
 three writes that read one (`add`'s `section_body`, `section_add`'s and `section_amend`'s `body`)
 take it **as a string** and refuse the omission rather than waiting for it. **`section amend <id>` is how a
 live design is corrected**: `--body -` replaces its own prose, `--title` its heading, the

@@ -27,7 +27,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK166** (deps: —) **A newly declared block cannot receive its first rationale section** — Under ref_scheme = 'outline' nothing creates a top-level section: block add skips the prose file, section add refuses an anchor nothing extends, and add leaves a pointer lint rejects. → §RK166
 - 📋 **RK169** (deps: —) **section drop deletes rationale a live line points at, when the anchor is a bullet** — The guard reads the sections under the anchor, so an outline project addressing prose as `- **XIV.8.7 — …**` has its live design deleted with the shipped parent and no refusal. → §RK169
 
 ## Block C — Query (consult without reading the file)

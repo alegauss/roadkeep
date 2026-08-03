@@ -11,6 +11,11 @@ Four claims, and the last two are the ones that make this a schema rather than a
 * its **place is derived** — from the task's block, or from the anchor itself when it
   belongs to no task (RK45) — so the prose file's order is a consequence of the backlog's
   and of the outline's, and nobody chooses where to type.
+
+The fourth claim is where RK166 lands: under an outline the **anchor** is that derivation
+even for a task, no outline project's prose file declaring a block heading at all — and a
+top-level anchor is placed after the last top-level section rather than refused, because "a
+heading they can add" was an argument about an edit the guard denies.
 """
 
 from __future__ import annotations
@@ -860,3 +865,126 @@ class _Stdin:
 
     def read(self) -> str:
         return self._text
+
+
+# -- the first section of a new block (RK166) ----------------------------------
+
+
+def test_a_new_top_level_section_lands_after_the_last_one(tmp_path):
+    # The deadlock RK141 closed, one file over: `block add` skips a prose file organised by
+    # an outline rather than by blocks, `section add` refused an anchor extending nothing,
+    # and the guard denies the edit that would declare it — so a newly declared block's
+    # first design was reachable by no verb at all.
+    config = outline(tmp_path)
+    document, section = add(config, "improvements", "IX", "A ninth theme", "What it is for.")
+    document.save()
+
+    body = read(config)
+    assert body.index("A fourth level spelled with a letter") < body.index("IX A ninth theme")
+    assert body.index("IX A ninth theme") < body.index("## B — Context")
+    assert section.anchor == "IX"
+
+
+def test_a_new_top_level_section_takes_the_depth_this_file_writes_one_at(tmp_path):
+    # Not optional and not cosmetic: a top level written at a subsection's depth is not a
+    # top level at all — it lands inside the previous one's subtree, where every reader that
+    # asks a heading where it ends would find it.
+    config = outline(tmp_path)
+    document, section = add(config, "improvements", "IX", "A ninth theme", "Prose.")
+    assert section.level == 2  # `## VIII.`, read off the file rather than defaulted to 3
+    document.save()
+    assert "## IX A ninth theme" in read(config)
+
+
+def test_a_named_level_still_wins_over_the_derived_one(tmp_path):
+    # A project whose outline nests four deep has a depth no rule here knows.
+    config = outline(tmp_path)
+    document, section = add(config, "improvements", "IX", "A ninth theme", "Prose.", level=3)
+    assert section.level == 3
+    document.save()
+
+
+def test_a_nested_anchor_whose_parent_is_missing_is_still_refused(tmp_path):
+    # The half of the old refusal that was right: this is a typo in an address, and
+    # appending it would file somebody's paragraph under a design it does not extend.
+    config = outline(tmp_path)
+    with pytest.raises(UnknownParent) as raised:
+        add(config, "improvements", "IX.4", "A reading nothing precedes", "Prose.")
+    assert "no section §IX.4 extends" in str(raised.value)
+    assert read(config) == OUTLINE_RATIONALE
+
+
+def test_the_id_scheme_refuses_a_top_level_anchor_as_it_always_did(tmp_path):
+    # Under `id` the anchor *is* the id, so it carries no place and no level: reaching the
+    # top level with one means the id names no open line, which stays a refusal.
+    config = project(tmp_path)
+    with pytest.raises(UnknownParent):
+        add(config, "improvements", "9", "A reading nothing precedes", "Prose.")
+    assert read(config) == RATIONALE
+
+
+def test_a_new_top_level_section_in_a_file_with_none_goes_last(tmp_path):
+    config = project(
+        tmp_path,
+        improvements="# Improvements\n\nA preface nobody numbered.\n",
+        top='ref_scheme = "outline"\n',
+    )
+    document, section = add(config, "improvements", "I", "A first theme", "Prose.")
+    document.save()
+    # One level under the file's shallowest heading, which is its title in every corpus.
+    assert section.level == 2
+    assert read(config).endswith("## I A first theme\n\nProse.\n")
+
+
+def test_a_task_s_section_under_an_outline_is_placed_by_its_anchor(tmp_path):
+    # `add --section` passes the task, which forced the block branch — and no outline
+    # project's prose file declares a block heading at all, so that branch could only ever
+    # refuse. Under an outline the author chose the anchor, and it states the place.
+    from roadkeep.authoring import add as add_task
+
+    config = outline(tmp_path)
+    insertion = add_task(
+        config,
+        block="B",
+        symptom="A fourth symptom",
+        why="Because of a fourth reason.",
+        ref="VIII.2",
+        section=("A second design", "The reasoning for it."),
+    )
+    assert insertion.section is not None and insertion.section.level == 3
+    body = read(config)
+    # The end of §VIII's subtree, which is where every anchor that extends one goes — not
+    # under the roadmap's Block B, a heading this file does not declare and never will.
+    assert body.index("#### XIV.8.7") < body.index("VIII.2")
+    assert body.index("VIII.2") < body.index("## B — Context")
+
+
+def test_the_whole_deadlock_ends_with_a_clean_gate(tmp_path):
+    # Every step the report walked, in one test: the block, its first top-level section, a
+    # task whose pointer resolves, and the gate that used to be red at step three.
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "CT"\nref_scheme = "outline"\n[files]\n'
+        'roadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
+        'improvements = "IMPROVEMENTS.md"\n',
+        encoding="utf-8",
+    )
+    for name, body in {
+        "ROADMAP.md": "# Roadmap\n\n## Block AG — Themes\n",
+        "CHANGELOG.md": "# Shipped\n\n## Block AG — Themes\n",
+        "IMPROVEMENTS.md": "# Tray — Design rationale\n\n## XXI — A theme (Block AG)\n\nProse.\n",
+    }.items():
+        with (tmp_path / name).open("w", encoding="utf-8", newline="") as handle:
+            handle.write(body)
+
+    at = ["-C", str(tmp_path)]
+    assert main([*at, "block", "add", "AI", "--title", "A new theme"]) == EXIT_OK
+    assert main([*at, "section", "add", "XXII", "--title", "A new theme (Block AI)",
+                 "--body", "What this theme is for."]) == EXIT_OK
+    assert main([*at, "add", "--block", "AI", "--ref", "XXII.1", "--symptom", "A symptom",
+                 "--why", "Because of a reason.", "--section", "A design",
+                 "--section-body", "The reasoning."]) == EXIT_OK
+    assert main([*at, "lint"]) == EXIT_OK
+
+    prose = (tmp_path / "IMPROVEMENTS.md").read_text(encoding="utf-8")
+    assert "## XXII A new theme (Block AI)" in prose
+    assert "### XXII.1 A design" in prose
