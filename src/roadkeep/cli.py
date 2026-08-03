@@ -2441,8 +2441,10 @@ def _claims(config: Config, args: argparse.Namespace) -> int:
     held = sum(1 for row in rows if row.state is claiming.State.HELD)
     print(f"{len(rows)} dated, {held} held  (window {config.held}m)")
     for row in rows:
-        where = f"Block {row.block}" if row.block else "no line carries this id"
-        print(f"  {row.state:<8} {row.id}  claimed {row.since} ago  {row.marker} {where}")
+        # The marker is dropped from the line rather than left as a gap: an id no line carries
+        # has no marker, and a column that is sometimes blank reads as one that failed to load.
+        where = f"{row.marker} Block {row.block}" if row.block else "no line carries this id"
+        print(f"  {row.state:<8} {row.id}  claimed {row.since} ago  {where}")
     # Named because the release is a marker and the *file* is what an operator deletes when a
     # whole checkout's worth of claims outlived their workers (RK161).
     print(f"  registry {registry}")
