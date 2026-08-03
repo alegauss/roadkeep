@@ -414,28 +414,3 @@ tool was given (L2), so it is named there for the same reason. The wider one is 
 git configuration and should stay a flag rather than a default.
 
 ## Block F — The plugin
-
-### §RK198 The half of the parser cost RK174 left
-
-RK174 took `tools/list` from 58 builds and 195 ms to one build and 3.4 ms, by building
-the parser once per `descriptors()` call and indexing every subcommand path off it. It
-fixed the first message and only that.
-
-Measured after it: one `argv(tool, arguments, config)` calls `build_parser` **twice** —
-once in `_subparser(tool.command)` for the actions it renders arguments through, and
-once more inside `_companioned`, which reaches `prose_of`, which resolves the same
-subcommand again. 6.7 ms per call, on the path every `tools/call` takes.
-
-Smaller than what RK174 removed and the same defect: reaching one subcommand builds the
-entire CLI, so a caller with two lookups pays for two. A session making twenty writes
-spends about 130 ms rebuilding a parser that is a pure function of the code.
-
-The shape is already there — `_parsers()` exists and `_subparser` takes an index — so
-this is threading it through the call path: `argv` builds one and hands it to
-`_companioned`, which hands it to `prose_of`. `prose_of(command)` is public and
-`tests/test_serving.py` asks it about every tool one at a time, so the index has to stay
-optional there for the same reason `descriptor` keeps its default.
-
-What to check rather than assume: whether `call` resolves anything else per message, and
-whether the remaining cost is one build — the number to report is what a call pays
-after, not what it saved.

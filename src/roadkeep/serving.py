@@ -411,12 +411,18 @@ def _action(parser: argparse.ArgumentParser, dest: str) -> argparse.Action:
     raise KeyError(f"{parser.prog} declares no {dest!r}")
 
 
-def _parsers() -> Mapping[str, argparse.ArgumentParser]:
+def _parsers(
+    root: argparse.ArgumentParser | None = None,
+) -> Mapping[str, argparse.ArgumentParser]:
     """Every subcommand path in the CLI, indexed by it, off **one** `build_parser` (RK174).
 
     Reaching one subcommand means building the whole CLI, so a caller with more than one to
     resolve pays that per lookup — 58 builds and 195 ms for the `tools/list` a client sends
     first. The walk is the same descent :func:`_subparser` makes, done once and kept.
+
+    ``root`` is the parser to index, for the caller that has to keep it anyway (RK198):
+    :func:`call` parses the argv it built through the root, so building a second one to
+    index was a third of what a `tools/call` spent.
 
     Built per call and never memoised: `mcp` re-reads the config per message on purpose, and
     a parser held across messages is the one thing that would stop a mid-session edit from
@@ -424,6 +430,8 @@ def _parsers() -> Mapping[str, argparse.ArgumentParser]:
     """
     from roadkeep.cli import build_parser
 
+    if root is None:
+        root = build_parser()
     index: dict[str, argparse.ArgumentParser] = {}
 
     def walk(parser: argparse.ArgumentParser, path: str) -> None:
@@ -434,7 +442,7 @@ def _parsers() -> Mapping[str, argparse.ArgumentParser]:
                 index[f"{path} {step}".strip()] = sub
                 walk(sub, f"{path} {step}".strip())
 
-    walk(build_parser(), "")
+    walk(root, "")
     return index
 
 
@@ -554,14 +562,23 @@ class Answer:
         return {"content": [{"type": "text", "text": self.text}], "isError": self.is_error}
 
 
-def argv(tool: Tool, arguments: Mapping[str, Any], config: Config) -> list[str]:
+def argv(
+    tool: Tool,
+    arguments: Mapping[str, Any],
+    config: Config,
+    parsers: Mapping[str, argparse.ArgumentParser] | None = None,
+) -> list[str]:
     """The command line the CLI accepts, or `ToolError` naming what may be set instead.
 
     Takes the config because what may be set is a question about the project (RK111), and
     because a bound the descriptor published is a bound this has to hold: a client that
     validated is not the same as a call that was checked.
+
+    ``parsers`` is the index the caller already built (RK198). Optional, and defaulted the
+    same way :func:`descriptor`'s is: a test asking what one tool's argv is has one lookup
+    and nothing to amortise it over.
     """
-    parser = _subparser(tool.command)
+    parser = _subparser(tool.command, parsers)
     exposed = tool.exposed(config)
     unknown = [name for name in arguments if name not in exposed]
     if unknown:
@@ -570,7 +587,7 @@ def argv(tool: Tool, arguments: Mapping[str, Any], config: Config) -> list[str]:
             f"this tool takes {', '.join(exposed) or 'no arguments'}"
             + _withheld(tool, unknown)
         )
-    _companioned(tool, arguments)
+    _companioned(tool, arguments, parsers)
     positional: list[str] = []
     optional: list[str] = []
     for dest in exposed:  # declaration order, so the argv is stable and diffable
@@ -588,18 +605,27 @@ def argv(tool: Tool, arguments: Mapping[str, Any], config: Config) -> list[str]:
     return [*tool.argv_head, *positional, *optional, *always, "--json"]
 
 
-def prose_of(command: str) -> Prose | None:
+def prose_of(
+    command: str, parsers: Mapping[str, argparse.ArgumentParser] | None = None
+) -> Prose | None:
     """What this subcommand takes off a pipe, as its own parser declares it (RK171).
 
     The inventory neither `TOOLS` nor `cli.py` stated. Read from the parser rather than held
     here, so exposing a fourth command that reads a paragraph declares itself instead of being
     found by the session that hangs on it — and so `tests/test_serving.py` can ask the question
     over every tool at once, which is the instrument RK170 was fixed without.
+
+    ``parsers`` stays optional because that test asks one command at a time (RK198); the call
+    path threads its index through, this lookup having been the second build of every call.
     """
-    return _subparser(command).get_default("reads_stdin")
+    return _subparser(command, parsers).get_default("reads_stdin")
 
 
-def _companioned(tool: Tool, arguments: Mapping[str, Any]) -> None:
+def _companioned(
+    tool: Tool,
+    arguments: Mapping[str, Any],
+    parsers: Mapping[str, argparse.ArgumentParser] | None = None,
+) -> None:
     """Refuse an argv that would have gone to the pipe, naming the argument (RK170, RK171).
 
     The deadlock is closed by :func:`_spent_stdin` whatever this says, so what is bought here is
@@ -608,7 +634,7 @@ def _companioned(tool: Tool, arguments: Mapping[str, Any]) -> None:
     it did not arrive. Derived from :func:`prose_of` and not a table beside it, so all three
     declared paths answer the same way and a fourth cannot be the one that was forgotten.
     """
-    prose = prose_of(tool.command)
+    prose = prose_of(tool.command, parsers)
     if prose is None or prose.dest not in tool.exposes or not prose.reached_by(arguments):
         return
     raise ToolError(
@@ -696,14 +722,20 @@ def call(tool: Tool, arguments: Mapping[str, Any], directory: str = ".") -> Answ
         # declares and the code does not know is the shape stale code produces, and which
         # build read the config is the fact that turns the puzzle into an instruction.
         return _answered(f"roadkeep: {error} — read by {engine()}", is_error=True)
+    # One build for the whole call (RK198). The argv is rendered through the subcommands and
+    # then parsed through the root they belong to, and until this was threaded each of those
+    # three lookups built the entire CLI — 10.2 ms of a 12.7 ms call, on the path every write
+    # takes. Per call and still never memoised, for the reason `_parsers` gives.
+    root = build_parser()
+    parsers = _parsers(root)
     try:
-        line = argv(tool, arguments, config)
+        line = argv(tool, arguments, config, parsers)
     except ToolError as error:
         return _answered(str(error), is_error=True)
     out, err = io.StringIO(), io.StringIO()
     try:
         with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err), _spent_stdin():
-            args = build_parser().parse_args(["-C", directory, *line])
+            args = root.parse_args(["-C", directory, *line])
             # Through the CLI's own dispatch and not straight to the handler, so a write
             # over MCP takes the same lock a write over `Bash` does (RK117) — this is the
             # path an agent uses, so it is the path the duplicate id was minted on.

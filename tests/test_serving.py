@@ -1074,3 +1074,76 @@ def test_the_capability_is_declared_wherever_the_notification_can_be_sent():
     # halves are asserted together rather than in two files that can drift.
     handshake = handle({"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {}})
     assert handshake["result"]["capabilities"]["tools"]["listChanged"] is True
+
+
+# -- one parser per call (RK198) ---------------------------------------------
+
+
+def _builds(monkeypatch) -> list[int]:
+    """A counter on `build_parser`, which is the only thing the cost is made of."""
+    counted = [0]
+    real = cli.build_parser
+
+    def build():
+        counted[0] += 1
+        return real()
+
+    monkeypatch.setattr(cli, "build_parser", build)
+    return counted
+
+
+@pytest.mark.parametrize(
+    "name, arguments",
+    [("list", {"block": "A"}), ("brief", {}), ("add", {"block": "A"})],
+)
+def test_a_tool_call_builds_the_parser_once(tmp_path, monkeypatch, name, arguments):
+    # Three, before this: `argv` resolved the subcommand for the actions, `_companioned`
+    # resolved it again through `prose_of`, and `call` built a third to parse the argv it
+    # had just rendered. Reaching one subcommand builds the whole CLI, so each cost the lot.
+    project(tmp_path, config=PROSE, improvements=DESIGN)
+    counted = _builds(monkeypatch)
+    call(tool_named(name), arguments, str(tmp_path))
+    assert counted[0] == 1
+
+
+def test_a_refused_argument_still_builds_the_parser_once(tmp_path, monkeypatch):
+    # The refusal path renders no argv and must not be the one that pays twice.
+    project(tmp_path, config=PROSE, improvements=DESIGN)
+    counted = _builds(monkeypatch)
+    answered = call(tool_named("list"), {"blokk": "A"}, str(tmp_path))
+    assert answered.is_error and counted[0] == 1
+
+
+def test_the_whole_tool_list_still_builds_it_once(tmp_path, monkeypatch):
+    # RK174's own guarantee, held here because RK198 changed how `_parsers` gets its root.
+    counted = _builds(monkeypatch)
+    descriptors(Config.discover(project(tmp_path)))
+    assert counted[0] == 1
+
+
+def test_an_index_handed_in_is_the_one_that_is_used(tmp_path, monkeypatch):
+    # The threading itself: given an index, nothing on the path reaches for a parser.
+    config = Config.discover(project(tmp_path, config=PROSE, improvements=DESIGN))
+    parsers = serving._parsers()
+    counted = _builds(monkeypatch)
+    assert argv(tool_named("list"), {"block": "A"}, config, parsers) == [
+        "list",
+        "--block",
+        "A",
+        "--json",
+    ]
+    assert serving.prose_of("add", parsers) is not None
+    assert counted[0] == 0
+
+
+def test_the_lookups_answer_the_same_with_an_index_and_without(tmp_path):
+    # An index is an optimisation and never a second resolver, so both routes agree — which
+    # is what keeps `tests/test_serving.py` free to ask about one tool at a time.
+    config = Config.discover(project(tmp_path, config=PROSE, improvements=DESIGN))
+    parsers = serving._parsers()
+    for tool in TOOLS:
+        assert serving.prose_of(tool.command, parsers) == serving.prose_of(tool.command)
+        assert serving._subparser(tool.command, parsers) is not serving._subparser(tool.command)
+    assert argv(tool_named("list"), {"block": "A"}, config, parsers) == argv(
+        tool_named("list"), {"block": "A"}, config
+    )
