@@ -226,6 +226,29 @@ Either `block add` writes the prose heading too, deriving the next outline numbe
 
 ## Block C — Query
 
+### §RK168 The gate that waits on the write it gates
+
+`lint` declares no `reads_only`, so `dispatch` runs it under the write lock — right when
+`--fix` is passed and wrong every other time, which is nearly every time. A held lock
+then raises `LockBusy`, `main` answers exit 1, and exit 1 from this command means *the
+format drifted*. The gate that a hook, a CI job and a turn's end all run reports a
+violation because somebody else was writing.
+
+The existing evidence is in `tests/test_locking.py`, where the query that answers during
+a write accepts `EXIT_OK or EXIT_GATE` for `lint` alone — an assertion written around
+the behaviour rather than about it.
+
+RK167 built the declaration this needs: `reads_only=True, writes_when="fix"` makes a
+plain `lint` a query that never waits, and `--fix` the write it already is. The refusal
+path wants a second look while there: a busy checkout is not a violation, so if `--fix`
+cannot take the lock the honest answer may be to report and skip the repair rather than
+to fail the run.
+
+There is a second thing that falls out. `Tool.writes` in `serving.py` is hand-stated
+*because* `lint` was the exception — with the flag declared, whether a tool writes is
+derivable from its parser and the flags it exposes, and one fact stops being written
+twice.
+
 ## Block D — The gate
 
 ### §RK104 The block the gate does not read

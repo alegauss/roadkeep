@@ -35,6 +35,8 @@
 
 ## Block C — Query (consult without reading the file)
 
+- 📋 **RK168** (deps: —) **A busy checkout makes the gate exit like a violation, so a clean file reads as a failing one** — `lint` is declared a write because `--fix` exists, so a lock another process holds refuses it with the code a violation uses — the one checkout, two agents this block spent itself on. → §RK168
+
 ## Block D — The gate
 
 - 📋 **RK104** (deps: —) **Nothing gates the README block this tool writes, so a stale restatement passes lint** — `export --readme` is the one write no gate holds: a pytest fixture catches it here and an adopting project has none, so the derived table drifts from the files it was derived from. → §RK104
