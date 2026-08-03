@@ -180,6 +180,27 @@ would make `--after` a per-file argument or a refusal when the files disagree.
 
 ## Block C — Query
 
+### §RK156 The one write that changes a claim's address
+
+A claim is dated against an id, and every marker door releases one by moving the marker
+— which is why nothing has to be told when a line ships, pauses or is put back.
+`renumber` is the exception: the marker does not move, the *address* does. The registry
+still holds the old id, which no longer matches a line, and the new id carries 🛠 with no
+claim against it — so `pick` reads it as ordinary half-done work and hands it to the
+next caller, which is the whole defect RK119 closed, reopened by the one command that
+exists because a merge spent an id twice.
+
+The fix is small: `renumber` already writes the roadmap in one transaction, so carrying
+the claim across is a read and a write in the same lock. What deserves a moment is
+whether it *should* carry. Two branches collided, somebody's line is being moved out
+from under its number, and the worker holding it will next ask for its brief by an id
+that no longer exists — so the claim following the line is right, and the answer to
+"where did my task go" is `gaps`, which already reads an id out of history.
+
+Worth checking the same question against `defer` and `resume`: both move a line between
+files, and a claim on a paused id is one nothing can release because the marker it is
+read against is gone from the roadmap.
+
 ## Block D — The gate
 
 ### §RK104 The block the gate does not read
