@@ -21,23 +21,46 @@ validated line, is out of scope here and belongs to the author who calls `add`.
 The README block is replaced **between two markers the author put there**. A missing marker
 is refused with the two lines to paste, on the same reasoning as an undeclared block (RK37):
 a write that invents its own container puts text where nothing looks for it.
+
+Idempotence is what the gate over the block is made of (RK104), so it is a property to hold
+rather than a claim to make, and two things here hold it. :func:`project` takes the governed
+files as **documents** where it is asked to, which is how the same block can be derived at a
+revision instead of from this working tree; and the next-ready line is picked *claim-blind*,
+because a claim is dated in a temp file outside the repository and expires on a clock — so a
+projection that read one would change bytes with no commit to explain it, and a gate over
+those bytes would be red for a reason nobody could look up.
 """
 
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
 from dataclasses import dataclass
 from html import escape
 
+from roadkeep.backlog import Backlog
 from roadkeep.config import Config
 from roadkeep.counting import Census
-from roadkeep.document import Entry
+from roadkeep.document import Document, Entry
 from roadkeep.picking import pick
 
 #: The container, as a comment so it renders as nothing in either file it lives in — the
 #: same two lines in Markdown and in HTML, which is why one `splice` serves both.
 BEGIN = "<!-- roadkeep:begin -->"
 END = "<!-- roadkeep:end -->"
+
+#: Which file each flag writes when it names no path, and the shape the block takes there.
+#: One statement of the pair, because the gate over the block (RK104) has to read exactly
+#: what the write produces: a second spelling of `README.md` in the linter would be a gate
+#: over a path nothing writes, which passes for the same reason the drift got in.
+DEFAULTS: Mapping[str, tuple[str, str]] = {
+    "readme": ("README.md", "markdown"),
+    "site": ("docs/index.html", "html"),
+}
+
+#: The governed files a projection is derived from — the three whose unit is a task line.
+#: The prose files hold no count and no next-ready line, so nothing here reads them.
+COUNTED_ROLES = ("roadmap", "changelog", "deferred")
 
 
 def _note(command: str) -> str:
@@ -100,6 +123,19 @@ class Projection:
         totals = self.totals
         counted = totals.open + totals.shipped + totals.retired
         return 0 if not counted else min(100, totals.shipped * 100 // counted)
+
+    def body(self, shape: str) -> str:
+        """The block one target takes, addressed by the shape :data:`DEFAULTS` names it by.
+
+        One door, because the write and the gate over it (RK104) have to render the same
+        bytes: a caller that chose between the two methods itself would be a second place
+        the pairing lives, and the linter is exactly the caller that must not get it wrong.
+        """
+        if shape == "html":
+            return self.html()
+        if shape == "markdown":
+            return self.markdown()
+        raise KeyError(f"no such projection shape: {shape!r}")
 
     def markdown(self) -> str:
         """The README block's body. Deterministic, and every line derived."""
@@ -187,15 +223,32 @@ class Projection:
         return json.dumps(self.payload(), indent=2)
 
 
-def project(config: Config) -> Projection:
-    """Read the governed files and derive both shapes. Pure: nothing is written."""
-    roadmap = Census.read(config, "roadmap")
-    has_ledger = config.has("changelog") and config.path("changelog").is_file()
-    ledger = Census.read(config, "changelog") if has_ledger else None
+def project(
+    config: Config, documents: Mapping[str, Document] | None = None
+) -> Projection:
+    """Read the governed files and derive both shapes. Pure: nothing is written.
+
+    ``documents`` is the governed files as some *other* tree holds them, keyed by role — the
+    seam `lint --baseline` needs (RK104), since a block derived from this working tree and
+    compared against a README at a revision would report every ship since as a defect that
+    revision already had. Given, it is authoritative: a role it omits is a file that tree did
+    not carry, never one to fall back to disk for.
+    """
+    held = _from_disk(config) if documents is None else documents
+    roadmap_document = held.get("roadmap")
+    if roadmap_document is None:
+        raise KeyError("there is no roadmap to project: nothing states what is open")
+    ledger_document = held.get("changelog")
+    roadmap = Census.of(config, "roadmap", roadmap_document)
+    ledger = (
+        None
+        if ledger_document is None
+        else Census.of(config, "changelog", ledger_document)
+    )
 
     shipped_marker = config.schema.shipped_marker
     retired_marker = config.schema.retired_marker
-    titles = _titles(config, has_ledger)
+    titles = _titles(config, held)
     labels = list(dict.fromkeys([*roadmap.blocks, *(ledger.blocks if ledger else ())]))
     rows = tuple(
         Row(
@@ -207,7 +260,16 @@ def project(config: Config) -> Projection:
         )
         for label in labels
     )
-    choice = pick(config)
+    choice = pick(
+        config,
+        backlog=Backlog.during(
+            config,
+            roadmap=roadmap_document,
+            ledger=ledger_document,
+            store=held.get("deferred"),
+        ),
+        claims=False,
+    )
     return Projection(
         rows=rows,
         open_entries=roadmap.counted,
@@ -248,12 +310,23 @@ def _index(lines: list[str], marker: str, where: str, name: str) -> int:
     raise NoMarkers(where, name)
 
 
-def _titles(config: Config, has_ledger: bool) -> dict[str, str]:
+def _from_disk(config: Config) -> dict[str, Document]:
+    """The counted roles this project declares and has, each under its own schema."""
+    return {
+        role: config.document(role)
+        for role in COUNTED_ROLES
+        if config.has(role) and config.path(role).is_file()
+    }
+
+
+def _titles(config: Config, held: Mapping[str, Document]) -> dict[str, str]:
     """Block titles from the headings that declare them, roadmap first, verbatim."""
     out: dict[str, str] = {}
-    roles = ["changelog", "roadmap"] if has_ledger else ["roadmap"]
-    for role in roles:  # the roadmap is read last, so its wording wins
-        for heading in config.document(role).headings:
+    for role in ("changelog", "roadmap"):  # the roadmap is read last, so its wording wins
+        document = held.get(role)
+        if document is None:
+            continue
+        for heading in document.headings:
             if heading.label:
                 out[heading.label] = heading.text.removeprefix(
                     f"{config.schema.heading_word} "

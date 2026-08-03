@@ -58,7 +58,7 @@ from roadkeep.document import (
     StaleFile,
     write_atomically,
 )
-from roadkeep.exporting import Projection, project, splice
+from roadkeep.exporting import DEFAULTS, Projection, project, splice
 from roadkeep.fixing import Fix, fix
 from roadkeep.graph import Graph, Leverage
 from roadkeep.deferring import defer, resume
@@ -1010,18 +1010,21 @@ def build_parser() -> argparse.ArgumentParser:
     export_parser.add_argument(
         "--readme",
         nargs="?",
-        const="README.md",
+        const=DEFAULTS["readme"][0],
         metavar="PATH",
-        help="write the block between the roadkeep markers in this file (default README.md)",
+        help=(
+            f"write the block between the roadkeep markers in this file "
+            f"(default {DEFAULTS['readme'][0]})"
+        ),
     )
     export_parser.add_argument(
         "--site",
         nargs="?",
-        const="docs/index.html",
+        const=DEFAULTS["site"][0],
         metavar="PATH",
         help=(
-            "the same projection as HTML, between the same two markers "
-            "(default docs/index.html)"
+            f"the same projection as HTML, between the same two markers "
+            f"(default {DEFAULTS['site'][0]})"
         ),
     )
     export_parser.add_argument(
@@ -3431,15 +3434,13 @@ def _splice_into(
     target = config.root / name
     with target.open("r", encoding="utf-8", newline="") as handle:
         before = handle.read()
-    body = projection.html() if shape == "html" else projection.markdown()
-    after = splice(before, body, config.relative(target))
+    after = splice(before, projection.body(shape), config.relative(target))
     if after == before:
         # The point of idempotence, said out loud: nothing changed, so nothing is written
         # and the file's mtime does not move either.
         return f"{config.relative(target)} is already current"
     write_atomically(target, after)
     return f"{config.relative(target)} refreshed between the roadkeep markers"
-    return EXIT_OK
 
 
 def _gaps(config: Config, args: argparse.Namespace) -> int:

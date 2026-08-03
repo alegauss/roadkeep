@@ -22,8 +22,10 @@ import pytest
 
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
+from roadkeep.document import Document
 from roadkeep.exporting import BEGIN, END, NoMarkers, project, splice
-from roadkeep.schema import DESIGNED, RETIRED, SHIPPED
+from roadkeep.picking import take
+from roadkeep.schema import DESIGNED, IN_PROGRESS, RETIRED, SHIPPED
 from roadkeep.shipping import retire
 
 HERE = Path(__file__).resolve().parents[1]
@@ -119,6 +121,49 @@ def test_the_retired_column_appears_only_once_something_is_retired(tmp_path):
     # The count is per block and per marker, so a retirement is not counted as shipped.
     assert project(reopened).rows[0].retired == 1
     assert project(reopened).rows[0].shipped == 1
+
+
+# -- a function of the governed files, and of nothing else (RK104) -------------
+
+
+def test_the_files_may_be_handed_over_instead_of_read(tmp_path):
+    """The seam a gate at a revision needs: count what you were given, open nothing.
+
+    Given documents, the projection is derived from those alone — a table derived from this
+    working tree and compared against a README at a revision would charge the current commit
+    for every ship since.
+    """
+    config = project_files(tmp_path)
+    roadmap = Document.parse(ROADMAP, schema=config.schema_for("roadmap"))
+    thinner = Document.parse(
+        ROADMAP.replace(f"- {DESIGNED} **RK4**", f"- {DESIGNED} **RK9**"),
+        schema=config.schema_for("roadmap"),
+    )
+    assert project(config, {"roadmap": roadmap}).totals.open == 2
+    # The ledger is absent from what was handed over, so its column is zero rather than
+    # whatever the file on disk happens to say.
+    assert project(config, {"roadmap": thinner}).totals.shipped == 0
+    ids = [task["id"] for task in project(config, {"roadmap": thinner}).payload()["open"]]
+    assert ids == ["RK1", "RK9"]
+
+
+def test_a_projection_of_nothing_is_refused_rather_than_empty(tmp_path):
+    config = project_files(tmp_path)
+    with pytest.raises(KeyError, match="no roadmap to project"):
+        project(config, {})
+
+
+def test_a_live_claim_moves_no_byte_of_the_projection(tmp_path):
+    """Claim-blind on purpose: a claim is dated outside the repository and expires on a clock.
+
+    Read through one, the next-ready line would change with no commit to explain it — and a
+    README that goes stale by itself is one the gate over it (RK104) reports for nothing.
+    """
+    started = ROADMAP.replace(f"- {DESIGNED} **RK1**", f"- {IN_PROGRESS} **RK1**")
+    config = project_files(tmp_path, roadmap=started)
+    before = project(config).markdown()
+    take(config, None)
+    assert project(Config.discover(tmp_path)).markdown() == before
 
 
 # -- idempotence --------------------------------------------------------------

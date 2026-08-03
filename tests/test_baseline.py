@@ -241,6 +241,42 @@ def test_a_path_the_revision_did_not_have_either_is_standing_debt(tmp_path):
     assert "path.missing" in [f.code for f in report.baseline.forgiven]
 
 
+#: A README whose block was derived from nothing. Stale at the revision, so a project that
+#: adopts the gate with one already in it is the case the two tests below separate (RK104).
+STALE_README = f"""# A project
+
+<!-- roadkeep:begin -->
+| Block | Open | Shipped |
+| --- | --- | --- |
+<!-- roadkeep:end -->
+"""
+
+
+def test_a_block_this_change_left_stale_is_new_debt(tmp_path):
+    # The symptom RK104 names, at the one revision where it can be attributed: the block was
+    # current, this commit shipped a task, and nothing re-derived it.
+    config = repo(tmp_path, files={"README.md": STALE_README})
+    assert main(["-C", str(tmp_path), "export", "--readme"]) == EXIT_OK
+    git(tmp_path, "add", "-A")
+    git(tmp_path, "commit", "--quiet", "-m", "docs: derive the block")
+    # The block is current at the revision, so the standing debt is the fixture's own one.
+    assert codes(lint(config)) == ["ref.unresolved RK2"]
+    write(tmp_path, "ROADMAP.md", ROADMAP.replace("- 📋 **RK2**", "- 🛠 **RK2**"))
+    assert codes(lint(config, baseline="HEAD")) == ["export.stale"]
+
+
+def test_a_block_that_was_already_stale_is_forgiven(tmp_path):
+    # The other direction, and the reason the block is derived from the *tree's* documents: a
+    # README stale before this change is standing debt, not something every commit after it
+    # is charged for. Plain `lint` still fails it, which is what makes it debt and not silence.
+    config = repo(tmp_path, files={"README.md": STALE_README})
+    write(tmp_path, "ROADMAP.md", ROADMAP.replace("a reason", "another reason"))
+    report = lint(config, baseline="HEAD")
+    assert report.clean
+    assert "export.stale" in [f.code for f in report.baseline.forgiven]
+    assert "export.stale" in codes(lint(config))
+
+
 def test_the_configuration_is_the_ruler_and_not_the_thing_measured(tmp_path):
     # Both runs are held to the config as it is now, so a limit lowered in this change makes
     # the lines it now refuses *standing debt* and not new work. Deliberate, and the reason

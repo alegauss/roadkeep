@@ -135,7 +135,14 @@ class Choice:
         )
 
 
-def pick(config: Config, block: str | None = None, designed: bool = False) -> Choice:
+def pick(
+    config: Config,
+    block: str | None = None,
+    designed: bool = False,
+    *,
+    backlog: Backlog | None = None,
+    claims: bool = True,
+) -> Choice:
     """Apply the three tiers to the roadmap, and say which one answered.
 
     ``block`` scopes every part of the answer — the tiers, the counts, the alternatives —
@@ -147,8 +154,16 @@ def pick(config: Config, block: str | None = None, designed: bool = False) -> Ch
     (RK83), for a caller who asked to *execute* rather than to plan. It narrows what may
     be chosen and nothing else: ``ready`` still counts every ready line, because the
     number of lines this backlog could start is not a fact the caller's intent changes.
+
+    ``backlog`` answers over files somebody else read — the state a transaction is about to
+    write, or a revision (RK104) — and ``claims = False`` asks the question the tiers were
+    before RK119: *what do the files alone say*. Both exist for the projection (RK39), which
+    is published, has to be idempotent, and is derived from the repository — so a next-ready
+    line that moved because a claim in one checkout expired would put a README permanently
+    one temp file away from stale, with nothing in any commit to explain it.
     """
-    backlog = Backlog.load(config)
+    if backlog is None:
+        backlog = Backlog.load(config)
     if block is not None and block not in backlog.declared_blocks():
         raise KeyError(
             f"no heading declares {config.schema.block_named(block)} (declares: "
@@ -162,7 +177,9 @@ def pick(config: Config, block: str | None = None, designed: bool = False) -> Ch
     ]
     # Over every line in scope and not only the ready ones (RK152): a blocked 🛠 line was
     # never a candidate and is still the line a reader most needs to know somebody is on.
-    claimed = {entry.id: entry for entry in claiming.live(config, considered)}
+    claimed = (
+        {entry.id: entry for entry in claiming.live(config, considered)} if claims else {}
+    )
     survey = _survey(backlog, considered, claimed)
     ordered = sorted(survey.ready, key=lambda e: id_order(e.task.id, config.schema))
     # Before the tiers and before `designed`, because a claim is a fact about the checkout

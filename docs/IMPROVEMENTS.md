@@ -213,30 +213,6 @@ own construction, the number to report is one build, not fifty-two.
 
 ## Block D — The gate
 
-### §RK104 The block the gate does not read
-
-RK39 made the README's status table derived rather than restated, on the argument that a
-README which repeats a backlog it cannot re-read is stale from the first ship. The
-derivation shipped; the gate over it did not. `lint` reads the four governed files and
-the every-turn budgets, and never opens the README at all — so a commit that ships a
-task and forgets `export --readme` leaves a table contradicting the ledger, and the gate
-passes.
-
-What catches it here is `test_this_repositorys_readme_is_current`, a pytest fixture in
-this repository. An adopting project installs the plugin, not the test suite, so it has
-the command and nothing that runs it. That is the arrangement RK39 was written against,
-one file over: a restatement whose currency depends on somebody remembering.
-
-The check is cheap because the write already exists — splice the derived block into the
-file in memory and compare. Equal is silence; different is one finding naming the
-command that repairs it, which puts it in `--fix`'s territory rather than the
-editorial's, because the block is derived by definition.
-
-Measured on this repository across four commits: the generated block stayed correct
-every time, and the hand-written paragraph beside it went stale three times. So the gate
-wants the marked block, which is checkable, and the prose around it is a different
-question that a word budget and not a diff would answer.
-
 ### §RK105 A property test over somebody else's working tree
 
 L3 is proven over real files, and the two live corpora are what make that more than a

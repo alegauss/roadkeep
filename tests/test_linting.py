@@ -24,7 +24,10 @@ import pytest
 
 from roadkeep.cli import EXIT_GATE, EXIT_OK, main
 from roadkeep.config import Config
+from roadkeep.exporting import BEGIN, END
+from roadkeep.exporting import project as exported
 from roadkeep.linting import lint
+from roadkeep.picking import take
 
 HERE = Path(__file__).resolve().parents[1]
 #: A backlog that never heard of this tool, read where it lives and never written to.
@@ -103,6 +106,10 @@ def test_this_repository_passes_its_own_gate():
         "docs/ROADMAP.md",
         "docs/CHANGELOG.md",
         "docs/IMPROVEMENTS.md",
+        # The one file here the tool does not own, read because it carries the markers that
+        # say it restates the backlog (RK104). `docs/index.html` carries none, so it is not
+        # in this tuple — a pitch that states no count cannot state one wrongly.
+        "README.md",
         "agents.md",
         "CLAUDE.md",
     )
@@ -827,6 +834,116 @@ def test_a_budget_is_read_from_the_configuration_and_not_from_the_file(tmp_path)
         CONFIG + '\n[budgets]\n"agents.md" = { lines = 39 }\n', encoding="utf-8"
     )
     assert not lint(Config.discover(tmp_path)).clean
+
+
+# -- the block the tool writes outside a governed file (RK104) -----------------
+
+
+def readme(tmp_path: Path, body: str, name: str = "README.md") -> Config:
+    """A project whose README carries a projection — current, stale, or malformed."""
+    config = project(tmp_path)
+    (tmp_path / name).parent.mkdir(parents=True, exist_ok=True)
+    with (tmp_path / name).open("w", encoding="utf-8", newline="") as handle:
+        handle.write(body)
+    return config
+
+
+def marked(inside: str) -> str:
+    return f"# A project\n\nProse the author owns.\n\n{BEGIN}\n{inside}\n{END}\n"
+
+
+def derived(config: Config, shape: str = "markdown") -> str:
+    return exported(config).body(shape)
+
+
+def test_a_file_with_no_markers_is_not_a_target(tmp_path):
+    # The markers are the author's declaration (RK37): a README that restates nothing cannot
+    # restate it wrongly, and inventing the container is the one thing a gate may not do.
+    config = readme(tmp_path, "# A project\n\nNo projection here.\n")
+    report = lint(config)
+    assert report.clean and "README.md" not in report.checked
+
+
+def test_a_current_block_is_silence(tmp_path):
+    config = project(tmp_path)
+    (tmp_path / "README.md").write_text(marked("stale"), encoding="utf-8", newline="")
+    config = Config.discover(tmp_path)
+    (tmp_path / "README.md").write_text(
+        marked(derived(config)), encoding="utf-8", newline=""
+    )
+    report = lint(config)
+    assert report.clean and "README.md" in report.checked
+
+
+def test_a_stale_block_fails_and_names_the_command(tmp_path):
+    # The symptom: a commit ships a task, forgets `export`, and the table now contradicts
+    # the ledger it was derived from — which every gate passed before this check existed.
+    config = readme(tmp_path, marked("| Block | Open | Shipped |\n| --- | --- | --- |\n"))
+    report = lint(config)
+    stale = next(f for f in report.findings if f.code == "export.stale")
+    assert stale.file == "README.md" and "export --readme" in stale.message
+    # On the begin marker, not on the file: the block has a place, and a reader sent to the
+    # file is sent to look for it (RK34's reading of a column).
+    assert stale.lineno == 5
+
+
+def test_the_stale_block_is_reported_and_never_rewritten(tmp_path):
+    config = readme(tmp_path, marked("nothing derived this"))
+    before = (tmp_path / "README.md").read_bytes()
+    assert not lint(config).clean
+    assert (tmp_path / "README.md").read_bytes() == before
+
+
+def test_a_begin_with_no_end_has_no_block_to_compare(tmp_path):
+    config = readme(tmp_path, f"# A project\n\n{BEGIN}\nhalf a container\n")
+    report = lint(config)
+    unmarked = next(f for f in report.findings if f.code == "export.unmarked")
+    assert "no end marker" in unmarked.message and BEGIN in unmarked.message
+
+
+def test_the_page_shape_is_gated_where_the_page_is(tmp_path):
+    # The same check for `--site`, addressed by the flag that writes it: HTML between the
+    # same two markers is the other half of RK39, and a stale meter is a stale count.
+    config = readme(tmp_path, marked("<p>nobody re-derived this</p>"), "docs/index.html")
+    stale = next(f for f in lint(config).findings if f.code == "export.stale")
+    assert stale.file == "docs/index.html" and "export --site" in stale.message
+
+
+def test_a_page_carrying_its_own_derived_html_is_clean(tmp_path):
+    config = project(tmp_path)
+    (tmp_path / "docs").mkdir()
+    (tmp_path / "docs" / "index.html").write_text(
+        marked(derived(config, "html")), encoding="utf-8", newline=""
+    )
+    assert lint(Config.discover(tmp_path)).clean
+
+
+def test_the_gate_reads_the_same_bytes_the_write_produces(tmp_path):
+    """`export` then `lint` is silence, which is the only property that makes this a gate.
+
+    Asserted through the command rather than through the function: the two would agree on
+    any pair of renderers, and what is being held is that they agree on *the* pair.
+    """
+    config = readme(tmp_path, marked("stale"))
+    assert main(["-C", str(tmp_path), "export", "--readme"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "lint"]) == EXIT_OK
+
+
+def test_a_claim_that_expires_moves_no_byte(tmp_path, monkeypatch):
+    """The projection is claim-blind, so nothing outside the repository can make it stale.
+
+    A claim is dated in a temp file and expires on a clock. A README derived through one
+    would change bytes with no commit to explain the change, and a gate over those bytes
+    would be red for a reason nobody can look up.
+    """
+    config = project(tmp_path, roadmap=CLEAN.replace("📋 **RK1**", "🛠 **RK1**"))
+    (tmp_path / "README.md").write_text(
+        marked(derived(config)), encoding="utf-8", newline=""
+    )
+    config = Config.discover(tmp_path)
+    assert lint(config).clean
+    take(config, None)  # RK1 is in progress, so tier 1 claims exactly that line
+    assert lint(config).clean
 
 
 # -- the id shape a project declares (RK106) ----------------------------------

@@ -32,7 +32,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 
 from roadkeep.config import Config
-from roadkeep.document import Entry, Reject
+from roadkeep.document import Document, Entry, Reject
 from roadkeep.schema import DEFAULT_HEADING_WORD, Schema
 
 
@@ -73,7 +73,16 @@ class Census:
 
     @classmethod
     def read(cls, config: Config, role: str = "roadmap") -> Census:
-        document = config.document(role)
+        return cls.of(config, role, config.document(role))
+
+    @classmethod
+    def of(cls, config: Config, role: str, document: Document) -> Census:
+        """The same count over a document somebody else read.
+
+        The seam a caller holding a file it did not open off disk needs — a projection
+        derived at a revision (RK104), or a transaction counting what it is about to write.
+        Nothing here touches the filesystem, so what is counted is what was handed over.
+        """
         return cls(
             role=role,
             file=config.relative(config.path(role)),

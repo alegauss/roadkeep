@@ -42,6 +42,13 @@ pointer is read from the parsed ``ref`` field and never from the line's text: §
 own `why` quotes a pointer as an example, and a scan over the line would report that
 quotation as the broken pointer it is not.
 
+And the one block the tool writes **outside** a governed file: a projection of the backlog
+is derived rather than restated (RK39), and nothing held the derivation to the files it came
+from — so a commit that ships a task and forgets `export` left a README contradicting the
+ledger, caught here by a pytest fixture an adopting project does not install (RK104). The
+markers are the author's declaration, so a file carrying none is silent; a file carrying them
+is spliced in memory and compared, and a difference is one finding naming the command.
+
 And one file the tool never writes: **an always-loaded instruction file has a budget, and
 a budget stated in its own prose is what let Shio's `agents.md` reach 186 KB** while
 declaring 150 lines at the bottom of itself (RK30). So `roadkeep.toml` declares it and the
@@ -87,6 +94,7 @@ from roadkeep import scoping
 from roadkeep.backlog import Backlog, DepStatus, id_order
 from roadkeep.config import ROLES, Config
 from roadkeep.document import Document, ending
+from roadkeep.exporting import BEGIN, DEFAULTS, NoMarkers, project, splice
 from roadkeep.graph import Graph
 from roadkeep.history import (
     HistoryUnavailable,
@@ -361,6 +369,10 @@ def _examine(config: Config, since: str | None, tree: Tree) -> Report:
         if since is not None:
             notes.extend(_unpaired(config, sections, since))
     findings.extend(_paths(config, documents, tree))
+
+    targets = _targets(config, tree)
+    checked.extend(target.where for target in targets)
+    findings.extend(_projections(config, documents, targets))
 
     for budget in config.budgets:
         checked.append(config.relative(budget.path))
@@ -1143,6 +1155,101 @@ def _paths(config: Config, documents: dict[str, Document], tree: Tree) -> list[F
         for referenced in paths_in(entry.raw, config.root, near=near)
         if not referenced.exists and not tree.carries(referenced.path, near)
     ]
+
+
+@dataclass(frozen=True, slots=True)
+class Target:
+    """A file carrying a projection of the backlog, as this tree holds it (RK104)."""
+
+    #: The `export` flag that writes it, which is what the repair is named by.
+    flag: str
+    #: The path as the project spells it.
+    where: str
+    #: Which of the two shapes belongs between its markers.
+    shape: str
+    text: str
+
+
+def _targets(config: Config, tree: Tree) -> tuple[Target, ...]:
+    """Every file `export` writes that has been given somewhere to write (RK104).
+
+    **The markers are the declaration**, so a file carrying none is not a target and is not
+    read again (RK37): a README restating nothing cannot restate it wrongly, and demanding the
+    container would be a gate inventing what only the author may put there — which is why
+    `docs/index.html` here, a pitch with no strip in it, is not one.
+    """
+    out: list[Target] = []
+    for flag, (name, shape) in DEFAULTS.items():
+        path = config.root / name
+        raw = tree.blob(path)
+        if raw is None:
+            continue
+        text = raw.decode("utf-8", errors="replace")
+        if BEGIN in text:
+            out.append(Target(flag, config.relative(path), shape, text))
+    return tuple(out)
+
+
+def _projections(
+    config: Config, documents: dict[str, Document], targets: tuple[Target, ...]
+) -> list[Finding]:
+    """The derived block in a file this tool does not own, checked where it was written (RK104).
+
+    RK39 made the README's status table derived rather than restated, on the argument that a
+    file repeating a backlog it cannot re-read is stale from the first ship. The derivation
+    shipped and the gate over it did not, so a commit that ships a task and forgets `export`
+    leaves a table contradicting the ledger — and what caught that here was a pytest fixture,
+    which an adopting project does not install with the plugin.
+
+    Two decisions, and each is the same one made elsewhere in this module:
+
+    * **The block is compared, never repaired.** Every character of it is derived, so the
+      repair is one command and the finding names it; writing it from here would make the
+      linter a writer (L4), and `--fix` is where a derived field is normalised (RK16).
+    * **The finding lands on the begin marker.** It is a defect about that block and the block
+      has a place, the same reading RK34 makes of a column — so the report is usable, and the
+      `Stop` hook's own narrowing (RK60) leaves a turn that merely moved a marker alone. What
+      a projection goes stale against is a commit, and the commit is where this bites.
+
+    The block is derived from the tree's own documents, so a baseline run compares a revision's
+    README against the counts *that* revision's files render: a stale block is standing debt to
+    be named and forgiven (RK84), not something every commit after it is charged for.
+    """
+    if not targets or "roadmap" not in documents:
+        return []
+    projection = project(config, documents)
+    out: list[Finding] = []
+    for target in targets:
+        try:
+            if splice(target.text, projection.body(target.shape), target.where) == target.text:
+                continue
+        except NoMarkers as error:
+            # A begin with no end, or the two in the wrong order: the block has no extent, so
+            # there is nothing to compare and `export` refuses the same file for the same
+            # reason. Reported with the message that names the two lines to paste.
+            out.append(
+                Finding("export.unmarked", target.where, str(error), _marked(target.text))
+            )
+            continue
+        out.append(
+            Finding(
+                "export.stale",
+                target.where,
+                f"the block between the roadkeep markers is not what the governed files "
+                f"render: `roadkeep export --{target.flag}` rewrites it, and every "
+                f"character of it is derived",
+                _marked(target.text),
+            )
+        )
+    return out
+
+
+def _marked(text: str) -> int | None:
+    """Where the block starts, as an editor counts — the line the report sends a reader to."""
+    for number, line in enumerate(text.split("\n"), start=1):
+        if line.strip() == BEGIN:
+            return number
+    return None
 
 
 def _cycles(backlog: Backlog, file: str) -> list[Finding]:
