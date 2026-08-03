@@ -549,6 +549,93 @@ def amend(
     )
 
 
+@dataclass(frozen=True, slots=True)
+class Restatement:
+    """One line's falsifiable claim, corrected under the id that keeps it (RK178).
+
+    Not an :class:`Amendment` with a fourth field, and the separation is the whole answer:
+    `amend` reaches the fields a description gets *wrong about work that did not change*, and
+    it excludes this one because a different symptom is normally a different task (RK65). That
+    reason is sound and its outcome was not — a premise that turns out false leaves the file
+    this tool exists to keep true asserting something false, in the field a reader sees first.
+
+    So the correction is a verb rather than a flag, and this shape is what makes it *recorded*
+    instead of hidden: the act has a name in the history, and the answer prints both readings,
+    so a reviewer sees a restatement where a `--symptom` inside `amend` would have shown a
+    word changing. What it deliberately does **not** carry is a reason — there is no field in
+    the format for one, and an argument the tool cannot store is an argument it must not
+    pretend to take (L4). The commit that removes the false claim is where it belongs.
+    """
+
+    document: Document
+    entry: Entry
+    before: Task
+    #: Other lines whose dep annotation this write made true again (RK8). Normally empty: a
+    #: symptom is nobody's dependency, and this is here because the write path derives it.
+    refreshed: tuple[str, ...] = ()
+
+    @property
+    def changed(self) -> bool:
+        return self.before.symptom != self.entry.task.symptom
+
+    @property
+    def rendered(self) -> str:
+        return self.entry.raw
+
+    @property
+    def lineno(self) -> int:
+        return self.entry.lineno
+
+
+def restate(config: Config, task_id: str, symptom: str) -> Restatement:
+    """Correct one open line's symptom, keeping its id, its deps and its section (RK178).
+
+    The door RK65 was right to leave shut and the one nothing else opened. Measured in
+    claude-tray: T210 was written from a list of response headers, executing it meant reading
+    the files, and the premise was false — nothing there derived what the line asserted. The
+    `why` was corrected, the marker dropped to an idea, the rationale rewritten to open by
+    refuting itself, and the symptom could not be touched at all.
+
+    The designed exit was `retire` plus `add`, and it costs twice: it spends an id, deletes a
+    section that was already right, and records a departure where none happened — and RK125
+    shows a project that cannot retire at all. None of that is a price a *correction* should
+    pay, because the work never changed. So the id stays, which is what the history is keyed
+    on, and every other field with it.
+
+    Nothing is written when nothing differs, as at the door next to this one: rewriting the
+    same bytes makes a no-op look like an edit to every hook watching the file.
+
+    A claim is deliberately not consulted. `status` refuses a held line because writing 🛠 is
+    an *assertion of ownership* (RK160), and this write touches no marker: the person who
+    discovers a premise is false is normally the one holding the line, and a rule that refused
+    them would be a rule against the case this verb exists for.
+    """
+    backlog = Backlog.load(config)
+    roadmap = backlog.roadmap
+    entry = roadmap.by_id().get(task_id)
+    if entry is None:
+        raise NotOpen(
+            task_id,
+            config.relative(config.path("roadmap")),
+            shipped=task_id in backlog.shipped(),
+        )
+    twins = tuple(e.lineno for e in roadmap.entries if e.task.id == task_id)
+    if len(twins) > 1:
+        raise DuplicateId(task_id, config.relative(config.path("roadmap")), twins)
+
+    updated = config.schema.check(derive(backlog, replace(entry.task, symptom=symptom)))
+    if updated == entry.task:
+        return Restatement(document=roadmap, entry=entry, before=entry.task)
+    derived = refresh(replace(backlog, roadmap=roadmap.replace_task(entry, updated)))
+    derived.document.save()
+    return Restatement(
+        document=derived.document,
+        entry=next(e for e in derived.document.entries if e.lineno == entry.lineno),
+        before=entry.task,
+        refreshed=tuple(name for name in derived.changed if name != task_id),
+    )
+
+
 def _refuse_sibling_status(config: Config, task_id: str) -> None:
     """Any other governed file carrying a marker for this id is the disagreement."""
     for role in ROLES:

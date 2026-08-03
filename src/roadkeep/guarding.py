@@ -117,6 +117,9 @@ _INSTEAD: Mapping[str, tuple[tuple[str, str], ...]] = {
         ("block drop <x>", "withdraw a label: refused by name over any line under it"),
         ("status <id> <marker>", "a marker, and only in this file"),
         ('amend <id> --why "…"', "correct the why, the deps or the pointer of a line"),
+        # The field that one excludes, which is the whole reason it is a second row (RK178): a
+        # denial naming only `amend` sends a reader to the verb that refuses this field.
+        ('restate <id> --symptom "…"', "a symptom whose premise turned out to be false"),
         ("ship <id>", "shipped: ledger entry, line gone, section dropped"),
         ('retire <id> --reason "…"', "gone without shipping"),
         # The one bullet in this file that is not a task line, and the reason the five above

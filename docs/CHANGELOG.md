@@ -70,6 +70,7 @@
 - ✅ **RK157** **A new ledger entry lands between the last entry and its own wrapped lines** — `Entry` carries the span the parser already knew, so an insertion lands after the whole last entry and a removal takes the whole one.
 - ✅ **RK166** **A newly declared block cannot receive its first rationale section** — A one-segment outline anchor opens a new top level, placed after the last one at the depth the file writes one at, and a task's section is placed by its anchor.
 - ✅ **RK169** **section drop deletes rationale a live line points at, when the anchor is a bullet** — The guard reads the name too, so an address under the anchor is claimed prose whether the file writes it as a heading or as a bullet.
+- ✅ **RK178** **A line whose bold symptom turns out to be false has no repair** — `restate <id> --symptom` corrects the claim under the id that keeps it, so a false premise costs neither an id nor a section nor a departure that never happened.
 
 ## Block C — Query
 

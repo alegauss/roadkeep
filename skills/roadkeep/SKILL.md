@@ -14,7 +14,7 @@ not on PATH.
 ## Writing and shipping
 
 When the `mcp__roadkeep__*` tools are available, **prefer them**: the whole write path and
-the reads a task needs are there — `add`, `block_add`, `block_drop`, `claim`, `status`, `amend`, `ship`, `retire`, `defer`, `resume`,
+the reads a task needs are there — `add`, `block_add`, `block_drop`, `claim`, `status`, `amend`, `restate`, `ship`, `retire`, `defer`, `resume`,
 `record_add`,
 `record_amend`, `record_move`, `record_drop`, `record_renumber`, `non_goal_add`, `non_goal_drop`, `section_add`, `section_amend`, `section_drop`, `brief`, `pick`, `list`, `deps`, `lint` — same engine and same
 refusals, with
@@ -23,7 +23,7 @@ the fields arriving as a schema instead of flag names typed from memory. `init`,
 and the guard into a project running the tool from a checkout, and `install --check` is what
 holds its copy of this file in step. Every guarantee below holds either way.
 
-`roadkeep <add|status|amend|ship|retire|record|non-goal|section> --help` has the flags. What they guarantee,
+`roadkeep <add|status|amend|restate|ship|retire|record|non-goal|section> --help` has the flags. What they guarantee,
 so it costs you no thought: the id, the `→ §<id>` pointer, the status default and every
 `(deps: … ✅)` annotation are **derived, never typed** — where a project declares `prefix` as a
 list it numbers by track, and then `add --prefix <letter>` says which track while the number
@@ -37,7 +37,13 @@ its three edits** (ledger entry, roadmap line gone, `§<id>` deleted) plus the d
 annotations, or none — and `--why` is **required**, because the roadmap's sentence states a
 problem and the ledger's states an outcome, so inheriting it files a defect report under a
 heading meaning "done" (`record amend <id> --why` is the repair where one already did), and `retire <id> [--superseded-by <id>] --reason "…"` is the same
-transaction, two more doors. **`ship <id>` is also how one that stopped halfway is finished**:
+transaction, two more doors. **The `symptom` is not one of `amend`'s fields** — it is the
+falsifiable claim the line is, so a different one is a different task — and where the premise
+itself turned out false, `restate <id> --symptom "…"` is that correction and the only door to
+it: the id, the deps, the marker and the section all stay, because the work never changed and
+only the description of it was wrong. Reach for it instead of `retire` plus `add`, which spends
+an id and deletes a design that was already right. It takes no reason: the format has nowhere
+to put one, so the commit that removes the false claim is where it belongs. **`ship <id>` is also how one that stopped halfway is finished**:
 the ledger is written first, so a crash leaves the id in two files (`lint` says `id.two-files`)
 and re-running `ship` closes the line without writing a second entry. It refuses instead where
 the files say the work is in halves — a ⏳ line or an entry naming one — or where the line and

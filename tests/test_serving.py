@@ -157,6 +157,9 @@ def test_the_tools_are_what_a_task_needs_end_to_end():
         "claim",
         "status",
         "amend",
+        # The field `amend` excludes, at its own door (RK178): a premise that turned out false
+        # is not a different task, and the exit designed for it spends an id and a section.
+        "restate",
         # The door a merge that spent one id twice needs (RK97) — beside `amend`, whose
         # every other field it is, and which deliberately refuses this one.
         "renumber",
@@ -444,6 +447,7 @@ def test_the_read_only_hint_says_which_tools_write(tmp_path):
         "block_drop",
         "status",
         "amend",
+        "restate",
         "renumber",
         "ship",
         "retire",

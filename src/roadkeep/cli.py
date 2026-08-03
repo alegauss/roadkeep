@@ -43,7 +43,7 @@ from pathlib import Path
 
 from roadkeep import claiming
 from roadkeep.adopting import Estimate, adopt, init
-from roadkeep.authoring import StatusChange, add, amend, set_status
+from roadkeep.authoring import StatusChange, add, amend, restate, set_status
 from roadkeep.backlog import Backlog
 from roadkeep.blocking import drop_block, open_block
 from roadkeep.briefing import Brief, brief, non_goals
@@ -439,6 +439,28 @@ def build_parser() -> argparse.ArgumentParser:
     )
     amend_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     amend_parser.set_defaults(handler=_amend)
+
+    restate_parser = subcommands.add_parser(
+        "restate",
+        help="correct one open line's symptom, keeping its id",
+        description=(
+            "The one field `amend` does not reach, at a door of its own. A different symptom "
+            "is normally a different task, which is why that verb excludes it — and a premise "
+            "that turns out false is not a different task, it is this file asserting "
+            "something untrue in the field a reader sees first. `retire` plus `add` is the "
+            "exit that was designed for it, and it spends an id, deletes a section that was "
+            "already right and records a departure that never happened. This keeps all three. "
+            "A verb rather than a flag, so the act has a name a reviewer can see."
+        ),
+    )
+    restate_parser.add_argument("id", help="the task, e.g. RK7")
+    restate_parser.add_argument(
+        "--symptom",
+        required=True,
+        help="what does not work — re-validated against the limit, exactly as `add` does",
+    )
+    restate_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    restate_parser.set_defaults(handler=_restate)
 
     renumber_parser = subcommands.add_parser(
         "renumber",
@@ -1843,6 +1865,48 @@ def _amend(config: Config, args: argparse.Namespace) -> int:
     print(f"  {amended.rendered}")
     if amended.refreshed:
         print(f"  derived  {', '.join(amended.refreshed)} (dep annotations re-derived)")
+    return EXIT_OK
+
+
+def _restate(config: Config, args: argparse.Namespace) -> int:
+    try:
+        restated = restate(config, args.id, args.symptom)
+    except REFUSALS as error:
+        return _refused(error)
+
+    where = config.relative(config.path("roadmap"))
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "id": args.id,
+                    "file": where,
+                    "line": restated.lineno,
+                    # Both readings, which is what makes this recorded rather than hidden: a
+                    # reviewer sees a claim replaced where a flag would show a word changing.
+                    "was": restated.before.symptom,
+                    "now": restated.entry.task.symptom,
+                    "changed": restated.changed,
+                    "rendered": restated.rendered,
+                    "refreshed": list(restated.refreshed),
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+
+    if not restated.changed:
+        print(f"{args.id} unchanged: the line already states that symptom")
+        return EXIT_OK
+    print(f"{args.id} restated  {where}:{restated.lineno}")
+    print(f"  was      {restated.before.symptom}")
+    print(f"  now      {restated.entry.task.symptom}")
+    print(f"  {restated.rendered}")
+    # Said out loud, because keeping them is the whole argument for the verb: the work never
+    # changed, so nothing the history is keyed on moves.
+    print("  kept     the id, the deps and the section: the work never changed")
+    if restated.refreshed:
+        print(f"  derived  {', '.join(restated.refreshed)} (dep annotations re-derived)")
     return EXIT_OK
 
 

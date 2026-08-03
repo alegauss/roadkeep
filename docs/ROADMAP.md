@@ -27,8 +27,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK178** (deps: —) **A line whose bold symptom turns out to be false has no repair** — amend excludes the symptom by design because it is the line's identity, so the answer is retire and re-file — which RK125 shows a project can lack, and which spends an id and a section either way. → §RK178
-
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK174** (deps: —) **Listing the tools rebuilds the whole CLI parser fifty-two times and costs a sixth of a second** — `_subparser` calls `build_parser` per lookup and each descriptor needs two — the schema and whether the tool writes — so a client's first message pays 165ms rebuilding what never changed. → §RK174

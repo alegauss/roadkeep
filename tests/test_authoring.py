@@ -27,6 +27,7 @@ from roadkeep.authoring import (
     UnknownBlock,
     add,
     amend,
+    restate,
 )
 from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
@@ -458,10 +459,98 @@ def test_amend_refuses_an_id_that_is_not_open(tmp_path):
 
 def test_the_symptom_is_not_amendable():
     """It is the falsifiable claim the line *is*, so a different one is a different task — and
-    the corpus agrees it is not the problem: 0 of Shio's 78 over the limit, against 70 whys."""
+    the corpus agrees it is not the problem: 0 of Shio's 78 over the limit, against 70 whys.
+
+    Not unreachable, though (RK178): `restate` is its door, and the separation is the answer —
+    a flag here would have shown a reviewer a word changing where a claim was replaced."""
     import inspect
 
     assert "symptom" not in inspect.signature(amend).parameters
+    assert "symptom" in inspect.signature(restate).parameters
+
+
+# -- the one field a correction could not reach (RK178) ------------------------
+
+
+def test_restate_replaces_the_claim_and_keeps_everything_it_is_keyed_on(tmp_path):
+    # Measured in claude-tray: a line written from a list of response headers, whose premise
+    # turned out false. The `why` was corrected, the marker dropped, the rationale rewritten to
+    # refute itself — and the roadmap went on asserting the false claim in bold.
+    config = project(tmp_path)
+    restated = restate(config, "RK1", "A premise that turned out to be false")
+
+    assert restated.changed
+    assert restated.before.symptom == "A first symptom"
+    assert "**A premise that turned out to be false**" in restated.rendered
+    # The whole argument for the verb: the work never changed, so nothing the history is keyed
+    # on moves — not the id, not the deps, not the pointer, not the marker.
+    task = config.document("roadmap").by_id()["RK1"].task
+    assert (task.id, task.deps, task.ref, task.status) == (
+        restated.before.id,
+        restated.before.deps,
+        restated.before.ref,
+        restated.before.status,
+    )
+    assert "A premise that turned out to be false" in source(config)
+
+
+def test_restate_re_validates_the_symptom_and_writes_nothing_when_it_refuses(tmp_path):
+    # L1 at this door as at every other: the limit is met before the sentence exists, and a
+    # symptom is a phrase naming what does not work rather than a sentence.
+    config = project(tmp_path)
+    before = source(config)
+    with pytest.raises(SchemaError, match="symptom"):
+        restate(config, "RK1", "A claim " + "that is far too long " * 12)
+    with pytest.raises(SchemaError, match="symptom"):
+        restate(config, "RK1", "This one is written as a sentence.")
+    assert source(config) == before
+
+
+def test_restate_writes_nothing_when_the_line_already_states_it(tmp_path):
+    config = project(tmp_path)
+    before = source(config)
+    restated = restate(config, "RK1", "A first symptom")
+    assert not restated.changed and source(config) == before
+
+
+def test_restate_refuses_an_id_that_is_not_open(tmp_path):
+    config = project(tmp_path)
+    with pytest.raises(NotOpen):
+        restate(config, "RK404", "A claim about nothing")
+
+
+def test_the_restate_command_prints_both_readings(tmp_path, capsys):
+    # What makes it *recorded* rather than hidden: a reviewer sees a claim replaced, where a
+    # `--symptom` inside `amend` would have shown a word changing.
+    project(tmp_path)
+    code = main(
+        ["-C", str(tmp_path), "restate", "RK1", "--symptom", "A premise that was false"]
+    )
+    assert code == EXIT_OK
+    out = capsys.readouterr().out
+    assert out.startswith("RK1 restated  docs/ROADMAP.md:5")
+    assert "was      A first symptom" in out
+    assert "now      A premise that was false" in out
+    assert "kept     the id, the deps and the section" in out
+
+
+def test_the_restate_json_carries_both_readings(tmp_path, capsys):
+    project(tmp_path)
+    assert main(
+        ["-C", str(tmp_path), "restate", "RK1", "--symptom", "A premise that was false", "--json"]
+    ) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["was"] == "A first symptom"
+    assert payload["now"] == "A premise that was false"
+    assert payload["changed"] is True and payload["line"] == 5
+
+
+def test_restate_takes_no_reason_because_the_format_has_nowhere_to_put_one(tmp_path):
+    # An argument the tool cannot store is an argument it must not pretend to take (L4). The
+    # commit that removes the false claim is where the reason belongs.
+    import inspect
+
+    assert list(inspect.signature(restate).parameters) == ["config", "task_id", "symptom"]
 
 # -- the rationale the pointer needs (RK93) ------------------------------------
 
