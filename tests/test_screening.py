@@ -23,14 +23,15 @@ from __future__ import annotations
 import ast
 import io
 import json
+import os
 import sys
 from pathlib import Path
 
 import pytest
 
 from roadkeep.config import CONFIG_NAME
-from roadkeep.guarding import ASK_TOOLS, guard
-from roadkeep.screening import SCREENED, worth_loading
+from roadkeep.guarding import GUARDED_TOOLS, WRITE_TOOLS, guard
+from roadkeep.screening import NAMING, SCREENED, worth_loading
 
 ROADMAP = "docs/ROADMAP.md"
 CHANGELOG = "docs/CHANGELOG.md"
@@ -120,11 +121,52 @@ def test_a_project_that_declares_nothing_is_never_loaded_for(tmp_path):
     assert not worth_loading(payload("git status --short", tmp_path), tmp_path)
 
 
-def test_a_write_tool_is_not_screened(tmp_path):
-    # It names its file, so the config that decides is the one above the *path* and not the
-    # one above `cwd` — a distinction this module deliberately does not try to make.
+@pytest.mark.parametrize("tool", NAMING)
+def test_a_write_tool_naming_a_governed_file_loads(tmp_path, tool):
     root = project(tmp_path)
-    assert worth_loading(payload("irrelevant", root, tool="Edit"), root)
+    assert worth_loading(writes(ROADMAP, root, tool=tool), root)
+
+
+@pytest.mark.parametrize("tool", NAMING)
+def test_a_write_tool_naming_anything_else_does_not(tmp_path, tool):
+    # The tool the guard was written for, and the one RK176 left at 164ms a call.
+    root = project(tmp_path)
+    assert not worth_loading(writes("src/thing.py", root, tool=tool), root)
+
+
+def test_a_path_that_only_contains_a_governed_one_is_not_it(tmp_path):
+    # Equality and not containment: `docs/ROADMAP.md.bak` is a different file, and a screen
+    # that loaded for it would be right at a cost while one that refused would be wrong.
+    root = project(tmp_path)
+    assert not worth_loading(writes(ROADMAP + ".bak", root), root)
+
+
+def test_a_governed_path_named_absolutely_is_still_it(tmp_path):
+    root = project(tmp_path)
+    assert worth_loading(writes(str(root / ROADMAP), root), root)
+
+
+def test_a_governed_path_spelled_in_another_case_is_still_it(tmp_path):
+    # `guarding._comparable` normcases for this reason, and a screen that missed it would
+    # skip the write the guard exists to refuse — on Windows, and silently.
+    root = project(tmp_path)
+    if os.path.normcase("A") == os.path.normcase("a"):
+        assert worth_loading(writes("docs/roadmap.md", root), root)
+
+
+def test_a_write_tool_with_no_path_at_all_is_silence(tmp_path):
+    root = project(tmp_path)
+    assert not worth_loading(
+        json.dumps(
+            {
+                "hook_event_name": "PreToolUse",
+                "tool_name": "Edit",
+                "cwd": str(root),
+                "tool_input": {"old_string": "a"},
+            }
+        ),
+        root,
+    )
 
 
 def test_the_events_that_are_not_a_tool_call_are_not_screened(tmp_path):
@@ -152,9 +194,10 @@ def test_a_payload_that_is_not_json_loads(tmp_path):
 
 
 def test_the_screened_set_is_the_guards_own(tmp_path):
-    # Widening `ASK_TOOLS` again without widening this would leave the new tool paying the
-    # full price in silence, which is the failure mode nothing else here would report.
-    assert SCREENED == ASK_TOOLS
+    # A tool added to the matcher and not here is one that quietly keeps paying the full
+    # price, which is the failure mode nothing else in this file would report.
+    assert sorted(SCREENED) == sorted(GUARDED_TOOLS)
+    assert sorted(NAMING) == sorted(WRITE_TOOLS)
     assert CONFIG_NAME == "roadkeep.toml"
 
 
@@ -202,3 +245,28 @@ def _launcher():
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+def writes(path: str, root: Path, *, tool: str = "Edit") -> str:
+    """A `PreToolUse` payload from a tool that names the file it writes."""
+    return json.dumps(
+        {
+            "hook_event_name": "PreToolUse",
+            "tool_name": tool,
+            "cwd": str(root),
+            "tool_input": {"file_path": path, "old_string": "a", "new_string": "b"},
+        }
+    )
+
+
+@pytest.mark.parametrize("path", [ROADMAP, CHANGELOG, "src/thing.py", "README.md", "../x.md"])
+def test_the_write_screen_agrees_with_the_guard_in_both_directions(tmp_path, path):
+    # The safety argument for the half RK204 added, per path: what it skips the guard
+    # allows, and what the guard refuses it never skips.
+    root = project(tmp_path)
+    text = writes(path, root)
+    refused = guard(json.loads(text), root) is not None
+    if not worth_loading(text, root):
+        assert not refused
+    if refused:
+        assert worth_loading(text, root)

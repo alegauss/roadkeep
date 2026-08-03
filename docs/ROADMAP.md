@@ -57,8 +57,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 💭 **RK204** (deps: —) **A denied Edit pays the whole package import that a shell command no longer does** — RK176 screens `Bash` alone because a write tool needs the config found from its path and not from `cwd`, so the tool the guard exists to deny is the one still costing 110ms a call. → §RK204
-
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:

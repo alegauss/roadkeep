@@ -508,26 +508,3 @@ plugin and a console script. Answer that first; the marker is a consequence and 
 question.
 
 ## Block F — The plugin
-
-### §RK204 The half of the hook the screen does not cover
-
-RK176 took a `Bash` payload from 184ms to 77ms, and RK199 took what was left to 57ms.
-Both of them only ever look at one tool. `Edit`, `MultiEdit`, `NotebookEdit` and `Write`
-— the four the guard was written for — still import `roadkeep.cli` before deciding
-anything, and that is now the largest single cost on the whole hook.
-
-The reason given was a real one and it is not that it cannot be done: a write tool names
-the file it writes, so the config that decides is the one above **that path** rather
-than the one above `cwd`, and the screen resolves `cwd`. What it would take is walking
-up from the tool input's path instead — the same `roadkeep.toml` search, from a
-different starting point, in the same stdlib the screen already imports.
-
-The asymmetry worth checking first is how often it fires. A `Bash` payload naming a
-governed path is rare, which is why screening it pays; an `Edit` payload naming one is
-the whole reason the hook exists, and if most `Edit` calls in a governed project are
-edits to governed files then the screen would load every time and cost a stat for
-nothing. Count that before building it — the answer is a property of how sessions
-actually work, not of the code.
-
-What must not change either way: silence is the allow, and every failure allows. A
-screen that skipped a governed `Write` is not slow, it is a hole.
