@@ -77,30 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK179 The half of a sentence the parse never held
-
-RK157 gave `Entry` a span and used it where a write inserts or removes, and left
-`replace_task` on the first line deliberately: every field the schema renders was read
-off that line, so replacing the whole span with one rendered line would delete prose no
-task holds.
-
-That argument is right about an id and wrong about a sentence. Reproduced on a
-three-line entry: `record amend SH1 --why "It works now."` wrote the new sentence on
-line one and left `on a second line, and finishes` / `on a third one.` beneath it, so
-the entry states an outcome followed by the tail of the problem it replaced. The command
-printed the first line and called it amended, which is the report that hides it.
-
-The parse is the root: a wrapped entry's `why` is only as much of the sentence as fits
-on one line, so the field the author is shown and the field the file holds are different
-lengths. `_one_entry_twice` inherits it, calling two entries the same when only their
-first lines match.
-
-Three shapes, and choosing is the task. Refuse the correction on a wrapped entry, naming
-the lines the tool cannot reproduce — loud, and leaves Shio's 146 uncorrectable. Or read
-the whole span into the field, so the sentence the file holds is the one the schema
-charges. Or take the span and the new text together, so a correction says how many lines
-it replaces.
-
 ### §RK180 Half a derivation is a heading in the wrong place
 
 RK166 made the level of a *new top level* the file's own, and left `NESTED_LEVEL = 3`

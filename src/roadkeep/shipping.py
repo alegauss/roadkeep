@@ -419,6 +419,51 @@ class NoQualifier(ValueError):
         )
 
 
+class Wrapped(ValueError):
+    """A sentence correction on an entry the parse holds only the first line of (RK179).
+
+    A ledger written before this tool existed wraps its bullets, and a wrapped entry's `why`
+    is only as much of the sentence as fits on line one. Rewriting that line — which is all
+    :meth:`Document.replace_task` can reproduce — left the tail of the old sentence beneath
+    the new one, and the command printed the first line and called it amended.
+
+    Refused rather than defaulted either way, because both defaults are wrong: rewriting the
+    line alone is the entry that states an outcome followed by half a problem, and deleting
+    the span silently is prose no field of this task holds, removed by a command that was
+    asked to change a word. So the caller says how many lines the correction replaces — the
+    idiom `record drop --line` already uses, where naming what you read *is* the door — and
+    a count that does not match the span is refused too, an off-by-one here being the
+    deletion of somebody's paragraph.
+    """
+
+    def __init__(
+        self, task_id: str, where: str, entry: Entry, *, given: int | None
+    ) -> None:
+        self.task_id = task_id
+        self.lineno = entry.lineno
+        self.owned = entry.stop - entry.index
+        self.given = given
+        span = (
+            f"lines {entry.lineno}-{entry.stop}"
+            if self.owned > 1
+            else f"line {entry.lineno}"
+        )
+        said = (
+            (
+                f"the parse holds only as much of its sentence as fits on line "
+                f"{entry.lineno}, so correcting it replaces all {self.owned} — read them "
+                f"and pass --lines {self.owned}, which is you saying the text below the "
+                f"first line is the rest of the sentence being replaced"
+            )
+            if given is None
+            else (
+                f"--lines {given} is not that count: pass --lines {self.owned}, or check "
+                f"that this is the entry you read"
+            )
+        )
+        super().__init__(f"{where}:{entry.lineno}: {task_id} is written over {span} and {said}")
+
+
 class NoSuchReplacement(KeyError):
     """A forward pointer to an id that is in neither file (RK32).
 
@@ -665,7 +710,12 @@ class Corrected:
 
 
 def amend(
-    config: Config, task_id: str, *, why: str | None = None, part: str | None = None
+    config: Config,
+    task_id: str,
+    *,
+    why: str | None = None,
+    part: str | None = None,
+    lines: int | None = None,
 ) -> Corrected:
     """Correct one ledger entry's sentence, or a partial's qualifier, in place (RK124).
 
@@ -675,6 +725,11 @@ def amend(
 
     Refused on an id the ledger states twice: which of two entries a correction was written
     about is not a fact any file holds, and `record drop` is the door for a duplicate.
+
+    And refused on an entry that **wraps** unless `lines` says how many it replaces (RK179):
+    the correction is written over the whole span, so on a hand-written ledger it deletes
+    text the parse never held — and a write that silently removes prose is the one thing
+    this door was narrow enough to be incapable of.
     """
     ledger = config.document("changelog")
     where = config.relative(config.path("changelog"))
@@ -706,7 +761,16 @@ def amend(
     if not changed:
         return Corrected(task_id=task_id, ledger=ledger, entry=entry)
 
-    document = ledger.replace_task(entry, ledger.schema.check(wanted))
+    # Asked after `changed`, so an amend that alters nothing never demands a count for a
+    # write it is not going to make.
+    owned = entry.stop - entry.index
+    if lines is None:
+        if entry.wrapped:
+            raise Wrapped(task_id, where, entry, given=None)
+    elif lines != owned:
+        raise Wrapped(task_id, where, entry, given=lines)
+
+    document = ledger.rewrite_entry(entry, ledger.schema.check(wanted))
     return Corrected(
         task_id=task_id,
         ledger=document,
@@ -873,7 +937,7 @@ def drop(config: Config, task_id: str, *, lineno: int | None = None) -> Dropped:
 
     linenos = tuple(entry.lineno for entry in twins)
     if lineno is None:
-        if not _one_entry_twice(twins):
+        if not _one_entry_twice(ledger, twins):
             raise NotRedundant(task_id, where, linenos)
         going = twins[-1]
     else:
@@ -943,20 +1007,36 @@ def readdress(
     )
 
 
-def _one_entry_twice(twins: tuple[Entry, ...]) -> bool:
+def _one_entry_twice(document: Document, twins: tuple[Entry, ...]) -> bool:
     """Do these entries state the same thing, id and position aside?
 
     What the tool can read, and the whole of it: a slip records the same work again, so the
-    marker, the symptom, the sentence and any qualifier all match. Anything else is a
-    difference somebody wrote on purpose, and reading prose to decide whether it was a
-    correction or a second delivery is the judgement L4 keeps out of this tool.
+    marker, the symptom, the sentence, any qualifier and every line the bullet wraps onto
+    all match. Anything else is a difference somebody wrote on purpose, and reading prose to
+    decide whether it was a correction or a second delivery is the judgement L4 keeps out of
+    this tool.
+
+    The wrapped lines are compared and not the fields alone (RK179): on a hand-written
+    ledger a `why` is only as much of the sentence as fits on line one, so two entries whose
+    every parsed field matches can still diverge two lines down — and this door answering
+    "the same" there is `drop` removing a delivery it was built to be incapable of removing.
 
     The **block** is deliberately not compared. It says where the entry was filed and not
     what it records, and the same entry appearing under two headings is exactly the slip
     this door was written for.
     """
-    stated = {(t.task.status, t.task.symptom, t.task.why, t.task.part) for t in twins}
+    stated = {
+        (t.task.status, t.task.symptom, t.task.why, t.task.part, _wrapped_onto(document, t))
+        for t in twins
+    }
     return len(stated) == 1
+
+
+def _wrapped_onto(document: Document, entry: Entry) -> tuple[str, ...]:
+    """The lines an entry owns below its first, verbatim — empty for every governed one."""
+    return tuple(
+        line.rstrip("\r\n") for line in document.lines[entry.index + 1 : entry.stop]
+    )
 
 
 def ship(

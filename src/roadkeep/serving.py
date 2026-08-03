@@ -273,7 +273,10 @@ TOOLS: tuple[Tool, ...] = (
     # The ledger's update (RK124). `part` rides with it because a qualifier that stopped
     # being true is the commonest correction an entry needs, and the agent that wrote it is
     # the one the hook denies a hand-edit to.
-    Tool("record amend", ("id", "why", "part")),
+    # `lines` rides with it for `record drop --line`'s reason (RK179): on a ledger whose
+    # bullets wrap, the correction replaces text the parse never held, and the count is the
+    # caller saying they read it — a door the agent this ships for has to be able to reach.
+    Tool("record amend", ("id", "why", "part", "lines")),
     # The move `record amend` refuses to spell as a correction (RK143). Exposed beside it
     # because an entry filed under the wrong block is what `ship` writes from a line filed
     # under the wrong block — an agent's own slip, and the hand-edit that repaired it is the

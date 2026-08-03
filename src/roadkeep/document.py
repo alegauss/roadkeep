@@ -489,6 +489,30 @@ class Document:
         """
         return self.replace_line(entry.index, self.schema.render(task))
 
+    def rewrite_entry(self, entry: Entry, task: Task) -> Document:
+        """Re-render one entry over its **whole span**, collapsing a wrap to one line.
+
+        The other half of :meth:`replace_task`'s split (RK179). That one is right where the
+        rewrite cannot contradict the lines beneath it — an id, a marker — and wrong the
+        moment the *sentence* changes, because a wrapped entry's `why` is only as much of
+        the sentence as fits on the first line: rewriting that line alone leaves the tail of
+        the old one underneath the new one, in an entry the command just called amended.
+
+        So this one really does delete prose, which is why no caller reaches it without
+        having said how many lines the write replaces. What goes is text no field of this
+        task holds, and the only reader who can call it the old sentence's tail is the one
+        who read it.
+        """
+        self.ensure_writable()
+        lines = list(self.lines)
+        # One edit and not a replace-then-delete, for `remove_lines`'s reason (RK54): each
+        # intermediate state of a loop is validated as if it were the finished file. The
+        # ending is the *last* line's, so a file that ends without one still does.
+        lines[entry.index : entry.stop] = [
+            self.schema.render(task) + ending(lines[entry.stop - 1])
+        ]
+        return self._reparse(lines)
+
     def assert_current(self, path: str | Path | None = None) -> None:
         """Refuse if the target is no longer the file this document was read from (RK116).
 

@@ -50,6 +50,7 @@ from roadkeep.shipping import (
     NotRecorded,
     NotRedundant,
     Unchosen,
+    Wrapped,
     amend,
     drop,
     move,
@@ -518,6 +519,117 @@ def test_the_amend_json_says_the_line_did_not_move(tmp_path, capsys):
     payload = json.loads(capsys.readouterr().out)
     assert payload["line"] == 5 and payload["changed"] == ["why"]
     assert payload["file"] == "CHANGELOG.md"
+
+
+# -- the half of a sentence the parse never held (RK179) ----------------------
+
+#: Shio's shape, minimised: a hand-written entry whose sentence runs onto two more lines
+#: the grammar reads nothing from. `RK2` beneath it is the neighbour a span that overran
+#: would damage, and it is deliberately one line — the wrap is per entry, not per file.
+CONTINUED = f"""# Shipped
+
+## Block A — The model
+
+- {SHIPPED} **RK1** **A first symptom** — Because a sentence starts here,
+  continues on a second line, and finishes
+  on a third one.
+- {SHIPPED} **RK2** **A second symptom** — Because of another.
+"""
+
+
+def test_correcting_a_wrapped_sentence_is_refused_until_the_count_is_given(tmp_path):
+    # The defect itself: rewriting the first line alone left `continues on a second line`
+    # and `on a third one.` beneath the new sentence, and the command called it amended.
+    config = project(tmp_path, roadmap=BARE_ROADMAP, ledger=CONTINUED)
+    with pytest.raises(Wrapped) as raised:
+        amend(config, "RK1", why="It works now.")
+    message = str(raised.value)
+    assert "CHANGELOG.md:5" in message and "lines 5-7" in message
+    assert "--lines 3" in message
+    assert read(tmp_path, "CHANGELOG.md") == CONTINUED
+
+
+def test_the_count_replaces_the_whole_sentence_and_stops_at_the_next_entry(tmp_path):
+    config = project(tmp_path, roadmap=BARE_ROADMAP, ledger=CONTINUED)
+    corrected = amend(config, "RK1", why="It works now.", lines=3)
+    corrected.save()
+
+    body = read(tmp_path, "CHANGELOG.md")
+    assert "It works now." in body
+    assert "continues on a second line" not in body and "on a third one" not in body
+    # The neighbour is exactly where it was, one line up: a span that overran by one would
+    # have taken it, which is the deletion the count exists to make the caller's.
+    assert body.splitlines()[5] == f"- {SHIPPED} **RK2** **A second symptom** — Because of another."
+
+
+def test_a_count_that_is_not_the_span_is_refused_rather_than_trusted(tmp_path):
+    # An off-by-one here is somebody's paragraph, so the number is checked and not taken.
+    config = project(tmp_path, roadmap=BARE_ROADMAP, ledger=CONTINUED)
+    with pytest.raises(Wrapped) as raised:
+        amend(config, "RK1", why="It works now.", lines=2)
+    assert "--lines 2 is not that count" in str(raised.value)
+    assert read(tmp_path, "CHANGELOG.md") == CONTINUED
+
+
+def test_an_entry_that_does_not_wrap_needs_no_count(tmp_path):
+    # The count is the door out of a refusal and not a new field on every correction: a
+    # governed ledger has no wrapped entry at all, so nothing changes for one.
+    config = project(tmp_path, roadmap=BARE_ROADMAP, ledger=CONTINUED)
+    corrected = amend(config, "RK2", why="It also works.")
+    corrected.save()
+    assert corrected.changed == ("why",)
+    assert "It also works." in read(tmp_path, "CHANGELOG.md")
+
+
+def test_an_amend_that_changes_nothing_is_never_asked_for_a_count(tmp_path):
+    config = project(tmp_path, roadmap=BARE_ROADMAP, ledger=CONTINUED)
+    corrected = amend(config, "RK1", why="Because a sentence starts here,")
+    assert corrected.changed == () and read(tmp_path, "CHANGELOG.md") == CONTINUED
+
+
+def test_the_flag_reaches_the_command_line(tmp_path, capsys):
+    project(tmp_path, roadmap=BARE_ROADMAP, ledger=CONTINUED)
+    assert (
+        main(
+            [
+                "-C",
+                str(tmp_path),
+                "record",
+                "amend",
+                "RK1",
+                "--why",
+                "It works now.",
+                "--lines",
+                "3",
+            ]
+        )
+        == EXIT_OK
+    )
+    assert "RK1 amended  CHANGELOG.md:5  (why)" in capsys.readouterr().out
+    assert "on a third one" not in read(tmp_path, "CHANGELOG.md")
+
+
+#: Two entries for one id whose parsed fields are identical and whose wrapped tails are
+#: not — the shape `_one_entry_twice` used to call one entry recorded twice.
+DIVERGING = f"""# Shipped
+
+## Block A — The model
+
+- {SHIPPED} **RK1** **A first symptom** — Because a sentence starts here,
+  and ends by naming what it left open.
+- {SHIPPED} **RK1** **A first symptom** — Because a sentence starts here,
+  and ends by recording that the rest landed.
+"""
+
+
+def test_two_entries_that_differ_below_the_first_line_are_not_a_duplicate(tmp_path):
+    # `drop`'s whole safety is that de-duplicating cannot lose a decision. Comparing the
+    # parsed fields alone made that false on a wrapping ledger: the two say different
+    # things two lines down, and the default would have deleted one of them.
+    config = project(tmp_path, roadmap=BARE_ROADMAP, ledger=DIVERGING)
+    with pytest.raises(NotRedundant):
+        drop(config, "RK1")
+    assert read(tmp_path, "CHANGELOG.md") == DIVERGING
 
 
 # -- two deliveries under one id (RK127) --------------------------------------

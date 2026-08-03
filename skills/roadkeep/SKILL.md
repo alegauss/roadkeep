@@ -66,7 +66,11 @@ because removing the only record of a decision is deleting history. Two entries 
 two deliveries under one id, not one recorded twice: `record drop <id> --line <n>` if you have
 read both, or `record renumber <id> --line <n>` to give one its own address. To *fix* an entry use
 `record amend <id> --why "…"` (or `--part` on a partial) — never drop-and-re-add, which moves
-the line to the end of its block and shows a reviewer a deletion where a word changed. The
+the line to the end of its block and shows a reviewer a deletion where a word changed. On a
+ledger written before the tool, where a bullet **wraps**, that correction is refused until
+`--lines <n>` says how many lines it replaces: the parse holds only as much of the sentence as
+fits on the first one, so rewriting that line alone leaves the tail of the old sentence under
+the new one. The
 block is not one of its fields, because filing an entry elsewhere **is** a move:
 `record move <id> --to-block <x>` is that one, and it says so — the line is re-placed under the
 named heading, both positions are reported, and a heading nothing declares is refused. Reach

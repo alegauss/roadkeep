@@ -599,6 +599,14 @@ def build_parser() -> argparse.ArgumentParser:
         "--part",
         help="correct a partial's qualifier; refused where the entry carries none",
     )
+    record_amend.add_argument(
+        "--lines",
+        type=int,
+        help=(
+            "how many lines this correction replaces; required where the entry wraps, "
+            "because there the sentence runs past the line the parse holds"
+        ),
+    )
     record_amend.add_argument("--json", action="store_true", help=_JSON_HELP)
     record_amend.set_defaults(handler=_record_amend)
 
@@ -2384,7 +2392,9 @@ def _record_amend(config: Config, args: argparse.Namespace) -> int:
         print("roadkeep: nothing to amend: pass --why or --part", file=sys.stderr)
         return EXIT_USAGE
     try:
-        corrected = amend_record(config, args.id, why=args.why, part=args.part)
+        corrected = amend_record(
+            config, args.id, why=args.why, part=args.part, lines=args.lines
+        )
         corrected.save()
     except REFUSALS as error:
         return _refused(error)
