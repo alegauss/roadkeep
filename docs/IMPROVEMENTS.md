@@ -287,26 +287,6 @@ and may not need a second.
 
 ## Block D — The gate
 
-### §RK212 The anchor a shipped line stops carrying
-
-RK206 named what `ship` breaks at the moment it breaks it, and that is the half a verb
-can do. The other half is what a reader meets afterwards, and the measurement says it is
-not decidable: `as_ledger` drops the pointer, deliberately and for a good reason — the
-section is deleted when the task leaves, so a pointer to it could not resolve. The
-consequence is that `§XVIII.12` in somebody's prose is either a design that shipped or a
-typo, and no file holds the difference.
-
-Counted: 37 such references across this repository, claude-tray, Shio and Turing, in
-files whose prose is correct. That is why RK206 added no finding.
-
-The obvious move — let the ledger keep the anchor — is a slot on a line the ledger's own
-grammar removed, and it re-opens a question RK6 closed. The narrower one is a
-**cross-reference the tool understands**: a citation that names the task rather than the
-anchor resolves in the changelog for as long as history exists, which is where a shipped
-design's record already lives. That would be a format decision, so it is an idea and not
-a design: it changes what prose may say, and this tool has never told an author how to
-write a sentence (L4).
-
 ### §RK213 The artefact the repository produces and deliberately does not track
 
 Measured in Claude Code Tray. Its ledger's T151 entry names

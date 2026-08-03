@@ -27,7 +27,8 @@ import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 
-from roadkeep.config import Config
+from roadkeep.config import PROSE_ROLES, Config
+from roadkeep.sections import find
 
 _UNIT = "\x1f"  # between fields
 _RECORD = "\x1e"  # between commits — a body may hold newlines, so lines will not do
@@ -122,7 +123,9 @@ def _parse(output: str) -> tuple[Commit, ...]:
     return tuple(commits)
 
 
-def commits_touching(root: Path, needle: str, path: Path | None = None) -> tuple[Commit, ...]:
+def commits_touching(
+    root: Path, needle: str, path: Path | None = None, *, literal: bool = True
+) -> tuple[Commit, ...]:
     """Commits whose diff mentions ``needle`` at all, oldest first.
 
     Two deliberate choices:
@@ -138,8 +141,19 @@ def commits_touching(root: Path, needle: str, path: Path | None = None) -> tuple
     commit, the roadmap ends the commit as it began and there is no diff to find. The
     squash destroyed that fact; the shipping commit, which is the one carrying the
     reasoning, still resolves.
+
+    ``literal`` off hands the needle to git as the pattern it already is, for the one
+    caller with a shape rather than a string to find (RK212): a heading is spelled two ways
+    across live outline projects — `### VIII.1` in Shio and Turing, `### §I.1` in
+    claude-tray — and an escaped literal would answer for one of them and silently miss the
+    other, which a reader would read as "nobody ever wrote it".
     """
-    args = ["log", "--reverse", f"--format={_FORMAT}", "-G", re.escape(needle)]
+    args = ["log", "--reverse", f"--format={_FORMAT}"]
+    if not literal:
+        # git reads `-G` as a *basic* regex, where `?` is a literal character rather than a
+        # quantifier — so the optional sigil below would be searched for as a `?`.
+        args.append("--extended-regexp")
+    args += ["-G", re.escape(needle) if literal else needle]
     if path is not None:
         args += ["--", str(path)]
     return _parse(_run(root, *args))
@@ -437,6 +451,80 @@ def origin_of(config: Config, task_id: str) -> Origin:
 
 
 @dataclass(frozen=True, slots=True)
+class Cited:
+    """An anchor somebody's prose still names, resolved against history (RK212)."""
+
+    anchor: str
+    #: The prose role the address was searched in, and the commits at each end.
+    role: str
+    written_in: Commit | None
+    removed_in: Commit | None
+    #: Whether the log that came back empty was a log worth trusting — :class:`Gap`'s split.
+    searched: bool = False
+
+    @property
+    def live(self) -> bool:
+        """Written and never removed: the section is still there and this is a live cite."""
+        return self.written_in is not None and self.removed_in is None
+
+
+def cited_origin(config: Config, anchor: str) -> Cited:
+    """Where the design behind a dangling citation was written, and what took it away.
+
+    The half of RK206 a verb cannot reach. `ship` names the sections left citing what it
+    deleted, at the moment it deletes it; a reader meeting `§XVIII.12` a year later has no
+    such moment, and the files hold no answer — `as_ledger` keeps no pointer, so nothing
+    records which anchor a shipped design had.
+
+    Measured before choosing this over a gate: 37 such references across this repository,
+    claude-tray, Shio and Turing, and 36 of them are in `ref_scheme = "outline"` projects
+    where the anchor carries no id at all. A finding would fail four files whose prose is
+    correct; a *note* would be 28 of them in one Turing report, which is the output nobody
+    reads that this project refuses elsewhere (RK16). So the answer is a question instead
+    (L5) — it costs nothing until somebody meets the reference and asks.
+
+    Both ends, because they are different facts: the commit that *wrote* the section says
+    what the design was, and the one that *removed* it says which task took it. `-G` finds
+    both (:func:`commits_touching`), so a history that cannot be searched answers neither —
+    reported as :attr:`searched` rather than as an anchor nobody ever wrote, which is
+    :class:`Gap`'s split and made for the same reason.
+    """
+    # The **heading**, not the citation. `§RK15` alone matches every commit that touched
+    # somebody's prose about it, so the last one was RK206's ship — which deleted a
+    # sentence citing §RK15 and never went near the section. `anchor_text` is the one
+    # place a heading's spelling is decided (RK44), so the two schemes agree here for
+    # free, and the trailing space keeps `§RK1` from answering for `§RK15`.
+    # Grouped, not `§?`: git matches bytes, so an unparenthesised `?` would make the
+    # *second* byte of the two-byte sigil optional and the pattern would match neither
+    # spelling. Two live outline projects disagree about the sigil in a heading — Shio and
+    # Turing write `### VIII.1`, claude-tray writes `### §I.1` and `### XVIII.12` in the
+    # same file — so both are admitted, and the trailing space keeps `§I.1` from answering
+    # for `§I.12`.
+    needle = "# (§)?" + re.escape(anchor) + " "
+    for role in ("improvements", "strategy"):
+        if not config.has(role):
+            continue
+        try:
+            found = _touching_role(config, needle, role, literal=False)
+        except HistoryUnavailable:
+            return Cited(anchor=anchor, role=role, written_in=None, removed_in=None)
+        if not found:
+            continue
+        # Oldest first (`--reverse`), so the first wrote it. The last removed it only if
+        # the address is gone now: a section still in the file has a last commit that
+        # edited it, and calling that a removal would invent a deletion nobody made.
+        gone = find(config.document(role), anchor) is None if config.path(role).is_file() else True
+        return Cited(
+            anchor=anchor,
+            role=role,
+            written_in=found[0],
+            removed_in=found[-1] if gone else None,
+            searched=True,
+        )
+    return Cited(anchor=anchor, role=PROSE_ROLES[0], written_in=None, removed_in=None, searched=True)
+
+
+@dataclass(frozen=True, slots=True)
 class Gap:
     """An id that is in neither file, and the commit that took it out (RK32).
 
@@ -551,11 +639,13 @@ def _first_touching(config: Config, needle: str, role: str) -> Commit | None:
     return found[0] if found else None
 
 
-def _touching_role(config: Config, needle: str, role: str) -> tuple[Commit, ...]:
+def _touching_role(
+    config: Config, needle: str, role: str, *, literal: bool = True
+) -> tuple[Commit, ...]:
     if not config.has(role):
         return ()
     try:
         relative = config.path(role).relative_to(config.root)
     except ValueError:
         relative = config.path(role)
-    return commits_touching(config.root, needle, relative)
+    return commits_touching(config.root, needle, relative, literal=literal)

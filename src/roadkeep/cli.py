@@ -66,7 +66,14 @@ from roadkeep.fixing import Fix, fix
 from roadkeep.graph import Graph, Leverage
 from roadkeep.deferring import defer, resume
 from roadkeep.guarding import START_EVENTS, STOP_EVENTS, announce, attested, guard, review
-from roadkeep.history import Commit, HistoryUnavailable, Origin, gaps, origin_of
+from roadkeep.history import (
+    Commit,
+    HistoryUnavailable,
+    Origin,
+    cited_origin,
+    gaps,
+    origin_of,
+)
 from roadkeep.ids import highest, next_id
 from roadkeep.installing import install, plan
 from roadkeep.linting import Finding, Report, lint
@@ -1118,10 +1125,14 @@ def build_parser() -> argparse.ArgumentParser:
         description=(
             "Resolve a task's history from git. The pointer is derived, never stored: "
             "a hash written into the ledger would be rewritten by the first squash or "
-            "amend, and a dead hash reads exactly like a live one."
+            "amend, and a dead hash reads exactly like a live one. A leading § asks the "
+            "same question of a rationale anchor instead — the dangling cross-reference a "
+            "ship leaves in somebody else's prose, which no file records the answer to."
         ),
     )
-    origin_parser.add_argument("id", help="the task to look up, e.g. RK1")
+    origin_parser.add_argument(
+        "id", help="the task to look up, e.g. RK1 — or §<anchor>, as the prose spells it"
+    )
     origin_parser.add_argument(
         "--why",
         action="store_true",
@@ -3741,6 +3752,8 @@ def _print_leverage(leverage: Leverage) -> None:
 
 
 def _origin(config: Config, args: argparse.Namespace) -> int:
+    if args.id.startswith("§"):
+        return _cited(config, args)
     try:
         origin = origin_of(config, args.id)
     except HistoryUnavailable as error:
@@ -3763,6 +3776,71 @@ def _origin(config: Config, args: argparse.Namespace) -> int:
         print()
         print(origin.shipped_in.reasoning)
     return EXIT_OK
+
+
+def _cited(config: Config, args: argparse.Namespace) -> int:
+    """Where the design behind a dangling citation went (RK212).
+
+    `ship` names the sections left citing what it deleted (RK206), which serves the author
+    at the moment of the write. This serves the reader who meets `§XVIII.12` a year later:
+    the files hold no answer, because `as_ledger` keeps no pointer, so a citation of a
+    shipped design and a typo read exactly alike.
+
+    A question and not a check, decided by counting: 37 such references across this
+    repository, claude-tray, Shio and Turing, of which 36 are in outline projects whose
+    anchor carries no id at all. A finding would fail four files whose prose is correct;
+    28 notes in one Turing report would be output nobody reads. So it costs nothing until
+    somebody meets the reference and asks (L5).
+    """
+    anchor = args.id.lstrip("§")
+    found = cited_origin(config, anchor)
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "anchor": found.anchor,
+                    "role": found.role,
+                    "searched": found.searched,
+                    "written": _commit_json(found.written_in),
+                    "removed": _commit_json(found.removed_in),
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+
+    where = config.relative(config.path(found.role)) if config.has(found.role) else found.role
+    if not found.searched:
+        print(f"§{anchor}: no history to resolve against")
+        return EXIT_OK
+    if found.written_in is None:
+        # The two absences are different answers (RK95): a history that was searched and
+        # never saw the address says nobody wrote it, which is what a typo looks like.
+        print(f"§{anchor}: searched {where} to the root and nothing ever wrote it")
+        return EXIT_OK
+    print(f"§{anchor}  in {where}")
+    print(
+        f"  written  {found.written_in.short}  {found.written_in.date[:10]}  "
+        f"{found.written_in.subject}"
+    )
+    if found.removed_in is None:
+        print("  removed  — the section is still there, so the citation resolves")
+    else:
+        print(
+            f"  removed  {found.removed_in.short}  {found.removed_in.date[:10]}  "
+            f"{found.removed_in.subject}"
+        )
+        if args.why:
+            print()
+            print(found.removed_in.reasoning)
+    return EXIT_OK
+
+
+def _commit_json(commit: Commit | None) -> dict[str, str] | None:
+    if commit is None:
+        return None
+    return {"sha": commit.sha, "short": commit.short, "date": commit.date,
+            "subject": commit.subject, "body": commit.body}
 
 
 def _weight(config: Config, args: argparse.Namespace) -> int:

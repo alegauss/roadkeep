@@ -321,3 +321,128 @@ def test_the_command_names_the_two_answers_apart(tmp_path, capsys):
     out = capsys.readouterr().out
     assert "RK2    never carried" in out and "unresolvable" not in out
     assert "1 gap(s), 0 resolved against history, 1 never carried" in out
+
+
+# -- the anchor a shipped line stops carrying (RK212) -------------------------
+
+
+def prose(config: Config, name: str = "IMPROVEMENTS.md") -> Path:
+    """Give the project a rationale file, which `repo` does not declare."""
+    path = config.root / name
+    path.write_text("# Improvements\n\n## Block A — The model\n", encoding="utf-8")
+    with (config.root / "roadkeep.toml").open("a", encoding="utf-8") as handle:
+        handle.write(f'improvements = "{name}"\n')
+    return path
+
+
+def design(config: Config, heading: str, message: str) -> str:
+    append(config.path("improvements"), f"\n{heading}\n\nThe reasoning.\n")
+    return commit(config.root, message)
+
+
+def unwrite(config: Config, heading: str, message: str) -> str:
+    path = config.path("improvements")
+    kept = [
+        line
+        for line in path.read_text(encoding="utf-8").splitlines(keepends=True)
+        if line.rstrip("\n") != heading
+    ]
+    path.write_text("".join(kept), encoding="utf-8")
+    return commit(config.root, message)
+
+
+def test_a_citation_of_a_shipped_design_resolves_to_the_commit_that_took_it(tmp_path, capsys):
+    """The half of RK206 a verb cannot reach.
+
+    `ship` names the sections left citing what it deleted, at the moment it deletes it. A
+    reader meeting `§RK1` a year later has no such moment and the files hold no answer:
+    `as_ledger` keeps no pointer, so nothing records which anchor a shipped design had.
+    """
+    config = repo(tmp_path)
+    prose(config)
+    config = Config.discover(tmp_path)
+    design(config, "### §RK1 A first design", "docs: file the design")
+    unwrite(config, "### §RK1 A first design", "feat: the thing works now (RK1)")
+
+    assert main(["-C", str(tmp_path), "origin", "§RK1"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "docs: file the design" in out
+    assert "feat: the thing works now (RK1)" in out
+
+
+def test_an_anchor_nobody_ever_wrote_is_a_different_answer(tmp_path, capsys):
+    """RK95's split, one unit along: a history that was searched and never saw the address
+    says nobody wrote it, which is what a typo looks like — and is not the same answer as a
+    history that could not be searched."""
+    config = repo(tmp_path)
+    prose(config)
+    config = Config.discover(tmp_path)
+    design(config, "### §RK1 A first design", "docs: file the design")
+
+    assert main(["-C", str(tmp_path), "origin", "§RK9"]) == EXIT_OK
+    assert "nothing ever wrote it" in capsys.readouterr().out
+
+
+def test_a_section_that_is_still_there_is_not_reported_as_removed(tmp_path, capsys):
+    """The commit that last touched a heading is only a removal if the heading is gone: a
+    live section has one too, and calling that a deletion would invent one nobody made."""
+    config = repo(tmp_path)
+    prose(config)
+    config = Config.discover(tmp_path)
+    design(config, "### §RK1 A first design", "docs: file the design")
+
+    assert main(["-C", str(tmp_path), "origin", "§RK1"]) == EXIT_OK
+    assert "the section is still there" in capsys.readouterr().out
+
+
+def test_the_heading_is_searched_and_not_the_citation(tmp_path, capsys):
+    """The needle that made the first attempt wrong.
+
+    `§RK1` alone matches every commit that touched somebody's *prose* about it, so the last
+    one is whatever commit deleted a sentence mentioning it — which is how this first
+    answered "§RK15 was removed by RK206", a ship that never went near the section.
+    """
+    config = repo(tmp_path)
+    prose(config)
+    config = Config.discover(tmp_path)
+    design(config, "### §RK1 A first design", "docs: file the design")
+    removed = unwrite(config, "### §RK1 A first design", "feat: the thing works (RK1)")
+    # A later commit whose diff mentions the anchor in prose, and removes that mention.
+    design(config, "### §RK2 A second design", "docs: cite it — §RK1 said why")
+    unwrite(config, "### §RK2 A second design", "feat: the second thing (RK2)")
+
+    assert main(["-C", str(tmp_path), "origin", "§RK1", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["removed"]["sha"] == removed
+
+
+def test_an_outline_heading_without_the_sigil_is_found_too(tmp_path, capsys):
+    """Two live outline projects disagree about the sigil in a heading — Shio and Turing
+    write `### VIII.1`, claude-tray writes `### §I.1` and `### XVIII.12` in one file — so a
+    needle that admitted one of them would answer "nobody ever wrote it" for the other."""
+    config = repo(tmp_path)
+    prose(config)
+    with (config.root / "roadkeep.toml").open("a", encoding="utf-8") as handle:
+        handle.write('\n')
+    (config.root / "roadkeep.toml").write_text(
+        (config.root / "roadkeep.toml").read_text(encoding="utf-8").replace(
+            'prefix = "RK"', 'prefix = "RK"\nref_scheme = "outline"'
+        ),
+        encoding="utf-8",
+    )
+    config = Config.discover(tmp_path)
+    design(config, "### XVIII.12 A design with no sigil", "docs: file it")
+    unwrite(config, "### XVIII.12 A design with no sigil", "feat: it works (RK1)")
+
+    assert main(["-C", str(tmp_path), "origin", "§XVIII.12"]) == EXIT_OK
+    assert "feat: it works (RK1)" in capsys.readouterr().out
+
+
+def test_a_prefix_of_an_anchor_does_not_answer_for_it(tmp_path, capsys):
+    config = repo(tmp_path)
+    prose(config)
+    config = Config.discover(tmp_path)
+    design(config, "### §RK12 A twelfth design", "docs: file the twelfth")
+
+    assert main(["-C", str(tmp_path), "origin", "§RK1"]) == EXIT_OK
+    assert "nothing ever wrote it" in capsys.readouterr().out

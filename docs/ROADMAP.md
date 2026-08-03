@@ -40,7 +40,6 @@
 
 ## Block D — The gate
 
-- 💭 **RK212** (deps: —) **A citation of a shipped design cannot be told from a citation of one that never existed** — as_ledger keeps no pointer, so once a line is in the changelog nothing records which anchor its rationale had, and 37 such references across four trees are unreadable either way. → §RK212
 - 📋 **RK213** (deps: —) **A gate that is green for whoever just built and red for a bare checkout** — lint asks whether the repository has the artefact a line names, and a build output is tracked by nobody, so an adopter's own CI has been failing on a path that is correct. → §RK213
 
 ## Block E — Adoption

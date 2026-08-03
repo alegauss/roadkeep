@@ -176,7 +176,10 @@ each id went and where the registry lives, and `--prune` drops the rows that are
 **wraps** it prints every line that entry owns — which is the count `record amend --lines`
 asks you to have read; `deps <id>` walks the graph both
 ways; `gaps` resolves an id in neither file against the commit that removed it; `origin <id>
---why` reads it out of history. And **never restate a count in prose**: `export
+--why` reads it out of history, and `origin §<anchor>` answers the other end of a pointer —
+a rationale address somebody's prose still cites after a ship deleted the section, which no
+file records, so the three answers are the commit that wrote it, the one that took it, and
+"searched and nobody ever wrote it", which is what a typo looks like. And **never restate a count in prose**: `export
 [--readme|--site|--json]` projects it.
 
 ## Picking work
