@@ -117,6 +117,57 @@ is none, the honest outcome is a `retire` naming the measurement, not a guard on
 nothing reaches — and RK133 is the precedent for closing a line that way. If the answer
 is some, the fix is RK179's, already written, moved one module over.
 
+### §RK196 The other half of the reader that did not learn
+
+RK172 taught the gate that a pointer addresses every governed prose role and RK186
+taught the reader. `shipping._dropped` is the third, and it is the one that *writes*: it
+opens `config.document("improvements")`, finds no `§X.1` there, and reports "nothing
+dropped" while `docs/STRATEGY.md` keeps the section the departing line pointed at.
+
+Measured on a project declaring `strategy` under `ref_scheme = "outline"`: `lint` is
+clean before, `show RK1` resolves the pointer into `STRATEGY.md` (RK186 working), `ship
+RK1 --why …` prints `kept nothing dropped: no §X.1 section in IMPROVEMENTS.md`, and
+`lint` exits 0 afterwards with the section still there.
+
+Both halves are wrong and only one is visible. A section outliving its line is what RK6
+exists to stop — the prose file becoming a second changelog — and the gate is why nobody
+noticed: `section.unreachable` should report a design no line points at, and it is not
+asked of every declared role either.
+
+The fix is the shape RK186 used and not a second one: resolve the anchor across the
+declared prose roles, drop from the file that declares it, and let the multi-owner
+report (RK64) and the nesting refusal (RK78) work against that file rather than a
+hardcoded role. The `no improvements file` early return becomes the "no prose role
+declares it" the reader now states.
+
+To decide while doing it: whether the gate half is this task or the separate finding it
+looks like.
+
+### §RK197 The follow-up that names work already done
+
+The write path's own half of RK186, and the one that costs prose rather than a read.
+`authoring._unresolved` asks `config.has("improvements")` and calls `find` on that
+document, so on a project declaring strategy an `add --ref X.1` prints `needs section
+add X.1 --title …  (the pointer above resolves to nothing until then)` — for an anchor
+`docs/STRATEGY.md` declares and `lint` resolves.
+
+Measured on the same project RK196 was: the roadmap gains a legal line, the follow-up
+names a command that would create a *duplicate*, and an author who runs it gets
+`ref.ambiguous` from the gate — one anchor in two roles, which resolves to neither. So
+the cheapest outcome of obeying the tool is a design written twice and a line that now
+points nowhere.
+
+Worse than the read half it mirrors. `show` denying a design costs a file read; this
+invites 250 words of prose the project already has, which is the exact spend L1 and the
+word budget exist to prevent — and the sentence it invites is the one the tool cannot
+write, so the cost lands on the author.
+
+Narrow: `_unresolved` is four lines, and the question it asks is now
+`PROSE_ROLES`-shaped. What needs a decision is the *absence* message beside it — a
+project declaring several roles has more than one place a section could go, and `add
+--section` writes to improvements, so the follow-up has to name the role it means rather
+than the first one declared.
+
 ## Block C — Query
 
 ## Block D — The gate
@@ -458,3 +509,28 @@ for.
 
 Nothing here writes prose or grades it (L4): a word budget is a number, stated in the
 schema the client already reads, and what fills it is still the author's.
+
+### §RK198 The half of the parser cost RK174 left
+
+RK174 took `tools/list` from 58 builds and 195 ms to one build and 3.4 ms, by building
+the parser once per `descriptors()` call and indexing every subcommand path off it. It
+fixed the first message and only that.
+
+Measured after it: one `argv(tool, arguments, config)` calls `build_parser` **twice** —
+once in `_subparser(tool.command)` for the actions it renders arguments through, and
+once more inside `_companioned`, which reaches `prose_of`, which resolves the same
+subcommand again. 6.7 ms per call, on the path every `tools/call` takes.
+
+Smaller than what RK174 removed and the same defect: reaching one subcommand builds the
+entire CLI, so a caller with two lookups pays for two. A session making twenty writes
+spends about 130 ms rebuilding a parser that is a pure function of the code.
+
+The shape is already there — `_parsers()` exists and `_subparser` takes an index — so
+this is threading it through the call path: `argv` builds one and hands it to
+`_companioned`, which hands it to `prose_of`. `prose_of(command)` is public and
+`tests/test_serving.py` asks it about every tool one at a time, so the index has to stay
+optional there for the same reason `descriptor` keeps its default.
+
+What to check rather than assume: whether `call` resolves anything else per message, and
+whether the remaining cost is one build — the number to report is what a call pays
+after, not what it saved.

@@ -26,6 +26,8 @@
 
 - 📋 **RK193** (deps: —) **Completing a partial rewrites the first line of an entry whose sentence runs past it** — RK179 gave the correction a span and `_complete` still calls `replace_task`, so on 10 of Shio's 12 partial entries the qualifier goes and the half's old sentence stays below it. → §RK193
 - 💭 **RK195** (deps: —) **The roadmap's own amend would strand the same tail, and nobody has counted whether a line wraps there** — RK179 gave the ledger a span-aware correction and `authoring` still rewrites the first line, while both pinned roadmaps carry 0 wrapped entries — so the shape is uncounted. → §RK195
+- 📋 **RK196** (deps: —) **A pointer into the strategy file survives the ship that deletes the line pointing at it** — `_dropped` asks the improvements file alone, so shipping reports "no §X.1 section" and leaves one the config declares — and `lint` exits 0, so nothing says a shipped design stayed. → §RK196
+- 📋 **RK197** (deps: —) **`add` asks for a rationale section that another declared prose file already holds** — `_unresolved` reads the improvements file alone, so a line pointing into the strategy file is told its pointer resolves to nothing, and the second copy that invites is `ref.ambiguous`. → §RK197
 
 ## Block C — Query (consult without reading the file)
 
@@ -53,6 +55,7 @@
 - 📋 **RK176** (deps: —) **Widening the matcher to Bash spawns an interpreter per shell command and nothing measured it** — The five decisions in `guarding` were arranged to avoid exactly this cost, and the trade was accepted on an argument rather than on a number. → §RK176
 - 📋 **RK177** (deps: —) **The tool list can change mid-session and the client is never told, so it validates against a cached schema** — The config is re-read per message on purpose, so `[ids] suffix` added mid-session changes which arguments exist, and no `notifications/tools/list_changed` is ever sent. → §RK177
 - 📋 **RK185** (deps: RK183 ✅) **The budget an author is given is in characters, the one unit a model cannot count** — The MCP field schema and the skill publish 120 and 200, so a first attempt is a guess and the retries converge by feedback, where a word count would land inside on the first call. → §RK185
+- 📋 **RK198** (deps: —) **Every tool call rebuilds the whole CLI parser twice, and the argument check is what pays** — RK174 indexed the parser for `tools/list` and left `argv` resolving its subcommand per lookup — once for the arguments and again through `prose_of` — so each call spends 6.7ms on it. → §RK198
 
 ## Non-goals
 
