@@ -168,7 +168,9 @@ its rationale, deps resolved, the blocker chain, what it unblocks and the non-go
 to a tool result; with no id, `pick`'s own choice. Narrower: `next-id` never fills a gap;
 `list|stats|audit [--block <x>]` counts and lists, naming every marker line neither could
 read; `claims` is the registry read against the files — held, expired or stale, oldest first, where
-each id went and where the registry lives, and `--prune` drops the rows that are not claims; `show <id>` joins one line, its section and its paths; `deps <id>` walks the graph both
+each id went and where the registry lives, and `--prune` drops the rows that are not claims; `show <id>` joins one line, its section and its paths, and on a ledger entry whose bullet
+**wraps** it prints every line that entry owns — which is the count `record amend --lines`
+asks you to have read; `deps <id>` walks the graph both
 ways; `gaps` resolves an id in neither file against the commit that removed it; `origin <id>
 --why` reads it out of history. And **never restate a count in prose**: `export
 [--readme|--site|--json]` projects it.

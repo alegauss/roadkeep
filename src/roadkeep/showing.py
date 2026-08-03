@@ -31,7 +31,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from roadkeep.config import PROSE_ROLES, Config
-from roadkeep.document import Entry
+from roadkeep.document import Document, Entry
 from roadkeep.schema import Task
 from roadkeep.sections import Section, find
 
@@ -82,20 +82,35 @@ class View:
     #: Why there is no section, when there is none. Empty when there is one.
     section_absence: str
     paths: tuple[Referenced, ...]
+    #: Every source line this entry owns, verbatim and with its endings (RK194). One on any
+    #: line a governed roadmap holds — the format has no multi-line task line — and more only
+    #: on a ledger written before this tool, where a bullet wraps. The span has been a fact
+    #: since RK157 and every *writer* uses it; this is the reader that prints it, so what
+    #: `record amend --lines` replaces is a command's answer rather than a file to open.
+    lines: tuple[str, ...] = ()
 
     @property
     def task(self) -> Task:
         return self.entry.task
 
+    @property
+    def wrapped(self) -> bool:
+        """Whether the sentence runs past the line the parse read it from."""
+        return self.entry.wrapped
+
 
 def show(config: Config, task_id: str) -> View:
     """Join the line, its section and the paths it names. Reads; never writes."""
-    entry, role = _locate(config, task_id)
+    entry, role, document = _locate(config, task_id)
     section, section_file, absence = _rationale(config, entry, shipped=role == "changelog")
-    text = entry.raw + ("\n" + section.body if section is not None else "")
+    owned = document.lines[entry.index : entry.stop]
+    # The whole entry, and not `entry.raw`: on a wrapped bullet the tail is the rest of the
+    # sentence, so a path quoted there is one this task names (RK194).
+    text = "".join(owned) + ("\n" + section.body if section is not None else "")
     return View(
         entry=entry,
         role=role,
+        lines=owned,
         file=config.relative(config.path(role)),
         shipped=role == "changelog",
         section=section,
@@ -107,15 +122,18 @@ def show(config: Config, task_id: str) -> View:
     )
 
 
-def _locate(config: Config, task_id: str) -> tuple[Entry, str]:
+def _locate(config: Config, task_id: str) -> tuple[Entry, str, Document]:
     asked: list[str] = []
     for role in ("roadmap", "changelog"):
         if not config.has(role) or not config.path(role).is_file():
             continue
         asked.append(config.relative(config.path(role)))
-        found = config.document(role).by_id().get(task_id)
+        document = config.document(role)
+        found = document.by_id().get(task_id)
         if found is not None:
-            return found, role
+            # The document too, and not the entry alone: the lines an entry owns are the
+            # file's, and loading it a second time to reach them is a second parse (RK194).
+            return found, role, document
     raise NoSuchTask(task_id, tuple(asked))
 
 

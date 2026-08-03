@@ -16,6 +16,7 @@ from pathlib import Path
 
 import pytest
 
+import corpora
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.schema import DESIGNED, SHIPPED
@@ -174,6 +175,99 @@ def test_an_unresolved_pointer_names_every_file_it_was_looked_for_in(tmp_path):
     assert "§RK4 is not in IMPROVEMENTS.md or STRATEGY.md" in view.section_absence
     # And where a design would go is still named: the first declared role.
     assert view.section_file == "IMPROVEMENTS.md"
+
+
+# -- the lines an entry owns -------------------------------------------------
+
+WRAPPED = f"""# Shipped
+
+## Block A — The model
+
+- {SHIPPED} **RK5** **A hand-written entry** — the first half of a sentence that
+  runs on past the line the parse could read, citing `docs/specs/tail.md`
+  before it finally stops.
+- {SHIPPED} **RK6** **A one-line entry** — this one fits.
+"""
+
+LOOSE = 'prefix = "RK"\n[rules.changelog]\none_sentence = false\nterminator = false\n'
+
+
+def wrapping(tmp_path: Path) -> Config:
+    (tmp_path / "roadkeep.toml").write_text(
+        LOOSE + '[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "ROADMAP.md").write_text(BACKLOG, encoding="utf-8")
+    (tmp_path / "CHANGELOG.md").write_text(WRAPPED, encoding="utf-8")
+    (tmp_path / "docs" / "specs").mkdir(parents=True, exist_ok=True)
+    return Config.discover(tmp_path)
+
+
+def test_a_wrapped_entry_reports_every_line_it_owns(tmp_path):
+    # RK194: the span has been a fact since RK157 and every writer uses it — this is the
+    # reader, so what `record amend --lines` replaces is an answer and not a file to open.
+    view = show(wrapping(tmp_path), "RK5")
+    assert view.wrapped and len(view.lines) == 3
+    # Verbatim, endings and all: these are the file's lines and not a rendering of them (L3).
+    assert view.lines[0].rstrip("\r\n") == view.entry.raw
+    assert view.lines[-1].strip() == "before it finally stops."
+    # The count the refusal asks for, derivable from the answer rather than from the file.
+    assert len(view.lines) == view.entry.stop - view.entry.index
+
+
+def test_an_unwrapped_entry_owns_exactly_its_own_line(tmp_path):
+    view = show(wrapping(tmp_path), "RK6")
+    assert not view.wrapped
+    assert [raw.rstrip("\r\n") for raw in view.lines] == [view.entry.raw]
+
+
+def test_the_tail_of_a_wrapped_entry_is_text_the_task_names(tmp_path):
+    # The fields hold only the first line, so a path quoted below it was invisible — and
+    # `show`'s promise is the paths *this task* names, not the paths the parse reached.
+    view = show(wrapping(tmp_path), "RK5")
+    assert [referenced.path for referenced in view.paths] == ["docs/specs/tail.md"]
+
+
+def test_the_lines_reach_the_json_and_carry_the_count(tmp_path, capsys):
+    config = wrapping(tmp_path)
+    assert main(["-C", str(config.root), "show", "RK5", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["wrapped"] is True and len(payload["lines"]) == 3
+    assert payload["rendered"] == payload["lines"][0]
+
+
+def test_the_refusal_that_asks_for_the_count_names_the_command_that_prints_them(
+    tmp_path, capsys
+):
+    config = wrapping(tmp_path)
+    assert main(["-C", str(config.root), "record", "amend", "RK5", "--why", "done."]) != EXIT_OK
+    refused = capsys.readouterr().err
+    assert "--lines 3" in refused and "show RK5" in refused
+
+
+def test_a_live_ledger_hands_over_the_lines_its_wrapped_entries_own(tmp_path):
+    """The shape this exists for, on the file it was measured on (RK194).
+
+    Shio's ledger is 290 entries of which about half wrap, and the only route to the two
+    lines a correction replaces was opening it. Materialised at the pin rather than read
+    from the checkout, so a corpus somebody edits this afternoon is not this verdict.
+    """
+    corpora.require(corpora.SHIO)
+    settings = corpora.config(corpora.SHIO)
+    (tmp_path / "roadkeep.toml").write_text(
+        corpora.raw(corpora.SHIO, "roadkeep.toml") or "", encoding="utf-8", newline=""
+    )
+    for role in ("roadmap", "changelog"):
+        # At the paths that config declares, because `show` asks the config where they are.
+        target = tmp_path / settings.relative(settings.path(role))
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(corpora.text(corpora.SHIO, role), encoding="utf-8", newline="")
+    config = Config.discover(tmp_path)
+    wrapped = [entry for entry in config.document("changelog").entries if entry.wrapped]
+    assert wrapped, "the corpus this was measured on carries wrapped entries"
+    view = show(config, wrapped[0].task.id)
+    assert len(view.lines) == wrapped[0].stop - wrapped[0].index > 1
+    assert "".join(view.lines) in corpora.text(corpora.SHIO, "changelog")
 
 
 # -- the paths its text names ------------------------------------------------

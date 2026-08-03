@@ -119,25 +119,6 @@ is some, the fix is RK179's, already written, moved one module over.
 
 ## Block C — Query
 
-### §RK194 A span every writer holds and no reader prints
-
-RK157 gave every entry a span and RK179 made a correction replace it, so the write path
-knows exactly which lines a wrapped entry owns. The read surface does not print them.
-`list` prints `entry.raw`, which is the first line by construction; `show` prints the
-parsed fields, and on a wrapped entry a `why` is only as much of the sentence as fits on
-that line. Neither is wrong about what it shows — both are silent about the rest.
-
-That silence is what makes `--lines` awkward. The refusal names the count, so the caller
-can proceed, but it also says *read them*, and there is no verb that shows them: the
-only route is opening the file, which on Shio is 290 entries to see two lines. L5 is
-exactly this trade — every question is a command, so answering costs no context — and
-here the question is one the parse already answered.
-
-Narrow by construction: the span is `Entry.stop`, held since RK157, and the lines are
-`document.lines`. Whether it belongs on `show` (a field beside `why`), on `list` (which
-would stop being one line per task), or on both under a flag is the decision — as is
-whether the answer is the raw lines or the sentence they join into.
-
 ## Block D — The gate
 
 ### §RK188 A gate held against a file no verb maintains

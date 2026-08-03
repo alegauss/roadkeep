@@ -29,8 +29,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK194** (deps: —) **No query shows the lines a wrapped entry owns, so what a correction replaces is read off the file** — `list` prints the entry's first line and `show` its parsed fields, so confirming what RK179's `--lines` deletes means opening a 290-entry ledger — the read L5 exists to replace. → §RK194
-
 ## Block D — The gate
 
 - 📋 **RK188** (deps: —) **Every write stales the derived README block, so the gate fails until somebody remembers `export`** — RK104 made `lint` hold the block and no verb refreshes it, so ten consecutive claims and ships each left this repository failing its own gate on a file no task touched. → §RK188

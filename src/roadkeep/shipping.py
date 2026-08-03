@@ -497,8 +497,9 @@ class Wrapped(ValueError):
             (
                 f"the parse holds only as much of its sentence as fits on line "
                 f"{entry.lineno}, so correcting it replaces all {self.owned} — read them "
-                f"and pass --lines {self.owned}, which is you saying the text below the "
-                f"first line is the rest of the sentence being replaced"
+                f"with `show {task_id}`, which prints them, and pass --lines {self.owned}, "
+                f"which is you saying the text below the first line is the rest of the "
+                f"sentence being replaced"
             )
             if given is None
             else (

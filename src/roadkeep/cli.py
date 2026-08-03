@@ -3115,6 +3115,13 @@ def _show(config: Config, args: argparse.Namespace) -> int:
           f"{view.file}:{view.entry.lineno}")
     print(f"  symptom  {task.symptom}")
     print(f"  why      {task.why}")
+    if view.wrapped:
+        # The rest of the sentence, verbatim (RK194): the fields above hold only as much of
+        # it as fits on the first line, and this is exactly what `record amend --lines` says
+        # it replaces — so the caller confirms the count here instead of opening the file.
+        print(f"  wrapped  {len(view.lines)} lines, {view.entry.lineno}-{view.entry.stop}")
+        for offset, raw in enumerate(view.lines, start=view.entry.lineno):
+            print(f"  {offset:<9}{raw.rstrip()}")
     if task.deps:
         print(f"  deps     {', '.join(dep.render() for dep in task.deps)}")
     if section is not None:
@@ -3203,6 +3210,10 @@ def _view_json(view: View, no_body: bool) -> dict[str, object]:
         "file": view.file,
         "line": view.entry.lineno,
         "rendered": view.entry.raw,
+        # The whole entry, and the span a correction replaces (RK194). Always present, so a
+        # caller reads the count rather than inferring one from a key that came and went.
+        "lines": [raw.rstrip("\r\n") for raw in view.lines],
+        "wrapped": view.wrapped,
         "symptom": task.symptom,
         "why": task.why,
         "deps": [dep.render() for dep in task.deps],
