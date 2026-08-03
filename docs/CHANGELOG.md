@@ -95,6 +95,7 @@
 - ✅ **RK160** **Setting the in-progress marker on a line another worker holds takes the claim without a word** — The marker write is where a taken line is refused, so `status <id>` on the in-progress marker cannot re-date somebody's claim — and nothing re-dates a live one at all.
 - ✅ **RK161** **Which lines are claimed is answerable only as a side effect of asking for work** — `claims` lists the registry against the roadmap — held, expired or stale, oldest first, with the window and the file — so the last question about a claim is a command like every other.
 - ✅ **RK162** **A shipped line leaves an entry in the registry that nothing will ever read again** — The terminal doors release the claim on the line they take out, so the listing holds what somebody is looking for and not one row per shipped task.
+- ✅ **RK163** **A release drops one id and reconciles nothing, so every row no door reported stays in the listing** — Every write of the registry is a reconciliation against the lines it was given, and `follow` is the only thing that writes it — so a row no door reported is cleared by the next marker write.
 
 ## Block D — The gate
 

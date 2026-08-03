@@ -374,6 +374,26 @@ def test_retiring_a_claimed_line_leaves_no_entry_either(tmp_path):
     assert claiming._read(claiming.path(tmp_path)) == {}  # noqa: SLF001
 
 
+def test_a_release_reconciles_every_row_and_not_only_its_own(tmp_path):
+    # RK163: dropping a single key left every row *no door reported* standing, which is what
+    # the `claims` run straight after RK162 shipped was still printing.
+    config = project(tmp_path, BLOCKS + line("RK2") + line("RK9"))
+    hold(config, "RK2")
+    # As a `git checkout` would leave it: RK2 reads 📋 again and no door was told.
+    (tmp_path / "ROADMAP.md").write_text(BLOCKS + line("RK2") + line("RK9"), encoding="utf-8")
+    # A marker write that is not about RK2 at all, and not a claim either.
+    set_status(Config.discover(tmp_path), "RK9", IDEA)
+    assert claiming._read(claiming.path(tmp_path)) == {}  # noqa: SLF001
+
+
+def test_a_marker_write_on_a_backlog_with_no_registry_writes_no_file(tmp_path):
+    # Every direction now reads the registry, so the one thing to hold is that reading it is
+    # not creating it: a project that never claims gets no temp file from a `status`.
+    config = project(tmp_path, BLOCKS + line("RK2"))
+    set_status(config, "RK2", IDEA)
+    assert not claiming.path(tmp_path).exists()
+
+
 def test_the_prune_still_reconciles_what_no_door_reported(tmp_path):
     # Why the prune stays and is not a second writer of the release rule (RK159's argument):
     # git moves markers under the tool, and a checkout fires no door at all.
@@ -550,7 +570,9 @@ def test_the_registry_reads_as_three_different_things(tmp_path):
         BLOCKS + line("RK2", status=IN_PROGRESS) + line("RK9", status=IN_PROGRESS) + line("RK5"),
     )
     for task_id in ("RK2", "RK9", "RK5"):
-        claiming.record(tmp_path, task_id, config.document("roadmap").entries)
+        claiming.follow(
+            tmp_path, task_id, IN_PROGRESS, config.document("roadmap").entries
+        )
     age(tmp_path, "RK9", HELD + 60)
     age(tmp_path, "RK5", 120)
     rows = {row.id: row for row in claiming.survey(config, config.document("roadmap").entries)}
@@ -574,7 +596,9 @@ def test_the_listing_is_oldest_first_because_age_is_the_axis(tmp_path):
         tmp_path, BLOCKS + line("RK2", status=IN_PROGRESS) + line("RK9", status=IN_PROGRESS)
     )
     for task_id in ("RK2", "RK9"):
-        claiming.record(tmp_path, task_id, config.document("roadmap").entries)
+        claiming.follow(
+            tmp_path, task_id, IN_PROGRESS, config.document("roadmap").entries
+        )
     age(tmp_path, "RK9", 600)
     assert [row.id for row in claiming.survey(config, config.document("roadmap").entries)] == [
         "RK9",

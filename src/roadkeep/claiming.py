@@ -38,7 +38,9 @@ A claim is only ever read against a 🛠 line, so **the marker is what a claim f
 inferred by the read: a write that puts a line in progress dates a claim, and a write that
 takes it out of progress drops one. Two doors change a claim without moving that marker at all
 (RK156): `renumber` moves the *address* (:func:`rename`), and `defer` takes the line out of the
-file the marker is read in (:func:`release`).
+file the marker is read in, which the same rule then reads as a release. :func:`follow` is the
+only thing that writes this file, and every write of it is a reconciliation against the lines
+it was given (RK163) — one door, so the rule cannot come to have two behaviours.
 """
 
 from __future__ import annotations
@@ -209,28 +211,6 @@ def live(config: Config, entries: Iterable[Entry]) -> tuple[Held, ...]:
     )
 
 
-def record(root: Path | str, task_id: str, entries: Iterable[Entry]) -> None:
-    """Date one claim, and forget every id the roadmap has moved past.
-
-    Pruned on each write rather than on a schedule: the current lines are in front of us
-    anyway, and a registry nobody prunes grows for the lifetime of a temp directory. Called
-    inside the write lock, so the read-modify-write is not a race — and a claim only ever
-    accompanies a marker this transaction just wrote, which is why the id is dated whether
-    or not the marker changed: re-taking a line whose claim expired is a new claim.
-
-    The prune **stays** now that every door releases explicitly (RK162), and it is not RK159's
-    second writer of one rule: a release is an *event* this tool performed, and this is
-    reconciliation with the file, which git moves under the tool. A `checkout` onto a branch
-    where the line reads 📋 fired no door at all, and the entry it leaves behind is one only a
-    read of the roadmap can find.
-    """
-    target = path(root)
-    still = {entry.task.id for entry in entries if entry.task.status == IN_PROGRESS}
-    dated = {name: when for name, when in _read(target).items() if name in still}
-    dated[task_id] = time.time()
-    _write(target, dated)
-
-
 class Followed(StrEnum):
     """What a marker write did to the claim on its line (RK158). Printed, so it is not silent."""
 
@@ -275,11 +255,28 @@ def follow(
     drops it, which is the release the read used to infer. `add` is deliberately not one of
     these doors: the three ways to *start* work are the two `--claim` flags and this one, and a
     line being created is not one the backlog was handing out.
+
+    **Every direction reconciles** (RK163), and that is the whole of what a write here does:
+    the entries are the truth, so what is kept is what they still carry at 🛠 — and the id being
+    followed is dated on top of that, or left out by having stopped being one of them. Dropping
+    a single key instead left every row *no door reported* in place, which a `git checkout`
+    creates and only a later claim used to clear. Nothing else may write this file, for the
+    reason two entry points to one rule is how it comes to have two behaviours (RK159).
+
+    It writes only when the result differs, so a project that never claims never gets a file:
+    a `status` on a backlog with no registry is a read and a comparison.
     """
+    target = path(root)
+    dated = _read(target)
+    started = {entry.task.id for entry in entries if entry.task.status == IN_PROGRESS}
+    kept = {name: when for name, when in dated.items() if name in started}
     if marker == IN_PROGRESS:
-        record(root, task_id, entries)
+        kept[task_id] = time.time()
+    if kept != dated:
+        _write(target, kept)
+    if marker == IN_PROGRESS:
         return Followed.CLAIMED
-    return Followed.RELEASED if release(root, task_id) else Followed.NEITHER
+    return Followed.RELEASED if task_id in dated else Followed.NEITHER
 
 
 def rename(root: Path | str, old: str, new: str) -> bool:
@@ -298,23 +295,6 @@ def rename(root: Path | str, old: str, new: str) -> bool:
     if when is None:
         return False
     dated[new] = when
-    _write(target, dated)
-    return True
-
-
-def release(root: Path | str, task_id: str) -> bool:
-    """Drop a claim outright, for the door where the line leaves the roadmap (RK156).
-
-    `defer` is the case: the worker who set a line aside is not holding it, and the marker
-    that a claim is read against goes to the store with the line — so nothing would clear the
-    entry until some later claim pruned it, and a `resume` inside the window would read as
-    held by whoever gave it up. Every *other* release stays implicit, because every other door
-    moves the marker and the marker is what a claim is read against.
-    """
-    target = path(root)
-    dated = _read(target)
-    if dated.pop(task_id, None) is None:
-        return False
     _write(target, dated)
     return True
 

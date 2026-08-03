@@ -34,8 +34,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK163** (deps: —) **A release drops one id and reconciles nothing, so every row no door reported stays in the listing** — `record` prunes against the file and `release` only pops its own key, so the ship that closed RK162 left the row an earlier ship wrote — visible in the listing it was fixing. → §RK163
-
 ## Block D — The gate
 
 - 📋 **RK104** (deps: —) **Nothing gates the README block this tool writes, so a stale restatement passes lint** — `export --readme` is the one write no gate holds: a pytest fixture catches it here and an adopting project has none, so the derived table drifts from the files it was derived from. → §RK104
