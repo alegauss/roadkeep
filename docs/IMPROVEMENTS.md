@@ -287,6 +287,75 @@ and may not need a second.
 
 ## Block D — The gate
 
+### §RK217 The proxy RK55 used for a question git now answers
+
+RK55 was right that a token needs to be a *decidable* claim before it is reported: 60 of
+Shio's 61 findings were a MIME type, an i18n key or two method names sharing a slash,
+and the existing directory is what told those from a file the repository lost. That
+reasoning holds.
+
+What it did not anticipate is the direction the proxy fails in. `_claims_a_file` asks
+the **filesystem** whether the token's directory is there, so a ledger naming
+`lib/gone.py` reports when that one file goes and reports **nothing** when `lib/` goes
+with it — the larger deletion, and the one a reader is more likely to be surprised by.
+Measured on a fixture: one finding, then zero.
+
+RK213 established that git answers this class directly. `tracked_now` already knows
+every path the repository carries, `check-ignore` knows every path it has declared it
+never will, and between them the question "is this token a claim about this repository"
+has an answer that does not depend on what is on this disk right now.
+
+Whether that replaces the directory test or narrows it is the decision. Replacing it
+re-opens the 60 findings RK55 closed, so the measurement is which of them a
+tracked-prefix test would still admit — over both pinned corpora, before anything
+changes.
+
+### §RK218 Half a revision
+
+RK84's whole claim is that a baseline run judges the governed files **as they were**, so
+a repository with standing debt gets an exit code about its own commit. `path.missing`
+is the one check whose subject is outside those files, and RK210 moved half of it to the
+revision: `carries` and `anywhere` ask git at the ref.
+
+The other half never moved. `paths_in(entry.raw, config.root, near=near)` resolves
+against `config.root` — this disk, now — so `referenced.exists` and RK55's directory
+test answer about the working tree whatever revision the run names.
+
+Demonstrated on a fixture with one commit and no second one: `lint --at HEAD` reports
+`lib/later.py` missing, then reports nothing once that file exists, with the revision
+unchanged and the file untracked. The same commit, two verdicts, decided by a file git
+has never seen.
+
+It bites `--baseline` (RK84) rather than `--at` (RK210), because that is the shipped
+surface: the debt a run forgives is computed from a revision half-read, so an artefact
+created since the ref quietly forgives a finding that revision really had.
+
+The fix is where the resolution happens rather than what it asks: `paths_in` takes a
+root and the tree takes a rev, and the two have to be the same tree.
+
+### §RK219 A memo whose key is the call order
+
+`Tree` caches three things and two of them are keyed by what they are about: `_blobs` by
+path, `_names` and `_tails` by the tree itself, which is the whole object. `_ignored` is
+keyed by nothing at all — the first `declared_untracked(tokens)` fills it and every
+later call gets that answer whatever it asked.
+
+Correct today, and only for a reason that is invisible where the trap is: `_paths` is
+the one caller and it asks once, having gathered every candidate first precisely so the
+subprocess is one. A second caller — or a `_paths` that grew a second pass — would be
+handed the first question's answer and would agree with it silently, which is the
+failure mode this repository writes memos to avoid (RK211: the key *is* the text, so
+there is nothing to invalidate).
+
+Three shapes, and they are not equally honest. A dict keyed by the token is the same
+memo the other two are, at the cost of a subprocess per distinct question. Asking every
+token the *ledger* names, once, makes the cache a property of the tree like `_tails` and
+pays for tokens no finding will ever reach. Refusing a second call outright says what is
+actually true — this is a one-shot — and costs a reader nothing to understand.
+
+Filed as an idea because nothing is broken: what is wrong is that being right depends on
+a caller reading a different function.
+
 ## Block E — Adoption
 
 ### §RK103 The marker slot that holds two tokens
