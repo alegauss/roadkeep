@@ -27,7 +27,9 @@ from __future__ import annotations
 
 import io
 import json
+import os
 import re
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -35,6 +37,7 @@ import pytest
 from roadkeep import claiming
 from roadkeep.cli import build_parser
 from roadkeep.config import Config
+from roadkeep.provenance import _LOADED_AT, engine
 from roadkeep.serving import (
     KNOWN_PROTOCOLS,
     METHOD_NOT_FOUND,
@@ -659,3 +662,52 @@ def test_the_server_subcommand_tolerates_a_broken_config():
     # `main` reads this flag; without it a typo in `roadkeep.toml` would stop the process
     # the session started once, and take the four tools with it.
     assert build_parser().parse_args(["mcp"]).tolerates_config_error is True
+
+
+# -- the refusal that was about the code and read as being about the project ----
+
+
+def test_a_config_refusal_names_the_build_that_read_the_config(tmp_path):
+    # RK155, measured: `[claims] held` reached `roadkeep.toml` and `config.py` in one commit,
+    # and every MCP write refused `unknown key 'claims'` while the CLI in a terminal accepted
+    # it — a refusal correct about the code and wrong about the project. Which build read the
+    # file is the fact that turns that puzzle into an instruction, and it cannot be wrong.
+    (tmp_path / "roadkeep.toml").write_text("prefix = 12\n", encoding="utf-8")
+    refused = text_of(called(tmp_path, "add", block="A", symptom="s", why="w."))
+    assert "roadkeep:" in refused
+    assert f"read by {engine()}" in refused
+
+
+def test_a_refusal_says_when_the_code_answering_it_moved(tmp_path, monkeypatch):
+    # The note rides on any refusal, because a build behind can be wrong about anything — and
+    # nothing reloads: the harness restarts a plugin whose version moved (RK153).
+    monkeypatch.setattr(
+        "roadkeep.serving.engine",
+        lambda: replace(engine(), home=_moved(tmp_path)),
+    )
+    answered = called(project(tmp_path), "status", id="RK99", marker="🛠")
+    assert answered["isError"] is True
+    refused = text_of(answered)
+    assert "imported roadkeep before config.py changed on disk" in refused
+    assert "restart the session" in refused
+
+
+def test_an_answer_that_worked_explains_nothing(tmp_path, monkeypatch):
+    # A note on every answer is a note that stops being read, and a call that succeeded has
+    # nothing to explain about the build that succeeded at it.
+    monkeypatch.setattr(
+        "roadkeep.serving.engine",
+        lambda: replace(engine(), home=_moved(tmp_path)),
+    )
+    answered = called(project(tmp_path), "list", block="A")
+    assert answered["isError"] is False
+    assert "changed on disk" not in text_of(answered)
+
+
+def _moved(tmp_path: Path) -> Path:
+    """A package directory whose `config.py` is newer than this process's import of one."""
+    home = tmp_path / "engine" / "roadkeep"
+    home.mkdir(parents=True, exist_ok=True)
+    (home / "config.py").write_text("x = 1\n", encoding="utf-8")
+    os.utime(home / "config.py", (_LOADED_AT + 300, _LOADED_AT + 300))
+    return home

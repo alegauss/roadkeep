@@ -688,30 +688,6 @@ git configuration and should stay a flag rather than a default.
 
 ## Block F — The plugin
 
-### §RK155 The server outlives the code it loaded
-
-Observed twice in one session, developing this tool with its own server wired in:
-`[claims] held` was added to `roadkeep.toml` and to `config.py` in the same commit, and
-every MCP write then refused with `unknown key 'claims'` while the CLI in a terminal
-accepted it. The fallback was to stop using the tools — which is the write path this
-project ships.
-
-The cause is that `mcp` is launched once per session and imports the package then.
-Nothing is stale about the *files*: the config is re-read per message, deliberately, so
-a `roadkeep.toml` edited mid-session is the one the next `tools/list` describes. What is
-stale is the code that reads it.
-
-Two directions, and they answer different questions. A refusal could *say* which build
-answered — `provenance.engine()` already knows, and "the server is running 0.1.1, the
-file wants 0.1.2" turns a puzzling refusal into an instruction. Or the server could
-notice: it holds no state between messages, so re-executing the package when its own
-files are newer than its import is possible, and is the kind of cleverness that fails in
-the direction of a half-reloaded module.
-
-Only the second is a fix; the first is what makes the failure legible, costs nothing,
-and cannot be wrong. Worth deciding whether the second belongs here at all, or is the
-harness's to do on a plugin whose version moved.
-
 ### §RK170 The read that eats the transport
 
 The server speaks JSON-RPC on stdin and stdout, and `call` dispatches in-process through

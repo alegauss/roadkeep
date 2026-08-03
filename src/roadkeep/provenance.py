@@ -17,6 +17,13 @@ alone already separates a cache from a checkout; the commit separates two checko
 names the case `/plugin update` cannot fix, where the cache is current with a remote the
 work has not reached.
 
+The same two facts answer a second question the server needs (RK155): the config is re-read
+per message, deliberately, but the *code* reading it was imported once at session start — so
+`[claims] held` added to `roadkeep.toml` and to `config.py` in one commit made every MCP write
+refuse `unknown key 'claims'` while the CLI in a terminal accepted it. :attr:`Engine.stale`
+names the modules that moved under the running process, so the refusal states the cause instead
+of describing a config that is correct. It never reloads: see that attribute for why.
+
 Git is asked about **the package's own directory**, never the governed project's — a
 different question from :mod:`roadkeep.history`, which reads the repository a `Config` points
 at. It is asked at most once per process and never on a path that writes: a subprocess on
@@ -27,6 +34,7 @@ answer, and it is the half that distinguishes the two engines above.
 
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
@@ -45,6 +53,17 @@ UNTRACKED = "untracked"
 #: Appended to the commit when the files differ from it, because the commit is then a
 #: description of what was edited rather than of what is running.
 MODIFIED = "modified"
+
+#: When this process loaded the package, which is the only clock staleness can be measured
+#: against (RK155). Not a module mtime and not :func:`engine`'s cache: the question is whether
+#: the files changed *after* the code answering was imported, and only the process knows when
+#: that was. Set at import, so a server that starts late measures from when it started.
+_LOADED_AT = time.time()
+
+#: How much later than :data:`_LOADED_AT` a file must be to count. One second, because a file
+#: written in the same second the process started is the process's own installer, not an edit,
+#: and a server that called itself stale on every start would be a warning nobody reads.
+_GRACE = 1.0
 
 
 @dataclass(frozen=True, slots=True)
@@ -66,6 +85,32 @@ class Engine:
         if self.commit is None:
             return UNTRACKED
         return f"{self.commit} {MODIFIED}" if self.modified else self.commit
+
+    @property
+    def stale(self) -> tuple[str, ...]:
+        """This package's own modules that changed after the process imported them (RK155).
+
+        Read from disk on every call and never cached, unlike everything else here: identity
+        is a fact about the process and this is a fact about right now — a server whose answer
+        to "am I current" was decided at startup would be answering the wrong question.
+
+        An mtime comparison and deliberately nothing more. Re-executing the package is possible
+        — the server holds no state between messages — and is the kind of cleverness that fails
+        as a half-loaded module; the harness already restarts a plugin whose version moved
+        (RK153), which is why every commit bumps the patch. So what is left here is not
+        reloading but *saying*, which costs one `stat` per module and cannot be wrong.
+        """
+        changed = []
+        for module in sorted(self.home.glob("*.py")):
+            try:
+                if module.stat().st_mtime > _LOADED_AT + _GRACE:
+                    changed.append(module.name)
+            except OSError:
+                # A module that cannot be stat'd is not evidence of anything. Every other
+                # failure in this package allows; a provenance note is the last place to
+                # start raising.
+                continue
+        return tuple(changed)
 
     def __str__(self) -> str:
         return f"roadkeep {self.version} ({self.revision}, {self.home})"

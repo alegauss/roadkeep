@@ -67,7 +67,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK155** (deps: —) **A tool call answers with the code the session started, so a refusal can name a key the config declares** — The stdio server imports the package once per session, so a new config key or an upgrade is invisible to every tool while the CLI beside it agrees with the file. → §RK155
 - 📋 **RK170** (deps: —) **A tool call that reads stdin eats the transport it arrived on** — `call` redirects stdout and stderr and not stdin, so `add --section` with no body blocks in `sys.stdin.read()` for ever — wedged 18 minutes in Shio, holding the RK117 lock. → §RK170
 - 📋 **RK171** (deps: —) **Nothing asks which exposed tool can reach a read of the transport** — The one guard is a comment in `_add`, and `section add` and `section amend` reach the same read on an argv the schema permits, so two paths wait their turn. → §RK171
 

@@ -8,6 +8,12 @@ The cases worth holding are the degraded ones. A wheel in `site-packages` has no
 machine without git has no commit, and a package directory sitting under an unrelated
 checkout has a HEAD that describes somebody else's work — the last is the one that would
 lie rather than say nothing, so it gets a repository built for it.
+
+The same two facts answer a second question (RK155): whether the modules moved after the
+process imported them, which is what makes `unknown key 'claims'` legible on a server started
+a build ago. Asserted on an :class:`Engine` built over a `tmp_path` rather than on this one —
+the running process's own mtimes are whatever the checkout happens to be, so a test reading
+them would pass or fail on when the files were last saved.
 """
 
 from __future__ import annotations
@@ -21,7 +27,7 @@ from pathlib import Path
 import pytest
 
 import roadkeep
-from roadkeep.provenance import MODIFIED, UNTRACKED, Engine, engine
+from roadkeep.provenance import _LOADED_AT, MODIFIED, UNTRACKED, Engine, engine
 
 HERE = Path(__file__).resolve().parents[1]
 
@@ -81,6 +87,50 @@ def test_a_tree_git_cannot_place_still_answers_with_its_directory():
     unplaced = Engine(version="0.1.0", home=home, commit=None)
     assert unplaced.revision == UNTRACKED
     assert str(unplaced) == f"roadkeep 0.1.0 ({UNTRACKED}, {home})"
+
+
+# -- the code that moved under the process (RK155) ----------------------------
+
+
+def test_a_tree_nothing_touched_is_not_stale(tmp_path):
+    # The whole value of the note is that it is silent when there is nothing to say: one that
+    # fires on every refusal is one an agent learns to skip past.
+    home = tmp_path / "roadkeep"
+    home.mkdir()
+    (home / "config.py").write_text("x = 1\n", encoding="utf-8")
+    os.utime(home / "config.py", (_LOADED_AT - 60, _LOADED_AT - 60))
+    assert Engine(version="0.1.0", home=home, commit=None).stale == ()
+
+
+def test_a_module_written_after_the_import_is_named(tmp_path):
+    # The measured failure: `[claims] held` reached `roadkeep.toml` and `config.py` in one
+    # commit, and every MCP write then refused a key the file legitimately declared.
+    home = tmp_path / "roadkeep"
+    home.mkdir()
+    for name in ("config.py", "schema.py", "notes.txt"):
+        (home / name).write_text("x = 1\n", encoding="utf-8")
+        os.utime(home / name, (_LOADED_AT + 300, _LOADED_AT + 300))
+    # Only this package's own modules: a fixture or a `.pyc` beside them says nothing about
+    # the code that answered.
+    assert Engine(version="0.1.0", home=home, commit=None).stale == ("config.py", "schema.py")
+
+
+def test_staleness_is_read_now_and_not_cached_like_the_identity(tmp_path):
+    # `engine()` is cached per process because identity cannot change; this can, and a server
+    # that decided at startup whether it was current would be answering the wrong question.
+    home = tmp_path / "roadkeep"
+    home.mkdir()
+    described = Engine(version="0.1.0", home=home, commit=None)
+    assert described.stale == ()
+    (home / "serving.py").write_text("x = 1\n", encoding="utf-8")
+    os.utime(home / "serving.py", (_LOADED_AT + 300, _LOADED_AT + 300))
+    assert described.stale == ("serving.py",)
+
+
+def test_a_directory_that_cannot_be_read_is_not_evidence(tmp_path):
+    # Every other failure in this package allows; a provenance note is the last place to
+    # start raising, because it is read only when something has already gone wrong.
+    assert Engine(version="0.1.0", home=tmp_path / "gone", commit=None).stale == ()
 
 
 # -- the case that would lie -------------------------------------------------

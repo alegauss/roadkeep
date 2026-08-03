@@ -21,7 +21,8 @@ What that costs, and how each cost is avoided here:
 * **stdio, and no listener.** "No server" is a non-goal about *the store*: this speaks
   JSON-RPC on stdin and stdout, holds no state between messages, binds no port and caches no
   file. The config is re-read per message, so a `roadkeep.toml` edited mid-session is the one
-  the next `tools/list` describes.
+  the next `tools/list` describes — and because the *code* reading it is not, a refusal says so
+  when this package's own modules moved after they were imported (RK155).
 * **A broken config still starts.** `mcp` tolerates a `ConfigError` for the reason `guard`
   does: the process is launched once for the whole session, and refusing to start would take
   the tools away exactly when a typo in the config most needs the gate. `tools/list` then
@@ -499,11 +500,14 @@ def call(tool: Tool, arguments: Mapping[str, Any], directory: str = ".") -> Answ
     try:
         config = Config.discover(directory)
     except ConfigError as error:
-        return Answer(f"roadkeep: {error}", is_error=True)
+        # The engine is named on this one refusal unconditionally (RK155): a key the file
+        # declares and the code does not know is the shape stale code produces, and which
+        # build read the config is the fact that turns the puzzle into an instruction.
+        return _answered(f"roadkeep: {error} — read by {engine()}", is_error=True)
     try:
         line = argv(tool, arguments, config)
     except ToolError as error:
-        return Answer(str(error), is_error=True)
+        return _answered(str(error), is_error=True)
     out, err = io.StringIO(), io.StringIO()
     try:
         with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
@@ -515,9 +519,40 @@ def call(tool: Tool, arguments: Mapping[str, Any], directory: str = ".") -> Answ
     except SystemExit as exit_:  # argparse refused the argv: a missing required argument
         code = exit_.code if isinstance(exit_.code, int) else 2
     except LockBusy as busy:
-        return Answer(f"roadkeep: {busy}", is_error=True)
+        return _answered(f"roadkeep: {busy}", is_error=True)
     reported = "\n".join(part for part in (err.getvalue().strip(), out.getvalue().strip()) if part)
-    return Answer(reported or f"{tool.name}: exit {code}", is_error=bool(code))
+    return _answered(reported or f"{tool.name}: exit {code}", is_error=bool(code))
+
+
+def _answered(text: str, *, is_error: bool) -> Answer:
+    """One tool's answer, plus the note a **refusal** needs when the code answering moved.
+
+    RK155, measured twice in one session: the config is re-read per message on purpose, so a
+    `roadkeep.toml` edited mid-session is the one the next `tools/list` describes — but the code
+    reading it was imported once at session start. `[claims] held` added to the file and to
+    `config.py` in one commit made every MCP write refuse `unknown key 'claims'` while the CLI
+    in a terminal accepted it, and the fallback was to stop using the write path this project
+    ships. The refusal was correct about the code and wrong about the project.
+
+    Only on a refusal, and only when something actually moved: a successful call has nothing to
+    explain, and a note on every answer is a note that stops being read. Nothing reloads — see
+    :attr:`~roadkeep.provenance.Engine.stale` for why that is the harness's job and not this
+    server's.
+    """
+    if not is_error:
+        return Answer(text, is_error=False)
+    changed = engine().stale
+    if not changed:
+        return Answer(text, is_error=True)
+    return Answer(
+        f"{text}\n\n"
+        f"This server imported roadkeep before {', '.join(changed)} changed on disk, so "
+        f"the refusal above may be a build behind rather than a fact about this project — "
+        f"the same command in a shell reads the current code. Every commit bumps the patch "
+        f"version so the harness reloads the plugin (RK153); restart the session if it has "
+        f"not.",
+        is_error=True,
+    )
 
 
 def tool_named(name: str) -> Tool:
