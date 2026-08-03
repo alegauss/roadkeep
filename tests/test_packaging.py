@@ -70,6 +70,40 @@ def test_the_builder_reads_the_same_number_the_module_states() -> None:
     assert found == [roadkeep.__version__]
 
 
+# -- the number moves on every commit (RK153) --------------------------------
+
+
+def test_a_commit_bumps_the_patch_version() -> None:
+    """Claude Code re-reads an installed plugin per *version*, so between two releases a
+    number that never moves is a session running code nobody can see. The hook is in the
+    tree and not in `.git/hooks`, which a clone does not carry — and it calls the release's
+    own script, so the two files that state the number stay one fact."""
+    hook = HERE / ".githooks" / "pre-commit"
+    assert hook.is_file(), "the hook a clone carries: git config core.hooksPath .githooks"
+    body = hook.read_text(encoding="utf-8")
+    assert "scripts/bump_version.py" in body and "--level patch" in body
+    # Never blocks: a missing interpreter costs a plugin refresh, a refused commit costs the
+    # session — so every path out of it is a zero.
+    assert "exit 1" not in body
+
+
+def test_the_bumper_moves_both_files_and_nothing_else(tmp_path) -> None:
+    """`--dry-run` is asserted rather than the write: this repository's own version is not a
+    fixture, and a test that bumped it would put its own number in the next commit."""
+    import subprocess
+    import sys
+
+    finished = subprocess.run(
+        [sys.executable, str(HERE / "scripts" / "bump_version.py"), "--level", "patch", "--dry-run"],
+        capture_output=True,
+        text=True,
+        check=True,
+        cwd=tmp_path,
+    )
+    major, minor, patch = (int(part) for part in roadkeep.__version__.split(".")[:3])
+    assert finished.stdout.strip().endswith(f"-> {major}.{minor}.{patch + 1}")
+
+
 # -- the claims that live in prose everywhere else ---------------------------
 
 

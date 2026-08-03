@@ -6,10 +6,9 @@ point of insertion instead of a convention an author is asked to remember. Shipp
 a Claude Code plugin, because the author to constrain is usually an agent.
 
 **The problem it solves, measured.** In Viglet Shio: 92 roadmap lines averaging **142 words**
-against a one-sentence rule, worst **1406 characters**; an `agents.md` that reached **186 KB**
-absorbing the rationale of every shipped task. Six of the eight worst lines were written in the
-session that then diagnosed it — the drift is invited by the process. Full measurement:
-[docs/IMPROVEMENTS.md §0.1](docs/IMPROVEMENTS.md).
+against a one-sentence rule; an `agents.md` that reached **186 KB** absorbing the rationale of
+every shipped task. Six of the eight worst lines were written in the session that then diagnosed
+it — the drift is invited by the process ([full measurement](docs/IMPROVEMENTS.md)).
 
 **The insight that decides every design question.** *The saving is the analysis, not the
 characters.* A linter reports after the prose exists, when the tokens are spent and the
@@ -18,8 +17,7 @@ fill it, turning an analytical act ("what would I cut?") into a procedural one (
 
 ## The six laws
 
-Compressed; **[IMPROVEMENTS.md §0.3](docs/IMPROVEMENTS.md) is authoritative.** A change
-that breaks one is wrong even if requested.
+Compressed; **[§0.3](docs/IMPROVEMENTS.md) is authoritative** — a change breaking one is wrong even if requested.
 
 | # | Law |
 |---|---|
@@ -76,20 +74,20 @@ wrong lines, so a schema change validates here first, under this repo's own `roa
 
 Don't hand-check it: `… lint` **exits 1** on any violation, line that stopped round-tripping,
 dep nothing satisfies, pointer resolving to nothing, section nothing points at, over-budget
-every-turn file, or invisible codepoint — which it names as `file:line:column` instead of the
-consequence, and then judges nothing else on that line (RK14/RK15/RK30/RK34). CI runs the same
-command through the action this repo ships (RK17). `--fix` repairs only what is **derived**
-(annotation, pointer, dep order, marker codepoint, whitespace) and leaves the editorial (RK16).
+every-turn file, or invisible codepoint — named as `file:line:column` rather than as its
+consequence, and nothing else judged on that line (RK14/RK15/RK30/RK34). CI runs it through the
+action this repo ships (RK17). `--fix` repairs only what is **derived** (annotation, pointer,
+dep order, marker codepoint, whitespace) and leaves the editorial (RK16).
 
 ## The write path is a skill, not a preamble
 
 [skills/roadkeep/SKILL.md](skills/roadkeep/SKILL.md) is the authority on which command to call,
-what it derives, the two rules a schema cannot check, the query surface and how work is picked
-— loaded when a governed file is in play and costing nothing on the turns that touch none
-(RK23). It ships in the plugin, so it is the same text in every adopting project; **nothing
-here repeats it**, a rule in two files being one two files can disagree about. This project's
-numbers are `roadkeep.toml`, and the package is not installed here, so every command in it
-reads `PYTHONPATH=src python -m roadkeep.cli <…>` from the repo root.
+what it derives, the two rules a schema cannot check, the query surface and how work is picked —
+loaded when a governed file is in play and costing nothing on the turns that touch none (RK23).
+It ships in the plugin, so it is the same text in every adopting project; **nothing here repeats
+it**, a rule in two files being one two files can disagree about. This project's numbers are
+`roadkeep.toml`, and the package is not installed here, so read every command in it as
+`PYTHONPATH=src python -m roadkeep.cli <…>` from the repo root.
 
 ## Build and test
 
@@ -99,7 +97,7 @@ reads `PYTHONPATH=src python -m roadkeep.cli <…>` from the repo root.
 - `uv` is **not** installed here — `python -m pytest` from the repo root (`pythonpath =
   ["src"]` is set, so no install step). Only dev dependency: `pip install --user pytest`.
 - Round-trip (L3) is a **property test over real files**: `docs/` plus Shio's and Turing's
-  roadmaps, which supply the dep kinds worth keeping and skip where they are absent (CI).
+  roadmaps, for the dep kinds only they write — skipped where absent (CI).
 
 ## Committing
 
@@ -108,8 +106,10 @@ commit as the code, so the docs never describe a state that did not ship, and a 
 tasks is **not** permission to batch: `/loop`, one task per iteration. Use `run-commit.cmd -m
 "<conventional-commits title>"` from the repo root, **`-m` always** and ASCII — without it a
 docs commit's prose about shipped work is misread as `feat: implement <feature>`. It stages
-everything, so a tree holding unrelated work wants the task's paths staged and
-`python -m commitclerk -m …` instead.
+everything: a tree holding unrelated work wants the task's paths staged and
+`python -m commitclerk -m …`. **Every commit bumps the patch version**, Claude Code re-reading
+an installed plugin per version (RK153) — `.githooks/pre-commit` does it and never blocks,
+wired in a fresh clone by `git config core.hooksPath .githooks`.
 
 ## Non-goals are binding
 

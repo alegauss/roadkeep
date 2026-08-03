@@ -1,0 +1,32 @@
+#!/bin/sh
+# Bump the patch version on every commit (RK153).
+#
+# Claude Code re-reads an installed plugin when the manifest's version changes, so a checkout
+# whose number only moves at release time is one the running session keeps loading the old
+# copy of — a hook fixed an hour ago goes on denying the write it used to deny.
+#
+# Not a second writer of the number: this calls the same script the release workflow calls,
+# which writes both places the version lives (`src/roadkeep/__init__.py` and
+# `.claude-plugin/plugin.json`), and `tests/test_plugin.py` holds those two to one fact.
+#
+# It never blocks a commit. A missing interpreter costs a plugin refresh and a refused commit
+# costs the session, so every path out of here is exit 0. `--no-verify` skips it entirely.
+#
+# Wired per clone, because a hook in `.git/hooks` is not something a clone carries:
+#     git config core.hooksPath .githooks
+
+root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
+
+for interpreter in python python3 py; do
+	if command -v "$interpreter" >/dev/null 2>&1; then
+		if "$interpreter" "$root/scripts/bump_version.py" --level patch; then
+			git add -- "$root/src/roadkeep/__init__.py" "$root/.claude-plugin/plugin.json" || true
+		else
+			echo "pre-commit: bump_version.py failed, version not bumped" >&2
+		fi
+		exit 0
+	fi
+done
+
+echo "pre-commit: no python on PATH, version not bumped" >&2
+exit 0
