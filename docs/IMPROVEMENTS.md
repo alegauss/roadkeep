@@ -118,6 +118,75 @@ as one. RK122 is the same question one file up.
 
 ## Block B — Authoring
 
+### §RK179 The half of a sentence the parse never held
+
+RK157 gave `Entry` a span and used it where a write inserts or removes, and left
+`replace_task` on the first line deliberately: every field the schema renders was read
+off that line, so replacing the whole span with one rendered line would delete prose no
+task holds.
+
+That argument is right about an id and wrong about a sentence. Reproduced on a
+three-line entry: `record amend SH1 --why "It works now."` wrote the new sentence on
+line one and left `on a second line, and finishes` / `on a third one.` beneath it, so
+the entry states an outcome followed by the tail of the problem it replaced. The command
+printed the first line and called it amended, which is the report that hides it.
+
+The parse is the root: a wrapped entry's `why` is only as much of the sentence as fits
+on one line, so the field the author is shown and the field the file holds are different
+lengths. `_one_entry_twice` inherits it, calling two entries the same when only their
+first lines match.
+
+Three shapes, and choosing is the task. Refuse the correction on a wrapped entry, naming
+the lines the tool cannot reproduce — loud, and leaves Shio's 146 uncorrectable. Or read
+the whole span into the field, so the sentence the file holds is the one the schema
+charges. Or take the span and the new text together, so a correction says how many lines
+it replaces.
+
+### §RK180 Half a derivation is a heading in the wrong place
+
+RK166 made the level of a *new top level* the file's own, and left `NESTED_LEVEL = 3`
+for everything under it — stated as being what every caller already got, and out of
+scope there. It is the same defect one level down.
+
+Reproduced on a file whose top level is `###` and whose designs are `####`, which is the
+shape a project gets by nesting its rationale under a `##` part heading: `section add
+XXI.6` wrote `### XXI.6`, a *sibling* of `### XXI`. Nothing refused it and the answer
+reported a section placed.
+
+A heading at the wrong depth is not cosmetic, because depth is what says where a section
+ends (RK115). `find` no longer owns it, `nested` does not report it, the budget charges
+the parent for prose it no longer contains, and `section drop XXI` takes the parent and
+leaves this one behind — an orphan under whatever precedes it, which is the outcome RK9
+calls worse than deleting too much.
+
+The narrow fix is the one already written for the top level: read the depth off the
+sections this file declares at the same number of segments, and fall back to one under
+the parent that was found. Both facts are in hand at the moment of placement —
+`_extended` has already resolved the parent's heading, and that heading's level plus one
+is the answer no default can be right about.
+
+### §RK181 One address for a file, and three spellings of it
+
+RK14 fixed the form of a report: name the place as `file:line:column`, so the reader
+acts on the address rather than on the consequence. `lint` does, and `config.relative`
+is the one function that renders it — every refusal on the line files goes through it.
+
+The prose file's refusals do not. `NoSuchSection`, `SectionClaimed`, `SectionOccupied`
+and `AnchorClaimed` are handed `str(document.path or "")`, which is absolute, while
+`_placement` hands `UnknownBlock` a bare `document.path.name`, which loses the
+directory. Three spellings of one address, in one module, and the widest of them is what
+an agent reads first — measured while shipping RK169, where the refusal ran past the
+terminal width on the path alone.
+
+None of the three is wrong about the file. What they cost is the thing RK14 bought: an
+address that pastes into an editor, is stable across machines, and is the same string
+the gate reporting the same file will print a moment later.
+
+The obstacle is real and is why it stayed: `drop` takes a `Document` and not a `Config`,
+so it cannot relativise anything. So either the caller renders the address and passes it
+in, the way `ship` already passes `claimed`, or the refusals carry the path and the CLI
+renders it at the boundary where a `Config` exists.
+
 ## Block C — Query
 
 ### §RK174 One parser, fifty-two times
@@ -387,6 +456,27 @@ resolves anywhere the repository declares a module root, or let `[paths]` declar
 roots to try. Stripping a `#L…` anchor before the existence test is separate, smaller
 and unambiguous. Either way the class needs to distinguish "the entry is wrong" from
 "the entry is relative", which today it cannot.
+
+### §RK182 A property test is only as wide as its corpus
+
+The round-trip property is the tool's ownership test (L3), and it is a property test
+over real files precisely because the corruption it guards against is the case nobody
+thought to write an example for. `FOREIGN` lists two files: Shio's roadmap and Turing's.
+
+RK157 was in neither. Its shape is a bullet that wraps, and a governed roadmap has none
+by construction — the format has no multi-line task line. Counted while fixing it: 146
+of Shio's 290 ledger entries wrap, and 3 of Turing's 801. So the one place the shape
+occurs at scale is the one kind of file the corpus does not read, and the property
+passed on every file for as long as the defect existed.
+
+What extending it costs is the reason it was not done in that commit. A ledger written
+before the tool needs the rules that hold a `why` to one sentence turned off for the
+role, so the schema each file is read under stops being one line in a list. And RK105 is
+already open about foreign trees turning this suite red for a change nobody here made —
+two more files is twice the exposure.
+
+Which makes the honest order visible: RK105 decides how a foreign file is read at all,
+and this one is what that decision is worth doing for.
 
 ## Block E — Adoption
 

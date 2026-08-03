@@ -27,6 +27,10 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK179** (deps: —) **Correcting a wrapped entry's why leaves the rest of the old sentence below the new one** — `replace_task` rewrites the first line because that is all the parse held, so an amend reports success on a line whose sentence now runs into two lines of the one it replaced. → §RK179
+- 📋 **RK180** (deps: —) **A subsection is written at a fixed depth, so in a file whose top level is deeper it is no subsection** — RK166 derived the depth of a new top level and left the nested one at 3, so `section add X.Y` under a level-3 `X` renders a sibling that ends the subtree it was meant to be inside. → §RK180
+- 📋 **RK181** (deps: —) **A section refusal names the file by its whole filesystem path, where the gate beside it names it relatively** — Every message in `sections.py` is built from `document.path`, so a refused drop prints an absolute path while `lint` in the same terminal prints `IMPROVEMENTS.md:5`. → §RK181
+
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK174** (deps: —) **Listing the tools rebuilds the whole CLI parser fifty-two times and costs a sixth of a second** — `_subparser` calls `build_parser` per lookup and each descriptor needs two — the schema and whether the tool writes — so a client's first message pays 165ms rebuilding what never changed. → §RK174
@@ -45,6 +49,7 @@
 - 📋 **RK147** (deps: —) **A prose file's own limits are enforced by the gate and ignored by the write that creates the text** — section add and amend check the body against config.schema while lint charges schema_for(role), so a project declaring [limits.improvements] has a budget only the backstop holds. → §RK147
 - 📋 **RK172** (deps: —) **A pointer resolving to a section in the strategy file is reported as resolving to nothing** — Resolution is charged against the improvements file alone, so Turing's six GEO lines point at STRATEGY `§X.3`/`§X.4`, which exist, and the gate calls the correct pointer unresolved. → §RK172
 - 📋 **RK173** (deps: —) **A path a ledger entry names relative to its own module is reported as not in the repository** — Every path is resolved from the repository root, so Turing's `./package.json` and `scripts/prerender.mjs` are reported missing while both exist under the frontend app the entry is about. → §RK173
+- 📋 **RK182** (deps: —) **The round-trip corpus reads two foreign roadmaps and no foreign ledger, where the wrapped shape lives** — RK157's silent misfiling needed an entry that wraps, and 146 of Shio's 290 do while both roadmaps have none, so the property read every file except the one the defect was in. → §RK182
 
 ## Block E — Adoption
 
