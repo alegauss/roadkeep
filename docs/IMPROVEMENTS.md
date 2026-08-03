@@ -118,26 +118,6 @@ as one. RK122 is the same question one file up.
 
 ## Block B — Authoring
 
-### §RK145 Appended is a placement, not the placement
-
-`block add` derives its position: after the last block's subtree, which is what opening
-a *new* block means and which is the only placement that cannot land inside another's
-work. Right for the case it was written for, and it is the only case it has.
-
-Block order is not decoration. `list` reports blocks in the headings' own order and says
-so; `brief --block <x>` is scoped by it; an author reading a roadmap reads the sequence
-as the shape of the plan. A project that opens a block for work belonging between two
-phases gets it appended after both, and the repair is reordering headings by hand across
-three files — the edit the guard denies, on the arrangement RK141 existed to stop
-needing.
-
-The narrow shape is one argument: `--after <label>`, placed at the end of that block's
-subtree and refused for a label the file does not declare, with the current behaviour as
-the default so nothing about the common case changes. The wider question it exposes is
-whether the *same* order has to hold in every governed file — the roadmap's sequence is
-a plan and the ledger's is where history sits — and the answer may honestly be no, which
-would make `--after` a per-file argument or a refusal when the files disagree.
-
 ### §RK157 The line an entry starts on is not the line it ends on
 
 `Document` reads a bullet per line: a wrapped ledger entry is one `Entry` whose `raw` is

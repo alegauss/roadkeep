@@ -9,6 +9,11 @@ So the test of this module is not that a heading can be written. It is that **ne
 refusal had to be weakened**: the label and the title are the author's, and the level, the
 separator and the place are the file's own.
 
+**And that appended was a placement rather than the placement** (RK145). `--after <label>` is
+under test as a *neighbour* and not an index: two files ordering their blocks differently each
+place the heading after their own copy of that one, and a file that cannot find it is refused
+rather than appended, because falling back there orders one file by a rule the others ignored.
+
 **And that the key can close the door** (RK144). The verb that writes a heading was the only
 one, so a label typed wrongly was three headings only a hand-edit could remove. What the
 removal is tested for is its narrowness: a heading is taken out only where its subtree is
@@ -27,6 +32,7 @@ from roadkeep.blocking import (
     BlockExists,
     BlockOccupied,
     NoSuchBlock,
+    NoSuchNeighbour,
     NotALabel,
     NothingToDrop,
     drop_block,
@@ -295,6 +301,122 @@ def test_json_says_what_was_written_and_what_was_not(tmp_path, capsys):
     assert payload["label"] == "C" and payload["title"] == "Query"
     assert [w["role"] for w in payload["written"]] == ["roadmap", "changelog"]
     assert payload["skipped"][0]["file"] == IMPROVEMENTS
+
+
+# -- a placement, not the placement (RK145) -----------------------------------
+
+
+def test_a_block_can_be_opened_between_two_existing_ones(tmp_path):
+    # Block order is what `list` reports and what a reader takes for the shape of the plan,
+    # so a phase belonging between two existing ones had no route but reordering by hand.
+    config = project(tmp_path)
+    opened = open_block(config, "C", "Query", after="A")
+    opened.save()
+
+    assert opened.after == "A"
+    lines = read(config, ROADMAP).splitlines()
+    assert lines.index("## Block A — The model") < lines.index("## Block C — Query")
+    assert lines.index("## Block C — Query") < lines.index("## Block B — Authoring")
+    # And Block A keeps its own line: the heading goes after that block's whole subtree.
+    assert lines.index("- 📋 **RK1** (deps: —) **A first symptom** — Because of a reason. → §RK1") < lines.index(
+        "## Block C — Query"
+    )
+
+
+def test_the_order_a_list_reports_is_the_one_the_heading_was_opened_into(tmp_path):
+    # The claim the argument exists for: this is a read, and it reads the headings' own order.
+    config = project(tmp_path)
+    open_block(config, "C", "Query", after="A").save()
+    after = Config.discover(tmp_path)
+    assert [h.label for h in after.document("roadmap").headings if h.label] == ["A", "C", "B"]
+    assert lint(after).clean
+
+
+def test_the_neighbour_is_resolved_in_every_file_that_wants_the_heading(tmp_path):
+    config = project(tmp_path)
+    open_block(config, "C", "Query", after="A").save()
+    for name in (ROADMAP, CHANGELOG, IMPROVEMENTS):
+        labels = [
+            line for line in read(config, name).splitlines() if line.startswith("## Block")
+        ]
+        assert labels == ["## Block A — The model", "## Block C — Query", "## Block B — Authoring"]
+
+
+def test_a_neighbour_is_read_per_file_and_not_as_a_position(tmp_path):
+    # Two files that order their blocks differently each keep their own sequence, which is
+    # what makes one argument honest across them: `--after A` is a neighbour, not an index.
+    config = project(
+        tmp_path,
+        changelog="# Shipped\n\n## Block B — Authoring\n\n## Block A — The model\n",
+        improvements="# Improvements\n\n## Block A — The model\n\n## Block B — Authoring\n",
+    )
+    open_block(config, "C", "Query", after="A").save()
+    assert [
+        line for line in read(config, CHANGELOG).splitlines() if line.startswith("## Block")
+    ] == ["## Block B — Authoring", "## Block A — The model", "## Block C — Query"]
+    assert [
+        line for line in read(config, IMPROVEMENTS).splitlines() if line.startswith("## Block")
+    ] == ["## Block A — The model", "## Block C — Query", "## Block B — Authoring"]
+
+
+def test_a_neighbour_a_file_does_not_declare_is_refused_and_never_appended(tmp_path):
+    # Falling back to the end in the one file that cannot resolve it would order that file by
+    # a rule the others did not use — a disagreement both halves round-trip.
+    config = project(tmp_path, changelog="# Shipped\n\n## Block A — The model\n")
+    with pytest.raises(NoSuchNeighbour) as caught:
+        open_block(config, "C", "Query", after="B")
+    assert CHANGELOG in str(caught.value) and "declares: A" in str(caught.value)
+    assert read(config, ROADMAP) == BACKLOG
+    assert read(config, CHANGELOG) == "# Shipped\n\n## Block A — The model\n"
+
+
+def test_a_block_opened_after_itself_is_refused(tmp_path):
+    config = project(tmp_path)
+    with pytest.raises(NotALabel):
+        open_block(config, "C", "Query", after="C")
+    assert read(config, ROADMAP) == BACKLOG
+
+
+def test_omitting_the_neighbour_still_appends_and_says_it_derived_one(tmp_path):
+    # The default is the whole of the old behaviour, so nothing about the common case moved.
+    config = project(tmp_path)
+    opened = open_block(config, "C", "Query")
+    opened.save()
+    assert opened.after is None
+    lines = read(config, ROADMAP).splitlines()
+    assert lines.index("## Block B — Authoring") < lines.index("## Block C — Query")
+
+
+def test_the_heading_between_two_blocks_gets_its_blank_lines(tmp_path):
+    config = project(tmp_path)
+    open_block(config, "C", "Query", after="A").save()
+    body = read(config, ROADMAP)
+    assert "\n\n\n" not in body
+    lines = body.splitlines()
+    at = lines.index("## Block C — Query")
+    assert lines[at - 1] == "" and lines[at + 1] == ""
+    assert Config.discover(tmp_path).document("roadmap").non_canonical == ()
+
+
+def test_the_command_names_the_neighbour_it_was_given(tmp_path, capsys):
+    project(tmp_path)
+    code = main(
+        ["-C", str(tmp_path), "block", "add", "C", "--title", "Query", "--after", "A"]
+    )
+    assert code == EXIT_OK
+    assert capsys.readouterr().out.startswith("Block C declared (after Block A): Query")
+
+
+def test_the_add_json_carries_the_neighbour_or_null(tmp_path, capsys):
+    project(tmp_path)
+    assert main(
+        ["-C", str(tmp_path), "block", "add", "C", "--title", "Query", "--after", "A", "--json"]
+    ) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["after"] == "A"
+    assert main(
+        ["-C", str(tmp_path), "block", "add", "D", "--title", "Gate", "--json"]
+    ) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["after"] is None
 
 
 # -- the door the key could not close (RK144) ---------------------------------

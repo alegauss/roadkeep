@@ -75,6 +75,10 @@ subtree and the anchor are untouched, and it is the only door — `section drop`
 while an open line points at the anchor, which is right, and shipping is not a way to fix a
 paragraph. No write invents a block
 heading — **`block add <x> --title "…"` is the one that declares one**, in every governed file already organised by blocks, placed after the last block's subtree and spelled at that file's own level and separator. Reach for it the moment any write refuses with "no heading declares".
+Block order is what `list` reports and what a reader takes for the shape of the plan, so
+`--after <label>` opens one **between** two existing blocks: it names a neighbour rather than an
+index, each file placing the heading after its own copy of that heading, and a file that wants
+the heading and declares no such neighbour is refused rather than appended.
 `block drop <x>` withdraws a label opened by mistake: the heading goes only from the files where
 its whole subtree is blank, and anything filed under it — an open line, a paused one, a
 rationale section — is named in a refusal that writes nothing, because a heading over work is

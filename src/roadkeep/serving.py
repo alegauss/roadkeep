@@ -230,7 +230,10 @@ TOOLS: tuple[Tool, ...] = (
     # The key to a deadlock the agent meets first (RK141): `ship` refuses an undeclared
     # block, the guard denies the edit that would declare it, and no other verb writes a
     # heading — so a correctly wired project could not open a block at all.
-    Tool("block add", ("label", "title")),
+    # `after` rides with it (RK145): block order is what `list` reports and what a reader takes
+    # for the shape of the plan, and without it a phase belonging between two existing ones was
+    # appended after both — repaired only by reordering three files by hand.
+    Tool("block add", ("label", "title", "after")),
     # And the key that could not close the door (RK144). Exposed for the same reason: the
     # caller that opened a label by mistake is the one the guard denies the hand-edit to, and
     # the removal is refused by name over anything filed under it.

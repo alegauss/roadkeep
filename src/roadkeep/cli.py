@@ -360,12 +360,21 @@ def build_parser() -> argparse.ArgumentParser:
         description=(
             "The label and the title are yours; everything else is derived per file. It "
             "goes after the last block's subtree — never at the end, where the roadmap's "
-            "Non-goals live — and is spelled at the level and with the separator that "
-            "file's own first block heading uses. All of the files, or none of them."
+            "Non-goals live — or after the block `--after` names, which is a neighbour and "
+            "not an index, so each file places it after its own copy of that heading. It is "
+            "spelled at the level and with the separator that file's own first block heading "
+            "uses. All of the files, or none of them."
         ),
     )
     block_add.add_argument("label", help="the block label, e.g. G")
     block_add.add_argument("--title", required=True, help="what the block is for")
+    block_add.add_argument(
+        "--after",
+        help=(
+            "open it after this block instead of last, e.g. C; refused where a file that "
+            "wants the heading declares no such neighbour"
+        ),
+    )
     block_add.add_argument("--json", action="store_true", help=_JSON_HELP)
     block_add.set_defaults(handler=_block_add)
 
@@ -1497,7 +1506,7 @@ def _add(config: Config, args: argparse.Namespace) -> int:
 
 def _block_add(config: Config, args: argparse.Namespace) -> int:
     try:
-        opened = open_block(config, args.label, args.title)
+        opened = open_block(config, args.label, args.title, after=args.after)
         opened.save()
     except REFUSALS as error:
         return _refused(error)
@@ -1511,6 +1520,9 @@ def _block_add(config: Config, args: argparse.Namespace) -> int:
                 {
                     "label": opened.label,
                     "title": opened.title,
+                    # The neighbour as it was asked for, null where it was derived: "after
+                    # the last block" and "appended" are the same placement said twice.
+                    "after": opened.after,
                     "written": [
                         {
                             "role": role,
@@ -1532,7 +1544,10 @@ def _block_add(config: Config, args: argparse.Namespace) -> int:
         )
         return EXIT_OK
 
-    print(f"{config.schema.block_named(opened.label)} declared: {opened.title}")
+    beside = (
+        f" (after {config.schema.block_named(opened.after)})" if opened.after else ""
+    )
+    print(f"{config.schema.block_named(opened.label)} declared{beside}: {opened.title}")
     width = max((len(files[role]) for role in opened.documents), default=0)
     for role in opened.documents:
         print(f"  {files[role]:<{width}}:{opened.placed[role]}  {opened.rendered[role]}")

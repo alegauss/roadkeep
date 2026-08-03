@@ -21,7 +21,14 @@ Everything else is derived, and derived **per file** rather than decided here:
 * **Where.** After the last block's subtree, which is what opening a *new* block means and
   which is also the only placement that cannot land inside another's work. Never at the end
   of the file: the roadmap's `## Non-goals` follows the blocks, and appending would file the
-  first task of the new block under it.
+  first task of the new block under it. **Or after a block the author names** (RK145), because
+  appended is *a* placement and it was the only one: block order is not decoration — `list`
+  reports blocks in the headings' own order, `brief --block <x>` is scoped by it, and a reader
+  takes the sequence for the shape of the plan, so a phase belonging between two existing ones
+  had no route but reordering three files by hand. `--after <label>` names a **neighbour**
+  rather than a position, which is what lets one argument stay honest across files that
+  order blocks differently: each file places the heading after the end of *its* `<label>`
+  subtree, and a file declaring no such label is a refusal rather than a guess.
 * **How it is spelled.** The level and the separator are read off the file's own first block
   heading, so a project writing `## Block A — The model` gets one more of those and one
   writing `### Fase 2 - Execução` gets one more of those. The word is `[headings] word`
@@ -55,12 +62,14 @@ from dataclasses import dataclass, field
 
 from roadkeep.config import Config
 from roadkeep.document import Document, Heading, assert_all_current, blank
+from roadkeep.schema import Schema
 
 __all__ = [
     "BlockExists",
     "BlockOccupied",
     "Closed",
     "NoSuchBlock",
+    "NoSuchNeighbour",
     "NotALabel",
     "NothingToDrop",
     "Opened",
@@ -90,6 +99,36 @@ class NotALabel(ValueError):
         super().__init__(
             f"{label!r} is not a label this project can read ({pattern}): a heading "
             f"declares exactly one, and a dep resolves against that same list"
+        )
+
+
+class NoSuchNeighbour(KeyError):
+    """A `--after` label a file that wants the new heading does not declare (RK145).
+
+    Refused rather than fallen back on, and that is the whole of the decision: appending in
+    the one file that cannot resolve the neighbour would order that file by a rule the others
+    did not use, which is a disagreement about the plan's shape that both halves round-trip.
+    The labels the file *does* declare are named, because the commonest cause is a neighbour
+    that exists in the roadmap and not yet in the file being written beside it.
+    """
+
+    def __init__(
+        self,
+        after: str,
+        label: str,
+        where: str,
+        declared: Sequence[str],
+        word: str = "Block",
+    ) -> None:
+        self.after = after
+        self.label = label
+        self.where = where
+        self.declared = tuple(declared)
+        known = ", ".join(self.declared) or "none"
+        super().__init__(
+            f"{where} declares no {word} {after} to open {word} {label} after (declares: "
+            f"{known}): --after names a neighbour, and a file that cannot find it would be "
+            f"the one file ordered by a different rule"
         )
 
 
@@ -323,6 +362,10 @@ class Opened:
 
     label: str
     title: str
+    #: The block this one was opened after, where the author named one (RK145). None is the
+    #: derived answer — the last block — and it is reported as such rather than resolved to a
+    #: label, because "appended" and "after the last one" are the same placement said twice.
+    after: str | None = None
     #: The files this write changes, by role. Written together or not at all.
     documents: Mapping[str, Document] = field(default_factory=dict)
     #: Where the heading landed, by role — 1-based, as an editor counts.
@@ -341,12 +384,19 @@ class Opened:
             document.save()
 
 
-def open_block(config: Config, label: str, title: str) -> Opened:
+def open_block(
+    config: Config, label: str, title: str, *, after: str | None = None
+) -> Opened:
     """Declare one block in every governed file already organised by blocks.
 
-    Validates everything before touching anything: an unreadable label, an empty title, and
-    a label every candidate file already declares are all refusals that leave the tree
-    exactly as it was.
+    Validates everything before touching anything: an unreadable label, an empty title, a
+    label every candidate file already declares, and a neighbour a file that wants the
+    heading does not declare are all refusals that leave the tree exactly as it was.
+
+    ``after`` is the neighbour, not an index (RK145): each file places the heading at the end
+    of *its own* `<label>` subtree, so the argument stays honest where two files order their
+    blocks differently. Omitted, the neighbour is the last block, which is what opening a new
+    one means and what every call before this argument existed got.
     """
     schema = config.schema
     # The dep's pattern rather than the heading's, because that one is anchored at both
@@ -356,6 +406,8 @@ def open_block(config: Config, label: str, title: str) -> Opened:
         raise NotALabel(label, schema.block_dep_pattern().pattern)
     if not title.strip():
         raise NotALabel(label, "a block is named by its title, and this one is blank")
+    if after is not None and after == label:
+        raise NotALabel(label, "a block cannot be opened after itself")
 
     changed: dict[str, Document] = {}
     placed: dict[str, int] = {}
@@ -379,7 +431,7 @@ def open_block(config: Config, label: str, title: str) -> Opened:
             continue
 
         raw = _heading(blocks, schema.block_named(label), title.strip())
-        index = document.subtree_end(blocks[-1])
+        index = document.subtree_end(_neighbour(blocks, after, where, label, schema))
         changed[role] = _insert(document, index, raw)
         rendered[role] = raw
         placed[role] = _lineno(changed[role], raw)
@@ -391,12 +443,37 @@ def open_block(config: Config, label: str, title: str) -> Opened:
     return Opened(
         label=label,
         title=title.strip(),
+        after=after,
         documents=changed,
         placed=placed,
         rendered=rendered,
         skipped=tuple(skipped)
         + tuple((where, "already declares it") for where in declared),
     )
+
+
+def _neighbour(
+    blocks: tuple[Heading, ...], after: str | None, where: str, label: str, schema: Schema
+) -> Heading:
+    """The heading this file places the new one after — the last block, or the named one.
+
+    Read per file on purpose (RK145): `--after C` means *after this file's Block C*, so two
+    files that order their blocks differently each keep their own sequence. A file that wants
+    the heading and declares no such neighbour is a refusal, because the alternative is
+    falling back to the end and leaving one file ordered by an argument the others ignored.
+    """
+    if after is None:
+        return blocks[-1]
+    found = next((h for h in blocks if h.label == after), None)
+    if found is None:
+        raise NoSuchNeighbour(
+            after,
+            label,
+            where,
+            [h.label for h in blocks if h.label],
+            word=schema.heading_word,
+        )
+    return found
 
 
 def _heading(blocks: tuple[Heading, ...], named: str, title: str) -> str:
