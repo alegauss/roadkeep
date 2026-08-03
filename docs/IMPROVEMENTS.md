@@ -688,3 +688,74 @@ tool was given (L2), so it is named there for the same reason. The wider one is 
 git configuration and should stay a flag rather than a default.
 
 ## Block F — The plugin
+
+### §RK175 The half of the boundary that asking does not close
+
+RK128 gave the guard three options and took the second: match a governed path in a
+`Bash` command, and answer `ask` because `deny` would refuse `git add docs/ROADMAP.md`.
+That closes the *silence* — an agent reaching for `sed -i` is surfaced instead of
+passing unnoticed.
+
+It does not close what the third option was about. Once the user approves, the only
+thing left is `review`, which runs `lint` narrowed to the lines the turn changed. A
+hand-edit producing a **conforming** line passes: the annotations are right because
+nothing was inserted, the pointer resolves because the anchor existed, and a reworded
+`why` is a legal `why`. The file changed, no verb wrote it, and every gate agrees it is
+correct.
+
+The third option was to compare the governed files against `git` and refuse a change no
+verb made. That needs what the process does not have: a record of which verbs ran. Every
+write prints an `event <id> Block <x>` line (RK38) and `capturing` (RK85) replays a
+session's facts, so the material may exist — whether a turn-scoped ledger of verbs is
+worth holding is the open question.
+
+Worth deciding against the honest alternative: that this is what `ask` is for, and a
+user who approved a `sed` made a choice the tool should not re-litigate at the end of
+the turn. That reading is defensible, and is why this is filed rather than built.
+
+### §RK176 The tax RK128 agreed to pay unmeasured
+
+`Bash` was kept out of the `PreToolUse` matcher on one sentence: matching every shell
+command to catch one `sed -i` "is not a barrier, it is a tax on every command". RK128
+overruled it for a good reason — the refusal claimed a boundary it did not hold — and
+paid the tax without weighing it.
+
+What is now paid per `Bash` call, in a fresh interpreter the harness spawns and waits
+for: importing `roadkeep` (which pulls `serving`, and so `cli`, through `guarding`), one
+`Config.discover` walking up from `cwd`, a TOML parse, and a few substring tests. The
+tests are free; everything before them is not. RK174 measured the analogous cost on the
+other surface and found 165ms where nobody suspected it, so the number here is worth
+having rather than assuming.
+
+If it is material, the answer's shape is a cheap exit *before* the expensive import — a
+command with no path separator in it cannot name a governed file, and that is a string
+test the hook can make alone. Whether the launcher can reach that decision before
+importing the package is the part to check first: `scripts/roadkeep.py` puts the
+plugin's copy on `sys.path` and calls the CLI.
+
+Measure before changing anything. A guardrail removed for being slow is worse than one
+that is slow, and a guess about which half costs is how the first version got its
+sentence.
+
+### §RK177 The schema that varies and the client that cached it
+
+RK111 opened `add`'s id where a project declares a shape the counter cannot spell, and
+named the cost: a tool schema that varies by config. RK24 already had a milder version —
+`maxLength` and `enum` are read from `roadkeep.toml` — but a *bound* changing is a value
+a client refuses wrongly, while a *field* appearing is a call it cannot make at all.
+
+The server does its half right: the config is re-read per message, so the next
+`tools/list` describes the file as it is now. What is missing is the message that makes
+a client ask again. The protocol has one — `notifications/tools/list_changed` — and this
+server sends no notifications, so a session that edits `roadkeep.toml` keeps validating
+against what the handshake handed it. The refusal a caller then gets is `no such
+argument task_id`, which RK111 made say *why* the field is absent — and on a config that
+now declares a suffix, that sentence is wrong.
+
+The cheap correction is to send the notification when a config read yields a different
+descriptor set than the last one answered. That means holding one thing between
+messages, which this server deliberately does not — a hash is small, but "holds no
+state" is a claim to break on purpose rather than by accident.
+
+The alternative is to accept it and say so in the refusal: a field this project declares
+may want the session restarted. Cheaper, and it makes the wrong sentence a right one.

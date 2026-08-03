@@ -67,6 +67,10 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
+- 📋 **RK175** (deps: —) **An approved shell write leaves a valid line and no record of who wrote it** — The guard asks and the user may say yes, and `review` narrows lint to changed lines, so a `sed` whose output conforms is indistinguishable from a verb's write. → §RK175
+- 📋 **RK176** (deps: —) **Widening the matcher to Bash spawns an interpreter per shell command and nothing measured it** — The five decisions in `guarding` were arranged to avoid exactly this cost, and the trade was accepted on an argument rather than on a number. → §RK176
+- 📋 **RK177** (deps: —) **The tool list can change mid-session and the client is never told, so it validates against a cached schema** — The config is re-read per message on purpose, so `[ids] suffix` added mid-session changes which arguments exist, and no `notifications/tools/list_changed` is ever sent. → §RK177
+
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:
