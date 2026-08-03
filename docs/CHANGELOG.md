@@ -84,6 +84,7 @@
 - ✅ **RK92** **The dep resolver has no answer for a dep blocked on paused work** — a dep on a paused task now resolves as deferred and the line waiting on it as blocked-paused, so pick neither offers it nor buries it and the gate stops calling the id missing.
 - ✅ **RK94** **weight gives one commit's whole size to every task it shipped, so a bulk import pins the percentiles to itself** — an entry whose commit wrote several is named under batched and left out of the percentiles, so a squashed import no longer pins the median that judges granularity to itself.
 - ✅ **RK119** **Every agent asking what to work on is handed the same line, including one another agent already started** — `pick --claim` answers and flips the marker in one locked transaction, a claim expires and is stepped over rather than waited on, and the ids it held are named in every answer.
+- ✅ **RK149** **The door the skill sends an agent through to start work cannot take the line it hands over** — `brief --claim` takes the line it describes inside one lock, and `brief <id> --claim` takes a named one — refused, not re-dated, where another worker already holds it.
 
 ## Block D — The gate
 

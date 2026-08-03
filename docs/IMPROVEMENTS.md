@@ -180,26 +180,6 @@ would make `--after` a per-file argument or a refusal when the files disagree.
 
 ## Block C — Query
 
-### §RK149 A claim on the door nobody uses is no claim
-
-RK119 put the claim where the choice is made, and `pick` is not where a session makes
-it. The skill says `brief [<id>]` starts a task in one call, and with no id it briefs
-whatever `pick` would choose — so the agent following the instructions gets the line,
-the rationale and the deps, and leaves the marker untouched for the next caller to be
-handed the same line.
-
-Exposing `--claim` on `brief` is most of the answer, and the part worth thinking about
-is what a *briefing* claim means when the caller was only reading. Two callers are
-plausible: one asking what to do next, and one asking about a specific id. The second
-passes an id, and claiming what somebody named is a different act from claiming what the
-tool chose — a fact the flag can carry, but not one it should decide silently.
-
-The alternative is to make the claim `pick`'s alone and have `brief` say that the line
-it describes is unclaimed, which trades one round trip for a boundary that stays clean.
-That is the cheaper implementation and the worse instruction: two calls to start a task
-is exactly the cost `brief` exists to remove, and an agent that has to remember the
-second one is an agent that will not.
-
 ### §RK150 One hint, two commands
 
 The annotation is per tool and the behaviour is per call. `lint` avoided this by not

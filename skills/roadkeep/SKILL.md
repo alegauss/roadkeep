@@ -142,11 +142,14 @@ the answer may be another block's, and the block order is the headings' own (`li
 *execute* and not to plan — it sets aside the markers `[markers] undesigned` names, and says
 how many. Without it the answer still tells you, in the same sentence that names the tier,
 that the line it chose has its design to write — which is a `section add`, not a commit.
-**Two workers in one checkout need `pick --claim`**: every tier is a function of the file, so
-a second caller reading an unchanged backlog is handed the line the first one took — most
-confidently by the in-progress tier, a 🛠 line being evidence somebody started. `--claim`
-answers *and* moves the marker to in-progress in one transaction, so the next caller is sent
-elsewhere. It is an expiry and not a lock: a claim nobody released is stepped over after an
+**Two workers in one checkout need `--claim`**, on `brief` as well as on `pick`: every tier is
+a function of the file, so a second caller reading an unchanged backlog is handed the line the
+first one took — most confidently by the in-progress tier, a 🛠 line being evidence somebody
+started. `--claim` answers *and* moves the marker to in-progress in one transaction, so the
+next caller is sent elsewhere. `brief --claim` is the one to reach for, being the call that
+starts a task anyway; `brief <id> --claim` takes a line you were told to work on, and is
+**refused** where somebody already holds that one, there being nothing for it to choose
+instead. It is an expiry and not a lock: a claim nobody released is stepped over after an
 hour, and every marker door already releases one — `ship`, `defer`, or the marker back. A
 held line is **named** in the answer and never hidden, because a claim carries no owner and
 the id is the only thing you can recognise your own by; who took it belongs in the commit.

@@ -747,6 +747,14 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help=_DESIGNED_HELP,
     )
+    brief_parser.add_argument(
+        "--claim",
+        action="store_true",
+        help=(
+            "take the line as well as describing it: the marker moves to in-progress in the "
+            "same transaction, and a named id another worker holds is refused"
+        ),
+    )
     brief_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     brief_parser.set_defaults(handler=_brief, reads_only=True)
 
@@ -2555,11 +2563,16 @@ def _brief(config: Config, args: argparse.Namespace) -> int:
         )
         return EXIT_USAGE
     try:
-        gathered = brief(config, args.id, args.block, args.designed)
-    except (KeyError, OSError) as error:
+        gathered = brief(config, args.id, args.block, args.designed, args.claim)
+    except REFUSALS as error:
+        # The whole tuple, because `--claim` makes this a write (RK149): every refusal that
+        # guards a marker reaches here, plus the one this door has of its own — a named line
+        # somebody else is already holding.
         return _refused(error)
 
     view, task = gathered.view, gathered.task
+    claim = gathered.claim
+    event = _claim_event(claim)
     if args.json:
         print(json.dumps(_brief_json(gathered), indent=2))
         return EXIT_OK
@@ -2568,6 +2581,10 @@ def _brief(config: Config, args: argparse.Namespace) -> int:
           f"{view.file}:{view.entry.lineno}")
     if gathered.picked:
         print(f"  picked   {gathered.picked}")
+    if _print_claim(claim) and event is not None:
+        # Beside the claim and not at the end: the rationale section closes this output, and
+        # an event line after a paragraph of prose is one a hook reader has to hunt for.
+        _print_event(event, "  ")
     print(f"  symptom  {task.symptom}")
     print(f"  why      {task.why}")
     for resolution in gathered.deps:
@@ -2622,6 +2639,14 @@ def _brief_json(gathered: Brief) -> dict[str, object]:
         },
         "non_goals": list(gathered.non_goals.leads),
         "non_goals_elided": gathered.non_goals.elided,
+        "claimed": None
+        if gathered.claim is None or gathered.claim.change is None
+        else {
+            "taken": True,
+            "from": gathered.claim.change.before,
+            "to": gathered.claim.change.after,
+        },
+        "event": _claim_event(gathered.claim),
     }
 
 
@@ -2701,15 +2726,7 @@ def _pick(config: Config, args: argparse.Namespace) -> int:
         return _refused(error)
     stalled = [{"id": s.id, "blockers": list(s.blockers)} for s in choice.stalled]
     held = [{"id": h.id, "age": round(h.age), "since": h.since} for h in choice.held]
-    event = (
-        None
-        if claim is None or claim.change is None
-        else _event(
-            claim.change.entry.task.id,
-            claim.change.entry.task.block,
-            claim.change.document,
-        )
-    )
+    event = _claim_event(claim)
     if args.json:
         entry = choice.entry
         print(
@@ -2773,11 +2790,31 @@ def _pick(config: Config, args: argparse.Namespace) -> int:
     _print_undesigned(choice)
     _print_held(choice)
     _print_stalled(choice)
-    if claim is not None and claim.change is not None:
-        print(f"  claimed  {claim.change.before} → {claim.change.after}, held for "
-              f"{int(claiming.HELD // 60)}m unless a marker moves it sooner")
-        _print_event(event or {}, "  ")
+    if _print_claim(claim) and event is not None:
+        _print_event(event, "  ")
     return EXIT_OK
+
+
+def _claim_event(claim: Claim | None) -> dict[str, object] | None:
+    """RK38's event line for a claim, or nothing where no line was taken."""
+    if claim is None or claim.change is None:
+        return None
+    entry = claim.change.entry
+    return _event(entry.task.id, entry.task.block, claim.change.document)
+
+
+def _print_claim(claim: Claim | None) -> bool:
+    """What a claim moved, on the two commands that can take one (RK119, RK149).
+
+    One sentence and one place, because two commands printing the same fact in two wordings
+    is two answers to "what did I just take". Returns whether it printed, which is what tells
+    `pick` there is an event line to close with.
+    """
+    if claim is None or claim.change is None:
+        return False
+    print(f"  claimed  {claim.change.before} → {claim.change.after}, held for "
+          f"{int(claiming.HELD // 60)}m unless a marker moves it sooner")
+    return True
 
 
 def _print_held(choice: Choice) -> None:

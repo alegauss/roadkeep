@@ -56,6 +56,27 @@ from roadkeep.schema import IN_PROGRESS
 HELD = 3600.0
 
 
+class AlreadyHeld(ValueError):
+    """A named line is already claimed, so taking it would be the two workers again (RK149).
+
+    Only the *named* door raises it. A pick was choosing anyway, so it steps around a live
+    claim and answers with something else; a caller that said which id it wants has nothing
+    to step to, and a claim that quietly re-dated itself would send a second worker at one
+    line, which is the defect and not the door.
+
+    Says what to do, because a claim names nobody and this one may be the caller's own: the
+    read is one call without the flag, and the release is a marker.
+    """
+
+    def __init__(self, task_id: str, since: str, marker: str) -> None:
+        self.task_id = task_id
+        super().__init__(
+            f"{task_id} was claimed {since} ago and a claim names nobody, so it may be "
+            f"yours: brief it without --claim to read it, or move the marker off {marker} "
+            f"to release it"
+        )
+
+
 @dataclass(frozen=True, slots=True)
 class Held:
     """One claim a caller was not offered: which line, and how long it has been held."""

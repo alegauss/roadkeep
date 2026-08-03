@@ -15,6 +15,15 @@ as *leads only*: enough to keep a proposal inside scope, not the paragraph that 
 Nothing here is stored and nothing is composed of new prose (L4): every field is another
 module's answer, gathered in one place. Call it with no id and it briefs whatever `pick`
 would choose, which makes the first call of a session the only one.
+
+**Which is why the claim has to be reachable from here** (RK149). RK119 made answering "what
+next" a write so two agents get two lines, and put the flag on `pick` — the command a session
+following the skill does not call, this one being the door that starts a task in one call. So
+``claim`` takes the line as well as describing it, and the module's promise narrows from
+*writes none* to *writes one marker, and only when asked*. The two callers it serves are not
+the same act: with no id the claim is `pick`'s, which steps around what somebody else holds,
+and with an id it is the caller's own assertion, which is refused where a live claim already
+answers for that line (:func:`roadkeep.picking.hold`).
 """
 
 from __future__ import annotations
@@ -27,7 +36,8 @@ from roadkeep.config import Config, Scope
 from roadkeep.document import Document
 from roadkeep.graph import Chain, Graph, Leverage
 from roadkeep import scoping
-from roadkeep.picking import pick
+from roadkeep.locking import exclusive
+from roadkeep.picking import Claim, hold, pick, take
 from roadkeep.schema import Task
 from roadkeep.showing import View, show
 
@@ -77,6 +87,9 @@ class Brief:
     non_goals: NonGoals
     #: Set when the id came from `pick` rather than from the caller, with its reason.
     picked: str = ""
+    #: The line taken, where the caller asked for it (RK149). Absent otherwise, so a brief
+    #: that claimed nothing cannot be read as one that did.
+    claim: Claim | None = None
 
     @property
     def task(self) -> Task:
@@ -88,21 +101,48 @@ def brief(
     task_id: str | None = None,
     block: str | None = None,
     designed: bool = False,
+    claim: bool = False,
 ) -> Brief:
-    """Join every answer about one task. Reads four files at most; writes none.
+    """Join every answer about one task, and take it where the caller asked to.
 
     ``block`` scopes the pick when no id is given (RK40), so "start the next thing in
     Block C" is one call whose absence of an answer is about Block C. ``designed`` narrows
     it to work whose design is written (RK83) — the two flags together are what "execute
     Block C" means, and neither reaches a brief the caller addressed by id.
+
+    ``claim`` moves the marker to in-progress (RK149). One lock covers the write **and** the
+    reading that follows it, so the brief describes the line as it was taken rather than as
+    some later state found it — the four reads being milliseconds, which is what makes
+    holding the write lock across them free.
     """
+    if claim:
+        with exclusive(config.root):
+            return _gather(config, *_claimed(config, task_id, block, designed))
     picked = ""
     if task_id is None:
         choice = pick(config, block, designed)
         if choice.entry is None:
             raise NothingToBrief(choice.reason)
         task_id, picked = choice.entry.task.id, choice.reason
+    return _gather(config, task_id, picked, None)
 
+
+def _claimed(
+    config: Config, task_id: str | None, block: str | None, designed: bool
+) -> tuple[str, str, Claim]:
+    """Take a line, by the tiers or by the id the caller gave, and say which happened."""
+    if task_id is not None:
+        return task_id, "", hold(config, task_id)
+    taken = take(config, block, designed)
+    if taken.choice is None or taken.choice.entry is None:
+        # The same absence `pick` reports and not a refusal: a caller asking for work and
+        # being told there is none got the fact it asked for, and nothing was written.
+        raise NothingToBrief("" if taken.choice is None else taken.choice.reason)
+    return taken.choice.entry.task.id, taken.choice.reason, taken
+
+
+def _gather(config: Config, task_id: str, picked: str, claim: Claim | None) -> Brief:
+    """Every derived fact about one task, joined. This half reads and never writes."""
     view = show(config, task_id)
     backlog = Backlog.load(config)
     graph = Graph.of(backlog)
@@ -119,6 +159,7 @@ def brief(
         leverage=graph.leverage(task_id),
         non_goals=non_goals(config, backlog.roadmap),
         picked=picked,
+        claim=claim,
     )
 
 

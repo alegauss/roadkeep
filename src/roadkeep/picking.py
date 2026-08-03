@@ -207,9 +207,12 @@ def pick(config: Config, block: str | None = None, designed: bool = False) -> Ch
 
 @dataclass(frozen=True, slots=True)
 class Claim:
-    """A pick that also took the line, and the marker change that took it (RK119)."""
+    """A line taken, and the marker change that took it (RK119)."""
 
-    choice: Choice
+    #: Absent where the caller named the id (RK149): there was no choice, so there is no tier
+    #: and no runner-up to report, and inventing an empty one would read as a pick that found
+    #: nothing rather than a pick that never happened.
+    choice: Choice | None
     #: Absent when there was nothing to claim — an empty answer, not a refused write.
     change: StatusChange | None = None
 
@@ -242,6 +245,28 @@ def take(config: Config, block: str | None = None, designed: bool = False) -> Cl
         # The entry is replaced by the line as written, so the answer shows the marker the
         # caller now holds rather than the one it was chosen under.
         return Claim(choice=replace(choice, entry=change.entry), change=change)
+
+
+def hold(config: Config, task_id: str) -> Claim:
+    """Claim the line a caller named, refusing one another worker is already holding (RK149).
+
+    The second door, because a *named* claim is a different act from a chosen one, and the
+    difference is only visible on a collision: :func:`take` steps around a live claim because
+    it was choosing anyway, and here there is nowhere to step — so the answer is
+    :class:`~roadkeep.claiming.AlreadyHeld`, and never a second worker sent at one line.
+
+    What it does not do is judge the line. `pick` never offers blocked work, and a caller
+    that named an id may be about to unblock it; the marker door this goes through has always
+    allowed that, and a policy here would be this command re-deciding what `status` decides.
+    """
+    with exclusive(config.root):
+        roadmap = config.document("roadmap")
+        for entry in claiming.live(config.root, roadmap.entries):
+            if entry.id == task_id:
+                raise claiming.AlreadyHeld(task_id, entry.since, IN_PROGRESS)
+        change = set_status(config, task_id, IN_PROGRESS)
+        claiming.record(config.root, task_id, change.document.entries)
+        return Claim(choice=None, change=change)
 
 
 def _absence(

@@ -27,10 +27,11 @@ from pathlib import Path
 import pytest
 
 from roadkeep import claiming
-from roadkeep.claiming import HELD, Held
+from roadkeep.briefing import NothingToBrief, brief
+from roadkeep.claiming import HELD, AlreadyHeld, Held
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
-from roadkeep.picking import Tier, pick, take
+from roadkeep.picking import Tier, hold, pick, take
 from roadkeep.schema import DESIGNED, IDEA, IN_PROGRESS
 
 
@@ -292,6 +293,110 @@ def test_claiming_composes_with_the_flags_that_narrow_the_pick(tmp_path, capsys)
     assert main(argv) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
     assert payload["pick"]["id"] == "RK8" and payload["undesigned"] == 1
+
+
+# -- the door a session actually starts a task with (RK149) -------------------
+
+
+def test_briefing_the_next_task_takes_it(tmp_path):
+    # The gap RK149 records: the skill says `brief` starts a task in one call, so a claim
+    # only `pick` could take was a claim the agent following the instructions never took.
+    config = project(tmp_path, BLOCKS + line("RK2") + line("RK9"))
+    gathered = brief(config, claim=True)
+    assert gathered.task.id == "RK2" and gathered.claim.taken
+    # The brief describes the line as it was taken, not as it was chosen.
+    assert gathered.task.status == IN_PROGRESS
+    assert pick(config).entry.task.id == "RK9"
+
+
+def test_briefing_without_the_flag_still_writes_nothing(tmp_path):
+    config = project(tmp_path, BLOCKS + line("RK2"))
+    gathered = brief(config)
+    assert gathered.claim is None
+    assert (tmp_path / "ROADMAP.md").read_text(encoding="utf-8") == BLOCKS + line("RK2")
+
+
+def test_a_named_line_is_claimed_by_the_caller_and_not_by_a_tier(tmp_path):
+    # There is no choice to report, so there is no tier and no runner-up: an empty `Choice`
+    # would read as a pick that found nothing rather than one that never happened.
+    config = project(tmp_path, BLOCKS + line("RK2") + line("RK9"))
+    gathered = brief(config, "RK9", claim=True)
+    assert gathered.task.id == "RK9" and gathered.picked == ""
+    assert gathered.claim.taken and gathered.claim.choice is None
+    assert pick(config).entry.task.id == "RK2"
+
+
+def test_claiming_a_line_another_worker_holds_is_refused(tmp_path):
+    # The one difference between the two doors: `take` was choosing anyway and steps around
+    # a live claim, and a caller that named an id has nowhere to step.
+    config = project(tmp_path, BLOCKS + line("RK2") + line("RK9"))
+    take(config)
+    with pytest.raises(AlreadyHeld) as caught:
+        brief(config, "RK2", claim=True)
+    assert "RK2 was claimed 0m ago" in str(caught.value)
+    # It says what to do, because a claim names nobody and this one may be the caller's own.
+    assert "without --claim" in str(caught.value)
+
+
+def test_a_named_claim_whose_window_passed_is_taken_rather_than_refused(tmp_path):
+    config = project(tmp_path, BLOCKS + line("RK2"))
+    take(config)
+    age(tmp_path, "RK2", HELD + 1)
+    assert hold(config, "RK2").taken
+
+
+def test_a_named_claim_never_judges_the_line_it_takes(tmp_path):
+    # `pick` never offers blocked work, and a caller that named an id may be about to
+    # unblock it: the marker door has always allowed that, and a policy here would be this
+    # command re-deciding what `status` decides.
+    config = project(tmp_path, BLOCKS + line("RK2", "RK5"))
+    assert hold(config, "RK2").taken
+
+
+def test_nothing_ready_to_brief_writes_nothing(tmp_path):
+    config = project(tmp_path, BLOCKS + line("RK2", "RK5"))
+    with pytest.raises(NothingToBrief):
+        brief(config, claim=True)
+    assert not claiming.path(tmp_path).exists()
+
+
+def test_the_brief_command_claims_and_says_what_it_moved(tmp_path, capsys):
+    project(tmp_path, BLOCKS + line("RK2"))
+    assert main(["-C", str(tmp_path), "brief", "--claim"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert out.splitlines()[0].startswith(f"RK2  Block A  {IN_PROGRESS}")
+    assert f"claimed  {DESIGNED} → {IN_PROGRESS}" in out
+    assert "event    RK2  Block A  open" in out
+
+
+def test_the_brief_json_carries_the_claim(tmp_path, capsys):
+    project(tmp_path, BLOCKS + line("RK2") + line("RK9"))
+    assert main(["-C", str(tmp_path), "brief", "--claim", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["claimed"] == {"taken": True, "from": DESIGNED, "to": IN_PROGRESS}
+    assert payload["event"]["id"] == "RK2"
+    assert main(["-C", str(tmp_path), "brief", "RK9", "--json"]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["claimed"] is None
+
+
+def test_the_brief_command_reports_a_held_line_and_writes_nothing(tmp_path, capsys):
+    config = project(tmp_path, BLOCKS + line("RK2"))
+    assert main(["-C", str(tmp_path), "brief", "--claim"]) == EXIT_OK
+    capsys.readouterr()
+    assert main(["-C", str(tmp_path), "brief", "RK2", "--claim"]) == EXIT_USAGE
+    assert "may be yours" in capsys.readouterr().err
+    # The refusal wrote nothing, so the claim is still the first one's.
+    assert [h.id for h in claiming.live(tmp_path, config.document("roadmap").entries)] == [
+        "RK2"
+    ]
+
+
+def test_claiming_a_brief_composes_with_the_flags_that_narrow_the_pick(tmp_path, capsys):
+    project(tmp_path, BLOCKS + line("RK2", status=IDEA) + MORE + line("RK8", block="B"))
+    argv = ["-C", str(tmp_path), "brief", "--block", "B", "--claim", "--json"]
+    assert main(argv) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["id"] == "RK8" and payload["status"] == IN_PROGRESS
 
 
 def test_a_refusal_the_marker_write_raises_is_reported_and_not_a_traceback(tmp_path, capsys):

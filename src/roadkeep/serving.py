@@ -166,7 +166,9 @@ TOOLS: tuple[Tool, ...] = (
     # `designed` is exposed on both for the reason it exists (RK83): the caller that asks
     # to execute a block over MCP is the one that was handed a design session, and a flag
     # only the CLI can reach is a flag the agent this ships for cannot pass.
-    Tool("brief", ("id", "block", "designed")),
+    # `claim` rides with `brief` for the reason RK149 exists: this is the call a session starts
+    # a task with, so a claim it cannot take is a claim the second agent never takes.
+    Tool("brief", ("id", "block", "designed", "claim"), writes=True),
     # `claim` is exposed, and it is why this tool is not read-only (RK119): the defect is two
     # agents in one checkout, the agent boundary is this server, and a claim only the CLI can
     # take is a claim the caller this ships for cannot take. The cost is the honest one — a
