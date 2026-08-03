@@ -37,6 +37,7 @@ from pathlib import Path
 import pytest
 
 from roadkeep import claiming, serving
+from roadkeep import cli
 from roadkeep.cli import build_parser
 from roadkeep.config import Config
 from roadkeep.provenance import _LOADED_AT, engine
@@ -55,6 +56,7 @@ from roadkeep.serving import (
     argv,
     call,
     descriptor,
+    descriptors,
     handle,
     prose_of,
     serve,
@@ -395,6 +397,27 @@ def test_whether_a_tool_writes_is_derived_and_not_stated(tmp_path):
     assert Tool("lint", ("baseline", "fix")).writes
     # And a command whose parser never called itself a read writes whatever it exposes.
     assert Tool("add", ()).writes
+
+
+def test_listing_the_tools_builds_the_parser_once(monkeypatch):
+    # RK174: reaching one subcommand builds the whole CLI, and every descriptor wanted two
+    # lookups — the schema and the read-only hint — so the first message a client sends paid
+    # 58 builds and 195 ms for a parser that is a pure function of the code.
+    builds = 0
+    original = cli.build_parser
+
+    def counted():
+        nonlocal builds
+        builds += 1
+        return original()
+
+    monkeypatch.setattr(cli, "build_parser", counted)
+    assert len(descriptors(Config.default())) == len(TOOLS)
+    assert builds == 1
+    # And nothing is kept between calls: `mcp` re-reads the config per message on purpose, so
+    # a memoised parser is what would stop a mid-session `[ids] suffix` from being described.
+    descriptors(Config.default())
+    assert builds == 2
 
 
 def test_the_two_reads_a_claim_was_split_off_from_stay_free_to_ask(tmp_path):

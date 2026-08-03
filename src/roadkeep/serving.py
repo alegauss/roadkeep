@@ -200,7 +200,15 @@ class Tool:
         direction: a hint that flipped to read-only on some projects would be a client caching
         "free to ask" for a tool that writes, and `readOnlyHint` is a promise or it is noise.
         """
-        parser = _subparser(self.command)
+        return self.writes_of(_subparser(self.command))
+
+    def writes_of(self, parser: argparse.ArgumentParser) -> bool:
+        """:attr:`writes`, read off a parser the caller already resolved (RK174).
+
+        The same two clauses, against a parser passed in rather than looked up: `descriptor`
+        holds this tool's own parser by the time it needs the hint, and resolving it a second
+        time was half of what `tools/list` spent.
+        """
         if not parser.get_default("reads_only"):
             return True
         flag = parser.get_default("writes_when") or ""
@@ -373,21 +381,43 @@ def _action(parser: argparse.ArgumentParser, dest: str) -> argparse.Action:
     raise KeyError(f"{parser.prog} declares no {dest!r}")
 
 
-def _subparser(command: str) -> argparse.ArgumentParser:
-    """The parser for a subcommand path, descending where it is nested (`section add`)."""
+def _parsers() -> Mapping[str, argparse.ArgumentParser]:
+    """Every subcommand path in the CLI, indexed by it, off **one** `build_parser` (RK174).
+
+    Reaching one subcommand means building the whole CLI, so a caller with more than one to
+    resolve pays that per lookup — 58 builds and 195 ms for the `tools/list` a client sends
+    first. The walk is the same descent :func:`_subparser` makes, done once and kept.
+
+    Built per call and never memoised: `mcp` re-reads the config per message on purpose, and
+    a parser held across messages is the one thing that would stop a mid-session edit from
+    being described.
+    """
     from roadkeep.cli import build_parser
 
-    parser = build_parser()
-    for step in command.split():
-        parser = _choices(parser)[step]
-    return parser
+    index: dict[str, argparse.ArgumentParser] = {}
+
+    def walk(parser: argparse.ArgumentParser, path: str) -> None:
+        for action in parser._actions:  # noqa: SLF001 - argparse exposes no public reader
+            if not isinstance(action, argparse._SubParsersAction):  # noqa: SLF001
+                continue
+            for step, sub in action.choices.items():
+                index[f"{path} {step}".strip()] = sub
+                walk(sub, f"{path} {step}".strip())
+
+    walk(build_parser(), "")
+    return index
 
 
-def _choices(parser: argparse.ArgumentParser) -> Mapping[str, argparse.ArgumentParser]:
-    for action in parser._actions:  # noqa: SLF001
-        if isinstance(action, argparse._SubParsersAction):  # noqa: SLF001
-            return action.choices
-    raise KeyError(parser.prog)  # pragma: no cover - every path here has subcommands
+def _subparser(
+    command: str, parsers: Mapping[str, argparse.ArgumentParser] | None = None
+) -> argparse.ArgumentParser:
+    """The parser for a subcommand path, descending where it is nested (`section add`).
+
+    Takes an index where the caller has one, and builds itself one where it does not — so
+    `descriptor(tool, config)` stays callable with a single tool, which is how the tests ask
+    what one schema is.
+    """
+    return (_parsers() if parsers is None else parsers)[command]
 
 
 def _property(
@@ -431,8 +461,10 @@ def _description(tool: Tool, parser: argparse.ArgumentParser) -> str:
     return described
 
 
-def descriptor(tool: Tool, config: Config) -> dict[str, Any]:
-    parser = _subparser(tool.command)
+def descriptor(
+    tool: Tool, config: Config, parsers: Mapping[str, argparse.ArgumentParser] | None = None
+) -> dict[str, Any]:
+    parser = _subparser(tool.command, parsers)
     # Which table holds this tool's numbers: the non-goals are governed by `[non_goals]` and
     # every other command by `[limits]`, and `why` is a field both of them name (RK70).
     bounds_for = _SCOPE_BOUNDS if tool.argv_head[0] == "non-goal" else _BOUNDS
@@ -453,7 +485,7 @@ def descriptor(tool: Tool, config: Config) -> dict[str, Any]:
             # object would forward it to a parser that answers with a usage string.
             "additionalProperties": False,
         },
-        "annotations": {"readOnlyHint": not tool.writes},
+        "annotations": {"readOnlyHint": not tool.writes_of(parser)},
     }
     if required:
         payload["inputSchema"]["required"] = required
@@ -461,7 +493,8 @@ def descriptor(tool: Tool, config: Config) -> dict[str, Any]:
 
 
 def descriptors(config: Config) -> list[dict[str, Any]]:
-    return [descriptor(tool, config) for tool in TOOLS]
+    parsers = _parsers()
+    return [descriptor(tool, config, parsers) for tool in TOOLS]
 
 
 # -- calling one ------------------------------------------------------------

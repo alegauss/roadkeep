@@ -116,6 +116,7 @@
 - ✅ **RK165** **Clearing a stale row without a marker write means deleting every live claim with it** — `claims --prune` drops the rows that are not claims and keeps every one that is, so the precise remedy no longer means deleting a whole checkout's registry.
 - ✅ **RK167** **Three read-only commands take the write lock themselves, each in a different place** — A read that can write declares which flag makes it one, so `dispatch` decides the lock again — and a test names the three and holds the property no call site could state.
 - ✅ **RK168** **A busy checkout makes the gate exit like a violation, so a clean file reads as a failing one** — The gate is declared a read and `--fix` the write in it, so a lint during somebody else's write answers about the format instead of about the lock — and `readOnlyHint` is derived.
+- ✅ **RK174** **Listing the tools rebuilds the whole CLI parser fifty-two times and costs a sixth of a second** — `tools/list` builds the CLI parser once and indexes every subcommand path off it, so 29 descriptors cost 1 build and 3.4ms where 58 builds cost 195ms.
 
 ## Block D — The gate
 
