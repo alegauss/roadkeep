@@ -415,30 +415,6 @@ git configuration and should stay a flag rather than a default.
 
 ## Block F — The plugin
 
-### §RK176 The tax RK128 agreed to pay unmeasured
-
-`Bash` was kept out of the `PreToolUse` matcher on one sentence: matching every shell
-command to catch one `sed -i` "is not a barrier, it is a tax on every command". RK128
-overruled it for a good reason — the refusal claimed a boundary it did not hold — and
-paid the tax without weighing it.
-
-What is now paid per `Bash` call, in a fresh interpreter the harness spawns and waits
-for: importing `roadkeep` (which pulls `serving`, and so `cli`, through `guarding`), one
-`Config.discover` walking up from `cwd`, a TOML parse, and a few substring tests. The
-tests are free; everything before them is not. RK174 measured the analogous cost on the
-other surface and found 165ms where nobody suspected it, so the number here is worth
-having rather than assuming.
-
-If it is material, the answer's shape is a cheap exit *before* the expensive import — a
-command with no path separator in it cannot name a governed file, and that is a string
-test the hook can make alone. Whether the launcher can reach that decision before
-importing the package is the part to check first: `scripts/roadkeep.py` puts the
-plugin's copy on `sys.path` and calls the CLI.
-
-Measure before changing anything. A guardrail removed for being slow is worse than one
-that is slow, and a guess about which half costs is how the first version got its
-sentence.
-
 ### §RK177 The schema that varies and the client that cached it
 
 RK111 opened `add`'s id where a project declares a shape the counter cannot spell, and
