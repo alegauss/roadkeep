@@ -154,6 +154,7 @@
 - ✅ **RK188** **Every write stales the derived README block, so the gate fails until somebody remembers `export`** — Every governed write re-derives the README's block inside its own transaction, so the gate no longer fails on a file the task did not touch.
 - ✅ **RK189** **A path claim is satisfied by a file of that name anywhere in the tree, and the floor was never measured** — Both pins now hold the number the widening was argued from: five silences on Turing, four of them a unique file, none on Shio, and requiring a slash is refuted.
 - ✅ **RK192** **A pinned corpus hands out a config whose file reads go to the live tree instead** — A corpus config is rooted at a copy of the pinned bytes, so document and lint answer about the revision, and checkout is the named door for the reads that run git.
+- ✅ **RK203** **The layout index grows with the package and the budget holding it cannot tell it from prose** — A test holds the Layout index against the package, the two modules it had already lost are named, and the measurement says compress the prose first.
 
 ## Block E — Adoption
 

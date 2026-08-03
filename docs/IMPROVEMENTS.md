@@ -218,29 +218,6 @@ and may not need a second.
 
 ## Block D — The gate
 
-### §RK203 A budget that cannot tell an index from an essay
-
-RK30 gave `agents.md` a line and byte budget, and it is doing its job: the file that
-motivated this tool reached 186 KB one paragraph at a time, and a number the gate holds
-is what stops that. Nothing here proposes raising it.
-
-What Block F surfaced is that the file holds two kinds of text under one number. Most of
-it is prose that should be pushed back on — a rule restated, a rationale that belongs in
-the improvements file. The layout block is not that: it is an index of `src/roadkeep/`,
-one entry per module, and it grows for exactly one reason, which is that the package
-grew. Two modules shipped in this block, and naming them cost two unrelated entries
-their second line — a compression that improved nothing and lost a clause each time.
-
-The honest options are not obviously ranked. The index could be **derived**, the way the
-README block is (RK104), which makes it free and makes `lint` hold it — but a module's
-one-line purpose is prose the tool would then be writing, which is L4. It could be
-budgeted separately, which is two numbers where one was the point. Or the index could
-leave `agents.md` for a file that is not resident, which costs the turn that needs it a
-read.
-
-Measure first: how much of the budget the index actually holds, and how much of the rest
-is what the budget was written to refuse.
-
 ### §RK206 The pointer read from one end only
 
 `_pointers` resolves `entry.task.ref` — the pointer a *task line* carries — and nothing

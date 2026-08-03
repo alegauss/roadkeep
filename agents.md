@@ -41,6 +41,7 @@ src/roadkeep/   the package (src layout, importable via pytest pythonpath). Each
   authoring blocking shipping markers sections  RK5-9/32/41/67/93/141  the writes, whole
   deferring renumbering merging       RK91/96/97/120  the doors that are not terminal,
                                                  and the merge git cannot make
+  locking claiming             RK117/119  scan-to-save is one span, and who holds a line
   scoping                                   RK69-70  the non-goal, and the list read before an add
   backlog counting picking showing graph  RK10-13/28-29/31/37/39-40/83/92  the query surface,
   briefing budgeting exporting history weighing      plus what git alone can answer
@@ -84,10 +85,9 @@ dep order, marker codepoint, whitespace) and leaves the editorial (RK16).
 [skills/roadkeep/SKILL.md](skills/roadkeep/SKILL.md) is the authority on which command to call,
 what it derives, the two rules a schema cannot check, the query surface and how work is picked —
 loaded when a governed file is in play and costing nothing on the turns that touch none (RK23).
-It ships in the plugin, so it is the same text in every adopting project; **nothing here repeats
-it**, a rule in two files being one two files can disagree about. This project's numbers are
-`roadkeep.toml`, and the package is not installed here, so read every command in it as
-`PYTHONPATH=src python -m roadkeep.cli <…>` from the repo root.
+It ships in the plugin, so it is the same text in every adopting project and **nothing here
+repeats it**. This project's numbers are `roadkeep.toml`, and the package is not installed here,
+so read every command in it as `PYTHONPATH=src python -m roadkeep.cli <…>` from the repo root.
 
 ## Build and test
 
@@ -118,8 +118,6 @@ suggestion keeps violating: **no model, no prompts** (L4) — a generator reintr
 
 ## This file is scaffolding
 
-Enforcement has caught up — Block D gates the format, RK22 denies the hand-edit, RK23 moved the
-write path into the skill — so what still loads every turn is only what a turn touching no
-governed file needs: the laws, where the code is, and how to build and commit it. L5 governs
-what is left: its budget is `[budgets]` in `roadkeep.toml`, held by `lint` and not by this
-sentence (RK30) — the arrangement that let Shio's reach the 186 KB above.
+What loads every turn is only what a turn touching no governed file needs. Its budget is
+`[budgets]` in `roadkeep.toml`, held by `lint` and not by this sentence (RK30); the Layout index
+is a fifth of it, held by a test, and the prose here is what to compress first (RK203).

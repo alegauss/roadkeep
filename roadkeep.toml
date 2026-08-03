@@ -55,6 +55,11 @@ why = 200
 # write path out): a line budget alone is met by writing longer lines, and 20 KB of "under 150
 # lines" is not a budget. Lowered when the skill took the rules — a budget left at the old
 # figure is room the prose grows back into.
+# What the room goes to, measured (RK203): the Layout index is ~20% of the lines and ~23% of
+# the bytes, and it grows for one reason, which is that the package grew. The file binds on
+# lines, so a module added at the limit used to cost an unrelated entry its second line — and
+# twice it cost the module its entry instead. `tests/test_linting.py` holds the index against
+# `src/roadkeep/`; when this file is at the wall again, compress the prose and not the index.
 "agents.md" = { lines = 125, bytes = 8400 }
 # CLAUDE.md only points at agents.md, and a pointer that grew a second paragraph is a
 # second place the rules live.

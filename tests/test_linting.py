@@ -163,6 +163,66 @@ def test_the_gate_runs_over_a_foreign_backlog_and_writes_nothing():
     assert roadmap.read_bytes() == before
 
 
+# -- the resident file's budget, and what it is spent on (RK203) --------------
+
+
+def _layout_index() -> str:
+    """The fenced block under `## Layout` in this repository's `agents.md`."""
+    lines = (HERE / "agents.md").read_text(encoding="utf-8").splitlines()
+    start = next(i for i, line in enumerate(lines) if line.startswith("```"))
+    stop = next(i for i, line in enumerate(lines[start + 1 :], start + 1) if line.startswith("```"))
+    return "\n".join(lines[start + 1 : stop])
+
+
+def test_every_module_is_named_in_the_layout_index():
+    """The index grows with the package, so what holds it is a gate and not a habit (RK203).
+
+    `agents.md` sat at 125 of 125 lines and nothing checked what those lines *said*, so the
+    only thing anything held about the index was its cost: naming a module took an unrelated
+    entry's second line, and two modules — `claiming` and `locking` — were simply never
+    added. An index that silently stops being an index is worse than no index, because a
+    turn reads it and concludes the module is not there.
+
+    Measured before deciding, which is what the idea asked for: the fenced block is a fifth
+    of the line budget and a quarter of the bytes, and the file binds on lines. So the answer
+    is none of deriving it (a module's purpose is prose, L4), budgeting it apart (two numbers
+    where one was the point) or moving it out (a read on the turn that needs it) — the cost
+    was never the problem. It is held here, and paid for out of the prose the budget was
+    written to refuse.
+
+    One direction only. That a module is named is decidable; that a name has outlived its
+    module would mean reading the entry's English, and this repository does not do that (L4).
+    """
+    index = _layout_index()
+    modules = sorted(
+        path.stem for path in (HERE / "src" / "roadkeep").glob("*.py")
+        if path.stem != "__init__"
+    )
+    assert modules
+    unnamed = [
+        module
+        for module in modules
+        # Word boundaries that exclude `-` too: `blocking` must not answer for `locking`,
+        # which is the false negative that hid one of the two missing entries.
+        if not re.search(rf"(?<![\w-]){re.escape(module)}(?![\w-])", index)
+    ]
+    assert unnamed == []
+
+
+def test_the_index_is_a_fifth_of_the_budget_and_the_prose_is_the_rest():
+    """The number the next compression should read before it compresses the index.
+
+    Stated as a bound rather than an exact figure: the point is which of the two kinds of
+    text dominates, and a test that failed on one line moving would be re-run rather than
+    read. The budget itself is `[budgets]` in `roadkeep.toml` and `lint` is what holds it —
+    this only says what the room is going to.
+    """
+    text = (HERE / "agents.md").read_text(encoding="utf-8")
+    index = _layout_index()
+    share = len(index.splitlines()) * 100 // len(text.splitlines())
+    assert 15 <= share <= 30, share
+
+
 # -- what the tail rule silences, counted rather than argued (RK189) ----------
 
 
