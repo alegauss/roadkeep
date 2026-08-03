@@ -126,6 +126,7 @@
 - ✅ **RK84** **lint cannot answer whether this change made it worse** — `lint --baseline REV` runs the same gate over the files as they were at REV and fails on the difference alone, so a corpus with 586 standing problems gets an exit code about its own commit.
 - ✅ **RK102** **A test over a live corpus fails when the other project ships the work it counted** — The live-corpus assertions name what the file spells instead of a floor, so Shio's progress no longer turns this suite red.
 - ✅ **RK104** **Nothing gates the README block this tool writes, so a stale restatement passes lint** — `lint` splices the derived block into every file carrying the markers and compares, so a projection nobody re-derived fails the commit rather than a pytest fixture an adopting project never installs.
+- ✅ **RK105** **A concurrent edit in another repository turns this project's suite red** — Every assertion about a foreign corpus reads a pinned revision, so an edit next door cannot turn this suite red, and the live tree is read as an advisory that warns rather than fails.
 
 ## Block E — Adoption
 

@@ -16,6 +16,7 @@ from pathlib import Path
 
 import pytest
 
+import corpora
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.counting import NO_BLOCK, Census
@@ -191,20 +192,13 @@ def test_this_repositorys_own_files_have_nothing_uncounted():
         assert census.total > 0 or role == "roadmap"
 
 
-@pytest.mark.parametrize(
-    ("path", "prefix"),
-    [
-        ("D:/Git/viglet/shio/latest/docs/ROADMAP.md", "SH"),
-        ("D:/Git/viglet/turing/latest/docs/ROADMAP.md", "T"),
-    ],
-)
-def test_a_live_backlog_accounts_for_every_marker_bearing_line(path, prefix):
+@pytest.mark.parametrize("corpus", corpora.BOTH, ids=lambda c: c.name)
+def test_a_live_backlog_accounts_for_every_marker_bearing_line(corpus):
     # The corpora are where an unaccounted line would actually be, and the property
-    # that matters is not "no misses" but "every miss has a reason".
-    source = Path(path)
-    if not source.exists():
-        pytest.skip(f"{source} is not on this machine")
-    document = Document.load(source, Schema(prefixes=(prefix,), ref_scheme="outline"))
+    # that matters is not "no misses" but "every miss has a reason". Read at the pin, so a
+    # file saved half-written in another session is not this suite's verdict (RK105).
+    corpora.require(corpus)
+    document = corpora.document(corpus, "roadmap")
     assert document.entries
     assert all(reject.reason for reject in document.rejects)
 

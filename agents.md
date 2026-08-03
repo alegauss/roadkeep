@@ -96,8 +96,8 @@ it**, a rule in two files being one two files can disagree about. This project's
   `uvx roadkeep` in someone else's CI pays for every dependency it takes.
 - `uv` is **not** installed here — `python -m pytest` from the repo root (`pythonpath =
   ["src"]` is set, so no install step). Only dev dependency: `pip install --user pytest`.
-- Round-trip (L3) is a **property test over real files**: `docs/` plus Shio's and Turing's
-  roadmaps, for the dep kinds only they write — skipped where absent (CI).
+- Round-trip (L3) is a **property test over real files**: `docs/`, plus Shio's and Turing's
+  at the revision `tests/corpora.py` pins — absent or unpinnable, they skip (CI).
 
 ## Committing
 

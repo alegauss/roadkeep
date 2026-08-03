@@ -16,6 +16,7 @@ from pathlib import Path
 
 import pytest
 
+import corpora
 from roadkeep.briefing import CHAINS, NON_GOALS, NothingToBrief, brief, non_goals
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config, Scope
@@ -23,7 +24,9 @@ from roadkeep.document import Document
 from roadkeep.schema import DESIGNED, IDEA, SHIPPED, Schema
 
 HERE = Path(__file__).resolve().parents[1]
-TURING = Path("D:/Git/viglet/turing/latest/docs/ROADMAP.md")
+#: How many non-goals Turing's roadmap declares at its pin. Exact, because the read cannot
+#: move (RK105): a floor here was a bound under somebody else's list.
+TURING_NON_GOALS = 7
 
 
 def leads(text: str, config: Config | None = None) -> tuple[str, ...]:
@@ -269,14 +272,16 @@ def test_a_section_longer_than_the_bound_says_how_many_it_left(tmp_path, capsys)
     assert "not      … and 3 more under Non-goals" in capsys.readouterr().out
 
 
-@pytest.mark.skipif(not TURING.is_file(), reason="Turing is not checked out here")
 def test_turings_leads_are_each_a_scope_and_none_is_a_stray_word():
     # The second live corpus is where RK68's two failures actually are, and the property
     # is not a wording: it is that no lead is a fragment of the constraint it addresses.
-    gathered = non_goals(Config(root=TURING.parent), Document.parse(
-        TURING.read_text(encoding="utf-8"), Schema(prefixes=("T",))
-    ))
-    assert len(gathered.leads) >= 7
+    # At the pin (RK105), so the count is what that revision spells rather than a floor
+    # under whatever Turing's list happens to say this afternoon.
+    corpora.require(corpora.TURING)
+    gathered = non_goals(
+        corpora.config(corpora.TURING), corpora.document(corpora.TURING, "roadmap")
+    )
+    assert len(gathered.leads) == TURING_NON_GOALS
     for lead in gathered.leads:
         assert len(lead.split()) > 3, lead
 

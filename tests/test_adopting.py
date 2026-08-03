@@ -24,6 +24,7 @@ from pathlib import Path
 
 import pytest
 
+import corpora
 from roadkeep.adopting import (
     AlreadyConfigured,
     UnreadableBlock,
@@ -541,26 +542,29 @@ def test_init_refusal_is_a_usage_error(tmp_path: Path, capsys) -> None:
 # -- the corpus that decides §RK20 -------------------------------------------
 
 
-@pytest.mark.skipif(not SHIO.is_file(), reason="Shio is not checked out here")
-def test_shio_is_readable_before_it_is_conforming() -> None:
+def test_shio_is_readable_before_it_is_conforming(tmp_path: Path) -> None:
     """The measurement RK20 turns on: the lines parse, and it is the *prose* that does not.
 
     If a meaningful fraction could not be read at all, the grammar would be wrong. What
     this asserts is the opposite finding — under Shio's own outline scheme the lines round
     -trip, so adoption is an editing cost and not a reformatting one.
+
+    Read at the pin (RK105), which is why the count below is exact: the estimate shrinks
+    every time Shio ships, and a bound set at today's live reading is a count whatever the
+    comment beside it claims (RK102) — which is how the one in `test_document.py` was
+    crossed. What a moving corpus cannot be allowed to decide is whether this suite is red.
     """
-    estimate = adopt(Config.default(SHIO.parent), SHIO, ref_scheme="outline")
+    corpora.require(corpora.SHIO)
+    source = corpora.materialise(corpora.SHIO, "roadmap", tmp_path)
+    estimate = adopt(Config.default(tmp_path), source, ref_scheme="outline")
     assert estimate.prefix == "SH"
     assert estimate.non_canonical == 0
-    assert estimate.parsed > 0  # the weakest bound that still fails on an empty read
+    assert estimate.parsed == 48
     codes = dict(estimate.codes)
     if not codes:
-        pytest.skip(f"{SHIO} now conforms: there is no adoption cost left to estimate")
-    # No count of the offences, slack or otherwise: this is another repository's live
-    # backlog, it shrinks every time Shio ships, and a bound set at today's reading is a
-    # count whatever the comment beside it claims (RK102) — which is how the one in
-    # `test_document.py` was crossed. The finding is which *kind* of code appears: none
-    # about the id, the deps, the marker or the block, so adoption is an editing cost.
+        pytest.skip(f"{corpora.SHIO} conforms: there is no adoption cost left to estimate")
+    # The finding is which *kind* of code appears: none about the id, the deps, the marker
+    # or the block, so what adoption asks for is editing and not reformatting.
     assert [c for c in codes if not c.startswith(("why.", "line.", "ref."))] == []
 
 

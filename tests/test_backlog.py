@@ -17,6 +17,7 @@ from pathlib import Path
 
 import pytest
 
+import corpora
 from roadkeep.backlog import Backlog, DepStatus, Readiness, id_order, number_of
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
@@ -294,11 +295,9 @@ def test_this_repository_resolves_every_dep():
 def test_shios_block_deps_all_name_a_block_it_declares():
     # The counter-check on RK37: the new answer must be reachable only by a mistake.
     # Shio writes the only block deps in any corpus here, and all of them resolve.
-    source = Path("D:/Git/viglet/shio/latest/docs/ROADMAP.md")
-    if not source.exists():
-        pytest.skip(f"{source} is not on this machine")
-    schema = Schema(prefixes=("SH",), ref_scheme="outline")
-    document = Document.load(source, schema)
+    corpora.require(corpora.SHIO)
+    schema = corpora.config(corpora.SHIO).schema_for("roadmap")
+    document = corpora.document(corpora.SHIO, "roadmap")
     declared = {h.label for h in document.headings if h.label}
     named = {
         schema.block_of_dep(dep)
@@ -310,18 +309,17 @@ def test_shios_block_deps_all_name_a_block_it_declares():
 
 
 @pytest.mark.parametrize(
-    ("path", "prefix", "expected"),
+    ("corpus", "expected"),
     [
-        ("D:/Git/viglet/shio/latest/docs/ROADMAP.md", "SH", {DepKind.BLOCK}),
-        ("D:/Git/viglet/turing/latest/docs/ROADMAP.md", "T", {DepKind.RANGE, DepKind.EXTERNAL}),
+        (corpora.SHIO, {DepKind.BLOCK}),
+        (corpora.TURING, {DepKind.RANGE, DepKind.EXTERNAL}),
     ],
+    ids=lambda value: value.name if isinstance(value, corpora.Corpus) else "",
 )
-def test_the_live_backlogs_use_the_kinds_this_model_has(path, prefix, expected):
-    source = Path(path)
-    if not source.exists():
-        pytest.skip(f"{source} is not on this machine")
-    schema = Schema(prefixes=(prefix,), ref_scheme="outline")
-    document = Document.load(source, schema)
+def test_the_live_backlogs_use_the_kinds_this_model_has(corpus, expected):
+    corpora.require(corpus)
+    schema = corpora.config(corpus).schema_for("roadmap")
+    document = corpora.document(corpus, "roadmap")
     kinds = {
         schema.classify_dep(dep) for e in document.entries for dep in e.task.deps
     }

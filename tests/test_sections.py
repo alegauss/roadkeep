@@ -33,6 +33,7 @@ from pathlib import Path
 
 import pytest
 
+import corpora
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.document import Document, UnknownBlock
@@ -275,23 +276,21 @@ def test_an_anchor_the_outline_scheme_cannot_number_is_refused(tmp_path):
         add(config, "improvements", "RK9", "A design", "The reasoning.")
 
 
-#: Shio, whose 151 headings and 74 unresolved pointers are the measurement RK44 names.
-#: Absent on any machine but the author's, so the use is guarded (as in `test_document`).
-SHIO_PROSE = Path("D:/Git/viglet/shio/latest/docs/IMPROVEMENTS.md")
-SHIO_BACKLOG = Path("D:/Git/viglet/shio/latest/docs/ROADMAP.md")
-#: Turing, the only corpus that spells a fourth level with a letter (RK47).
-TURING_PROSE = Path("D:/Git/viglet/turing/latest/docs/IMPROVEMENTS.md")
+#: What Shio's rationale file yields at its pin — 79 anchored sections, and every pointer
+#: in its roadmap resolving to one of them. Exact rather than a floor because the read is
+#: pinned (RK105): 120 was a floor this file fell through as Shio shipped, and a number that
+#: somebody else's progress crosses is a red about their afternoon.
+SHIO_SECTIONS = 79
 
 
 def test_a_live_outline_file_yields_its_sections_and_answers_its_pointers():
-    if not SHIO_PROSE.exists():
-        pytest.skip(f"{SHIO_PROSE} is not on this machine")
-    schema = Schema(prefixes=("SH",), ref_scheme="outline")
-    sections = anchored(Document.load(SHIO_PROSE, schema))
-    # A lower bound, like every other foreign one here: the file only grows.
-    assert len(sections) >= 120
+    corpora.require(corpora.SHIO)
+    sections = anchored(corpora.document(corpora.SHIO, "improvements"))
+    assert len(sections) == SHIO_SECTIONS
     declared = {s.anchor for s in sections}
-    pointers = [e.task.ref for e in Document.load(SHIO_BACKLOG, schema).entries if e.task.ref]
+    pointers = [
+        e.task.ref for e in corpora.document(corpora.SHIO, "roadmap").entries if e.task.ref
+    ]
     # Every one of them, and not a slack count: an unresolved pointer here is a defect in
     # *that* backlog for `lint` to report, which is the whole point — before RK44 the
     # answer was 74 of them, and the gate was reporting the file rather than reading it.
@@ -299,13 +298,18 @@ def test_a_live_outline_file_yields_its_sections_and_answers_its_pointers():
 
 
 def test_a_lettered_heading_in_the_live_corpus_becomes_a_section_the_budget_charges():
-    if not TURING_PROSE.exists():
-        pytest.skip(f"{TURING_PROSE} is not on this machine")
-    sections = anchored(Document.load(TURING_PROSE, Schema(prefixes=("T",), ref_scheme="outline")))
+    """The shape RK47 measured — a fourth level spelled with a letter, escaping the budget.
+
+    The parser's side of it is the local fixture above (`§IX.2a`); what the corpus added was
+    that twenty of them existed and one ran to 779 words. Turing has since renumbered them
+    to `III.1.1`, so at this pin the shape is not there to read — which the pin turns into
+    one stable skip instead of a test that goes red the day somebody else renames a heading.
+    """
+    corpora.require(corpora.TURING)
+    sections = anchored(corpora.document(corpora.TURING, "improvements"))
     lettered = [s for s in sections if s.anchor[-2:-1] == "." and s.anchor[-1].isalpha()]
-    # Twenty, and one of them is 779 words: prose that had escaped the section budget
-    # entirely by gaining a lettered heading, which is the drift RK47 measured.
-    assert len(lettered) >= 20
+    if not lettered:
+        pytest.skip(f"{corpora.TURING} spells no fourth level with a letter any more")
     assert max(s.words for s in lettered) > 250
 
 

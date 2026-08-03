@@ -17,6 +17,7 @@ from pathlib import Path
 
 import pytest
 
+import corpora
 from roadkeep.backlog import Backlog, DepStatus
 from roadkeep.cli import EXIT_OK, main
 from roadkeep.config import Config
@@ -217,27 +218,19 @@ def test_this_backlog_has_no_cycle_and_a_measurable_gap():
     assert top[0] > least[0] and least[0] == 0
 
 
-@pytest.mark.parametrize(
-    ("path", "prefix"),
-    [
-        ("D:/Git/viglet/shio/latest/docs/ROADMAP.md", "SH"),
-        ("D:/Git/viglet/turing/latest/docs/ROADMAP.md", "T"),
-    ],
-)
-def test_a_live_backlog_is_walked_without_looping(path, prefix):
-    # The traversal has to terminate on files it did not write, cycles or not.
-    source = Path(path)
-    if not source.exists():
-        pytest.skip(f"{source} is not on this machine")
-    config = Config.parse(
-        {
-            "prefix": prefix,
-            "ref_scheme": "outline",
-            "files": {"roadmap": source.name},
-        },
-        root=source.parent,
+@pytest.mark.parametrize("corpus", corpora.BOTH, ids=lambda c: c.name)
+def test_a_live_backlog_is_walked_without_looping(corpus):
+    # The traversal has to terminate on files it did not write, cycles or not. At the pin
+    # (RK105), and through the corpus's own declaration rather than a copy of it (L6).
+    corpora.require(corpus)
+    config = corpora.config(corpus)
+    g = Graph.of(
+        Backlog.during(
+            config,
+            roadmap=corpora.document(corpus, "roadmap"),
+            ledger=corpora.document(corpus, "changelog"),
+        )
     )
-    g = Graph.of(Backlog.load(config))
     assert g.edges
     for task in g.edges:
         g.chains(task)

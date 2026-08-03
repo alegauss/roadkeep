@@ -259,29 +259,6 @@ own construction, the number to report is one build, not fifty-two.
 
 ## Block D — The gate
 
-### §RK105 A property test over somebody else's working tree
-
-L3 is proven over real files, and the two live corpora are what make that more than a
-self-test: they supply the dep kinds, the outline scheme and the marker sets this
-repository's own docs never exercise. The tests read them where they live, and skip
-where they are absent, which is what lets CI run the same suite.
-
-What that misses is the third state. A corpus that is present *and changing* is read
-mid-edit: one run this session failed on a Shio pointer resolving to nothing, and the
-same test passed alone, before the change, and on every run after. Two other tests began
-skipping in the same window, for the opposite reason — Shio's roadmap now conforms, so
-there is no adoption cost left to estimate.
-
-Both are correct readings of a file that moved. The defect is that the suite reports
-them as a verdict on this commit. A gate whose red is sometimes about another repository
-is a gate whose red gets re-run instead of read, which is the failure `lint` already
-names for findings nobody can act on.
-
-The material is already there: the corpora are git checkouts, so a read at a pinned
-revision is a read that cannot move underneath the run, and `lint --baseline` (RK84)
-established that this tool can read a file as it was at a revision. Reading the live
-tree stays worth doing — as an advisory run, not as the assertion.
-
 ### §RK114 The sub-anchor the ownership check cannot see
 
 `_owners` decides who a section belongs to by matching its anchor against the project's

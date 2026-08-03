@@ -22,11 +22,12 @@ from pathlib import Path
 
 import pytest
 
+import corpora
 from roadkeep.cli import EXIT_GATE, EXIT_OK, main
 from roadkeep.config import Config
 from roadkeep.exporting import BEGIN, END
 from roadkeep.exporting import project as exported
-from roadkeep.linting import lint
+from roadkeep.linting import lint, within
 from roadkeep.picking import take
 
 HERE = Path(__file__).resolve().parents[1]
@@ -125,10 +126,28 @@ def test_a_clean_project_exits_zero(tmp_path, capsys):
     assert "clean" in out and "ROADMAP.md" in out and "CHANGELOG.md" in out
 
 
-def test_a_foreign_backlog_is_reported_at_length_and_left_untouched():
-    # The population the tool was measured against: 90-odd lines averaging 142 words
-    # against a one-sentence rule. What matters here is that the gate produces a report
-    # instead of an exception, and that the file it read is byte-identical afterwards.
+def test_a_foreign_backlog_is_judged_at_a_pin_and_the_number_is_exact():
+    """The population the tool was measured against, read where it cannot move (RK105).
+
+    `within` is the half of the gate that is decidable from one file, which is what makes
+    the number below sayable at all: `lint` reads the working tree, so a magnitude asserted
+    through it is one another session can change. 90-odd lines averaging 142 words against a
+    one-sentence rule is what this corpus was for, and **zero** is what it holds at this pin,
+    because Shio rewrote them under the limits it adopted. That is the finding, and stating
+    it exactly is the difference between a corpus and a floor: the day the number moves, this
+    fails on a pin somebody moved on purpose rather than on somebody else's afternoon.
+    """
+    corpora.require(corpora.SHIO)
+    findings = within(
+        corpora.config(corpora.SHIO), "roadmap", corpora.document(corpora.SHIO, "roadmap")
+    )
+    assert [str(f) for f in findings] == []
+
+
+def test_the_gate_runs_over_a_foreign_backlog_and_writes_nothing():
+    # The other half, and the one that has to read the live tree: a whole `lint` run over
+    # somebody else's checkout must produce a report rather than an exception, and leave
+    # every byte alone. No magnitude is asserted — that is the test above, at the pin.
     roadmap = SHIO / "docs" / "ROADMAP.md"
     if not roadmap.is_file():
         pytest.skip(f"{roadmap} is not on this machine")
@@ -138,7 +157,7 @@ def test_a_foreign_backlog_is_reported_at_length_and_left_untouched():
     )
     before = roadmap.read_bytes()
     report = lint(config)
-    assert report.problems > 20 and report.lines > 50
+    assert report.lines == len(config.document("roadmap").entries)
     assert roadmap.read_bytes() == before
 
 

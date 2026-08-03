@@ -15,11 +15,12 @@ CI tests what it has.
 from __future__ import annotations
 
 import os
-from dataclasses import replace
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 import pytest
 
+import corpora
 from roadkeep import DESIGNED, IDEA, PARTIAL, SHIPPED, Dep, Schema, Task
 from roadkeep.document import (
     Document,
@@ -39,19 +40,6 @@ OUTLINE_T = Schema(prefixes=("T",), ref_scheme="outline")
 ROADMAP = HERE / "docs" / "ROADMAP.md"
 CHANGELOG = HERE / "docs" / "CHANGELOG.md"
 
-#: Real backlogs that predate the tool, with their own prefixes (L6). Absent on
-#: any machine but the author's, so every use is guarded.
-#: The bound is 1 for the same reason `OWN`'s roadmap is: these files belong to other
-#: projects and empty as those projects ship, so any floor above one is a count that
-#: somebody else's progress crosses — 90, then 80, which fell the day Shio shipped SH270,
-#: and a comment calling it slack does not make it slack (RK102). What the corpus is read
-#: for is round-trip at a scale nothing here authored, and that needs no magnitude: the
-#: floor's whole job is to fail when a parse silently read nothing.
-FOREIGN = [
-    (Path("D:/Git/viglet/shio/latest/docs/ROADMAP.md"), OUTLINE_SH, 1),
-    (Path("D:/Git/viglet/turing/latest/docs/ROADMAP.md"), OUTLINE_T, 1),
-]
-
 # Lower bounds, not counts: shipping a task moves a line between these two files every
 # commit, and a test that has to be edited by every commit gets edited without being read.
 # The roadmap's floor is **zero**, which is the end of a sequence this comment recorded twice
@@ -67,47 +55,99 @@ LINE = (
 )
 
 
-def corpus() -> list[tuple[Path, Schema, int]]:
-    return OWN + [c for c in FOREIGN if c[0].exists()]
+@dataclass(frozen=True, slots=True)
+class Case:
+    """One file in the corpus: its bytes, the schema that reads them, and what it holds.
+
+    Bytes and not a path, because the foreign half is read **at a pinned revision** and a
+    revision has no file (RK105) — which is also why ``path`` is None there: file ownership
+    is a fact about this disk, and a blob has none. ``entries`` is a floor for this
+    repository's own files, whose count moves with every commit, and an exact number for a
+    pinned one, whose count cannot move at all.
+    """
+
+    name: str
+    source: str
+    schema: Schema
+    entries: int
+    path: Path | None = None
+    #: Whether ``entries`` is the number or the floor.
+    exact: bool = False
+
+
+def _read(path: Path) -> str:
+    with path.open("r", encoding="utf-8", newline="") as handle:
+        return handle.read()
+
+
+#: What each pinned corpus holds at its pin, per role. Exact, because that is the whole of
+#: RK105: at a revision these are measurements rather than floors somebody else's progress
+#: crosses — 90, then 80, which fell the day Shio shipped SH270, then 1, which is a number
+#: that proves only that the parse read *something*. Re-measured when a pin moves, on
+#: purpose and in that commit.
+PINNED = {
+    ("shio", "roadmap"): 48,
+    ("turing", "roadmap"): 37,
+}
+
+
+def corpus() -> list[Case]:
+    """This repository's own files, plus each pinned corpus that is here to be read."""
+    cases = [
+        Case(path.name, _read(path), schema, floor, path)
+        for path, schema, floor in OWN
+    ]
+    for (name, role), count in PINNED.items():
+        found = next(c for c in corpora.BOTH if c.name == name)
+        if not corpora.present(found) or not corpora.has(found, role):
+            continue
+        cases.append(
+            Case(
+                name=f"{name}-{role}",
+                source=corpora.text(found, role),
+                schema=corpora.config(found).schema_for(role),
+                entries=count,
+                exact=True,
+            )
+        )
+    return cases
 
 
 # -- the property ----------------------------------------------------------
 
 
-@pytest.mark.parametrize("case", corpus(), ids=lambda c: c[0].parent.parent.name)
+@pytest.mark.parametrize("case", corpus(), ids=lambda c: c.name)
 def test_a_file_renders_back_byte_for_byte(case):
-    path, schema, _ = case
-    with path.open("r", encoding="utf-8", newline="") as handle:
-        source = handle.read()
-    assert Document.load(path, schema).render() == source
+    assert Document.parse(case.source, schema=case.schema).render() == case.source
 
 
-@pytest.mark.parametrize("case", corpus(), ids=lambda c: c[0].parent.parent.name)
+@pytest.mark.parametrize("case", corpus(), ids=lambda c: c.name)
 def test_every_understood_line_renders_back_to_what_was_written(case):
-    path, schema, minimum = case
-    document = Document.load(path, schema)
-    assert len(document.entries) >= minimum
+    document = Document.parse(case.source, schema=case.schema)
+    if case.exact:
+        assert len(document.entries) == case.entries
+    else:
+        assert len(document.entries) >= case.entries
     assert document.non_canonical == ()
-    document.ensure_writable()  # the file may be owned
+    if case.path is not None:
+        Document.load(case.path, case.schema).ensure_writable()  # the file may be owned
 
 
-@pytest.mark.parametrize("case", corpus(), ids=lambda c: c[0].parent.parent.name)
+@pytest.mark.parametrize("case", corpus(), ids=lambda c: c.name)
 def test_no_two_entries_claim_the_same_line(case):
     # The span RK157 gave every entry, as a property: an entry ends before the next one
     # starts, so no write can insert into one or remove part of another. The shape that
     # motivated it — a bullet that wraps — lives in a *ledger* this corpus does not read,
     # which is exactly why the property test did not catch it.
-    path, schema, _ = case
-    document = Document.load(path, schema)
+    document = Document.parse(case.source, schema=case.schema)
     for earlier, later in zip(document.entries, document.entries[1:]):
         assert earlier.stop < later.lineno, (earlier.task.id, later.task.id)
     assert all(entry.stop <= len(document.lines) for entry in document.entries)
 
 
-@pytest.mark.parametrize("case", corpus(), ids=lambda c: c[0].parent.parent.name)
+@pytest.mark.parametrize("case", corpus(), ids=lambda c: c.name)
 def test_no_marker_bearing_line_is_silently_dropped(case):
-    path, schema, _ = case
-    document = Document.load(path, schema)
+    document = Document.parse(case.source, schema=case.schema)
     # Every reject carries a reason; a line understood by nobody and reported by
     # nobody is the failure mode of the grep this replaces.
     assert all(reject.reason for reject in document.rejects)
@@ -115,42 +155,39 @@ def test_no_marker_bearing_line_is_silently_dropped(case):
 
 def test_a_foreign_backlog_round_trips_while_failing_validation():
     # The two halves are independent, and conflating them is what makes a formatter
-    # destructive: Shio's lines are over the limits *and* every one of them renders back
-    # unchanged. Not a floor on how many offend — Shio rewrites those lines, and a suite
-    # that counted them would go red for somebody else's progress (RK102). The magnitude
-    # is owned by the fixture below; what the corpus adds is scale nothing here authored.
-    path, schema, _ = FOREIGN[0]
-    if not path.exists():
-        pytest.skip(f"{path} is not on this machine")
-    document = Document.load(path, schema)
+    # destructive: a line over the limits still renders back unchanged. What the pin buys
+    # here is that the *absence* of offenders is a fact rather than a flake (RK105): Shio
+    # rewrote those lines, so at this revision there are none, and the skip below says so
+    # once instead of appearing and disappearing with somebody else's afternoon.
+    corpora.require(corpora.SHIO)
+    schema = corpora.config(corpora.SHIO).schema_for("roadmap")
+    document = corpora.document(corpora.SHIO, "roadmap")
     offenders = [e for e in document.entries if schema.validate(e.task)]
-    if not offenders:
-        pytest.skip(f"{path} no longer has a line to disagree with: nothing to prove here")
     assert document.non_canonical == ()
+    if not offenders:
+        pytest.skip(f"{corpora.SHIO} conforms: it has no line left to disagree with")
+    assert document.render() == corpora.text(corpora.SHIO, "roadmap")
 
 
-#: The two live ledgers, and a floor on what the parser must *say* about them. Lower
-#: bounds like every other one here, and safe ones: a ledger only grows. Before RK43 both
-#: numbers were 0 — 920 bullets in Shio read as prose, and the reject list that exists to
-#: make a miss impossible was empty because nothing wore the marker slot wrongly.
-FOREIGN_LEDGERS = [
-    (Path("D:/Git/viglet/shio/latest/docs/CHANGELOG.md"), OUTLINE_SH, 150),
-    (Path("D:/Git/viglet/turing/latest/docs/CHANGELOG.md"), OUTLINE_T, 500),
-]
+#: What each pinned ledger yields when it is read under a schema that **expects** the marker
+#: slot it does not carry: every line a reject, each with a reason. A deliberate
+#: misconfiguration, which is why the corpus's own `[ledger] marker = false` is not used here
+#: — before RK43 these numbers were 0, and 920 bullets in Shio read as prose because nothing
+#: wore the slot wrongly. Exact at the pin (RK105); the ledgers grow between pins.
+UNMARKED_LEDGERS = {"shio": 290, "turing": 801}
 
 
-@pytest.mark.parametrize(
-    "case", FOREIGN_LEDGERS, ids=lambda c: c[0].parent.parent.name
-)
-def test_a_live_ledger_that_carries_no_marker_is_reported_line_by_line(case):
-    path, schema, minimum = case
-    if not path.exists():
-        pytest.skip(f"{path} is not on this machine")
-    document = Document.load(path, schema.as_ledger())
-    assert len(document.rejects) >= minimum
+@pytest.mark.parametrize("corpus", corpora.BOTH, ids=lambda c: c.name)
+def test_a_live_ledger_that_carries_no_marker_is_reported_line_by_line(corpus):
+    corpora.require(corpus)
+    source = corpora.text(corpus, "changelog")
+    schema = replace(
+        corpora.config(corpus).schema_for("changelog"), marker_field=True
+    )
+    document = Document.parse(source, schema=schema)
+    assert len(document.rejects) == UNMARKED_LEDGERS[corpus.name]
     assert all(reject.reason for reject in document.rejects)
-    with path.open("r", encoding="utf-8", newline="") as handle:
-        assert document.render() == handle.read()  # reported, and still not rewritten
+    assert document.render() == source  # reported, and still not rewritten
 
 
 def test_our_own_roadmap_has_no_rejects():
