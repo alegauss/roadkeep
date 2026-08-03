@@ -161,8 +161,10 @@ def test_a_query_answers_while_another_process_holds_the_lock(tmp_path, capsys):
     root = project(tmp_path)
     seize(root)
     for query in (["pick"], ["list"], ["next-id"], ["lint", "--json"]):
-        assert main(["-C", str(root), *query]) in (EXIT_OK, EXIT_GATE)
-    capsys.readouterr()
+        main(["-C", str(root), *query])
+        # On the refusal and not on the exit code: `lint` answers 1 for a violation as well, and
+        # it used to answer 1 for *this* — a busy checkout reading as a drifted format (RK168).
+        assert "another roadkeep process" not in capsys.readouterr().err, query
     assert lock_path(root).exists()  # untouched by any of them
 
 
@@ -224,10 +226,16 @@ def declared() -> dict[str, str]:
     }
 
 
-def test_the_three_reads_that_can_write_are_the_ones_that_say_so():
-    # Named here rather than counted, because the list is the point: any fourth one is a
-    # deliberate addition and not something a copied comment brought along.
-    assert declared() == {"pick": "claim", "brief": "claim", "claims": "prune"}
+def test_the_reads_that_can_write_are_the_ones_that_say_so():
+    # Named here rather than counted, because the list is the point: any further one is a
+    # deliberate addition and not something a copied comment brought along. `lint` joined them
+    # (RK168) — the gate is a read, and the write in it is the repair.
+    assert declared() == {
+        "pick": "claim",
+        "brief": "claim",
+        "claims": "prune",
+        "lint": "fix",
+    }
 
 
 def test_every_declared_flag_is_one_its_own_parser_accepts():
@@ -248,13 +256,25 @@ def test_every_declared_flag_is_one_its_own_parser_accepts():
 
 @pytest.mark.parametrize(
     ("command", "flag"),
-    [("pick", "--claim"), ("brief", "--claim"), ("claims", "--prune")],
+    [
+        ("pick", "--claim"),
+        ("brief", "--claim"),
+        ("claims", "--prune"),
+        ("lint", "--fix"),
+    ],
 )
-def test_the_argv_that_writes_waits_and_the_one_that_reads_does_not(tmp_path, command, flag):
-    # The property RK167 asked for, and the one no call site could state: with the flag it is a
-    # write and a held lock refuses it; without, it answers while somebody else is writing.
+def test_the_argv_that_writes_waits_and_the_one_that_reads_does_not(
+    tmp_path, capsys, command, flag
+):
+    """The property RK167 asked for, and the one no call site could state: with the flag it is a
+    write and a held lock refuses it; without, it answers while somebody else is writing.
+
+    Asserted on the refusal and not on the exit code, because `lint` answers 1 for a violation
+    too — and telling those two apart is the whole of RK168."""
     root = project(tmp_path)
     seize(root)
-    assert main(["-C", str(root), command]) == EXIT_OK
+    main(["-C", str(root), command])
+    assert "another roadkeep process" not in capsys.readouterr().err
     assert main(["-C", str(root), command, flag]) == EXIT_GATE
+    assert "another roadkeep process" in capsys.readouterr().err
     assert lock_path(root).exists()  # somebody else's, and still theirs

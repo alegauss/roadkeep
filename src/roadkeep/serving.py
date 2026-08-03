@@ -86,11 +86,6 @@ class Tool:
     #: carry a space and a client shows what it is given.
     command: str
     exposes: tuple[str, ...] = ()
-    #: Whether a successful call changes a governed file — `readOnlyHint`, which a client
-    #: uses to decide whether to ask. Stated per tool because it is not derivable: `lint`
-    #: writes when `--fix` is passed, and is only read-only here because that flag is not
-    #: exposed above.
-    writes: bool = False
     #: Arguments this tool always passes, by dest — never exposed, so a caller cannot unset
     #: one. This is how a **flag becomes a tool** (RK150): `readOnlyHint` is one boolean per
     #: tool and `brief --claim` writes while `brief` does not, so the two are two tools over
@@ -118,6 +113,25 @@ class Tool:
     def argv_head(self) -> list[str]:
         return self.command.split()
 
+    @property
+    def writes(self) -> bool:
+        """Whether a successful call changes a governed file — `readOnlyHint`, derived (RK168).
+
+        Stated per tool until now, and the reason given was `lint`: it writes when `--fix` is
+        passed and is read-only *here* only because that flag is not exposed. RK167 gave a
+        parser the way to say which flag makes a read a write, and RK168 put it on `lint` — so
+        the answer is derivable and stops being a boolean two places could disagree about.
+
+        Two clauses and no table: a command whose parser does not call itself a read writes, and
+        a read writes exactly when this tool passes the flag its parser names — exposed, so a
+        caller may, or in :attr:`always`, so it always does.
+        """
+        parser = _subparser(self.command)
+        if not parser.get_default("reads_only"):
+            return True
+        flag = parser.get_default("writes_when") or ""
+        return bool(flag) and flag in (*self.exposes, *self.always)
+
 
 #: What a task needs end to end (RK24's four, extended by RK59). Order is the order
 #: `tools/list` reports: the write path first, then the reads, because that is the order a
@@ -132,12 +146,11 @@ TOOLS: tuple[Tool, ...] = (
     Tool(
         "add",
         ("block", "symptom", "why", "deps", "status", "section", "section_body"),
-        writes=True,
     ),
     # The key to a deadlock the agent meets first (RK141): `ship` refuses an undeclared
     # block, the guard denies the edit that would declare it, and no other verb writes a
     # heading — so a correctly wired project could not open a block at all.
-    Tool("block add", ("label", "title"), writes=True),
+    Tool("block add", ("label", "title")),
     # The write a session makes first, and the one flag that became a tool (RK149, RK150): it
     # is `brief --claim`, so the answer is everything needed to start the task *and* the
     # marker that stops the next agent being handed it — while `brief` and `pick` below stay
@@ -145,44 +158,43 @@ TOOLS: tuple[Tool, ...] = (
     Tool(
         "brief",
         ("id", "block", "designed"),
-        writes=True,
         always=("claim",),
         named="claim",
     ),
-    Tool("status", ("id", "marker"), writes=True),
-    Tool("amend", ("id", "why", "deps", "ref"), writes=True),
+    Tool("status", ("id", "marker")),
+    Tool("amend", ("id", "why", "deps", "ref")),
     # The repair a merge needs, exposed for the reason it exists at all (RK97): the agent
     # that hits a doubled id is the one the hook denies a hand-edit to, so a door only a
     # human can reach is no door. `to` is offered because the derived answer is not always
     # the wanted one — it is refused against every source either way.
-    Tool("renumber", ("id", "to"), writes=True),
+    Tool("renumber", ("id", "to")),
     # `part` is exposed because the agent shipping half of something is the one that needs
     # it (RK121): without it the only honest options are a ledger entry that overstates and
     # a hand-edited qualifier the grammar reads and no verb maintains.
     # `why` is required on the write path and not merely offered (RK142): the roadmap's
     # sentence is a problem statement, and the entry that inherited it read as a defect
     # report filed under a heading meaning "done".
-    Tool("ship", ("id", "why", "part"), writes=True),
-    Tool("retire", ("id", "reason", "superseded_by"), writes=True),
-    Tool("defer", ("id", "reason"), writes=True),
-    Tool("resume", ("id", "marker"), writes=True),
-    Tool("record add", ("block", "symptom", "why"), writes=True),
+    Tool("ship", ("id", "why", "part")),
+    Tool("retire", ("id", "reason", "superseded_by")),
+    Tool("defer", ("id", "reason")),
+    Tool("resume", ("id", "marker")),
+    Tool("record add", ("block", "symptom", "why")),
     # The ledger's update (RK124). `part` rides with it because a qualifier that stopped
     # being true is the commonest correction an entry needs, and the agent that wrote it is
     # the one the hook denies a hand-edit to.
-    Tool("record amend", ("id", "why", "part"), writes=True),
+    Tool("record amend", ("id", "why", "part")),
     # `line` rides with both because the choice is the fix (RK127): two entries for one id
     # can be one slip or two deliveries, and the default picked the entry that earned the id.
-    Tool("record drop", ("id", "line"), writes=True),
-    Tool("record renumber", ("id", "line", "to"), writes=True),
-    Tool("non-goal add", ("lead", "why"), writes=True),
-    Tool("non-goal drop", ("lead",), writes=True),
-    Tool("section add", ("anchor", "title", "body", "role"), writes=True),
+    Tool("record drop", ("id", "line")),
+    Tool("record renumber", ("id", "line", "to")),
+    Tool("non-goal add", ("lead", "why")),
+    Tool("non-goal drop", ("lead",)),
+    Tool("section add", ("anchor", "title", "body", "role")),
     # The correction an open task's design needs (RK123). Exposed for the reason the whole
     # write path is: the agent that narrowed a hypothesis is the one the hook denies a hand
     # edit to, and until this verb existed the only way through was shipping the task.
-    Tool("section amend", ("anchor", "title", "body", "role"), writes=True),
-    Tool("section drop", ("anchor", "role"), writes=True),
+    Tool("section amend", ("anchor", "title", "body", "role")),
+    Tool("section drop", ("anchor", "role")),
     Tool("non-goal list"),
     Tool("weight", ("block",)),
     # `designed` is exposed on both for the reason it exists (RK83): the caller that asks

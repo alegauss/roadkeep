@@ -749,7 +749,15 @@ def build_parser() -> argparse.ArgumentParser:
         help="print only the summary line, for a hook that wants the exit code",
     )
     lint_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
-    lint_parser.set_defaults(handler=_lint)
+    # The gate is a read and `--fix` is the write in it (RK168). Until it said so, the command
+    # a hook, a CI job and every turn's end run took the *write* lock — so a checkout somebody
+    # else was writing answered with exit 1, which from this command means the format drifted.
+    #
+    # `--fix` still refuses on a busy checkout rather than repairing half of it, and that is
+    # deliberate: the refusal names the other process, re-running is the answer, and splitting
+    # one command into a locked half and an unlocked half is a second mechanism for the rarer
+    # case. What the flag buys is that the *report* never waits on a write at all.
+    lint_parser.set_defaults(handler=_lint, reads_only=True, writes_when="fix")
 
     brief_parser = subcommands.add_parser(
         "brief",

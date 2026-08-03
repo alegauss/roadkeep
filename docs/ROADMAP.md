@@ -32,10 +32,9 @@
 - 📋 **RK145** (deps: —) **A block can only be opened last, and where it sits is what every ordered answer reads** — block add places the heading after the last block's subtree, so a phase belonging between two existing ones can only be appended — and the order a list reports is the headings' own. → §RK145
 - 📋 **RK157** (deps: —) **A new ledger entry lands between the last entry and its own wrapped lines** — `Entry` carries a lineno and no span, so `place` inserts at the last entry's line plus one and the block's final entry's continuation lines are re-attributed to whatever ships next. → §RK157
 - 📋 **RK166** (deps: —) **A newly declared block cannot receive its first rationale section** — Under ref_scheme = 'outline' nothing creates a top-level section: block add skips the prose file, section add refuses an anchor nothing extends, and add leaves a pointer lint rejects. → §RK166
+- 📋 **RK169** (deps: —) **section drop deletes rationale a live line points at, when the anchor is a bullet** — The guard reads the sections under the anchor, so an outline project addressing prose as `- **XIV.8.7 — …**` has its live design deleted with the shipped parent and no refusal. → §RK169
 
 ## Block C — Query (consult without reading the file)
-
-- 📋 **RK168** (deps: —) **A busy checkout makes the gate exit like a violation, so a clean file reads as a failing one** — `lint` is declared a write because `--fix` exists, so a lock another process holds refuses it with the code a violation uses — the one checkout, two agents this block spent itself on. → §RK168
 
 ## Block D — The gate
 
@@ -67,6 +66,7 @@
 - 📋 **RK111** (deps: —) **The MCP write path cannot write an id the deriver never mints** — `add --id` is withheld because a chosen id is what a schema cannot check, but a sub-letter is derived by nothing, so a project declaring `[ids] suffix` has a shape only the CLI can write. → §RK111
 - 📋 **RK128** (deps: —) **The guard denies Edit and Write and answers silence to a shell command writing the same file** — A PreToolUse payload naming Bash is passed through whatever the command does, so sed, python -c or a heredoc rewrites a governed file with no refusal and no record. → §RK128
 - 📋 **RK155** (deps: —) **A tool call answers with the code the session started, so a refusal can name a key the config declares** — The stdio server imports the package once per session, so a new config key or an upgrade is invisible to every tool while the CLI beside it agrees with the file. → §RK155
+- 📋 **RK170** (deps: —) **A tool call that reads stdin eats the transport it arrived on** — `call` redirects stdout and stderr and not stdin, so `add --section` with no body blocks in `sys.stdin.read()` for ever — wedged 18 minutes in Shio, holding the RK117 lock. → §RK170
 
 ## Non-goals
 

@@ -224,30 +224,29 @@ to a block that already owns a section, which there meant five themes of ninetee
 Either `block add` writes the prose heading too, deriving the next outline number; or
 `section add` accepts a top-level anchor that succeeds the highest existing one.
 
+### §RK169 The guard sees headings, and an outline corpus addresses prose with bullets
+
+Measured adopting Turing. `section drop XIV` was accepted and took §XIV.8 with it, and
+under that heading sat `- **XIV.8.7 — ship Cloud default config as a GLOBAL seed ZIP
+(T373).**` — the design of an open task, deleted without a word. The refusal exists and
+did not fire: `section drop` is documented as refused "when an open line points at the
+anchor or at anything under it", and it decides that by walking the *sections* under the
+anchor. T373's pointer named a bullet, which is not a section, so the subtree looked
+unowned.
+
+Two things are true at once and only one is a defect. That the pointer does not resolve
+is Turing's, and `lint` says so — `ref.unresolved`. That a verb whose whole job is "the
+orphan" deleted a live design *because* the pointer was already broken is this tool's:
+the finding made the content invisible to the guard that would have protected it, so two
+findings compounded into data loss instead of two reports.
+
+The fix is to decide the guard from the same text a reader would: any occurrence of an
+anchor at-or-under the target inside the span, whichever shape the corpus writes it in —
+or, narrower and enough, refuse the drop while any open line's ref is a descendant of
+the anchor by name, which needs no parsing of the prose at all and is the test the
+adoption script had to write by hand to proceed safely.
+
 ## Block C — Query
-
-### §RK168 The gate that waits on the write it gates
-
-`lint` declares no `reads_only`, so `dispatch` runs it under the write lock — right when
-`--fix` is passed and wrong every other time, which is nearly every time. A held lock
-then raises `LockBusy`, `main` answers exit 1, and exit 1 from this command means *the
-format drifted*. The gate that a hook, a CI job and a turn's end all run reports a
-violation because somebody else was writing.
-
-The existing evidence is in `tests/test_locking.py`, where the query that answers during
-a write accepts `EXIT_OK or EXIT_GATE` for `lint` alone — an assertion written around
-the behaviour rather than about it.
-
-RK167 built the declaration this needs: `reads_only=True, writes_when="fix"` makes a
-plain `lint` a query that never waits, and `--fix` the write it already is. The refusal
-path wants a second look while there: a busy checkout is not a violation, so if `--fix`
-cannot take the lock the honest answer may be to report and skip the repair rather than
-to fail the run.
-
-There is a second thing that falls out. `Tool.writes` in `serving.py` is hand-stated
-*because* `lint` was the exception — with the flag declared, whether a tool writes is
-derivable from its parser and the flags it exposes, and one fact stops being written
-twice.
 
 ## Block D — The gate
 
@@ -691,3 +690,22 @@ the direction of a half-reloaded module.
 Only the second is a fix; the first is what makes the failure legible, costs nothing,
 and cannot be wrong. Worth deciding whether the second belongs here at all, or is the
 harness's to do on a plugin whose version moved.
+
+### §RK170 The read that eats the transport
+
+The server speaks JSON-RPC on stdin and stdout, and `call` dispatches in-process through
+the CLI's own parser — which is what makes a write over MCP take the RK117 lock a write
+over `Bash` takes, and is right. What it captures is half of it: `redirect_stdout` and
+`redirect_stderr` hand the handler a `StringIO`, and stdin is left as the client's pipe.
+
+`_add` reads that pipe. With `--section` and no `--section-body` the body comes from
+`sys.stdin.read()`, and the guard against it is a comment — *an `add` with no rationale
+must never block on a pipe* — which holds for the `add` that names no section, and not
+for the one that names a section and no body. Over `Bash` the read sees EOF. Over MCP it
+waits for an EOF no live client sends, and consumes every message queued behind it.
+
+Measured in Shio: 18 minutes at 0% CPU, no children, holding the lock it claimed at
+07:37:59, the `add` unanswered and a `status` sent afterwards unanswered too. Reproduced
+against a throwaway project in three calls.
+
+**Two writes, and stdin is the one that matters.** An exhausted stream substituted for `sys.stdin` in `call` turns the deadlock into a refusal about an empty body — a sentence the caller can act on, and the same answer on every handler that reads it. Refusing `section` without `section_body` in `argv` is the second, because an empty body is not the body the caller meant to send.

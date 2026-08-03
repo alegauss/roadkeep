@@ -283,6 +283,17 @@ def test_a_flag_that_became_a_tool_is_always_passed_and_never_settable(tmp_path)
     assert "claim" not in listed(project(tmp_path))["claim"]["inputSchema"]["properties"]
 
 
+def test_whether_a_tool_writes_is_derived_and_not_stated(tmp_path):
+    # RK168: it was a boolean per tool because `lint` was the exception — read-only *here* only
+    # by not exposing `--fix`. With the parser saying which flag makes it a write, the answer
+    # comes from the parser and the flags this tool passes.
+    assert not tool_named("lint").writes
+    # Not vacuous: exposing that flag is what flips it, which is the whole derivation.
+    assert Tool("lint", ("baseline", "fix")).writes
+    # And a command whose parser never called itself a read writes whatever it exposes.
+    assert Tool("add", ()).writes
+
+
 def test_the_two_reads_a_claim_was_split_off_from_stay_free_to_ask(tmp_path):
     # The cost RK150 records: `readOnlyHint` is one boolean per tool, so a `pick` that could
     # write is a `pick` a client may prompt for — and consulting the backlog is meant to be

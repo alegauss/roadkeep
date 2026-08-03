@@ -99,6 +99,7 @@
 - ✅ **RK164** **A claim on a paused or shipped id is reported as though no line ever carried it** — The listing joins the ledger and the store as well, so an id that left the roadmap says which door it left by and only the leftover reads as one.
 - ✅ **RK165** **Clearing a stale row without a marker write means deleting every live claim with it** — `claims --prune` drops the rows that are not claims and keeps every one that is, so the precise remedy no longer means deleting a whole checkout's registry.
 - ✅ **RK167** **Three read-only commands take the write lock themselves, each in a different place** — A read that can write declares which flag makes it one, so `dispatch` decides the lock again — and a test names the three and holds the property no call site could state.
+- ✅ **RK168** **A busy checkout makes the gate exit like a violation, so a clean file reads as a failing one** — The gate is declared a read and `--fix` the write in it, so a lint during somebody else's write answers about the format instead of about the lock — and `readOnlyHint` is derived.
 
 ## Block D — The gate
 
