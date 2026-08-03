@@ -24,8 +24,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK191** (deps: —) **The refusal on a second partial names the entry in the way, not the id the step needs** — `_partial` answers a second `ship --part` with the line already recorded, and Shio settled in SH361 that a delivered step gets its own id, so the caller is left to invent it. → §RK191
-
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK174** (deps: —) **Listing the tools rebuilds the whole CLI parser fifty-two times and costs a sixth of a second** — `_subparser` calls `build_parser` per lookup and each descriptor needs two — the schema and whether the tool writes — so a client's first message pays 165ms rebuilding what never changed. → §RK174

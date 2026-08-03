@@ -142,9 +142,11 @@ __all__ = [
     "Readdressed",
     "Record",
     "Refiled",
+    "SecondPartial",
     "Section",
     "Shipment",
     "Unchosen",
+    "Wrapped",
     "amend",
     "drop",
     "move",
@@ -169,6 +171,49 @@ class AlreadyRecorded(ValueError):
         super().__init__(
             f"{task_id} is already recorded as {marker} in {where}:{lineno}: a second "
             f"entry would make the ledger disagree with itself about how it left"
+        )
+
+
+class SecondPartial(ValueError):
+    """A second `ship --part` against an id whose first half the ledger already holds (RK191).
+
+    :class:`AlreadyRecorded` was the answer here, and it is the right answer at the door it
+    was written for — an id the ledger already **closed**, where naming the entry in the way
+    is the whole of what a caller needs. It is not the answer here. A caller reaching this
+    one has work that came in more halves than one id can hold, and was told where the first
+    one is.
+
+    The answer exists and is not this tool's guess: Shio hit exactly this and settled it as
+    *a step delivered gets an id, not a share of one* (SH361), filing SH366 through SH371 as
+    the six steps of two tasks with each qualifier naming its parent in prose. That is also
+    what this refusal enforces — one partial per id, then the completion — so the check is
+    right and only its sentence was incomplete.
+
+    Which spelling the step takes is `roadkeep.toml`'s and not this module's (L6): where
+    `[ids] suffix` is declared the new line keeps the number and takes a letter, and where it
+    is not, it is an ordinary `add` whose `why` names the parent.
+    """
+
+    def __init__(
+        self, task_id: str, where: str, lineno: int, part: str, *, suffix: bool
+    ) -> None:
+        self.task_id = task_id
+        self.lineno = lineno
+        self.part = part
+        self.suffix = suffix
+        door = (
+            f"`roadkeep add --id {task_id}b --block <x> --symptom \"…\" --why \"…\"`, this "
+            f"project declaring `[ids] suffix`"
+            if suffix
+            else f"`roadkeep add --block <x> --symptom \"…\" --why \"…\"` with a `why` that "
+            f"names {task_id}, this project declaring no `[ids] suffix`"
+        )
+        super().__init__(
+            f"{task_id} already records a half in {where}:{lineno} ({part}): one id carries "
+            f"one partial and then the completion, so a second would be two answers about "
+            f"one piece of work — a step that was delivered gets an id of its own, and here "
+            f"that is {door}. `ship {task_id}` instead if what landed is the rest of it, and "
+            f"`record amend {task_id} --part \"…\"` if the qualifier stopped being true"
         )
 
 
@@ -1165,12 +1210,21 @@ def _partial(
         # A second partial would state the id twice in the ledger, which `lint` reports as
         # `id.duplicate` and which is the shape RK127 is about. One partial per task and
         # then a completion: `amend` is where a qualifier that has changed is corrected.
-        raise AlreadyRecorded(
-            task_id,
-            config.relative(config.path("changelog")),
-            recorded.lineno,
-            recorded.task.status,
-        )
+        #
+        # Two refusals and not one (RK191): an id whose recorded entry carries a qualifier is
+        # work that came in more halves than the model allows, and the answer there is the id
+        # the next step is filed under — which the shared message, written for an id the
+        # ledger *closed*, has nowhere to put.
+        where = config.relative(config.path("changelog"))
+        if recorded.task.part:
+            raise SecondPartial(
+                task_id,
+                where,
+                recorded.lineno,
+                recorded.task.part,
+                suffix=config.schema.id_suffix,
+            )
+        raise AlreadyRecorded(task_id, where, recorded.lineno, recorded.task.status)
 
     if why is None:
         # A partial states an outcome too — this much of it works — so the half that

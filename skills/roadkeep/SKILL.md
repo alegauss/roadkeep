@@ -51,7 +51,10 @@ the entry describe different work, which is two tasks sharing an id and `renumbe
 with a hedge in the sentence**: `ship <id> --part "<which half>"` records the entry as
 `✅ **<id> (which half)**` and *leaves the line open* at ⏳ with its section intact, and the
 later `ship <id>` completes it — replacing that entry in place and dropping the qualifier,
-which is the only thing that keeps "local half" from outliving the local half. **A pause is none of those three**: `defer <id> --reason "…"` moves
+which is the only thing that keeps "local half" from outliving the local half. A **second**
+`--part` is refused and says why: one id carries one partial and then the completion, so work
+arriving in more halves than that files each delivered step as its own line, and the refusal
+spells the id that line takes under this project's `[ids]`. **A pause is none of those three**: `defer <id> --reason "…"` moves
 the line to the deferred store, keeping the id, the deps, the symptom and the section a
 departure deletes, and `resume <id> [--marker <m>]` is the return direction the ledger has
 none of — the reason wraps the `why` on the way out and is unwrapped on the way back, and the

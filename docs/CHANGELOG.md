@@ -79,6 +79,7 @@
 - ✅ **RK179** **Correcting a wrapped entry's why leaves the rest of the old sentence below the new one** — A correction on a wrapped entry is refused until `--lines` says how many it replaces, and the whole span is then rewritten, so no tail of the old sentence survives and no paragraph goes silently.
 - ✅ **RK180** **A subsection is written at a fixed depth, so in a file whose top level is deeper it is no subsection** — A subsection is written one level under the section it extends, read off that heading rather than fixed at 3, so it stays inside the subtree its anchor names whatever depth the file nests at.
 - ✅ **RK181** **A section refusal names the file by its whole filesystem path, where the gate beside it names it relatively** — Every section refusal names the file through `config.relative`, the caller rendering the address and passing it in as it already passes `claimed`, so one file has one spelling.
+- ✅ **RK191** **The refusal on a second partial names the entry in the way, not the id the step needs** — A second `ship --part` gets its own refusal, naming the id the delivered step is filed under in the spelling this project's `[ids]` declares.
 
 ## Block C — Query
 

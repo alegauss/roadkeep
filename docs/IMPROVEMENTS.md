@@ -77,29 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK191 The refusal that knows the answer and does not give it
-
-`ship --part` refuses a second partial with `AlreadyRecorded`: the id, the marker it
-went through and the line it is on. That message was written for the door it is shared
-with — an id the ledger already closed — where naming the entry in the way is the whole
-answer. Here it is not. A caller reaching this refusal has work that came in more halves
-than the model allows, and is told where the first one is.
-
-The answer exists and is not this tool's guess. Shio hit exactly this and shipped SH361
-as *a step delivered gets an id, not a share of one*: SH366 through SH371 carry the six
-steps of two tasks, each qualifier naming its parent in prose. That is also what this
-tool enforces — one partial per id, then a completion — so the refusal is right and only
-its sentence is incomplete.
-
-So this entry point needs its own: the id already records a half, a second would be two
-answers about one piece of work, and a step is filed as its own line. Where `[ids]
-suffix` is declared, `add --id <id>b` is the spelling and the refusal can say so; where
-it is not, it is an ordinary `add` whose `why` names the parent.
-
-Not a new verb, and no relaxation of the duplicate check: RK133 was retired on the
-measurement that the findings were correct. What is missing is a sentence at the one
-place a caller asks.
-
 ## Block C — Query
 
 ### §RK174 One parser, fifty-two times

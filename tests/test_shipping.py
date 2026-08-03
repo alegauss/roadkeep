@@ -26,6 +26,7 @@ from roadkeep.config import Config
 from roadkeep.document import Document, RoundTripError, StaleFile
 from roadkeep.linting import lint
 from roadkeep.schema import PARTIAL, Schema, SchemaError
+from roadkeep.shipping import SecondPartial
 from roadkeep.sections import SectionOccupied
 from roadkeep.shipping import (
     Divergent,
@@ -102,8 +103,12 @@ def project(
     roadmap: str = BACKLOG,
     changelog: str | None = LEDGER,
     improvements: str | None = RATIONALE,
+    extra_config: str = "",
 ) -> Config:
-    """A throwaway project with the files it declares, and only those."""
+    """A throwaway project with the files it declares, and only those.
+
+    ``extra_config`` follows the `[files]` table, for the tables a test declares whole.
+    """
     declared = {ROADMAP: roadmap, CHANGELOG: changelog, IMPROVEMENTS: improvements}
     lines = ['prefix = "RK"', "[files]"]
     lines += [
@@ -115,7 +120,9 @@ def project(
         )
         if declared[path] is not None
     ]
-    (tmp_path / "roadkeep.toml").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    (tmp_path / "roadkeep.toml").write_text(
+        "\n".join(lines) + "\n" + extra_config, encoding="utf-8"
+    )
     for path, body in declared.items():
         if body is None:
             continue
@@ -807,8 +814,50 @@ def test_a_second_partial_for_one_id_is_refused(tmp_path):
     # RK127 is about. One partial, then a completion.
     config = project(tmp_path)
     ship(config, "RK1", part="local half", why="Because of a reason.").save()
-    with pytest.raises(AlreadyShipped, match="already recorded"):
+    with pytest.raises(SecondPartial, match="already records a half"):
         ship(Config.discover(tmp_path), "RK1", part="the other half", why="Half of it.")
+
+
+def test_the_second_partial_names_the_id_the_next_step_takes(tmp_path):
+    # RK191: the check is right and its sentence was not. `AlreadyRecorded` names the entry
+    # in the way, which is the whole answer at the door it was written for — an id the
+    # ledger closed — and here leaves the caller to invent the id a step is filed under.
+    config = project(tmp_path)
+    ship(config, "RK1", part="local half", why="Because of a reason.").save()
+    with pytest.raises(SecondPartial) as raised:
+        ship(Config.discover(tmp_path), "RK1", part="the other half", why="Half of it.")
+    message = str(raised.value)
+    assert "CHANGELOG.md:5 (local half)" in message  # still where the first half is
+    assert "roadkeep add --block <x>" in message and "names RK1" in message
+    # And the two exits that are not a new line, because both are one word away from here.
+    assert "ship RK1` instead" in message and "record amend RK1 --part" in message
+
+
+def test_the_spelling_it_offers_is_the_one_this_project_declares(tmp_path):
+    # L6: where `[ids] suffix` is declared the step keeps the number and takes a letter,
+    # which is the one id a caller may choose — so the refusal spells it rather than
+    # describing it, and on a project without the declaration it never mentions it.
+    config = project(tmp_path, extra_config="[ids]\nsuffix = true\n")
+    ship(config, "RK1", part="local half", why="Because of a reason.").save()
+    with pytest.raises(SecondPartial) as raised:
+        ship(Config.discover(tmp_path), "RK1", part="the other half", why="Half of it.")
+    assert "roadkeep add --id RK1b" in str(raised.value)
+
+
+def test_an_id_the_ledger_closed_still_gets_the_message_written_for_it(tmp_path):
+    # The other half of the split, on the one state that reaches it with the line still
+    # open: the interrupted transaction RK62 is about — ledger written, roadmap not. A
+    # recorded entry carrying no qualifier is work that already left whole, and there
+    # naming the entry in the way *is* the answer.
+    config = project(
+        tmp_path,
+        changelog=LEDGER.replace(
+            "## Block B",
+            "- ✅ **RK1** **A first symptom** — Because it landed.\n\n## Block B",
+        ),
+    )
+    with pytest.raises(AlreadyShipped, match="already recorded"):
+        ship(config, "RK1", part="a half", why="Half of it.")
 
 
 def test_a_partial_of_a_task_that_is_not_open_is_refused(tmp_path):
