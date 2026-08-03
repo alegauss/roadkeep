@@ -27,7 +27,9 @@ import warnings
 import pytest
 
 import corpora
+from pathlib import Path
 from roadkeep.document import Document
+from roadkeep.history import HistoryUnavailable
 from roadkeep.linting import lint, within
 
 #: The roles a corpus is read for. The prose file has no task line to round-trip, so it is
@@ -159,27 +161,56 @@ def test_a_read_through_the_pinned_config_cannot_reach_the_checkout(corpus):
 
 
 @pytest.mark.parametrize("corpus", corpora.BOTH, ids=lambda c: c.name)
-def test_the_gate_run_through_it_judges_the_revision_and_writes_nothing(corpus):
-    """The call that motivated RK192, now safe by construction rather than by care.
+def test_the_gate_run_at_the_pin_asks_the_repository_the_revision_had(corpus):
+    """The call that motivated RK192, and the root that motivated RK210.
 
-    `lint(corpora.config(...))` is the natural thing to write and was the wrong thing to
-    write. No magnitude is asserted — a foreign backlog's finding count is that project's
-    business — only that the run reads the pinned bytes and leaves the corpus untouched.
+    `lint(corpora.config(...))` is the natural thing to write, and it was wrong twice over:
+    before RK192 it read this afternoon's governed files, and after it read a tree holding
+    four files — so `path.missing`, the one check whose subject is the repository, reported
+    three artefacts absent per corpus that both of them carry.
+
+    `at` moves both ends to the revision at once, which is the only arrangement where no
+    part of the answer is about now. No magnitude is asserted beyond that: a foreign
+    backlog's finding count is that project's business, and what this holds is that none of
+    them is about a file the pinned tree simply was not given.
+    """
+    corpora.require(corpus)
+    report = corpora.gate(corpus)
+    assert report.checked
+    missing = [f for f in report.findings if f.code == "path.missing"]
+    for finding in missing:
+        # Turing's one true finding survives (RK189); what went are the three per corpus
+        # that named artefacts sitting in the checkout the copy does not carry.
+        assert "emit-model-catalog" in finding.message, str(finding)
+    assert len(missing) <= 1
+
+
+@pytest.mark.parametrize("corpus", corpora.BOTH, ids=lambda c: c.name)
+def test_the_copy_is_what_makes_the_repository_check_unanswerable(corpus):
+    """Why `gate` exists rather than a second root on the config.
+
+    Stated as the fact it is, so the next reader does not try the config again: the
+    materialised tree holds the governed files and nothing else, which is exactly what makes
+    a read through it unable to reach the checkout — and exactly what leaves a question
+    about the repository with no repository to ask.
     """
     corpora.require(corpus)
     settings = corpora.config(corpus)
-    before = {
-        role: settings.path(role).read_bytes()
+    held = {path.name for path in settings.root.rglob("*") if path.is_file()}
+    assert held == {"roadkeep.toml"} | {
+        Path(settings.relative(settings.path(role))).name
         for role in settings.paths
         if corpora.has(corpus, role)
     }
-    report = lint(settings)
-    assert report.checked
-    assert {
-        role: settings.path(role).read_bytes()
-        for role in settings.paths
-        if corpora.has(corpus, role)
-    } == before
+
+
+@pytest.mark.parametrize("corpus", corpora.BOTH, ids=lambda c: c.name)
+def test_a_pin_the_repository_forgot_is_refused_rather_than_answered(corpus):
+    """`at` cannot degrade to the working tree, for `baseline`'s reason (RK84): a run that
+    could not read the revision it names would report this afternoon under that name."""
+    corpora.require(corpus)
+    with pytest.raises(HistoryUnavailable):
+        lint(corpora.checkout(corpus), at="0000000000000000000000000000000000000000")
 
 
 @pytest.mark.parametrize("corpus", corpora.BOTH, ids=lambda c: c.name)

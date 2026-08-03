@@ -63,6 +63,7 @@ import pytest
 from roadkeep.config import Config
 from roadkeep.document import Document
 from roadkeep.history import blob_at, git_available, resolves
+from roadkeep.linting import Report, lint
 
 
 @dataclass(frozen=True, slots=True)
@@ -130,6 +131,25 @@ def _materialised(corpus: Corpus) -> Path:
         with target.open("w", encoding="utf-8", newline="") as handle:
             handle.write(found)
     return into
+
+
+def gate(corpus: Corpus) -> Report:
+    """The whole gate over this corpus at its pin — every end of every check (RK210).
+
+    :func:`config` copies the governed files and roots a project at the copy, which is what
+    makes a read through it unable to reach this afternoon. It also makes the copy the tree,
+    and one check does not ask about a file: `path.missing` asks whether the **repository**
+    holds an artefact a shipped entry names, so a run through that config reported six
+    absent that both corpora carry — three per corpus, every one of them false, and each
+    one silent before RK192 only because the root was live.
+
+    A config carries one root and the two ends want different ones, so the answer is not a
+    second root: it is `lint(…, at=rev)`, which moves *both* ends to the revision. The
+    governed files come from the blob and the tree is the checkout as that commit left it,
+    which is the only arrangement where nothing in the report is half about now.
+    """
+    require(corpus)
+    return lint(checkout(corpus), at=corpus.rev)
 
 
 @lru_cache(maxsize=None)

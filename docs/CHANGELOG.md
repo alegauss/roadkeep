@@ -158,6 +158,7 @@
 - ✅ **RK206** **A section other prose cites is deleted by ship, and the gate reads only the pointer a task line carries** — Ship names every section whose prose cited the design it deleted, so the dangling citation is repaired in the commit that creates it.
 - ✅ **RK208** **A block only the ledger declares made every projection raise instead of counting it as finished** — project asked the roadmap census for a label it took from both files, so a block whose work all shipped answered KeyError — found the moment every write started projecting.
 - ✅ **RK209** **section drop deletes prose other sections cite and reports nothing, the door the ship fix did not reach** — section drop names the sections left citing what it deleted, from drop's own answer, so all three doors onto a deletion report the same fact once.
+- ✅ **RK210** **A pinned corpus config reports six artefacts missing from a tree it deliberately does not carry** — A pinned corpus is gated with lint at the revision, which moves the governed files and the tree together, so the three false path findings per corpus are gone.
 
 ## Block E — Adoption
 

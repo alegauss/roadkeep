@@ -28,7 +28,7 @@ from roadkeep.cli import EXIT_GATE, EXIT_OK, main
 from roadkeep.config import Config
 from roadkeep.exporting import BEGIN, END
 from roadkeep.exporting import project as exported
-from roadkeep.history import tracked_at
+from roadkeep.history import HistoryUnavailable, tracked_at
 from roadkeep.linting import Tree, _paths, lint, within
 from roadkeep.picking import take
 

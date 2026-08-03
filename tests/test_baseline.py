@@ -28,7 +28,7 @@ import pytest
 
 from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
-from roadkeep.history import git_available
+from roadkeep.history import HistoryUnavailable, git_available
 from roadkeep.linting import lint
 
 pytestmark = pytest.mark.skipif(not git_available(), reason="git is not on PATH")
@@ -380,3 +380,39 @@ def test_without_the_flag_nothing_is_compared(tmp_path, capsys):
     repo(tmp_path)
     assert main(["-C", str(tmp_path), "lint", "--json"]) == EXIT_GATE
     assert "baseline" not in json.loads(capsys.readouterr().out)
+# -- the whole gate over a revision (RK210) -----------------------------------
+
+
+def test_at_a_revision_moves_both_ends_of_every_check(tmp_path):
+    """`baseline` already ran the gate over a revision to subtract it; `at` is that read
+    given a name, so a caller can make it alone.
+
+    The property that matters is that it moves *both* ends: the governed files come from
+    the blob and the tree the path check asks about is the checkout as that commit left it.
+    A run that pinned one and not the other is the shape RK192 removed from the corpus
+    fixture and RK210 found the other half of.
+    """
+    config = repo(tmp_path, files={"src/kept.py": "x = 1\n"})
+    write(tmp_path, "CHANGELOG.md", LEDGER.replace(
+        "Because it was done.", "Because it was done, in `src/kept.py`."
+    ))
+    git(tmp_path, "add", "-A")
+    git(tmp_path, "commit", "--quiet", "-m", "docs: name the file")
+
+    # Now both ends move: the artefact goes and the ledger stops naming it.
+    (tmp_path / "src" / "kept.py").unlink()
+    write(tmp_path, "CHANGELOG.md", LEDGER)
+    assert "path.missing" not in codes(lint(config))
+    # At the revision, the ledger names it and the tree had it — so still nothing.
+    assert "path.missing" not in codes(lint(config, at="HEAD"))
+    # And the working tree read against the revision's ledger is the finding, which is what
+    # says the two ends really did move together rather than one of them.
+    assert codes(lint(config, baseline="HEAD")) == []
+
+
+def test_a_revision_the_repository_does_not_know_is_refused(tmp_path):
+    # `baseline`'s reason (RK84), applied to the same read: a run that could not open the
+    # revision it names would answer about this afternoon under that name.
+    config = repo(tmp_path)
+    with pytest.raises(HistoryUnavailable):
+        lint(config, at="not-a-revision")

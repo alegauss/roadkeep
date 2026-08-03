@@ -287,27 +287,6 @@ and may not need a second.
 
 ## Block D — The gate
 
-### §RK210 The cost of the root that cannot reach the tree
-
-RK192 was right that a config handed out for a pinned corpus must not reach the
-checkout: `document` and `lint` were ordinary calls that read this afternoon's bytes,
-and the answer looked like a result. What it did not price is the one check whose
-subject is **outside** the governed files.
-
-`path.missing` asks whether the repository holds an artefact a shipped entry names, and
-it asks the tree. Through the pinned config the tree is a temporary directory holding
-the governed files and nothing else, so `lint` reports six artefacts absent that both
-corpora carry: `../package.json` and two `../agents.md` in Shio, `./package.json` and
-two `docs/` files in Turing. Every one is false, and each was silent before because the
-root was live — which is to say the leak was also what made this check answer.
-
-Three shapes, and the measurement is which. The materialised root could be a git
-repository with the pinned tree's file *names* committed, which makes `Tree` answer
-without carrying anyone's content. The projection could take the checkout for path
-resolution alone, which is two roots in one config and needs saying out loud. Or the
-corpus config could declare the check off, which is honest and loses the only assertion
-this repository makes about that check on a real ledger.
-
 ### §RK211 A refresh whose price is assumed
 
 RK188 is right that the write which stales the block is the write that owes it, and the

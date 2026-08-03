@@ -362,9 +362,21 @@ class Report:
 
 
 def lint(
-    config: Config, since: str | None = None, baseline: str | None = None
+    config: Config,
+    since: str | None = None,
+    baseline: str | None = None,
+    at: str | None = None,
 ) -> Report:
     """Read every governed file and return every defect. Writes nothing, ever.
+
+    ``at`` runs the whole gate over a **revision** instead of the working tree (RK210) —
+    the read ``baseline`` already makes, given a name so a caller can make it alone. Both
+    ends move together, which is the point: the governed files come from the revision *and*
+    so does the repository the path check asks about, so nothing in the answer is half about
+    this afternoon. Library-only, with no flag beside it: `--baseline` is the question a
+    person asks at a terminal, and "what did the gate say at a revision" has one caller —
+    the pinned-corpus fixture, whose whole difficulty was that a config can carry one root
+    and a pinned run needs the governed files copied and the tree left where git can read it.
 
     ``since`` adds the one check that is about a *change* rather than a state (RK36): a
     revision to diff the governed files against, `HEAD` in a pre-commit hook and the base
@@ -376,7 +388,9 @@ def lint(
     compose, and the baseline run makes no ``since`` comparison of its own: a note about a
     section edited since a ref is about this working tree either way.
     """
-    report = _examine(config, since=since, tree=Tree(config))
+    if at is not None and not resolves(config, at):
+        raise HistoryUnavailable(f"{at} is not a revision this repository knows")
+    report = _examine(config, since=since, tree=Tree(config, at))
     if baseline is None:
         return report
     if not resolves(config, baseline):
