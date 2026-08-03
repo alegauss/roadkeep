@@ -202,6 +202,28 @@ stop guessing at — and the roadmap needs none of it, `add` refusing a line tha
 
 ## Block C — Query
 
+### §RK158 The third way to start work
+
+RK119 put the claim where the *choice* is made, and RK149 extended it to the door a
+session starts a task with. There is a third: moving the marker. `status <id> 🛠` is a
+legitimate way to say "I am on this" — it is the marker the open set exists to express —
+and it takes no claim, so the very next `pick` reads the line as work somebody abandoned
+and offers it with tier 1's own reason.
+
+The asymmetry is worse than a gap, because the two mechanisms disagree about the same
+file. A claim is *read* against 🛠 and every marker door away from 🛠 releases one, so the
+marker is already the thing a claim is about; the door that writes exactly that marker
+is the one door that does not date it.
+
+The likely answer is that `set_status` records a claim when the marker it writes is the
+in-progress one, and releases one when it writes any other — which is what the read
+already assumes and would make the release explicit rather than implicit. What needs
+deciding is whether that makes `status` a write an agent should be told claims, since a
+marker change is not obviously an assertion of ownership to whoever types it.
+
+`resume --marker 🛠` is the same question one door over, and it has the extra wrinkle
+that the line was just released by the `defer` that put it in the store (RK156).
+
 ## Block D — The gate
 
 ### §RK104 The block the gate does not read

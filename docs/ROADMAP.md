@@ -34,6 +34,8 @@
 
 ## Block C — Query (consult without reading the file)
 
+- 📋 **RK158** (deps: —) **Marking a line in progress by hand asserts nothing, so the next caller is sent at it** — Two of the three ways to start work take a claim and `status` does not, so a line a worker moved to in-progress is read as half-done work nobody holds — which is the tier that offers it first. → §RK158
+
 ## Block D — The gate
 
 - 📋 **RK104** (deps: —) **Nothing gates the README block this tool writes, so a stale restatement passes lint** — `export --readme` is the one write no gate holds: a pytest fixture catches it here and an adopting project has none, so the derived table drifts from the files it was derived from. → §RK104
