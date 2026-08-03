@@ -30,6 +30,7 @@
 - 📋 **RK143** (deps: —) **A ledger entry filed under the wrong block can be corrected by no verb at all** — record amend leaves the block out because filing an entry elsewhere is a move, and record drop refuses unless the id is stated twice, so the only route left is the hand-edit the hook denies. → §RK143
 - 📋 **RK144** (deps: —) **Declaring a block writes three files and nothing takes the heading back out** — block add is the only verb that writes a heading, so a label opened by mistake or emptied by a retirement leaves a heading in every governed file that only a hand-edit removes. → §RK144
 - 📋 **RK145** (deps: —) **A block can only be opened last, and where it sits is what every ordered answer reads** — block add places the heading after the last block's subtree, so a phase belonging between two existing ones can only be appended — and the order a list reports is the headings' own. → §RK145
+- 📋 **RK157** (deps: —) **A new ledger entry lands between the last entry and its own wrapped lines** — `Entry` carries a lineno and no span, so `place` inserts at the last entry's line plus one and the block's final entry's continuation lines are re-attributed to whatever ships next. → §RK157
 
 ## Block C — Query (consult without reading the file)
 
