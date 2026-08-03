@@ -151,6 +151,7 @@
 - ✅ **RK172** **A pointer resolving to a section in the strategy file is reported as resolving to nothing** — A pointer resolves against every governed prose file and each is orphaned and budgeted by the same rules; an anchor two of them declare is `ref.ambiguous` and is read as neither.
 - ✅ **RK173** **A path a ledger entry names relative to its own module is reported as not in the repository** — A path is satisfied by any tail of a tracked file, so an entry relative to the module it is about resolves, and a `#L35` anchor is stripped before the file is looked for.
 - ✅ **RK182** **The round-trip corpus reads two foreign roadmaps and no foreign ledger, where the wrapped shape lives** — Both pinned ledgers join the round-trip corpus, and a test asserts they still carry the 149 wrapped entries the property is read for, so the widening cannot go vacuous.
+- ✅ **RK188** **Every write stales the derived README block, so the gate fails until somebody remembers `export`** — Every governed write re-derives the README's block inside its own transaction, so the gate no longer fails on a file the task did not touch.
 
 ## Block E — Adoption
 

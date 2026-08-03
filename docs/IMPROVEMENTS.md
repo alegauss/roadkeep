@@ -218,30 +218,6 @@ and may not need a second.
 
 ## Block D — The gate
 
-### §RK188 A gate held against a file no verb maintains
-
-RK104 was right that a README restating the backlog has to be held by the gate that
-reads the files it came from: a projection nothing checks is a second source of truth
-with a grace period. What it left is that **nothing writes it except a human remembering
-to**.
-
-Measured over one block. Every one of ten tasks went the same way: `claim` moved a
-marker from 📋 to 🛠, the block carries markers, and `lint` reported `export.stale` on
-`README.md`. Ten more after each `ship`. Every run of this repository's own conformance
-test failed on it, on a file the task did not touch, and the fix was the same command
-twenty times. A finding that appears after every write and is cleared by one command no
-write runs is not a gate — it is a chore with an exit code.
-
-The projection is derived, wholly, from files the verb already holds open. So the verb
-is where it belongs: a write that changes what the block would render refreshes it in
-the same transaction, which is what makes it derived in the sense the annotation and the
-pointer are. The alternative — leaving it to `--fix`, which repairs only what is derived
-— is defensible and weaker, because the gate still fails first and the author still runs
-a second command.
-
-Whichever, RK187 is the write this goes through, and its all-or-nothing rule is what
-stops a refresh from half-writing a transaction.
-
 ### §RK189 A widening whose cost is an argument, not a number
 
 RK173 was measured going in: six of Turing's eight `path.missing` findings named

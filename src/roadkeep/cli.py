@@ -33,7 +33,6 @@ pays for every dependency, and the whole command surface is argument parsing.
 from __future__ import annotations
 
 import argparse
-import functools
 import json
 import sys
 import tempfile
@@ -59,11 +58,10 @@ from roadkeep.document import (
     Reject,
     RoundTripError,
     StaleFile,
-    Write,
     write_all,
     write_atomically,
 )
-from roadkeep.exporting import DEFAULTS, Projection, project, splice
+from roadkeep.exporting import DEFAULTS, Projection, project, splice_into
 from roadkeep.fixing import Fix, fix
 from roadkeep.graph import Graph, Leverage
 from roadkeep.deferring import defer, resume
@@ -3561,17 +3559,17 @@ def _export(config: Config, args: argparse.Namespace) -> int:
     # Both destinations in one run: a README and a page that restate the same backlog have
     # to be refreshed by the same call, or the one nobody remembered is the stale one —
     # which is the whole symptom RK39 names, and it named the site too.
-    targets = [
-        (args.readme, "markdown"),
-        (args.site, "html"),
+    chosen = [
+        (flag, name)
+        for flag, name in (("readme", args.readme), ("site", args.site))
+        if name is not None
     ]
-    chosen = [(name, shape) for name, shape in targets if name is not None]
     try:
         projection = project(config)
         if not chosen:
             print(projection.json() if args.json else projection.markdown())
             return EXIT_OK
-        planned = [_splice_into(config, projection, name, shape) for name, shape in chosen]
+        planned = [splice_into(config, projection, flag, name) for flag, name in chosen]
         # Both targets or neither (RK187, RK6): the splice is planned per file and the
         # writes are made together, so a README refreshed beside a site refused is a state
         # the command cannot leave — and the re-run it advises meets a whole tree.
@@ -3582,42 +3580,6 @@ def _export(config: Config, args: argparse.Namespace) -> int:
     for _, line in planned:
         print(line)
     return EXIT_OK
-
-
-def _splice_into(
-    config: Config, projection: Projection, name: str, shape: str
-) -> tuple[Write | None, str]:
-    """Plan one file's marked block: the write to make, and which of two things happened."""
-    target = config.root / name
-    with target.open("r", encoding="utf-8", newline="") as handle:
-        before = handle.read()
-    after = splice(before, projection.body(shape), config.relative(target))
-    where = config.relative(target)
-    if after == before:
-        # The point of idempotence, said out loud: nothing changed, so nothing is written
-        # and the file's mtime does not move either.
-        return None, f"{where} is already current"
-    return (
-        Write(target, after, functools.partial(_assert_unmoved, target, before)),
-        f"{where} refreshed between the roadkeep markers",
-    )
-
-
-def _assert_unmoved(target: Path, before: str) -> None:
-    """The question `Document.save` asks (RK116), on the one file with no document (RK132).
-
-    Every governed write goes through `save` and is refused if the target stopped being the
-    file that was read. This one splices text into a README, which this tool does not own
-    and would be claiming a format it does not have by parsing — so the check is the same
-    question asked by hand: the bytes that were read, compared before the rename. A README
-    is the file most likely to be open in an editor while a command runs, which is exactly
-    the writer a lock does not order, and `--site` is the same splice on a second file.
-    """
-    if not target.is_file():
-        raise StaleFile(target, missing=True)
-    with target.open("r", encoding="utf-8", newline="") as handle:
-        if handle.read() != before:
-            raise StaleFile(target)
 
 
 def _gaps(config: Config, args: argparse.Namespace) -> int:

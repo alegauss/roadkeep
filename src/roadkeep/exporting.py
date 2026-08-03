@@ -22,6 +22,11 @@ The README block is replaced **between two markers the author put there**. A mis
 is refused with the two lines to paste, on the same reasoning as an undeclared block (RK37):
 a write that invents its own container puts text where nothing looks for it.
 
+A projection nothing writes is a chore with an exit code, so :func:`refreshes` is what every
+governed write carries: the block is derived from the documents the transaction already
+holds, inside the same `write_all` (RK188, RK187). `export` stays the command, for the tree
+somebody hand-edited and for the first block a project ever renders.
+
 Idempotence is what the gate over the block is made of (RK104), so it is a property to hold
 rather than a claim to make, and two things here hold it. :func:`project` takes the governed
 files as **documents** where it is asked to, which is how the same block can be derived at a
@@ -33,15 +38,17 @@ those bytes would be red for a reason nobody could look up.
 
 from __future__ import annotations
 
+import functools
 import json
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from html import escape
+from pathlib import Path
 
 from roadkeep.backlog import Backlog
 from roadkeep.config import Config
 from roadkeep.counting import Census
-from roadkeep.document import Document, Entry
+from roadkeep.document import Document, Entry, StaleFile, Write
 from roadkeep.picking import pick
 
 #: The container, as a comment so it renders as nothing in either file it lives in — the
@@ -254,7 +261,11 @@ def project(
         Row(
             label=label,
             title=titles.get(label, f"Block {label}"),
-            open=len(roadmap.select(block=label).counted),
+            # A label the ledger declares and the roadmap does not is a block whose work
+            # is all shipped: zero open, not a refusal. `select` is right to refuse an
+            # undeclared block when a caller *asked* for one (RK28); here the label came
+            # from the files themselves, so the question is answered rather than rejected.
+            open=len(roadmap.select(block=label).counted) if label in roadmap.blocks else 0,
             shipped=_count(ledger, label, shipped_marker),
             retired=_count(ledger, label, retired_marker),
         )
@@ -285,6 +296,97 @@ def project(
             e.task.status == retired_marker for e in (ledger.counted if ledger else ())
         ),
     )
+
+
+def refreshes(config: Config, held: Sequence[Document]) -> tuple[Write, ...]:
+    """The projection writes a transaction owes for the files it is about to replace (RK188).
+
+    Called with the *edited* documents, before any of them lands, so the block is derived
+    from the state the transaction is creating and not from the one on disk — which is what
+    makes this a refresh rather than a second pass. Roles the transaction does not hold are
+    read from disk, because a projection counts three files and a `ship` writes at most two
+    of them.
+
+    Returns nothing where nothing changed, so an idempotent write stays idempotent: a
+    `section amend` moves no count and no next-ready line, and the README's mtime should
+    say so. The staleness question is asked here rather than in the caller for the reason
+    :data:`DEFAULTS` exists — the gate reads exactly what the write produces, and a second
+    place deciding "is it current" is a second answer to have wrong.
+    """
+    documents = dict(_from_disk(config))
+    for document in held:
+        role = _role_of(config, document.path)
+        if role is not None:
+            documents[role] = document
+    if "roadmap" not in documents:
+        return ()
+    projection = project(config, documents)
+    writes: list[Write] = []
+    for flag in DEFAULTS:
+        write, _ = splice_into(config, projection, flag)
+        if write is not None:
+            writes.append(write)
+    return tuple(writes)
+
+
+def _role_of(config: Config, path: Path | None) -> str | None:
+    """Which counted role a file about to be written is, or None for one nothing projects."""
+    if path is None:
+        return None
+    for role in COUNTED_ROLES:
+        if config.has(role) and config.path(role) == path:
+            return role
+    return None
+
+
+def splice_into(
+    config: Config, projection: Projection, flag: str, name: str | None = None
+) -> tuple[Write | None, str]:
+    """Plan one target's marked block: the write to make, and which of two things happened.
+
+    One planner for the command and for the refresh a governed write carries (RK188), so
+    `export --readme` and a `ship` put the same bytes in the same place. ``name`` is the
+    path the flag was given on the command line; without one the target is where
+    :data:`DEFAULTS` says that flag writes, and a file that is not there is not a target —
+    an adopting project has a README long before it has a block in one.
+    """
+    target = config.root / (name if name is not None else DEFAULTS[flag][0])
+    where = config.relative(target)
+    if name is None and not target.is_file():
+        return None, f"{where} is not there"
+    with target.open("r", encoding="utf-8", newline="") as handle:
+        before = handle.read()
+    if name is None and BEGIN not in before:
+        # The markers are the declaration (RK37), the same reading the gate makes: a file
+        # carrying none is not a target, so a refresh never opens a container an author
+        # did not ask for. Named on the command line, the missing marker is still refused.
+        return None, f"{where} carries no projection"
+    after = splice(before, projection.body(DEFAULTS[flag][1]), where)
+    if after == before:
+        # The point of idempotence, said out loud: nothing changed, so nothing is written
+        # and the file's mtime does not move either.
+        return None, f"{where} is already current"
+    return (
+        Write(target, after, functools.partial(_assert_unmoved, target, before)),
+        f"{where} refreshed between the roadkeep markers",
+    )
+
+
+def _assert_unmoved(target: Path, before: str) -> None:
+    """The question `Document.save` asks (RK116), on the one file with no document (RK132).
+
+    Every governed write goes through `save` and is refused if the target stopped being the
+    file that was read. This one splices text into a README, which this tool does not own
+    and would be claiming a format it does not have by parsing — so the check is the same
+    question asked by hand: the bytes that were read, compared before the rename. A README
+    is the file most likely to be open in an editor while a command runs, which is exactly
+    the writer a lock does not order, and `--site` is the same splice on a second file.
+    """
+    if not target.is_file():
+        raise StaleFile(target, missing=True)
+    with target.open("r", encoding="utf-8", newline="") as handle:
+        if handle.read() != before:
+            raise StaleFile(target)
 
 
 def splice(text: str, body: str, where: str) -> str:

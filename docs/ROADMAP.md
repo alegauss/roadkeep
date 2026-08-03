@@ -37,7 +37,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK188** (deps: —) **Every write stales the derived README block, so the gate fails until somebody remembers `export`** — RK104 made `lint` hold the block and no verb refreshes it, so ten consecutive claims and ships each left this repository failing its own gate on a file no task touched. → §RK188
 - 💭 **RK189** (deps: —) **A path claim is satisfied by a file of that name anywhere in the tree, and the floor was never measured** — RK173 indexes every tail of every tracked path, so a one-segment token resolves against any file sharing its name, and what that silences was argued rather than counted. → §RK189
 - 📋 **RK192** (deps: —) **A pinned corpus hands out a config whose file reads go to the live tree instead** — RK105 pinned every corpus assertion and `corpora.config` still roots at the checkout, so a read through it takes today's bytes while the helper beside it takes the revision. → §RK192
 - 💭 **RK203** (deps: —) **The layout index grows with the package and the budget holding it cannot tell it from prose** — agents.md sits at 125 of 125 lines, so naming two modules this block added took compressing two unrelated entries — a budget written against rationale creep spent on a fact about the tree. → §RK203

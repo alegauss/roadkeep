@@ -46,8 +46,12 @@ import time
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, replace
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from roadkeep.schema import ARROW, EM_DASH, ID_SHAPE, NO_DEPS, Dep, Schema, Task
+
+if TYPE_CHECKING:  # a name for the annotation only: `config` reads this module, not back
+    from roadkeep.config import Config
 
 #: Everything after the marker slot, up to the symptom. `deps` is optional because the
 #: ledger has none; the trailing pointer is stripped before this runs (see `_split_ref`).
@@ -276,6 +280,11 @@ class Document:
     #: when this document was *read*, not what it holds now — and None for a document
     #: parsed from a string, which has no disk state to have moved.
     source: str | None = None
+    #: The project this file was read for, set by :meth:`config.Config.document` and by
+    #: nothing else — what a transaction needs to re-derive the projections its own write
+    #: stales (RK188). None for a document parsed from a string or loaded by path alone:
+    #: there is no project to project, and a save then writes exactly one file.
+    config: Config | None = None
 
     # -- reading -----------------------------------------------------------
 
@@ -537,6 +546,12 @@ class Document:
         target = Path(path) if path is not None else self.path
         if target is None:
             raise ValueError("no path to save to")
+        if target == self.path:
+            # The one-document transaction, and not a shorter path around one: a write that
+            # stales a derived block owes the refresh whether it touched one file or three
+            # (RK188), and `save_all` is where that is stated once.
+            save_all(self)
+            return target
         self.ensure_writable()
         # Both halves of "may this file be rewritten": one the tool understood, and one
         # nobody else has touched since (RK116). Re-read and not stat'd — a modification
@@ -550,8 +565,9 @@ class Document:
         # document that reports stale ones is worse than one that costs a reparse.
         parsed = Document.parse("".join(lines), schema=self.schema, path=self.path)
         # `source` survives the edit: it is what the file held when it was *read*, and an
-        # edited document is exactly the one that needs to know that (RK116).
-        return replace(parsed, path=self.path, source=self.source)
+        # edited document is exactly the one that needs to know that (RK116). So does
+        # `config`, for the same reason — an edited document is the one about to be saved.
+        return replace(parsed, path=self.path, source=self.source, config=self.config)
 
 
 def write_atomically(target: Path, text: str) -> None:
@@ -671,8 +687,9 @@ def write_all(*writes: Write) -> tuple[Path, ...]:
 
 
 def save_all(*documents: Document | None) -> tuple[Path, ...]:
-    """:func:`write_all` for the files this tool parsed. A None is skipped, because a
-    transaction's optional file is absent and not stale.
+    """:func:`write_all` for the files this tool parsed, plus what they derive (RK188).
+
+    A None is skipped, because a transaction's optional file is absent and not stale.
     """
     writes: list[Write] = []
     for document in documents:
@@ -685,7 +702,35 @@ def save_all(*documents: Document | None) -> tuple[Path, ...]:
         # the whole transaction, not for the file it happened to be discovered on (L3).
         document.ensure_writable()
         writes.append(Write(target, document.render(), document.assert_current))
-    return write_all(*writes)
+    # Derived last, so the rename order leaves the recoverable halfway state: a crash after
+    # the governed files land is a block `lint` names and one command repairs, where the
+    # reverse would be a README stating counts no file holds.
+    return write_all(*writes, *_projected(documents))
+
+
+def _projected(documents: Sequence[Document | None]) -> tuple[Write, ...]:
+    """The derived blocks this transaction stales, refreshed *inside* it (RK188).
+
+    Every governed write changes what a README or a landing page would render, and RK104
+    put the gate over that block without giving any verb the job of writing it — so ten
+    claims and ten ships each left this repository failing its own conformance run on a
+    file the task never touched. The block is derived wholly from documents this call
+    already holds, which makes it the same kind of thing as a dep annotation or a pointer:
+    the write that invalidates it is the write that owes it.
+
+    Imported inside the function because the dependency runs the other way — a projection
+    reads documents, so `exporting` imports this module and a module-level import here
+    would be a cycle. It belongs here anyway: this is where a transaction is assembled,
+    and a refresh planned anywhere else would land outside `write_all`'s all-or-nothing
+    rule (RK187), which is the one thing that keeps a half-refreshed pair impossible.
+    """
+    held = [document for document in documents if document is not None]
+    config = next((document.config for document in held if document.config), None)
+    if config is None:
+        return ()
+    from roadkeep.exporting import refreshes
+
+    return refreshes(config, held)
 
 
 def _spanned(entries: list[Entry], loose: set[int]) -> tuple[Entry, ...]:

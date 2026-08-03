@@ -353,8 +353,15 @@ class Config:
         return replace(schema, **own) if own else schema
 
     def document(self, role: str) -> Document:
-        """Load a governed file under the right schema — the one seam every command uses."""
-        return Document.load(self.path(role), self.schema_for(role))
+        """Load a governed file under the right schema — the one seam every command uses.
+
+        The project travels with the file, which is what lets a save re-derive the blocks
+        projected from it (RK188): a document that arrived any other way has no project and
+        writes exactly itself.
+        """
+        return replace(
+            Document.load(self.path(role), self.schema_for(role)), config=self
+        )
 
     def relative(self, path: Path) -> str:
         """A path as the project spells it — output has to be machine-independent."""

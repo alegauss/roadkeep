@@ -20,11 +20,12 @@ from pathlib import Path
 
 import pytest
 
-from roadkeep import cli, document
+from roadkeep import cli, document, exporting
 from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.document import Document
 from roadkeep.exporting import BEGIN, END, NoMarkers, project, splice
+from roadkeep.linting import lint
 from roadkeep.picking import take
 from roadkeep.schema import DESIGNED, IN_PROGRESS, RETIRED, SHIPPED
 from roadkeep.shipping import retire
@@ -209,13 +210,13 @@ def test_a_readme_that_moved_between_the_read_and_the_write_is_refused(
     project_files(tmp_path)
     readme = tmp_path / "README.md"
     theirs = readme.read_text(encoding="utf-8") + "\nA paragraph somebody else wrote.\n"
-    spliced = cli.splice
+    spliced = exporting.splice
 
     def landing(text, body, where):
         readme.write_text(theirs, encoding="utf-8")
         return spliced(text, body, where)
 
-    monkeypatch.setattr(cli, "splice", landing)
+    monkeypatch.setattr(exporting, "splice", landing)
     assert main(["-C", str(tmp_path), "export", "--readme"]) == EXIT_GATE
     assert "changed since it was read" in capsys.readouterr().err
     assert readme.read_text(encoding="utf-8") == theirs  # their paragraph is still there
@@ -436,3 +437,83 @@ def test_a_page_with_no_markers_is_refused_with_the_lines_to_paste(tmp_path, cap
     (tmp_path / "index.html").write_text("<html></html>\n", encoding="utf-8")
     assert main(["-C", str(tmp_path), "export", "--site", "index.html"]) == EXIT_USAGE
     assert BEGIN in capsys.readouterr().err
+
+
+# -- the write that stales the block is the write that owes it (RK188) --------
+
+
+def test_a_status_change_refreshes_the_block_without_a_second_command(tmp_path, capsys):
+    """The symptom: RK104 gated the block and gave no verb the job of writing it, so ten
+    claims and ten ships each left this repository failing its own conformance run on a
+    file the task never touched. Every character of the block is derived from files the
+    write already holds open, which makes it the same kind of thing as a dep annotation."""
+    project_files(tmp_path)
+    assert main(["-C", str(tmp_path), "export", "--readme"]) == EXIT_OK
+    capsys.readouterr()
+
+    assert main(["-C", str(tmp_path), "status", "RK1", IN_PROGRESS]) == EXIT_OK
+    readme = (tmp_path / "README.md").read_text(encoding="utf-8")
+    assert f"{IN_PROGRESS} **RK1**" in readme  # the next-ready line moved with the marker
+    assert "export.stale" not in [f.code for f in lint(Config.discover(tmp_path)).findings]
+
+
+def test_the_refresh_reads_the_state_the_write_is_creating(tmp_path):
+    """Derived from the edited documents and not from what is on disk: a projection taken
+    before the rename would restate the backlog the command is replacing, which is the one
+    thing worse than a stale block — a fresh one that is wrong."""
+    config = project_files(tmp_path)
+    assert main(["-C", str(tmp_path), "export", "--readme"]) == EXIT_OK
+    assert "| **Total** | 2 | 1 |" in (tmp_path / "README.md").read_text(encoding="utf-8")
+
+    assert main(["-C", str(tmp_path), "ship", "RK1", "--why", "It works now."]) == EXIT_OK
+    assert "| **Total** | 1 | 2 |" in (tmp_path / "README.md").read_text(encoding="utf-8")
+    assert "export.stale" not in [f.code for f in lint(config).findings]
+
+
+def test_a_write_that_moves_no_count_writes_no_readme(tmp_path):
+    """Idempotence survives being called on every write: a command that changes nothing the
+    block states leaves the file's bytes and its mtime alone, so the diff a refresh produces
+    still means something."""
+    project_files(tmp_path)
+    assert main(["-C", str(tmp_path), "export", "--readme"]) == EXIT_OK
+    readme = tmp_path / "README.md"
+    stamp = readme.stat().st_mtime_ns
+
+    assert main(["-C", str(tmp_path), "amend", "RK4", "--why", "Because of a third."]) == EXIT_OK
+    assert readme.stat().st_mtime_ns == stamp
+
+
+def test_a_readme_that_moved_under_a_ship_refuses_the_whole_transaction(tmp_path, capsys):
+    """The refresh is *inside* the transaction (RK187), not a step after it: the README is
+    the file most likely to be open in an editor while a command runs, and a governed write
+    that landed beside a refused refresh would be the half-applied state write_all exists
+    to prevent — the roadmap saying shipped and the block still counting it open."""
+    project_files(tmp_path)
+    assert main(["-C", str(tmp_path), "export", "--readme"]) == EXIT_OK
+    capsys.readouterr()
+    readme = tmp_path / "README.md"
+    roadmap_before = (tmp_path / "ROADMAP.md").read_text(encoding="utf-8")
+
+    real = document.stage
+
+    def racing(target: Path, text: str) -> Path:
+        staged = real(target, text)
+        if target.name == "ROADMAP.md":
+            with readme.open("a", encoding="utf-8", newline="") as handle:
+                handle.write("A paragraph somebody else wrote.\n")
+        return staged
+
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr("roadkeep.document.stage", racing)
+        assert main(["-C", str(tmp_path), "ship", "RK1", "--why", "It works now."]) == EXIT_GATE
+    assert (tmp_path / "ROADMAP.md").read_text(encoding="utf-8") == roadmap_before
+    assert "somebody else wrote" in readme.read_text(encoding="utf-8")
+
+
+def test_a_readme_carrying_no_markers_is_not_a_target_of_a_write_either(tmp_path):
+    """The markers are the declaration (RK37), the same reading the gate makes: a project
+    that never asked for a projection does not get one opened by a `ship`."""
+    project_files(tmp_path, readme="# A project\n\nNo projection here.\n")
+    before = (tmp_path / "README.md").read_bytes()
+    assert main(["-C", str(tmp_path), "ship", "RK1", "--why", "It works now."]) == EXIT_OK
+    assert (tmp_path / "README.md").read_bytes() == before
