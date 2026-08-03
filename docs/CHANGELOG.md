@@ -65,6 +65,7 @@
 - ✅ **RK141** **Opening a block needs a heading only a hand-edit can write, and the guard denies that edit** — `block add <label> --title` declares the heading in every file already organised by blocks, at that file's own level and separator, after the last block's subtree.
 - ✅ **RK142** **The ledger inherits the roadmap's problem statement by default, and no verb can revise it** — `ship` refuses at input where it would write an entry without an outcome, so the ledger's sentence is the author's rather than the roadmap's problem statement inherited by omission.
 - ✅ **RK143** **A ledger entry filed under the wrong block can be corrected by no verb at all** — `record move <id> --to-block <x>` re-files a ledger entry under another heading, reporting both positions and refusing one no heading declares.
+- ✅ **RK144** **Declaring a block writes three files and nothing takes the heading back out** — `block drop <label>` withdraws the heading from every file where its subtree is blank, and names what is filed under it where anything is.
 
 ## Block C — Query
 

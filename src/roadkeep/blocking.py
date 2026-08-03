@@ -30,6 +30,22 @@ Everything else is derived, and derived **per file** rather than decided here:
 All of the files or none of them. A block declared in the roadmap and not the ledger is a
 project where `add` works and `ship` fails on the same label, which is the deadlock again
 with one more step in it.
+
+**And the key that could not close the door** (RK144). This verb was the only one that writes a
+heading, and nothing took one back out — so a label typed wrongly, or a block whose every line
+has left, was three headings only the edit the guard denies could remove: RK138's asymmetry one
+surface over. :func:`drop_block` is the inverse, and it is narrow in the one way that matters:
+**a heading over work is not an empty heading.** It removes a heading only where its whole
+subtree is blank, and where anything is filed under the label it refuses by name — the
+roadmap's open lines, the store's paused ones, the rationale file's sections — because
+deleting the heading would orphan every one of them.
+
+The **ledger is the exception, and not an inconsistency**: history is filed under its headings
+for ever, so entries there are never something to refuse over and never something to remove.
+That file is left alone and said so, which is also what keeps the removal from re-opening the
+deadlock — the only asymmetry it can leave is a ledger declaring a label the roadmap does not,
+where nothing plans and history still reads. The reverse, which would make `add` work and
+`ship` fail, is exactly what refusing over open lines prevents.
 """
 
 from __future__ import annotations
@@ -40,7 +56,17 @@ from dataclasses import dataclass, field
 from roadkeep.config import Config
 from roadkeep.document import Document, Heading, assert_all_current, blank
 
-__all__ = ["BlockExists", "NotALabel", "Opened", "open_block"]
+__all__ = [
+    "BlockExists",
+    "BlockOccupied",
+    "Closed",
+    "NoSuchBlock",
+    "NotALabel",
+    "NothingToDrop",
+    "Opened",
+    "drop_block",
+    "open_block",
+]
 
 #: The governed files a block heading can belong in, in the order the answer reports them.
 #: A role is only written when its file already declares one — see the module docstring.
@@ -81,6 +107,214 @@ class BlockExists(ValueError):
         super().__init__(
             f"{label} is already declared in {', '.join(self.where)}: nothing to open"
         )
+
+
+class NoSuchBlock(KeyError):
+    """A label no governed file declares, at the door that removes a declaration (RK144).
+
+    Distinct from :class:`~roadkeep.document.UnknownBlock`, which every *write* raises and
+    whose sentence is about a heading a write may not invent. Here nothing was going to be
+    written, and what the caller needs is the list — a label that is merely spelled
+    differently from the file's is the commonest reason this door is reached at all.
+    """
+
+    def __init__(self, label: str, declared: Sequence[str], word: str = "Block") -> None:
+        self.label = label
+        self.declared = tuple(declared)
+        known = ", ".join(self.declared) or "none"
+        super().__init__(
+            f"no governed file declares {word} {label} (declares: {known}): there is no "
+            f"heading to remove"
+        )
+
+
+class BlockOccupied(ValueError):
+    """A heading with something filed under it, which is not an empty heading (RK144).
+
+    The whole safety of the door, and the reason it is worth having at all: removing this
+    heading would leave every line beneath it filed under the block above, silently and in a
+    way that round-trips. So the occupants are **named** rather than counted — an author who
+    typed the wrong label needs to see immediately that they are looking at somebody else's
+    work, and a count cannot show that.
+
+    Never raised for the ledger: entries there are history filed under a heading that stays
+    for ever, so that file is skipped and reported instead.
+    """
+
+    def __init__(self, label: str, where: str, named: Sequence[str], word: str = "Block") -> None:
+        self.label = label
+        self.where = where
+        self.named = tuple(named)
+        holds = ", ".join(self.named)
+        super().__init__(
+            f"{where} files {holds} under {word} {label}: a heading over work is not an "
+            f"empty heading, and removing it would file all of it under the block above"
+        )
+
+
+class NothingToDrop(ValueError):
+    """A label the ledger declares and no other file does (RK144).
+
+    The terminal shape of the ledger exception: its heading holds history and stays for ever,
+    so there is nothing this verb may remove — and nothing it is right to refuse over either.
+    A refusal all the same, because the alternative is exit 0 over an untouched tree.
+    """
+
+    def __init__(self, label: str, where: Sequence[str], word: str = "Block") -> None:
+        self.label = label
+        self.where = tuple(where)
+        super().__init__(
+            f"{word} {label} is declared only in {', '.join(self.where)}, whose heading "
+            f"holds the history filed under it: there is nothing to remove"
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class Closed:
+    """The heading one block's removal takes out of every file, before it is written.
+
+    The inverse shape of :class:`Opened` and deliberately not that class with a flag: what
+    this one has to carry is the heading **as it read**, because after the write there is no
+    file left to read it off — and what it does not carry is a title, which is the one thing
+    a removal has no opinion about.
+    """
+
+    label: str
+    #: The files this write changes, by role. Written together or not at all.
+    documents: Mapping[str, Document] = field(default_factory=dict)
+    #: Where the heading was, by role — 1-based, as an editor counts.
+    removed: Mapping[str, int] = field(default_factory=dict)
+    #: The heading each file held, by role, verbatim: the answer's only record of the title
+    #: this took out, since the file it was read from no longer holds it.
+    rendered: Mapping[str, str] = field(default_factory=dict)
+    #: Roles left alone, each with the reason — the ledger's entries above all, which are
+    #: neither a refusal nor a removal and would otherwise be an unexplained silence.
+    skipped: tuple[tuple[str, str], ...] = ()
+
+    def save(self) -> None:
+        """Write every file, having asked all of them first (RK116, RK6)."""
+        assert_all_current(*self.documents.values())
+        for document in self.documents.values():
+            document.save()
+
+
+def drop_block(config: Config, label: str) -> Closed:
+    """Remove one block's heading from every governed file where it stands over nothing.
+
+    Validates everything before touching anything, as :func:`open_block` does: a label no
+    file declares, and a heading with work under it, are refusals that leave the whole tree
+    exactly as it was — including the files whose heading *was* removable, because a partial
+    removal is the split declaration RK141's last paragraph is about.
+
+    The ledger is skipped rather than refused over (see the module docstring): its headings
+    hold history for ever, so entries under one are not an obstacle to clear.
+    """
+    word = config.schema.heading_word
+    declaring = _declaring(config, label)
+    if not declaring:
+        raise NoSuchBlock(label, _labels(config), word=word)
+
+    changed: dict[str, Document] = {}
+    removed: dict[str, int] = {}
+    rendered: dict[str, str] = {}
+    skipped: list[tuple[str, str]] = []
+
+    for role, where, document, heading in declaring:
+        held = _held(document, heading)
+        if not held:
+            rendered[role] = document.lines[heading.lineno - 1].rstrip("\r\n")
+            removed[role] = heading.lineno
+            changed[role] = _excise(document, heading)
+            continue
+        if role != "changelog":
+            raise BlockOccupied(label, where, held, word=word)
+        plural = "entry" if len(held) == 1 else "entries"
+        skipped.append(
+            (where, f"{len(held)} {plural} filed under it: history keeps the heading it "
+             f"was filed under")
+        )
+
+    if not changed:
+        # Every file declaring it kept it, which can only be the ledger. A refusal rather
+        # than an exit 0, for the reason `BlockExists` is one: a command that writes nothing
+        # and reports success teaches that it wrote something.
+        raise NothingToDrop(label, [where for _, where, _, _ in declaring], word=word)
+    return Closed(
+        label=label,
+        documents=changed,
+        removed=removed,
+        rendered=rendered,
+        skipped=tuple(skipped),
+    )
+
+
+def _declaring(
+    config: Config, label: str
+) -> tuple[tuple[str, str, Document, Heading], ...]:
+    """Every governed file that declares this label, with the heading that does it."""
+    found: list[tuple[str, str, Document, Heading]] = []
+    for role in BLOCK_ROLES:
+        if not config.has(role) or not config.path(role).is_file():
+            continue
+        document = config.document(role)
+        heading = document.heading(label)
+        if heading is not None:
+            found.append((role, config.relative(config.path(role)), document, heading))
+    return tuple(found)
+
+
+def _held(document: Document, heading: Heading) -> tuple[str, ...]:
+    """What this heading stands over, named as a reader has to see it — empty when nothing.
+
+    Three kinds, because a block heading can own three kinds of thing: task lines or ledger
+    entries (named by id), nested headings such as a rationale section (named by their text),
+    and loose prose (named by its line, which is the only address it has). Anything non-blank
+    counts: a paragraph left behind by a removed heading is filed under the block above it,
+    which is the same silent misfiling as an orphaned task line.
+    """
+    start, end = heading.lineno, document.subtree_end(heading)
+    names: list[str] = []
+    seen: set[int] = set()
+    for entry in document.entries:
+        if start < entry.lineno <= end:
+            names.append(entry.task.id)
+            seen.add(entry.lineno)
+    for nested in document.headings:
+        if start < nested.lineno <= end:
+            names.append(f"{nested.text!r}")
+            seen.add(nested.lineno)
+    for offset in range(start, end):
+        if offset + 1 not in seen and not blank(document.lines[offset]):
+            names.append(f"line {offset + 1}")
+    return tuple(names)
+
+
+def _labels(config: Config) -> tuple[str, ...]:
+    """Every label any governed file declares, in file order and without repeats."""
+    found: list[str] = []
+    for role in BLOCK_ROLES:
+        if not config.has(role) or not config.path(role).is_file():
+            continue
+        for heading in config.document(role).headings:
+            if heading.label and heading.label not in found:
+                found.append(heading.label)
+    return tuple(found)
+
+
+def _excise(document: Document, heading: Heading) -> Document:
+    """Take the heading out, with the blanks it owned — the inverse of :func:`_insert`.
+
+    The whole subtree in one edit, which by the time this is reached is the heading and blank
+    lines: the deletion is refused above where it is anything else. The trailing blank goes
+    with it, and where the block was last in the file the *leading* one does too — a
+    paragraph break the file never had is still a change, and both spellings round-trip,
+    which is exactly why nothing downstream would catch it (RK54).
+    """
+    start = heading.lineno - 1
+    updated = document.remove_lines(start, document.subtree_end(heading))
+    if start >= len(updated.lines) and start > 0 and blank(updated.lines[start - 1]):
+        return updated.remove_line(start - 1)
+    return updated
 
 
 @dataclass(frozen=True, slots=True)

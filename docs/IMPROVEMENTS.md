@@ -118,26 +118,6 @@ as one. RK122 is the same question one file up.
 
 ## Block B — Authoring
 
-### §RK144 The key opens the door and cannot close it
-
-RK141 gave block declaration a verb because the pair of correct refusals around it was a
-deadlock. The verb writes the heading into every governed file already organised by
-blocks — and nothing removes one, which is the same deadlock reflected: a label typed
-wrongly, or a block whose every line has shipped and whose heading an author wants gone,
-is three headings that only the edit the guard denies can take out.
-
-The asymmetry is exactly RK138's, one surface over: `install` writes four things and un-wiring
-is a hand edit. Here the write is smaller and the refusals are sharper, which makes the inverse
-cheap: a `block drop <label>` that removes the heading from every file where the label carries
-**no line at all**, and refuses by name where any does — the roadmap's open lines, the ledger's
-entries, the store's paused ones. A heading over work is not an empty heading, and deleting one
-would orphan every line beneath it.
-
-Not to be confused with an empty heading being wrong. A block with no open lines is the
-normal end state of finishing one, and the ledger keeps its heading for ever because
-history is filed under it. This is about the label an author wants gone, not the one
-that is merely quiet.
-
 ### §RK145 Appended is a placement, not the placement
 
 `block add` derives its position: after the last block's subtree, which is what opening

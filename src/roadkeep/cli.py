@@ -45,7 +45,7 @@ from roadkeep import claiming
 from roadkeep.adopting import Estimate, adopt, init
 from roadkeep.authoring import StatusChange, add, amend, set_status
 from roadkeep.backlog import Backlog
-from roadkeep.blocking import open_block
+from roadkeep.blocking import drop_block, open_block
 from roadkeep.briefing import Brief, brief, non_goals
 from roadkeep.capturing import PARTS, body, capture, check, handoff, keep, offer, replay
 from roadkeep.config import Config, ConfigError
@@ -368,6 +368,21 @@ def build_parser() -> argparse.ArgumentParser:
     block_add.add_argument("--title", required=True, help="what the block is for")
     block_add.add_argument("--json", action="store_true", help=_JSON_HELP)
     block_add.set_defaults(handler=_block_add)
+
+    block_drop = block_actions.add_parser(
+        "drop",
+        help="remove the heading from every file where it stands over nothing",
+        description=(
+            "The inverse, and narrow in the one way that matters: a heading over work is "
+            "not an empty heading. It is removed only where its whole subtree is blank, "
+            "and refused by name where anything is filed under the label — open lines, "
+            "paused ones, rationale sections. The ledger is the exception, left alone and "
+            "said so, because history keeps the heading it was filed under."
+        ),
+    )
+    block_drop.add_argument("label", help="the block label, e.g. G")
+    block_drop.add_argument("--json", action="store_true", help=_JSON_HELP)
+    block_drop.set_defaults(handler=_block_drop)
 
     status_parser = subcommands.add_parser(
         "status",
@@ -1523,6 +1538,48 @@ def _block_add(config: Config, args: argparse.Namespace) -> int:
         print(f"  {files[role]:<{width}}:{opened.placed[role]}  {opened.rendered[role]}")
     for where, reason in opened.skipped:
         print(f"  not      {where}: {reason}")
+    return EXIT_OK
+
+
+def _block_drop(config: Config, args: argparse.Namespace) -> int:
+    try:
+        closed = drop_block(config, args.label)
+        closed.save()
+    except REFUSALS as error:
+        return _refused(error)
+
+    files = {role: config.relative(config.path(role)) for role in closed.documents}
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "label": closed.label,
+                    "removed": [
+                        {
+                            "role": role,
+                            "file": files[role],
+                            # The line it was on and the heading it was, because after this
+                            # write no file holds either and the answer is the only record.
+                            "line": closed.removed[role],
+                            "rendered": closed.rendered[role],
+                        }
+                        for role in closed.documents
+                    ],
+                    "skipped": [
+                        {"file": where, "reason": reason} for where, reason in closed.skipped
+                    ],
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+
+    print(f"{config.schema.block_named(closed.label)} withdrawn")
+    width = max((len(files[role]) for role in closed.documents), default=0)
+    for role in closed.documents:
+        print(f"  {files[role]:<{width}}:{closed.removed[role]}  {closed.rendered[role]}")
+    for where, reason in closed.skipped:
+        print(f"  kept     {where}: {reason}")
     return EXIT_OK
 
 

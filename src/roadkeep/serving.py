@@ -231,6 +231,10 @@ TOOLS: tuple[Tool, ...] = (
     # block, the guard denies the edit that would declare it, and no other verb writes a
     # heading — so a correctly wired project could not open a block at all.
     Tool("block add", ("label", "title")),
+    # And the key that could not close the door (RK144). Exposed for the same reason: the
+    # caller that opened a label by mistake is the one the guard denies the hand-edit to, and
+    # the removal is refused by name over anything filed under it.
+    Tool("block drop", ("label",)),
     # The write a session makes first, and the one flag that became a tool (RK149, RK150): it
     # is `brief --claim`, so the answer is everything needed to start the task *and* the
     # marker that stops the next agent being handed it — while `brief` and `pick` below stay

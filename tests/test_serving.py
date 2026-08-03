@@ -149,6 +149,9 @@ def test_the_tools_are_what_a_task_needs_end_to_end():
     assert [tool.name for tool in TOOLS] == [
         "add",
         "block_add",
+        # And the key that could not close the door (RK144): the caller that opened a label by
+        # mistake is the one the guard denies the hand-edit to, which is RK141's own argument.
+        "block_drop",
         # `brief --claim` under the name of the act (RK149, RK150): the write a session makes
         # first, split off so the two reads below keep the hint that makes them free to ask.
         "claim",
@@ -438,6 +441,7 @@ def test_the_read_only_hint_says_which_tools_write(tmp_path):
     assert writes == {
         "add",
         "block_add",
+        "block_drop",
         "status",
         "amend",
         "renumber",

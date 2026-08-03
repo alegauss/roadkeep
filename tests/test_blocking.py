@@ -8,6 +8,12 @@ declare it, listing every verb that may write there, none of which adds a headin
 So the test of this module is not that a heading can be written. It is that **neither
 refusal had to be weakened**: the label and the title are the author's, and the level, the
 separator and the place are the file's own.
+
+**And that the key can close the door** (RK144). The verb that writes a heading was the only
+one, so a label typed wrongly was three headings only a hand-edit could remove. What the
+removal is tested for is its narrowness: a heading is taken out only where its subtree is
+blank, anything filed under the label is **named** in a refusal that writes nothing, and the
+ledger keeps its heading because history is filed under it.
 """
 
 from __future__ import annotations
@@ -17,7 +23,15 @@ from pathlib import Path
 
 import pytest
 
-from roadkeep.blocking import BlockExists, NotALabel, open_block
+from roadkeep.blocking import (
+    BlockExists,
+    BlockOccupied,
+    NoSuchBlock,
+    NotALabel,
+    NothingToDrop,
+    drop_block,
+    open_block,
+)
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.linting import lint
@@ -281,3 +295,166 @@ def test_json_says_what_was_written_and_what_was_not(tmp_path, capsys):
     assert payload["label"] == "C" and payload["title"] == "Query"
     assert [w["role"] for w in payload["written"]] == ["roadmap", "changelog"]
     assert payload["skipped"][0]["file"] == IMPROVEMENTS
+
+
+# -- the door the key could not close (RK144) ---------------------------------
+
+
+def test_a_label_opened_by_mistake_is_withdrawn_from_every_file(tmp_path):
+    # The whole task, and the inverse of the first test in this file: the heading a verb
+    # wrote is one the same verb can take back, so the mistake costs a command.
+    config = project(tmp_path)
+    open_block(config, "C", "Qeury").save()
+    closed = drop_block(Config.discover(tmp_path), "C")
+    closed.save()
+
+    assert set(closed.documents) == {"roadmap", "changelog", "improvements"}
+    assert closed.rendered["roadmap"] == "## Block C — Qeury"
+    # Byte-identical to the file before the label ever existed, which is the claim: the
+    # blanks the heading was given come out with it.
+    assert read(config, ROADMAP) == BACKLOG
+    assert read(config, CHANGELOG) == LEDGER
+    assert read(config, IMPROVEMENTS) == RATIONALE
+    assert lint(Config.discover(tmp_path)).clean
+
+
+def test_a_heading_over_an_open_line_is_refused_by_name(tmp_path):
+    # The safety of the whole door: removing this heading files RK2 under Block A, silently
+    # and in a way that round-trips, which is exactly why nothing downstream would catch it.
+    config = project(tmp_path)
+    with pytest.raises(BlockOccupied) as caught:
+        drop_block(config, "B")
+    assert "RK2" in str(caught.value) and ROADMAP in str(caught.value)
+    assert read(config, ROADMAP) == BACKLOG
+
+
+def test_a_rationale_section_is_work_the_same_way_a_line_is(tmp_path):
+    # A block heading owns three kinds of thing, and a section orphaned by a removed heading
+    # is the same silent misfiling as an orphaned task line.
+    config = project(
+        tmp_path,
+        roadmap="# Roadmap\n\n## Block A — The model\n\n## Block B — Authoring\n",
+        changelog="# Shipped\n\n## Block A — The model\n\n## Block B — Authoring\n",
+    )
+    with pytest.raises(BlockOccupied) as caught:
+        drop_block(config, "B")
+    assert "§RK2 A second design" in str(caught.value)
+    assert read(config, IMPROVEMENTS) == RATIONALE
+
+
+def test_a_blocks_own_prose_is_named_by_the_line_it_is_on(tmp_path):
+    # Loose prose has no other address, and a paragraph left behind by a removed heading is
+    # filed under the block above it (RK108's introduction, one block over).
+    config = project(
+        tmp_path,
+        roadmap="# Roadmap\n\n## Block A — The model\n\n## Block B — Authoring\n\nWhat this block is for.\n",
+        changelog="# Shipped\n\n## Block A — The model\n\n## Block B — Authoring\n",
+        improvements="# Improvements\n\n## Block A — The model\n\n## Block B — Authoring\n",
+    )
+    with pytest.raises(BlockOccupied) as caught:
+        drop_block(config, "B")
+    assert "line 7" in str(caught.value)
+
+
+def test_the_ledger_keeps_its_heading_and_the_others_lose_theirs(tmp_path):
+    # The exception, and the reason it is not an inconsistency: history is filed under that
+    # heading for ever, so entries there are neither a refusal nor a removal.
+    config = project(
+        tmp_path,
+        roadmap="# Roadmap\n\n## Block A — The model\n\n## Block B — Authoring\n",
+        changelog=LEDGER + "\n- ✅ **RK2** **A second symptom** — It works now.\n",
+        improvements="# Improvements\n\n## Block A — The model\n\n## Block B — Authoring\n",
+    )
+    closed = drop_block(config, "B")
+    closed.save()
+
+    assert set(closed.documents) == {"roadmap", "improvements"}
+    assert closed.skipped[0][0] == CHANGELOG and "1 entry" in closed.skipped[0][1]
+    assert "Block B" not in read(config, ROADMAP)
+    assert "## Block B — Authoring" in read(config, CHANGELOG)
+
+
+def test_a_label_only_the_ledger_declares_is_refused_rather_than_reported_clean(tmp_path):
+    config = project(
+        tmp_path,
+        roadmap="# Roadmap\n\n## Block A — The model\n",
+        changelog=LEDGER + "\n- ✅ **RK2** **A second symptom** — It works now.\n",
+        improvements="# Improvements\n\n## Block A — The model\n",
+    )
+    with pytest.raises(NothingToDrop) as caught:
+        drop_block(config, "B")
+    assert CHANGELOG in str(caught.value)
+
+
+def test_a_label_no_file_declares_lists_the_ones_they_do(tmp_path):
+    # The commonest reason this door is reached: a label spelled differently from the file's.
+    config = project(tmp_path)
+    with pytest.raises(NoSuchBlock) as caught:
+        drop_block(config, "Z")
+    assert "A, B" in str(caught.value)
+
+
+def test_the_last_block_in_a_file_leaves_no_trailing_blank(tmp_path):
+    # A paragraph break the file never had is still a change, and both spellings round-trip.
+    config = project(
+        tmp_path,
+        roadmap="# Roadmap\n\n## Block A — The model\n\n## Block B — Authoring\n",
+        changelog="# Shipped\n\n## Block A — The model\n\n## Block B — Authoring\n",
+        improvements="# Improvements\n\n## Block A — The model\n\n## Block B — Authoring\n",
+    )
+    drop_block(config, "B").save()
+    assert read(config, ROADMAP) == "# Roadmap\n\n## Block A — The model\n"
+
+
+def test_a_middle_block_leaves_no_doubled_blank(tmp_path):
+    config = project(
+        tmp_path,
+        roadmap="# Roadmap\n\n## Block A — The model\n\n## Block B — Authoring\n\n## Non-goals\n\n- **No web UI.** Files and a CLI.\n",
+        changelog="# Shipped\n\n## Block A — The model\n\n## Block B — Authoring\n",
+        improvements="# Improvements\n\n## Block A — The model\n\n## Block B — Authoring\n",
+    )
+    drop_block(config, "B").save()
+    body = read(config, ROADMAP)
+    assert "\n\n\n" not in body
+    assert body == "# Roadmap\n\n## Block A — The model\n\n## Non-goals\n\n- **No web UI.** Files and a CLI.\n"
+    assert Config.discover(tmp_path).document("roadmap").non_canonical == ()
+
+
+def test_a_partial_removal_is_never_written(tmp_path):
+    # All of the files or none of them, as `block add` has it: a heading gone from the ledger
+    # while the roadmap keeps its open lines is `add` working and `ship` failing.
+    config = project(tmp_path, changelog=LEDGER, improvements=RATIONALE)
+    with pytest.raises(BlockOccupied):
+        drop_block(config, "B")
+    assert read(config, CHANGELOG) == LEDGER
+    assert read(config, IMPROVEMENTS) == RATIONALE
+
+
+def test_the_drop_command_names_every_heading_it_took_out(tmp_path, capsys):
+    project(tmp_path)
+    open_block(Config.discover(tmp_path), "C", "Query").save()
+    assert main(["-C", str(tmp_path), "block", "drop", "C"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert printed.startswith("Block C withdrawn")
+    assert "## Block C — Query" in printed
+
+
+def test_the_drop_command_refuses_with_two_and_writes_nothing(tmp_path, capsys):
+    config = project(tmp_path)
+    assert main(["-C", str(tmp_path), "block", "drop", "B"]) == EXIT_USAGE
+    assert "RK2" in capsys.readouterr().err
+    assert read(config, ROADMAP) == BACKLOG
+
+
+def test_the_drop_json_says_which_heading_left_which_file(tmp_path, capsys):
+    project(tmp_path)
+    open_block(Config.discover(tmp_path), "C", "Query").save()
+    assert main(["-C", str(tmp_path), "block", "drop", "C", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["label"] == "C"
+    assert [r["role"] for r in payload["removed"]] == [
+        "roadmap",
+        "changelog",
+        "improvements",
+    ]
+    assert payload["removed"][0]["rendered"] == "## Block C — Query"

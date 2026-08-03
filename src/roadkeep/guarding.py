@@ -112,6 +112,9 @@ _INSTEAD: Mapping[str, tuple[tuple[str, str], ...]] = {
         # refuses an undeclared block, and until this verb existed the only key to that
         # door was the edit this refusal denies.
         ('block add <x> --title "…"', "declare a block, in every file organised by them"),
+        # And the inverse (RK144), because the key that only opens is the same asymmetry: a
+        # label typed wrongly was a heading in three files that only this denial's edit removed.
+        ("block drop <x>", "withdraw a label: refused by name over any line under it"),
         ("status <id> <marker>", "a marker, and only in this file"),
         ('amend <id> --why "…"', "correct the why, the deps or the pointer of a line"),
         ("ship <id>", "shipped: ledger entry, line gone, section dropped"),
@@ -132,9 +135,15 @@ _INSTEAD: Mapping[str, tuple[tuple[str, str], ...]] = {
         ("ship <id>", "the entry a planned task earns, in one transaction"),
         ('record add --block <x> --symptom "…" --why "…"', "work that was never planned"),
         ('block add <x> --title "…"', "declare a block: `ship` refuses one this file lacks"),
+        # Its inverse reaches this file too, but only for a label with nothing under it: an
+        # entry is history, and history keeps the heading it was filed under (RK144).
+        ("block drop <x>", "withdraw a label opened by mistake; entries keep theirs"),
         # The ledger's update (RK124), without which the honest answer to "a word is wrong
         # here" was drop-and-re-add, which moves the entry to the end of its block.
         ('record amend <id> --why "…"', "correct an entry's sentence where it already is"),
+        # The field that update deliberately withheld (RK143): filing an entry elsewhere is a
+        # move, so it is a verb that says so rather than a flag inside a correction.
+        ("record move <id> --to-block <x>", "an entry filed under the wrong block heading"),
         ("record drop <id>", "one of two entries for one id, when they say the same thing"),
         # And when they do not (RK127): two deliveries under one id, which the drop above
         # refuses rather than resolving by picking the entry that earned the id. Offered
