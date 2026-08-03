@@ -287,28 +287,6 @@ and may not need a second.
 
 ## Block D — The gate
 
-### §RK226 The separator the gate inherits from its host
-
-RK213 named the shape once: a gate green for whoever ran it and red in CI is worse than
-one that is simply wrong, because nobody can reconstruct the disagreement. This is that
-shape through the separator.
-
-A backslash is a path separator on Windows and an ordinary filename character everywhere
-else, and both halves of this check defer to the host. `_resolves` asks `Path`, which
-splits on it here and not there, so `docs\specs\file.md` reports `exists` on the
-author's machine. `_spelled` normalises with `os.path`, so the same token becomes
-`docs/specs/file.md` on Windows and stays one backslash-laden name on Linux — where
-git's listing has never held it, so the finding fires.
-
-Demonstrated by construction rather than on a corpus: neither pinned ledger writes one,
-which is why this has not bitten yet and also why nothing would catch it if it did.
-
-RK218 refused a token made only of separators for exactly this reason — what it resolves
-to may not depend on the platform running the gate — and stopped at the degenerate case.
-The rest of the class is the same decision: either the format says a token is spelled
-with forward slashes and the check normalises before asking anything, or a backslash
-token is not a path claim at all. Which of the two is what this line settles.
-
 ### §RK227 A predicate per codepoint
 
 RK34 is right that a line carrying a byte nobody typed is not a line this format can

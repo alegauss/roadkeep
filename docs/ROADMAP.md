@@ -40,7 +40,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK226** (deps: —) **A path written with Windows separators is a path on one platform and a filename on the other** — paths_in and the spelling it derives both defer to the running platform, so a ledger token like docs\specs\file.md resolves for its author and is never in the listing CI reads. → §RK226
 - 💭 **RK227** (deps: —) **The invisible-codepoint check calls a Python predicate once per character of every governed file** — It is 148 ms of a 660 ms gate on Turing, and 825000 calls whose answer is no every time, on a file whose bytes one sweep in C would clear. → §RK227
 
 ## Block E — Adoption

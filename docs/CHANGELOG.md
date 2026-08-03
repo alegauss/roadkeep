@@ -170,6 +170,7 @@
 - ✅ **RK222** **show pays two git listings on every call, on the read that starts every task** — The directory listing is a callable resolved on first need, so a task whose paths all resolve asks git nothing and show is back to 1.0 ms here.
 - ✅ **RK223** **The path check reads every ledger entry twice, and the gate takes seconds on a large ledger** — The check gathers candidates and findings in one pass, so Turing's ledger costs 559 ms of the gate instead of 2.9 s and every entry is read once.
 - ✅ **RK225** **A run judging a revision stats the working tree once per token and throws every answer away** — A revision run asks the tree it is judging and spells paths lexically, so Turing's check costs 270 ms and no filesystem call instead of 559 ms and 34070.
+- ✅ **RK226** **A path written with Windows separators is a path on one platform and a filename on the other** — A path token is normalised to forward slashes before anything asks, so one spelling reaches the disk, git and the report whichever platform wrote the line.
 
 ## Block E — Adoption
 

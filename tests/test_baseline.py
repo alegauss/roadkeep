@@ -837,3 +837,36 @@ def test_a_spelling_is_decided_without_asking_the_filesystem(tmp_path):
     assert _spelled(config, tmp_path / "docs", "../top.md") == "top.md"
     # Above the root: git has nothing to say, and one of them refuses a batch (RK220).
     assert _spelled(config, tmp_path, "../outside.txt") is None
+
+
+def test_a_windows_spelling_and_a_posix_one_are_one_claim(tmp_path):
+    r"""RK226: a backslash separates on Windows and is an ordinary filename character
+    everywhere else, so both halves of this check answered by host.
+
+    `docs\specs\x.md` resolved for the author who pasted it from a terminal and was a
+    single unheard-of name in CI, where git's listing has only ever held forward slashes —
+    RK213's shape ("green for whoever ran it, red where it runs") through another door.
+    """
+    config = repo(tmp_path, files={"docs/specs/kept.md": "x\n"})
+    for spelling in ("docs/specs/kept.md", r"docs\specs\kept.md"):
+        write(tmp_path, "CHANGELOG.md", naming(spelling))
+        assert paths(lint(config)) == [], spelling
+        assert [r.path for r in show(config, "RK5").paths] == ["docs/specs/kept.md"], spelling
+
+
+def test_the_normalised_spelling_is_what_a_finding_names(tmp_path):
+    """One token throughout: the same string is asked of the disk, spelled for git, keyed
+    in the ignore answer and printed. Toward the repository's own spelling, because that is
+    the one every platform's git agrees on."""
+    config = repo(tmp_path, files={"docs/specs/kept.md": "x\n"})
+    write(tmp_path, "CHANGELOG.md", naming(r"docs\specs\gone.md"))
+    finding = next(f for f in lint(config).findings if f.code == "path.missing")
+    assert "docs/specs/gone.md" in finding.message
+
+
+def test_a_drive_relative_spelling_is_still_a_claim_about_one_machine(tmp_path):
+    """Normalising does not admit what was refused: `\foo` becomes `/foo`, which is the
+    absolute path this check has always dropped — wrong on every other machine."""
+    config = repo(tmp_path, files={"docs/specs/kept.md": "x\n"})
+    write(tmp_path, "CHANGELOG.md", naming(r"\etc\passwd"))
+    assert paths(lint(config)) == []

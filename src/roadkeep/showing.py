@@ -240,7 +240,14 @@ def paths_in(
         token = (match.group(1) or match.group(2)).rstrip(".,;:")
         if not token or _SCHEME.match(token) or token.startswith("#"):
             continue
-        token = _LINE_ANCHOR.sub("", token)
+        # One spelling, whatever platform wrote the line (RK226). A backslash separates on
+        # Windows and is an ordinary filename character everywhere else, so `docs\specs\x.md`
+        # resolved for its author and was a single unheard-of name in CI — the gate answering
+        # by host, which is RK213's shape through a different door. Normalised *toward* the
+        # repository's own spelling, because git's listing is forward slashes on every
+        # platform; a real filename holding a backslash is the case this gets wrong, and it
+        # cannot exist on Windows at all and breaks every Windows checkout where it can.
+        token = _LINE_ANCHOR.sub("", token.replace("\\", "/"))
         if token.startswith("/"):
             # Not this repository: `/roadkeep:add` is a slash command, and an absolute
             # path is wrong on every other machine (which `roadkeep.toml` also refuses).
