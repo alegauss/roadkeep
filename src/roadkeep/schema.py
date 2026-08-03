@@ -96,6 +96,10 @@ _ABBREVIATIONS = frozenset({"e.g.", "i.e.", "etc.", "vs.", "cf.", "al.", "no."})
 
 _TERMINATORS = (".", "!", "?")
 
+#: The violations that already carry the line's own limit into a field the author writes
+#: (RK183), and therefore the ones `line.too-long` stands down for.
+_LENGTH_CODES = frozenset({"symptom.too-long", "why.too-long", "part.too-long"})
+
 #: The pointer's two addressing schemes (RK27). "id" is the default because it is the
 #: one an author cannot get wrong; "outline" exists for backlogs already numbered.
 REF_SCHEMES = frozenset({"id", "outline"})
@@ -736,6 +740,41 @@ class Schema:
             return re.compile(r"[^\s\S]")
         return re.compile(rf"^{self._fragment(named=False, sub_required=True)}$")
 
+    def prose_budget(self, task: Task) -> int:
+        """How many characters this line's prose fields have between them (RK183).
+
+        The line limit minus what the line costs before a word is written: the dash, the
+        marker, the bold id, the `(deps: …)` group, the em dash and the `→ §<id>` pointer.
+        Measured by rendering the line with both fields emptied rather than by adding up a
+        second copy of the format — :meth:`render` is the only writer of it (L3), and a
+        constant here would be a second one that drifts the first time a slot moves.
+
+        Everything it needs is known before the prose exists: `add` derives the id, the
+        marker, the deps and the pointer, so the budget is a fact about the line the author
+        is *about* to write rather than a verdict on one they already wrote.
+        """
+        return self.line_max - len(self.render(replace(task, symptom="", why="")))
+
+    def why_budget(self, task: Task) -> int:
+        """The smaller of the `why`'s own limit and what this line has left for it (RK183).
+
+        `symptom_max` plus `why_max` is at or over `line_max` on every default this ships
+        and on both live corpora, so an author writing to the two published numbers is
+        refused by the third — one that is measured on a string they never write and whose
+        overhead moves with the dep count. The `why` is where the remainder is taken from
+        because it is the field whose overflow has somewhere to go: the rationale section
+        the line already points at. The symptom is the claim the line *is*, and compressing
+        it is how a falsifiable line becomes a slogan.
+
+        A symptom over its own limit is reported as itself and takes no room from the
+        `why`: deriving a remainder from an illegal field would refuse one sentence for
+        another field's overrun, and the author would fix twice what was wrong once.
+        """
+        taken = len(task.symptom) if self.symptom_field else 0
+        if taken > self.symptom_max:
+            return self.why_max
+        return min(self.why_max, max(0, self.prose_budget(task) - taken))
+
     def validate(self, task: Task) -> tuple[Violation, ...]:
         """Every violation, in field order. Empty means the task conforms."""
         out: list[Violation] = []
@@ -746,7 +785,13 @@ class Schema:
         out.extend(self._check_ref(task))
 
         rendered = self.render(task)
-        if len(rendered) > self.line_max:
+        # The backstop, and only that (RK183): where a field's own budget already carries
+        # the line's limit, the same overrun reported twice is one defect with two numbers
+        # and the author cutting both. What is left for this to catch is an overrun no
+        # field explains — a line whose *structure* does not fit, which no prose edit fixes.
+        if len(rendered) > self.line_max and not any(
+            violation.code in _LENGTH_CODES for violation in out
+        ):
             out.append(
                 Violation(
                     "line.too-long",
@@ -994,7 +1039,18 @@ class Schema:
         return out
 
     def _check_why(self, task: Task) -> list[Violation]:
-        out = self._check_text("why", task.why, self.why_max)
+        budget = self.why_budget(task)
+        because = ""
+        if budget < self.why_max:
+            # Said only where the two differ, and then it is the whole explanation: the
+            # number the author was given is not the number that refused them, and which
+            # line they are writing is why (RK183).
+            taken = len(task.symptom) if self.symptom_field else 0
+            because = (
+                f" (the line's own limit of {self.line_max} leaves "
+                f"{self.prose_budget(task)} for prose, and the symptom takes {taken})"
+            )
+        out = self._check_text("why", task.why, budget, because)
         why = task.why.strip()
         if why and self.terminator and not why.endswith(_TERMINATORS):
             out.append(
@@ -1048,7 +1104,9 @@ class Schema:
             raise SchemaError(violations)
         return task
 
-    def _check_text(self, field: str, value: str, limit: int) -> list[Violation]:
+    def _check_text(
+        self, field: str, value: str, limit: int, because: str = ""
+    ) -> list[Violation]:
         """The checks that apply to both prose fields, including round-trip safety."""
         out: list[Violation] = []
         if not value.strip():
@@ -1072,8 +1130,9 @@ class Schema:
                 Violation(
                     f"{field}.too-long",
                     field,
-                    f"{len(value)} characters, limit is {limit}: move the remainder "
-                    f"to the improvements section rather than compressing it away",
+                    f"{len(value)} characters, limit is {limit}{because}: move the "
+                    f"remainder to the improvements section rather than compressing "
+                    f"it away",
                 )
             )
         return out

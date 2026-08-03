@@ -36,7 +36,7 @@ from pathlib import Path
 
 import pytest
 
-from roadkeep import claiming
+from roadkeep import claiming, serving
 from roadkeep.cli import build_parser
 from roadkeep.config import Config
 from roadkeep.provenance import _LOADED_AT, engine
@@ -242,6 +242,19 @@ def test_the_limits_in_the_schema_are_the_projects_own(tmp_path):
     add = listed(tmp_path)["add"]["inputSchema"]["properties"]
     assert add["symptom"]["maxLength"] == 60
     assert add["why"]["maxLength"] == 90
+
+
+def test_the_why_says_which_limit_actually_binds(tmp_path):
+    # RK183: `maxLength` is the field's ceiling, and the line is what refuses. A lower
+    # number here would refuse on the client a line the server accepts, so the ceiling
+    # stays and the joint rule is said in words — with this project's own line limit.
+    project(tmp_path, config=CONFIG + "[limits]\nline = 240\n")
+    why = listed(tmp_path)["add"]["inputSchema"]["properties"]["why"]
+    assert why["maxLength"] == Config.default().schema.why_max
+    assert "240" in why["description"]
+    # The flag's own sentence survives it: the note is appended, never a replacement.
+    flag = serving._action(serving._subparser("add"), "why")
+    assert why["description"].startswith(flag.help.strip())
 
 
 def test_the_marker_enum_is_the_projects_declared_open_set(tmp_path):

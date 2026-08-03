@@ -22,7 +22,6 @@
 
 ## Block A — The model (a task is data before it is a line)
 
-- 📋 **RK183** (deps: —) **The two field limits sum to the line limit, so a line obeying both is refused by the third** — symptom 120 plus why 200 is exactly line 320 while the rendered structure costs 38 to 52, so an author writing to the limits it was given is refused by one it cannot compute. → §RK183
 - 📋 **RK184** (deps: —) **A length refusal names the rendered total and not the field that is over or the surplus** — line.too-long reports 327 against 320 and advises moving the remainder, so the author rewrites the sentence instead of deleting seven characters and the next attempt re-rolls the length. → §RK184
 - 📋 **RK187** (deps: —) **`export --readme --site` writes the first file and then refuses the second, leaving one refreshed** — RK132 gave the splice the staleness check every governed write makes and not the all-or-nothing rule beside it, so one target lands and the other's staleness survives the command. → §RK187
 
@@ -59,7 +58,7 @@
 - 📋 **RK175** (deps: —) **An approved shell write leaves a valid line and no record of who wrote it** — The guard asks and the user may say yes, and `review` narrows lint to changed lines, so a `sed` whose output conforms is indistinguishable from a verb's write. → §RK175
 - 📋 **RK176** (deps: —) **Widening the matcher to Bash spawns an interpreter per shell command and nothing measured it** — The five decisions in `guarding` were arranged to avoid exactly this cost, and the trade was accepted on an argument rather than on a number. → §RK176
 - 📋 **RK177** (deps: —) **The tool list can change mid-session and the client is never told, so it validates against a cached schema** — The config is re-read per message on purpose, so `[ids] suffix` added mid-session changes which arguments exist, and no `notifications/tools/list_changed` is ever sent. → §RK177
-- 📋 **RK185** (deps: RK183) **The budget an author is given is in characters, the one unit a model cannot count** — The MCP field schema and the skill publish 120 and 200, so a first attempt is a guess and the retries converge by feedback, where a word count would land inside on the first call. → §RK185
+- 📋 **RK185** (deps: RK183 ✅) **The budget an author is given is in characters, the one unit a model cannot count** — The MCP field schema and the skill publish 120 and 200, so a first attempt is a guess and the retries converge by feedback, where a word count would land inside on the first call. → §RK185
 
 ## Non-goals
 

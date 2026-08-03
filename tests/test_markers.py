@@ -161,5 +161,10 @@ def test_a_line_the_annotation_would_push_over_the_cap_is_refused(tmp_path):
     config = Config.discover(tmp_path)
     with pytest.raises(SchemaError) as raised:
         refresh(Backlog.load(config))
-    assert [v.code for v in raised.value.violations] == ["line.too-long"]
+    # Named on the `why`, which is the field that has to give: the annotation grew the
+    # structure, so the line has two fewer characters for prose and the message says so
+    # (RK183). Either way the refusal is the point — the file is not written.
+    (violation,) = raised.value.violations
+    assert violation.code == "why.too-long"
+    assert f"limit of {len(long)}" in violation.message
     assert config.document("roadmap").render().endswith(f"{long}\n")

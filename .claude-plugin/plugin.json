@@ -1,7 +1,7 @@
 {
   "name": "roadkeep",
   "description": "Refuses the hand-edit of a governed roadmap, changelog or rationale file and names the command to call instead, runs the gate as the turn ends, and offers add, ship, pick and lint as MCP tools and as slash commands over the one engine.",
-  "version": "0.1.67",
+  "version": "0.1.68",
   "author": {
     "name": "Alexandre Oliveira"
   },

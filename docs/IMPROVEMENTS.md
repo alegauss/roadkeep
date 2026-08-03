@@ -75,29 +75,6 @@ already written, not authorship.
 
 ## Block A — The model
 
-### §RK183 Three limits, and the two that are published are the two that do not bind
-
-Measured here and in claude-tray, same numbers in both: `symptom_max` 120 plus `why_max`
-200 is exactly `line_max` 320, while the rendered structure — the dash, the marker, the
-bold id, the `(deps: …)` group, the em dash and the `→ §<id>` pointer — costs 38
-characters with no deps, 43 with one and 51 with two. The sum overruns the line budget
-by the whole structure, always: no prose satisfies all three, and an author writing to
-120 and 200 is refused by construction.
-
-Which of the three is published matters more than the arithmetic. The MCP field schema
-advertises `maxLength` 120 and 200, and those are the numbers the author composes
-against; the one that refuses is `line.too-long`, measured on a string the author never
-writes and whose overhead varies with the dep count. The binding limit is the
-unpublished one, so the retry loop is not an author failing to obey a budget — it is an
-author obeying the wrong one.
-
-The fix belongs here and not in `roadkeep.toml`: lowering `why` to 160 would leave the
-same defect in every project that declares its own numbers. `add` knows the id, the
-marker, the deps and the pointer before the prose exists, so this line's prose budget is
-derivable as `line_max` minus the structure it will render, and a field may hold the
-smaller of its own limit and what the line has left — which is the promise `maxLength`
-already makes and cannot keep.
-
 ### §RK184 A refusal an author can subtract from, not one they recompose against
 
 The refusal `line.too-long` reads `rendered line is 327 characters, limit is 320: move

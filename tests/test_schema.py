@@ -155,10 +155,58 @@ def test_over_length_why_is_refused():
     assert violation.code == "why.too-long"
 
 
-def test_rendered_line_limit_catches_fields_that_are_each_legal():
+def test_the_lines_own_limit_is_what_bounds_the_why():
+    # RK183: 120 + 200 is exactly 320 and the structure costs 38 more, so a line obeying
+    # both published limits was refused by a third one measured on a string the author
+    # never writes. The line's limit is carried into the field instead, and it is the
+    # `why` that carries it — the field whose remainder has a section to go to.
     over = task(symptom="x" * 120, why="y " * 99 + "z.")
-    codes = {v.code for v in SCHEMA.validate(over)}
-    assert codes == {"line.too-long"}
+    (violation,) = SCHEMA.validate(over)
+    assert violation.code == "why.too-long"
+    assert violation.field == "why"
+    # The number that refused, the number it came from, and what took the difference.
+    assert f"limit is {SCHEMA.why_budget(over)}" in violation.message
+    assert f"limit of {SCHEMA.line_max}" in violation.message
+    assert "the symptom takes 120" in violation.message
+
+
+def test_the_prose_budget_is_the_line_minus_what_it_renders_around_it():
+    # Measured by rendering, never by a second copy of the format: the structure is the
+    # dash, the marker, the bold id, the deps group, the em dash and the pointer.
+    bare = task(symptom="", why="")
+    assert SCHEMA.prose_budget(bare) == SCHEMA.line_max - len(SCHEMA.render(bare))
+    # A dep costs the line, so it costs the prose: the budget is this line's, not the
+    # project's, which is the whole reason a static number could not be right.
+    assert SCHEMA.prose_budget(task(deps=(Dep("RK9"),))) < SCHEMA.prose_budget(task())
+
+
+def test_a_symptom_over_its_own_limit_takes_nothing_from_the_why():
+    # Otherwise one overrun is reported as two, and the author cuts a sentence that was
+    # never over: the symptom is refused as itself and the why keeps its own limit.
+    codes = {v.code for v in SCHEMA.validate(task(symptom="x" * 200, why="y" * 150 + "."))}
+    assert codes == {"symptom.too-long"}
+
+
+def test_a_why_inside_its_derived_budget_always_fits_the_line():
+    # The property the derivation buys, and the whole of RK183: the rendered length is the
+    # structure plus the two fields, so a `why` written to the number it was given cannot
+    # be refused by the line. Across symptom lengths, dep counts and a narrower line —
+    # the three things that move the structure — there is no pair that obeys and fails.
+    for schema in (SCHEMA, replace(SCHEMA, line_max=200)):
+        for symptom_len in (1, 60, 120):
+            for deps in ((), (Dep("RK9"),), (Dep("RK9"), Dep("RK8"))):
+                probe = task(symptom="x" * symptom_len, deps=deps)
+                filled = replace(probe, why="y" * (schema.why_budget(probe) - 1) + ".")
+                assert len(schema.render(filled)) <= schema.line_max
+                assert schema.validate(filled) == ()
+
+
+def test_a_line_with_no_prose_to_blame_is_still_the_lines_own_refusal():
+    # What `line.too-long` is left to catch, and it is not a limit an author can fail: a
+    # line whose structure alone is over, with no sentence the surplus could come out of.
+    narrow = replace(SCHEMA, line_max=20)
+    codes = {v.code for v in narrow.validate(task(why=""))}
+    assert codes == {"why.empty", "line.too-long"}
 
 
 # -- one sentence ----------------------------------------------------------
@@ -326,7 +374,9 @@ def test_check_raises_with_every_violation_not_the_first():
     with pytest.raises(SchemaError) as caught:
         SCHEMA.check(broken)
     codes = {v.code for v in caught.value.violations}
-    assert codes == {"id.format", "status.shipped", "symptom.too-long", "line.too-long"}
+    # Not `line.too-long`: the symptom is what is over, and the same overrun reported
+    # twice is one defect with two numbers (RK183).
+    assert codes == {"id.format", "status.shipped", "symptom.too-long"}
 
 
 def test_check_returns_the_task_when_it_conforms():

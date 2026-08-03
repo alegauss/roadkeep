@@ -178,7 +178,10 @@ def test_a_second_sentence_is_found_in_a_file_add_never_saw(tmp_path):
 def test_an_over_length_line_names_the_limit(tmp_path):
     padded = CLEAN.replace("Because of a reason.", "Because of " + "a long reason " * 20)
     report = lint(project(tmp_path, roadmap=padded))
-    assert {"why.too-long", "line.too-long"} <= set(codes(report))
+    # One finding for one overrun (RK183): the `why` carries the line's own limit, so
+    # `line.too-long` beside it would be the same characters counted a second way.
+    assert "why.too-long" in codes(report)
+    assert "line.too-long" not in codes(report)
 
 
 def test_a_shipped_marker_in_the_roadmap_fails(tmp_path):

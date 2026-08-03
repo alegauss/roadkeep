@@ -316,7 +316,20 @@ TOOL_NAMES = frozenset(tool.argv_head[0] for tool in TOOLS)
 #: client validates against are read from the same `roadkeep.toml` (L6).
 _BOUNDS = {
     "symptom": lambda config: {"maxLength": config.schema.symptom_max},
-    "why": lambda config: {"maxLength": config.schema.why_max},
+    # `maxLength` is the field's own ceiling and not the one that binds (RK183): the line
+    # is, and how much of it this field has left depends on the symptom and the deps of the
+    # call being composed, which no static number can state. So the ceiling is published as
+    # what it is, and the joint rule is said in words beside it — a lower number here would
+    # refuse on the client a line the server accepts, which is a bound on the client.
+    "why": lambda config: {
+        "maxLength": config.schema.why_max,
+        "note": (
+            f"The binding limit is the rendered line ({config.schema.line_max}), which "
+            f"this sentence shares with the symptom and with the line's own structure, so "
+            f"the usable maximum is lower than {config.schema.why_max} and lower again "
+            f"where the line carries deps; the refusal names what was left."
+        ),
+    },
     "status": lambda config: {"enum": list(config.schema.markers)},
     "id": lambda config: {"pattern": config.schema.id_pattern().pattern},
     # Not `id_pattern` (RK111): this is the *chosen* id, and the shape that admits a bare
@@ -378,8 +391,14 @@ def _property(
     action: argparse.Action, config: Config, bounds_for: Mapping[str, Any] = _BOUNDS
 ) -> dict[str, Any]:
     """One argparse argument, as the JSON Schema a client validates before calling."""
-    bounds = bounds_for.get(action.dest, lambda _: {})(config)
-    described = {"description": (action.help or "").strip()}
+    bounds = dict(bounds_for.get(action.dest, lambda _: {})(config))
+    # A bound the schema has no keyword for. `maxLength` says how long the field may be and
+    # cannot say what else the length depends on, so the part that is a *joint* rule is
+    # appended to the sentence the CLI already prints for the flag rather than dropped.
+    note = bounds.pop("note", "")
+    described = {
+        "description": " ".join(part for part in ((action.help or "").strip(), note) if part)
+    }
     if isinstance(action, argparse._StoreTrueAction):  # noqa: SLF001
         return {"type": "boolean", **described}
     if isinstance(action, argparse._AppendAction):  # noqa: SLF001

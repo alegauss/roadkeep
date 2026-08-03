@@ -200,7 +200,9 @@ def test_a_fix_that_would_break_the_line_is_kept_and_reported(tmp_path):
     config = project(tmp_path, roadmap=CLEAN.replace("(deps: RK1 ✅)", "(deps: RK1)"), config=tight)
     applied = fix(config)
     assert applied.repairs == () and len(applied.skipped) == 1
-    assert "line.too-long" in applied.skipped[0].reason
+    # The line's own limit, reported on the field that would have to absorb it (RK183).
+    assert "why.too-long" in applied.skipped[0].reason
+    assert "limit of 74" in applied.skipped[0].reason
     assert "(deps: RK1)" in roadmap_of(config)
 
 

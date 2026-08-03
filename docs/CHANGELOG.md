@@ -33,6 +33,7 @@
 - ✅ **RK121** **A task delivered in halves has no representation, so the corpus invents one the grammar cannot read** — A ledger entry may carry the qualifier the corpus already writes, and `ship --part` is the verb that sets it and the later `ship` that removes it.
 - ✅ **RK131** **The check that a transaction's files have not moved is taken before writes that take it again** — A transaction renders every file to a scratch name, then checks all of its targets, then renames them, so a writer landing between the check and the last write is caught before anything has landed.
 - 🗑 **RK133** **Every part of a split delivery carries the base id, so a four-step ship is four contradictions** — abandoned: Shio answered it by minting one id per step (SH366-SH371, each qualifier naming its parent), so the six findings were correct and the pinned ledger now states no id twice.
+- ✅ **RK183** **The two field limits sum to the line limit, so a line obeying both is refused by the third** — The why is held to the smaller of its own limit and what the line has left after its structure and symptom, so no pair obeying the published numbers is refused by a third.
 
 ## Block B — Authoring
 
