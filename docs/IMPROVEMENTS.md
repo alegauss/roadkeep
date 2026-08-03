@@ -100,6 +100,97 @@ overrun would be back to guessing, with a smaller number to guess against.
 
 ## Block B — Authoring
 
+### §RK229 The guess the ship stopped making
+
+RK196 taught `ship` to resolve an anchor across the declared prose roles and to report
+the file it actually wrote. `defer` was not in that commit and is the same sentence one
+verb over: it deletes nothing, so no prose is lost, but it prints `carried §X.1 kept in
+IMPROVEMENTS.md` for a section `docs/STRATEGY.md` holds.
+
+Narrower than RK196 by exactly one thing — there is no write to send to the wrong file,
+so this is a report that misdirects a reader rather than a transaction that misses one.
+It is still the one line in the answer whose job is to say where the design stayed, and
+RK96's whole argument for carrying the section is that a reader can go and find it.
+
+What it needs is not `ship`'s resolution: `pause.carried` is a string derived from the
+pointer and never a document, so the role has to be resolved somewhere. Either
+`deferring` answers it and carries the role beside the anchor, as `Departure.prose` now
+does, or the CLI asks — and the second is the shape RK196 argued against, a caller
+restating a rule the writer already applied.
+
+`resume` is worth reading in the same pass. It is the return direction and reports the
+section coming back; whether it names a file, and which, is the same question with the
+arrow reversed.
+
+### §RK230 One transaction, or the pointer RK93 closed
+
+RK93's argument is that a line and the design it points at are one write: given
+separately, the roadmap gains a pointer resolving to nothing and the author learns the
+follow-up from the gate, which is the inversion L1 exists to prevent. `--section` is
+that transaction.
+
+It writes to `improvements` and to nothing else. On a project declaring only `strategy`
+— legal under L6, and the shape RK172, RK186, RK196 and RK197 each taught one more
+reader about — the call is refused with `NoProseFile` and the only route left is `add`
+then `section add --role strategy`, which is the two-command shape RK93 was filed
+against. So the door exists and the projects that most need it cannot reach it.
+
+RK197 already resolved the *follow-up*: it names `--role strategy` where that is the
+role a section would go into, which means the answer to "which role" is now computed and
+this verb could ask the same question. That is the cheap version.
+
+What needs deciding is whether `--section` should take a role at all. `add` deriving it
+matches every other placement in this tool, and a project declaring both roles has a
+real choice that only the author can make — while a flag on `add` is a second place the
+role can be said, and `section add --role` is already the first.
+
+### §RK231 RK123's deadlock, for work that was set aside
+
+Found by a test written for RK215 that failed for the wrong reason, which is why it is
+filed rather than described: the refusal is reproducible, and it arrives before the
+check the test was about.
+
+`section amend` validates through `_check`, which asks `_task_for` whether an id-shaped
+anchor names an open task. That function reads `config.document("roadmap")` and nothing
+else, so a task in the deferred store is not open by its reading — and the refusal says
+*no open task RK1 points at this section: add the line first*, about a line that exists,
+in the file `resume` restores from.
+
+The state is one the tool creates on purpose. RK96's argument for the store is that a
+pause keeps the id, the deps, the symptom **and the section** a departure deletes, so
+the section is live work's design. Correcting it is the ordinary case RK123 opened this
+verb for: a paused design is at least as likely to go stale as an open one, nothing
+being written against it.
+
+Which makes this RK123's deadlock displaced. `drop` refuses while a pointer claims the
+anchor, that pointer is in the store, `amend` refuses because it reads a different file
+than the pointer lives in, and the guard denies the `Edit`.
+
+The fix looks like RK215's for the neighbouring question: ask both live roles, which is
+what the gate reads and what `_pointed_at` now asks. Worth deciding with it whether
+`anchor.unknown` should tell *paused* from *absent*.
+
+### §RK232 The corner RK215 left, named by the commit that left it
+
+RK215's claim is that the writer charges a section exactly what the gate charges it, and
+the scope of that claim is one condition short. `lint` builds its `pointed` set from
+refs whose anchor **one** prose role declares — an anchor two files declare is charged
+as pointed at by nobody, because which of the two a line meant is what `ref.ambiguous`
+asks the author, and billing one of them the other's subtree is the silent half of that
+defect. `_pointed_at` does not ask, so on such an anchor the writer charges the subtree
+and the gate charges the prose.
+
+Filed as an idea because the first thing it needs is a reason to exist. The state is
+narrow: an anchor declared in both the improvements and the strategy file, pointed at,
+and over the limit only with its subtree. `lint` already reports `ref.ambiguous` there,
+so the file is not clean and the author has a finding naming the real problem — which is
+an argument that this disagreement is unreachable in any tree somebody is working in.
+
+Against that: RK215's whole finding was a writer refusing a state the gate calls clean,
+and "narrow" was the reason nobody had counted it. The honest version of this task is
+the count — does any corpus carry an anchor two prose roles declare? — and then either
+the condition, or a `retire` naming the measurement, as RK195 did.
+
 ## Block C — Query
 
 ### §RK200 The record with no way to read it

@@ -26,6 +26,11 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK229** (deps: —) **`defer` reports the carried design as kept in a file it never asked declares it** — `pause.carried` is the anchor alone, so the CLI prints the improvements path beside it — the assumption RK196 removed from the ship, still made by the door that keeps a section. → §RK229
+- 📋 **RK230** (deps: —) **`add --section` cannot write into the only prose file a project declares** — `_with_section` names the improvements role outright, so a project declaring strategy alone is refused `NoProseFile` and left with the two commands and the dangling pointer RK93 removed. → §RK230
+- 📋 **RK231** (deps: —) **A paused task's rationale cannot be corrected, the door refusing it as prose nothing owns** — `_task_for` reads the roadmap alone, so `section amend RK1` on a deferred line answers `anchor.unknown` — no open task points at the section RK96 deliberately kept for it. → §RK231
+- 💭 **RK232** (deps: —) **Writer and gate part company again on an anchor two prose files declare** — `_pointed_at` asks only whether a line names the anchor, while `lint` charges own prose where two roles declare one — so RK215's agreement holds everywhere except the state `ref.ambiguous` reports. → §RK232
+
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK200** (deps: —) **Which governed files no verb wrote is answerable only by trying to end the turn** — RK175 records a digest per write and states one change once at the `Stop` hook, so the only way to ask is to be blocked — and it re-baselines as it reports, so the fact is gone. → §RK200
