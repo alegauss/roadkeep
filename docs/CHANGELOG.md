@@ -164,6 +164,7 @@
 - ✅ **RK213** **A gate whose answer turns on whether an ignored build directory happens to be on this machine** — The gate asks git check-ignore before reporting a path, so a build output the repository declared untracked answers the same on every machine.
 - ✅ **RK220** **One path that escapes the repository disables the ignore check for every other path in the ledger** — A spelling that climbs above the root is left out of the ignore batch, so one such path no longer disables the check for every other path in the file.
 - ✅ **RK217** **Deleting a whole tracked directory silences the check that exists to notice a deleted artefact** — A path claim is decided against the directories the repository tracks rather than against this disk, so deleting a directory reports what deleting one file already did.
+- ✅ **RK218** **The same revision answers two different things about a path depending on an untracked working file** — A run naming a revision asks git for both a file and a directory and never asks this disk, so an untracked file created since the ref stops silencing the revision's own finding.
 
 ## Block E — Adoption
 

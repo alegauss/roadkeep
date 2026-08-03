@@ -320,6 +320,29 @@ class Tree:
             )
         return self._names
 
+    def holds(self, token: str, near: Path, on_disk: bool) -> bool:
+        """Does the tree this run is judging have what this token names? (RK84, RK218)
+
+        The working tree answers from the disk, which is its subject. A revision answers
+        from git, and from **both** shapes a token can name: a file is a tracked path, and
+        a directory is a prefix of one — `docs`, `create-shio-app` and thirty-three more
+        across the two pins are named as directories and were only ever admitted because
+        they happened to be on somebody's disk.
+
+        `exists` is a fact about *now*, so a run naming a revision may not consult it: an
+        untracked file created since the ref, which git has never seen, used to silence a
+        finding that revision genuinely had.
+        """
+        if self.rev is None:
+            return on_disk
+        if self.carries(token, near):
+            return True
+        directories = self.directories() or frozenset()
+        return any(
+            self.config.relative(base / token) in directories
+            for base in (near, self.config.root)
+        )
+
     def directories(self) -> frozenset[str] | None:
         """Which directories this repository knows, for deciding a claim (RK217).
 
@@ -1494,6 +1517,14 @@ def _paths(config: Config, documents: dict[str, Document], tree: Tree) -> list[F
     governed files, so an artefact deleted since the ref would otherwise be missing in both
     runs and forgiven — and a rename the ledger did not follow is precisely the true finding
     this check produced on the corpus that motivated it.
+
+    **And the working tree is then not a reader at all** (RK218). Half of that resolution
+    moved and half did not: `carries` and `anywhere` asked git at the ref while
+    `referenced.exists` still asked this disk, so a file created since the ref — untracked,
+    never committed, invisible to git — silenced a finding the revision genuinely had. The
+    same commit answered two ways depending on somebody's scratch file. So at a revision the
+    filesystem is skipped outright rather than corrected: `exists` is a fact about now, and
+    a run that names a revision is not asking about now.
     """
     document = documents.get("changelog")
     if document is None:
@@ -1509,8 +1540,7 @@ def _paths(config: Config, documents: dict[str, Document], tree: Tree) -> list[F
         referenced.path
         for entry in document.entries
         for referenced in paths_in(entry.raw, config.root, near=near, known=known)
-        if not referenced.exists
-        and not tree.carries(referenced.path, near)
+        if not tree.holds(referenced.path, near, referenced.exists)
         and not tree.anywhere(referenced.path)
     ]
     untracked = tree.declared_untracked([(token, near) for token in candidates])
@@ -1526,8 +1556,9 @@ def _paths(config: Config, documents: dict[str, Document], tree: Tree) -> list[F
         # `near` is the ledger's own directory (RK51): a link written the way Markdown
         # reads it points at a file that is there, and 886 of Shio's are written that way.
         for referenced in paths_in(entry.raw, config.root, near=near, known=known)
-        if not referenced.exists
-        and not tree.carries(referenced.path, near)
+        # Whichever tree this run is judging, asked its own way (RK218): the disk for the
+        # working tree, and git — file *and* directory — for a revision.
+        if not tree.holds(referenced.path, near, referenced.exists)
         # And not somewhere else in the repository under a prefix the entry did not write
         # (RK173): a path relative to the module it is about is not a path that is wrong.
         and not tree.anywhere(referenced.path)

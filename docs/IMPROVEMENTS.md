@@ -287,29 +287,6 @@ and may not need a second.
 
 ## Block D — The gate
 
-### §RK218 Half a revision
-
-RK84's whole claim is that a baseline run judges the governed files **as they were**, so
-a repository with standing debt gets an exit code about its own commit. `path.missing`
-is the one check whose subject is outside those files, and RK210 moved half of it to the
-revision: `carries` and `anywhere` ask git at the ref.
-
-The other half never moved. `paths_in(entry.raw, config.root, near=near)` resolves
-against `config.root` — this disk, now — so `referenced.exists` and RK55's directory
-test answer about the working tree whatever revision the run names.
-
-Demonstrated on a fixture with one commit and no second one: `lint --at HEAD` reports
-`lib/later.py` missing, then reports nothing once that file exists, with the revision
-unchanged and the file untracked. The same commit, two verdicts, decided by a file git
-has never seen.
-
-It bites `--baseline` (RK84) rather than `--at` (RK210), because that is the shipped
-surface: the debt a run forgives is computed from a revision half-read, so an artefact
-created since the ref quietly forgives a finding that revision really had.
-
-The fix is where the resolution happens rather than what it asks: `paths_in` takes a
-root and the tree takes a rev, and the two have to be the same tree.
-
 ### §RK219 A memo whose key is the call order
 
 `Tree` caches three things and two of them are keyed by what they are about: `_blobs` by

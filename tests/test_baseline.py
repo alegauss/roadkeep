@@ -594,3 +594,72 @@ def test_a_checkout_with_no_history_keeps_the_filesystem_answer(tmp_path):
     (tmp_path / "docs" / "specs").mkdir(parents=True)
     write(tmp_path, "CHANGELOG.md", naming("docs/specs/absent.md"))
     assert paths(lint(config)) == ["path.missing RK5"]
+
+
+def test_a_revision_is_judged_without_asking_this_disk_about_a_path(tmp_path):
+    """RK218: half the resolution moved to the revision and half did not.
+
+    `carries` and `anywhere` asked git at the ref while `referenced.exists` still asked
+    this disk, so a file created since the ref — untracked, never committed, invisible to
+    git — silenced a finding the revision genuinely had. The same commit, two verdicts,
+    decided by somebody's scratch file.
+    """
+    config = repo(tmp_path, files={"lib/kept.py": "x = 1\n"})
+    write(tmp_path, "CHANGELOG.md", naming("lib/later.py"))
+    git(tmp_path, "add", "-A")
+    git(tmp_path, "commit", "--quiet", "-m", "docs: name a file that is not there yet")
+    assert paths(lint(config, at="HEAD")) == ["path.missing RK5"]
+
+    write(tmp_path, "lib/later.py", "z = 3\n")  # untracked: git has never seen it
+    assert paths(lint(config, at="HEAD")) == ["path.missing RK5"]
+    # And the working tree run does still read the working tree, which is its subject.
+    assert paths(lint(config)) == []
+
+
+def test_the_revision_s_own_debt_is_seen_even_where_this_tree_has_the_file(tmp_path):
+    """Why it bites `--baseline` (RK84) rather than `--at`: the debt is computed from the
+    revision, and a revision half-read simply did not have the finding to compare against.
+
+    With both ends at the ref the revision's debt is visible, so creating the file here
+    reads as **resolved** — this tree fixed something — rather than as a revision that was
+    always clean. Two different sentences about the same pair of trees, and only one of
+    them is true."""
+    config = repo(tmp_path, files={"lib/kept.py": "x = 1\n"})
+    write(tmp_path, "CHANGELOG.md", naming("lib/later.py"))
+    git(tmp_path, "add", "-A")
+    git(tmp_path, "commit", "--quiet", "-m", "docs: name a file that is not there yet")
+    write(tmp_path, "lib/later.py", "z = 3\n")
+    report = lint(config, baseline="HEAD")
+    # Standing debt, named and forgiven — not a finding this working tree added.
+    assert paths(report) == []
+    assert "path.missing" in [f.code for f in report.baseline.resolved]
+
+
+def test_a_directory_the_revision_tracked_is_held_by_it_too(tmp_path):
+    """The regression the first attempt caused, and why `holds` asks git both shapes.
+
+    Skipping the disk at a revision is only half the move: a token can name a *directory*,
+    and `carries` compares against a listing of files, so `docs`, `create-shio-app` and
+    thirty-three more across the two pins turned into findings the moment the disk stopped
+    answering for them. They were never on the strength of the repository — only of
+    somebody's checkout.
+    """
+    config = repo(tmp_path, files={"lib/kept.py": "x = 1\n"})
+    write(tmp_path, "CHANGELOG.md", naming("lib"))
+    git(tmp_path, "add", "-A")
+    git(tmp_path, "commit", "--quiet", "-m", "docs: name the directory")
+    shutil.rmtree(tmp_path / "lib")  # the disk cannot answer; the revision still can
+    assert paths(lint(config, at="HEAD")) == []
+
+
+def test_a_token_that_is_only_separators_names_no_artefact(tmp_path):
+    """Unmasked by RK218 rather than caused by it: two of Turing's entries quote a bare
+    backslash as a character, and on Windows that *resolves* — to the drive root — so it
+    read as a path the repository has for as long as the disk was the reader. What a token
+    resolves to may not depend on the platform running the gate."""
+    config = repo(tmp_path, files={"lib/kept.py": "x = 1\n"})
+    write(tmp_path, "CHANGELOG.md", naming("\\"))
+    git(tmp_path, "add", "-A")
+    git(tmp_path, "commit", "--quiet", "-m", "docs: quote a backslash")
+    assert paths(lint(config)) == []
+    assert paths(lint(config, at="HEAD")) == []

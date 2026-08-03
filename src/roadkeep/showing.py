@@ -50,6 +50,12 @@ _UNRESOLVABLE = re.compile(r"[*…<]|^@")
 #: (RK173): `scripts/prerender.mjs#L35`, `#L12-L20`. Two of Turing's eight `path.missing`
 #: findings were this and nothing else — a token quoted the way GitHub spells a citation.
 _LINE_ANCHOR = re.compile(r"#L\d+(?:-L?\d+)?$")
+#: A token made of nothing but separators and dots names no artefact — a lone `\` quoted
+#: as a character, `./`, `..`. Two of Turing's ledger entries quote one, and on Windows a
+#: bare backslash *resolves*, to the drive root, so it read as a path the repository has
+#: until RK218 stopped asking the disk about a revision. Refused rather than resolved,
+#: because what it resolves to depends on the platform running the gate.
+_SEPARATORS_ONLY = re.compile(r"^[\\/.]+$")
 
 
 class NoSuchTask(KeyError):
@@ -225,7 +231,7 @@ def paths_in(
             # Both are slash-shaped, so without this they read as claims about a file
             # that is missing — four of them on one line, in RK25's own text.
             continue
-        if _UNRESOLVABLE.search(token):
+        if _UNRESOLVABLE.search(token) or _SEPARATORS_ONLY.match(token):
             # Nothing on disk can settle it either way, so there is no question to ask.
             continue
         exists = _resolves(token, root, near)

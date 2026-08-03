@@ -40,7 +40,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK218** (deps: —) **The same revision answers two different things about a path depending on an untracked working file** — RK84 reads the governed files at the revision and the path check still asks this disk, so creating the file a shipped line names makes the baseline half report the revision clean. → §RK218
 - 💭 **RK219** (deps: —) **A cache on the tree answers whichever question it was asked first, and its key is nothing** — declared_untracked stores the first token list's answer and returns it for every later one, which is correct only because one caller asks once — a fact no reader of that method can see. → §RK219
 
 ## Block E — Adoption
