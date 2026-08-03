@@ -483,26 +483,3 @@ tool was given (L2), so it is named there for the same reason. The wider one is 
 git configuration and should stay a flag rather than a default.
 
 ## Block F — The plugin
-
-### §RK202 The last build, and whether it is buying anything
-
-RK174 took `tools/list` from 58 builds to one; RK198 took `tools/call` from three to
-one. What is left is the one build each message makes, 3.2ms of a 5.0ms call, and the
-reason it is not zero is a sentence in `_parsers`: a parser held across messages would
-stop a config edited mid-session from being described.
-
-That sentence is worth checking rather than inheriting. `build_parser` is a function of
-`cli.py` and nothing else — the config reaches the schema through `descriptor`, which
-reads `roadkeep.toml` per call and applies `_BOUNDS` to a parser it was handed. If the
-parser carries no configured value, then holding one for the life of the process
-describes exactly what rebuilding it describes, and the claim it was protecting is
-protected by the config read that is already per-message.
-
-Two things a memo would break if it is wrong, and both are why this is an idea and not a
-plan. RK155 reports code that moved after it was imported, and a parser built once at
-startup is one more thing that predates a change on disk. And RK177 now sends
-`notifications/tools/list_changed` off a config stat — a memoised parser and a live
-config is precisely the pair that can disagree.
-
-So: count what a parser holds from the config, and only then decide. 3.2ms a message is
-a small prize for a cache that can be wrong about which code answered.

@@ -56,8 +56,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 💭 **RK202** (deps: —) **The CLI parser is a pure function of the code and is rebuilt for every message** — RK198 left one build at 3.2ms of a 5.0ms call, and whether holding it across messages would stop a mid-session config edit being described was argued rather than counted. → §RK202
-
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:

@@ -416,12 +416,14 @@ def test_listing_the_tools_builds_the_parser_once(monkeypatch):
         return original()
 
     monkeypatch.setattr(cli, "build_parser", counted)
+    serving._root.cache_clear()
     assert len(descriptors(Config.default())) == len(TOOLS)
     assert builds == 1
-    # And nothing is kept between calls: `mcp` re-reads the config per message on purpose, so
-    # a memoised parser is what would stop a mid-session `[ids] suffix` from being described.
+    # And nothing after it: what stopped a mid-session `[ids] suffix` from being described
+    # was never the parser, which holds no configured value at all, but the config read that
+    # is still per message (RK202) — asserted below rather than argued here.
     descriptors(Config.default())
-    assert builds == 2
+    assert builds == 1
 
 
 def test_the_two_reads_a_claim_was_split_off_from_stay_free_to_ask(tmp_path):
@@ -1076,11 +1078,15 @@ def test_the_capability_is_declared_wherever_the_notification_can_be_sent():
     assert handshake["result"]["capabilities"]["tools"]["listChanged"] is True
 
 
-# -- one parser per call (RK198) ---------------------------------------------
+# -- one parser, per call and then per process (RK198, RK202) ----------------
 
 
 def _builds(monkeypatch) -> list[int]:
-    """A counter on `build_parser`, which is the only thing the cost is made of."""
+    """A counter on `build_parser`, which is the only thing the cost is made of.
+
+    The cache is cleared first: it lives for the process, and a test asking "how many builds
+    does this call make" is asking about a cold one.
+    """
     counted = [0]
     real = cli.build_parser
 
@@ -1089,6 +1095,8 @@ def _builds(monkeypatch) -> list[int]:
         return real()
 
     monkeypatch.setattr(cli, "build_parser", build)
+    serving._root.cache_clear()
+    monkeypatch.setattr(serving._root, "cache_clear", lambda: None, raising=False)
     return counted
 
 
@@ -1097,13 +1105,59 @@ def _builds(monkeypatch) -> list[int]:
     [("list", {"block": "A"}), ("brief", {}), ("add", {"block": "A"})],
 )
 def test_a_tool_call_builds_the_parser_once(tmp_path, monkeypatch, name, arguments):
-    # Three, before this: `argv` resolved the subcommand for the actions, `_companioned`
+    # Three, before RK198: `argv` resolved the subcommand for the actions, `_companioned`
     # resolved it again through `prose_of`, and `call` built a third to parse the argv it
     # had just rendered. Reaching one subcommand builds the whole CLI, so each cost the lot.
     project(tmp_path, config=PROSE, improvements=DESIGN)
     counted = _builds(monkeypatch)
     call(tool_named(name), arguments, str(tmp_path))
     assert counted[0] == 1
+
+
+def test_a_second_call_builds_nothing(tmp_path, monkeypatch):
+    # RK202's own claim: the parser is a pure function of `cli.py`, so a session making
+    # twenty writes builds it once and not twenty times.
+    project(tmp_path, config=PROSE, improvements=DESIGN)
+    counted = _builds(monkeypatch)
+    for _ in range(5):
+        call(tool_named("list"), {"block": "A"}, str(tmp_path))
+    descriptors(Config.discover(tmp_path))
+    assert counted[0] == 1
+
+
+def test_the_parser_holds_nothing_the_config_declares(tmp_path, monkeypatch):
+    """Why holding one is safe, counted rather than argued (RK202).
+
+    `_parsers` used to say a cached parser would stop a mid-session config edit from being
+    described. Two builds under two different `roadkeep.toml` files are identical action for
+    action — every configured value reaches a descriptor through `_BOUNDS`, off a config
+    this server re-reads per message.
+    """
+    def shape(parser):
+        return [
+            (path, action.dest, action.help, tuple(action.option_strings), repr(action.default))
+            for path, sub in sorted(serving._parsers(parser).items())
+            for action in sub._actions  # noqa: SLF001 - argparse exposes no public reader
+        ]
+
+    monkeypatch.chdir(project(tmp_path, config=PROSE, improvements=DESIGN))
+    lean = shape(cli.build_parser())
+    (tmp_path / "roadkeep.toml").write_text(SUFFIXED + "[limits]\nwhy = 400\n", encoding="utf-8")
+    assert shape(cli.build_parser()) == lean
+
+
+def test_a_shared_parser_is_not_changed_by_using_it(tmp_path):
+    # The one assumption the cache makes. `parse_args` builds a Namespace and the readers
+    # read; if any of them ever wrote to an action, every later call would inherit it.
+    root = project(tmp_path, config=PROSE, improvements=DESIGN)
+    config = Config.discover(root)
+    parser = serving._root()
+    before = [(a.dest, repr(a.default), a.required) for a in parser._actions]  # noqa: SLF001
+    for _ in range(3):
+        parser.parse_args(["-C", str(root), "list", "--json"])
+    descriptors(config)
+    argv(tool_named("list"), {"block": "A"}, config)
+    assert [(a.dest, repr(a.default), a.required) for a in parser._actions] == before  # noqa: SLF001
 
 
 def test_a_refused_argument_still_builds_the_parser_once(tmp_path, monkeypatch):
@@ -1115,7 +1169,8 @@ def test_a_refused_argument_still_builds_the_parser_once(tmp_path, monkeypatch):
 
 
 def test_the_whole_tool_list_still_builds_it_once(tmp_path, monkeypatch):
-    # RK174's own guarantee, held here because RK198 changed how `_parsers` gets its root.
+    # RK174's own guarantee, held here because RK198 and RK202 both changed how `_parsers`
+    # gets its root.
     counted = _builds(monkeypatch)
     descriptors(Config.discover(project(tmp_path)))
     assert counted[0] == 1
@@ -1143,7 +1198,6 @@ def test_the_lookups_answer_the_same_with_an_index_and_without(tmp_path):
     parsers = serving._parsers()
     for tool in TOOLS:
         assert serving.prose_of(tool.command, parsers) == serving.prose_of(tool.command)
-        assert serving._subparser(tool.command, parsers) is not serving._subparser(tool.command)
     assert argv(tool_named("list"), {"block": "A"}, config, parsers) == argv(
         tool_named("list"), {"block": "A"}, config
     )

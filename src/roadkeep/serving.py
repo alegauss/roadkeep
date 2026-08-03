@@ -65,6 +65,7 @@ import re
 import sys
 from collections.abc import Iterator, Mapping, Sequence
 from dataclasses import dataclass, field
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, TextIO
 
@@ -411,10 +412,34 @@ def _action(parser: argparse.ArgumentParser, dest: str) -> argparse.Action:
     raise KeyError(f"{parser.prog} declares no {dest!r}")
 
 
+@lru_cache(maxsize=1)
+def _root() -> argparse.ArgumentParser:
+    """The CLI parser, built once for the life of this process (RK202).
+
+    RK174 and RK198 each removed a rebuild and left the last one on an argument: that a
+    parser held across messages would stop a `roadkeep.toml` edited mid-session from being
+    described. Counted, that is false. `build_parser` reads no configuration at all — two
+    builds under two different configs on disk are identical action for action — and every
+    configured value reaches a descriptor through `_BOUNDS`, off a config this server
+    re-reads per message. A parser is a pure function of `cli.py`.
+
+    Nor is it staler than what is already here: `cli.py` is imported once, so a parser built
+    from the loaded module cannot describe a file edited after that import whether it is
+    cached or not. RK155 reports that, and reports it the same either way.
+
+    What the cache does assume is that nobody mutates the parser it hands out. Nothing in
+    this package does — `parse_args` builds a Namespace, `descriptor` and `argv` read
+    actions — and `tests/test_serving.py` holds it rather than this sentence.
+    """
+    from roadkeep.cli import build_parser
+
+    return build_parser()
+
+
 def _parsers(
     root: argparse.ArgumentParser | None = None,
 ) -> Mapping[str, argparse.ArgumentParser]:
-    """Every subcommand path in the CLI, indexed by it, off **one** `build_parser` (RK174).
+    """Every subcommand path in the CLI, indexed by it, off **one** parser (RK174).
 
     Reaching one subcommand means building the whole CLI, so a caller with more than one to
     resolve pays that per lookup — 58 builds and 195 ms for the `tools/list` a client sends
@@ -422,16 +447,11 @@ def _parsers(
 
     ``root`` is the parser to index, for the caller that has to keep it anyway (RK198):
     :func:`call` parses the argv it built through the root, so building a second one to
-    index was a third of what a `tools/call` spent.
-
-    Built per call and never memoised: `mcp` re-reads the config per message on purpose, and
-    a parser held across messages is the one thing that would stop a mid-session edit from
-    being described.
+    index was a third of what a `tools/call` spent. Defaulted to :func:`_root`, so the
+    index is walked per call and the parser under it is built per process.
     """
-    from roadkeep.cli import build_parser
-
     if root is None:
-        root = build_parser()
+        root = _root()
     index: dict[str, argparse.ArgumentParser] = {}
 
     def walk(parser: argparse.ArgumentParser, path: str) -> None:
@@ -710,7 +730,7 @@ def call(tool: Tool, arguments: Mapping[str, Any], directory: str = ".") -> Answ
     In-process rather than a subprocess: the tool is already running in one, and a second
     interpreter per call would make an `add` cost more over MCP than over `Bash`.
     """
-    from roadkeep.cli import build_parser, dispatch
+    from roadkeep.cli import dispatch
 
     # Discovered before the argv is built, because which arguments this tool takes is read
     # from it (RK111) — and discovered once, so the call cannot be checked against one config
@@ -722,11 +742,11 @@ def call(tool: Tool, arguments: Mapping[str, Any], directory: str = ".") -> Answ
         # declares and the code does not know is the shape stale code produces, and which
         # build read the config is the fact that turns the puzzle into an instruction.
         return _answered(f"roadkeep: {error} — read by {engine()}", is_error=True)
-    # One build for the whole call (RK198). The argv is rendered through the subcommands and
-    # then parsed through the root they belong to, and until this was threaded each of those
-    # three lookups built the entire CLI — 10.2 ms of a 12.7 ms call, on the path every write
-    # takes. Per call and still never memoised, for the reason `_parsers` gives.
-    root = build_parser()
+    # One build for the whole call (RK198), and then one for the whole process (RK202). The
+    # argv is rendered through the subcommands and parsed through the root they belong to,
+    # and until this was threaded each of those three lookups built the entire CLI — 10.2 ms
+    # of a 12.7 ms call, on the path every write takes.
+    root = _root()
     parsers = _parsers(root)
     try:
         line = argv(tool, arguments, config, parsers)
