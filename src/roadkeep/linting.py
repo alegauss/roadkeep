@@ -103,6 +103,7 @@ from roadkeep.history import (
     resolves,
     touched_since,
     tracked_at,
+    tracked_now,
 )
 from roadkeep.markers import derive
 from roadkeep.schema import PARTIAL, DepKind, Task
@@ -213,6 +214,10 @@ class Tree:
     #: One read per file: `_absent` asks whether it is there and everything else asks what
     #: is in it, which at a revision is two subprocesses for one answer.
     _blobs: dict[Path, bytes | None] = field(default_factory=dict, repr=False)
+    #: Every tail of every tracked path, built once (RK173). Unbuilt until something asks,
+    #: because only one check needs it and a `ls-files` per run of `show` would be a cost
+    #: paid by the callers that never ask about an artefact at all.
+    _tails: frozenset[str] | None = field(default=None, repr=False)
 
     def document(self, role: str) -> Document | None:
         """One governed file under its role's schema, or ``None`` when this tree lacks it."""
@@ -261,6 +266,38 @@ class Tree:
             self.config.relative(base / token) in self._names
             for base in (near, self.config.root)
         )
+
+    def anywhere(self, token: str) -> bool:
+        """Does this tree hold the artefact this token names, under **any** prefix? (RK173)
+
+        A monorepo entry writes the path its reader is standing in — the frontend app, the
+        showcase skill — because that is what a developer pastes from a terminal already
+        inside it. Resolving from the repository root alone reported the difference as a
+        missing file: of Turing's eight `path.missing` findings, six named artefacts the
+        repository has, which is a signal ratio at which the class stops being read. Worse,
+        it points at history — these are shipped entries, so the remedy the wording implies
+        is editing what already happened.
+
+        The question this check asks is whether the **repository has the artefact** (RK51),
+        so the tail is what answers it, and a rename inside a directory — the one true
+        finding this check has produced on a live corpus — still matches nothing.
+        """
+        if self._tails is None:
+            names = (
+                tracked_now(self.config)
+                if self.rev is None
+                else tracked_at(self.config, self.rev)
+            )
+            self._tails = frozenset(
+                "/".join(segments[start:])
+                for name in names
+                for segments in (name.split("/"),)
+                for start in range(len(segments))
+            )
+        wanted = token.replace("\\", "/")
+        while wanted.startswith("./"):
+            wanted = wanted[2:]
+        return wanted in self._tails
 
 
 @dataclass(frozen=True, slots=True)
@@ -1387,7 +1424,11 @@ def _paths(config: Config, documents: dict[str, Document], tree: Tree) -> list[F
         # `near` is the ledger's own directory (RK51): a link written the way Markdown
         # reads it points at a file that is there, and 886 of Shio's are written that way.
         for referenced in paths_in(entry.raw, config.root, near=near)
-        if not referenced.exists and not tree.carries(referenced.path, near)
+        if not referenced.exists
+        and not tree.carries(referenced.path, near)
+        # And not somewhere else in the repository under a prefix the entry did not write
+        # (RK173): a path relative to the module it is about is not a path that is wrong.
+        and not tree.anywhere(referenced.path)
     ]
 
 

@@ -39,7 +39,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK173** (deps: —) **A path a ledger entry names relative to its own module is reported as not in the repository** — Every path is resolved from the repository root, so Turing's `./package.json` and `scripts/prerender.mjs` are reported missing while both exist under the frontend app the entry is about. → §RK173
 - 📋 **RK182** (deps: —) **The round-trip corpus reads two foreign roadmaps and no foreign ledger, where the wrapped shape lives** — RK157's silent misfiling needed an entry that wraps, and 146 of Shio's 290 do while both roadmaps have none, so the property read every file except the one the defect was in. → §RK182
 
 ## Block E — Adoption

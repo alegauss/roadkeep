@@ -228,6 +228,45 @@ def test_an_artefact_deleted_since_the_revision_is_not_inherited_either(tmp_path
     assert codes(report) == ["path.missing RK5"]
 
 
+def test_a_path_relative_to_the_module_it_is_about_resolves(tmp_path):
+    # RK173, measured adopting Turing: six of eight `path.missing` findings named artefacts
+    # the repository has. A monorepo entry writes the path its reader is standing in — the
+    # frontend app, the showcase skill — because that is what a developer pastes from a
+    # terminal already inside it, and 2 in 8 is a ratio at which the class stops being read.
+    config = repo(
+        tmp_path,
+        files={
+            "frontend/apps/site/package.json": "{}\n",
+            "frontend/apps/site/scripts/prerender.mjs": "//\n",
+        },
+    )
+    write(tmp_path, "CHANGELOG.md", LEDGER.replace(
+        "Because it was done.", "Because `./package.json` runs `scripts/prerender.mjs`."
+    ))
+    assert [f for f in lint(config).findings if f.code == "path.missing"] == []
+
+
+def test_a_line_anchor_is_not_part_of_the_filename(tmp_path):
+    # The separate, smaller and unambiguous half: `#L35` addresses a place inside a file,
+    # which is how GitHub spells a citation and not how anything spells a name.
+    config = repo(tmp_path, files={"src/kept.py": "x = 1\n"})
+    write(tmp_path, "CHANGELOG.md", LEDGER.replace(
+        "Because it was done.", "Because `src/kept.py#L35` says so."
+    ))
+    assert [f for f in lint(config).findings if f.code == "path.missing"] == []
+
+
+def test_an_artefact_in_no_directory_of_the_repository_is_still_reported(tmp_path):
+    # The other side, and the finding this check exists for: a rename inside a directory
+    # matches no tail, so the one true row Shio's 61 findings came down to survives.
+    config = repo(tmp_path, files={"src/main/java/Renamed.java": "//\n"})
+    write(tmp_path, "CHANGELOG.md", LEDGER.replace(
+        "Because it was done.", "Because `src/main/java/Original.java` does it."
+    ))
+    missing = next(f for f in lint(config).findings if f.code == "path.missing")
+    assert missing.id == "RK5" and "Original.java" in missing.message
+
+
 def test_a_path_the_revision_did_not_have_either_is_standing_debt(tmp_path):
     config = repo(tmp_path, files={"src/kept.py": "x = 1\n"})
     write(tmp_path, "CHANGELOG.md", LEDGER.replace(

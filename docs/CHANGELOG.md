@@ -136,6 +136,7 @@
 - ✅ **RK146** **A tab is reported as an invisible character and repaired by nothing, for ever** — A tab in the indentation is the nesting RK49 keeps and is reported by nothing; past it, `char.tab` names the separator and `--fix` writes the space the format meant.
 - ✅ **RK147** **A prose file's own limits are enforced by the gate and ignored by the write that creates the text** — `section add` and `amend` are held to the schema the document was loaded under, so a `[limits.improvements]` declaration binds the write that creates the text and not only the gate.
 - ✅ **RK172** **A pointer resolving to a section in the strategy file is reported as resolving to nothing** — A pointer resolves against every governed prose file and each is orphaned and budgeted by the same rules; an anchor two of them declare is `ref.ambiguous` and is read as neither.
+- ✅ **RK173** **A path a ledger entry names relative to its own module is reported as not in the repository** — A path is satisfied by any tail of a tracked file, so an entry relative to the module it is about resolves, and a `#L35` anchor is stripped before the file is looked for.
 
 ## Block E — Adoption
 

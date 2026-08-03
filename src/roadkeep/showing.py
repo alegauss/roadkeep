@@ -44,6 +44,10 @@ _SCHEME = re.compile(r"^[a-z][a-z0-9+.-]*:")
 #: claim the repository fails — `blueprints/*/files/package.json`, `monaco-editor/esm/vs/…`,
 #: `template/widget/<name>.html`, `@graphiql/react`, four of the eight RK46 measured.
 _UNRESOLVABLE = re.compile(r"[*…<]|^@")
+#: A line anchor, which addresses a place *inside* a file and is not part of its name
+#: (RK173): `scripts/prerender.mjs#L35`, `#L12-L20`. Two of Turing's eight `path.missing`
+#: findings were this and nothing else — a token quoted the way GitHub spells a citation.
+_LINE_ANCHOR = re.compile(r"#L\d+(?:-L?\d+)?$")
 
 
 class NoSuchTask(KeyError):
@@ -152,6 +156,7 @@ def paths_in(text: str, root: Path, *, near: Path | None = None) -> tuple[Refere
         token = (match.group(1) or match.group(2)).rstrip(".,;:")
         if not token or _SCHEME.match(token) or token.startswith("#"):
             continue
+        token = _LINE_ANCHOR.sub("", token)
         if token.startswith("/"):
             # Not this repository: `/roadkeep:add` is a slash command, and an absolute
             # path is wrong on every other machine (which `roadkeep.toml` also refuses).

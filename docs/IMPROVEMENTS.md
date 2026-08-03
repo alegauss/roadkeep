@@ -259,27 +259,6 @@ own construction, the number to report is one build, not fifty-two.
 
 ## Block D — The gate
 
-### §RK173 A path is relative to something, and the root is a guess
-
-Measured adopting Turing. Eight `path.missing` findings, and six name files that are in
-the repository: `./package.json` and `scripts/prerender.mjs` resolve under
-`frontend/apps/site/`, `references/return-policy.md` and `scripts/rma.py` under
-`frontend/apps/showcase/skills/returns-rma/`, and two more carry a `#L35` line anchor
-that is part of a GitHub URL rather than of a filename. Only two are genuinely gone.
-
-A monorepo entry writes the path its reader is standing in — the frontend app, the
-showcase skill — because that is the path a developer pastes from a terminal already
-inside it. The check resolves from the repository root and reports the difference as a
-missing file, so the signal-to-noise is 2 in 8 and the finding class stops being read.
-Worse, it points at history: these are shipped ledger entries, so the remedy the wording
-implies is editing what already happened.
-
-Two candidate fixes, and the cheap one may be enough: treat a path as satisfied when it
-resolves anywhere the repository declares a module root, or let `[paths]` declare the
-roots to try. Stripping a `#L…` anchor before the existence test is separate, smaller
-and unambiguous. Either way the class needs to distinguish "the entry is wrong" from
-"the entry is relative", which today it cannot.
-
 ### §RK182 A property test is only as wide as its corpus
 
 The round-trip property is the tool's ownership test (L3), and it is a property test

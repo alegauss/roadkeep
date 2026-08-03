@@ -296,6 +296,29 @@ def tracked_at(config: Config, rev: str) -> frozenset[str]:
     return frozenset(name for name in output.split("\0") if name)
 
 
+def tracked_now(config: Config) -> frozenset[str]:
+    """Every tracked path the working tree still **has**, as git spells them (RK173).
+
+    :func:`tracked_at`'s answer for the run that has no revision, and asked for the same
+    reason: two processes rather than a walk of the repository or a stat per path, so a
+    check over a ledger naming hundreds of artefacts stays a check rather than a thing
+    nobody runs. Git's own list, so a build directory nobody committed cannot satisfy a
+    claim about the source.
+
+    Minus what git calls deleted, which is the whole reason this is not `ls-files` alone:
+    the index still carries a file removed from the tree and not yet staged, and crediting
+    one would forgive exactly the finding this check exists for — an artefact that was there
+    at the revision and is gone now.
+    """
+    try:
+        listed = _run(config.root, "ls-files", "-z")
+        removed = _run(config.root, "ls-files", "--deleted", "-z")
+    except HistoryUnavailable:
+        return frozenset()
+    gone = {name for name in removed.split("\0") if name}
+    return frozenset(name for name in listed.split("\0") if name and name not in gone)
+
+
 @dataclass(frozen=True, slots=True)
 class Cost:
     """What one commit changed: lines either side, and how many files (RK71).
