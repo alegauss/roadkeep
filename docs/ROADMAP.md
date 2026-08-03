@@ -40,7 +40,6 @@
 
 ## Block D — The gate
 
-- 💭 **RK211** (deps: —) **Every governed write now re-derives two projections and nothing measured what that costs** — RK188 put the refresh inside the transaction, so each write reads the roles it does not hold, runs pick and splices two files, on a tool whose parser build was worth a task of its own. → §RK211
 - 💭 **RK212** (deps: —) **A citation of a shipped design cannot be told from a citation of one that never existed** — as_ledger keeps no pointer, so once a line is in the changelog nothing records which anchor its rationale had, and 37 such references across four trees are unreadable either way. → §RK212
 - 📋 **RK213** (deps: —) **A gate that is green for whoever just built and red for a bare checkout** — lint asks whether the repository has the artefact a line names, and a build output is tracked by nobody, so an adopter's own CI has been failing on a path that is correct. → §RK213
 

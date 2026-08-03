@@ -31,6 +31,7 @@ from roadkeep.document import (
     Document,
     RoundTripError,
     StaleFile,
+    _parsed,
     write_atomically,
 )
 from roadkeep.schema import RETIRED
@@ -956,3 +957,70 @@ def test_a_rewrite_keeps_the_lines_it_cannot_reproduce():
     updated = document.replace_task(entry, replace(entry.task, id="RK9"))
     assert "**RK9**" in updated.lines[2]
     assert updated.lines[3:5] == ("  on a second line, and finishes\n", "  on a third one.\n")
+
+
+# -- one parse per distinct read (RK211) --------------------------------------
+
+#: One open line, which is all these need: the subject is the parse, not the grammar.
+LEDGER_TEXT = "- 📋 **RK1** (deps: —) **A first symptom** — Because of a reason. → §RK1\n"
+
+
+def test_the_same_bytes_are_parsed_once_however_many_times_they_are_read(tmp_path):
+    """The cost RK188 added, measured and then removed where it was duplication.
+
+    A `status` change parses the three counted roles through `Backlog.load`, and the
+    projection in the same transaction parses them again — 9.1 ms of Turing's 17.1 ms
+    refresh, on a file the command had read a millisecond earlier. Nothing about the
+    projection was wrong; the second parse was.
+    """
+    path = tmp_path / "ROADMAP.md"
+    with path.open("w", encoding="utf-8", newline="") as handle:
+        handle.write(LEDGER_TEXT)
+    _parsed.cache_clear()
+    first = Document.load(path)
+    misses = _parsed.cache_info().misses
+    again = Document.load(path)
+    assert _parsed.cache_info().misses == misses  # the second read parsed nothing
+    assert again.entries == first.entries
+
+
+def test_the_bytes_are_read_from_disk_every_time_so_there_is_nothing_to_invalidate(tmp_path):
+    """What makes it a memo and not a cache, and the reason it needs no invalidation.
+
+    The key *is* the text, so a file somebody changed produces a different key. There is no
+    window in which this answers about a file that has moved — which is the property RK116
+    spends a re-read on, and it would be undone by a cache keyed on the path.
+    """
+    path = tmp_path / "ROADMAP.md"
+    with path.open("w", encoding="utf-8", newline="") as handle:
+        handle.write(LEDGER_TEXT)
+    assert len(Document.load(path).entries) == 1
+    with path.open("a", encoding="utf-8", newline="") as handle:
+        handle.write("- 📋 **RK2** (deps: —) **A second symptom** — Because of another. → §RK2\n")
+    assert len(Document.load(path).entries) == 2
+
+
+def test_two_schemas_over_one_file_are_two_parses(tmp_path):
+    """The schema is half the key, because the same bytes are two different documents under
+    two grammars — which is how the reject list is proved (a ledger read under a schema that
+    expects the marker it does not carry), and a memo keyed on text alone would hand the
+    second reader the first one's answer."""
+    ledger = Schema(markers=("📋",)).as_ledger()
+    text = "- ✅ **RK1** **A symptom** — it was done.\n"
+    assert len(Document.parse(text, schema=ledger).entries) == 1
+    marked = Document.load if False else Document.parse
+    assert len(marked(text, schema=Schema()).entries) == 0  # a ✅ no open set declares
+
+
+def test_a_cached_document_is_never_the_one_a_caller_mutates(tmp_path):
+    """Entries are shared between readers, which is only safe because every mutator returns
+    a new document (L3). Held as a test rather than as a comment: the day something edits a
+    document in place, this is the reader that finds out."""
+    path = tmp_path / "ROADMAP.md"
+    with path.open("w", encoding="utf-8", newline="") as handle:
+        handle.write(LEDGER_TEXT)
+    first = Document.load(path)
+    entry = first.entries[0]
+    first.remove_lines(entry.index, entry.stop)
+    assert len(Document.load(path).entries) == 1
+    assert first.path == path and Document.load(path).path == path

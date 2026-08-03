@@ -45,6 +45,7 @@ import re
 import time
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, replace
+from functools import lru_cache
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -60,6 +61,11 @@ if TYPE_CHECKING:  # a name for the annotation only: `config` reads this module,
 #: for a moment, and anything longer than that is a file somebody means to be holding.
 _REPLACE_TRIES = 5
 _REPLACE_PAUSE = 0.05
+
+#: How many distinct (text, schema) parses :func:`_parsed` keeps (RK211). Enough for the
+#: four governed roles a transaction reads plus the state each is about to become; a bigger
+#: number would hold megabytes of somebody else's ledger for no further hit.
+_PARSE_CACHE = 12
 
 #: The bold head, and the qualifier a **partial** entry carries inside it (RK121). Inside
 #: the bold because that is where the corpus already writes it — Shio has seven, from
@@ -376,7 +382,7 @@ class Document:
             text = handle.read()
         # `source` is set here and nowhere else: a document that was read from disk is the
         # only one that can find the disk changed under it (RK116).
-        return replace(cls.parse(text, schema=schema, path=path), source=text)
+        return replace(_parsed(text, schema), path=path, source=text)
 
     def render(self) -> str:
         """The source, exactly. This is what makes L3 a fact rather than a hope."""
@@ -568,6 +574,30 @@ class Document:
         # edited document is exactly the one that needs to know that (RK116). So does
         # `config`, for the same reason — an edited document is the one about to be saved.
         return replace(parsed, path=self.path, source=self.source, config=self.config)
+
+
+@lru_cache(maxsize=_PARSE_CACHE)
+def _parsed(text: str, schema: Schema) -> Document:
+    """One parse per distinct (bytes, schema), because a command reads a file more than once.
+
+    Measured for RK211, on the write that motivated it: a `status` change parses the three
+    counted roles through `Backlog.load`, and the projection RK188 put in the same
+    transaction parses them again — 9.1 ms of Turing's 17.1 ms refresh, on a file the
+    command had already read a millisecond earlier. `pick`, `budget` and `lint` each read
+    the same file two or three ways for the same reason.
+
+    Keyed by the **text**, so the bytes are still read from disk every single time. That is
+    what makes it a memo rather than a cache: a file somebody else changed produces a
+    different key and a fresh parse, so there is no state to invalidate and no window where
+    this answers about a file that has moved (RK116's question is asked of the disk either
+    way). What it costs is hashing the text — 0.1 ms on Turing's 800 KB ledger against the
+    7.3 ms parse it skips.
+
+    Small on purpose. The entries are immutable and shared, which is safe because every
+    mutator returns a new document (L3), but a long-lived process — the MCP server — would
+    otherwise hold every revision of a ledger it ever read.
+    """
+    return Document.parse(text, schema=schema)
 
 
 def write_atomically(target: Path, text: str) -> None:

@@ -287,26 +287,6 @@ and may not need a second.
 
 ## Block D — The gate
 
-### §RK211 A refresh whose price is assumed
-
-RK188 is right that the write which stales the block is the write that owes it, and the
-transaction is the right place. What it did not do is measure the addition. Every `add`,
-`status`, `amend`, `ship`, `defer` and `renumber` now reads the counted roles it is not
-already holding, builds a `Census` for each, runs `pick` over the whole backlog and
-splices two target files — on a repository where building the CLI parser once per
-message rather than once per process was worth RK202.
-
-The costs are not obviously alike. Reading a governed file the transaction does not hold
-is a parse this project already pays elsewhere; `pick` is a graph walk over every open
-line; the splice is two file reads that produce no write on the common path, because
-most writes move no count.
-
-So the number is what decides whether anything is owed here at all. Measure a write on
-this repository's own `docs/` and on the larger of the two pinned corpora, with and
-without the refresh, and read the difference against what a command already costs. If it
-is inside the noise, this line retires with the number in the ledger, which is a better
-outcome than a cache nobody needed.
-
 ### §RK212 The anchor a shipped line stops carrying
 
 RK206 named what `ship` breaks at the moment it breaks it, and that is the half a verb
