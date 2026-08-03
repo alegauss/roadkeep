@@ -77,6 +77,46 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK193 The half RK179 did not reach
+
+RK179 closed `record amend`: a correction on a wrapped entry is refused until `--lines`
+says how many it replaces, and the whole span is then rewritten. The completion path was
+left out of that commit deliberately, as work for an id of its own, and this is it.
+
+`ship <id>` completing a partial replaces the entry in place — dropping the qualifier
+and writing the outcome — through `replace_task`, which reproduces the first line and
+nothing below it. So the same failure: the entry states the whole delivery followed by
+the tail of the half's sentence, and the command reports a completion.
+
+Measured rather than assumed, on the corpus that motivated RK179: **10 of Shio's 12
+partial entries wrap**, so this is the majority case there and not an edge of it. Turing
+has 3 partials and none wraps.
+
+What makes it a separate decision from RK179 and not a copy of it: a completion is not a
+correction. The caller asked to finish work, not to rewrite a sentence, so demanding a
+count is a flag on the wrong verb — and refusing outright would block a legitimate ship
+until the entry is repaired. Which of "refuse and name `record amend`", "take the count
+here too", or "replace the span, the entry being this transaction's own" is right is the
+task.
+
+### §RK195 The same door, on the file the corpus says is clean
+
+`amend` and `restate` rewrite a roadmap line's prose through `replace_task`, which is
+the first line alone. On a wrapped entry that is RK179's defect exactly, one file over.
+
+It is filed as an idea and not as a defect because the measurement says the opposite of
+the ledger's. Both pinned roadmaps carry **0 wrapped entries** — Shio's 48 and Turing's
+37 — against 146 and 3 in their ledgers, and `test_document.py` already asserts that
+zero as a property. The format has no multi-line task line, `add` refuses one, and a
+roadmap is the file this tool governs first, so the population that could hold the shape
+is exactly the adopted backlogs nobody has read yet.
+
+So the work is a count before it is a fix: is there an adoptable roadmap whose lines
+wrap? cursarei and Dumont are on this machine and neither is in `corpora`. If the answer
+is none, the honest outcome is a `retire` naming the measurement, not a guard on a door
+nothing reaches — and RK133 is the precedent for closing a line that way. If the answer
+is some, the fix is RK179's, already written, moved one module over.
+
 ## Block C — Query
 
 ### §RK174 One parser, fifty-two times
@@ -147,6 +187,25 @@ the budget of the line it handed over, which an amend is about to rewrite.
 
 What it must not become is a second statement of the limits: the number is
 `Schema.prose_budget` and nothing else, or this is one more thing to keep true.
+
+### §RK194 A span every writer holds and no reader prints
+
+RK157 gave every entry a span and RK179 made a correction replace it, so the write path
+knows exactly which lines a wrapped entry owns. The read surface does not print them.
+`list` prints `entry.raw`, which is the first line by construction; `show` prints the
+parsed fields, and on a wrapped entry a `why` is only as much of the sentence as fits on
+that line. Neither is wrong about what it shows — both are silent about the rest.
+
+That silence is what makes `--lines` awkward. The refusal names the count, so the caller
+can proceed, but it also says *read them*, and there is no verb that shows them: the
+only route is opening the file, which on Shio is 290 entries to see two lines. L5 is
+exactly this trade — every question is a command, so answering costs no context — and
+here the question is one the parse already answered.
+
+Narrow by construction: the span is `Entry.stop`, held since RK157, and the lines are
+`document.lines`. Whether it belongs on `show` (a field beside `why`), on `list` (which
+would stop being one line per task), or on both under a flag is the decision — as is
+whether the answer is the raw lines or the sentence they join into.
 
 ## Block D — The gate
 
