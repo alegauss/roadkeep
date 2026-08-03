@@ -120,13 +120,13 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 4 | 48 | 0 |
 | C — Query (consult without reading the file) | 1 | 37 | 0 |
 | D — The gate | 0 | 50 | 0 |
-| E — Adoption | 8 | 20 | 1 |
+| E — Adoption | 7 | 21 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 32 | 1 |
-| **Total** | 14 | 212 | 3 |
+| **Total** | 13 | 213 | 3 |
 
 **Next ready:**
 
-- 📋 **RK110** (deps: —) **`adopt` counts the id findings without saying they are one declaration** — The estimate names the prefix delta and the `[markers]` delta but not this one, so measuring `pad = 2` against Dumont's nine findings took the throwaway script the estimate exists to replace. → §RK110
+- 📋 **RK125** (deps: —) **Declaring an unmarked ledger takes a whole verb away, and the refusal offers no way through** — Shio sets [ledger] marker = false so its 234 pre-tool entries parse, and that one line makes retire refuse every id: the adoption that made the file readable disabled a door. → §RK125
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

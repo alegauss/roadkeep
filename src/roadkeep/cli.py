@@ -4057,6 +4057,15 @@ def _adopt(config: Config, args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+#: What each `[ids]` key reads as off the ids themselves, and the condition under which
+#: declaring it is right — the second half being the whole discipline of this line: the
+#: report says what the ids spell and leaves the judgement where it belongs (RK110, L4).
+_ID_SPELLS = {
+    "pad": ("carry a leading zero", "if that width is this backlog's spelling"),
+    "suffix": ("end in a lowercase letter", "if a split here keeps its number"),
+}
+
+
 def _print_estimate(estimate: Estimate) -> None:
     where = estimate.path.as_posix()
     source = " (inferred from the ids)" if estimate.inferred else ""
@@ -4083,6 +4092,15 @@ def _print_estimate(estimate: Estimate) -> None:
                 f"  also     {count} id(s) spell {prefix}, unread here: "
                 f"--prefix {prefix} if it is a track of this backlog"
             )
+    for shape in estimate.id_shape:
+        # Beside the prefix line and in its shape (RK110): a count, and the key that closes
+        # it. The trailing clause is the whole discipline — what the ids spell, never that
+        # the project should therefore declare it.
+        spells, when = _ID_SPELLS[shape.key]
+        print(
+            f"  ids      {shape.count} id(s) {spells}, refused here: "
+            f"[ids] {shape.declaration} {when}"
+        )
     for measure in estimate.measures:
         # Printed even at zero over: the number an adopting project is here for is the
         # *longest*, which is what a limit gets set from, and a measure that appears only
@@ -4127,6 +4145,10 @@ def _estimate_json(estimate: Estimate) -> dict[str, object]:
             for m in estimate.measures
         ],
         "undeclared": [{"marker": m, "count": n} for m, n in estimate.undeclared],
+        "id_shape": [
+            {"key": s.key, "value": s.value, "count": s.count, "declaration": s.declaration}
+            for s in estimate.id_shape
+        ],
         "codes": [{"code": c, "count": n} for c, n in estimate.codes],
         "rejects": [{"reason": r, "count": n} for r, n in estimate.rejects],
         "non_canonical": estimate.non_canonical,

@@ -286,6 +286,65 @@ def test_a_checkbox_backlog_is_counted_and_never_offered_as_a_marker(tmp_path: P
     assert estimate.undeclared == ()
 
 
+#: Dumont's shape and Turing's in one file (RK110): two widths of leading zero, and the one
+#: lowercase letter a split kept. Under a default config all four are `id.format`.
+SHAPED = (
+    "# Roadmap\n\n## Block A\n\n"
+    "- 📋 **D01** (deps: —) **A symptom** — Because of a reason. → §D01\n"
+    "- 📋 **D02** (deps: —) **A symptom** — Because of a reason. → §D02\n"
+    "- 📋 **D003** (deps: —) **A symptom** — Because of a reason. → §D003\n"
+    "- 📋 **D4b** (deps: —) **A symptom** — Because of a reason. → §D4b\n"
+)
+
+
+def test_the_id_findings_are_named_as_the_ids_delta(tmp_path: Path) -> None:
+    """Four `id.format` findings are two unwritten keys, and the estimate says which (RK110).
+
+    Per width and not as one padding fact: a corpus that pads to two *and* to three is one
+    whose width nobody has chosen, and a single line would hide that.
+    """
+    target = tmp_path / "ROADMAP.md"
+    target.write_text(SHAPED, encoding="utf-8")
+    estimate = adopt(Config.default(tmp_path), target, prefix="D")
+    assert dict(estimate.codes)["id.format"] == 4
+    assert [(s.declaration, s.count) for s in estimate.id_shape] == [
+        ("pad = 2", 2),
+        ("pad = 3", 1),
+        ("suffix = true", 1),
+    ]
+
+
+def test_a_declared_id_shape_is_not_reported_as_a_delta(tmp_path: Path) -> None:
+    """The same rule the prefix line has: only what the schema does not already hold."""
+    target = tmp_path / "ROADMAP.md"
+    target.write_text(SHAPED, encoding="utf-8")
+    config = Config.default(tmp_path)
+    declared = replace(config, schema=replace(config.schema, id_pad=2, id_suffix=True))
+    estimate = adopt(declared, target, prefix="D")
+    assert [s.declaration for s in estimate.id_shape] == ["pad = 3"]  # the one still unread
+
+
+def test_the_ids_delta_names_the_key_and_never_proposes_it(tmp_path: Path, capsys) -> None:
+    """Measuring `pad = 2` against nine findings took a throwaway script; now it is a line."""
+    target = tmp_path / "ROADMAP.md"
+    target.write_text(SHAPED, encoding="utf-8")
+    assert main(["-C", str(tmp_path), "adopt", str(target), "--prefix", "D"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "2 id(s) carry a leading zero, refused here: [ids] pad = 2" in out
+    assert "1 id(s) end in a lowercase letter, refused here: [ids] suffix = true" in out
+    # The condition is the whole discipline: what the ids spell, never what to declare (L4).
+    assert "if that width is this backlog's spelling" in out
+
+    assert main(["-C", str(tmp_path), "adopt", str(target), "--prefix", "D", "--json"]) == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["id_shape"][0] == {
+        "key": "pad",
+        "value": "2",
+        "count": 2,
+        "declaration": "pad = 2",
+    }
+
+
 def test_a_length_is_reported_as_a_distance_and_not_a_verdict(tmp_path: Path) -> None:
     """`longest` beside `over`: how many lines change, and whether the limit is close."""
     target = tmp_path / "ROADMAP.md"

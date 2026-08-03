@@ -42,6 +42,7 @@ writes no task while an estimate writes nothing whatsoever.
 
 from __future__ import annotations
 
+import re
 import tomllib
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, replace
@@ -66,6 +67,11 @@ _TITLES = {
 
 #: The fields `adopt` measures against their limits, and where each one is read from.
 _MEASURED = (("symptom", "symptom_max"), ("why", "why_max"), ("line", "line_max"))
+
+#: An id taken apart for the `[ids]` delta (RK110): the digits, and the one lowercase letter
+#: a split keeps. Deliberately looser than any project's own shape — it has to read the ids a
+#: declaration would refuse, those being the ones worth counting.
+_ID_PARTS_RE = re.compile(r"^[A-Za-z]+(?P<number>[0-9]+)(?P<sub>[a-z]?)$")
 
 
 class AlreadyConfigured(ValueError):
@@ -134,6 +140,28 @@ class Measure:
 
 
 @dataclass(frozen=True, slots=True)
+class Shape:
+    """One thing this file's ids spell that `[ids]` can declare, and how many spell it (RK110).
+
+    The same shape the prefix delta and `undeclared` already have — a count, and the key that
+    would close it — for the third declaration the estimate never named. It states what the
+    ids spell and never that the project should therefore declare it: whether a corpus that
+    pads *sometimes* wants a width is a judgement, and this tool has no model (L4).
+    """
+
+    #: The `[ids]` key: `pad` or `suffix`.
+    key: str
+    #: The value that key would take, written as TOML spells it — `2`, `true`.
+    value: str
+    count: int
+
+    @property
+    def declaration(self) -> str:
+        """The line an adopting project would write, ready to be read out of a report."""
+        return f"{self.key} = {self.value}"
+
+
+@dataclass(frozen=True, slots=True)
 class Estimate:
     """What an existing backlog would cost to bring under the schema. Written by nothing."""
 
@@ -160,6 +188,11 @@ class Estimate:
     #: Tokens sitting where a marker sits that this project does not declare, with counts:
     #: the `[markers]` table the adopting project has to write.
     undeclared: tuple[tuple[str, int], ...] = ()
+    #: What the ids spell that `[ids]` does not declare (RK110) — the third config delta,
+    #: beside the prefix and the markers. Without it Dumont's nine `id.format` findings
+    #: arrived as nine defects rather than as one unwritten key, and confirming that
+    #: `pad = 2` cleared them and nothing else meant diffing two lint runs by hand.
+    id_shape: tuple[Shape, ...] = ()
     #: Every prefix the ids actually spell, worst first. More than one is a backlog
     #: numbered by track, or one that absorbed another — `prefix` takes the list (RK74),
     #: and which of the two this is, is the reader's call and never the tool's.
@@ -510,6 +543,7 @@ def adopt(
         codes=_ranked(counts),
         measures=_measures(document, schema),
         undeclared=_undeclared(document),
+        id_shape=_id_shape(document, schema),
         prefixes=spelled,
         blocks=tuple(h.label for h in document.headings if h.label),
         non_canonical=len(document.non_canonical),
@@ -640,6 +674,43 @@ def _undeclared(document: Document) -> tuple[tuple[str, int], ...]:
         if token and token not in known and not any(c.isalnum() for c in token):
             counts[token] = counts.get(token, 0) + 1
     return _ranked(counts)
+
+
+def _id_shape(document: Document, schema: Schema) -> tuple[Shape, ...]:
+    """What the ids spell about `[ids]` that this schema does not declare (RK110).
+
+    Two counts over strings already parsed, and neither is a proposal. **A leading zero** is
+    a width: `D01` under the default `pad = 1` is one of nine findings that are one unwritten
+    key, and the widths are reported separately because a corpus that pads to two and to
+    three is a corpus whose width nobody has chosen. **A trailing lowercase letter** is
+    `suffix = true` — Turing's `T24b`, 4 of its 361 findings.
+
+    Read with a pattern of its own rather than :meth:`Schema.parse_id`, which is precisely
+    the *declared* shape: under `pad = 1` it reads `D01` as no id at all, and what the ids
+    spell that the declaration does not is the whole measurement.
+
+    Only what the schema does not already hold, exactly as the prefix delta prints only the
+    families the chosen ones do not cover: a project that declared the width is not owed a
+    report saying it could.
+    """
+    widths: dict[int, int] = {}
+    suffixed = 0
+    for entry in document.entries:
+        parts = _ID_PARTS_RE.match(entry.task.id)
+        if parts is None:
+            continue
+        number = parts.group("number")
+        if number.startswith("0") and len(number) != schema.id_pad:
+            widths[len(number)] = widths.get(len(number), 0) + 1
+        if parts.group("sub") and not schema.id_suffix:
+            suffixed += 1
+    out = [
+        Shape(key="pad", value=str(width), count=count)
+        for width, count in sorted(widths.items(), key=lambda pair: (-pair[1], pair[0]))
+    ]
+    if suffixed:
+        out.append(Shape(key="suffix", value="true", count=suffixed))
+    return tuple(out)
 
 
 def _prefixes(document: Document) -> tuple[tuple[str, int], ...]:

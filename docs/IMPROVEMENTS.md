@@ -220,28 +220,6 @@ and may not need a second.
 
 ## Block E — Adoption
 
-### §RK110 The delta the estimate does not name
-
-`adopt` on Dumont's roadmap reports `id.format 5`, and one line above it reports the
-prefix the ids actually spell — `also 5 id(s) spell RK, unread here: --prefix RK if it
-is a track of this backlog`. That second line is the shape the report already has for a
-config delta: a count, and the key that would close it. `undeclared` does the same for
-`[markers]`, naming the tokens sitting in the marker slot that the project has not
-declared.
-
-The id shape has no such line, so the five findings arrive as five defects rather than
-as one unwritten key. Confirming that `[ids] pad = 2` clears them, and clears nothing
-else, meant loading the config, `dataclasses.replace`-ing the schema and diffing two
-lint runs by hand — for Dumont, 9 findings to 0; for Turing, 4 of 361 to 0. That is the
-throwaway script RK99 already names as the thing the estimate replaces, written again
-for a different column.
-
-What the estimate can say without a model: how many ids carry a leading zero and at what
-widths, and how many end in a lowercase letter. Both are counts over strings it has
-already parsed. Whether a corpus that pads *sometimes* should declare a width is a
-judgement, and stays the reader's — the report says what the ids spell, as it does for
-the prefix, and never that the project should therefore declare it.
-
 ### §RK125 The declaration that makes a file parse removes a verb
 
 `[ledger] marker = false` exists so a ledger written before this tool can be read at all
