@@ -759,6 +759,108 @@ def test_a_project_with_no_prose_file_is_asked_for_nothing_it_cannot_do(tmp_path
     assert source(config) == BODY
 
 
+# -- the follow-up that names work already done (RK197) ------------------------
+
+STRATEGY = "docs/STRATEGY.md"
+
+PLAN = """# Strategy
+
+## Block A — The model
+
+### §X.1 The first design
+
+Prose the project already has, and that the tool cannot write again (L4).
+
+## Block B — Authoring
+"""
+
+
+def outlined(tmp_path: Path, *, improvements: str | None = None) -> Config:
+    """An outline project whose prose lives in the strategy file, and maybe in both."""
+    lines = ['prefix = "RK"', 'ref_scheme = "outline"', "[files]", f'roadmap = "{ROADMAP}"']
+    written = {ROADMAP: BODY, STRATEGY: PLAN}
+    if improvements is not None:
+        lines.append(f'improvements = "{IMPROVEMENTS}"')
+        written[IMPROVEMENTS] = improvements
+    lines.append(f'strategy = "{STRATEGY}"')
+    (tmp_path / "roadkeep.toml").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    for name, text in written.items():
+        path = tmp_path / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("w", encoding="utf-8", newline="") as handle:
+            handle.write(text)
+    return Config.discover(tmp_path)
+
+
+def test_a_pointer_another_prose_role_answers_asks_for_nothing(tmp_path):
+    # The defect: reading the improvements file alone told this project its pointer
+    # resolved to nothing, for an anchor STRATEGY.md holds and `lint` resolves — and the
+    # `section add` it named would have written the second copy that is `ref.ambiguous`.
+    config = outlined(tmp_path)
+    added = task(config, ref="X.1")
+    assert added.needs is None and added.needs_role is None
+    with (tmp_path / STRATEGY).open("r", encoding="utf-8", newline="") as handle:
+        assert handle.read() == PLAN  # named nothing, wrote nothing
+
+
+def test_a_pointer_no_prose_role_answers_names_the_role_it_means(tmp_path):
+    # The decision beside the fix: a project declaring only a strategy file would be handed
+    # `section add`'s default, which is a role it does not declare — a follow-up that
+    # cannot run, which is the silence this whole report replaced.
+    config = outlined(tmp_path)
+    added = task(config, ref="X.9")
+    assert added.needs == "X.9" and added.needs_role == "strategy"
+
+
+def test_the_default_role_is_left_unspoken_where_it_is_the_default(tmp_path):
+    # Declaring both, the sentence every project already saw is the sentence it still sees:
+    # improvements is `section add`'s default and where `add --section` writes.
+    config = outlined(tmp_path, improvements="# Improvements\n\n## Block A — The model\n")
+    added = task(config, ref="X.9")
+    assert added.needs == "X.9" and added.needs_role == "improvements"
+
+
+def test_either_declared_role_answering_is_enough(tmp_path):
+    # The anchor decides, not the order of declaration: improvements is declared and empty,
+    # and the strategy file is what resolves it.
+    config = outlined(tmp_path, improvements="# Improvements\n\n## Block A — The model\n")
+    assert task(config, ref="X.1").needs is None
+
+
+def test_the_command_offers_a_follow_up_that_runs(tmp_path, capsys):
+    outlined(tmp_path)
+    argv = [
+        "-C", str(tmp_path), "add", "--block", "A",
+        "--symptom", "A second symptom", "--why", "Because of another.", "--ref", "X.9",
+    ]
+    assert main(argv) == EXIT_OK
+    assert "needs    section add X.9 --title … --role strategy" in capsys.readouterr().out
+
+
+def test_the_json_carries_the_same_follow_up(tmp_path, capsys):
+    outlined(tmp_path)
+    argv = [
+        "-C", str(tmp_path), "add", "--block", "A",
+        "--symptom", "A second symptom", "--why", "Because of another.", "--ref", "X.9",
+        "--json",
+    ]
+    assert main(argv) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["needs"] == "section add X.9 --title … --role strategy"
+
+
+def test_a_pointer_the_strategy_file_answers_reports_no_follow_up_on_the_command_line(
+    tmp_path, capsys
+):
+    outlined(tmp_path)
+    argv = [
+        "-C", str(tmp_path), "add", "--block", "A",
+        "--symptom", "A second symptom", "--why", "Because of another.", "--ref", "X.1",
+    ]
+    assert main(argv) == EXIT_OK
+    assert "needs" not in capsys.readouterr().out
+
+
 def test_a_section_on_a_line_with_no_pointer_is_refused(tmp_path):
     # A project that made the pointer optional (RK66) and wrote a line without one: the
     # prose would be reachable from nothing, so there is no section to write.

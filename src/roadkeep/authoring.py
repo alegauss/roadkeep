@@ -51,7 +51,7 @@ from dataclasses import dataclass, replace
 from roadkeep import claiming, sections
 from roadkeep.backlog import Backlog, NotOpen
 from roadkeep.claiming import Followed
-from roadkeep.config import ROLES, Config
+from roadkeep.config import PROSE_ROLES, ROLES, Config
 from roadkeep.document import (
     Document,
     Entry,
@@ -157,9 +157,13 @@ class Insertion:
     #: unless `--section` was passed: `place` inserts one line into one file.
     prose: Document | None = None
     section: Section | None = None
-    #: The anchor this line points at that the prose file does not declare. Set only
+    #: The anchor this line points at that no declared prose file answers. Set only
     #: when no section was written, because then there is nothing left to report.
     needs: str | None = None
+    #: Which role that follow-up would write into (RK197). A project declaring several has
+    #: more than one place a section could go, so the command offered names the one it means
+    #: — otherwise the author is handed `section add`'s default and a file that refuses it.
+    needs_role: str | None = None
 
     @property
     def rendered(self) -> str:
@@ -328,8 +332,12 @@ def add(
     insertion = place(config.document("roadmap"), derive(Backlog.load(config), task))
     if section is not None:
         insertion = _with_section(config, insertion, *section)
-    elif insertion.entry.task.ref and _unresolved(config, insertion.entry.task.ref):
-        insertion = replace(insertion, needs=insertion.entry.task.ref)
+    elif insertion.entry.task.ref and (
+        role := _unresolved(config, insertion.entry.task.ref)
+    ):
+        insertion = replace(
+            insertion, needs=insertion.entry.task.ref, needs_role=role
+        )
     insertion.save()
     return insertion
 
@@ -353,16 +361,37 @@ def _with_section(config: Config, insertion: Insertion, title: str, body: str) -
     return replace(insertion, prose=prose, section=written)
 
 
-def _unresolved(config: Config, ref: str) -> bool:
-    """Does the prose file already answer this pointer? RK15's finding, asked early.
+def _unresolved(config: Config, ref: str) -> str | None:
+    """The role a follow-up would write this pointer's section into, or None if one answers.
 
-    False when the project declares no prose file or has not created it yet: the pointer
-    is then unresolvable for a reason no `section add` fixes, and a follow-up naming a
-    command that cannot run is worse than the silence this replaces.
+    RK15's finding, asked early — and asked of **every declared prose role** (RK197). Reading
+    the improvements file alone told a project that declares `strategy` its pointer resolved
+    to nothing, for an anchor `docs/STRATEGY.md` holds and `lint` resolves: the follow-up
+    named a `section add` that would write a second copy, and the second copy is
+    `ref.ambiguous` — one anchor in two roles, resolving to neither. That is worse than the
+    read half it mirrors (RK186), because what it spends is prose the project already has and
+    the tool cannot write it (L4), so the cost lands on the author.
+
+    None when the project declares no prose file or has not created one yet: the pointer is
+    then unresolvable for a reason no `section add` fixes, and a follow-up naming a command
+    that cannot run is worse than the silence this replaces.
+
+    The **role** and not just the fact, because a project declaring several has more than one
+    place a section could go and the follow-up has to name the one it means. Improvements
+    wherever it is declared — that is `section add`'s own default and where `add --section`
+    writes — and otherwise the first declared role, spelled out, so the command offered is one
+    that runs.
     """
-    if not config.has("improvements") or not config.path("improvements").is_file():
-        return False
-    return sections.find(config.document("improvements"), ref) is None
+    roles = tuple(
+        role
+        for role in PROSE_ROLES
+        if config.has(role) and config.path(role).is_file()
+    )
+    if not roles:
+        return None
+    if any(sections.find(config.document(role), ref) is not None for role in roles):
+        return None
+    return "improvements" if "improvements" in roles else roles[0]
 
 
 @dataclass(frozen=True, slots=True)

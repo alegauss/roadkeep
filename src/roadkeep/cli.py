@@ -1607,7 +1607,7 @@ def _add(config: Config, args: argparse.Namespace) -> int:
                     # caller acts on a field instead of matching a sentence (RK93).
                     "needs": None
                     if insertion.needs is None
-                    else f"section add {insertion.needs} --title …",
+                    else _follow_up(insertion.needs, insertion.needs_role),
                     "event": event,
                 },
                 indent=2,
@@ -1619,7 +1619,7 @@ def _add(config: Config, args: argparse.Namespace) -> int:
         print(f"design   §{written.anchor} → {prose}:{written.first}  {written.words} words")
     elif insertion.needs is not None:
         print(
-            f"needs    section add {insertion.needs} --title …  "
+            f"needs    {_follow_up(insertion.needs, insertion.needs_role)}  "
             f"(the pointer above resolves to nothing until then)"
         )
     _print_event(event)
@@ -2221,6 +2221,18 @@ def _ship(config: Config, args: argparse.Namespace) -> int:
         print(f"  derived  {', '.join(shipment.refreshed)} (dep annotations re-derived)")
     _print_event(event, "  ")
     return EXIT_OK
+
+
+def _follow_up(anchor: str, role: str | None) -> str:
+    """The `section add` that closes a pointer `add` just created (RK93, RK197).
+
+    `--role` only where it is not the default, which keeps the sentence every project sees
+    the one it already saw — and makes the exception the case that needs it: a project whose
+    only prose file is the strategy one would otherwise be handed `section add`'s default and
+    a role it does not declare, which is a follow-up that cannot run.
+    """
+    named = "" if role in (None, "improvements") else f" --role {role}"
+    return f"section add {anchor} --title …{named}"
 
 
 def _prose_file(config: Config, prose: Document | None) -> str:

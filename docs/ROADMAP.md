@@ -26,7 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK197** (deps: —) **`add` asks for a rationale section that another declared prose file already holds** — `_unresolved` reads the improvements file alone, so a line pointing into the strategy file is told its pointer resolves to nothing, and the second copy that invites is `ref.ambiguous`. → §RK197
 - 📋 **RK214** (deps: —) **A ledger that declares no marker closes one of the three doors out of the roadmap** — retire refuses when [ledger] marker = false because a retired entry cannot be told from a shipped one, so a project with reconstructed history has no exit for abandoned work. → §RK214
 - 📋 **RK215** (deps: —) **A top-level section's own prose cannot be corrected once it has subsections** — amend measures the whole subtree against the section limit, so a two-sentence intro reports 934 words and is refused, while the guard denies the hand-edit that would fix it. → §RK215
 - 📋 **RK216** (deps: —) **A refusal named a block the caller never mentioned, and it is a prefix of theirs** — ship on a task in Block AJ refused with 'no heading declares Block A', from a list that contains AJ, so the sentence asks for a heading that is already there under another letter. → §RK216

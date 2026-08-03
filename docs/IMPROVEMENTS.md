@@ -100,31 +100,6 @@ overrun would be back to guessing, with a smaller number to guess against.
 
 ## Block B — Authoring
 
-### §RK197 The follow-up that names work already done
-
-The write path's own half of RK186, and the one that costs prose rather than a read.
-`authoring._unresolved` asks `config.has("improvements")` and calls `find` on that
-document, so on a project declaring strategy an `add --ref X.1` prints `needs section
-add X.1 --title …  (the pointer above resolves to nothing until then)` — for an anchor
-`docs/STRATEGY.md` declares and `lint` resolves.
-
-Measured on the same project RK196 was: the roadmap gains a legal line, the follow-up
-names a command that would create a *duplicate*, and an author who runs it gets
-`ref.ambiguous` from the gate — one anchor in two roles, which resolves to neither. So
-the cheapest outcome of obeying the tool is a design written twice and a line that now
-points nowhere.
-
-Worse than the read half it mirrors. `show` denying a design costs a file read; this
-invites 250 words of prose the project already has, which is the exact spend L1 and the
-word budget exist to prevent — and the sentence it invites is the one the tool cannot
-write, so the cost lands on the author.
-
-Narrow: `_unresolved` is four lines, and the question it asks is now
-`PROSE_ROLES`-shaped. What needs a decision is the *absence* message beside it — a
-project declaring several roles has more than one place a section could go, and `add
---section` writes to improvements, so the follow-up has to name the role it means rather
-than the first one declared.
-
 ### §RK214 The door a ledger's own shape closes, discovered by being refused
 
 `retire` is the door for a task decided against, and it refuses in any project declaring
