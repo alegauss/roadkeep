@@ -48,7 +48,7 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 
 from roadkeep.config import CLAIM_HELD, CONFIG_NAME, DEFAULT_PATHS, PYPROJECT, Config
-from roadkeep.document import Document
+from roadkeep.document import Document, checkbox
 from roadkeep.schema import DEFAULT_HEADING_WORD, Schema
 from roadkeep.sections import anchored, structural
 
@@ -618,6 +618,11 @@ def _undeclared(document: Document) -> tuple[tuple[str, int], ...]:
     Read off the rejected line's own text rather than matched against the reason string:
     a reason is a sentence for a human, and a report that parsed one would break the first
     time the sentence was reworded.
+
+    A task-list checkbox is skipped by the same shape test that rejected it (RK103) and not
+    by a token spelling here: `- [ ] **C40**` splits to `[`, which carries no alphanumeric
+    and so would otherwise arrive as a marker to declare — and declaring `[` is the one
+    answer that widens the slot to two tokens. The line is still counted, in `rejects`.
     """
     schema = document.schema
     known = {
@@ -628,7 +633,10 @@ def _undeclared(document: Document) -> tuple[tuple[str, int], ...]:
     }
     counts: dict[str, int] = {}
     for reject in document.rejects:
-        token = reject.raw.lstrip("-*+ ").split(" ", 1)[0]
+        rest = reject.raw.lstrip("-*+ ")
+        if checkbox(rest) is not None:
+            continue
+        token = rest.split(" ", 1)[0]
         if token and token not in known and not any(c.isalnum() for c in token):
             counts[token] = counts.get(token, 0) + 1
     return _ranked(counts)

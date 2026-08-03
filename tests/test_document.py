@@ -412,6 +412,47 @@ def test_prose_that_also_leads_with_bold_stays_prose(line):
     assert document.entries == () and document.rejects == ()
 
 
+@pytest.mark.parametrize(
+    ("line", "box"),
+    [
+        ("- [ ] **C40** · a task in somebody else's convention", "[ ]"),
+        ("- [x] **C40** · the same convention, checked", "[x]"),
+        ("- [X] **C40** · and shouted", "[X]"),
+        ("- [] **C40** · and written without the space", "[]"),
+    ],
+)
+def test_a_task_list_checkbox_is_rejected_rather_than_read_as_prose(line, box):
+    # Measured on cursarei: 16 of these, 0 entries *and* 0 rejects (RK103). `[ ]` is two
+    # tokens where a marker is one, so nothing that catches a wrong or missing marker fired.
+    document = parse_in_block(line)
+    assert document.entries == ()
+    (reject,) = document.rejects
+    assert box in reject.reason and "task-list checkbox" in reject.reason
+
+
+def test_a_checkbox_is_a_reject_in_a_markerless_ledger_too():
+    # The slot the file declares does not decide this one: a checkbox is another
+    # convention's whole line whether this file's marker slot holds a marker or nothing.
+    document = parse_in_block("- [ ] **SH134** — the seventh op.", schema=MARKERLESS)
+    assert document.entries == ()
+    assert "task-list checkbox" in document.rejects[0].reason
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        "- [ ] write the migration script",  # a prose checklist: no bold id
+        "- [ ] **Delete** the 3 old files",  # bold, and no digit
+        "- [Website](https://example.com/): the landing page",  # a link, not a box
+    ],
+)
+def test_a_checklist_that_is_not_a_backlog_stays_prose(line):
+    # The bold id after the box is the whole difference: without it every checklist in
+    # every rationale file would arrive as work somebody has to migrate.
+    document = parse_in_block(line)
+    assert document.entries == () and document.rejects == ()
+
+
 def test_a_roadmap_line_without_its_deps_field_is_reported():
     document = parse_in_block(f"- {IDEA} **RK1** **A symptom** — a reason. → §RK1")
     (reject,) = document.rejects

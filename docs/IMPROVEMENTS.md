@@ -220,29 +220,6 @@ and may not need a second.
 
 ## Block E — Adoption
 
-### §RK103 The marker slot that holds two tokens
-
-`- [ ] **C40** · …` is GitHub's task-list syntax, which is what a Markdown backlog looks
-like when nobody chose a format. The parser reads the bullet's first
-whitespace-delimited token, which is `[` and never `[ ]`, so the line matches no marker.
-Neither guard that catches a line claiming the task shape then fires: one wants the bold
-id second, and `[ ] **C40**` puts it third; the other wants the bullet to open with the
-bold. So the line is prose — counted by nothing, rejected by nothing.
-
-Measured on cursarei: 16 such lines, **0 entries and 0 rejects**. That is the shape of
-Shio's 920-bullet changelog, the miss the reject list was built to end, reappearing one
-shape further out.
-
-The answer is a reject and not a reading. Declaring `[ ]` in `[markers]` is the wrong
-door: the slot is one token by construction, and widening it to two makes every two-word
-prose bullet a candidate. What is owed is a reason — a bullet whose first token opens a
-bracket its second closes, with a bold id after, is a task line in another convention,
-and saying so costs no grammar.
-
-`adopt` then names it as it names a table row: counted, and inside what would change. A
-backlog this tool cannot read is a fact an estimate has to state, because the one answer
-it may not give is the answer an empty file gets.
-
 ### §RK107 Adopted, and ungated
 
 RK21 shipped the configuration to two more projects and stopped there, which both

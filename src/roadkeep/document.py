@@ -24,8 +24,9 @@ future normalizing parser honest, because it fails the corpus instead of a revie
 
 Nothing here silently drops a line it failed to read: a bullet that carries a status
 marker but does not match the grammar becomes a :class:`Reject` with a reason, and so
-does one that puts an *undeclared* marker where the marker goes, or **no marker at all**
-where a bold id leads (RK43) — otherwise it reads as prose and leaves no trace. That is
+does one that puts an *undeclared* marker where the marker goes, **no marker at all**
+where a bold id leads (RK43), or GitHub's **task-list checkbox** there (RK103) — otherwise
+it reads as prose and leaves no trace. That is
 the data `audit` (RK10) prints, because a count whose misses are invisible is the failure
 mode the grep it replaces already had. Measured: Shio's changelog is 920 bullets and
 parsed as 0 entries *and* 0 rejects, the one shape that made the miss silent twice.
@@ -114,6 +115,10 @@ _RULE_RE = re.compile(r"^\s*\|(?:\s*:?-+:?\s*\|)+\s*$")
 #: wrong (see `_leads_with_the_id`). Id-shaped and nothing else: the shape is what tells
 #: `- **T1** — …` from `- **Delete** the 3 old files`.
 _BOLD_ID_RE = re.compile(rf"^\*\*{ID_SHAPE}{_PART}\*\*(?=\s|$)")
+#: GitHub's task-list checkbox where the marker goes, with a bold id after it — the shape
+#: neither test above catches, because `[ ]` is two tokens where a marker is one and `[x]`
+#: carries a letter (see `checkbox`).
+_CHECKBOX_RE = re.compile(rf"^(?P<box>\[[ xX]?\]) \*\*{ID_SHAPE}{_PART}\*\*(?=\s|$)")
 _POINTER = f" {ARROW} §"
 
 
@@ -986,6 +991,30 @@ def _leads_with_the_id(rest: str) -> bool:
     return bool(_BOLD_ID_RE.match(rest))
 
 
+def checkbox(rest: str) -> str | None:
+    """The task-list checkbox this bullet puts where the status goes, or None (RK103).
+
+    ``- [ ] **C40** · …`` is GitHub's task-list syntax, which is what a Markdown backlog
+    looks like when nobody chose a format — and it was the last shape read as prose by
+    everything. The first whitespace-delimited token is ``[`` and never ``[ ]``, so it
+    matches no marker; :func:`_wears_the_marker_slot` wants the bold id second and this
+    puts it third; :func:`_leads_with_the_id` wants the bullet to open with the bold.
+    Measured on cursarei: 16 such lines, **0 entries and 0 rejects**, the silent miss the
+    reject list exists to end, one shape further out than Shio's 920.
+
+    A reject and not a reading, and not `[markers]` either: the slot is one token by
+    construction, so declaring ``[ ]`` would widen it to two and make every two-word prose
+    bullet a candidate. The bold id after the box is what keeps this off a prose checklist,
+    and ``[x]`` is here beside ``[ ]`` because a checked box is the same convention and was
+    missed by the same three tests.
+
+    Public because :mod:`roadkeep.adopting` reads it: a box is not a marker anybody has to
+    declare, so the `[markers]` delta an estimate prints has to leave this one out.
+    """
+    match = _CHECKBOX_RE.match(rest)
+    return match.group("box") if match else None
+
+
 def _marker_slot(rest: str, token: str, schema: Schema) -> tuple[bool, str | None]:
     """Whether this bullet claims a task line's shape, and the reason if its slot is not.
 
@@ -996,7 +1025,15 @@ def _marker_slot(rest: str, token: str, schema: Schema) -> tuple[bool, str | Non
 
     Which slot is right is a fact about the file, not the format (RK43): where the ledger
     declares no marker the slot is absent, so a bold id leads and a marker is the error.
+    A checkbox is judged before either, because it is another convention's whole line and
+    is one whether this file's slot holds a marker or nothing (RK103).
     """
+    box = checkbox(rest)
+    if box is not None:
+        return False, (
+            f"{box} is a task-list checkbox where the status goes: the line is a task in "
+            f"another convention, so it reads as prose and no count sees it"
+        )
     if not schema.marker_field:
         if _looks_like_marker(token, schema):
             return False, (

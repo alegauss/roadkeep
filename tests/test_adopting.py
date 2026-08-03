@@ -269,6 +269,23 @@ def test_an_undeclared_marker_is_named_as_the_markers_delta(tmp_path: Path) -> N
     assert [count for _, count in estimate.rejects] == [1]
 
 
+def test_a_checkbox_backlog_is_counted_and_never_offered_as_a_marker(tmp_path: Path) -> None:
+    """cursarei's shape (RK103): 0 entries, and until now 0 rejects — so nothing to change.
+
+    The `[markers]` delta is where this could go wrong twice: the token is `[`, which
+    carries no alphanumeric, so an estimate that read the slot alone would tell the adopting
+    project to declare a bracket.
+    """
+    target = tmp_path / "ROADMAP.md"
+    boxes = "\n".join(f"- [ ] **C{n}** · a task in another convention" for n in (1, 2, 3))
+    target.write_text(f"# Roadmap\n\n## Block A\n\n{boxes}\n", encoding="utf-8")
+    estimate = adopt(Config.default(tmp_path), target, prefix="C")
+    assert estimate.parsed == 0
+    assert [count for _, count in estimate.rejects] == [3]
+    assert estimate.changing == 3  # the answer an empty file may not share
+    assert estimate.undeclared == ()
+
+
 def test_a_length_is_reported_as_a_distance_and_not_a_verdict(tmp_path: Path) -> None:
     """`longest` beside `over`: how many lines change, and whether the limit is close."""
     target = tmp_path / "ROADMAP.md"
