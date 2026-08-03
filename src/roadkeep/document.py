@@ -156,6 +156,83 @@ class RoundTripError(RuntimeError):
         )
 
 
+class Wrapped(ValueError):
+    """A sentence rewrite on an entry the parse holds only the first line of (RK179).
+
+    A ledger written before this tool existed wraps its bullets, and a wrapped entry's `why`
+    is only as much of the sentence as fits on line one. Rewriting that line — which is all
+    :meth:`Document.replace_task` can reproduce — left the tail of the old sentence beneath
+    the new one, and the command printed the first line and called it amended.
+
+    Refused rather than defaulted either way, because both defaults are wrong: rewriting the
+    line alone is the entry that states an outcome followed by half a problem, and deleting
+    the span silently is prose no field of this task holds, removed by a command that was
+    asked to change a word. So the caller says how many lines the rewrite replaces — the
+    idiom `record drop --line` already uses, where naming what you read *is* the door — and
+    a count that does not match the span is refused too, an off-by-one here being the
+    deletion of somebody's paragraph.
+
+    `verb` is what the other doors reaching it asked for. `ship <id>` completing a partial
+    replaces that entry with a *different sentence* (RK193), and the roadmap's own `amend`
+    and `restate` are the same write one file over (RK195) — same rule, different word for
+    what the caller called it.
+    """
+
+    def __init__(
+        self,
+        task_id: str,
+        where: str,
+        entry: Entry,
+        *,
+        given: int | None,
+        verb: str = "correcting it",
+    ) -> None:
+        self.task_id = task_id
+        self.lineno = entry.lineno
+        self.owned = entry.stop - entry.index
+        self.given = given
+        span = (
+            f"lines {entry.lineno}-{entry.stop}"
+            if self.owned > 1
+            else f"line {entry.lineno}"
+        )
+        said = (
+            (
+                f"the parse holds only as much of its sentence as fits on line "
+                f"{entry.lineno}, so {verb} replaces all {self.owned} — read them "
+                f"with `show {task_id}`, which prints them, and pass --lines {self.owned}, "
+                f"which is you saying the text below the first line is the rest of the "
+                f"sentence being replaced"
+            )
+            if given is None
+            else (
+                f"--lines {given} is not that count: pass --lines {self.owned}, or check "
+                f"that this is the entry you read"
+            )
+        )
+        super().__init__(f"{where}:{entry.lineno}: {task_id} is written over {span} and {said}")
+
+
+def counted(
+    task_id: str, where: str, entry: Entry, lines: int | None, *, verb: str
+) -> None:
+    """Refuse a :meth:`Document.rewrite_entry` the caller has not said they read.
+
+    Beside the write it guards rather than inside any one caller, because the invariant is
+    that method's — *no caller reaches it without having said how many lines the write
+    replaces* — and three doors now do: `record amend` (RK179), the `ship` that completes a
+    partial (RK193), and the roadmap's own `amend` and `restate` (RK195). A rule restated
+    once per caller is a rule the fourth caller does not get.
+
+    A count that matches is silence.
+    """
+    if lines is None:
+        if entry.wrapped:
+            raise Wrapped(task_id, where, entry, given=None, verb=verb)
+    elif lines != entry.stop - entry.index:
+        raise Wrapped(task_id, where, entry, given=lines, verb=verb)
+
+
 class StaleFile(RuntimeError):
     """The file moved between the read and the write, so the write is abandoned (RK116).
 
@@ -217,9 +294,14 @@ class Entry:
     def wrapped(self) -> bool:
         """Does this entry own lines the parse read nothing from?
 
-        True only where a project turns the one-sentence and terminator rules off for a role
-        (RK52), which is what a ledger of history written by hand needs — the format itself
-        has no multi-line task line, and `add` refuses one.
+        The commonest source is a project turning the one-sentence and terminator rules off
+        for a role (RK52), which is what a ledger of history written by hand needs. It is
+        **not** the only one, and reading it that way is what left RK195 unmeasured: the
+        rules bound the bullet, and a wrapped entry is a fact about the *line beneath* it. A
+        first line that satisfies every rule and carries a hand-written note underneath is
+        wrapped, parses without a reject, and lints clean — on a roadmap, under the default
+        schema, with nothing turned off. `add` refuses to write one, which is why every
+        governed roadmap reads as zero and why adoption is the whole population.
         """
         return self.last > self.lineno
 

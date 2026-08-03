@@ -26,7 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 💭 **RK195** (deps: —) **The roadmap's own amend would strand the same tail, and nobody has counted whether a line wraps there** — RK179 gave the ledger a span-aware correction and `authoring` still rewrites the first line, while both pinned roadmaps carry 0 wrapped entries — so the shape is uncounted. → §RK195
 - 📋 **RK196** (deps: —) **A pointer into the strategy file survives the ship that deletes the line pointing at it** — `_dropped` asks the improvements file alone, so shipping reports "no §X.1 section" and leaves one the config declares — and `lint` exits 0, so nothing says a shipped design stayed. → §RK196
 - 📋 **RK197** (deps: —) **`add` asks for a rationale section that another declared prose file already holds** — `_unresolved` reads the improvements file alone, so a line pointing into the strategy file is told its pointer resolves to nothing, and the second copy that invites is `ref.ambiguous`. → §RK197
 - 📋 **RK214** (deps: —) **A ledger that declares no marker closes one of the three doors out of the roadmap** — retire refuses when [ledger] marker = false because a retired entry cannot be told from a shipped one, so a project with reconstructed history has no exit for abandoned work. → §RK214

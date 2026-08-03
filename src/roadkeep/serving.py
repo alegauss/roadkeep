@@ -264,11 +264,13 @@ TOOLS: tuple[Tool, ...] = (
         named="claim",
     ),
     Tool("status", ("id", "marker")),
-    Tool("amend", ("id", "why", "deps", "ref")),
+    # `lines` for `record amend`'s reason one file over (RK195): this is the door an adopting
+    # project reaches for, and an adopted roadmap is the only place a wrapped line comes from.
+    Tool("amend", ("id", "why", "deps", "ref", "lines")),
     # The field `amend` excludes, at its own door (RK178). Exposed beside it because the agent
     # that discovers a premise is false is the one executing the line, and the exit designed
     # for it — retire plus add — spends an id and deletes a section that was already right.
-    Tool("restate", ("id", "symptom")),
+    Tool("restate", ("id", "symptom", "lines")),
     # The repair a merge needs, exposed for the reason it exists at all (RK97): the agent
     # that hits a doubled id is the one the hook denies a hand-edit to, so a door only a
     # human can reach is no door. `to` is offered because the derived answer is not always

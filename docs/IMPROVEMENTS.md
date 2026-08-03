@@ -100,24 +100,6 @@ overrun would be back to guessing, with a smaller number to guess against.
 
 ## Block B — Authoring
 
-### §RK195 The same door, on the file the corpus says is clean
-
-`amend` and `restate` rewrite a roadmap line's prose through `replace_task`, which is
-the first line alone. On a wrapped entry that is RK179's defect exactly, one file over.
-
-It is filed as an idea and not as a defect because the measurement says the opposite of
-the ledger's. Both pinned roadmaps carry **0 wrapped entries** — Shio's 48 and Turing's
-37 — against 146 and 3 in their ledgers, and `test_document.py` already asserts that
-zero as a property. The format has no multi-line task line, `add` refuses one, and a
-roadmap is the file this tool governs first, so the population that could hold the shape
-is exactly the adopted backlogs nobody has read yet.
-
-So the work is a count before it is a fix: is there an adoptable roadmap whose lines
-wrap? cursarei and Dumont are on this machine and neither is in `corpora`. If the answer
-is none, the honest outcome is a `retire` naming the measurement, not a guard on a door
-nothing reaches — and RK133 is the precedent for closing a line that way. If the answer
-is some, the fix is RK179's, already written, moved one module over.
-
 ### §RK196 The other half of the reader that did not learn
 
 RK172 taught the gate that a pointer addresses every governed prose role and RK186

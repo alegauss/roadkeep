@@ -447,6 +447,14 @@ def build_parser() -> argparse.ArgumentParser:
     amend_parser.add_argument(
         "--ref", help="the rationale anchor, for ref_scheme = 'outline'"
     )
+    amend_parser.add_argument(
+        "--lines",
+        type=int,
+        help=(
+            "how many lines this correction replaces; required where the line wraps, which "
+            "on a roadmap only an adopted backlog can be"
+        ),
+    )
     amend_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     amend_parser.set_defaults(handler=_amend)
 
@@ -468,6 +476,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--symptom",
         required=True,
         help="what does not work — re-validated against the limit, exactly as `add` does",
+    )
+    restate_parser.add_argument(
+        "--lines",
+        type=int,
+        help="how many lines this restatement replaces; required where the line wraps",
     )
     restate_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     restate_parser.set_defaults(handler=_restate)
@@ -1930,7 +1943,9 @@ def _amend(config: Config, args: argparse.Namespace) -> int:
         )
         return EXIT_USAGE
     try:
-        amended = amend(config, args.id, why=args.why, deps=args.deps, ref=args.ref)
+        amended = amend(
+            config, args.id, why=args.why, deps=args.deps, ref=args.ref, lines=args.lines
+        )
     except REFUSALS as error:
         return _refused(error)
 
@@ -1963,7 +1978,7 @@ def _amend(config: Config, args: argparse.Namespace) -> int:
 
 def _restate(config: Config, args: argparse.Namespace) -> int:
     try:
-        restated = restate(config, args.id, args.symptom)
+        restated = restate(config, args.id, args.symptom, lines=args.lines)
     except REFUSALS as error:
         return _refused(error)
 

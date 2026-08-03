@@ -57,6 +57,7 @@ from roadkeep.document import (
     Entry,
     Heading,
     UnknownBlock,
+    counted,
     save_all,
     blank,
     read_deps,
@@ -497,6 +498,7 @@ def amend(
     why: str | None = None,
     deps: Sequence[str] | None = None,
     ref: str | None = None,
+    lines: int | None = None,
 ) -> Amendment:
     """Correct one open line's `why`, `deps` or `ref`. Validated at input, or nothing (RK65).
 
@@ -511,6 +513,13 @@ def amend(
 
     Nothing is written when nothing differs: rewriting the same bytes makes a no-op look like an
     edit to every hook watching the file.
+
+    And refused on a **wrapped** line unless `lines` says how many it replaces (RK195). The
+    ledger's rule (RK179) one file over, for the reason that made it worth counting rather
+    than assuming: this is the door a project *adopting* the tool reaches for, and an adopted
+    roadmap is the only place a wrapped line can come from — `add` refuses to write one, so
+    every governed roadmap reads as zero and the population is the backlogs nobody has
+    imported yet.
     """
     backlog = Backlog.load(config)
     roadmap = backlog.roadmap
@@ -536,7 +545,16 @@ def amend(
     updated = config.schema.check(derive(backlog, wanted))
     if updated == entry.task:
         return Amendment(document=roadmap, entry=entry, before=entry.task)
-    derived = refresh(replace(backlog, roadmap=roadmap.replace_task(entry, updated)))
+    # Asked after the no-op check, so an amend that alters nothing never demands a count for
+    # a write it is not going to make.
+    counted(
+        task_id,
+        config.relative(config.path("roadmap")),
+        entry,
+        lines,
+        verb="correcting it",
+    )
+    derived = refresh(replace(backlog, roadmap=roadmap.rewrite_entry(entry, updated)))
     derived.document.save()
     return Amendment(
         document=derived.document,
@@ -584,7 +602,9 @@ class Restatement:
         return self.entry.lineno
 
 
-def restate(config: Config, task_id: str, symptom: str) -> Restatement:
+def restate(
+    config: Config, task_id: str, symptom: str, *, lines: int | None = None
+) -> Restatement:
     """Correct one open line's symptom, keeping its id, its deps and its section (RK178).
 
     The door RK65 was right to leave shut and the one nothing else opened. Measured in
@@ -623,7 +643,16 @@ def restate(config: Config, task_id: str, symptom: str) -> Restatement:
     updated = config.schema.check(derive(backlog, replace(entry.task, symptom=symptom)))
     if updated == entry.task:
         return Restatement(document=roadmap, entry=entry, before=entry.task)
-    derived = refresh(replace(backlog, roadmap=roadmap.replace_task(entry, updated)))
+    # The same count as the door next to this one (RK195): a restatement rewrites the line's
+    # prose, so on a wrapped line it strands the same tail.
+    counted(
+        task_id,
+        config.relative(config.path("roadmap")),
+        entry,
+        lines,
+        verb="restating it",
+    )
+    derived = refresh(replace(backlog, roadmap=roadmap.rewrite_entry(entry, updated)))
     derived.document.save()
     return Restatement(
         document=derived.document,

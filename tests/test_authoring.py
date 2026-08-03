@@ -32,7 +32,7 @@ from roadkeep.authoring import (
 from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.backlog import NotOpen
-from roadkeep.document import RoundTripError
+from roadkeep.document import RoundTripError, Wrapped
 from roadkeep.schema import SchemaError
 
 ROADMAP = "docs/ROADMAP.md"
@@ -550,7 +550,139 @@ def test_restate_takes_no_reason_because_the_format_has_nowhere_to_put_one(tmp_p
     # commit that removes the false claim is where the reason belongs.
     import inspect
 
-    assert list(inspect.signature(restate).parameters) == ["config", "task_id", "symptom"]
+    taken = list(inspect.signature(restate).parameters)
+    # Named rather than counted (RK195): the claim is that no argument *carries a reason*,
+    # and a whole-signature equality also refused `lines`, which stores nothing and says
+    # how many lines the write replaces.
+    assert not {"reason", "why", "because", "rationale"} & set(taken)
+    assert taken[:3] == ["config", "task_id", "symptom"]
+
+
+# -- the same door, on the file the corpus said was clean (RK195) --------------
+
+#: The shape adoption produces on a *roadmap*: a first line that satisfies every rule, and
+#: a hand-written note under it that the parse reads nothing from. `RK2` is the neighbour a
+#: span that overran would take. This lints clean, which is why nobody had counted it.
+WRAPPED = f"""# Roadmap
+
+## Block A — The model
+
+{FIRST}
+  Noted by hand when this backlog was somebody else's convention.
+- 📋 **RK2** (deps: —) **A second symptom** — Because of another. → §RK2
+
+## Block B — Authoring
+"""
+
+WRAPPED_DESIGN = """# Improvements
+
+## Block A — The model
+
+### §RK1 A first design
+
+Some prose.
+
+### §RK2 A second design
+
+Some other prose.
+
+## Block B — Authoring
+"""
+
+
+def wrapped_project(tmp_path: Path) -> Config:
+    return project(tmp_path, WRAPPED, prose=WRAPPED_DESIGN)
+
+
+def test_a_wrapped_roadmap_line_parses_and_lints_clean(tmp_path):
+    # The premise RK195 was filed to check. Both pinned roadmaps carry zero of these, and
+    # the reason is not that the format prevents one: `add` refuses to write one, and
+    # nothing refuses to read one. So the gate says nothing and the shape is reachable.
+    from roadkeep.linting import lint
+
+    config = wrapped_project(tmp_path)
+    document = config.document("roadmap")
+    first = document.by_id()["RK1"]
+    assert first.wrapped and (first.lineno, first.stop) == (5, 6)
+    assert not document.rejects
+    assert lint(config).clean
+
+
+def test_amending_a_wrapped_line_is_refused_until_the_count_is_given(tmp_path):
+    # The defect: `replace_task` reproduces the first line, so the note stayed underneath a
+    # sentence that had been replaced, and the command reported an amend.
+    config = wrapped_project(tmp_path)
+    with pytest.raises(Wrapped) as raised:
+        amend(config, "RK1", why="Because the reason changed entirely.")
+    message = str(raised.value)
+    assert "ROADMAP.md:5" in message and "lines 5-6" in message
+    assert "correcting it replaces all 2" in message and "--lines 2" in message
+    assert source(config) == WRAPPED
+
+
+def test_the_count_replaces_the_span_and_stops_at_the_next_line(tmp_path):
+    config = wrapped_project(tmp_path)
+    amend(config, "RK1", why="Because the reason changed entirely.", lines=2)
+
+    body = source(config)
+    assert "Because the reason changed entirely." in body
+    assert "somebody else's convention" not in body
+    # The neighbour is exactly where it was: a span that overran by one would have taken it.
+    assert "- 📋 **RK2** (deps: —) **A second symptom** — Because of another. → §RK2" in body
+
+
+def test_restating_a_wrapped_line_is_refused_by_the_same_rule(tmp_path):
+    # A restatement rewrites the line's prose too, so it strands the same tail — and the
+    # verb in the refusal is the caller's own.
+    config = wrapped_project(tmp_path)
+    with pytest.raises(Wrapped) as raised:
+        restate(config, "RK1", "A symptom that was never true")
+    assert "restating it replaces all 2" in str(raised.value)
+    assert source(config) == WRAPPED
+
+
+def test_a_restatement_with_the_count_collapses_the_wrap(tmp_path):
+    config = wrapped_project(tmp_path)
+    restate(config, "RK1", "A symptom that was never true", lines=2)
+    body = source(config)
+    assert "**A symptom that was never true**" in body
+    assert "somebody else's convention" not in body
+
+
+def test_a_count_that_is_not_the_span_is_refused_rather_than_trusted(tmp_path):
+    config = wrapped_project(tmp_path)
+    with pytest.raises(Wrapped) as raised:
+        amend(config, "RK1", why="Because the reason changed entirely.", lines=3)
+    assert "--lines 3 is not that count" in str(raised.value)
+    assert source(config) == WRAPPED
+
+
+def test_a_line_that_does_not_wrap_needs_no_count(tmp_path):
+    # The count is the door out of a refusal, not a new field on every correction: every
+    # governed roadmap reads as zero wrapped lines, so nothing changes for one.
+    config = wrapped_project(tmp_path)
+    amend(config, "RK2", why="Because the second reason changed.")
+    assert "Because the second reason changed." in source(config)
+
+
+def test_an_amend_that_changes_nothing_is_never_asked_for_a_count(tmp_path):
+    config = wrapped_project(tmp_path)
+    amended = amend(config, "RK1", why="Because of a reason.")
+    assert amended.changed == () and source(config) == WRAPPED
+
+
+def test_both_flags_reach_the_command_line(tmp_path, capsys):
+    config = wrapped_project(tmp_path)
+    argv = ["-C", str(tmp_path), "amend", "RK1", "--why", "Because it changed.", "--lines", "2"]
+    assert main(argv) == EXIT_OK
+    assert "somebody else's convention" not in source(config)
+
+    argv = ["-C", str(tmp_path), "restate", "RK2", "--symptom", "A restated symptom"]
+    assert main(argv) == EXIT_OK  # RK2 does not wrap, so no count is asked for
+    capsys.readouterr()
+
+    argv = ["-C", str(tmp_path), "restate", "RK1", "--symptom", "Another restated symptom"]
+    assert main(argv) == EXIT_OK  # RK1 no longer wraps either, the amend having collapsed it
 
 # -- the rationale the pointer needs (RK93) ------------------------------------
 

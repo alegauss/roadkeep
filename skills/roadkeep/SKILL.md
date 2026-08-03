@@ -137,7 +137,11 @@ That leaves the two rules a schema cannot check:
 `amend <id>` corrects an existing line's `why`, `--dep` group or `--ref` — the fields that are a
 fact or a compression — and never its `symptom`, which is the claim the line is, or its `id`,
 which is what `renumber` is for. That is the door
-a project adopting the tool needs; a greenfield one rarely calls it.
+a project adopting the tool needs; a greenfield one rarely calls it. Which is also where a
+roadmap line **wraps**: `add` refuses to write one, so the count `--lines <n>` asks for is a
+thing only an imported backlog carries — and `amend` and `restate` both refuse without it
+there, for the reason `record amend` does, a rewritten line otherwise leaving the note under
+it stranded beneath a sentence that no longer says what it answered.
 
 A **merge conflict inside a governed file** is not a hand edit either. `merge --register`
 wires `roadkeep merge` in as git's driver for the files `roadkeep.toml` declares, and it

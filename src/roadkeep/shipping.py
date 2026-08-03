@@ -111,7 +111,7 @@ from roadkeep import claiming
 from roadkeep.authoring import Insertion, place, refuse_reuse, remove_entry
 from roadkeep.backlog import Backlog, NotOpen
 from roadkeep.config import Config
-from roadkeep.document import Document, Entry, Heading, save_all
+from roadkeep.document import Document, Entry, Heading, Wrapped, counted, save_all
 from roadkeep.ids import next_id
 from roadkeep.markers import refresh
 from roadkeep.renumbering import NotAnId, SameId, family_of
@@ -465,62 +465,6 @@ class NoQualifier(ValueError):
         )
 
 
-class Wrapped(ValueError):
-    """A sentence correction on an entry the parse holds only the first line of (RK179).
-
-    A ledger written before this tool existed wraps its bullets, and a wrapped entry's `why`
-    is only as much of the sentence as fits on line one. Rewriting that line — which is all
-    :meth:`Document.replace_task` can reproduce — left the tail of the old sentence beneath
-    the new one, and the command printed the first line and called it amended.
-
-    Refused rather than defaulted either way, because both defaults are wrong: rewriting the
-    line alone is the entry that states an outcome followed by half a problem, and deleting
-    the span silently is prose no field of this task holds, removed by a command that was
-    asked to change a word. So the caller says how many lines the correction replaces — the
-    idiom `record drop --line` already uses, where naming what you read *is* the door — and
-    a count that does not match the span is refused too, an off-by-one here being the
-    deletion of somebody's paragraph.
-
-    `verb` is the second door reaching it (RK193): `ship <id>` completing a partial replaces
-    that entry too, and replaces it with a *different sentence*, so it is the same write and
-    owes the same count. Only the word for what the caller asked for changes.
-    """
-
-    def __init__(
-        self,
-        task_id: str,
-        where: str,
-        entry: Entry,
-        *,
-        given: int | None,
-        verb: str = "correcting it",
-    ) -> None:
-        self.task_id = task_id
-        self.lineno = entry.lineno
-        self.owned = entry.stop - entry.index
-        self.given = given
-        span = (
-            f"lines {entry.lineno}-{entry.stop}"
-            if self.owned > 1
-            else f"line {entry.lineno}"
-        )
-        said = (
-            (
-                f"the parse holds only as much of its sentence as fits on line "
-                f"{entry.lineno}, so {verb} replaces all {self.owned} — read them "
-                f"with `show {task_id}`, which prints them, and pass --lines {self.owned}, "
-                f"which is you saying the text below the first line is the rest of the "
-                f"sentence being replaced"
-            )
-            if given is None
-            else (
-                f"--lines {given} is not that count: pass --lines {self.owned}, or check "
-                f"that this is the entry you read"
-            )
-        )
-        super().__init__(f"{where}:{entry.lineno}: {task_id} is written over {span} and {said}")
-
-
 class NoCompletion(ValueError):
     """`--lines` on a ship that replaces no entry (RK193).
 
@@ -789,24 +733,6 @@ class Corrected:
         self.ledger.save()
 
 
-def _counted(
-    task_id: str, where: str, entry: Entry, lines: int | None, *, verb: str
-) -> None:
-    """Refuse a span rewrite the caller has not said they read (RK179, RK193).
-
-    One rule and not two, because the two doors reaching :meth:`Document.rewrite_entry` —
-    `record amend` and the `ship` that completes a partial — delete the same lines for the
-    same reason. A count that matches is silence; an absent one on a wrapped entry and a
-    wrong one anywhere are both the same refusal, the second because an off-by-one here is
-    somebody's paragraph.
-    """
-    if lines is None:
-        if entry.wrapped:
-            raise Wrapped(task_id, where, entry, given=None, verb=verb)
-    elif lines != entry.stop - entry.index:
-        raise Wrapped(task_id, where, entry, given=lines, verb=verb)
-
-
 def amend(
     config: Config,
     task_id: str,
@@ -861,7 +787,7 @@ def amend(
 
     # Asked after `changed`, so an amend that alters nothing never demands a count for a
     # write it is not going to make.
-    _counted(task_id, where, entry, lines, verb="correcting it")
+    counted(task_id, where, entry, lines, verb="correcting it")
 
     document = ledger.rewrite_entry(entry, ledger.schema.check(wanted))
     return Corrected(
@@ -1372,7 +1298,7 @@ def _depart(
         # `ship` and not a detour through `record amend` because the caller asked to finish
         # work, not to fix a word; what it may never be is absent, `rewrite_entry` deleting
         # prose no field of this task holds.
-        _counted(task_id, where, completing, lines, verb="completing it")
+        counted(task_id, where, completing, lines, verb="completing it")
         replaced = ledger.rewrite_entry(completing, recorded)
         insertion = Insertion(document=replaced, entry=replaced.by_id()[task_id])
     else:
