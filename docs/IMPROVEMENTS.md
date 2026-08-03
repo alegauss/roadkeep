@@ -220,28 +220,6 @@ and may not need a second.
 
 ## Block E — Adoption
 
-### §RK107 Adopted, and ungated
-
-RK21 shipped the configuration to two more projects and stopped there, which both
-configs say out loud: *NOT WIRED INTO CI, AND NOT READY TO BE*. That was honest at the
-time and it is the half that matters least — a declaration nothing checks is the
-convention this tool was built to replace, one file further in.
-
-The two are not the same job. **Dumont** reports 9 findings, all `id.format`, so it is
-one task away from a clean gate and then the action this repository already ships runs
-green from day one. **Turing** reports 407, and a repository cannot adopt a gate it
-fails on the first commit — which is what `lint --baseline REV` (RK84) exists for: the
-same gate over the difference alone, so 407 standing findings become an exit code about
-the commit that introduced the 408th.
-
-So the outcome is two green checks and no rewriting: Dumont on the plain gate once its
-ids are legal, Turing on a baseline pinned at its adoption commit. Neither asks anybody
-to fix a line, which is the property that makes a late gate adoptable at all.
-
-What it proves is the claim RK21's ledger entry stops short of. Four projects carrying a
-config is four projects that agreed; four projects failing a build on the format is four
-projects that cannot drift from it, and only the second is a standard.
-
 ### §RK110 The delta the estimate does not name
 
 `adopt` on Dumont's roadmap reports `id.format 5`, and one line above it reports the

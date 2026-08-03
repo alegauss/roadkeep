@@ -203,6 +203,7 @@
 - 🗑 **RK77** **A backlog whose marker, heading and ledger all differ cannot be adopted at all** — abandoned: Measured, not estimated: cursarei carries no pointer at all, puts deps on 13 `↳` lines of their own and wraps every task across paragraphs, so the four keys still read 0 of its 16 lines.
 - ✅ **RK21** **A standard adopted by one project is a preference** — Turing and Dumont each carry their own `roadkeep.toml` and the measurement it produced, so four projects share one format; the fourth was measured and retired instead (RK77).
 - ✅ **RK103** **A bullet whose marker holds a space is read as prose and reported by nothing** — A bullet putting GitHub's `[ ]`, `[x]` or `[]` where the status goes, with a bold id after, is a named reject — counted by `adopt`, inside what would change, and never offered as a marker to declare.
+- ✅ **RK107** **A project that declares the format still has nothing enforcing it** — Dumont runs the plain gate green — `[ids] pad = 2` made its nine ids legal and rewrote no line — beside Turing's baselined one, so four projects declaring the format is two that cannot drift from it.
 
 ## Block F — The Claude Code plugin
 

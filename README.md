@@ -120,13 +120,13 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 4 | 48 | 0 |
 | C — Query (consult without reading the file) | 1 | 37 | 0 |
 | D — The gate | 0 | 50 | 0 |
-| E — Adoption | 9 | 19 | 1 |
+| E — Adoption | 8 | 20 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 32 | 1 |
-| **Total** | 15 | 211 | 3 |
+| **Total** | 14 | 212 | 3 |
 
 **Next ready:**
 
-- 📋 **RK107** (deps: RK106 ✅) **A project that declares the format still has nothing enforcing it** — Dumont carries a roadkeep.toml and runs the gate nowhere, so what it adopted is held by the same nobody a convention is held by — Turing's own was wired in with `install` and a baseline. → §RK107
+- 📋 **RK110** (deps: —) **`adopt` counts the id findings without saying they are one declaration** — The estimate names the prefix delta and the `[markers]` delta but not this one, so measuring `pad = 2` against Dumont's nine findings took the throwaway script the estimate exists to replace. → §RK110
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
