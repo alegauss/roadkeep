@@ -287,6 +287,31 @@ and may not need a second.
 
 ## Block D — The gate
 
+### §RK228 A constant recomputed per token
+
+RK225 replaced `Config.relative` here because resolving the filesystem per token cost
+7.4 s of an 11.5 s run. What it did not do is notice that the *rest* of the work is
+constant.
+
+`_spelled` joins a base and a token, normalises, and relpaths against the root. The
+token varies; the base and the root do not — there are exactly two bases in a whole run,
+the ledger's own directory and the repository root. `os.path.relpath` normcases both
+sides and splits them on every call, so the constant half is redone 34133 times.
+
+Profiled at Turing's pin, now that the path check is the largest item left: 33943 calls
+to `_spelled`, 34133 to `relpath`, **342330** to `normcase` — 0.83 s of a profiled run
+and the top two rows of it, against a gate that measures 529 ms unprofiled.
+
+Two shapes, and they compose. The bases can be normalised once and the answer taken with
+a prefix strip, which is what `relpath` does the expensive way. And the same token is
+spelled twice for most questions: `holds` asks `carries`, which spells it, and then
+spells it again for the directory set — so one spelling per token per base, computed
+once and passed down, removes the other half.
+
+Neither changes an answer. The measurement to make afterwards is the gate's own, because
+a constant factor on a check that already dropped from 2.9 s is worth stating rather
+than assuming.
+
 ## Block E — Adoption
 
 ### §RK103 The marker slot that holds two tokens

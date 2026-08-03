@@ -40,6 +40,8 @@
 
 ## Block D — The gate
 
+- 📋 **RK228** (deps: —) **How git spells a token is recomputed from scratch per token, and twice for most of them** — _spelled joins and relpaths against bases that never change, so Turing's gate spends its largest remaining share in normcase — 342330 calls under 34133 relpaths. → §RK228
+
 ## Block E — Adoption
 
 - 📋 **RK103** (deps: —) **A bullet whose marker holds a space is read as prose and reported by nothing** — GitHub's `- [ ]` task list is the commonest Markdown backlog there is, and cursarei's 16 of them parse as 0 entries and 0 rejects — the silent miss the reject list exists to end. → §RK103
