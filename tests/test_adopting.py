@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import json
 import tomllib
-from dataclasses import replace
+from dataclasses import fields, replace
 from pathlib import Path
 
 import pytest
@@ -27,6 +27,7 @@ import pytest
 import corpora
 from roadkeep.adopting import (
     AlreadyConfigured,
+    Estimate,
     UnreadableBlock,
     WouldOverwrite,
     adopt,
@@ -888,6 +889,29 @@ def test_a_roadmap_has_no_ledger_slots_to_report(tmp_path: Path) -> None:
     target = tmp_path / "ROADMAP.md"
     target.write_text(CONFORMING, encoding="utf-8")
     assert adopt(Config.default(tmp_path), target).ledger_shape == ()
+
+
+#: Where the payload deliberately names a field differently from the dataclass (RK289).
+#: Declared rather than derived: the boundary is where a field gets a name a reader outside
+#: this package can use — `path` is *which file*, and `file` says so — and a payload generated
+#: from the dataclass would be correct with no place left to say that.
+ESTIMATE_RENAMES = {"path": "file"}
+
+
+def test_the_payload_carries_every_field_of_the_estimate(tmp_path: Path, capsys) -> None:
+    # RK289, and RK276 is why it exists rather than being trusted: a field was added to
+    # `Registration`, reached one surface, and was absent from the payload — under a comment
+    # asserting the two said the same. Three fields reached `Estimate` in one week, each
+    # carried across by hand, so this is the fourth one failing here instead of going quiet.
+    target = tmp_path / "ROADMAP.md"
+    target.write_text(CONFORMING, encoding="utf-8")
+    assert main(["-C", str(tmp_path), "adopt", str(target), "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    named = {ESTIMATE_RENAMES.get(field.name, field.name) for field in fields(Estimate)}
+    # Containment and not equality: the payload also carries derived answers — `changing` is a
+    # property, and it is the number the whole report exists to give. What must not happen is a
+    # *field* going missing, which is the direction RK276 measured.
+    assert named <= set(payload)
 
 
 def test_a_fenced_table_is_an_example(tmp_path: Path) -> None:

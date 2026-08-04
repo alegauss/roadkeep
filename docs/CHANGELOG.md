@@ -243,6 +243,7 @@
 - ✅ **RK285** **The estimate calls a conforming backlog a total rewrite** — `schemes` counts what the pointers spell and names `--ref-scheme` the way the prefix half is named, and the round-trip line says which reading produced its number.
 - ✅ **RK286** **The declaration a ledger reject names does not change the count** — The reject names every slot a line needs, and `adopt` re-reads the file under each `[ledger]` declaration to report what it recovers — whole hypotheses, the slots not being independent.
 - ✅ **RK288** **A rationale file's anchors read as absent under the other scheme** — A prose file's own heading anchors are a second source for the scheme, so `--sections` names `--ref-scheme` too — and only where the other scheme accounts for more of the file than the declared one.
+- ✅ **RK289** **Only one payload is held to the dataclass it renders** — `Estimate`, `Plan` and `Removal` are each held to their payload by a test over their fields, with the two renames declared beside it so the boundary that names them stays.
 
 ## Block F — The Claude Code plugin
 

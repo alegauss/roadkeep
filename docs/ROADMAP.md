@@ -48,8 +48,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK289** (deps: —) **Only one payload is held to the dataclass it renders** — RK276 bound the install JSON to `Registration`'s fields after a dropped one went quiet, but `adopt` and `uninstall` render `Estimate` and `Removal` by hand with nothing holding them. → §RK289
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - 📋 **RK267** (deps: —) **A staleness note lists every changed module and hands relevance back** — The server appends `engine().stale` to any refusal, so one `schema.py` decided arrives naming three modules that did not, and the reader re-runs on a guess about which mattered. → §RK267

@@ -54,6 +54,8 @@ from roadkeep.installing import (
     Unreadable,
     _ENTRY_RE,
     _entry,
+    Plan,
+    Removal,
     install,
     plan,
     removal,
@@ -595,6 +597,32 @@ def test_a_workflow_that_is_there_is_still_reported_kept(project, source, capsys
     assert f"kept           {PROJECT_WORKFLOW}" in printed and "CI stays wired" in printed
     # And it is kept in the sense the word means: still on disk afterwards.
     assert workflow.is_file()
+
+
+#: The one rename each of these payloads makes (RK289), declared for the reason the estimate's
+#: is: `withdrawals` is what the code took out and `surfaces` is what a reader outside this
+#: package calls them. `Plan` renames nothing, and an empty map is the honest way to say so.
+PLAN_RENAMES: dict[str, str] = {}
+REMOVAL_RENAMES = {"withdrawals": "surfaces"}
+
+
+def test_the_install_payload_carries_every_field_of_the_plan(project, source, capsys):
+    # RK289: RK276 bound `Registration` after a dropped field went quiet in exactly this
+    # reading, and the guard was written for that one dataclass only.
+    argv = ["-C", str(project), "install", "--source", str(source), "--check", "--json"]
+    assert main(argv) == 1
+    payload = json.loads(capsys.readouterr().out)
+    named = {PLAN_RENAMES.get(field.name, field.name) for field in fields(Plan)}
+    assert named <= set(payload)
+
+
+def test_the_uninstall_payload_carries_every_field_of_the_removal(project, source, capsys):
+    install(project, source=source)
+    capsys.readouterr()
+    assert main(["-C", str(project), "uninstall", "--check", "--json"]) == 1
+    payload = json.loads(capsys.readouterr().out)
+    named = {REMOVAL_RENAMES.get(field.name, field.name) for field in fields(Removal)}
+    assert named <= set(payload)
 
 
 def test_a_declaration_this_command_cannot_parse_is_refused(project, source):
