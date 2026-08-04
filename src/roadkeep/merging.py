@@ -42,6 +42,8 @@ that resolved on that shell's PATH is a driver that fails at the merge it was wi
 
 from __future__ import annotations
 
+import shlex
+import shutil
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -51,7 +53,16 @@ from roadkeep.document import Document, Entry
 from roadkeep.linting import within
 from roadkeep.provenance import invocation, persisted
 
-__all__ = ["Merge", "Registration", "merge", "markers", "register", "role_of"]
+__all__ = [
+    "Driver",
+    "Merge",
+    "Registration",
+    "merge",
+    "markers",
+    "register",
+    "registered",
+    "role_of",
+]
 
 #: Git's default conflict-marker width, and the labels this driver writes when it declines.
 #: Whole-file rather than per-hunk: the driver made no decision, so it has no hunk to name,
@@ -63,6 +74,20 @@ THEIRS = "theirs"
 #: The line `.gitattributes` carries per governed file, and the driver's name in `git
 #: config`. One name, so a project that registers twice registers the same thing.
 DRIVER = "roadkeep"
+
+#: The key `.gitattributes` sends git to, and the one :func:`registered` reads back.
+DRIVER_KEY = f"merge.{DRIVER}.driver"
+
+#: What `.git/config` holds for this driver, as five distinguishable facts (RK266). Kept apart
+#: because the remedies differ and only one of them is a defect: `UNRUNNABLE` is a driver git
+#: will call and fail, `MOVED` is one that still works and is not what this machine would write,
+#: and reporting the second as the first would be crying wolf on every second checkout.
+ABSENT = "absent"
+CURRENT = "current"
+MOVED = "moved"
+UNRUNNABLE = "unrunnable"
+#: Not an answer either way: no git, no repository, or a git too old for `config --default`.
+UNKNOWN = "unknown"
 
 
 @dataclass(frozen=True, slots=True)
@@ -92,6 +117,47 @@ class Merge:
 
 
 @dataclass(frozen=True, slots=True)
+class Driver:
+    """What this checkout's `git config` holds for the driver, against what it would hold now.
+
+    RK255 made the stored command absolute and named the condition that ends it. This is the
+    other half: naming an expiry is not observing one, and the value lives in `.git/config`,
+    which nothing in this tool read — so the first evidence a driver rotted was git writing
+    conflict markers into the file whose whole point is that its merge is decidable.
+    """
+
+    #: The command found under :data:`DRIVER_KEY`, empty when the key is not set.
+    stored: str
+    #: The command :func:`register` would write now, from :func:`~roadkeep.provenance.persisted`.
+    wanted: str
+    #: False when git could not be asked at all — the answer is absent, not negative, the same
+    #: reading :class:`~roadkeep.history.HistoryUnavailable` gets everywhere else.
+    known: bool = True
+
+    @property
+    def state(self) -> str:
+        """One of the five above. Runnability is asked before equality, deliberately.
+
+        A driver that differs from what this machine would write is not thereby broken: a
+        checkout registered where the console script was on PATH keeps working after this
+        package also grows a launcher. What git cannot execute is the defect; what merely
+        moved is a fact, and answering the second question first would report both as one.
+        """
+        if not self.known:
+            return UNKNOWN
+        if not self.stored:
+            return ABSENT
+        if not _resolves(self.stored):
+            return UNRUNNABLE
+        return CURRENT if self.stored == self.wanted else MOVED
+
+    @property
+    def wired(self) -> bool:
+        """Whether git has a driver here it can actually run — the one yes/no a caller needs."""
+        return self.state in (CURRENT, MOVED)
+
+
+@dataclass(frozen=True, slots=True)
 class Registration:
     """What `merge --register` wrote: the attribute lines, and the config it needs."""
 
@@ -106,6 +172,11 @@ class Registration:
     #: What would stop that command resolving later (RK255) — the half of the answer a value
     #: this tool prints once and git executes months afterwards cannot leave to the reader.
     invalidated_by: str = ""
+    #: What `git config` holds **now** (RK266), read after the attribute lines were written:
+    #: the re-run that reports three lines already there is exactly the one where the config
+    #: is the half that moved, so the answer that says nothing changed must not be the whole
+    #: answer. `None` only where a caller constructed this without asking.
+    driver: Driver | None = None
 
 
 def merge(config: Config, role: str, base: str, ours: str, theirs: str) -> Merge:
@@ -212,10 +283,70 @@ def register(config: Config) -> Registration:
         attributes=path,
         added=added,
         present=present,
-        command=f"git config merge.{DRIVER}.driver "
-        f'"{stored.command} merge %O %A %B --path %P"',
+        command=f"git config {DRIVER_KEY} " f'"{driver_value(stored.command)}"',
         invalidated_by=stored.invalidated_by,
+        driver=registered(config),
     )
+
+
+def driver_value(command: str) -> str:
+    """The `.git/config` value for a driver reached by `command` — git's four placeholders.
+
+    One spelling, read by :func:`register` when it composes the line and by :func:`registered`
+    when it compares what a checkout actually holds: two spellings would make every registered
+    driver read as :data:`MOVED` the day one of them gained a placeholder.
+    """
+    return f"{command} merge %O %A %B --path %P"
+
+
+def registered(config: Config) -> Driver:
+    """Read this checkout's driver back out of `git config` (RK266).
+
+    A read and never a write: setting somebody's git config is outside the files this tool was
+    given (L2), which is why `register` prints that line rather than running it — and it is the
+    same reason nothing had read it back until now.
+
+    `--default ""` and not a bare `--get`, because git exits 1 for a key that is not set and
+    exits 1 for a repository that is not there, and the two are a wired-nothing and a
+    question-that-could-not-be-asked. A git too old for `--default` answers :data:`UNKNOWN`,
+    which is the honest reading of a tool that could not tell us either way.
+    """
+    # Imported here and not at module level (RK260): the driver itself is on git's merge path
+    # and every governed write reaches this module, while `history` pulls in `backlog` and
+    # `sections` — modules a merge never asks anything of.
+    from roadkeep.history import HistoryUnavailable, _run as _git  # noqa: PLC0415
+
+    wanted = driver_value(persisted().command)
+    try:
+        stored = _git(config.root, "config", "--default", "", "--get", DRIVER_KEY).strip()
+    except HistoryUnavailable:
+        return Driver(stored="", wanted=wanted, known=False)
+    return Driver(stored=stored, wanted=wanted)
+
+
+def _resolves(command: str) -> bool:
+    """Whether the thing a stored driver command names is still on this machine.
+
+    Asked of the file and never by running it: a driver is invoked by git with three paths and
+    a `--path`, and this tool executing somebody's recorded command to find out whether it
+    executes is a side effect nobody asked for.
+
+    `python <script>` is the launcher case, and there the interpreter is the part that stays
+    while the script is the part a plugin update moves — so both halves are asked about, which
+    is exactly the failure :func:`~roadkeep.provenance.persisted` names as the expiry.
+    """
+    try:
+        argv = shlex.split(command)
+    except ValueError:  # an unbalanced quote is a value no shell would run either
+        return False
+    if not argv:
+        return False
+    head = argv[0]
+    if not Path(head).is_file() and not shutil.which(head):
+        return False
+    if len(argv) > 1 and Path(head).stem.startswith("python") and argv[1].endswith(".py"):
+        return Path(argv[1]).is_file()
+    return True
 
 
 # -- the decision ------------------------------------------------------------

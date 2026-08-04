@@ -78,7 +78,20 @@ from roadkeep.ids import highest, next_id
 from roadkeep.installing import install, plan, removal, uninstall
 from roadkeep.linting import Finding, Report, lint
 from roadkeep.locking import LockBusy, exclusive
-from roadkeep.merging import markers, merge, register, role_of
+from roadkeep.merging import (
+    ABSENT,
+    CURRENT,
+    DRIVER_KEY,
+    MOVED,
+    UNKNOWN,
+    UNRUNNABLE,
+    Driver,
+    markers,
+    merge,
+    register,
+    registered,
+    role_of,
+)
 from roadkeep.claiming import Followed, Held
 from roadkeep.picking import Choice, Claim, pick, take
 from roadkeep.provenance import engine, invocation
@@ -518,7 +531,9 @@ def build_parser() -> argparse.ArgumentParser:
             "is two additions and not a conflict; an id both branches created is reported "
             "by name, because `renumber` moves one of them and a driver that picked a side "
             "would be choosing whose task disappears. Anything it cannot prove falls back "
-            "to git's conflict markers and exits 1. `--register` wires it up."
+            "to git's conflict markers and exits 1. `--register` wires it up, and `--check` "
+            "reads the wiring back: a driver git can no longer run is otherwise silent until "
+            "the merge it was registered for."
         ),
     )
     merge_parser.add_argument("base", nargs="?", help="the ancestor version (git's %%O)")
@@ -534,6 +549,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--register",
         action="store_true",
         help="write the .gitattributes lines and print the git config this driver needs",
+    )
+    merge_parser.add_argument(
+        "--check",
+        action="store_true",
+        help="read the driver back out of git config and say whether it still runs; write nothing",
     )
     merge_parser.set_defaults(handler=_merge)
 
@@ -2138,11 +2158,15 @@ def _merge(config: Config, args: argparse.Namespace) -> int:
     time this runs, so a non-zero exit that left `%A` untouched would leave the reviewer a
     file that reads as though one side simply won.
     """
+    if args.check:
+        # Before `--register`, so the two together read as the check: a `--check` that wrote
+        # the attribute lines anyway would be the one thing this flag promises not to do.
+        return _merge_check(config)
     if args.register:
         return _merge_register(config)
     if not (args.base and args.ours and args.theirs):
         print(
-            "roadkeep: merge takes three files (git's %O %A %B), or --register",
+            "roadkeep: merge takes three files (git's %O %A %B), or --register, or --check",
             file=sys.stderr,
         )
         return EXIT_USAGE
@@ -2195,7 +2219,54 @@ def _merge_register(config: Config) -> int:
     # What the stored value cannot promise, said where it is stored (RK255): git executes it
     # long after this process, and a driver that has stopped resolving is silent until a merge.
     print(f"  re-run   after {registration.invalidated_by}")
+    if registration.driver is not None:
+        # Read after the attribute lines were written (RK266). This is the line that carries a
+        # re-run: three attributes "already there" is the answer where the config is the half
+        # that moved, and without this the output that says nothing changed would be all of it.
+        print(f"  config   {_driver_line(registration.driver)}")
     return EXIT_OK
+
+
+#: What each state of the stored driver says, and what a `--check` exits with (RK266). Only two
+#: are failures: git has no driver it can run. `MOVED` is a driver that works and is not what
+#: this machine would write, and exiting 1 on it would make the check unusable on any repository
+#: two people registered from — which is every repository the driver is for.
+_DRIVER_STATES = {
+    ABSENT: (EXIT_GATE, "not set, so a conflict falls back to git's own markers"),
+    # Not "the command above": `--check` prints no command, and a state line that only reads
+    # right under the other surface is one of the two that must stand on its own.
+    CURRENT: (EXIT_OK, "set to the command this machine would write"),
+    MOVED: (EXIT_OK, "set to a command that runs, and is not this machine's"),
+    UNRUNNABLE: (EXIT_GATE, "set to a command this machine no longer has"),
+    UNKNOWN: (EXIT_OK, "could not be read: no git, or no repository here"),
+}
+
+
+def _driver_line(driver: Driver) -> str:
+    """One line for the state, quoting the stored value only where it is the evidence."""
+    _, said = _DRIVER_STATES[driver.state]
+    line = f"{DRIVER_KEY} {said}"
+    if driver.state in (MOVED, UNRUNNABLE):
+        return f"{line}: {driver.stored}"
+    return line
+
+
+def _merge_check(config: Config) -> int:
+    """Ask what git would actually run, and write nothing (RK266).
+
+    The verb RK266 exists for. `lint` was the other candidate and is the wrong one: it is the
+    gate, it runs in CI, and there `.git/config` is a runner's rather than an author's — a
+    stale-driver finding would fail builds over a fact about somebody else's machine. This is
+    per-checkout, so it is asked per checkout, by someone who chose to ask.
+    """
+    driver = registered(config)
+    code, _ = _DRIVER_STATES[driver.state]
+    print(f"  config   {_driver_line(driver)}")
+    if driver.state in (ABSENT, UNRUNNABLE):
+        # The remedy, and only where there is one to name: `UNKNOWN` could not be asked, so
+        # naming a repair for it would be answering a question that was never resolved.
+        print(f"  fix      {invocation()} merge --register")
+    return code
 
 
 def _verbatim(path: Path) -> str:
@@ -4338,6 +4409,9 @@ def _install(config: Config, args: argparse.Namespace) -> int:
                         "present": list(intent.registered.present),
                         "command": intent.registered.command,
                         "invalidated_by": intent.registered.invalidated_by,
+                        "driver": None
+                        if intent.registered.driver is None
+                        else intent.registered.driver.state,
                     },
                     "changing": len(intent.changing),
                 },
@@ -4361,6 +4435,8 @@ def _install(config: Config, args: argparse.Namespace) -> int:
                 print(f"  registered     {where}    {line} (already there)")
             print(f"  then           {intent.registered.command}")
             print(f"  re-run         after {intent.registered.invalidated_by}")
+            if intent.registered.driver is not None:
+                print(f"  config         {_driver_line(intent.registered.driver)}")
         if intent.debt:
             # Beside the surfaces, because it is the reason one of them was written the way
             # it was (RK140): a decision taken from a measurement nobody is shown is one the

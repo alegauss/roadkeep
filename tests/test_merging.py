@@ -11,11 +11,26 @@ file only when it can prove it, and hands the reviewer git's own markers when it
 
 from __future__ import annotations
 
+import subprocess
+import sys
 from pathlib import Path
 
 from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
-from roadkeep.merging import merge, register, role_of
+from roadkeep.history import HistoryUnavailable
+from roadkeep.merging import (
+    ABSENT,
+    CURRENT,
+    DRIVER_KEY,
+    MOVED,
+    UNKNOWN,
+    UNRUNNABLE,
+    driver_value,
+    merge,
+    register,
+    registered,
+    role_of,
+)
 from roadkeep.provenance import persisted
 
 ROADMAP = "docs/ROADMAP.md"
@@ -306,3 +321,88 @@ def test_the_command_prints_what_it_wrote_and_what_it_did_not_run(tmp_path, caps
     assert "then     git config merge.roadkeep.driver" in printed
     # And the expiry of the value it just told the reader to store (RK255).
     assert f"re-run   after {persisted().invalidated_by}" in printed
+    # And what git actually holds right now (RK266), which is the half `.gitattributes`
+    # reporting "already there" on a re-run cannot speak for.
+    assert "config   merge.roadkeep.driver" in printed
+
+
+# -- what git actually holds (RK266) -----------------------------------------
+
+
+def repository(tmp_path: Path) -> Config:
+    """A project that is also a git repository, because `.git/config` is what is being read."""
+    config = project(tmp_path)
+    subprocess.run(["git", "-C", str(tmp_path), "init", "-q"], check=True, capture_output=True)
+    return config
+
+
+def set_driver(tmp_path: Path, value: str) -> None:
+    subprocess.run(
+        ["git", "-C", str(tmp_path), "config", "--local", DRIVER_KEY, value],
+        check=True,
+        capture_output=True,
+    )
+
+
+def test_a_checkout_with_no_driver_says_so_rather_than_nothing(tmp_path):
+    # RK266: `register` printed the line to set and never asked whether it was set, so a
+    # repository wired on one side only looked exactly like a wired one.
+    config = repository(tmp_path)
+    driver = registered(config)
+    assert driver.state == ABSENT and not driver.wired and driver.stored == ""
+    assert driver.wanted == driver_value(persisted().command)
+
+
+def test_the_driver_this_machine_would_write_reads_as_current(tmp_path):
+    config = repository(tmp_path)
+    set_driver(tmp_path, driver_value(persisted().command))
+    driver = registered(config)
+    assert driver.state == CURRENT and driver.wired
+
+
+def test_a_driver_naming_something_gone_is_the_defect_and_exits_one(tmp_path, capsys):
+    # The whole point: this is what a plugin update leaves behind, and until now the first
+    # evidence of it was git writing conflict markers into a file whose merge is decidable.
+    config = repository(tmp_path)
+    set_driver(tmp_path, driver_value(f"python {tmp_path.as_posix()}/gone/roadkeep.py"))
+    assert registered(config).state == UNRUNNABLE
+    assert main(["-C", str(tmp_path), "merge", "--check"]) == EXIT_GATE
+    printed = capsys.readouterr().out
+    assert "no longer has" in printed and "gone/roadkeep.py" in printed
+    assert "merge --register" in printed
+
+
+def test_a_driver_that_runs_and_is_not_this_machine_s_is_not_a_failure(tmp_path, capsys):
+    # Crying wolf here would make the check unusable on any repository two people registered
+    # from — which is every repository a merge driver exists for. It runs, so it is a fact.
+    config = repository(tmp_path)
+    set_driver(tmp_path, driver_value(f"{Path(sys.executable).as_posix()} -m roadkeep.cli"))
+    driver = registered(config)
+    assert driver.state == MOVED and driver.wired
+    assert main(["-C", str(tmp_path), "merge", "--check"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "is not this machine's" in printed and "merge --register" not in printed
+
+
+def test_the_check_writes_nothing(tmp_path):
+    # The one thing the flag promises, asserted rather than assumed: `--check` alongside
+    # `--register` is the check, and a `.gitattributes` written here would be the whole bug.
+    repository(tmp_path)
+    assert main(["-C", str(tmp_path), "merge", "--register", "--check"]) == EXIT_GATE
+    assert not (tmp_path / ".gitattributes").exists()
+
+
+def test_git_that_cannot_be_asked_is_unknown_and_not_absent(tmp_path, monkeypatch):
+    # Absent means "nothing is wired" and unknown means "nobody could tell us", and reporting
+    # the second as the first would name a repair for a question that was never resolved.
+    config = repository(tmp_path)
+    set_driver(tmp_path, driver_value(persisted().command))
+
+    def refuse(*args, **kwargs):
+        raise HistoryUnavailable("git is not on PATH")
+
+    monkeypatch.setattr("roadkeep.history._run", refuse)
+    driver = registered(config)
+    assert driver.state == UNKNOWN and not driver.wired
+    assert main(["-C", str(tmp_path), "merge", "--check"]) == EXIT_OK
+

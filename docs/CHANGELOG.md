@@ -226,6 +226,7 @@
 - ✅ **RK234** **Nothing in an adopting project runs the gate that holds its vendored skill in step** — The `SessionStart` notice names a vendored copy that drifted from the checkout answering, before the session loads it — 0.86ms wired, 0.07ms where there is no copy, and never the gate.
 - ✅ **RK235** **`install` reads the checkout that ships the plugin as a project to wire into** — At the plugin's own root the two copies are named as unwritten, not computed, so `--check` there reports drift and not a category error — and `uninstall` refuses, those entries being the tree's own.
 - ✅ **RK255** **The merge driver git is told to run is a bare console script** — `register` derives the driver from `persisted()` — console script, launcher or module path, absolute and quoted for the shell git runs — and prints what would end it.
+- ✅ **RK266** **A registered driver that stopped resolving is silent until a merge** — `merge --check` reads `merge.roadkeep.driver` back and exits 1 where git has no driver it can run, keeping a command that merely moved apart from one this machine no longer has.
 
 ## Block F — The Claude Code plugin
 

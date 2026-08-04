@@ -332,30 +332,28 @@ than assume: it makes every test pay six calls, and it hides the case where clea
 itself the assertion. The alternative is a fixture the patching tests request by name,
 which keeps the coupling visible and only helps the tests that already remembered.
 
+### §RK269 The transition only the console saw
+
+`ship` computes something no other verb does: whether the block it just emptied still
+holds open work. It says so — `event T282 Block AI empty` — and that is the end of it.
+The next verb cannot ask, and `lint`, which runs at the turn's end and is the gate an
+author actually trusts, reports a clean tree either way.
+
+Measured in a repository that keeps a per-block index beside its ledger, with an
+`(active — see ROADMAP)` marker per row. Two ships emptied one block and two adds
+reopened it across four commits. Each time the row had to be flipped by hand, and each
+time `lint` passed on the wrong one; the discrepancy was caught by that project's own
+test suite, which asserts the index against the roadmap because roadkeep does not. An
+author who trusts `lint` ships the wrong row.
+
+What is open is whether roadkeep should know about a block index at all. Three shapes,
+in order of how much they claim: `lint` reporting the transition as an observation
+rather than a violation; a query verb answering "which blocks are empty" so a project's
+own check can be written against roadkeep instead of against a regex; or roadkeep owning
+the index row the way `block add` owns the heading. The first costs almost nothing and
+would have caught all four. The last is the one that needs the design.
+
 ## Block E — Adoption
-
-### §RK266 RK266 — a stored command nothing reads back
-
-RK255 made the driver git stores absolute, and made `register` print the condition that
-ends it: an interpreter replaced, a plugin update moving the package, a tree that stops
-importing. Naming the expiry is not observing it. The value lives in `.git/config`,
-which no verb here reads, so the first evidence that it rotted is git falling back to
-conflict markers in the one file whose merge is decidable — the failure this driver
-exists to prevent, arriving at the moment it was wired for and blaming the merge rather
-than the registration.
-
-What is missing is the read: `merge --register --check`, or a line `lint` already walks,
-that takes `merge.roadkeep.driver` out of the checkout's config and compares it to what
-`persisted` derives now. Three answers are distinguishable and each is a different
-sentence — absent (never registered, though `.gitattributes` may claim otherwise),
-present and equal, present and stale. Only the third is this task, and it is the one no
-output the tool produces today reaches.
-
-Where it belongs is the open question. `lint` is the gate and runs in CI, where
-`.git/config` is a runner's and not the author's, so a stale-driver finding there fails
-builds over a fact about somebody else's machine — which argues for the check and
-against a finding code. Against that: a check nobody runs is the same silence, and the
-gate is the one thing reliably read.
 
 ## Block F — The plugin
 

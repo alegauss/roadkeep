@@ -42,10 +42,9 @@
 - 📋 **RK239** (deps: —) **Two prose files declaring one anchor is silent until a line points at it** — `ref.ambiguous` is reported from the pointer end alone, so 12 of Turing 13 doubled anchors pass a gate four verbs already decline to resolve them by. → §RK239
 - 📋 **RK263** (deps: —) **A test asserting about the live checkout fails the same way whether code or the tree moved** — Six failed and then 1940 passed on unchanged source, the six being exactly the ones reading this repository, so git activity beside a run is indistinguishable from a defect. → §RK263
 - 📋 **RK268** (deps: —) **A cached derivation survives the test that monkeypatched what it read** — Six process-lifetime caches are cleared by hand at call sites with no fixture, so a test failing before its trailing `cache_clear` leaves later ones asserting about a `tmp_path` that is gone. → §RK268
+- 💭 **RK269** (deps: —) **A block emptying is stated once to the console and recorded nowhere a later verb can read** — `ship` printed `event T282 Block AI empty`, `lint` then called the tree clean, and the repo kept an index row claiming that block active — caught only by a test of its own. → §RK269
 
 ## Block E — Adoption
-
-- 📋 **RK266** (deps: —) **A registered driver that stopped resolving is silent until a merge** — `merge --register` stores an absolute path and names what would end it, but no verb reads `.git/config` back — so a plugin update leaves a driver git still calls and nothing that says so. → §RK266
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
