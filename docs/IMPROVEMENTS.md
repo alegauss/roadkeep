@@ -159,7 +159,55 @@ What must not be the answer is a sentence in `agents.md` telling the author to r
 porcelain before shipping. Ordering held by prose is the drift this tool exists to
 remove.
 
+### §RK302 The door that admits the state four verbs refuse
+
+`SectionExists` asks the document it is writing into and nobody else. RK297 taught the
+*read* that an outline spans every declared prose file, and `_refuse_reuse` with it —
+but that one catches a **retired** address, which is the case where history is the only
+witness. A live one is visible in the sibling file, and no check looks.
+
+Reproduced on a project declaring both roles: `section add IX --role improvements`,
+`section add IX.1 --role improvements`, then the same two into `strategy`. All four
+succeed and print their line counts. `lint` then reports four `section.ambiguous`
+findings, and the message it prints is the argument for refusing at the door: *one
+anchor names one section, so no pointer here resolves and every verb that reads one
+refuses.*
+
+So the write path builds a state its own gate calls unresolvable, and the four verbs
+that would repair it are among the ones that refuse. `anchors` names the doubling now
+(RK297) but names it afterwards, and `drop` is the only exit — which deletes prose
+somebody wrote.
+
+The shape is the one `_refuse_reuse` already has: the project's declarations rather than
+the file's, asked one line earlier. What needs deciding is whether the refusal names the
+sibling file's line number, which `declaring` can already reach, and whether a `--force`
+exists at all — RK297's evidence says the doubled anchors in the corpora were made by
+hand and not by this verb, so a door that never opens is the cheaper answer.
+
 ## Block C — Query
+
+### §RK303 First match, at the one door that had not learned it
+
+RK172 taught resolution that a pointer addresses every governed prose file, and RK186
+taught `show`. Two roles declaring one anchor is the ambiguity and not a first match:
+`_rationale` answers *"§X is declared by both: one anchor names one section, and a
+pointer resolving to two resolves to neither"*, and `lint` reports `section.ambiguous`
+at both headings.
+
+`body_budget` (RK283) resolves the role by walking `PROSE_ROLES` and taking
+`declaring[0]`. Reproduced on a project holding §IX.1 in both files: it answers
+`improvements, 2 written, 248 left` while `show` refuses the same anchor. So the read
+built to state a limit before the prose exists states one for a section the author
+cannot address — and the number is right about a file that was picked rather than named.
+
+It reaches two commands: `budget --anchor`, and the `section` field every `budget` now
+carries (RK301), where the anchor is the line's own pointer and the caller never typed
+it.
+
+The direction is the one every other reader took, and the refusal already has its words.
+What is worth deciding is whether `--role` stays the way through — it is the caller
+naming which of the two they mean, which is the only thing that resolves the ambiguity
+without a verb choosing.
 
 ## Block D — The gate
 
@@ -214,3 +262,26 @@ The second was argued for as cheap "before it is load-bearing". It no longer is:
 RK273, RK274, RK277 and RK278 each put behaviour behind that flag, so the rename moves a
 documented command with five decisions in it. Not an argument against — the measure of
 what an exception would hold.
+
+### §RK304 The bound that stayed prose
+
+RK24's claim is that the input schema *is* the format's schema: `maxLength` is this
+project's limits, `enum` is its declared markers, `pattern` is its id shape. The point
+is the protocol refusing a wrong argument before the call, which is L1 one layer out.
+
+`role` is the remaining closed set and it publishes neither. Measured on this
+repository: `section_add`, `section_amend`, `section_drop` and `budget` each describe it
+as *"which prose file"* and give the client nothing to validate against, so `role =
+"notes"` is a well-formed call the server refuses. The set is not a guess — `config.has`
+over `PROSE_ROLES` is the same narrowing `_paragraphed` already makes to decide which
+limits to publish (RK259), so the answer is one line from a function that already
+computes it.
+
+Two things it is not. It is not `choices` on the parser: `--role` accepts a role the
+*project* declares, and argparse would have to be rebuilt per project to say so. And it
+is not a bound the client may skip — `argv` checks what it publishes (RK111's rule), so
+whatever is added here is checked at dispatch too.
+
+Worth deciding whether `--role` on `anchors` joins them. It narrows a listing rather
+than choosing a write target, and RK297 made it the one flag that does not change the
+number an author acts on.
