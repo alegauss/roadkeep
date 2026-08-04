@@ -415,12 +415,14 @@ driver is silent until the merge it was registered for.
 The reason it is absent is that `merge` is git's driver contract. Three positional
 paths, a `--path`, an exit code git reads — none of that belongs in a tool an agent
 calls, and the server was right to leave the verb alone. But `--check` is not that verb
-sharing a name; it is a different command wearing the same subparser, which is also why
-it needed a flag rather than a name.
+sharing a name; it is a different command wearing the same subparser, which is why it
+needed a flag.
 
-So the shape to decide: whether the server grows a tool for a flag — the mapping is one
-subparser per task, and this would be the first exception — or whether `--check` becomes
-its own subcommand, `merge check` beside `merge --register`, and the server picks it up
-by the rule it has. The second costs renaming something shipped two commits ago and
-leaves no exception behind, which is the argument for doing it before it is
-load-bearing.
+The shape to decide: whether the server grows a tool for a flag — one subparser per task
+is the mapping, and this the first exception — or whether `--check` becomes its own
+subcommand, `merge check`, picked up by the rule the server has.
+
+The second was argued for as cheap "before it is load-bearing". It no longer is: RK272,
+RK273, RK274, RK277 and RK278 each put behaviour behind that flag, so the rename moves a
+documented command with five decisions in it. Not an argument against — the measure of
+what an exception would hold.
