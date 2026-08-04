@@ -4423,11 +4423,7 @@ def _print_estimate(estimate: Estimate) -> None:
     # governed` and `install`'s "no .github/workflows/" already use. Printed always, because a
     # limit stated only where it happened to bite is one the reader cannot rely on: RK290 made
     # the estimate and the gate agree on everything one file decides, so this names the rest.
-    where = ", ".join(estimate.unopened) if estimate.unopened else "no other governed file"
-    print(
-        f"  scope    {where} not read: deps and pointers resolve across files, so neither "
-        f"was checked here — `lint` is the answer once they are declared"
-    )
+    print(f"  scope    {_estimate_scope(estimate)}")
     for marker, count in estimate.undeclared:
         print(f"  marker   {marker} on {count} line(s), declared by nothing in [markers]")
     for code, count in estimate.codes:
@@ -4449,6 +4445,29 @@ def _print_estimate(estimate: Estimate) -> None:
             f"  {estimate.non_canonical} line(s) do not round-trip: the tool would "
             f"refuse to write this file until they are rewritten by hand{because}"
         )
+
+
+def _estimate_scope(estimate) -> str:
+    """What this estimate could not decide, said in names the reader can act on (RK291/292).
+
+    Three sentences, because the fact has three shapes and one wording made two of them wrong.
+    Where the target is declared, the siblings are what handing over would complete, so they are
+    named. Where it is declared and alone, there is nothing to hand over and the limit is still
+    real. Where it is **not** declared — the case `adopt` exists for — this project's `[files]`
+    belong to somebody else: naming them said Turing's `docs/IMPROVEMENTS.md` was measured while
+    this repository's went unread, which reads as not having read what was read.
+    """
+    across = "deps and pointers resolve across files"
+    if not estimate.declared:
+        return (
+            f"one file read, declared by no project here: {across}, so neither was checked — "
+            f"`lint` is the answer inside the project that owns them"
+        )
+    named = ", ".join(estimate.unopened) if estimate.unopened else "no other governed file"
+    return (
+        f"{named} not read: {across}, so neither was checked here — `lint` is the answer "
+        f"once they are declared"
+    )
 
 
 def _print_scoped(scoped) -> None:
@@ -4518,6 +4537,7 @@ def _estimate_json(estimate: Estimate) -> dict[str, object]:
         "schemes": [{"scheme": s, "count": n} for s, n in estimate.schemes],
         "ledger_shape": [{"declaration": d, "count": n} for d, n in estimate.ledger_shape],
         "unopened": list(estimate.unopened),
+        "declared": estimate.declared,
         "tabular": estimate.tabular,
         "listed": estimate.listed,
     }

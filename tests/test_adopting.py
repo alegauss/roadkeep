@@ -1026,6 +1026,45 @@ def test_the_estimate_never_resolves_what_it_could_not_read(tmp_path: Path) -> N
     assert estimate.changing == 0, "a dep it cannot resolve is not work it may price"
 
 
+def test_a_target_no_project_here_declares_names_no_siblings(tmp_path: Path, capsys) -> None:
+    # RK292: adopting Turing's `docs/IMPROVEMENTS.md` from this checkout named *this* repo's
+    # three files as unread, one of them same-named — so the report said it had not read the
+    # file it read, and offered siblings nobody could hand over.
+    foreign = tmp_path / "elsewhere" / "ROADMAP.md"
+    foreign.parent.mkdir()
+    foreign.write_text(CONFORMING, encoding="utf-8")
+    docs = tmp_path / "docs"
+    docs.mkdir()
+    (docs / "ROADMAP.md").write_text(CONFORMING, encoding="utf-8")
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "docs/ROADMAP.md"\n'
+        'changelog = "docs/CHANGELOG.md"\n',
+        encoding="utf-8",
+    )
+    config = Config.discover(tmp_path)
+
+    outside = adopt(config, foreign)
+    assert outside.declared is False and outside.unopened == ()
+    inside = adopt(config, docs / "ROADMAP.md")
+    assert inside.declared is True and inside.unopened == ("docs/CHANGELOG.md",)
+
+    assert main(["-C", str(tmp_path), "adopt", str(foreign)]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "declared by no project here" in printed
+    # The whole defect: this project's own files are not named as unread.
+    assert "docs/CHANGELOG.md" not in printed
+
+
+def test_the_limit_is_still_stated_for_a_file_no_project_owns(tmp_path: Path, capsys) -> None:
+    """Narrower, never absent (RK291 holds): one file was read, and deps and pointers need
+    more than one whichever project they belong to."""
+    target = tmp_path / "ROADMAP.md"
+    target.write_text(CONFORMING, encoding="utf-8")
+    assert main(["-C", str(tmp_path), "adopt", str(target)]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "deps and pointers resolve across files" in printed
+
+
 def test_a_fenced_table_is_an_example(tmp_path: Path) -> None:
     """A rationale file quotes the shape it is arguing about; a fence is what says so."""
     target = tmp_path / "ROADMAP.md"

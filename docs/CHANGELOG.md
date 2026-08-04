@@ -246,6 +246,7 @@
 - ✅ **RK289** **Only one payload is held to the dataclass it renders** — `Estimate`, `Plan` and `Removal` are each held to their payload by a test over their fields, with the two renames declared beside it so the boundary that names them stays.
 - ✅ **RK290** **The estimate cannot see any finding that needs more than one line** — `adopt` counts what `within` finds — the half of the gate one file decides — so a duplicated id is priced instead of read as conforming, and the two disagree only across files.
 - ✅ **RK291** **Nothing in the estimate says which checks it did not run** — The report names the governed files it did not open, so the one class the estimate cannot decide is stated as a term of the measurement instead of being resolved from a file that cannot settle it.
+- ✅ **RK292** **The scope line names files from the project that did not supply the target** — The scope line asks whether the target is declared here, so a file no project owns names no siblings and states the narrower limit instead of offering files nobody can hand over.
 
 ## Block F — The Claude Code plugin
 

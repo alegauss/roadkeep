@@ -290,6 +290,11 @@ class Estimate:
     #: whose deps all resolve. Naming what was out of reach is the other act, and the one
     #: an adopter can take — handing `adopt` these files is what the sentence implies.
     unopened: tuple[str, ...] = ()
+    #: Whether the target is one of the files this project declares (RK292). It usually is not
+    #: — `adopt` reads a file that is "by definition not one of them yet" — and that decides
+    #: what :attr:`unopened` can mean: siblings worth handing over where the target is declared,
+    #: and nothing nameable where the config belongs to another project entirely.
+    declared: bool = False
     #: Every family the measurement was taken under. One unless the caller passed a list:
     #: inference stays at the dominant spelling, because promoting the rest would be the
     #: tool deciding a foreign id is a second track (L4).
@@ -678,6 +683,7 @@ def adopt(
         schemes=_schemes(document),
         ledger_shape=_ledger_shape(document, schema),
         unopened=_unread(config, target),
+        declared=_declared(config, target),
         blocks=tuple(h.label for h in document.headings if h.label),
         non_canonical=len(document.non_canonical),
         # Only where the file is being read as a backlog: a ledger has no such list, and a
@@ -735,6 +741,7 @@ def _prose(config: Config, target: Path, ref_scheme: str | None) -> Estimate:
         # other way", which is the one sentence Shio's file needed.
         schemes=_heading_schemes(document),
         unopened=_unread(config, target),
+        declared=_declared(config, target),
         parsed=len(found),
         conforming=sum(1 for count in words if count <= schema.section_max),
         # RK281: the same contract `listed` has one file over. A rationale file that never
@@ -998,15 +1005,26 @@ def _unread(config: Config, target: Path) -> tuple[str, ...]:
     while a filename is what an adopter can act on — handing `adopt` that file is the move the
     sentence implies.
 
-    The target is excluded by resolved path rather than by role, because it may be declared
-    under none: `adopt` reads a file the project has not adopted yet, which is the whole case.
+    Empty where the target is **not** one of the declared files (RK292), which is the case
+    `adopt` exists for. There this project's `[files]` belong to somebody else: naming them as
+    unread said that Turing's `docs/IMPROVEMENTS.md` was measured while this repository's
+    `docs/IMPROVEMENTS.md` went unread, which reads as the report not having read what it read
+    — and offering siblings nobody can hand over. The limit is still real and simply narrower,
+    and :attr:`Estimate.declared` is what lets the sentence say which one it is.
     """
     here = target.resolve()
+    by_role = {role: config.path(role).resolve() for role in config.paths}
+    if here not in by_role.values():
+        return ()
     return tuple(
-        config.relative(config.path(role))
-        for role in config.paths
-        if config.path(role).resolve() != here
+        config.relative(config.path(role)) for role, path in by_role.items() if path != here
     )
+
+
+def _declared(config: Config, target: Path) -> bool:
+    """Whether this target is one of the files the loaded project governs (RK292)."""
+    here = target.resolve()
+    return any(config.path(role).resolve() == here for role in config.paths)
 
 
 def _schemes(document: Document) -> tuple[tuple[str, int], ...]:
