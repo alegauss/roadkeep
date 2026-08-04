@@ -100,28 +100,6 @@ overrun would be back to guessing, with a smaller number to guess against.
 
 ## Block B — Authoring
 
-### §RK230 One transaction, or the pointer RK93 closed
-
-RK93's argument is that a line and the design it points at are one write: given
-separately, the roadmap gains a pointer resolving to nothing and the author learns the
-follow-up from the gate, which is the inversion L1 exists to prevent. `--section` is
-that transaction.
-
-It writes to `improvements` and to nothing else. On a project declaring only `strategy`
-— legal under L6, and the shape RK172, RK186, RK196 and RK197 each taught one more
-reader about — the call is refused with `NoProseFile` and the only route left is `add`
-then `section add --role strategy`, which is the two-command shape RK93 was filed
-against. So the door exists and the projects that most need it cannot reach it.
-
-RK197 already resolved the *follow-up*: it names `--role strategy` where that is the
-role a section would go into, which means the answer to "which role" is now computed and
-this verb could ask the same question. That is the cheap version.
-
-What needs deciding is whether `--section` should take a role at all. `add` deriving it
-matches every other placement in this tool, and a project declaring both roles has a
-real choice that only the author can make — while a flag on `add` is a second place the
-role can be said, and `section add --role` is already the first.
-
 ### §RK231 RK123's deadlock, for work that was set aside
 
 Found by a test written for RK215 that failed for the wrong reason, which is why it is

@@ -1627,7 +1627,11 @@ def _add(config: Config, args: argparse.Namespace) -> int:
         insertion.entry.task.id, insertion.entry.task.block, insertion.document
     )
     written = insertion.section
-    prose = config.relative(config.path("improvements")) if config.has("improvements") else ""
+    # The file the write actually chose (RK230), read off the document `_with_section` left
+    # rather than composed from the improvements default: a report that names the role and a
+    # write that derives it are two answers, and one of them is wrong on every project that
+    # declares `strategy` alone.
+    prose = _prose_file(config, insertion.prose)
     if args.json:
         print(
             json.dumps(

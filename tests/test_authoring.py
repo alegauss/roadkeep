@@ -861,6 +861,85 @@ def test_a_pointer_the_strategy_file_answers_reports_no_follow_up_on_the_command
     assert "needs" not in capsys.readouterr().out
 
 
+# -- the write that could not reach the file it was told about (RK230) --------
+
+PLANNED = """# Strategy
+
+## Block A — The model
+
+## Block B — Authoring
+"""
+
+
+def planning(tmp_path: Path, *, improvements: str | None = None) -> Config:
+    """A project whose prose is the strategy file — legal under L6, and refused until RK230."""
+    lines = ['prefix = "RK"', "[files]", f'roadmap = "{ROADMAP}"']
+    written = {ROADMAP: BODY, STRATEGY: PLANNED}
+    if improvements is not None:
+        lines.append(f'improvements = "{IMPROVEMENTS}"')
+        written[IMPROVEMENTS] = improvements
+    lines.append(f'strategy = "{STRATEGY}"')
+    (tmp_path / "roadkeep.toml").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    for name, text in written.items():
+        path = tmp_path / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("w", encoding="utf-8", newline="") as handle:
+            handle.write(text)
+    return Config.discover(tmp_path)
+
+
+def plan(config: Config) -> str:
+    with config.path("strategy").open("r", encoding="utf-8", newline="") as handle:
+        return handle.read()
+
+
+def test_a_section_lands_in_the_only_prose_file_a_project_declares(tmp_path):
+    # The follow-up already named `--role strategy` (RK197) for a write that then refused to
+    # make it: `NoProseFile`, on a project whose one prose file was sitting right there. So
+    # the door RK93 built existed and the projects that most needed it could not reach it.
+    config = planning(tmp_path)
+    added = task(config, section=("A design", "Because the gate said so."))
+    assert added.needs is None and added.section is not None
+    written = plan(config)
+    assert "### §RK2 A design\n\nBecause the gate said so.\n" in written
+    assert written.index("§RK2") > written.index("## Block B")
+    assert added.rendered in source(config)  # one transaction, both files
+
+
+def test_declaring_both_roles_still_writes_where_the_default_points(tmp_path):
+    # Derived and never a flag on `add`: the role is already said in `section add --role`,
+    # and a project declaring both has a choice its author makes by taking that route.
+    config = planning(tmp_path, improvements=DESIGN)
+    assert task(config, section=("A design", "Because the gate said so.")).section is not None
+    assert "### §RK2 A design" in design(config)
+    assert plan(config) == PLANNED  # untouched, and never a second copy of one anchor
+
+
+def test_the_report_names_the_file_the_write_chose(tmp_path, capsys):
+    # A report composed from the improvements default is a second answer to a question the
+    # write already resolved, and on this project it is the wrong one (RK196).
+    planning(tmp_path)
+    argv = [
+        "-C", str(tmp_path), "add", "--block", "B",
+        "--symptom", "A second symptom", "--why", "Because of another.",
+        "--section", "A design", "--section-body", "Because the gate said so.",
+    ]
+    assert main(argv) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "design   §RK2 → docs/STRATEGY.md:" in out and "IMPROVEMENTS" not in out
+    assert main([*argv, "--json"]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["section"]["file"] == "docs/STRATEGY.md"
+
+
+def test_a_project_declaring_no_prose_file_is_told_about_every_role(tmp_path):
+    # The refusal that remains, and it no longer asks for the second prose file a project
+    # declaring one has no use for.
+    config = project(tmp_path)
+    with pytest.raises(NoProseFile, match="'improvements' or 'strategy'"):
+        task(config, section=("A design", "Because of a reason."))
+    assert source(config) == BODY
+
+
 def test_a_section_on_a_line_with_no_pointer_is_refused(tmp_path):
     # A project that made the pointer optional (RK66) and wrote a line without one: the
     # prose would be reachable from nothing, so there is no section to write.

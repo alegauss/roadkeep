@@ -131,13 +131,19 @@ class NoAnchor(ValueError):
 
 
 class NoProseFile(ValueError):
-    """A rationale asked for by a project that declares nowhere to put one (RK93)."""
+    """A rationale asked for by a project that declares nowhere to put one (RK93).
 
-    def __init__(self, task_id: str, role: str = "improvements") -> None:
+    Every prose role and not one of them (RK230): naming `improvements` was the refusal a
+    project declaring `strategy` alone got for a section its own file would have held, and
+    "declare it under [files]" then asked for the second prose file it had no use for.
+    """
+
+    def __init__(self, task_id: str, role: str = "") -> None:
         self.task_id = task_id
+        named = repr(role) if role else " or ".join(repr(r) for r in PROSE_ROLES)
         super().__init__(
-            f"this project declares no {role!r} file, so {task_id} has nowhere to "
-            f"carry a section: declare it under [files], or drop --section"
+            f"this project declares no {named} file, so {task_id} has nowhere to "
+            f"carry a section: declare one under [files], or drop --section"
         )
 
 
@@ -353,12 +359,39 @@ def _with_section(config: Config, insertion: Insertion, title: str, body: str) -
     task = insertion.entry.task
     if not task.ref:
         raise NoAnchor(task.id)
-    if not config.has("improvements"):
+    role = prose_role(config)
+    if role is None:
         raise NoProseFile(task.id)
-    prose, written = sections.add(
-        config, "improvements", task.ref, title, body, task=task
-    )
+    prose, written = sections.add(config, role, task.ref, title, body, task=task)
     return replace(insertion, prose=prose, section=written)
+
+
+def prose_role(config: Config, *, on_disk: bool = False) -> str | None:
+    """Which prose role a section written now goes into, or None where none is declared (RK230).
+
+    Improvements wherever it is declared — `section add`'s own default and where `--section`
+    has always written — and otherwise the **first declared role**, which is the only answer
+    for a project that declares one. That is the whole fix: naming the role outright refused
+    `add --section` to exactly the projects RK172, RK186, RK196 and RK197 each taught one more
+    reader about, and left them the two commands and the dangling pointer RK93 closed.
+
+    **Derived, and never a flag on `add`.** The role is already said in `section add --role`,
+    and a second place to say it is a second thing that can disagree; a project declaring both
+    roles has a real choice, and taking that two-command route deliberately is how an author
+    makes it — which is not the same as being handed it by a refusal.
+
+    `on_disk` narrows it to roles whose file exists, which is what a *follow-up* needs (RK197):
+    a command naming a file nobody created cannot run. A write does not ask, because
+    `section add` writes into a declared file whether or not this run is the one creating it.
+    """
+    roles = tuple(
+        role
+        for role in PROSE_ROLES
+        if config.has(role) and (not on_disk or config.path(role).is_file())
+    )
+    if not roles:
+        return None
+    return "improvements" if "improvements" in roles else roles[0]
 
 
 def _unresolved(config: Config, ref: str) -> str | None:
@@ -377,21 +410,14 @@ def _unresolved(config: Config, ref: str) -> str | None:
     that cannot run is worse than the silence this replaces.
 
     The **role** and not just the fact, because a project declaring several has more than one
-    place a section could go and the follow-up has to name the one it means. Improvements
-    wherever it is declared — that is `section add`'s own default and where `add --section`
-    writes — and otherwise the first declared role, spelled out, so the command offered is one
-    that runs.
+    place a section could go and the follow-up has to name the one it means — the same
+    derivation the write itself now makes (RK230), so the command offered writes where
+    `--section` would have.
     """
-    roles = tuple(
-        role
-        for role in PROSE_ROLES
-        if config.has(role) and config.path(role).is_file()
-    )
-    if not roles:
+    role = prose_role(config, on_disk=True)
+    if role is None or sections.declaring(config, ref):
         return None
-    if any(sections.find(config.document(role), ref) is not None for role in roles):
-        return None
-    return "improvements" if "improvements" in roles else roles[0]
+    return role
 
 
 @dataclass(frozen=True, slots=True)
