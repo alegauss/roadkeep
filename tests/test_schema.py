@@ -29,7 +29,7 @@ from roadkeep import (
     SchemaError,
     Task,
 )
-from roadkeep.schema import over_by
+from roadkeep.schema import over_by, words, words_over
 
 ROADMAP = Path(__file__).resolve().parents[1] / "docs" / "ROADMAP.md"
 CHANGELOG = Path(__file__).resolve().parents[1] / "docs" / "CHANGELOG.md"
@@ -159,14 +159,42 @@ def test_a_length_refusal_names_the_surplus_and_asks_for_a_deletion():
 
 def test_a_surplus_of_one_is_singular():
     (violation,) = SCHEMA.validate(task(symptom="x" * 121))
-    assert "delete 1 character;" in violation.message
+    assert "delete 1 character — about 1 word;" in violation.message
 
 
 def test_the_arithmetic_is_spelled_in_one_place():
     # Five refusals count a length and one function writes all of them, so a message that
     # improves improves everywhere rather than in the one the author happened to hit.
-    assert over_by(327, 320) == "327 characters, limit is 320: delete 7 characters"
+    assert over_by(327, 320) == (
+        "327 characters, limit is 320: delete 7 characters — about 2 words"
+    )
     assert over_by(253, 250, unit="word") == "253 words, limit is 250: delete 3 words"
+
+
+def test_a_character_surplus_is_restated_in_the_unit_the_retry_is_composed_in():
+    # RK201: RK185 published every aim in words and left this surface — the one an author
+    # reaches after the overrun — in characters alone, so the retry was a re-guess.
+    assert over_by(309, 280).endswith("delete 29 characters — about 5 words")
+
+
+def test_the_exact_figure_comes_first_and_the_approximation_is_hedged():
+    # The character count is what refuses; the word one is derived from it. An author told
+    # only "about 5 words" against a 29-character overrun has a smaller number to guess at.
+    message = over_by(309, 280)
+    assert message.index("29 characters") < message.index("about 5 words")
+    assert "about" in message
+
+
+def test_a_surplus_in_words_rounds_up_where_an_aim_rounds_down():
+    # Opposite directions, one constant: an aim that rounds up overshoots the gate, and a
+    # cut that rounds down stops short of it and earns the same refusal a second time.
+    assert words(13) == 2 and words_over(13) == 2
+    assert words(14) == 2 and words_over(14) == 3
+    assert words(6) == 0 and words_over(6) == 1
+
+
+def test_a_refusal_already_counted_in_words_gets_no_second_copy_of_itself():
+    assert "about" not in over_by(253, 250, unit="word")
 
 
 def test_symptom_at_the_limit_is_accepted():

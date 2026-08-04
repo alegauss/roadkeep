@@ -75,29 +75,6 @@ already written, not authorship.
 
 ## Block A — The model
 
-### §RK201 The one surface RK185 did not reach
-
-RK185 made the case in one sentence: a model has no characters, so a limit published
-only in them is a target reached by trial. It then published the word aim on every
-surface an author reads *before* composing — the MCP field schema, `budget`, `brief`,
-the skill.
-
-The refusal is the surface they reach after, and it still says "delete 9 characters".
-That is exact and it is unactionable in the same way the ceiling was: the author
-subtracts a number they cannot measure, and the observed loop is five retries against
-one gate in a single session of this repository's own work.
-
-The correction is small and it is not a second opinion: RK184 already computes the
-surplus, and stating it as words alongside is the same conversion `budget` makes, from
-the same constant. "Delete 9 characters — about two words" is a sentence an author can
-act on without re-composing.
-
-Two things to be careful of. The word figure here is a *surplus* and not an aim, so it
-rounds the other way: rounding down would name a cut that does not clear the gate. And
-the refusal must keep the character number first, because that one is exact and the word
-one is an approximation of it — an author told only "two words" and given a 9-character
-overrun would be back to guessing, with a smaller number to guess against.
-
 ### §RK240 One answer to where an id is
 
 Three refusals answer the same question, and it is not "does this id exist" — it is

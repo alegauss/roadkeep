@@ -365,7 +365,7 @@ _BOUNDS = {
             f"with the line's own structure, so the usable maximum is lower than "
             f"{config.schema.why_max} and lower again where the line carries deps. "
             f"`budget` answers it in both units before a word is written (RK190); the "
-            f"refusal names what was left."
+            f"refusal names what was left, in both units too (RK201)."
         ),
     },
     "status": lambda config: {"enum": list(config.schema.markers)},

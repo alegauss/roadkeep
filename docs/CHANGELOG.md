@@ -36,6 +36,7 @@
 - ✅ **RK183** **The two field limits sum to the line limit, so a line obeying both is refused by the third** — The why is held to the smaller of its own limit and what the line has left after its structure and symptom, so no pair obeying the published numbers is refused by a third.
 - ✅ **RK184** **A length refusal names the rendered total and not the field that is over or the surplus** — Every length refusal names the field, the surplus and the word delete, so the author subtracts a stated number instead of recomposing a sentence against a total nobody wrote.
 - ✅ **RK187** **`export --readme --site` writes the first file and then refuses the second, leaving one refreshed** — The two projections are planned, both targets are asked, and only then are they renamed into place, so a refusal on either leaves neither refreshed.
+- ✅ **RK201** **A length refusal states its surplus in the one unit the author composing the retry cannot count** — A character overrun now names its surplus in words too — `delete 29 characters — about 5 words`, ceiled off the aim's own constant, so the retry is a deletion and not a re-guess.
 
 ## Block B — Authoring
 

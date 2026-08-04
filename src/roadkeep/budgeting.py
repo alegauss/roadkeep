@@ -27,7 +27,10 @@ tokenizer exposes tokens, so "200 characters" is a target reached by trial and e
 is a re-guess. Words survive tokenization well enough to be aimed at, so every number above
 is also stated as one — the aim, beside the gate. They are not in conflict, because the
 character figure is what refuses and the word figure is what an author can act on before a
-sentence exists; publishing only the first is the arrangement L1 exists to end.
+sentence exists; publishing only the first is the arrangement L1 exists to end. The
+conversion itself lives in :mod:`roadkeep.schema` and is read from here (RK201), because
+the refusal an author reaches *after* an overrun states its surplus in words off the same
+constant — one arithmetic in two directions, and not two constants that can disagree.
 """
 
 from __future__ import annotations
@@ -38,28 +41,12 @@ from typing import Sequence
 from roadkeep.authoring import compose
 from roadkeep.config import Config
 from roadkeep.ids import next_id
-from roadkeep.schema import Task
+from roadkeep.schema import CHARS_PER_WORD, Task, words
 
-#: Characters per word, for turning a budget that refuses into one that can be aimed at
-#: (RK185). Measured over this repository's 392 written `symptom` and `why` fields: the
-#: median is 5.5 and the 95th percentile 6.36, so this is the first round number above it
-#: — an author who lands on the word aim clears the character gate about nineteen times in
-#: twenty, and the twentieth is the refusal that already names the surplus (RK184).
-#:
-#: Not configuration (L6). A project declares how long its lines may be; this is a property
-#: of the prose those lines are written in, and a `roadkeep.toml` field for it would be a
-#: project declaring a fact about English. The corpus that fixes it is the one the format is
-#: proven by, and `tests/test_budgeting.py` re-measures it rather than trusting this comment.
-CHARS_PER_WORD = 6.5
-
-
-def words(chars: int) -> int:
-    """A character budget as the word count it is safe to aim at.
-
-    Floored, never rounded: an aim that rounds up is an aim that lands over the gate half
-    the time it is hit exactly, which is the retry this exists to remove.
-    """
-    return max(0, int(chars // CHARS_PER_WORD))
+#: Re-exported, not re-declared (RK201). The conversion moved down to `schema`, where the
+#: refusal that states a surplus can reach it: the aim and the surplus are the same
+#: arithmetic in opposite directions, and two constants would be two answers.
+__all__ = ["CHARS_PER_WORD", "Budget", "Share", "budget", "budget_of", "words"]
 
 
 @dataclass(frozen=True, slots=True)

@@ -32,6 +32,7 @@ the skill and by review.
 
 from __future__ import annotations
 
+import math
 import re
 from dataclasses import dataclass, replace
 from enum import StrEnum
@@ -129,6 +130,43 @@ SUB_LETTER = r"[a-z]"
 _RANGE_SHAPE_RE = re.compile(r"^[A-Za-z]{1,8}[0-9]+\s*[-–—]\s*[A-Za-z]{0,8}[0-9]+$")
 
 
+#: Characters per word, for turning a budget that refuses into one that can be aimed at
+#: (RK185). Measured over this repository's 392 written `symptom` and `why` fields: the
+#: median is 5.5 and the 95th percentile 6.36, so this is the first round number above it
+#: — an author who lands on the word aim clears the character gate about nineteen times in
+#: twenty, and the twentieth is the refusal that already names the surplus (RK184).
+#:
+#: Not configuration (L6). A project declares how long its lines may be; this is a property
+#: of the prose those lines are written in, and a `roadkeep.toml` field for it would be a
+#: project declaring a fact about English. The corpus that fixes it is the one the format is
+#: proven by, and `tests/test_budgeting.py` re-measures it rather than trusting this comment.
+#:
+#: Here rather than in `budgeting`, which is where it was written and is still read from
+#: (RK201): the refusal needs the same conversion the aim is published with, and a second
+#: constant one layer down would be the second opinion an author stops trusting.
+CHARS_PER_WORD = 6.5
+
+
+def words(chars: int) -> int:
+    """A character budget as the word count it is safe to aim at.
+
+    Floored, never rounded: an aim that rounds up is an aim that lands over the gate half
+    the time it is hit exactly, which is the retry this exists to remove.
+    """
+    return max(0, int(chars // CHARS_PER_WORD))
+
+
+def words_over(chars: int) -> int:
+    """A character *surplus* as the words it takes to clear it (RK201).
+
+    Ceiled, where :func:`words` floors, and for the same reason read backwards: an aim
+    that rounds up overshoots the gate, and a cut that rounds down stops short of it.
+    Naming four words to delete against a 29-character overrun sends the author back to
+    the same refusal, which is the retry the figure exists to remove.
+    """
+    return max(1, math.ceil(chars / CHARS_PER_WORD))
+
+
 def over_by(actual: int, limit: int, unit: str = "character", because: str = "") -> str:
     """The arithmetic every length refusal opens with, spelled in one place (RK184).
 
@@ -144,12 +182,20 @@ def over_by(actual: int, limit: int, unit: str = "character", because: str = "")
 
     One function, because a refusal spelled five ways is five things that drift apart, and
     the unit is a parameter for the two refusals counted in words rather than characters.
+
+    **And the surplus is restated in words** (RK201). A character count is exact and it is
+    not a unit the author composing the retry can count, which is the whole argument RK185
+    made for publishing every aim in words — and it left this surface, the one an author
+    reaches *after* the overrun, in characters alone. The exact figure stays first, because
+    the approximation is derived from it; the word one follows, hedged, because it is. A
+    refusal already counted in words gets no second copy of itself.
     """
     surplus = actual - limit
-    return (
-        f"{actual} {_plural(actual, unit)}, limit is {limit}{because}: "
-        f"delete {surplus} {_plural(surplus, unit)}"
-    )
+    deletion = f"delete {surplus} {_plural(surplus, unit)}"
+    if unit == "character":
+        aim = words_over(surplus)
+        deletion += f" {EM_DASH} about {aim} {_plural(aim, 'word')}"
+    return f"{actual} {_plural(actual, unit)}, limit is {limit}{because}: {deletion}"
 
 
 def _plural(count: int, unit: str) -> str:
