@@ -17,10 +17,13 @@ their own:
   the id, the block, and whether that block still holds an open line. Deciding what to do
   next belongs to the `PostToolUse` hook (RK22) or the Action (RK17) — a `[hooks]` table
   running commands would make `uvx roadkeep` an executor of whatever a repo declares.
-* **Errors name the fix, and a failure names one more move.** A `ConfigError` prints every
-  problem it found, once — and every non-zero exit closes with the `report` command that
+* **Errors name the fix, and a fault names one more move.** A `ConfigError` prints every
+  problem it found, once — and a non-zero exit closes with the `report` command that
   captures it, argv already substituted (RK86). Held here rather than at each of the twenty
-  refusals, because the exit code is the contract they all already leave through.
+  refusals, because the exit code is the contract they all already leave through. Not on a
+  **verdict**, which is a read-only command's own 1 (RK271): `lint` naming a finding has
+  answered the question it was asked, and doubting itself afterwards is the tool's
+  highest-traffic output saying nothing.
 * **stdout is forced to UTF-8.** The markers are emoji and the default Windows console
   encoding is cp1252, which raises `UnicodeEncodeError` mid-write and leaves a
   half-printed report. That cost three interrupted runs while this file's own package
@@ -1600,6 +1603,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         # `roadkeep.toml` into a repository nobody can edit. It resolves its own config
         # from the payload anyway — one hook process serves every project a session sees.
         config = Config.default(args.directory)
+    faulted = False
     try:
         code = dispatch(config, args)
     except LockBusy as busy:
@@ -1612,8 +1616,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         # input is what has to change.
         traceback.print_exc()
         code = EXIT_GATE
+        # The one thing the exit code cannot say afterwards: this 1 is the tool falling over
+        # and not the verdict a read was asked for, which is the difference RK271 turns on.
+        faulted = True
     if code != EXIT_OK:
-        _may_offer(argv, args)
+        _may_offer(argv, args, code, faulted=faulted)
     return code
 
 
@@ -1660,15 +1667,34 @@ def _only_reads(args: argparse.Namespace) -> bool:
     return not (flag and getattr(args, flag, False))
 
 
-def _may_offer(argv: Sequence[str], args: argparse.Namespace) -> None:
-    """Close a failure with the capture command, except where that would be a loop.
+def _may_offer(
+    argv: Sequence[str], args: argparse.Namespace, code: int, *, faulted: bool = False
+) -> None:
+    """Close a **fault** with the capture command, and a verdict with nothing (RK86, RK271).
 
     One place and not twenty: every refusal in this file already leaves through an exit
     code, so the affordance rides the contract instead of being remembered at each of them.
+
+    Which is also what made it unable to tell the two apart. `lint` exiting 1 with
+    `ref.unresolved 1` has already said everything — the finding names the file, the line and
+    the rule, and the next move is `--fix` or an edit — so two further lines saying roadkeep
+    itself may be wrong ride the tool's highest-traffic output, where the action and the
+    pre-commit hook both live and where there is no session to capture before the end of.
+
+    The split needs no new judgement, which is why it is this one and not a longer exemption
+    list: a **verdict** is what a read-only command returns when it found something, and a
+    fault is everything else. `_only_reads` is the parsers' own declaration (RK167), so
+    `pick --claim` refusing a held line is a write refusal and keeps the offer, and a `lint`
+    that *crashed* keeps it too — `faulted` is how that 1 says it was not a verdict.
+
+    A validation refusal keeps the offer either way: that is the case RK86 measured, and the
+    one where the limit really might be wrong.
     """
     if args.command in ("report", "guard", "mcp"):
         # `report` offering to report itself is a regress; `guard` and `mcp` answer a
         # protocol, and a sentence on their stderr is read by no agent at all.
+        return
+    if not faulted and code == EXIT_GATE and _only_reads(args):
         return
     # The report this closes went to stdout and this goes to stderr: unflushed, the offer
     # lands above the findings it is about, and a line out of order is a line misread.

@@ -288,11 +288,15 @@ _OFFER = "If roadkeep itself is what is wrong here, capture it before the sessio
 
 
 def offer(argv: Sequence[str]) -> str:
-    """The two lines a failure closes with: the sentence, and the command to run.
+    """The two lines a fault closes with: the sentence, and the command to run.
 
     The failing argv is already substituted, because the move has to cost nothing to take.
     The two prose fields stay as ellipses — they are the caller's, and this composes no
     part of a claim.
+
+    *Which* failures close with it is `cli._may_offer`'s and never this function's: a verdict a
+    read was asked for is not one (RK271), and the caller is the only place that knows whether
+    the exit code it is holding is an answer or a fall.
     """
     return "\n".join(
         [

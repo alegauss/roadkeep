@@ -38,7 +38,6 @@
 ## Block D — The gate
 
 - 💭 **RK269** (deps: —) **A block emptying is stated once to the console and recorded nowhere a later verb can read** — `ship` printed `event T282 Block AI empty`, `lint` then called the tree clean, and the repo kept an index row claiming that block active — caught only by a test of its own. → §RK269
-- 📋 **RK271** (deps: —) **The capture offer closes the gate's own answer as though the tool had failed** — `_may_offer` fires on every non-zero exit but `report`, `guard` and `mcp`, so a `lint` naming one problem in CI ends with two lines inviting a capture, on the exit that is never about this tool. → §RK271
 
 ## Block E — Adoption
 

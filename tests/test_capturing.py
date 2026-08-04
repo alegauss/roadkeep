@@ -16,12 +16,17 @@ was built to distrust.
 * **The observed exit code is a fact, not this command's.** `report` succeeds when it
   captures a failure — the whole reason to run it is that something failed.
 
-And the affordance that makes any of it reachable (RK86): every non-zero exit closes with
-the capture command. A refusal that names only the rule it applied is a dead end in the one
-case where the rule is the defect, and what an agent does with a dead end is work around it
-quietly — so the surface with the worst failures produces the fewest reports. The two rules
-asserted below are that it costs nothing on the runs that succeed, and that it never claims
-the refusal was wrong: this tool has no way to know and no model to guess (L4).
+And the affordance that makes any of it reachable (RK86): a **fault** closes with the capture
+command. A refusal that names only the rule it applied is a dead end in the one case where the
+rule is the defect, and what an agent does with a dead end is work around it quietly — so the
+surface with the worst failures produces the fewest reports. The two rules asserted below are
+that it costs nothing on the runs that succeed, and that it never claims the refusal was wrong:
+this tool has no way to know and no model to guess (L4).
+
+A **verdict** is the exception, and it is RK271's (below): a read-only command's own 1 is the
+answer somebody asked for, so `lint` reporting a finding closes with nothing. The exit code
+alone cannot say which of the two a 1 is — a crashed `lint` is also a read-only 1 — so `main`
+carries that as a flag rather than inferring it here.
 """
 
 from __future__ import annotations
@@ -277,7 +282,7 @@ def test_nothing_leaves_the_machine():
     assert not imported & {"urllib", "http", "socket", "requests", "smtplib", "subprocess"}
 
 
-# -- the offer every failure closes with (RK86) -------------------------------
+# -- the offer a fault closes with, and a verdict does not (RK86, RK271) ------
 
 
 def test_the_offer_substitutes_the_failing_argv_so_the_move_costs_nothing():
@@ -311,10 +316,28 @@ def test_a_refused_write_closes_with_the_offer(tmp_path, capsys):
     assert "symptom.too-long" in err and f"{invocation()} report --symptom" in err
 
 
-def test_a_failing_gate_closes_with_the_offer(tmp_path, capsys):
+def test_a_failing_gate_says_nothing_about_reporting_the_gate(tmp_path, capsys):
+    """RK271: the exit `lint` was *asked for*, which is the one exit that is never about this
+    tool — and the highest-traffic one, the action and the pre-commit hook both being a `lint`.
+
+    The finding already names the file, the line and the rule, so two lines saying roadkeep
+    itself may be wrong close a complete answer with a doubt about it, in a run that has no
+    session to capture before the end of.
+    """
     root = project(tmp_path, roadmap=BROKEN)
     code = main(["-C", str(root), "lint"])
+    out, err = capsys.readouterr()
     assert code == 1
+    assert "deps.unknown" in out and err == ""
+
+
+def test_a_query_refused_for_what_it_was_asked_still_offers(tmp_path, capsys):
+    """The other half of the same split: exit 2 is about the caller's input, and RK86's measured
+    case is a caller who thinks the refusal is wrong. Read-only is not the discriminator on its
+    own — the verdict is a read-only command's **1**, and nothing else."""
+    root = project(tmp_path)
+    code = main(["-C", str(root), "show", "RK9999"])
+    assert code == EXIT_USAGE
     assert f"{invocation()} report --symptom" in capsys.readouterr().err
 
 
@@ -361,7 +384,12 @@ def test_the_hook_is_never_given_prose_to_answer_a_protocol_with(tmp_path, capsy
 
 def test_a_crash_is_printed_and_closed_with_the_offer(tmp_path, capsys, monkeypatch):
     """The third place RK86 names. A traceback that reaches a terminal raw is a session
-    that ends, and what it ends without is the report only that session could write."""
+    that ends, and what it ends without is the report only that session could write.
+
+    And the exit that proves RK271's split needs more than the exit code: this is a read-only
+    command exiting 1, exactly like the test above, and it is the case the offer exists for.
+    The difference is not visible afterwards, so `main` carries it as `faulted`.
+    """
     root = project(tmp_path)
 
     def explode(*_args, **_kwargs):
