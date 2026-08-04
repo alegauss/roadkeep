@@ -47,6 +47,8 @@
 
 ## Block E — Adoption
 
+- 📋 **RK286** (deps: —) **The declaration a ledger reject names does not change the count** — Turing reads 0 of 824 with `[ledger] marker = false` named as the fix; taking it re-labels every reject and leaves 827 would change, while `symptom = false` is what actually reads the file. → §RK286
+
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - 📋 **RK267** (deps: —) **A staleness note lists every changed module and hands relevance back** — The server appends `engine().stale` to any refusal, so one `schema.py` decided arrives naming three modules that did not, and the reader re-runs on a guess about which mattered. → §RK267

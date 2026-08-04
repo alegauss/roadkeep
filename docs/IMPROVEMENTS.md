@@ -384,6 +384,31 @@ shape at six. What stays true either way is that a *validation* refusal keeps th
 
 ## Block E — Adoption
 
+### §RK286 Advice that survives being taken
+
+Turing's ledger, three readings. Default: `0 conform, 827 would change`, and 813 rejects
+whose reason ends "a ledger where every entry shipped declares `[ledger] marker =
+false`". With that declared: `0 conform, 827 would change` — the same total, the rejects
+merely re-labelled as "does not match the task-line grammar". With `symptom = false`
+beside it: `read 824, 12 conform, 815 would change`.
+
+The sentence names one slot and the file needs two. An adopter who takes exactly the
+advice given sees the number not move and concludes the tool cannot read their ledger,
+which is the opposite of true — it reads 824 of them.
+
+RK285 fixed the same shape one file over, and the difference is instructive. There the
+report named `--prefix` and `--ref-scheme`, both *flags*, so a reader could test the
+hypothesis in one command. `[ledger]` has no flag: to find out what the second
+declaration was, this had to be discovered by hand-writing a `roadkeep.toml` in a
+scratch directory and re-running. RK18's premise is that the estimate is taken
+**before** the commitment, and here the only way to reach the real number is to write
+the configuration you are deciding whether to adopt.
+
+Two things to settle, and they are separable. The reason should name what it observed
+rather than one slot — the parser knows which of the two shapes the line lacks. And the
+estimate wants the `[ledger]` slots reachable the way `--prefix` is, so the hypothesis
+costs a flag and not a file.
+
 ## Block F — The plugin
 
 ### §RK267 A note that knows more than it says
