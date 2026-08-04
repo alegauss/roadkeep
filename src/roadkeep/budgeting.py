@@ -32,6 +32,15 @@ is the **widest anchor the roadmap already carries** rather than no anchor at al
 that cannot be exact is at least never optimistic, and :attr:`Budget.ref_assumed` says which
 of the two the caller is reading.
 
+**Three writes carry a prose limit, and this answers for all three** (RK283). The task line
+was the only one served, and it is the smallest: `non-goal add --why` is capped by
+`[non_goals]`, and a section body by `section = <n>` in words — the longest thing an author
+writes, and the one whose refusal costs the most to obey. Measured filing four tasks after a
+block emptied: two refusals on a non-goal `why` at 286 and 234 against 200, one on a section
+body at 366 words against 300. Both limits are facts about the file and the role, known
+before a word, so both are read here rather than met at the door. Not a `--dry-run` on the
+write verbs, which would want the prose first — the whole point is to be answerable without it.
+
 **Validated in characters, published in words** (RK185). A model has no characters: the
 tokenizer exposes tokens, so "200 characters" is a target reached by trial and every retry
 is a re-guess. Words survive tokenization well enough to be aimed at, so every number above
@@ -48,15 +57,27 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Sequence
 
-from roadkeep.authoring import compose
-from roadkeep.config import Config
+from roadkeep.authoring import compose, prose_role
+from roadkeep.config import PROSE_ROLES, Config
 from roadkeep.ids import next_id
 from roadkeep.schema import CHARS_PER_WORD, Task, words
+from roadkeep.scoping import NoSuchNonGoal, NotGoverned, address, leads, read
+from roadkeep.sections import find
 
 #: Re-exported, not re-declared (RK201). The conversion moved down to `schema`, where the
 #: refusal that states a surplus can reach it: the aim and the surplus are the same
 #: arithmetic in opposite directions, and two constants would be two answers.
-__all__ = ["CHARS_PER_WORD", "Budget", "Share", "budget", "budget_of", "words"]
+__all__ = [
+    "CHARS_PER_WORD",
+    "Body",
+    "Budget",
+    "Share",
+    "body_budget",
+    "budget",
+    "budget_of",
+    "non_goal_budget",
+    "words",
+]
 
 
 @dataclass(frozen=True, slots=True)
@@ -251,6 +272,106 @@ def _subject(
         ),
         False,
         assumed and ref is None,
+    )
+
+
+@dataclass(frozen=True, slots=True)
+class Body:
+    """A section body's budget, declared and counted in the unit it is declared in (RK283).
+
+    Not a :class:`Share`, and deliberately: that one converts characters into an aim, and
+    `section = <n>` is **already** in words — running it through the conversion would state
+    a second number for a limit the config spells outright, which is RK258's finding at the
+    other door. So this carries no `aim`: the limit is the aim.
+    """
+
+    anchor: str
+    role: str
+    limit: int
+    taken: int
+    #: Whether the anchor names a section that exists. False is the pre-`section add` read,
+    #: where the whole limit is free; True is the `amend`, which is where it matters — there
+    #: the author holds a body and the number nobody has stated is what it has to fit inside.
+    written: bool
+
+    @property
+    def left(self) -> int:
+        return max(0, self.limit - self.taken)
+
+
+def non_goal_budget(config: Config, lead: str | None = None) -> tuple[Share, ...]:
+    """The two limits `non-goal add` enforces, before either field is composed (RK283).
+
+    Both are characters and both are the list's own (RK70), so a caller reading a task's
+    `why_max` here would be told a number this door does not use. Refused where the project
+    has not opted in, for the reason the write is: a budget for a list nobody governs is a
+    limit invented, and it would read as one the file is already held to.
+
+    ``lead`` names a bullet that exists, which makes this the `add`'s answer or the rewrite's:
+    what is taken comes off that bullet, so what is left is what a longer argument may still
+    say. Neither field takes room from the other — a non-goal is two fields on two lines with
+    no shared line limit — so :attr:`Share.allowed` is each one's own throughout.
+    """
+    if config.non_goals is None:
+        raise NotGoverned(config.relative(config.source or config.root))
+    scope = config.non_goals
+    taken = {"lead": 0, "why": 0}
+    if lead is not None:
+        document = config.document("roadmap")
+        wanted = address(lead)
+        found = next((goal for goal in read(document) if address(goal.lead) == wanted), None)
+        if found is None:
+            raise NoSuchNonGoal(
+                lead, config.relative(config.path("roadmap")), leads(document)
+            )
+        taken = {"lead": len(found.lead.strip()), "why": len(" ".join(found.why.split()))}
+    return tuple(
+        Share(field, limit, limit, taken[field])
+        for field, limit in (("lead", scope.lead), ("why", scope.why))
+    )
+
+
+def body_budget(config: Config, anchor: str, role: str | None = None) -> Body:
+    """What a section body may say, in words, before one is written (RK283).
+
+    The longest thing an author composes and the limit that cost the most to meet at the
+    door: 366 words against 300, discovered by writing 366. Everything it needs is the role's
+    `section = <n>` and, for an `amend`, what the section already spends — both facts about
+    the file, neither of which waited on the paragraph.
+
+    The role is resolved the way every other reader resolves it (RK196) and never assumed to
+    be `improvements`: the file that *holds* the anchor where one does, and otherwise the one
+    a `section add` would write into — because an unwritten anchor is the pre-write question
+    and the answer has to be about the file that write will land in. A named ``role`` wins,
+    and an anchor two files declare is `ref.ambiguous` for the gate to report rather than a
+    choice made here (L4), so the first declaring file answers and the caller may name the
+    other.
+    """
+    named, where = role, config.relative(config.source or config.root)
+    if role is None:
+        declaring = [
+            name
+            for name in PROSE_ROLES
+            if config.has(name)
+            and config.path(name).is_file()
+            and find(config.document(name), anchor) is not None
+        ]
+        role = declaring[0] if declaring else prose_role(config)
+    if role is None or not config.has(role):
+        # Named or derived, and never the same sentence for both: a project that declares
+        # `strategy` and was asked for it is a different mistake from one declaring neither.
+        missing = f"declares no {named}" if named else "declares no prose file"
+        raise KeyError(
+            f"{where} {missing} to budget §{anchor} against: a section limit is a fact "
+            f"about a role, and this one has no file to be a fact about"
+        )
+    section = find(config.document(role), anchor) if config.path(role).is_file() else None
+    return Body(
+        anchor=anchor,
+        role=role,
+        limit=config.schema_for(role).section_max,
+        taken=0 if section is None else section.words,
+        written=section is not None,
     )
 
 

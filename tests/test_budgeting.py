@@ -16,7 +16,14 @@ from pathlib import Path
 
 import pytest
 
-from roadkeep.budgeting import CHARS_PER_WORD, budget, budget_of, words
+from roadkeep.budgeting import (
+    CHARS_PER_WORD,
+    body_budget,
+    budget,
+    budget_of,
+    non_goal_budget,
+    words,
+)
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.schema import DESIGNED
@@ -401,3 +408,157 @@ def test_a_named_anchor_is_not_reported_as_an_assumption(tmp_path, capsys):
     outlined(tmp_path)
     assert main(["-C", str(tmp_path), "budget", "--block", "A", "--ref", "XX.2"]) == EXIT_OK
     assert "assumed" not in capsys.readouterr().out
+
+
+# -- the two larger limits, met only at the door until now (RK283) -------------
+
+IMPROVEMENTS = """# Improvements
+
+## Block A — The model
+
+### §RK1 A design
+
+One sentence of prose, and no subsection under it.
+"""
+
+GOALS = f"""{BACKLOG}
+## Non-goals
+
+Deliberately **not** built — check this list before proposing work:
+
+- **No web UI.** Files and a CLI, because the store is the repository.
+"""
+
+
+def scoped(tmp_path: Path, *, governed: bool = True, prose: bool = True) -> Config:
+    """A project whose non-goals are governed and whose prose file holds one section."""
+    lines = ['prefix = "RK"', "[files]", 'roadmap = "ROADMAP.md"', 'changelog = "CHANGELOG.md"']
+    if prose:
+        lines.append('improvements = "IMPROVEMENTS.md"')
+        (tmp_path / "IMPROVEMENTS.md").write_text(IMPROVEMENTS, encoding="utf-8")
+    if governed:
+        lines += ["[non_goals]", "lead = 40", "why = 120"]
+    (tmp_path / "roadkeep.toml").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    (tmp_path / "ROADMAP.md").write_text(GOALS, encoding="utf-8")
+    (tmp_path / "CHANGELOG.md").write_text(LEDGER, encoding="utf-8")
+    return Config.discover(tmp_path)
+
+
+def test_a_section_body_states_its_limit_before_a_word_of_it_exists(tmp_path):
+    # The largest of the three and the one that cost the most to meet at the door: 366 words
+    # written, then refused against 300. Nothing here waited on the paragraph.
+    config = scoped(tmp_path)
+    answer = body_budget(config, "RK9")
+    assert answer.limit == config.schema.section_max and answer.taken == 0
+    assert not answer.written and answer.role == "improvements"
+    assert answer.left == answer.limit
+
+
+def test_an_amend_is_told_what_the_section_already_spends(tmp_path):
+    # Where it matters: there the author holds a body and the number nobody stated is what
+    # it has to fit inside.
+    answer = body_budget(scoped(tmp_path), "RK1")
+    assert answer.written and answer.taken > 0
+    assert answer.left == answer.limit - answer.taken
+
+
+def test_the_section_limit_is_the_roles_and_not_the_first_files(tmp_path):
+    # `section = <n>` is per role (L6), so an answer that always read `improvements` would
+    # state a limit the write into the other file is not held to.
+    (tmp_path / "STRATEGY.md").write_text(
+        "# Strategy\n\n## Block A — The model\n\n### §RK2 A plan\n\nProse.\n", encoding="utf-8"
+    )
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
+        'improvements = "IMPROVEMENTS.md"\nstrategy = "STRATEGY.md"\n'
+        "[limits.strategy]\nsection = 40\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "IMPROVEMENTS.md").write_text(IMPROVEMENTS, encoding="utf-8")
+    (tmp_path / "ROADMAP.md").write_text(GOALS, encoding="utf-8")
+    (tmp_path / "CHANGELOG.md").write_text(LEDGER, encoding="utf-8")
+    config = Config.discover(tmp_path)
+    # Resolved by which file holds it, the way every other reader resolves a role (RK196).
+    assert body_budget(config, "RK2").role == "strategy"
+    assert body_budget(config, "RK2").limit == config.schema_for("strategy").section_max
+    assert body_budget(config, "RK1").role == "improvements"
+    # And named outright where the caller has a file in mind that does not hold it yet.
+    assert body_budget(config, "RK9", "strategy").limit == 40
+
+
+def test_a_project_with_no_prose_file_is_refused_rather_than_given_a_number(tmp_path):
+    # A limit is a fact about a role, so a project declaring none has no answer to give.
+    with pytest.raises(KeyError):
+        body_budget(scoped(tmp_path, prose=False), "RK9")
+
+
+def test_the_non_goals_two_limits_are_the_lists_own_and_not_the_lines(tmp_path):
+    # Measured at two refusals, 286 then 234, against 200 — and the number that refuses is
+    # `[non_goals]`, which is not the `why` a task line is held to.
+    config = scoped(tmp_path)
+    shares = {one.field: one for one in non_goal_budget(config)}
+    assert set(shares) == {"lead", "why"}
+    assert shares["why"].limit == config.non_goals.why != config.schema.why_max
+    assert shares["lead"].limit == config.non_goals.lead
+    # No third limit measured across them: a non-goal is two fields and no shared line.
+    assert not any(one.bound_by_line for one in shares.values())
+
+
+def test_a_lead_that_exists_reports_what_its_argument_has_left(tmp_path):
+    shares = {one.field: one for one in non_goal_budget(scoped(tmp_path), "No web UI")}
+    assert shares["lead"].taken == len("No web UI.")
+    assert shares["why"].taken > 0 and shares["why"].left == shares["why"].limit - shares["why"].taken
+
+
+def test_an_ungoverned_list_is_refused_rather_than_given_an_invented_limit(tmp_path):
+    # The write refuses it for the same reason: a limit for a list nobody governs would read
+    # as one the file is already held to.
+    with pytest.raises(KeyError):
+        non_goal_budget(scoped(tmp_path, governed=False))
+
+
+def test_a_lead_that_addresses_nothing_names_the_ones_that_do(tmp_path):
+    with pytest.raises(KeyError):
+        non_goal_budget(scoped(tmp_path), "no such constraint")
+
+
+def test_the_command_answers_for_a_section_in_words_and_never_in_characters(tmp_path, capsys):
+    # This limit is declared in words (RK258), so translating it would publish a second
+    # number the config never stated.
+    config = scoped(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "--anchor", "RK1"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert f"{config.schema.section_max} words" in printed and "characters" not in printed
+    assert main(["-C", str(tmp_path), "budget", "--anchor", "RK1", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["unit"] == "words" and payload["subject"] == "section"
+    assert payload["left"] == payload["limit"] - payload["taken"]
+
+
+def test_the_command_answers_for_the_non_goal_bullet_in_both_units(tmp_path, capsys):
+    config = scoped(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "--non-goal"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert str(config.non_goals.why) in printed and "aim" in printed
+    assert main(["-C", str(tmp_path), "budget", "--non-goal", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["subject"] == "non-goal"
+    assert {one["field"] for one in payload["fields"]} == {"lead", "why"}
+
+
+def test_one_subject_per_answer_rather_than_a_guess_at_which_was_meant(tmp_path, capsys):
+    # Under the id scheme `RK1` is both a line and an anchor, so the subject is named and
+    # never inferred: a budget the caller has to check before trusting saves nothing.
+    scoped(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "--anchor", "RK1", "--non-goal"]) == EXIT_USAGE
+    assert main(["-C", str(tmp_path), "budget", "--lead", "No web UI"]) == EXIT_USAGE
+    assert main(["-C", str(tmp_path), "budget", "--role", "improvements"]) == EXIT_USAGE
+
+
+def test_the_task_line_answer_is_unchanged_by_the_other_two_subjects(tmp_path, capsys):
+    # The three are one verb and not one answer: a line budget that grew a section's figure
+    # would be the unbounded read L5 exists to avoid.
+    scoped(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "RK1", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["id"] == "RK1" and "unit" not in payload and "subject" not in payload

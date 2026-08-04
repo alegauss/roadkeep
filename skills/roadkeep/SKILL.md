@@ -186,7 +186,12 @@ composed towards, so write to the words and let the gate stay unreached. `budget
 is about to rewrite; the field's own `maxLength` is the ceiling, and what comes back is the
 lower number that actually binds. Where `ref_scheme = "outline"` the pointer is structure the
 caller chooses, so **pass the same `--ref` you will pass `add`** — unnamed, the answer assumes
-the widest anchor on file and says so, which is never more room than the `add` will allow. `brief` prints the `why`'s share of the line it hands over,
+the widest anchor on file and says so, which is never more room than the `add` will allow.
+**The other two prose limits are bigger, and this answers for both**: `budget --anchor <a>`
+is what a section body may say *in words* and what that section already spends — ask it
+before a `section add`, and before every `section amend`, where you hold a body and the
+number is otherwise met at the door. `budget --non-goal [--lead "…"]` is the roadmap's other
+bullet, whose two limits are the list's own and not the task line's. `brief` prints the `why`'s share of the line it hands over,
 so a task started through it never has to ask. **`weight [--block <x>]` is the other pre-`add` read**: what
 comparable tasks cost, derived from the commits that shipped them, so whether the line being
 written is one task or two is a question with an answer. An entry whose commit wrote several

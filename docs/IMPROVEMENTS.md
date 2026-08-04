@@ -161,30 +161,6 @@ remove.
 
 ## Block C — Query
 
-### §RK283 The one line budget speaks for
-
-`budget`'s own docstring states the principle: every number is derived from what is
-known before the first word exists, "so the budget is a fact about the line you are
-about to write rather than a verdict on one you already wrote". It is served for the
-task line, and for nothing else.
-
-Two other writes carry prose limits, both larger than the line's. `non-goal add --why`
-is capped by `[non_goals]`; `section add` and `section amend` cap the body in words.
-Measured against Shio on 2026-08-04, filing four tasks after a block emptied: the
-non-goal took two refusals — 286 characters, then 234, against 200 — and the section
-amend one, 366 words against 300. Each refusal is precise and arrives after the body
-exists, which is the cost this verb exists to save, and it is larger here because a
-section body is the longest thing an author writes. This section was itself refused
-twice before landing, which is the report and its evidence at once.
-
-The shape is the same: both limits are facts about the file and the role, known before a
-word. `budget --non-goal` answers one; `budget <anchor>`, the way `budget <id>` already
-answers for a line, answers the other — and an amend is where it matters, since there
-the author has a body in hand to fit inside a number nobody has stated.
-
-What this is not is a `--dry-run` on the write verbs. The point is to be answerable
-*before* the prose.
-
 ### §RK287 Two numbers, one of them printed
 
 Measured in Claude Code Tray, whose `[limits] section = 300`. `section amend XXV --body

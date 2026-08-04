@@ -337,7 +337,15 @@ TOOLS: tuple[Tool, ...] = (
     # the pointer is the caller's, and a budget that did not count it approved a why the
     # `add` one call later refused — the verdict-after-the-prose, from the verb that
     # replaces it. Conditional, because under the id scheme there is nothing to name.
-    Tool("budget", ("id", "block", "deps", "status", "symptom"), conditional=("ref",)),
+    # `anchor`, `role`, `non_goal` and `lead` ride with it because they are the *other two*
+    # prose limits (RK283), and both are larger than the line's: a section body is the longest
+    # thing an author writes and its ceiling reached them only as a refusal, at 366 words
+    # against 300. Over this transport most of all — `maxLength` cannot publish a word count.
+    Tool(
+        "budget",
+        ("id", "block", "deps", "status", "symptom", "anchor", "role", "non_goal", "lead"),
+        conditional=("ref",),
+    ),
     # `designed` is exposed on both for the reason it exists (RK83): the caller that asks
     # to execute a block over MCP is the one that was handed a design session, and a flag
     # only the CLI can reach is a flag the agent this ships for cannot pass.

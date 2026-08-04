@@ -148,6 +148,7 @@
 - ✅ **RK247** **Nothing says which outline anchors history still cites** — `anchors [--family <x>]` reads live and retired addresses out of the file and its diffs with the next free child, and `section add` refuses a reused outline anchor by name.
 - ✅ **RK264** **The cost query spends 95% of its answer on records its own percentiles summarise** — The answer is the distribution plus what was elided from it — 23.7k characters down to 1.6k — and the sample it summarises is `--records`, a count and never a cap.
 - ✅ **RK265** **budget omits the pointer under an outline ref scheme, so it over-reports the room by the anchor width** — budget takes --ref and counts the pointer as structure; unnamed under an outline it assumes the widest anchor on file and names that, so the answer is never more room than add allows.
+- ✅ **RK283** **budget answers for the task line only, so the two largest prose limits are discoverable only by failing** — budget --anchor answers a section body in words and budget --non-goal the list's two limits, so the two largest prose ceilings are read before a word rather than met as a refusal.
 
 ## Block D — The gate
 

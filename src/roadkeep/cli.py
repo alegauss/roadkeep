@@ -51,7 +51,7 @@ from roadkeep.authoring import StatusChange, add, amend, restate, set_status
 from roadkeep.backlog import Backlog
 from roadkeep.blocking import drop_block, open_block
 from roadkeep.briefing import Brief, brief, non_goals
-from roadkeep.budgeting import Budget, Share, budget
+from roadkeep.budgeting import Body, Budget, Share, body_budget, budget, non_goal_budget
 from roadkeep.capturing import PARTS, body, capture, check, handoff, keep, offer, replay
 from roadkeep.config import PROSE_ROLES, Config, ConfigError
 from roadkeep.counting import Census
@@ -1051,6 +1051,28 @@ def build_parser() -> argparse.ArgumentParser:
             "the anchor the line would point at, for ref_scheme = 'outline' only: the "
             "pointer is structure, so unnamed the budget assumes the widest on file"
         ),
+    )
+    # The other two prose limits, at the same door and never as a `--dry-run` (RK283): both
+    # are facts about the file and the role, so both are answerable with no prose in hand.
+    budget_parser.add_argument(
+        "--anchor",
+        metavar="ANCHOR",
+        help="a section, e.g. RK12: what its body may say in words, and what it has spent",
+    )
+    budget_parser.add_argument(
+        "--role",
+        choices=PROSE_ROLES,
+        help="which prose file --anchor is measured against (default: the one holding it)",
+    )
+    budget_parser.add_argument(
+        "--non-goal",
+        dest="non_goal",
+        action="store_true",
+        help="the two limits `non-goal add` enforces, which are the list's own",
+    )
+    budget_parser.add_argument(
+        "--lead",
+        help="a non-goal that exists, with --non-goal: what its argument has left",
     )
     budget_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     budget_parser.set_defaults(handler=_budget, reads_only=True)
@@ -3751,6 +3773,24 @@ def _show(config: Config, args: argparse.Namespace) -> int:
 
 
 def _budget(config: Config, args: argparse.Namespace) -> int:
+    # Three subjects and one verb (RK283). Named rather than inferred from the positional:
+    # under the id scheme `RK12` is both a line and an anchor, and a command that guessed
+    # which one was meant would be a budget the caller has to check before trusting.
+    if args.anchor and args.non_goal:
+        print(
+            "roadkeep: one subject per answer: --anchor or --non-goal, not both",
+            file=sys.stderr,
+        )
+        return EXIT_USAGE
+    if args.anchor:
+        return _body_budget(config, args)
+    if args.non_goal:
+        return _non_goal_budget(config, args)
+    if args.lead or args.role:
+        named = "--lead" if args.lead else "--role"
+        subject = "--non-goal" if args.lead else "--anchor"
+        print(f"roadkeep: {named} narrows {subject}; pass it too", file=sys.stderr)
+        return EXIT_USAGE
     try:
         answer = budget(
             config,
@@ -3799,6 +3839,60 @@ def _budget(config: Config, args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _body_budget(config: Config, args: argparse.Namespace) -> int:
+    """What a section body may say, before it is written (RK283)."""
+    try:
+        answer = body_budget(config, args.anchor, args.role)
+    except REFUSALS as error:
+        return _refused(error)
+    if args.json:
+        print(json.dumps(_body_json(answer), indent=2))
+        return EXIT_OK
+    state = "written" if answer.written else "the section add would write"
+    print(f"§{answer.anchor}  {answer.role}  ({state})")
+    # Words throughout, and no character figure beside them (RK258): this limit is declared
+    # in words, so translating it would publish a second number the config never stated.
+    spent = f", {answer.taken} written, {answer.left} left" if answer.written else ""
+    print(f"  body       {answer.limit} words{spent}")
+    return EXIT_OK
+
+
+def _non_goal_budget(config: Config, args: argparse.Namespace) -> int:
+    """The two limits the roadmap's other bullet has (RK283)."""
+    try:
+        shares = non_goal_budget(config, args.lead)
+    except REFUSALS as error:
+        return _refused(error)
+    if args.json:
+        print(json.dumps({"subject": "non-goal", "lead": args.lead,
+                          "fields": [_share_json(one) for one in shares]}, indent=2))
+        return EXIT_OK
+    where = config.relative(config.path("roadmap"))
+    state = f"the bullet leading {args.lead!r}" if args.lead else "the bullet add would write"
+    print(f"non-goals  {where}  ({state})")
+    for share in shares:
+        # No `bound_by_line`: a non-goal is two fields on two lines and there is no third
+        # limit measured across them, which is the whole difference from a task line.
+        taken = f", {share.taken} written, {share.left} left" if share.taken else ""
+        print(f"  {share.field:<11}{share.limit}{taken}  {_aim(share)}")
+    return EXIT_OK
+
+
+def _body_json(answer: Body) -> dict[str, object]:
+    return {
+        "subject": "section",
+        "anchor": answer.anchor,
+        "role": answer.role,
+        "written": answer.written,
+        # `unit` because this is the one budget already declared in words, and a client
+        # reading `limit` beside a task's characters would otherwise compare the two.
+        "unit": "words",
+        "limit": answer.limit,
+        "taken": answer.taken,
+        "left": answer.left,
+    }
+
+
 def _aim(share: Share) -> str:
     """The word figure, about the room the author actually has (RK245).
 
@@ -3823,21 +3917,27 @@ def _budget_json(answer: Budget) -> dict[str, object]:
         "ref": answer.ref,
         "ref_assumed": answer.ref_assumed,
         "prose": answer.prose,
-        "fields": [
-            {
-                "field": share.field,
-                "limit": share.limit,
-                "allowed": share.allowed,
-                "aim": share.aim,
-                "taken": share.taken,
-                "left": share.left,
-                # Beside `left` and not instead of it (RK245): the characters are still what
-                # refuses, and this is the same remainder in the unit an author can count.
-                "room": share.room,
-                "bound_by_line": share.bound_by_line,
-            }
-            for share in answer.shares
-        ],
+        "fields": [_share_json(share) for share in answer.shares],
+    }
+
+
+def _share_json(share: Share) -> dict[str, object]:
+    """One prose field in both units, shared with the non-goal's two (RK283).
+
+    The same shape and the same arithmetic at both doors: a second spelling of it here would
+    be a second answer, and the whole reason this verb exists is that there is only one.
+    """
+    return {
+        "field": share.field,
+        "limit": share.limit,
+        "allowed": share.allowed,
+        "aim": share.aim,
+        "taken": share.taken,
+        "left": share.left,
+        # Beside `left` and not instead of it (RK245): the characters are still what
+        # refuses, and this is the same remainder in the unit an author can count.
+        "room": share.room,
+        "bound_by_line": share.bound_by_line,
     }
 
 

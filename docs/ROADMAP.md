@@ -31,7 +31,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK283** (deps: —) **budget answers for the task line only, so the two largest prose limits are discoverable only by failing** — A non-goal why took two refusals at 286 and 234 against 200, and a section body one at 366 words against 300 — the verdict-after-the-prose this verb exists to prevent. → §RK283
 - 📋 **RK287** (deps: —) **A section's word count includes its subsections, so it names a figure no limit is measured against** — show and amend answered 310 for a section whose own prose is 48 and whose subsection is 255, against a declared 300 that lint passes — a verdict the author cannot act on. → §RK287
 - 📋 **RK293** (deps: —) **anchors names the next address under every family and not the next family** — A reused block needs a fresh top-level to file under, and the read built for that question answers per family in an order where IX follows IV, so the maximum is not on the listing either. → §RK293
 - 📋 **RK297** (deps: —) **The read that says which anchor address is free asks one prose file on a project with two** — `anchors --role` reads one file, so Turing's two disagree about the next child of seven shared families: `§IX.5` reads free where the other has spent to `IX.12`. → §RK297
