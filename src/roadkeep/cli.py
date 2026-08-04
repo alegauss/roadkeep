@@ -2192,6 +2192,9 @@ def _merge_register(config: Config) -> int:
     # Printed and not run: a driver command names a path into this checkout, and setting
     # somebody's git config is a write outside the files this tool was given (L2).
     print(f"  then     {registration.command}")
+    # What the stored value cannot promise, said where it is stored (RK255): git executes it
+    # long after this process, and a driver that has stopped resolving is silent until a merge.
+    print(f"  re-run   after {registration.invalidated_by}")
     return EXIT_OK
 
 
@@ -4334,6 +4337,7 @@ def _install(config: Config, args: argparse.Namespace) -> int:
                         "added": list(intent.registered.added),
                         "present": list(intent.registered.present),
                         "command": intent.registered.command,
+                        "invalidated_by": intent.registered.invalidated_by,
                     },
                     "changing": len(intent.changing),
                 },
@@ -4356,6 +4360,7 @@ def _install(config: Config, args: argparse.Namespace) -> int:
             for line in intent.registered.present:
                 print(f"  registered     {where}    {line} (already there)")
             print(f"  then           {intent.registered.command}")
+            print(f"  re-run         after {intent.registered.invalidated_by}")
         if intent.debt:
             # Beside the surfaces, because it is the reason one of them was written the way
             # it was (RK140): a decision taken from a measurement nobody is shown is one the

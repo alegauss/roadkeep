@@ -142,6 +142,17 @@ CONSOLE = "roadkeep"
 LAUNCHER = ("scripts", "roadkeep.py")
 
 
+@dataclass(frozen=True, slots=True)
+class Persisted:
+    """An invocation written into a file that outlives this process, and what ends it (RK255)."""
+
+    #: The command, absolute and quoted for the shell it will be executed by.
+    command: str
+    #: The condition under which it stops resolving — always known, because every answer
+    #: below has one and a stored command whose expiry nobody stated is one nobody re-runs.
+    invalidated_by: str
+
+
 @lru_cache(maxsize=1)
 def invocation() -> str:
     """How a shell reaches this engine **on this machine** (RK254).
@@ -190,6 +201,60 @@ def _spelled(launcher: Path) -> str:
     except (OSError, ValueError):  # another drive, another tree, or no readable cwd
         shown = launcher.as_posix()
     return f'"{shown}"' if " " in shown else shown
+
+
+@lru_cache(maxsize=1)
+def persisted() -> Persisted:
+    """How a **stored** invocation must be spelled, and what would stop it (RK255).
+
+    :func:`invocation` answers for a message a reader copies now. This answers for a string
+    written into `.git/config`, which git executes at merge time — in a shell nobody chose,
+    from a working directory this process never sees. Two of that function's three answers
+    are wrong the moment they are stored: the console script is a name PATH resolves, and a
+    PATH is per-shell, so a GUI client's is not the terminal's; the launcher is spelled
+    relative to the working directory, and a value in `.git/config` outlives it.
+
+    The same three answers, resolved to absolute paths, each carrying the condition that
+    ends it. **Nothing here refuses.** Every machine has a last answer, and a `merge
+    register` that failed on the machine most likely to want one would send its author back
+    to the hand edit this tool exists to stop — so what a persisted command cannot promise
+    is *stated* rather than withheld, which is the one place this tool reports after rather
+    than refusing before, because the alternative reports nothing at all.
+
+    Cached with :func:`invocation` and for the same reason: neither PATH nor this package's
+    layout moves inside one process.
+    """
+    found = shutil.which(CONSOLE)
+    if found:
+        return Persisted(
+            _absolute(Path(found)),
+            f"the interpreter that installed {CONSOLE} being replaced or removed",
+        )
+    launcher = engine().home.parents[1].joinpath(*LAUNCHER)
+    if launcher.is_file():
+        return Persisted(
+            f"python {_absolute(launcher)}",
+            "a plugin update installing this package under a new directory",
+        )
+    return Persisted(
+        "python -m roadkeep.cli",
+        f"{engine().home.parent.as_posix()} not being importable from the merging repository",
+    )
+
+
+def _absolute(path: Path) -> str:
+    """A path a stored command can hold: absolute, forward-slashed, single-quoted if spaced.
+
+    Single quotes and not the double ones :func:`_spelled` uses, because this string is nested
+    inside the double-quoted value of a `git config` argument — a second `"` there would end
+    the value at the first space rather than quote the path across it.
+    """
+    try:
+        path = path.resolve()
+    except OSError:  # an unreadable cwd or a path this filesystem will not answer for
+        path = path.absolute()
+    shown = path.as_posix()
+    return f"'{shown}'" if " " in shown else shown
 
 
 @lru_cache(maxsize=1)

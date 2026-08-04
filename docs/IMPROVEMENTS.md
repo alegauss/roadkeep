@@ -290,24 +290,4 @@ the movement loudly rather than passing quietly.
 
 ## Block E — Adoption
 
-### §RK255 A persisted invocation outlives the process that composed it
-
-RK254 derived the shell invocation for every message the guard composes, on the finding
-that the console script exists only after a `pip install` that put its directory on
-PATH. `merging.register` has the same literal, and the consequence is not readability:
-the string is stored in `.git/config` and **git executes it** when a governed file
-conflicts. Where `roadkeep` does not resolve, the driver fails and git falls back to
-writing conflict markers into a file whose whole point is that a merge of it is
-decidable — the failure arrives at the worst moment and blames the wrong thing.
-`invocation()` is not the answer as it stands. It spells the launcher relative to the
-working directory, and a value in `.git/config` outlives that; the plugin's launcher
-also moves when the plugin updates, so an absolute path recorded today can rot silently.
-What the design has to choose between: an absolute launcher plus a note that a plugin
-update wants `merge register` re-run; `python -m roadkeep.cli merge`, which is right
-wherever the package imports and says nothing about PATH; or refusing to register a
-driver this machine cannot run and naming what would make it runnable. The last is
-closest to how this tool answers elsewhere — refuse before, not report after — but it
-makes `merge register` fail on the machine most likely to want it, which is the argument
-against.
-
 ## Block F — The plugin

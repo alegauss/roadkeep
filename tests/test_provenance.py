@@ -28,7 +28,15 @@ from pathlib import Path
 import pytest
 
 import roadkeep
-from roadkeep.provenance import _LOADED_AT, MODIFIED, UNTRACKED, Engine, engine, invocation
+from roadkeep.provenance import (
+    _LOADED_AT,
+    MODIFIED,
+    UNTRACKED,
+    Engine,
+    engine,
+    invocation,
+    persisted,
+)
 
 HERE = Path(__file__).resolve().parents[1]
 
@@ -160,6 +168,63 @@ def test_the_shell_invocation_is_the_one_this_machine_has(tmp_path, monkeypatch)
     invocation.cache_clear()
 
 
+def test_a_stored_invocation_is_absolute_and_names_what_ends_it(tmp_path, monkeypatch):
+    # RK255: `merge register` prints a value that lands in `.git/config`, and git executes it at
+    # merge time from a shell nobody chose. Both of the answers above are wrong once stored — a
+    # PATH name is per-shell and the launcher is spelled relative to a working directory that
+    # does not outlive the process — so the same three answers, resolved, each with its expiry.
+    home = tmp_path / "tree" / "src" / "roadkeep"
+    home.mkdir(parents=True)
+    monkeypatch.setattr("roadkeep.provenance.engine", lambda: Engine("0.1.0", home, None))
+    console = tmp_path / "bin" / "roadkeep"
+    console.parent.mkdir(parents=True)
+    console.write_text("x = 1\n", encoding="utf-8")
+
+    monkeypatch.setattr("roadkeep.provenance.shutil.which", lambda name: str(console))
+    persisted.cache_clear()
+    stored = persisted()
+    assert stored.command == console.resolve().as_posix()
+    assert Path(stored.command).is_absolute() and stored.invalidated_by
+
+    # The launcher, absolute — and not the relative spelling `invocation` uses, even though the
+    # working directory is the one it would have been relative to.
+    monkeypatch.setattr("roadkeep.provenance.shutil.which", lambda name: None)
+    launcher = tmp_path / "tree" / "scripts" / "roadkeep.py"
+    launcher.parent.mkdir(parents=True)
+    launcher.write_text("x = 1\n", encoding="utf-8")
+    monkeypatch.chdir(tmp_path / "tree")
+    persisted.cache_clear()
+    stored = persisted()
+    assert stored.command == f"python {launcher.resolve().as_posix()}"
+    assert "plugin update" in stored.invalidated_by
+
+    # And with neither, the module path — which never refuses, because a `merge register` that
+    # failed here would send its author back to the hand edit the driver exists to stop.
+    launcher.unlink()
+    persisted.cache_clear()
+    stored = persisted()
+    assert stored.command == "python -m roadkeep.cli"
+    assert home.parent.as_posix() in stored.invalidated_by
+    persisted.cache_clear()
+
+
+def test_a_stored_path_holding_a_space_is_quoted_for_the_shell_git_runs(tmp_path, monkeypatch):
+    # The value is nested inside the double-quoted argument of a `git config` line, so the quote
+    # that survives there is the single one — a second `"` would end the value at the space.
+    home = tmp_path / "tree" / "src" / "roadkeep"
+    home.mkdir(parents=True)
+    console = tmp_path / "Program Files" / "roadkeep"
+    console.parent.mkdir(parents=True)
+    console.write_text("x = 1\n", encoding="utf-8")
+    monkeypatch.setattr("roadkeep.provenance.engine", lambda: Engine("0.1.0", home, None))
+    monkeypatch.setattr("roadkeep.provenance.shutil.which", lambda name: str(console))
+    persisted.cache_clear()
+    stored = persisted()
+    assert stored.command.startswith("'") and stored.command.endswith("'")
+    assert '"' not in stored.command and "\\" not in stored.command
+    persisted.cache_clear()
+
+
 #: Every string constant in the package that spells `roadkeep <subcommand>` and is **not** an
 #: invocation a reader runs, with the reason it keeps the literal (RK256). An inventory and not a
 #: blanket exemption: this defect reached ten sites because nothing counted them, and a docstring
@@ -173,11 +238,11 @@ KEPT_LITERAL = {
     ("installing.py", "roadkeep lint"),
 }
 
-#: The one site that should derive and does not yet, because deriving it is its own decision:
-#: `merge register` prints a value stored in `.git/config` and executed by git, so it needs an
-#: absolute path that survives a plugin update (RK255). Listed rather than exempted, so shipping
-#: that task fails this test until the entry is removed — which is the coupling worth having.
-PENDING_LITERAL = {("merging.py", "roadkeep merge")}
+#: Emptied by RK255: `merge register` printed a value stored in `.git/config` and executed by
+#: git, and now derives it through :func:`~roadkeep.provenance.persisted`. Kept as an empty set
+#: rather than deleted, because the next site that has to derive before it can ship is listed
+#: here first — the coupling that made this one fail a test instead of a merge.
+PENDING_LITERAL: set[tuple[str, str]] = set()
 
 
 def _spelled_literally() -> set[tuple[str, str]]:

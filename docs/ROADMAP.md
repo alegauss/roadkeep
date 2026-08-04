@@ -43,8 +43,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK255** (deps: —) **The merge driver git is told to run is a bare console script** — `register` prints `git config merge.roadkeep.driver "roadkeep merge …"`, so a plugin install with no PATH entry persists into a repository a driver git cannot execute at merge time. → §RK255
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Non-goals

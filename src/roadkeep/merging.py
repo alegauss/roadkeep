@@ -35,7 +35,9 @@ prove, leaving the reviewer exactly where a repository with no driver would have
 
 Registered per file in `.gitattributes` and per checkout in `git config`, so it is opt-in
 configuration and never a rule this tool assumes (L6): `merge --register` writes both, and
-prints the two lines it wrote.
+prints the two lines it wrote. The command it names is derived and absolute (RK255) — a
+config value is executed by git months after the shell that printed it exited, so a name
+that resolved on that shell's PATH is a driver that fails at the merge it was wired for.
 """
 
 from __future__ import annotations
@@ -47,7 +49,7 @@ from roadkeep.authoring import place, remove_entry
 from roadkeep.config import Config
 from roadkeep.document import Document, Entry
 from roadkeep.linting import within
-from roadkeep.provenance import invocation
+from roadkeep.provenance import invocation, persisted
 
 __all__ = ["Merge", "Registration", "merge", "markers", "register", "role_of"]
 
@@ -101,6 +103,9 @@ class Registration:
     #: driver command is a path into somebody's checkout, and running `git config` for them
     #: would be this tool writing outside the files it was given (L2).
     command: str
+    #: What would stop that command resolving later (RK255) — the half of the answer a value
+    #: this tool prints once and git executes months afterwards cannot leave to the reader.
+    invalidated_by: str = ""
 
 
 def merge(config: Config, role: str, base: str, ours: str, theirs: str) -> Merge:
@@ -184,6 +189,12 @@ def register(config: Config) -> Registration:
     Additive and idempotent: a line already there is reported and not written twice, and
     every other line in the file is carried through untouched — it is the repository's file
     and this command owns three lines in it, the same contract `install` keeps (RK100).
+
+    The driver command is :func:`~roadkeep.provenance.persisted` and never the console script
+    literal (RK255). What is named here is stored in `.git/config` and **executed by git**
+    when a governed file conflicts, so a name PATH happened to resolve in the terminal that
+    ran `register` is a driver that fails at the one moment this file exists for — and git's
+    fallback is conflict markers in the file whose whole point is that its merge is decidable.
     """
     path = config.root / ".gitattributes"
     existing = _attribute_lines(path)
@@ -196,12 +207,14 @@ def register(config: Config) -> Registration:
         if current and not current.endswith("\n"):
             current += "\n"
         path.write_text(current + body, encoding="utf-8", newline="")
+    stored = persisted()
     return Registration(
         attributes=path,
         added=added,
         present=present,
         command=f"git config merge.{DRIVER}.driver "
-        f'"roadkeep merge %O %A %B --path %P"',
+        f'"{stored.command} merge %O %A %B --path %P"',
+        invalidated_by=stored.invalidated_by,
     )
 
 

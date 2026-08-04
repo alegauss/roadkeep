@@ -16,6 +16,7 @@ from pathlib import Path
 from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.merging import merge, register, role_of
+from roadkeep.provenance import persisted
 
 ROADMAP = "docs/ROADMAP.md"
 CHANGELOG = "docs/CHANGELOG.md"
@@ -269,6 +270,22 @@ def test_register_writes_one_attribute_line_per_governed_file(tmp_path):
     assert "git config merge.roadkeep.driver" in written.command
 
 
+def test_the_driver_git_is_told_to_run_is_derived_and_not_a_bare_console_script(tmp_path):
+    # RK255: the value lands in `.git/config` and git executes it when a governed file
+    # conflicts, so a name that only PATH resolved is a driver that fails at the one moment
+    # this file exists for — and git's fallback is conflict markers in a file whose merge is
+    # decidable. What is stored is `persisted()`, and what it cannot promise is said beside it.
+    config = project(tmp_path)
+    stored = persisted()
+    written = register(config)
+    assert written.command == (
+        f'git config merge.roadkeep.driver "{stored.command} merge %O %A %B --path %P"'
+    )
+    assert written.invalidated_by == stored.invalidated_by and written.invalidated_by
+    # Never the console script literal, unless that is what this machine actually resolved to.
+    assert '"roadkeep merge' not in written.command
+
+
 def test_registering_twice_does_not_double_the_file(tmp_path):
     config = project(tmp_path)
     (tmp_path / ".gitattributes").write_text("* text=auto\n", encoding="utf-8")
@@ -287,3 +304,5 @@ def test_the_command_prints_what_it_wrote_and_what_it_did_not_run(tmp_path, caps
     printed = capsys.readouterr().out
     assert f"+ {ROADMAP} merge=roadkeep" in printed
     assert "then     git config merge.roadkeep.driver" in printed
+    # And the expiry of the value it just told the reader to store (RK255).
+    assert f"re-run   after {persisted().invalidated_by}" in printed
