@@ -1045,6 +1045,13 @@ def build_parser() -> argparse.ArgumentParser:
         dest="family",
         help="count the derived id in this track (default: the first declared)",
     )
+    budget_parser.add_argument(
+        "--ref",
+        help=(
+            "the anchor the line would point at, for ref_scheme = 'outline' only: the "
+            "pointer is structure, so unnamed the budget assumes the widest on file"
+        ),
+    )
     budget_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     budget_parser.set_defaults(handler=_budget, reads_only=True)
 
@@ -3753,6 +3760,7 @@ def _budget(config: Config, args: argparse.Namespace) -> int:
             status=args.status,
             symptom=args.symptom,
             family=args.family,
+            ref=args.ref,
         )
     except REFUSALS as error:
         return _refused(error)
@@ -3766,6 +3774,16 @@ def _budget(config: Config, args: argparse.Namespace) -> int:
     deps = ", ".join(dep.render() for dep in task.deps) or "—"
     print(f"{task.id}  {task.status}  deps {deps}  ({state})")
     print(f"  line       {answer.line_max}, of which {answer.structure} is structure")
+    # Only where the caller could have named the anchor and did not (RK265). Said beside the
+    # structure it moved, because a number resting on a guess and one resting on the id read
+    # identically otherwise — and the guess is the one an `add --ref` can still correct.
+    if answer.ref_assumed:
+        assumed = (
+            f"§{answer.ref} assumed, the widest this roadmap carries"
+            if answer.ref
+            else "none on this roadmap, so the structure counts no pointer"
+        )
+        print(f"  pointer    {assumed} — pass --ref for the anchor this line will use")
     print(f"  prose      {answer.prose}")
     for share in answer.shares:
         # The field's own limit is what the schema publishes; what this line allows is what
@@ -3800,6 +3818,10 @@ def _budget_json(answer: Budget) -> dict[str, object]:
         "open_line": answer.open_line,
         "line_max": answer.line_max,
         "structure": answer.structure,
+        # The pointer the structure was measured with, and whether anybody chose it (RK265):
+        # a client comparing this budget against its own `add` needs to know the difference.
+        "ref": answer.ref,
+        "ref_assumed": answer.ref_assumed,
         "prose": answer.prose,
         "fields": [
             {

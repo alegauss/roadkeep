@@ -184,7 +184,9 @@ characters are what refuses, and the word aim beside them is the one a sentence 
 composed towards, so write to the words and let the gate stay unreached. `budget --block <x> --dep <id>
 [--symptom "…"]` is the line an `add` is about to write, and `budget <id>` the one an `amend`
 is about to rewrite; the field's own `maxLength` is the ceiling, and what comes back is the
-lower number that actually binds. `brief` prints the `why`'s share of the line it hands over,
+lower number that actually binds. Where `ref_scheme = "outline"` the pointer is structure the
+caller chooses, so **pass the same `--ref` you will pass `add`** — unnamed, the answer assumes
+the widest anchor on file and says so, which is never more room than the `add` will allow. `brief` prints the `why`'s share of the line it hands over,
 so a task started through it never has to ask. **`weight [--block <x>]` is the other pre-`add` read**: what
 comparable tasks cost, derived from the commits that shipped them, so whether the line being
 written is one task or two is a question with an answer. An entry whose commit wrote several

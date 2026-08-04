@@ -161,28 +161,6 @@ remove.
 
 ## Block C — Query
 
-### §RK265 The pointer budget cannot be told about
-
-`budget` derives every number from the id, the marker, the deps and the pointer — all known before the
-first word exists. Under `ref_scheme = "id"` that holds: the pointer is derived, and roadkeep's own
-backlog counts 40 characters of structure against 320. Under `ref_scheme = "outline"` the pointer is
-*chosen by the author*, `budget` has no flag to be told it, and it counts the structure as if the line
-carried none — 30 against the same 320.
-
-Measured in a repository that uses the outline scheme: `budget --block AI --symptom
-'…108 chars…'` answered `why 182 of 200`. The `add` that followed, identical but for
-`--ref XX.2`, refused at 188 characters against a limit of 174. The difference is
-exactly ` → §XX.2`, eight characters, and the refusal costs the author a second
-composition of the same sentence — which is the whole of what `budget` is for: "a limit
-reported after the prose exists is a limit discovered too late to save the tokens it was
-meant to save."
-
-The shape of the fix is the flag `add` already takes. `budget --ref` under the outline
-scheme, counted into the structure the same way the derived pointer is; and with no
-`--ref` given, the honest answer is not the pointerless one — either the widest anchor
-the file already holds, or a stated assumption, so a number that cannot be exact is at
-least never optimistic.
-
 ### §RK283 The one line budget speaks for
 
 `budget`'s own docstring states the principle: every number is derived from what is

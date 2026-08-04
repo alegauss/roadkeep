@@ -22,6 +22,16 @@ Nothing here restates a limit. Every number is :meth:`Schema.prose_budget`,
 constant here would be one more thing to keep true, and the first slot to move would make
 this the second opinion an author trusts.
 
+**The pointer is part of the structure, and under an outline it is the caller's** (RK265).
+Under ``ref_scheme = "id"`` the anchor is derived, so a budget asked before the prose knows
+it exactly. Under ``"outline"`` the anchor is *chosen*, and a budget that composed the line
+without one measured a structure the `add` would not have — over-reporting the room by the
+anchor's width, and refusing the sentence it had just approved. So ``ref`` is an argument
+here for the same reason it is one on `add`, and where the caller names none the assumption
+is the **widest anchor the roadmap already carries** rather than no anchor at all: a number
+that cannot be exact is at least never optimistic, and :attr:`Budget.ref_assumed` says which
+of the two the caller is reading.
+
 **Validated in characters, published in words** (RK185). A model has no characters: the
 tokenizer exposes tokens, so "200 characters" is a target reached by trial and every retry
 is a re-guess. Words survive tokenization well enough to be aimed at, so every number above
@@ -111,6 +121,12 @@ class Budget:
     structure: int
     prose: int
     shares: tuple[Share, ...]
+    #: The anchor the structure above was measured with, or None where the line carries no
+    #: pointer at all. Under the id scheme it is the id and nobody chose it.
+    ref: str | None = None
+    #: Whether that anchor is an assumption rather than the caller's (RK265). True means the
+    #: outline scheme is in force, no ``ref`` was named, and the width came off the file.
+    ref_assumed: bool = False
 
     def share(self, field: str) -> Share:
         return next(one for one in self.shares if one.field == field)
@@ -125,6 +141,7 @@ def budget(
     status: str | None = None,
     symptom: str = "",
     family: str | None = None,
+    ref: str | None = None,
 ) -> Budget:
     """The prose budget of a line, named by id or described by the fields an `add` takes.
 
@@ -132,14 +149,31 @@ def budget(
     would a line with *this* id have", which is what a caller checking a split (`RK9b`) is
     asking. Only an id that resolves changes the answer, and then it changes it entirely —
     the symptom, marker and deps come off the file rather than off the arguments.
+
+    ``ref`` is the anchor the line would point at, and only the outline scheme has one to
+    name: under the id scheme it is derived, so a caller passing a different one is refused
+    by :func:`~roadkeep.authoring.compose` exactly as `add` refuses it. It rides here because
+    the pointer is structure and the structure is what the prose is left over from — passing
+    it late is how a budget approves a sentence the `add` then refuses (RK265). An id the
+    roadmap holds keeps its own anchor unless this names another, which is the `amend` that
+    moves the pointer and the prose in one call.
     """
-    task, open_line = _subject(
-        config, task_id, block=block, deps=deps, status=status, symptom=symptom, family=family
+    task, open_line, assumed = _subject(
+        config,
+        task_id,
+        block=block,
+        deps=deps,
+        status=status,
+        symptom=symptom,
+        family=family,
+        ref=ref,
     )
-    return budget_of(config, task, open_line=open_line)
+    return budget_of(config, task, open_line=open_line, ref_assumed=assumed)
 
 
-def budget_of(config: Config, task: Task, *, open_line: bool) -> Budget:
+def budget_of(
+    config: Config, task: Task, *, open_line: bool, ref_assumed: bool = False
+) -> Budget:
     """The same answer about a task the caller already holds — what `brief` hands over.
 
     Separate from :func:`budget` because the caller that has the line does not want it
@@ -163,6 +197,8 @@ def budget_of(config: Config, task: Task, *, open_line: bool) -> Budget:
         structure=schema.line_max - prose,
         prose=prose,
         shares=tuple(shares),
+        ref=task.ref,
+        ref_assumed=ref_assumed,
     )
 
 
@@ -175,12 +211,33 @@ def _subject(
     status: str | None,
     symptom: str,
     family: str | None,
-) -> tuple[Task, bool]:
-    """The line the budget is about, and whether it is one the roadmap already holds."""
+    ref: str | None = None,
+) -> tuple[Task, bool, bool]:
+    """The line the budget is about, whether the roadmap holds it, and whether it guessed."""
     if task_id is not None:
         entry = config.document("roadmap").by_id().get(task_id)
         if entry is not None:
-            return entry.task, True
+            if ref is None:
+                return entry.task, True, False
+            # Re-composed rather than `replace`d, so that a `--ref` under the id scheme is
+            # refused here by the one function that owns the rule (RK265) instead of being
+            # silently taken — the budget for an `amend` has to refuse what the `amend` will.
+            task = entry.task
+            return (
+                compose(
+                    config,
+                    task_id=task.id,
+                    block=task.block,
+                    symptom=task.symptom,
+                    why=task.why,
+                    status=task.status,
+                    deps=tuple(dep.render() for dep in task.deps),
+                    ref=ref,
+                ),
+                True,
+                False,
+            )
+    assumed = ref is None and config.schema.ref_scheme != "id"
     return (
         compose(
             config,
@@ -190,6 +247,27 @@ def _subject(
             why="",
             status=status,
             deps=deps,
+            ref=_widest_anchor(config) if assumed else ref,
         ),
         False,
+        assumed and ref is None,
+    )
+
+
+def _widest_anchor(config: Config) -> str | None:
+    """The longest pointer the roadmap already carries, or None on a file carrying none.
+
+    The stand-in for an anchor the caller did not name (RK265). Widest and not narrowest,
+    and not none: the whole defect is a budget that promised room the `add` then refused, so
+    an assumption that can be wrong is made wrong in the direction that costs an author
+    nothing — a sentence with characters to spare, rather than a second composition of it.
+
+    A roadmap holding no pointer at all is the one case with no evidence to reason from, and
+    None is that stated rather than papered over: the caller is told the structure counts no
+    pointer, which is the honest form of the number this task found being reported silently.
+    """
+    return max(
+        (entry.task.ref for entry in config.document("roadmap").entries if entry.task.ref),
+        key=len,
+        default=None,
     )

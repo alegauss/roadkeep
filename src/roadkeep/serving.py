@@ -333,7 +333,11 @@ TOOLS: tuple[Tool, ...] = (
     # The other pre-`add` read, and the one this transport needs most (RK190): `maxLength`
     # publishes the field's own ceiling and cannot publish the line's, so without this the
     # binding number reaches the author only as a refusal — a linter, one layer in.
-    Tool("budget", ("id", "block", "deps", "status", "symptom")),
+    # `ref` rides with it for the reason the budget exists (RK265): under the outline scheme
+    # the pointer is the caller's, and a budget that did not count it approved a why the
+    # `add` one call later refused — the verdict-after-the-prose, from the verb that
+    # replaces it. Conditional, because under the id scheme there is nothing to name.
+    Tool("budget", ("id", "block", "deps", "status", "symptom"), conditional=("ref",)),
     # `designed` is exposed on both for the reason it exists (RK83): the caller that asks
     # to execute a block over MCP is the one that was handed a design session, and a flag
     # only the CLI can reach is a flag the agent this ships for cannot pass.

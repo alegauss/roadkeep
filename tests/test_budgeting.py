@@ -291,3 +291,113 @@ def test_the_brief_states_the_same_figure_as_the_budget(tmp_path, capsys):
     room = budget(Config.discover(tmp_path), "RK1").share("why").room
     assert f"aim {room} more words" in briefed
     assert f"aim {room} more words" in capsys.readouterr().out
+
+
+# -- the pointer the budget could not be told about (RK265) --------------------
+
+#: Long enough that the *line* binds the `why` rather than the `why`'s own limit, which is
+#: the only condition under which an eight-character pointer can be the whole difference.
+WIDE = "A symptom written to the length the corpus writes them, so the line is what binds"
+
+
+OUTLINED = f"""# Roadmap
+
+## Block A — The model
+
+- {DESIGNED} **RK1** (deps: —) **A first symptom** — Because of a reason. → §IV.2
+- {DESIGNED} **RK2** (deps: —) **{WIDE}** — Because of another one. → §XXXVII.11
+"""
+
+
+def outlined(tmp_path: Path) -> Config:
+    """A project where the anchor is the caller's to name, which is where the defect is."""
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\nref_scheme = "outline"\n'
+        '[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "ROADMAP.md").write_text(OUTLINED, encoding="utf-8")
+    (tmp_path / "CHANGELOG.md").write_text(LEDGER, encoding="utf-8")
+    return Config.discover(tmp_path)
+
+
+def test_the_anchor_the_caller_names_is_counted_as_the_structure_it_is(tmp_path):
+    # The measured defect: `budget` answered a why 182 characters and the `add` that followed
+    # — identical but for `--ref` — refused at 174, the eight being ` → §XX.2`.
+    config = outlined(tmp_path)
+    answer = budget(config, block="A", symptom=WIDE, ref="XX.2")
+    assert answer.task.ref == "XX.2" and not answer.ref_assumed
+    # Not a constant: what the pointer costs is the difference between the two structures,
+    # and `render` is the only place either is measured (L3).
+    assert answer.structure == config.schema.line_max - config.schema.prose_budget(answer.task)
+    assert answer.share("why").allowed == config.schema.why_budget(answer.task)
+
+
+def test_an_unnamed_anchor_is_assumed_at_the_widest_the_file_carries(tmp_path):
+    # The honest direction: an assumption that can be wrong is made wrong towards a sentence
+    # with characters to spare, never towards the second composition of it this verb prevents.
+    answer = budget(outlined(tmp_path), block="A", symptom=WIDE)
+    assert answer.ref == "XXXVII.11" and answer.ref_assumed
+    named = budget(outlined(tmp_path), block="A", symptom=WIDE, ref="IV.2")
+    assert answer.share("why").allowed < named.share("why").allowed
+
+
+def test_the_assumption_is_never_more_room_than_the_add_will_allow(tmp_path):
+    # What the defect cost: the budget promised room the `add` then refused. Against every
+    # anchor the file holds, the assumed answer is at or under what naming it would give.
+    config = outlined(tmp_path)
+    assumed = budget(config, block="A", symptom=WIDE).share("why").allowed
+    for anchor in ("IV.2", "XXXVII.11"):
+        assert assumed <= budget(config, block="A", symptom=WIDE, ref=anchor).share("why").allowed
+
+
+def test_a_roadmap_carrying_no_pointer_says_so_instead_of_guessing_one(tmp_path, capsys):
+    # The one case with no evidence to reason from, stated rather than reported silently.
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\nref_scheme = "outline"\n'
+        '[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "ROADMAP.md").write_text("# Roadmap\n\n## Block A — The model\n", encoding="utf-8")
+    (tmp_path / "CHANGELOG.md").write_text(LEDGER, encoding="utf-8")
+    answer = budget(Config.discover(tmp_path), block="A")
+    assert answer.ref is None and answer.ref_assumed
+    assert main(["-C", str(tmp_path), "budget", "--block", "A"]) == EXIT_OK
+    assert "counts no pointer" in capsys.readouterr().out
+
+
+def test_the_derived_scheme_has_no_anchor_to_name_and_refuses_one(tmp_path, capsys):
+    # The same rule `add` applies, from the same function: a pointer chosen by hand under the
+    # id scheme is what `ref.mismatch` refuses, and a budget that took it would price a line
+    # the tool will not write.
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "--block", "A", "--ref", "IV.2"]) != EXIT_OK
+    assert not budget(project(tmp_path), block="A").ref_assumed
+
+
+def test_an_open_line_keeps_its_own_anchor_and_takes_a_new_one_on_request(tmp_path):
+    # The `amend` that moves the pointer and rewrites the why in one call: the room the why
+    # has depends on which of the two anchors the line ends up carrying.
+    config = outlined(tmp_path)
+    assert budget(config, "RK2").ref == "XXXVII.11"
+    assert not budget(config, "RK2").ref_assumed
+    moved = budget(config, "RK2", ref="IV.2")
+    assert moved.open_line and moved.ref == "IV.2"
+    assert moved.share("why").allowed > budget(config, "RK2").share("why").allowed
+
+
+def test_the_command_names_the_anchor_it_assumed_and_the_flag_that_corrects_it(tmp_path, capsys):
+    outlined(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "--block", "A"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "§XXXVII.11 assumed" in printed and "--ref" in printed
+    assert main(["-C", str(tmp_path), "budget", "--block", "A", "--ref", "XX.2", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["ref"] == "XX.2" and payload["ref_assumed"] is False
+
+
+def test_a_named_anchor_is_not_reported_as_an_assumption(tmp_path, capsys):
+    # The two answers read identically without this, and only one of them an `add` can correct.
+    outlined(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "--block", "A", "--ref", "XX.2"]) == EXIT_OK
+    assert "assumed" not in capsys.readouterr().out
