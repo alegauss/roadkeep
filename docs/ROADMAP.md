@@ -40,8 +40,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK246** (deps: —) **The staleness note names a reload that cannot fire on the tree it fires in** — The server a checkout runs comes from `.mcp.json` and has no version, so five patch bumps in one session left it stale while its own note said a bump reloads it. → §RK246
-
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:

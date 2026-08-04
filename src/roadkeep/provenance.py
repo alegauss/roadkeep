@@ -112,6 +112,25 @@ class Engine:
                 continue
         return tuple(changed)
 
+    def carried_by(self, root: Path) -> bool:
+        """Whether the code answering lives **inside** the project it is answering about (RK246).
+
+        Which of the two wirings started this process, asked as a fact rather than guessed from
+        the harness's directory layout. A plugin's `mcpServers` is versioned by `plugin.json`, so
+        RK153's patch bump reloads it; a project running the tool from its own checkout is wired
+        by `.mcp.json` → `scripts/roadkeep.py`, which carries no version at all — nothing about
+        that process is addressed by a bump, and restarting the session is the only remedy.
+
+        The two cases differ in exactly this: the plugin's copy is a cache somewhere else, and a
+        checkout's is under the governed root. Measured in this repository, where five bumps in
+        one session left the server stale while its own note named the bump as the fix.
+
+        `root` is expected resolved, which every `Config.root` is; a relation this cannot
+        establish reads as the plugin, because that branch also ends in "restart the session"
+        and is the half of the sentence that is true either way.
+        """
+        return root in self.home.parents
+
     def __str__(self) -> str:
         return f"roadkeep {self.version} ({self.revision}, {self.home})"
 

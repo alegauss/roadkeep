@@ -775,7 +775,7 @@ def call(tool: Tool, arguments: Mapping[str, Any], directory: str = ".") -> Answ
         # The engine is named on this one refusal unconditionally (RK155): a key the file
         # declares and the code does not know is the shape stale code produces, and which
         # build read the config is the fact that turns the puzzle into an instruction.
-        return _answered(f"roadkeep: {error} — read by {engine()}", is_error=True)
+        return _answered(f"roadkeep: {error} — read by {engine()}", directory, is_error=True)
     # One build for the whole call (RK198), and then one for the whole process (RK202). The
     # argv is rendered through the subcommands and parsed through the root they belong to,
     # and until this was threaded each of those three lookups built the entire CLI — 10.2 ms
@@ -785,7 +785,7 @@ def call(tool: Tool, arguments: Mapping[str, Any], directory: str = ".") -> Answ
     try:
         line = argv(tool, arguments, config, parsers)
     except ToolError as error:
-        return _answered(str(error), is_error=True)
+        return _answered(str(error), directory, is_error=True)
     out, err = io.StringIO(), io.StringIO()
     try:
         with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err), _spent_stdin():
@@ -797,9 +797,9 @@ def call(tool: Tool, arguments: Mapping[str, Any], directory: str = ".") -> Answ
     except SystemExit as exit_:  # argparse refused the argv: a missing required argument
         code = exit_.code if isinstance(exit_.code, int) else 2
     except LockBusy as busy:
-        return _answered(f"roadkeep: {busy}", is_error=True)
+        return _answered(f"roadkeep: {busy}", directory, is_error=True)
     reported = "\n".join(part for part in (err.getvalue().strip(), out.getvalue().strip()) if part)
-    return _answered(reported or f"{tool.name}: exit {code}", is_error=bool(code))
+    return _answered(reported or f"{tool.name}: exit {code}", directory, is_error=bool(code))
 
 
 @contextlib.contextmanager
@@ -828,7 +828,7 @@ def _spent_stdin() -> Iterator[None]:
         sys.stdin = saved
 
 
-def _answered(text: str, *, is_error: bool) -> Answer:
+def _answered(text: str, directory: str, *, is_error: bool) -> Answer:
     """One tool's answer, plus the note a **refusal** needs when the code answering moved.
 
     RK155, measured twice in one session: the config is re-read per message on purpose, so a
@@ -850,6 +850,13 @@ def _answered(text: str, *, is_error: bool) -> Answer:
     caller re-ran the command, tried a second spelling of the flag, then imported the CLI from a
     source checkout to obtain the answer it already had. So the drift is stated as what it is, a
     fact about this process, beside a refusal that stands as the answer the running code gave.
+
+    And the remedy is the one that applies to the server reading it (RK246): a patch bump reloads
+    a *plugin*, so on a project running the tool from its own checkout the note's first clause
+    named a mechanism never in play — measured here at five bumps in one session, with the note
+    still naming seven changed files. Which wiring answered is
+    :meth:`~roadkeep.provenance.Engine.carried_by`, off ``directory``, so it is read and not
+    guessed. What stays untouched is the decision above it: nothing reloads itself (RK155).
     """
     if not is_error:
         return Answer(text, is_error=False)
@@ -860,10 +867,27 @@ def _answered(text: str, *, is_error: bool) -> Answer:
         f"{text}\n\n"
         f"Separately, about this process and not about the refusal above: this server "
         f"imported roadkeep before {', '.join(changed)} changed on disk, and the refusal is "
-        f"what the code it did import answered — read it first. Every commit bumps the patch "
-        f"version so the harness reloads the plugin (RK153); restart the session if it has "
-        f"not, and re-run only where the changed files are the ones that would decide this.",
+        f"what the code it did import answered — read it first. {_remedy(directory)} Re-run "
+        f"only where the changed files are the ones that would decide this.",
         is_error=True,
+    )
+
+
+def _remedy(directory: str) -> str:
+    """What actually restarts *this* server, which of the two wirings decides (RK246)."""
+    try:
+        root = Path(directory).resolve()
+    except OSError:  # a directory that cannot be resolved is not the plugin's cache
+        return "Restart the session to run the changed files."
+    if engine().carried_by(root):
+        return (
+            "This process runs the checkout it is governing, wired by `.mcp.json` to "
+            "`scripts/roadkeep.py`, which carries no version — so no patch bump reloads it "
+            "and restarting the session is the only remedy."
+        )
+    return (
+        "Every commit bumps the patch version so the harness reloads the plugin (RK153); "
+        "restart the session if it has not."
     )
 
 

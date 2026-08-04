@@ -961,7 +961,27 @@ def test_a_refusal_says_when_the_code_answering_it_moved(tmp_path, monkeypatch):
     assert answered["isError"] is True
     refused = text_of(answered)
     assert "imported roadkeep before config.py changed on disk" in refused
-    assert "restart the session" in refused
+    assert "restarting the session is the only remedy" in refused
+
+
+def test_the_remedy_named_is_the_one_that_restarts_this_server(tmp_path, monkeypatch):
+    # RK246: a patch bump reloads a *plugin*, and the tree the note fires in most is the one
+    # wired by `.mcp.json` to `scripts/roadkeep.py`, which carries no version — measured here
+    # at five bumps in one session with the note still naming the bump as the fix.
+    monkeypatch.setattr(
+        "roadkeep.serving.engine",
+        lambda: replace(engine(), home=_moved(tmp_path)),
+    )
+    # The package under the governed root: this process runs the checkout it is governing.
+    own = text_of(called(project(tmp_path), "status", id="RK99", marker="🛠"))
+    assert "no patch bump reloads it" in own and "RK153" not in own
+    # And the plugin's own copy, which is a cache *outside* the governed root: the bump applies.
+    monkeypatch.setattr(
+        "roadkeep.serving.engine",
+        lambda: replace(engine(), home=_moved(tmp_path.parent / f"{tmp_path.name}-cache")),
+    )
+    cached = text_of(called(project(tmp_path), "status", id="RK99", marker="🛠"))
+    assert "bumps the patch version" in cached and "RK153" in cached
 
 
 def test_the_drift_is_a_fact_beside_the_refusal_and_not_a_doubt_about_it(tmp_path, monkeypatch):

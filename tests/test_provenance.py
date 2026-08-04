@@ -127,6 +127,18 @@ def test_staleness_is_read_now_and_not_cached_like_the_identity(tmp_path):
     assert described.stale == ("serving.py",)
 
 
+def test_which_wiring_is_answering_is_read_from_where_the_code_lives(tmp_path):
+    # RK246: a patch bump reloads a plugin and not a `.mcp.json` server, so the remedy a note
+    # names depends on which of the two started this process — and the two differ in exactly
+    # this, the plugin's copy being a cache elsewhere and a checkout's sitting under the root.
+    root = tmp_path / "project"
+    inside = Engine(version="0.1.0", home=root / "src" / "roadkeep", commit=None)
+    assert inside.carried_by(root)
+    # The cache: beside the project, above it, and the root itself are all the plugin's case.
+    for home in (tmp_path / "cache" / "roadkeep", tmp_path / "roadkeep", root):
+        assert not Engine(version="0.1.0", home=home, commit=None).carried_by(root)
+
+
 def test_a_directory_that_cannot_be_read_is_not_evidence(tmp_path):
     # Every other failure in this package allows; a provenance note is the last place to
     # start raising, because it is read only when something has already gone wrong.
