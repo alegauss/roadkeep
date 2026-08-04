@@ -260,6 +260,26 @@ def test_a_line_with_no_prose_to_blame_is_still_the_lines_own_refusal():
     assert codes == {"why.empty", "line.too-long"}
 
 
+def test_the_refusal_no_sentence_answers_asks_for_no_word_deletion():
+    # RK243: RK201's hint is aimed at prose, and this is the one refusal whose own next
+    # clause says prose is not what is over — an edit named beside the reason it cannot work.
+    narrow = replace(SCHEMA, line_max=20)
+    (violation,) = [v for v in narrow.validate(task(why="")) if v.code == "line.too-long"]
+    assert "about" not in violation.message
+    assert "delete" in violation.message and "the structure" in violation.message
+
+
+def test_the_field_refusals_a_sentence_does_answer_keep_it():
+    # The other side of the same switch: cutting words is exactly the remedy here, and the
+    # neighbour `part.too-long` is prose too.
+    (symptom,) = SCHEMA.validate(task(symptom="x" * 127))
+    assert "about 2 words" in symptom.message
+    (part,) = SCHEMA.as_ledger().validate(
+        replace(task(), status=SHIPPED, part="p" * 60, ref="", deps=())
+    )
+    assert part.code == "part.too-long" and "about" in part.message
+
+
 # -- one sentence ----------------------------------------------------------
 
 

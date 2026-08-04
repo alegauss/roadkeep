@@ -167,7 +167,14 @@ def words_over(chars: int) -> int:
     return max(1, math.ceil(chars / CHARS_PER_WORD))
 
 
-def over_by(actual: int, limit: int, unit: str = "character", because: str = "") -> str:
+def over_by(
+    actual: int,
+    limit: int,
+    unit: str = "character",
+    because: str = "",
+    *,
+    prose: bool = True,
+) -> str:
     """The arithmetic every length refusal opens with, spelled in one place (RK184).
 
     An author handed a total and a limit derives the surplus and then does not act on it:
@@ -189,10 +196,18 @@ def over_by(actual: int, limit: int, unit: str = "character", because: str = "")
     reaches *after* the overrun, in characters alone. The exact figure stays first, because
     the approximation is derived from it; the word one follows, hedged, because it is. A
     refusal already counted in words gets no second copy of itself.
+
+    ``prose`` is the caller's answer to whether a shorter *sentence* is the remedy (RK243).
+    It is the caller's because only they know: `line.too-long` fires when no field is over
+    the budget the line left it, so what does not fit is the structure around the prose —
+    and its own message says exactly that, in the sentence the word figure would be
+    appended to. Naming an edit that cannot work, beside the clause explaining why, is
+    worse than naming no edit at all (RK16). One spelling either way, which is what this
+    function exists for, so the switch is a parameter and not a second composer.
     """
     surplus = actual - limit
     deletion = f"delete {surplus} {_plural(surplus, unit)}"
-    if unit == "character":
+    if prose and unit == "character":
         aim = words_over(surplus)
         deletion += f" {EM_DASH} about {aim} {_plural(aim, 'word')}"
     return f"{actual} {_plural(actual, unit)}, limit is {limit}{because}: {deletion}"
@@ -883,6 +898,8 @@ class Schema:
         # the line's limit, the same overrun reported twice is one defect with two numbers
         # and the author cutting both. What is left for this to catch is an overrun no
         # field explains — a line whose *structure* does not fit, which no prose edit fixes.
+        # Which is why this one asks for no word figure (RK243): the hint is aimed at a
+        # sentence, and the clause after it says a sentence is not what is over.
         if len(rendered) > self.line_max and not any(
             violation.code in _LENGTH_CODES for violation in out
         ):
@@ -890,7 +907,8 @@ class Schema:
                 Violation(
                     "line.too-long",
                     "line",
-                    f"the rendered line is {over_by(len(rendered), self.line_max)}; "
+                    f"the rendered line is "
+                    f"{over_by(len(rendered), self.line_max, prose=False)}; "
                     f"no field is over the budget this line left it, so what does "
                     f"not fit is the structure around them",
                 )

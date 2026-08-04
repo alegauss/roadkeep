@@ -75,28 +75,6 @@ already written, not authorship.
 
 ## Block A — The model
 
-### §RK243 The hint belongs to the refusals a sentence can answer
-
-RK201's argument is about the author composing a retry: a character count is not a unit
-they can measure, so the surplus is restated in words they can delete. That holds for
-every refusal whose remedy is a shorter sentence — `symptom.too-long`, `why.too-long`,
-`part.too-long`.
-
-`line.too-long` is not one of them. It is the backstop that fires only when no field is
-over the budget the line left it, and its own message says so: what does not fit is the
-structure around the prose. Appending "about 2 words" there names an edit that cannot
-work, in the same sentence that explains why — and a refusal whose named remedy the tool
-would reject is worse than one with no remedy, which is RK16's rule and RK238's.
-
-The fix is a choice about where the decision lives. `over_by` already takes the unit,
-and the word figure is switched on by it being characters; the narrower question is
-whether *this* overrun is a prose one, which the caller knows and the function does not.
-So the parameter is the caller's, not another branch inside the composer — and it stays
-a single spelling, which is what RK184 exists for.
-
-Two neighbours to check while there: `part.too-long` is prose and keeps the hint, and
-the section budgets already count in words, so neither is affected.
-
 ## Block B — Authoring
 
 ### §RK244 The third file, in the one command that still counts two

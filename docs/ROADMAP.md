@@ -22,8 +22,6 @@
 
 ## Block A — The model (a task is data before it is a line)
 
-- 📋 **RK243** (deps: —) **The one refusal no prose edit fixes now advises deleting words** — RK201 appends a word surplus to every character refusal, and `line.too-long` says in its own next clause that what does not fit is the structure, so the hint contradicts its sentence. → §RK243
-
 ## Block B — Authoring (insert, never hand-edit)
 
 - 📋 **RK244** (deps: —) **A paused id cannot be named as what supersedes a retired line** — `retire --superseded-by` reads the roadmap and the ledger, so the deferred store is invisible to it and a live findable id is refused as `in neither file`, which is two false claims. → §RK244
