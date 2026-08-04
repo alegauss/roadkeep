@@ -98,6 +98,29 @@ the refusal must keep the character number first, because that one is exact and 
 one is an approximation of it — an author told only "two words" and given a 9-character
 overrun would be back to guessing, with a smaller number to guess against.
 
+### §RK240 One answer to where an id is
+
+Three refusals answer the same question, and it is not "does this id exist" — it is
+*which absence*. `NotSetAside` names it for `resume` (open in the roadmap, recorded as ✅
+or 🗑, or mentioned by no file), `anchor.unknown` now names it for `section add` and
+`section amend` (RK238), and `NoSuchTask` names the files `show` asked. The split is
+deliberate and right: "not here" is one sentence for a task that shipped, one abandoned
+and one that never existed, and only the last is a typo.
+
+What is not right is that two of them compose it. `deferring._whereabouts` and
+`sections._recorded` both write `the changelog records it as {status}` from the same
+read of the same file, which is the shape RK229 was filed for one verb over — a
+resolution copied rather than called, and the copy is what goes stale when the other is
+corrected.
+
+The fact is about an id and not about a section or a pause, so it belongs where the id's
+state does. `Backlog` already loads every live role and the ledger, and
+`_refuse_recorded` already reaches across modules for exactly this. What needs deciding
+with it is whether the answer is a string or a small type: a string is what every caller
+prints today, while a type would let `_unknown` offer `record amend` from the marker
+rather than from a sentence it cannot read — and that is the one caller that acts on the
+state rather than reporting it.
+
 ## Block B — Authoring
 
 ## Block C — Query

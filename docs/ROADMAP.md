@@ -23,6 +23,7 @@
 ## Block A — The model (a task is data before it is a line)
 
 - 📋 **RK201** (deps: —) **A length refusal states its surplus in the one unit the author composing the retry cannot count** — RK185 published every budget in words as well as characters and left RK184's refusal in characters alone, so the retry after an overrun is the guess the aim exists to remove. → §RK201
+- 📋 **RK240** (deps: —) **Where an id actually is gets composed by two modules in the same words** — RK238 spells `the changelog records it as X` in sections and deferring already spells it in `_whereabouts`, so the sentence three refusals hand an author is two strings that can drift apart. → §RK240
 
 ## Block B — Authoring (insert, never hand-edit)
 
