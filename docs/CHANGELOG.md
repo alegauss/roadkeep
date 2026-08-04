@@ -231,6 +231,7 @@
 - ✅ **RK272** **The repair a driver check names writes one of the two halves it just failed on** — `merge --check` names the repair of each half it found broken — the verb for the attributes, the `git config` line for the driver — so following the advice ends the check instead of repeating it.
 - ✅ **RK273** **Whether git sends a file to this driver is guessed from one file** — `attributed` asks `check-attr`, so a rule set in a subdirectory or `.git/info/attributes` counts, a file wired to another driver is named rather than read as unset, and no git is `unknown`.
 - ✅ **RK274** **The repair a check names takes over a wiring the same check just reported** — `register` skips a governed file another driver is named for and reports the skip, and `--check` treats it as settled — so the repair no longer overrides what it reported, nor fails forever.
+- ✅ **RK276** **One write reports a skip on only one of its two surfaces** — One `registration_report` renders both surfaces, differing by the indent column that pushed them apart, and a test over the dataclass fields fails where the next one reaches only the JSON.
 
 ## Block F — The Claude Code plugin
 

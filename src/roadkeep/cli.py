@@ -89,6 +89,7 @@ from roadkeep.merging import (
     UNRUNNABLE,
     Attributes,
     Driver,
+    Registration,
     attributed,
     config_command,
     markers,
@@ -2208,32 +2209,49 @@ def _merge(config: Config, args: argparse.Namespace) -> int:
     return EXIT_GATE
 
 
+def registration_report(registration: Registration, where: str, label: int) -> list[str]:
+    """Everything one registration has to say, rendered once for both its surfaces (RK276).
+
+    `merge --register` and `install --register-merge` are the same write — RK148 said so, and
+    the install branch carried a comment claiming the two printed the same lines. RK274 then
+    added a third line and it reached one of them, so the comment asserting the invariant
+    became the record of it breaking. Two renderings of one dataclass drift the moment the
+    dataclass grows a field, and the only fix that holds is that there is one rendering.
+
+    `label` is the column the install report pads its own verbs to and the merge report does
+    not — the difference that pushed the two apart, reduced to the one parameter it is.
+    """
+    prefix = f"  {'registered':<{label}} " if label else ""
+    lines = [f"{prefix}{where}  + {line}" for line in registration.added]
+    lines += [f"{prefix}{where}    {line} (already there)" for line in registration.present]
+    # RK274: named where the writes are named, because "what this command did" has to include
+    # the file it deliberately did not touch — a skip nobody is told about is indistinguishable
+    # from a skip nobody intended.
+    lines += [
+        f"{prefix}{where}    {path} → {value} (another driver, left alone)"
+        for path, value in registration.left_alone
+    ]
+    # Printed and not run: a driver command names a path into this checkout, and setting
+    # somebody's git config is a write outside the files this tool was given (L2).
+    lines.append(f"  {'then':<{label or 8}} {registration.command}")
+    # What the stored value cannot promise, said where it is stored (RK255): git executes it
+    # long after this process, and a driver that has stopped resolving is silent until a merge.
+    lines.append(f"  {'re-run':<{label or 8}} after {registration.invalidated_by}")
+    if registration.driver is not None:
+        # Read after the attribute lines were written (RK266). This is the line that carries a
+        # re-run: three attributes "already there" is the answer where the config is the half
+        # that moved, and without this the output that says nothing changed would be all of it.
+        lines.append(f"  {'config':<{label or 8}} {_driver_line(registration.driver)}")
+    return lines
+
+
 def _merge_register(config: Config) -> int:
     try:
         registration = register(config)
     except REFUSALS as error:
         return _refused(error)
-    where = config.relative(registration.attributes)
-    for line in registration.added:
-        print(f"{where}  + {line}")
-    for line in registration.present:
-        print(f"{where}    {line} (already there)")
-    for path, value in registration.left_alone:
-        # RK274: named where the writes are named, because "what this command did" has to
-        # include the file it deliberately did not touch — a skip nobody is told about is
-        # indistinguishable from a skip nobody intended.
-        print(f"{where}    {path} → {value} (another driver, left alone)")
-    # Printed and not run: a driver command names a path into this checkout, and setting
-    # somebody's git config is a write outside the files this tool was given (L2).
-    print(f"  then     {registration.command}")
-    # What the stored value cannot promise, said where it is stored (RK255): git executes it
-    # long after this process, and a driver that has stopped resolving is silent until a merge.
-    print(f"  re-run   after {registration.invalidated_by}")
-    if registration.driver is not None:
-        # Read after the attribute lines were written (RK266). This is the line that carries a
-        # re-run: three attributes "already there" is the answer where the config is the half
-        # that moved, and without this the output that says nothing changed would be all of it.
-        print(f"  config   {_driver_line(registration.driver)}")
+    for line in registration_report(registration, config.relative(registration.attributes), 0):
+        print(line)
     return EXIT_OK
 
 
@@ -4473,6 +4491,10 @@ def _install(config: Config, args: argparse.Namespace) -> int:
                         "driver": None
                         if intent.registered.driver is None
                         else intent.registered.driver.state,
+                        # Keyed by the field names of `Registration`, and held to them by a
+                        # test (RK276): the reading most likely to be automated is the one a
+                        # dropped field is quietest in.
+                        "left_alone": [list(pair) for pair in intent.registered.left_alone],
                     },
                     "changing": len(intent.changing),
                 },
@@ -4487,17 +4509,12 @@ def _install(config: Config, args: argparse.Namespace) -> int:
             state = _WOULD[surface.state] if args.check else surface.state
             print(f"  {state:<14} {surface.path.relative_to(intent.root).as_posix()}")
         if intent.registered is not None:
-            # The same two lines `merge --register` prints, in the same order, because it is
-            # the same write (RK148) — and the `git config` half is still printed, not run.
-            where = intent.registered.attributes.name
-            for line in intent.registered.added:
-                print(f"  registered     {where}  + {line}")
-            for line in intent.registered.present:
-                print(f"  registered     {where}    {line} (already there)")
-            print(f"  then           {intent.registered.command}")
-            print(f"  re-run         after {intent.registered.invalidated_by}")
-            if intent.registered.driver is not None:
-                print(f"  config         {_driver_line(intent.registered.driver)}")
+            # The same lines `merge --register` prints, because it is the same write (RK148) —
+            # and now literally the same rendering (RK276), so a field added to `Registration`
+            # cannot reach one surface and miss the other. The `git config` half is still
+            # printed and not run.
+            for line in registration_report(intent.registered, intent.registered.attributes.name, 14):
+                print(line)
         if intent.debt:
             # Beside the surfaces, because it is the reason one of them was written the way
             # it was (RK140): a decision taken from a measurement nobody is shown is one the

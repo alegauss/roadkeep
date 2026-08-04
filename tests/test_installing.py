@@ -29,11 +29,13 @@ from __future__ import annotations
 import json
 import shlex
 import shutil
+from dataclasses import fields
 from pathlib import Path
 
 import pytest
 
-from roadkeep.cli import build_parser, main
+from roadkeep.cli import build_parser, main, registration_report
+from roadkeep.merging import Driver, Registration
 from roadkeep.installing import (
     CARRIED,
     LAUNCHER,
@@ -365,6 +367,54 @@ def test_the_flag_writes_the_attribute_half_and_prints_the_config_half(project, 
     assert "git config merge.roadkeep.driver" in out
     # And the unwritten list no longer names it, a surface being written not being one skipped.
     assert ".gitattributes" not in dict(plan(project, source=source, registering=True).skipped)
+
+
+def test_the_json_carries_every_field_the_registration_has(project, source, capsys):
+    # RK276. `merge --register` and `install --register-merge` are one write (RK148), and the
+    # third line RK274 added reached one surface — so what is asserted is not that line but the
+    # *shape*: the next field added to `Registration` fails here rather than going quiet in the
+    # reading most likely to be automated.
+    declaring(project, CLEAN)
+    argv = ["-C", str(project), "install", "--source", str(source), "--register-merge", "--json"]
+    assert main(argv) == 0
+    registered = json.loads(capsys.readouterr().out)["registered"]
+    assert set(registered) == {field.name for field in fields(Registration)}
+
+
+#: A registration carrying something in every field, so the report below has all of them to
+#: drop. Built rather than measured: the state that exercises `left_alone` and `present` at
+#: once is one a real project reaches only after somebody wired another driver by hand.
+FULL = Registration(
+    attributes=Path(".gitattributes"),
+    added=("docs/ROADMAP.md merge=roadkeep",),
+    present=("docs/CHANGELOG.md merge=roadkeep",),
+    command='git config merge.roadkeep.driver "somewhere merge %O %A %B --path %P"',
+    invalidated_by="a plugin update",
+    driver=Driver(stored="", wanted="somewhere", known=True),
+    left_alone=(("docs/IMPROVEMENTS.md", "theirs"),),
+)
+
+
+def test_the_report_carries_every_field_of_the_registration(capsys):
+    # RK276, over the text. RK274 added a third line and it reached one of two surfaces, under
+    # a comment claiming they printed the same. There is one rendering now, and this asserts
+    # what it must not drop — a field whose content appears nowhere is the same silence again.
+    said = "\n".join(registration_report(FULL, ".gitattributes", 0))
+    assert FULL.added[0] in said and FULL.present[0] in said
+    assert FULL.left_alone[0][0] in said and FULL.left_alone[0][1] in said
+    assert FULL.command in said and FULL.invalidated_by in said
+    assert "merge.roadkeep.driver" in said
+
+
+def test_the_two_indents_are_the_only_difference_between_the_surfaces(capsys):
+    # One rendering, two callers, one parameter between them: the install report pads its verbs
+    # to a column the merge report does not, and that column was what pushed them apart.
+    plain = registration_report(FULL, ".gitattributes", 0)
+    padded = registration_report(FULL, ".gitattributes", 14)
+    assert len(plain) == len(padded)
+    for bare, wide in zip(plain, padded):
+        # Same words in the same order, once the padding and the install report's own verb go.
+        assert bare.split() == [word for word in wide.split() if word != "registered"]
 
 
 def test_the_flag_refuses_a_project_that_declares_no_governed_file(project, source):

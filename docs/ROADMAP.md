@@ -47,7 +47,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK276** (deps: —) **One write reports a skip on only one of its two surfaces** — `install --register-merge` prints added and present but not `left_alone`, so adoption hides the file `merge --register` names as skipped — under a comment claiming the two print the same lines. → §RK276
 - 📋 **RK277** (deps: —) **The check demands a driver in a repository that routes nothing to it** — `--check` reads the two halves independently, so where every governed file is claimed by another driver the config half still exits 1 asking for a value no merge would ever reach. → §RK277
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

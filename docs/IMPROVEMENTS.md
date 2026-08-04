@@ -377,31 +377,6 @@ shape at six. What stays true either way is that a *validation* refusal keeps th
 
 ## Block E — Adoption
 
-### §RK276 RK276 — two surfaces on one write, and only one was extended
-
-`merge --register` and `install --register-merge` are the same call: RK148 made that
-explicit, and the comment above the install branch says so — "the same two lines `merge
---register` prints, in the same order, because it is the same write". RK274 added a
-third line, the file another driver is named for and this command deliberately did not
-touch. It went to one surface. The comment asserting the invariant is now the record of
-it breaking.
-
-The JSON is the same story: `added`, `present`, `command`, `invalidated_by`, `driver` —
-and no `left_alone`, so a caller parsing the adoption report cannot see a governed file
-that will not reach this driver. That is the reading most likely to be automated, and
-the fact most likely to matter to whoever automates it.
-
-What made the drift possible is that nothing held the two together. `test_installing.py`
-asserts one literal line of the install output, `test_merging.py` asserts the register
-output, and neither asks whether the two say the same things. A test over the *fields*
-of `Registration` — each one reachable from both surfaces — turns the next addition into
-a failure here rather than a silence in adoption.
-
-The alternative worth weighing is that they stop being two renderings: one function
-formatting a `Registration`, called with a different indent. That is smaller than it
-looks, and the reason to hesitate is that the install report has a column layout the
-merge one does not, which is what pushed them apart to begin with.
-
 ### §RK277 RK277 — a driver asked for where no merge reaches it
 
 Measured: a repository whose `.gitattributes` says `docs/*.md merge=theirs`. `--check`
