@@ -44,6 +44,8 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
+- 📋 **RK259** (deps: —) **The body's word budget names a prose role the project may not declare** — `_paragraphed` reads every `PROSE_ROLES` entry rather than the ones `config.has`, so a `[limits.strategy]` left without a strategy file publishes a figure for a file nothing can write. → §RK259
+
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:
