@@ -194,6 +194,33 @@ def test_the_version_costs_nothing_until_it_is_asked_for() -> None:
     assert action.nargs == 0
 
 
+# -- what the distribution does not promise (RK205) ----------------------------
+
+
+def test_no_py_typed_ships_and_the_reason_is_declared() -> None:
+    """A typed package nobody may type-check was the symptom; the answer is a decision.
+
+    Every module here is annotated and PEP 561 makes a consumer's checker ignore all of it
+    without a `py.typed` marker. Two answers were coherent — ship the marker, or say the
+    Python surface is not a promise — and the wrong one was doing neither, because RK199 had
+    already spent the argument ("no checker reads this package") as if it were settled.
+
+    Both halves are asserted together on purpose: the marker's absence is only honest while
+    the non-goal is declared, and shipping one without dropping the other is the state this
+    test exists to catch.
+    """
+    from roadkeep import scoping
+    from roadkeep.config import Config
+
+    assert not (PACKAGE / "py.typed").exists()
+    data = metadata()
+    assert "package-data" not in data.get("tool", {}).get("setuptools", {})
+
+    config = Config.discover(HERE)
+    leads = scoping.leads(config.document("roadmap"))
+    assert "No supported Python API." in leads
+
+
 # -- the surface a lazy `__init__` still owes (RK199) -------------------------
 
 

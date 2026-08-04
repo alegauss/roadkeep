@@ -12,9 +12,17 @@ the standard library — loaded `schema`, and through it `dataclasses`, `inspect
 every `from roadkeep import …` in the tree names a submodule or `__version__`. The
 re-export list exists for readers, and readers are not who was paying for it.
 
-PEP 562 and not a shorter list, because dropping the names would be a breaking change to a
-published package's declared surface for a saving laziness gets anyway. Each name is bound
-into the module on first use, so the cost is paid once and only where somebody asks.
+PEP 562 and not a shorter list, because dropping the names would churn what `dir(roadkeep)`
+answers for a saving laziness gets anyway. Each name is bound into the module on first use, so
+the cost is paid once and only where somebody asks.
+
+**This list is a convenience and not a promise** (RK205). RK199 dropped a `TYPE_CHECKING`
+block arguing no external checker reads this package, which is true — and true of the other
+thirty-five modules, which made it a fact about the distribution rather than a licence. The
+question that settles it is whether `from roadkeep import Schema` is a surface this project
+supports, and the answer is in the roadmap's non-goals: it is not. So no `py.typed` ships, the
+annotations here serve this repository's own reading, and the surfaces that *are* promised are
+the CLI, the MCP tools and the plugin. `tests/test_packaging.py` holds both halves.
 """
 
 from __future__ import annotations
@@ -39,13 +47,14 @@ __all__ = [
 #: The one place the version is written (RK19). `pyproject.toml` declares it `dynamic` and
 #: reads this literal, so a release cannot ship a number the package disagrees with — which
 #: is also why it stays eager: a build backend parses this file, it does not import it.
-__version__ = "0.1.138"
+__version__ = "0.1.139"
 
 #: What the names above are, resolved once each. A frozenset and not a `TYPE_CHECKING`
 #: import of them: the conventional block would pull `typing` into every startup — 5.6ms,
-#: measured, and 90% of what is left of this file — to serve a checker that does not read
-#: this package anyway, since it ships no `py.typed` (PEP 561). What the surface promises is
-#: held by `tests/test_packaging.py` instead, which is a stronger claim than an annotation.
+#: measured, and 90% of what is left of this file — to serve a checker that may not read this
+#: package, which ships no `py.typed` by decision and not by omission (PEP 561, RK205). What
+#: the surface promises is held by `tests/test_packaging.py` instead, which is a stronger
+#: claim than an annotation.
 _EXPORTED = frozenset(__all__)
 
 

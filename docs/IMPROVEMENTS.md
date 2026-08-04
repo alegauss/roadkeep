@@ -220,29 +220,4 @@ and may not need a second.
 
 ## Block E — Adoption
 
-### §RK205 A typed package nobody may type-check
-
-Every module in `src/roadkeep/` is annotated, and several carry `from __future__ import
-annotations` for the sake of it. None of that reaches anybody who installs the package:
-PEP 561 says a checker must ignore inline annotations in a distribution that does not
-ship a `py.typed` marker, and `pyproject.toml` declares none.
-
-It surfaced from the other side. RK199 wanted the 5.6ms `typing` costs at every startup
-and dropped a `TYPE_CHECKING` re-export block, on the argument that no external checker
-reads this package anyway. That argument is true, and it is true of the other
-thirty-five modules too — which makes it a fact about the distribution rather than a
-licence.
-
-Two coherent answers, and the wrong one is doing neither. Ship the marker: one empty
-file, one line of package data, and every annotation already written starts paying off
-for a consumer. Or decide the package is a CLI whose Python surface is not a promise,
-and say so where somebody looks — which is a smaller claim than the annotations
-currently imply.
-
-What tips it is whether `from roadkeep import Schema` is a surface this project intends
-to support. `__all__` says yes and nothing else does: no documentation names it, no test
-outside `tests/test_packaging.py` depends on it, and the whole tool is shipped as a
-plugin and a console script. Answer that first; the marker is a consequence and not the
-question.
-
 ## Block F — The plugin

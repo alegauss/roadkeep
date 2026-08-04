@@ -39,8 +39,6 @@
 
 ## Block E — Adoption
 
-- 💭 **RK205** (deps: —) **The package publishes annotations that no checker is allowed to read** — Every module is annotated and `pyproject.toml` ships no `py.typed`, so PEP 561 makes a consumer's checker ignore all of it — and RK199 dropped a TYPE_CHECKING block on exactly that ground. → §RK205
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Non-goals
@@ -63,3 +61,6 @@ Deliberately **not** built — check this list before proposing work:
 - **No multi-line task line.** A task whose text wraps across paragraphs, with its deps
   on a `↳` line of their own, is a second grammar; reading only the first line would
   ship a truncated why and orphan the rest.
+- **No supported Python API.** The CLI, the MCP tools and the plugin are the surface;
+  `from roadkeep import Schema` is how the tests reach the vocabulary, so no `py.typed`
+  ships and a rename inside the package breaks nobody.

@@ -211,6 +211,7 @@
 - ✅ **RK139** **`adopt` measures the task lines and says nothing about the non-goals it will govern** — `adopt` reports the non-goals too — parsed, unread, over, and the longest lead and reason against their limits, declared or not — and counts them in the headline only where the project opted in.
 - ✅ **RK140** **The CI workflow `install` writes is red on its first run for every backlog with debt** — `install` runs the gate while it writes the workflow: a clean project gets the strict one, a backlog with debt gets the baseline plus the count it defers and when to drop the line.
 - ✅ **RK148** **install wires four surfaces and leaves the merge driver to whoever remembers it** — `install` names the merge driver among the surfaces it does not write, and `--register-merge` writes the `.gitattributes` half during adoption while the `git config` line is printed.
+- ✅ **RK205** **The package publishes annotations that no checker is allowed to read** — Answered rather than marked: the import surface is a declared non-goal, so no `py.typed` ships by decision — and a test holds the absence and the constraint together, neither being honest alone.
 
 ## Block F — The Claude Code plugin
 
