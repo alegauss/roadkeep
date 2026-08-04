@@ -100,6 +100,24 @@ is the third lookup. Whether the answer should say *which* file it found the rep
 in is the smaller question — a paused replacement is a supersession waiting on a resume,
 and a reader of the retired line has no other way to learn that.
 
+### §RK249 Every other derived field is reported as one
+
+`add --json` reports `id`, `file`, `line`, `rendered`, `length`, `section`, `needs` and
+the event line. The id is there because it is derived and a caller cannot know it in
+advance; the pointer is derived by the same write, from the same rules, and is not.
+Where the anchor is the id it costs nothing to recompute. Where `ref_scheme = "outline"`
+it is the field the caller named — and where the line derived it, the only readings are
+the tail of `rendered` or the anchor embedded in the `needs` command string, both of
+which mean parsing prose this tool otherwise refuses to make callers parse. Worse,
+`needs` is null exactly when `--section` wrote the rationale in the same transaction, so
+the composition RK93 recommends is the one that reports the anchor nowhere. Observed
+while testing RK241 over MCP: the obvious read of the answer, `written["ref"]`, is a
+`KeyError`. Add `ref` to the payload beside `id`, from the entry the write already
+holds, so the two derived addresses a follow-up needs are read the same way — and so an
+agent chaining `add` into `section add` reads a field instead of a sentence. `section`
+already reports its anchor when a section was written; this is that value for the case
+where one was not.
+
 ## Block C — Query
 
 ### §RK200 The record with no way to read it
@@ -189,3 +207,21 @@ Worth deciding with it whether this is one finding or one per heading. Two is th
 ## Block E — Adoption
 
 ## Block F — The plugin
+
+### §RK248 The root the question is about is not the path it was asked from
+
+RK246 decides which of the two wirings answered by asking whether the package directory
+sits under the governed root: a plugin's copy is a cache elsewhere, a checkout's is
+inside the tree. `Engine.carried_by` takes that root, and `_remedy` hands it
+`Path(directory).resolve()` — the directory the server was launched with, which is not
+the same thing. `Config.discover` walks up until it finds a `roadkeep.toml`, so a server
+started in `docs/` or in any subdirectory of a governed project has a root above the
+path it was given. There `<root>/src/roadkeep` is not under `directory`, `carried_by`
+answers False, and the note names the patch bump on exactly the tree RK246 measured the
+bump never reaching. The fix is the root the call already resolved: `call` discovers a
+`Config` before it builds the argv, and `config.root` is that answer, resolved by
+`Config.parse`. What keeps this from being one substitution is the refusal above it — a
+`ConfigError` has no config to read a root from, and that path is the one place the note
+fires with nothing discovered. So the remedy takes an optional root and falls back to
+the launch path, which is the safe direction: that branch ends in restarting the session
+either way, and being wrong there costs a sentence rather than a false instruction.

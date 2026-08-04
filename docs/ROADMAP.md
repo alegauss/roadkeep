@@ -25,6 +25,7 @@
 ## Block B — Authoring (insert, never hand-edit)
 
 - 📋 **RK244** (deps: —) **A paused id cannot be named as what supersedes a retired line** — `retire --superseded-by` reads the roadmap and the ledger, so the deferred store is invisible to it and a live findable id is refused as `in neither file`, which is two false claims. → §RK244
+- 📋 **RK249** (deps: —) **The add answer names the id it derived and not the pointer** — The payload carries `rendered` and a `needs` command, so the anchor a follow-up `section add` takes is readable only by parsing one of those, and by neither where a section was written. → §RK249
 
 ## Block C — Query (consult without reading the file)
 
@@ -39,6 +40,8 @@
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
+
+- 📋 **RK248** (deps: —) **The drift note reads the launch directory, not the root the wiring is a fact about** — `_remedy` resolves the `-C` path while `Config.discover` walks up for the config, so a server started below the root reads a checkout as the plugin and names a bump nothing fires. → §RK248
 
 ## Non-goals
 
