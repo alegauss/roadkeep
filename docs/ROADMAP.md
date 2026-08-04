@@ -47,8 +47,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK285** (deps: —) **The estimate calls a conforming backlog a total rewrite** — Shio reads 0 conform, 65 would change and 63 lines that do not round-trip under the default scheme, and 63 conform, 2 would change under `--ref-scheme outline`, which nothing suggests. → §RK285
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - 📋 **RK267** (deps: —) **A staleness note lists every changed module and hands relevance back** — The server appends `engine().stale` to any refusal, so one `schema.py` decided arrives naming three modules that did not, and the reader re-runs on a guess about which mattered. → §RK267

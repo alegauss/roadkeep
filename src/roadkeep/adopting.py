@@ -62,7 +62,7 @@ from roadkeep.config import (
     Scope,
 )
 from roadkeep.document import Document, checkbox
-from roadkeep.schema import DEFAULT_HEADING_WORD, Schema
+from roadkeep.schema import DEFAULT_HEADING_WORD, OUTLINE_ANCHOR_RE, Schema
 from roadkeep.sections import anchored, structural, unanchored, words as sections_words
 
 #: The roles `init` scaffolds. `strategy` is absent and not empty: Turing has one and this
@@ -271,6 +271,12 @@ class Estimate:
     #: numbered by track, or one that absorbed another — `prefix` takes the list (RK74),
     #: and which of the two this is, is the reader's call and never the tool's.
     prefixes: tuple[tuple[str, int], ...] = ()
+    #: Every scheme the **pointers** actually spell, worst first (RK285) — the same fact as
+    #: :attr:`prefixes` one field over, and reported the same way. Shio's roadmap read
+    #: `0 conform, 65 would change` under the default and `63 conform, 2 would change` under
+    #: `--ref-scheme outline`, with `ref.mismatch` on every line as the only signal and no
+    #: sentence naming the flag — while the prefix half of the same misreading had one.
+    schemes: tuple[tuple[str, int], ...] = ()
     #: Every family the measurement was taken under. One unless the caller passed a list:
     #: inference stays at the dominant spelling, because promoting the rest would be the
     #: tool deciding a foreign id is a second track (L4).
@@ -641,6 +647,7 @@ def adopt(
         undeclared=_undeclared(document),
         id_shape=_id_shape(document, schema),
         prefixes=spelled,
+        schemes=_schemes(document),
         blocks=tuple(h.label for h in document.headings if h.label),
         non_canonical=len(document.non_canonical),
         # Only where the file is being read as a backlog: a ledger has no such list, and a
@@ -878,6 +885,29 @@ def _prefixes(document: Document) -> tuple[tuple[str, int], ...]:
         head = _alpha_head(entry.task.id)
         if head:
             counts[head] = counts.get(head, 0) + 1
+    return _ranked(counts)
+
+
+def _schemes(document: Document) -> tuple[tuple[str, int], ...]:
+    """Which scheme each pointer in this file is *shaped* like, counted (RK285).
+
+    :func:`_prefixes` one field over, and a measurement rather than a choice for the same
+    reason: whether a file that points by `<x.y>` should be read under `outline` is a decision
+    about a live outline, and only the caller knows which question is being asked (see `adopt`).
+
+    Read off the pointers already parsed and never by re-reading the file under the other
+    scheme: the scheme is a validation rule and not a grammar — no line parses differently
+    under it — so a second read would be the same read.
+    """
+    counts: dict[str, int] = {}
+    for entry in document.entries:
+        ref = entry.task.ref
+        if not ref:
+            continue
+        if ref == entry.task.id:
+            counts["id"] = counts.get("id", 0) + 1
+        elif OUTLINE_ANCHOR_RE.match(ref):
+            counts["outline"] = counts.get("outline", 0) + 1
     return _ranked(counts)
 
 

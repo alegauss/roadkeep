@@ -4367,6 +4367,18 @@ def _print_estimate(estimate: Estimate) -> None:
                 f"  also     {count} id(s) spell {prefix}, unread here: "
                 f"--prefix {prefix} if it is a track of this backlog"
             )
+    for scheme, count in estimate.schemes:
+        # The same sentence one field over (RK285). Shio read `0 conform, 65 would change`
+        # under the default and `63 conform, 2 would change` under `--ref-scheme outline`,
+        # with `ref.mismatch` on every line as the only signal — while the prefix half of the
+        # same misreading already named its flag. The trailing clause keeps the judgement with
+        # the reader for the reason that one does: whether a live outline is what this backlog
+        # numbers by is a decision about the project, not a fact about the file.
+        if scheme != estimate.ref_scheme:
+            print(
+                f"  also     {count} pointer(s) spell {scheme}, unread here: "
+                f"--ref-scheme {scheme} if that is how this backlog addresses its sections"
+            )
     for shape in estimate.id_shape:
         # Beside the prefix line and in its shape (RK110): a count, and the key that closes
         # it. The trailing clause is the whole discipline — what the ids spell, never that
@@ -4393,9 +4405,19 @@ def _print_estimate(estimate: Estimate) -> None:
     for reason, count in estimate.rejects:
         print(f"  unparsed {count}: {reason}")
     if estimate.non_canonical:
+        # Qualified where the reading itself is in doubt (RK285). This states a refusal
+        # absolutely, and on Shio it rested on a prefix and a scheme the report had just
+        # named as probably wrong — the one claim in this output an adopter cannot discount,
+        # and it was the one that was wrong. The number stays; what is added is which reading
+        # produced it, so a reader can tell "your file is broken" from "read it another way".
+        under = [f"--prefix {name}" for name, _ in estimate.prefixes if name not in estimate.families]
+        under += [
+            f"--ref-scheme {name}" for name, _ in estimate.schemes if name != estimate.ref_scheme
+        ]
+        because = f" — measured under this reading; {', '.join(under)} changes it" if under else ""
         print(
             f"  {estimate.non_canonical} line(s) do not round-trip: the tool would "
-            f"refuse to write this file until they are rewritten by hand"
+            f"refuse to write this file until they are rewritten by hand{because}"
         )
 
 
@@ -4463,6 +4485,7 @@ def _estimate_json(estimate: Estimate) -> dict[str, object]:
         },
         "rejects": [{"reason": r, "count": n} for r, n in estimate.rejects],
         "non_canonical": estimate.non_canonical,
+        "schemes": [{"scheme": s, "count": n} for s, n in estimate.schemes],
         "tabular": estimate.tabular,
         "listed": estimate.listed,
     }

@@ -687,6 +687,72 @@ def test_an_adopted_rationale_file_has_nothing_loose(tmp_path: Path) -> None:
     assert estimate.listed == 0 and estimate.changing == 0
 
 
+#: A backlog that points by outline, as Shio's does: the ids are its own, the pointers are
+#: `<x.y>` anchors chosen by hand. Under the `id` scheme every line is `ref.mismatch`.
+OUTLINED = """# Roadmap
+
+## Block A — The model
+
+- 📋 **SH1** (deps: —) **A first symptom** — Because of a reason. → §XVI.1
+- 📋 **SH2** (deps: —) **A second symptom** — Because of another. → §XVI.2
+"""
+
+
+def test_the_scheme_the_pointers_spell_is_named_like_the_prefix_is(tmp_path: Path) -> None:
+    # RK285: Shio read `0 conform, 65 would change` under the default and `63 conform, 2 would
+    # change` under `--ref-scheme outline`, with `ref.mismatch` on every line as the only
+    # signal — while the prefix half of the same misreading already named its flag.
+    target = tmp_path / "ROADMAP.md"
+    target.write_text(OUTLINED, encoding="utf-8")
+    estimate = adopt(Config.default(tmp_path), target, prefix="SH")
+    assert estimate.schemes == (("outline", 2),)
+    assert estimate.ref_scheme == "id" and dict(estimate.codes)["ref.mismatch"] == 2
+
+
+def test_the_scheme_that_is_already_being_read_under_is_not_advice(tmp_path: Path) -> None:
+    """A measurement and not a choice: read under `outline`, the same pointers are the answer
+    rather than a suggestion, and the file conforms."""
+    target = tmp_path / "ROADMAP.md"
+    target.write_text(OUTLINED, encoding="utf-8")
+    estimate = adopt(Config.default(tmp_path), target, prefix="SH", ref_scheme="outline")
+    assert estimate.schemes == (("outline", 2),) and estimate.ref_scheme == "outline"
+    assert estimate.conforming == 2 and estimate.changing == 0
+
+
+def test_the_scheme_half_is_named_where_the_prefix_was_inferred(tmp_path: Path, capsys) -> None:
+    """Nothing declares a prefix here, so `adopt` infers SH off the ids and only the scheme is
+    misread — the half that had no sentence before."""
+    target = tmp_path / "ROADMAP.md"
+    target.write_text(OUTLINED, encoding="utf-8")
+    assert main(["-C", str(tmp_path), "adopt", str(target)]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "--ref-scheme outline if that is how" in printed
+    assert "--ref-scheme outline changes it" in printed
+
+
+def test_the_report_names_both_halves_of_one_misreading(tmp_path: Path, capsys) -> None:
+    """Shio's own shape: a declared prefix that is not the file's, *and* the other scheme. Both
+    flags, and the round-trip line saying which reading produced its number."""
+    target = tmp_path / "ROADMAP.md"
+    target.write_text(OUTLINED, encoding="utf-8")
+    assert main(["-C", str(tmp_path), "adopt", str(target), "--prefix", "RK"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "--prefix SH if it is a track" in printed
+    assert "--ref-scheme outline if that is how" in printed
+    assert "--prefix SH, --ref-scheme outline changes it" in printed
+
+
+def test_a_reading_nothing_disputes_qualifies_nothing(tmp_path: Path, capsys) -> None:
+    """The qualifier is a conjunction and not a hedge: read correctly, there is no `also` line
+    and the round-trip sentence — if it fires at all — names no alternative."""
+    target = tmp_path / "ROADMAP.md"
+    target.write_text(OUTLINED, encoding="utf-8")
+    argv = ["-C", str(tmp_path), "adopt", str(target), "--prefix", "SH", "--ref-scheme", "outline"]
+    assert main(argv) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "also" not in printed and "changes it" not in printed
+
+
 def test_a_fenced_table_is_an_example(tmp_path: Path) -> None:
     """A rationale file quotes the shape it is arguing about; a fence is what says so."""
     target = tmp_path / "ROADMAP.md"
