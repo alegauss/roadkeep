@@ -205,6 +205,7 @@
 - ✅ **RK268** **A cached derivation survives the test that monkeypatched what it read** — An autouse fixture clears the two caches a monkeypatch can poison, and an inventory of all six names why the other four are cleared for nothing.
 - ✅ **RK271** **The capture offer closes the gate's own answer as though the tool had failed** — A read-only command's own exit 1 is a verdict and closes with nothing; a crash in the same command still offers, because `main` carries that as a flag.
 - ✅ **RK269** **A block emptying is stated once to the console and recorded nowhere a later verb can read** — `lint --since` notes every block this change emptied or reopened, which is what the shipped pre-commit hook runs and what the console-only event never reached.
+- ✅ **RK299** **A report names every path relative to a root it never states** — Both summary lines end with `(in <root>)` and `--json` leads with the `root` key `install` already uses, so every relative path in a report resolves.
 
 ## Block E — Adoption
 

@@ -3383,14 +3383,18 @@ def _lint(config: Config, args: argparse.Namespace) -> int:
         return _refused(error)
 
     passed = report.clean and not applied.refused
+    # Absolute, and never relative to the working directory (RK299): the defect this answers
+    # *is* a wrong working directory, so a spelling relative to one would print `.` and
+    # attribute the report to wherever it was misread from.
+    root = config.root.as_posix()
     if args.json:
-        print(json.dumps(_lint_json(report, applied), indent=2))
+        print(json.dumps(_lint_json(report, applied, root), indent=2))
     else:
-        _print_report(report, applied, quiet=args.quiet)
+        _print_report(report, applied, root, quiet=args.quiet)
     return EXIT_OK if passed else EXIT_GATE
 
 
-def _print_report(report: Report, applied: Fix, quiet: bool) -> None:
+def _print_report(report: Report, applied: Fix, root: str, quiet: bool) -> None:
     if not quiet:
         _print_fix(applied)
         # Notes before the findings and the summary: a note is what the gate says about a
@@ -3403,7 +3407,7 @@ def _print_report(report: Report, applied: Fix, quiet: bool) -> None:
         # that passed by reading nothing looks exactly like a gate that passed.
         print(
             f"{', '.join(report.checked) or 'nothing'}: {_scope(report)}, clean"
-            f"{_standing(report)}"
+            f"{_standing(report)}{_tree(root)}"
         )
         return
     if not quiet:
@@ -3412,8 +3416,24 @@ def _print_report(report: Report, applied: Fix, quiet: bool) -> None:
     added = "new " if report.baseline is not None else ""
     print(
         f"{report.problems} {added}problem(s) in {_scope(report)} across "
-        f"{len(report.checked)} file(s): {_codes(report)}{_standing(report)}"
+        f"{len(report.checked)} file(s): {_codes(report)}{_standing(report)}{_tree(root)}"
     )
+
+
+def _tree(root: str) -> str:
+    """Which tree the report is about (RK299) — unconditionally, and in the shape `--version`
+    already uses for which *engine* answered (RK79).
+
+    Every path above is relative to this and nothing above says what it is relative to, so a
+    run in the wrong directory produces a report that is right about a repository nobody asked
+    about. Observed: 34 findings and a clean summary line for another project entirely, where
+    the only clue was one filename the misread project does not have.
+
+    Never conditional on it differing from the working directory. That is a second rule to
+    remember, and it makes the attribution appear exactly when a reader has already stopped
+    expecting it — the same argument as naming the files on a clean run.
+    """
+    return f" (in {root})"
 
 
 def _print_fix(applied: Fix) -> None:
@@ -3432,9 +3452,13 @@ def _print_refusals(applied: Fix) -> None:
         print(f"roadkeep: refused, nothing written: {message}", file=sys.stderr)
 
 
-def _lint_json(report: Report, applied: Fix) -> dict[str, object]:
+def _lint_json(report: Report, applied: Fix, root: str) -> dict[str, object]:
     baseline = report.baseline
     return {
+        # First, because every path below is relative to it and a payload a second tool files
+        # against the wrong project is worse than one it cannot file at all (RK299). The same
+        # key `install --json` already uses, spelled the same way.
+        "root": root,
         "clean": report.clean and not applied.refused,
         # Absent without `--baseline`, so a caller reading `problems` cannot mistake a
         # difference for a total: with it, `findings` holds only what this tree added.

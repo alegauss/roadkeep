@@ -1495,6 +1495,56 @@ def test_json_carries_every_finding_and_still_exits_one(tmp_path, capsys):
     assert finding["id"] == "RK1"
 
 
+# -- which tree the report is about (RK299) -----------------------------------
+
+
+def test_a_clean_summary_names_the_tree_it_read(tmp_path, capsys):
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "lint"]) == EXIT_OK
+    assert f"clean (in {tmp_path.as_posix()})" in capsys.readouterr().out
+
+
+def test_a_failing_summary_names_it_too(tmp_path, capsys):
+    # The exit that gets read, and the one a wrong directory makes expensive: 34 findings
+    # about somebody else's repository are 34 findings an author starts editing.
+    project(tmp_path, roadmap=CLEAN.replace("Because of a reason.", "no terminator"))
+    assert main(["-C", str(tmp_path), "lint"]) == EXIT_GATE
+    out = capsys.readouterr().out
+    assert "1 problem(s)" in out and f"(in {tmp_path.as_posix()})" in out
+
+
+def test_the_tree_is_named_absolutely_and_not_relative_to_where_it_ran(tmp_path, capsys, monkeypatch):
+    """The whole point: the defect being answered *is* a wrong working directory, so the
+    spelling `invocation` uses for a launcher — relative where it is under the cwd (RK254) —
+    is the one spelling that must not be reused here. Run from inside the project it would
+    print `.`, and attribute the report to wherever it was misread from."""
+    project(tmp_path)
+    monkeypatch.chdir(tmp_path)
+    assert main(["lint"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert f"(in {tmp_path.as_posix()})" in out and "(in .)" not in out
+
+
+def test_json_carries_the_root_every_path_in_it_is_relative_to(tmp_path, capsys):
+    project(tmp_path, roadmap=CLEAN.replace("Because of a reason.", "no terminator"))
+    assert main(["-C", str(tmp_path), "lint", "--json"]) == EXIT_GATE
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["root"] == tmp_path.as_posix()
+    # And the pair is what makes the payload filable: a relative path plus the root it is
+    # relative to resolves to the file, which `findings` alone never did.
+    (finding,) = payload["findings"]
+    assert (Path(payload["root"]) / finding["file"]).is_file()
+
+
+def test_the_same_key_and_spelling_the_other_json_root_uses(tmp_path, capsys):
+    # `install --json` already answers "which tree" as `root` with `as_posix()`, and two
+    # spellings of one fact is what a second tool reading both would have to special-case.
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "lint", "--json"]) == EXIT_OK
+    root = json.loads(capsys.readouterr().out)["root"]
+    assert root == tmp_path.resolve().as_posix() and "\\" not in root
+
+
 # -- the sweep before the walk (RK227) ----------------------------------------
 
 

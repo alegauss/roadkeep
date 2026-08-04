@@ -297,30 +297,6 @@ wants and the asymmetry `budget` already carries between an add and an amend.
 
 ## Block D — The gate
 
-### §RK299 Which engine answered, and which tree it answered about
-
-RK79's argument, one step to the left. Two `src/roadkeep/` trees both answering `0.1.0`
-cost a session, and the fix was that the answer names files rather than a release. The
-mirror is untouched: a report names `docs/ROADMAP.md:5`, and nothing says which `docs/`
-that is.
-
-Observed this session. A `lint` ran with a working directory left over from an earlier
-command and answered for a different repository — 34 findings, a clean summary line, and
-the only clue was `docs/STRATEGY.md` in a project declaring no strategy file. Had the
-two had the same shape, the report would have been unattributable. Neither the human
-output nor `--json` carries a root: the keys are `checked`, `findings`, `notes` and
-`lines`, and every path in them is relative to something the answer never states.
-
-The remedy is one field, and this is the cheap half: the summary line already ends with
-a count, so the root belongs at the front of it or beside the engine `--version` prints.
-In `--json` it is a `root` key, which is what lets a second tool file a report against
-the project it was about.
-
-What to weigh is where it *stops*. Every command reads a config discovered from a
-directory, so the same question is asked of `list`, `stats` and `show` — and a header on
-every query would be paid for on the reads whose point is that asking costs nothing
-(L5). The gate is where a wrong answer is expensive, so it is where to start.
-
 ### §RK300 One fact, two spellings, one test between them
 
 RK269 shipped a `lint --since` note about a block emptying, and the note has to agree

@@ -40,7 +40,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK299** (deps: —) **A report names every path relative to a root it never states** — A `lint` run from the wrong directory answered for another repository and only an unfamiliar filename gave it away, while RK79 already names which engine answered. → §RK299
 - 📋 **RK300** (deps: —) **Whether a block still holds open work is computed in two modules** — `cli._event` and `linting._turned` each spell `roadmap.block(label)`, so the event line and RK269's note are two answers to one question, held in step by a test alone. → §RK300
 
 ## Block E — Adoption
