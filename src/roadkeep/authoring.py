@@ -219,7 +219,7 @@ def compose(
 
 
 def place(
-    document: Document, task: Task, *, carrying: Sequence[str] = ()
+    document: Document, task: Task, *, carrying: Sequence[str] = (), where: str = ""
 ) -> Insertion:
     """Validate, render, insert — in memory, and refuse before any of it.
 
@@ -232,6 +232,12 @@ def place(
     and only a *move* passes it: re-placing a wrapped ledger entry under another heading has
     to carry its continuation with it, since the schema renders one line and the rest is
     prose no task holds. A newly composed line carries nothing, which is every other caller.
+
+    ``where`` is the file the refusal names, rendered by the caller in the way `sections`
+    already renders its own (RK181, RK257): this function takes a :class:`Document`, so
+    `config.relative` is out of its reach, and a refusal that lists a *ledger's* labels
+    without saying they are the ledger's reads as "your label is wrong" to an author whose
+    roadmap declares it. Every caller holding a :class:`~roadkeep.config.Config` passes it.
     """
     document.schema.check(task)
     heading = document.heading(task.block)
@@ -239,6 +245,7 @@ def place(
         raise UnknownBlock(
             task.block,
             sorted({h.label for h in document.headings if h.label}),
+            where,
             word=document.schema.heading_word,
         )
 
@@ -335,7 +342,11 @@ def add(
         deps=deps,
         ref=ref,
     )
-    insertion = place(config.document("roadmap"), derive(Backlog.load(config), task))
+    insertion = place(
+        config.document("roadmap"),
+        derive(Backlog.load(config), task),
+        where=config.relative(config.path("roadmap")),
+    )
     if section is not None:
         insertion = _with_section(config, insertion, *section)
     elif insertion.entry.task.ref and (

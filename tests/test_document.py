@@ -1129,3 +1129,30 @@ def test_the_diagnosis_is_written_once_and_used_by_the_reads_too(tmp_path):
     # in one that left two copies unactionable would be a half-fix of the finding itself.
     assert "AJ shares a prefix with A" in shading("A", ("AJ", "G"))
     assert shading("A", ()) == ""
+
+
+# -- and the verb that repairs it (RK257) -------------------------------------
+
+
+def test_the_refusal_ends_in_the_command_that_declares_the_heading():
+    # Naming the block was three quarters of the answer: the fourth is that `block add` is
+    # the verb, and it is one the author would otherwise have to go and find.
+    message = str(UnknownBlock("Z", ("A", "B"), where="docs/CHANGELOG.md"))
+    assert message.endswith('`block add Z --title "<its title>"`')
+    assert "the verb that opens it wherever it is missing is" in message
+
+
+def test_the_shaded_refusal_makes_the_command_conditional_on_the_label():
+    # Where the label shades into a declared one the advice is *check the label first* — so
+    # the verb arrives after that check and not as a second instruction competing with it.
+    message = str(UnknownBlock("A", TRAY_BLOCKS, where="docs/CHANGELOG.md"))
+    verb = message.index("`block add A")
+    assert message.index("check that the label reached this command whole") < verb
+    assert "over the first one's work — and if it did, the verb is" in message
+
+
+def test_the_command_carries_the_label_that_was_asked_for():
+    # Not a declared one and not a placeholder: the argument the author retypes is the label
+    # the refused write already named, which is the whole reason it can be spelled here.
+    assert "`block add BU " in str(UnknownBlock("BU", ("A", "B")))
+    assert "`block add BU " in str(UnknownBlock("BU", ("B", "C")))  # shaded by B

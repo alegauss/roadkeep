@@ -24,7 +24,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK257** (deps: —) **A ship refusal names the missing block heading but not the verb that writes it** — It lists every declared label and warns about the prefix, so an author whose roadmap declares the block learns nothing about which file lacks the heading or that block add writes it. → §RK257
 - 📋 **RK262** (deps: —) **A section add writes a heading ship will later decline to delete** — The title is taken verbatim, so one without the id it was written for stops binding to the task, and ship keeps the rationale as prose belonging to none. → §RK262
 - 📋 **RK280** (deps: —) **Two sessions each ship a commit carrying the other's code** — `claim` holds a roadmap line and the lock holds a write, but the commit step is guarded by nothing, so RK244 and RK279 each landed carrying the other's source and tests. → §RK280
 

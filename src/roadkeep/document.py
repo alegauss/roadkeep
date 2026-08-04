@@ -180,6 +180,15 @@ class UnknownBlock(ValueError):
     for and the labels declared — are the two it already carries. Whatever mangled the input
     (that incident was PowerShell 5.1 and a long inline argument), the file is untouched and
     the message is the only thing the author has to go on.
+
+    And the **recovery is one command**, so the refusal spells it (RK257). Measured on a
+    `ship` whose roadmap plainly declared the block: the labels listed are the ledger's, not
+    the roadmap's, so an author reading a list that omits a heading they can see in front of
+    them concludes the label is wrong — the one thing it is not. Naming the file the list
+    came from and naming `block add`, which opens the heading in every governed file still
+    missing it, turns a refusal that had to be researched into one that can be acted on.
+    ``where`` is the caller's to render (RK181), and every write that has a
+    :class:`~roadkeep.config.Config` passes it.
     """
 
     def __init__(
@@ -193,10 +202,16 @@ class UnknownBlock(ValueError):
         # taking "add the heading" at its word and opening a second one over the first's work.
         shades = shading(label, self.declared)
         if shades:
-            shades += " before declaring a second heading over the first one's work"
+            shades += (
+                " before declaring a second heading over the first one's work — and if it "
+                "did, the verb is"
+            )
+        else:
+            shades = "; the verb that opens it wherever it is missing is"
         super().__init__(
             f"no heading declares {word} {label} ({file}declares: {known}): a heading "
-            f"invented by a write files the text where nothing looks for it{shades}"
+            f"invented by a write files the text where nothing looks for it{shades} "
+            f'`block add {label} --title "<its title>"`'
         )
 
 
