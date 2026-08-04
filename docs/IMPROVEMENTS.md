@@ -100,27 +100,6 @@ overrun would be back to guessing, with a smaller number to guess against.
 
 ## Block B — Authoring
 
-### §RK236 A pointer under an outline is not a claim of ownership
-
-Under `ref_scheme = "id"` the anchor is the id, so a section has exactly one owner and
-deleting it on departure is right. Under `outline` the anchor is an address in a file
-the project already keeps, and the two are not the same claim: Turing's Block O lines
-pointed at `STRATEGY.md` §X.3 (content calendar) and §X.4 (measurement), subsections of
-a standing GEO memo whose siblings §X.1 (thesis) and §X.2 (channel split) are the same
-kind of prose and survived only because no line happened to name them. Retiring the last
-owner of each deleted both, and restoring them took the hand edit the guard denies.
-
-The two existing guards do not reach it. RK64 asks whether another **open line** points
-at the anchor — true while four of five Block O lines were live, false at the fifth.
-RK196 asks whether **two roles** declare it — which is why §X.1 survived, by the
-accident of also being an IMPROVEMENTS heading.
-
-What distinguishes the two cases is whether the section was written *by* an `add
---section` for this line, and the tool has that fact only where the anchor is derived.
-So the honest shapes are a `--keep-section` on `ship` and `retire` for the author who
-knows, or a refusal under `outline` when the anchor is not the line's own — never a
-heuristic about prose the tool does not read.
-
 ### §RK237 The note under a block heading has no door
 
 An adopted roadmap carries a blockquote under each block heading — what the block is,

@@ -116,7 +116,16 @@ from roadkeep.ids import next_id
 from roadkeep.markers import refresh
 from roadkeep.renumbering import NotAnId, SameId, family_of
 from roadkeep.schema import PARTIAL, Task
-from roadkeep.sections import NoSuchSection, Section, citing, declaring, nested, pointers
+from roadkeep.sections import (
+    NoSuchSection,
+    Section,
+    citing,
+    declaring,
+    find,
+    nested,
+    owners,
+    pointers,
+)
 from roadkeep.sections import drop as drop_section
 
 __all__ = [
@@ -1480,6 +1489,22 @@ def _drop_section(
     which of the two a line meant is what `ref.ambiguous` asks the author, and a ship that
     deleted one of them would be answering that question by picking. The section stays, the
     ship is right, and the gate still says so.
+
+    And a departure deletes only the section it **owns** (RK236), which is `lint`'s own reading
+    of ownership and not a second one: under `ref_scheme = "id"` the anchor is the id, so a
+    line's own design is always owned and always deleted; under an outline the anchor is an
+    address in a file the project already keeps, and a section whose heading names no task is
+    prose belonging to none — the gate says so by never reporting it orphaned. Turing's Block O
+    lines pointed at `STRATEGY.md` §X.3 and §X.4, subsections of a standing GEO memo whose
+    siblings survived only because no line happened to name them; retiring the last owner of
+    each deleted 39 lines of positioning, and restoring it took the hand edit the guard denies.
+    RK64 could not see it (four of five lines were live until the fifth) and neither could
+    RK196 (§X.1 survived by the accident of also being an improvements heading).
+
+    Kept and never refused, the direction the costs choose: prose left behind is one
+    `section drop` away and a `lint` that reports nothing, while prose deleted is somebody's
+    memo and a `git show`. No heuristic about what the prose *says* — only who it names, which
+    is the claim RK61 already reads.
     """
     if anchor is None:
         return None, None, "the line carried no pointer", (), ()
@@ -1511,6 +1536,11 @@ def _drop_section(
     # The grammar of a section lives in one place (RK9), so shipping calls it rather than
     # keeping a second opinion about where a section ends.
     prose = config.document(role)
+    held = find(prose, anchor)
+    if held is not None:
+        claim = owners(held, config.schema.id_pattern())
+        if leaving and leaving not in claim:
+            return None, None, _unowned(anchor, claim), (), ()
     taken = tuple(child.anchor for child in nested(prose, anchor))
     document, section, cited = drop_section(
         prose,
@@ -1521,5 +1551,20 @@ def _drop_section(
     # `cited` is `drop`'s own answer (RK209): the deletion knows what it breaks, and a
     # second reading of the same file here would be a second thing to keep true.
     return document, section, None, taken, cited
+
+
+def _unowned(anchor: str, claim: tuple[str, ...]) -> str:
+    """Why a section this line pointed at stayed (RK236), in the field a departure reports.
+
+    Names who it belongs to where the heading says, because that is the author's next question
+    and the answer is what makes the outcome checkable — and says "no task" where it names
+    none, which is the standing-memo case and the one this was filed from.
+    """
+    if claim:
+        return f"§{anchor} belongs to {', '.join(claim)}, so it is not this line's to delete"
+    return (
+        f"§{anchor} names no task in its heading, so it is prose belonging to none — the "
+        f"reading `lint` makes when it declines to report it orphaned"
+    )
 
 

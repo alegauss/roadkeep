@@ -1018,6 +1018,101 @@ def test_an_anchor_no_prose_file_declares_names_every_file_it_looked_in(tmp_path
     assert shipment.kept == f"no §X.1 section in {STRATEGY}"
 
 
+# -- a departure deletes the section it owns (RK236) ---------------------------
+
+#: The shape this was filed from: a standing memo whose subsections are addresses in a file
+#: the project already keeps, and whose headings name no task. Turing's Block O lines pointed
+#: at two of these; the siblings survived only because no line happened to name them.
+MEMO = """# Strategy
+
+## Block A — The model
+
+### §X.1 The thesis
+
+Positioning nobody filed as work.
+
+### §X.3 The content calendar
+
+Prose that belongs to no task, and that a retirement took.
+"""
+
+STANDING = """# Roadmap
+
+## Block A — The model
+
+- 📋 **RK1** (deps: —) **A first symptom** — Because of a reason. → §X.3
+- 📋 **RK2** (deps: —) **A second symptom** — Because of another. → §X.1
+"""
+
+
+def test_a_section_naming_no_task_is_kept_and_the_reason_says_why(tmp_path):
+    # RK64 asks whether another *open line* points at the anchor — false at the last of them.
+    # RK196 asks whether *two roles* declare it. Neither reaches a memo subsection one line
+    # happens to name, so a departure deleted prose that was never anybody's design.
+    config = outlined(tmp_path, strategy=MEMO)
+    with (tmp_path / ROADMAP).open("w", encoding="utf-8", newline="") as handle:
+        handle.write(STANDING)
+    config = Config.discover(tmp_path)
+
+    shipment = ship(config, "RK1", why="It works now.")
+    assert shipment.dropped is None
+    assert shipment.kept == (
+        "§X.3 names no task in its heading, so it is prose belonging to none — the "
+        "reading `lint` makes when it declines to report it orphaned"
+    )
+    shipment.save()
+    assert read(config, STRATEGY) == MEMO  # every line of it, siblings included
+    assert "RK1" not in read(config, ROADMAP)  # the ship is still right
+
+
+def test_a_retirement_leaves_the_memo_it_pointed_at(tmp_path):
+    # The verb it actually happened through: `retire` shares the drop, so it shares the rule.
+    config = outlined(tmp_path, strategy=MEMO)
+    with (tmp_path / ROADMAP).open("w", encoding="utf-8", newline="") as handle:
+        handle.write(STANDING)
+    config = Config.discover(tmp_path)
+
+    departure = retire(config, "RK1", reason="Nobody will do it.")
+    assert departure.dropped is None and departure.kept is not None
+    departure.save()
+    assert read(config, STRATEGY) == MEMO
+
+
+def test_a_section_another_task_owns_is_kept_and_names_that_task(tmp_path):
+    # The same rule where the heading does name somebody, and the case RK64 cannot see: the
+    # owner holds no pointer at all — retired, or never filed — so nothing else points here
+    # and the old reading called the section this line's to delete.
+    owned = MEMO.replace("### §X.3 The content calendar", "### §X.3 Somebody else's (RK9)")
+    config = outlined(tmp_path, strategy=owned)
+    with (tmp_path / ROADMAP).open("w", encoding="utf-8", newline="") as handle:
+        handle.write(STANDING)
+    config = Config.discover(tmp_path)
+
+    shipment = ship(config, "RK1", why="It works now.")
+    assert shipment.dropped is None
+    assert shipment.kept == "§X.3 belongs to RK9, so it is not this line's to delete"
+    shipment.save()
+    assert "### §X.3 Somebody else's (RK9)" in read(config, STRATEGY)
+
+
+def test_a_line_still_takes_its_own_design_under_the_id_scheme(tmp_path):
+    # The half that must not change: ownership is `lint`'s reading, and under the id scheme
+    # the anchor *is* the id — so a line's own section is owned, and owned sections go.
+    config = project(tmp_path)
+    shipment = ship(config, "RK1", why="It works now.")
+    assert shipment.dropped is not None and shipment.kept is None
+    shipment.save()
+    assert "§RK1" not in read(config, IMPROVEMENTS)
+
+
+def test_a_line_still_takes_a_design_an_outline_heading_names_it_in(tmp_path):
+    # And under an outline, where the heading is what says so — which is the fixture every
+    # other test here uses, asserted once as the claim rather than assumed by all of them.
+    config = outlined(tmp_path)
+    shipment = ship(config, "RK1", why="It works now.")
+    assert shipment.dropped is not None and shipment.kept is None
+
+
 # -- the half RK179 did not reach (RK193) -------------------------------------
 
 #: The shape adoption produces and RK179 measured: a hand-written partial whose sentence
