@@ -353,7 +353,53 @@ own check can be written against roadkeep instead of against a regex; or roadkee
 the index row the way `block add` owns the heading. The first costs almost nothing and
 would have caught all four. The last is the one that needs the design.
 
+### §RK271 RK271 — an offer that cannot tell a verdict from a fault
+
+RK86's reasoning holds: an agent that meets a limit it thinks is wrong otherwise has one
+move left, which is to work around the tool quietly, and that loses the sessions with
+the most to say. So every failure closes with the capture command, and the affordance
+rides the exit code rather than being remembered at twenty refusal sites — one place,
+which is why it is right.
+
+What it cannot tell apart is a refusal *about the caller's prose* from a verdict the
+gate was asked for. `lint` exiting 1 with `ref.unresolved 1` has already said
+everything: the finding names the file, the line and the rule, and the next move is
+`--fix` or an edit. Two further lines saying roadkeep itself may be wrong are the tool's
+highest-traffic output — the action runs `lint`, the pre-commit hook runs `lint` — and
+in neither is there a session to capture before the end of.
+
+The split is available without a new judgement. `report`, `guard` and `mcp` are exempt
+by name already, and the parsers declare which commands only read; a verdict is what a
+read-only command returns when it found something, a fault is everything else. Against a
+name list: the exemption is the wrong shape at three entries and would be the wrong
+shape at six. What stays true either way is that a *validation* refusal keeps the offer
+— that is the case RK86 measured, and the one where the limit really might be wrong.
+
 ## Block E — Adoption
+
+### §RK270 RK270 — half a wiring reads as a whole one
+
+A driver is two writes, and RK266 read one of them back. `.gitattributes` sends git to
+the driver by name; `merge.roadkeep.driver` says what that name runs. Either one alone
+is a repository where nothing happens: the attribute without the config makes git fall
+back to a textual merge, and the config without the attribute makes git never ask.
+`merge --check` answers about the second and prints `current`, which is true and is not
+the question.
+
+The asymmetry is not accidental — it is where the two halves live. `.gitattributes` is
+committed, so a branch that never had it merges into one that did and the line survives;
+the config is per-checkout and per-clone, so it is the half a fresh clone lacks. That
+makes the absent-config case the common one and the absent-attribute case the rare one,
+which is the argument for having read the config first and not the argument for stopping
+there.
+
+`register` already computes the attribute lines it wants and reports which were present,
+so the fact is in hand at the moment `--check` would need it; what is missing is a read
+that does not write. The shape to decide: whether `Driver` grows the attribute state —
+making one dataclass answer about two files — or whether the check reports two
+independent lines and lets the exit code be the conjunction. The second keeps
+`registered` about `git config`, which is what its name says, and puts the joining where
+the answer is composed.
 
 ## Block F — The plugin
 
