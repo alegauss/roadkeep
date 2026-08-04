@@ -384,6 +384,31 @@ shape at six. What stays true either way is that a *validation* refusal keeps th
 
 ## Block E — Adoption
 
+### §RK285 The number that decides an adoption, taken under the wrong reading
+
+One file, three readings. Shio's live roadmap under the defaults: `0 conform, 65 would
+change`, `deps.format 96`, `id.format 63`, `ref.mismatch 63`, and "63 line(s) do not
+round-trip: the tool would refuse to write this file until they are rewritten by hand".
+Under `--prefix SH`: the id and dep findings go, `ref.mismatch 63` stays. Under
+`--prefix SH --ref-scheme outline`: `63 conform, 2 would change`.
+
+The backlog was conforming the whole time. Two non-goal bullets are over a limit. What
+an adopter sees first is a file that has to be rewritten by hand, and RK18's argument is
+that this number is taken *before* the commitment — so it is the number that decides
+there is none.
+
+Half of this is solved already. The prefix mismatch prints `also 63 id(s) spell SH,
+unread here: --prefix SH if it is a track of this backlog` — misconfiguration named,
+flag named, judgement left to the reader because whether a foreign prefix is a second
+track is not the tool's call (L4). The scheme has no such line, though `ref.mismatch` on
+**every** line is its signature and `Estimate.ref_scheme` already says "under the wrong
+one a file of 151 sections yields 0".
+
+So the shape is settled by precedent: the same sentence, one field over. What is not
+settled is the round-trip line, which states a refusal absolutely while resting on a
+reading the report has just questioned — the one claim here an adopter cannot discount,
+and it was wrong.
+
 ## Block F — The plugin
 
 ### §RK267 A note that knows more than it says
