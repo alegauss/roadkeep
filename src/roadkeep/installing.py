@@ -238,6 +238,7 @@ def plan(
     *,
     source: str | Path | None = None,
     registering: bool = False,
+    gauging: bool = True,
 ) -> Plan:
     """Read the plugin's surfaces and the project's, and answer what would change.
 
@@ -247,6 +248,11 @@ def plan(
     ``registering`` only moves the merge driver out of the *unwritten* list (RK148): the
     driver is written by :func:`install`, and a `--check` that registered one would be a
     check that changed the repository.
+
+    ``gauging`` is the one part a caller may decline: :func:`_standing` runs this project's
+    whole gate to choose the workflow's default (RK140), and :func:`stale` asks this question
+    on every session start (RK234) where the workflow is not in play at all. Declining it
+    reports ``debt`` as None, which is the same answer a project that declares nothing gets.
     """
     base = Path(root).resolve()
     origin = Path(source).resolve() if source is not None else _source()
@@ -264,7 +270,7 @@ def plan(
     skipped: list[tuple[str, str]] = [(CONTRIBUTING.split(":")[0], CONTRIBUTING)]
     if not registering:
         skipped.insert(0, (MERGE.split(":")[0], MERGE))
-    debt = _standing(base)
+    debt = _standing(base) if gauging else None
     if (base / WORKFLOWS).is_dir():
         surfaces.append(_once(base / PROJECT_WORKFLOW, _workflow(origin, debt)))
     else:
@@ -305,6 +311,43 @@ def install(
     if governed is not None:
         intent = replace(intent, registered=register(governed))
     return intent
+
+
+def stale(root: str | Path = ".") -> tuple[str, ...]:
+    """The vendored surfaces that have drifted from the checkout answering here (RK234).
+
+    `--check` is what RK100 named as holding the copy in step, and nothing in an adopting
+    project ran it: Turing's `SKILL.md` was 78 lines behind and its `PreToolUse` matcher was
+    missing `Bash` — a guard narrower than the one the plugin ships, in the file that decides
+    whether the guard fires. So the question is asked where it is cheap to ask and useful to
+    answer: the session start, in the process that is already the wired checkout.
+
+    **What a project that is not wired pays is one `is_file`.** The vendored copy is the
+    discriminator, and a plugin-served project has none — there is nothing to drift, and the
+    plugin's own surfaces are whatever the session loaded. A wired one pays four small reads
+    and two JSON parses, and never the gate: ``gauging=False``, the workflow being written
+    once and then the adopter's, so it is excluded here by the same field that says so.
+
+    Measured against RK176's 43ms floor, which is the budget this spends from: **0.07ms**
+    unwired and **0.86ms** on Dumont, wired. The gate would have been 40ms of that floor on
+    its own, which is why declining it is a parameter rather than a comment.
+
+    Every failure is silence, exactly as the notice this feeds is (RK82): a session that
+    cannot start because a checkout moved is worse than one told nothing, and `install
+    --check` still answers on demand.
+    """
+    base = Path(root).resolve()
+    if not (base / PROJECT_SKILL).is_file():
+        return ()
+    try:
+        intent = plan(base, gauging=False)
+    except (ValueError, OSError):
+        return ()
+    return tuple(
+        surface.path.relative_to(base).as_posix()
+        for surface in intent.changing
+        if surface.refresh
+    )
 
 
 def _governed(base: Path) -> Config:

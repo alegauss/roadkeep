@@ -242,27 +242,6 @@ and may not need a second.
 
 ## Block E — Adoption
 
-### §RK234 The check that is a gate nowhere
-
-RK100's argument is that a vendored surface nobody keeps in step is worse than none, and
-`--check` is named as what makes that mean anything: "the copy is held in step by a gate
-rather than by whoever remembers". Measured today, whoever remembers is the only thing
-holding it. Turing's copy of `SKILL.md` was 78 lines behind the file it was copied from,
-and its `PreToolUse` matcher was missing `Bash` — a guard narrower than the one the
-plugin ships, in the file that decides whether the guard fires at all.
-
-Nothing runs the check there. The workflow `install` writes calls the published action,
-which runs `lint`; `lint` says nothing about a copied file, and it is right not to. Both
-obvious homes are outside what `install` writes: a second job in that workflow cannot
-work as written, a project wired to a checkout having no checkout in CI, and a
-pre-commit hook is a file this command does not own.
-
-The third shape is the cheapest and the honest one. The guard already runs on
-`SessionStart`, in the process that can answer this, and a session opening against a
-stale copy is exactly when the answer is worth having. What it costs is that check's
-read on every start, which is the number to measure before choosing it — RK176's floor
-is the budget it spends against.
-
 ### §RK235 The one project that is not an adopter
 
 `install` translates what the plugin ships for a project beside it. Run at the plugin's

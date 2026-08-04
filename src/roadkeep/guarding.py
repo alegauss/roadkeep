@@ -49,6 +49,13 @@ here, once, before the first read. The other candidate — a `PreToolUse` matche
 reading tools — is not taken, on the argument `Bash` gets above: paying on every read to
 catch what one resident line already said is a tax, and reading is never refused anyway.
 
+That start is also where a **drifted vendored copy** is named (RK234). `install --check` was
+the gate holding the copy in step and no adopting project ran it, so a session read a skill
+78 lines behind the file it came from with the trust of the original. Asked here because this
+process *is* the wired checkout and the copy is what the session is about to load, and cheap
+enough to ask unconditionally: :func:`~roadkeep.installing.stale` costs one `is_file` where
+there is no copy at all.
+
 What is deliberately absent: any judgement about the *content* of the write. This module
 never reads what the agent was about to insert, only where it was going. Deciding whether a
 sentence fits is :meth:`Schema.validate`'s job, and it gets to make it when the author calls
@@ -66,6 +73,7 @@ from pathlib import Path
 from roadkeep.attesting import Unattested, unattested
 from roadkeep.config import Config, ConfigError, find_config
 from roadkeep.history import changed_lines
+from roadkeep.installing import stale
 from roadkeep.linting import Report, lint
 from roadkeep.serving import TOOLS
 
@@ -93,7 +101,9 @@ START_EVENTS = ("SessionStart",)
 
 #: What the notice may cost, in characters. A budget and not a style rule: this is resident
 #: for the whole session in every governed project, so the thing that keeps it one line is
-#: a number a test holds, exactly as `[budgets]` holds `agents.md` (RK30).
+#: a number a test holds, exactly as `[budgets]` holds `agents.md` (RK30). It prices the line
+#: every session gets; the drift sentence (RK234) is over it deliberately and is not resident
+#: — it appears only while a copy has drifted and goes away with one `install`.
 _NOTICE_BUDGET = 260
 
 #: Where a tool's input spells the file. Every key any writer uses, rather than the key
@@ -338,13 +348,24 @@ class Notice:
     #: As this project spells them, in the order `[files]` declares: the whole point is
     #: that a session learns these paths before it greps for one (L6).
     files: tuple[str, ...]
+    #: The vendored surfaces that have drifted from the checkout answering (RK234). Said in
+    #: this line and nowhere else because this is the one moment it is both cheap to ask and
+    #: early enough to act on — the copy the session is about to trust is the skill.
+    stale: tuple[str, ...] = ()
 
     def __str__(self) -> str:
-        return (
+        said = (
             f"roadkeep governs {', '.join(self.files)} — ask, never read them whole: "
             "`roadkeep brief` starts a task, `show <id>` and `list --block <x>` answer "
             "the rest, and a hand-edit is refused."
         )
+        if self.stale:
+            said += (
+                f" This project's copy of {', '.join(self.stale)} has drifted from the "
+                f"checkout answering here: `roadkeep install` refreshes it, and until then "
+                f"the copy is not what this session is running."
+            )
+        return said
 
 
 def announce(payload: Mapping[str, object], root: str | Path = ".") -> Notice | None:
@@ -362,7 +383,11 @@ def announce(payload: Mapping[str, object], root: str | Path = ".") -> Notice | 
     if config.source is None:
         return None
     files = tuple(config.relative(path) for path in config.paths.values())
-    return Notice(files=files) if files else None
+    if not files:
+        return None
+    # Asked here and not on a `PreToolUse`, for the reason the notice itself is: the copy a
+    # session trusts is the skill it loads, and by the first write it has been read (RK234).
+    return Notice(files=files, stale=stale(config.root))
 
 
 def guard(payload: Mapping[str, object], root: str | Path = ".") -> Refusal | None:

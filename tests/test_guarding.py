@@ -50,6 +50,10 @@ from roadkeep.guarding import (
 )
 from roadkeep.serving import TOOLS
 
+#: This checkout, which is the tree `install` translates in the two tests that wire a
+#: project to one (RK234) — the same source `tests/test_installing.py` copies from.
+HERE = Path(__file__).resolve().parents[1]
+
 ROADMAP = "docs/ROADMAP.md"
 CHANGELOG = "docs/CHANGELOG.md"
 
@@ -628,6 +632,32 @@ def test_the_notice_fits_the_budget_that_makes_it_worth_injecting():
     """Resident for the whole session, so its size is the argument for it. A number a test
     holds, because prose about being brief is what stops holding."""
     assert len(str(Notice(files=(ROADMAP, CHANGELOG)))) <= _NOTICE_BUDGET
+
+
+def test_the_notice_names_a_vendored_copy_that_has_drifted(tmp_path):
+    """The gate RK100 named as holding the copy in step, run where it is cheap (RK234).
+
+    Measured on Turing before this: 78 lines behind, and a `PreToolUse` matcher missing
+    `Bash` — a guard narrower than the one the plugin ships, in the file that decides whether
+    the guard fires at all. Nothing ran `--check` there, so nothing said so.
+    """
+    from roadkeep.installing import PROJECT_SKILL, install
+
+    root = project(tmp_path)
+    install(root, source=HERE)
+    (root / PROJECT_SKILL).write_text("a copy somebody edited\n", encoding="utf-8")
+    notice = announce(start(root), root)
+    assert notice.stale == (PROJECT_SKILL.replace("\\", "/"),)
+    assert "has drifted from the checkout answering here" in str(notice)
+    assert "`roadkeep install` refreshes it" in str(notice)
+
+
+def test_a_project_the_plugin_serves_is_asked_nothing_about_a_copy(tmp_path):
+    """The discriminator is the vendored file itself: no copy, nothing to drift, and the
+    cost of asking is one `is_file` — 0.07ms against RK176's 43ms floor."""
+    root = project(tmp_path)
+    assert announce(start(root), root).stale == ()
+    assert "drifted" not in str(announce(start(root), root))
 
 
 def test_a_session_outside_a_roadkeep_project_is_told_nothing(tmp_path):

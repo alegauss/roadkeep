@@ -40,7 +40,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK234** (deps: —) **Nothing in an adopting project runs the gate that holds its vendored skill in step** — `install --check` is that gate and no adopted project runs it: Turing's copy was 78 lines and one hook matcher behind today, and a stale vendored authority is read with the trust of the original. → §RK234
 - 📋 **RK235** (deps: —) **`install` reads the checkout that ships the plugin as a project to wire into** — Run at this repository's root it vendors a copy of the skill it ships and writes a second workflow beside `gate.yml`, and `--check` exits 1 naming three surfaces that are not an installation. → §RK235
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
