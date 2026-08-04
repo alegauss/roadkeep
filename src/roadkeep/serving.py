@@ -63,7 +63,7 @@ import io
 import json
 import re
 import sys
-from collections.abc import Iterator, Mapping, Sequence
+from collections.abc import Callable, Iterator, Mapping, Sequence
 from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
@@ -172,7 +172,7 @@ class Tool:
         turns one on — a field that reordered the others would make the same call render two
         command lines.
         """
-        opened = tuple(dest for dest in self.conditional if _CONDITIONAL[dest](config))
+        opened = tuple(dest for dest in self.conditional if _CONDITIONAL[dest].opens(config))
         return (*self.exposes, *opened)
 
     @property
@@ -382,30 +382,50 @@ _BOUNDS = {
     "task_id": lambda config: {"pattern": config.schema.split_id_pattern().pattern},
 }
 
-#: What opens a :attr:`Tool.conditional` argument: the declaration that makes the field the
-#: only way to write something legal (RK111, RK241). A table rather than a flag on the dest,
-#: because the question is about the *project* and the answer has to be re-read per call — a
-#: config edited mid-session is the one this server answers with (RK155's neighbour).
-_CONDITIONAL: Mapping[str, Any] = {
-    "task_id": lambda config: config.schema.id_suffix,
-    "ref": lambda config: config.schema.ref_scheme == "outline",
-}
+@dataclass(frozen=True, slots=True)
+class Conditional:
+    """What opens a :attr:`Tool.conditional` argument, and what a refusal says when it is shut.
 
-#: Why a conditional argument is closed here, by dest — the declaration that would have opened
-#: it (RK241). Beside :data:`_CONDITIONAL` rather than inside the refusal that prints it,
-#: because one sentence written there said `[ids] suffix` about every closed field, and the
-#: second one is a pointer: a caller told to declare an id shape to name an anchor is a caller
-#: sent to edit the wrong table.
-_WITHHELD: Mapping[str, str] = {
-    "task_id": (
-        "offered only where `roadkeep.toml` declares an id shape the counter cannot spell "
-        "(`[ids] suffix`), and this project declares none — so every legal id here is the "
-        "one `add` derives"
+    One record and not two tables agreeing (RK252). RK111 wrote the predicate, RK241 wrote the
+    sentence beside it, and they are one fact — `ref` is open where `ref_scheme = "outline"`, and
+    the refusal says exactly that — so held apart, opening a dest on a second declaration grew
+    the predicate a clause while the sentence went on naming only the first. That is the
+    arrangement this tool exists to remove, one layer out. Held together, a dest has both halves
+    or is not a dest: :func:`_withheld` indexes without a guard, and the failure lands on the
+    edit rather than on the caller who passed the closed field (RK251).
+
+    What this cannot do is derive the prose from the predicate. A lambda over `Config` names no
+    table, and writing the sentence is what L4 rules out — so the available half is making them
+    one object, and it is the half that fails early.
+    """
+
+    #: Whether *this* project's config makes the field the only way to write something legal.
+    #: A predicate and not a config key, because the question is re-asked per call: a
+    #: `roadkeep.toml` edited mid-session is the one this server answers with (RK155's neighbour).
+    opens: Callable[[Config], bool]
+    #: The clause a refusal adds when it is closed — which declaration would have opened it, and
+    #: what the project derives instead. Read as prose after `<dest>: `, so it starts lowercase
+    #: and carries no full stop.
+    because: str
+
+
+#: Every conditional argument this surface has, by dest (RK111, RK241, RK252).
+_CONDITIONAL: Mapping[str, Conditional] = {
+    "task_id": Conditional(
+        opens=lambda config: config.schema.id_suffix,
+        because=(
+            "offered only where `roadkeep.toml` declares an id shape the counter cannot spell "
+            "(`[ids] suffix`), and this project declares none — so every legal id here is the "
+            "one `add` derives"
+        ),
     ),
-    "ref": (
-        'offered only where `roadkeep.toml` sets `ref_scheme = "outline"`, which makes the '
-        "anchor the caller's to name; this project derives the pointer from the id, and one "
-        "chosen by hand is what `ref.mismatch` refuses"
+    "ref": Conditional(
+        opens=lambda config: config.schema.ref_scheme == "outline",
+        because=(
+            'offered only where `roadkeep.toml` sets `ref_scheme = "outline"`, which makes the '
+            "anchor the caller's to name; this project derives the pointer from the id, and one "
+            "chosen by hand is what `ref.mismatch` refuses"
+        ),
     ),
 }
 
@@ -702,20 +722,17 @@ def _withheld(tool: Tool, unknown: Sequence[str]) -> str:
     which arguments a tool takes is a fact about `roadkeep.toml` (L6), so the refusal says
     which declaration would have opened it rather than only that it is absent.
 
-    One clause per closed field, read from :data:`_WITHHELD` (RK241): two fields joined into
-    one sentence named one table for both, and the declaration to edit is the whole of what
-    this clause is for.
+    One clause per closed field (RK241): two fields joined into one sentence named one table for
+    both, and the declaration to edit is the whole of what this clause is for.
 
-    Read with a fallback and not as an index (RK251). This runs on exactly one path — a caller
-    passing a field this project closed — so a dest in :attr:`Tool.conditional` and not in that
-    table raised a `KeyError` while composing the refusal, and only for the caller who most needs
-    the sentence: the surface that exists to name what may be set instead failed as a crash. The
-    clause above it is correct and complete on its own, so dropping a sentence is the failure this
-    can afford, and `tests/test_serving.py` holds the two tables against `TOOLS` so the fallback
-    is a guarantee about the shape of the failure rather than the way it is meant to answer.
+    Indexed and not guarded, which is what :class:`Conditional` buys (RK252): the reason travels
+    with the predicate that opens the field, so a dest reaching one and not the other is not a
+    state the record admits. RK251 needed a fallback here because two tables could disagree, and
+    this ran on exactly one path — a caller passing a field this project closed — so the miss
+    surfaced as a `KeyError` composing the refusal, for the caller who most needed the sentence.
     """
     closed = sorted(set(unknown) & set(tool.conditional))
-    return "".join(f". {dest}: {_WITHHELD[dest]}" for dest in closed if dest in _WITHHELD)
+    return "".join(f". {dest}: {_CONDITIONAL[dest].because}" for dest in closed)
 
 
 def _bounded(dest: str, value: Any, config: Config) -> None:

@@ -207,22 +207,3 @@ Worth deciding with it whether this is one finding or one per heading. Two is th
 ## Block E — Adoption
 
 ## Block F — The plugin
-
-### §RK252 Two tables agreeing is the arrangement this tool exists to remove
-
-A conditional argument is now declared three times: in `Tool.conditional`, as a
-predicate in `_CONDITIONAL`, and as a sentence in `_WITHHELD` naming the declaration
-that would open it. The second and third are one fact — `ref` is open where `ref_scheme
-= "outline"`, and the refusal says exactly that — held in two places that can be edited
-apart. Open `ref` on a third scheme and the predicate grows a clause while the sentence
-keeps naming only `outline`, which is the refusal telling a caller to make a change that
-would not open the field. RK251 is the same seam from the other side: the fallback it
-added exists because a dest can reach one table and not the other, and a fallback is
-what a design needs when two declarations have to agree. One record per dest closes both
-— a small frozen dataclass carrying the predicate and the sentence, so
-`Tool.conditional` indexes one table and a dest either has both halves or does not
-exist. The test RK251 added then asserts a shape the type already guarantees, and
-`_withheld` indexes without a guard again. What this cannot do is derive the prose from
-the predicate: a lambda over `Config` states no table name, and L4 rules out generating
-the sentence. Holding them in one object is the available half, and it is the half that
-fails at the edit rather than at the refusal.

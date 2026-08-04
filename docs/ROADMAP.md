@@ -41,8 +41,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK252** (deps: —) **The declaration a closed field names is written beside its predicate, not with it** — `_CONDITIONAL` reads the config field and `_WITHHELD` spells it in prose, so opening a dest on a second declaration leaves the refusal still naming only the first. → §RK252
-
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:
