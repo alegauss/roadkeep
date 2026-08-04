@@ -35,7 +35,7 @@ from pathlib import Path
 import pytest
 
 from roadkeep.cli import build_parser, main, registration_report
-from roadkeep.merging import Driver, Registration
+from roadkeep.merging import Attributes, Driver, Registration, Wiring
 from roadkeep.installing import (
     CARRIED,
     LAUNCHER,
@@ -390,7 +390,15 @@ FULL = Registration(
     present=("docs/CHANGELOG.md merge=roadkeep",),
     command='git config merge.roadkeep.driver "somewhere merge %O %A %B --path %P"',
     invalidated_by="a plugin update",
-    driver=Driver(stored="", wanted="somewhere", known=True),
+    wiring=Wiring(
+        attributes=Attributes(
+            path=Path(".gitattributes"),
+            wanted=("docs/ROADMAP.md merge=roadkeep",),
+            present=(),
+            resolved=(("docs/ROADMAP.md", "roadkeep"),),
+        ),
+        driver=Driver(stored="", wanted="somewhere", known=True),
+    ),
     left_alone=(("docs/IMPROVEMENTS.md", "theirs"),),
 )
 

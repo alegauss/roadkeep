@@ -47,8 +47,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK278** (deps: —) **The verb still names a driver the check has stopped asking for** — `registration_report` renders the config line from `Registration` alone, which carries no attributes verdict, so `merge --register` prints the wiring advice RK277 established is pointless. → §RK278
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - 📋 **RK267** (deps: —) **A staleness note lists every changed module and hands relevance back** — The server appends `engine().stale` to any refusal, so one `schema.py` decided arrives naming three modules that did not, and the reader re-runs on a guess about which mattered. → §RK267

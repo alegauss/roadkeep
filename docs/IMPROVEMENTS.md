@@ -377,31 +377,6 @@ shape at six. What stays true either way is that a *validation* refusal keeps th
 
 ## Block E — Adoption
 
-### §RK278 RK278 — the same fact, two renderings, one commit later
-
-Measured on the repository RK277 was measured on, `docs/*.md merge=theirs`. `merge
---check` says `merge.roadkeep.driver not set … — and no governed file routes here`, and
-asks for nothing. `merge --register` says `then git config merge.roadkeep.driver "…"`
-and the bare `not set` line, telling the reader to wire a driver that repository will
-never call.
-
-RK276 made one rendering for the two *registration* surfaces and this is the same class
-of defect returning through the gap that fix did not cover: `registration_report` takes
-a `Registration`, and a `Registration` carries `driver` but no attributes verdict. So
-the qualifier and the withdrawal both live in `_merge_check`, where the two halves
-happen to be in scope, and the verb renders the config line from half the facts.
-
-Two shapes. `Registration` grows the `Attributes` it already computes — `register` calls
-`attributed` first, so the value is in hand and nothing new is read — and the report
-becomes able to say what the check says. Or the joining moves out of both callers into
-one function over `(Attributes, Driver)`, which the check and the verb each call,
-leaving `Registration` about what was written.
-
-The first is smaller and puts the two facts where the one report can reach them. The
-second is where this keeps arriving: three commits have now each added a fact that one
-surface knew and another did not, and each was repaired at the surface rather than at
-the shape. That is the argument for paying for the second now.
-
 ## Block F — The plugin
 
 ### §RK267 RK267 — a note that knows more than it says

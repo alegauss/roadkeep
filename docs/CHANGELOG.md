@@ -233,6 +233,7 @@
 - ✅ **RK274** **The repair a check names takes over a wiring the same check just reported** — `register` skips a governed file another driver is named for and reports the skip, and `--check` treats it as settled — so the repair no longer overrides what it reported, nor fails forever.
 - ✅ **RK276** **One write reports a skip on only one of its two surfaces** — One `registration_report` renders both surfaces, differing by the indent column that pushed them apart, and a test over the dataclass fields fails where the next one reaches only the JSON.
 - ✅ **RK277** **The check demands a driver in a repository that routes nothing to it** — The config half is demanded only where a governed file routes here now or once registered, which spares an all-claimed repository without withdrawing the repair from an unregistered one.
+- ✅ **RK278** **The verb still names a driver the check has stopped asking for** — A `Wiring` value joins both halves once and every caller renders from it, so the verb withholds the advice the check withholds and no surface can reach for a fact the other has.
 
 ## Block F — The Claude Code plugin
 

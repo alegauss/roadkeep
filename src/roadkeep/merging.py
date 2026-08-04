@@ -58,6 +58,7 @@ __all__ = [
     "Driver",
     "Merge",
     "Registration",
+    "Wiring",
     "attributed",
     "config_command",
     "merge",
@@ -65,6 +66,7 @@ __all__ = [
     "register",
     "registered",
     "role_of",
+    "wiring",
 ]
 
 #: Git's default conflict-marker width, and the labels this driver writes when it declines.
@@ -301,6 +303,51 @@ class Driver:
 
 
 @dataclass(frozen=True, slots=True)
+class Wiring:
+    """Both halves of the driver, and the questions only the two together answer (RK278).
+
+    The halves are read apart because they go missing for different reasons and are repaired by
+    different writes — that is RK270 and it stands. What kept going wrong is everything that
+    needs *both*: RK272's per-half repair, RK277's "no governed file routes here", and the
+    qualifier RK277 then shipped to one surface out of two. Three commits, three facts one
+    caller knew and another did not, each repaired where it showed rather than where it came
+    from.
+
+    So the joining is a value, computed once and passed. A caller that has this cannot render
+    half the answer, because there is no half to reach for.
+    """
+
+    attributes: Attributes
+    driver: Driver
+
+    @property
+    def needs_attributes(self) -> bool:
+        """Whether governed files are still undecided — the half `merge --register` repairs."""
+        return self.attributes.state in (ABSENT, PARTIAL)
+
+    @property
+    def demands_driver(self) -> bool:
+        """Whether a driver has to be configured: git has none it can run, **and** files reach it.
+
+        The conjunction RK277 established. Where every governed file is claimed by another
+        driver, or none is declared, an unset driver is not a missing repair but the settled
+        state of a repository that chose otherwise — so this narrows what is *demanded* and
+        never what is reported, which stays :attr:`driver` and is printed either way.
+        """
+        return self.driver.state in (ABSENT, UNRUNNABLE) and self.attributes.routes_here
+
+    @property
+    def sound(self) -> bool:
+        """Whether git would run this driver over everything routed to it."""
+        return not (self.needs_attributes or self.demands_driver)
+
+
+def wiring(config: Config) -> Wiring:
+    """Read both halves of the driver's wiring in one call — the only way they are read."""
+    return Wiring(attributes=attributed(config), driver=registered(config))
+
+
+@dataclass(frozen=True, slots=True)
 class Registration:
     """What `merge --register` wrote: the attribute lines, and the config it needs."""
 
@@ -318,8 +365,12 @@ class Registration:
     #: What `git config` holds **now** (RK266), read after the attribute lines were written:
     #: the re-run that reports three lines already there is exactly the one where the config
     #: is the half that moved, so the answer that says nothing changed must not be the whole
-    #: answer. `None` only where a caller constructed this without asking.
-    driver: Driver | None = None
+    #: Both halves as they stand **now** (RK266, RK278), read after the attribute lines were
+    #: written: the re-run that reports three lines already there is exactly the one where the
+    #: config is the half that moved, so an answer saying nothing changed must not be the whole
+    #: answer — and the report needs the attribute verdict too, or it names a driver the check
+    #: has stopped asking for. `None` only where a caller constructed this without asking.
+    wiring: Wiring | None = None
     #: Governed files left alone because another driver is named for them (RK274), with that
     #: driver's name. Reported and never written over: git takes the last matching rule, so a
     #: line added under theirs would win, and a repair that overrides what the check just
@@ -433,7 +484,7 @@ def register(config: Config) -> Registration:
         present=before.present,
         command=config_command(),
         invalidated_by=stored.invalidated_by,
-        driver=registered(config),
+        wiring=wiring(config),
         left_alone=before.claimed,
     )
 

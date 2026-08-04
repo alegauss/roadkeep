@@ -37,6 +37,7 @@ from roadkeep.merging import (
     register,
     registered,
     role_of,
+    wiring,
 )
 from roadkeep.provenance import persisted
 
@@ -541,6 +542,34 @@ def test_no_driver_is_demanded_where_no_governed_file_would_reach_it(tmp_path, c
     # Still reported — this narrows what the check demands, never what it says.
     assert "merge.roadkeep.driver not set" in printed
     assert "no governed file routes here" in printed and "fix" not in printed
+
+
+def test_the_verb_and_the_check_say_the_same_thing_about_the_config(tmp_path, capsys):
+    # RK278: on the repository RK277 was measured on, `--check` said "no governed file routes
+    # here" and asked for nothing while `--register` printed `then git config …`, telling the
+    # reader to wire a driver that repository would never call. One `Wiring`, one answer.
+    config = repository(tmp_path)
+    (tmp_path / ".gitattributes").write_text("docs/*.md merge=theirs\n", encoding="utf-8")
+    assert not wiring(config).demands_driver
+
+    assert main(["-C", str(tmp_path), "merge", "--check"]) == EXIT_OK
+    checked = capsys.readouterr().out
+    assert main(["-C", str(tmp_path), "merge", "--register"]) == EXIT_OK
+    verb = capsys.readouterr().out
+
+    for said in (checked, verb):
+        assert "no governed file routes here" in said
+    # Advice, withheld on both: the state line above is still printed on both.
+    assert "then" not in verb and "fix" not in checked
+
+
+def test_the_advice_returns_the_moment_a_file_routes_here(tmp_path, capsys):
+    # The other direction, so the withholding above is a conjunction and not a mute button.
+    config = repository(tmp_path)
+    register(config)
+    assert wiring(config).demands_driver
+    assert main(["-C", str(tmp_path), "merge", "--register"]) == EXIT_OK
+    assert "then     git config merge.roadkeep.driver" in capsys.readouterr().out
 
 
 def test_a_project_declaring_no_governed_file_asks_for_no_driver_either(tmp_path):

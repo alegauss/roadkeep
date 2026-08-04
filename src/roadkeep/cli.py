@@ -90,6 +90,7 @@ from roadkeep.merging import (
     Attributes,
     Driver,
     Registration,
+    Wiring,
     attributed,
     config_command,
     markers,
@@ -97,6 +98,7 @@ from roadkeep.merging import (
     register,
     registered,
     role_of,
+    wiring,
 )
 from roadkeep.claiming import Followed, Held
 from roadkeep.picking import Choice, Claim, pick, take
@@ -2220,6 +2222,11 @@ def registration_report(registration: Registration, where: str, label: int) -> l
 
     `label` is the column the install report pads its own verbs to and the merge report does
     not — the difference that pushed the two apart, reduced to the one parameter it is.
+
+    What it says about the config half is `Wiring`'s (RK278): the `then` line is advice, and
+    advice to wire a driver no governed file routes to is what `--check` had already stopped
+    giving. The state line is printed either way, because narrowing a demand is not licence to
+    stop reporting.
     """
     prefix = f"  {'registered':<{label}} " if label else ""
     lines = [f"{prefix}{where}  + {line}" for line in registration.added]
@@ -2231,18 +2238,30 @@ def registration_report(registration: Registration, where: str, label: int) -> l
         f"{prefix}{where}    {path} → {value} (another driver, left alone)"
         for path, value in registration.left_alone
     ]
-    # Printed and not run: a driver command names a path into this checkout, and setting
-    # somebody's git config is a write outside the files this tool was given (L2).
-    lines.append(f"  {'then':<{label or 8}} {registration.command}")
-    # What the stored value cannot promise, said where it is stored (RK255): git executes it
-    # long after this process, and a driver that has stopped resolving is silent until a merge.
-    lines.append(f"  {'re-run':<{label or 8}} after {registration.invalidated_by}")
-    if registration.driver is not None:
+    pad = label or 8
+    if registration.wiring is None or registration.wiring.demands_driver:
+        # Printed and not run: a driver command names a path into this checkout, and setting
+        # somebody's git config is a write outside the files this tool was given (L2).
+        lines.append(f"  {'then':<{pad}} {registration.command}")
+        # What the stored value cannot promise, said where it is stored (RK255): git executes
+        # it long after this process, and a driver that stopped resolving is silent till a merge.
+        lines.append(f"  {'re-run':<{pad}} after {registration.invalidated_by}")
+    if registration.wiring is not None:
         # Read after the attribute lines were written (RK266). This is the line that carries a
         # re-run: three attributes "already there" is the answer where the config is the half
         # that moved, and without this the output that says nothing changed would be all of it.
-        lines.append(f"  {'config':<{label or 8}} {_driver_line(registration.driver)}")
+        lines.append(f"  {'config':<{pad}} {_wiring_line(registration.wiring)}")
     return lines
+
+
+def _wiring_line(wired: Wiring) -> str:
+    """The config half's state, with the qualifier only both halves together can add (RK278).
+
+    One function, so the check and the verb cannot say it two ways — which is what happened the
+    commit RK277 shipped, where `--check` knew nothing routed here and `--register` did not.
+    """
+    tail = "" if wired.attributes.routes_here else " — and no governed file routes here"
+    return f"{_driver_line(wired.driver)}{tail}"
 
 
 def _merge_register(config: Config) -> int:
@@ -2320,23 +2339,15 @@ def _merge_check(config: Config) -> int:
     check demands and never what it says, because a driver configured where nothing reaches it
     is harmless and a driver silently not asked for is the silence this command exists to end.
     """
-    attributes, driver = attributed(config), registered(config)
-    print(f"  attributes  {_attributes_line(attributes)}")
-    print(f"  config      {_driver_line(driver)}{_pointless(attributes)}")
-    for repair in _repairs(attributes, driver):
+    wired = wiring(config)
+    print(f"  attributes  {_attributes_line(wired.attributes)}")
+    print(f"  config      {_wiring_line(wired)}")
+    for repair in _repairs(wired):
         print(f"  fix         {repair}")
-    code, _ = _DRIVER_STATES[driver.state]
-    unwired = attributes.state in (ABSENT, PARTIAL)
-    demanded = code == EXIT_GATE and attributes.routes_here
-    return EXIT_GATE if demanded or unwired else EXIT_OK
+    return EXIT_OK if wired.sound else EXIT_GATE
 
 
-def _pointless(attributes: Attributes) -> str:
-    """What is added to the config line where no governed file would ever reach the driver."""
-    return "" if attributes.routes_here else " — and no governed file routes here"
-
-
-def _repairs(attributes: Attributes, driver: Driver) -> list[str]:
+def _repairs(wired: Wiring) -> list[str]:
     """The repair of each half that is actually broken, in the order they are reported (RK272).
 
     Measured before it was written: one `merge --register` named for both halves sent a reader
@@ -2350,14 +2361,11 @@ def _repairs(attributes: Attributes, driver: Driver) -> list[str]:
     so naming a repair for it would be answering one nobody asked.
     """
     repairs = []
-    if attributes.state in (ABSENT, PARTIAL):
-        # Not `not wired`: `UNKNOWN` is a question git could not answer (RK273), and naming a
-        # repair for it is the same overreach the config half already declines to make.
+    if wired.needs_attributes:
+        # `UNKNOWN` is excluded by that property, not here: a question git could not answer
+        # (RK273) names no repair, the same overreach the config half declines to make.
         repairs.append(f"{invocation()} merge --register")
-    if driver.state in (ABSENT, UNRUNNABLE) and attributes.routes_here:
-        # RK277: a repository whose every governed file is claimed by another driver, or which
-        # declares none, is not missing this config — it settled the question differently, and
-        # naming a repair there is asking for a value no merge would reach.
+    if wired.demands_driver:
         repairs.append(config_command())
     return repairs
 
@@ -4502,9 +4510,12 @@ def _install(config: Config, args: argparse.Namespace) -> int:
                         "present": list(intent.registered.present),
                         "command": intent.registered.command,
                         "invalidated_by": intent.registered.invalidated_by,
-                        "driver": None
-                        if intent.registered.driver is None
-                        else intent.registered.driver.state,
+                        "wiring": None
+                        if intent.registered.wiring is None
+                        else {
+                            "attributes": intent.registered.wiring.attributes.state,
+                            "driver": intent.registered.wiring.driver.state,
+                        },
                         # Keyed by the field names of `Registration`, and held to them by a
                         # test (RK276): the reading most likely to be automated is the one a
                         # dropped field is quietest in.
