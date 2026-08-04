@@ -242,6 +242,28 @@ the p90 a statement about a sample nobody chose, and the figure is the one thing
 command may not get wrong. Discovered by calling it unscoped for a question it does not
 answer, which is how the cost was noticed at all.
 
+### §RK265 The pointer budget cannot be told about
+
+`budget` derives every number from the id, the marker, the deps and the pointer — all known before the
+first word exists. Under `ref_scheme = "id"` that holds: the pointer is derived, and roadkeep's own
+backlog counts 40 characters of structure against 320. Under `ref_scheme = "outline"` the pointer is
+*chosen by the author*, `budget` has no flag to be told it, and it counts the structure as if the line
+carried none — 30 against the same 320.
+
+Measured in a repository that uses the outline scheme: `budget --block AI --symptom
+'…108 chars…'` answered `why 182 of 200`. The `add` that followed, identical but for
+`--ref XX.2`, refused at 188 characters against a limit of 174. The difference is
+exactly ` → §XX.2`, eight characters, and the refusal costs the author a second
+composition of the same sentence — which is the whole of what `budget` is for: "a limit
+reported after the prose exists is a limit discovered too late to save the tokens it was
+meant to save."
+
+The shape of the fix is the flag `add` already takes. `budget --ref` under the outline
+scheme, counted into the structure the same way the derived pointer is; and with no
+`--ref` given, the honest answer is not the pointerless one — either the widest anchor
+the file already holds, or a stated assumption, so a number that cannot be exact is at
+least never optimistic.
+
 ## Block D — The gate
 
 ### §RK239 The state every verb refuses and the gate does not report
@@ -288,6 +310,75 @@ fixture that records the tree's state and skips the checkout-reading tests when 
 moves, against the risk of a skip that hides a real failure — which argues for reporting
 the movement loudly rather than passing quietly.
 
+### §RK268 RK268 — a process-lifetime cache in a per-test world
+
+Six functions in this package are `lru_cache`d, each for a good reason: they answer a
+fact about the process — where the package lives, what a shell reaches it by, what a
+stored command must say, which root a server discovered, how a line parses. None of
+those change inside one run, and `invocation` in particular is read on the deny path,
+the one place a repeated `which` scan would be paid for over and over.
+
+A test that monkeypatches what such a function reads is therefore editing a value that
+outlives it. The suite handles this by calling `cache_clear` by hand, at the call sites,
+before and after — eleven such calls across three files, every one a thing a future test
+has to remember. The failure mode is not a wrong assertion: a test raising before its
+trailing clear leaves a `tmp_path` pytest has already removed cached as this machine's
+launcher, so the *next* tests fail, in another file, about a path nothing in them
+mentions. That is RK263's shape again — a failure indistinguishable from a defect —
+reached by a different route.
+
+An autouse fixture clearing all six is the obvious answer and the one to check rather
+than assume: it makes every test pay six calls, and it hides the case where clearing is
+itself the assertion. The alternative is a fixture the patching tests request by name,
+which keeps the coupling visible and only helps the tests that already remembered.
+
 ## Block E — Adoption
 
+### §RK266 RK266 — a stored command nothing reads back
+
+RK255 made the driver git stores absolute, and made `register` print the condition that
+ends it: an interpreter replaced, a plugin update moving the package, a tree that stops
+importing. Naming the expiry is not observing it. The value lives in `.git/config`,
+which no verb here reads, so the first evidence that it rotted is git falling back to
+conflict markers in the one file whose merge is decidable — the failure this driver
+exists to prevent, arriving at the moment it was wired for and blaming the merge rather
+than the registration.
+
+What is missing is the read: `merge --register --check`, or a line `lint` already walks,
+that takes `merge.roadkeep.driver` out of the checkout's config and compares it to what
+`persisted` derives now. Three answers are distinguishable and each is a different
+sentence — absent (never registered, though `.gitattributes` may claim otherwise),
+present and equal, present and stale. Only the third is this task, and it is the one no
+output the tool produces today reaches.
+
+Where it belongs is the open question. `lint` is the gate and runs in CI, where
+`.git/config` is a runner's and not the author's, so a stale-driver finding there fails
+builds over a fact about somebody else's machine — which argues for the check and
+against a finding code. Against that: a check nobody runs is the same silence, and the
+gate is the one thing reliably read.
+
 ## Block F — The plugin
+
+### §RK267 RK267 — a note that knows more than it says
+
+RK155 made the MCP server say when its own modules moved after it imported them, because
+a config key added in one commit made every write refuse `unknown key` while the CLI
+accepted it. The note works. What it does with the relevance question is hand it back:
+it lists every module `Engine.stale` found and closes with "re-run only where the
+changed files are the ones that would decide this", which is the reader being asked to
+know the call graph of a refusal they did not raise.
+
+Measured while shipping RK255: a `why.too-long` refusal — decided by `schema.py`,
+unchanged — arrived naming `cli.py`, `merging.py` and `provenance.py`, three modules
+that could not have decided it. The note was 450 characters of correct and irrelevant
+text on a refusal that had already said everything actionable in one line, and it fires
+on every error in every session that edits this package, which is every session that
+develops it.
+
+The module that raised the refusal is knowable: the exception has a traceback, and the
+frames above the server are this package's. Intersecting that with `Engine.stale` turns
+the note from an inventory into a judgement — say nothing when the sets are disjoint,
+and say which module when they are not. The risk is a refusal raised in one module
+because a helper in another changed, which the intersection misses; that argues for
+narrowing the sentence rather than suppressing it, and for keeping the full list behind
+the one module that is named.

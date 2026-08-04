@@ -35,15 +35,21 @@
 - 📋 **RK245** (deps: —) **The number that binds an amend is the one figure `budget` states only in characters** — A line reads `182 written, 18 left  aim 30 words`, so the only unit the author can count names the whole field while the room they actually have is 18 characters. → §RK245
 - 📋 **RK247** (deps: —) **Nothing says which outline anchors history still cites** — `section add` lists only what exists, so reopening a shipped family reuses an anchor the changelog still points at and silently rewrites its meaning. → §RK247
 - 📋 **RK264** (deps: —) **The cost query spends 95% of its answer on records its own percentiles summarise** — `weight` ships 250 per-task entries beside six percentiles, 22.7k of 23.7k characters, and `--block F` only moves that to 89% — so the read priced to save context is the one that spends it. → §RK264
+- 📋 **RK265** (deps: —) **budget omits the pointer under an outline ref scheme, so it over-reports the room by the anchor width** — It answered 182 characters left for a why `add` then refused at 174, the 8 being ` → §XX.2` — a limit found after the prose exists, which this verb exists to prevent. → §RK265
 
 ## Block D — The gate
 
 - 📋 **RK239** (deps: —) **Two prose files declaring one anchor is silent until a line points at it** — `ref.ambiguous` is reported from the pointer end alone, so 12 of Turing 13 doubled anchors pass a gate four verbs already decline to resolve them by. → §RK239
 - 📋 **RK263** (deps: —) **A test asserting about the live checkout fails the same way whether code or the tree moved** — Six failed and then 1940 passed on unchanged source, the six being exactly the ones reading this repository, so git activity beside a run is indistinguishable from a defect. → §RK263
+- 📋 **RK268** (deps: —) **A cached derivation survives the test that monkeypatched what it read** — Six process-lifetime caches are cleared by hand at call sites with no fixture, so a test failing before its trailing `cache_clear` leaves later ones asserting about a `tmp_path` that is gone. → §RK268
 
 ## Block E — Adoption
 
+- 📋 **RK266** (deps: —) **A registered driver that stopped resolving is silent until a merge** — `merge --register` stores an absolute path and names what would end it, but no verb reads `.git/config` back — so a plugin update leaves a driver git still calls and nothing that says so. → §RK266
+
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
+
+- 📋 **RK267** (deps: —) **A staleness note lists every changed module and hands relevance back** — The server appends `engine().stale` to any refusal, so one `schema.py` decided arrives naming three modules that did not, and the reader re-runs on a guess about which mattered. → §RK267
 
 ## Non-goals
 
