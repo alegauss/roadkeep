@@ -405,6 +405,30 @@ shape at six. What stays true either way is that a *validation* refusal keeps th
 
 ## Block E — Adoption
 
+### §RK289 The guard that was written for one payload
+
+Measured, and the finding is that nothing is broken yet. `adopt --json` carries every
+field of `Estimate` (`path` renders as `file`), and `uninstall --json` carries every
+field of `Removal` (`withdrawals` renders as `surfaces`). Both are complete because each
+addition remembered.
+
+RK276 is the evidence that remembering is not a mechanism. `left_alone` was added to
+`Registration`, reached the text of one surface, and was absent from the install payload
+and the other surface — under a comment asserting the two printed the same. The fix
+there was a test over `fields(Registration)`, so the next addition fails in the suite
+rather than going quiet in the reading most likely to be automated.
+
+Three fields reached `Estimate` this week — `listed`, `schemes`, `ledger_shape` — and
+each was carried into the payload by hand. That is three chances taken and the fourth
+unguarded, on the command whose whole output is a number somebody is deciding on.
+
+The shape is already written: assert the payload's keys against the dataclass's field
+names. What has to be decided is the renames, because both payloads have one and a
+strict equality would fail on `file` and `surfaces` today. A mapping declared beside the
+test is honest and small; deriving the payload from the dataclass instead would remove
+the question and also remove the boundary, which is where a field gets a name a reader
+outside this package can use. That trade is the actual decision, and it is not obvious.
+
 ## Block F — The plugin
 
 ### §RK267 A note that knows more than it says
