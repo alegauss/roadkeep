@@ -248,22 +248,3 @@ makes `merge register` fail on the machine most likely to want it, which is the 
 against.
 
 ## Block F — The plugin
-
-### §RK259 The roles a note may name are the ones the project declares
-
-RK258 publishes the section budget per role, because `[limits.<role>]` can give one
-prose file its own number (RK50) and the one `body` field reaches two. It derives that
-by walking `PROSE_ROLES` and asking `schema_for` for each, and `schema_for` answers for
-a role whether or not the project declares a file for it — it composes `[limits.<role>]`
-over the base schema and has no reason to check. So a project carrying
-`[limits.strategy] section = 90` with no `[files] strategy` gets a note naming a role
-`section add --role strategy` would refuse: the figure is real, the file is not. The
-filter already exists and is used by every other reader of the same question —
-`authoring._default_role` and `cli`'s two-role offer both narrow by `config.has(role)`,
-on the argument that a command naming a file nobody created cannot run. This note is the
-same kind of statement and wants the same narrowing. Two cases then behave: a project
-declaring only improvements says one figure and names no role at all, which is what it
-does today by coincidence rather than by construction; and a project declaring both says
-the default's and names the other only where it differs. Worth doing for the reason
-RK250 was: the sentence should claim what was established, and "this role has its own
-budget" is a claim about two declarations, not one.

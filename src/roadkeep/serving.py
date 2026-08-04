@@ -468,12 +468,25 @@ def _paragraphed(config: Config) -> str:
     Per role, because `[limits.<role>]` can give one prose file its own number (RK50) and this one
     field reaches two: the default `role` is named with its figure, and a role that differs is
     named beside it rather than averaged into a number true of neither.
+
+    The roles it may name are the ones the project **declares** (RK259). `schema_for` answers for
+    any role, composing `[limits.<role>]` over the base and having no reason to check for a file —
+    so walking `PROSE_ROLES` published a figure for `strategy` on a project carrying
+    `[limits.strategy]` and no `[files] strategy`, naming a role `section add --role` would refuse.
+    `config.has` and :func:`~roadkeep.authoring.prose_role` are the same narrowing every other
+    reader of this question already makes, on the argument that a command naming a file nobody
+    created cannot run — and with nothing declared at all the base number is still the honest
+    answer, the field existing on the tool whatever this project's `[files]` says.
     """
-    limits = {role: config.schema_for(role).section_max for role in PROSE_ROLES}
-    default = limits[PROSE_ROLES[0]]
-    said = f"{default} words is what refuses, counted as words rather than characters."
+    from roadkeep.authoring import prose_role  # noqa: PLC0415 - `authoring` reaches `sections`
+
+    limits = {
+        role: config.schema_for(role).section_max for role in PROSE_ROLES if config.has(role)
+    }
+    binding = limits.get(prose_role(config) or "", config.schema.section_max)
+    said = f"{binding} words is what refuses, counted as words rather than characters."
     differing = sorted(
-        f"{role} {limit}" for role, limit in limits.items() if limit != default
+        f"{role} {limit}" for role, limit in limits.items() if limit != binding
     )
     if differing:
         said += f" Where `role` names {', '.join(differing)}, that file's own number binds."

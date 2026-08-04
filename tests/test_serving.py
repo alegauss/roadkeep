@@ -344,6 +344,28 @@ def test_a_role_with_its_own_budget_is_named_beside_the_default(tmp_path):
     assert "strategy 90" in said and "that file's own number binds" in said
 
 
+def test_a_role_the_project_never_declared_is_not_named(tmp_path):
+    # RK259: `schema_for` answers for any role, composing `[limits.<role>]` over the base with no
+    # reason to check for a file — so a limit left behind without a `[files]` entry published a
+    # figure for a role `section add --role` refuses, which is a claim about one declaration.
+    tree = project(
+        tmp_path, config=PROSE + "[limits]\nsection = 250\n[limits.strategy]\nsection = 90\n"
+    )
+    assert not Config.discover(tree).has("strategy")
+    said = listed(tree)["section_add"]["inputSchema"]["properties"]["body"]["description"]
+    assert "250 words is what refuses" in said
+    assert "strategy" not in said and "90" not in said
+
+
+def test_a_project_with_no_prose_file_still_gets_the_base_number(tmp_path):
+    # The field is on the tool whatever `[files]` says, so the honest answer is the base limit —
+    # not silence, which would read as "no bound", and not a role nobody declared.
+    tree = project(tmp_path, config=CONFIG + "[limits]\nsection = 120\n")
+    assert not any(Config.discover(tree).has(role) for role in ("improvements", "strategy"))
+    said = listed(tree)["section_add"]["inputSchema"]["properties"]["body"]["description"]
+    assert "120 words is what refuses" in said
+
+
 def test_the_derived_fields_are_not_offered(tmp_path):
     """`add --id` and `add --ref` exist for adoption; offering them lets a caller choose
     what the tool derives, and a hand-set id is the one thing the schema cannot check.
