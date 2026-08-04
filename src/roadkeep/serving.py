@@ -705,9 +705,17 @@ def _withheld(tool: Tool, unknown: Sequence[str]) -> str:
     One clause per closed field, read from :data:`_WITHHELD` (RK241): two fields joined into
     one sentence named one table for both, and the declaration to edit is the whole of what
     this clause is for.
+
+    Read with a fallback and not as an index (RK251). This runs on exactly one path — a caller
+    passing a field this project closed — so a dest in :attr:`Tool.conditional` and not in that
+    table raised a `KeyError` while composing the refusal, and only for the caller who most needs
+    the sentence: the surface that exists to name what may be set instead failed as a crash. The
+    clause above it is correct and complete on its own, so dropping a sentence is the failure this
+    can afford, and `tests/test_serving.py` holds the two tables against `TOOLS` so the fallback
+    is a guarantee about the shape of the failure rather than the way it is meant to answer.
     """
     closed = sorted(set(unknown) & set(tool.conditional))
-    return "".join(f". {dest}: {_WITHHELD[dest]}" for dest in closed)
+    return "".join(f". {dest}: {_WITHHELD[dest]}" for dest in closed if dest in _WITHHELD)
 
 
 def _bounded(dest: str, value: Any, config: Config) -> None:

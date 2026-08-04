@@ -207,22 +207,3 @@ Worth deciding with it whether this is one finding or one per heading. Two is th
 ## Block E — Adoption
 
 ## Block F — The plugin
-
-### §RK251 The refusal path is the last place to raise
-
-RK241 gave `add` a second conditional argument and split the one hardcoded sentence into
-`_WITHHELD`, a table keyed by dest. Two tables now have to agree with
-`Tool.conditional`: `_CONDITIONAL`, which decides whether the field is open, and
-`_WITHHELD`, which says which declaration would open it. A missing `_CONDITIONAL` entry
-raises in `Tool.exposed`, on every `tools/list` — loud, immediate, and caught by any
-test. A missing `_WITHHELD` entry raises only inside `_withheld`, which runs on exactly
-one path: a caller passing the closed field. So the surface whose whole purpose is to
-name what may be set instead fails as an unhandled exception, and it fails for the
-caller who most needs the sentence. Two things close it, and the cheap one first: a test
-over `TOOLS` asserting every dest in every `conditional` has an entry in both tables,
-which is the same shape as the tests already holding `writes_when` against its parser.
-Then `_withheld` reads with a fallback rather than an index, because a note that cannot
-explain itself should still let the refusal through — the "no such argument" clause
-above it is correct and complete on its own, and dropping the second sentence is the
-failure mode this file can afford. `_bounded` is already written that way, skipping a
-dest no bound names.

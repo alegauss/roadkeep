@@ -43,6 +43,8 @@ from roadkeep.config import Config
 from roadkeep.provenance import _LOADED_AT, engine
 from roadkeep.serving import (
     KNOWN_PROTOCOLS,
+    _CONDITIONAL,
+    _WITHHELD,
     METHOD_NOT_FOUND,
     PARSE_ERROR,
     PROTOCOL,
@@ -426,6 +428,28 @@ def test_a_closed_field_is_refused_by_the_table_that_would_open_it(tmp_path):
                ref="4.2", task_id="RK9b")
     )
     assert 'ref_scheme = "outline"' in both and "[ids] suffix" in both
+
+
+def test_every_conditional_field_declares_both_the_predicate_and_the_reason():
+    # RK251: two tables have to agree with `Tool.conditional`. A missing `_CONDITIONAL` entry
+    # raises on every `tools/list` and any test catches it; a missing `_WITHHELD` entry raises
+    # only on the one path that composes the refusal, which is the caller who needs the sentence.
+    declared = {dest for tool in TOOLS for dest in tool.conditional}
+    assert declared, "the assertion is about a set the surface still has"
+    assert declared <= set(_CONDITIONAL), "a field with no predicate cannot be opened"
+    assert declared <= set(_WITHHELD), "a field with no reason cannot be refused readably"
+
+
+def test_a_field_with_no_reason_still_earns_the_refusal_it_had(tmp_path, monkeypatch):
+    # And the fallback the test above makes a guarantee about the *shape* of: the clause naming
+    # what may be set instead is correct on its own, so a missing reason drops a sentence rather
+    # than raising inside the answer — `_bounded` is already written this way.
+    monkeypatch.setattr("roadkeep.serving._WITHHELD", {})
+    refused = text_of(
+        called(project(tmp_path), "add", block="A", symptom="s", why="w.", ref="4.2")
+    )
+    assert "no such argument ref" in refused
+    assert "this tool takes" in refused
 
 
 def test_a_flag_that_became_a_tool_is_always_passed_and_never_settable(tmp_path):
