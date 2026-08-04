@@ -552,6 +552,11 @@ class Departure:
     #: Open lines that still name this id. Reported and not refused: a supersession is
     #: legitimate and those lines are the author's next edit, which `lint` (RK14) gates.
     dependents: tuple[str, ...] = ()
+    #: The role whose file holds `--superseded-by`'s target — `roadmap`, `changelog` or
+    #: `deferred` (RK244). In the answer and never in the ledger line: a paused replacement
+    #: is a supersession waiting on a `resume`, which the retired line's id alone cannot
+    #: say, and a prefix saying it would go stale the moment the pause ends.
+    replacement_in: str | None = None
     #: The checkout, so the claim on a line that left for good is released (RK162) — the one
     #: thing this transaction touches that is not a governed file.
     root: Path | None = None
@@ -1141,18 +1146,36 @@ def retire(
     other field the tool fills in (RK8): "superseded by RK41" is a fact this command holds
     and the reason is prose it will not write (L4).
     """
+    holder: str | None = None
     if superseded_by is not None:
         if superseded_by == task_id:
-            raise NoSuchReplacement(superseded_by, task_id)
-        known = set(config.document("roadmap").by_id())
-        if config.has("changelog") and config.path("changelog").is_file():
-            known |= set(config.document("changelog").by_id())
-        if superseded_by not in known:
+            raise NoSuchReplacement(superseded_by, task_id, itself=True)
+        holder = _holding(Backlog.load(config), superseded_by)
+        if holder is None:
             raise NoSuchReplacement(superseded_by, task_id)
         why = f"superseded by {superseded_by}: {reason}"
     else:
         why = f"abandoned: {reason}"
-    return _depart(config, task_id, config.schema.retired_marker, why)
+    return _depart(
+        config, task_id, config.schema.retired_marker, why, replacement_in=holder
+    )
+
+
+def _holding(backlog: Backlog, task_id: str) -> str | None:
+    """The role whose file holds this id, or `None` when none of the three does (RK244).
+
+    :class:`~roadkeep.backlog.Backlog` and not three `config.document` calls, because that
+    is the reader that already knows how many files an id can live in — the set built by
+    hand here counted two, and RK96 had made it three.
+    """
+    for role, document in (
+        ("roadmap", backlog.roadmap),
+        ("changelog", backlog.ledger),
+        ("deferred", backlog.store),
+    ):
+        if document is not None and task_id in document.by_id():
+            return role
+    return None
 
 
 def record(
@@ -1268,7 +1291,13 @@ def _partial(
 
 
 def _depart(
-    config: Config, task_id: str, marker: str, why: str | None, lines: int | None = None
+    config: Config,
+    task_id: str,
+    marker: str,
+    why: str | None,
+    lines: int | None = None,
+    *,
+    replacement_in: str | None = None,
 ) -> Departure:
     """The one transaction both doors are: validate everything, then write nothing yet."""
     roadmap = config.document("roadmap")
@@ -1354,6 +1383,7 @@ def _depart(
         dependents=tuple(
             e.task.id for e in derived.document.entries if task_id in e.task.dep_ids
         ),
+        replacement_in=replacement_in,
         root=config.root,
     )
 

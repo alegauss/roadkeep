@@ -98,6 +98,7 @@
 - ✅ **RK236** **A departing line takes a standing memo's subsection with it** — A departure deletes only the section it owns, by `lint`'s own reading of ownership, so a line pointing into a standing memo leaves it and the reason names who it belongs to.
 - ✅ **RK237** **A block whose heading carries a pre-adoption note can never be withdrawn** — `block drop --prose` takes a heading's loose prose with it, refused still over anything a task or a section owns, and the refusal names the flag where prose is all that stands there.
 - ✅ **RK238** **`anchor.unknown` names the one remedy RK4 closes for an id the ledger holds** — The refusal names where the id is and the doors that open — `record amend` or an outline anchor — instead of the `add` that `refuse_reuse` forbids for an id the ledger carries.
+- ✅ **RK244** **A paused id cannot be named as what supersedes a retired line** — `retire` resolves the replacement through `Backlog`, so a paused id is a supersession the tool accepts, and the answer names which of the three files holds it.
 
 ## Block C — Query
 

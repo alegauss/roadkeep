@@ -77,29 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK244 The third file, in the one command that still counts two
-
-Reproduced on a project declaring all four files: RK2 paused in the store, and `retire
-RK1 --superseded-by RK2` exits 2 with *"RK2 is in neither file, so it cannot be what
-replaces RK1"*. Both halves are wrong. The id is in a file — the store — and the count
-is stale: RK96 made it three files an id can live in, and `NoSuchReplacement` still says
-two.
-
-It is the failure RK92 named one layer over: a file loaded only where somebody
-remembered to means a deferred id reads as "unknown" in every command that never heard
-of it. The resolver was fixed then and `Backlog.load` reads the store for exactly this
-reason, while this check builds its own set out of two `config.document` calls.
-
-The state is also the *likely* one. Work is set aside because something else is going to
-carry it, and the line that carries it is often the paused one somebody is coming back
-to — so this refuses the supersession most worth recording, and the way round it is to
-retire as abandoned, which deletes the pointer to the replacement RK32 exists to keep.
-
-What to decide: `Backlog` is the reader that already answers this, and its `deferred()`
-is the third lookup. Whether the answer should say *which* file it found the replacement
-in is the smaller question — a paused replacement is a supersession waiting on a resume,
-and a reader of the retired line has no other way to learn that.
-
 ### §RK249 Every other derived field is reported as one
 
 `add --json` reports `id`, `file`, `line`, `rendered`, `length`, `section`, `needs` and

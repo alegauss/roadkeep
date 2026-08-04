@@ -24,6 +24,7 @@ import pytest
 from roadkeep.backlog import Backlog, DepStatus, Readiness
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config, ConfigError
+from roadkeep.deferring import defer
 from roadkeep.document import Document
 from roadkeep.history import gaps, searchable
 from roadkeep.markers import refresh
@@ -119,21 +120,71 @@ def test_the_dependents_are_reported_and_not_refused(tmp_path):
     assert departure.dependents == ("RK4",)
 
 
+# -- the third file the replacement can be in (RK244) -------------------------
+
+
+def paused(tmp_path: Path, task_id: str = "RK7") -> Config:
+    """A project declaring the store, with one line already set aside in it."""
+    config = project(tmp_path, declare='deferred = "DEFERRED.md"\n')
+    with (tmp_path / "DEFERRED.md").open("w", encoding="utf-8", newline="") as handle:
+        handle.write("# Set aside\n\n## Block A — The model\n")
+    defer(config, task_id, reason="waiting on something else.").save()
+    return Config.discover(tmp_path)
+
+
+def test_a_paused_id_can_be_what_supersedes_a_retired_line(tmp_path):
+    # The likely state, and the one that was refused: work is set aside because something
+    # else will carry it, and the line that carries it is often the paused one.
+    config = paused(tmp_path)
+    departure = retire(config, "RK1", reason="RK7 covers it.", superseded_by="RK7")
+    departure.save()
+
+    (entry,) = [e for e in ledger_of(config).entries if e.task.id == "RK1"]
+    assert entry.task.why == "superseded by RK7: RK7 covers it."
+
+
+def test_the_answer_names_which_file_holds_the_replacement(tmp_path):
+    # Three files are three promises: shipped is a supersession delivered, open is one
+    # being worked, paused is one waiting on a `resume` nobody is holding.
+    store = retire(paused(tmp_path), "RK1", reason="RK7 covers it.", superseded_by="RK7")
+    assert store.replacement_in == "deferred"
+
+    elsewhere = tmp_path / "open"
+    elsewhere.mkdir()
+    open_line = retire(
+        project(elsewhere), "RK1", reason="RK7 covers it.", superseded_by="RK7"
+    )
+    assert open_line.replacement_in == "roadmap"
+
+
+def test_the_ledger_line_says_only_the_id(tmp_path):
+    # The state is not written into the entry: a pause ends, and a prefix saying "paused"
+    # would be a claim the ledger keeps making after `resume` made it false.
+    departure = retire(paused(tmp_path), "RK1", reason="RK7 covers it.", superseded_by="RK7")
+    assert "paused" not in departure.ledger.entry.task.why
+    assert "DEFERRED" not in departure.ledger.rendered
+
+
 # -- what it refuses ----------------------------------------------------------
 
 
-def test_a_replacement_in_neither_file_is_refused(tmp_path):
+def test_a_replacement_no_file_holds_is_refused(tmp_path):
     # A pointer to nothing is the exact defect being recorded against.
     config = project(tmp_path)
-    with pytest.raises(NoSuchReplacement):
+    with pytest.raises(NoSuchReplacement) as caught:
         retire(config, "RK1", reason="something else covers it.", superseded_by="RK99")
+    assert "deferred store" in caught.value.args[0]
     assert (tmp_path / "CHANGELOG.md").read_text(encoding="utf-8") == LEDGER
 
 
 def test_a_line_cannot_supersede_itself(tmp_path):
+    # Refused for a reason of its own, and said as one: RK1 *is* in a file, so the count
+    # of files it was not found in was the wrong sentence to reuse here.
     config = project(tmp_path)
-    with pytest.raises(NoSuchReplacement):
+    with pytest.raises(NoSuchReplacement) as caught:
         retire(config, "RK1", reason="itself.", superseded_by="RK1")
+    assert "cannot replace itself" in caught.value.args[0]
+    assert "not the roadmap" not in caught.value.args[0]
 
 
 def test_retiring_what_is_not_open_is_refused(tmp_path):
@@ -323,8 +374,34 @@ def test_the_command_reports_every_edit_and_the_event(tmp_path, capsys):
     assert out.startswith(f"RK1 {RETIRED} CHANGELOG.md:")
     assert "removed  ROADMAP.md:5" in out
     assert "dropped  §RK1" in out
+    assert "found    RK7 in ROADMAP.md" in out
     assert "still    RK4 name RK1" in out
     assert out.splitlines()[-1] == "  event    RK1  Block A  open"
+
+
+def test_the_command_names_the_store_when_that_is_where_it_found_it(tmp_path, capsys):
+    # The whole point of the line: the id alone reads as any other replacement, and this
+    # one only becomes work again when somebody runs `resume`.
+    paused(tmp_path)
+    capsys.readouterr()
+    assert (
+        main(
+            [
+                "-C", str(tmp_path), "retire", "RK1",
+                "--superseded-by", "RK7",
+                "--reason", "RK7 covers it.",
+                "--json",
+            ]
+        )
+        == EXIT_OK
+    )
+    assert json.loads(capsys.readouterr().out)["replacement_in"] == "deferred"
+
+
+def test_an_abandoned_line_reports_no_replacement(tmp_path, capsys):
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "retire", "RK1", "--reason", "gone.", "--json"]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["replacement_in"] is None
 
 
 def test_a_refused_retirement_writes_nothing_and_exits_two(tmp_path, capsys):
@@ -334,7 +411,7 @@ def test_a_refused_retirement_writes_nothing_and_exits_two(tmp_path, capsys):
               "--reason", "x."])
         == EXIT_USAGE
     )
-    assert "in neither file" in capsys.readouterr().err
+    assert "not the deferred store" in capsys.readouterr().err
     assert (tmp_path / "CHANGELOG.md").read_text(encoding="utf-8") == LEDGER
 
 

@@ -3760,6 +3760,7 @@ def _retire(config: Config, args: argparse.Namespace) -> int:
                     "id": departure.task_id,
                     "marker": departure.marker,
                     "superseded_by": args.superseded_by,
+                    "replacement_in": departure.replacement_in,
                     "changelog": {
                         "file": ledger,
                         "line": departure.ledger.lineno,
@@ -3783,6 +3784,14 @@ def _retire(config: Config, args: argparse.Namespace) -> int:
         f"under Block {block}"
     )
     print(f"  removed  {roadmap}:{departure.removed_from}")
+    if departure.replacement_in is not None:
+        # Where the replacement was found, because the three files are three different
+        # promises (RK244): shipped is a supersession already delivered, open is one being
+        # worked, and paused is one waiting on a `resume` nobody is holding.
+        print(
+            f"  found    {args.superseded_by} in "
+            f"{config.relative(config.path(departure.replacement_in))}"
+        )
     if departure.dropped is not None:
         print(f"  dropped  {departure.dropped} from {_prose_file(config, departure.prose)}")
     if departure.dependents:
@@ -4330,6 +4339,10 @@ def _print_estimate(estimate: Estimate) -> None:
         # Directly under the headline, because it is the headline it explains: a table-shaped
         # backlog reads as 0 lines, which is what an empty file reads as (RK98).
         print(f"  table    {estimate.tabular} line(s) in a table this format does not read")
+    if estimate.listed:
+        # Beside it, and for the same reason (RK279) — this is the shape the headline is
+        # most often explaining, an ordinary Markdown checklist under a block heading.
+        print(f"  list     {estimate.listed} plain bullet(s) under a block, in no shape read here")
     if estimate.blocks:
         print(f"  blocks   {', '.join(estimate.blocks)}")
     for prefix, count in estimate.prefixes:
@@ -4438,6 +4451,7 @@ def _estimate_json(estimate: Estimate) -> dict[str, object]:
         "rejects": [{"reason": r, "count": n} for r, n in estimate.rejects],
         "non_canonical": estimate.non_canonical,
         "tabular": estimate.tabular,
+        "listed": estimate.listed,
     }
 
 

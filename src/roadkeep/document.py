@@ -114,6 +114,11 @@ _MARKER_SLOT_RE = re.compile(rf"^\S+ \*\*[A-Za-z0-9]+{_PART}\*\*")
 #: what is *inside* the cells is deliberately never read (RK98).
 _ROW_RE = re.compile(r"^\s*\|.*\|\s*$")
 _RULE_RE = re.compile(r"^\s*\|(?:\s*:?-+:?\s*\|)+\s*$")
+#: A **top-level** list item of any Markdown flavour — `-`, `*`, `+` or `1.` / `1)` (RK279).
+#: Where a task would be, in the shape an unadopted backlog is actually in. Unindented on
+#: purpose: a nested bullet is detail of the item above it, and counting it would price one
+#: task as several. What is inside is never read, for the reason :data:`_ROW_RE` gives.
+_ITEM_RE = re.compile(r"^(?:[-*+]|\d+[.)]) +\S")
 #: A bullet whose first token *is* the bold id, so the marker slot is empty rather than
 #: wrong (see `_leads_with_the_id`). Id-shaped and nothing else: the shape is what tells
 #: `- **T1** — …` from `- **Delete** the 3 old files`.
@@ -397,6 +402,28 @@ class Row:
 
 
 @dataclass(frozen=True, slots=True)
+class Item:
+    """A plain list item under a block heading — the other shape with no reader (RK279).
+
+    :class:`Row` caught a backlog kept as a table. This catches the one almost every
+    unadopted roadmap is actually in: `- [ ] fix login`, `- fix login`, `1. fix login`. It
+    claims none of the task line's shape, so it is not a :class:`Reject`; it holds no pipes,
+    so it is not a :class:`Row` — and the file therefore read exactly as an empty one does,
+    which is the single answer an adoption estimate may not give (RK98).
+
+    Counted under a **declared block** and nowhere else, which is what keeps the frame out of
+    the number: a roadmap's preamble is bullets, its non-goals are bullets, and a prose aside
+    is a bullet. None of those sit under a block heading, and a task does.
+
+    Never parsed, only counted — the line :class:`Row` draws, for the same reason.
+    """
+
+    raw: str
+    lineno: int
+    block: str
+
+
+@dataclass(frozen=True, slots=True)
 class Heading:
     """A Markdown heading. ``label`` is set when it names a block."""
 
@@ -419,6 +446,11 @@ class Document:
     #: else, because this is the only reader of a file — and a count taken by a second
     #: scanner would be a second fence state machine to keep in step with this one.
     tabular: tuple[Row, ...] = ()
+    #: Plain list items filed under a block heading (RK279) — the same contract as
+    #: :attr:`tabular`, for the shape that is not a table. Read here for the same reason:
+    #: this is the only reader of a file, and the block a line sits under is state only
+    #: this pass has.
+    listed: tuple[Item, ...] = ()
     path: Path | None = None
     #: The bytes :meth:`load` read, kept so :meth:`save` can ask whether the target is
     #: still them (RK116). Carried through every mutation — the point is what was on disk
@@ -443,6 +475,7 @@ class Document:
         rejects: list[Reject] = []
         headings: list[Heading] = []
         pipes: list[Row] = []
+        items: list[Item] = []
         loose: set[int] = set()
         block: str | None = None
 
@@ -484,6 +517,12 @@ class Document:
 
             outcome = _read_bullet(body, schema, block or "")
             if outcome is None:
+                if block and _ITEM_RE.match(body):
+                    # A task in a shape this format has no reader for (RK279). Counted *as
+                    # well as* left loose below, not instead: `loose` decides where an entry's
+                    # span ends and this decides what an estimate saw, and one line can
+                    # honestly be both — a continuation of the bullet above, and a bullet.
+                    items.append(Item(raw=body, lineno=number, block=block))
                 if body.strip():
                     # A non-blank line this pass read nothing from: the continuation of the
                     # bullet above it, or a paragraph. Which of the two is decided after the
@@ -507,6 +546,7 @@ class Document:
             rejects=tuple(rejects),
             headings=tuple(headings),
             tabular=_tables(pipes),
+            listed=tuple(items),
             path=path,
         )
 

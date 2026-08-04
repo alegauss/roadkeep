@@ -15,7 +15,8 @@ reads a file it does not own and writes nothing at all.
   migration commitment, which is why it is a separate command from `lint` and not a flag
   on it: `lint` is a gate over files this project declared, and the file `adopt` reads is
   by definition not one of them yet. It counts what it could not read as well as what it
-  could — a backlog kept as table rows parses as nothing, and a zero the reader cannot
+  could — a backlog kept as table rows, or as the plain `- [ ] …` list almost every
+  unadopted roadmap actually is (RK279), parses as nothing, and a zero the reader cannot
   tell from an empty file is the one answer an estimate may not give (RK98). Counting the
   rows is not parsing them: reading the shape is an estimate's job, and a tool that read
   the cells would be a tool with two line formats. It reads **both** kinds of bullet a
@@ -261,14 +262,19 @@ class Estimate:
     #: the one an empty file gets, and the estimate that decides whether to adopt reports
     #: nothing to change about a file it has not read.
     tabular: int = 0
+    #: Plain list items under a block heading (RK279) — the shape almost every unadopted
+    #: roadmap is in, and the one that fell through both nets above: it claims none of the
+    #: task line's shape, so it is no reject, and holds no pipes, so it is no row. Measured:
+    #: the same two tasks priced 2 as a table and 0 as `- [ ] …`.
+    listed: int = 0
 
     @property
     def changing(self) -> int:
         """Lines that would have to change: everything that does not conform *or* read.
 
-        Table rows count here for the same reason rejects do — neither is an entry, and a
-        number that only added up what parsed would be smallest on the file furthest from
-        the format.
+        Table rows and plain list items count here for the same reason rejects do — none is
+        an entry, and a number that only added up what parsed would be smallest on the file
+        furthest from the format.
 
         Non-goals join it only where the project **declared** them governed (RK139), because
         there they are lines the gate will fail on. Where it has not, they are measured and
@@ -281,6 +287,7 @@ class Estimate:
             - self.conforming
             + sum(count for _, count in self.rejects)
             + self.tabular
+            + self.listed
             + scoped
         )
 
@@ -610,6 +617,7 @@ def adopt(
         # heading matching there would be an answer about the wrong file (RK139).
         non_goals=None if ledger else _scoped(config, document),
         tabular=len(document.tabular),
+        listed=len(document.listed),
     )
 
 
