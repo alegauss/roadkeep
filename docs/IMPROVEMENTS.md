@@ -248,3 +248,24 @@ makes `merge register` fail on the machine most likely to want it, which is the 
 against.
 
 ## Block F — The plugin
+
+### §RK260 One module for three events, imported as though every event were all three
+
+RK176 spent a task on this floor: the guard runs on every shell command and the harness
+waits, and 148 of the 184 ms went on imports before anything was looked at. `screening`
+answers "there is certainly nothing here" out of the standard library, measured now at
+32 ms and one module. Past the screen, `guarding` costs 141 ms and 25 modules — and the
+three hook events it serves need disjoint thirds of that. `PreToolUse`, the one on every
+Edit, Write and Bash, needs `config`, `provenance.invocation` and `serving.TOOLS`.
+`SessionStart` needs `installing.stale`. `Stop` needs `attesting`, `history` and
+`linting`. All seven are module-level. Attributed: `config` alone is 69 ms and
+unavoidable, `serving` adds 58 ms and 11 modules, `linting` adds 70 ms and 16. So a
+denial pays for the MCP server to read a tuple of `Tool` records, and pays for the
+linter it will not run. The discovery route is worth recording: RK259 added a
+function-level import to `serving` on the argument that it kept `authoring` off the
+guard's path, and measuring showed `guarding` already loads `authoring` and `sections`
+transitively — the deferral buys nothing and its comment says otherwise, so that line
+belongs to this fix. What to weigh: moving `TOOLS` to a module of its own, deferring the
+three Stop imports into the branch that uses them, or both — against RK202's finding
+that a lookup repeated per message is the cost worth removing, which is the opposite
+trade.
