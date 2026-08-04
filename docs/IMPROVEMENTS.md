@@ -377,6 +377,54 @@ shape at six. What stays true either way is that a *validation* refusal keeps th
 
 ## Block E — Adoption
 
+### §RK276 RK276 — two surfaces on one write, and only one was extended
+
+`merge --register` and `install --register-merge` are the same call: RK148 made that
+explicit, and the comment above the install branch says so — "the same two lines `merge
+--register` prints, in the same order, because it is the same write". RK274 added a
+third line, the file another driver is named for and this command deliberately did not
+touch. It went to one surface. The comment asserting the invariant is now the record of
+it breaking.
+
+The JSON is the same story: `added`, `present`, `command`, `invalidated_by`, `driver` —
+and no `left_alone`, so a caller parsing the adoption report cannot see a governed file
+that will not reach this driver. That is the reading most likely to be automated, and
+the fact most likely to matter to whoever automates it.
+
+What made the drift possible is that nothing held the two together. `test_installing.py`
+asserts one literal line of the install output, `test_merging.py` asserts the register
+output, and neither asks whether the two say the same things. A test over the *fields*
+of `Registration` — each one reachable from both surfaces — turns the next addition into
+a failure here rather than a silence in adoption.
+
+The alternative worth weighing is that they stop being two renderings: one function
+formatting a `Registration`, called with a different indent. That is smaller than it
+looks, and the reason to hesitate is that the install report has a column layout the
+merge one does not, which is what pushed them apart to begin with.
+
+### §RK277 RK277 — a driver asked for where no merge reaches it
+
+Measured: a repository whose `.gitattributes` says `docs/*.md merge=theirs`. `--check`
+reports `git sends 0 of 3 governed files … left alone`, which is right and is not a
+failure — RK274 settled that a claimed file is decided. Then the config half exits 1 and
+asks for `merge.roadkeep.driver` to be set. Nothing there would ever call it.
+
+The two halves are read independently, which is the design and the reason the answers
+are specific. What is missing is the one relation between them: the config answers *for
+the files the attributes route here*, so where none are routed, an unset driver is not a
+missing repair — it is the right state of a repository that chose something else.
+
+The narrow fix is a conjunction and not a new state: the config half is a failure only
+when `sent` is non-empty. Every other answer stays as it is, and the all-claimed
+repository turns from a check that cannot be satisfied into one that passes, which is
+what it is.
+
+Two things to be careful of. A repository with **no** governed files declared already
+reads `CURRENT` on the attribute half, so the same rule stops asking for a driver there
+too — correct for the same reason, and worth stating rather than discovering. And the
+relation must not run the other way: a driver set where nothing routes to it is
+harmless, so this narrows what the check *demands* and never what it reports.
+
 ## Block F — The plugin
 
 ### §RK267 RK267 — a note that knows more than it says
