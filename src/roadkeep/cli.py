@@ -1253,6 +1253,14 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     weight_parser.add_argument("--block", help="only this block's comparables, e.g. C")
+    weight_parser.add_argument(
+        "--records",
+        action="store_true",
+        help=(
+            "every weighed entry, which the percentiles summarise: the evidence for the "
+            "figure, wanted when you dispute it and not when you are sizing a line (RK264)"
+        ),
+    )
     weight_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     weight_parser.set_defaults(handler=_weight, reads_only=True)
 
@@ -4351,7 +4359,7 @@ def _weight(config: Config, args: argparse.Namespace) -> int:
 
     where = config.relative(config.path("changelog"))
     if args.json:
-        print(json.dumps(_weight_json(where, weights), indent=2))
+        print(json.dumps(_weight_json(where, weights, args.records), indent=2))
         return EXIT_OK
 
     scope = f"  Block {weights.block}" if weights.block else ""
@@ -4383,10 +4391,33 @@ def _weight(config: Config, args: argparse.Namespace) -> int:
             f"  missing  {len(weights.unresolved)} entr(ies) no commit accounts for: "
             f"{', '.join(weights.unresolved)}"
         )
+    if args.records:
+        for weight in weights.weighed:
+            shared = f"  shared with {weight.shared - 1} more" if weight.shared > 1 else ""
+            print(
+                f"  record   {weight.task_id:<6} {weight.lines:>5} lines  "
+                f"{weight.files:>3} files  {weight.commit}{shared}"
+            )
+    elif weights.weighed:
+        # Named and never silent (RK10): a listing that looked complete is the whole symptom
+        # one command over, and an elision the answer does not state is the same defect here.
+        print(f"  records  {len(weights.weighed)} not shown — `--records` prints them")
     return EXIT_OK
 
 
-def _weight_json(where: str, weights: Weights) -> dict[str, object]:
+def _weight_json(where: str, weights: Weights, records: bool) -> dict[str, object]:
+    """The distribution, the counts, and the sample only where it was asked for (RK264).
+
+    The percentiles **are** the answer — 22.7k of 23.7k characters here were the sample they
+    summarise, and scoping to a block only moved that to 89%, so the read priced to save
+    context was the one that spent it. What replaces the array is a count and never a cap: a
+    top-N would make the p90 a statement about a sample nobody chose, and the figure is the
+    one thing this command may not get wrong.
+
+    `unresolved` and `co_shipped` stay unconditionally. They are ids and not records, and
+    they are what says the distribution is over fewer entries than the ledger holds — the
+    half of this that must never be behind a flag.
+    """
     def spread(one: Spread) -> dict[str, int]:
         return {
             "count": one.count,
@@ -4419,7 +4450,12 @@ def _weight_json(where: str, weights: Weights) -> dict[str, object]:
                 "shared": weight.shared,
             }
             for weight in weights.weighed
-        ],
+        ]
+        if records
+        else [],
+        # `brief`'s `non_goals_elided`, one command over: the caller knows the list it read
+        # was cut, and 0 is the honest answer where nothing was.
+        "weighed_elided": 0 if records else len(weights.weighed),
         "unresolved": list(weights.unresolved),
         "co_shipped": list(weights.co_shipped),
     }

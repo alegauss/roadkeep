@@ -326,7 +326,10 @@ TOOLS: tuple[Tool, ...] = (
     Tool("section amend", ("anchor", "title", "body", "role")),
     Tool("section drop", ("anchor", "role")),
     Tool("non-goal list"),
-    Tool("weight", ("block",)),
+    # `records` is exposed because the caller paying for them is this one (RK264): the
+    # percentiles are the answer and the sample was 95% of the payload, so the evidence is
+    # a flag an agent disputing the figure can still pass rather than a read it cannot make.
+    Tool("weight", ("block", "records")),
     # The other pre-`add` read, and the one this transport needs most (RK190): `maxLength`
     # publishes the field's own ceiling and cannot publish the line's, so without this the
     # binding number reaches the author only as a refusal — a linter, one layer in.

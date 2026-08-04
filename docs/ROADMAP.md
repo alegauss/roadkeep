@@ -30,10 +30,10 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK264** (deps: —) **The cost query spends 95% of its answer on records its own percentiles summarise** — `weight` ships 250 per-task entries beside six percentiles, 22.7k of 23.7k characters, and `--block F` only moves that to 89% — so the read priced to save context is the one that spends it. → §RK264
 - 📋 **RK265** (deps: —) **budget omits the pointer under an outline ref scheme, so it over-reports the room by the anchor width** — It answered 182 characters left for a why `add` then refused at 174, the 8 being ` → §XX.2` — a limit found after the prose exists, which this verb exists to prevent. → §RK265
 - 📋 **RK283** (deps: —) **budget answers for the task line only, so the two largest prose limits are discoverable only by failing** — A non-goal why took two refusals at 286 and 234 against 200, and a section body one at 366 words against 300 — the verdict-after-the-prose this verb exists to prevent. → §RK283
 - 📋 **RK287** (deps: —) **A section's word count includes its subsections, so it names a figure no limit is measured against** — show and amend answered 310 for a section whose own prose is 48 and whose subsection is 255, against a declared 300 that lint passes — a verdict the author cannot act on. → §RK287
+- 📋 **RK293** (deps: —) **anchors names the next address under every family and not the next family** — A reused block needs a fresh top-level to file under, and the read built for that question answers per family in an order where IX follows IV, so the maximum is not on the listing either. → §RK293
 
 ## Block D — The gate
 

@@ -203,7 +203,11 @@ def test_the_command_names_what_it_left_out(tmp_path, capsys):
     assert main(["-C", str(config.root), "weight", "--json"]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
     assert payload["co_shipped"] == ["RK2", "RK3"]
-    assert [w["shared"] for w in payload["weighed"]] == [1, 2, 2]
+    # The exclusions are ids and not records, so they are never behind `--records` (RK264):
+    # they are what says the distribution is over fewer entries than the ledger holds.
+    assert payload["weighed"] == [] and payload["weighed_elided"] == 3
+    assert main(["-C", str(config.root), "weight", "--records", "--json"]) == EXIT_OK
+    assert [w["shared"] for w in json.loads(capsys.readouterr().out)["weighed"]] == [1, 2, 2]
     assert main(["-C", str(config.root), "weight"]) == EXIT_OK
     out = capsys.readouterr().out
     assert "batched  2 entr(ies) left out" in out and "RK2, RK3" in out
@@ -262,7 +266,7 @@ def test_it_ranks_nothing_and_writes_nothing(tmp_path):
     assert main(["-C", str(config.root), "weight"]) == EXIT_OK
     assert config.path("roadmap").read_text(encoding="utf-8") == before
     served = next(tool for tool in TOOLS if tool.name == "weight")
-    assert not served.writes and served.exposes == ("block",)
+    assert not served.writes and served.exposes == ("block", "records")
 
 
 # -- the command --------------------------------------------------------------
@@ -293,14 +297,46 @@ def test_the_scoped_command_names_the_comparables_with_their_commit(tmp_path, ca
 def test_the_json_carries_every_weight_and_both_distributions(tmp_path, capsys):
     config = repo(tmp_path)
     ship(config, "RK1", weight=10)
-    assert main(["-C", str(config.root), "weight", "--json"]) == EXIT_OK
+    assert main(["-C", str(config.root), "weight", "--records", "--json"]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
     assert payload["block"] is None and payload["file"] == "CHANGELOG.md"
     assert payload["weighed"][0]["id"] == "RK1"
     assert payload["weighed"][0]["lines"] == 11 and payload["weighed"][0]["files"] == 2
     assert payload["lines"]["median"] == 11 and payload["files"]["median"] == 2
     assert payload["blocks"]["A"]["count"] == 1
-    assert payload["unresolved"] == []
+    assert payload["unresolved"] == [] and payload["weighed_elided"] == 0
+
+
+# -- the sample the percentiles summarise (RK264) -----------------------------
+
+
+def test_the_distribution_arrives_without_the_sample_it_summarises(tmp_path, capsys):
+    # Measured before it was written: 22.7k of 23.7k characters were this array, and
+    # `--block F` only moved that to 89% — the read priced to save context spending it.
+    config = repo(tmp_path)
+    for number in range(1, 6):
+        ship(config, f"RK{number}", weight=10 * number)
+    assert main(["-C", str(config.root), "weight", "--json"]) == EXIT_OK
+    bare = capsys.readouterr().out
+    assert main(["-C", str(config.root), "weight", "--records", "--json"]) == EXIT_OK
+    full = capsys.readouterr().out
+    assert len(bare) < len(full)
+    # The figure is the one thing this command may not get wrong, so it is the same figure.
+    assert json.loads(bare)["lines"] == json.loads(full)["lines"]
+    assert json.loads(bare)["weighed_elided"] == len(json.loads(full)["weighed"]) == 5
+
+
+def test_what_was_left_out_is_named_and_never_capped(tmp_path, capsys):
+    # A count and not a top-N: a sample nobody chose would make the p90 a statement about
+    # that sample, which is the one number this may not misreport (RK10's rule, one over).
+    config = repo(tmp_path)
+    for number in range(1, 4):
+        ship(config, f"RK{number}", weight=10 * number)
+    assert main(["-C", str(config.root), "weight"]) == EXIT_OK
+    assert "records  3 not shown — `--records` prints them" in capsys.readouterr().out
+    assert main(["-C", str(config.root), "weight", "--records"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert out.count("  record   ") == 3 and "not shown" not in out
 
 
 def test_no_history_is_reported_as_absent_and_not_as_zero(tmp_path):

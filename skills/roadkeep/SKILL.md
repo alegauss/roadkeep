@@ -188,7 +188,9 @@ so a task started through it never has to ask. **`weight [--block <x>]` is the o
 comparable tasks cost, derived from the commits that shipped them, so whether the line being
 written is one task or two is a question with an answer. An entry whose commit wrote several
 is named under `batched` and left out of the percentiles, so a squashed adoption import
-skews nothing. It ranks nothing and lands on no line — the size field is a non-goal. **`roadkeep brief [<id>]` starts a task in one call** — the line,
+skews nothing. What comes back is the distribution and what was elided from it, the sample
+those percentiles summarise being `--records` and 95% of the payload. It ranks nothing and
+lands on no line — the size field is a non-goal. **`roadkeep brief [<id>]` starts a task in one call** — the line,
 its rationale, deps resolved, the blocker chain, what it unblocks and the non-goals, bounded
 to a tool result; with no id, `pick`'s own choice. Narrower: `next-id` never fills a gap;
 `list|stats|audit [--block <x>]` counts and lists, naming every marker line neither could

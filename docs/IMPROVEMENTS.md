@@ -147,25 +147,6 @@ only version of this that is a schema and not a warning.
 
 ## Block C — Query
 
-### §RK264 A distribution is six numbers, and this one arrives with its whole sample
-
-L5 is that a question is a command, so answering costs no context. Measured on this
-repository: `weight --json` is 23,741 characters, of which the `weighed` array is 22,714
-— 95% — to deliver `low`, `p25`, `median`, `p75`, `p90`, `high` on two axes, per block.
-Scoping does not fix it: `--block F` is 4,793 characters and still 89% records. The
-question the command exists for is "what did a comparable cost", and the percentiles are
-the whole answer; the per-task list is the evidence for it, which a caller wants when it
-disputes the figure and not when it is deciding whether a line is two lines. The
-precedent for the shape is already here twice. `brief` reports `non_goals_elided`, so a
-caller knows the list it read was cut. RK10's argument is the other half: a listing that
-looked complete is the whole symptom, so an elision has to be named rather than silent.
-Together they give the design — report the distribution and the count, name what was
-left out, and ship the records under a flag, which is also the honest place for
-`co_shipped` and `unresolved` to stay. What must not happen is a cap: a top-N would make
-the p90 a statement about a sample nobody chose, and the figure is the one thing this
-command may not get wrong. Discovered by calling it unscoped for a question it does not
-answer, which is how the cost was noticed at all.
-
 ### §RK265 The pointer budget cannot be told about
 
 `budget` derives every number from the id, the marker, the deps and the pointer — all known before the
@@ -232,6 +213,26 @@ that one leaves out, so the answer is a phrasing these verbs share — `48 words
 subsections (limit 300)` — rather than a choice between them. The rule underneath is the
 one RK245 and RK265 each found separately: a verb printing a number beside a limit is
 claiming the two are the same number.
+
+### §RK293 The next family, which is the one question the listing does not answer
+
+`anchors` was the answer to *which number may a reopened family take*, and it answers it
+well: live addresses, retired ones with the commit that spent them, and `next §XX.31`
+per family. Adopted in Claude Code Tray on 2026-08-04 it stopped an `add --ref XX.10`
+that would have re-pointed history at a new section, and named the free address in the
+refusal.
+
+The question one line up has no answer. `IMPROVEMENTS.md` numbers one §I… sequence and a
+block reused after its family shipped needs a *new* top-level — that is the normal case
+in a backlog organised by theme, not an edge one. Nothing prints which top-level is
+free, and the listing cannot be read for it either: the families come out sorted as
+strings, so `IX` follows `IV` and precedes `V`, and the last row is not the maximum. The
+number was guessed from the tail of 46 rows and happened to be right.
+
+Two lines of output, both derived from what the command already walked: the next free
+top-level beside the header's totals, and the family rows in numeral order so a reader
+can check it. The second matters on its own — a listing ordered by a numeral's spelling
+is one nobody can scan for a gap, which is the other question anchors gets asked.
 
 ## Block D — The gate
 

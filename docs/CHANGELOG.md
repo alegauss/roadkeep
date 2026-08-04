@@ -143,6 +143,7 @@
 - ✅ **RK200** **Which governed files no verb wrote is answerable only by trying to end the turn** — `writes` reads the digest record against the files — attested, unattested or unrecorded, per role, with the record's path — and moves no baseline, so the fact survives being asked for.
 - ✅ **RK245** **The number that binds an amend is the one figure `budget` states only in characters** — `Share.room` floors the remainder into words, `budget` and `brief` aim at what is left instead of at the whole field, and `--json` carries it beside the characters that refuse.
 - ✅ **RK247** **Nothing says which outline anchors history still cites** — `anchors [--family <x>]` reads live and retired addresses out of the file and its diffs with the next free child, and `section add` refuses a reused outline anchor by name.
+- ✅ **RK264** **The cost query spends 95% of its answer on records its own percentiles summarise** — The answer is the distribution plus what was elided from it — 23.7k characters down to 1.6k — and the sample it summarises is `--records`, a count and never a cap.
 
 ## Block D — The gate
 
