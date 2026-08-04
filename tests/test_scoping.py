@@ -19,6 +19,7 @@ from pathlib import Path
 
 import pytest
 
+import corpora
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config, ConfigError, Scope
 from roadkeep.guarding import Refusal
@@ -32,6 +33,7 @@ from roadkeep.scoping import (
     add,
     address,
     drop,
+    leads,
     read,
     rejects,
     render,
@@ -93,12 +95,68 @@ def test_the_lead_keeps_the_punctuation_its_author_wrote(tmp_path):
     assert not second.lead.endswith(".") and second.why.startswith("(Jira")
 
 
-def test_a_bullet_with_no_bold_lead_is_reported_and_never_guessed_at(tmp_path):
+def test_a_bullet_with_no_bold_lead_is_read_and_still_reported(tmp_path):
+    # RK233: read, so it has an address and therefore a door; reported, because being
+    # addressable is not being in the format. The two answers used to be two readers.
     config = project(tmp_path, roadmap=ROADMAP + "- No dates, because a marker is maturity.\n")
-    assert len(read(config.document("roadmap"))) == 2
+    found = read(config.document("roadmap"))
+    assert len(found) == 3 and [n.shaped for n in found] == [True, True, False]
+    assert found[-1].lead == "No dates, because a marker is maturity."
     assert rejects(config.document("roadmap")) == (
         (14, "- No dates, because a marker is maturity."),
     )
+
+
+def test_the_lead_brief_prints_is_the_address_drop_takes(tmp_path):
+    # The defect, as the pair a caller actually runs: `brief` printed a constraint by its
+    # first sentence and `non-goal drop` answered that no such non-goal exists — while `Edit`
+    # is denied and the gate's remedy for the bullet is a rewrite. Every door closed.
+    plain = "- Don't refactor the router, the SSE bus or the A/B assignment. Only execution.\n"
+    config = project(tmp_path, roadmap=ROADMAP + plain)
+    (lead,) = [n.lead for n in read(config.document("roadmap")) if not n.shaped]
+    assert lead == "Don't refactor the router, the SSE bus or the A/B assignment"
+    dropped = drop(config, lead)
+    dropped.save()
+    assert dropped.lines == (plain.rstrip("\n"),)  # the span, verbatim — nothing re-rendered
+    assert text(tmp_path) == ROADMAP
+
+
+def test_the_shape_is_the_only_finding_an_unshaped_bullet_earns(tmp_path):
+    # The lengths are charged where the shape held. A sentence-lead charged against `lead` as
+    # well is a second finding the first subsumes, and Turing's `is **not** a path` would add
+    # a third for the `*` of a bold run this module never wrote.
+    over = "- " + "Structured output (LLM → JSON) is **not** a path. " * 3 + "\n"
+    config = project(tmp_path, roadmap=ROADMAP + over)
+    codes = [f.code for f in lint(config).findings]
+    assert codes == ["non-goal.shape"]
+
+
+def test_two_bullets_of_different_shapes_are_still_one_address(tmp_path):
+    # The address is checked for every bullet because every bullet now has one: `drop` would
+    # take the later of the two either way, so a gate silent about it would be the split again.
+    twin = "- No web UI and no server. Said once more, without the bold.\n"
+    config = project(tmp_path, roadmap=ROADMAP + twin)
+    # Both on the one line, so the report orders them by code (RK14).
+    codes = [f.code for f in lint(config).findings]
+    assert codes == ["non-goal.duplicate", "non-goal.shape"]
+
+
+def test_the_corpus_that_named_this_has_a_door_for_every_lead_it_prints():
+    """Turing's list is what RK139 measured and RK233 was filed from: 0 parsed, 7 unread.
+
+    The count `adopt` reports is unchanged, because being addressable is not being in the
+    format — what changed is that all seven now resolve to a bullet, so nothing `brief` prints
+    is a constraint `drop` denies the existence of. Shio's nine hold the shape and are the
+    other half of the claim: a reader that accepts more must not accept them differently.
+    """
+    corpora.require(corpora.TURING)
+    document = corpora.document(corpora.TURING, "roadmap")
+    found = read(document)
+    assert len(found) == 7 and not any(goal.shaped for goal in found)
+    assert len(rejects(document)) == 7  # still the gate's finding, and still seven
+    addresses = {address(goal.lead) for goal in found}
+    assert {address(lead) for lead in leads(document)} == addresses
+    assert len(addresses) == 7  # seven bullets, seven addresses, none colliding
 
 
 def test_the_intro_sentence_is_not_a_non_goal(tmp_path):

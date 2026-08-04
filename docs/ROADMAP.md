@@ -26,7 +26,8 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK233** (deps: —) **A non-goal `brief` prints by its lead is one `drop` cannot address** — `leads` falls back to a bullet's first sentence where no bold lead exists and `read` skips those bullets, so Turing's seven print, count as unread, and answer to no address. → §RK233
+- 📋 **RK236** (deps: —) **A departing line takes a standing memo's subsection with it** — RK64 keeps a section a second open line points at, so the last of five Turing lines pointing at a STRATEGY memo subsection deleted 39 lines of positioning no task owned. → §RK236
+- 📋 **RK237** (deps: —) **A block whose heading carries a pre-adoption note can never be withdrawn** — `_held` counts loose prose as work filed under the heading, so `block drop` refuses while a note stands there and no verb removes one, leaving the hand edit the guard denies. → §RK237
 
 ## Block C — Query (consult without reading the file)
 

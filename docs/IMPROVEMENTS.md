@@ -100,27 +100,46 @@ overrun would be back to guessing, with a smaller number to guess against.
 
 ## Block B — Authoring
 
-### §RK233 A lead that prints and cannot be addressed
+### §RK236 A pointer under an outline is not a claim of ownership
 
-RK139 gave `adopt` the non-goals, and the first live measurement said what nothing had
-said before: Turing's list is **0 parsed and 7 unread**. Its bullets carry no bold head
-at all — `- Don't refactor the auto-trigger router, …` — which is what a non-goals list
-looks like when nobody chose a format, exactly as `- [ ] **C40**` was for a backlog.
+Under `ref_scheme = "id"` the anchor is the id, so a section has exactly one owner and
+deleting it on departure is right. Under `outline` the anchor is an address in a file
+the project already keeps, and the two are not the same claim: Turing's Block O lines
+pointed at `STRATEGY.md` §X.3 (content calendar) and §X.4 (measurement), subsections of
+a standing GEO memo whose siblings §X.1 (thesis) and §X.2 (channel split) are the same
+kind of prose and survived only because no line happened to name them. Retiring the last
+owner of each deleted both, and restoring them took the hand edit the guard denies.
 
-The defect is not that they are refused. It is that one reader accepts them and another
-does not. `leads` gives every bullet an address on purpose (RK68): where the bold shape
-does not hold, the lead is the bullet's first sentence, so `brief` prints a scope on a
-project that never opted in. `read` skips the same bullets, and `read` is what `drop`
-resolves an address against — so `brief` prints seven constraints and `non-goal drop`
-answers that none of them exists.
+The two existing guards do not reach it. RK64 asks whether another **open line** points
+at the anchor — true while four of five Block O lines were live, false at the fifth.
+RK196 asks whether **two roles** declare it — which is why §X.1 survived, by the
+accident of also being an IMPROVEMENTS heading.
 
-Two readers of one list is the split L1 exists to prevent, and it is the same split
-`address` was written to close for the bold case. The narrow answer is to let `read` see
-what `leads` sees, with the sentence as the lead and no bold to render back — which
-means `render` would have to reproduce a bullet it did not write, and that is the
-round-trip question (L3) this needs answered first. The wider one is to keep the refusal
-and make `brief` print nothing it cannot address, which is honest and takes the scope
-away from every ungoverned project.
+What distinguishes the two cases is whether the section was written *by* an `add
+--section` for this line, and the tool has that fact only where the anchor is derived.
+So the honest shapes are a `--keep-section` on `ship` and `retire` for the author who
+knows, or a refusal under `outline` when the anchor is not the line's own — never a
+heuristic about prose the tool does not read.
+
+### §RK237 The note under a block heading has no door
+
+An adopted roadmap carries a blockquote under each block heading — what the block is,
+and often a "fully shipped, see the changelog" paragraph — because that is what a
+hand-written backlog looks like. Turing's had ten, and four of them stood over blocks
+with no open line left at all.
+
+RK144 is right to count that prose: a paragraph orphaned by a removed heading is filed
+under the block above it, silently and in a way that round-trips. But the consequence is
+a corner with no exit. `block drop` refuses while the note is there; no verb writes or
+removes a block note, so the note can only leave through an `Edit` the guard denies or a
+`Bash` write the user approves and RK175 then reports as unattested. The block that most
+needs withdrawing — every line under it shipped — is exactly the one whose note says so.
+
+Two shapes, and the second is the smaller: a verb that takes the note (`block note
+--drop`, one heading's loose prose and nothing else), or `block drop --prose` naming
+what it will take in the refusal it currently only refuses with. Either way the fact
+worth keeping is that the note is *loose prose under a heading*, which the document
+model already resolves — nothing here needs to read what the prose says.
 
 ## Block C — Query
 

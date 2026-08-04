@@ -133,26 +133,6 @@ class NoSuchNonGoal(KeyError):
 
 
 @dataclass(frozen=True, slots=True)
-class _Bullet:
-    """One bullet's span before the grammar judges it: where it starts, and what it says.
-
-    ``joined`` folds the continuation lines in, which is what lets a lead be taken from the
-    whole bullet instead of from its first physical line (RK68) — the difference between
-    Turing's first non-goal forbidding ten things and appearing to forbid three.
-    """
-
-    first: int
-    raw: str
-    joined: str
-
-    @property
-    def rest(self) -> str:
-        """The bullet without its marker: what a lead is taken from, verbatim."""
-        marker = _ANY_BULLET.match(self.joined)
-        return marker.group("rest") if marker is not None else self.joined
-
-
-@dataclass(frozen=True, slots=True)
 class NonGoal:
     """One bullet under the non-goals heading, as data and as the file spells it."""
 
@@ -163,9 +143,16 @@ class NonGoal:
     last: int
     #: The source lines, verbatim and without their endings — the round-trip's evidence.
     lines: tuple[str, ...] = ()
+    #: Did the bold shape hold? False where the lead is the bullet's first sentence instead
+    #: (RK233). Carried rather than answered by a second parse, because every caller that
+    #: needs the distinction — the gate's `non-goal.shape`, `adopt`'s unread count — is
+    #: asking about a bullet this reader already read.
+    shaped: bool = True
 
     def __str__(self) -> str:
-        return f"**{self.lead}** {self.why}"
+        # Only what the file spells: a bullet that carries no bold head is not given one here,
+        # because a rendering that invented the shape would read as prose the tool wrote (L4).
+        return f"**{self.lead}** {self.why}" if self.shaped else " ".join(self.lines).strip()
 
 
 @dataclass(frozen=True, slots=True)
@@ -208,24 +195,33 @@ class Dropped:
 def read(document: Document) -> tuple[NonGoal, ...]:
     """Every non-goal under the heading, in file order, with its continuations joined.
 
-    A bullet the shape does not accept is *skipped*, not guessed at: this is the reader every
-    caller shares, and `lint` is where a project that opted in hears about the difference.
+    **Every bullet, including the ones the shape does not hold** (RK233). Skipping those made
+    two readers of one list: `leads` gave them an address on purpose (RK68) so `brief` prints
+    the whole scope, this one dropped them, and `drop` resolves against this one — so a
+    constraint printed by one command answered to no address in the other. On an opted-in
+    project that closed the last door: the gate reports `non-goal.shape` and names the
+    rewrite, `Edit` is denied (RK22), and the pair that would do it — `drop` then `add` —
+    could not reach the bullet. A finding whose remedy the tool refuses (RK16).
+
+    The **round-trip question that decided it** (L3): nothing renders a parsed non-goal back
+    into the file. :attr:`NonGoal.lines` is the source verbatim, `drop` removes that span, and
+    :func:`render` writes only what `add` composed — so accepting a bullet this module could
+    not have written costs no rendering it cannot do. What the shape *does* still decide is
+    what the gate says about the bullet, which is :attr:`NonGoal.shaped` and not this filter.
     """
-    return tuple(
-        parsed for _, parsed in _bullets(document) if parsed is not None
-    )
+    return _bullets(document)
 
 
 def rejects(document: Document) -> tuple[tuple[int, str], ...]:
-    """The bullets under the heading that the grammar did not accept, with their line.
+    """The bullets under the heading whose shape the format does not hold, with their line.
 
-    Separate from :func:`read` for the same reason :class:`~roadkeep.document.Reject` is
-    separate from an entry: a count that silently omitted them would read as a complete one.
+    Still the gate's own answer and still counted apart (RK139): being addressable is not
+    being in the format, and a count that omitted these would read as a complete one. What
+    changed is that they are no longer *unread* — :func:`read` returns them, so the finding
+    reported here has the door the finding is asking for.
     """
     return tuple(
-        (bullet.first, bullet.raw)
-        for bullet, parsed in _bullets(document)
-        if parsed is None
+        (goal.first, goal.lines[0]) for goal in _bullets(document) if not goal.shaped
     )
 
 
@@ -234,24 +230,15 @@ def leads(document: Document) -> tuple[str, ...]:
 
     Here rather than at the reader's call site so that the reader and the writer cannot
     disagree about what a lead *is*, exactly as :data:`HEADING` settles where the list is
-    (RK68). And unlike :func:`read`, nothing is skipped: a project that has not opted in
-    still has a scope every brief must carry, so a bullet the shape refuses gets a lead too.
+    (RK68). One line now, because :func:`read` reads what this reads (RK233) — the agreement
+    is the reader rather than two functions applying the same rule.
 
-    Where the shape holds it is the bold run and only that. Where it does not, it is the
+    Where the shape holds a lead is the bold run and only that. Where it does not, it is the
     first sentence of the bullet **joined across its continuations** — never a bold run found
     mid-sentence, which is emphasis and not an address: Turing writes ``is **not** a path``,
     whose middle bold made the printed non-goal the word ``not``.
     """
-    out: list[str] = []
-    for bullet, parsed in _bullets(document):
-        if parsed is not None:
-            out.append(parsed.lead)
-            continue
-        head, _, _ = bullet.rest.partition(_SENTENCE)
-        # Verbatim, stop included, exactly as the bold lead is kept: normalizing an author's
-        # punctuation to satisfy a rule nobody stated is the rewrite this refuses to be (L4).
-        out.append(head.strip())
-    return tuple(out)
+    return tuple(goal.lead for goal in _bullets(document))
 
 
 def address(lead: str) -> str:
@@ -424,14 +411,21 @@ def _heading_index(document: Document) -> int | None:
     return None if heading is None else heading.lineno - 1
 
 
-def _bullets(
-    document: Document,
-) -> tuple[tuple[_Bullet, NonGoal | None], ...]:
-    """Every bullet under the heading with its span joined, parsed where the shape allows."""
+def _bullets(document: Document) -> tuple[NonGoal, ...]:
+    """Every bullet under the heading, spans joined, each one addressable (RK233).
+
+    The continuation lines are folded in before a lead is taken, which is what lets it come
+    from the whole bullet instead of from its first physical line (RK68) — the difference
+    between Turing's first non-goal forbidding ten things and appearing to forbid three.
+
+    Where the bold shape does not hold, the lead is the first sentence and the `why` is what
+    follows it. Both **verbatim**, stop included where the sentence is the whole bullet,
+    exactly as the bold lead is kept: normalizing an author's punctuation to satisfy a rule
+    nobody stated is the rewrite this refuses to be (L4).
+    """
     start = _heading_index(document)
     if start is None:
         return ()
-    out: list[tuple[_Bullet, NonGoal | None]] = []
     spans: list[tuple[int, list[str]]] = []
     for offset, raw in enumerate(document.lines[start + 1 :], start=start + 2):
         body = raw.rstrip("\r\n")
@@ -441,21 +435,24 @@ def _bullets(
             spans.append((offset, [body]))
         elif spans and body.startswith(_CONTINUATION) and not blank(body):
             spans[-1][1].append(body)
-        elif blank(body):
-            continue
+    out: list[NonGoal] = []
     for first, span in spans:
         joined = " ".join(line.strip() for line in span)
+        where = {"first": first, "last": first + len(span) - 1, "lines": tuple(span)}
         match = _BULLET.match(joined)
-        parsed = None
         if match is not None:
-            parsed = NonGoal(
-                lead=match.group("lead").strip(),
-                why=(match.group("why") or "").strip(),
-                first=first,
-                last=first + len(span) - 1,
-                lines=tuple(span),
+            out.append(
+                NonGoal(
+                    lead=match.group("lead").strip(),
+                    why=(match.group("why") or "").strip(),
+                    **where,
+                )
             )
-        out.append((_Bullet(first=first, raw=span[0], joined=joined), parsed))
+            continue
+        marker = _ANY_BULLET.match(joined)
+        rest = marker.group("rest") if marker is not None else joined
+        head, _, tail = rest.partition(_SENTENCE)
+        out.append(NonGoal(lead=head.strip(), why=tail.strip(), shaped=False, **where))
     return tuple(out)
 
 

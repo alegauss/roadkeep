@@ -698,7 +698,11 @@ def _scoped(config: Config, document: Document) -> Scoped:
     table would cost before writing it.
     """
     scope = config.non_goals or Scope()
-    found = scoping.read(document)
+    # The bullets whose shape held, which is what `parsed` has always counted (RK233): the
+    # reader now returns the others too, so the filter is here and named rather than inside a
+    # reader two other callers share. An unshaped bullet is one edit, counted by `unparsed`,
+    # and charging its sentence-lead against `lead` as well would count that edit twice.
+    found = tuple(goal for goal in scoping.read(document) if goal.shaped)
     over = sum(
         1
         for goal in found

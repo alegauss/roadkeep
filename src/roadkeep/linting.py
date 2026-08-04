@@ -1084,8 +1084,17 @@ def _scope(config: Config, roadmap: Document | None) -> list[Finding]:
         )
     seen: dict[str, int] = {}
     for non_goal in scoping.read(roadmap):
-        for violation in scoping.validate(config, non_goal.lead, non_goal.why):
-            out.append(Finding(violation.code, file, violation.message, non_goal.first))
+        # The two lengths, only where the shape held (RK233). A bullet the reader now returns
+        # unshaped already carries the finding above, whose remedy is the rewrite — charging
+        # its sentence-lead against `lead` on top of that is a second finding the first one
+        # subsumes, and Turing's `is **not** a path` would add a third for the `*` a bold run
+        # this module never wrote is made of.
+        if non_goal.shaped:
+            for violation in scoping.validate(config, non_goal.lead, non_goal.why):
+                out.append(Finding(violation.code, file, violation.message, non_goal.first))
+        # The address is checked for every bullet, because every bullet now has one: two
+        # constraints a reader looks up by the same words are two answers about one scope
+        # whichever shape they are written in, and `drop` would take the later one either way.
         lead = scoping.address(non_goal.lead)
         first = seen.get(lead)
         if first is not None:
