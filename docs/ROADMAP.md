@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK237** (deps: —) **A block whose heading carries a pre-adoption note can never be withdrawn** — `_held` counts loose prose as work filed under the heading, so `block drop` refuses while a note stands there and no verb removes one, leaving the hand edit the guard denies. → §RK237
-
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK200** (deps: —) **Which governed files no verb wrote is answerable only by trying to end the turn** — RK175 records a digest per write and states one change once at the `Stop` hook, so the only way to ask is to be blocked — and it re-baselines as it reports, so the fact is gone. → §RK200

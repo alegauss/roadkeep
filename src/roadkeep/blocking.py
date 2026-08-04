@@ -178,13 +178,31 @@ class BlockOccupied(ValueError):
 
     Never raised for the ledger: entries there are history filed under a heading that stays
     for ever, so that file is skipped and reported instead.
+
+    ``prose`` says everything held is a **note**, and then the refusal names the flag that
+    takes it (RK237): a door whose existence the author learns from the refusal is the shape
+    RK93 argued for, and until it existed this message was the whole exit from the corner.
     """
 
-    def __init__(self, label: str, where: str, named: Sequence[str], word: str = "Block") -> None:
+    def __init__(
+        self,
+        label: str,
+        where: str,
+        named: Sequence[str],
+        word: str = "Block",
+        *,
+        prose: bool = False,
+    ) -> None:
         self.label = label
         self.where = where
         self.named = tuple(named)
         holds = ", ".join(self.named)
+        if prose:
+            super().__init__(
+                f"{where} files {holds} under {word} {label}, which is loose prose and not "
+                f"work: pass --prose to take the note with the heading, or keep both"
+            )
+            return
         super().__init__(
             f"{where} files {holds} under {word} {label}: a heading over work is not an "
             f"empty heading, and removing it would file all of it under the block above"
@@ -226,6 +244,10 @@ class Closed:
     #: The heading each file held, by role, verbatim: the answer's only record of the title
     #: this took out, since the file it was read from no longer holds it.
     rendered: Mapping[str, str] = field(default_factory=dict)
+    #: How many lines of loose prose went with the heading, by role (RK237). Absent where the
+    #: heading stood over nothing, so the report can tell "removed" from "removed the note
+    #: too" — which is the one thing `--prose` did that the author has to be able to see.
+    notes: Mapping[str, int] = field(default_factory=dict)
     #: Roles left alone, each with the reason — the ledger's entries above all, which are
     #: neither a refusal nor a removal and would otherwise be an unexplained silence.
     skipped: tuple[tuple[str, str], ...] = ()
@@ -235,7 +257,7 @@ class Closed:
         save_all(*self.documents.values())
 
 
-def drop_block(config: Config, label: str) -> Closed:
+def drop_block(config: Config, label: str, *, prose: bool = False) -> Closed:
     """Remove one block's heading from every governed file where it stands over nothing.
 
     Validates everything before touching anything, as :func:`open_block` does: a label no
@@ -245,6 +267,21 @@ def drop_block(config: Config, label: str) -> Closed:
 
     The ledger is skipped rather than refused over (see the module docstring): its headings
     hold history for ever, so entries under one are not an obstacle to clear.
+
+    ``prose`` takes the heading's **loose prose** with it (RK237), and it is the door a corner
+    had none of. An adopted roadmap carries a blockquote under each block heading — what the
+    block is, often a "fully shipped, see the changelog" paragraph — because that is what a
+    hand-written backlog looks like; Turing's had ten, four of them over blocks with no open
+    line left. RK144 is right to count that prose, but no verb wrote or removed a note, so the
+    only exits were an `Edit` the guard denies and a `Bash` write RK175 then reports as
+    unattested. The block that most needs withdrawing is exactly the one whose note says so.
+
+    **Opt-in, and never over work.** A task line or a nested heading under the label is
+    somebody's, and no flag makes a removal the right verb for it — so the refusal stands
+    whenever :attr:`Standing.work` is non-empty, and it names the flag only when prose is all
+    that is left. Nothing here reads what the note *says*: "loose prose under a heading" is
+    what the document model already resolves, and a tool with an opinion about the paragraph
+    would be writing prose (L4).
     """
     word = config.schema.heading_word
     declaring = _declaring(config, label)
@@ -254,22 +291,24 @@ def drop_block(config: Config, label: str) -> Closed:
     changed: dict[str, Document] = {}
     removed: dict[str, int] = {}
     rendered: dict[str, str] = {}
+    notes: dict[str, int] = {}
     skipped: list[tuple[str, str]] = []
 
     for role, where, document, heading in declaring:
         held = _held(document, heading)
-        if not held:
+        takeable = bool(held) and not held.work and prose
+        if not held or takeable:
             rendered[role] = document.lines[heading.lineno - 1].rstrip("\r\n")
             removed[role] = heading.lineno
             changed[role] = _excise(document, heading)
+            if takeable:
+                notes[role] = len(held.prose)
             continue
         if role != "changelog":
-            raise BlockOccupied(label, where, held, word=word)
-        plural = "entry" if len(held) == 1 else "entries"
-        skipped.append(
-            (where, f"{len(held)} {plural} filed under it: history keeps the heading it "
-             f"was filed under")
-        )
+            raise BlockOccupied(
+                label, where, held.names, word=word, prose=not held.work
+            )
+        skipped.append((where, _kept(held)))
 
     if not changed:
         # Every file declaring it kept it, which can only be the ledger. A refusal rather
@@ -281,8 +320,26 @@ def drop_block(config: Config, label: str) -> Closed:
         documents=changed,
         removed=removed,
         rendered=rendered,
+        notes=notes,
         skipped=tuple(skipped),
     )
+
+
+def _kept(held: Standing) -> str:
+    """Why the ledger's heading stayed, saying what it actually holds.
+
+    Counted by kind (RK237): "3 entries filed under it" about three lines of prose is a reason
+    that names the wrong thing, and the ledger is the one role where the answer is never a
+    refusal the author can read the difference off.
+    """
+    if held.ids:
+        plural = "entry" if len(held.ids) == 1 else "entries"
+        return (
+            f"{len(held.ids)} {plural} filed under it: history keeps the heading it "
+            f"was filed under"
+        )
+    kind = "prose" if held.prose else "heading(s)"
+    return f"{len(held.names)} line(s) of {kind} under it: the ledger's heading is not moved"
 
 
 def _declaring(
@@ -300,30 +357,65 @@ def _declaring(
     return tuple(found)
 
 
-def _held(document: Document, heading: Heading) -> tuple[str, ...]:
-    """What this heading stands over, named as a reader has to see it — empty when nothing.
+@dataclass(frozen=True, slots=True)
+class Standing:
+    """What one heading stands over, by kind (RK237).
 
-    Three kinds, because a block heading can own three kinds of thing: task lines or ledger
-    entries (named by id), nested headings such as a rationale section (named by their text),
-    and loose prose (named by its line, which is the only address it has). Anything non-blank
-    counts: a paragraph left behind by a removed heading is filed under the block above it,
-    which is the same silent misfiling as an orphaned task line.
+    The three kinds were always read; what they were not was told apart. A count of names is
+    all a refusal needs, and it is not enough for the *door*: prose is the one kind a removal
+    can honestly take with the heading, because the block above it is where it silently lands
+    otherwise — while a task line or a rationale section under this label is work, and moving
+    that is not a removal's business.
+    """
+
+    #: Task lines or ledger entries, by id.
+    ids: tuple[str, ...] = ()
+    #: Nested headings, by their text — a rationale section, or a sub-block.
+    headings: tuple[str, ...] = ()
+    #: Loose prose, by line number: the only address a paragraph has.
+    prose: tuple[int, ...] = ()
+
+    def __bool__(self) -> bool:
+        return bool(self.ids or self.headings or self.prose)
+
+    @property
+    def names(self) -> tuple[str, ...]:
+        """Everything, named as a reader has to see it — the order a refusal reports."""
+        return (
+            *self.ids,
+            *(f"{text!r}" for text in self.headings),
+            *(f"line {lineno}" for lineno in self.prose),
+        )
+
+    @property
+    def work(self) -> tuple[str, ...]:
+        """What no flag may take: the kinds that are somebody's, rather than the heading's."""
+        return (*self.ids, *(f"{text!r}" for text in self.headings))
+
+
+def _held(document: Document, heading: Heading) -> Standing:
+    """What this heading stands over — empty when nothing.
+
+    Anything non-blank counts: a paragraph left behind by a removed heading is filed under the
+    block above it, which is the same silent misfiling as an orphaned task line (RK144).
     """
     start, end = heading.lineno, document.subtree_end(heading)
-    names: list[str] = []
+    ids: list[str] = []
+    nested: list[str] = []
+    loose: list[int] = []
     seen: set[int] = set()
     for entry in document.entries:
         if start < entry.lineno <= end:
-            names.append(entry.task.id)
+            ids.append(entry.task.id)
             seen.add(entry.lineno)
-    for nested in document.headings:
-        if start < nested.lineno <= end:
-            names.append(f"{nested.text!r}")
-            seen.add(nested.lineno)
+    for below in document.headings:
+        if start < below.lineno <= end:
+            nested.append(below.text)
+            seen.add(below.lineno)
     for offset in range(start, end):
         if offset + 1 not in seen and not blank(document.lines[offset]):
-            names.append(f"line {offset + 1}")
-    return tuple(names)
+            loose.append(offset + 1)
+    return Standing(ids=tuple(ids), headings=tuple(nested), prose=tuple(loose))
 
 
 def _labels(config: Config) -> tuple[str, ...]:
@@ -341,8 +433,9 @@ def _labels(config: Config) -> tuple[str, ...]:
 def _excise(document: Document, heading: Heading) -> Document:
     """Take the heading out, with the blanks it owned — the inverse of :func:`_insert`.
 
-    The whole subtree in one edit, which by the time this is reached is the heading and blank
-    lines: the deletion is refused above where it is anything else. The trailing blank goes
+    The whole subtree in one edit, which by the time this is reached is the heading, blank
+    lines, and — under `--prose` — the note (RK237): the deletion is refused above where it is
+    anything a task or a section owns. The trailing blank goes
     with it, and where the block was last in the file the *leading* one does too — a
     paragraph break the file never had is still a change, and both spellings round-trip,
     which is exactly why nothing downstream would catch it (RK54).

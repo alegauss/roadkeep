@@ -93,6 +93,7 @@
 - ✅ **RK232** **Writer and gate part company again on an anchor two prose files declare** — The count came back thirteen, one of them pointed at, so `_pointed_at` takes the gate's last condition: an anchor two prose roles declare is charged its own prose by both readers.
 - ✅ **RK233** **A non-goal `brief` prints by its lead is one `drop` cannot address** — One reader: `read` returns every bullet with the lead `leads` prints, shaped or not, so a printed constraint has the door the gate's shape finding asks for.
 - ✅ **RK236** **A departing line takes a standing memo's subsection with it** — A departure deletes only the section it owns, by `lint`'s own reading of ownership, so a line pointing into a standing memo leaves it and the reason names who it belongs to.
+- ✅ **RK237** **A block whose heading carries a pre-adoption note can never be withdrawn** — `block drop --prose` takes a heading's loose prose with it, refused still over anything a task or a section owns, and the refusal names the flag where prose is all that stands there.
 
 ## Block C — Query
 

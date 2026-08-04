@@ -100,26 +100,6 @@ overrun would be back to guessing, with a smaller number to guess against.
 
 ## Block B — Authoring
 
-### §RK237 The note under a block heading has no door
-
-An adopted roadmap carries a blockquote under each block heading — what the block is,
-and often a "fully shipped, see the changelog" paragraph — because that is what a
-hand-written backlog looks like. Turing's had ten, and four of them stood over blocks
-with no open line left at all.
-
-RK144 is right to count that prose: a paragraph orphaned by a removed heading is filed
-under the block above it, silently and in a way that round-trips. But the consequence is
-a corner with no exit. `block drop` refuses while the note is there; no verb writes or
-removes a block note, so the note can only leave through an `Edit` the guard denies or a
-`Bash` write the user approves and RK175 then reports as unattested. The block that most
-needs withdrawing — every line under it shipped — is exactly the one whose note says so.
-
-Two shapes, and the second is the smaller: a verb that takes the note (`block note
---drop`, one heading's loose prose and nothing else), or `block drop --prose` naming
-what it will take in the refusal it currently only refuses with. Either way the fact
-worth keeping is that the note is *loose prose under a heading*, which the document
-model already resolves — nothing here needs to read what the prose says.
-
 ## Block C — Query
 
 ### §RK200 The record with no way to read it

@@ -405,6 +405,11 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     block_drop.add_argument("label", help="the block label, e.g. G")
+    block_drop.add_argument(
+        "--prose",
+        action="store_true",
+        help="take the heading's note with it — loose prose only, never work",
+    )
     block_drop.add_argument("--json", action="store_true", help=_JSON_HELP)
     block_drop.set_defaults(handler=_block_drop)
 
@@ -1719,7 +1724,7 @@ def _block_add(config: Config, args: argparse.Namespace) -> int:
 
 def _block_drop(config: Config, args: argparse.Namespace) -> int:
     try:
-        closed = drop_block(config, args.label)
+        closed = drop_block(config, args.label, prose=args.prose)
         closed.save()
     except REFUSALS as error:
         return _refused(error)
@@ -1738,6 +1743,9 @@ def _block_drop(config: Config, args: argparse.Namespace) -> int:
                             # write no file holds either and the answer is the only record.
                             "line": closed.removed[role],
                             "rendered": closed.rendered[role],
+                            # Null where the heading stood over nothing, so a caller reads
+                            # "the note went too" off a field rather than off a count (RK237).
+                            "note": closed.notes.get(role),
                         }
                         for role in closed.documents
                     ],
@@ -1754,6 +1762,10 @@ def _block_drop(config: Config, args: argparse.Namespace) -> int:
     width = max((len(files[role]) for role in closed.documents), default=0)
     for role in closed.documents:
         print(f"  {files[role]:<{width}}:{closed.removed[role]}  {closed.rendered[role]}")
+        if role in closed.notes:
+            # Said, because this is the one line of the removal that took prose with it and
+            # the file no longer holds it to be compared against (RK237).
+            print(f"  note     {closed.notes[role]} line(s) of prose taken with the heading")
     for where, reason in closed.skipped:
         print(f"  kept     {where}: {reason}")
     return EXIT_OK

@@ -478,6 +478,109 @@ def test_a_blocks_own_prose_is_named_by_the_line_it_is_on(tmp_path):
     assert "line 7" in str(caught.value)
 
 
+# -- the note that had no door (RK237) ----------------------------------------
+
+#: The shape adoption produces: a blockquote saying what the block is, and saying that
+#: everything under it shipped. Turing's roadmap carried ten, four over blocks with no open
+#: line left — so the block that most needed withdrawing was the one whose note said so.
+NOTED = """# Roadmap
+
+## Block A — The model
+
+- 📋 **RK1** (deps: —) **A first symptom** — Because of a reason. → §RK1
+
+## Block B — Authoring
+
+> Everything here shipped; see the changelog.
+> Kept as a marker of where the work was.
+"""
+
+#: Block A's design kept, Block B's heading standing over nothing: the state a withdrawal
+#: leaves behind, and the one `lint` has to call clean once the note is gone.
+BARE = (
+    "# Improvements\n\n## Block A — The model\n\n### §RK1 A first design\n\n"
+    "The reasoning the line has no room for.\n\n## Block B — Authoring\n"
+)
+
+
+def noted(tmp_path: Path) -> Config:
+    return project(
+        tmp_path,
+        roadmap=NOTED,
+        changelog="# Shipped\n\n## Block A — The model\n\n## Block B — Authoring\n",
+        improvements=BARE,
+    )
+
+
+def test_the_refusal_over_a_note_names_the_flag_that_takes_it(tmp_path):
+    # Until this, the message was the whole exit from the corner: `block drop` refused, no verb
+    # wrote or removed a note, and what was left was an `Edit` the guard denies and a `Bash`
+    # write RK175 reports as unattested.
+    config = noted(tmp_path)
+    with pytest.raises(BlockOccupied) as caught:
+        drop_block(config, "B")
+    assert "loose prose and not work" in str(caught.value)
+    assert "--prose" in str(caught.value)
+    assert read(config, ROADMAP) == NOTED
+
+
+def test_the_flag_takes_the_note_with_the_heading(tmp_path):
+    config = noted(tmp_path)
+    closed = drop_block(config, "B", prose=True)
+    assert closed.notes == {"roadmap": 2}  # the improvements heading stood over nothing
+    closed.save()
+    body = read(config, ROADMAP)
+    assert "Block B" not in body and "Everything here shipped" not in body
+    # Block A is untouched, which is what a removal that took a paragraph has to prove.
+    assert "- 📋 **RK1**" in body
+    assert lint(Config.discover(tmp_path)).clean
+
+
+def test_the_flag_never_takes_work(tmp_path):
+    # Opt-in is about the *kind*, not about the caller's confidence: a task line or a nested
+    # heading under the label is somebody's, and no flag makes a removal the right verb.
+    config = project(tmp_path, improvements=BARE)
+    with pytest.raises(BlockOccupied) as caught:
+        drop_block(config, "B", prose=True)
+    assert "RK2" in str(caught.value) and "--prose" not in str(caught.value)
+    assert read(config, ROADMAP) == BACKLOG
+
+
+def test_a_note_over_a_section_is_still_refused(tmp_path):
+    # Prose *and* work under one heading is work under one heading: the flag has nothing to
+    # do here, and taking the note alone would be a partial removal nobody asked for.
+    config = project(tmp_path, roadmap=NOTED)
+    with pytest.raises(BlockOccupied) as caught:
+        drop_block(config, "B", prose=True)
+    assert "§RK2 A second design" in str(caught.value)
+    assert read(config, IMPROVEMENTS) == RATIONALE
+
+
+def test_the_command_says_the_note_went(tmp_path, capsys):
+    # The one line of the removal that took prose, said: the file no longer holds it to be
+    # compared against, so silence about it reads exactly like a heading over nothing.
+    noted(tmp_path)
+    assert main(["-C", str(tmp_path), "block", "drop", "B", "--prose"]) == EXIT_OK
+    assert "note     2 line(s) of prose taken with the heading" in capsys.readouterr().out
+
+
+def test_the_json_carries_the_note_as_a_field(tmp_path, capsys):
+    noted(tmp_path)
+    argv = ["-C", str(tmp_path), "block", "drop", "B", "--prose", "--json"]
+    assert main(argv) == EXIT_OK
+    removed = {r["role"]: r["note"] for r in json.loads(capsys.readouterr().out)["removed"]}
+    # Three files declared the label; only the roadmap's heading stood over anything.
+    assert removed == {"roadmap": 2, "changelog": None, "improvements": None}
+
+
+def test_the_refusal_without_the_flag_is_still_the_one_for_work(tmp_path):
+    # The message every project already saw, unchanged where the heading stands over work.
+    config = project(tmp_path, improvements=BARE)
+    with pytest.raises(BlockOccupied) as caught:
+        drop_block(config, "B")
+    assert "a heading over work is not an empty heading" in str(caught.value)
+
+
 def test_the_ledger_keeps_its_heading_and_the_others_lose_theirs(tmp_path):
     # The exception, and the reason it is not an inconsistency: history is filed under that
     # heading for ever, so entries there are neither a refusal nor a removal.
