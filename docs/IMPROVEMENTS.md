@@ -75,7 +75,52 @@ already written, not authorship.
 
 ## Block A — The model
 
+### §RK243 The hint belongs to the refusals a sentence can answer
+
+RK201's argument is about the author composing a retry: a character count is not a unit
+they can measure, so the surplus is restated in words they can delete. That holds for
+every refusal whose remedy is a shorter sentence — `symptom.too-long`, `why.too-long`,
+`part.too-long`.
+
+`line.too-long` is not one of them. It is the backstop that fires only when no field is
+over the budget the line left it, and its own message says so: what does not fit is the
+structure around the prose. Appending "about 2 words" there names an edit that cannot
+work, in the same sentence that explains why — and a refusal whose named remedy the tool
+would reject is worse than one with no remedy, which is RK16's rule and RK238's.
+
+The fix is a choice about where the decision lives. `over_by` already takes the unit,
+and the word figure is switched on by it being characters; the narrower question is
+whether *this* overrun is a prose one, which the caller knows and the function does not.
+So the parameter is the caller's, not another branch inside the composer — and it stays
+a single spelling, which is what RK184 exists for.
+
+Two neighbours to check while there: `part.too-long` is prose and keeps the hint, and
+the section budgets already count in words, so neither is affected.
+
 ## Block B — Authoring
+
+### §RK244 The third file, in the one command that still counts two
+
+Reproduced on a project declaring all four files: RK2 paused in the store, and `retire
+RK1 --superseded-by RK2` exits 2 with *"RK2 is in neither file, so it cannot be what
+replaces RK1"*. Both halves are wrong. The id is in a file — the store — and the count
+is stale: RK96 made it three files an id can live in, and `NoSuchReplacement` still says
+two.
+
+It is the failure RK92 named one layer over: a file loaded only where somebody
+remembered to means a deferred id reads as "unknown" in every command that never heard
+of it. The resolver was fixed then and `Backlog.load` reads the store for exactly this
+reason, while this check builds its own set out of two `config.document` calls.
+
+The state is also the *likely* one. Work is set aside because something else is going to
+carry it, and the line that carries it is often the paused one somebody is coming back
+to — so this refuses the supersession most worth recording, and the way round it is to
+retire as abandoned, which deletes the pointer to the replacement RK32 exists to keep.
+
+What to decide: `Backlog` is the reader that already answers this, and its `deferred()`
+is the third lookup. Whether the answer should say *which* file it found the replacement
+in is the smaller question — a paused replacement is a supersession waiting on a resume,
+and a reader of the retired line has no other way to learn that.
 
 ## Block C — Query
 
