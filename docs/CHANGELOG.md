@@ -94,6 +94,7 @@
 - ✅ **RK233** **A non-goal `brief` prints by its lead is one `drop` cannot address** — One reader: `read` returns every bullet with the lead `leads` prints, shaped or not, so a printed constraint has the door the gate's shape finding asks for.
 - ✅ **RK236** **A departing line takes a standing memo's subsection with it** — A departure deletes only the section it owns, by `lint`'s own reading of ownership, so a line pointing into a standing memo leaves it and the reason names who it belongs to.
 - ✅ **RK237** **A block whose heading carries a pre-adoption note can never be withdrawn** — `block drop --prose` takes a heading's loose prose with it, refused still over anything a task or a section owns, and the refusal names the flag where prose is all that stands there.
+- ✅ **RK238** **`anchor.unknown` names the one remedy RK4 closes for an id the ledger holds** — The refusal names where the id is and the doors that open — `record amend` or an outline anchor — instead of the `add` that `refuse_reuse` forbids for an id the ledger carries.
 
 ## Block C — Query
 

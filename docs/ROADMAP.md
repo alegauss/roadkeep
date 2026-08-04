@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK238** (deps: —) **`anchor.unknown` names the one remedy RK4 closes for an id the ledger holds** — `_check` advises `add the line first` whatever the id state is, and `refuse_reuse` forbids the id a shipped entry already carries — so the only door named is the one that cannot open. → §RK238
-
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK200** (deps: —) **Which governed files no verb wrote is answerable only by trying to end the turn** — RK175 records a digest per write and states one change once at the `Stop` hook, so the only way to ask is to be blocked — and it re-baselines as it reports, so the fact is gone. → §RK200

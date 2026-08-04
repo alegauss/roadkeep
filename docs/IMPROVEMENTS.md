@@ -100,28 +100,6 @@ overrun would be back to guessing, with a smaller number to guess against.
 
 ## Block B — Authoring
 
-### §RK238 The advice a shipped id cannot take
-
-Found doing RK231, which fixed the neighbouring half: `_task_for` reads both live roles
-now, so a paused line is found and only an anchor no live line names still reaches
-`anchor.unknown`. An id the changelog holds is one of those, and rightly — a departure
-deletes the design (RK6), so there is no section to amend.
-
-What is wrong is the sentence. `no live task RK1 points at this section: add the line
-first` is a remedy `refuse_reuse` refuses: the id occurs in the ledger, so `add --id
-RK1` is `IdInUse`, and retired-never-reused (RK4) is the rule saying so. The author is
-handed the one door that cannot open, and the two that can go unnamed — an outline
-anchor for prose belonging to no task, which the message already offers for the *absent*
-case, and `record amend` where what actually needs correcting is the entry sentence.
-
-So this is RK16 one message over: a finding whose named remedy the tool refuses is worse
-than a finding with no remedy at all, because the author spends the attempt before
-learning it. The fact needed is one the writer already has —
-`config.document("changelog").by_id()`, the same read `_refuse_recorded` makes — and the
-split is what `NotSetAside` already does one module over: name where the id *is*,
-because "not here" is the same sentence for a task that shipped, one that was abandoned
-and one that never existed, and only the last is a typo.
-
 ## Block C — Query
 
 ### §RK200 The record with no way to read it

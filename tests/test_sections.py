@@ -34,6 +34,7 @@ from pathlib import Path
 import pytest
 
 import corpora
+from roadkeep.authoring import IdInUse, refuse_reuse
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.document import Document, UnknownBlock
@@ -645,6 +646,60 @@ def test_an_id_anchor_that_names_no_open_task_is_refused(tmp_path):
         add(config, "improvements", "RK9", "A design", "Prose.")
     assert [v.code for v in raised.value.violations] == ["anchor.unknown"]
     assert read(config) == RATIONALE
+
+
+def ledgered(tmp_path: Path, *, marker: str = "✅", design: bool = False) -> Config:
+    """A project whose ledger holds RK9 — the state `add the line first` cannot be taken in."""
+    improvements = RATIONALE
+    if design:
+        improvements += "\n### §RK9 A design that outlived its line\n\nProse.\n"
+    config = project(
+        tmp_path, improvements=improvements, extra='changelog = "docs/CHANGELOG.md"\n'
+    )
+    with (config.root / "docs" / "CHANGELOG.md").open("w", encoding="utf-8", newline="") as h:
+        h.write(
+            f"# Shipped\n\n## Block A — The model\n\n"
+            f"- {marker} **RK9** **A ninth symptom** — It left, one way or the other.\n"
+        )
+    return Config.discover(tmp_path)
+
+
+def test_an_id_that_never_existed_is_still_told_to_add_the_line(tmp_path):
+    # The one state that advice fits, and it keeps it: nothing anywhere carries RK9, so the
+    # line is the thing missing and `add` is the door.
+    config = project(tmp_path)
+    with pytest.raises(SchemaError) as raised:
+        add(config, "improvements", "RK9", "A design", "Prose.")
+    assert "add the line first" in str(raised.value)
+
+
+def test_a_shipped_id_is_offered_the_doors_that_open(tmp_path):
+    # RK238: `add the line first` is what `refuse_reuse` refuses — the id is in the ledger, so
+    # that `add` is `IdInUse` and retired-never-reused is the rule saying so. The author was
+    # handed the single door RK4 closes, and spent the attempt before learning it.
+    config = ledgered(tmp_path)
+    with pytest.raises(SchemaError) as raised:
+        add(config, "improvements", "RK9", "A design", "Prose.")
+    message = str(raised.value)
+    assert "add the line first" not in message
+    assert "the changelog records it as ✅" in message
+    assert "`record amend`" in message and "outline anchor" in message
+    # And the advice is followable: the door it names is the one that is not refused.
+    with pytest.raises(IdInUse):
+        refuse_reuse(config, "RK9")
+
+
+def test_a_retired_id_is_named_by_the_marker_the_ledger_holds(tmp_path):
+    # Three states, one sentence, and only the last is a typo — the split `NotSetAside`
+    # already makes: which of them it was is the whole of what the author needs.
+    # `amend` is the door that reaches it: the section is still in the file, so the earlier
+    # `NoSuchSection` does not fire and `_check` is what answers — one composer, so the two
+    # doors cannot describe one entry differently.
+    config = ledgered(tmp_path, marker="🗑", design=True)
+    with pytest.raises(SchemaError) as raised:
+        amend(config, "improvements", "RK9", body="Prose that outlived the line.")
+    assert "the changelog records it as 🗑" in str(raised.value)
+    assert "add the line first" not in str(raised.value)
 
 
 def test_every_violation_is_reported_not_the_first(tmp_path):
