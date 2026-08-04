@@ -161,27 +161,6 @@ remove.
 
 ## Block C — Query
 
-### §RK287 Two numbers, one of them printed
-
-Measured in Claude Code Tray, whose `[limits] section = 300`. `section amend XXV --body
-…` replaced a two-line intro and reported `310 words`; `section show XXV --json` says
-the same. That section's own prose is 48 words. The other 262 are `§XXV.3`, a subsection
-written by `section add`, which the same run had reported at 255 on its own.
-
-`lint` is clean, and it is right to be: the limit is measured on a section's own prose,
-which is what makes a file of many small sections the shape the limit exists to
-encourage. So the two verbs an author reads *while writing* state a number the gate does
-not use, and they state it beside a limit it appears to breach. The move it invites is
-to cut prose that was never over — or, on a parent genuinely over with short
-subsections, to trust a figure that happens to pass.
-
-Both figures are wanted: what the section costs a reader is the subtree, what the limit
-weighs is its own prose. `budget` has the same shape and RK283 is already about what
-that one leaves out, so the answer is a phrasing these verbs share — `48 words, 310 with
-subsections (limit 300)` — rather than a choice between them. The rule underneath is the
-one RK245 and RK265 each found separately: a verb printing a number beside a limit is
-claiming the two are the same number.
-
 ### §RK293 The next family, which is the one question the listing does not answer
 
 `anchors` was the answer to *which number may a reopened family take*, and it answers it

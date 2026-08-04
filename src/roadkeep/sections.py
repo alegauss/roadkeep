@@ -267,11 +267,36 @@ class Section:
     first: int  # 1-based, as an editor counts
     last: int
     body: str = ""
+    #: What this section's **own** prose spends, where :attr:`body` is a subtree (RK287).
+    #: None where the two are the same string — :func:`anchored`'s reading — and set by
+    #: :func:`find`, which is the constructor that returns the children with the parent.
+    own: int | None = None
 
     @property
     def words(self) -> int:
         """What the budget charges this section: its argument, not its whole text (RK136)."""
         return words(self.body)
+
+    @property
+    def own_words(self) -> int:
+        """The same count over this section's own prose, with no subsection in it (RK287).
+
+        Equal to :attr:`words` for a leaf, and the whole point for a parent: a container
+        like this repository's `§0` has no paragraph of its own, so :attr:`words` measures
+        the file's shape rather than anyone's argument.
+        """
+        return words(self.body) if self.own is None else self.own
+
+    @property
+    def nests(self) -> bool:
+        """Whether the two counts differ, which is when printing only one of them misleads.
+
+        The rule RK245 and RK265 each found at another door: a verb printing a number beside
+        a limit is claiming the two are the same number. Here they are two numbers, and which
+        one the gate charges depends on whether a line points at this anchor (RK215) — so
+        both are said, and neither is presented as the verdict.
+        """
+        return self.own_words != self.words
 
     def names(self, pattern: re.Pattern[str]) -> tuple[str, ...]:
         """The task ids this heading names, in order (RK61).
@@ -297,6 +322,10 @@ def find(document: Document, anchor: str) -> Section | None:
         return None
     _, end, heading = span
     body = "".join(document.lines[heading.lineno : end]).strip("\r\n")
+    # Both spans off the one heading (RK287). The subtree is what a drop deletes and what a
+    # reader pays; the prose is what the argument costs — and a Section that carried only the
+    # first left every printer stating a figure no limit is measured against.
+    own = "".join(document.lines[heading.lineno : document.prose_end(heading)]).strip("\r\n")
     return Section(
         anchor=anchor,
         title=_title_of(heading.text, document.schema),
@@ -304,6 +333,7 @@ def find(document: Document, anchor: str) -> Section | None:
         first=heading.lineno,
         last=end,
         body=body,
+        own=words(own),
     )
 
 

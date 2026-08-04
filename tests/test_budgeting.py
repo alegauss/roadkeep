@@ -562,3 +562,27 @@ def test_the_task_line_answer_is_unchanged_by_the_other_two_subjects(tmp_path, c
     assert main(["-C", str(tmp_path), "budget", "RK1", "--json"]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
     assert payload["id"] == "RK1" and "unit" not in payload and "subject" not in payload
+
+
+def test_the_section_budget_charges_the_argument_and_reports_the_subtree(tmp_path):
+    # RK287 at this door: `taken` is what an amend can shorten, and a container charged for
+    # its children names a figure no edit to its own paragraph can move.
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
+        'improvements = "IMPROVEMENTS.md"\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "IMPROVEMENTS.md").write_text(
+        "# Improvements\n\n## Block A — The model\n\n### §RK1 A design\n\nEight words of "
+        "prose, and one subsection under it.\n\n#### §RK1.1 A subsection\n\n"
+        "Which belongs to the section above and is longer than it is.\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "ROADMAP.md").write_text(BACKLOG, encoding="utf-8")
+    (tmp_path / "CHANGELOG.md").write_text(LEDGER, encoding="utf-8")
+    config = Config.discover(tmp_path)
+    answer = body_budget(config, "RK1")
+    assert answer.nests and answer.subtree > answer.taken
+    assert answer.left == answer.limit - answer.taken
+    # And the leaf says one number, because there is one.
+    assert not body_budget(config, "RK1.1").nests

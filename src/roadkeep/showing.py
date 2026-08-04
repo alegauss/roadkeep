@@ -88,6 +88,10 @@ class View:
     shipped: bool
     section: Section | None
     section_file: str | None
+    #: Which prose role declared it, so a reader can reach that file's own `section = <n>`
+    #: (RK287). The file alone cannot: `[limits.<role>]` is keyed by the role, and a printer
+    #: that re-derived it from the path would be the second answer to a settled question.
+    section_role: str | None
     #: Why there is no section, when there is none. Empty when there is one.
     section_absence: str
     paths: tuple[Referenced, ...]
@@ -111,7 +115,9 @@ class View:
 def show(config: Config, task_id: str) -> View:
     """Join the line, its section and the paths it names. Reads; never writes."""
     entry, role, document = _locate(config, task_id)
-    section, section_file, absence = _rationale(config, entry, shipped=role == "changelog")
+    section, section_file, section_role, absence = _rationale(
+        config, entry, shipped=role == "changelog"
+    )
     owned = document.lines[entry.index : entry.stop]
     # The whole entry, and not `entry.raw`: on a wrapped bullet the tail is the rest of the
     # sentence, so a path quoted there is one this task names (RK194).
@@ -124,6 +130,7 @@ def show(config: Config, task_id: str) -> View:
         shipped=role == "changelog",
         section=section,
         section_file=section_file,
+        section_role=section_role,
         section_absence=absence,
         # Both bases, for the reason RK51 gives: the line and its section are read from a
         # file, and a link relative to that file names an artefact the repository has.
@@ -153,7 +160,7 @@ def _locate(config: Config, task_id: str) -> tuple[Entry, str, Document]:
 
 def _rationale(
     config: Config, entry: Entry, shipped: bool
-) -> tuple[Section | None, str | None, str]:
+) -> tuple[Section | None, str | None, str | None, str]:
     """The section the pointer addresses, from **whichever** prose role declares it (RK186).
 
     RK172 taught resolution that a pointer addresses every governed prose file, because
@@ -170,24 +177,25 @@ def _rationale(
     anchor = entry.task.ref or entry.task.id
     roles = tuple(role for role in PROSE_ROLES if config.has(role))
     if not roles:
-        return None, None, f"this project declares no {' or '.join(PROSE_ROLES)} file"
+        return None, None, None, f"this project declares no {' or '.join(PROSE_ROLES)} file"
     named = " or ".join(config.relative(config.path(role)) for role in roles)
     # Where the design would go, for every answer that has no section: the first declared
     # role, which is `improvements` wherever a project declares one.
     where = config.relative(config.path(roles[0]))
     on_disk = tuple(role for role in roles if config.path(role).is_file())
     if not on_disk:
-        return None, where, f"{named} is not on disk yet"
+        return None, where, None, f"{named} is not on disk yet"
     found = [
-        (config.relative(config.path(role)), section)
+        (config.relative(config.path(role)), role, section)
         for role in on_disk
         if (section := find(config.document(role), anchor)) is not None
     ]
     if len(found) == 1:
-        return found[0][1], found[0][0], ""
+        return found[0][2], found[0][0], found[0][1], ""
     if found:
-        both = " and ".join(file for file, _ in found)
+        both = " and ".join(file for file, _, _ in found)
         return (
+            None,
             None,
             None,
             f"§{anchor} is declared by {both}: one anchor names one section, and a "
@@ -196,8 +204,8 @@ def _rationale(
     if shipped:
         # Not a defect: `ship` deletes the section, which is what keeps the prose file a
         # design file rather than a second changelog (RK6).
-        return None, where, "deleted on ship, which is where the rationale ends"
-    return None, where, f"§{anchor} is not in {named}: the pointer resolves to nothing"
+        return None, where, None, "deleted on ship, which is where the rationale ends"
+    return None, where, None, f"§{anchor} is not in {named}: the pointer resolves to nothing"
 
 
 def paths_in(

@@ -288,7 +288,12 @@ class Body:
     anchor: str
     role: str
     limit: int
+    #: This section's **own** prose, which is the argument an `amend` is about to replace.
     taken: int
+    #: The same count over the subtree (RK287). Equal to :attr:`taken` on a leaf, and larger
+    #: on a parent — reported beside it and never instead of it, because charging a container
+    #: for its children names a figure the author cannot act on by editing the paragraph.
+    subtree: int
     #: Whether the anchor names a section that exists. False is the pre-`section add` read,
     #: where the whole limit is free; True is the `amend`, which is where it matters — there
     #: the author holds a body and the number nobody has stated is what it has to fit inside.
@@ -297,6 +302,11 @@ class Body:
     @property
     def left(self) -> int:
         return max(0, self.limit - self.taken)
+
+    @property
+    def nests(self) -> bool:
+        """Whether the section carries subsections, so the two counts are two numbers."""
+        return self.subtree != self.taken
 
 
 def non_goal_budget(config: Config, lead: str | None = None) -> tuple[Share, ...]:
@@ -370,7 +380,8 @@ def body_budget(config: Config, anchor: str, role: str | None = None) -> Body:
         anchor=anchor,
         role=role,
         limit=config.schema_for(role).section_max,
-        taken=0 if section is None else section.words,
+        taken=0 if section is None else section.own_words,
+        subtree=0 if section is None else section.words,
         written=section is not None,
     )
 

@@ -1974,3 +1974,83 @@ def test_the_json_form_carries_it_too(tmp_path, capsys):
     project(tmp_path, improvements=DROPPABLE)
     main(["-C", str(tmp_path), "section", "drop", "0.2", "--json"])
     assert json.loads(capsys.readouterr().out)["cited"] == ["RK3"]
+
+
+# -- two numbers, one of them printed (RK287) ---------------------------------
+
+
+def test_a_section_carries_both_its_own_count_and_its_subtrees(tmp_path):
+    # The defect: `310 words` on a section whose own prose is 48 invites cutting prose that
+    # was never over. Both are wanted — the subtree is what a reader pays, the argument is
+    # what an amend can shorten — so both are carried and neither is the only one.
+    config = project(tmp_path)
+    section = find(config.document("improvements"), "RK1")
+    assert section.words == 18 and section.own_words < section.words
+    assert section.own_words == len("The reasoning the line has no room for.".split())
+    assert section.nests
+
+
+def test_a_leaf_says_the_same_number_twice_and_never_claims_two(tmp_path):
+    # Where there is nothing nested, there is one number — and a printer that always said
+    # "N words, N with subsections" would be noise on the common case.
+    leaf = find(project(tmp_path).document("improvements"), "0.1")
+    assert leaf.own_words == leaf.words and not leaf.nests
+
+
+def test_a_container_with_no_prose_of_its_own_is_charged_none_of_its_children(tmp_path):
+    # `§0` here is this repository's own shape: a heading that holds sections and no
+    # paragraph. Counting its children against it measures the file, not anyone's argument.
+    section = find(project(tmp_path).document("improvements"), "0")
+    assert section.own_words == 0 and section.words > 0 and section.nests
+
+
+def test_the_own_count_agrees_with_the_reading_the_gate_uses(tmp_path):
+    # `anchored` already carried own prose and `find` carried the subtree, which is the split
+    # that let two readers of one file disagree. They are one number now.
+    document = project(tmp_path).document("improvements")
+    by_anchor = {section.anchor: section for section in anchored(document)}
+    for anchor, own in by_anchor.items():
+        assert find(document, anchor).own_words == own.words
+
+
+def test_the_verbs_that_print_a_count_print_the_limit_beside_it(tmp_path, capsys):
+    # The rule underneath: a verb printing a number beside a limit is claiming the two are
+    # the same number. Here the limit is stated, so the figure acts on something.
+    config = project(tmp_path)
+    assert main(["-C", str(tmp_path), "section", "amend", "RK1", "--body", "Rewritten."]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "with subsections" in printed and f"limit {config.schema.section_max}" in printed
+
+
+def test_a_leaf_prints_one_figure_rather_than_the_same_one_twice(tmp_path, capsys):
+    config = project(tmp_path)
+    assert main(["-C", str(tmp_path), "section", "amend", "0.1", "--body", "Rewritten."]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "with subsections" not in printed and f"limit {config.schema.section_max}" in printed
+
+
+def test_the_json_carries_both_counts_so_a_client_never_has_to_choose(tmp_path, capsys):
+    project(tmp_path)
+    assert main(
+        ["-C", str(tmp_path), "section", "amend", "RK1", "--body", "Rewritten.", "--json"]
+    ) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["own_words"] < payload["words"]
+
+
+def test_show_states_the_same_pair_as_the_section_verbs(tmp_path, capsys):
+    # `show` and `brief` are what start a task, so a figure they state wrongly is the one
+    # an author acts on first.
+    config = project(tmp_path)
+    assert main(["-C", str(tmp_path), "show", "RK1", "--no-body"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "with subsections" in printed and f"limit {config.schema.section_max}" in printed
+
+
+def test_the_limit_printed_is_the_roles_own_and_not_the_projects(tmp_path, capsys):
+    # `[limits.improvements]` is the same declaration `[limits.changelog]` is (RK50), so a
+    # printer reading the project's number would state one this file is not held to.
+    config = project(tmp_path, extra="\n[limits.improvements]\nsection = 7\n")
+    assert config.schema_for("improvements").section_max == 7
+    assert main(["-C", str(tmp_path), "show", "RK1", "--no-body"]) == EXIT_OK
+    assert "limit 7" in capsys.readouterr().out

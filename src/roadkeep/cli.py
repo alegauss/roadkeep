@@ -1960,7 +1960,10 @@ def _section_add(config: Config, args: argparse.Namespace) -> int:
     if args.json:
         print(json.dumps(_section_json(section, where), indent=2))
         return EXIT_OK
-    print(f"§{section.anchor} → {where}:{section.first}  {section.words} words")
+    print(
+        f"§{section.anchor} → {where}:{section.first}  "
+        f"{_counted(section, config.schema_for(args.role).section_max)}"
+    )
     return EXIT_OK
 
 
@@ -1997,7 +2000,7 @@ def _section_amend(config: Config, args: argparse.Namespace) -> int:
         return EXIT_OK
     print(
         f"§{section.anchor} amended  {where}:{section.first}  "
-        f"({', '.join(changed)})  {section.words} words"
+        f"({', '.join(changed)})  {_counted(section, config.schema_for(args.role).section_max)}"
     )
     return EXIT_OK
 
@@ -2062,7 +2065,25 @@ def _section_json(section: Section, where: str) -> dict[str, object]:
         "first": section.first,
         "last": section.last,
         "words": section.words,
+        # The figure the limit is measured on, beside the one a reader pays (RK287). `words`
+        # keeps its meaning — the subtree, which is what a drop takes — and this is the
+        # section's own argument, which for a container is none of it.
+        "own_words": section.own_words,
     }
+
+
+def _counted(section: Section, limit: int) -> str:
+    """One phrasing of a section's size, shared by every verb that prints it (RK287).
+
+    Both figures where they differ, and the limit beside them either way. A bare `310 words`
+    on a section whose own prose is 48 invites cutting prose that was never over — and the
+    limit is what makes the number act on something, which is the whole of RK283 one door
+    over. Which of the two the gate charges depends on whether a line points at the anchor
+    (RK215), so neither is spelled as the verdict and the refusal states its own.
+    """
+    if not section.nests:
+        return f"{section.words} words (limit {limit})"
+    return f"{section.own_words} words, {section.words} with subsections (limit {limit})"
 
 
 def _status(config: Config, args: argparse.Namespace) -> int:
@@ -3754,9 +3775,13 @@ def _show(config: Config, args: argparse.Namespace) -> int:
     if task.deps:
         print(f"  deps     {', '.join(dep.render() for dep in task.deps)}")
     if section is not None:
+        # The role that declared it, so the limit printed beside the count is the one this
+        # file is held to (RK287) — `[limits.<role>]` is per prose file, exactly as it is
+        # for the changelog. A section exists only where a role declared it.
+        limit = config.schema_for(str(view.section_role)).section_max
         print(
             f"  section  {view.section_file}:{section.first}  "
-            f"§{section.anchor}, {section.words} words"
+            f"§{section.anchor}, {_counted(section, limit)}"
         )
     else:
         # The absence carries its reason: deleted on ship, never written, or no prose
@@ -3853,7 +3878,10 @@ def _body_budget(config: Config, args: argparse.Namespace) -> int:
     # Words throughout, and no character figure beside them (RK258): this limit is declared
     # in words, so translating it would publish a second number the config never stated.
     spent = f", {answer.taken} written, {answer.left} left" if answer.written else ""
-    print(f"  body       {answer.limit} words{spent}")
+    # The subtree beside the argument and never instead of it (RK287): what a reader pays
+    # is the whole of it, and what an `amend` can shorten is only this section's own prose.
+    nested = f", {answer.subtree} with subsections" if answer.nests else ""
+    print(f"  body       {answer.limit} words{spent}{nested}")
     return EXIT_OK
 
 
@@ -3890,6 +3918,9 @@ def _body_json(answer: Body) -> dict[str, object]:
         "limit": answer.limit,
         "taken": answer.taken,
         "left": answer.left,
+        # Both figures, as `section show` carries both (RK287): `taken` is the argument and
+        # this is what a reader pays for the whole subtree.
+        "subtree": answer.subtree,
     }
 
 
