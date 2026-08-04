@@ -377,6 +377,54 @@ shape at six. What stays true either way is that a *validation* refusal keeps th
 
 ## Block E — Adoption
 
+### §RK272 RK272 — a remedy that cannot reach the half it failed on
+
+Measured, not reasoned: `merge --check` on a fresh project answers `fix … merge
+--register`; running it writes three attribute lines and prints the config line; `merge
+--check` then answers the same `fix … merge --register`. The reader is told the repair,
+takes it, and gets the identical failure — the shape of advice that trains an author to
+stop reading it.
+
+Nothing here is a bug in `register`. It prints the `git config` line rather than running
+it because setting somebody's git config is a write outside the files this tool was
+given (L2), and that decision is right: a driver command is a path into a checkout, and
+a tool that silently edited `.git/config` would do the thing this whole file refuses to
+do.
+
+The defect is one remedy for two halves repaired differently. The attribute half is `merge
+--register`; the config half is the `git config …` line, which `register` composes and
+`Registration.command` already holds. So the check should name the repair *of the state it
+found* — the verb where attributes are missing, the literal config line where the driver is
+absent or unrunnable, both where both. That is more output on the failing path and none on the
+passing one, and it makes every line printed a line that changes something.
+
+What it must not become is `register` running `git config` after all, on the argument
+that one remedy would then be true. The half that is not written is not an oversight.
+
+### §RK273 RK273 — asking a file the question git answers
+
+`attributed` opens `<root>/.gitattributes` and compares strings. Git does not decide
+attributes that way: it reads a `.gitattributes` in every directory from the path up,
+then `$GIT_DIR/info/attributes`, then the core.attributesFile, with later and deeper
+rules winning. Measured in a scratch repository — `git check-attr merge --
+docs/ROADMAP.md` answered `merge: roadkeep` from `.git/info/attributes` while `merge
+--check` reported all three files unsent and exited 1. The check is wrong in the
+direction that costs least (it under-reports wiring rather than over-reporting it) and
+it is still wrong.
+
+`git check-attr merge -z -- <paths>` answers exactly, in one call, for every governed
+file, and this package already runs git through `history._run` with its timeout, its
+encoding and its one failure type — the same wrapper RK220 reaches for `check-ignore`.
+The answer is `roadkeep`, `unspecified`, `unset` or something else, which is richer than
+the boolean a string comparison can produce: an attribute set to a *different* driver is
+a case the current read cannot see at all, and it is the one where somebody deliberately
+wired something else.
+
+What that costs is the read becoming unanswerable where git is not there — the `UNKNOWN`
+the config half already has, arriving in the half that never needed it. `register` keeps
+writing the root file either way; where to *put* a line is a decision, and where git
+*finds* one is a fact, so only the second should move.
+
 ## Block F — The plugin
 
 ### §RK267 RK267 — a note that knows more than it says
