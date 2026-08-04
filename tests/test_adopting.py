@@ -967,6 +967,65 @@ def test_a_conforming_file_gains_no_finding_from_the_wider_pass(tmp_path: Path) 
     assert estimate.changing == 0 and estimate.conforming == estimate.parsed
 
 
+def test_the_files_it_did_not_open_are_named(tmp_path: Path) -> None:
+    # RK291: RK290 made the estimate and the gate agree on everything one file decides, so the
+    # checks that resolve *across* files became the whole difference — and no line said so.
+    docs = tmp_path / "docs"
+    docs.mkdir()
+    (docs / "ROADMAP.md").write_text(CONFORMING, encoding="utf-8")
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "docs/ROADMAP.md"\n'
+        'changelog = "docs/CHANGELOG.md"\nimprovements = "docs/IMPROVEMENTS.md"\n',
+        encoding="utf-8",
+    )
+    config = Config.discover(tmp_path)
+    estimate = adopt(config, docs / "ROADMAP.md")
+    # The target is excluded by resolved path, and the siblings are named as the project
+    # spells them — a filename is what an adopter can act on, unlike a finding code.
+    assert estimate.unopened == ("docs/CHANGELOG.md", "docs/IMPROVEMENTS.md")
+
+
+def test_the_limit_is_stated_even_where_it_did_not_bite(tmp_path: Path, capsys) -> None:
+    """A limit named only when it happened to matter is one the reader cannot rely on — the
+    same reason `[non_goals] not governed` prints on a file with no non-goals."""
+    target = tmp_path / "ROADMAP.md"
+    target.write_text(CONFORMING, encoding="utf-8")
+    assert main(["-C", str(tmp_path), "adopt", str(target)]) == EXIT_OK
+    printed = capsys.readouterr().out
+    # Printed on a file with nothing wrong with it, which is the point.
+    assert "0 would change" in printed
+    assert "deps and pointers resolve across files" in printed
+
+
+def test_the_sentence_holds_where_there_is_no_sibling_to_name(tmp_path: Path, capsys) -> None:
+    """A project declaring one file has no changelog to hand over, and the limit is still real:
+    a dep is resolved against the roadmap *and* the ledger, so one file cannot settle it."""
+    docs = tmp_path / "docs"
+    docs.mkdir()
+    (docs / "ROADMAP.md").write_text(CONFORMING, encoding="utf-8")
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "docs/ROADMAP.md"\n', encoding="utf-8"
+    )
+    config = Config.discover(tmp_path)
+    assert adopt(config, docs / "ROADMAP.md").unopened == ()
+    assert main(["-C", str(tmp_path), "adopt", str(docs / "ROADMAP.md")]) == EXIT_OK
+    assert "no other governed file not read" in capsys.readouterr().out
+
+
+def test_the_estimate_never_resolves_what_it_could_not_read(tmp_path: Path) -> None:
+    """The direction that must not happen (RK291): pointed at Shio's roadmap without its
+    changelog, a deps pass reports 82 unresolved deps on a backlog whose deps all resolve."""
+    target = tmp_path / "ROADMAP.md"
+    target.write_text(
+        "# Roadmap\n\n## Block A — The model\n\n"
+        "- 📋 **RK1** (deps: RK99) **A first symptom** — Because of a reason. → §RK1\n",
+        encoding="utf-8",
+    )
+    estimate = adopt(Config.default(tmp_path), target)
+    assert "deps.unknown" not in dict(estimate.codes)
+    assert estimate.changing == 0, "a dep it cannot resolve is not work it may price"
+
+
 def test_a_fenced_table_is_an_example(tmp_path: Path) -> None:
     """A rationale file quotes the shape it is arguing about; a fence is what says so."""
     target = tmp_path / "ROADMAP.md"

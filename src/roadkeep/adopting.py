@@ -282,6 +282,14 @@ class Estimate:
     #: what to write, and this tells them what writing it recovers — the number RK18 says is
     #: only worth having *before* the commitment, and which otherwise cost a scratch config.
     ledger_shape: tuple[tuple[str, int], ...] = ()
+    #: The governed files this estimate did **not** read (RK291). RK290 made the estimate and
+    #: the gate agree on everything one file decides, so what is left is the checks that
+    #: resolve across files — a dep satisfied by the changelog, a pointer resolved in the
+    #: rationale file. Running them from one file is what must not happen: pointed at Shio's
+    #: roadmap without its changelog, a deps pass reports 82 unresolved deps on a backlog
+    #: whose deps all resolve. Naming what was out of reach is the other act, and the one
+    #: an adopter can take — handing `adopt` these files is what the sentence implies.
+    unopened: tuple[str, ...] = ()
     #: Every family the measurement was taken under. One unless the caller passed a list:
     #: inference stays at the dominant spelling, because promoting the rest would be the
     #: tool deciding a foreign id is a second track (L4).
@@ -669,6 +677,7 @@ def adopt(
         prefixes=spelled,
         schemes=_schemes(document),
         ledger_shape=_ledger_shape(document, schema),
+        unopened=_unread(config, target),
         blocks=tuple(h.label for h in document.headings if h.label),
         non_canonical=len(document.non_canonical),
         # Only where the file is being read as a backlog: a ledger has no such list, and a
@@ -725,6 +734,7 @@ def _prose(config: Config, target: Path, ref_scheme: str | None) -> Estimate:
         # RK288: the second source. Without it `--sections` had no way to say "read this the
         # other way", which is the one sentence Shio's file needed.
         schemes=_heading_schemes(document),
+        unopened=_unread(config, target),
         parsed=len(found),
         conforming=sum(1 for count in words if count <= schema.section_max),
         # RK281: the same contract `listed` has one file over. A rationale file that never
@@ -978,6 +988,25 @@ def _heading_schemes(document: Document) -> tuple[tuple[str, int], ...]:
         elif OUTLINE_ANCHOR_RE.match(token):
             counts["outline"] = counts.get("outline", 0) + 1
     return _ranked(counts)
+
+
+def _unread(config: Config, target: Path) -> tuple[str, ...]:
+    """The governed files this run did not open, in `[files]` order (RK291).
+
+    Named by **file** and not by finding code, which is the decision the section settled:
+    `deps.unknown` and `ref.unresolved` is precise and ages badly as the gate grows a check,
+    while a filename is what an adopter can act on — handing `adopt` that file is the move the
+    sentence implies.
+
+    The target is excluded by resolved path rather than by role, because it may be declared
+    under none: `adopt` reads a file the project has not adopted yet, which is the whole case.
+    """
+    here = target.resolve()
+    return tuple(
+        config.relative(config.path(role))
+        for role in config.paths
+        if config.path(role).resolve() != here
+    )
 
 
 def _schemes(document: Document) -> tuple[tuple[str, int], ...]:

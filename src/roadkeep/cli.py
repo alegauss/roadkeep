@@ -4419,6 +4419,15 @@ def _print_estimate(estimate: Estimate) -> None:
         )
     if estimate.non_goals is not None:
         _print_scoped(estimate.non_goals)
+    # The terms of the measurement rather than its result (RK291), the shape `[non_goals] not
+    # governed` and `install`'s "no .github/workflows/" already use. Printed always, because a
+    # limit stated only where it happened to bite is one the reader cannot rely on: RK290 made
+    # the estimate and the gate agree on everything one file decides, so this names the rest.
+    where = ", ".join(estimate.unopened) if estimate.unopened else "no other governed file"
+    print(
+        f"  scope    {where} not read: deps and pointers resolve across files, so neither "
+        f"was checked here — `lint` is the answer once they are declared"
+    )
     for marker, count in estimate.undeclared:
         print(f"  marker   {marker} on {count} line(s), declared by nothing in [markers]")
     for code, count in estimate.codes:
@@ -4508,6 +4517,7 @@ def _estimate_json(estimate: Estimate) -> dict[str, object]:
         "non_canonical": estimate.non_canonical,
         "schemes": [{"scheme": s, "count": n} for s, n in estimate.schemes],
         "ledger_shape": [{"declaration": d, "count": n} for d, n in estimate.ledger_shape],
+        "unopened": list(estimate.unopened),
         "tabular": estimate.tabular,
         "listed": estimate.listed,
     }

@@ -48,8 +48,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK291** (deps: —) **Nothing in the estimate says which checks it did not run** — RK290 aligned the single-file half, so deps and pointers are the only divergence left — and a report reading `0 would change` prints nine measurements and never names that class. → §RK291
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - 📋 **RK267** (deps: —) **A staleness note lists every changed module and hands relevance back** — The server appends `engine().stale` to any refusal, so one `schema.py` decided arrives naming three modules that did not, and the reader re-runs on a guess about which mattered. → §RK267
