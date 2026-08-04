@@ -41,7 +41,7 @@ from pathlib import Path
 
 from roadkeep import claiming
 from roadkeep.authoring import Insertion, place, remove_entry
-from roadkeep.backlog import Backlog, NotOpen
+from roadkeep.backlog import Backlog, NotOpen, Whereabouts
 from roadkeep.config import PROSE_ROLES, Config
 from roadkeep.document import Document, save_all
 from roadkeep.markers import refresh
@@ -291,7 +291,7 @@ def resume(config: Config, task_id: str, *, marker: str | None = None) -> Resump
     store = config.document("deferred")
     held = store.by_id().get(task_id)
     if held is None:
-        raise NotSetAside(task_id, where, elsewhere=_whereabouts(config, task_id))
+        raise NotSetAside(task_id, where, elsewhere=Whereabouts.of(config, task_id).sentence)
     _refuse_recorded(config, task_id)
 
     backlog = Backlog.load(config)
@@ -406,12 +406,3 @@ def _refuse_recorded(config: Config, task_id: str) -> None:
     )
 
 
-def _whereabouts(config: Config, task_id: str) -> str:
-    """Where the id actually is, for a refusal that would otherwise name only where it is not."""
-    if config.document("roadmap").by_id().get(task_id) is not None:
-        return "it is open in the roadmap"
-    if config.has("changelog") and config.path("changelog").is_file():
-        recorded = config.document("changelog").by_id().get(task_id)
-        if recorded is not None:
-            return f"the changelog records it as {recorded.task.status}"
-    return "no file mentions it"

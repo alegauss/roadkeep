@@ -75,29 +75,6 @@ already written, not authorship.
 
 ## Block A — The model
 
-### §RK240 One answer to where an id is
-
-Three refusals answer the same question, and it is not "does this id exist" — it is
-*which absence*. `NotSetAside` names it for `resume` (open in the roadmap, recorded as ✅
-or 🗑, or mentioned by no file), `anchor.unknown` now names it for `section add` and
-`section amend` (RK238), and `NoSuchTask` names the files `show` asked. The split is
-deliberate and right: "not here" is one sentence for a task that shipped, one abandoned
-and one that never existed, and only the last is a typo.
-
-What is not right is that two of them compose it. `deferring._whereabouts` and
-`sections._recorded` both write `the changelog records it as {status}` from the same
-read of the same file, which is the shape RK229 was filed for one verb over — a
-resolution copied rather than called, and the copy is what goes stale when the other is
-corrected.
-
-The fact is about an id and not about a section or a pause, so it belongs where the id's
-state does. `Backlog` already loads every live role and the ledger, and
-`_refuse_recorded` already reaches across modules for exactly this. What needs deciding
-with it is whether the answer is a string or a small type: a string is what every caller
-prints today, while a type would let `_unknown` offer `record amend` from the marker
-rather than from a sentence it cannot read — and that is the one caller that acts on the
-state rather than reporting it.
-
 ## Block B — Authoring
 
 ## Block C — Query
@@ -153,3 +130,30 @@ Worth deciding with it whether this is one finding or one per heading. Two is th
 ## Block E — Adoption
 
 ## Block F — The plugin
+
+### §RK241 The field add withheld from itself
+
+`Tool("add", ("block", "symptom", "why", "deps", "status", "section", "section_body"))`
+omits `ref`, and the CLI's own help says `--ref` is "for ref_scheme = 'outline' only;
+otherwise derived". On a project that declares that scheme the anchor is the caller's to
+name, so the MCP surface has no way to name it and every `add` refuses with
+`ref.missing` — the same deadlock RK141 and RK144 fixed for `block add` and `block
+drop`, one verb over. Observed on a governed project with 890 tasks: `section add` wrote
+the rationale, and `add` still refused, so the only remaining door was importing
+`roadkeep.cli` from a source checkout by hand. `amend` already exposes `ref` for its own
+reason, which is the precedent for the shape. Expose it on `add` too, bounded the way
+`task_id` is — accepted only where the scheme makes it the caller's field, refused where
+it is derived, so the tool can never invent an anchor a derived-ref project would have
+computed.
+
+### §RK242 A hedge on every refusal is a hedge on none
+
+When the loaded module predates the files on disk, every refusal gains a paragraph
+saying the refusal "may be a build behind rather than a fact about this project". It is
+attached whether or not the changed files could affect the verb that refused, so a
+correct `ref.missing` reads exactly like a stale-build artefact. The observed cost is
+calls: the caller re-ran the same command, tried a second spelling of the flag, then
+imported the CLI from source to get an answer it already had. Narrow it to the case it
+describes — name the verb's own module in the changed set, or drop the hedge and state
+the drift as a fact separate from the refusal — so a refusal that is right stops
+arriving pre-doubted.

@@ -26,7 +26,7 @@ from pathlib import Path
 import pytest
 
 from roadkeep.authoring import IdInUse, StatusElsewhere, refuse_reuse, set_status
-from roadkeep.backlog import Backlog, DepStatus, NotOpen, Readiness
+from roadkeep.backlog import Backlog, DepStatus, NotOpen, Readiness, Whereabouts
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config, ConfigError
 from roadkeep.deferring import (
@@ -480,6 +480,15 @@ def test_resuming_what_never_paused_names_where_it_is(tmp_path):
     config = project(tmp_path)
     with pytest.raises(NotSetAside, match="it is open in the roadmap"):
         resume(config, "RK1")
+
+
+def test_the_sentence_it_names_it_with_is_the_one_the_section_refusals_use(tmp_path):
+    # RK240: this refusal and `anchor.unknown` composed the same clause in two modules, and
+    # a resolution copied rather than called is what goes stale when the other is corrected.
+    config = project(tmp_path)
+    with pytest.raises(NotSetAside) as raised:
+        resume(config, "RK1")
+    assert Whereabouts.of(config, "RK1").sentence in str(raised.value)
 
 
 def test_the_gate_passes_over_both_files_after_a_pause(tmp_path):

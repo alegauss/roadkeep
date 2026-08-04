@@ -57,6 +57,74 @@ class NotOpen(ValueError):
         super().__init__(f"no open task {task_id} in {where}: {detail}")
 
 
+class Where(StrEnum):
+    """Which absence an id is (RK240) — the question three refusals ask after "not here".
+
+    Not a readiness and not a dep status: those rank work, and this only says where to
+    look. The three are told apart because only the last one is a typo — an id that
+    shipped, one that was abandoned and one nobody ever wrote are three different next
+    actions, and a refusal that says "no such task" for all three sends two of the three
+    authors to search a file that is right.
+    """
+
+    #: The roadmap carries it as an open line.
+    OPEN = "open"
+    #: The ledger carries it, shipped or retired — :attr:`Whereabouts.marker` says which.
+    RECORDED = "recorded"
+    NOWHERE = "nowhere"
+
+
+@dataclass(frozen=True, slots=True)
+class Whereabouts:
+    """Where an id actually is, in one type and one sentence (RK240).
+
+    Two modules composed this independently and in the same words — `deferring` for
+    `resume`'s :class:`~roadkeep.deferring.NotSetAside`, `sections` for `anchor.unknown` —
+    which is a resolution copied rather than called: the copy is what goes stale when the
+    other is corrected. It lives here because the fact is about an **id**, and this module
+    is where an id's state is already read from every file that can hold one.
+
+    A type rather than the string both callers printed, because one of them *acts* on the
+    state: `sections._unknown` offers `record amend` only for an id the ledger holds, and
+    deciding that from the truthiness of a sentence is a branch that reads prose. So the
+    marker is carried, :attr:`sentence` is the one spelling, and the door is chosen from
+    :attr:`Where`.
+    """
+
+    where: Where
+    #: The ledger's marker where it holds the id — ✅ or 🗑 — and empty otherwise.
+    marker: str = ""
+
+    @classmethod
+    def of(cls, config: Config, task_id: str) -> Whereabouts:
+        """Read the files, roadmap first, and the ledger only where it can still answer.
+
+        The order is the answer's own: an id open in the roadmap is not looked for in a
+        ledger of finished work, and a project that declares no changelog has two states
+        rather than three.
+        """
+        if config.document("roadmap").by_id().get(task_id) is not None:
+            return cls(Where.OPEN)
+        if config.has("changelog") and config.path("changelog").is_file():
+            recorded = config.document("changelog").by_id().get(task_id)
+            if recorded is not None:
+                return cls(Where.RECORDED, recorded.task.status)
+        return cls(Where.NOWHERE)
+
+    @property
+    def recorded(self) -> bool:
+        return self.where is Where.RECORDED
+
+    @property
+    def sentence(self) -> str:
+        """The clause a refusal appends after naming where the id is not."""
+        if self.where is Where.OPEN:
+            return "it is open in the roadmap"
+        if self.where is Where.RECORDED:
+            return f"the changelog records it as {self.marker}"
+        return "no file mentions it"
+
+
 class DepStatus(StrEnum):
     """How a single dep resolved."""
 

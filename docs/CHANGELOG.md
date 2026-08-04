@@ -37,6 +37,7 @@
 - ✅ **RK184** **A length refusal names the rendered total and not the field that is over or the surplus** — Every length refusal names the field, the surplus and the word delete, so the author subtracts a stated number instead of recomposing a sentence against a total nobody wrote.
 - ✅ **RK187** **`export --readme --site` writes the first file and then refuses the second, leaving one refreshed** — The two projections are planned, both targets are asked, and only then are they renamed into place, so a refusal on either leaves neither refreshed.
 - ✅ **RK201** **A length refusal states its surplus in the one unit the author composing the retry cannot count** — A character overrun now names its surplus in words too — `delete 29 characters — about 5 words`, ceiled off the aim's own constant, so the retry is a deletion and not a re-guess.
+- ✅ **RK240** **Where an id actually is gets composed by two modules in the same words** — `Whereabouts` in `backlog` is the one composer of where an id is, so `resume` and both section refusals read one sentence — and `record amend` is offered off the marker, not off a non-empty string.
 
 ## Block B — Authoring
 

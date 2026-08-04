@@ -22,8 +22,6 @@
 
 ## Block A — The model (a task is data before it is a line)
 
-- 📋 **RK240** (deps: —) **Where an id actually is gets composed by two modules in the same words** — RK238 spells `the changelog records it as X` in sections and deferring already spells it in `_whereabouts`, so the sentence three refusals hand an author is two strings that can drift apart. → §RK240
-
 ## Block B — Authoring (insert, never hand-edit)
 
 ## Block C — Query (consult without reading the file)
@@ -37,6 +35,9 @@
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
+
+- 📋 **RK241** (deps: —) **The MCP add tool cannot write a line on an outline-ref project** — `add` exposes no `ref`, which `amend` does, so on `ref_scheme = "outline"` every call refuses `ref.missing` and the CLI is the only door. → §RK241
+- 📋 **RK242** (deps: —) **The stale-import notice makes a correct refusal look like a bug** — it rides every refusal unconditionally, so a caller disproves the build before trusting the reason and spends calls on a constraint that was right. → §RK242
 
 ## Non-goals
 

@@ -35,6 +35,7 @@ import pytest
 
 import corpora
 from roadkeep.authoring import IdInUse, refuse_reuse
+from roadkeep.backlog import Where, Whereabouts
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.document import Document, UnknownBlock
@@ -42,6 +43,7 @@ from roadkeep.schema import Schema, SchemaError
 from roadkeep.linting import lint
 from roadkeep.sections import (
     AnchorClaimed,
+    _elsewhere,
     NoSuchSection,
     SectionClaimed,
     SectionExists,
@@ -700,6 +702,42 @@ def test_a_retired_id_is_named_by_the_marker_the_ledger_holds(tmp_path):
         amend(config, "improvements", "RK9", body="Prose that outlived the line.")
     assert "the changelog records it as 🗑" in str(raised.value)
     assert "add the line first" not in str(raised.value)
+
+
+def test_the_sentence_naming_where_an_id_is_comes_from_one_composer(tmp_path):
+    # RK240: `deferring` and `sections` both wrote `the changelog records it as X` from the
+    # same read of the same file, so the refusal an author is handed was two strings. It is
+    # one type now, and this asserts the identity rather than the spelling — a test quoting
+    # the words a second time would be the third copy.
+    config = ledgered(tmp_path)
+    with pytest.raises(SchemaError) as raised:
+        add(config, "improvements", "RK9", "A design", "Prose.")
+    assert Whereabouts.of(config, "RK9").sentence in str(raised.value)
+
+
+def test_the_record_amend_door_is_chosen_from_the_state_and_not_from_a_sentence(tmp_path):
+    # The one caller that acts on the fact rather than printing it: `record amend` is the
+    # remedy for an id the ledger holds, and the branch reads the marker (RK240).
+    config = ledgered(tmp_path)
+    assert Whereabouts.of(config, "RK9").recorded
+    assert Whereabouts.of(config, "RK99").where is Where.NOWHERE
+    assert Whereabouts.of(config, "RK1").where is Where.OPEN
+
+
+def test_an_outline_anchor_reads_no_file_to_be_told_where_no_id_is(tmp_path, monkeypatch):
+    # An outline anchor named a section and never a task, so no file can answer a question
+    # `_unknown` will not ask (RK240) — the ledger parse this used to spend anyway.
+    config = ledgered(tmp_path)
+    reads: list[str] = []
+    original = Config.document
+    monkeypatch.setattr(
+        Config, "document", lambda self, role: (reads.append(role), original(self, role))[1]
+    )
+    assert _elsewhere(config, config.schema, "IV.2", None) is None
+    assert reads == []
+    # And an id-shaped one still reads them, that being the branch with a door to hand over.
+    assert _elsewhere(config, config.schema, "RK9", None) is not None
+    assert "changelog" in reads
 
 
 def test_every_violation_is_reported_not_the_first(tmp_path):

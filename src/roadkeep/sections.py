@@ -47,6 +47,7 @@ import textwrap
 from collections.abc import Iterator, Mapping, Sequence
 from dataclasses import dataclass, replace
 
+from roadkeep.backlog import Whereabouts
 from roadkeep.config import PROSE_ROLES, Config
 from roadkeep.document import Document, Heading, UnknownBlock, blank
 from roadkeep.schema import (
@@ -573,16 +574,16 @@ def add(
     where = config.relative(config.path(role))
     if task is None:
         task = _task_for(config, anchor)
-    # The ledger is read only where nothing live answered, which is the one branch that needs
-    # it (RK238): a section written for an open line costs no second parse for a door it will
-    # never be handed.
+    # The files are read only where nothing live answered *and* the anchor is an id (RK238,
+    # narrowed by RK240): a section written for an open line, or under an outline anchor,
+    # costs no second parse for a door it will never be handed.
     _check(
         document.schema,
         anchor,
         title,
         body,
         task,
-        elsewhere="" if task is not None else _recorded(config, anchor),
+        elsewhere=_elsewhere(config, document.schema, anchor, task),
     )
     existing = find(document, anchor)
     if existing is not None:
@@ -662,7 +663,7 @@ def amend(
         wanted_title,
         wanted_body,
         owner,
-        elsewhere="" if owner is not None else _recorded(config, anchor),
+        elsewhere=_elsewhere(config, document.schema, anchor, owner),
     )
     updated = _rewrite(document, heading, replace(section, title=wanted_title.strip()), wanted_body)
     amended = find(updated, anchor)
@@ -765,14 +766,15 @@ def _check(
     body: str,
     task: Task | None,
     *,
-    elsewhere: str = "",
+    elsewhere: Whereabouts | None = None,
 ) -> None:
     """Every rule a section is refused by, under **this file's** schema (RK147).
 
     ``elsewhere`` is where an id no live role holds actually is, threaded in rather than read
     here (RK238): this function takes a schema and not a project, which is what keeps it the
     one place the *rules* live — and the door an unknown anchor should be handed is a fact
-    about the caller's files.
+    about the caller's files. `None` is the caller saying there is nothing to say, which
+    `_elsewhere` decides.
 
     The schema is the one the caller loaded the document under — `config.schema_for(role)`,
     which is what `[limits.improvements]` declares (RK50) — and never `config.schema`, which
@@ -829,7 +831,7 @@ def _check(
         raise SectionError(tuple(out))
 
 
-def _unknown(anchor: str, elsewhere: str) -> str:
+def _unknown(anchor: str, elsewhere: Whereabouts | None) -> str:
     """The refusal for an id no live line names, carrying a door the author can take (RK238).
 
     `add the line first` is the remedy for the one state it fits — an id that never existed.
@@ -842,12 +844,16 @@ def _unknown(anchor: str, elsewhere: str) -> str:
     id *is* — and the two doors that do open are the ones offered: `record amend` for the entry
     sentence, which is what actually needs correcting when a shipped design reads wrong, and an
     outline anchor for prose belonging to no task, which this message already offered.
+
+    The door is chosen from :class:`~roadkeep.backlog.Where` and not from whether a sentence
+    is empty (RK240): `record amend` is the remedy for an id the **ledger** holds, and a
+    branch that infers that from the truthiness of prose is a branch reading prose.
     """
-    if elsewhere:
+    if elsewhere is not None and elsewhere.recorded:
         return (
-            f"no live task {anchor} points at this section: {elsewhere}, so its design ended "
-            f"at the departure — correct that entry with `record amend`, or use an outline "
-            f"anchor for prose that belongs to no task"
+            f"no live task {anchor} points at this section: {elsewhere.sentence}, so its "
+            f"design ended at the departure — correct that entry with `record amend`, or use "
+            f"an outline anchor for prose that belongs to no task"
         )
     return (
         f"no live task {anchor} points at this section: add the line first, or "
@@ -855,19 +861,17 @@ def _unknown(anchor: str, elsewhere: str) -> str:
     )
 
 
-def _recorded(config: Config, anchor: str) -> str:
-    """How the ledger records this id, or empty where it does not — the fact `_unknown` needs.
+def _elsewhere(config: Config, schema: Schema, anchor: str, task: Task | None) -> Whereabouts | None:
+    """Where the id is, read only where the refusal can use the answer (RK240).
 
-    The read `deferring._refuse_recorded` already makes, in the words `_whereabouts` already
-    uses: one spelling of "the changelog records it as ✅", because two would eventually
-    describe the same entry differently.
+    `None` is "nothing to say", and it covers two cases rather than one: a live line already
+    owns this anchor, or the anchor is not an id at all. An outline anchor named a section
+    and never a task, so reading a ledger for it is a parse spent on a question `_unknown`
+    will not ask — the one this used to make before the shape was checked.
     """
-    if not config.has("changelog") or not config.path("changelog").is_file():
-        return ""
-    recorded = config.document("changelog").by_id().get(anchor)
-    if recorded is None:
-        return ""
-    return f"the changelog records it as {recorded.task.status}"
+    if task is not None or not schema.id_pattern().match(anchor):
+        return None
+    return Whereabouts.of(config, anchor)
 
 
 def _pointed_at(config: Config, anchor: str) -> bool:
