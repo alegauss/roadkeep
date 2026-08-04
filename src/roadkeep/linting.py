@@ -63,9 +63,12 @@ task line is the shape of a smuggled requirement *and* of a typo fix (RK36). Ref
 either would produce a gate that gets bypassed, which is worth less than a sentence read
 at the moment of the commit — the same split `audit` (RK10) makes.
 
-Everything above is decidable from the files as they are. The one check that is about a
-*change* is opt-in through ``since``, because `lint` has to keep working in a checkout with
-no history: `--since HEAD` in a commit hook, the base branch in CI.
+Everything above is decidable from the files as they are. The checks that are about a
+*change* are opt-in through ``since``, because `lint` has to keep working in a checkout with
+no history: `--since HEAD` in a commit hook, the base branch in CI. The second of them is a
+block this commit **emptied or reopened** (RK269) — the transition `ship` computes, states
+once to a console and records nowhere, which is what left a project's derived per-block index
+claiming a finished block was active while `lint` called the tree clean four times running.
 
 **And one question the absolute count cannot answer: did this change make it worse (RK84).**
 An adopting project arrives with history — one live corpus lints at 317 problems, none of
@@ -503,9 +506,11 @@ def lint(
     the pinned-corpus fixture, whose whole difficulty was that a config can carry one root
     and a pinned run needs the governed files copied and the tree left where git can read it.
 
-    ``since`` adds the one check that is about a *change* rather than a state (RK36): a
-    revision to diff the governed files against, `HEAD` in a pre-commit hook and the base
-    branch in CI.
+    ``since`` adds the checks that are about a *change* rather than a state — a section edited
+    without its line (RK36), and a block this change emptied or reopened (RK269) — against a
+    revision, `HEAD` in a pre-commit hook and the base branch in CI. Both are notes, and both
+    are only askable of a diff: as states they are "somebody edited prose once" and "this
+    block is empty", which are true forever and read by nobody.
 
     ``baseline`` answers the other question about a change (RK84): the same gate is run over
     the governed files as they were at that revision, and what comes back is the excess —
@@ -545,6 +550,8 @@ def _examine(config: Config, since: str | None, tree: Tree) -> Report:
     findings.extend(_across(config, documents))
     findings.extend(_scope(config, documents.get("roadmap")))
     notes: list[Note] = _collective(config, documents)
+    if since is not None:
+        notes.extend(_turned(config, documents, since))
 
     prose: dict[str, Document] = {}
     for role in PROSE_ROLES:
@@ -906,6 +913,79 @@ def _collective(config: Config, documents: dict[str, Document]) -> list[Note]:
                     f"{dep.id} is one token naming {len(members)} open tasks: {shown}",
                     entry.lineno,
                     entry.task.id,
+                )
+            )
+    return out
+
+
+def _turned(config: Config, documents: dict[str, Document], since: str) -> list[Note]:
+    """A block that emptied or reopened in this change (RK269).
+
+    `ship` is the only verb that computes it — `event T282 Block AI empty` — and says it once,
+    to a console. Nothing records it, no later verb can ask, and `lint` reports a clean tree
+    either way, which is the gate an author actually trusts. Measured in a repository keeping a
+    per-block index beside its ledger, one `(active — see ROADMAP)` per row: two ships emptied a
+    block and two adds reopened it across four commits, every row was flipped by hand, and every
+    time `lint` passed on the wrong one. The discrepancy was caught by that project's own test
+    suite, which asserts the index against the roadmap because this tool does not.
+
+    Three shapes were open and this is the cheapest of them, which is also the one that would
+    have caught all four. Not a query verb: `stats --json` already answers which blocks hold
+    nothing, so a project's check can be written against roadkeep today. Not ownership of the
+    index row either — that is a projection, and a projection roadkeep writes is `export`'s
+    contract (RK39), which wants a declared shape rather than a guess at somebody's table.
+
+    Reported with ``since`` and never as a state, which is the whole reason it is quiet enough
+    to keep: the shipped pre-commit hook runs `lint --since HEAD`, so this lands at the moment of
+    the commit that moved it — while "Block A is empty" is true of this repository forever and a
+    line printed forever is a line nobody reads (RK16).
+
+    A **note**, because emptying a block is what finishing one looks like. Only blocks *both*
+    trees declare: one that arrived is `block add`'s own event and one that left is `block drop`,
+    and neither is a transition of state. Open is `roadmap.block(label)` and nothing wider — the
+    same expression the event line uses, because two answers to "is that block empty" is the
+    defect with the arrow reversed (RK92: a deferred line is set aside, not open).
+    """
+    roadmap = documents.get("roadmap")
+    if roadmap is None:
+        return []
+    if not resolves(config, since):
+        # A repository with no commits has no HEAD, which is the shipped hook's default.
+        if since == "HEAD":
+            return []
+        raise HistoryUnavailable(f"{since} is not a revision this repository knows")
+    before = Tree(config, since).document("roadmap")
+    if before is None:
+        return []
+    file = config.relative(config.path("roadmap"))
+    was = {h.label: len(before.block(h.label)) for h in before.headings if h.label}
+    out: list[Note] = []
+    for heading in roadmap.headings:
+        label = heading.label
+        if label is None or label not in was:
+            continue
+        now = len(roadmap.block(label))
+        if was[label] and not now:
+            out.append(
+                Note(
+                    "block.emptied",
+                    file,
+                    f"held {was[label]} open line(s) at {since} and holds none now: a "
+                    f"projection that states which blocks are active is a row this commit "
+                    f"moves, and nothing else here will say so",
+                    heading.lineno,
+                    label,
+                )
+            )
+        elif now and not was[label]:
+            out.append(
+                Note(
+                    "block.reopened",
+                    file,
+                    f"held no open line at {since} and holds {now} now: the same row, in "
+                    f"the other direction",
+                    heading.lineno,
+                    label,
                 )
             )
     return out

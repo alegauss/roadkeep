@@ -227,27 +227,6 @@ is one nobody can scan for a gap, which is the other question anchors gets asked
 
 ## Block D — The gate
 
-### §RK269 The transition only the console saw
-
-`ship` computes something no other verb does: whether the block it just emptied still
-holds open work. It says so — `event T282 Block AI empty` — and that is the end of it.
-The next verb cannot ask, and `lint`, which runs at the turn's end and is the gate an
-author actually trusts, reports a clean tree either way.
-
-Measured in a repository that keeps a per-block index beside its ledger, with an
-`(active — see ROADMAP)` marker per row. Two ships emptied one block and two adds
-reopened it across four commits. Each time the row had to be flipped by hand, and each
-time `lint` passed on the wrong one; the discrepancy was caught by that project's own
-test suite, which asserts the index against the roadmap because roadkeep does not. An
-author who trusts `lint` ships the wrong row.
-
-What is open is whether roadkeep should know about a block index at all. Three shapes,
-in order of how much they claim: `lint` reporting the transition as an observation
-rather than a violation; a query verb answering "which blocks are empty" so a project's
-own check can be written against roadkeep instead of against a regex; or roadkeep owning
-the index row the way `block add` owns the heading. The first costs almost nothing and
-would have caught all four. The last is the one that needs the design.
-
 ## Block E — Adoption
 
 ## Block F — The plugin

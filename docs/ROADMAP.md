@@ -37,8 +37,6 @@
 
 ## Block D — The gate
 
-- 💭 **RK269** (deps: —) **A block emptying is stated once to the console and recorded nowhere a later verb can read** — `ship` printed `event T282 Block AI empty`, `lint` then called the tree clean, and the repo kept an index row claiming that block active — caught only by a test of its own. → §RK269
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
