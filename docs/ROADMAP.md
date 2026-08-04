@@ -41,6 +41,9 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
+- 📋 **RK250** (deps: —) **The drift note asserts a wiring it never observed** — The checkout branch names `.mcp.json` and `scripts/roadkeep.py` off one fact, that the package sits under the governed root, so a venv inside the repo reads a mechanism it has not got. → §RK250
+- 📋 **RK251** (deps: —) **A conditional argument with no reason to give raises while composing the refusal** — `_withheld` indexes a table by dest, so a field added to `Tool.conditional` and not to it turns the message naming what may be set instead into a `KeyError` a client reads as a crash. → §RK251
+
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:
