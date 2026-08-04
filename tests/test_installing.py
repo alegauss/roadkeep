@@ -35,6 +35,7 @@ import pytest
 
 from roadkeep.cli import build_parser, main
 from roadkeep.installing import (
+    CARRIED,
     LAUNCHER,
     PLUGIN_HOOKS,
     PLUGIN_MANIFEST,
@@ -45,6 +46,7 @@ from roadkeep.installing import (
     PROJECT_SETTINGS,
     PROJECT_SKILL,
     PROJECT_WORKFLOW,
+    NotAnAdopter,
     NotShipped,
     Unanchored,
     Unreadable,
@@ -57,17 +59,18 @@ from roadkeep.installing import (
 
 HERE = Path(__file__).resolve().parents[1]
 
-#: Everything the command reads out of the tree it is wiring in. Copied into a fixture rather
-#: than pointed at, so the two directories are siblings on one filesystem and the launcher
-#: comes out relative — which is the case every adopting project is in.
-CARRIED = (LAUNCHER, PLUGIN_HOOKS, PLUGIN_MCP, PLUGIN_SKILL, PLUGIN_MANIFEST)
+#: What the fixture below copies: the module's own list (RK235), so a sixth surface reaches
+#: this fixture by being declared once. Copied rather than pointed at, so the two directories
+#: are siblings on one filesystem and the launcher comes out relative — the case every
+#: adopting project is in.
+COPIED = CARRIED
 
 
 @pytest.fixture
 def source(tmp_path: Path) -> Path:
     """A checkout of this tool, beside the project that will adopt it."""
     root = tmp_path / "roadkeep"
-    for part in CARRIED:
+    for part in COPIED:
         target = root / part
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(HERE / part, target)
@@ -187,6 +190,32 @@ def test_wiring_this_repository_to_itself_writes_the_declaration_it_already_carr
     written, = [s for s in intent.surfaces if s.path == HERE / PROJECT_MCP]
     assert json.loads(written.text) == loaded(HERE / PROJECT_MCP)
     assert not written.stale
+
+
+def test_the_plugin_s_own_root_is_wired_and_never_copied_into(capsys):
+    """The two declarations mean what they mean here; the two copies do not (RK235).
+
+    Run at this root it used to compute a vendored `SKILL.md` beside the `skills/` one it had
+    just read, and a `roadkeep.yml` beside the `gate.yml` that already calls the action — so
+    `--check` exited 1 on surfaces that were not an installation, at the root every
+    contributor is at. A check nobody can act on is a check switched off (RK140's lesson).
+    """
+    intent = plan(HERE, source=HERE)
+    assert [s.path.relative_to(HERE).as_posix() for s in intent.surfaces] == [
+        PROJECT_MCP,
+        PROJECT_SETTINGS.replace("\\", "/"),
+    ]
+    named = dict(intent.skipped)
+    assert "ships skills/roadkeep/SKILL.md" in named[PROJECT_SKILL]
+    assert "*is* the action" in named[PROJECT_WORKFLOW]
+    assert not (HERE / PROJECT_SKILL).exists(), "and nothing was written here"
+
+    # Named, never silent — and under a label that does not tell the reader to write them:
+    # `CONTRIBUTING.md`'s own reason is the only place "by hand" belongs.
+    assert main(["-C", str(HERE), "install", "--check"]) in (0, 1)
+    out = capsys.readouterr().out
+    assert "not written    .github/workflows/roadkeep.yml" in out
+    assert "  by hand  " not in out
 
 
 # -- and what it leaves alone ------------------------------------------------
@@ -320,7 +349,7 @@ def test_the_merge_driver_is_named_even_though_it_is_not_written(project, source
     assert "--register-merge" in named[".gitattributes"]
 
     assert main(["-C", str(project), "install", "--source", str(source)]) == 0
-    assert "by hand        .gitattributes" in capsys.readouterr().out
+    assert "not written    .gitattributes" in capsys.readouterr().out
 
 
 def test_the_flag_writes_the_attribute_half_and_prints_the_config_half(project, source, capsys):
@@ -448,6 +477,16 @@ def test_it_keeps_every_entry_that_is_not_this_project_s(project, source):
     # The approval goes with the server it approves, and the emptied events go entirely:
     # an event declaring no group is a project that declares a hook.
     assert "enabledMcpjsonServers" not in left and "PreToolUse" not in left["hooks"]
+
+
+def test_un_wiring_the_plugin_from_itself_is_refused(capsys):
+    """The other direction of RK235, and the one with no narrowing available: the entries at
+    this root are the tree's own (RK81), not a copy of somebody's wiring to withdraw."""
+    with pytest.raises(NotAnAdopter, match="ships the plugin rather than adopting it"):
+        uninstall(HERE)
+    assert main(["-C", str(HERE), "uninstall", "--check"]) == 2
+    assert "git checkout" in capsys.readouterr().err
+    assert (HERE / PROJECT_MCP).is_file()
 
 
 def test_un_wiring_a_project_that_was_never_wired_takes_nothing(project):

@@ -4326,7 +4326,11 @@ def _install(config: Config, args: argparse.Namespace) -> int:
                 f"fails on what a branch adds — drop the line once `lint` exits 0"
             )
         for _, why in intent.skipped:
-            print(f"  by hand        {why}")
+            # One label for every surface this command does not write, because they are not
+            # one kind: `CONTRIBUTING.md` is the author's, the driver is a flag away, and the
+            # two at the plugin's own root are files the tree already ships (RK235). "by hand"
+            # said all three, and on the last two it told the reader to write them.
+            print(f"  not written    {why}")
         if args.check and intent.changing:
             print(
                 f"{len(intent.changing)} surface(s) differ from what this checkout ships: "

@@ -242,26 +242,4 @@ and may not need a second.
 
 ## Block E — Adoption
 
-### §RK235 The one project that is not an adopter
-
-`install` translates what the plugin ships for a project beside it. Run at the plugin's
-own root, every surface it computes is a copy of a file already there:
-`.claude/skills/roadkeep/SKILL.md` beside the `skills/roadkeep/SKILL.md` it was read
-from, and `.github/workflows/roadkeep.yml` beside the `gate.yml` that already runs the
-action. The launcher comes out as `scripts/roadkeep.py`, which is the one value that
-says so.
-
-It matters because of what `--check` is for. Run here it exits 1 on three surfaces, and
-an exit code that means "this project has drifted" now also means "this project is the
-tool" — so the gate cannot be run at this root, which is the root every contributor is
-at. That is the same failure the workflow's own default had (RK140): a red nobody can
-act on is a check switched off.
-
-`_launcher` already computes the fact — a relative path of `.` — so the answer is a
-refusal that names it, in the shape `NotShipped` has: this tree carries the plugin
-rather than adopting it, and `/plugin install roadkeep@alegauss` or a sibling checkout
-is what `install` is for. The narrower alternative is to report every surface as `kept,
-yours` and exit 0, which is wrong in the other direction: nothing here is a kept
-installation.
-
 ## Block F — The plugin

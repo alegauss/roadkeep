@@ -40,8 +40,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK235** (deps: —) **`install` reads the checkout that ships the plugin as a project to wire into** — Run at this repository's root it vendors a copy of the skill it ships and writes a second workflow beside `gate.yml`, and `--check` exits 1 naming three surfaces that are not an installation. → §RK235
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Non-goals

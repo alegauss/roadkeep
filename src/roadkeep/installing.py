@@ -47,6 +47,15 @@ the tree that was wired in is usually gone by then. The CI workflow is the one s
 keeps: that gate calls the published action, not the checkout, so un-wiring the write path
 does not un-gate the repository.
 
+**The one tree that is not an adopter is this one** (RK235). Run at the plugin's own root the
+two declarations still mean what they mean — point a session at this checkout's tools and its
+guard, which this repository declares by hand (RK81) — and the two copies do not: a vendored
+`SKILL.md` beside the `skills/` one it was read from is the drift this command exists to
+remove, and a second workflow beside the one already gating the tree runs the same lint twice.
+So they are named as unwritten instead, and `--check` at that root reports drift rather than a
+category error. `uninstall` has no such narrowing and refuses outright, the entries there
+being the tree's own rather than a copy of somebody's wiring.
+
 Two more surfaces are named rather than written, which is not the same as being left out.
 A line in `CONTRIBUTING.md` telling a contributor not to hand-edit the governed files is prose
 about a project's own contribution policy, and this tool does not write prose (L4). The **merge
@@ -79,6 +88,11 @@ PLUGIN_HOOKS = "hooks/hooks.json"
 PLUGIN_MCP = ".claude-plugin/mcp.json"
 PLUGIN_SKILL = "skills/roadkeep/SKILL.md"
 PLUGIN_MANIFEST = ".claude-plugin/plugin.json"
+
+#: The five together, which is both what a tree must carry to be translated *from* and what
+#: says a tree is the plugin rather than an adopter of it (RK235). One list, so the two
+#: questions cannot come to disagree about what carrying the plugin means.
+CARRIED = (LAUNCHER, PLUGIN_HOOKS, PLUGIN_MCP, PLUGIN_SKILL, PLUGIN_MANIFEST)
 
 #: Where each lands in the adopting project. The skill path is the loader's convention —
 #: `.claude/skills/<name>/SKILL.md` — and the workflow is a file of its own rather than a job
@@ -125,6 +139,21 @@ MERGE = (
     "— opt-in configuration, and `install --register-merge` runs it here"
 )
 
+#: What the two *copies* become when the tree being wired is the tree answering (RK235). Not
+#: a refusal: the declarations still mean what they mean at this root — this repository wires
+#: itself to its own checkout by hand and a test holds that (RK81) — and what would be wrong
+#: is vendoring a second copy of a file already in the tree, and a second workflow beside the
+#: one already gating it. Named rather than silently absent, on the rule every skipped surface
+#: here follows: an adopter discovers a silent absence by needing it.
+_OWN_SKILL = (
+    f"this tree ships {PLUGIN_SKILL}, so a copy of it here would be the drift `install` "
+    f"exists to remove — a session in this checkout reads the original"
+)
+_OWN_WORKFLOW = (
+    "this tree *is* the action, and its own workflow already calls the gate — a second one "
+    "would run the same lint twice"
+)
+
 #: The surface this command names and does not write (L4), and why. Printed by `install`.
 CONTRIBUTING = (
     "CONTRIBUTING.md: one line telling a contributor the governed files are written by "
@@ -168,6 +197,25 @@ class Unanchored(ValueError):
             f"`install` re-addresses that one sentence for a project wired to a checkout, "
             f"and a copy carrying `roadkeep` where the package is not installed names a "
             f"command that fails"
+        )
+
+
+class NotAnAdopter(ValueError):
+    """The tree asked about is the plugin, and there is no installation of it to withdraw.
+
+    `install` handles this root by *narrowing* what it writes (RK235) — the two declarations
+    are this repository's own conformance (RK81) and stay. Un-wiring is the direction with no
+    such reading: the entries here are not a copy of somebody else's wiring, they are the file
+    the tree carries, and taking them out would un-wire the tool from itself.
+    """
+
+    def __init__(self, root: Path) -> None:
+        self.root = root
+        super().__init__(
+            f"{root} ships the plugin rather than adopting it, and nothing was taken out: "
+            f"the server and guard declared here point a session at this checkout on "
+            f"purpose — `git checkout` is what reverts that, and `uninstall` is for a "
+            f"project `install` wired"
         )
 
 
@@ -262,16 +310,26 @@ def plan(
     hooks = _hooks(origin, launcher)
     server = _server(origin, launcher)
 
+    # The tree being wired *is* the tree answering (RK235): the two declarations still mean
+    # what they mean — point a session at this checkout's tools and its guard, which is what
+    # this repository declares by hand (RK81) — and the two copies do not, both being copies
+    # of files already in the tree.
+    own = base == origin
     surfaces = [
         _declaration(base / PROJECT_MCP, lambda current: _merged_mcp(current, server)),
         _declaration(base / PROJECT_SETTINGS, lambda current: _merged_settings(current, hooks)),
-        _copy(base / PROJECT_SKILL, _skill(origin, launcher)),
     ]
     skipped: list[tuple[str, str]] = [(CONTRIBUTING.split(":")[0], CONTRIBUTING)]
     if not registering:
         skipped.insert(0, (MERGE.split(":")[0], MERGE))
     debt = _standing(base) if gauging else None
-    if (base / WORKFLOWS).is_dir():
+    if own:
+        skipped.insert(0, (PROJECT_SKILL, f"{PROJECT_SKILL}: {_OWN_SKILL}"))
+    else:
+        surfaces.append(_copy(base / PROJECT_SKILL, _skill(origin, launcher)))
+    if own:
+        skipped.insert(0, (PROJECT_WORKFLOW, f"{PROJECT_WORKFLOW}: {_OWN_WORKFLOW}"))
+    elif (base / WORKFLOWS).is_dir():
         surfaces.append(_once(base / PROJECT_WORKFLOW, _workflow(origin, debt)))
     else:
         skipped.insert(0, (PROJECT_WORKFLOW, f"no {WORKFLOWS}/ — this project has no CI to gate"))
@@ -382,13 +440,20 @@ def _source() -> Path:
 
 def _carried(root: Path) -> None:
     """Refuse a tree that is not carrying the plugin, naming what it lacks."""
-    missing = tuple(
-        part
-        for part in (LAUNCHER, PLUGIN_HOOKS, PLUGIN_MCP, PLUGIN_SKILL, PLUGIN_MANIFEST)
-        if not (root / part).is_file()
-    )
+    missing = tuple(part for part in CARRIED if not (root / part).is_file())
     if missing:
         raise NotShipped(root, missing)
+
+
+def _ships_the_plugin(root: Path) -> bool:
+    """Whether this tree *is* the plugin rather than a project that adopted it (RK235).
+
+    Asked of the files rather than of a source, because :func:`removal` is given no checkout
+    to compare against — it recognises a wiring by this project's own entries, which is what
+    lets it run after the tree it pointed at is gone. Where a source *is* known,
+    :func:`plan` compares the two roots instead, that being the exact statement.
+    """
+    return all((root / part).is_file() for part in CARRIED)
 
 
 def _standing(base: Path) -> int | None:
@@ -676,6 +741,8 @@ def removal(root: str | Path = ".") -> Removal:
     un-wired after the checkout it pointed at is gone, which is the case that produced RK138.
     """
     base = Path(root).resolve()
+    if _ships_the_plugin(base):
+        raise NotAnAdopter(base)
     return Removal(
         root=base,
         withdrawals=(

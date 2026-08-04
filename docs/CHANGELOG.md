@@ -213,6 +213,7 @@
 - ✅ **RK148** **install wires four surfaces and leaves the merge driver to whoever remembers it** — `install` names the merge driver among the surfaces it does not write, and `--register-merge` writes the `.gitattributes` half during adoption while the `git config` line is printed.
 - ✅ **RK205** **The package publishes annotations that no checker is allowed to read** — Answered rather than marked: the import surface is a declared non-goal, so no `py.typed` ships by decision — and a test holds the absence and the constraint together, neither being honest alone.
 - ✅ **RK234** **Nothing in an adopting project runs the gate that holds its vendored skill in step** — The `SessionStart` notice names a vendored copy that drifted from the checkout answering, before the session loads it — 0.86ms wired, 0.07ms where there is no copy, and never the gate.
+- ✅ **RK235** **`install` reads the checkout that ships the plugin as a project to wire into** — At the plugin's own root the two copies are named as unwritten, not computed, so `--check` there reports drift and not a category error — and `uninstall` refuses, those entries being the tree's own.
 
 ## Block F — The Claude Code plugin
 
