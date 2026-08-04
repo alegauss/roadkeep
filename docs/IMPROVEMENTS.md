@@ -208,24 +208,6 @@ Worth deciding with it whether this is one finding or one per heading. Two is th
 
 ## Block F — The plugin
 
-### §RK250 The fact observed is a directory relation, and the sentence is about a launcher
-
-RK246 asks `Engine.carried_by` whether the package directory sits under the project
-root, and that answer is sound: a plugin's copy is a cache elsewhere. What the message
-then says is more than that answer contains — "wired by `.mcp.json` to
-`scripts/roadkeep.py`, which carries no version". A project that `pip install -e .` into
-a `.venv` inside its own repository has its package under the governed root too, and
-gets a sentence naming two files it may not have; so does a checkout wired by a plugin
-marketplace pointing at a local path. The claim that survives every one of those is the
-one the relation actually establishes: the code answering lives inside the tree being
-governed, so nothing the harness versions addresses this process and restarting the
-session is the remedy. That is the whole instruction, and it is true in each case. This
-is the same defect RK242 and RK246 each removed one instance of — a note asserting a
-mechanism that is not in play — so the fix is to say the fact and the remedy and stop
-naming the launcher. Where the wiring itself is worth reporting, `sys.argv[0]` is the
-launcher that started this process and is observed rather than inferred; naming it is
-then a fact and not a guess dressed as one.
-
 ### §RK251 The refusal path is the last place to raise
 
 RK241 gave `add` a second conditional argument and split the one hardcoded sentence into

@@ -890,6 +890,14 @@ def _remedy(root: Path) -> str:
 
     Resolved here and not asked of the caller: a `Config.root` already is, and the launch path the
     `ConfigError` branch passes is the one that is not (RK248).
+
+    What it says is bounded by what :meth:`~roadkeep.provenance.Engine.carried_by` establishes,
+    which is a directory relation and not a launcher (RK250). It used to name `.mcp.json` and
+    `scripts/roadkeep.py` — true of this repository and of nothing else that satisfies the same
+    relation: a `pip install -e .` into a `.venv` inside the governed tree, or a marketplace
+    pointing at a local path, would read two files they have not got. That is the very defect
+    RK242 and RK246 each removed one instance of, so the sentence states the fact the relation
+    gives and the remedy that follows from it, and names no mechanism it did not observe.
     """
     try:
         root = root.resolve()
@@ -897,9 +905,8 @@ def _remedy(root: Path) -> str:
         return "Restart the session to run the changed files."
     if engine().carried_by(root):
         return (
-            "This process runs the checkout it is governing, wired by `.mcp.json` to "
-            "`scripts/roadkeep.py`, which carries no version — so no patch bump reloads it "
-            "and restarting the session is the only remedy."
+            "The code answering lives inside the tree it is governing, so nothing the harness "
+            "versions addresses this process and restarting the session is the only remedy."
         )
     return (
         "Every commit bumps the patch version so the harness reloads the plugin (RK153); "

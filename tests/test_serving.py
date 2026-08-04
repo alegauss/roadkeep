@@ -974,7 +974,11 @@ def test_the_remedy_named_is_the_one_that_restarts_this_server(tmp_path, monkeyp
     )
     # The package under the governed root: this process runs the checkout it is governing.
     own = text_of(called(project(tmp_path), "status", id="RK99", marker="🛠"))
-    assert "no patch bump reloads it" in own and "RK153" not in own
+    assert "inside the tree it is governing" in own and "RK153" not in own
+    # And it claims no more than the relation established (RK250): the launcher was never read,
+    # so naming one would be true of this repository and of nothing else satisfying the same
+    # relation — a `pip install -e .` into a `.venv` under the root satisfies it too.
+    assert ".mcp.json" not in own and "scripts/roadkeep.py" not in own
     # And the plugin's own copy, which is a cache *outside* the governed root: the bump applies.
     monkeypatch.setattr(
         "roadkeep.serving.engine",
@@ -995,7 +999,7 @@ def test_the_wiring_is_read_from_the_project_root_and_not_the_launch_path(tmp_pa
     below = project(tmp_path) / "docs"
     assert below.is_dir()  # the subdirectory is real, so this is the walk and not a fallback
     refused = text_of(called(below, "status", id="RK99", marker="🛠"))
-    assert "no patch bump reloads it" in refused
+    assert "inside the tree it is governing" in refused
 
 
 def test_the_drift_is_a_fact_beside_the_refusal_and_not_a_doubt_about_it(tmp_path, monkeypatch):
