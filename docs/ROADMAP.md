@@ -41,6 +41,8 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
+- 📋 **RK254** (deps: —) **The guard prints a shell command a plugin install does not provide** — It spells `roadkeep <verb>`, but RK57 measured a plugin installing with no console script and this repository has none either, so the fallback it names cannot be run where it is read. → §RK254
+
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:
