@@ -48,6 +48,8 @@
 
 ## Block E — Adoption
 
+- 📋 **RK292** (deps: —) **The scope line names files from the project that did not supply the target** — Adopting another repo's `docs/IMPROVEMENTS.md` names this repo's three files as not read, one of them same-named — and the file `adopt` reads is by definition not one this project declares. → §RK292
+
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - 📋 **RK267** (deps: —) **A staleness note lists every changed module and hands relevance back** — The server appends `engine().stale` to any refusal, so one `schema.py` decided arrives naming three modules that did not, and the reader re-runs on a guess about which mattered. → §RK267

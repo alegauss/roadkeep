@@ -405,6 +405,31 @@ shape at six. What stays true either way is that a *validation* refusal keeps th
 
 ## Block E — Adoption
 
+### §RK292 A scope stated in the wrong project's names
+
+Two runs, one command. `adopt docs/IMPROVEMENTS.md --sections` inside a project that
+declares it: `scope docs/ROADMAP.md, docs/CHANGELOG.md not read`, which is the sentence
+RK291 was for. The same command pointed at Turing's `docs/IMPROVEMENTS.md` from this
+checkout: `scope docs/ROADMAP.md, docs/CHANGELOG.md, docs/IMPROVEMENTS.md not read` —
+three files belonging to the project that supplied the *config* and not the target, one
+of them named like the file just measured. The report says it did not read the file it
+read.
+
+`_unread` excludes the target by resolved path, which is right and answers a question
+nobody asked here. Its premise is that the target is one of the declared files, and
+`adopt`'s own docstring says the opposite is the case it exists for — "the file `adopt`
+reads is by definition not one of them yet".
+
+So the fact has two readings and the line states one. Where the target is declared, the
+siblings are what handing over would complete, and naming them is a move. Where it is
+not, this project's `[files]` are irrelevant and the true limit is narrower: one file
+was read, and deps and pointers need more than one, whichever project they belong to.
+
+What decides the wording is which run this is. That is answerable — the target either
+resolves to a declared path or does not — and the same test already computes it. What
+must not happen is naming a foreign project's siblings as though handing them over were
+possible.
+
 ## Block F — The plugin
 
 ### §RK267 A note that knows more than it says
