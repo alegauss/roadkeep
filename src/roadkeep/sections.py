@@ -722,7 +722,10 @@ def _refuse_reuse(config: Config, role: str, anchor: str, where: str) -> None:
         return
     from roadkeep.history import anchors, next_child  # noqa: PLC0415 - RK260
 
-    taken = anchors(config, role)
+    # The project's addresses and not this file's (RK297): an outline spans every prose file
+    # a project declares, so a write refused against one of them is a write that takes an
+    # address the sibling spent — which is the doubled anchor, made by the check against it.
+    taken = anchors(config)
     spent = next((one for one in taken if one.anchor == anchor and not one.live), None)
     if spent is None:
         return

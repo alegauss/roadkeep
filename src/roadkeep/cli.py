@@ -78,6 +78,7 @@ from roadkeep.history import (
     cited_origin,
     dirty,
     gaps,
+    doubled,
     next_child,
     next_family,
     origin_of,
@@ -1245,12 +1246,13 @@ def build_parser() -> argparse.ArgumentParser:
 
     anchors_parser = subcommands.add_parser(
         "anchors",
-        help="which outline addresses a prose file has ever declared, live or retired",
+        help="which outline addresses this project has ever declared, live or retired",
         description=(
-            "Read the anchors out of the file and out of its diffs: live ones a heading "
-            "declares now, and retired ones a ship deleted while every entry citing them "
-            "stayed. An address is spent once a heading used it (RK4's rule for ids), so "
-            "this is the read that says which number a reopened family may take."
+            "Read the anchors out of every declared prose file and out of its diffs: live "
+            "ones a heading declares now, and retired ones a ship deleted while every entry "
+            "citing them stayed. An address is spent once a heading used it (RK4's rule for "
+            "ids), so this is the read that says which number a reopened family may take — "
+            "and which top-level is free, which is what a reused block needs."
         ),
     )
     anchors_parser.add_argument(
@@ -1262,7 +1264,10 @@ def build_parser() -> argparse.ArgumentParser:
     anchors_parser.add_argument(
         "--role",
         default="",
-        help=f"which prose file (default: the first of {', '.join(PROSE_ROLES)} declared)",
+        help=(
+            "list only this prose file's addresses (default: every declared one) — the "
+            "free address stays the project's either way, since one outline spans both"
+        ),
     )
     anchors_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     anchors_parser.set_defaults(handler=_anchors, reads_only=True)
@@ -4395,9 +4400,13 @@ def _gaps(config: Config, args: argparse.Namespace) -> int:
 
 
 def _anchors(config: Config, args: argparse.Namespace) -> int:
-    """Live and retired addresses in one prose file (RK247). Nothing here is a failure."""
-    role = args.role or next((one for one in PROSE_ROLES if config.has(one)), "")
-    if not role or not config.has(role):
+    """Live and retired addresses across this project's prose (RK247, RK297)."""
+    # Every declared role unless one is named. `--role` narrows the *listing* and never the
+    # free address: an outline spans both files, so a `next` taken from one of them is the
+    # answer this read exists to stop somebody acting on (RK297).
+    asked = [one for one in PROSE_ROLES if config.has(one)]
+    role = args.role or ""
+    if (role and not config.has(role)) or not asked:
         print(
             f"roadkeep: this project declares no {role or 'prose'} file "
             f"({', '.join(PROSE_ROLES)} is what an anchor lives in)",
@@ -4405,19 +4414,26 @@ def _anchors(config: Config, args: argparse.Namespace) -> int:
         )
         return EXIT_USAGE
     found = anchors(config, role, args.family)
+    whole = found if not role else anchors(config, "", args.family)
     retired = [one for one in found if not one.live]
     # An address that is a task **id** is a question already answered: `add` refuses to
     # reuse one (RK4), and every shipped task leaves its section retired — so on this
     # project they are 287 of the 307 rows and none of them is a choice anybody makes.
-    ids = config.schema_for(role).id_pattern()
+    read = [role] if role else asked
+    ids = config.schema_for(role or asked[0]).id_pattern()
     outline = [one for one in found if not ids.match(one.anchor.split(".")[0])]
+    # The same set over the project, which is what a free address is derived from even when
+    # the listing was narrowed to one file (RK297).
+    spread = [one for one in whole if not ids.match(one.anchor.split(".")[0])]
     spent = len(found) - len(outline)
     if args.json:
         print(
             json.dumps(
                 {
-                    "role": role,
-                    "file": config.relative(config.path(role)),
+                    "role": role or None,
+                    # Every file the answer was read from, and not one (RK297): a client
+                    # comparing two runs needs to know which outline it was handed.
+                    "files": [config.relative(config.path(one)) for one in read],
                     "family": args.family,
                     "live": len(found) - len(retired),
                     "retired": len(retired),
@@ -4427,41 +4443,58 @@ def _anchors(config: Config, args: argparse.Namespace) -> int:
                     "anchors": [_anchor_row(one) for one in found] if args.family else [],
                     "families": [] if args.family else _families(outline),
                     "id_anchors": spent,
-                    "next": next_child(found, args.family) if args.family else None,
+                    # Both free addresses are the **project's** even where the listing was
+                    # narrowed (RK297): the field an author acts on may not be per file.
+                    "next": next_child(whole, args.family) if args.family else None,
                     # The question one line up, and the one a reused block asks (RK293).
                     # Null where the top-levels are not one numbering, which is an answer.
-                    "next_family": None if args.family else next_family(outline),
+                    "next_family": None if args.family else next_family(spread),
+                    # What no question asked and only the gate said (RK297): an address two
+                    # headings answer to is one no pointer resolves against.
+                    "doubled": [
+                        {"anchor": anchor, "files": list(roles)}
+                        for anchor, roles in doubled(whole)
+                    ],
                 },
                 indent=2,
             )
         )
         return EXIT_OK
 
-    where = config.relative(config.path(role))
+    where = ", ".join(config.relative(config.path(one)) for one in read)
     print(f"{len(found)} anchor(s), {len(retired)} retired  ({where})")
     if args.family:
         for one in found:
             written = f"  written in {one.written_in[:7]}" if one.written_in else ""
-            print(f"  {'live' if one.live else 'retired':<8} {one.anchor}{written}")
-        print(f"  next     §{next_child(found, args.family)} — nothing ever used it")
+            # The file, wherever the project has more than one: two rows spelling the same
+            # address are the doubling, and unlabelled they read as one row printed twice.
+            named = f"  in {one.role}" if len(read) > 1 else ""
+            print(f"  {'live' if one.live else 'retired':<8} {one.anchor}{named}{written}")
+        print(f"  next     §{next_child(whole, args.family)} — nothing ever used it")
+        _doubled(whole)
         return EXIT_OK
     # Beside the totals and above the rows, because it is the question a reused block asks
     # first and the listing cannot be read for it (RK293): the rows are per family, and the
     # last one is only the maximum once they are ordered by the number a numeral spells.
-    if outline:
-        fresh = next_family(outline)
+    if spread:
+        fresh = next_family(spread)
         print(
             f"  next     §{fresh} — no family ever used it"
             if fresh
             else "  next     — these families are not one numbering, so none derives"
         )
     for family in _families(outline):
+        # The files only where there is more than one to name (RK297): on the single-file
+        # project that is every project until it declares a second, it would be noise.
+        across = family["files"]
+        spans = f"  ({', '.join(across)})" if len(across) > 1 else ""  # type: ignore[arg-type]
         print(
             f"  {family['family']:<8} {family['live']} live, {family['retired']} retired"
-            f"  next §{family['next']}"
+            f"  next §{family['next']}{spans}"
         )
     if spent:
         print(f"  {spent} address(es) are task ids, which `add` already refuses to reuse")
+    _doubled(whole)
     if outline:
         # Named because the listing above is per family and the addresses are what the
         # caller came for: one flag away, and never printed by the hundred unasked.
@@ -4469,21 +4502,43 @@ def _anchors(config: Config, args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _doubled(taken: Sequence[Anchor]) -> None:
+    """The addresses two prose files both declare, named here rather than only at the gate.
+
+    `lint` reports them as `ref.ambiguous`, and by then both headings exist and four verbs
+    refuse to resolve between them (RK297). This is the read an author makes *before*
+    choosing, so it is where the state is cheapest to hear about.
+    """
+    for anchor, roles in doubled(taken):
+        print(f"  doubled  §{anchor} is declared by {' and '.join(roles)}")
+
+
 def _anchor_row(one: Anchor) -> dict[str, object]:
     return {
         "anchor": one.anchor,
+        # Which file declared it, which is the whole of RK297 in one field: two rows with
+        # one address are two headings, and unlabelled they read as a listing that repeated.
+        "role": one.role,
         "live": one.live,
         "written_in": one.written_in or None,
     }
 
 
 def _families(found: Sequence[Anchor]) -> list[dict[str, object]]:
-    """One row per top-level address, in the order they were first declared."""
+    """One row per top-level address, in numeral order (RK293), with the files it spans.
+
+    The counts are the project's and so is ``next`` (RK297): a family declared in two prose
+    files is one family, and a per-file count would be the number this read exists to stop
+    somebody taking. ``files`` is what a row says once it spans two — named rather than
+    summed away, because which file spent an address is what a reader checks it against.
+    """
     out: dict[str, dict[str, object]] = {}
     for one in found:
         top = one.anchor.split(".")[0]
-        row = out.setdefault(top, {"family": top, "live": 0, "retired": 0})
+        row = out.setdefault(top, {"family": top, "live": 0, "retired": 0, "files": []})
         row["live" if one.live else "retired"] = int(row["live" if one.live else "retired"]) + 1
+        if one.role not in row["files"]:  # type: ignore[operator]
+            row["files"].append(one.role)  # type: ignore[attr-defined]
     for top, row in out.items():
         row["next"] = next_child(found, top)
     return list(out.values())

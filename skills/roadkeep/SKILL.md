@@ -197,7 +197,10 @@ section's size states **two** figures where they differ — `48 words, 310 with 
 reader pays; cutting to the second number cuts prose that was never over. Under an outline,
 `anchors` names both free addresses before you choose one: `next §<family>.<n>` for a child
 and, above the rows, the next free **top-level** — which is what a block reused after its
-family shipped needs, and what the listing could not be read for. `brief` prints the `why`'s share of the line it hands over,
+family shipped needs, and what the listing could not be read for. It reads **every** prose
+file the project declares, because one outline spans both and a free address taken from one
+of them is one the sibling already spent; `--role` narrows the listing and never that number,
+and any address two files both declare is named as `doubled` before you pick one. `brief` prints the `why`'s share of the line it hands over,
 so a task started through it never has to ask. **`weight [--block <x>]` is the other pre-`add` read**: what
 comparable tasks cost, derived from the commits that shipped them, so whether the line being
 written is one task or two is a question with an answer. An entry whose commit wrote several

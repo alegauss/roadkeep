@@ -678,8 +678,8 @@ class Anchor:
     written_in: str = ""
 
 
-def anchors(config: Config, role: str, family: str = "") -> tuple[Anchor, ...]:
-    """Every anchor this prose file declares or ever declared, in outline order (RK247).
+def anchors(config: Config, role: str = "", family: str = "") -> tuple[Anchor, ...]:
+    """Every anchor this **project** declares or ever declared, in outline order (RK247).
 
     The read `section add` could not make. Its refusals list the anchors that **exist**, so
     after a fully-shipped family that is none of them and the next free number looks like
@@ -702,12 +702,39 @@ def anchors(config: Config, role: str, family: str = "") -> tuple[Anchor, ...]:
     ``family`` narrows to one subtree by segments — `XXXVII` gives `XXXVII.1` and
     `XXXVII.1.a` and never `XXXVIII.1`, the care :func:`~roadkeep.sections._extends` takes
     about where an anchor ends. Empty is the whole file.
+
+    **Every declared prose role, unless ``role`` names one** (RK297). An address is spent
+    once a heading used it, and a project declaring two files has one outline across both:
+    reading the first alone answered `IX.5` on a project whose sibling file had spent to
+    `IX.12`, so the read made to avoid spending an address twice handed back one already
+    taken — and writing it is the doubled anchor `ref.ambiguous` reports at both headings.
+    The direction `_pointers` took at RK172, one read over. ``role`` stays as the narrower
+    question, and it narrows the *listing*: :func:`next_child` and :func:`next_family` are
+    taken over whatever they are handed, so a caller that means the free address hands them
+    the project.
     """
-    if not config.has(role):
-        return ()
+    roles = (role,) if role else PROSE_ROLES
+    found = [
+        one
+        for name in roles
+        if config.has(name)
+        for one in _role_anchors(config, name)
+    ]
+    # Whether this file numbers in Roman is a fact about the whole set (RK293), so it is
+    # settled once here and handed to the key — a per-segment decision would read `C` as 100
+    # in a file whose families are letters, and sort a listing by an arithmetic nobody meant.
+    numbered = bool(found) and all(numeral(one.anchor.split(".")[0]) for one in found)
+    wanted = [one for one in found if _within(one.anchor, family)]
+    # The role breaks the tie, so an address two files declare comes out as two adjacent
+    # rows in `[files]` order — which is the doubling, reported rather than collapsed.
+    return tuple(sorted(wanted, key=lambda one: (_ordinal(one, numbered), one.role)))
+
+
+def _role_anchors(config: Config, role: str) -> list[Anchor]:
+    """One prose file's share of the answer, live rows first and retired ones behind them."""
     live = _declared(config, role) if config.path(role).is_file() else ()
     first = _anchors_written(config, role, config.schema_for(role))
-    found = [
+    return [
         Anchor(anchor=anchor, role=role, live=True, written_in=first.get(anchor, ""))
         for anchor in live
     ] + [
@@ -715,12 +742,26 @@ def anchors(config: Config, role: str, family: str = "") -> tuple[Anchor, ...]:
         for anchor, sha in first.items()
         if anchor not in live
     ]
-    # Whether this file numbers in Roman is a fact about the whole set (RK293), so it is
-    # settled once here and handed to the key — a per-segment decision would read `C` as 100
-    # in a file whose families are letters, and sort a listing by an arithmetic nobody meant.
-    numbered = bool(found) and all(numeral(one.anchor.split(".")[0]) for one in found)
-    wanted = [one for one in found if _within(one.anchor, family)]
-    return tuple(sorted(wanted, key=lambda one: _ordinal(one, numbered)))
+
+
+def doubled(taken: Sequence[Anchor]) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    """Every address more than one prose file **declares now**, with the files (RK297).
+
+    Reported here because this is the read that would otherwise hand one back as free: an
+    author asking which address to take is the one who needs to know that two already answer
+    to it. `lint` says the same thing as `ref.ambiguous`, and a gate is not a question — by
+    the time it speaks, both headings exist and four verbs refuse to resolve between them.
+
+    Live only. A retired address in two files is two histories of one outline and nothing to
+    act on; two *headings* are the state a pointer cannot resolve against.
+    """
+    by_anchor: dict[str, list[str]] = {}
+    for one in taken:
+        if one.live:
+            by_anchor.setdefault(one.anchor, []).append(one.role)
+    return tuple(
+        (anchor, tuple(roles)) for anchor, roles in by_anchor.items() if len(roles) > 1
+    )
 
 
 def next_child(taken: Sequence[Anchor], family: str) -> str:

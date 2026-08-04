@@ -22,6 +22,7 @@ from roadkeep.history import (
     commits_touching,
     dirty,
     gaps,
+    doubled,
     git_available,
     next_child,
     next_family,
@@ -705,3 +706,132 @@ def test_the_json_carries_the_next_family_beside_the_next_child(tmp_path, capsys
     assert main(["-C", str(tmp_path), "anchors", "--family", "IX", "--json"]) == EXIT_OK
     narrowed = json.loads(capsys.readouterr().out)
     assert narrowed["next"] == "IX.2" and narrowed["next_family"] is None
+
+
+# -- the address book that read half the addresses (RK297) ---------------------
+
+
+def two_files(tmp_path: Path) -> Config:
+    """A project declaring both prose roles, which is where one outline spans two files."""
+    config = outlined(tmp_path)
+    (config.root / "STRATEGY.md").write_text(
+        "# Strategy\n\n## Block A — The model\n", encoding="utf-8"
+    )
+    with (config.root / "roadkeep.toml").open("a", encoding="utf-8") as handle:
+        handle.write('strategy = "STRATEGY.md"\n')
+    commit(config.root, "docs: declare the plan")
+    return Config.discover(tmp_path)
+
+
+def plan(config: Config, heading: str, message: str) -> str:
+    append(config.path("strategy"), f"\n{heading}\n\nThe reasoning.\n")
+    return commit(config.root, message)
+
+
+def test_the_addresses_are_the_projects_and_not_the_first_files(tmp_path):
+    # The measured defect: nine families declared in both files, and for seven of them the
+    # two answered differently about the next child — `IX.5` free where the other spent to
+    # `IX.12`. The read made to avoid spending an address twice handed back a taken one.
+    config = two_files(tmp_path)
+    design(config, "### IX.1 A design", "docs: file the first")
+    plan(config, "### IX.2 A plan", "docs: file the plan")
+    plan(config, "### IX.3 A second plan", "docs: file the second")
+
+    found = anchors(config, family="IX")
+    assert [one.anchor for one in found] == ["IX.1", "IX.2", "IX.3"]
+    assert next_child(found, "IX") == "IX.4"
+    # And the narrower question still answers, for the caller that asked it.
+    assert [one.anchor for one in anchors(config, "improvements", "IX")] == ["IX.1"]
+
+
+def test_each_row_says_which_file_declared_it(tmp_path):
+    config = two_files(tmp_path)
+    design(config, "### IX.1 A design", "docs: file the first")
+    plan(config, "### IX.2 A plan", "docs: file the plan")
+    assert {one.anchor: one.role for one in anchors(config, family="IX")} == {
+        "IX.1": "improvements",
+        "IX.2": "strategy",
+    }
+
+
+def test_an_address_two_files_declare_is_named_rather_than_collapsed(tmp_path):
+    # `lint` says this as `ref.ambiguous`, and a gate is not a question: by then both
+    # headings exist and four verbs refuse to resolve between them.
+    config = two_files(tmp_path)
+    design(config, "### IX.1 A design", "docs: file it")
+    plan(config, "### IX.1 A plan", "docs: file it there too")
+    assert doubled(anchors(config)) == (("IX.1", ("improvements", "strategy")),)
+
+
+def test_a_retired_address_in_both_files_is_two_histories_and_not_a_conflict(tmp_path):
+    # Live only: two headings are the state a pointer cannot resolve against, and two
+    # deletions are nothing to act on.
+    config = two_files(tmp_path)
+    design(config, "### IX.1 A design", "docs: file it")
+    plan(config, "### IX.1 A plan", "docs: file it there too")
+    unwrite(config, "### IX.1 A design", "feat: it shipped (RK1)")
+    config = Config.discover(tmp_path)
+    assert doubled(anchors(config)) == ()
+    # Still spent, in both files, which is what keeps the next address free of it.
+    assert next_child(anchors(config, family="IX"), "IX") == "IX.2"
+
+
+def test_a_project_with_one_prose_file_answers_exactly_as_it_did(tmp_path):
+    # The single-file project is every project until it declares a second, so nothing here
+    # may cost it a row, a label or a different number.
+    config = outlined(tmp_path)
+    design(config, "### IX.1 A design", "docs: file it")
+    assert anchors(config) == anchors(config, "improvements")
+
+
+def test_the_command_reads_both_files_and_names_the_doubling(tmp_path, capsys):
+    config = two_files(tmp_path)
+    design(config, "### IX.1 A design", "docs: file it")
+    plan(config, "### IX.1 A plan", "docs: file it there too")
+    plan(config, "### IX.2 A second plan", "docs: file the second")
+
+    assert main(["-C", str(tmp_path), "anchors"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "IMPROVEMENTS.md, STRATEGY.md" in printed
+    assert "doubled  §IX.1 is declared by improvements and strategy" in printed
+    # The family row names both files, because which one spent an address is what a reader
+    # checks the number against.
+    assert "(improvements, strategy)" in printed
+
+
+def test_the_free_address_stays_the_projects_even_when_the_listing_is_narrowed(tmp_path, capsys):
+    # `--role` is the narrower question and it narrows the *listing*: a `next` taken from one
+    # file is the answer this read exists to stop somebody acting on.
+    config = two_files(tmp_path)
+    design(config, "### IX.1 A design", "docs: file it")
+    for number in (2, 3):
+        plan(config, f"### IX.{number} A plan", f"docs: file {number}")
+
+    assert main(
+        ["-C", str(tmp_path), "anchors", "--role", "improvements", "--family", "IX", "--json"]
+    ) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert [one["anchor"] for one in payload["anchors"]] == ["IX.1"]
+    assert payload["role"] == "improvements" and payload["next"] == "IX.4"
+
+
+def test_a_write_is_refused_against_an_address_the_sibling_file_spent(tmp_path):
+    # The consequence the read exists to prevent, at the door it reaches: taking the address
+    # the other file retired is what writes the doubled anchor in the first place.
+    config = two_files(tmp_path)
+    plan(config, "### IX.1 A plan", "docs: file the plan")
+    unwrite_in(config, "strategy", "### IX.1 A plan", "feat: it shipped (RK1)")
+    config = Config.discover(tmp_path)
+    with pytest.raises(AnchorRetired):
+        add_section(config, "improvements", "IX.1", "A design", "Prose.")
+
+
+def unwrite_in(config: Config, role: str, heading: str, message: str) -> str:
+    path = config.path(role)
+    kept = [
+        line
+        for line in path.read_text(encoding="utf-8").splitlines(keepends=True)
+        if line.rstrip("\n") != heading
+    ]
+    path.write_text("".join(kept), encoding="utf-8")
+    return commit(config.root, message)

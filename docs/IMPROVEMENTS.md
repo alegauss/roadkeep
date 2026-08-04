@@ -161,31 +161,6 @@ remove.
 
 ## Block C — Query
 
-### §RK297 The address book that reads half the addresses
-
-`anchors` states a rule and then asks the wrong number of files about it: an address is
-spent once a heading used it, and the read exists so a reopened family takes a number
-nothing ever had. `--role` defaults to the first prose file a project declares, and that
-is the whole defect on a project declaring two.
-
-Measured on Turing while shipping RK239. Nine families are declared in both
-`IMPROVEMENTS.md` and `STRATEGY.md`, and for seven the two files answer differently
-about the next child: `IX` is `IX.13` against `IX.5`, `X` is `X.21` against `X.6`, `XVI`
-is `XVI.4` against `XVI.1`. So the read made to avoid spending an address twice hands
-back one the sibling file has spent — and taking it writes the doubled anchor
-`section.ambiguous` now reports at both headings, the state four verbs refuse to resolve
-by.
-
-The direction is the one `_pointers` already took (RK172) and `_declared` already
-indexes: the answer is about the project's anchors, not one file's. What needs deciding
-is what a row says once it spans two — a count per file, or one number naming the file
-that spent it — and whether `--role` stays as the narrower question somebody can ask.
-`next` is the field that must not stay per-file, being the one an author acts on.
-
-Worth reporting the doubled ones by name in the same read: `lint` is the only place
-today that says which addresses are declared twice, and it is a gate rather than a
-question.
-
 ### §RK301 Half a transaction has a budget it can be written towards
 
 RK190's whole argument is that a limit reported after the prose exists is discovered too
