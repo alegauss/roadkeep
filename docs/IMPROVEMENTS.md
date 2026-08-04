@@ -405,6 +405,31 @@ shape at six. What stays true either way is that a *validation* refusal keeps th
 
 ## Block E — Adoption
 
+### §RK291 The half that is not measured, unnamed
+
+A roadmap whose one task waits on an id nothing declares. `adopt` prints the headline,
+the blocks, three measures and the non-goals — `1 conform, 0 would change` — and stops.
+`lint` over the same project answers `deps.unknown 1  file.missing 1`. RK290 closed the
+half a single file decides, so this is now the *whole* difference, and no line mentions
+it.
+
+Running those checks here is what must not happen, and the reason is measured: pointed
+at Shio's roadmap without its changelog, a deps pass reports 82 unresolved deps on a
+backlog whose deps all resolve. `adopt` is handed one file and the gate judges the files
+a project declares, so a cross-file verdict from one file is wrong in the alarming
+direction.
+
+Saying so is a different act, and the report knows how already. `[non_goals] not
+governed, so measured at the defaults` is a line about the terms of a measurement rather
+than its result; `install` prints `no .github/workflows/ — this project has no CI to
+gate` for a surface it did not write. The same sentence is owed here.
+
+What to decide is whether it names the classes or the files. Naming `deps.unknown` and
+`ref.unresolved` is precise and ages badly as the gate grows a check. Naming the *files*
+— the changelog and the rationale file were not read, so deps and pointers went
+unresolved — is what an adopter can act on, because handing `adopt` those files is the
+move it implies.
+
 ## Block F — The plugin
 
 ### §RK267 A note that knows more than it says
