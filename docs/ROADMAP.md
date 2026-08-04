@@ -47,8 +47,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK284** (deps: —) **Uninstall reports keeping a workflow the project never had** — `removal` builds its `kept` list as a constant, so a project `install` told had no CI to gate is told CI stays wired and to delete a path that does not exist. → §RK284
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - 📋 **RK267** (deps: —) **A staleness note lists every changed module and hands relevance back** — The server appends `engine().stale` to any refusal, so one `schema.py` decided arrives naming three modules that did not, and the reader re-runs on a guess about which mattered. → §RK267

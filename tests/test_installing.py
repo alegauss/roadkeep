@@ -56,6 +56,7 @@ from roadkeep.installing import (
     _entry,
     install,
     plan,
+    removal,
     uninstall,
 )
 
@@ -561,6 +562,39 @@ def test_uninstall_check_is_the_same_answer_and_writes_nothing(project, source, 
     assert (project / PROJECT_MCP).is_file(), "a check that un-wired reports clean"
     assert main(argv) == 0
     assert main([*argv, "--check"]) == 0
+
+
+def test_nothing_is_reported_kept_where_nothing_is_there(project, source, capsys):
+    # RK284: `install` told this project "no .github/workflows/ — this project has no CI to
+    # gate", and `uninstall` then said it kept the workflow and to delete it. Neither the file
+    # nor `.github` existed. A surface never present was not kept, and naming it does what
+    # this field exists to prevent — "a surface silently kept reads as missed" — from the
+    # other side.
+    install(project, source=source)
+    # The state a project with no CI is in — this fixture has a `.github/`, so the workflow
+    # was written; the case RK284 was measured on had neither the file nor the directory.
+    shutil.rmtree(project / ".github")
+    assert not (project / PROJECT_WORKFLOW).exists()
+    assert removal(project).kept == ()
+    assert main(["-C", str(project), "uninstall"]) == 0
+    # By line, not by substring: pytest's own tmp directory is named after this test.
+    printed = capsys.readouterr().out.splitlines()
+    assert not [line for line in printed if line.strip().startswith("kept")]
+
+
+def test_a_workflow_that_is_there_is_still_reported_kept(project, source, capsys):
+    """The other direction, so the fix is an `exists` test and not a deletion: the gate calls
+    the published action, so a workflow left behind really does keep CI wired."""
+    install(project, source=source)
+    workflow = project / PROJECT_WORKFLOW
+    workflow.parent.mkdir(parents=True, exist_ok=True)
+    workflow.write_text("name: gate\n", encoding="utf-8")
+    assert [path for path, _ in removal(project).kept] == [PROJECT_WORKFLOW]
+    assert main(["-C", str(project), "uninstall"]) == 0
+    printed = capsys.readouterr().out
+    assert f"kept           {PROJECT_WORKFLOW}" in printed and "CI stays wired" in printed
+    # And it is kept in the sense the word means: still on disk afterwards.
+    assert workflow.is_file()
 
 
 def test_a_declaration_this_command_cannot_parse_is_refused(project, source):

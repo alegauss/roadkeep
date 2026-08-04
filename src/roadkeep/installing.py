@@ -744,10 +744,28 @@ def removal(root: str | Path = ".") -> Removal:
     Reads no checkout, unlike :func:`plan`: the wiring is recognised by *this project's own
     entry* — the server's name, and the launcher a hook command runs — so a project can be
     un-wired after the checkout it pointed at is gone, which is the case that produced RK138.
+
+    What is reported as kept is read off the disk (RK284). It used to be a constant, so a
+    project `install` had just told "no `.github/workflows/` — this project has no CI to gate"
+    was told at `uninstall` that CI stays wired and to delete a path that was not there. A
+    surface never present was not kept, and naming it does the thing this field exists to
+    prevent — "a surface silently kept reads as missed" — from the other side.
     """
     base = Path(root).resolve()
     if _ships_the_plugin(base):
         raise NotAnAdopter(base)
+    kept: list[tuple[str, str]] = []
+    if (base / PROJECT_WORKFLOW).is_file():
+        # Absence gets no line of its own. `install` says why it wrote nothing, because an
+        # adopter has to know CI was considered; here there is nothing to have kept, and a
+        # sentence about a file that does not exist is the report this task is about.
+        kept.append(
+            (
+                PROJECT_WORKFLOW,
+                f"{PROJECT_WORKFLOW}: the gate calls the published action and not this "
+                f"checkout, so CI stays wired — delete it to stop gating",
+            )
+        )
     return Removal(
         root=base,
         withdrawals=(
@@ -755,13 +773,7 @@ def removal(root: str | Path = ".") -> Removal:
             _withdrawn(base / PROJECT_SETTINGS, _without_guard),
             _dropped(base / PROJECT_SKILL),
         ),
-        kept=(
-            (
-                PROJECT_WORKFLOW,
-                f"{PROJECT_WORKFLOW}: the gate calls the published action and not this "
-                f"checkout, so CI stays wired — delete it to stop gating",
-            ),
-        ),
+        kept=tuple(kept),
     )
 
 

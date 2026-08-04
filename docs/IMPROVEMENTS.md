@@ -384,30 +384,6 @@ shape at six. What stays true either way is that a *validation* refusal keeps th
 
 ## Block E — Adoption
 
-### §RK284 A surface reported as kept was never there
-
-One project, two commands, run back to back. `install` says "not written  no
-`.github/workflows/` — this project has no CI to gate", which is right and is the shape
-RK140 argues for. `uninstall` then says "kept  `.github/workflows/roadkeep.yml`: the
-gate calls the published action and not this checkout, so CI stays wired — delete it to
-stop gating". Neither the file nor `.github` exists. The reader is told CI is gating
-them, and asked to delete a path that is not there.
-
-`removal` builds `kept` as a constant tuple with the workflow always in it — no `exists`
-test, where `plan` takes one. The intent stated above the field is exactly right: "a
-surface silently kept reads as missed". A surface never present was not kept, and naming
-it does the thing the field exists to prevent, one direction over.
-
-The fix is the `exists` check `plan` already makes, so the two commands read one fact
-rather than one off the disk and one off a literal. What needs deciding beside it is
-whether absence deserves a line at all. `install` says why it wrote nothing, because an
-adopter has to know CI was considered; `uninstall` saying "no workflow here" is a
-sentence about nothing, and the honest report of a surface that does not exist may be
-silence.
-
-The narrow reading — drop the entry when the path is absent — is right either way, and
-is the whole defect. The wider question only decides whether anything replaces it.
-
 ## Block F — The plugin
 
 ### §RK267 A note that knows more than it says
