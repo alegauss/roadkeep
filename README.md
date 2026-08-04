@@ -118,15 +118,15 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 28 | 1 |
 | B — Authoring (insert, never hand-edit) | 3 | 58 | 0 |
-| C — Query (consult without reading the file) | 7 | 37 | 0 |
+| C — Query (consult without reading the file) | 6 | 38 | 0 |
 | D — The gate | 5 | 50 | 0 |
 | E — Adoption | 0 | 50 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 2 | 46 | 1 |
-| **Total** | 17 | 269 | 3 |
+| **Total** | 16 | 270 | 3 |
 
 **Next ready:**
 
-- 📋 **RK200** (deps: —) **Which governed files no verb wrote is answerable only by trying to end the turn** — RK175 records a digest per write and states one change once at the `Stop` hook, so the only way to ask is to be blocked — and it re-baselines as it reports, so the fact is gone. → §RK200
+- 📋 **RK239** (deps: —) **Two prose files declaring one anchor is silent until a line points at it** — `ref.ambiguous` is reported from the pointer end alone, so 12 of Turing 13 doubled anchors pass a gate four verbs already decline to resolve them by. → §RK239
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

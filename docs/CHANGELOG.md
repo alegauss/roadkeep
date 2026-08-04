@@ -140,6 +140,7 @@
 - ✅ **RK186** **`brief` reports a pointer into the strategy file as resolving to nothing** — `show` and `brief` look the anchor up in every declared prose role, name the file that declares it, and state the ambiguity where two do — the resolution RK172 gave the gate.
 - ✅ **RK190** **A line's prose budget is discoverable only by writing a sentence and being refused** — `budget` answers what a line leaves its prose fields — the deps and symptom an `add` names, or the line an `amend` holds — and `brief` prints the `why`'s share of the line it hands over.
 - ✅ **RK194** **No query shows the lines a wrapped entry owns, so what a correction replaces is read off the file** — `show` prints every source line a wrapped entry owns and its span, so the count `record amend --lines` asks for is a command's answer rather than a 290-entry ledger opened by hand.
+- ✅ **RK200** **Which governed files no verb wrote is answerable only by trying to end the turn** — `writes` reads the digest record against the files — attested, unattested or unrecorded, per role, with the record's path — and moves no baseline, so the fact survives being asked for.
 
 ## Block D — The gate
 

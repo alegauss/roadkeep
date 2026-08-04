@@ -147,29 +147,6 @@ only version of this that is a schema and not a warning.
 
 ## Block C — Query
 
-### §RK200 The record with no way to read it
-
-RK175 closed the symptom it was filed for: a governed file whose bytes no verb wrote is
-named as the turn ends. What it did not give is a way to *ask*. The digest sidecar is a
-temp file whose name is a digest, the comparison happens inside a hook, and the answer
-reaches exactly one reader at exactly one moment.
-
-That is the arrangement RK161 ended for claims, and the argument is the same one: L5
-says every question is a command, and "which lines are claimed" had to be answered by
-finding a temp file. Here it is worse in one way — reporting **re-baselines**,
-deliberately, so a turn that ends is a turn whose evidence is consumed. A session asking
-afterwards what happened has nothing to read, and neither has the next one.
-
-The obvious shape is the one `claims --prune` has: a read that says which governed files
-are attested, which are not, and where the record lives — without moving the baseline,
-because a query that changes the answer to the next query is not a query. Whether the
-`Stop` block should stop re-baselining once such a read exists is the second question
-and not this one.
-
-What to check first is whether anybody wants it. The claim registry earned its read
-because `pick` stepped over ids and could not say whose; this record has one consumer
-and may not need a second.
-
 ### §RK245 The remainder is a budget too
 
 RK185 published every aim in words, RK190 moved the read before the sentence, and RK201

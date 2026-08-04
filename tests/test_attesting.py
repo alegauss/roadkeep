@@ -15,6 +15,10 @@ Four failure modes, each of which would make it worse than nothing:
   somebody commits is the loop `stop_hook_active` exists to end, arrived at another way.
 * **A query must not adopt bytes as attested.** `list` between two hand-edits reads the
   files, and a read that re-baselined would launder exactly the write this is about.
+
+And what the fourth of those cost, closed by RK200: the report is consumed as it is made, so
+the fact reached one reader at one moment and asking afterwards read as clean. `writes` is
+that question as a command (L5) — three states, and no baseline moved by asking.
 """
 
 from __future__ import annotations
@@ -22,7 +26,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from roadkeep.attesting import attest, record_path, unattested
+from roadkeep.attesting import State, attest, record_path, survey, unattested
 from roadkeep.cli import EXIT_OK, main
 from roadkeep.config import Config
 from roadkeep.guarding import attested, review
@@ -166,6 +170,90 @@ def test_an_unreadable_record_is_silence_and_not_a_blocked_turn(tmp_path):
     record_path(root).write_text("{not json", encoding="utf-8")
     edit(root, "Because of a reason.", "Because of another reason.")
     assert unattested(config) is None
+
+
+def states(root: Path) -> dict[str, str]:
+    return {row.role: str(row.state) for row in survey(Config.discover(root))}
+
+
+def test_the_read_answers_the_question_the_stop_block_consumed(tmp_path):
+    # The symptom: reporting re-baselines, so the one reader who was told is the only one who
+    # can ever know. Asked as a command, the fact is there for whoever asks.
+    root = project(tmp_path)
+    config = Config.discover(root)
+    attest(config)
+    edit(root, "Because of a reason.", "Because of another reason.")
+    assert states(root) == {"roadmap": "unattested", "changelog": "attested"}
+
+
+def test_asking_moves_no_baseline_so_the_answer_survives_being_read(tmp_path):
+    # The whole difference from the `Stop` block: a query that changed the answer to the next
+    # query would launder the write this module exists to name.
+    root = project(tmp_path)
+    config = Config.discover(root)
+    attest(config)
+    edit(root, "Because of a reason.", "Because of another reason.")
+    assert states(root)["roadmap"] == "unattested"
+    assert states(root)["roadmap"] == "unattested"
+    assert unattested(config) is not None
+
+
+def test_a_checkout_no_verb_has_run_in_says_so_rather_than_reading_as_clean(tmp_path):
+    # `unattested` answers this with silence, which is right for a report and wrong for a
+    # listing: "no baseline" and "nothing drifted" are the two things a caller must not confuse.
+    root = project(tmp_path)
+    edit(root, "Because of a reason.", "Because of another reason.")
+    assert set(states(root).values()) == {"unrecorded"}
+
+
+def test_a_role_recorded_as_absent_and_still_absent_agrees(tmp_path):
+    # Absence is a value in the record (`_digests`), so a declared file nothing ever wrote is
+    # not drift — and `present` is what says the row is about a file that is not there.
+    root = project(tmp_path)
+    config = Config.discover(root)
+    (root / CHANGELOG).unlink()
+    attest(config)
+    rows = {row.role: row for row in survey(config)}
+    assert rows["changelog"].state is State.ATTESTED
+    assert rows["changelog"].present is False
+
+
+def test_the_rows_to_act_on_come_first(tmp_path):
+    root = project(tmp_path)
+    config = Config.discover(root)
+    attest(config)
+    edit(root, "Because of a reason.", "Because of another reason.")
+    assert [str(row.state) for row in survey(config)] == ["unattested", "attested"]
+
+
+def test_the_command_names_every_file_and_where_the_record_lives(tmp_path, capsys):
+    root = project(tmp_path)
+    config = Config.discover(root)
+    attest(config)
+    edit(root, "Because of a reason.", "Because of another reason.")
+    assert main(["-C", str(root), "writes"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert out.startswith("2 governed, 1 unattested")
+    assert ROADMAP in out
+    assert str(record_path(root)) in out
+
+
+def test_the_command_says_which_checkout_never_ran_a_verb(tmp_path, capsys):
+    root = project(tmp_path)
+    assert main(["-C", str(root), "writes"]) == EXIT_OK
+    assert "nothing to differ from" in capsys.readouterr().out
+
+
+def test_the_command_is_a_read_and_leaves_the_record_where_it_found_it(tmp_path, capsys):
+    root = project(tmp_path)
+    config = Config.discover(root)
+    attest(config)
+    edit(root, "Because of a reason.", "Because of another reason.")
+    assert main(["-C", str(root), "writes", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["unattested"] == 1
+    assert [f["state"] for f in payload["files"]] == ["unattested", "attested"]
+    assert unattested(config) is not None
 
 
 def test_the_record_lives_outside_the_repository(tmp_path):

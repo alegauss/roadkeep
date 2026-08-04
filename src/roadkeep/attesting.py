@@ -35,6 +35,15 @@ judges the file. And **reporting re-baselines** — the current bytes become the
 so one unattested change is stated once and the turn ends on the next attempt, rather than
 the same fact blocking every turn until somebody commits.
 
+Which is what :func:`survey` is for (RK200). Re-baselining makes the `Stop` block a report a
+turn receives once and can never ask for again, so the question "which governed files did no
+verb write" had exactly one answer at exactly one moment — the arrangement RK161 ended for
+claims, and L5 says every question is a command. It reads the same two dictionaries and
+**moves nothing**: a query that changed the answer to the next query would launder the write
+this module exists to name, which is the rule a query already obeys here. The three states are
+what the pair of dictionaries actually says — recorded and equal, recorded and different, or
+never recorded, the last being the silence :func:`unattested` returns and not a finding.
+
 What this cannot say is *who*. There is no owner here for the same reason there is none on a
 claim: the identity behind a write lives outside the repository, and the commit is where it
 belongs. The claim made is only that the bytes were not put there by a verb.
@@ -45,6 +54,7 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import dataclass
+from enum import StrEnum
 from pathlib import Path
 
 from roadkeep.config import Config
@@ -114,6 +124,71 @@ def unattested(config: Config) -> Unattested | None:
         return None
     _store(config, current)
     return Unattested(files=found)
+
+
+class State(StrEnum):
+    """What the record says about one governed file (RK200).
+
+    Three, because the digest sidecar holds one thing and means three: a role it never
+    recorded is not a file that drifted, and reporting the two as one figure would count the
+    history a fresh checkout arrived with as something this turn did.
+    """
+
+    #: The bytes on disk are the ones the last verb left.
+    ATTESTED = "attested"
+    #: They are not — an approved shell command, an editor, or a checkout. The row to act on.
+    UNATTESTED = "unattested"
+    #: No verb has run against this role, so there is nothing to differ from. Not a finding.
+    UNRECORDED = "unrecorded"
+
+
+#: Unattested first: the axis a reader is scanning is what to act on, and the one row worth a
+#: second look is the one a listing must not bury under the files that are fine.
+_ORDER = (State.UNATTESTED, State.UNRECORDED, State.ATTESTED)
+
+
+@dataclass(frozen=True, slots=True)
+class Attested:
+    """One governed file as the record and the disk together describe it (RK200)."""
+
+    role: str
+    #: As this project spells it — a report quoting an absolute path is one about a machine.
+    path: str
+    state: State
+    #: Whether the file is on disk at all: an absent one is `attested` where the record agrees
+    #: it is absent, and that reads as agreement rather than as a file nobody can find.
+    present: bool
+
+
+def survey(config: Config) -> tuple[Attested, ...]:
+    """Every declared role against the record, the rows to act on first (RK200).
+
+    The read :func:`unattested` was not. It takes no lock and **writes nothing** — the same
+    rule a query already obeys here, and the one thing that separates asking from the `Stop`
+    block, which consumes the fact it reports. Silence is not one of its answers either: a
+    checkout where no verb has run says so, per role, rather than returning nothing and
+    leaving the caller to guess whether that meant clean.
+    """
+    recorded = _recorded(config)
+    current = _digests(config)
+    rows = [
+        Attested(
+            role=role,
+            path=config.relative(path),
+            state=_state(role, recorded, current),
+            present=current.get(role) is not None,
+        )
+        for role, path in config.paths.items()
+    ]
+    return tuple(sorted(rows, key=lambda row: _ORDER.index(row.state)))
+
+
+def _state(
+    role: str, recorded: dict[str, str | None], current: dict[str, str | None]
+) -> State:
+    if role not in recorded:
+        return State.UNRECORDED
+    return State.ATTESTED if recorded[role] == current.get(role) else State.UNATTESTED
 
 
 def record_path(root: Path | str) -> Path:

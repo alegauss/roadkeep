@@ -41,7 +41,7 @@ import traceback
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 
-from roadkeep import claiming
+from roadkeep import attesting, claiming
 from roadkeep.adopting import Estimate, adopt, init
 from roadkeep.attesting import attest
 from roadkeep.authoring import StatusChange, add, amend, restate, set_status
@@ -874,6 +874,21 @@ def build_parser() -> argparse.ArgumentParser:
     # A read that can write, so it declares which flag makes it one (RK167): `dispatch` keeps
     # deciding the lock, and reading the registry never waits on one.
     claims_parser.set_defaults(handler=_claims, reads_only=True, writes_when="prune")
+
+    writes_parser = subcommands.add_parser(
+        "writes",
+        help="which governed files a verb wrote, which nothing did, and where that is recorded",
+        description=(
+            "Read the write record against the files: attested — the bytes a verb left — "
+            "unattested, meaning something else produced them, or unrecorded, meaning no "
+            "verb has run here yet. Moves no baseline, so asking twice answers twice; the "
+            "`Stop` hook states it once and consumes it (RK175)."
+        ),
+    )
+    writes_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    # Never a write, not even behind a flag: re-baselining is what the `Stop` block does, and a
+    # query offering it would be the laundering `dispatch` refuses queries in the first place.
+    writes_parser.set_defaults(handler=_writes, reads_only=True)
 
     lint_parser = subcommands.add_parser(
         "lint",
@@ -3148,6 +3163,47 @@ def _claim_row(row: claiming.Dated) -> dict[str, object]:
         "marker": row.marker or None,
         "block": row.block or None,
     }
+
+
+def _writes(config: Config, args: argparse.Namespace) -> int:
+    """The write record read against the files (RK200). Nothing here is a failure, so exit 0."""
+    rows = attesting.survey(config)
+    record = str(attesting.record_path(config.root))
+    unattested = sum(1 for row in rows if row.state is attesting.State.UNATTESTED)
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "record": record,
+                    "governed": len(rows),
+                    "unattested": unattested,
+                    "files": [
+                        {
+                            "role": row.role,
+                            "path": row.path,
+                            "state": str(row.state),
+                            "present": row.present,
+                        }
+                        for row in rows
+                    ],
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+
+    print(f"{len(rows)} governed, {unattested} unattested")
+    for row in rows:
+        absent = "" if row.present else "  (absent)"
+        print(f"  {str(row.state):<12} {row.role:<12} {row.path}{absent}")
+    if all(row.state is attesting.State.UNRECORDED for row in rows):
+        # The silence `unattested` returns, said out loud: a caller who cannot tell "no verb
+        # has run" from "nothing drifted" reads a fresh checkout as a clean one.
+        print("  no verb has run in this checkout, so there is nothing to differ from")
+    # Named for the reason the claim registry is (RK161): the record is what an operator
+    # deletes, and it lives outside the repository where nothing points at it.
+    print(f"  record {record}")
+    return EXIT_OK
 
 
 def _lint(config: Config, args: argparse.Namespace) -> int:
