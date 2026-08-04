@@ -136,6 +136,29 @@ What must not happen is the answer that reads well and helps nobody: an elision 
 AB, … and 87 more`) keeps the length and loses the one label that would have settled it,
 which is RK68's argument about a bounded list read as the whole one.
 
+### §RK298 The scope that leaves with the claim that held it
+
+Hit once per task across Block D. `agents.md` documents the commit as `claim <id>
+--porcelain` piped into staging, and RK280 is the reasoning: `git add -A` sweeps up a
+second session's work, so a claim carries the paths this commit owns. But the order the
+work happens in is claim, code, `ship`, commit — and `ship` releases the claim, which
+takes the scope with it. Reproduced on a scratch project: after `ship RK1 --why …`,
+`claim RK1 --porcelain` exits 2 with "no live claim on RK1", and the move it names,
+`status RK1 🛠`, exits 2 too because the ledger now holds the id. The verb that answers
+"what does this commit own" is unreachable exactly where the commit is, and the
+refusal's advice is a dead end rather than a detour.
+
+Two shapes, and the choice is the design. `ship` could report the scope it released,
+putting the answer in output the committer is already reading — the shape it uses for
+the section it dropped. Or the registry could keep a released claim's paths until
+something else claims that id, so `claim --porcelain` answers after a ship; that is a
+longer-lived record, and RK119 was explicit that a claim is an expiry and not a lock, so
+it needs an argument this section does not have.
+
+What must not be the answer is a sentence in `agents.md` telling the author to read the
+porcelain before shipping. Ordering held by prose is the drift this tool exists to
+remove.
+
 ## Block C — Query
 
 ### §RK265 The pointer budget cannot be told about
@@ -225,7 +248,103 @@ top-level beside the header's totals, and the family rows in numeral order so a 
 can check it. The second matters on its own — a listing ordered by a numeral's spelling
 is one nobody can scan for a gap, which is the other question anchors gets asked.
 
+### §RK297 The address book that reads half the addresses
+
+`anchors` states a rule and then asks the wrong number of files about it: an address is
+spent once a heading used it, and the read exists so a reopened family takes a number
+nothing ever had. `--role` defaults to the first prose file a project declares, and that
+is the whole defect on a project declaring two.
+
+Measured on Turing while shipping RK239. Nine families are declared in both
+`IMPROVEMENTS.md` and `STRATEGY.md`, and for seven the two files answer differently
+about the next child: `IX` is `IX.13` against `IX.5`, `X` is `X.21` against `X.6`, `XVI`
+is `XVI.4` against `XVI.1`. So the read made to avoid spending an address twice hands
+back one the sibling file has spent — and taking it writes the doubled anchor
+`section.ambiguous` now reports at both headings, the state four verbs refuse to resolve
+by.
+
+The direction is the one `_pointers` already took (RK172) and `_declared` already
+indexes: the answer is about the project's anchors, not one file's. What needs deciding
+is what a row says once it spans two — a count per file, or one number naming the file
+that spent it — and whether `--role` stays as the narrower question somebody can ask.
+`next` is the field that must not stay per-file, being the one an author acts on.
+
+Worth reporting the doubled ones by name in the same read: `lint` is the only place
+today that says which addresses are declared twice, and it is a gate rather than a
+question.
+
+### §RK301 Half a transaction has a budget it can be written towards
+
+RK190's whole argument is that a limit reported after the prose exists is discovered too
+late: the characters are what refuses, and the word aim beside them is what a sentence
+can be composed towards. `budget` makes that read for the line — the symptom and the
+why, both derived from facts known before a word is written.
+
+`add --section` writes two things in one transaction, and the second is not in that
+read. The section body has its own limit (`[limits] section`, or the prose role's own
+under RK50), it refuses the whole `add` when exceeded, and `budget` does not mention it.
+Measured filing these five tasks: thirteen refusals across four sections, at 266, 253,
+251 and 250 words, each the entire body sent again to learn a number that was a config
+value all along. Over MCP there is no pipe, so the body is a string in the call and the
+retry is the whole payload.
+
+The fix is a field and not a verb: `budget` answers per-transaction already, so a
+`section` entry beside `symptom` and `why` — limit, aim, and the role it came from — is
+the same shape. Two things to get right. The aim has to sit under the limit the way the
+line's aim does, because composing to exactly 250 produced four refusals alone. And
+`budget <id>` should report what *that* section has left, the read a `section amend`
+wants and the asymmetry `budget` already carries between an add and an amend.
+
 ## Block D — The gate
+
+### §RK299 Which engine answered, and which tree it answered about
+
+RK79's argument, one step to the left. Two `src/roadkeep/` trees both answering `0.1.0`
+cost a session, and the fix was that the answer names files rather than a release. The
+mirror is untouched: a report names `docs/ROADMAP.md:5`, and nothing says which `docs/`
+that is.
+
+Observed this session. A `lint` ran with a working directory left over from an earlier
+command and answered for a different repository — 34 findings, a clean summary line, and
+the only clue was `docs/STRATEGY.md` in a project declaring no strategy file. Had the
+two had the same shape, the report would have been unattributable. Neither the human
+output nor `--json` carries a root: the keys are `checked`, `findings`, `notes` and
+`lines`, and every path in them is relative to something the answer never states.
+
+The remedy is one field, and this is the cheap half: the summary line already ends with
+a count, so the root belongs at the front of it or beside the engine `--version` prints.
+In `--json` it is a `root` key, which is what lets a second tool file a report against
+the project it was about.
+
+What to weigh is where it *stops*. Every command reads a config discovered from a
+directory, so the same question is asked of `list`, `stats` and `show` — and a header on
+every query would be paid for on the reads whose point is that asking costs nothing
+(L5). The gate is where a wrong answer is expensive, so it is where to start.
+
+### §RK300 One fact, two spellings, one test between them
+
+RK269 shipped a `lint --since` note about a block emptying, and the note has to agree
+with the `event <id> Block <x> empty` line `ship` prints, because they answer the same
+question about the same file. They agree by having the same expression written twice:
+`cli._event` computes `not roadmap.block(block)` and `linting._turned` computes
+`len(roadmap.block(label))`, in two modules that never call each other.
+
+Which is the shape this project removes elsewhere and did not remove here. The
+`PreToolUse` matcher and `GUARDED_TOOLS` are one list because two lists disagree
+eventually; `_only_reads` reads the parser's own declaration rather than a list at the
+call site (RK167); `lint` re-validates through `Schema.validate` rather than owning
+regexes, on the argument that a second statement of a rule diverges in the direction
+nobody tests. Here the direction *is* tested —
+`test_the_note_and_the_ship_event_answer_the_same_question` — and a test is a weaker
+guarantee than one caller: it holds the two outputs level without stopping a third
+reader from spelling it a fourth way.
+
+The answer is small: one predicate on `Document`, or beside it, that says whether a
+label still holds an open line, with both readers calling it. What is worth deciding is
+whether it also belongs to the deferred store's question — a paused line is not open
+(RK92) and both current readers agree by ignoring it, so the name must not suggest
+otherwise, and a third caller wanting "any line at all" is a different predicate rather
+than a flag on this one.
 
 ## Block E — Adoption
 

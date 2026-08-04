@@ -27,6 +27,7 @@
 - 📋 **RK294** (deps: —) **Nothing calls the scope at the moment the commit is made** — `ship` runs at exactly that second and says nothing about the tree, so RK280's mechanism is reached only by prose in agents.md — the shape RK1 says does not hold. → §RK294
 - 📋 **RK295** (deps: —) **A scope naming a path the tree does not have is recorded in silence** — `claim --path` takes the path verbatim and never asks the disk, so a typo is a file the commit will not stage and a scope that reads as complete. → §RK295
 - 📋 **RK296** (deps: —) **An undeclared-block refusal still lists every label the file declares** — RK257 gave it the file and the verb and left the list, so a project with 90 blocks answers a question nobody asked and buries the two clauses that are the remedy. → §RK296
+- 💭 **RK298** (deps: —) **A shipped line's commit cannot read the scope its claim carried** — `ship` releases the claim, so the `claim <id> --porcelain` agents.md stages from is refused at the one moment a commit needs it, naming a `status 🛠` the ledger refuses too. → §RK298
 
 ## Block C — Query (consult without reading the file)
 
@@ -34,8 +35,13 @@
 - 📋 **RK283** (deps: —) **budget answers for the task line only, so the two largest prose limits are discoverable only by failing** — A non-goal why took two refusals at 286 and 234 against 200, and a section body one at 366 words against 300 — the verdict-after-the-prose this verb exists to prevent. → §RK283
 - 📋 **RK287** (deps: —) **A section's word count includes its subsections, so it names a figure no limit is measured against** — show and amend answered 310 for a section whose own prose is 48 and whose subsection is 255, against a declared 300 that lint passes — a verdict the author cannot act on. → §RK287
 - 📋 **RK293** (deps: —) **anchors names the next address under every family and not the next family** — A reused block needs a fresh top-level to file under, and the read built for that question answers per family in an order where IX follows IV, so the maximum is not on the listing either. → §RK293
+- 📋 **RK297** (deps: —) **The read that says which anchor address is free asks one prose file on a project with two** — `anchors --role` reads one file, so Turing's two disagree about the next child of seven shared families: `§IX.5` reads free where the other has spent to `IX.12`. → §RK297
+- 📋 **RK301** (deps: —) **The pre-write budget is silent about the one field in the same transaction that also refuses** — `budget` reports the symptom and the why, so thirteen `add --section` refusals this session were each a 250-word body resent to learn a number known before the first sentence. → §RK301
 
 ## Block D — The gate
+
+- 📋 **RK299** (deps: —) **A report names every path relative to a root it never states** — A `lint` run from the wrong directory answered for another repository and only an unfamiliar filename gave it away, while RK79 already names which engine answered. → §RK299
+- 📋 **RK300** (deps: —) **Whether a block still holds open work is computed in two modules** — `cli._event` and `linting._turned` each spell `roadmap.block(label)`, so the event line and RK269's note are two answers to one question, held in step by a test alone. → §RK300
 
 ## Block E — Adoption
 
