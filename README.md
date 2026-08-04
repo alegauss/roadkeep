@@ -120,13 +120,13 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 4 | 48 | 0 |
 | C — Query (consult without reading the file) | 1 | 37 | 0 |
 | D — The gate | 0 | 50 | 0 |
-| E — Adoption | 4 | 24 | 1 |
+| E — Adoption | 3 | 25 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 32 | 1 |
-| **Total** | 10 | 216 | 3 |
+| **Total** | 9 | 217 | 3 |
 
 **Next ready:**
 
-- 📋 **RK139** (deps: —) **`adopt` measures the task lines and says nothing about the non-goals it will govern** — The estimate reports symptom, why and line against their limits and never the lead and reason it will hold the other bullet to, so nine findings arrived after the commitment. → §RK139
+- 📋 **RK140** (deps: —) **The CI workflow `install` writes is red on its first run for every backlog with debt** — The baseline that fails on what a branch added is named in a comment and left unset, so the gate an adopter meets first is one reporting work nobody was going to redo. → §RK140
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

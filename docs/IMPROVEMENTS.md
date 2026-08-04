@@ -220,21 +220,6 @@ and may not need a second.
 
 ## Block E — Adoption
 
-### §RK139 The half of the roadmap the estimate does not read
-
-`adopt` exists so the cost is known before the commitment: it reads the lines, names the
-longest field against its limit, and never fails, because "an estimate that exits 1 is a
-gate". It reads one of the roadmap's two kinds of bullet. Measured on Claude Tray:
-`adopt` reported 18 lines over on `why` and `line`, the adoption was decided on that,
-and `lint` then produced nine findings nobody had been shown - two bullets with no
-parseable lead at all, one lead at 72 characters against 60, and six reasons over 200,
-the worst at 1,100. That is a third of the work, discovered after the config was
-written. `[non_goals]` is opt-in for RK66's reason, which makes measuring it *more*
-useful rather than less: the number an adopter needs is what the limit would cost, and
-today the only way to get it is to declare the table and run the gate. The estimate
-already has the parser - `scoping.read` - and the same shape of answer to give: how many
-bullets parse, the longest lead, the longest reason, and what would change.
-
 ### §RK140 A gate that is red before it is read
 
 The workflow is written once and then the adopter's, which is right - it takes a

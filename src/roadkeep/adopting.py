@@ -18,7 +18,10 @@ reads a file it does not own and writes nothing at all.
   could — a backlog kept as table rows parses as nothing, and a zero the reader cannot
   tell from an empty file is the one answer an estimate may not give (RK98). Counting the
   rows is not parsing them: reading the shape is an estimate's job, and a tool that read
-  the cells would be a tool with two line formats.
+  the cells would be a tool with two line formats. It reads **both** kinds of bullet a
+  roadmap holds (RK139): the non-goals are measured against the two limits they would be
+  held to, declared or not, because a third of one adoption's work was in that list and
+  arrived after the commitment.
 
 Three decisions that are the point rather than details of it:
 
@@ -48,7 +51,15 @@ from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, replace
 from pathlib import Path
 
-from roadkeep.config import CLAIM_HELD, CONFIG_NAME, DEFAULT_PATHS, PYPROJECT, Config
+from roadkeep import scoping
+from roadkeep.config import (
+    CLAIM_HELD,
+    CONFIG_NAME,
+    DEFAULT_PATHS,
+    PYPROJECT,
+    Config,
+    Scope,
+)
 from roadkeep.document import Document, checkbox
 from roadkeep.schema import DEFAULT_HEADING_WORD, Schema
 from roadkeep.sections import anchored, structural
@@ -140,6 +151,40 @@ class Measure:
 
 
 @dataclass(frozen=True, slots=True)
+class Scoped:
+    """The roadmap's *other* bullet, measured (RK139).
+
+    `adopt` read one of the roadmap's two kinds of line. Measured on Claude Code Tray: 18
+    lines over on `why` and `line` decided the adoption, and `lint` then produced nine
+    findings nobody had been shown — two bullets with no parseable lead, one lead at 72
+    against 60, six reasons over 200 with the worst at 1,100. A third of the work, after the
+    commitment.
+
+    Reported whether or not `[non_goals]` is declared, which is what ``governed`` says.
+    Opt-in makes the measurement *more* useful rather than less: the number an adopter needs
+    is what the limit would cost, and until this the only way to get it was to declare the
+    table and run the gate.
+    """
+
+    parsed: int
+    #: Bullets under the heading the grammar did not accept — `scoping.rejects`, which is the
+    #: same split :class:`~roadkeep.document.Reject` is: a count that omitted them would read
+    #: as complete.
+    unparsed: int
+    #: Bullets with at least one field over its limit. Per bullet and not per field, because
+    #: what an adopter is counting is edits.
+    over: int
+    measures: tuple[Measure, ...] = ()
+    governed: bool = False
+
+    @property
+    def changing(self) -> int:
+        """Bullets that would have to change. Counted apart from the task lines' total where
+        the project has not opted in, the gate reporting nothing there (see `Estimate`)."""
+        return self.unparsed + self.over
+
+
+@dataclass(frozen=True, slots=True)
 class Shape:
     """One thing this file's ids spell that `[ids]` can declare, and how many spell it (RK110).
 
@@ -205,6 +250,12 @@ class Estimate:
     #: Lines whose schema rendering differs from how they are written. Not a defect to fix
     #: here — it is the reason the tool would refuse to write the file at all (L3).
     non_canonical: int = 0
+    #: The non-goals list, measured beside the task lines (RK139) — None on a run over a
+    #: ledger or a rationale file, neither of which holds one. Its own count and not part of
+    #: ``changing`` where the project has not opted in: the gate reports nothing there, and a
+    #: headline that added the cost of a rule nobody has adopted would be measuring a
+    #: different commitment from the one being taken.
+    non_goals: Scoped | None = None
     #: Rows of a Markdown table filed under a block heading (RK98). A backlog kept as rows
     #: parses as nothing at all — no entry and no reject — so without this the headline is
     #: the one an empty file gets, and the estimate that decides whether to adopt reports
@@ -218,12 +269,19 @@ class Estimate:
         Table rows count here for the same reason rejects do — neither is an entry, and a
         number that only added up what parsed would be smallest on the file furthest from
         the format.
+
+        Non-goals join it only where the project **declared** them governed (RK139), because
+        there they are lines the gate will fail on. Where it has not, they are measured and
+        reported and left out of this number: the estimate would otherwise price a rule
+        nobody has adopted into the decision about adopting a different one.
         """
+        scoped = self.non_goals.changing if self.non_goals and self.non_goals.governed else 0
         return (
             self.parsed
             - self.conforming
             + sum(count for _, count in self.rejects)
             + self.tabular
+            + scoped
         )
 
 
@@ -548,6 +606,9 @@ def adopt(
         prefixes=spelled,
         blocks=tuple(h.label for h in document.headings if h.label),
         non_canonical=len(document.non_canonical),
+        # Only where the file is being read as a backlog: a ledger has no such list, and a
+        # heading matching there would be an answer about the wrong file (RK139).
+        non_goals=None if ledger else _scoped(config, document),
         tabular=len(document.tabular),
     )
 
@@ -625,6 +686,46 @@ def _filled(document: Document) -> list[str]:
             out += paragraph
         paragraph = []
     return out
+
+
+def _scoped(config: Config, document: Document) -> Scoped:
+    """The non-goals under this roadmap's heading, against the two limits they will be held to.
+
+    The parser is `scoping`'s own — the reader every other caller shares — so the count is the
+    one `lint` will take and not a second reading of the same bullets. The limits are the
+    project's `[non_goals]` where it declared them and :class:`Scope`'s defaults where it has
+    not, which is the whole point of measuring an opt-in rule: an adopter is asking what the
+    table would cost before writing it.
+    """
+    scope = config.non_goals or Scope()
+    found = scoping.read(document)
+    over = sum(
+        1
+        for goal in found
+        if len(goal.lead) > scope.lead or len(goal.why) > scope.why
+    )
+    leads = [len(goal.lead) for goal in found]
+    whys = [len(goal.why) for goal in found]
+    return Scoped(
+        parsed=len(found),
+        unparsed=len(scoping.rejects(document)),
+        over=over,
+        measures=(
+            Measure(
+                field="lead",
+                limit=scope.lead,
+                longest=max(leads, default=0),
+                over=sum(1 for length in leads if length > scope.lead),
+            ),
+            Measure(
+                field="why",
+                limit=scope.why,
+                longest=max(whys, default=0),
+                over=sum(1 for length in whys if length > scope.why),
+            ),
+        ),
+        governed=config.non_goals is not None,
+    )
 
 
 def _measures(document: Document, schema: Schema) -> tuple[Measure, ...]:

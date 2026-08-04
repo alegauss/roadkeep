@@ -4135,6 +4135,8 @@ def _print_estimate(estimate: Estimate) -> None:
             f"  {measure.field:<8} longest {measure.longest} of {measure.limit}, "
             f"{measure.over} over"
         )
+    if estimate.non_goals is not None:
+        _print_scoped(estimate.non_goals)
     for marker, count in estimate.undeclared:
         print(f"  marker   {marker} on {count} line(s), declared by nothing in [markers]")
     for code, count in estimate.codes:
@@ -4145,6 +4147,27 @@ def _print_estimate(estimate: Estimate) -> None:
         print(
             f"  {estimate.non_canonical} line(s) do not round-trip: the tool would "
             f"refuse to write this file until they are rewritten by hand"
+        )
+
+
+def _print_scoped(scoped) -> None:
+    """The roadmap's other bullet, under the two limits it would be held to (RK139).
+
+    Printed even at zero, and even where `[non_goals]` is undeclared, for the reason every
+    measure is: what an adopter is asking is what the rule would cost, and a section that
+    appeared only once it was already expensive is one nobody can decide from. Whether the
+    project opted in is said in the same line, because it is what decides whether these
+    bullets are in the headline count or beside it.
+    """
+    governed = "governed" if scoped.governed else "not governed, so measured at the defaults"
+    print(
+        f"  non-goals {scoped.parsed} bullet(s), {scoped.unparsed} unread, "
+        f"{scoped.over} over — [non_goals] {governed}"
+    )
+    for measure in scoped.measures:
+        print(
+            f"    {measure.field:<8} longest {measure.longest} of {measure.limit}, "
+            f"{measure.over} over"
         )
 
 
@@ -4176,6 +4199,19 @@ def _estimate_json(estimate: Estimate) -> dict[str, object]:
             for s in estimate.id_shape
         ],
         "codes": [{"code": c, "count": n} for c, n in estimate.codes],
+        "non_goals": None
+        if estimate.non_goals is None
+        else {
+            "parsed": estimate.non_goals.parsed,
+            "unparsed": estimate.non_goals.unparsed,
+            "over": estimate.non_goals.over,
+            "governed": estimate.non_goals.governed,
+            "changing": estimate.non_goals.changing,
+            "measures": [
+                {"field": m.field, "limit": m.limit, "longest": m.longest, "over": m.over}
+                for m in estimate.non_goals.measures
+            ],
+        },
         "rejects": [{"reason": r, "count": n} for r, n in estimate.rejects],
         "non_canonical": estimate.non_canonical,
         "tabular": estimate.tabular,

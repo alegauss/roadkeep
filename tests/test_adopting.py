@@ -34,7 +34,7 @@ from roadkeep.adopting import (
     render_config,
 )
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
-from roadkeep.config import Config
+from roadkeep.config import Config, Scope
 from roadkeep.schema import Schema
 from roadkeep.sections import words
 
@@ -359,6 +359,76 @@ def test_a_length_is_reported_as_a_distance_and_not_a_verdict(tmp_path: Path) ->
     assert measures["why"].over == 1
     assert measures["why"].longest > measures["why"].limit
     assert measures["line"].limit == 320
+
+
+#: Claude Code Tray's shape (RK139): a lead over the limit, a reason far over it, and a bullet
+#: with no bold head at all — the three findings that arrived after that adoption was decided.
+SCOPED = (
+    "# Roadmap\n\n## Block A\n\n"
+    "- 📋 **RK1** (deps: —) **A symptom** — Because of a reason. → §RK1\n\n"
+    "## Non-goals\n\n"
+    "- **No web UI and no server.** Files and a CLI.\n"
+    f"- **{'No ' + 'very ' * 30}long a lead** Because of a reason.\n"
+    f"- **No second one** {'Because of a reason that runs on. ' * 12}\n"
+    "- A bullet with no bold head at all, which is a shape nothing can address.\n"
+)
+
+
+def test_the_non_goals_are_measured_beside_the_task_lines(tmp_path: Path) -> None:
+    """The half of the roadmap the estimate did not read (RK139)."""
+    target = tmp_path / "ROADMAP.md"
+    target.write_text(SCOPED, encoding="utf-8")
+    estimate = adopt(Config.default(tmp_path), target)
+    scoped = estimate.non_goals
+    assert (scoped.parsed, scoped.unparsed, scoped.over) == (3, 1, 2)
+    measures = {m.field: m for m in scoped.measures}
+    assert measures["lead"].over == 1 and measures["lead"].longest > measures["lead"].limit
+    assert measures["why"].over == 1
+    # Measured at the defaults, and said so: the number an adopter needs is what the rule
+    # would cost, and until this the only way to get it was to declare the table and lint.
+    assert scoped.governed is False
+
+
+def test_a_rule_nobody_adopted_is_reported_beside_the_headline_and_not_inside_it(
+    tmp_path: Path,
+) -> None:
+    """`changing` is what the gate would fail on, and the gate reports nothing where
+    `[non_goals]` is undeclared — so opting in is what moves those bullets into the total."""
+    target = tmp_path / "ROADMAP.md"
+    target.write_text(SCOPED, encoding="utf-8")
+    ungoverned = adopt(Config.default(tmp_path), target)
+    assert ungoverned.changing == 0  # one task line, conforming
+    assert ungoverned.non_goals.changing == 3
+
+    config = Config.default(tmp_path)
+    governed = adopt(replace(config, non_goals=Scope()), target)
+    assert governed.non_goals.governed is True
+    assert governed.changing == 3
+
+
+def test_a_ledger_has_no_such_list_to_measure(tmp_path: Path) -> None:
+    """A heading matched there would be an answer about the wrong file."""
+    target = tmp_path / "CHANGELOG.md"
+    target.write_text(
+        "# Shipped\n\n## Block A\n\n- ✅ **RK1** **A symptom** — because it was done.\n",
+        encoding="utf-8",
+    )
+    assert adopt(Config.default(tmp_path), target, ledger=True).non_goals is None
+
+
+def test_the_non_goals_report_names_the_two_limits(tmp_path: Path, capsys) -> None:
+    target = tmp_path / "ROADMAP.md"
+    target.write_text(SCOPED, encoding="utf-8")
+    assert main(["-C", str(tmp_path), "adopt", str(target)]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "non-goals 3 bullet(s), 1 unread, 2 over" in out
+    assert "[non_goals] not governed, so measured at the defaults" in out
+    assert "lead     longest" in out
+
+    assert main(["-C", str(tmp_path), "adopt", str(target), "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["non_goals"]["changing"] == 3
+    assert payload["non_goals"]["measures"][0]["field"] == "lead"
 
 
 def test_the_ledger_is_measured_as_the_ledger(tmp_path: Path) -> None:
