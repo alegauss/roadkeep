@@ -44,8 +44,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK260** (deps: —) **Every denied edit imports the MCP server module to read a tuple of tool names** — `guarding` serves three hook events and imports for all three eagerly: measured, `serving` is +58 ms and 11 modules on a `PreToolUse` decision that needs only `config` and `TOOLS`. → §RK260
-
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:

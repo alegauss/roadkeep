@@ -42,10 +42,6 @@ from pathlib import Path
 
 import roadkeep
 
-# The package's one call to git: its timeout, its encoding and its single failure type.
-# Duplicating a `subprocess.run` here would be duplicating those three decisions.
-from roadkeep.history import HistoryUnavailable, _run as _git
-
 #: What the revision reads as when git cannot place these files: no repository, no git on
 #: PATH, or a package directory nothing in the surrounding tree tracks — an installed copy
 #: that happens to sit under someone else's checkout must not borrow that checkout's HEAD.
@@ -205,6 +201,15 @@ def engine() -> Engine:
 
 
 def _placed(home: Path) -> tuple[str | None, bool]:
+    # The package's one call to git: its timeout, its encoding and its single failure type.
+    # Duplicating a `subprocess.run` here would be duplicating those three decisions.
+    #
+    # Imported here and not at module level (RK260): `history` reaches `backlog` and `sections`,
+    # measured at 29 ms and four modules, and this is the only function in the file that asks git
+    # anything. The guard imports this module for :func:`invocation`, which reads a directory —
+    # so a denial paid for the git wrapper it never calls.
+    from roadkeep.history import HistoryUnavailable, _run as _git  # noqa: PLC0415
+
     try:
         # `ls-files` first: it answers "does this tree track these very files", which
         # `rev-parse` does not — an installed package under an unrelated repository would

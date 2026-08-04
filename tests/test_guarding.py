@@ -32,6 +32,7 @@ import json
 import os
 import shlex
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -153,6 +154,43 @@ def write(path: str, *, tool: str = "Edit", cwd: Path | None = None) -> dict[str
 
 
 # -- what is refused ---------------------------------------------------------
+
+
+#: What a `PreToolUse` decision is allowed to load, beyond `guarding` itself (RK260). The hook
+#: runs on every Edit, Write and Bash and the harness waits for it, and the three events this
+#: module serves need disjoint thirds — so an import that belongs to `Stop` or `SessionStart`
+#: appears here as a failure rather than as 75 ms nobody measured.
+DENIAL_REACHES = {
+    # The config is the question: which paths this project governs, and the schema and the
+    # document model it reads them under.
+    "roadkeep.config",
+    "roadkeep.schema",
+    "roadkeep.document",
+    # The tool names the denial offers (RK58), and the shell invocation beside them (RK254).
+    "roadkeep.serving",
+    "roadkeep.provenance",
+    "roadkeep.locking",
+}
+
+
+def test_a_denial_loads_only_what_a_denial_needs():
+    # Measured before this held: 141 ms and 25 modules, against 66 and 7 — the linter it will
+    # not run and the ledger it will not read, on the hook the harness blocks on. A fresh
+    # process per call is why deferring is right here and hoisting is right in the server
+    # (RK202), and the assertion is the module set because that is what the cost tracks.
+    loaded = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            "import sys; sys.path.insert(0, 'src'); import roadkeep.guarding; "
+            "print('\\n'.join(m for m in sys.modules if m.startswith('roadkeep.')))",
+        ],
+        cwd=Path(__file__).parents[1],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.split()
+    assert set(loaded) - {"roadkeep.guarding"} == DENIAL_REACHES
 
 
 def test_the_roadmap_is_refused_and_the_command_is_named(tmp_path):

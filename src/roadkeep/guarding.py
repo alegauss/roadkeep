@@ -56,6 +56,18 @@ process *is* the wired checkout and the copy is what the session is about to loa
 enough to ask unconditionally: :func:`~roadkeep.installing.stale` costs one `is_file` where
 there is no copy at all.
 
+**One module, three events, and each event's imports are its own** (RK260). What the three need
+is disjoint: `PreToolUse` wants the config, the tool names and the invocation; `SessionStart`
+wants :func:`~roadkeep.installing.stale`; `Stop` wants `linting`, `attesting` and `history`.
+Imported at module level, that made the hook the harness waits for on *every* Edit, Write and
+Bash pay for the linter it will not run — measured at 141 ms and 25 modules, against 66 ms and
+7 once each import moved into the branch that uses it. This is the opposite trade from RK202,
+and for the opposite reason: the MCP server is one process answering many messages, so a lookup
+it repeats is worth hoisting, while the guard is a **fresh process per hook call**, so every
+import it holds is paid again. RK176 bought the floor below this with
+:mod:`roadkeep.screening`, which answers "there is certainly nothing here" out of the standard
+library; this is the same argument for the payloads that get past it.
+
 What is deliberately absent: any judgement about the *content* of the write. This module
 never reads what the agent was about to insert, only where it was going. Deciding whether a
 sentence fits is :meth:`Schema.validate`'s job, and it gets to make it when the author calls
@@ -69,14 +81,15 @@ import tomllib
 from collections.abc import Mapping
 from dataclasses import dataclass, replace
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from roadkeep.attesting import Unattested, unattested
 from roadkeep.config import Config, ConfigError, find_config
-from roadkeep.history import changed_lines
-from roadkeep.installing import stale
-from roadkeep.linting import Report, lint
 from roadkeep.provenance import invocation
 from roadkeep.serving import TOOLS
+
+if TYPE_CHECKING:  # annotations only, and already strings — see the docstring's sixth decision
+    from roadkeep.attesting import Unattested
+    from roadkeep.linting import Report
 
 #: The tools that put bytes in a file. Listed by what reaches the disk and not by what the
 #: harness happens to call it this month: a writing tool that is missing here is the hole
@@ -404,6 +417,8 @@ def announce(payload: Mapping[str, object], root: str | Path = ".") -> Notice | 
         return None
     # Asked here and not on a `PreToolUse`, for the reason the notice itself is: the copy a
     # session trusts is the skill it loads, and by the first write it has been read (RK234).
+    from roadkeep.installing import stale  # noqa: PLC0415 - RK260 the SessionStart path only
+
     return Notice(files=files, stale=stale(config.root))
 
 
@@ -487,6 +502,8 @@ def review(payload: Mapping[str, object], root: str | Path = ".") -> Review | No
     if config.source is None:
         return None  # not a roadkeep project: there is nothing here this may judge
     try:
+        from roadkeep.linting import lint  # noqa: PLC0415 - RK260 the Stop path only
+
         report = lint(config)
     except (KeyError, OSError):
         return None
@@ -517,6 +534,8 @@ def attested(payload: Mapping[str, object], root: str | Path = ".") -> Unatteste
         return None
     if config.source is None:
         return None
+    from roadkeep.attesting import unattested  # noqa: PLC0415 - RK260
+
     return unattested(config)
 
 
@@ -528,6 +547,8 @@ def _this_turn(config: Config, report: Report) -> Report:
     blocked by history — 278 findings in Shio, none of them the session's. `roadkeep lint`,
     the pre-commit hook and the Action are unchanged: they answer "is this file correct".
     """
+    from roadkeep.history import changed_lines  # noqa: PLC0415 - RK260 the Stop path only
+
     per_file: dict[str, frozenset[int] | None] = {}
     kept = []
     for finding in report.findings:

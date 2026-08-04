@@ -71,10 +71,14 @@ from pathlib import Path
 from typing import Any, TextIO
 
 from roadkeep import __version__
-from roadkeep.budgeting import words
 from roadkeep.config import PROSE_ROLES, Config, ConfigError, Scope
 from roadkeep.locking import LockBusy
 from roadkeep.provenance import engine
+# `words` from where it is *defined* and not from `budgeting`, which re-exports it (RK260):
+# `config` already loads `schema`, and reaching the name through `budgeting` cost the guard
+# 30 ms and eight modules — `authoring`, `sections`, `claiming`, `ids`, `markers` and the
+# rest of the write path — on every denied edit, for one character-to-word division.
+from roadkeep.schema import words
 
 #: The protocol revision this server answers with when the client asks for one it does not
 #: know. Negotiation is "echo what the client asked for if we understand it": a server that
