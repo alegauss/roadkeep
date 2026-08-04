@@ -248,22 +248,3 @@ makes `merge register` fail on the machine most likely to want it, which is the 
 against.
 
 ## Block F — The plugin
-
-### §RK256 The sweep RK254 scoped out of itself
-
-RK254's line names the guard, and the fix was held to it: `Denial`, `Review` and
-`Notice` print `provenance.invocation()` and nothing else changed. Two literals remain,
-found by grepping the package for the prefix rather than by a session hitting them.
-`capturing` composes a filing command, `roadkeep add --block F --symptom …`, which is
-the whole point of the capture — a defect in this tool, as a command that files it
-upstream (RK87), handed to a reader who is by construction on a machine where this tool
-just misbehaved. `cli` ends an uncounted-lines report with "run 'roadkeep audit' to see
-them", where the reader has just run a command successfully and may well have run it as
-`python -m roadkeep.cli`. Neither is load-bearing the way the merge driver is, and
-neither is silent the way the guard's was: the reader gets a `command not found` and can
-translate. What makes them worth one line is that they are the last two, so closing them
-makes the claim checkable — no message in this package spells an invocation it did not
-derive — and a test over the package's own source can hold it, the way
-`tests/test_linting.py` holds the Layout index against `src/roadkeep/`. Without that
-test the next composed message reintroduces the literal, which is how this one came to
-have four instances before anybody counted.

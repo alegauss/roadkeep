@@ -77,6 +77,7 @@ from roadkeep.config import CONFIG_NAME, Config
 from roadkeep.linting import lint
 from roadkeep.merging import Registration, register
 from roadkeep.provenance import engine
+from roadkeep.provenance import invocation
 
 #: The server's name, which is also the prefix an agent reads on every tool it offers.
 SERVER = "roadkeep"
@@ -133,8 +134,11 @@ ACTION_REF = "main"
 #: `CONTRIBUTING.md` line and was never told a driver exists, so the failure landed later and
 #: looked like the tool's: two branches spend one id, git writes conflict markers into the
 #: roadmap, and the resolution is the hand edit the guard denies.
+#: A template and not a string, because the invocation is a fact about the machine reading it
+#: and this is a module constant (RK256): resolved at import, it would answer for whatever the
+#: working directory was then rather than for the report being printed.
 MERGE = (
-    ".gitattributes: `roadkeep merge --register` wires the merge driver for the governed "
+    ".gitattributes: `{invocation} merge --register` wires the merge driver for the governed "
     "files, so two branches appending under one heading is two additions and not a conflict "
     "— opt-in configuration, and `install --register-merge` runs it here"
 )
@@ -321,7 +325,8 @@ def plan(
     ]
     skipped: list[tuple[str, str]] = [(CONTRIBUTING.split(":")[0], CONTRIBUTING)]
     if not registering:
-        skipped.insert(0, (MERGE.split(":")[0], MERGE))
+        described = MERGE.format(invocation=invocation())
+        skipped.insert(0, (described.split(":")[0], described))
     debt = _standing(base) if gauging else None
     if own:
         skipped.insert(0, (PROJECT_SKILL, f"{PROJECT_SKILL}: {_OWN_SKILL}"))
@@ -419,7 +424,7 @@ def _governed(base: Path) -> Config:
     if config.source is None:
         raise ValueError(
             f"{base} declares no {CONFIG_NAME} and nothing was registered: a merge driver is "
-            f"wired per governed file, so `roadkeep init` (or a config) comes first — the "
+            f"wired per governed file, so `{invocation()} init` (or a config) comes first — the "
             f"four surfaces above do not depend on it"
         )
     return config

@@ -114,6 +114,7 @@ from roadkeep.schema import PARTIAL, DepKind, Task, over_by
 from roadkeep.sections import Section, anchored, find
 from roadkeep.sections import owners as section_owners
 from roadkeep.showing import known_directories, on_disk, paths_in
+from roadkeep.provenance import invocation
 
 #: The governed files whose unit is a task line. The prose files are paragraphs, so
 #: their gate is a pointer and a budget — RK15 and RK30, not this. The deferred store is
@@ -1736,7 +1737,7 @@ def _projections(
                 "export.stale",
                 target.where,
                 f"the block between the roadkeep markers is not what the governed files "
-                f"render: `roadkeep export --{target.flag}` rewrites it, and every "
+                f"render: `{invocation()} export --{target.flag}` rewrites it, and every "
                 f"character of it is derived",
                 _marked(target.text),
             )

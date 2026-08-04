@@ -49,6 +49,7 @@ from pathlib import Path
 
 from roadkeep.config import Config
 from roadkeep.locking import sidecar
+from roadkeep.provenance import invocation
 
 #: The sidecar's suffix, beside `.lock` and the claim registry and keyed by the same resolved
 #: root — a third way of spelling "this checkout" is a third answer that can drift (RK117).
@@ -78,8 +79,8 @@ class Unattested:
                 "command changed the file and end the turn again — this blocks once, and the "
                 "bytes that are there now are the new baseline.",
                 "",
-                "`roadkeep lint` judges the format; the verbs that write it are in the "
-                "refusal every governed edit already prints.",
+                f"`{invocation()} lint` judges the format; the verbs that write it are in "
+                f"the refusal every governed edit already prints.",
             ]
         )
 

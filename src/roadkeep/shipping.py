@@ -114,6 +114,7 @@ from roadkeep.config import PROSE_ROLES, Config
 from roadkeep.document import Document, Entry, Heading, Wrapped, counted, save_all
 from roadkeep.ids import next_id
 from roadkeep.markers import refresh
+from roadkeep.provenance import invocation
 from roadkeep.renumbering import NotAnId, SameId, family_of
 from roadkeep.schema import PARTIAL, Task
 from roadkeep.sections import (
@@ -212,10 +213,10 @@ class SecondPartial(ValueError):
         self.part = part
         self.suffix = suffix
         door = (
-            f"`roadkeep add --id {task_id}b --block <x> --symptom \"…\" --why \"…\"`, this "
+            f"`{invocation()} add --id {task_id}b --block <x> --symptom \"…\" --why \"…\"`, this "
             f"project declaring `[ids] suffix`"
             if suffix
-            else f"`roadkeep add --block <x> --symptom \"…\" --why \"…\"` with a `why` that "
+            else f"`{invocation()} add --block <x> --symptom \"…\" --why \"…\"` with a `why` that "
             f"names {task_id}, this project declaring no `[ids] suffix`"
         )
         super().__init__(
@@ -296,7 +297,7 @@ class Divergent(ValueError):
             f"{roadmap}:{line} and {ledger}:{entry} both carry {task_id} and describe "
             f"different work: an interrupted transaction writes its entry from the line, so "
             f"the two would match — these are two tasks sharing an id, and "
-            f"`roadkeep renumber {task_id}` gives the open one an address of its own"
+            f"`{invocation()} renumber {task_id}` gives the open one an address of its own"
         )
 
 

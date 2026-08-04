@@ -47,7 +47,7 @@ from hashlib import sha256
 from pathlib import Path
 
 from roadkeep.config import find_config
-from roadkeep.provenance import Engine, engine
+from roadkeep.provenance import Engine, engine, invocation
 from roadkeep.schema import Schema, Task, Violation
 
 #: How much of the failing command's output is kept. A capture is read by a person, and a
@@ -167,7 +167,7 @@ class Capture:
         """The command that files this in the maintainer's backlog, id left derived."""
         return shlex.join(
             [
-                "roadkeep",
+                *shlex.split(invocation()),
                 "add",
                 "--block",
                 self.block,
@@ -297,7 +297,7 @@ def offer(argv: Sequence[str]) -> str:
     return "\n".join(
         [
             _OFFER,
-            f'  roadkeep report --symptom "…" --why "…" -- {shlex.join(argv)}',
+            f'  {invocation()} report --symptom "…" --why "…" -- {shlex.join(argv)}',
         ]
     )
 
@@ -323,7 +323,7 @@ def handoff(found: Capture, upstream: str) -> str:
     return "\n".join(
         [
             "Nothing was sent. To file it, after reading what is above:",
-            f"  roadkeep report … --issue | gh issue create -R {upstream} "
+            f"  {invocation()} report … --issue | gh issue create -R {upstream} "
             f"-t {shlex.quote(found.title)} -F -",
         ]
     )

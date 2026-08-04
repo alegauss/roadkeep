@@ -19,6 +19,7 @@ them would pass or fail on when the files were last saved.
 from __future__ import annotations
 
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -157,6 +158,74 @@ def test_the_shell_invocation_is_the_one_this_machine_has(tmp_path, monkeypatch)
     invocation.cache_clear()
     assert invocation() == "python -m roadkeep.cli"
     invocation.cache_clear()
+
+
+#: Every string constant in the package that spells `roadkeep <subcommand>` and is **not** an
+#: invocation a reader runs, with the reason it keeps the literal (RK256). An inventory and not a
+#: blanket exemption: this defect reached ten sites because nothing counted them, and a docstring
+#: rule would have exempted the two that print.
+KEPT_LITERAL = {
+    # Provenance written into a file that gets committed: a machine-specific path there would
+    # describe one checkout rather than the command shape that regenerates the artefact.
+    ("exporting.py", "roadkeep export"),
+    # A GitHub Actions step *name*, in generated YAML. CI reaches the tool by `uvx`, and the
+    # label is what a reader scans a workflow log for.
+    ("installing.py", "roadkeep lint"),
+}
+
+#: The one site that should derive and does not yet, because deriving it is its own decision:
+#: `merge register` prints a value stored in `.git/config` and executed by git, so it needs an
+#: absolute path that survives a plugin update (RK255). Listed rather than exempted, so shipping
+#: that task fails this test until the entry is removed — which is the coupling worth having.
+PENDING_LITERAL = {("merging.py", "roadkeep merge")}
+
+
+def _spelled_literally() -> set[tuple[str, str]]:
+    """Where a string constant in the package names `roadkeep <subcommand>` (RK256).
+
+    Over the *source* and not over rendered output, because the assertion is about what a future
+    message may contain: rendering every message needs every message's arguments, and the site
+    that reintroduces the literal is the one no test rendered yet.
+
+    Docstrings are excluded by `ast.get_docstring`'s own positions rather than by a heuristic —
+    prose for a reader of the source is where `roadkeep lint` is the right name for the command.
+    """
+    import ast
+
+    from roadkeep.serving import _parsers
+
+    verbs = sorted({path.split()[0] for path in _parsers()})
+    pattern = re.compile(r"roadkeep (" + "|".join(re.escape(verb) for verb in verbs) + r")\b")
+    found: set[tuple[str, str]] = set()
+    for module in sorted((HERE / "src" / "roadkeep").glob("*.py")):
+        tree = ast.parse(module.read_text(encoding="utf-8"))
+        docstrings = {
+            id(node.body[0].value)
+            for node in ast.walk(tree)
+            if isinstance(node, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef))
+            and ast.get_docstring(node) is not None
+        }
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Constant) or not isinstance(node.value, str):
+                continue
+            if id(node) in docstrings:
+                continue
+            found |= {(module.name, match.group(0)) for match in pattern.finditer(node.value)}
+    return found
+
+
+def test_no_message_spells_an_invocation_it_did_not_derive():
+    # The hold RK256 exists for: ten sites across four modules printed `roadkeep <verb>` before
+    # anybody counted them, so what is asserted is the *inventory* rather than the fix — a new
+    # message naming a command a reader runs fails here instead of in a session.
+    assert _spelled_literally() == KEPT_LITERAL | PENDING_LITERAL
+
+
+def test_the_kept_literals_are_still_there_to_be_kept():
+    # An inventory whose entries went away would pass the test above by being empty on both
+    # sides, which is the one way this can stop asserting anything.
+    modules = {module for module, _ in _spelled_literally()}
+    assert modules == {module for module, _ in KEPT_LITERAL | PENDING_LITERAL}
 
 
 def test_which_wiring_is_answering_is_read_from_where_the_code_lives(tmp_path):

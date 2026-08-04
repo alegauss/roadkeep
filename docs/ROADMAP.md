@@ -44,8 +44,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK256** (deps: —) **Two composed messages still spell the console script literally** — RK254 derived the invocation for the guard's three surfaces and left `capture`'s filing command and `audit`'s hint as they were, so the same reader is handed the same unrunnable line. → §RK256
-
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:

@@ -19,6 +19,8 @@ from pathlib import Path
 
 import pytest
 
+from roadkeep.provenance import invocation
+
 from roadkeep import document
 from roadkeep.authoring import UnknownBlock
 from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
@@ -833,7 +835,7 @@ def test_the_second_partial_names_the_id_the_next_step_takes(tmp_path):
         ship(Config.discover(tmp_path), "RK1", part="the other half", why="Half of it.")
     message = str(raised.value)
     assert "CHANGELOG.md:5 (local half)" in message  # still where the first half is
-    assert "roadkeep add --block <x>" in message and "names RK1" in message
+    assert f"{invocation()} add --block <x>" in message and "names RK1" in message
     # And the two exits that are not a new line, because both are one word away from here.
     assert "ship RK1` instead" in message and "record amend RK1 --part" in message
 
@@ -846,7 +848,7 @@ def test_the_spelling_it_offers_is_the_one_this_project_declares(tmp_path):
     ship(config, "RK1", part="local half", why="Because of a reason.").save()
     with pytest.raises(SecondPartial) as raised:
         ship(Config.discover(tmp_path), "RK1", part="the other half", why="Half of it.")
-    assert "roadkeep add --id RK1b" in str(raised.value)
+    assert f"{invocation()} add --id RK1b" in str(raised.value)
 
 
 def test_an_id_the_ledger_closed_still_gets_the_message_written_for_it(tmp_path):
@@ -887,7 +889,7 @@ def test_the_cli_reports_the_qualifier_and_how_to_finish(tmp_path, capsys):
     assert main(argv) == EXIT_OK
     out = capsys.readouterr().out
     assert "RK1 (local half)" in out
-    assert "roadkeep ship RK1" in out
+    assert f"{invocation()} ship RK1" in out
 
 
 def test_the_cli_json_says_the_line_is_still_open(tmp_path, capsys):

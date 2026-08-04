@@ -47,6 +47,7 @@ from roadkeep.authoring import place, remove_entry
 from roadkeep.config import Config
 from roadkeep.document import Document, Entry
 from roadkeep.linting import within
+from roadkeep.provenance import invocation
 
 __all__ = ["Merge", "Registration", "merge", "markers", "register", "role_of"]
 
@@ -321,7 +322,7 @@ def _spent(doubled: tuple[str, ...], contested: tuple[str, ...]) -> str:
     if doubled:
         out.append(
             f"both branches created {', '.join(doubled)}: one address, two tasks — "
-            f"`roadkeep renumber <id>` on one side, then merge again"
+            f"`{invocation()} renumber <id>` on one side, then merge again"
         )
     if contested:
         out.append(

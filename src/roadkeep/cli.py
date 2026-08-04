@@ -81,7 +81,7 @@ from roadkeep.locking import LockBusy, exclusive
 from roadkeep.merging import markers, merge, register, role_of
 from roadkeep.claiming import Followed, Held
 from roadkeep.picking import Choice, Claim, pick, take
-from roadkeep.provenance import engine
+from roadkeep.provenance import engine, invocation
 from roadkeep.renumbering import renumber
 from roadkeep.schema import SchemaError
 from roadkeep.scoping import add as add_non_goal
@@ -2381,7 +2381,7 @@ def _partly(config: Config, partial: Partial, args: argparse.Namespace) -> int:
         f"  open     {roadmap}:{partial.roadmap.by_id()[partial.task_id].lineno} "
         f"{partial.status} — the rest of it is still a task"
     )
-    print(f"  finish   roadkeep ship {partial.task_id}  (drops the qualifier)")
+    print(f"  finish   {invocation()} ship {partial.task_id}  (drops the qualifier)")
     if partial.refreshed:
         print(f"  derived  {', '.join(partial.refreshed)} (dep annotations re-derived)")
     _print_event(event, "  ")
@@ -2807,7 +2807,7 @@ def _list(config: Config, args: argparse.Namespace) -> int:
     if census.missed:
         print(
             f"roadkeep: {census.uncounted} marker-bearing line(s) in {census.file} "
-            f"were not counted; run 'roadkeep audit' to see them",
+            f"were not counted; run '{invocation()} audit' to see them",
             file=sys.stderr,
         )
     return EXIT_OK
@@ -4104,7 +4104,7 @@ def _init(config: Config, args: argparse.Namespace) -> int:
         print(f"created  {path.as_posix()}")
     print(
         f"{len(files)} file(s), blocks {', '.join(created.blocks)}: "
-        f"`roadkeep add --block {created.blocks[0]} …` writes the first line"
+        f"`{invocation()} add --block {created.blocks[0]} …` writes the first line"
     )
     return EXIT_OK
 
@@ -4373,7 +4373,7 @@ def _install(config: Config, args: argparse.Namespace) -> int:
         if args.check and intent.changing:
             print(
                 f"{len(intent.changing)} surface(s) differ from what this checkout ships: "
-                f"`roadkeep install` writes them",
+                f"`{invocation()} install` writes them",
                 file=sys.stderr,
             )
     if args.check and intent.changing:
@@ -4424,7 +4424,7 @@ def _uninstall(config: Config, args: argparse.Namespace) -> int:
         if args.check and intent.changing:
             print(
                 f"{len(intent.changing)} surface(s) still wire this project to a checkout: "
-                f"`roadkeep uninstall` takes them out",
+                f"`{invocation()} uninstall` takes them out",
                 file=sys.stderr,
             )
     if args.check and intent.changing:

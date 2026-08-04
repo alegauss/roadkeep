@@ -33,6 +33,8 @@ from pathlib import Path
 
 import pytest
 
+from roadkeep.provenance import invocation
+
 from roadkeep.capturing import (
     HOME,
     IGNORE_RULE,
@@ -199,7 +201,7 @@ def test_the_capture_renders_the_command_that_files_it_and_not_a_line(tmp_path):
     that owns it — a report carrying one would be a report inventing an address."""
     root = project(tmp_path)
     found = capture(SYMPTOM, WHY, "F", ["-C", str(root), "lint"], root)
-    assert found.filing.startswith("roadkeep add --block F --symptom ")
+    assert found.filing.startswith(f"{invocation()} add --block F --symptom ")
     assert SYMPTOM in found.filing and WHY in found.filing
     assert "RK" not in found.filing.replace("roadkeep", "")
 
@@ -280,7 +282,9 @@ def test_nothing_leaves_the_machine():
 
 def test_the_offer_substitutes_the_failing_argv_so_the_move_costs_nothing():
     said = offer(["-C", "/somewhere", "lint"])
-    assert said.endswith('roadkeep report --symptom "…" --why "…" -- -C /somewhere lint')
+    assert said.endswith(
+        f'{invocation()} report --symptom "…" --why "…" -- -C /somewhere lint'
+    )
 
 
 def test_the_offer_composes_no_part_of_the_claim():
@@ -304,14 +308,14 @@ def test_a_refused_write_closes_with_the_offer(tmp_path, capsys):
     code = main(["-C", str(root), "add", "--block", "A", "--symptom", "x" * 200, "--why", "B."])
     err = capsys.readouterr().err
     assert code == EXIT_USAGE
-    assert "symptom.too-long" in err and "roadkeep report --symptom" in err
+    assert "symptom.too-long" in err and f"{invocation()} report --symptom" in err
 
 
 def test_a_failing_gate_closes_with_the_offer(tmp_path, capsys):
     root = project(tmp_path, roadmap=BROKEN)
     code = main(["-C", str(root), "lint"])
     assert code == 1
-    assert "roadkeep report --symptom" in capsys.readouterr().err
+    assert f"{invocation()} report --symptom" in capsys.readouterr().err
 
 
 def test_a_command_that_succeeds_says_nothing_about_reporting(tmp_path, capsys):
@@ -326,14 +330,14 @@ def test_argparse_refuses_before_a_handler_exists_and_still_offers(capsys):
     with pytest.raises(SystemExit) as exited:
         main(["lint", "--no-such-flag"])
     assert exited.value.code == EXIT_USAGE
-    assert "roadkeep report --symptom" in capsys.readouterr().err
+    assert f"{invocation()} report --symptom" in capsys.readouterr().err
 
 
 def test_help_and_version_are_not_failures(capsys):
     with pytest.raises(SystemExit) as exited:
         main(["--help"])
     assert exited.value.code == 0
-    assert "roadkeep report" not in capsys.readouterr().err
+    assert f"{invocation()} report" not in capsys.readouterr().err
 
 
 def test_report_never_offers_to_report_itself(tmp_path, capsys):
@@ -343,7 +347,7 @@ def test_report_never_offers_to_report_itself(tmp_path, capsys):
     )
     err = capsys.readouterr().err
     assert code == EXIT_USAGE
-    assert "nothing captured" in err and "roadkeep report --symptom" not in err
+    assert "nothing captured" in err and f"{invocation()} report --symptom" not in err
 
 
 def test_the_hook_is_never_given_prose_to_answer_a_protocol_with(tmp_path, capsys, monkeypatch):
@@ -368,7 +372,7 @@ def test_a_crash_is_printed_and_closed_with_the_offer(tmp_path, capsys, monkeypa
     err = capsys.readouterr().err
     assert code == 1
     assert "RuntimeError: the parser lost its footing" in err
-    assert err.index("Traceback") < err.index("roadkeep report --symptom")
+    assert err.index("Traceback") < err.index(f"{invocation()} report --symptom")
 
 
 # -- what may leave, and how (RK87) ------------------------------------------
