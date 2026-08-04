@@ -60,8 +60,14 @@ there is no copy at all.
 is disjoint: `PreToolUse` wants the config, the tool names and the invocation; `SessionStart`
 wants :func:`~roadkeep.installing.stale`; `Stop` wants `linting`, `attesting` and `history`.
 Imported at module level, that made the hook the harness waits for on *every* Edit, Write and
-Bash pay for the linter it will not run — measured at 141 ms and 25 modules, against 66 ms and
-7 once each import moved into the branch that uses it. This is the opposite trade from RK202,
+Bash pay for the linter it will not run — measured at **84.5 ms and 25 modules**, against 50.1
+and 7 once each import moved into the branch that uses it, and 44.6 and 5 once `Document` and
+`LockBusy` followed (RK261). Interleaved, warm, minimum of nine rounds per tree: the first pass
+at this reported 141 against 66 from one sample each, and single-shot import timings on this
+machine drift far enough that a tree with *five* modules measured slower than one with seven.
+The module count is the exact half of the claim and the milliseconds are one machine's.
+
+This is the opposite trade from RK202,
 and for the opposite reason: the MCP server is one process answering many messages, so a lookup
 it repeats is worth hoisting, while the guard is a **fresh process per hook call**, so every
 import it holds is paid again. RK176 bought the floor below this with

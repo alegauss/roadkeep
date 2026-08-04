@@ -72,7 +72,6 @@ from typing import Any, TextIO
 
 from roadkeep import __version__
 from roadkeep.config import PROSE_ROLES, Config, ConfigError, Scope
-from roadkeep.locking import LockBusy
 from roadkeep.provenance import engine
 # `words` from where it is *defined* and not from `budgeting`, which re-exports it (RK260):
 # `config` already loads `schema`, and reaching the name through `budgeting` cost the guard
@@ -865,6 +864,11 @@ def call(tool: Tool, arguments: Mapping[str, Any], directory: str = ".") -> Answ
     interpreter per call would make an `add` cost more over MCP than over `Bash`.
     """
     from roadkeep.cli import dispatch
+
+    # Beside `dispatch`, and for the reason it is here rather than at the top (RK261): the guard
+    # imports this module for `TOOLS` and never dispatches anything, so a module-level
+    # `LockBusy` cost every denied edit 12 ms for an `except` only this function reaches.
+    from roadkeep.locking import LockBusy  # noqa: PLC0415 - RK261
 
     # Discovered before the argv is built, because which arguments this tool takes is read
     # from it (RK111) — and discovered once, so the call cannot be checked against one config

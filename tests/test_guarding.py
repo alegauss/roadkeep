@@ -161,23 +161,29 @@ def write(path: str, *, tool: str = "Edit", cwd: Path | None = None) -> dict[str
 #: module serves need disjoint thirds — so an import that belongs to `Stop` or `SessionStart`
 #: appears here as a failure rather than as 75 ms nobody measured.
 DENIAL_REACHES = {
-    # The config is the question: which paths this project governs, and the schema and the
-    # document model it reads them under.
+    # The config is the question — which paths this project governs — and `schema` is what
+    # `[limits]` parses into. `document` is *not* here (RK261): the guard decides where a write
+    # was going and never opens the file, so the model that would is `Config.document`'s own.
     "roadkeep.config",
     "roadkeep.schema",
-    "roadkeep.document",
     # The tool names the denial offers (RK58), and the shell invocation beside them (RK254).
+    # `locking` is absent for `document`'s reason: a denial dispatches nothing, so the lock is
+    # never taken and `LockBusy` is reached inside `serving.call` (RK261).
     "roadkeep.serving",
     "roadkeep.provenance",
-    "roadkeep.locking",
 }
 
 
 def test_a_denial_loads_only_what_a_denial_needs():
-    # Measured before this held: 141 ms and 25 modules, against 66 and 7 — the linter it will
+    # Measured before this held: 84.5 ms and 25 modules, against 44.6 and 5 — the linter it will
     # not run and the ledger it will not read, on the hook the harness blocks on. A fresh
     # process per call is why deferring is right here and hoisting is right in the server
-    # (RK202), and the assertion is the module set because that is what the cost tracks.
+    # (RK202).
+    #
+    # The **set** is the assertion and not the milliseconds (RK261): a single-shot import timing
+    # on this machine drifts far enough that a five-module tree measured slower than a
+    # seven-module one, so a test asserting a duration would fail on load rather than on a
+    # regression. The module set is exact, and it is what the duration tracks.
     loaded = subprocess.run(
         [
             sys.executable,

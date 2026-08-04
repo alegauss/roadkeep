@@ -26,8 +26,10 @@ import tomllib
 from collections.abc import Mapping
 from dataclasses import dataclass, field, replace
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from roadkeep.document import Document
+if TYPE_CHECKING:  # a string annotation under `from __future__ import annotations` (RK261)
+    from roadkeep.document import Document
 from roadkeep.schema import (
     DEFAULT_HEADING_WORD,
     DEFERRED,
@@ -358,7 +360,15 @@ class Config:
         The project travels with the file, which is what lets a save re-derive the blocks
         projected from it (RK188): a document that arrived any other way has no project and
         writes exactly itself.
+
+        `Document` is reached here and not at module level (RK261). This module is imported by
+        every command in the package, and the guard imports it to answer *where* a write was
+        going — it never opens the file, and paid 9 ms for the model that would. Measured, it is
+        not a cost moved: 22 of the 37 modules import `document` directly, `cli.py` among them,
+        so the commands that load a document already had it before this line runs.
         """
+        from roadkeep.document import Document  # noqa: PLC0415 - RK261
+
         return replace(
             Document.load(self.path(role), self.schema_for(role)), config=self
         )

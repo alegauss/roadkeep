@@ -45,8 +45,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK261** (deps: —) **A denial still loads the document model and the lock for names it never reaches** — Of the 66 ms RK260 left, `config` spends 9 importing `Document` for a method no guard calls and `serving` 12 importing `LockBusy` for an `except` only dispatch runs. → §RK261
-
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:
