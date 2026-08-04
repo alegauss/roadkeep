@@ -271,6 +271,27 @@ the author has a body in hand to fit inside a number nobody has stated.
 What this is not is a `--dry-run` on the write verbs. The point is to be answerable
 *before* the prose.
 
+### §RK287 Two numbers, one of them printed
+
+Measured in Claude Code Tray, whose `[limits] section = 300`. `section amend XXV --body
+…` replaced a two-line intro and reported `310 words`; `section show XXV --json` says
+the same. That section's own prose is 48 words. The other 262 are `§XXV.3`, a subsection
+written by `section add`, which the same run had reported at 255 on its own.
+
+`lint` is clean, and it is right to be: the limit is measured on a section's own prose,
+which is what makes a file of many small sections the shape the limit exists to
+encourage. So the two verbs an author reads *while writing* state a number the gate does
+not use, and they state it beside a limit it appears to breach. The move it invites is
+to cut prose that was never over — or, on a parent genuinely over with short
+subsections, to trust a figure that happens to pass.
+
+Both figures are wanted: what the section costs a reader is the subtree, what the limit
+weighs is its own prose. `budget` has the same shape and RK283 is already about what
+that one leaves out, so the answer is a phrasing these verbs share — `48 words, 310 with
+subsections (limit 300)` — rather than a choice between them. The rule underneath is the
+one RK245 and RK265 each found separately: a verb printing a number beside a limit is
+claiming the two are the same number.
+
 ## Block D — The gate
 
 ### §RK239 The state every verb refuses and the gate does not report
@@ -383,31 +404,6 @@ shape at six. What stays true either way is that a *validation* refusal keeps th
 — that is the case RK86 measured, and the one where the limit really might be wrong.
 
 ## Block E — Adoption
-
-### §RK286 Advice that survives being taken
-
-Turing's ledger, three readings. Default: `0 conform, 827 would change`, and 813 rejects
-whose reason ends "a ledger where every entry shipped declares `[ledger] marker =
-false`". With that declared: `0 conform, 827 would change` — the same total, the rejects
-merely re-labelled as "does not match the task-line grammar". With `symptom = false`
-beside it: `read 824, 12 conform, 815 would change`.
-
-The sentence names one slot and the file needs two. An adopter who takes exactly the
-advice given sees the number not move and concludes the tool cannot read their ledger,
-which is the opposite of true — it reads 824 of them.
-
-RK285 fixed the same shape one file over, and the difference is instructive. There the
-report named `--prefix` and `--ref-scheme`, both *flags*, so a reader could test the
-hypothesis in one command. `[ledger]` has no flag: to find out what the second
-declaration was, this had to be discovered by hand-writing a `roadkeep.toml` in a
-scratch directory and re-running. RK18's premise is that the estimate is taken
-**before** the commitment, and here the only way to reach the real number is to write
-the configuration you are deciding whether to adopt.
-
-Two things to settle, and they are separable. The reason should name what it observed
-rather than one slot — the parser knows which of the two shapes the line lacks. And the
-estimate wants the `[ledger]` slots reachable the way `--prefix` is, so the hypothesis
-costs a flag and not a file.
 
 ## Block F — The plugin
 

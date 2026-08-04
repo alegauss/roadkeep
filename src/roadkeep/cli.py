@@ -4379,6 +4379,15 @@ def _print_estimate(estimate: Estimate) -> None:
                 f"  also     {count} pointer(s) spell {scheme}, unread here: "
                 f"--ref-scheme {scheme} if that is how this backlog addresses its sections"
             )
+    for declaration, count in estimate.ledger_shape:
+        # Beside the `[ids]` line and in its shape (RK286): a count, and the keys that close
+        # it. The reason on each refused line names the slots; this is what declaring them
+        # recovers, which is the number an adopter is deciding on and which used to cost a
+        # scratch `roadkeep.toml` to reach.
+        print(
+            f"  ledger   {count} line(s) parse as entries, refused here: "
+            f"[ledger] {declaration}"
+        )
     for shape in estimate.id_shape:
         # Beside the prefix line and in its shape (RK110): a count, and the key that closes
         # it. The trailing clause is the whole discipline — what the ids spell, never that
@@ -4486,6 +4495,7 @@ def _estimate_json(estimate: Estimate) -> dict[str, object]:
         "rejects": [{"reason": r, "count": n} for r, n in estimate.rejects],
         "non_canonical": estimate.non_canonical,
         "schemes": [{"scheme": s, "count": n} for s, n in estimate.schemes],
+        "ledger_shape": [{"declaration": d, "count": n} for d, n in estimate.ledger_shape],
         "tabular": estimate.tabular,
         "listed": estimate.listed,
     }

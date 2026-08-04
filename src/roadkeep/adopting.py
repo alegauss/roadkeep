@@ -61,7 +61,7 @@ from roadkeep.config import (
     Config,
     Scope,
 )
-from roadkeep.document import Document, checkbox
+from roadkeep.document import LEDGER_SHAPES, Document, checkbox
 from roadkeep.schema import DEFAULT_HEADING_WORD, OUTLINE_ANCHOR_RE, Schema
 from roadkeep.sections import anchored, structural, unanchored, words as sections_words
 
@@ -277,6 +277,11 @@ class Estimate:
     #: `--ref-scheme outline`, with `ref.mismatch` on every line as the only signal and no
     #: sentence naming the flag — while the prefix half of the same misreading had one.
     schemes: tuple[tuple[str, int], ...] = ()
+    #: The `[ledger]` declaration this file's refused lines would parse under, with how many
+    #: (RK286). The count is the half the reason cannot give: naming the slots tells an adopter
+    #: what to write, and this tells them what writing it recovers — the number RK18 says is
+    #: only worth having *before* the commitment, and which otherwise cost a scratch config.
+    ledger_shape: tuple[tuple[str, int], ...] = ()
     #: Every family the measurement was taken under. One unless the caller passed a list:
     #: inference stays at the dominant spelling, because promoting the rest would be the
     #: tool deciding a foreign id is a second track (L4).
@@ -648,6 +653,7 @@ def adopt(
         id_shape=_id_shape(document, schema),
         prefixes=spelled,
         schemes=_schemes(document),
+        ledger_shape=_ledger_shape(document, schema),
         blocks=tuple(h.label for h in document.headings if h.label),
         non_canonical=len(document.non_canonical),
         # Only where the file is being read as a backlog: a ledger has no such list, and a
@@ -885,6 +891,44 @@ def _prefixes(document: Document) -> tuple[tuple[str, int], ...]:
         head = _alpha_head(entry.task.id)
         if head:
             counts[head] = counts.get(head, 0) + 1
+    return _ranked(counts)
+
+
+def _ledger_shape(document: Document, schema: Schema) -> tuple[tuple[str, int], ...]:
+    """Which `[ledger]` declaration would read this file's refused lines, and how many (RK286).
+
+    Only where the file is being read as a ledger, and only over lines that were *refused*: a
+    line that already parses is not evidence about a slot, and a roadmap has no `[ledger]` to
+    declare. Grouped by the declaration, so a file needing both slots is one row and not two
+    with the same count.
+
+    Measured rather than left to a flag. The reason names the slots and this names what
+    declaring them recovers, which is the number RK18 says is only worth having before the
+    commitment — and reaching it otherwise meant writing the configuration under decision.
+
+    One count per **whole** declaration, and never a tally of what each line individually
+    wants: the two slots are not independent. A `- ✅ **T3** — why` line is read by
+    `symptom = false` and *stopped* by `marker = false`, because with no marker slot the ✅
+    sits where the id goes. Summing per-line wants would promise a total no single
+    configuration delivers, and a project declares one `[ledger]`, not one per line.
+
+    Counted by **re-reading the file** under each declaration, not by matching the line
+    grammar again: a ledger with no marker slot still carries one on a departure (RK125), and
+    a regex that did not know it under-reported Turing by the 11 lines that are retirements.
+    The reader is the only thing that knows what the reader does — this is the seam every
+    other command loads a document through, so the promise cannot drift from the outcome.
+    """
+    if not schema.is_ledger:
+        return ()
+    text = "".join(document.lines)
+    counts: dict[str, int] = {}
+    for marker, symptom, slots in LEDGER_SHAPES:
+        if (marker, symptom) == (schema.marker_field, schema.symptom_field):
+            continue  # what the file already declares is not a hypothesis about it
+        under = replace(schema, marker_field=marker, symptom_field=symptom)
+        read = len(Document.parse(text, under).entries)
+        if read > len(document.entries):
+            counts[", ".join(slots)] = read
     return _ranked(counts)
 
 

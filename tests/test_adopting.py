@@ -36,7 +36,7 @@ from roadkeep.adopting import (
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config, Scope
 from roadkeep.schema import Schema
-from roadkeep.document import Document
+from roadkeep.document import Document, ledger_slots
 from roadkeep.sections import unanchored, words
 
 SHIO = Path("D:/Git/viglet/shio/latest/docs/ROADMAP.md")
@@ -751,6 +751,83 @@ def test_a_reading_nothing_disputes_qualifies_nothing(tmp_path: Path, capsys) ->
     assert main(argv) == EXIT_OK
     printed = capsys.readouterr().out
     assert "also" not in printed and "changes it" not in printed
+
+
+#: A ledger in Turing's shape: every entry shipped, so no marker, and no `**symptom**` slot
+#: either — plus one line that carries a marker and still has no symptom.
+UNSLOTTED = """# Shipped Ledger
+
+## Block A — The model
+
+- **T1** — because of the first reason.
+- **T2** — because of the second reason.
+- ✅ **T3** — because it kept its marker.
+"""
+
+
+def ledgered(tmp_path: Path, **ledger) -> Config:
+    """A project whose changelog is the file under test, with `[ledger]` as given."""
+    body = "".join(f"{key} = {str(value).lower()}\n" for key, value in ledger.items())
+    (tmp_path / "roadkeep.toml").write_text(
+        f'prefix = "T"\n[files]\nchangelog = "docs/CHANGELOG.md"\n'
+        + (f"[ledger]\n{body}" if body else ""),
+        encoding="utf-8",
+    )
+    return Config.discover(tmp_path)
+
+
+def test_the_reason_names_every_slot_the_line_needs(tmp_path: Path) -> None:
+    # RK286: Turing was told `marker = false` alone, and declaring exactly that left `827
+    # would change` where it was, because its lines carry no symptom slot either.
+    target = tmp_path / "CHANGELOG.md"
+    target.write_text(UNSLOTTED, encoding="utf-8")
+    estimate = adopt(Config.default(tmp_path), target, prefix="T", ledger=True)
+    reasons = " ".join(reason for reason, _ in estimate.rejects)
+    assert "marker = false, symptom = false" in reasons
+
+
+def test_the_fewest_slots_that_read_the_line_are_the_ones_named(tmp_path: Path) -> None:
+    """A line that kept its marker wants one declaration, not two — the smallest that works."""
+    # A ledger line in full shape needs nothing declared.
+    assert ledger_slots("- ✅ **T1** **A symptom** — Because of a reason.") == ()
+    # No marker, symptom still delimited: one slot.
+    assert ledger_slots("- **T1** **A symptom** — Because of a reason.") == ("marker = false",)
+    # Marker kept, no symptom slot: the other one, and only it.
+    assert ledger_slots("- ✅ **T1** — Because of a reason.") == ("symptom = false",)
+    # Neither, which is Turing's shape.
+    assert ledger_slots("- **T1** — Because.") == ("marker = false", "symptom = false")
+    # A line no declaration reaches is not evidence about one.
+    assert ledger_slots("- nonsense") == ()
+
+
+def test_the_count_is_what_declaring_it_actually_recovers(tmp_path: Path) -> None:
+    """The number RK18 says is only worth having *before* the commitment. Asserted against the
+    truth rather than against itself: what the report promises is what declaring it reads."""
+    docs = tmp_path / "docs"
+    docs.mkdir()
+    (docs / "CHANGELOG.md").write_text(UNSLOTTED, encoding="utf-8")
+    target = docs / "CHANGELOG.md"
+
+    before = adopt(ledgered(tmp_path), target, ledger=True)
+    promised = {declaration: count for declaration, count in before.ledger_shape}
+    assert before.parsed == 0 and promised
+
+    # Each row on its own, never their sum: the rows are alternatives. `- ✅ **T3** — why` is
+    # read by `symptom = false` and stopped by `marker = false`, because with no marker slot
+    # the ✅ sits where the id goes — so a total would promise what no one config delivers.
+    for declaration, count in promised.items():
+        slots = {key.strip(): False for key in declaration.split(",")}
+        under = adopt(ledgered(tmp_path, **{k.split(" =")[0]: v for k, v in slots.items()}),
+                      target, ledger=True)
+        assert under.parsed == count, declaration
+    assert sum(promised.values()) > max(promised.values()), "the rows really do differ"
+
+
+def test_a_roadmap_has_no_ledger_slots_to_report(tmp_path: Path) -> None:
+    """`[ledger]` is a fact about the ledger, so a backlog is owed no line about it."""
+    target = tmp_path / "ROADMAP.md"
+    target.write_text(CONFORMING, encoding="utf-8")
+    assert adopt(Config.default(tmp_path), target).ledger_shape == ()
 
 
 def test_a_fenced_table_is_an_example(tmp_path: Path) -> None:

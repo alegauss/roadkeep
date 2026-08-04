@@ -241,6 +241,7 @@
 - ✅ **RK282** **The refusal that most needs the adopt door is the one that does not name it** — The would-overwrite refusal names `adopt <file>` for the backlog it found, spelled relative to the project, so the branch reached by a repository that never adopted gets the door too.
 - ✅ **RK284** **Uninstall reports keeping a workflow the project never had** — `removal` reads the workflow off the disk instead of a constant, so a project with no CI is told nothing was kept rather than told to delete a path that is not there.
 - ✅ **RK285** **The estimate calls a conforming backlog a total rewrite** — `schemes` counts what the pointers spell and names `--ref-scheme` the way the prefix half is named, and the round-trip line says which reading produced its number.
+- ✅ **RK286** **The declaration a ledger reject names does not change the count** — The reject names every slot a line needs, and `adopt` re-reads the file under each `[ledger]` declaration to report what it recovers — whole hypotheses, the slots not being independent.
 
 ## Block F — The Claude Code plugin
 

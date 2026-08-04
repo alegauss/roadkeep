@@ -1133,13 +1133,62 @@ def _marker_slot(rest: str, token: str, schema: Schema) -> tuple[bool, str | Non
             "prose and no count sees it"
         )
         if schema.is_ledger:
-            # The declaration that makes 920 of these into 920 entries. Said here because
-            # this reason is the only place a reader of that file will be looking.
-            reason += (
-                " — a ledger where every entry shipped declares [ledger] marker = false"
-            )
+            # The declaration(s) that make these into entries. Said here because this reason
+            # is the only place a reader of that file will be looking — and **both** slots are
+            # named where both are needed (RK286): Turing's ledger was told `marker = false`
+            # alone, and taking exactly that advice left `827 would change` unmoved because
+            # its lines carry no symptom slot either. Which of the two shapes the line lacks
+            # is a fact this pass has, so it is stated rather than guessed at by the reader.
+            reason += f" — a ledger of these lines declares {_ledger_slots(rest)}"
         return False, reason
     return False, None
+
+
+#: The four shapes a ledger line can be declared into, and the `[ledger]` slots each gives up.
+#: Ordered by how much they give up, so the first that reads a line is the smallest that does.
+LEDGER_SHAPES: tuple[tuple[bool, bool, tuple[str, ...]], ...] = (
+    (True, True, ()),
+    (False, True, ("marker = false",)),
+    (True, False, ("symptom = false",)),
+    (False, False, ("marker = false", "symptom = false")),
+)
+
+
+def reads_as_entry(line: str, marker: bool, symptom: bool) -> bool:
+    """Whether this line is a task line under a `[ledger]` declared with these two slots.
+
+    The shape test on its own, so an estimate can ask what a *whole* declaration would read
+    (RK286) rather than adding up what each line separately wants — the two slots are not
+    independent, and a project declares one `[ledger]`.
+    """
+    return _task_re(marker, symptom).match(line) is not None
+
+
+def ledger_slots(line: str) -> tuple[str, ...]:
+    """Which `[ledger]` slots this line needs declared before it parses (RK286).
+
+    Asked of the line and never assumed: `- **T1** — because.` needs `marker = false` alone,
+    `- **T1** because.` needs `symptom = false` as well, and `- ✅ **T1** because.` needs only
+    `symptom = false`. Naming one where two are wanted is advice that does not survive being
+    taken — measured on Turing, where declaring exactly what the reason said left the count
+    where it was.
+
+    The **fewest** slots that read it, so the declaration reported is the smallest one that
+    works: each shape is tried in order of how much it gives up. Empty when none reads the
+    line, which is a line no declaration reaches and so is not evidence about one.
+    """
+    for marker, symptom, slots in LEDGER_SHAPES:
+        if reads_as_entry(line, marker, symptom):
+            return slots
+    return ()
+
+
+def _ledger_slots(rest: str) -> str:
+    """:func:`ledger_slots` as the reject reason spells it, from the bullet's body."""
+    slots = ledger_slots(f"- {rest}")
+    if not slots:
+        return "no [ledger] shape this line reads under"
+    return "[ledger] " + ", ".join(slots)
 
 
 def _fenced(open_marks: str | None, marks: str) -> str | None:
