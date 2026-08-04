@@ -314,6 +314,36 @@ def test_a_write_that_needs_prose_takes_it_as_a_bounded_string(tmp_path):
     assert properties["body"]["type"] == "string"
 
 
+def test_the_prose_bodies_publish_the_word_budget_that_refuses_them(tmp_path):
+    # RK258: `symptom` and `why` published a ceiling and a word aim, and the three bodies said
+    # what the field was and never that a bound existed — so `section = 250` reached an author
+    # only as a refusal, at the cost of re-sending a paragraph already composed.
+    tree = project(tmp_path, config=PROSE + "[limits]\nsection = 40\n")
+    described = listed(tree)
+    for tool, field in (("add", "section_body"), ("section_add", "body"),
+                        ("section_amend", "body")):
+        published = described[tool]["inputSchema"]["properties"][field]
+        assert "40 words is what refuses" in published["description"]
+        # And no `maxLength`: JSON Schema counts characters, so a ceiling derived from a word
+        # count would refuse on the client prose this server accepts (RK183's rule).
+        assert "maxLength" not in published
+    # The number is this project's and not a literal here, which is the whole of RK24 (L6).
+    assert Config.discover(tree).schema.section_max == 40
+
+
+def test_a_role_with_its_own_budget_is_named_beside_the_default(tmp_path):
+    # `[limits.<role>]` can give one prose file its own number (RK50), and this one field reaches
+    # two — so a single figure would be true of neither and averaging them would be a third.
+    tree = project(
+        tmp_path,
+        config=PROSE + 'strategy = "docs/STRATEGY.md"\n[limits]\nsection = 250\n'
+        "[limits.strategy]\nsection = 90\n",
+    )
+    said = listed(tree)["section_add"]["inputSchema"]["properties"]["body"]["description"]
+    assert "250 words is what refuses" in said
+    assert "strategy 90" in said and "that file's own number binds" in said
+
+
 def test_the_derived_fields_are_not_offered(tmp_path):
     """`add --id` and `add --ref` exist for adoption; offering them lets a caller choose
     what the tool derives, and a hand-set id is the one thing the schema cannot check.

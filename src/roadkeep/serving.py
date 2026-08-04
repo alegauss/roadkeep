@@ -15,7 +15,8 @@ What that costs, and how each cost is avoided here:
   to remove, so there is one.
 * **No duplicated schema.** Every property is derived: its type and description come from the
   argparse action, its bounds from `roadkeep.toml` — `maxLength` is this project's `symptom`
-  and `why` limits, `enum` is its declared markers, `pattern` is its id shape (L6). A tool
+  and `why` limits, `enum` is its declared markers, `pattern` is its id shape, and a prose
+  body's budget is said in words because that is the unit it is declared in (L6). A tool
   description is the subcommand's own `description`, so a flag renamed in `cli.py` cannot
   leave the schema describing something that is gone.
 * **stdio, and no listener.** "No server" is a non-goal about *the store*: this speaks
@@ -71,7 +72,7 @@ from typing import Any, TextIO
 
 from roadkeep import __version__
 from roadkeep.budgeting import words
-from roadkeep.config import Config, ConfigError, Scope
+from roadkeep.config import PROSE_ROLES, Config, ConfigError, Scope
 from roadkeep.locking import LockBusy
 from roadkeep.provenance import engine
 
@@ -373,6 +374,14 @@ _BOUNDS = {
             f"refusal names what was left, in both units too (RK201)."
         ),
     },
+    # The one field whose limit needs no translation, and the one that published none (RK258).
+    # `symptom` and `why` get a ceiling and a word aim; the three prose bodies said what the
+    # field was and never that a bound existed, so `section = 250` reached an author only as a
+    # refusal — measured at two of them in one task, each costing a re-send of the paragraph.
+    # No `maxLength`: JSON Schema counts characters, and a character bound derived from a word
+    # count would refuse prose this tool accepts, which is a bound on the client (RK183's rule).
+    "body": lambda config: {"note": _paragraphed(config)},
+    "section_body": lambda config: {"note": _paragraphed(config)},
     "status": lambda config: {"enum": list(config.schema.markers)},
     "id": lambda config: {"pattern": config.schema.id_pattern().pattern},
     # Not `id_pattern` (RK111): this is the *chosen* id, and the shape that admits a bare
@@ -447,6 +456,28 @@ _SCOPE_BOUNDS = {
 def _aimed(limit: int) -> str:
     """The character ceiling restated as the word count a model can count towards (RK185)."""
     return f"Aim for {words(limit)} words; {limit} characters is what refuses."
+
+
+def _paragraphed(config: Config) -> str:
+    """A ceiling already stated in words, published as one (RK258).
+
+    :func:`_aimed`'s inverse and the easier half: RK185 translates characters into words because
+    a model cannot count the former, and a section's budget is *declared* in words (RK9), so it
+    needs no translation at all — which is why it publishing nothing was the odd case.
+
+    Per role, because `[limits.<role>]` can give one prose file its own number (RK50) and this one
+    field reaches two: the default `role` is named with its figure, and a role that differs is
+    named beside it rather than averaged into a number true of neither.
+    """
+    limits = {role: config.schema_for(role).section_max for role in PROSE_ROLES}
+    default = limits[PROSE_ROLES[0]]
+    said = f"{default} words is what refuses, counted as words rather than characters."
+    differing = sorted(
+        f"{role} {limit}" for role, limit in limits.items() if limit != default
+    )
+    if differing:
+        said += f" Where `role` names {', '.join(differing)}, that file's own number binds."
+    return said
 
 
 class ToolError(Exception):

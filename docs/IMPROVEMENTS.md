@@ -248,22 +248,3 @@ makes `merge register` fail on the machine most likely to want it, which is the 
 against.
 
 ## Block F — The plugin
-
-### §RK258 The field whose limit needs no translation is the one that publishes none
-
-RK24 derives every property's bounds from `roadkeep.toml`, and RK185 added the word
-figure because a model has no characters, so a ceiling published only in them is a
-target reached by trial. Both reach `symptom` and `why`. Neither reaches `add`'s
-`section_body`, `section add`'s `body` or `section amend`'s — their descriptions say
-what the field is and never that a limit exists. This project declares `section = 250`,
-and the only way that number reaches an author is the refusal. Measured while shipping
-RK256: two refusals in one task, at 254 and 254 words, each costing a full re-send of a
-paragraph already composed — which is the cost RK190 named for the line and is worse
-here, the body being the longest field the surface takes. The keyword is the interesting
-part. JSON Schema counts characters, so `maxLength` cannot state 250 words, and a
-character bound derived from it would refuse prose the tool accepts. The vehicle is the
-note `_aimed` already established, inverted: the field whose ceiling is words says so
-directly, with no translation, which makes it the *easiest* of the three to publish
-honestly. What must not be published is `prose = 88` — that is the width a written
-section is filled to, not a bound on input, and a client validating against it would
-refuse every paragraph.
