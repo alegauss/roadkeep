@@ -960,6 +960,70 @@ def test_a_pointed_at_section_is_still_charged_its_subtree(tmp_path):
     assert read(config) == RATIONALE
 
 
+def test_an_anchor_two_prose_files_declare_is_charged_what_the_gate_charges_it(tmp_path):
+    # RK232, and the state is measured rather than imagined: Turing at f08304fcb1 declares 13
+    # anchors in both prose files, one of them pointed at — so the writer charged 365 words of
+    # somebody else's subtree while the gate charged 73 and called that check clean.
+    both = "# Strategy\n\n## Block A — The model\n\n### §RK1 The same anchor\n\nElsewhere.\n"
+    config = project(
+        tmp_path,
+        roadmap=f"# Roadmap\n\n## Block A — The model\n\n{RK1_LINE}\n",
+        extra='strategy = "docs/STRATEGY.md"\n[limits]\nsection = 12\n',
+    )
+    with (config.root / "docs" / "STRATEGY.md").open("w", encoding="utf-8", newline="") as h:
+        h.write(both)
+    config = Config.discover(tmp_path)
+
+    # The gate's own reading first, so the claim is agreement and not a second opinion.
+    assert [f.code for f in lint(config).findings] == ["ref.ambiguous"]
+    document, amended, changed = amend(
+        config, "improvements", "RK1", body="Six words, which is under twelve."
+    )
+    assert changed == ("body",)
+    document.save()
+    assert "Six words, which is under twelve." in read(config)
+    # And the ambiguity is still the finding, which is the one this door must not answer.
+    assert [f.code for f in lint(Config.discover(tmp_path)).findings] == ["ref.ambiguous"]
+
+
+def test_the_state_this_condition_is_for_is_one_a_live_corpus_carries():
+    """The count RK232 was filed to get, and it is what decided the condition over a retire.
+
+    The idea's own argument against itself was that `lint` reports `ref.ambiguous` there, so
+    no tree somebody works in reaches the disagreement. Turing does. At `f08304fcb1` thirteen
+    anchors are declared by both the improvements and the strategy file, and `X.1` is pointed
+    at by T354 — where the gate charges the section's own 73 words and the writer charged the
+    365 of a subtree, so correcting the intro was refused for 292 words that are somebody
+    else's subsections. RK215's finding, in the one state RK215's fix did not cover.
+
+    The ambiguity is a finding either way, and that is the point: it is the author's edit and
+    a larger one, while the paragraph in front of them is a correction this door was refusing.
+    """
+    corpora.require(corpora.TURING)
+    settings = corpora.config(corpora.TURING)
+    roles = [r for r in ("improvements", "strategy") if corpora.has(corpora.TURING, r)]
+    if len(roles) < 2:
+        pytest.skip(f"{corpora.TURING} no longer declares two prose files")
+    documents = {role: corpora.document(corpora.TURING, role) for role in roles}
+    declared: dict[str, list[str]] = {}
+    for role, document in documents.items():
+        for anchor in dict.fromkeys(s.anchor for s in anchored(document)):
+            declared.setdefault(anchor, []).append(role)
+    assert len([a for a, rs in declared.items() if len(rs) > 1]) == 13
+
+    pointed = {
+        e.task.ref
+        for e in corpora.document(corpora.TURING, "roadmap").entries
+        if e.task.ref and len(declared.get(e.task.ref, ())) > 1
+    }
+    assert pointed == {"X.1"}
+    improvements = documents["improvements"]
+    (own,) = [s for s in anchored(improvements) if s.anchor == "X.1"]
+    subtree = find(improvements, "X.1")
+    limit = settings.schema_for("improvements").section_max
+    assert own.words == 73 and subtree.words == 365 and limit == 250
+
+
 def test_a_container_is_still_held_to_the_limit_by_its_own_prose(tmp_path):
     # Unpointed does not mean unbudgeted: `_check` charges the body before the write, which
     # is the same number `lint` charges the section — so the door is open and not unguarded.

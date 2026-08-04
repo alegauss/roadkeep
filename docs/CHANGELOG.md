@@ -90,6 +90,7 @@
 - ✅ **RK229** **`defer` reports the carried design as kept in a file it never asked declares it** — `defer` resolves the anchor across the declared prose roles and carries the role, so the report names the file holding the design — a strategy-only project got a KeyError after both writes.
 - ✅ **RK230** **`add --section` cannot write into the only prose file a project declares** — `add --section` derives the prose role instead of naming improvements, so the one-write door reaches the only file a strategy-only project declares — and the report names the file it wrote.
 - ✅ **RK231** **A paused task's rationale cannot be corrected, the door refusing it as prose nothing owns** — `_task_for` reads both live roles, so a paused task's design is amendable and a section can still be written for it — the refusal is left with the anchors no live line names.
+- ✅ **RK232** **Writer and gate part company again on an anchor two prose files declare** — The count came back thirteen, one of them pointed at, so `_pointed_at` takes the gate's last condition: an anchor two prose roles declare is charged its own prose by both readers.
 
 ## Block C — Query
 

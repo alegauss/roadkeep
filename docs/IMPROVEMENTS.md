@@ -100,27 +100,6 @@ overrun would be back to guessing, with a smaller number to guess against.
 
 ## Block B — Authoring
 
-### §RK232 The corner RK215 left, named by the commit that left it
-
-RK215's claim is that the writer charges a section exactly what the gate charges it, and
-the scope of that claim is one condition short. `lint` builds its `pointed` set from
-refs whose anchor **one** prose role declares — an anchor two files declare is charged
-as pointed at by nobody, because which of the two a line meant is what `ref.ambiguous`
-asks the author, and billing one of them the other's subtree is the silent half of that
-defect. `_pointed_at` does not ask, so on such an anchor the writer charges the subtree
-and the gate charges the prose.
-
-Filed as an idea because the first thing it needs is a reason to exist. The state is
-narrow: an anchor declared in both the improvements and the strategy file, pointed at,
-and over the limit only with its subtree. `lint` already reports `ref.ambiguous` there,
-so the file is not clean and the author has a finding naming the real problem — which is
-an argument that this disagreement is unreachable in any tree somebody is working in.
-
-Against that: RK215's whole finding was a writer refusing a state the gate calls clean,
-and "narrow" was the reason nobody had counted it. The honest version of this task is
-the count — does any corpus carry an anchor two prose roles declare? — and then either
-the condition, or a `retire` naming the measurement, as RK195 did.
-
 ### §RK233 A lead that prints and cannot be addressed
 
 RK139 gave `adopt` the non-goals, and the first live measurement said what nothing had

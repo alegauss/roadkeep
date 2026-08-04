@@ -786,7 +786,18 @@ def _pointed_at(config: Config, anchor: str) -> bool:
     Both live roles, as the gate reads them: a deferred line keeps its pointer and its
     section (RK96), so work set aside still claims its rationale. The ledger is not among
     them — a departure deletes the section in the transaction that writes the entry.
+
+    And **only where one prose role declares the anchor** (RK232), which is the last condition
+    RK215's agreement was missing. An anchor two files declare is charged as pointed at by
+    nobody, because which of the two a line meant is what `ref.ambiguous` asks the author and
+    billing one of them the other's subtree is the silent half of that defect. Counted before
+    it was written: Turing at `f08304fcb1` declares 13 such anchors, one of them — `X.1`,
+    pointed at by T354 — where the gate charges 73 words and this charged 365, so a correction
+    to the intro was refused for 292 words of somebody else's subsections while the gate
+    called that check clean. RK215's finding exactly, in the state RK215 did not reach.
     """
+    if len(declaring(config, anchor)) != 1:
+        return False
     return any(
         entry.task.ref == anchor
         for document in _live(config)
