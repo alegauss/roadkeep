@@ -42,12 +42,14 @@ from pathlib import Path
 from roadkeep import claiming
 from roadkeep.authoring import Insertion, place, remove_entry
 from roadkeep.backlog import Backlog, NotOpen
-from roadkeep.config import Config
+from roadkeep.config import PROSE_ROLES, Config
 from roadkeep.document import Document, save_all
 from roadkeep.markers import refresh
 from roadkeep.schema import Task
+from roadkeep.sections import declaring
 
 __all__ = [
+    "Carried",
     "NoStore",
     "NotSetAside",
     "Pause",
@@ -127,6 +129,30 @@ class UnrecoverableReason(ValueError):
 
 
 @dataclass(frozen=True, slots=True)
+class Carried:
+    """The design a pause kept, and the file that actually declares it (RK229).
+
+    RK196 taught `ship` to resolve an anchor across the declared prose roles and to report
+    the file it wrote; this is the same sentence one verb over, and the reason it is a type
+    rather than a string is that the anchor alone is what let the CLI supply the rest — a
+    project declaring `strategy` was told its design was kept in an `improvements` file it
+    does not have, and the KeyError that named it arrived *after* both writes.
+
+    `role` is None where no declared prose file holds the anchor, or where two do, and
+    `absence` is the sentence saying which — never resolved by picking, for the reason a ship
+    does not pick either: which of two a line meant is `ref.ambiguous`, and a pointer
+    resolving to nothing is a `lint` finding this door has no business answering.
+    """
+
+    #: As the line spells it, `§` included — the pointer, not the id it usually equals.
+    anchor: str
+    #: The prose role holding it, where exactly one does. `Config.path` takes it from here.
+    role: str | None = None
+    #: Why no role answered, ready to print. Empty exactly when `role` is not None.
+    absence: str = ""
+
+
+@dataclass(frozen=True, slots=True)
 class Pause:
     """Every edit setting one line aside makes, as data, before it is written."""
 
@@ -139,8 +165,9 @@ class Pause:
     refreshed: tuple[str, ...] = ()
     marker: str = ""
     #: The section this did **not** delete, named — silence about a carried design reads
-    #: exactly like the deletion a departure makes.
-    carried: str | None = None
+    #: exactly like the deletion a departure makes. Resolved here and not by the caller
+    #: (RK229): the role is a fact about the files this transaction read.
+    carried: Carried | None = None
     #: Open lines that still name this id. Reported and not refused: waiting on paused work
     #: is a legitimate state, and it is what `deps` and RK92 are for.
     dependents: tuple[str, ...] = ()
@@ -241,7 +268,7 @@ def defer(config: Config, task_id: str, *, reason: str) -> Pause:
         removed_from=entry.lineno,
         refreshed=derived.changed,
         marker=marker,
-        carried=None if entry.task.ref is None else f"§{entry.task.ref}",
+        carried=_carried(config, entry.task.ref),
         dependents=tuple(
             e.task.id for e in derived.document.entries if task_id in e.task.dep_ids
         ),
@@ -289,6 +316,39 @@ def resume(config: Config, task_id: str, *, marker: str | None = None) -> Resump
         was=_reason(held.task.why),
         root=config.root,
     )
+
+
+def _carried(config: Config, ref: str | None) -> Carried | None:
+    """Where the design this pause kept actually is (RK229).
+
+    Answered on the way past rather than reported as an anchor for the CLI to place, because
+    the line naming a file is the one line in the answer whose job is to say where a reader
+    goes looking — and RK96's whole argument for keeping the section is that they can.
+
+    Every outcome is a sentence and none is a refusal: nothing is being deleted here, so a
+    pointer that resolves to nothing or to two files is a pause that worked and a `lint`
+    finding the author already owes. Saying so beats a path composed out of the default.
+    """
+    if ref is None:
+        return None
+    anchor = f"§{ref}"
+    roles = declaring(config, ref)
+    if len(roles) == 1:
+        return Carried(anchor=anchor, role=roles[0])
+    if roles:
+        both = " and ".join(config.relative(config.path(role)) for role in roles)
+        return Carried(
+            anchor=anchor,
+            absence=f"declared by {both}, so the pointer names neither",
+        )
+    declared = tuple(role for role in PROSE_ROLES if config.has(role))
+    if not declared:
+        return Carried(
+            anchor=anchor,
+            absence=f"this project declares no {' or '.join(PROSE_ROLES)} file",
+        )
+    named = " or ".join(config.relative(config.path(role)) for role in declared)
+    return Carried(anchor=anchor, absence=f"not in {named}, so nothing was carried")
 
 
 def _as_paused(task: Task, marker: str, reason: str) -> Task:

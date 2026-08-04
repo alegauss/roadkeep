@@ -116,7 +116,7 @@ from roadkeep.ids import next_id
 from roadkeep.markers import refresh
 from roadkeep.renumbering import NotAnId, SameId, family_of
 from roadkeep.schema import PARTIAL, Task
-from roadkeep.sections import NoSuchSection, Section, citing, find, nested, pointers
+from roadkeep.sections import NoSuchSection, Section, citing, declaring, nested, pointers
 from roadkeep.sections import drop as drop_section
 
 __all__ = [
@@ -1490,13 +1490,12 @@ def _drop_section(
     if others:
         return None, None, f"§{anchor} is also pointed at by {', '.join(others)}", (), ()
 
-    on_disk = tuple(role for role in roles if config.path(role).is_file())
     named = " or ".join(config.relative(config.path(role)) for role in roles)
-    declaring = tuple(
-        role for role in on_disk if find(config.document(role), anchor) is not None
-    )
-    if len(declaring) > 1:
-        both = " and ".join(config.relative(config.path(role)) for role in declaring)
+    # One resolver, called and not repeated (RK229): three verbs ask which file declares an
+    # anchor, and the copy that answered it here is the copy `defer` did not have.
+    holders = declaring(config, anchor)
+    if len(holders) > 1:
+        both = " and ".join(config.relative(config.path(role)) for role in holders)
         return (
             None,
             None,
@@ -1505,10 +1504,10 @@ def _drop_section(
             (),
             (),
         )
-    if not declaring:
+    if not holders:
         return None, None, f"no §{anchor} section in {named}", (), ()
 
-    role = declaring[0]
+    role = holders[0]
     # The grammar of a section lives in one place (RK9), so shipping calls it rather than
     # keeping a second opinion about where a section ends.
     prose = config.document(role)

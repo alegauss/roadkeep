@@ -87,6 +87,7 @@
 - ✅ **RK214** **A ledger that declares no marker closes one of the three doors out of the roadmap** — The refusal stands and the surprise does not: `lint` names the closed door every run and the generated declaration says so where the choice is made.
 - ✅ **RK215** **A top-level section's own prose cannot be corrected once it has subsections** — `section amend` charges the subtree only where a line points at the anchor, which is what the gate charges, so an unpointed container's intro is amendable on its own prose.
 - ✅ **RK216** **A refusal named a block the caller never mentioned, and it is a prefix of theirs** — A refusal naming a label that shares a prefix with a declared one says so and warns against the second heading, at the write and at both reads that compose the same sentence.
+- ✅ **RK229** **`defer` reports the carried design as kept in a file it never asked declares it** — `defer` resolves the anchor across the declared prose roles and carries the role, so the report names the file holding the design — a strategy-only project got a KeyError after both writes.
 
 ## Block C — Query
 

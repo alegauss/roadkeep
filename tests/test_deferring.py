@@ -20,6 +20,7 @@ Four claims, and the third is the one that would rot silently:
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
@@ -29,6 +30,7 @@ from roadkeep.backlog import Backlog, DepStatus, NotOpen, Readiness
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config, ConfigError
 from roadkeep.deferring import (
+    Carried,
     NoStore,
     NotSetAside,
     SetAside,
@@ -320,10 +322,67 @@ def test_the_rationale_is_carried_and_not_deleted(tmp_path):
     config = project(tmp_path)
     pause = defer(config, "RK1", reason="it waits on a decision")
     pause.save()
-    assert pause.carried == "§RK1"
+    assert pause.carried == Carried(anchor="§RK1", role="improvements")
     assert "### §RK1 A first design" in read(config, "IMPROVEMENTS.md")
     # And the gate agrees it is not an orphan, which is the half RK96 already built.
     assert not [f for f in lint(config).findings if f.id == "RK1"]
+
+
+def test_the_carried_design_names_the_file_that_declares_it(tmp_path, capsys):
+    # RK229. The assumption RK196 removed from the ship, made one door over: the pause
+    # carried the anchor alone, so the CLI supplied `improvements` — and against a project
+    # that declares strategy alone the answer was not merely the wrong path, it was a
+    # KeyError raised *after* both files were written.
+    config = project(
+        tmp_path,
+        {"STRATEGY.md": RATIONALE},
+        declare=(
+            'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
+            'strategy = "STRATEGY.md"\ndeferred = "DEFERRED.md"\n'
+        ),
+    )
+    pause = defer(config, "RK1", reason="it waits on a decision")
+    assert pause.carried == Carried(anchor="§RK1", role="strategy")
+    assert main(["-C", str(tmp_path), "defer", "RK1", "--reason", "it waits"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "carried  §RK1 kept in STRATEGY.md" in out and "IMPROVEMENTS" not in out
+    # And the design is where the answer says, which is the claim a reader acts on (RK96).
+    assert "### §RK1 A first design" in read(config, "STRATEGY.md")
+    # Fields and not a sentence, so the caller reads the file rather than parsing "kept in".
+    assert main(["-C", str(tmp_path), "defer", "RK4", "--reason", "it waits", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)["carried"]
+    assert payload == {
+        "anchor": "§RK4",
+        "role": "strategy",
+        "file": "STRATEGY.md",
+        "absence": None,
+    }
+
+
+def test_a_pointer_resolving_to_nothing_is_said_and_not_dressed_as_a_location(tmp_path, capsys):
+    # The absence spells itself, because "kept in IMPROVEMENTS.md" about a section that is
+    # not there sends a reader looking for prose no file holds. The pause is right either
+    # way — a dangling pointer is `lint`'s finding and never this door's refusal.
+    config = project(tmp_path, {"IMPROVEMENTS.md": "# Improvements\n\n## Block A — The model\n"})
+    pause = defer(config, "RK1", reason="it waits")
+    assert pause.carried == Carried(
+        anchor="§RK1", absence="not in IMPROVEMENTS.md, so nothing was carried"
+    )
+    assert main(["-C", str(tmp_path), "defer", "RK4", "--reason", "it waits"]) == EXIT_OK
+    assert "carried  §RK4 — not in IMPROVEMENTS.md" in capsys.readouterr().out
+
+
+def test_two_prose_files_declaring_one_anchor_are_reported_and_not_picked(tmp_path):
+    # `ship` refuses to choose which of two a line meant (RK196), and a report that named
+    # one of them would be this door answering the question `ref.ambiguous` asks the author.
+    config = project(
+        tmp_path,
+        {"STRATEGY.md": RATIONALE},
+        declare=DECLARE + 'strategy = "STRATEGY.md"\n',
+    )
+    pause = defer(config, "RK1", reason="it waits")
+    assert pause.carried is not None and pause.carried.role is None
+    assert "IMPROVEMENTS.md and STRATEGY.md" in pause.carried.absence
 
 
 def test_the_return_restores_the_line_the_pause_wrapped(tmp_path):

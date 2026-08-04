@@ -100,28 +100,6 @@ overrun would be back to guessing, with a smaller number to guess against.
 
 ## Block B — Authoring
 
-### §RK229 The guess the ship stopped making
-
-RK196 taught `ship` to resolve an anchor across the declared prose roles and to report
-the file it actually wrote. `defer` was not in that commit and is the same sentence one
-verb over: it deletes nothing, so no prose is lost, but it prints `carried §X.1 kept in
-IMPROVEMENTS.md` for a section `docs/STRATEGY.md` holds.
-
-Narrower than RK196 by exactly one thing — there is no write to send to the wrong file,
-so this is a report that misdirects a reader rather than a transaction that misses one.
-It is still the one line in the answer whose job is to say where the design stayed, and
-RK96's whole argument for carrying the section is that a reader can go and find it.
-
-What it needs is not `ship`'s resolution: `pause.carried` is a string derived from the
-pointer and never a document, so the role has to be resolved somewhere. Either
-`deferring` answers it and carries the role beside the anchor, as `Departure.prose` now
-does, or the CLI asks — and the second is the shape RK196 argued against, a caller
-restating a rule the writer already applied.
-
-`resume` is worth reading in the same pass. It is the return direction and reports the
-section coming back; whether it names a file, and which, is the same question with the
-arrow reversed.
-
 ### §RK230 One transaction, or the pointer RK93 closed
 
 RK93's argument is that a line and the design it points at are one write: given

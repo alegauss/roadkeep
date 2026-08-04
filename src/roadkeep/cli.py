@@ -64,7 +64,7 @@ from roadkeep.document import (
 from roadkeep.exporting import DEFAULTS, Projection, project, splice_into
 from roadkeep.fixing import Fix, fix
 from roadkeep.graph import Graph, Leverage
-from roadkeep.deferring import defer, resume
+from roadkeep.deferring import Carried, defer, resume
 from roadkeep.guarding import START_EVENTS, STOP_EVENTS, announce, attested, guard, review
 from roadkeep.history import (
     Commit,
@@ -2285,6 +2285,30 @@ def _prose_file(config: Config, prose: Document | None) -> str:
     return config.relative(config.path(declared[0])) if declared else ""
 
 
+def _carried_line(config: Config, carried: Carried) -> str:
+    """The one line saying where a paused design stayed (RK229).
+
+    `kept in <file>` only where a file holds it. An absence spells itself instead of being
+    dressed as a location: "kept in IMPROVEMENTS.md" about a section that is not there sends
+    a reader to look, and the pause is right either way.
+    """
+    if carried.role is None:
+        return f"{carried.anchor} — {carried.absence}"
+    return f"{carried.anchor} kept in {config.relative(config.path(carried.role))}"
+
+
+def _carried_json(config: Config, carried: Carried | None) -> dict[str, str | None] | None:
+    """The same answer as fields, so a caller reads the file rather than parsing a sentence."""
+    if carried is None:
+        return None
+    return {
+        "anchor": carried.anchor,
+        "role": carried.role,
+        "file": None if carried.role is None else config.relative(config.path(carried.role)),
+        "absence": carried.absence or None,
+    }
+
+
 def _print_cited(cited: Sequence[str]) -> None:
     """Who is left pointing at prose this command deleted (RK206).
 
@@ -3601,7 +3625,7 @@ def _defer(config: Config, args: argparse.Namespace) -> int:
                         "rendered": pause.store.rendered,
                     },
                     "roadmap": {"file": roadmap, "removed": pause.removed_from},
-                    "carried": pause.carried,
+                    "carried": _carried_json(config, pause.carried),
                     "dependents": list(pause.dependents),
                     "refreshed": list(pause.refreshed),
                     "event": event,
@@ -3615,11 +3639,10 @@ def _defer(config: Config, args: argparse.Namespace) -> int:
     print(f"  removed  {roadmap}:{pause.removed_from}")
     if pause.carried is not None:
         # Named, because every other door that moves a line deletes this section: silence
-        # about a design that was kept reads exactly like the deletion (RK6).
-        print(
-            f"  carried  {pause.carried} kept in "
-            f"{config.relative(config.path('improvements'))}"
-        )
+        # about a design that was kept reads exactly like the deletion (RK6). The *file* is
+        # the pause's answer and never this line's (RK229) — composing it here from the
+        # improvements default is what named a path a strategy-only project does not declare.
+        print(f"  carried  {_carried_line(config, pause.carried)}")
     if pause.dependents:
         print(f"  still    {', '.join(pause.dependents)} name {pause.task_id}")
     if pause.refreshed:

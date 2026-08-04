@@ -47,7 +47,7 @@ import textwrap
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, replace
 
-from roadkeep.config import Config
+from roadkeep.config import PROSE_ROLES, Config
 from roadkeep.document import Document, Heading, UnknownBlock, blank
 from roadkeep.schema import (
     OUTLINE_ANCHOR_RE,
@@ -267,6 +267,30 @@ def find(document: Document, anchor: str) -> Section | None:
         first=heading.lineno,
         last=end,
         body=body,
+    )
+
+
+def declaring(config: Config, anchor: str) -> tuple[str, ...]:
+    """Which declared prose roles actually hold this anchor, in `[files]` order (RK196).
+
+    The resolution no verb may assume: `ship` deletes the design and `defer` reports where it
+    stayed, and both were written naming `improvements` outright — the reason a project
+    declaring `strategy` alone was told its own section is missing while the section sat
+    there. `show` asks the same question with one distinction more, a declared file that is
+    not on disk yet being an answer of its own, so it keeps its own reading and this stays
+    the shape a writer needs.
+
+    A **tuple**, because the answers to none and to two are not this function's: an absence
+    is where the design would go for one caller and a refusal for another, and two roles
+    declaring one anchor is the `ref.ambiguous` the gate reports and no verb resolves by
+    picking. Only which files say so is the same question everywhere.
+    """
+    return tuple(
+        role
+        for role in PROSE_ROLES
+        if config.has(role)
+        and config.path(role).is_file()
+        and find(config.document(role), anchor) is not None
     )
 
 
