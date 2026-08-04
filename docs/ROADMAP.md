@@ -30,6 +30,7 @@
 - 📋 **RK230** (deps: —) **`add --section` cannot write into the only prose file a project declares** — `_with_section` names the improvements role outright, so a project declaring strategy alone is refused `NoProseFile` and left with the two commands and the dangling pointer RK93 removed. → §RK230
 - 📋 **RK231** (deps: —) **A paused task's rationale cannot be corrected, the door refusing it as prose nothing owns** — `_task_for` reads the roadmap alone, so `section amend RK1` on a deferred line answers `anchor.unknown` — no open task points at the section RK96 deliberately kept for it. → §RK231
 - 💭 **RK232** (deps: —) **Writer and gate part company again on an anchor two prose files declare** — `_pointed_at` asks only whether a line names the anchor, while `lint` charges own prose where two roles declare one — so RK215's agreement holds everywhere except the state `ref.ambiguous` reports. → §RK232
+- 📋 **RK233** (deps: —) **A non-goal `brief` prints by its lead is one `drop` cannot address** — `leads` falls back to a bullet's first sentence where no bold lead exists and `read` skips those bullets, so Turing's seven print, count as unread, and answer to no address. → §RK233
 
 ## Block C — Query (consult without reading the file)
 
@@ -38,6 +39,9 @@
 ## Block D — The gate
 
 ## Block E — Adoption
+
+- 📋 **RK234** (deps: —) **Nothing in an adopting project runs the gate that holds its vendored skill in step** — `install --check` is that gate and no adopted project runs it: Turing's copy was 78 lines and one hook matcher behind today, and a stale vendored authority is read with the trust of the original. → §RK234
+- 📋 **RK235** (deps: —) **`install` reads the checkout that ships the plugin as a project to wire into** — Run at this repository's root it vendors a copy of the skill it ships and writes a second workflow beside `gate.yml`, and `--check` exits 1 naming three surfaces that are not an installation. → §RK235
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 

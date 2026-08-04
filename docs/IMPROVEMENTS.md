@@ -191,6 +191,28 @@ and "narrow" was the reason nobody had counted it. The honest version of this ta
 the count — does any corpus carry an anchor two prose roles declare? — and then either
 the condition, or a `retire` naming the measurement, as RK195 did.
 
+### §RK233 A lead that prints and cannot be addressed
+
+RK139 gave `adopt` the non-goals, and the first live measurement said what nothing had
+said before: Turing's list is **0 parsed and 7 unread**. Its bullets carry no bold head
+at all — `- Don't refactor the auto-trigger router, …` — which is what a non-goals list
+looks like when nobody chose a format, exactly as `- [ ] **C40**` was for a backlog.
+
+The defect is not that they are refused. It is that one reader accepts them and another
+does not. `leads` gives every bullet an address on purpose (RK68): where the bold shape
+does not hold, the lead is the bullet's first sentence, so `brief` prints a scope on a
+project that never opted in. `read` skips the same bullets, and `read` is what `drop`
+resolves an address against — so `brief` prints seven constraints and `non-goal drop`
+answers that none of them exists.
+
+Two readers of one list is the split L1 exists to prevent, and it is the same split
+`address` was written to close for the bold case. The narrow answer is to let `read` see
+what `leads` sees, with the sentence as the lead and no bold to render back — which
+means `render` would have to reproduce a bullet it did not write, and that is the
+round-trip question (L3) this needs answered first. The wider one is to keep the refusal
+and make `brief` print nothing it cannot address, which is honest and takes the scope
+away from every ungoverned project.
+
 ## Block C — Query
 
 ### §RK200 The record with no way to read it
@@ -219,5 +241,48 @@ and may not need a second.
 ## Block D — The gate
 
 ## Block E — Adoption
+
+### §RK234 The check that is a gate nowhere
+
+RK100's argument is that a vendored surface nobody keeps in step is worse than none, and
+`--check` is named as what makes that mean anything: "the copy is held in step by a gate
+rather than by whoever remembers". Measured today, whoever remembers is the only thing
+holding it. Turing's copy of `SKILL.md` was 78 lines behind the file it was copied from,
+and its `PreToolUse` matcher was missing `Bash` — a guard narrower than the one the
+plugin ships, in the file that decides whether the guard fires at all.
+
+Nothing runs the check there. The workflow `install` writes calls the published action,
+which runs `lint`; `lint` says nothing about a copied file, and it is right not to. Both
+obvious homes are outside what `install` writes: a second job in that workflow cannot
+work as written, a project wired to a checkout having no checkout in CI, and a
+pre-commit hook is a file this command does not own.
+
+The third shape is the cheapest and the honest one. The guard already runs on
+`SessionStart`, in the process that can answer this, and a session opening against a
+stale copy is exactly when the answer is worth having. What it costs is that check's
+read on every start, which is the number to measure before choosing it — RK176's floor
+is the budget it spends against.
+
+### §RK235 The one project that is not an adopter
+
+`install` translates what the plugin ships for a project beside it. Run at the plugin's
+own root, every surface it computes is a copy of a file already there:
+`.claude/skills/roadkeep/SKILL.md` beside the `skills/roadkeep/SKILL.md` it was read
+from, and `.github/workflows/roadkeep.yml` beside the `gate.yml` that already runs the
+action. The launcher comes out as `scripts/roadkeep.py`, which is the one value that
+says so.
+
+It matters because of what `--check` is for. Run here it exits 1 on three surfaces, and
+an exit code that means "this project has drifted" now also means "this project is the
+tool" — so the gate cannot be run at this root, which is the root every contributor is
+at. That is the same failure the workflow's own default had (RK140): a red nobody can
+act on is a check switched off.
+
+`_launcher` already computes the fact — a relative path of `.` — so the answer is a
+refusal that names it, in the shape `NotShipped` has: this tree carries the plugin
+rather than adopting it, and `/plugin install roadkeep@alegauss` or a sibling checkout
+is what `install` is for. The narrower alternative is to report every surface as `kept,
+yours` and exit 0, which is wrong in the other direction: nothing here is a kept
+installation.
 
 ## Block F — The plugin
