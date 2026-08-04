@@ -81,11 +81,14 @@ from roadkeep.locking import LockBusy, exclusive
 from roadkeep.merging import (
     ABSENT,
     CURRENT,
+    DRIVER,
     DRIVER_KEY,
     MOVED,
     UNKNOWN,
     UNRUNNABLE,
+    Attributes,
     Driver,
+    attributed,
     markers,
     merge,
     register,
@@ -2251,22 +2254,37 @@ def _driver_line(driver: Driver) -> str:
     return line
 
 
+def _attributes_line(attributes: Attributes) -> str:
+    """What `.gitattributes` sends to the driver, counted — and named where some is missing."""
+    sent = f"{len(attributes.present)} of {len(attributes.wanted)} governed files"
+    if attributes.state == CURRENT:
+        return f"{attributes.path.name} sends {sent} to the {DRIVER} driver"
+    unsent = ", ".join(line.split(" merge=")[0] for line in attributes.missing)
+    return f"{attributes.path.name} sends {sent}: {unsent} would merge textually"
+
+
 def _merge_check(config: Config) -> int:
-    """Ask what git would actually run, and write nothing (RK266).
+    """Ask whether git would run this driver at all, and write nothing (RK266, RK270).
 
     The verb RK266 exists for. `lint` was the other candidate and is the wrong one: it is the
     gate, it runs in CI, and there `.git/config` is a runner's rather than an author's — a
     stale-driver finding would fail builds over a fact about somebody else's machine. This is
     per-checkout, so it is asked per checkout, by someone who chose to ask.
+
+    **Two lines and one exit code** (RK270). A driver is two writes that go missing for
+    different reasons: the attribute is committed and travels, the config is per-clone and is
+    the half a fresh clone lacks. Reporting them separately is what lets an answer be specific;
+    exiting on their conjunction is what stops half a wiring from reading as a whole one.
     """
-    driver = registered(config)
+    attributes, driver = attributed(config), registered(config)
+    print(f"  attributes  {_attributes_line(attributes)}")
+    print(f"  config      {_driver_line(driver)}")
+    if not attributes.wired or driver.state in (ABSENT, UNRUNNABLE):
+        # One remedy, because `register` writes both halves — and named only where there is one:
+        # `UNKNOWN` could not be asked, so a repair for it would answer a question nobody did.
+        print(f"  fix         {invocation()} merge --register")
     code, _ = _DRIVER_STATES[driver.state]
-    print(f"  config   {_driver_line(driver)}")
-    if driver.state in (ABSENT, UNRUNNABLE):
-        # The remedy, and only where there is one to name: `UNKNOWN` could not be asked, so
-        # naming a repair for it would be answering a question that was never resolved.
-        print(f"  fix      {invocation()} merge --register")
-    return code
+    return EXIT_GATE if code == EXIT_GATE or not attributes.wired else EXIT_OK
 
 
 def _verbatim(path: Path) -> str:

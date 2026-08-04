@@ -377,30 +377,6 @@ shape at six. What stays true either way is that a *validation* refusal keeps th
 
 ## Block E — Adoption
 
-### §RK270 RK270 — half a wiring reads as a whole one
-
-A driver is two writes, and RK266 read one of them back. `.gitattributes` sends git to
-the driver by name; `merge.roadkeep.driver` says what that name runs. Either one alone
-is a repository where nothing happens: the attribute without the config makes git fall
-back to a textual merge, and the config without the attribute makes git never ask.
-`merge --check` answers about the second and prints `current`, which is true and is not
-the question.
-
-The asymmetry is not accidental — it is where the two halves live. `.gitattributes` is
-committed, so a branch that never had it merges into one that did and the line survives;
-the config is per-checkout and per-clone, so it is the half a fresh clone lacks. That
-makes the absent-config case the common one and the absent-attribute case the rare one,
-which is the argument for having read the config first and not the argument for stopping
-there.
-
-`register` already computes the attribute lines it wants and reports which were present,
-so the fact is in hand at the moment `--check` would need it; what is missing is a read
-that does not write. The shape to decide: whether `Driver` grows the attribute state —
-making one dataclass answer about two files — or whether the check reports two
-independent lines and lets the exit code be the conjunction. The second keeps
-`registered` about `git config`, which is what its name says, and puts the joining where
-the answer is composed.
-
 ## Block F — The plugin
 
 ### §RK267 RK267 — a note that knows more than it says

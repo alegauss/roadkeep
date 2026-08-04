@@ -23,8 +23,10 @@ from roadkeep.merging import (
     CURRENT,
     DRIVER_KEY,
     MOVED,
+    PARTIAL,
     UNKNOWN,
     UNRUNNABLE,
+    attributed,
     driver_value,
     merge,
     register,
@@ -376,6 +378,7 @@ def test_a_driver_that_runs_and_is_not_this_machine_s_is_not_a_failure(tmp_path,
     # Crying wolf here would make the check unusable on any repository two people registered
     # from — which is every repository a merge driver exists for. It runs, so it is a fact.
     config = repository(tmp_path)
+    register(config)  # the attribute half, so the exit code is about the config half alone
     set_driver(tmp_path, driver_value(f"{Path(sys.executable).as_posix()} -m roadkeep.cli"))
     driver = registered(config)
     assert driver.state == MOVED and driver.wired
@@ -392,10 +395,69 @@ def test_the_check_writes_nothing(tmp_path):
     assert not (tmp_path / ".gitattributes").exists()
 
 
+def test_a_wired_config_over_no_attributes_is_not_a_wired_repository(tmp_path, capsys):
+    # RK270: a driver is two writes. The config says what the name runs; `.gitattributes` is
+    # what sends git to the name at all — so `config current` over an unwritten attribute file
+    # is a true answer to the question nobody asked, and git merges the file textually.
+    config = repository(tmp_path)
+    set_driver(tmp_path, driver_value(persisted().command))
+    assert registered(config).state == CURRENT
+    assert attributed(config).state == ABSENT and not attributed(config).wired
+    assert main(["-C", str(tmp_path), "merge", "--check"]) == EXIT_GATE
+    printed = capsys.readouterr().out
+    # Both halves reported, and the one that is missing named by file rather than counted away.
+    assert "sends 0 of 3 governed files" in printed and ROADMAP in printed
+    assert "would merge textually" in printed
+    assert "config      merge.roadkeep.driver set to the command" in printed
+    assert "merge --register" in printed
+
+
+def test_a_role_declared_after_the_file_was_written_reads_as_partial(tmp_path, capsys):
+    # The state a whole-file yes/no hides: `register` ran when two roles were declared, a third
+    # arrived, and every line the file carries is correct — for the files it names.
+    config = repository(tmp_path)
+    register(config)
+    lines = (tmp_path / ".gitattributes").read_text(encoding="utf-8").splitlines()
+    (tmp_path / ".gitattributes").write_text(
+        "".join(f"{line}\n" for line in lines if IMPROVEMENTS not in line), encoding="utf-8"
+    )
+    attributes = attributed(config)
+    assert attributes.state == PARTIAL and not attributes.wired
+    assert len(attributes.present) == 2 and len(attributes.missing) == 1
+    assert main(["-C", str(tmp_path), "merge", "--check"]) == EXIT_GATE
+    printed = capsys.readouterr().out
+    assert "sends 2 of 3 governed files" in printed and IMPROVEMENTS in printed
+    assert ROADMAP not in printed.split("attributes")[1].split("\n")[0]
+
+
+def test_both_halves_written_is_the_one_answer_that_exits_zero(tmp_path, capsys):
+    config = repository(tmp_path)
+    register(config)
+    set_driver(tmp_path, driver_value(persisted().command))
+    assert attributed(config).wired and registered(config).state == CURRENT
+    assert main(["-C", str(tmp_path), "merge", "--check"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "sends 3 of 3 governed files to the roadkeep driver" in printed
+    assert "merge --register" not in printed
+
+
+def test_the_write_is_built_on_the_read_so_the_two_cannot_drift(tmp_path):
+    # `register` computes nothing of its own about which lines a role wants: it asks
+    # `attributed` and writes what is missing. Two computations would be how a check comes to
+    # agree with nothing but itself, which is worse than having no check.
+    config = repository(tmp_path)
+    before = attributed(config)
+    written = register(config)
+    assert written.added == before.missing and before.state == ABSENT
+    assert attributed(config).state == CURRENT
+    assert register(config).added == ()
+
+
 def test_git_that_cannot_be_asked_is_unknown_and_not_absent(tmp_path, monkeypatch):
     # Absent means "nothing is wired" and unknown means "nobody could tell us", and reporting
     # the second as the first would name a repair for a question that was never resolved.
     config = repository(tmp_path)
+    register(config)  # before the patch, because `register` asks git the same question
     set_driver(tmp_path, driver_value(persisted().command))
 
     def refuse(*args, **kwargs):

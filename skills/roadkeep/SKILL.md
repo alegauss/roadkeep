@@ -158,9 +158,10 @@ an id **both branches created** is reported by name for `renumber` to move. What
 prove — prose changed on both sides, a line that does not round-trip, an output `lint` would
 refuse — it hands back as git's own conflict markers and exits 1. `install` names it in its
 report and `install --register-merge` runs that half during adoption, so a wired project is
-never one whose first parallel branch conflicts by hand. The driver git stores is a path, so
-it can stop resolving: `merge --check` reads it back and exits 1 where git has no driver it
-can run — the wiring is otherwise silent until the merge it was registered for.
+never one whose first parallel branch conflicts by hand. Wiring is two writes — a committed
+`.gitattributes` line per file, and a per-clone `git config` path that can stop resolving —
+so `merge --check` reads both back and exits 1 unless git would run this driver. Neither
+half is otherwise visible until the merge it was registered for.
 
 1. **`symptom` states what does not work** — never a solution name: a line named after its fix
    cannot be falsified, so it never gets closed, only abandoned.

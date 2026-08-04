@@ -54,9 +54,11 @@ from roadkeep.linting import within
 from roadkeep.provenance import invocation, persisted
 
 __all__ = [
+    "Attributes",
     "Driver",
     "Merge",
     "Registration",
+    "attributed",
     "merge",
     "markers",
     "register",
@@ -86,6 +88,9 @@ ABSENT = "absent"
 CURRENT = "current"
 MOVED = "moved"
 UNRUNNABLE = "unrunnable"
+#: Some governed files sent to the driver and not others (RK270) — the state a `.gitattributes`
+#: reaches when a role was declared after it was written, and the one a whole-file yes/no hides.
+PARTIAL = "partial"
 #: Not an answer either way: no git, no repository, or a git too old for `config --default`.
 UNKNOWN = "unknown"
 
@@ -114,6 +119,49 @@ class Merge:
     @property
     def clean(self) -> bool:
         return self.text is not None
+
+
+@dataclass(frozen=True, slots=True)
+class Attributes:
+    """Which governed files `.gitattributes` sends to this driver, and which it does not (RK270).
+
+    A driver is two writes and RK266 read back one. `.gitattributes` sends git to the driver by
+    name; :data:`DRIVER_KEY` says what that name runs. Either alone is a repository where
+    nothing happens — the attribute without the config falls back to a textual merge, the
+    config without the attribute is never asked — so a check that answers about one of them is
+    answering truthfully and not answering the question.
+
+    Kept apart from :class:`Driver` rather than folded into it: this is a committed file and
+    that is a per-checkout config, they go missing for different reasons and are repaired by
+    different writes, and one dataclass spanning both would have to say which file each of its
+    fields was about.
+    """
+
+    path: Path
+    #: One line per governed file — what `.gitattributes` would have to carry.
+    wanted: tuple[str, ...]
+    #: Those of :attr:`wanted` the file already carries.
+    present: tuple[str, ...]
+
+    @property
+    def missing(self) -> tuple[str, ...]:
+        return tuple(line for line in self.wanted if line not in self.present)
+
+    @property
+    def state(self) -> str:
+        """:data:`CURRENT`, :data:`PARTIAL` or :data:`ABSENT` — never :data:`UNKNOWN`.
+
+        No git is asked anything here: the file is in the working tree, so unlike the config
+        half there is no version of this question that cannot be answered. A project declaring
+        no governed files at all reads as :data:`CURRENT`, because nothing is unsent.
+        """
+        if not self.missing:
+            return CURRENT
+        return ABSENT if not self.present else PARTIAL
+
+    @property
+    def wired(self) -> bool:
+        return self.state == CURRENT
 
 
 @dataclass(frozen=True, slots=True)
@@ -267,25 +315,40 @@ def register(config: Config) -> Registration:
     ran `register` is a driver that fails at the one moment this file exists for — and git's
     fallback is conflict markers in the file whose whole point is that its merge is decidable.
     """
-    path = config.root / ".gitattributes"
-    existing = _attribute_lines(path)
-    wanted = [f"{config.relative(config.path(role))} merge={DRIVER}" for role in config.paths]
-    added = tuple(line for line in wanted if line not in existing)
-    present = tuple(line for line in wanted if line in existing)
-    if added:
-        body = "".join(f"{line}\n" for line in added)
-        current = path.read_text(encoding="utf-8") if path.is_file() else ""
+    before = attributed(config)
+    if before.missing:
+        body = "".join(f"{line}\n" for line in before.missing)
+        current = before.path.read_text(encoding="utf-8") if before.path.is_file() else ""
         if current and not current.endswith("\n"):
             current += "\n"
-        path.write_text(current + body, encoding="utf-8", newline="")
+        before.path.write_text(current + body, encoding="utf-8", newline="")
     stored = persisted()
     return Registration(
-        attributes=path,
-        added=added,
-        present=present,
+        attributes=before.path,
+        added=before.missing,
+        present=before.present,
         command=f"git config {DRIVER_KEY} " f'"{driver_value(stored.command)}"',
         invalidated_by=stored.invalidated_by,
         driver=registered(config),
+    )
+
+
+def attributed(config: Config) -> Attributes:
+    """Which governed files `.gitattributes` already sends to this driver (RK270).
+
+    The read half of :func:`register`, which is why that function is written on top of it: two
+    computations of "the line this role wants" would be the way the check and the write drift
+    apart, and a check that agreed with nothing but itself is worse than no check.
+    """
+    path = config.root / ".gitattributes"
+    existing = _attribute_lines(path)
+    wanted = tuple(
+        f"{config.relative(config.path(role))} merge={DRIVER}" for role in config.paths
+    )
+    return Attributes(
+        path=path,
+        wanted=wanted,
+        present=tuple(line for line in wanted if line in existing),
     )
 
 

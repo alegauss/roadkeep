@@ -47,8 +47,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK270** (deps: —) **A driver check that answers current has not looked at .gitattributes** — `merge --check` reads only `merge.roadkeep.driver`, so a checkout whose attribute lines were never written, or were dropped in a merge, reads as wired while git invokes nothing. → §RK270
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - 📋 **RK267** (deps: —) **A staleness note lists every changed module and hands relevance back** — The server appends `engine().stale` to any refusal, so one `schema.py` decided arrives naming three modules that did not, and the reader re-runs on a guess about which mattered. → §RK267
