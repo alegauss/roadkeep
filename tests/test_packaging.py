@@ -63,8 +63,9 @@ def test_the_version_is_one_pypi_would_take() -> None:
     assert _RELEASE.match(roadkeep.__version__), roadkeep.__version__
 
 
-def test_the_builder_reads_the_same_number_the_module_states() -> None:
+def test_the_builder_reads_the_same_number_the_module_states(checkout) -> None:
     """The `attr` above resolved statically, which is the only way it is read at build."""
+    checkout.steady("src/roadkeep/__init__.py")
     source = (PACKAGE / "__init__.py").read_text(encoding="utf-8")
     found = re.findall(r'^__version__ = "([^"]+)"$', source, flags=re.MULTILINE)
     assert found == [roadkeep.__version__]
@@ -87,11 +88,15 @@ def test_a_commit_bumps_the_patch_version() -> None:
     assert "exit 1" not in body
 
 
-def test_the_bumper_moves_both_files_and_nothing_else(tmp_path) -> None:
+def test_the_bumper_moves_both_files_and_nothing_else(tmp_path, checkout) -> None:
     """`--dry-run` is asserted rather than the write: this repository's own version is not a
     fixture, and a test that bumped it would put its own number in the next commit."""
     import subprocess
     import sys
+
+    # The script reads the module off disk and this compares against the imported constant, so
+    # a bump landing mid-run makes both readings right and the comparison meaningless (RK263).
+    checkout.steady("src/roadkeep/__init__.py")
 
     finished = subprocess.run(
         [sys.executable, str(HERE / "scripts" / "bump_version.py"), "--level", "patch", "--dry-run"],

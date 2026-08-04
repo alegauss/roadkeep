@@ -99,7 +99,8 @@ def test_the_manifest_names_the_plugin_and_points_at_its_hooks():
     assert declared == HOOKS and declared.is_file()
 
 
-def test_the_plugin_states_the_version_the_package_states():
+def test_the_plugin_states_the_version_the_package_states(checkout):
+    checkout.steady(".claude-plugin/plugin.json", "src/roadkeep/__init__.py")
     assert read(MANIFEST)["version"] == roadkeep.__version__
 
 
@@ -314,8 +315,11 @@ def test_the_launcher_prefers_the_source_it_ships_over_anything_installed():
     assert '"src"' in source
 
 
-def test_the_launcher_runs_from_any_directory(tmp_path):
+def test_the_launcher_runs_from_any_directory(tmp_path, checkout):
     """A subprocess, because the whole claim is about a process the harness starts."""
+    # Which is the reading that makes this one drift: the child imports the tree as it is now
+    # and this compares against what the parent imported at collection (RK263).
+    checkout.steady("src/roadkeep/__init__.py")
     finished = subprocess.run(
         [sys.executable, str(HERE / "scripts" / "roadkeep.py"), "--version"],
         cwd=tmp_path,

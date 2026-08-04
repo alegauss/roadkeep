@@ -59,9 +59,12 @@ def test_the_version_is_the_packages_and_not_a_second_literal():
     assert engine().version == roadkeep.__version__
 
 
-def test_this_checkout_reports_the_commit_it_is_at():
+def test_this_checkout_reports_the_commit_it_is_at(checkout):
     if engine().commit is None:
         pytest.skip("this tree is not a checkout git can place")
+    # The engine answers once per process (below) and `rev-parse` answers now, so a commit
+    # landing between them is the one difference this must not read as a defect (RK263).
+    checkout.steady(head=True)
     assert len(engine().commit) >= 7
     assert engine().commit in subprocess.run(
         ["git", "-C", str(HERE), "rev-parse", "HEAD"],

@@ -37,7 +37,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK263** (deps: —) **A test asserting about the live checkout fails the same way whether code or the tree moved** — Six failed and then 1940 passed on unchanged source, the six being exactly the ones reading this repository, so git activity beside a run is indistinguishable from a defect. → §RK263
 - 📋 **RK268** (deps: —) **A cached derivation survives the test that monkeypatched what it read** — Six process-lifetime caches are cleared by hand at call sites with no fixture, so a test failing before its trailing `cache_clear` leaves later ones asserting about a `tmp_path` that is gone. → §RK268
 - 💭 **RK269** (deps: —) **A block emptying is stated once to the console and recorded nowhere a later verb can read** — `ship` printed `event T282 Block AI empty`, `lint` then called the tree clean, and the repo kept an index row claiming that block active — caught only by a test of its own. → §RK269
 - 📋 **RK271** (deps: —) **The capture offer closes the gate's own answer as though the tool had failed** — `_may_offer` fires on every non-zero exit but `report`, `guard` and `mcp`, so a `lint` naming one problem in CI ends with two lines inviting a capture, on the exit that is never about this tool. → §RK271

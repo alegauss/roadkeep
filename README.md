@@ -119,14 +119,14 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 28 | 1 |
 | B — Authoring (insert, never hand-edit) | 3 | 61 | 0 |
 | C — Query (consult without reading the file) | 4 | 41 | 0 |
-| D — The gate | 4 | 51 | 0 |
+| D — The gate | 3 | 52 | 0 |
 | E — Adoption | 0 | 50 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 2 | 46 | 1 |
-| **Total** | 13 | 277 | 3 |
+| **Total** | 12 | 278 | 3 |
 
 **Next ready:**
 
-- 📋 **RK263** (deps: —) **A test asserting about the live checkout fails the same way whether code or the tree moved** — Six failed and then 1940 passed on unchanged source, the six being exactly the ones reading this repository, so git activity beside a run is indistinguishable from a defect. → §RK263
+- 📋 **RK265** (deps: —) **budget omits the pointer under an outline ref scheme, so it over-reports the room by the anchor width** — It answered 182 characters left for a why `add` then refused at 174, the 8 being ` → §XX.2` — a limit found after the prose exists, which this verb exists to prevent. → §RK265
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
