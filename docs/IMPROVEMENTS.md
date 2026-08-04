@@ -161,26 +161,6 @@ remove.
 
 ## Block C — Query
 
-### §RK293 The next family, which is the one question the listing does not answer
-
-`anchors` was the answer to *which number may a reopened family take*, and it answers it
-well: live addresses, retired ones with the commit that spent them, and `next §XX.31`
-per family. Adopted in Claude Code Tray on 2026-08-04 it stopped an `add --ref XX.10`
-that would have re-pointed history at a new section, and named the free address in the
-refusal.
-
-The question one line up has no answer. `IMPROVEMENTS.md` numbers one §I… sequence and a
-block reused after its family shipped needs a *new* top-level — that is the normal case
-in a backlog organised by theme, not an edge one. Nothing prints which top-level is
-free, and the listing cannot be read for it either: the families come out sorted as
-strings, so `IX` follows `IV` and precedes `V`, and the last row is not the maximum. The
-number was guessed from the tail of 46 rows and happened to be right.
-
-Two lines of output, both derived from what the command already walked: the next free
-top-level beside the header's totals, and the family rows in numeral order so a reader
-can check it. The second matters on its own — a listing ordered by a numeral's spelling
-is one nobody can scan for a gap, which is the other question anchors gets asked.
-
 ### §RK297 The address book that reads half the addresses
 
 `anchors` states a rule and then asks the wrong number of files about it: an address is

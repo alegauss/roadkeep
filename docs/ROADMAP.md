@@ -31,7 +31,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK293** (deps: —) **anchors names the next address under every family and not the next family** — A reused block needs a fresh top-level to file under, and the read built for that question answers per family in an order where IX follows IV, so the maximum is not on the listing either. → §RK293
 - 📋 **RK297** (deps: —) **The read that says which anchor address is free asks one prose file on a project with two** — `anchors --role` reads one file, so Turing's two disagree about the next child of seven shared families: `§IX.5` reads free where the other has spent to `IX.12`. → §RK297
 - 📋 **RK301** (deps: —) **The pre-write budget is silent about the one field in the same transaction that also refuses** — `budget` reports the symptom and the why, so thirteen `add --section` refusals this session were each a 250-word body resent to learn a number known before the first sentence. → §RK301
 

@@ -24,8 +24,11 @@ from roadkeep.history import (
     gaps,
     git_available,
     next_child,
+    next_family,
+    numeral,
     origin_of,
     searchable,
+    spell,
 )
 from roadkeep.sections import AnchorRetired
 from roadkeep.sections import add as add_section
@@ -605,3 +608,100 @@ def test_a_checkout_git_cannot_answer_for_reports_nothing_rather_than_refusing(t
     )
     (tmp_path / "ROADMAP.md").write_text("## Block A — The model\n", encoding="utf-8")
     assert dirty(Config.discover(tmp_path)) == frozenset()
+
+
+# -- the next family, and the order that lets a reader check it (RK293) --------
+
+
+def test_a_numeral_is_read_as_the_number_it_spells_and_a_letter_is_not():
+    # Arithmetic, not prose (L4): reading `IX` is what a listing has to do to be scannable.
+    assert numeral("IX") == ("roman", 9) and numeral("XXXVII") == ("roman", 37)
+    assert numeral("0") == ("decimal", 0) and numeral("12") == ("decimal", 12)
+    # Strict: a permissive reader would order the file by a spelling nobody wrote.
+    assert numeral("A") is None and numeral("IIII") is None and numeral("IL") is None
+    assert numeral("") is None and numeral("RK12") is None
+
+
+def test_a_numeral_reads_back_as_the_spelling_it_came_from():
+    for value in (1, 4, 9, 14, 40, 90, 400, 900, 1987):
+        assert numeral(spell(value, "roman")) == ("roman", value)
+    assert spell(7, "decimal") == "7"
+
+
+def test_the_families_come_out_in_numeral_order_and_not_in_spelling_order(tmp_path):
+    # The defect: sorted as strings, `IX` follows `IV` and precedes `V`, so the last row is
+    # not the maximum and the listing cannot be scanned for a gap.
+    config = outlined(tmp_path)
+    for family in ("IV", "V", "IX", "X"):
+        design(config, f"### {family}.1 A design", f"docs: file {family}")
+
+    order = [one.anchor for one in anchors(config, "improvements")]
+    assert order == ["IV.1", "V.1", "IX.1", "X.1"]
+
+
+def test_the_next_free_top_level_is_derived_and_not_read_off_the_tail(tmp_path):
+    # The question one line up from `next_child`, and the normal case in a backlog organised
+    # by theme: a block reused after its family shipped needs a new top-level.
+    config = outlined(tmp_path)
+    for family in ("IV", "IX", "V"):
+        design(config, f"### {family}.1 A design", f"docs: file {family}")
+    found = anchors(config, "improvements")
+    assert next_family(found) == "X"
+    # One past the highest **ever** used, exactly as `next_child` is: a shipped family does
+    # not give its address back, and every entry that cited it still says so.
+    unwrite(config, "### IX.1 A design", "feat: it works (RK1)")
+    assert next_family(anchors(Config.discover(tmp_path), "improvements")) == "X"
+
+
+def test_families_that_are_not_one_numbering_derive_no_next_at_all(tmp_path):
+    # A guess printed beside a total reads exactly like a fact, so None is the answer.
+    config = outlined(tmp_path)
+    for family in ("A", "B"):
+        design(config, f"### {family}.1 A design", f"docs: file {family}")
+    assert next_family(anchors(config, "improvements")) is None
+
+
+def test_a_letter_family_is_never_read_as_the_roman_number_it_could_spell(tmp_path):
+    # `C` is 100 on a file numbered in Roman and a letter on one whose families are A to F,
+    # and only the whole set says which — so the decision is made once, over the set.
+    config = outlined(tmp_path)
+    for family in ("A", "B", "C", "D"):
+        design(config, f"### {family}.1 A design", f"docs: file {family}")
+    assert [one.anchor for one in anchors(config, "improvements")] == [
+        "A.1", "B.1", "C.1", "D.1"
+    ]
+    assert next_family(anchors(config, "improvements")) is None
+
+
+def test_the_command_names_the_next_family_beside_the_totals(tmp_path, capsys):
+    config = outlined(tmp_path)
+    for family in ("IV", "IX"):
+        design(config, f"### {family}.1 A design", f"docs: file {family}")
+
+    assert main(["-C", str(tmp_path), "anchors"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "next     §X — no family ever used it" in printed
+    # And the rows below it, in the order that lets a reader check the claim.
+    assert printed.index("\n  IV ") < printed.index("\n  IX ")
+
+
+def test_the_command_says_so_where_no_next_derives(tmp_path, capsys):
+    config = outlined(tmp_path)
+    design(config, "### A.1 A design", "docs: file it")
+    assert main(["-C", str(tmp_path), "anchors"]) == EXIT_OK
+    assert "not one numbering" in capsys.readouterr().out
+
+
+def test_the_json_carries_the_next_family_beside_the_next_child(tmp_path, capsys):
+    config = outlined(tmp_path)
+    for family in ("IV", "IX"):
+        design(config, f"### {family}.1 A design", f"docs: file {family}")
+
+    assert main(["-C", str(tmp_path), "anchors", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["next_family"] == "X" and payload["next"] is None
+    assert [one["family"] for one in payload["families"]] == ["IV", "IX"]
+    # Narrowed to one family, the question is the child's again and the top-level is not asked.
+    assert main(["-C", str(tmp_path), "anchors", "--family", "IX", "--json"]) == EXIT_OK
+    narrowed = json.loads(capsys.readouterr().out)
+    assert narrowed["next"] == "IX.2" and narrowed["next_family"] is None

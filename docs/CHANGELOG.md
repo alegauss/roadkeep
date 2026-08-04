@@ -150,6 +150,7 @@
 - ✅ **RK265** **budget omits the pointer under an outline ref scheme, so it over-reports the room by the anchor width** — budget takes --ref and counts the pointer as structure; unnamed under an outline it assumes the widest anchor on file and names that, so the answer is never more room than add allows.
 - ✅ **RK283** **budget answers for the task line only, so the two largest prose limits are discoverable only by failing** — budget --anchor answers a section body in words and budget --non-goal the list's two limits, so the two largest prose ceilings are read before a word rather than met as a refusal.
 - ✅ **RK287** **A section's word count includes its subsections, so it names a figure no limit is measured against** — every verb that prints a section's size now states its own prose and its subtree where they differ, with the role's limit beside them, so no figure stands next to a limit it is not measured against.
+- ✅ **RK293** **anchors names the next address under every family and not the next family** — anchors now prints the next free top-level above the rows and orders every family by the number its numeral spells, so the address a reused block needs is derived rather than read off a tail.
 
 ## Block D — The gate
 

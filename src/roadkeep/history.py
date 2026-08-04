@@ -715,7 +715,12 @@ def anchors(config: Config, role: str, family: str = "") -> tuple[Anchor, ...]:
         for anchor, sha in first.items()
         if anchor not in live
     ]
-    return tuple(sorted((a for a in found if _within(a.anchor, family)), key=_ordinal))
+    # Whether this file numbers in Roman is a fact about the whole set (RK293), so it is
+    # settled once here and handed to the key — a per-segment decision would read `C` as 100
+    # in a file whose families are letters, and sort a listing by an arithmetic nobody meant.
+    numbered = bool(found) and all(numeral(one.anchor.split(".")[0]) for one in found)
+    wanted = [one for one in found if _within(one.anchor, family)]
+    return tuple(sorted(wanted, key=lambda one: _ordinal(one, numbered)))
 
 
 def next_child(taken: Sequence[Anchor], family: str) -> str:
@@ -733,6 +738,69 @@ def next_child(taken: Sequence[Anchor], family: str) -> str:
         if anchor.anchor.startswith(f"{family}.") and child.isdigit()
     }
     return f"{family}.{max(used) + 1 if used else 1}"
+
+
+#: A well-formed Roman numeral, and only one: `IIII` and `IL` spell nothing here, because a
+#: reader that accepted them would order a file by a spelling nobody wrote.
+_ROMAN = re.compile(r"^M{0,3}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$")
+_DIGITS = (("M", 1000), ("CM", 900), ("D", 500), ("CD", 400), ("C", 100), ("XC", 90),
+           ("L", 50), ("XL", 40), ("X", 10), ("IX", 9), ("V", 5), ("IV", 4), ("I", 1))
+
+
+def numeral(text: str) -> tuple[str, int] | None:
+    """The number a segment spells and the system it spells it in, or None for neither.
+
+    Arithmetic and not prose (L4): `IX` is a number written a way this tool has to *read*
+    to sort by, because a listing ordered by a numeral's spelling puts `IX` between `IV` and
+    `V` and cannot be scanned for a gap (RK293). Reading it is also what lets the next free
+    address be derived rather than guessed off the tail of the listing.
+
+    Strict, because a permissive reader is worse than none: a segment that is not a numeral
+    must come back as one, so the caller can put it beside its siblings as text instead of
+    among them as a number nobody meant.
+    """
+    if text.isdigit():
+        return "decimal", int(text)
+    if text and _ROMAN.match(text):
+        value, rest = 0, text
+        for glyph, amount in _DIGITS:
+            while rest.startswith(glyph):
+                value, rest = value + amount, rest[len(glyph) :]
+        return "roman", value
+    return None
+
+
+def spell(value: int, system: str) -> str:
+    """``value`` written the way ``system`` writes it — the inverse of :func:`numeral`."""
+    if system != "roman":
+        return str(value)
+    out, left = [], value
+    for glyph, amount in sorted(_DIGITS, key=lambda pair: -pair[1]):
+        while left >= amount:
+            out.append(glyph)
+            left -= amount
+    return "".join(out)
+
+
+def next_family(taken: Sequence[Anchor]) -> str | None:
+    """The lowest top-level address no anchor has ever used, or None where none derives.
+
+    The question one line up from :func:`next_child`, and the normal case rather than an edge
+    one (RK293): a block reused after its family shipped needs a *new* top-level, and until
+    this the number was read off the tail of a listing sorted by spelling — where the last row
+    is not the maximum. Derived from the same walk, so it costs nothing the command did not
+    already pay.
+
+    None where the top-levels are not one numbering, which is the honest answer and not a
+    fallback: a file whose families are `A`, `B` and `C` has a next nobody can derive, and a
+    guess printed beside a total reads exactly like a fact. Spelled in the system of the
+    family that holds the maximum, because that is the sequence being continued.
+    """
+    read = {top: numeral(top) for top in {one.anchor.split(".")[0] for one in taken}}
+    if not read or any(value is None for value in read.values()):
+        return None
+    system, highest = max((value for value in read.values() if value), key=lambda one: one[1])
+    return spell(highest + 1, system)
 
 
 def _declared(config: Config, role: str) -> tuple[str, ...]:
@@ -789,12 +857,19 @@ def _within(anchor: str, family: str) -> bool:
     return segments[: len(wanted)] == wanted
 
 
-def _ordinal(anchor: Anchor) -> tuple[object, ...]:
+def _ordinal(anchor: Anchor, numbered: bool = False) -> tuple[object, ...]:
     """File order is not sort order once retired addresses are back in the list, so the
     segments are compared as numbers where they are numbers and as text where they are not —
-    `.2` before `.10`, and a lettered segment beside its siblings rather than among them."""
+    `.2` before `.10`, and a lettered segment beside its siblings rather than among them.
+
+    ``numbered`` reads a Roman segment as the number it spells (RK293), and is decided over
+    the whole set rather than per segment: `C` and `D` are numerals on a file numbered in
+    Roman and are letters on one whose families are `A` to `F`, and only the set says which.
+    """
     return tuple(
-        (0, int(part), "") if part.isdigit() else (1, 0, part)
+        (0, int(part), "")
+        if part.isdigit()
+        else ((0, read[1], "") if numbered and (read := numeral(part)) else (1, 0, part))
         for part in anchor.anchor.split(".")
     )
 

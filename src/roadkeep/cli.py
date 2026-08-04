@@ -79,6 +79,7 @@ from roadkeep.history import (
     dirty,
     gaps,
     next_child,
+    next_family,
     origin_of,
 )
 from roadkeep.ids import highest, next_id
@@ -4427,6 +4428,9 @@ def _anchors(config: Config, args: argparse.Namespace) -> int:
                     "families": [] if args.family else _families(outline),
                     "id_anchors": spent,
                     "next": next_child(found, args.family) if args.family else None,
+                    # The question one line up, and the one a reused block asks (RK293).
+                    # Null where the top-levels are not one numbering, which is an answer.
+                    "next_family": None if args.family else next_family(outline),
                 },
                 indent=2,
             )
@@ -4441,6 +4445,16 @@ def _anchors(config: Config, args: argparse.Namespace) -> int:
             print(f"  {'live' if one.live else 'retired':<8} {one.anchor}{written}")
         print(f"  next     §{next_child(found, args.family)} — nothing ever used it")
         return EXIT_OK
+    # Beside the totals and above the rows, because it is the question a reused block asks
+    # first and the listing cannot be read for it (RK293): the rows are per family, and the
+    # last one is only the maximum once they are ordered by the number a numeral spells.
+    if outline:
+        fresh = next_family(outline)
+        print(
+            f"  next     §{fresh} — no family ever used it"
+            if fresh
+            else "  next     — these families are not one numbering, so none derives"
+        )
     for family in _families(outline):
         print(
             f"  {family['family']:<8} {family['live']} live, {family['retired']} retired"

@@ -194,7 +194,10 @@ number is otherwise met at the door. `budget --non-goal [--lead "…"]` is the r
 bullet, whose two limits are the list's own and not the task line's. Every verb that prints a
 section's size states **two** figures where they differ — `48 words, 310 with subsections
 (limit 300)` — because the argument is what an `amend` can shorten and the subtree is what a
-reader pays; cutting to the second number cuts prose that was never over. `brief` prints the `why`'s share of the line it hands over,
+reader pays; cutting to the second number cuts prose that was never over. Under an outline,
+`anchors` names both free addresses before you choose one: `next §<family>.<n>` for a child
+and, above the rows, the next free **top-level** — which is what a block reused after its
+family shipped needs, and what the listing could not be read for. `brief` prints the `why`'s share of the line it hands over,
 so a task started through it never has to ask. **`weight [--block <x>]` is the other pre-`add` read**: what
 comparable tasks cost, derived from the commits that shipped them, so whether the line being
 written is one task or two is a question with an answer. An entry whose commit wrote several
