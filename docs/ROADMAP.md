@@ -41,6 +41,8 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
+- 📋 **RK253** (deps: —) **A field this project closed is refused as one that does not exist** — The lead clause says `no such argument` about a field the CLI declares and the config shut, so the correction reaches the caller only in a per-field clause that arrives after it. → §RK253
+
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:
