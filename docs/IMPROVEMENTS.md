@@ -121,7 +121,7 @@ earlier: decline a `--section` title that names no task, the way `add` already d
 prose over budget — a limit reported before the words exist is the principle already in
 force one field over.
 
-### §RK280 RK280 — the one write in the contract that nothing guards
+### §RK280 The one write in the contract that nothing guards
 
 Observed, not imagined. `a0c6f6c` ships RK244 and carries `document.py` +40 and `adopting.py`
 +16, which are RK279's implementation. `767d3eb` ships RK279 and carries `test_authoring.py`
@@ -293,7 +293,7 @@ fixture that records the tree's state and skips the checkout-reading tests when 
 moves, against the risk of a skip that hides a real failure — which argues for reporting
 the movement loudly rather than passing quietly.
 
-### §RK268 RK268 — a process-lifetime cache in a per-test world
+### §RK268 A process-lifetime cache in a per-test world
 
 Six functions in this package are `lru_cache`d, each for a good reason: they answer a
 fact about the process — where the package lives, what a shell reaches it by, what a
@@ -336,7 +336,7 @@ own check can be written against roadkeep instead of against a regex; or roadkee
 the index row the way `block add` owns the heading. The first costs almost nothing and
 would have caught all four. The last is the one that needs the design.
 
-### §RK271 RK271 — an offer that cannot tell a verdict from a fault
+### §RK271 An offer that cannot tell a verdict from a fault
 
 RK86's reasoning holds: an agent that meets a limit it thinks is wrong otherwise has one
 move left, which is to work around the tool quietly, and that loses the sessions with
@@ -362,7 +362,7 @@ shape at six. What stays true either way is that a *validation* refusal keeps th
 
 ## Block F — The plugin
 
-### §RK267 RK267 — a note that knows more than it says
+### §RK267 A note that knows more than it says
 
 RK155 made the MCP server say when its own modules moved after it imported them, because
 a config key added in one commit made every write refuse `unknown key` while the CLI
@@ -386,7 +386,7 @@ because a helper in another changed, which the intersection misses; that argues 
 narrowing the sentence rather than suppressing it, and for keeping the full list behind
 the one module that is named.
 
-### §RK275 RK275 — a check the agent it was built for cannot call
+### §RK275 A check the agent it was built for cannot call
 
 L5 is that every question is a command, so answering one costs no context. `merge
 --check` is exactly that shape: it writes nothing, reads two facts, answers in three

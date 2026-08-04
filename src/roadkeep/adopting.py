@@ -63,7 +63,7 @@ from roadkeep.config import (
 )
 from roadkeep.document import Document, checkbox
 from roadkeep.schema import DEFAULT_HEADING_WORD, Schema
-from roadkeep.sections import anchored, structural
+from roadkeep.sections import anchored, structural, unanchored, words as sections_words
 
 #: The roles `init` scaffolds. `strategy` is absent and not empty: Turing has one and this
 #: project does not, and a declared file nobody writes is `file.missing` on the first lint.
@@ -262,10 +262,12 @@ class Estimate:
     #: the one an empty file gets, and the estimate that decides whether to adopt reports
     #: nothing to change about a file it has not read.
     tabular: int = 0
-    #: Plain list items under a block heading (RK279) — the shape almost every unadopted
-    #: roadmap is in, and the one that fell through both nets above: it claims none of the
-    #: task line's shape, so it is no reject, and holds no pipes, so it is no row. Measured:
-    #: the same two tasks priced 2 as a table and 0 as `- [ ] …`.
+    #: What this file holds in a shape the format has no reader for, in whatever :attr:`unit`
+    #: is being counted: plain list items under a block heading in a backlog (RK279), and
+    #: headings with prose and no anchor in a rationale file (RK281). One field because it is
+    #: one idea and it lands in :attr:`changing` the same way — a backlog kept as `- [ ] …`
+    #: priced 2 as a table and 0 as a list, and a `DESIGN.md` answered 0 sections, both being
+    #: the zero RK98 forbids. The *sentence* differs by unit; the number does not.
     listed: int = 0
 
     @property
@@ -647,6 +649,13 @@ def _prose(config: Config, target: Path, ref_scheme: str | None) -> Estimate:
     document = Document.load(target, schema)
     found = anchored(document)
     words = [section.words for section in found]
+    # Headings where a section would be, carrying no anchor (RK281). Measured the same way —
+    # a span of prose has a word count whether or not this tool has an address for it.
+    loose = unanchored(document)
+    loose_words = [
+        sections_words("".join(document.lines[h.lineno : document.prose_end(h)]))
+        for h in loose
+    ]
     # Every prose paragraph, not only a section's: the width an author wraps to is a fact
     # about the file, and a preamble above the first anchor is written to the same margin.
     widths = [len(line) for line in _filled(document)]
@@ -659,12 +668,19 @@ def _prose(config: Config, target: Path, ref_scheme: str | None) -> Estimate:
         ref_scheme=schema.ref_scheme,
         parsed=len(found),
         conforming=sum(1 for count in words if count <= schema.section_max),
+        # RK281: the same contract `listed` has one file over. A rationale file that never
+        # adopted the sigil has sections in every sense but this tool's, and the zero it used
+        # to get is the one RK98 forbids.
+        listed=len(loose),
         measures=(
             Measure(
                 field="section",
                 limit=schema.section_max,
-                longest=max(words, default=0),
-                over=sum(1 for count in words if count > schema.section_max),
+                # Over both, because the width an unanchored section is written to is the
+                # number an adopter is being asked to declare — the same reason `prose` below
+                # measures every paragraph and not only an anchored one's.
+                longest=max([*words, *loose_words], default=0),
+                over=sum(1 for count in (*words, *loose_words) if count > schema.section_max),
             ),
             Measure(
                 field="prose",

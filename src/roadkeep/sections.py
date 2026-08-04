@@ -405,6 +405,36 @@ def _argument(body: str) -> str:
 _QUOTED = re.compile(r"`[^`]*`|→\s*§[\w.]+")
 
 
+def unanchored(document: Document) -> tuple[Heading, ...]:
+    """Headings that are where a section would be, and carry no anchor (RK281).
+
+    :func:`anchored` finds `§<anchor>` headings, and the sigil is **this tool's convention**
+    rather than Markdown's — so `adopt --sections` read a rationale file correctly exactly
+    when that file had already adopted the format, which is the one case nobody needs an
+    estimate for. A real `DESIGN.md` answered 0 sections and 0 would change: RK98's zero,
+    one command over from where RK279 closed it.
+
+    A second reader over the same headings and never a second grammar, the line RK98 drew
+    when it counted table rows without parsing cells. Nothing here composes an anchor — an
+    address the file does not have is not this tool's to invent (L4) — so what comes back is
+    the heading, and the estimate takes a count and a word measure off its span.
+
+    Two exclusions, both because they are frame rather than work: a level-1 heading is the
+    document's title and not a section in it, and a heading with no prose of its own is a
+    container — `## Block B` above a list of subsections describes them, and counting it
+    would measure the file's shape rather than anyone's paragraph, which is the distinction
+    :func:`anchored` already makes for `§0`.
+    """
+    out: list[Heading] = []
+    for heading in document.headings:
+        if heading.level < 2 or _anchor_of(heading.text, document.schema) is not None:
+            continue
+        end = document.prose_end(heading)
+        if any(not blank(line) for line in document.lines[heading.lineno : end]):
+            out.append(heading)
+    return tuple(out)
+
+
 def anchored(document: Document) -> tuple[Section, ...]:
     """Every `§<anchor>` section in file order, each carrying only its **own** prose.
 

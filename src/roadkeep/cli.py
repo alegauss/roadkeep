@@ -4346,9 +4346,16 @@ def _print_estimate(estimate: Estimate) -> None:
         # backlog reads as 0 lines, which is what an empty file reads as (RK98).
         print(f"  table    {estimate.tabular} line(s) in a table this format does not read")
     if estimate.listed:
-        # Beside it, and for the same reason (RK279) — this is the shape the headline is
-        # most often explaining, an ordinary Markdown checklist under a block heading.
-        print(f"  list     {estimate.listed} plain bullet(s) under a block, in no shape read here")
+        # Beside it, and for the same reason (RK279, RK281) — this is the shape the headline
+        # is most often explaining. Worded off `unit`, because the field holds one idea, "in
+        # a shape this format has no reader for", and that is a bullet in a backlog and a
+        # heading in a rationale file: one sentence for both would name neither.
+        said = (
+            f"{estimate.listed} plain bullet(s) under a block"
+            if estimate.unit == "line"
+            else f"{estimate.listed} heading(s) with prose and no anchor"
+        )
+        print(f"  loose    {said}, in no shape read here")
     if estimate.blocks:
         print(f"  blocks   {', '.join(estimate.blocks)}")
     for prefix, count in estimate.prefixes:

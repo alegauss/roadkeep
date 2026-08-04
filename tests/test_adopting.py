@@ -36,7 +36,8 @@ from roadkeep.adopting import (
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config, Scope
 from roadkeep.schema import Schema
-from roadkeep.sections import words
+from roadkeep.document import Document
+from roadkeep.sections import unanchored, words
 
 SHIO = Path("D:/Git/viglet/shio/latest/docs/ROADMAP.md")
 
@@ -576,6 +577,74 @@ def test_a_conforming_backlog_lists_nothing() -> None:
     root = Path(__file__).resolve().parents[1]
     config = Config.discover(root)
     estimate = adopt(config, config.path("roadmap"))
+    assert estimate.listed == 0 and estimate.changing == 0
+
+
+#: A rationale file as somebody who never met this tool writes one (RK281): no sigil anywhere,
+#: a title, a container heading whose children carry the prose, and one section that is prose.
+UNSIGILLED = """# Design notes
+
+## Storage
+
+### The store is the repository
+
+Markdown, greppable, no database. The argument is that a backlog living in a service
+is one an agent cannot grep.
+
+### Round-trip or refuse
+
+Parse, render, compare bytes.
+
+## Open questions
+
+Whether the width should be configurable at all.
+"""
+
+
+def test_a_rationale_file_without_the_sigil_is_not_an_empty_one(tmp_path: Path) -> None:
+    """RK281: the sigil is this tool's convention, so `adopt --sections` used to read a file
+    correctly exactly when it had already adopted the format — the one case needing no
+    estimate."""
+    target = tmp_path / "DESIGN.md"
+    target.write_text(UNSIGILLED, encoding="utf-8")
+    estimate = adopt(Config.default(tmp_path), target, sections=True)
+    assert estimate.parsed == 0  # nothing is anchored, which is true and is not the answer
+    # Three: the two `###` with prose, and `## Open questions` which carries prose of its own.
+    # Not `# Design notes`, which is the document, and not `## Storage`, which is a container.
+    assert estimate.listed == 3
+    assert estimate.changing == 3
+
+
+def test_the_frame_of_a_rationale_file_is_not_a_section(tmp_path: Path) -> None:
+    """The two exclusions, asserted apart from the count so a change to either is visible."""
+    target = tmp_path / "DESIGN.md"
+    target.write_text(UNSIGILLED, encoding="utf-8")
+    document = Document.load(target, Config.default(tmp_path).schema_for("improvements"))
+    titles = [h.text for h in unanchored(document)]
+    assert "Design notes" not in titles  # level 1 is the document
+    assert "Storage" not in titles  # a container: its children hold the prose
+    assert titles == ["The store is the repository", "Round-trip or refuse", "Open questions"]
+
+
+def test_an_unanchored_section_is_measured_like_an_anchored_one(tmp_path: Path) -> None:
+    """The word count is what an adopter is being asked to declare, and a span has one
+    whether or not this tool has an address for it."""
+    target = tmp_path / "DESIGN.md"
+    target.write_text(UNSIGILLED, encoding="utf-8")
+    tight = replace(Config.default(tmp_path).schema_for("improvements"), section_max=5)
+    estimate = adopt(
+        replace(Config.default(tmp_path), schema=tight), target, sections=True
+    )
+    measure = next(m for m in estimate.measures if m.field == "section")
+    assert measure.longest > 5 and measure.over >= 1
+
+
+def test_an_adopted_rationale_file_has_nothing_loose(tmp_path: Path) -> None:
+    """This repo's own file is the fixture: every section is anchored, so the count is zero
+    and an adopted project cannot read as having work it does not have."""
+    root = Path(__file__).resolve().parents[1]
+    config = Config.discover(root)
+    estimate = adopt(config, config.path("improvements"), sections=True)
     assert estimate.listed == 0 and estimate.changing == 0
 
 

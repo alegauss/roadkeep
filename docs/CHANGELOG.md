@@ -237,6 +237,7 @@
 - ✅ **RK277** **The check demands a driver in a repository that routes nothing to it** — The config half is demanded only where a governed file routes here now or once registered, which spares an all-claimed repository without withdrawing the repair from an unregistered one.
 - ✅ **RK278** **The verb still names a driver the check has stopped asking for** — A `Wiring` value joins both halves once and every caller renders from it, so the verb withholds the advice the check withholds and no surface can reach for a fact the other has.
 - ✅ **RK279** **A backlog written as an ordinary Markdown list is priced at zero** — `Document.listed` counts top-level bullets and ordered items under a declared block, so a checklist prices like a table, and the preamble, non-goals and nested detail stay out of it.
+- ✅ **RK281** **A rationale file not already using the sigil reads as no sections at all** — `unanchored` reads headings that carry prose and no sigil, so an unadopted rationale file prices its sections, while a level-1 title and a container heading stay out of the count.
 
 ## Block F — The Claude Code plugin
 
