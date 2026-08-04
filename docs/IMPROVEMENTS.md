@@ -377,6 +377,29 @@ shape at six. What stays true either way is that a *validation* refusal keeps th
 
 ## Block E — Adoption
 
+### §RK274 RK274 — a repair that overrides what it reported
+
+Measured in a scratch repository. `.gitattributes` carries `docs/CHANGELOG.md
+merge=theirs`. `merge --check` reports it — `(docs/CHANGELOG.md → theirs)`, exactly the
+case RK273 made visible — and names `merge --register` as the repair. Running it appends
+`docs/CHANGELOG.md merge=roadkeep`, and because git takes the **last** matching rule,
+`check-attr` then answers `roadkeep`. The tool that exists to refuse hand edits took
+over a deliberate configuration, in one command, without a sentence about it.
+
+`register`'s contract is kept to the letter and broken in meaning. It carries every
+other line through untouched, which is what it promises (RK100), and the overridden line
+is still there — inert. "Untouched" was a rule about not deleting somebody's work;
+appending a line that wins over theirs is the same outcome by another mechanism.
+
+Three shapes, and the choice is not obvious. Refuse: decline while a governed file is
+claimed, naming the line, which is how this tool answers elsewhere and is a `merge
+--register` that fails on a repository somebody configured on purpose. Skip: register
+the unclaimed files and report the rest as left alone, which never surprises and leaves
+the check failing forever on a repository that is finished. Or register and say so:
+print that the previous rule no longer applies. What decides it is whether a governed
+file wired elsewhere is a mistake to correct or a decision to respect — and RK273
+answered that when it chose to report the case rather than argue with it.
+
 ## Block F — The plugin
 
 ### §RK267 RK267 — a note that knows more than it says
@@ -402,3 +425,25 @@ and say which module when they are not. The risk is a refusal raised in one modu
 because a helper in another changed, which the intersection misses; that argues for
 narrowing the sentence rather than suppressing it, and for keeping the full list behind
 the one module that is named.
+
+### §RK275 RK275 — a check the agent it was built for cannot call
+
+L5 is that every question is a command, so answering one costs no context. `merge
+--check` is exactly that shape: it writes nothing, reads two facts, answers in three
+lines. The MCP server exposes the query surface — `list`, `brief`, `budget`, `deps`,
+`weight` — and not this one, so the agent the plugin exists for reaches it by shelling
+out or not at all. In practice, not at all: nothing prompts the question, and an unwired
+driver is silent until the merge it was registered for.
+
+The reason it is absent is that `merge` is git's driver contract. Three positional
+paths, a `--path`, an exit code git reads — none of that belongs in a tool an agent
+calls, and the server was right to leave the verb alone. But `--check` is not that verb
+sharing a name; it is a different command wearing the same subparser, which is also why
+it needed a flag rather than a name.
+
+So the shape to decide: whether the server grows a tool for a flag — the mapping is one
+subparser per task, and this would be the first exception — or whether `--check` becomes
+its own subcommand, `merge check` beside `merge --register`, and the server picks it up
+by the rule it has. The second costs renaming something shipped two commits ago and
+leaves no exception behind, which is the argument for doing it before it is
+load-bearing.
