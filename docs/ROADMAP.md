@@ -47,8 +47,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK274** (deps: —) **The repair a check names takes over a wiring the same check just reported** — `register` appends `merge=roadkeep` after a line sending a governed file to another driver, and git's last match wins, so the deliberate choice `--check` printed is overridden without a word. → §RK274
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - 📋 **RK267** (deps: —) **A staleness note lists every changed module and hands relevance back** — The server appends `engine().stale` to any refusal, so one `schema.py` decided arrives naming three modules that did not, and the reader re-runs on a guess about which mattered. → §RK267

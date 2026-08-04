@@ -157,8 +157,28 @@ class Attributes:
 
     @property
     def missing(self) -> tuple[str, ...]:
-        """The lines `register` still has to write into the root file."""
-        return tuple(line for line in self.wanted if line not in self.present)
+        """The lines `register` writes: wanted, not already in the root file, **not claimed**.
+
+        The exclusion is RK274. git takes the *last* matching rule, so appending
+        `<path> merge=roadkeep` under somebody's `<path> merge=theirs` wins over it — the
+        overridden line is still in the file, inert, which keeps the letter of "every other
+        line carried through untouched" and none of its meaning. Measured: `--check` reported
+        `docs/CHANGELOG.md → theirs` and the repair it named silently flipped git's answer.
+
+        Where git could not be asked there is no claim to see, so the root file decides alone —
+        the same fallback :attr:`state` makes, and the direction that keeps `register` working
+        on a machine with no git rather than writing nothing at all.
+        """
+        skip = {path for path, _ in self.claimed}
+        return tuple(
+            line
+            for line, (path, _) in zip(self.wanted, self.resolved or self._unasked())
+            if line not in self.present and path not in skip
+        )
+
+    def _unasked(self) -> tuple[tuple[str, str], ...]:
+        """What :attr:`resolved` would say if nothing were known — every path undecided."""
+        return tuple((line.split(f" merge={DRIVER}")[0], UNSPECIFIED) for line in self.wanted)
 
     @property
     def sent(self) -> tuple[str, ...]:
@@ -167,7 +187,17 @@ class Attributes:
 
     @property
     def unsent(self) -> tuple[str, ...]:
-        return tuple(path for path, value in self.resolved if value != DRIVER)
+        """Governed paths git sends nowhere — undecided, and so the ones `register` settles.
+
+        Claimed paths are **not** here (RK274). They are decided, just not for us: reporting a
+        deliberate wiring as a thing still to do is what made the check fail forever on a
+        repository that was finished, and it is the same argument RK273 settled when it chose
+        to report another driver rather than argue with it.
+        """
+        claimed = {path for path, _ in self.claimed}
+        return tuple(
+            path for path, value in self.resolved if value != DRIVER and path not in claimed
+        )
 
     @property
     def claimed(self) -> tuple[tuple[str, str], ...]:
@@ -190,6 +220,11 @@ class Attributes:
         Read off :attr:`resolved` and not off the root file, because "would git send this to
         the driver" is git's question — and answering it from one file reported three unsent
         while `check-attr` answered `roadkeep` from `.git/info/attributes` (RK273).
+
+        :data:`CURRENT` is "nothing is undecided" and not "everything is ours" (RK274): a
+        governed file another driver is named for is settled, so it does not hold the answer
+        open. What it does do is stay in the reported line, because a count that dropped it
+        would be a check quietly agreeing that the file is ours after all.
         """
         if not self.known:
             return UNKNOWN
@@ -263,6 +298,11 @@ class Registration:
     #: is the half that moved, so the answer that says nothing changed must not be the whole
     #: answer. `None` only where a caller constructed this without asking.
     driver: Driver | None = None
+    #: Governed files left alone because another driver is named for them (RK274), with that
+    #: driver's name. Reported and never written over: git takes the last matching rule, so a
+    #: line added under theirs would win, and a repair that overrides what the check just
+    #: reported is this tool arguing with a decision it can see.
+    left_alone: tuple[tuple[str, str], ...] = ()
 
 
 def merge(config: Config, role: str, base: str, ours: str, theirs: str) -> Merge:
@@ -352,6 +392,10 @@ def register(config: Config) -> Registration:
     when a governed file conflicts, so a name PATH happened to resolve in the terminal that
     ran `register` is a driver that fails at the one moment this file exists for — and git's
     fallback is conflict markers in the file whose whole point is that its merge is decidable.
+
+    A governed file some **other** driver is named for is skipped and reported (RK274). Writing
+    under it would win — git takes the last matching rule — so the promise that every other
+    line is carried through untouched would be kept while the line stopped meaning anything.
     """
     before = attributed(config)
     if before.missing:
@@ -368,6 +412,7 @@ def register(config: Config) -> Registration:
         command=config_command(),
         invalidated_by=stored.invalidated_by,
         driver=registered(config),
+        left_alone=before.claimed,
     )
 
 

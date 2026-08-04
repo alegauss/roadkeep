@@ -2218,6 +2218,11 @@ def _merge_register(config: Config) -> int:
         print(f"{where}  + {line}")
     for line in registration.present:
         print(f"{where}    {line} (already there)")
+    for path, value in registration.left_alone:
+        # RK274: named where the writes are named, because "what this command did" has to
+        # include the file it deliberately did not touch — a skip nobody is told about is
+        # indistinguishable from a skip nobody intended.
+        print(f"{where}    {path} → {value} (another driver, left alone)")
     # Printed and not run: a driver command names a path into this checkout, and setting
     # somebody's git config is a write outside the files this tool was given (L2).
     print(f"  then     {registration.command}")
@@ -2266,14 +2271,16 @@ def _attributes_line(attributes: Attributes) -> str:
     if attributes.state == UNKNOWN:
         return "could not be read: no git, or no repository here"
     counted = f"{len(attributes.sent)} of {len(attributes.resolved)} governed files"
-    if attributes.state == CURRENT:
-        return f"git sends {counted} to the {DRIVER} driver"
-    line = f"git sends {counted}: {', '.join(attributes.unsent)} would merge textually"
+    line = f"git sends {counted} to the {DRIVER} driver"
+    if attributes.state != CURRENT:
+        line = f"git sends {counted}: {', '.join(attributes.unsent)} would merge textually"
     if attributes.claimed:
-        # Said, not corrected: another driver on a governed file is somebody's decision, and a
-        # check that reported it as nothing-set would be arguing with a choice it cannot see.
+        # Said in every state, including the passing one (RK274): a claimed file is settled, so
+        # it does not hold the answer open — but dropping it from the line would leave a count
+        # short of its total with nothing explaining the gap, which reads as the failure it
+        # is not. Said, never corrected: it is somebody's decision and this tool can see it.
         named = ", ".join(f"{path} → {value}" for path, value in attributes.claimed)
-        return f"{line} ({named})"
+        return f"{line} ({named}, left alone)"
     return line
 
 

@@ -488,6 +488,45 @@ def test_a_governed_file_wired_to_another_driver_is_reported_and_not_argued_with
     assert f"{CHANGELOG} → theirs" in capsys.readouterr().out
 
 
+def test_registering_never_writes_over_a_file_another_driver_is_named_for(tmp_path, capsys):
+    # RK274, and the acceptance test is the measurement: git takes the *last* matching rule, so
+    # appending `merge=roadkeep` under `merge=theirs` won over it — the overridden line stayed
+    # in the file, inert, which kept "every other line untouched" and none of its meaning.
+    config = repository(tmp_path)
+    (tmp_path / ".gitattributes").write_text(f"{CHANGELOG} merge=theirs\n", encoding="utf-8")
+    written = register(config)
+
+    assert written.left_alone == ((CHANGELOG, "theirs"),)
+    assert all(CHANGELOG not in line for line in written.added)
+    # The claim git resolves is the same one it resolved before the repair ran.
+    assert attributed(config).claimed == ((CHANGELOG, "theirs"),)
+    body = (tmp_path / ".gitattributes").read_text(encoding="utf-8")
+    assert f"{CHANGELOG} merge=roadkeep" not in body and f"{CHANGELOG} merge=theirs" in body
+
+    # And the skip is named where the writes are: one nobody is told about is one nobody meant.
+    assert main(["-C", str(tmp_path), "merge", "--register"]) == EXIT_OK
+    assert f"{CHANGELOG} → theirs (another driver, left alone)" in capsys.readouterr().out
+
+
+def test_a_claimed_file_is_settled_and_does_not_hold_the_check_open(tmp_path, capsys):
+    # The other half of RK274: reporting a deliberate wiring as work still to do left the check
+    # failing forever on a repository that was finished. Decided is decided — just not for us.
+    config = repository(tmp_path)
+    (tmp_path / ".gitattributes").write_text(f"{CHANGELOG} merge=theirs\n", encoding="utf-8")
+    register(config)
+    set_driver(tmp_path, driver_value(persisted().command))
+
+    attributes = attributed(config)
+    assert attributes.state == CURRENT and attributes.wired
+    assert attributes.unsent == () and attributes.sent == (ROADMAP, IMPROVEMENTS)
+    assert main(["-C", str(tmp_path), "merge", "--check"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    # Counted short of the total, with the reason on the same line: a count with an unexplained
+    # gap reads as the failure this is not, and dropping the file would claim it after all.
+    assert "git sends 2 of 3 governed files" in printed
+    assert f"{CHANGELOG} → theirs, left alone" in printed and "fix" not in printed
+
+
 def test_git_that_cannot_be_asked_leaves_the_attribute_half_unknown(tmp_path, capsys, monkeypatch):
     # The reading `Driver` already had, arriving in the half that never needed it before: a
     # question git could not answer names no repair, because nobody resolved it.

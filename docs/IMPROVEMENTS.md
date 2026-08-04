@@ -377,29 +377,6 @@ shape at six. What stays true either way is that a *validation* refusal keeps th
 
 ## Block E — Adoption
 
-### §RK274 RK274 — a repair that overrides what it reported
-
-Measured in a scratch repository. `.gitattributes` carries `docs/CHANGELOG.md
-merge=theirs`. `merge --check` reports it — `(docs/CHANGELOG.md → theirs)`, exactly the
-case RK273 made visible — and names `merge --register` as the repair. Running it appends
-`docs/CHANGELOG.md merge=roadkeep`, and because git takes the **last** matching rule,
-`check-attr` then answers `roadkeep`. The tool that exists to refuse hand edits took
-over a deliberate configuration, in one command, without a sentence about it.
-
-`register`'s contract is kept to the letter and broken in meaning. It carries every
-other line through untouched, which is what it promises (RK100), and the overridden line
-is still there — inert. "Untouched" was a rule about not deleting somebody's work;
-appending a line that wins over theirs is the same outcome by another mechanism.
-
-Three shapes, and the choice is not obvious. Refuse: decline while a governed file is
-claimed, naming the line, which is how this tool answers elsewhere and is a `merge
---register` that fails on a repository somebody configured on purpose. Skip: register
-the unclaimed files and report the rest as left alone, which never surprises and leaves
-the check failing forever on a repository that is finished. Or register and say so:
-print that the previous rule no longer applies. What decides it is whether a governed
-file wired elsewhere is a mistake to correct or a decision to respect — and RK273
-answered that when it chose to report the case rather than argue with it.
-
 ## Block F — The plugin
 
 ### §RK267 RK267 — a note that knows more than it says
