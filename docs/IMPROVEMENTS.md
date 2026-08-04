@@ -248,6 +248,27 @@ two is what a reader of the roadmap hits, and that is worth saying at the line a
 Worth deciding with it whether this is one finding or one per heading. Two is the shape
 `id.duplicate` uses, and it is the one an editor can act on twice.
 
+### §RK263 The suite that judges the tree cannot say the tree moved under it
+
+Observed while shipping RK261: one run reported six failures, and re-running the same
+source reported 1940 passed with one genuine fix between them. The six were
+`test_packaging`'s two version checks, `test_plugin`'s manifest and launcher checks,
+`test_provenance`'s commit check and one whose set I had actually left stale. What ran
+beside them was `git worktree add` and `git worktree remove` against the same
+repository, for the interleaved benchmark that measurement needed. The mechanism is not
+established and this line does not claim one: what is established is that five failures
+were not about the code, and nothing in their output said so. These tests exist
+deliberately. This repository is the format's conformance fixture, and `test_packaging`
+asserting that `pyproject.toml`, `__init__.py` and `plugin.json` state one version is
+the check that keeps RK153's patch bump honest — moving them to a `tmp_path` copy would
+assert about the copy. The precedent for the answer is in the file already:
+`test_this_checkout_reports_the_commit_it_is_at` calls `pytest.skip` where git cannot
+place the tree, because a machine without git is not a defect. The same reasoning covers
+a tree that is being written while the run reads it. What to weigh: a session-scoped
+fixture that records the tree's state and skips the checkout-reading tests when it
+moves, against the risk of a skip that hides a real failure — which argues for reporting
+the movement loudly rather than passing quietly.
+
 ## Block E — Adoption
 
 ### §RK255 A persisted invocation outlives the process that composed it
