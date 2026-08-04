@@ -77,24 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK249 Every other derived field is reported as one
-
-`add --json` reports `id`, `file`, `line`, `rendered`, `length`, `section`, `needs` and
-the event line. The id is there because it is derived and a caller cannot know it in
-advance; the pointer is derived by the same write, from the same rules, and is not.
-Where the anchor is the id it costs nothing to recompute. Where `ref_scheme = "outline"`
-it is the field the caller named — and where the line derived it, the only readings are
-the tail of `rendered` or the anchor embedded in the `needs` command string, both of
-which mean parsing prose this tool otherwise refuses to make callers parse. Worse,
-`needs` is null exactly when `--section` wrote the rationale in the same transaction, so
-the composition RK93 recommends is the one that reports the anchor nowhere. Observed
-while testing RK241 over MCP: the obvious read of the answer, `written["ref"]`, is a
-`KeyError`. Add `ref` to the payload beside `id`, from the entry the write already
-holds, so the two derived addresses a follow-up needs are read the same way — and so an
-agent chaining `add` into `section add` reads a field instead of a sentence. `section`
-already reports its anchor when a section was written; this is that value for the case
-where one was not.
-
 ### §RK257 A ship refusal names the missing block heading but not the verb that writes it
 
 Shipping the first task of a block whose heading only `ROADMAP.md` declares is refused,
@@ -138,6 +120,30 @@ omits it, since it is writing the heading and holds the id. Or the refusal could
 earlier: decline a `--section` title that names no task, the way `add` already declines
 prose over budget — a limit reported before the words exist is the principle already in
 force one field over.
+
+### §RK280 RK280 — the one write in the contract that nothing guards
+
+Observed, not imagined. `a0c6f6c` ships RK244 and carries `document.py` +40 and `adopting.py`
++16, which are RK279's implementation. `767d3eb` ships RK279 and carries `test_authoring.py`
++40 and a `cli.py` hunk reading `"ref": insertion.entry.task.ref`, which is RK249's. Two
+sessions, two commits, each holding the other's work, both green — so nothing failed and
+nothing said anything.
+
+RK117 locks a scan-to-save span and RK119 says who holds a line, and both did their job:
+no governed file corrupted, no id spent twice. The gap is that `agents.md` makes the
+commit part of the task contract — "one task → one commit, the instant it is validated"
+— and that step is a `git add -A` in a shell script. The guard denies a hand edit to a
+file this tool owns; nothing denies staging a file it does not.
+
+`agents.md` names a remedy — "a tree holding unrelated work wants the task's paths
+staged" — which is advice, where RK1's argument says advice does not hold. It also does
+not survive this case: both sessions were editing the *same* governed files, so staging
+by path stages the other's edit too.
+
+What could hold: `claim` already knows who holds a line, and a claim could name the
+paths a task expects to touch, so a second session's write to a file the first has open
+is refused and not merged. That is RK119 widened from an id to a working tree, and the
+only version of this that is a schema and not a warning.
 
 ## Block C — Query
 

@@ -886,7 +886,7 @@ def test_the_pointer_is_reported_where_the_section_was_written_in_the_same_call(
     )
     payload = json.loads(capsys.readouterr().out)
     assert payload["needs"] is None
-    assert payload["ref"] == "X.2"
+    assert payload["ref"] == "X.1.1"
 
 
 def test_a_pointer_the_strategy_file_answers_reports_no_follow_up_on_the_command_line(
