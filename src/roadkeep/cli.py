@@ -2314,15 +2314,26 @@ def _merge_check(config: Config) -> int:
     different reasons: the attribute is committed and travels, the config is per-clone and is
     the half a fresh clone lacks. Reporting them separately is what lets an answer be specific;
     exiting on their conjunction is what stops half a wiring from reading as a whole one.
+
+    The halves are read independently and joined once, here (RK277): the config is only asked
+    for where something routes to it. It is still *reported* either way — this narrows what the
+    check demands and never what it says, because a driver configured where nothing reaches it
+    is harmless and a driver silently not asked for is the silence this command exists to end.
     """
     attributes, driver = attributed(config), registered(config)
     print(f"  attributes  {_attributes_line(attributes)}")
-    print(f"  config      {_driver_line(driver)}")
+    print(f"  config      {_driver_line(driver)}{_pointless(attributes)}")
     for repair in _repairs(attributes, driver):
         print(f"  fix         {repair}")
     code, _ = _DRIVER_STATES[driver.state]
     unwired = attributes.state in (ABSENT, PARTIAL)
-    return EXIT_GATE if code == EXIT_GATE or unwired else EXIT_OK
+    demanded = code == EXIT_GATE and attributes.routes_here
+    return EXIT_GATE if demanded or unwired else EXIT_OK
+
+
+def _pointless(attributes: Attributes) -> str:
+    """What is added to the config line where no governed file would ever reach the driver."""
+    return "" if attributes.routes_here else " — and no governed file routes here"
 
 
 def _repairs(attributes: Attributes, driver: Driver) -> list[str]:
@@ -2343,7 +2354,10 @@ def _repairs(attributes: Attributes, driver: Driver) -> list[str]:
         # Not `not wired`: `UNKNOWN` is a question git could not answer (RK273), and naming a
         # repair for it is the same overreach the config half already declines to make.
         repairs.append(f"{invocation()} merge --register")
-    if driver.state in (ABSENT, UNRUNNABLE):
+    if driver.state in (ABSENT, UNRUNNABLE) and attributes.routes_here:
+        # RK277: a repository whose every governed file is claimed by another driver, or which
+        # declares none, is not missing this config — it settled the question differently, and
+        # naming a repair there is asking for a value no merge would reach.
         repairs.append(config_command())
     return repairs
 

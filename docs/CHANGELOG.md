@@ -232,6 +232,7 @@
 - ✅ **RK273** **Whether git sends a file to this driver is guessed from one file** — `attributed` asks `check-attr`, so a rule set in a subdirectory or `.git/info/attributes` counts, a file wired to another driver is named rather than read as unset, and no git is `unknown`.
 - ✅ **RK274** **The repair a check names takes over a wiring the same check just reported** — `register` skips a governed file another driver is named for and reports the skip, and `--check` treats it as settled — so the repair no longer overrides what it reported, nor fails forever.
 - ✅ **RK276** **One write reports a skip on only one of its two surfaces** — One `registration_report` renders both surfaces, differing by the indent column that pushed them apart, and a test over the dataclass fields fails where the next one reaches only the JSON.
+- ✅ **RK277** **The check demands a driver in a repository that routes nothing to it** — The config half is demanded only where a governed file routes here now or once registered, which spares an all-claimed repository without withdrawing the repair from an unregistered one.
 
 ## Block F — The Claude Code plugin
 

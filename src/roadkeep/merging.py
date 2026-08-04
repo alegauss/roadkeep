@@ -236,6 +236,28 @@ class Attributes:
     def wired(self) -> bool:
         return self.state == CURRENT
 
+    @property
+    def routes_here(self) -> bool:
+        """Whether any governed file reaches this driver — now, or once `register` has run.
+
+        The one relation between the two halves (RK277). The config exists to answer *for the
+        files the attributes route here*, so where none are and none will be, an unset driver
+        is not a missing repair: it is the right state of a repository that chose something
+        else. Measured on `docs/*.md merge=theirs`, where the check asked for a value no merge
+        would ever reach.
+
+        False in exactly two cases, both settled: every governed file is claimed by another
+        driver, or the project declares none. An **unregistered** project is not one of them —
+        its files are undecided, so they route here the moment the attribute half is repaired,
+        and withdrawing the config repair there would answer about the repository as it is
+        rather than the one the reader is in the middle of making. That is why this is not the
+        `sent`-is-empty test it first looks like.
+
+        Unknown reads as True: nothing was established, and not withdrawing a repair is the
+        direction that cannot be wrong by silence.
+        """
+        return not self.known or bool(self.sent or self.unsent)
+
 
 @dataclass(frozen=True, slots=True)
 class Driver:

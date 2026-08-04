@@ -377,29 +377,6 @@ shape at six. What stays true either way is that a *validation* refusal keeps th
 
 ## Block E — Adoption
 
-### §RK277 RK277 — a driver asked for where no merge reaches it
-
-Measured: a repository whose `.gitattributes` says `docs/*.md merge=theirs`. `--check`
-reports `git sends 0 of 3 governed files … left alone`, which is right and is not a
-failure — RK274 settled that a claimed file is decided. Then the config half exits 1 and
-asks for `merge.roadkeep.driver` to be set. Nothing there would ever call it.
-
-The two halves are read independently, which is the design and the reason the answers
-are specific. What is missing is the one relation between them: the config answers *for
-the files the attributes route here*, so where none are routed, an unset driver is not a
-missing repair — it is the right state of a repository that chose something else.
-
-The narrow fix is a conjunction and not a new state: the config half is a failure only
-when `sent` is non-empty. Every other answer stays as it is, and the all-claimed
-repository turns from a check that cannot be satisfied into one that passes, which is
-what it is.
-
-Two things to be careful of. A repository with **no** governed files declared already
-reads `CURRENT` on the attribute half, so the same rule stops asking for a driver there
-too — correct for the same reason, and worth stating rather than discovering. And the
-relation must not run the other way: a driver set where nothing routes to it is
-harmless, so this narrows what the check *demands* and never what it reports.
-
 ## Block F — The plugin
 
 ### §RK267 RK267 — a note that knows more than it says

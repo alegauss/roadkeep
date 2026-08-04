@@ -29,6 +29,7 @@ from roadkeep.merging import (
     UNKNOWN,
     UNRUNNABLE,
     UNSPECIFIED,
+    Attributes,
     attributed,
     config_command,
     driver_value,
@@ -527,6 +528,37 @@ def test_a_claimed_file_is_settled_and_does_not_hold_the_check_open(tmp_path, ca
     assert f"{CHANGELOG} → theirs, left alone" in printed and "fix" not in printed
 
 
+def test_no_driver_is_demanded_where_no_governed_file_would_reach_it(tmp_path, capsys):
+    # RK277, measured: `docs/*.md merge=theirs` routes every governed file elsewhere, so the
+    # config half was exiting 1 asking for a value no merge in that repository would call.
+    config = repository(tmp_path)
+    (tmp_path / ".gitattributes").write_text("docs/*.md merge=theirs\n", encoding="utf-8")
+    attributes = attributed(config)
+    assert not attributes.routes_here and attributes.state == CURRENT
+
+    assert main(["-C", str(tmp_path), "merge", "--check"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    # Still reported — this narrows what the check demands, never what it says.
+    assert "merge.roadkeep.driver not set" in printed
+    assert "no governed file routes here" in printed and "fix" not in printed
+
+
+def test_a_project_declaring_no_governed_file_asks_for_no_driver_either(tmp_path):
+    # The second case the same rule covers, stated rather than discovered: nothing is unsent,
+    # so nothing is undecided, so there is no driver to want.
+    empty = Attributes(path=tmp_path / ".gitattributes", wanted=(), present=(), resolved=())
+    assert not empty.routes_here and empty.state == CURRENT
+
+
+def test_an_unregistered_project_still_wants_the_driver(tmp_path):
+    # The trap in the narrow reading: on a fresh project nothing is *sent* either, so a
+    # `sent`-is-empty test would have withdrawn the config repair from the one repository whose
+    # reader is in the middle of wiring it — and RK272 is the acceptance test that catches it.
+    config = repository(tmp_path)
+    attributes = attributed(config)
+    assert attributes.sent == () and attributes.unsent and attributes.routes_here
+
+
 def test_git_that_cannot_be_asked_leaves_the_attribute_half_unknown(tmp_path, capsys, monkeypatch):
     # The reading `Driver` already had, arriving in the half that never needed it before: a
     # question git could not answer names no repair, because nobody resolved it.
@@ -539,6 +571,9 @@ def test_git_that_cannot_be_asked_leaves_the_attribute_half_unknown(tmp_path, ca
     monkeypatch.setattr("roadkeep.history._run", refuse)
     attributes = attributed(config)
     assert attributes.state == UNKNOWN and not attributes.wired
+    # Nothing was established, so no repair is withdrawn either (RK277): the direction that
+    # cannot be wrong by silence.
+    assert attributes.routes_here
     assert main(["-C", str(tmp_path), "merge", "--check"]) == EXIT_OK
     printed = capsys.readouterr().out
     assert "could not be read" in printed and "merge --register" not in printed
