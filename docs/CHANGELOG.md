@@ -238,6 +238,7 @@
 - ✅ **RK278** **The verb still names a driver the check has stopped asking for** — A `Wiring` value joins both halves once and every caller renders from it, so the verb withholds the advice the check withholds and no surface can reach for a fact the other has.
 - ✅ **RK279** **A backlog written as an ordinary Markdown list is priced at zero** — `Document.listed` counts top-level bullets and ordered items under a declared block, so a checklist prices like a table, and the preamble, non-goals and nested detail stay out of it.
 - ✅ **RK281** **A rationale file not already using the sigil reads as no sections at all** — `unanchored` reads headings that carry prose and no sigil, so an unadopted rationale file prices its sections, while a level-1 title and a container heading stay out of the count.
+- ✅ **RK282** **The refusal that most needs the adopt door is the one that does not name it** — The would-overwrite refusal names `adopt <file>` for the backlog it found, spelled relative to the project, so the branch reached by a repository that never adopted gets the door too.
 
 ## Block F — The Claude Code plugin
 

@@ -360,30 +360,6 @@ shape at six. What stays true either way is that a *validation* refusal keeps th
 
 ## Block E — Adoption
 
-### §RK282 The door named on the path that needs it least
-
-Two refusals, measured side by side. `init` over a project that already declares a
-`roadkeep.toml` says the scaffold would overwrite the declaration, and names the way
-forward: "`adopt <file>` reports what an existing backlog must change instead". `init`
-over a project that has a `docs/ROADMAP.md` and no config says "1 path(s) already exist
-and nothing was written", and stops.
-
-The second is the adoption case. A repository with a roadmap and no `roadkeep.toml` has
-never met this tool, which is exactly who `adopt` was built for and exactly who is
-standing at that refusal. The first has already adopted, and is the one handed the door.
-
-Nothing about the refusal is wrong: it refused, wrote nothing, named the path. This is
-RK257's shape — an obstacle named accurately and the verb that answers it left unsaid —
-and the argument there applies with more force, because a reader who does not already
-know `adopt` exists cannot discover it from this message. The `--help` they would reach
-for lists it beside eleven others with no reason to connect the two.
-
-What it should say is narrower than "run adopt". `init` knows which paths collided and
-`adopt` takes one file, so the sentence can name the file it found: the estimate is per
-file, and a suggestion naming the directory would be a command that does not exist. The
-already-configured branch spells it that way, so this is one sentence brought to the
-branch that needed it first.
-
 ## Block F — The plugin
 
 ### §RK267 A note that knows more than it says

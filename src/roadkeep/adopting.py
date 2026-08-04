@@ -103,14 +103,42 @@ class WouldOverwrite(ValueError):
 
     A scaffold that skipped what was there and wrote the rest leaves a project half
     configured, which reads as configured and behaves as neither.
+
+    It names `adopt` for what it found (RK282). :class:`AlreadyConfigured` always did, and this
+    is the branch that needed it more: a repository holding a backlog and no declaration has
+    never met this tool, which is exactly who `adopt` was built for and exactly who is standing
+    here — while the refusal that named the door is the one reached by a project that already
+    adopted. Per file and never per directory, because the estimate is per file and a
+    suggestion naming the directory would be a command that does not exist.
     """
 
-    def __init__(self, paths: Sequence[Path]) -> None:
+    def __init__(self, paths: Sequence[Path], base: Path | None = None) -> None:
         self.paths = tuple(paths)
+        #: Those of :attr:`paths` an estimate can actually be taken over. The configuration is
+        #: not one: `adopt` reads a backlog, and pointing it at `roadkeep.toml` is a different
+        #: refusal one command later.
+        self.adoptable = tuple(path for path in self.paths if path.name != CONFIG_NAME)
         listed = ", ".join(str(path) for path in self.paths)
-        super().__init__(
-            f"{len(self.paths)} path(s) already exist and nothing was written: {listed}"
-        )
+        message = f"{len(self.paths)} path(s) already exist and nothing was written: {listed}"
+        if self.adoptable:
+            # One door and not one per file, though the estimate is per file: every path is
+            # already named above, and repeating them here doubled a message that is mostly
+            # pathname. Spelled relative to the project where that is possible, for the reason
+            # `provenance.invocation` gives — an absolute path is a message about one machine.
+            first = _relative(self.adoptable[0], base)
+            more = f" (and {len(self.adoptable) - 1} more)" if len(self.adoptable) > 1 else ""
+            message += (
+                f" — `adopt {first}`{more} reports what an existing backlog must change instead"
+            )
+        super().__init__(message)
+
+
+def _relative(path: Path, base: Path | None) -> str:
+    """A path as a reader would type it from the project root, or absolute where it is not one."""
+    try:
+        return path.relative_to(base).as_posix() if base else path.as_posix()
+    except ValueError:  # not under the base, so the whole path is the only true answer
+        return path.as_posix()
 
 
 class UnreadableBlock(ValueError):
@@ -331,7 +359,7 @@ def init(
     bodies = {role: _scaffold(role, blocks, schema) for role in roles}
     clashes = [path for path in (target, *paths.values()) if path.exists()]
     if clashes:
-        raise WouldOverwrite(clashes)
+        raise WouldOverwrite(clashes, base)
 
     # Everything above this line can refuse; nothing below it can, which is what makes
     # the all-or-nothing claim a property of the order rather than a hope.

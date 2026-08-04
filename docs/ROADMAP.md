@@ -46,8 +46,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK282** (deps: —) **The refusal that most needs the adopt door is the one that does not name it** — `init` finding a `roadkeep.toml` points at `adopt <file>`; `init` finding an existing ROADMAP.md says only that 1 path exists — and that is the project adopt was built for. → §RK282
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - 📋 **RK267** (deps: —) **A staleness note lists every changed module and hands relevance back** — The server appends `engine().stale` to any refusal, so one `schema.py` decided arrives naming three modules that did not, and the reader re-runs on a guess about which mattered. → §RK267

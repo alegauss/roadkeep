@@ -214,6 +214,45 @@ def test_one_existing_file_refuses_all_of_them(tmp_path: Path) -> None:
     assert written(tmp_path) == {"docs/CHANGELOG.md"}
 
 
+def test_the_refusal_names_the_door_for_the_backlog_it_found(tmp_path: Path) -> None:
+    # RK282: `AlreadyConfigured` always named `adopt`, and this is the branch that needed it
+    # more — a repository with a backlog and no declaration has never met this tool, while the
+    # refusal that named the door is reached by a project that already adopted.
+    (tmp_path / "docs").mkdir()
+    (tmp_path / "docs" / "ROADMAP.md").write_text("# Mine\n", encoding="utf-8")
+    with pytest.raises(WouldOverwrite) as raised:
+        init(tmp_path)
+    message = str(raised.value)
+    # Relative, for the reason `invocation` gives: an absolute path is about one machine.
+    assert "`adopt docs/ROADMAP.md` reports" in message
+    assert str(tmp_path) not in message.split("—")[1]
+
+
+def test_the_configuration_is_not_a_file_an_estimate_is_taken_over(tmp_path: Path) -> None:
+    """`adopt` reads a backlog; pointing it at `roadkeep.toml` is a different refusal one
+    command later, so the door names documents and never the declaration.
+
+    Built directly rather than through `init`: a project that has a `roadkeep.toml` raises
+    `AlreadyConfigured` before the clash list is ever assembled, so this is the one shape of
+    the exception that door cannot reach — and the filter is still what keeps it right if it
+    ever does."""
+    refusal = WouldOverwrite([tmp_path / "roadkeep.toml"], tmp_path)
+    assert refusal.adoptable == ()
+    assert "adopt" not in str(refusal)
+
+
+def test_more_than_one_backlog_names_one_door_and_counts_the_rest(tmp_path: Path) -> None:
+    """Every path is already listed above; repeating them as doors doubled a message that is
+    mostly pathname."""
+    (tmp_path / "docs").mkdir()
+    for name in ("ROADMAP.md", "CHANGELOG.md"):
+        (tmp_path / "docs" / name).write_text("# Mine\n", encoding="utf-8")
+    with pytest.raises(WouldOverwrite) as raised:
+        init(tmp_path)
+    assert len(raised.value.adoptable) == 2
+    assert "(and 1 more) reports" in str(raised.value)
+
+
 def test_a_block_no_heading_could_declare_is_refused(tmp_path: Path) -> None:
     with pytest.raises(UnreadableBlock):
         init(tmp_path, blocks=("— The model",))
