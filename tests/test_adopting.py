@@ -503,6 +503,82 @@ def test_counting_the_rows_is_not_reading_them(tmp_path: Path) -> None:
     assert all(measure.longest == 0 for measure in estimate.measures)
 
 
+#: The shape almost every unadopted roadmap is actually in (RK279), with the frame around it:
+#: a preamble that is bullets, a non-goals list that is bullets, and a nested detail bullet.
+#: Only the four under a block heading are where a task would be.
+LISTED = """# Roadmap
+
+- a preamble bullet, above every heading
+
+## Block A — The model
+
+- [ ] make the thing faster
+- [x] fix login
+- an ordinary bullet
+  - a nested detail of the one above
+
+## Block B — Authoring
+
+1. a numbered task
+2) and its sibling
+
+Prose under a block is not a bullet.
+
+## Non-goals
+
+- **No web UI.** Files and a CLI.
+"""
+
+
+def test_a_list_is_not_an_empty_file_either(tmp_path: Path) -> None:
+    """RK279: RK98's zero, in the shape that reaches it most often — a Markdown checklist."""
+    target = tmp_path / "ROADMAP.md"
+    target.write_text(LISTED, encoding="utf-8")
+    estimate = adopt(Config.default(tmp_path), target, prefix="T")
+    assert (estimate.parsed, estimate.rejects, estimate.tabular) == (0, (), 0)
+    # Five: three under Block A and two under Block B. Not the preamble bullet, not the
+    # non-goal, not the nested detail, not the prose — the frame is not the work.
+    assert estimate.listed == 5
+    assert estimate.changing == 5
+
+
+def test_the_frame_is_not_priced_as_the_backlog(tmp_path: Path) -> None:
+    """The reason this was not done with the tables: a roadmap's bullets are not all tasks."""
+    target = tmp_path / "ROADMAP.md"
+    target.write_text(LISTED, encoding="utf-8")
+    estimate = adopt(Config.default(tmp_path), target, prefix="T")
+    # The non-goals are counted by their own half, as they were before, and once only.
+    assert estimate.non_goals is not None and estimate.non_goals.parsed == 1
+    assert estimate.listed + estimate.non_goals.parsed < len(LISTED.splitlines())
+
+
+def test_counting_the_bullets_is_not_reading_them(tmp_path: Path) -> None:
+    """The line `Row` draws, drawn the same way: the shape is measured, the text is not."""
+    target = tmp_path / "ROADMAP.md"
+    target.write_text(LISTED, encoding="utf-8")
+    estimate = adopt(Config.default(tmp_path), target, prefix="T")
+    assert estimate.prefixes == () and estimate.conforming == 0
+    assert all(measure.longest == 0 for measure in estimate.measures)
+
+
+def test_a_fenced_list_is_an_example(tmp_path: Path) -> None:
+    """A rationale file quotes the shape it argues about, and a fence is what says so."""
+    target = tmp_path / "ROADMAP.md"
+    target.write_text(
+        "# Roadmap\n\n## Block A\n\n```\n- [ ] quoted, not counted\n```\n", encoding="utf-8"
+    )
+    assert adopt(Config.default(tmp_path), target, prefix="T").listed == 0
+
+
+def test_a_conforming_backlog_lists_nothing() -> None:
+    """The count has to be zero on a file already in the format, or every adopted project
+    would read as having work it does not have — this repo's own docs are the fixture."""
+    root = Path(__file__).resolve().parents[1]
+    config = Config.discover(root)
+    estimate = adopt(config, config.path("roadmap"))
+    assert estimate.listed == 0 and estimate.changing == 0
+
+
 def test_a_fenced_table_is_an_example(tmp_path: Path) -> None:
     """A rationale file quotes the shape it is arguing about; a fence is what says so."""
     target = tmp_path / "ROADMAP.md"

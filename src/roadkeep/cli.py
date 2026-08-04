@@ -1670,6 +1670,12 @@ def _add(config: Config, args: argparse.Namespace) -> int:
             json.dumps(
                 {
                     "id": insertion.entry.task.id,
+                    # The other derived address (RK249). Reported for the reason `id` is:
+                    # under `ref_scheme = "outline"` the write derives it, and the only
+                    # other readings were the tail of `rendered` and the anchor inside the
+                    # `needs` sentence — which is null exactly when `--section` wrote the
+                    # rationale here, the composition RK93 recommends.
+                    "ref": insertion.entry.task.ref,
                     "file": config.relative(config.path("roadmap")),
                     "line": insertion.lineno,
                     "rendered": insertion.rendered,

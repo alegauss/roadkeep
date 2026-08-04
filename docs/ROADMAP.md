@@ -46,8 +46,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK279** (deps: —) **A backlog written as an ordinary Markdown list is priced at zero** — `adopt` counts table rows and marker-bearing rejects, so `- [ ]`, `-`, `*` and `1.` fall through both — the same two tasks price 2 would change as a table and 0 as a list. → §RK279
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - 📋 **RK267** (deps: —) **A staleness note lists every changed module and hands relevance back** — The server appends `engine().stale` to any refusal, so one `schema.py` decided arrives naming three modules that did not, and the reader re-runs on a guess about which mattered. → §RK267

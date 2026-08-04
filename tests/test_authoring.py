@@ -849,6 +849,46 @@ def test_the_json_carries_the_same_follow_up(tmp_path, capsys):
     assert payload["needs"] == "section add X.9 --title … --role strategy"
 
 
+def test_the_json_names_the_pointer_beside_the_id(tmp_path, capsys):
+    # Both derived addresses read the same way (RK249). Under this scheme the anchor is
+    # not the id, so recomputing it from `id` is not open to the caller either.
+    outlined(tmp_path)
+    assert (
+        main(
+            [
+                "-C", str(tmp_path), "add", "--block", "A",
+                "--symptom", "A second symptom", "--why", "Because of another.",
+                "--ref", "X.9", "--json",
+            ]
+        )
+        == EXIT_OK
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["ref"] == "X.9" and payload["id"] == "RK2"
+
+
+def test_the_pointer_is_reported_where_the_section_was_written_in_the_same_call(
+    tmp_path, capsys
+):
+    # The case that reported the anchor nowhere: `needs` is null exactly when `--section`
+    # answered the pointer here, which is the composition RK93 recommends.
+    outlined(tmp_path)
+    assert (
+        main(
+            [
+                "-C", str(tmp_path), "add", "--block", "A",
+                "--symptom", "A second symptom", "--why", "Because of another.",
+                "--ref", "X.1.1", "--section", "A design", "--section-body", "A reason.",
+                "--json",
+            ]
+        )
+        == EXIT_OK
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["needs"] is None
+    assert payload["ref"] == "X.2"
+
+
 def test_a_pointer_the_strategy_file_answers_reports_no_follow_up_on_the_command_line(
     tmp_path, capsys
 ):
