@@ -206,4 +206,43 @@ Worth deciding with it whether this is one finding or one per heading. Two is th
 
 ## Block E — Adoption
 
+### §RK255 A persisted invocation outlives the process that composed it
+
+RK254 derived the shell invocation for every message the guard composes, on the finding
+that the console script exists only after a `pip install` that put its directory on
+PATH. `merging.register` has the same literal, and the consequence is not readability:
+the string is stored in `.git/config` and **git executes it** when a governed file
+conflicts. Where `roadkeep` does not resolve, the driver fails and git falls back to
+writing conflict markers into a file whose whole point is that a merge of it is
+decidable — the failure arrives at the worst moment and blames the wrong thing.
+`invocation()` is not the answer as it stands. It spells the launcher relative to the
+working directory, and a value in `.git/config` outlives that; the plugin's launcher
+also moves when the plugin updates, so an absolute path recorded today can rot silently.
+What the design has to choose between: an absolute launcher plus a note that a plugin
+update wants `merge register` re-run; `python -m roadkeep.cli merge`, which is right
+wherever the package imports and says nothing about PATH; or refusing to register a
+driver this machine cannot run and naming what would make it runnable. The last is
+closest to how this tool answers elsewhere — refuse before, not report after — but it
+makes `merge register` fail on the machine most likely to want it, which is the argument
+against.
+
 ## Block F — The plugin
+
+### §RK256 The sweep RK254 scoped out of itself
+
+RK254's line names the guard, and the fix was held to it: `Denial`, `Review` and
+`Notice` print `provenance.invocation()` and nothing else changed. Two literals remain,
+found by grepping the package for the prefix rather than by a session hitting them.
+`capturing` composes a filing command, `roadkeep add --block F --symptom …`, which is
+the whole point of the capture — a defect in this tool, as a command that files it
+upstream (RK87), handed to a reader who is by construction on a machine where this tool
+just misbehaved. `cli` ends an uncounted-lines report with "run 'roadkeep audit' to see
+them", where the reader has just run a command successfully and may well have run it as
+`python -m roadkeep.cli`. Neither is load-bearing the way the merge driver is, and
+neither is silent the way the guard's was: the reader gets a `command not found` and can
+translate. What makes them worth one line is that they are the last two, so closing them
+makes the claim checkable — no message in this package spells an invocation it did not
+derive — and a test over the package's own source can hold it, the way
+`tests/test_linting.py` holds the Layout index against `src/roadkeep/`. Without that
+test the next composed message reintroduces the literal, which is how this one came to
+have four instances before anybody counted.
