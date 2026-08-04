@@ -148,6 +148,19 @@ so whatever `Share` grows is what a task started through `brief` is told, and th
 cannot be allowed to state it differently. The MCP `note` publishes the ceiling and not
 the remainder, so it is untouched.
 
+### §RK247 A retired anchor is invisible
+
+On `ref_scheme = "outline"` an anchor is retired when `ship` deletes its section, but
+the changelog entry that cited it keeps the pointer. Reopening that family is a real
+move — a block whose work resumes — and the caller has to pick the next free number with
+nothing to read: `section add`'s refusal lists the anchors that *exist*, which after a
+fully-shipped family is none of them, so \"the next one\" looks like .1. Observed on a
+project where §XXXVII.1 through §XXXVII.16 were all retired and all still cited: the
+safe number was found by grepping the ledger by hand. Two fixes compose. Have the
+refusal list retired anchors beside live ones, sourced from the pointers history still
+carries. And let `section add` derive the next free child of a family the way `add`
+derives an id — one past the highest ever used, not one past the highest surviving.
+
 ## Block D — The gate
 
 ### §RK239 The state every verb refuses and the gate does not report
@@ -176,21 +189,6 @@ Worth deciding with it whether this is one finding or one per heading. Two is th
 ## Block E — Adoption
 
 ## Block F — The plugin
-
-### §RK241 The field add withheld from itself
-
-`Tool("add", ("block", "symptom", "why", "deps", "status", "section", "section_body"))`
-omits `ref`, and the CLI's own help says `--ref` is "for ref_scheme = 'outline' only;
-otherwise derived". On a project that declares that scheme the anchor is the caller's to
-name, so the MCP surface has no way to name it and every `add` refuses with
-`ref.missing` — the same deadlock RK141 and RK144 fixed for `block add` and `block
-drop`, one verb over. Observed on a governed project with 890 tasks: `section add` wrote
-the rationale, and `add` still refused, so the only remaining door was importing
-`roadkeep.cli` from a source checkout by hand. `amend` already exposes `ref` for its own
-reason, which is the precedent for the shape. Expose it on `add` too, bounded the way
-`task_id` is — accepted only where the scheme makes it the caller's field, refused where
-it is derived, so the tool can never invent an anchor a derived-ref project would have
-computed.
 
 ### §RK242 A hedge on every refusal is a hedge on none
 

@@ -237,10 +237,15 @@ TOOLS: tuple[Tool, ...] = (
     # split the skill prescribes was an invocation only the CLI could make. Opened only there,
     # and bounded to *require* the letter — so what the field buys is the id the counter cannot
     # reach, and never the number it would have handed out.
+    # `ref` is conditional for the same reason, one field over (RK241): under `ref_scheme =
+    # "outline"` the anchor is the caller's to name and nothing derives it, so withholding it
+    # made every `add` on such a project refuse `ref.missing` — the RK141/RK144 deadlock again,
+    # with a source checkout as the only remaining door. Closed where the scheme derives the
+    # pointer, which is where offering it would be choosing what the tool computes.
     Tool(
         "add",
         ("block", "symptom", "why", "deps", "status", "section", "section_body"),
-        conditional=("task_id",),
+        conditional=("task_id", "ref"),
     ),
     # The key to a deadlock the agent meets first (RK141): `ship` refuses an undeclared
     # block, the guard denies the edit that would declare it, and no other verb writes a
@@ -378,11 +383,30 @@ _BOUNDS = {
 }
 
 #: What opens a :attr:`Tool.conditional` argument: the declaration that makes the field the
-#: only way to write something legal (RK111). One entry, and a table rather than a flag on the
-#: dest, because the question is about the *project* and the answer has to be re-read per call
-#: — a config edited mid-session is the one this server answers with (RK155's neighbour).
+#: only way to write something legal (RK111, RK241). A table rather than a flag on the dest,
+#: because the question is about the *project* and the answer has to be re-read per call — a
+#: config edited mid-session is the one this server answers with (RK155's neighbour).
 _CONDITIONAL: Mapping[str, Any] = {
     "task_id": lambda config: config.schema.id_suffix,
+    "ref": lambda config: config.schema.ref_scheme == "outline",
+}
+
+#: Why a conditional argument is closed here, by dest — the declaration that would have opened
+#: it (RK241). Beside :data:`_CONDITIONAL` rather than inside the refusal that prints it,
+#: because one sentence written there said `[ids] suffix` about every closed field, and the
+#: second one is a pointer: a caller told to declare an id shape to name an anchor is a caller
+#: sent to edit the wrong table.
+_WITHHELD: Mapping[str, str] = {
+    "task_id": (
+        "offered only where `roadkeep.toml` declares an id shape the counter cannot spell "
+        "(`[ids] suffix`), and this project declares none — so every legal id here is the "
+        "one `add` derives"
+    ),
+    "ref": (
+        'offered only where `roadkeep.toml` sets `ref_scheme = "outline"`, which makes the '
+        "anchor the caller's to name; this project derives the pointer from the id, and one "
+        "chosen by hand is what `ref.mismatch` refuses"
+    ),
 }
 
 #: The non-goals are their own two limits (RK70), so the same `why` means a different number
@@ -677,15 +701,13 @@ def _withheld(tool: Tool, unknown: Sequence[str]) -> str:
     Without it the message reads as a misspelling and the caller retries the same spelling:
     which arguments a tool takes is a fact about `roadkeep.toml` (L6), so the refusal says
     which declaration would have opened it rather than only that it is absent.
+
+    One clause per closed field, read from :data:`_WITHHELD` (RK241): two fields joined into
+    one sentence named one table for both, and the declaration to edit is the whole of what
+    this clause is for.
     """
     closed = sorted(set(unknown) & set(tool.conditional))
-    if not closed:
-        return ""
-    return (
-        f". {', '.join(closed)}: offered only where `roadkeep.toml` declares an id shape "
-        f"the counter cannot spell (`[ids] suffix`), and this project declares none — so "
-        f"every legal id here is the one `add` derives"
-    )
+    return "".join(f". {dest}: {_WITHHELD[dest]}" for dest in closed)
 
 
 def _bounded(dest: str, value: Any, config: Config) -> None:
@@ -695,8 +717,13 @@ def _bounded(dest: str, value: Any, config: Config) -> None:
     is the schema's, so the write path beneath refuses a violation whatever a client sent. A
     conditional field's is this surface's alone — `add --id T24` stays legal at a terminal,
     where `adopt` writes ids a corpus already spent — so unchecked here is unchecked.
+
+    Conditional and still the schema's is the third case, and `ref` is it (RK241): an anchor
+    that is not `<x.y>` is `ref.format` from `validate`, and where the pointer is derived the
+    field is not exposed at all — so there is nothing this surface would be the only checker
+    of, and a bound published here would be a second spelling of one the schema already holds.
     """
-    if dest not in _CONDITIONAL:
+    if dest not in _CONDITIONAL or dest not in _BOUNDS:
         return
     pattern = _BOUNDS[dest](config).get("pattern")
     if pattern and not re.match(pattern, _one(dest, value)):

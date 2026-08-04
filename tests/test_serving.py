@@ -98,6 +98,12 @@ PROSE = CONFIG + f'improvements = "{IMPROVEMENTS}"\n'
 #: A project that declares the one id shape the counter cannot spell (RK111). Turing's, and
 #: the only config under which `add` offers an id at all.
 SUFFIXED = PROSE + "[ids]\nsuffix = true\n"
+#: A project whose anchors are an outline and not the id (RK241). Shio's, and the only config
+#: under which `add` offers a pointer — the field it withheld from itself until then.
+OUTLINED = (
+    f'prefix = "RK"\nref_scheme = "outline"\n[files]\nroadmap = "{ROADMAP}"\n'
+    f'changelog = "{CHANGELOG}"\nimprovements = "{IMPROVEMENTS}"\n'
+)
 
 
 def project(
@@ -377,6 +383,49 @@ def test_a_split_id_reaches_the_roadmap_over_the_protocol(tmp_path):
     # The id is still never reused, whichever surface chose it.
     again = text_of(called(tree, "add", block="A", symptom="s", why="w.", task_id="RK1b"))
     assert "already occurs" in again
+
+
+def test_an_outline_scheme_opens_the_anchor_nothing_derives(tmp_path):
+    # RK241: under `ref_scheme = "outline"` the pointer is the caller's field, so withholding
+    # it left every `add` over this transport refusing `ref.missing` — a tool that could not
+    # make its own principal call. Offered there, and required nowhere the CLI does not.
+    properties = listed(project(tmp_path, config=OUTLINED))["add"]["inputSchema"]
+    assert "ref" in properties["properties"]
+    assert "ref" not in properties.get("required", [])
+    # And no pattern published here: `<x.y>` is `ref.format` from the schema, so a copy of it
+    # on this surface would be the second declaration of one rule (RK24's own failure mode).
+    assert "pattern" not in properties["properties"]["ref"]
+
+
+def test_the_anchor_reaches_the_roadmap_over_the_protocol(tmp_path):
+    # End to end, because the defect was that this call could not be made at all: the CLI was
+    # the only door, and on the project that found it a source checkout was the only CLI.
+    tree = project(tmp_path, config=OUTLINED, improvements=DESIGN)
+    written = json.loads(
+        text_of(called(tree, "add", block="A", symptom="An outlined symptom",
+                       why="Because of a reason.", ref="4.2"))
+    )
+    assert written["rendered"].endswith("→ §4.2")
+    assert "→ §4.2" in (tree / ROADMAP).read_text(encoding="utf-8")
+    # And the prose the anchor names is still the caller's next call, not this one's silence.
+    assert written["needs"].startswith("section add 4.2")
+
+
+def test_a_closed_field_is_refused_by_the_table_that_would_open_it(tmp_path):
+    # One clause per field and not one sentence for both (RK241): a caller told to declare
+    # `[ids] suffix` to name an anchor is a caller sent to edit the wrong table.
+    refused = text_of(
+        called(project(tmp_path), "add", block="A", symptom="s", why="w.", ref="4.2")
+    )
+    assert "no such argument ref" in refused
+    assert 'ref_scheme = "outline"' in refused and "[ids] suffix" not in refused
+    # And where both are closed, both are named — the refusal is per field, so a call that
+    # guessed twice does not read as one table being the answer to both.
+    both = text_of(
+        called(project(tmp_path), "add", block="A", symptom="s", why="w.",
+               ref="4.2", task_id="RK9b")
+    )
+    assert 'ref_scheme = "outline"' in both and "[ids] suffix" in both
 
 
 def test_a_flag_that_became_a_tool_is_always_passed_and_never_settable(tmp_path):

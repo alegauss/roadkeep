@@ -30,6 +30,7 @@
 
 - 📋 **RK200** (deps: —) **Which governed files no verb wrote is answerable only by trying to end the turn** — RK175 records a digest per write and states one change once at the `Stop` hook, so the only way to ask is to be blocked — and it re-baselines as it reports, so the fact is gone. → §RK200
 - 📋 **RK245** (deps: —) **The number that binds an amend is the one figure `budget` states only in characters** — A line reads `182 written, 18 left  aim 30 words`, so the only unit the author can count names the whole field while the room they actually have is 18 characters. → §RK245
+- 📋 **RK247** (deps: —) **Nothing says which outline anchors history still cites** — `section add` lists only what exists, so reopening a shipped family reuses an anchor the changelog still points at and silently rewrites its meaning. → §RK247
 
 ## Block D — The gate
 
@@ -39,7 +40,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK241** (deps: —) **The MCP add tool cannot write a line on an outline-ref project** — `add` exposes no `ref`, which `amend` does, so on `ref_scheme = "outline"` every call refuses `ref.missing` and the CLI is the only door. → §RK241
 - 📋 **RK242** (deps: —) **The stale-import notice makes a correct refusal look like a bug** — it rides every refusal unconditionally, so a caller disproves the build before trusting the reason and spends calls on a constraint that was right. → §RK242
 - 📋 **RK246** (deps: —) **The staleness note names a reload that cannot fire on the tree it fires in** — The server a checkout runs comes from `.mcp.json` and has no version, so five patch bumps in one session left it stale while its own note said a bump reloads it. → §RK246
 
