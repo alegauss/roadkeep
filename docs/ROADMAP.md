@@ -41,6 +41,7 @@
 
 - 📋 **RK241** (deps: —) **The MCP add tool cannot write a line on an outline-ref project** — `add` exposes no `ref`, which `amend` does, so on `ref_scheme = "outline"` every call refuses `ref.missing` and the CLI is the only door. → §RK241
 - 📋 **RK242** (deps: —) **The stale-import notice makes a correct refusal look like a bug** — it rides every refusal unconditionally, so a caller disproves the build before trusting the reason and spends calls on a constraint that was right. → §RK242
+- 📋 **RK246** (deps: —) **The staleness note names a reload that cannot fire on the tree it fires in** — The server a checkout runs comes from `.mcp.json` and has no version, so five patch bumps in one session left it stale while its own note said a bump reloads it. → §RK246
 
 ## Non-goals
 

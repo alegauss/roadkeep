@@ -203,3 +203,28 @@ imported the CLI from source to get an answer it already had. Narrow it to the c
 describes — name the verb's own module in the changed set, or drop the hedge and state
 the drift as a fact separate from the refusal — so a refusal that is right stops
 arriving pre-doubted.
+
+### §RK246 The remedy that applies is the second half of the sentence
+
+Measured in this session: the version went 0.1.152 to 0.1.157, five commits each bumping
+the patch for RK153's reason, and `brief --block A` over MCP still answered with the
+note naming seven files changed since import. The note's own first clause is what did
+not happen.
+
+It is not wrong about RK153 — it is wrong about which server it is talking to. A
+plugin's `mcpServers` is versioned by `plugin.json`, so a bump does reload it in an
+adopting project. A project running the tool from a checkout is wired by `.mcp.json`
+pointing at `scripts/roadkeep.py`, which carries no version at all: nothing about that
+process is addressed by a patch bump, and the only remedy is the second half of the
+sentence.
+
+That configuration is also the one where the note fires most, and by construction: it is
+the tree whose code moves between messages, which is the whole reason
+:attr:`~roadkeep.provenance.Engine.stale` exists. So the advice most readers get is a
+mechanism that was never in play, followed by the one that works, and they check the
+first.
+
+`Engine` already knows where the code it imported lives, so which of the two wirings is
+answering is a fact available at the point the note is composed rather than a guess.
+What stays untouched is the decision above it: nothing reloads itself, and the harness
+owning that is right (RK155) — this is about the sentence, not about the design.
