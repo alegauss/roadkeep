@@ -75,6 +75,7 @@ from roadkeep.config import Config, ConfigError, find_config
 from roadkeep.history import changed_lines
 from roadkeep.installing import stale
 from roadkeep.linting import Report, lint
+from roadkeep.provenance import invocation
 from roadkeep.serving import TOOLS
 
 #: The tools that put bytes in a file. Listed by what reaches the disk and not by what the
@@ -284,15 +285,25 @@ class Refusal:
             lines += ["", "Or the same engine in a shell, from the project root:"]
         else:
             lines.append("Call instead, from the project root:")
-        width = max((len(command) for command, _ in self.commands), default=0)
+        # The invocation this machine actually has, and not the console script literally (RK254):
+        # since RK57 the plugin installs with no `pip install` and no PATH entry, so `roadkeep add`
+        # was advice that answers `command not found` on the machine most likely to read it.
+        reached = invocation()
+        helped = "<command> --help"
+        # A list and not `max(a, *gen)`: an unknown role offers no commands at all, and the
+        # star form then reduces to `max(17)`, which is a TypeError instead of a width.
+        width = max([len(helped), *(len(command) for command, _ in self.commands)])
         for command, purpose in self.commands:
-            lines.append(f"  roadkeep {command:<{width}}  {purpose}")
+            lines.append(f"  {reached} {command:<{width}}  {purpose}")
         lines += [
-            f"  {'roadkeep <command> --help':<{width + 9}}  every flag, so none is guessed",
+            f"  {reached} {helped:<{width}}  every flag, so none is guessed",
             "",
-            "Reading is never refused: `roadkeep brief <id>` starts a task in one call, "
-            "`show <id>` joins the line to its rationale, `list --block <x>` prints them "
-            "verbatim.",
+            # The same invocation as the table above it (RK254): this sentence spelled the
+            # console script literally too, so on the machine that has none it named three reads
+            # the reader cannot make either.
+            f"Reading is never refused: `{reached} brief <id>` starts a task in one call, "
+            f"`show <id>` joins the line to its rationale, `list --block <x>` prints them "
+            f"verbatim.",
         ]
         return "\n".join(lines)
 
@@ -309,8 +320,11 @@ class Review:
 
     def __str__(self) -> str:
         findings = self.report.findings
+        # The invocation this machine has, for `Denial`'s reason (RK254): a gate that names a
+        # repair the reader cannot run blocks the turn and withholds the way out of it.
+        reached = invocation()
         lines = [
-            f"roadkeep lint refuses {len(findings)} line(s) this turn changed in "
+            f"{reached} lint refuses {len(findings)} line(s) this turn changed in "
             f"{', '.join(self.report.checked)}: a governed file was changed by something "
             f"other than roadkeep, and the format is what the next reader trusts.",
             "",
@@ -318,14 +332,14 @@ class Review:
         lines += [f"  {finding}" for finding in findings[:_MOST_FINDINGS]]
         if len(findings) > _MOST_FINDINGS:
             lines.append(
-                f"  … and {len(findings) - _MOST_FINDINGS} more — `roadkeep lint` prints "
+                f"  … and {len(findings) - _MOST_FINDINGS} more — `{reached} lint` prints "
                 f"all of them"
             )
         lines += [
             "",
-            "`roadkeep lint --fix` repairs what is derived (annotation, pointer, dep "
-            "order, marker codepoint, whitespace); everything left is editorial and "
-            "wants a command, not an edit.",
+            f"`{reached} lint --fix` repairs what is derived (annotation, pointer, dep "
+            f"order, marker codepoint, whitespace); everything left is editorial and "
+            f"wants a command, not an edit.",
         ]
         return "\n".join(lines)
 
@@ -354,15 +368,18 @@ class Notice:
     stale: tuple[str, ...] = ()
 
     def __str__(self) -> str:
+        # And the first message of the session is the first place the invocation has to be one
+        # this machine has (RK254) — it is the line teaching that reading is a command.
+        reached = invocation()
         said = (
             f"roadkeep governs {', '.join(self.files)} — ask, never read them whole: "
-            "`roadkeep brief` starts a task, `show <id>` and `list --block <x>` answer "
-            "the rest, and a hand-edit is refused."
+            f"`{reached} brief` starts a task, `show <id>` and `list --block <x>` answer "
+            f"the rest, and a hand-edit is refused."
         )
         if self.stale:
             said += (
                 f" This project's copy of {', '.join(self.stale)} has drifted from the "
-                f"checkout answering here: `roadkeep install` refreshes it, and until then "
+                f"checkout answering here: `{reached} install` refreshes it, and until then "
                 f"the copy is not what this session is running."
             )
         return said

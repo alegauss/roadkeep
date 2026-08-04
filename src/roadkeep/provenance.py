@@ -34,6 +34,7 @@ answer, and it is the half that distinguishes the two engines above.
 
 from __future__ import annotations
 
+import shutil
 import time
 from dataclasses import dataclass
 from functools import lru_cache
@@ -133,6 +134,66 @@ class Engine:
 
     def __str__(self) -> str:
         return f"roadkeep {self.version} ({self.revision}, {self.home})"
+
+
+#: The console script `pyproject.toml` declares, which is what a message may name only where a
+#: PATH lookup finds it (RK254).
+CONSOLE = "roadkeep"
+
+#: The launcher the package ships beside itself (RK57), relative to :attr:`Engine.home`. Named
+#: here because :func:`invocation` is the only reader and it is a fact about this distribution's
+#: layout, not about any project.
+LAUNCHER = ("scripts", "roadkeep.py")
+
+
+@lru_cache(maxsize=1)
+def invocation() -> str:
+    """How a shell reaches this engine **on this machine** (RK254).
+
+    Every message offering a shell command used to spell `roadkeep <verb>` literally, and RK57's
+    own finding is that the console script exists only after `pip install roadkeep` and only if
+    the interpreter's scripts directory is on PATH — so on a plugin-installed machine, and in this
+    repository, the tool's most-read message named a command that answers `command not found`.
+    That is the family RK242, RK246, RK250 and RK253 each removed one instance of, at the traffic
+    of every denied edit.
+
+    Three answers, most specific first, and each one observed rather than assumed:
+
+    * the console script, where a PATH lookup finds it;
+    * the launcher this package ships beside itself, where it is on disk — spelled relative to the
+      working directory when it is under it, because an absolute path is a message about one
+      machine (the same reason :class:`~roadkeep.guarding.Refusal` quotes the project's spelling);
+    * `python -m roadkeep.cli`, which is right whenever the package is importable at all and is
+      the only answer left when neither of the two above is there.
+
+    `python` and not :data:`sys.executable`: the plugin's own `hooks.json` and `.mcp.json` spell
+    it that way, so this is the project's established assumption rather than a second one, and a
+    quoted absolute interpreter path is not what a reader copies.
+
+    Cached: neither PATH nor the package's own layout changes inside one process, and the deny
+    path this is read on is the one place a `which` scan would be paid for repeatedly.
+    """
+    if shutil.which(CONSOLE):
+        return CONSOLE
+    launcher = engine().home.parents[1].joinpath(*LAUNCHER)
+    if launcher.is_file():
+        return f"python {_spelled(launcher)}"
+    return "python -m roadkeep.cli"
+
+
+def _spelled(launcher: Path) -> str:
+    """The launcher as a reader would type it: forward slashes, quoted only where a space forces it.
+
+    `as_posix` and not the native separator, because the shell this is copied into is the agent's,
+    and there a `\\` is an escape rather than a path component — `scripts\\roadkeep.py` reaches
+    `scriptsroadkeep.py`. Windows `python` accepts forward slashes either way, so one spelling is
+    right on both platforms and the native one is right on neither reader.
+    """
+    try:
+        shown = launcher.relative_to(Path.cwd()).as_posix()
+    except (OSError, ValueError):  # another drive, another tree, or no readable cwd
+        shown = launcher.as_posix()
+    return f'"{shown}"' if " " in shown else shown
 
 
 @lru_cache(maxsize=1)

@@ -22,6 +22,7 @@ import pytest
 import corpora
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config, ConfigError, Scope
+from roadkeep.provenance import invocation
 from roadkeep.guarding import Refusal
 from roadkeep.linting import lint
 from roadkeep.schema import SchemaError
@@ -508,7 +509,7 @@ def test_the_read_is_served_over_stdio_and_named_by_the_guard():
     assert "non_goal_list" in {tool.name for tool in TOOLS}
     assert not next(t for t in TOOLS if t.name == "non_goal_list").writes
     reason = str(Refusal(tool="Edit", path="docs/ROADMAP.md", role="roadmap"))
-    assert "roadkeep non-goal list" in reason
+    assert f"{invocation()} non-goal list" in reason
     assert "mcp__roadkeep__non_goal_list" in reason
 
 

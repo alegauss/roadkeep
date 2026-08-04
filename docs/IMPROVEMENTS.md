@@ -207,23 +207,3 @@ Worth deciding with it whether this is one finding or one per heading. Two is th
 ## Block E — Adoption
 
 ## Block F — The plugin
-
-### §RK254 The most-read message in the tool names the surface RK57 proved absent
-
-`Denial.__str__` ends every refused hand-edit with `roadkeep <command>` lines, and that
-prefix is a literal. RK57's own finding is that the console script exists only after
-`pip install roadkeep` and only if the interpreter's scripts directory is on PATH —
-which is why `scripts/roadkeep.py` exists at all, and why `/plugin install` could once
-succeed with neither surface started. Checked here: `shutil.which("roadkeep")` is
-`None`, and `agents.md` tells its own reader to substitute `PYTHONPATH=src python -m
-roadkeep.cli`. So the highest-traffic message in the tool names a fallback its most
-likely reader cannot run, which is the family RK242, RK246, RK250 and RK253 each removed
-one instance of — a sentence asserting a mechanism that is not in play. The difference
-is traffic: the drift note fires on a stale build, this fires on every denied edit. The
-invocation is observable rather than assumed. `shutil.which("roadkeep")` answers whether
-the script resolves, and `sys.argv[0]` is the launcher this process was actually started
-by, so the guard can print the spelling that works on this machine and fall back to
-`python <launcher>` where the script is absent. Cost lands only on the deny path, which
-is rare, and never on the screen RK176 bought the 43 ms floor for. The tool list above
-these lines needs nothing: it is the session's own, and where it is present the shell
-half is already the alternative and not the instruction.

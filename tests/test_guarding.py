@@ -48,6 +48,7 @@ from roadkeep.guarding import (
     guard,
     review,
 )
+from roadkeep.provenance import invocation
 from roadkeep.serving import TOOLS
 
 #: This checkout, which is the tree `install` translates in the two tests that wire a
@@ -162,10 +163,10 @@ def test_the_roadmap_is_refused_and_the_command_is_named(tmp_path):
     # The path as the project spells it: a reason quoting an absolute path is about one
     # machine, and it is read by an agent that has to type the command next.
     assert refusal.path == ROADMAP
-    assert "roadkeep add --block" in str(refusal)
+    assert f"{invocation()} add --block" in str(refusal)
     # And the bullet in this file that is not a task line (RK70): a denial that offered only
     # the five commands writing task lines left `sed` as the route to the non-goals.
-    assert "roadkeep non-goal add --lead" in str(refusal)
+    assert f"{invocation()} non-goal add --lead" in str(refusal)
 
 
 def test_the_ledger_names_the_transaction_and_not_add(tmp_path):
@@ -174,21 +175,21 @@ def test_the_ledger_names_the_transaction_and_not_add(tmp_path):
     assert refusal is not None and refusal.role == "changelog"
     reason = str(refusal)
     assert "Write refused" in reason
-    assert "roadkeep ship <id>" in reason
-    assert "roadkeep record add --block" in reason
-    assert "roadkeep record drop <id>" in reason
+    assert f"{invocation()} ship <id>" in reason
+    assert f"{invocation()} record add --block" in reason
+    assert f"{invocation()} record drop <id>" in reason
     # `add` writes the roadmap. Offering it here would name a command that cannot make
     # this edit, which is worse than naming none.
-    assert "roadkeep add " not in reason
+    assert f"{invocation()} add " not in reason
 
 
 def test_the_refusal_names_the_tool_before_the_command(tmp_path):
-    # Since RK57 the plugin installs with no console script, so `roadkeep add` may be a
+    # Since RK57 the plugin installs with no console script, so the shell half may be a
     # `command not found` — and advice that does not run teaches that the tool's advice
     # does not run. The same install serves the tools, so they are named first (RK58).
     root = project(tmp_path)
     reason = str(guard(write(str(root / ROADMAP)), root))
-    assert reason.index("mcp__roadkeep__add") < reason.index("roadkeep add --block")
+    assert reason.index("mcp__roadkeep__add") < reason.index(f"{invocation()} add --block")
     assert "this session's tools" in reason
     # Both stay: a project that pip-installed is real, and CI has no MCP client at all.
     assert "Or the same engine in a shell" in reason
@@ -215,7 +216,7 @@ def test_a_role_with_no_tool_behind_it_names_only_the_commands():
     # disk yet needs scaffolding, which runs once and from a shell.
     reason = str(Refusal(tool="Write", path="docs/ROADMAP.md", role="roadmap", exists=False))
     assert "mcp__roadkeep__" not in reason
-    assert "roadkeep init" in reason
+    assert f"{invocation()} init" in reason
 
 
 def test_every_writing_tool_is_matched(tmp_path):
@@ -246,7 +247,7 @@ def test_a_governed_file_that_is_absent_wants_init_and_not_add(tmp_path):
     (root / ROADMAP).unlink()
     refusal = guard(write(str(root / ROADMAP), tool="Write"), root)
     assert refusal is not None and refusal.commands == _SCAFFOLD
-    assert "roadkeep init" in str(refusal)
+    assert f"{invocation()} init" in str(refusal)
 
 
 # -- the side the barrier used to leave open (RK128) ---------------------------
@@ -291,7 +292,7 @@ def test_the_shell_answer_is_ask_because_the_command_is_not_read(tmp_path):
     # The claim the two decisions do not share, and neither one makes the other's.
     assert "Bash refused" not in reason
     # Everything of value is still there: one command table, not two that can drift.
-    assert "roadkeep add --block" in reason and "mcp__roadkeep__add" in reason
+    assert f"{invocation()} add --block" in reason and "mcp__roadkeep__add" in reason
 
 
 def test_a_named_write_stays_a_denial(tmp_path):
@@ -438,7 +439,7 @@ def test_the_role_is_the_one_the_project_declared(tmp_path):
     (root / "docs" / "WHY.md").write_text("# Why\n", encoding="utf-8")
     found = governed(root / "docs" / "WHY.md")
     assert found is not None and found[1] == "improvements"
-    assert "roadkeep section add" in str(
+    assert f"{invocation()} section add" in str(
         Refusal(tool="Edit", path="docs/WHY.md", role="improvements")
     )
 
@@ -470,10 +471,10 @@ def test_every_command_a_refusal_offers_is_one_the_cli_accepts():
 def test_a_refusal_reads_as_an_answer_and_says_reading_is_free():
     reason = str(Refusal(tool="Edit", path=ROADMAP, role="roadmap"))
     assert reason.startswith(f"Edit refused: {ROADMAP} is this project's roadmap")
-    assert "roadkeep <command> --help" in reason
+    assert f"{invocation()} <command> --help" in reason
     # L5: the reason an agent reaches for `Edit` is often to *read* around a line, and a
     # refusal that does not say the query surface exists sends it to open the file.
-    assert "roadkeep brief <id>" in reason
+    assert f"{invocation()} brief <id>" in reason
 
 
 def test_an_unknown_role_offers_nothing_rather_than_guessing():
@@ -481,7 +482,7 @@ def test_an_unknown_role_offers_nothing_rather_than_guessing():
     command, and the deny still stands."""
     refusal = Refusal(tool="Edit", path="docs/OTHER.md", role="other")
     assert refusal.commands == ()
-    assert "roadkeep <command> --help" in str(refusal)
+    assert f"{invocation()} <command> --help" in str(refusal)
 
 
 # -- the turn tries to end ---------------------------------------------------
@@ -506,7 +507,7 @@ def test_a_drifted_file_blocks_and_names_the_line(tmp_path):
     reason = str(found)
     assert f"{ROADMAP}:" in reason
     assert "RK99" in reason
-    assert "roadkeep lint --fix" in reason
+    assert f"{invocation()} lint --fix" in reason
 
 
 def test_blocking_twice_is_a_loop_and_never_happens(tmp_path):
@@ -556,7 +557,7 @@ def test_the_command_answers_a_pretooluse_payload_with_a_denial(tmp_path, monkey
     specific = answer["hookSpecificOutput"]
     assert specific["hookEventName"] == "PreToolUse"
     assert specific["permissionDecision"] == "deny"
-    assert "roadkeep add --block" in specific["permissionDecisionReason"]
+    assert f"{invocation()} add --block" in specific["permissionDecisionReason"]
 
 
 def test_an_allowed_write_is_answered_with_silence(tmp_path, monkeypatch, capsys):
@@ -649,7 +650,7 @@ def test_the_notice_names_a_vendored_copy_that_has_drifted(tmp_path):
     notice = announce(start(root), root)
     assert notice.stale == (PROJECT_SKILL.replace("\\", "/"),)
     assert "has drifted from the checkout answering here" in str(notice)
-    assert "`roadkeep install` refreshes it" in str(notice)
+    assert f"`{invocation()} install` refreshes it" in str(notice)
 
 
 def test_a_project_the_plugin_serves_is_asked_nothing_about_a_copy(tmp_path):

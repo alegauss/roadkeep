@@ -27,7 +27,7 @@ from pathlib import Path
 import pytest
 
 import roadkeep
-from roadkeep.provenance import _LOADED_AT, MODIFIED, UNTRACKED, Engine, engine
+from roadkeep.provenance import _LOADED_AT, MODIFIED, UNTRACKED, Engine, engine, invocation
 
 HERE = Path(__file__).resolve().parents[1]
 
@@ -125,6 +125,38 @@ def test_staleness_is_read_now_and_not_cached_like_the_identity(tmp_path):
     (home / "serving.py").write_text("x = 1\n", encoding="utf-8")
     os.utime(home / "serving.py", (_LOADED_AT + 300, _LOADED_AT + 300))
     assert described.stale == ("serving.py",)
+
+
+def test_the_shell_invocation_is_the_one_this_machine_has(tmp_path, monkeypatch):
+    # RK254: every message offering a shell command spelled `roadkeep <verb>` literally, and
+    # RK57's own finding is that the console script exists only after a `pip install` that put
+    # its directory on PATH — so on the machine most likely to read a denial it was advice that
+    # answers `command not found`. Three answers, most specific first, each one observed.
+    home = tmp_path / "tree" / "src" / "roadkeep"
+    home.mkdir(parents=True)
+    monkeypatch.setattr("roadkeep.provenance.engine", lambda: Engine("0.1.0", home, None))
+
+    # The console script, where a PATH lookup finds it — nothing else is offered over that.
+    monkeypatch.setattr("roadkeep.provenance.shutil.which", lambda name: f"/bin/{name}")
+    invocation.cache_clear()
+    assert invocation() == "roadkeep"
+
+    # Absent, the launcher this package ships beside itself (RK57), if it is on disk.
+    monkeypatch.setattr("roadkeep.provenance.shutil.which", lambda name: None)
+    launcher = tmp_path / "tree" / "scripts" / "roadkeep.py"
+    launcher.parent.mkdir(parents=True)
+    launcher.write_text("x = 1\n", encoding="utf-8")
+    monkeypatch.chdir(tmp_path / "tree")
+    invocation.cache_clear()
+    # Relative to the working directory, because an absolute path is a message about one machine
+    # — and with forward slashes, because the shell it is copied into reads `\` as an escape.
+    assert invocation() == "python scripts/roadkeep.py"
+
+    # And with neither, the module path, which is right whenever the package imports at all.
+    launcher.unlink()
+    invocation.cache_clear()
+    assert invocation() == "python -m roadkeep.cli"
+    invocation.cache_clear()
 
 
 def test_which_wiring_is_answering_is_read_from_where_the_code_lives(tmp_path):
