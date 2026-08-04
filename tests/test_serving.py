@@ -368,7 +368,7 @@ def test_the_refusal_names_the_declaration_that_would_open_the_field(tmp_path):
     refused = text_of(
         called(project(tmp_path), "add", block="A", symptom="s", why="w.", task_id="RK9b")
     )
-    assert "no such argument task_id" in refused
+    assert "task_id is declared by the CLI and closed by this project's config" in refused
     assert "[ids] suffix" in refused and "this project declares none" in refused
 
 
@@ -419,7 +419,7 @@ def test_a_closed_field_is_refused_by_the_table_that_would_open_it(tmp_path):
     refused = text_of(
         called(project(tmp_path), "add", block="A", symptom="s", why="w.", ref="4.2")
     )
-    assert "no such argument ref" in refused
+    assert "ref is declared by the CLI and closed by this project's config" in refused
     assert 'ref_scheme = "outline"' in refused and "[ids] suffix" not in refused
     # And where both are closed, both are named — the refusal is per field, so a call that
     # guessed twice does not read as one table being the answer to both.
@@ -428,6 +428,30 @@ def test_a_closed_field_is_refused_by_the_table_that_would_open_it(tmp_path):
                ref="4.2", task_id="RK9b")
     )
     assert 'ref_scheme = "outline"' in both and "[ids] suffix" in both
+
+
+def test_a_closed_field_is_not_reported_as_one_that_does_not_exist(tmp_path):
+    # RK253: `--ref` is declared by the CLI, printed by its help and reachable at a terminal, so
+    # "no such argument" sends the caller looking for a typo in a name spelled correctly. The two
+    # facts are stated over their own names, and a call that guessed both ways earns both.
+    closed = text_of(
+        called(project(tmp_path), "add", block="A", symptom="s", why="w.", ref="4.2")
+    )
+    assert "no such argument" not in closed
+    # A name nothing declares still reads the way it always did.
+    absent = text_of(
+        called(project(tmp_path), "add", block="A", symptom="s", why="w.", deeps=["RK1"])
+    )
+    assert "no such argument deeps" in absent
+    assert "closed by this project's config" not in absent
+    # And mixed, each clause over its own names — never one verdict covering both.
+    mixed = text_of(
+        called(project(tmp_path), "add", block="A", symptom="s", why="w.",
+               ref="4.2", deeps=["RK1"])
+    )
+    assert "no such argument deeps" in mixed
+    assert "ref is declared by the CLI and closed by this project's config" in mixed
+    assert "no such argument deeps, ref" not in mixed
 
 
 def test_a_conditional_field_carries_its_reason_with_its_predicate():

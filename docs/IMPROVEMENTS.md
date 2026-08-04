@@ -207,22 +207,3 @@ Worth deciding with it whether this is one finding or one per heading. Two is th
 ## Block E — Adoption
 
 ## Block F — The plugin
-
-### §RK253 Read live, the first sentence is the one that is wrong
-
-Passing both closed fields to `add` on a derived-ref project answers: "add: no such
-argument ref, task_id — this tool takes block, symptom, why, … . ref: offered only where
-`roadkeep.toml` sets `ref_scheme = "outline"` … . task_id: offered only where … `[ids]
-suffix`". The two clauses RK241 wrote are right and each names its own table. The
-opening one is not: `--ref` and `--id` exist, are documented in `--help`, and are
-reachable at a terminal — what is true is that this project's config closed them here.
-RK111 already identified the reading, saying the message "reads as a misspelling and the
-caller retries the same spelling", and answered it by appending an explanation rather
-than by correcting the claim. So a caller who acts on the first sentence looks for a
-typo in a name that is spelled correctly. This is the family RK242, RK246 and RK250 each
-removed one instance of: a sentence asserting more than was established. The split is
-available at no cost, because the refusal already partitions the names — those in
-`Tool.conditional` are closed and every other one is genuinely unknown. A call whose
-unknown names are all closed fields should lead with that, and a call mixing the two
-needs both statements, each over its own names. What stays is the list of what the tool
-does take, which is the part that was never in doubt.

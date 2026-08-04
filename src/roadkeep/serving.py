@@ -653,11 +653,7 @@ def argv(
     exposed = tool.exposed(config)
     unknown = [name for name in arguments if name not in exposed]
     if unknown:
-        raise ToolError(
-            f"{tool.name}: no such argument {', '.join(sorted(unknown))} — "
-            f"this tool takes {', '.join(exposed) or 'no arguments'}"
-            + _withheld(tool, unknown)
-        )
+        raise ToolError(_unrecognised(tool, unknown, exposed))
     _companioned(tool, arguments, parsers)
     positional: list[str] = []
     optional: list[str] = []
@@ -715,23 +711,54 @@ def _companioned(
     )
 
 
-def _withheld(tool: Tool, unknown: Sequence[str]) -> str:
-    """The clause a refusal adds when the argument exists and this project closed it (RK111).
+def _unrecognised(tool: Tool, unknown: Sequence[str], exposed: Sequence[str]) -> str:
+    """Why these names did not reach the argv, told apart from each other (RK253).
 
-    Without it the message reads as a misspelling and the caller retries the same spelling:
-    which arguments a tool takes is a fact about `roadkeep.toml` (L6), so the refusal says
-    which declaration would have opened it rather than only that it is absent.
+    An argument this project *closed* is not one that does not exist. `--ref` and `--id` are
+    declared by the CLI, printed by its `--help` and reachable at a terminal; what is true over
+    this transport is that `roadkeep.toml` shut them here (RK111). Led with "no such argument"
+    they read as a misspelling, and the caller looks for a typo in a name spelled correctly —
+    RK111 saw that reading and answered it by appending :func:`_withheld` rather than by
+    correcting the claim, which leaves the correction arriving after the sentence that is wrong.
 
-    One clause per closed field (RK241): two fields joined into one sentence named one table for
-    both, and the declaration to edit is the whole of what this clause is for.
+    So the two are stated separately, over their own names, and a call that guessed both ways
+    earns both. The partition is free: :attr:`Tool.conditional` is exactly the names that exist
+    and are shut, and every other unknown one is a name nothing declares.
+    """
+    closed = sorted(set(unknown) & set(tool.conditional))
+    absent = sorted(set(unknown) - set(closed))
+    stated = []
+    if absent:
+        stated.append(f"no such argument {', '.join(absent)}")
+    if closed:
+        stated.append(
+            f"{', '.join(closed)} {'is' if len(closed) == 1 else 'are'} declared by the CLI "
+            f"and closed by this project's config"
+        )
+    return (
+        f"{tool.name}: {'; '.join(stated)} — this tool takes "
+        f"{', '.join(exposed) or 'no arguments'}{_withheld(closed)}"
+    )
+
+
+def _withheld(closed: Sequence[str]) -> str:
+    """Which declaration would have opened each closed field (RK111).
+
+    Which arguments a tool takes is a fact about `roadkeep.toml` (L6), so the refusal names the
+    declaration to edit rather than only that the field is absent — and one clause per field
+    (RK241), because two joined into one sentence named one table for both, and a caller told to
+    declare an id shape to name an anchor is a caller sent to edit the wrong table.
 
     Indexed and not guarded, which is what :class:`Conditional` buys (RK252): the reason travels
     with the predicate that opens the field, so a dest reaching one and not the other is not a
     state the record admits. RK251 needed a fallback here because two tables could disagree, and
     this ran on exactly one path — a caller passing a field this project closed — so the miss
     surfaced as a `KeyError` composing the refusal, for the caller who most needed the sentence.
+
+    Takes the partition :func:`_unrecognised` already made rather than making it again (RK253):
+    the lead clause and these depend on the same split, and computing it twice is how the two
+    come to disagree about which names are which.
     """
-    closed = sorted(set(unknown) & set(tool.conditional))
     return "".join(f". {dest}: {_CONDITIONAL[dest].because}" for dest in closed)
 
 
