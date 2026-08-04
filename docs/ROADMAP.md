@@ -48,6 +48,8 @@
 
 ## Block E — Adoption
 
+- 📋 **RK290** (deps: —) **The estimate cannot see any finding that needs more than one line** — `adopt` validates each task on its own, so a dep on an id nothing declares reads `1 conform, 0 would change` while `lint` over the same one file reports `deps.unknown`. → §RK290
+
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - 📋 **RK267** (deps: —) **A staleness note lists every changed module and hands relevance back** — The server appends `engine().stale` to any refusal, so one `schema.py` decided arrives naming three modules that did not, and the reader re-runs on a guess about which mattered. → §RK267
