@@ -59,6 +59,7 @@ __all__ = [
     "Merge",
     "Registration",
     "attributed",
+    "config_command",
     "merge",
     "markers",
     "register",
@@ -327,7 +328,7 @@ def register(config: Config) -> Registration:
         attributes=before.path,
         added=before.missing,
         present=before.present,
-        command=f"git config {DRIVER_KEY} " f'"{driver_value(stored.command)}"',
+        command=config_command(),
         invalidated_by=stored.invalidated_by,
         driver=registered(config),
     )
@@ -350,6 +351,20 @@ def attributed(config: Config) -> Attributes:
         wanted=wanted,
         present=tuple(line for line in wanted if line in existing),
     )
+
+
+def config_command() -> str:
+    """The `git config …` line that wires the config half — the repair, spelled once (RK272).
+
+    Composed here rather than at the two call sites, because `register` prints it as what to do
+    next and `merge --check` prints it as what to do *now*: two spellings would be two repairs,
+    and the one the check names is the one that has to work.
+
+    Never run, in either. Setting somebody's git config is a write outside the files this tool
+    was given (L2) — the half that is not written is not an oversight, and RK272 is about the
+    check naming that half accurately rather than about closing it.
+    """
+    return f'git config {DRIVER_KEY} "{driver_value(persisted().command)}"'
 
 
 def driver_value(command: str) -> str:

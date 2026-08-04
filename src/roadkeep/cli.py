@@ -89,6 +89,7 @@ from roadkeep.merging import (
     Attributes,
     Driver,
     attributed,
+    config_command,
     markers,
     merge,
     register,
@@ -2279,12 +2280,31 @@ def _merge_check(config: Config) -> int:
     attributes, driver = attributed(config), registered(config)
     print(f"  attributes  {_attributes_line(attributes)}")
     print(f"  config      {_driver_line(driver)}")
-    if not attributes.wired or driver.state in (ABSENT, UNRUNNABLE):
-        # One remedy, because `register` writes both halves — and named only where there is one:
-        # `UNKNOWN` could not be asked, so a repair for it would answer a question nobody did.
-        print(f"  fix         {invocation()} merge --register")
+    for repair in _repairs(attributes, driver):
+        print(f"  fix         {repair}")
     code, _ = _DRIVER_STATES[driver.state]
     return EXIT_GATE if code == EXIT_GATE or not attributes.wired else EXIT_OK
+
+
+def _repairs(attributes: Attributes, driver: Driver) -> list[str]:
+    """The repair of each half that is actually broken, in the order they are reported (RK272).
+
+    Measured before it was written: one `merge --register` named for both halves sent a reader
+    into a loop — the verb writes the attribute lines and *prints* the config line, so the check
+    that suggested it answered identically afterwards. Advice a reader can follow and land back
+    on is worse than none, because it is the kind they stop reading.
+
+    Two halves, two remedies, and neither is `register` running `git config` after all: that
+    write is outside the files this tool was given (L2), and the half left to the reader is a
+    decision rather than an oversight. `UNKNOWN` gets none — the question was never resolved,
+    so naming a repair for it would be answering one nobody asked.
+    """
+    repairs = []
+    if not attributes.wired:
+        repairs.append(f"{invocation()} merge --register")
+    if driver.state in (ABSENT, UNRUNNABLE):
+        repairs.append(config_command())
+    return repairs
 
 
 def _verbatim(path: Path) -> str:

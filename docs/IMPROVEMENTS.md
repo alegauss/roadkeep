@@ -377,30 +377,6 @@ shape at six. What stays true either way is that a *validation* refusal keeps th
 
 ## Block E — Adoption
 
-### §RK272 RK272 — a remedy that cannot reach the half it failed on
-
-Measured, not reasoned: `merge --check` on a fresh project answers `fix … merge
---register`; running it writes three attribute lines and prints the config line; `merge
---check` then answers the same `fix … merge --register`. The reader is told the repair,
-takes it, and gets the identical failure — the shape of advice that trains an author to
-stop reading it.
-
-Nothing here is a bug in `register`. It prints the `git config` line rather than running
-it because setting somebody's git config is a write outside the files this tool was
-given (L2), and that decision is right: a driver command is a path into a checkout, and
-a tool that silently edited `.git/config` would do the thing this whole file refuses to
-do.
-
-The defect is one remedy for two halves repaired differently. The attribute half is `merge
---register`; the config half is the `git config …` line, which `register` composes and
-`Registration.command` already holds. So the check should name the repair *of the state it
-found* — the verb where attributes are missing, the literal config line where the driver is
-absent or unrunnable, both where both. That is more output on the failing path and none on the
-passing one, and it makes every line printed a line that changes something.
-
-What it must not become is `register` running `git config` after all, on the argument
-that one remedy would then be true. The half that is not written is not an oversight.
-
 ### §RK273 RK273 — asking a file the question git answers
 
 `attributed` opens `<root>/.gitattributes` and compares strings. Git does not decide

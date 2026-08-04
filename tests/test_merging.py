@@ -11,6 +11,7 @@ file only when it can prove it, and hands the reviewer git's own markers when it
 
 from __future__ import annotations
 
+import shlex
 import subprocess
 import sys
 from pathlib import Path
@@ -27,6 +28,7 @@ from roadkeep.merging import (
     UNKNOWN,
     UNRUNNABLE,
     attributed,
+    config_command,
     driver_value,
     merge,
     register,
@@ -451,6 +453,35 @@ def test_the_write_is_built_on_the_read_so_the_two_cannot_drift(tmp_path):
     assert written.added == before.missing and before.state == ABSENT
     assert attributed(config).state == CURRENT
     assert register(config).added == ()
+
+
+def test_following_the_repair_the_check_names_ends_the_check(tmp_path, capsys):
+    # RK272, and the acceptance test is the reader's own path: take the advice, then ask again.
+    # It used to answer `fix … merge --register` on a fresh project, and answer exactly that
+    # again after the verb had run — because the verb writes one half and prints the other.
+    config = repository(tmp_path)
+    assert main(["-C", str(tmp_path), "merge", "--check"]) == EXIT_GATE
+    first = capsys.readouterr().out
+    assert "merge --register" in first and config_command() in first
+
+    assert main(["-C", str(tmp_path), "merge", "--register"]) == EXIT_OK
+    capsys.readouterr()
+    assert main(["-C", str(tmp_path), "merge", "--check"]) == EXIT_GATE
+    second = capsys.readouterr().out
+    # The half that is still open, and only that one: repeating the verb would change nothing.
+    assert config_command() in second and "merge --register" not in second
+
+    subprocess.run(shlex.split(config_command()), cwd=tmp_path, check=True, capture_output=True)
+    assert main(["-C", str(tmp_path), "merge", "--check"]) == EXIT_OK
+    assert "fix" not in capsys.readouterr().out
+
+
+def test_the_repair_named_is_the_one_the_registration_prints(tmp_path):
+    # One spelling (RK272): `register` prints it as what to do next and the check prints it as
+    # what to do now, and two spellings would be two repairs — of which one would be wrong.
+    config = repository(tmp_path)
+    assert register(config).command == config_command()
+    assert DRIVER_KEY in config_command() and driver_value(persisted().command) in config_command()
 
 
 def test_git_that_cannot_be_asked_is_unknown_and_not_absent(tmp_path, monkeypatch):
