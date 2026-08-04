@@ -1067,8 +1067,10 @@ def test_an_anchor_two_prose_files_declare_is_charged_what_the_gate_charges_it(t
         h.write(both)
     config = Config.discover(tmp_path)
 
-    # The gate's own reading first, so the claim is agreement and not a second opinion.
-    assert [f.code for f in lint(config).findings] == ["ref.ambiguous"]
+    # The gate's own reading first, so the claim is agreement and not a second opinion. Both
+    # ends of the one defect since RK239: the pointer's, and each of the two headings'.
+    doubled = ["ref.ambiguous", "section.ambiguous", "section.ambiguous"]
+    assert sorted(f.code for f in lint(config).findings) == doubled
     document, amended, changed = amend(
         config, "improvements", "RK1", body="Six words, which is under twelve."
     )
@@ -1076,7 +1078,7 @@ def test_an_anchor_two_prose_files_declare_is_charged_what_the_gate_charges_it(t
     document.save()
     assert "Six words, which is under twelve." in read(config)
     # And the ambiguity is still the finding, which is the one this door must not answer.
-    assert [f.code for f in lint(Config.discover(tmp_path)).findings] == ["ref.ambiguous"]
+    assert sorted(f.code for f in lint(Config.discover(tmp_path)).findings) == doubled
 
 
 def test_the_state_this_condition_is_for_is_one_a_live_corpus_carries():

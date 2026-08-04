@@ -653,6 +653,33 @@ def test_an_anchor_two_prose_files_declare_is_named_and_not_read(tmp_path):
     assert "section.too-long" not in codes(report)
 
 
+def test_two_prose_files_declaring_one_anchor_fail_at_both_headings(tmp_path):
+    # RK239, measured on Turing at `f08304fcb1`: thirteen anchors declared in both prose
+    # files, one pointed at and reported, and the other twelve reported by nothing — while
+    # `show`, `brief`, `ship` and `defer` all refuse to resolve them. The remedy is an edit
+    # at each of the two, which is why it is one finding per heading and not one per anchor.
+    both = OUTLINE_PROSE + "\n### §X.3 Why bypass the framework\n\nOther prose.\n"
+    report = lint(strategic(tmp_path, improvements=both))
+    doubled = [f for f in report.findings if f.code == "section.ambiguous"]
+    assert [(f.file, f.id) for f in doubled] == [
+        ("IMPROVEMENTS.md", "X.3"),
+        ("STRATEGY.md", "X.3"),
+    ]
+    assert "STRATEGY.md" in doubled[0].message and "IMPROVEMENTS.md" in doubled[1].message
+    # The roadmap here points at nothing doubled, which is the whole finding: before this,
+    # the state was named only where a task line happened to reach it.
+    assert "ref.ambiguous" not in codes(report)
+
+
+def test_one_file_declaring_an_anchor_twice_is_not_two_files_disagreeing(tmp_path):
+    # `_declared` dedupes a role, and this is the half that reads it: the second copy is
+    # `section.duplicate` in that file, and a cross-file finding on top of it would report
+    # one file's paste as three files disagreeing.
+    twice = PROSE + "\n### §RK1 The first design again\n\nA pasted duplicate.\n"
+    report = lint(project(tmp_path, improvements=twice))
+    assert "section.ambiguous" not in codes(report)
+
+
 def test_a_strategy_section_is_budgeted_like_any_other(tmp_path):
     # A strategy file is a prose file: a gate that read one of the two would leave the
     # other ungoverned in exactly the way the roadmap is not (RK30/RK50).

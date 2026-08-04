@@ -40,7 +40,8 @@ the improvements file, in both directions — a pointer with no section, and a s
 line points at — plus the section's word budget and the paths a line claims. The
 pointer is read from the parsed ``ref`` field and never from the line's text: §RK15's
 own `why` quotes a pointer as an example, and a scan over the line would report that
-quotation as the broken pointer it is not.
+quotation as the broken pointer it is not. And once from the prose end alone (RK239): two
+files declaring one anchor is a defect at both headings whether or not a line reached it.
 
 And the one block the tool writes **outside** a governed file: a projection of the backlog
 is derived rather than restated (RK39), and nothing held the derivation to the files it came
@@ -1325,6 +1326,16 @@ def _orphans(
     An anchor **two** files declare is charged as pointed at by nobody: which of the two a
     line meant is what `ref.ambiguous` asks the author, and billing one of them 365 words of
     the other's subtree in the meantime is the silent half of that defect.
+
+    Which is also reported **here**, at the heading, and that is RK239: `ref.ambiguous`
+    fires from the pointer end, so the state is named only where a task line happens to
+    reach it. Turing at `f08304fcb1` declares thirteen anchors in both prose files, one is
+    pointed at, and the other twelve were reported by nothing — while `show`, `brief`,
+    `ship` and `defer` all already refuse to resolve them (RK186/RK196/RK229) and
+    `_budget` above charges them as unreachable. `section.ambiguous` is the same word from
+    the file that made the claim, once per heading, because the remedy is an edit at each
+    of the two and `id.duplicate` is the shape an editor can act on twice. Not `--fix`'s:
+    which of the two is the design is editorial (RK16).
     """
     file = config.relative(config.path(role))
     sections = anchors[role]
@@ -1361,6 +1372,26 @@ def _orphans(
                     file,
                     f"§{anchor} is already at line {first}: an anchor names one "
                     f"section, and a pointer that resolves to two resolves to neither",
+                    section.first,
+                    anchor,
+                )
+            )
+        elif len(declared.get(anchor, ())) > 1:
+            # Once per file and never per copy, for the reason `_declared` dedupes a role:
+            # a file that declares the anchor twice already carries the finding above, and
+            # counting it again here would read as three files disagreeing.
+            elsewhere = " and ".join(
+                config.relative(config.path(other))
+                for other in declared[anchor]
+                if other != role
+            )
+            out.append(
+                Finding(
+                    "section.ambiguous",
+                    file,
+                    f"§{anchor} is declared in {elsewhere} as well: one anchor names one "
+                    f"section, so no pointer here resolves and every verb that reads one "
+                    f"refuses",
                     section.first,
                     anchor,
                 )

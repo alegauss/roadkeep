@@ -227,29 +227,6 @@ is one nobody can scan for a gap, which is the other question anchors gets asked
 
 ## Block D — The gate
 
-### §RK239 The state every verb refuses and the gate does not report
-
-Measured while shipping RK232, and the number is the argument: Turing at `f08304fcb1`
-declares thirteen anchors in both `IMPROVEMENTS.md` and `STRATEGY.md`. One is pointed
-at, and `lint` reports it. The other twelve are reported by nothing.
-
-Four readers already treat that state as unresolvable. `show` and `brief` refuse to pick
-(RK186), `ship` keeps the section rather than choose which of two a line meant (RK196),
-`defer` reports the ambiguity instead of naming a file (RK229), and `_pointed_at`
-charges own prose because the gate does (RK232). So the tool has a settled opinion — one
-anchor names one section — and the only check that says it out loud fires from the
-pointer end, which reports the state when a task line happens to reach it and stays
-silent otherwise.
-
-That is the wrong end. The claim is about the prose files: `_declared` already builds
-the index, and a finding at each of the two headings is what an author can act on.
-`--fix` cannot repair it, which of the two is the design being editorial (RK16), and it
-has to stay separate from `ref.ambiguous` rather than replace it: a pointer resolving to
-two is what a reader of the roadmap hits, and that is worth saying at the line as well.
-
-Worth deciding with it whether this is one finding or one per heading. Two is the shape
-`id.duplicate` uses, and it is the one an editor can act on twice.
-
 ### §RK263 The suite that judges the tree cannot say the tree moved under it
 
 Observed while shipping RK261: one run reported six failures, and re-running the same
