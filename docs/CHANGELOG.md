@@ -229,6 +229,7 @@
 - ✅ **RK266** **A registered driver that stopped resolving is silent until a merge** — `merge --check` reads `merge.roadkeep.driver` back and exits 1 where git has no driver it can run, keeping a command that merely moved apart from one this machine no longer has.
 - ✅ **RK270** **A driver check that answers current has not looked at .gitattributes** — `merge --check` reports both halves and exits on their conjunction, `register` is written on top of the same read so the check cannot drift from the write, and a partly-sent file is its own state.
 - ✅ **RK272** **The repair a driver check names writes one of the two halves it just failed on** — `merge --check` names the repair of each half it found broken — the verb for the attributes, the `git config` line for the driver — so following the advice ends the check instead of repeating it.
+- ✅ **RK273** **Whether git sends a file to this driver is guessed from one file** — `attributed` asks `check-attr`, so a rule set in a subdirectory or `.git/info/attributes` counts, a file wired to another driver is named rather than read as unset, and no git is `unknown`.
 
 ## Block F — The Claude Code plugin
 

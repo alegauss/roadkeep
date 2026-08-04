@@ -47,8 +47,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK273** (deps: —) **Whether git sends a file to this driver is guessed from one file** — `attributed` reads the root `.gitattributes` alone, so an attribute set in a subdirectory or in `.git/info/attributes` reads as unsent — `check-attr` answered roadkeep where `--check` said textual. → §RK273
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - 📋 **RK267** (deps: —) **A staleness note lists every changed module and hands relevance back** — The server appends `engine().stale` to any refusal, so one `schema.py` decided arrives naming three modules that did not, and the reader re-runs on a guess about which mattered. → §RK267

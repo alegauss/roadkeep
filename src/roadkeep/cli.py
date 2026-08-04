@@ -84,6 +84,7 @@ from roadkeep.merging import (
     DRIVER,
     DRIVER_KEY,
     MOVED,
+    PARTIAL,
     UNKNOWN,
     UNRUNNABLE,
     Attributes,
@@ -2256,12 +2257,24 @@ def _driver_line(driver: Driver) -> str:
 
 
 def _attributes_line(attributes: Attributes) -> str:
-    """What `.gitattributes` sends to the driver, counted — and named where some is missing."""
-    sent = f"{len(attributes.present)} of {len(attributes.wanted)} governed files"
+    """What git sends to the driver, counted — and named where some of it is not.
+
+    "git sends" and no longer "`.gitattributes` sends" (RK273): the answer is `check-attr`'s,
+    so it holds for a rule set in a subdirectory or in `.git/info/attributes`, and naming one
+    file as the authority would be naming the one this tool happens to write.
+    """
+    if attributes.state == UNKNOWN:
+        return "could not be read: no git, or no repository here"
+    counted = f"{len(attributes.sent)} of {len(attributes.resolved)} governed files"
     if attributes.state == CURRENT:
-        return f"{attributes.path.name} sends {sent} to the {DRIVER} driver"
-    unsent = ", ".join(line.split(" merge=")[0] for line in attributes.missing)
-    return f"{attributes.path.name} sends {sent}: {unsent} would merge textually"
+        return f"git sends {counted} to the {DRIVER} driver"
+    line = f"git sends {counted}: {', '.join(attributes.unsent)} would merge textually"
+    if attributes.claimed:
+        # Said, not corrected: another driver on a governed file is somebody's decision, and a
+        # check that reported it as nothing-set would be arguing with a choice it cannot see.
+        named = ", ".join(f"{path} → {value}" for path, value in attributes.claimed)
+        return f"{line} ({named})"
+    return line
 
 
 def _merge_check(config: Config) -> int:
@@ -2283,7 +2296,8 @@ def _merge_check(config: Config) -> int:
     for repair in _repairs(attributes, driver):
         print(f"  fix         {repair}")
     code, _ = _DRIVER_STATES[driver.state]
-    return EXIT_GATE if code == EXIT_GATE or not attributes.wired else EXIT_OK
+    unwired = attributes.state in (ABSENT, PARTIAL)
+    return EXIT_GATE if code == EXIT_GATE or unwired else EXIT_OK
 
 
 def _repairs(attributes: Attributes, driver: Driver) -> list[str]:
@@ -2300,7 +2314,9 @@ def _repairs(attributes: Attributes, driver: Driver) -> list[str]:
     so naming a repair for it would be answering one nobody asked.
     """
     repairs = []
-    if not attributes.wired:
+    if attributes.state in (ABSENT, PARTIAL):
+        # Not `not wired`: `UNKNOWN` is a question git could not answer (RK273), and naming a
+        # repair for it is the same overreach the config half already declines to make.
         repairs.append(f"{invocation()} merge --register")
     if driver.state in (ABSENT, UNRUNNABLE):
         repairs.append(config_command())

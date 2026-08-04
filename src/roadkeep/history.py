@@ -197,6 +197,45 @@ def check_ignore(root: Path, paths: Sequence[str]) -> frozenset[str]:
     return frozenset(name for name in listed.split(_NUL) if name)
 
 
+#: What `check-attr` answers where a path has no value for the attribute at all.
+UNSPECIFIED = "unspecified"
+
+
+def check_attr(root: Path, attribute: str, paths: Sequence[str]) -> dict[str, str]:
+    """What git resolves `attribute` to for each of these paths (RK273).
+
+    `check-attr` and not a read of `<root>/.gitattributes`, because that file is not where the
+    answer lives: git consults a `.gitattributes` in every directory from the path upward, then
+    `$GIT_DIR/info/attributes`, then `core.attributesFile`, with the deepest rule winning. A
+    read of the root file alone reports files unsent that git sends — measured, with
+    `.git/info/attributes` carrying the line. The repository already holds the declaration, so
+    it is asked rather than guessed at, the same choice :func:`check_ignore` makes (L6).
+
+    The value is git's own word: a driver's name where one is set, or :data:`UNSPECIFIED`,
+    `set`, `unset`. Richer than the boolean a string comparison yields — a path sent to a
+    *different* driver is a deliberate act, and invisible to a read looking only for one name.
+
+    `-z`, for the reason :func:`check_ignore` gives one command along: a path holding a quote
+    or a non-ASCII byte arrives as itself and not as git's escaped rendering. The paths go as
+    arguments rather than down `--stdin`, because a project declares a handful of governed
+    files and that keeps this on :func:`_bytes` — the package's one place with a timeout, an
+    encoding and a single failure type.
+    """
+    if not paths:
+        return {}
+    listed = _bytes(root, "check-attr", "-z", attribute, "--", *paths).decode(
+        "utf-8", errors="replace"
+    )
+    # Triples, `<path>\0<attribute>\0<value>\0`, so the walk is by threes and not by lines —
+    # a value is one field of a record here, never a line of output.
+    fields = [field for field in listed.split(_NUL) if field != ""]
+    return {
+        fields[index]: fields[index + 2]
+        for index in range(0, len(fields) - 2, 3)
+        if fields[index + 1] == attribute
+    }
+
+
 @dataclass(frozen=True, slots=True)
 class Change:
     """One changed line, numbered **on the side it exists on**.

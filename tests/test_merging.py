@@ -22,11 +22,13 @@ from roadkeep.history import HistoryUnavailable
 from roadkeep.merging import (
     ABSENT,
     CURRENT,
+    DRIVER,
     DRIVER_KEY,
     MOVED,
     PARTIAL,
     UNKNOWN,
     UNRUNNABLE,
+    UNSPECIFIED,
     attributed,
     config_command,
     driver_value,
@@ -453,6 +455,62 @@ def test_the_write_is_built_on_the_read_so_the_two_cannot_drift(tmp_path):
     assert written.added == before.missing and before.state == ABSENT
     assert attributed(config).state == CURRENT
     assert register(config).added == ()
+
+
+def test_an_attribute_git_honours_outside_the_root_file_is_not_unsent(tmp_path, capsys):
+    # RK273, and the measurement the section was written from: git resolves `merge` from a
+    # `.gitattributes` in every directory up, then `.git/info/attributes`, then
+    # `core.attributesFile` — so a read of the root file alone reported three files unsent
+    # while `check-attr` answered `roadkeep` for one of them.
+    config = repository(tmp_path)
+    info = tmp_path / ".git" / "info"
+    info.mkdir(parents=True, exist_ok=True)
+    (info / "attributes").write_text(f"{ROADMAP} merge={DRIVER}\n", encoding="utf-8")
+    attributes = attributed(config)
+    assert attributes.sent == (ROADMAP,) and attributes.state == PARTIAL
+    # The root file carries nothing, and that stays true: it is what `register` writes.
+    assert attributes.present == () and len(attributes.missing) == 3
+    assert main(["-C", str(tmp_path), "merge", "--check"]) == EXIT_GATE
+    printed = capsys.readouterr().out
+    assert "git sends 1 of 3 governed files" in printed and ROADMAP not in printed
+
+
+def test_a_governed_file_wired_to_another_driver_is_reported_and_not_argued_with(tmp_path, capsys):
+    # The case a string comparison could not see at all: it could only find its own name, so a
+    # file deliberately sent elsewhere read as nothing set.
+    config = repository(tmp_path)
+    register(config)
+    (tmp_path / ".gitattributes").write_text(f"{CHANGELOG} merge=theirs\n", encoding="utf-8")
+    attributes = attributed(config)
+    assert attributes.claimed == ((CHANGELOG, "theirs"),)
+    assert attributes.state == ABSENT
+    assert main(["-C", str(tmp_path), "merge", "--check"]) == EXIT_GATE
+    assert f"{CHANGELOG} → theirs" in capsys.readouterr().out
+
+
+def test_git_that_cannot_be_asked_leaves_the_attribute_half_unknown(tmp_path, capsys, monkeypatch):
+    # The reading `Driver` already had, arriving in the half that never needed it before: a
+    # question git could not answer names no repair, because nobody resolved it.
+    config = repository(tmp_path)
+
+    def refuse(*args, **kwargs):
+        raise HistoryUnavailable("git is not on PATH")
+
+    monkeypatch.setattr("roadkeep.history._bytes", refuse)
+    monkeypatch.setattr("roadkeep.history._run", refuse)
+    attributes = attributed(config)
+    assert attributes.state == UNKNOWN and not attributes.wired
+    assert main(["-C", str(tmp_path), "merge", "--check"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "could not be read" in printed and "merge --register" not in printed
+
+
+def test_the_two_modules_spell_gits_word_the_same_way():
+    # `merging` cannot import `history` at module level (RK260) and a property cannot pay a
+    # lazy import, so the literal is in both places — and held together here.
+    from roadkeep import history
+
+    assert UNSPECIFIED == history.UNSPECIFIED
 
 
 def test_following_the_repair_the_check_names_ends_the_check(tmp_path, capsys):

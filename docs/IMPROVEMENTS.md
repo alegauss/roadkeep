@@ -377,30 +377,6 @@ shape at six. What stays true either way is that a *validation* refusal keeps th
 
 ## Block E — Adoption
 
-### §RK273 RK273 — asking a file the question git answers
-
-`attributed` opens `<root>/.gitattributes` and compares strings. Git does not decide
-attributes that way: it reads a `.gitattributes` in every directory from the path up,
-then `$GIT_DIR/info/attributes`, then the core.attributesFile, with later and deeper
-rules winning. Measured in a scratch repository — `git check-attr merge --
-docs/ROADMAP.md` answered `merge: roadkeep` from `.git/info/attributes` while `merge
---check` reported all three files unsent and exited 1. The check is wrong in the
-direction that costs least (it under-reports wiring rather than over-reporting it) and
-it is still wrong.
-
-`git check-attr merge -z -- <paths>` answers exactly, in one call, for every governed
-file, and this package already runs git through `history._run` with its timeout, its
-encoding and its one failure type — the same wrapper RK220 reaches for `check-ignore`.
-The answer is `roadkeep`, `unspecified`, `unset` or something else, which is richer than
-the boolean a string comparison can produce: an attribute set to a *different* driver is
-a case the current read cannot see at all, and it is the one where somebody deliberately
-wired something else.
-
-What that costs is the read becoming unanswerable where git is not there — the `UNKNOWN`
-the config half already has, arriving in the half that never needed it. `register` keeps
-writing the root file either way; where to *put* a line is a decision, and where git
-*finds* one is a fact, so only the second should move.
-
 ## Block F — The plugin
 
 ### §RK267 RK267 — a note that knows more than it says

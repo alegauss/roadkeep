@@ -95,6 +95,11 @@ PARTIAL = "partial"
 #: Not an answer either way: no git, no repository, or a git too old for `config --default`.
 UNKNOWN = "unknown"
 
+#: git's own word for a path carrying no value for the attribute. Spelled here as well as in
+#: :mod:`roadkeep.history`, because this module may not import that one at module level (RK260)
+#: and a property cannot pay a lazy import — a test holds the two spellings together.
+UNSPECIFIED = "unspecified"
+
 
 @dataclass(frozen=True, slots=True)
 class Merge:
@@ -139,26 +144,58 @@ class Attributes:
     """
 
     path: Path
-    #: One line per governed file — what `.gitattributes` would have to carry.
+    #: One line per governed file — what the root `.gitattributes` would have to carry.
     wanted: tuple[str, ...]
-    #: Those of :attr:`wanted` the file already carries.
+    #: Those of :attr:`wanted` the root file already carries. `register`'s view, and only that:
+    #: where to *put* a line is a decision about this file, and it stays one (RK273).
     present: tuple[str, ...]
+    #: Git's own answer per governed path — this driver's name, another's, or `unspecified`
+    #: (RK273). The *fact* about what git sends where, which the root file cannot give.
+    resolved: tuple[tuple[str, str], ...] = ()
+    #: False when git could not be asked, the reading :class:`Driver` already has.
+    known: bool = True
 
     @property
     def missing(self) -> tuple[str, ...]:
+        """The lines `register` still has to write into the root file."""
         return tuple(line for line in self.wanted if line not in self.present)
 
     @property
-    def state(self) -> str:
-        """:data:`CURRENT`, :data:`PARTIAL` or :data:`ABSENT` — never :data:`UNKNOWN`.
+    def sent(self) -> tuple[str, ...]:
+        """The governed paths git resolves to **this** driver."""
+        return tuple(path for path, value in self.resolved if value == DRIVER)
 
-        No git is asked anything here: the file is in the working tree, so unlike the config
-        half there is no version of this question that cannot be answered. A project declaring
-        no governed files at all reads as :data:`CURRENT`, because nothing is unsent.
+    @property
+    def unsent(self) -> tuple[str, ...]:
+        return tuple(path for path, value in self.resolved if value != DRIVER)
+
+    @property
+    def claimed(self) -> tuple[tuple[str, str], ...]:
+        """Governed paths some **other** driver is named for — a deliberate act, so it is said.
+
+        Invisible to the string comparison this used to be, which could only find its own name
+        and read everything else as nothing set. A project that wired a different driver for one
+        file did so on purpose, and a check that reports it as unwired is arguing with a choice.
         """
-        if not self.missing:
+        return tuple(
+            (path, value)
+            for path, value in self.resolved
+            if value not in (DRIVER, UNSPECIFIED, "set", "unset")
+        )
+
+    @property
+    def state(self) -> str:
+        """What git would do with the governed files: the four states, plus :data:`UNKNOWN`.
+
+        Read off :attr:`resolved` and not off the root file, because "would git send this to
+        the driver" is git's question — and answering it from one file reported three unsent
+        while `check-attr` answered `roadkeep` from `.git/info/attributes` (RK273).
+        """
+        if not self.known:
+            return UNKNOWN
+        if not self.unsent:
             return CURRENT
-        return ABSENT if not self.present else PARTIAL
+        return ABSENT if not self.sent else PARTIAL
 
     @property
     def wired(self) -> bool:
@@ -335,21 +372,37 @@ def register(config: Config) -> Registration:
 
 
 def attributed(config: Config) -> Attributes:
-    """Which governed files `.gitattributes` already sends to this driver (RK270).
+    """Which governed files git sends to this driver, and what the root file carries (RK270/273).
 
     The read half of :func:`register`, which is why that function is written on top of it: two
     computations of "the line this role wants" would be the way the check and the write drift
     apart, and a check that agreed with nothing but itself is worse than no check.
+
+    Two questions, deliberately, because they have two answers. What the root `.gitattributes`
+    holds decides what `register` writes — a decision about one file, and one this tool owns
+    three lines of. What git *resolves* decides whether a merge reaches the driver at all, and
+    that is asked of git (RK273): the attribute may be set in a subdirectory, in
+    `.git/info/attributes`, or in `core.attributesFile`, none of which the root file mentions.
     """
+    # Imported here and not at module level (RK260), the reason :func:`registered` gives: the
+    # driver runs on git's merge path and `history` reaches `backlog` and `sections`.
+    from roadkeep.history import HistoryUnavailable, check_attr  # noqa: PLC0415
+
     path = config.root / ".gitattributes"
     existing = _attribute_lines(path)
-    wanted = tuple(
-        f"{config.relative(config.path(role))} merge={DRIVER}" for role in config.paths
-    )
+    paths = tuple(config.relative(config.path(role)) for role in config.paths)
+    wanted = tuple(f"{name} merge={DRIVER}" for name in paths)
+    try:
+        answered = check_attr(config.root, "merge", paths)
+        known = True
+    except HistoryUnavailable:
+        answered, known = {}, False
     return Attributes(
         path=path,
         wanted=wanted,
         present=tuple(line for line in wanted if line in existing),
+        resolved=tuple((name, answered.get(name, UNSPECIFIED)) for name in paths),
+        known=known,
     )
 
 
