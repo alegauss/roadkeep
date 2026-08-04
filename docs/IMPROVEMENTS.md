@@ -223,6 +223,25 @@ refusal list retired anchors beside live ones, sourced from the pointers history
 carries. And let `section add` derive the next free child of a family the way `add`
 derives an id — one past the highest ever used, not one past the highest surviving.
 
+### §RK264 A distribution is six numbers, and this one arrives with its whole sample
+
+L5 is that a question is a command, so answering costs no context. Measured on this
+repository: `weight --json` is 23,741 characters, of which the `weighed` array is 22,714
+— 95% — to deliver `low`, `p25`, `median`, `p75`, `p90`, `high` on two axes, per block.
+Scoping does not fix it: `--block F` is 4,793 characters and still 89% records. The
+question the command exists for is "what did a comparable cost", and the percentiles are
+the whole answer; the per-task list is the evidence for it, which a caller wants when it
+disputes the figure and not when it is deciding whether a line is two lines. The
+precedent for the shape is already here twice. `brief` reports `non_goals_elided`, so a
+caller knows the list it read was cut. RK10's argument is the other half: a listing that
+looked complete is the whole symptom, so an elision has to be named rather than silent.
+Together they give the design — report the distribution and the count, name what was
+left out, and ship the records under a flag, which is also the honest place for
+`co_shipped` and `unresolved` to stay. What must not happen is a cap: a top-N would make
+the p90 a statement about a sample nobody chose, and the figure is the one thing this
+command may not get wrong. Discovered by calling it unscoped for a question it does not
+answer, which is how the cost was noticed at all.
+
 ## Block D — The gate
 
 ### §RK239 The state every verb refuses and the gate does not report
