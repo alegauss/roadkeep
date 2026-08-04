@@ -31,7 +31,8 @@ so it costs you no thought: the id, the `→ §<id>` pointer, the status default
 list it numbers by track, and then `add --prefix <letter>` says which track while the number
 stays derived, per family. Where it declares `ref_scheme = "outline"` the anchor is not
 derivable at all, so `add --ref <x.y>` is the field that names it — offered over MCP too, and
-only there, an `add` without it on such a project being refused `ref.missing`. A refusal exits 2 naming the length and
+only there, an `add` without it on such a project being refused `ref.missing`; there the id in
+a section's heading is what binds it to its line, and it too is appended for you. A refusal exits 2 naming the length and
 the limit and writes nothing; the shipped marker never reaches the roadmap. **A line renders a
 pointer, and the pointer has to resolve**: `add --section "<title>"` writes the rationale in
 the same transaction — the prose on stdin or `--section-body`, both files validated before

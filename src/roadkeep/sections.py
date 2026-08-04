@@ -640,6 +640,10 @@ def add(
     where = config.relative(config.path(role))
     if task is None:
         task = _task_for(config, anchor)
+    # Bound before it is checked and before it is rendered, so the title this function
+    # validates is the one it writes (RK262) — a heading checked in one spelling and filed
+    # in another is the disagreement L3 refuses a file over.
+    title = _bound(document.schema, anchor, title, task)
     # The files are read only where nothing live answered *and* the anchor is an id (RK238,
     # narrowed by RK240): a section written for an open line, or under an outline anchor,
     # costs no second parse for a door it will never be handed.
@@ -735,7 +739,17 @@ def amend(
     _, _, heading = span
     own = "".join(document.lines[heading.lineno : document.prose_end(heading)]).strip("\r\n")
 
-    wanted_title = section.title if title is None else title
+    # Read before the no-op check rather than after it, because a `--title` has to be bound
+    # before it can be compared (RK262): the title that differs from the file only by the id
+    # it omits is a no-op, and comparing the unbound spelling would report a change and
+    # rewrite the heading to the bytes it already holds. The cost is one roadmap parse on the
+    # path that returns without writing, which is the rarest one here.
+    owner = _task_for(config, anchor)
+    # Only a title that was **passed** is bound. A body-only amend leaves the heading alone,
+    # id or no id: correcting a paragraph is not the call in which a heading silently changes.
+    wanted_title = (
+        section.title if title is None else _bound(document.schema, anchor, title, owner)
+    )
     wanted_body = own if body is None else body
     changed = tuple(
         name
@@ -748,7 +762,6 @@ def amend(
     if not changed:
         return document, section, ()
 
-    owner = _task_for(config, anchor)
     _check(
         document.schema,
         anchor,
@@ -876,6 +889,11 @@ def _check(
     the paragraph existed; one declaring a *looser* one had this door refusing prose the gate
     would accept, which is worse — a refusal on legal text is a refusal an author routes
     around. Threaded rather than looked up again, so the two readings cannot disagree.
+
+    The **binding** is not refused here and is not checked here at all: :func:`_bound` has
+    already rendered it (RK262), so by the time a title reaches this function it names the
+    task the anchor names, and a violation for the state that cannot arrive is a rule nobody
+    can trip.
     """
     out: list[Violation] = []
     if not anchor or anchor.startswith("§"):
@@ -921,6 +939,42 @@ def _check(
         )
     if out:
         raise SectionError(tuple(out))
+
+
+def _bound(schema: Schema, anchor: str, title: str, task: Task | None) -> str:
+    """The heading text with the task named in it, which is what makes it that task's (RK262).
+
+    Under an outline the anchor is an address and the **id in the heading is the binding** —
+    `§XVI.12 A design (SH123)` — so `add --section "A design"` wrote a section belonging to
+    nobody, and every reader afterwards was correct and useless: `ship` reported it *kept*,
+    as prose belonging to none; `lint` declined to call it orphaned on exactly that reading;
+    and the rationale for shipped work stayed in the prose file, which is what RK6 exists to
+    prevent. The recovery was a `section amend --title "<title> (<id>)"` the author had to
+    derive from a field named `kept`.
+
+    **Rendered and not refused**, which is the door the design listed first and the only one
+    `add --section` can take: that command *derives* the id, so an author composing the title
+    does not yet know what to type, and refusing would be the tool telling them the answer and
+    asking them to send it back. Nor is it prose (L4) — the id is the pointer's other end, and
+    rendering a binding into the text that carries it is what `Schema.render` does one file
+    over with `→ §<anchor>`.
+
+    Whose it is, is :func:`owners` and never a second reading of it: that function already
+    answers the question for the gate and for the drop, and a writer that agreed with neither
+    is how a heading passes the door and fails the departure. A throwaway :class:`Section`
+    because that is what it takes — every field but the two it reads is a placeholder. Under
+    `ref_scheme = "id"` the anchor satisfies it, so nothing is ever appended there: no branch
+    on the scheme, because the exemption *is* the reading.
+    """
+    if task is None or not title.strip():
+        # An empty title stays empty: appending the id would render `§X.1 (CT1)`, a heading
+        # that names its task and nothing else, and would take `title.empty` — the refusal
+        # that is the whole reason nothing composes a heading out of a blank field — with it.
+        return title.strip()
+    probe = Section(anchor=anchor, title=title.strip(), level=0, first=0, last=0)
+    if task.id in owners(probe, schema.id_pattern()):
+        return title.strip()
+    return f"{title.strip()} ({task.id})"
 
 
 def _unknown(anchor: str, elsewhere: Whereabouts | None) -> str:
@@ -1013,14 +1067,30 @@ def _task_for(config: Config, anchor: str) -> Task | None:
     so the refusal only ever fires for an anchor no live line names. An id the *ledger* holds
     is one of those, and rightly — a departure deletes the design, so there is no section to
     amend and no line to add back (RK4).
+
+    **Under an outline the pointer is the answer** (RK262), and until this read it there was
+    none: the anchor is an address, so the id test above matched nothing and every outline
+    section looked ownerless to every caller here — which is why `section add` and `amend`
+    could compose a heading naming no task while `add --section`, the one caller that passes
+    its own, could not. The scan is `_pointed_at`'s and the rule is RK64's: **exactly one**
+    live line, because four of Shio's point at one epic design, and picking one of four would
+    be this function answering a question the format leaves open. Nothing refuses on the None
+    that returns — an outline anchor never reaches `anchor.unknown` — so the cost of the
+    ambiguous case is a heading the author binds by hand, which is where it started.
     """
-    if not config.schema.id_pattern().match(anchor):
+    if config.schema.id_pattern().match(anchor):
+        for document in _live(config):
+            entry = document.by_id().get(anchor)
+            if entry is not None:
+                return entry.task
         return None
-    for document in _live(config):
-        entry = document.by_id().get(anchor)
-        if entry is not None:
-            return entry.task
-    return None
+    owners_here = [
+        entry.task
+        for document in _live(config)
+        for entry in document.entries
+        if entry.task.ref == anchor
+    ]
+    return owners_here[0] if len(owners_here) == 1 else None
 
 
 def _live(config: Config) -> Iterator[Document]:

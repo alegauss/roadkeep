@@ -1519,7 +1519,143 @@ def test_the_whole_deadlock_ends_with_a_clean_gate(tmp_path):
 
     prose = (tmp_path / "IMPROVEMENTS.md").read_text(encoding="utf-8")
     assert "## XXII A new theme (Block AI)" in prose
-    assert "### XXII.1 A design" in prose
+    # Bound to the line it was written for (RK262): the section a task ships is the one whose
+    # heading names it, and this title was composed before the author could know the id.
+    assert "### XXII.1 A design (CT1)" in prose
+
+
+# -- a heading that binds to the line it was written for (RK262) ---------------
+
+
+def test_a_section_written_for_a_task_names_it_even_when_the_title_does_not(tmp_path):
+    # The defect: `add --section` derives the id, so a title composed by hand cannot carry
+    # one — and the heading it wrote belonged to nobody from the moment it reached the file.
+    from roadkeep.authoring import add as add_task
+
+    config = outline(tmp_path)
+    insertion = add_task(
+        config,
+        block="B",
+        symptom="A fourth symptom",
+        why="Because of a fourth reason.",
+        ref="VIII.2",
+        section=("A second design", "The reasoning for it."),
+    )
+    assert insertion.section is not None
+    assert insertion.section.title == f"A second design ({insertion.entry.task.id})"
+
+
+def test_a_title_that_already_names_the_task_is_written_exactly_as_given(tmp_path):
+    # An author who knows the id and typed it gets their sentence back, not a second copy
+    # of the binding — `owners` is the reading, so what satisfies the gate satisfies this.
+    from roadkeep.authoring import add as add_task
+
+    config = outline(tmp_path)
+    insertion = add_task(
+        config,
+        block="B",
+        symptom="A fourth symptom",
+        why="Because of a fourth reason.",
+        ref="VIII.2",
+        section=("A second design (RK4)", "The reasoning for it."),
+    )
+    assert insertion.entry.task.id == "RK4"
+    assert insertion.section is not None
+    assert insertion.section.title == "A second design (RK4)"
+
+
+def test_a_section_belonging_to_no_task_keeps_the_title_it_was_given(tmp_path):
+    # The standing memo the outline scheme exists for: no line points at §IX.5, so there is
+    # no id to bind and appending one would invent an owner.
+    config = outline(tmp_path)
+    _, written = add(
+        config, "improvements", "VIII.11", "A standing memo", "Prose belonging to no task."
+    )
+    assert written.title == "A standing memo"
+
+
+def test_under_the_id_scheme_the_anchor_is_the_binding_and_nothing_is_appended(tmp_path):
+    # `§RK1 A first design` already belongs to RK1 — the anchor says so — so a title that
+    # repeated the id would be the tool writing what the format already states.
+    from roadkeep.authoring import add as add_task
+
+    config = project(tmp_path)
+    insertion = add_task(
+        config,
+        block="A",
+        symptom="A fourth symptom",
+        why="Because of a fourth reason.",
+        section=("A fourth design", "The reasoning for it."),
+    )
+    assert insertion.section is not None
+    assert insertion.section.title == "A fourth design"
+
+
+def test_an_amended_title_that_drops_the_id_gets_it_back(tmp_path):
+    # `section amend --title` is the other door onto the same state: a correction to the
+    # wording is not a decision to unbind the section from its line.
+    config = outline(tmp_path)
+    # RK1 points at §VIII.1 here, and the heading names SH75 — a prefix this project does
+    # not use, so the section was already nobody's under its own schema.
+    _, amended, _ = amend(
+        config, "improvements", "VIII.1", title="MCP server host, rewritten"
+    )
+    assert amended.title == "MCP server host, rewritten (RK1)"
+
+
+def test_an_amended_body_leaves_a_heading_that_names_no_task_alone(tmp_path):
+    # Correcting a paragraph is not the call in which a heading silently changes, and the
+    # file this arrives on is one no write of this tool's created.
+    config = outline(tmp_path)
+    before = find(config.document("improvements"), "IX.4.d")
+    _, amended, _ = amend(config, "improvements", "IX.4.d", body="A corrected paragraph.")
+    assert amended.title == before.title
+
+
+def test_an_anchor_two_lines_point_at_binds_to_neither(tmp_path):
+    # RK64's rule, read here: four of Shio's lines point at one epic design, and a writer
+    # that picked one of them would answer by guessing a question the format leaves open.
+    config = project(
+        tmp_path,
+        improvements=OUTLINE_RATIONALE,
+        top='ref_scheme = "outline"\n',
+        roadmap=BACKLOG.replace("§RK1", "§VIII.10")
+        .replace("§RK2", "§XIV.8.7")
+        .replace("§RK3", "§VIII.10"),
+    )
+    _, amended, _ = amend(
+        config, "improvements", "VIII.10", title="Batch and apply, rewritten"
+    )
+    assert amended.title == "Batch and apply, rewritten"
+
+
+def test_the_section_a_bound_heading_owns_is_the_one_its_ship_deletes(tmp_path):
+    # The whole finding, end to end: before this, `ship` reported the section *kept* as prose
+    # belonging to none, and the rationale for shipped work stayed in the prose file.
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "CT"\nref_scheme = "outline"\n[files]\n'
+        'roadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
+        'improvements = "IMPROVEMENTS.md"\n',
+        encoding="utf-8",
+    )
+    for name, body in {
+        "ROADMAP.md": "# Roadmap\n\n## Block A — Themes\n",
+        "CHANGELOG.md": "# Shipped\n\n## Block A — Themes\n",
+        "IMPROVEMENTS.md": "# Rationale\n\n## XXI A theme\n\nProse.\n",
+    }.items():
+        with (tmp_path / name).open("w", encoding="utf-8", newline="") as handle:
+            handle.write(body)
+
+    at = ["-C", str(tmp_path)]
+    assert main([*at, "add", "--block", "A", "--ref", "XXI.1", "--symptom", "A symptom",
+                 "--why", "Because of a reason.", "--section", "A design",
+                 "--section-body", "The reasoning."]) == EXIT_OK
+    assert main([*at, "ship", "CT1", "--why", "Because it works."]) == EXIT_OK
+
+    prose = (tmp_path / "IMPROVEMENTS.md").read_text(encoding="utf-8")
+    assert "XXI.1" not in prose  # deleted, not "kept as prose belonging to none"
+    assert "CT1" in (tmp_path / "CHANGELOG.md").read_text(encoding="utf-8")
+    assert main([*at, "lint"]) == EXIT_OK
 
 
 # -- the guard reads the name, not the shape (RK169) ---------------------------

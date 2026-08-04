@@ -77,29 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK262 A section add writes a heading ship will later decline to delete
-
-`add --section "<title>"` takes the title verbatim, and `add` is the one command that
-already knows the id it just assigned. If the author writes a title without it, nothing
-objects — and the binding `ship` needs is gone before anyone could notice it was there.
-
-`ship` then reports:
-
-    kept: "§LXVIII.4 names no task in its heading, so it is prose belonging to none —
-    the reading `lint` makes when it declines to report it orphaned"
-
-Every claim in that sentence is true and the outcome is still wrong twice. The rationale
-for shipped work stays in `IMPROVEMENTS.md`, which is the one thing `ship` exists to
-prevent; and `lint` explicitly will not report it, so the file is left in a state no
-gate will ever mention. The recovery is `section amend --title "<title> (<id>)"` then
-ship again — a sequence the author has to derive from a field named `kept`.
-
-Two doors, either of which closes it. `add --section` could append the id when the title
-omits it, since it is writing the heading and holds the id. Or the refusal could move
-earlier: decline a `--section` title that names no task, the way `add` already declines
-prose over budget — a limit reported before the words exist is the principle already in
-force one field over.
-
 ### §RK280 The one write in the contract that nothing guards
 
 Observed, not imagined. `a0c6f6c` ships RK244 and carries `document.py` +40 and `adopting.py`

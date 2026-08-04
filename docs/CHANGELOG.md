@@ -101,6 +101,7 @@
 - ✅ **RK244** **A paused id cannot be named as what supersedes a retired line** — `retire` resolves the replacement through `Backlog`, so a paused id is a supersession the tool accepts, and the answer names which of the three files holds it.
 - ✅ **RK249** **The add answer names the id it derived and not the pointer** — `add --json` reports `ref` beside `id`, so both derived addresses are read as fields — including where `--section` answered the pointer and `needs` is null.
 - ✅ **RK257** **A ship refusal names the missing block heading but not the verb that writes it** — The refusal now names the file whose labels it listed and spells `block add <label> --title`, the one verb that declares the heading wherever it is missing.
+- ✅ **RK262** **A section add writes a heading ship will later decline to delete** — A heading written for a task now carries its id, appended by the writer that holds it, so the section binds to the line and ship deletes it instead of keeping it.
 
 ## Block C — Query
 
