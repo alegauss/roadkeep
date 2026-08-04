@@ -2097,8 +2097,12 @@ def _event(task_id: str, block: str, roadmap: Document) -> dict[str, object]:
     Three facts and no more. "This block is done" stays a *derived* fact about the file
     every mutator just wrote, so it cannot go stale the way a queued message can, and the
     tool never learns what happens next.
+
+    Derived through `Document.holds`, which is the one reader of it (RK300): the gate says the
+    same thing about the same file (RK269), and two spellings of one question is what a test
+    can hold level but not keep from happening a third time.
     """
-    return {"id": task_id, "block": block, "block_empty": not roadmap.block(block)}
+    return {"id": task_id, "block": block, "block_empty": not roadmap.holds(block)}
 
 
 def _print_event(event: dict[str, object], indent: str = "") -> None:

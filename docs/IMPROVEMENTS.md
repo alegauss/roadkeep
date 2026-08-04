@@ -297,31 +297,6 @@ wants and the asymmetry `budget` already carries between an add and an amend.
 
 ## Block D — The gate
 
-### §RK300 One fact, two spellings, one test between them
-
-RK269 shipped a `lint --since` note about a block emptying, and the note has to agree
-with the `event <id> Block <x> empty` line `ship` prints, because they answer the same
-question about the same file. They agree by having the same expression written twice:
-`cli._event` computes `not roadmap.block(block)` and `linting._turned` computes
-`len(roadmap.block(label))`, in two modules that never call each other.
-
-Which is the shape this project removes elsewhere and did not remove here. The
-`PreToolUse` matcher and `GUARDED_TOOLS` are one list because two lists disagree
-eventually; `_only_reads` reads the parser's own declaration rather than a list at the
-call site (RK167); `lint` re-validates through `Schema.validate` rather than owning
-regexes, on the argument that a second statement of a rule diverges in the direction
-nobody tests. Here the direction *is* tested —
-`test_the_note_and_the_ship_event_answer_the_same_question` — and a test is a weaker
-guarantee than one caller: it holds the two outputs level without stopping a third
-reader from spelling it a fourth way.
-
-The answer is small: one predicate on `Document`, or beside it, that says whether a
-label still holds an open line, with both readers calling it. What is worth deciding is
-whether it also belongs to the deferred store's question — a paused line is not open
-(RK92) and both current readers agree by ignoring it, so the name must not suggest
-otherwise, and a third caller wanting "any line at all" is a different predicate rather
-than a flag on this one.
-
 ## Block E — Adoption
 
 ## Block F — The plugin

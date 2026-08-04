@@ -40,8 +40,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK300** (deps: —) **Whether a block still holds open work is computed in two modules** — `cli._event` and `linting._turned` each spell `roadmap.block(label)`, so the event line and RK269's note are two answers to one question, held in step by a test alone. → §RK300
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

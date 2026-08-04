@@ -779,6 +779,59 @@ def test_entries_are_reachable_by_id_and_by_block():
     assert document.heading("B").text.startswith("Block B")
 
 
+# -- is that block still occupied (RK300) -----------------------------------
+
+
+def test_a_block_with_a_line_is_held_and_one_without_is_not():
+    document = parse(
+        "## Block A — The model",
+        LINE.replace("RK9", "RK1"),
+        "## Block B — Authoring",
+    )
+    assert document.holds("A") and not document.holds("B")
+    # A label no heading declares is not held either, which is the answer a caller iterating
+    # over one tree's headings against another's needs (RK269).
+    assert not document.holds("Z")
+
+
+def test_the_predicate_agrees_with_the_tuple_it_replaces_reading():
+    # The whole point of one reader: `holds` is `any` and `block` builds a tuple, so the two
+    # must not be able to disagree about a label — this is the equivalence, per block.
+    document = parse(
+        "## Block A — The model",
+        LINE.replace("RK9", "RK1"),
+        "## Block B — Authoring",
+        LINE,
+        "## Block C — Query",
+    )
+    for label in ("A", "B", "C", "Z"):
+        assert document.holds(label) == bool(document.block(label)), label
+
+
+def test_the_two_readers_of_it_are_the_only_two():
+    """The guarantee the rationale asked for, and a test is how it stays one: RK269's note and
+    RK38's event line both answer "is that block empty", and nothing else may spell it again.
+
+    Source, not behaviour, because behaviour is what a third spelling would agree with right
+    up until it did not — which is the argument `_only_reads` and `GUARDED_TOOLS` are built on.
+    """
+    package = Path(__file__).resolve().parents[1] / "src" / "roadkeep"
+    # `document.py` is where both are defined and where each one's docstring names the other,
+    # so it is the one module that is not a caller.
+    callers = {m.name: m.read_text(encoding="utf-8") for m in package.rglob("*.py")}
+    callers.pop("document.py")
+    spellings = {name for name, text in callers.items() if ".block(" in text}
+    # Every remaining caller wants the entries themselves: `backlog.py` expands a `Block X`
+    # dep into member ids, `authoring.py` finds where to insert, and `linting.py` counts how
+    # many lines a block *held* for the note's own sentence — which the event line never
+    # computes, so it is a second fact rather than a second answer to the first one.
+    assert spellings == {"backlog.py", "authoring.py", "linting.py"}
+    assert {name for name, text in callers.items() if ".holds(" in text} == {
+        "cli.py",
+        "linting.py",
+    }
+
+
 # -- the write a reader can catch halfway (RK118) ---------------------------
 
 

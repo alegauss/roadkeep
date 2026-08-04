@@ -942,9 +942,13 @@ def _turned(config: Config, documents: dict[str, Document], since: str) -> list[
 
     A **note**, because emptying a block is what finishing one looks like. Only blocks *both*
     trees declare: one that arrived is `block add`'s own event and one that left is `block drop`,
-    and neither is a transition of state. Open is `roadmap.block(label)` and nothing wider — the
-    same expression the event line uses, because two answers to "is that block empty" is the
-    defect with the arrow reversed (RK92: a deferred line is set aside, not open).
+    and neither is a transition of state.
+
+    Emptiness is `Document.holds` and nothing wider — the same *call* the event line makes and
+    not a second spelling of it (RK300), because two answers to "is that block empty" is this
+    defect with the arrow reversed (RK92: a deferred line is set aside, not open). The counts
+    below are presentation and not the decision: how many lines a block held is a fact about
+    the baseline that the event line never computes, so it is read where it is printed.
     """
     roadmap = documents.get("roadmap")
     if roadmap is None:
@@ -958,32 +962,33 @@ def _turned(config: Config, documents: dict[str, Document], since: str) -> list[
     if before is None:
         return []
     file = config.relative(config.path("roadmap"))
-    was = {h.label: len(before.block(h.label)) for h in before.headings if h.label}
+    declared = {h.label for h in before.headings if h.label}
+    held = {label for label in declared if before.holds(label)}
     out: list[Note] = []
     for heading in roadmap.headings:
         label = heading.label
-        if label is None or label not in was:
+        if label is None or label not in declared:
             continue
-        now = len(roadmap.block(label))
-        if was[label] and not now:
+        now = roadmap.holds(label)
+        if label in held and not now:
             out.append(
                 Note(
                     "block.emptied",
                     file,
-                    f"held {was[label]} open line(s) at {since} and holds none now: a "
-                    f"projection that states which blocks are active is a row this commit "
-                    f"moves, and nothing else here will say so",
+                    f"held {len(before.block(label))} open line(s) at {since} and holds none "
+                    f"now: a projection that states which blocks are active is a row this "
+                    f"commit moves, and nothing else here will say so",
                     heading.lineno,
                     label,
                 )
             )
-        elif now and not was[label]:
+        elif now and label not in held:
             out.append(
                 Note(
                     "block.reopened",
                     file,
-                    f"held no open line at {since} and holds {now} now: the same row, in "
-                    f"the other direction",
+                    f"held no open line at {since} and holds {len(roadmap.block(label))} now: "
+                    f"the same row, in the other direction",
                     heading.lineno,
                     label,
                 )

@@ -602,6 +602,29 @@ class Document:
     def block(self, label: str) -> tuple[Entry, ...]:
         return tuple(e for e in self.entries if e.task.block == label)
 
+    def holds(self, label: str) -> bool:
+        """Whether any line in **this** file is filed under ``label`` (RK300).
+
+        The one reader of "is that block still occupied", and it exists because there were
+        two: `ship` prints `event <id> Block <x> empty` and `lint --since` notes the same
+        transition (RK269), and until this they were one expression written twice in modules
+        that never call each other. That is the shape this project removes everywhere else —
+        one `GUARDED_TOOLS`, one `Schema.validate`, `_only_reads` reading the parser's own
+        declaration — and a test holding two outputs level is weaker than one caller, because
+        it does not stop a third reader from spelling it a fourth way.
+
+        Deliberately **not** named for openness. "Open" is not a property of a label, it is a
+        property of the file being asked: the roadmap is the active backlog, so
+        `roadmap.holds(label)` *is* the open question, while the deferred store answers about
+        paused work and the ledger about shipped (RK92). A name carrying the word would make
+        the wrong one of those three read as a bug rather than as a different question.
+
+        `any` and not `len(self.block(label))`: the answer is a boolean, so the walk stops at
+        the first line instead of building a tuple to measure — which is what the gate wants,
+        asking this once per declared heading per tree.
+        """
+        return any(entry.task.block == label for entry in self.entries)
+
     def heading(self, label: str) -> Heading | None:
         """The first heading naming ``label`` — where `add` inserts (RK5)."""
         return next((h for h in self.headings if h.label == label), None)
