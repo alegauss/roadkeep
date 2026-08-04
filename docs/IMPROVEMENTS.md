@@ -405,31 +405,6 @@ shape at six. What stays true either way is that a *validation* refusal keeps th
 
 ## Block E — Adoption
 
-### §RK288 The disease RK285 named, caught in RK281's own code
-
-Shio's rationale file under the defaults: `0 section(s), 0 conform, 94 would change`,
-and `loose 94 heading(s) with prose and no anchor`. Under `--ref-scheme outline`: `93
-conform, 1 would change`. Its headings read `### 0.1 The goals, restated` — anchored, in
-the scheme this file uses and the reading did not.
-
-RK281 introduced this instance. `unanchored` decides "carries no anchor" by asking
-`_anchor_of` under the document's schema, which is scheme-dependent, so under the wrong
-one every correctly anchored heading falls into the count as work. The measurement is
-right about what it was asked and wrong about what the reader concludes — the shape
-RK285 was filed for, reappearing in the fix for its sibling.
-
-RK285's remedy does not reach here. That `also` line is built from `_schemes`, which
-reads the pointers on **task lines**, and a rationale file has none — so the one output
-that would say "read this the other way" is structurally absent on the command where the
-misreading is total.
-
-The scheme is observable from the headings for the reason it is from the pointers: an
-anchor is `0.1` or it is an id, and which a file spells is a fact. So `_schemes` wants a
-second source — the anchors a prose file's headings carry — and `--sections` wants the
-`also` line following from it. What must not happen is `unanchored` guessing a scheme
-per heading: that makes the count right and leaves the report claiming the wrong
-reading.
-
 ## Block F — The plugin
 
 ### §RK267 A note that knows more than it says

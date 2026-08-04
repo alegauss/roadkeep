@@ -4367,7 +4367,15 @@ def _print_estimate(estimate: Estimate) -> None:
                 f"  also     {count} id(s) spell {prefix}, unread here: "
                 f"--prefix {prefix} if it is a track of this backlog"
             )
+    # Only where the other scheme accounts for *more* of the file than the declared one does
+    # (RK288). This repository's own rationale file anchors its preamble `§0.1` and its task
+    # sections `§RK200`, so a bare "some headings are outline-shaped" fired on a file that is
+    # 23 of 23 conforming — an alarm about a reading nothing is wrong with. The prefix line
+    # has the same guard by another name: it prints only families the chosen ones do not cover.
+    reading = dict(estimate.schemes).get(estimate.ref_scheme, 0)
     for scheme, count in estimate.schemes:
+        if count <= reading:
+            continue
         # The same sentence one field over (RK285). Shio read `0 conform, 65 would change`
         # under the default and `63 conform, 2 would change` under `--ref-scheme outline`,
         # with `ref.mismatch` on every line as the only signal — while the prefix half of the
@@ -4375,9 +4383,13 @@ def _print_estimate(estimate: Estimate) -> None:
         # the reader for the reason that one does: whether a live outline is what this backlog
         # numbers by is a decision about the project, not a fact about the file.
         if scheme != estimate.ref_scheme:
+            # Worded off `unit` for the reason the loose line is (RK288): on a backlog the
+            # evidence is the pointers, on a rationale file it is the headings' own anchors,
+            # and one sentence for both would name neither.
+            spells = "pointer(s) spell" if estimate.unit == "line" else "heading(s) anchored"
             print(
-                f"  also     {count} pointer(s) spell {scheme}, unread here: "
-                f"--ref-scheme {scheme} if that is how this backlog addresses its sections"
+                f"  also     {count} {spells} {scheme}, unread here: "
+                f"--ref-scheme {scheme} if that is how this project addresses its sections"
             )
     for declaration, count in estimate.ledger_shape:
         # Beside the `[ids]` line and in its shape (RK286): a count, and the keys that close

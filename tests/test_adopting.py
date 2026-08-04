@@ -601,6 +601,66 @@ def test_counting_the_bullets_is_not_reading_them(tmp_path: Path) -> None:
     assert all(measure.longest == 0 for measure in estimate.measures)
 
 
+#: A rationale file anchored the way Shio's is: `0.1`, no sigil, because `anchor_text` writes
+#: one only under the id scheme. Under `id` every one of these reads as carrying no anchor.
+OUTLINE_PROSE = """# Design notes
+
+## 0 — Why this exists
+
+### 0.1 The goals, restated
+
+Prose under the first anchor, enough of it to be a section.
+
+### 0.2 What this is today
+
+More prose, under the second.
+"""
+
+
+def test_a_prose_file_can_say_which_scheme_its_headings_are_in(tmp_path: Path) -> None:
+    # RK288: `_schemes` reads pointers on task lines and a rationale file has none, so the one
+    # sentence that would say "read this the other way" was absent on the command where the
+    # misreading is total — Shio read 0 conform under the default and 93 under `outline`.
+    target = tmp_path / "DESIGN.md"
+    target.write_text(OUTLINE_PROSE, encoding="utf-8")
+    estimate = adopt(Config.default(tmp_path), target, sections=True)
+    assert dict(estimate.schemes)["outline"] >= 2
+    assert estimate.parsed == 0, "under `id` these anchors are invisible, which is the defect"
+
+
+def test_the_scheme_line_fires_where_the_reading_is_the_minority(tmp_path: Path, capsys) -> None:
+    target = tmp_path / "DESIGN.md"
+    target.write_text(OUTLINE_PROSE, encoding="utf-8")
+    assert main(["-C", str(tmp_path), "adopt", str(target), "--sections"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "heading(s) anchored outline" in printed
+    assert "--ref-scheme outline" in printed
+
+
+def test_a_file_that_mixes_anchors_is_not_told_to_switch(tmp_path: Path, capsys) -> None:
+    """This repository's own rationale file anchors its preamble `§0.1` and its task sections
+    `§RK200`, so a bare "some headings are outline-shaped" fired on a file that conforms."""
+    root = Path(__file__).resolve().parents[1]
+    config = Config.discover(root)
+    estimate = adopt(config, config.path("improvements"), sections=True)
+    assert estimate.conforming == estimate.parsed and estimate.changing == 0
+    # Both shapes are present; the declared one dominates, so nothing is suggested.
+    counts = dict(estimate.schemes)
+    assert counts.get("outline") and counts["id"] > counts["outline"]
+    assert main(["-C", str(root), "adopt", str(config.path("improvements")), "--sections"]) == EXIT_OK
+    assert "also" not in capsys.readouterr().out
+
+
+def test_unanchored_still_asks_the_declared_scheme(tmp_path: Path) -> None:
+    """What must not happen (RK288): a count that quietly repaired itself would leave the
+    reader the right number under a reading the report still claims is right."""
+    target = tmp_path / "DESIGN.md"
+    target.write_text(OUTLINE_PROSE, encoding="utf-8")
+    schema = Config.default(tmp_path).schema_for("improvements")
+    document = Document.load(target, schema)
+    assert len(unanchored(document)) == 2, "read under `id`, these carry no anchor it knows"
+
+
 def test_a_fenced_list_is_an_example(tmp_path: Path) -> None:
     """A rationale file quotes the shape it argues about, and a fence is what says so."""
     target = tmp_path / "ROADMAP.md"

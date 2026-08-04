@@ -707,6 +707,9 @@ def _prose(config: Config, target: Path, ref_scheme: str | None) -> Estimate:
         inferred=False,
         unit="section",
         ref_scheme=schema.ref_scheme,
+        # RK288: the second source. Without it `--sections` had no way to say "read this the
+        # other way", which is the one sentence Shio's file needed.
+        schemes=_heading_schemes(document),
         parsed=len(found),
         conforming=sum(1 for count in words if count <= schema.section_max),
         # RK281: the same contract `listed` has one file over. A rationale file that never
@@ -929,6 +932,36 @@ def _ledger_shape(document: Document, schema: Schema) -> tuple[tuple[str, int], 
         read = len(Document.parse(text, under).entries)
         if read > len(document.entries):
             counts[", ".join(slots)] = read
+    return _ranked(counts)
+
+
+def _heading_schemes(document: Document) -> tuple[tuple[str, int], ...]:
+    """Which scheme the **headings** of a prose file are anchored in, counted (RK288).
+
+    :func:`_schemes` reads the pointers on task lines, and a rationale file has none — so the
+    one output that would say "read this the other way" was structurally absent on the command
+    where the misreading is total. Shio's rationale file read `0 conform, 94 would change`
+    under the default and `93 conform` under `--ref-scheme outline`, with no line naming the
+    flag.
+
+    Read off the heading's first token and never off the schema, which is the whole point: an
+    anchor is `0.1` or it is an id, and which a file spells is a fact about the file. The
+    sigil is optional here because `anchor_text` writes one only under the id scheme — a bare
+    `0.1` is what an outline heading looks like on disk.
+
+    This is a *report* about the file and never a per-heading guess: :func:`unanchored` keeps
+    asking the declared schema, because a count that quietly repaired itself would leave the
+    reader with the right number under a reading the report still claims is right.
+    """
+    counts: dict[str, int] = {}
+    for heading in document.headings:
+        token = heading.text.split(maxsplit=1)[0].lstrip("§") if heading.text.strip() else ""
+        if not token:
+            continue
+        if _ID_PARTS_RE.match(token):
+            counts["id"] = counts.get("id", 0) + 1
+        elif OUTLINE_ANCHOR_RE.match(token):
+            counts["outline"] = counts.get("outline", 0) + 1
     return _ranked(counts)
 
 
