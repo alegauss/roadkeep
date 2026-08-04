@@ -494,16 +494,28 @@ class NoCompletion(ValueError):
 
 
 class NoSuchReplacement(KeyError):
-    """A forward pointer to an id that is in neither file (RK32).
+    """A forward pointer to an id no file holds, or to the retiring line itself (RK32).
 
     Refused, because a pointer to nothing is the exact defect this records against: the
     reader of the gap would be sent somewhere else that does not explain it either.
+
+    *No file* is three of them (RK244). An id that was set aside is findable — the store is
+    a file and `resume` brings the line back — so reading only the roadmap and the ledger
+    refused the supersession most worth recording, and did it by saying "in neither file"
+    about a line that was in one.
     """
 
-    def __init__(self, replacement: str, task_id: str) -> None:
+    def __init__(self, replacement: str, task_id: str, *, itself: bool = False) -> None:
+        if itself:
+            where = f"{replacement} is {task_id}, and a line cannot replace itself"
+        else:
+            where = (
+                f"{replacement} is in none of the three files this reads — not the "
+                f"roadmap, not the ledger, not the deferred store"
+            )
         super().__init__(
-            f"{replacement} is in neither file, so it cannot be what replaces "
-            f"{task_id}: retire it against an id that exists, or as abandoned"
+            f"{where}, so it cannot be what replaces {task_id}: retire it against an "
+            f"id that exists, or as abandoned"
         )
 
 

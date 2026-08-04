@@ -377,6 +377,30 @@ shape at six. What stays true either way is that a *validation* refusal keeps th
 
 ## Block E — Adoption
 
+### §RK279 RK279 — the estimate an unadopted backlog actually gets
+
+RK98 settled the principle and `adopting.py` states it: "a zero the reader cannot tell
+from an empty file is the one answer an estimate may not give". It is implemented for
+two shapes — a table row, and a marker-bearing bullet the grammar refused. An ordinary
+list bullet is neither, so nothing counts it.
+
+Measured, same two tasks, two shapes of one file: as a table, `2 would change`; as `- [
+] …`, `0 would change`. Plain `-`, `*` and `1.` price like the checkbox. That is the
+shape almost every unadopted roadmap is in, so the answer RK98 forbids is the one the
+common case gets — and the measure lines under it read `longest 0 of 120, 0 over`,
+reassurance drawn from an empty set.
+
+The reason this was not done with the tables is real and has to survive the fix: a
+roadmap's bullets are not all tasks. The preamble is bullets, the non-goals are bullets,
+a prose aside is a bullet. Counting every one as an unreadable task would price the
+frame as work.
+
+What separates them is already parsed. `Document.headings` carries the block labels and
+`_scoped` already finds the non-goals by heading; a bullet **under a declared block
+heading** is where a task would be, and the preamble is not. That gives `tabular`'s
+shape — one count, added to `changing` the same way — with no second grammar and no
+guess at meaning, which is the line L4 draws.
+
 ## Block F — The plugin
 
 ### §RK267 RK267 — a note that knows more than it says
