@@ -26,7 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK231** (deps: —) **A paused task's rationale cannot be corrected, the door refusing it as prose nothing owns** — `_task_for` reads the roadmap alone, so `section amend RK1` on a deferred line answers `anchor.unknown` — no open task points at the section RK96 deliberately kept for it. → §RK231
 - 💭 **RK232** (deps: —) **Writer and gate part company again on an anchor two prose files declare** — `_pointed_at` asks only whether a line names the anchor, while `lint` charges own prose where two roles declare one — so RK215's agreement holds everywhere except the state `ref.ambiguous` reports. → §RK232
 - 📋 **RK233** (deps: —) **A non-goal `brief` prints by its lead is one `drop` cannot address** — `leads` falls back to a bullet's first sentence where no bold lead exists and `read` skips those bullets, so Turing's seven print, count as unread, and answer to no address. → §RK233
 

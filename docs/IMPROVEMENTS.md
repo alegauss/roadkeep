@@ -100,32 +100,6 @@ overrun would be back to guessing, with a smaller number to guess against.
 
 ## Block B — Authoring
 
-### §RK231 RK123's deadlock, for work that was set aside
-
-Found by a test written for RK215 that failed for the wrong reason, which is why it is
-filed rather than described: the refusal is reproducible, and it arrives before the
-check the test was about.
-
-`section amend` validates through `_check`, which asks `_task_for` whether an id-shaped
-anchor names an open task. That function reads `config.document("roadmap")` and nothing
-else, so a task in the deferred store is not open by its reading — and the refusal says
-*no open task RK1 points at this section: add the line first*, about a line that exists,
-in the file `resume` restores from.
-
-The state is one the tool creates on purpose. RK96's argument for the store is that a
-pause keeps the id, the deps, the symptom **and the section** a departure deletes, so
-the section is live work's design. Correcting it is the ordinary case RK123 opened this
-verb for: a paused design is at least as likely to go stale as an open one, nothing
-being written against it.
-
-Which makes this RK123's deadlock displaced. `drop` refuses while a pointer claims the
-anchor, that pointer is in the store, `amend` refuses because it reads a different file
-than the pointer lives in, and the guard denies the `Edit`.
-
-The fix looks like RK215's for the neighbouring question: ask both live roles, which is
-what the gate reads and what `_pointed_at` now asks. Worth deciding with it whether
-`anchor.unknown` should tell *paused* from *absent*.
-
 ### §RK232 The corner RK215 left, named by the commit that left it
 
 RK215's claim is that the writer charges a section exactly what the gate charges it, and

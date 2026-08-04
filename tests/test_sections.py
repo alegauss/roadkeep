@@ -995,6 +995,51 @@ def test_a_deferred_line_still_claims_the_subtree(tmp_path):
     assert read(config) == CONTAINED
 
 
+def paused(tmp_path: Path, *, roadmap: str = "# Roadmap\n\n## Block A — The model\n") -> Config:
+    """RK1's line set aside, with the §RK1 design RK96 keeps for the return trip."""
+    config = project(tmp_path, roadmap=roadmap, extra='deferred = "docs/DEFERRED.md"\n')
+    with (config.root / "docs" / "DEFERRED.md").open("w", encoding="utf-8", newline="") as h:
+        h.write(
+            "# Deferred\n\n## Block A — The model\n\n"
+            "- ⏸ **RK1** (deps: —) **A first symptom** — set aside (later): "
+            "Because of a reason. → §RK1\n"
+        )
+    return Config.discover(tmp_path)
+
+
+def test_a_paused_tasks_rationale_can_be_corrected(tmp_path):
+    # RK231, and RK123's deadlock displaced: `drop` refuses while the store's pointer claims
+    # the anchor, the guard denies the `Edit`, and `amend` read the roadmap alone — so the
+    # design of a line the tool itself set aside was the one nobody could correct.
+    config = paused(tmp_path)
+    document, section, _ = amend(config, "improvements", "RK1", body="The reasoning, corrected.")
+    assert section.body.startswith("The reasoning, corrected.")
+    document.save()
+    assert "The reasoning, corrected." in read(config)
+
+
+def test_a_section_can_be_written_for_a_line_that_is_set_aside(tmp_path):
+    # The other door `_task_for` gates. A pause keeps the block, so the placement a section
+    # derives from the line is still there to derive from.
+    config = paused(tmp_path, roadmap="# Roadmap\n\n## Block A — The model\n")
+    document, written = add(
+        config, "improvements", "RK1.2", "A later subsection", "Written while paused."
+    )
+    assert written.anchor == "RK1.2"
+    document.save()
+    assert "#### §RK1.2 A later subsection" in read(config)
+
+
+def test_an_anchor_no_live_line_names_is_still_refused(tmp_path):
+    # What the refusal is left with, and it is the whole of it: an id the ledger holds is
+    # unknown here too, because a departure deletes the design in the same transaction.
+    config = paused(tmp_path)
+    with pytest.raises(SectionError) as raised:
+        add(config, "improvements", "RK9", "A design", "For a line nothing carries.")
+    assert [v.code for v in raised.value.violations] == ["anchor.unknown"]
+    assert "no live task RK9" in str(raised.value)
+
+
 def test_the_command_amends_the_container(tmp_path, capsys, monkeypatch):
     config = contained(tmp_path)
     monkeypatch.setattr(sys, "stdin", io.StringIO("A shorter intro that is now true."))

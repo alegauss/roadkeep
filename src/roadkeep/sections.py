@@ -44,7 +44,7 @@ from __future__ import annotations
 
 import re
 import textwrap
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterator, Mapping, Sequence
 from dataclasses import dataclass, replace
 
 from roadkeep.config import PROSE_ROLES, Config
@@ -738,13 +738,15 @@ def _check(
             )
         )
     elif schema.id_pattern().match(anchor) and task is None:
-        # The pointer is the id (RK27), so an id-shaped anchor that names no open task is
-        # a section nothing can ever point at — an orphan the moment it is written.
+        # The pointer is the id (RK27), so an id-shaped anchor that names no live task is
+        # a section nothing can ever point at — an orphan the moment it is written. *Live*
+        # and not open (RK231): a paused line keeps its id and its pointer, so its design is
+        # amendable, and the word here is the one `_task_for` reads.
         out.append(
             Violation(
                 "anchor.unknown",
                 "anchor",
-                f"no open task {anchor} points at this section: add the line first, or "
+                f"no live task {anchor} points at this section: add the line first, or "
                 f"use an outline anchor for prose that belongs to no task",
             )
         )
@@ -785,20 +787,48 @@ def _pointed_at(config: Config, anchor: str) -> bool:
     section (RK96), so work set aside still claims its rationale. The ledger is not among
     them — a departure deletes the section in the transaction that writes the entry.
     """
-    for role in ("roadmap", "deferred"):
-        if not config.has(role) or not config.path(role).is_file():
-            continue
-        if any(entry.task.ref == anchor for entry in config.document(role).entries):
-            return True
-    return False
+    return any(
+        entry.task.ref == anchor
+        for document in _live(config)
+        for entry in document.entries
+    )
 
 
 def _task_for(config: Config, anchor: str) -> Task | None:
-    """The open task this anchor names, if it names one at all."""
+    """The live task this anchor names, if it names one at all.
+
+    Both live roles, for the reason `_pointed_at` reads both (RK231) — and this is the half
+    that *refuses*. Reading the roadmap alone, `section amend RK1` on a paused line answered
+    `anchor.unknown`: "no open task RK1 points at this section: add the line first", about a
+    line that exists, in the file `resume` restores from. That closed the last door on a
+    state the tool creates on purpose, RK123's deadlock displaced — `drop` refused while the
+    store's pointer claimed the anchor, `amend` refused because it read a different file than
+    the pointer lived in, and the guard denied the `Edit`.
+
+    Which leaves `anchor.unknown` with nothing to distinguish: a paused task is found here,
+    so the refusal only ever fires for an anchor no live line names. An id the *ledger* holds
+    is one of those, and rightly — a departure deletes the design, so there is no section to
+    amend and no line to add back (RK4).
+    """
     if not config.schema.id_pattern().match(anchor):
         return None
-    entry = config.document("roadmap").by_id().get(anchor)
-    return entry.task if entry is not None else None
+    for document in _live(config):
+        entry = document.by_id().get(anchor)
+        if entry is not None:
+            return entry.task
+    return None
+
+
+def _live(config: Config) -> Iterator[Document]:
+    """The files a task line is live in, in the order a reader should trust them.
+
+    One place, because the two questions above are the same question about one set of files:
+    a pointer that claims a section and a task that owns one are both facts a ⏸ line still
+    carries (RK96). The changelog is deliberately absent from both.
+    """
+    for role in ("roadmap", "deferred"):
+        if config.has(role) and config.path(role).is_file():
+            yield config.document(role)
 
 
 # -- rendering and placement -------------------------------------------------
