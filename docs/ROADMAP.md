@@ -29,6 +29,7 @@
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK200** (deps: —) **Which governed files no verb wrote is answerable only by trying to end the turn** — RK175 records a digest per write and states one change once at the `Stop` hook, so the only way to ask is to be blocked — and it re-baselines as it reports, so the fact is gone. → §RK200
+- 📋 **RK245** (deps: —) **The number that binds an amend is the one figure `budget` states only in characters** — A line reads `182 written, 18 left  aim 30 words`, so the only unit the author can count names the whole field while the room they actually have is 18 characters. → §RK245
 
 ## Block D — The gate
 
