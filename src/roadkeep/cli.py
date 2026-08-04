@@ -48,7 +48,7 @@ from roadkeep.authoring import StatusChange, add, amend, restate, set_status
 from roadkeep.backlog import Backlog
 from roadkeep.blocking import drop_block, open_block
 from roadkeep.briefing import Brief, brief, non_goals
-from roadkeep.budgeting import Budget, budget
+from roadkeep.budgeting import Budget, Share, budget
 from roadkeep.capturing import PARTS, body, capture, check, handoff, keep, offer, replay
 from roadkeep.config import PROSE_ROLES, Config, ConfigError
 from roadkeep.counting import Census
@@ -3432,8 +3432,10 @@ def _brief(config: Config, args: argparse.Namespace) -> int:
         # One line, and only the field an amend rewrites (RK190): the whole table is
         # `budget`'s answer, and a brief that grew one would stop being a bounded one.
         why = gathered.budget.share("why")
+        # The same figure `budget` states, off the same `Share` (RK245): a brief that named
+        # the whole field's aim beside this line's remainder would be the second answer.
         print(
-            f"  budget   why {why.left} of {why.allowed} left, aim {why.aim} words, "
+            f"  budget   why {why.left} of {why.allowed} left, {_aim(why)}, "
             f"{gathered.budget.prose} for prose"
         )
     for resolution in gathered.deps:
@@ -3582,9 +3584,20 @@ def _budget(config: Config, args: argparse.Namespace) -> int:
         # are what a model can count towards, so both are stated and neither is converted.
         print(
             f"  {share.field:<11}{share.allowed} of {share.limit}{taken}"
-            f"  aim {share.aim} words{bound}"
+            f"  {_aim(share)}{bound}"
         )
     return EXIT_OK
+
+
+def _aim(share: Share) -> str:
+    """The word figure, about the room the author actually has (RK245).
+
+    Beside a partly written field the whole-field aim answers a question nobody asked, and
+    read next to a remainder in characters it invites the reading that thirty words are
+    available when three are. So the two are never printed together: what is stated is the
+    aim for what is left, and `--json` keeps both.
+    """
+    return f"aim {share.room} more words" if share.taken else f"aim {share.aim} words"
 
 
 def _budget_json(answer: Budget) -> dict[str, object]:
@@ -3604,6 +3617,9 @@ def _budget_json(answer: Budget) -> dict[str, object]:
                 "aim": share.aim,
                 "taken": share.taken,
                 "left": share.left,
+                # Beside `left` and not instead of it (RK245): the characters are still what
+                # refuses, and this is the same remainder in the unit an author can count.
+                "room": share.room,
                 "bound_by_line": share.bound_by_line,
             }
             for share in answer.shares

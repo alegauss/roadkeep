@@ -75,6 +75,19 @@ class Share:
         return words(self.allowed)
 
     @property
+    def room(self) -> int:
+        """What is *left*, in that same unit (RK245).
+
+        The figure an `amend` is actually bounded by, and the one number RK185 skipped:
+        beside a partly written field, :attr:`aim` describes the whole of it, so `18 left
+        aim 30 words` invites the reading that thirty words are available when about three
+        are. Floored by :func:`~roadkeep.schema.words`, which is the right rounding here for
+        RK201's reason read from the other side — a remainder is an allowance, and an
+        allowance that rounds up is the retry both figures exist to remove.
+        """
+        return words(self.left)
+
+    @property
     def bound_by_line(self) -> bool:
         """Whether the line is what binds this field, rather than the field's own limit.
 

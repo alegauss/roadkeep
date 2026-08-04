@@ -30,7 +30,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK245** (deps: —) **The number that binds an amend is the one figure `budget` states only in characters** — A line reads `182 written, 18 left  aim 30 words`, so the only unit the author can count names the whole field while the room they actually have is 18 characters. → §RK245
 - 📋 **RK247** (deps: —) **Nothing says which outline anchors history still cites** — `section add` lists only what exists, so reopening a shipped family reuses an anchor the changelog still points at and silently rewrites its meaning. → §RK247
 - 📋 **RK264** (deps: —) **The cost query spends 95% of its answer on records its own percentiles summarise** — `weight` ships 250 per-task entries beside six percentiles, 22.7k of 23.7k characters, and `--block F` only moves that to 89% — so the read priced to save context is the one that spends it. → §RK264
 - 📋 **RK265** (deps: —) **budget omits the pointer under an outline ref scheme, so it over-reports the room by the anchor width** — It answered 182 characters left for a why `add` then refused at 174, the 8 being ` → §XX.2` — a limit found after the prose exists, which this verb exists to prevent. → §RK265

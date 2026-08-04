@@ -231,3 +231,63 @@ def test_the_json_carries_the_aim_per_field(tmp_path):
 def test_a_zero_budget_aims_at_nothing_rather_than_at_a_negative():
     assert words(0) == 0
     assert words(1) == 0
+
+
+# -- the remainder, in the unit the aim is stated in (RK245) -----------------
+
+
+def test_the_remainder_has_a_word_figure_of_its_own(tmp_path):
+    # The one number RK185 skipped, and the one an `amend` is bounded by: `aim` describes
+    # the whole field, so beside a written one it answers a question nobody asked.
+    config = project(tmp_path)
+    why = budget(config, "RK1").share("why")
+    assert why.taken
+    assert why.room == words(why.left) < why.aim
+
+
+def test_the_remainder_floors_because_it_is_an_allowance(tmp_path):
+    # The opposite rounding from `words_over` (RK201) and the same argument from the other
+    # side: an allowance that rounds up sends the author back to the refusal.
+    config = project(tmp_path)
+    task = config.document("roadmap").by_id()["RK1"].task
+    for share in budget_of(config, task, open_line=True).shares:
+        assert share.room <= share.left / CHARS_PER_WORD
+
+
+def test_a_field_with_nothing_written_states_the_whole_aim(tmp_path):
+    # Nothing to be misread here: what is left *is* what the field allows, so the two
+    # figures agree and the pre-`add` read is unchanged.
+    config = project(tmp_path)
+    share = budget(config, block="A").share("why")
+    assert not share.taken and share.room == share.aim
+
+
+def test_the_command_aims_at_what_is_left_and_never_at_the_whole_field(tmp_path, capsys):
+    # The misreading in the symptom: `18 left  aim 30 words` invites the reading that thirty
+    # words are available when about three are, so the two are never printed together.
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "RK1"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "more words" in printed
+    assert "aim 30 words" not in printed
+
+
+def test_the_json_carries_the_remainder_beside_the_characters(tmp_path, capsys):
+    # Beside `left` and not instead of it: the characters are still what refuses.
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "RK1", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    field = next(one for one in payload["fields"] if one["field"] == "why")
+    assert field["room"] == words(field["left"]) and field["left"] < field["allowed"]
+
+
+def test_the_brief_states_the_same_figure_as_the_budget(tmp_path, capsys):
+    # `brief` prints the `why`'s share of the line it hands over, so whatever `Share` grows
+    # is what a task started through it is told — and the two cannot state it differently.
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "brief", "RK1"]) == EXIT_OK
+    briefed = capsys.readouterr().out
+    assert main(["-C", str(tmp_path), "budget", "RK1"]) == EXIT_OK
+    room = budget(Config.discover(tmp_path), "RK1").share("why").room
+    assert f"aim {room} more words" in briefed
+    assert f"aim {room} more words" in capsys.readouterr().out

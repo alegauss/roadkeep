@@ -147,29 +147,6 @@ only version of this that is a schema and not a warning.
 
 ## Block C — Query
 
-### §RK245 The remainder is a budget too
-
-RK185 published every aim in words, RK190 moved the read before the sentence, and RK201
-put the surplus of an overrun in words as well. One number was skipped, and it is the
-one an `amend` is actually bounded by: `Share.left`.
-
-The line `budget RK244` prints is `symptom 120 of 120, 61 written, 59 left  aim 18
-words`. `aim` is derived from `allowed` and describes the *whole* field, so beside a
-partly written one it answers a question nobody asked — while `left`, the figure that
-decides whether the correction fits, is in the unit RK185 established an author cannot
-measure. Read together they are worse than either alone: "18 left, aim 30 words" invites
-the reading that thirty words are available when about three are.
-
-So `left` gets its word figure the way `allowed` did, and it **floors** — `left` is an
-allowance and not a surplus, which is the opposite rounding from `words_over` and the
-same argument RK201 made from the other side. `budget --json` gains the field beside
-`left` rather than replacing it, because the characters are still what refuses.
-
-Where it also has to land: `brief` prints the `why`'s share of the line it hands over,
-so whatever `Share` grows is what a task started through `brief` is told, and the two
-cannot be allowed to state it differently. The MCP `note` publishes the ceiling and not
-the remainder, so it is untouched.
-
 ### §RK247 A retired anchor is invisible
 
 On `ref_scheme = "outline"` an anchor is retired when `ship` deletes its section, but
