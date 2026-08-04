@@ -41,6 +41,7 @@ from roadkeep import cli
 from roadkeep.cli import build_parser
 from roadkeep.config import Config
 from roadkeep.provenance import _LOADED_AT, engine
+from roadkeep.schema import body_aim
 from roadkeep.serving import (
     KNOWN_PROTOCOLS,
     _CONDITIONAL,
@@ -323,7 +324,10 @@ def test_the_prose_bodies_publish_the_word_budget_that_refuses_them(tmp_path):
     for tool, field in (("add", "section_body"), ("section_add", "body"),
                         ("section_amend", "body")):
         published = described[tool]["inputSchema"]["properties"][field]
-        assert "40 words is what refuses" in published["description"]
+        assert "40 is what refuses" in published["description"]
+        # The aim beside the gate, and under it (RK301): a ceiling published as its own
+        # target is one hit from above, which is what the thirteen measured refusals were.
+        assert f"Aim for {body_aim(40)} words" in published["description"]
         # And no `maxLength`: JSON Schema counts characters, so a ceiling derived from a word
         # count would refuse on the client prose this server accepts (RK183's rule).
         assert "maxLength" not in published
@@ -340,7 +344,7 @@ def test_a_role_with_its_own_budget_is_named_beside_the_default(tmp_path):
         "[limits.strategy]\nsection = 90\n",
     )
     said = listed(tree)["section_add"]["inputSchema"]["properties"]["body"]["description"]
-    assert "250 words is what refuses" in said
+    assert "250 is what refuses" in said
     assert "strategy 90" in said and "that file's own number binds" in said
 
 
@@ -353,7 +357,7 @@ def test_a_role_the_project_never_declared_is_not_named(tmp_path):
     )
     assert not Config.discover(tree).has("strategy")
     said = listed(tree)["section_add"]["inputSchema"]["properties"]["body"]["description"]
-    assert "250 words is what refuses" in said
+    assert "250 is what refuses" in said
     assert "strategy" not in said and "90" not in said
 
 
@@ -363,7 +367,7 @@ def test_a_project_with_no_prose_file_still_gets_the_base_number(tmp_path):
     tree = project(tmp_path, config=CONFIG + "[limits]\nsection = 120\n")
     assert not any(Config.discover(tree).has(role) for role in ("improvements", "strategy"))
     said = listed(tree)["section_add"]["inputSchema"]["properties"]["body"]["description"]
-    assert "120 words is what refuses" in said
+    assert "120 is what refuses" in said
 
 
 def test_the_derived_fields_are_not_offered(tmp_path):

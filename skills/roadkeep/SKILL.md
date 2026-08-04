@@ -187,10 +187,11 @@ is about to rewrite; the field's own `maxLength` is the ceiling, and what comes 
 lower number that actually binds. Where `ref_scheme = "outline"` the pointer is structure the
 caller chooses, so **pass the same `--ref` you will pass `add`** — unnamed, the answer assumes
 the widest anchor on file and says so, which is never more room than the `add` will allow.
-**The other two prose limits are bigger, and this answers for both**: `budget --anchor <a>`
-is what a section body may say *in words* and what that section already spends — ask it
-before a `section add`, and before every `section amend`, where you hold a body and the
-number is otherwise met at the door. `budget --non-goal [--lead "…"]` is the roadmap's other
+**It answers for the whole transaction, not the line alone**: `add --section` writes a body
+too, so every `budget` carries a `section` row — the role's word limit, what that anchor
+already spends, and an aim that sits **under** the limit, because composing to exactly the
+declared number is what refuses. `budget --anchor <a>` asks the same thing on its own, which
+is the read a `section amend` wants. `budget --non-goal [--lead "…"]` is the roadmap's other
 bullet, whose two limits are the list's own and not the task line's. Every verb that prints a
 section's size states **two** figures where they differ — `48 words, 310 with subsections
 (limit 300)` — because the argument is what an `amend` can shorten and the subtree is what a

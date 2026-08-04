@@ -22,6 +22,14 @@ Nothing here restates a limit. Every number is :meth:`Schema.prose_budget`,
 constant here would be one more thing to keep true, and the first slot to move would make
 this the second opinion an author trusts.
 
+**One transaction, one budget** (RK301). `add --section` writes a line *and* a body, the body
+has its own limit, and it refuses the whole `add` — so a read that named only the line's two
+fields was silent about half of what it was asked about. Thirteen refusals in one session,
+each the entire paragraph re-sent to learn a config value; over MCP there is no pipe, so the
+retry is the whole payload. The body rides here as a field and not as a second verb, and its
+aim sits **under** its limit rather than on it: composing to exactly the declared number is
+what four of those refusals were.
+
 **The pointer is part of the structure, and under an outline it is the caller's** (RK265).
 Under ``ref_scheme = "id"`` the anchor is derived, so a budget asked before the prose knows
 it exactly. Under ``"outline"`` the anchor is *chosen*, and a budget that composed the line
@@ -60,7 +68,7 @@ from typing import Sequence
 from roadkeep.authoring import compose, prose_role
 from roadkeep.config import PROSE_ROLES, Config
 from roadkeep.ids import next_id
-from roadkeep.schema import CHARS_PER_WORD, Task, words
+from roadkeep.schema import CHARS_PER_WORD, Task, body_aim, words
 from roadkeep.scoping import NoSuchNonGoal, NotGoverned, address, leads, read
 from roadkeep.sections import find
 
@@ -148,6 +156,11 @@ class Budget:
     #: Whether that anchor is an assumption rather than the caller's (RK265). True means the
     #: outline scheme is in force, no ``ref`` was named, and the width came off the file.
     ref_assumed: bool = False
+    #: The **other half of the same transaction** (RK301). `add --section` writes a line and
+    #: a body, the body has its own limit, and it refused the whole `add` while this read
+    #: mentioned only the line. None where the project declares no prose file, which is the
+    #: only state in which that write does not exist.
+    section: Body | None = None
 
     def share(self, field: str) -> Share:
         return next(one for one in self.shares if one.field == field)
@@ -220,7 +233,25 @@ def budget_of(
         shares=tuple(shares),
         ref=task.ref,
         ref_assumed=ref_assumed,
+        # The same anchor the line points at, which makes this one read for both halves of
+        # the transaction (RK301): before the `add` it is the body about to be written, and
+        # on an open line it is what a `section amend` has left.
+        section=_section_of(config, task.ref or task.id),
     )
+
+
+def _section_of(config: Config, anchor: str) -> Body | None:
+    """This anchor's body budget, or None where the project has no prose file to hold one.
+
+    Swallowing the refusal :func:`body_budget` raises rather than propagating it, because
+    the caller asked about a *line*: a project that declares no rationale file has a legal
+    `add` with no `--section` in it, and turning that into an error would refuse the read
+    every other project uses.
+    """
+    try:
+        return body_budget(config, anchor)
+    except KeyError:
+        return None
 
 
 def _subject(
@@ -302,6 +333,16 @@ class Body:
     @property
     def left(self) -> int:
         return max(0, self.limit - self.taken)
+
+    @property
+    def aim(self) -> int:
+        """What the body may be composed to, which is under what refuses (RK301)."""
+        return body_aim(self.limit)
+
+    @property
+    def room(self) -> int:
+        """The same headroom applied to what is *left*, which is an amend's figure (RK245)."""
+        return body_aim(self.left)
 
     @property
     def nests(self) -> bool:

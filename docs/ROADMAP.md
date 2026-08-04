@@ -31,8 +31,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK301** (deps: —) **The pre-write budget is silent about the one field in the same transaction that also refuses** — `budget` reports the symptom and the why, so thirteen `add --section` refusals this session were each a 250-word body resent to learn a number known before the first sentence. → §RK301
-
 ## Block D — The gate
 
 ## Block E — Adoption

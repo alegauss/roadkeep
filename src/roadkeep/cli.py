@@ -3867,7 +3867,27 @@ def _budget(config: Config, args: argparse.Namespace) -> int:
             f"  {share.field:<11}{share.allowed} of {share.limit}{taken}"
             f"  {_aim(share)}{bound}"
         )
+    # The other half of the same transaction (RK301): `add --section` writes a body too, and
+    # the body's limit refused the whole `add` while this read named only the line's fields.
+    if answer.section is not None:
+        print(f"  section    {_body(answer.section)}")
     return EXIT_OK
+
+
+def _body(section: Body, named: bool = True) -> str:
+    """A section body's budget as one line, shared by both doors that print it (RK283/301).
+
+    Words throughout and no character figure beside them (RK258) — this limit is declared in
+    words. The aim sits **under** the limit rather than on it (RK301): composing to exactly
+    the declared number is what the thirteen measured refusals did.
+    """
+    spent = f", {section.taken} written, {section.left} left" if section.written else ""
+    nested = f", {section.subtree} with subsections" if section.nests else ""
+    aim = (
+        f"aim {section.room} more words" if section.written else f"aim {section.aim} words"
+    )
+    where = f" ({section.role})" if named else ""
+    return f"{section.limit} words{where}{spent}{nested}  {aim}"
 
 
 def _body_budget(config: Config, args: argparse.Namespace) -> int:
@@ -3877,17 +3897,11 @@ def _body_budget(config: Config, args: argparse.Namespace) -> int:
     except REFUSALS as error:
         return _refused(error)
     if args.json:
-        print(json.dumps(_body_json(answer), indent=2))
+        print(json.dumps({"subject": "section", **_body_json(answer)}, indent=2))
         return EXIT_OK
     state = "written" if answer.written else "the section add would write"
     print(f"§{answer.anchor}  {answer.role}  ({state})")
-    # Words throughout, and no character figure beside them (RK258): this limit is declared
-    # in words, so translating it would publish a second number the config never stated.
-    spent = f", {answer.taken} written, {answer.left} left" if answer.written else ""
-    # The subtree beside the argument and never instead of it (RK287): what a reader pays
-    # is the whole of it, and what an `amend` can shorten is only this section's own prose.
-    nested = f", {answer.subtree} with subsections" if answer.nests else ""
-    print(f"  body       {answer.limit} words{spent}{nested}")
+    print(f"  body       {_body(answer, named=False)}")
     return EXIT_OK
 
 
@@ -3913,8 +3927,8 @@ def _non_goal_budget(config: Config, args: argparse.Namespace) -> int:
 
 
 def _body_json(answer: Body) -> dict[str, object]:
+    """One shape at both doors (RK301): the standalone read and the field on a line's own."""
     return {
-        "subject": "section",
         "anchor": answer.anchor,
         "role": answer.role,
         "written": answer.written,
@@ -3922,8 +3936,11 @@ def _body_json(answer: Body) -> dict[str, object]:
         # reading `limit` beside a task's characters would otherwise compare the two.
         "unit": "words",
         "limit": answer.limit,
+        # Under the limit, not on it (RK301): the aim is what a body may be composed to.
+        "aim": answer.aim,
         "taken": answer.taken,
         "left": answer.left,
+        "room": answer.room,
         # Both figures, as `section show` carries both (RK287): `taken` is the argument and
         # this is what a reader pays for the whole subtree.
         "subtree": answer.subtree,
@@ -3955,6 +3972,9 @@ def _budget_json(answer: Budget) -> dict[str, object]:
         "ref_assumed": answer.ref_assumed,
         "prose": answer.prose,
         "fields": [_share_json(share) for share in answer.shares],
+        # The write this line is half of (RK301). Null where no prose file is declared,
+        # which is the only project on which `add --section` does not exist.
+        "section": None if answer.section is None else _body_json(answer.section),
     }
 
 

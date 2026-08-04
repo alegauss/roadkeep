@@ -26,7 +26,7 @@ from roadkeep.budgeting import (
 )
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
-from roadkeep.schema import DESIGNED
+from roadkeep.schema import DESIGNED, body_aim
 
 BACKLOG = f"""# Roadmap
 
@@ -586,3 +586,91 @@ def test_the_section_budget_charges_the_argument_and_reports_the_subtree(tmp_pat
     assert answer.left == answer.limit - answer.taken
     # And the leaf says one number, because there is one.
     assert not body_budget(config, "RK1.1").nests
+
+
+# -- the other half of the same transaction (RK301) ----------------------------
+
+
+def sectioned(tmp_path: Path, *, prose: bool = True) -> Config:
+    """A project whose `add --section` has somewhere to write, which is the transaction."""
+    lines = ['prefix = "RK"', "[files]", 'roadmap = "ROADMAP.md"', 'changelog = "CHANGELOG.md"']
+    if prose:
+        lines.append('improvements = "IMPROVEMENTS.md"')
+        (tmp_path / "IMPROVEMENTS.md").write_text(
+            "# Improvements\n\n## Block A — The model\n\n### §RK1 A design\n\n"
+            "Eight words of prose, and nothing nested under it.\n",
+            encoding="utf-8",
+        )
+    (tmp_path / "roadkeep.toml").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    (tmp_path / "ROADMAP.md").write_text(BACKLOG, encoding="utf-8")
+    (tmp_path / "CHANGELOG.md").write_text(LEDGER, encoding="utf-8")
+    return Config.discover(tmp_path)
+
+
+def test_the_line_budget_carries_the_body_that_refuses_the_same_add(tmp_path):
+    # The defect: `add --section` writes two things in one transaction, the second has its own
+    # limit, it refuses the whole `add`, and this read named only the first.
+    config = sectioned(tmp_path)
+    answer = budget(config, block="A")
+    assert answer.section is not None
+    assert answer.section.limit == config.schema.section_max
+    assert answer.section.role == "improvements" and not answer.section.written
+
+
+def test_an_open_lines_budget_reports_what_that_section_has_left(tmp_path):
+    # The asymmetry `budget` already carries between an add and an amend, at the second field.
+    answer = budget(sectioned(tmp_path), "RK1")
+    assert answer.section is not None and answer.section.written
+    assert answer.section.taken > 0
+    assert answer.section.left == answer.section.limit - answer.section.taken
+
+
+def test_the_body_aim_sits_under_the_limit_and_never_on_it(tmp_path):
+    # Composing to exactly 250 produced four refusals on its own: an author counts sentences
+    # and `words` counts what the markup between them leaves, so a ceiling published as its
+    # own target is a target hit from above.
+    config = sectioned(tmp_path)
+    section = budget(config, block="A").section
+    assert section.aim < section.limit
+    # And the measured worst case clears it: 266 against 250 is a 6.4% overshoot, and an
+    # author making the same error from the aim lands under the gate.
+    assert section.aim * 1.064 <= section.limit
+
+
+def test_the_aim_for_a_written_body_is_about_what_is_left(tmp_path):
+    # RK245's rule at this field: beside a partly written body the whole-field aim answers a
+    # question nobody asked, and read next to a remainder it overstates the room.
+    section = budget(sectioned(tmp_path), "RK1").section
+    assert section.room == body_aim(section.left) < section.aim
+
+
+def test_a_project_with_no_prose_file_has_no_second_half_to_budget(tmp_path):
+    # The only state in which `add --section` does not exist, and a refusal here would refuse
+    # the read every other project makes.
+    assert budget(sectioned(tmp_path, prose=False), block="A").section is None
+
+
+def test_the_command_prints_the_body_beside_the_two_fields_of_the_line(tmp_path, capsys):
+    config = sectioned(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "--block", "A"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert f"section    {config.schema.section_max} words (improvements)" in printed
+    assert f"aim {body_aim(config.schema.section_max)} words" in printed
+
+
+def test_the_json_carries_the_body_beside_the_fields(tmp_path, capsys):
+    sectioned(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "--block", "A", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["section"]["unit"] == "words"
+    assert payload["section"]["aim"] < payload["section"]["limit"]
+    # And the brief hands over the same object, since it prints this budget (RK190).
+    assert main(["-C", str(tmp_path), "brief", "RK1", "--json"]) == EXIT_OK
+    briefed = json.loads(capsys.readouterr().out)
+    assert briefed["budget"]["section"]["anchor"] == "RK1"
+
+
+def test_the_standalone_read_and_the_field_state_the_same_thing(tmp_path):
+    # One shape at both doors: a second spelling of a body's budget would be a second answer.
+    config = sectioned(tmp_path)
+    assert budget(config, "RK1").section == body_budget(config, "RK1")

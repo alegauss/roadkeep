@@ -147,6 +147,18 @@ _RANGE_SHAPE_RE = re.compile(r"^[A-Za-z]{1,8}[0-9]+\s*[-–—]\s*[A-Za-z]{0,8}[
 CHARS_PER_WORD = 6.5
 
 
+#: How far a body composed *to* its word limit overshot the count `words` takes (RK301).
+#: Measured filing five tasks in one session: four `section add` bodies aimed at a declared
+#: 250 arrived at 250, 251, 253 and 266, thirteen refusals between them, each costing the
+#: whole paragraph re-sent. An author counts sentences and this counts tokens the markup
+#: between them puts in or leaves out, so a limit published as its own aim is a limit hit
+#: from above. The first round figure above the worst of the four, 266 against 250.
+#:
+#: Not configuration, for `CHARS_PER_WORD`'s reason: a project declares how long a section
+#: may be, and this is a property of counting prose by hand.
+BODY_HEADROOM = 0.07
+
+
 def words(chars: int) -> int:
     """A character budget as the word count it is safe to aim at.
 
@@ -154,6 +166,17 @@ def words(chars: int) -> int:
     the time it is hit exactly, which is the retry this exists to remove.
     """
     return max(0, int(chars // CHARS_PER_WORD))
+
+
+def body_aim(limit: int) -> int:
+    """A word limit as the word count it is safe to compose to (RK301).
+
+    :func:`words` for a budget already declared in words. There is no unit to convert, so
+    what the aim buys is the headroom instead: composing to exactly the limit is what the
+    thirteen measured refusals did, and a figure published as both the ceiling and the target
+    is a target that lands over half the time it is hit. Floored, for :func:`words`' reason.
+    """
+    return max(0, int(limit / (1 + BODY_HEADROOM)))
 
 
 def words_over(chars: int) -> int:

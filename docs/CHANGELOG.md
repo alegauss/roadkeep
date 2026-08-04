@@ -152,6 +152,7 @@
 - ✅ **RK287** **A section's word count includes its subsections, so it names a figure no limit is measured against** — every verb that prints a section's size now states its own prose and its subtree where they differ, with the role's limit beside them, so no figure stands next to a limit it is not measured against.
 - ✅ **RK293** **anchors names the next address under every family and not the next family** — anchors now prints the next free top-level above the rows and orders every family by the number its numeral spells, so the address a reused block needs is derived rather than read off a tail.
 - ✅ **RK297** **The read that says which anchor address is free asks one prose file on a project with two** — anchors reads every declared prose file, so the free address is the project's and not the first file's, and any address two files both declare is named before a write can double it.
+- ✅ **RK301** **The pre-write budget is silent about the one field in the same transaction that also refuses** — budget carries a section row for the body add --section writes in the same transaction: the role's word limit, what that anchor spends, and an aim that sits under the limit.
 
 ## Block D — The gate
 

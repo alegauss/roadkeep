@@ -161,28 +161,6 @@ remove.
 
 ## Block C — Query
 
-### §RK301 Half a transaction has a budget it can be written towards
-
-RK190's whole argument is that a limit reported after the prose exists is discovered too
-late: the characters are what refuses, and the word aim beside them is what a sentence
-can be composed towards. `budget` makes that read for the line — the symptom and the
-why, both derived from facts known before a word is written.
-
-`add --section` writes two things in one transaction, and the second is not in that
-read. The section body has its own limit (`[limits] section`, or the prose role's own
-under RK50), it refuses the whole `add` when exceeded, and `budget` does not mention it.
-Measured filing these five tasks: thirteen refusals across four sections, at 266, 253,
-251 and 250 words, each the entire body sent again to learn a number that was a config
-value all along. Over MCP there is no pipe, so the body is a string in the call and the
-retry is the whole payload.
-
-The fix is a field and not a verb: `budget` answers per-transaction already, so a
-`section` entry beside `symptom` and `why` — limit, aim, and the role it came from — is
-the same shape. Two things to get right. The aim has to sit under the limit the way the
-line's aim does, because composing to exactly 250 produced four refusals alone. And
-`budget <id>` should report what *that* section has left, the read a `section amend`
-wants and the asymmetry `budget` already carries between an add and an amend.
-
 ## Block D — The gate
 
 ## Block E — Adoption

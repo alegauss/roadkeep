@@ -77,7 +77,7 @@ from roadkeep.provenance import engine
 # `config` already loads `schema`, and reaching the name through `budgeting` cost the guard
 # 30 ms and eight modules — `authoring`, `sections`, `claiming`, `ids`, `markers` and the
 # rest of the write path — on every denied edit, for one character-to-word division.
-from roadkeep.schema import words
+from roadkeep.schema import body_aim, words
 
 #: The protocol revision this server answers with when the client asks for one it does not
 #: know. Negotiation is "echo what the client asked for if we understand it": a server that
@@ -502,7 +502,13 @@ def _paragraphed(config: Config) -> str:
         role: config.schema_for(role).section_max for role in PROSE_ROLES if config.has(role)
     }
     binding = limits.get(prose_role(config) or "", config.schema.section_max)
-    said = f"{binding} words is what refuses, counted as words rather than characters."
+    # The aim beside the gate, as every other bound here publishes one (RK301): a ceiling
+    # published as its own target is a target hit from above, measured at thirteen refusals
+    # in one session — and over this transport the retry re-sends the whole body.
+    said = (
+        f"Aim for {body_aim(binding)} words; {binding} is what refuses, counted as words "
+        f"rather than characters. `budget` states it per call, before the body exists."
+    )
     differing = sorted(
         f"{role} {limit}" for role, limit in limits.items() if limit != binding
     )
