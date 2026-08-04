@@ -75,7 +75,7 @@ from roadkeep.history import (
     origin_of,
 )
 from roadkeep.ids import highest, next_id
-from roadkeep.installing import install, plan
+from roadkeep.installing import install, plan, removal, uninstall
 from roadkeep.linting import Finding, Report, lint
 from roadkeep.locking import LockBusy, exclusive
 from roadkeep.merging import markers, merge, register, role_of
@@ -1371,6 +1371,32 @@ def build_parser() -> argparse.ArgumentParser:
     )
     install_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     install_parser.set_defaults(handler=_install)
+
+    uninstall_parser = subcommands.add_parser(
+        "uninstall",
+        help="take this project's entries back out of the four surfaces install wrote",
+        description=(
+            "Un-wire a project that ran roadkeep from a checkout — moving to the plugin, or "
+            "off the tool entirely (RK138). The inverse of `install` under the same two "
+            "rules: the declarations keep every entry that is not this project's, and a "
+            "file that is not a JSON object is refused rather than rewritten. A file left "
+            "holding nothing but what `install` wrote is deleted, because that is the state "
+            "it was created from. It reads no checkout — the wiring is recognised by the "
+            "server's name and the launcher a hook runs — so a project can be un-wired "
+            "after the tree it pointed at is gone. The CI workflow stays: that gate calls "
+            "the published action and not the checkout."
+        ),
+    )
+    uninstall_parser.add_argument(
+        "--check",
+        action="store_true",
+        help=(
+            "take nothing out and exit 1 while anything is still wired: the same tense "
+            "`install --check` reports in, on the other direction"
+        ),
+    )
+    uninstall_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    uninstall_parser.set_defaults(handler=_uninstall)
 
     guard_parser = subcommands.add_parser(
         "guard",
@@ -4165,6 +4191,15 @@ _WOULD = {
     "kept": "kept, yours",
 }
 
+#: The same rule for the other direction (RK138). `absent` and `untouched` describe no write
+#: either, so only the two states that take something out are put in the conditional.
+_WOULD_REMOVE = {
+    "deleted": "would delete",
+    "reduced": "would reduce",
+    "absent": "absent",
+    "untouched": "untouched",
+}
+
 
 def _install(config: Config, args: argparse.Namespace) -> int:
     """Wire the harness for a project the plugin did not install (RK100).
@@ -4217,6 +4252,57 @@ def _install(config: Config, args: argparse.Namespace) -> int:
             print(
                 f"{len(intent.changing)} surface(s) differ from what this checkout ships: "
                 f"`roadkeep install` writes them",
+                file=sys.stderr,
+            )
+    if args.check and intent.changing:
+        return EXIT_GATE
+    return EXIT_OK
+
+
+def _uninstall(config: Config, args: argparse.Namespace) -> int:
+    """Take the harness back out of a project that was wired to a checkout (RK138).
+
+    `config` is unused for `_install`'s reason, and no `--source` is taken for the reason the
+    module states: the wiring is recognised by this project's own entries, so un-wiring works
+    after the checkout it named is gone — which is when it is usually wanted.
+    """
+    del config
+    try:
+        intent = removal(args.directory) if args.check else uninstall(args.directory)
+    except (ValueError, OSError) as error:
+        return _refused(error)
+
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "root": intent.root.as_posix(),
+                    "checked": args.check,
+                    "surfaces": [
+                        {
+                            "path": withdrawal.path.relative_to(intent.root).as_posix(),
+                            "state": withdrawal.state,
+                            "writes": withdrawal.writes,
+                        }
+                        for withdrawal in intent.withdrawals
+                    ],
+                    "kept": [{"path": path, "why": why} for path, why in intent.kept],
+                    "changing": len(intent.changing),
+                },
+                indent=2,
+            )
+        )
+    else:
+        print(f"{intent.root.as_posix()}  ←  this project's own entries")
+        for withdrawal in intent.withdrawals:
+            state = _WOULD_REMOVE[withdrawal.state] if args.check else withdrawal.state
+            print(f"  {state:<14} {withdrawal.path.relative_to(intent.root).as_posix()}")
+        for _, why in intent.kept:
+            print(f"  kept           {why}")
+        if args.check and intent.changing:
+            print(
+                f"{len(intent.changing)} surface(s) still wire this project to a checkout: "
+                f"`roadkeep uninstall` takes them out",
                 file=sys.stderr,
             )
     if args.check and intent.changing:

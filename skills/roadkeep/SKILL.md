@@ -21,7 +21,9 @@ refusals, with
 the fields arriving as a schema instead of flag names typed from memory. `init`, `adopt` and
 `install` run once per project and want the CLI — the last of them wires this file, the tools
 and the guard into a project running the tool from a checkout, and `install --check` is what
-holds its copy of this file in step. Every guarantee below holds either way.
+holds its copy of this file in step. `uninstall` is the way back out, for a project moving to
+the plugin: it takes out this project's entries and nothing else, keeps the CI workflow, and
+needs no checkout to read, so it still works once that tree is gone. Every guarantee below holds either way.
 
 `roadkeep <add|status|amend|restate|ship|retire|record|non-goal|section> --help` has the flags. What they guarantee,
 so it costs you no thought: the id, the `→ §<id>` pointer, the status default and every

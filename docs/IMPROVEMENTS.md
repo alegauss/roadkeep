@@ -220,22 +220,6 @@ and may not need a second.
 
 ## Block E — Adoption
 
-### §RK138 A wiring with no way out
-
-Claude Tray was wired to a sibling checkout and then moved to the plugin, which is the
-ordinary path: an early adopter develops against a checkout and switches once the plugin
-is installable. There is no verb for the second half. `.mcp.json`,
-`.claude/settings.json` and `.claude/skills/roadkeep/` had to be removed with `rm`, and
-the only reason that was safe is that `install` had *created* all three, so the
-pre-existing state was "absent". Had the project already declared another MCP server or
-another hook, the correct edit would have been to remove this project's entries and keep
-everything else - which is precisely the surgery `install` performs on the way in and
-refuses to describe on the way out. `--check` makes the asymmetry plainer: it reports
-what would change and exits non-zero, so the tool can already see the difference between
-wired and not. What is missing is the verb that acts on it, with the same rule the write
-path has - the declarations keep everything that is not this project's entry, and a file
-that is not a JSON object is refused rather than replaced.
-
 ### §RK139 The half of the roadmap the estimate does not read
 
 `adopt` exists so the cost is known before the commitment: it reads the lines, names the

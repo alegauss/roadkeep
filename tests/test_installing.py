@@ -52,6 +52,7 @@ from roadkeep.installing import (
     _entry,
     install,
     plan,
+    uninstall,
 )
 
 HERE = Path(__file__).resolve().parents[1]
@@ -304,6 +305,74 @@ def test_check_is_the_gate_and_the_exit_code_is_the_contract(project, source, ca
     (project / PROJECT_SKILL).write_text("stale\n", encoding="utf-8")
     assert main([*argv, "--check"]) == 1
     assert "would update" in capsys.readouterr().out
+
+
+# -- the way out (RK138) ------------------------------------------------------
+
+
+def test_uninstall_returns_the_project_to_the_state_install_found_it_in(project, source):
+    """Three surfaces removed with `rm` was the measured alternative, safe only by luck."""
+    install(project, source=source)
+    taken = uninstall(project)
+    assert {w.path for w in taken.changing} == {
+        project / PROJECT_MCP,
+        project / PROJECT_SETTINGS,
+        project / PROJECT_SKILL,
+    }
+    for path in (PROJECT_MCP, PROJECT_SETTINGS, PROJECT_SKILL):
+        assert not (project / path).exists()
+    # And the directories the copy was alone in, so nothing reads as a vendored skill.
+    assert not (project / ".claude").exists()
+    # The gate stays: it calls the published action, not the checkout being un-wired.
+    assert (project / PROJECT_WORKFLOW).is_file()
+
+
+def test_it_keeps_every_entry_that_is_not_this_project_s(project, source):
+    """The rule the write path has, applied on the way out — which is the whole task."""
+    install(project, source=source)
+    mcp = loaded(project / PROJECT_MCP)
+    mcp["mcpServers"]["other"] = {"command": "node", "args": ["server.js"]}
+    (project / PROJECT_MCP).write_text(json.dumps(mcp, indent=2), encoding="utf-8")
+    settings = loaded(project / PROJECT_SETTINGS)
+    settings["model"] = "opus"
+    settings["hooks"]["Stop"].append({"hooks": [{"type": "command", "command": "make docs"}]})
+    (project / PROJECT_SETTINGS).write_text(json.dumps(settings, indent=2), encoding="utf-8")
+
+    uninstall(project)
+    assert loaded(project / PROJECT_MCP) == {
+        "mcpServers": {"other": {"command": "node", "args": ["server.js"]}}
+    }
+    left = loaded(project / PROJECT_SETTINGS)
+    assert left["model"] == "opus"
+    assert left["hooks"] == {"Stop": [{"hooks": [{"type": "command", "command": "make docs"}]}]}
+    # The approval goes with the server it approves, and the emptied events go entirely:
+    # an event declaring no group is a project that declares a hook.
+    assert "enabledMcpjsonServers" not in left and "PreToolUse" not in left["hooks"]
+
+
+def test_un_wiring_a_project_that_was_never_wired_takes_nothing(project):
+    taken = uninstall(project)
+    assert taken.changing == ()
+    assert [w.state for w in taken.withdrawals] == ["absent", "absent", "absent"]
+
+
+def test_uninstall_check_is_the_same_answer_and_writes_nothing(project, source, capsys):
+    install(project, source=source)
+    argv = ["-C", str(project), "uninstall"]
+    assert main([*argv, "--check"]) == 1
+    assert "would delete" in capsys.readouterr().out
+    assert (project / PROJECT_MCP).is_file(), "a check that un-wired reports clean"
+    assert main(argv) == 0
+    assert main([*argv, "--check"]) == 0
+
+
+def test_a_declaration_this_command_cannot_parse_is_refused(project, source):
+    """Somebody's configuration, on the way out as on the way in."""
+    install(project, source=source)
+    (project / PROJECT_MCP).write_text("[]\n", encoding="utf-8")
+    with pytest.raises(Unreadable):
+        uninstall(project)
+    assert (project / PROJECT_SKILL).is_file(), "nothing was taken out"
 
 
 def test_a_tree_carrying_no_plugin_names_what_it_lacks(project, tmp_path):

@@ -37,6 +37,16 @@ kinds of file:
 `--check` is what makes the first rule mean anything: it reports what `install` would change
 and exits non-zero, so the copy is held in step by a gate rather than by whoever remembers.
 
+**And there is a way out** (RK138). An early adopter develops against a checkout and switches
+to the plugin once it is installable, and the second half of that had no verb: three surfaces
+were removed with `rm`, safe only because `install` had created all three. `uninstall` is the
+inverse under the same two rules — the declarations keep everything that is not this project's
+entry, and a file that is not a JSON object is refused rather than rewritten — and it reads no
+checkout, recognising the wiring by the server's name and the launcher a hook runs, because
+the tree that was wired in is usually gone by then. The CI workflow is the one surface it
+keeps: that gate calls the published action, not the checkout, so un-wiring the write path
+does not un-gate the repository.
+
 The fifth surface is not written at all. A line in `CONTRIBUTING.md` telling a contributor
 not to hand-edit the governed files is prose about a project's own contribution policy, and
 this tool does not write prose (L4) — it is named in the report and left to its author.
@@ -443,6 +453,173 @@ def _declaration(path: Path, merge) -> Surface:
         existed=existed,
         stale=merged != current,
     )
+
+
+# -- un-wiring ---------------------------------------------------------------
+
+
+@dataclass(frozen=True, slots=True)
+class Withdrawal:
+    """One file un-wiring touches, and what it would do to that file (RK138)."""
+
+    path: Path
+    #: What the file keeps. ``None`` where nothing of it survives this project's entry, which
+    #: is the state `install` created it in and therefore the one to return it to.
+    text: str | None
+    existed: bool
+    #: Whether the file still holds something this command wrote.
+    held: bool
+
+    @property
+    def state(self) -> str:
+        if not self.existed:
+            return "absent"
+        if not self.held:
+            return "untouched"
+        return "deleted" if self.text is None else "reduced"
+
+    @property
+    def writes(self) -> bool:
+        return self.state in ("deleted", "reduced")
+
+
+@dataclass(frozen=True, slots=True)
+class Removal:
+    """What `uninstall` would take out, computed before a byte is touched (all-or-nothing)."""
+
+    root: Path
+    withdrawals: tuple[Withdrawal, ...]
+    #: Paths deliberately left, each with the reason — the other half of the report, for the
+    #: reason `install` names what it does not write: a surface silently kept reads as missed.
+    kept: tuple[tuple[str, str], ...] = ()
+
+    @property
+    def changing(self) -> tuple[Withdrawal, ...]:
+        return tuple(withdrawal for withdrawal in self.withdrawals if withdrawal.writes)
+
+
+def removal(root: str | Path = ".") -> Removal:
+    """Read the project's own surfaces and answer what un-wiring would take out.
+
+    Reads no checkout, unlike :func:`plan`: the wiring is recognised by *this project's own
+    entry* — the server's name, and the launcher a hook command runs — so a project can be
+    un-wired after the checkout it pointed at is gone, which is the case that produced RK138.
+    """
+    base = Path(root).resolve()
+    return Removal(
+        root=base,
+        withdrawals=(
+            _withdrawn(base / PROJECT_MCP, _without_server),
+            _withdrawn(base / PROJECT_SETTINGS, _without_guard),
+            _dropped(base / PROJECT_SKILL),
+        ),
+        kept=(
+            (
+                PROJECT_WORKFLOW,
+                f"{PROJECT_WORKFLOW}: the gate calls the published action and not this "
+                f"checkout, so CI stays wired — delete it to stop gating",
+            ),
+        ),
+    )
+
+
+def uninstall(root: str | Path = ".") -> Removal:
+    """Take this project's entries out of the four surfaces, or take nothing out.
+
+    The inverse of :func:`install` and held to its two rules: the declarations keep everything
+    that is not this project's entry, and a file that is not a JSON object is refused rather
+    than rewritten. A file left holding nothing but what this command wrote is *deleted*,
+    because `install` created it and an empty declaration reads as a project that declares
+    something.
+    """
+    intent = removal(root)
+    for withdrawal in intent.changing:
+        if withdrawal.text is None:
+            withdrawal.path.unlink()
+            _prune(withdrawal.path.parent, intent.root)
+        else:
+            withdrawal.path.write_text(withdrawal.text, encoding="utf-8", newline="")
+    return intent
+
+
+def _withdrawn(path: Path, without) -> Withdrawal:
+    """One declaration with this project's entry taken out, as a :class:`Withdrawal`.
+
+    Compared as parsed JSON for the reason :func:`_declaration` is: an adopter's indentation
+    is not a wiring, and a command that reported one would report every project as wired.
+    """
+    if not path.is_file():
+        return Withdrawal(path=path, text=None, existed=False, held=False)
+    try:
+        loaded = json.loads(_read(path))
+    except json.JSONDecodeError as error:
+        raise Unreadable(path, str(error)) from error
+    if not isinstance(loaded, dict):
+        raise Unreadable(path, f"read as {type(loaded).__name__}")
+    left = without(loaded)
+    return Withdrawal(
+        path=path,
+        text=None if not left else json.dumps(left, indent=2, ensure_ascii=False) + "\n",
+        existed=True,
+        held=left != loaded,
+    )
+
+
+def _dropped(path: Path) -> Withdrawal:
+    """The copied skill: a file this command owns whole, so there is nothing to reduce."""
+    existed = path.is_file()
+    return Withdrawal(path=path, text=None, existed=existed, held=existed)
+
+
+def _without_server(current: dict) -> dict:
+    """`.mcp.json` without this project's server, every other key in its own place."""
+    servers = {name: entry for name, entry in current.get("mcpServers", {}).items() if name != SERVER}
+    left = {}
+    for key, value in current.items():
+        if key != "mcpServers":
+            left[key] = value
+        elif servers:
+            left[key] = servers
+    return left
+
+
+def _without_guard(current: dict) -> dict:
+    """`.claude/settings.json` without the guard's three events and the server's approval.
+
+    An event left with no groups is dropped rather than emptied, and so is `hooks` itself: a
+    declaration that holds an empty list is a project that declares a hook, which is exactly
+    the reading un-wiring exists to end.
+    """
+    left: dict = {}
+    for key, value in current.items():
+        if key == "enabledMcpjsonServers":
+            approved = [name for name in value if name != SERVER]
+            if approved:
+                left[key] = approved
+        elif key == "hooks":
+            events = {
+                event: kept
+                for event, groups in value.items()
+                if (kept := [group for group in groups if not _ours(group)])
+            }
+            if events:
+                left[key] = events
+        else:
+            left[key] = value
+    return left
+
+
+def _prune(directory: Path, root: Path) -> None:
+    """Remove the directories the deleted copy was alone in, and stop at the project root.
+
+    `install` created `.claude/skills/roadkeep/`, so leaving it behind empty leaves a project
+    that looks as though it vendors a skill. Anything else in there is somebody's, and an
+    empty parent that this command did not create — `.claude/` on a project whose settings
+    were only ever this tool's — is the same fact one level up.
+    """
+    while directory != root and directory.is_dir() and not any(directory.iterdir()):
+        directory.rmdir()
+        directory = directory.parent
 
 
 def _merged_mcp(current: dict, server: dict) -> dict:

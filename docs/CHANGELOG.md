@@ -207,6 +207,7 @@
 - ✅ **RK110** **`adopt` counts the id findings without saying they are one declaration** — `adopt` names each leading-zero width and the split letter as an `[ids]` key with a count, so nine findings read as one unwritten declaration — and whether to write it stays the reader's call.
 - ✅ **RK125** **Declaring an unmarked ledger takes a whole verb away, and the refusal offers no way through** — A retirement is the one line a markerless ledger marks — a departure being the status such a file does not state about itself — so `retire` is a door on every project and 🗑 is never read as ✅.
 - ✅ **RK137** **The copied skill names a shell command that does not exist in the project it was copied into** — The copied skill names `python "<launcher>"` — the path `install` already wrote into the server and the hook — and a shipped skill that stopped spelling the sentence is a refusal, not a copy.
+- ✅ **RK138** **Un-wiring a project is the hand-edit this tool exists to deny** — `uninstall` takes out this project's server entry, the guard's three hook entries and the copied skill — keeping every entry that is not ours, and the CI gate, which calls the published action.
 
 ## Block F — The Claude Code plugin
 
