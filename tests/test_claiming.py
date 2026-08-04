@@ -76,9 +76,16 @@ def _no_leftovers(tmp_path):
 
 
 def age(root: Path, task_id: str, seconds: float) -> None:
-    """Backdate one claim, which is how expiry is staged rather than waited for."""
+    """Backdate one claim, which is how expiry is staged rather than waited for.
+
+    The scope rides along untouched (RK280): a backdated claim is the same claim, and a
+    helper that dropped the paths would stage a state no door writes.
+    """
     dated = claiming._read(claiming.path(root))  # noqa: SLF001 - the file under test
-    dated[task_id] = time.time() - seconds
+    held = dated.get(task_id)
+    dated[task_id] = claiming.Dating(
+        time.time() - seconds, held.paths if held is not None else ()
+    )
     claiming._write(claiming.path(root), dated)  # noqa: SLF001
 
 
@@ -338,7 +345,7 @@ def test_the_carried_claim_keeps_its_age_rather_than_restarting(tmp_path):
     age(tmp_path, "RK2", HELD - 30)
     renumber(config, "RK2", "RK20").save()
     dated = claiming._read(claiming.path(tmp_path))  # noqa: SLF001
-    assert time.time() - dated["RK20"] > HELD - 60
+    assert time.time() - dated["RK20"].when > HELD - 60
 
 
 def test_a_renumber_of_an_unheld_line_carries_nothing(tmp_path):
@@ -546,7 +553,7 @@ def test_every_door_that_claims_leaves_the_same_registry(tmp_path):
         else:
             set_status(config, "RK2", IN_PROGRESS)
         dated = claiming._read(claiming.path(tmp_path))  # noqa: SLF001
-        left.append({name: round(when) for name, when in dated.items()})
+        left.append({name: round(row.when) for name, row in dated.items()})
     assert [set(one) for one in left] == [{"RK2"}, {"RK2"}, {"RK2"}]
     # And each of them leaves a line the next caller is not sent at.
     assert pick(Config.discover(tmp_path)).entry.task.id == "RK9"
@@ -587,7 +594,9 @@ def test_an_entry_for_an_id_no_line_carries_is_stale_and_not_an_error(tmp_path):
     # What a `ship` leaves behind until the next marker write reconciles it, and what a
     # hand-edited file can leave for ever: reported, because it is the entry a reader wants.
     config = project(tmp_path, BLOCKS + line("RK2"))
-    claiming._write(claiming.path(tmp_path), {"RK99": time.time()})  # noqa: SLF001
+    claiming._write(  # noqa: SLF001
+        claiming.path(tmp_path), {"RK99": claiming.Dating(time.time())}
+    )
     row = claiming.survey(Backlog.load(config))[0]
     assert (row.id, row.state, row.marker) == ("RK99", claiming.State.STALE, "")
     # And the one of the four absences that is worth acting on (RK164).
@@ -618,7 +627,7 @@ def test_the_three_ids_that_left_by_a_door_say_which_one(tmp_path):
     now = time.time()
     claiming._write(  # noqa: SLF001
         claiming.path(tmp_path),
-        {"RK7": now, "RK8": now, "RK9": now, "RK99": now},
+        {name: claiming.Dating(now) for name in ("RK7", "RK8", "RK9", "RK99")},
     )
     where = {row.id: row.where for row in claiming.survey(Backlog.load(config))}
     assert where == {
@@ -669,7 +678,10 @@ def test_a_prune_drops_what_is_not_a_claim_and_keeps_what_is(tmp_path, capsys):
     for task_id in ("RK2", "RK5", "RK99"):
         claiming._write(  # noqa: SLF001
             claiming.path(tmp_path),
-            {**claiming._read(claiming.path(tmp_path)), task_id: time.time()},  # noqa: SLF001
+            {
+                **claiming._read(claiming.path(tmp_path)),  # noqa: SLF001
+                task_id: claiming.Dating(time.time()),
+            },
         )
     pruning = claiming.prune(config)
     assert [row.id for row in pruning.kept] == ["RK2"]
@@ -698,7 +710,9 @@ def test_a_prune_never_takes_a_live_claim(tmp_path):
 
 def test_the_prune_names_what_it_dropped_and_says_when_it_dropped_nothing(tmp_path, capsys):
     project(tmp_path, BLOCKS + line("RK2"))
-    claiming._write(claiming.path(tmp_path), {"RK99": time.time()})  # noqa: SLF001
+    claiming._write(  # noqa: SLF001
+        claiming.path(tmp_path), {"RK99": claiming.Dating(time.time())}
+    )
     assert main(["-C", str(tmp_path), "claims", "--prune"]) == EXIT_OK
     out = capsys.readouterr().out
     assert "pruned   RK99  claimed 0m ago  in no file at all" in out
@@ -709,7 +723,9 @@ def test_the_prune_names_what_it_dropped_and_says_when_it_dropped_nothing(tmp_pa
 
 def test_the_prune_carries_what_it_dropped_in_the_json(tmp_path, capsys):
     project(tmp_path, BLOCKS + line("RK2"))
-    claiming._write(claiming.path(tmp_path), {"RK99": time.time()})  # noqa: SLF001
+    claiming._write(  # noqa: SLF001
+        claiming.path(tmp_path), {"RK99": claiming.Dating(time.time())}
+    )
     assert main(["-C", str(tmp_path), "claims", "--prune", "--json"]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
     assert payload["claims"] == [] and len(payload["pruned"]) == 1
@@ -742,6 +758,9 @@ def test_the_listing_offers_nothing_and_ranks_nothing(tmp_path, capsys):
         "since",
         "marker",
         "block",
+        # What this claim says its commit owns (RK280), counted in the listing and named
+        # by `claim <id>` — present as an empty list where the holder has not said.
+        "paths",
     }
 
 
@@ -1006,3 +1025,158 @@ def test_a_refusal_the_marker_write_raises_is_reported_and_not_a_traceback(tmp_p
     assert main(["-C", str(tmp_path), "pick", "--claim"]) == EXIT_USAGE
     assert "IMPROVEMENTS.md" in capsys.readouterr().err
     assert config.document("roadmap").by_id()["RK2"].task.status == DESIGNED
+
+
+# -- what a claim says its commit owns (RK280) -------------------------------
+
+
+def test_a_scope_is_recorded_against_the_claim_and_read_back(tmp_path):
+    # The write that was missing: `claim` locks a scan-to-save span and knows who holds a
+    # line, and nothing said which of a dirty tree's files that line's commit was.
+    config = project(tmp_path, BLOCKS + line("RK2"))
+    take(config)
+    assert claiming.scope(config, "RK2", ["src/a.py", "tests/test_a.py"]) == (
+        "src/a.py",
+        "tests/test_a.py",
+    )
+    held = claiming.live(config, config.document("roadmap").entries)
+    assert held[0].paths == ("src/a.py", "tests/test_a.py")
+
+
+def test_a_scope_on_a_line_nobody_holds_is_refused(tmp_path):
+    # Taking is a marker, and a command that dated a claim as a side effect of naming files
+    # would be a second way to start work — the shape RK158 spent a task removing.
+    config = project(tmp_path, BLOCKS + line("RK2"))
+    with pytest.raises(claiming.NotHeld) as raised:
+        claiming.scope(config, "RK2", ["src/a.py"])
+    assert "take the line first" in str(raised.value)
+    assert not claiming.path(tmp_path).exists()  # refused before it wrote anything
+
+
+def test_a_scope_replaces_rather_than_grows(tmp_path):
+    # A scope answers *what is this commit*, and a call that only ever added would put the
+    # corrected answer back behind the file (RK165, one row along).
+    config = project(tmp_path, BLOCKS + line("RK2"))
+    take(config)
+    claiming.scope(config, "RK2", ["src/a.py", "src/b.py"])
+    assert claiming.scope(config, "RK2", ["src/b.py"]) == ("src/b.py",)
+
+
+def test_a_scope_collapses_a_path_named_twice(tmp_path):
+    # The answer is fed to `git add --`, where a path staged twice is noise in a contract
+    # meant to be read.
+    config = project(tmp_path, BLOCKS + line("RK2"))
+    take(config)
+    assert claiming.scope(config, "RK2", ["src/a.py", "src/a.py"]) == ("src/a.py",)
+
+
+def test_re_asserting_a_claim_keeps_the_scope_it_was_holding(tmp_path):
+    # A re-assertion is a new date about the same work, and a clock that revoked the scope
+    # would make the declaration something to remember to repeat.
+    config = project(tmp_path, BLOCKS + line("RK2"))
+    take(config)
+    claiming.scope(config, "RK2", ["src/a.py"])
+    age(tmp_path, "RK2", HELD + 1)
+    take(config)
+    assert claiming.live(config, config.document("roadmap").entries)[0].paths == ("src/a.py",)
+
+
+def test_releasing_the_line_drops_the_scope_with_the_claim(tmp_path):
+    # The rule that keeps this from being a second thing to remember: every marker door is a
+    # release, and a scope outliving its claim would be a statement about nobody's work.
+    config = project(tmp_path, BLOCKS + line("RK2"))
+    take(config)
+    claiming.scope(config, "RK2", ["src/a.py"])
+    set_status(config, "RK2", DESIGNED)
+    assert claiming._read(claiming.path(tmp_path)) == {}  # noqa: SLF001
+
+
+def test_a_scope_travels_with_a_renumbered_line(tmp_path):
+    # `renumber` moves the address and not the marker (RK156), so what it carries is the
+    # whole row: a scope left behind on the old id is one no command can reach.
+    config = project(tmp_path, BLOCKS + line("RK2", status=IN_PROGRESS))
+    hold(config, "RK2")
+    claiming.scope(config, "RK2", ["src/a.py"])
+    renumber(config, "RK2", "RK20").save()
+    assert claiming._read(claiming.path(tmp_path))["RK20"].paths == ("src/a.py",)  # noqa: SLF001
+
+
+def test_a_path_holding_a_space_survives_the_registry(tmp_path):
+    # The date is separated by a space and the paths by a tab, which is the reason: a
+    # second space-separated field would end the first path at its first blank.
+    config = project(tmp_path, BLOCKS + line("RK2"))
+    take(config)
+    claiming.scope(config, "RK2", ["src/a file.py"])
+    assert claiming.live(config, config.document("roadmap").entries)[0].paths == (
+        "src/a file.py",
+    )
+
+
+def test_a_row_written_before_scopes_existed_still_parses(tmp_path):
+    # A session upgrading under a claim it is holding keeps it: the paths are a tail, so a
+    # row without one is a claim with no scope and never a row that is skipped.
+    config = project(tmp_path, BLOCKS + line("RK2", status=IN_PROGRESS))
+    claiming.path(tmp_path).write_text(f"RK2 {time.time():.6f}\n", encoding="utf-8")
+    held = claiming.live(config, config.document("roadmap").entries)
+    assert [(one.id, one.paths) for one in held] == [("RK2", ())]
+
+
+def test_the_other_claims_a_commit_has_to_leave_alone_are_the_scoped_ones(tmp_path):
+    # A claim names nobody (RK119), so no write can be refused as somebody else's — what is
+    # decidable is the reverse, asked from the id being committed.
+    config = project(tmp_path, BLOCKS + line("RK2") + line("RK9"))
+    take(config)
+    hold(config, "RK9")
+    claiming.scope(config, "RK2", ["src/a.py"])
+    claiming.scope(config, "RK9", ["src/b.py"])
+    entries = config.document("roadmap").entries
+    assert [(o.id, o.paths) for o in claiming.elsewhere(config, "RK2", entries)] == [
+        ("RK9", ("src/b.py",))
+    ]
+
+
+def test_a_claim_that_declared_nothing_is_left_out_of_that_answer(tmp_path):
+    # Silence is a holder who has not said, not a holder claiming nothing — treating it as
+    # the second would answer with a confidence the registry does not carry.
+    config = project(tmp_path, BLOCKS + line("RK2") + line("RK9"))
+    take(config)
+    hold(config, "RK9")
+    claiming.scope(config, "RK2", ["src/a.py"])
+    entries = config.document("roadmap").entries
+    assert claiming.elsewhere(config, "RK2", entries) == ()
+
+
+def test_the_command_answers_the_paths_alone_when_a_script_is_reading(tmp_path, capsys):
+    # `--porcelain` is consumed by `git add --`, so a heading on it would be a filename.
+    project(tmp_path, BLOCKS + line("RK2"))
+    config = Config.discover(tmp_path)
+    take(config)
+    at = ["-C", str(tmp_path), "claim", "RK2"]
+    assert main([*at, "--path", "src/a.py", "--path", "tests/test_a.py"]) == EXIT_OK
+    capsys.readouterr()
+    assert main([*at, "--porcelain"]) == EXIT_OK
+    assert capsys.readouterr().out == "src/a.py\ntests/test_a.py\n"
+
+
+def test_the_command_refuses_a_line_no_claim_holds_rather_than_answering_empty(
+    tmp_path, capsys
+):
+    # An empty answer would read as "this commit owns nothing", which is the sentence that
+    # makes `git add -A` look right.
+    project(tmp_path, BLOCKS + line("RK2"))
+    assert main(["-C", str(tmp_path), "claim", "RK2"]) == EXIT_USAGE
+    assert "no live claim on RK2" in capsys.readouterr().err
+
+
+def test_the_listing_counts_a_scope_and_the_json_carries_it(tmp_path, capsys):
+    # Counted in `claims` and named by `claim <id>`: that listing ranks nothing and offers
+    # nothing, and four paths a row would make it the other command.
+    project(tmp_path, BLOCKS + line("RK2"))
+    config = Config.discover(tmp_path)
+    take(config)
+    claiming.scope(config, "RK2", ["src/a.py", "src/b.py"])
+    assert main(["-C", str(tmp_path), "claims"]) == EXIT_OK
+    assert "2 path(s)" in capsys.readouterr().out
+    assert main(["-C", str(tmp_path), "claims", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["claims"][0]["paths"] == ["src/a.py", "src/b.py"]

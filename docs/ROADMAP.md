@@ -24,8 +24,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK280** (deps: —) **Two sessions each ship a commit carrying the other's code** — `claim` holds a roadmap line and the lock holds a write, but the commit step is guarded by nothing, so RK244 and RK279 each landed carrying the other's source and tests. → §RK280
-
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK265** (deps: —) **budget omits the pointer under an outline ref scheme, so it over-reports the room by the anchor width** — It answered 182 characters left for a why `add` then refused at 174, the 8 being ` → §XX.2` — a limit found after the prose exists, which this verb exists to prevent. → §RK265

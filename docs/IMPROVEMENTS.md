@@ -77,30 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK280 The one write in the contract that nothing guards
-
-Observed, not imagined. `a0c6f6c` ships RK244 and carries `document.py` +40 and `adopting.py`
-+16, which are RK279's implementation. `767d3eb` ships RK279 and carries `test_authoring.py`
-+40 and a `cli.py` hunk reading `"ref": insertion.entry.task.ref`, which is RK249's. Two
-sessions, two commits, each holding the other's work, both green — so nothing failed and
-nothing said anything.
-
-RK117 locks a scan-to-save span and RK119 says who holds a line, and both did their job:
-no governed file corrupted, no id spent twice. The gap is that `agents.md` makes the
-commit part of the task contract — "one task → one commit, the instant it is validated"
-— and that step is a `git add -A` in a shell script. The guard denies a hand edit to a
-file this tool owns; nothing denies staging a file it does not.
-
-`agents.md` names a remedy — "a tree holding unrelated work wants the task's paths
-staged" — which is advice, where RK1's argument says advice does not hold. It also does
-not survive this case: both sessions were editing the *same* governed files, so staging
-by path stages the other's edit too.
-
-What could hold: `claim` already knows who holds a line, and a claim could name the
-paths a task expects to touch, so a second session's write to a file the first has open
-is refused and not merged. That is RK119 widened from an id to a working tree, and the
-only version of this that is a schema and not a warning.
-
 ## Block C — Query
 
 ### §RK265 The pointer budget cannot be told about

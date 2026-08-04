@@ -106,11 +106,22 @@ def since(age: float) -> str:
 
 
 @dataclass(frozen=True, slots=True)
+class Dating:
+    """One registry row as it is on disk: when it was taken, and what it says it will touch."""
+
+    when: float
+    paths: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
 class Held:
     """One claim a caller was not offered: which line, and how long it has been held."""
 
     id: str
     age: float
+    #: The paths this claim says are its commit's (RK280). Empty where none were declared,
+    #: which is every claim taken before the holder said — silence is not a claim to nothing.
+    paths: tuple[str, ...] = ()
 
     @property
     def since(self) -> str:
@@ -165,6 +176,8 @@ class Dated:
     #: The marker the line carries, or empty where no line carries the id.
     marker: str = ""
     block: str = ""
+    #: The paths this row says its commit owns (RK280), in the order they were declared.
+    paths: tuple[str, ...] = ()
 
     @property
     def since(self) -> str:
@@ -202,8 +215,8 @@ def survey(backlog: Backlog) -> tuple[Dated, ...]:
     )
     now, held = time.time(), window(config)
     rows = [
-        _row(task_id, now - when, tasks.get(task_id), elsewhere, held)
-        for task_id, when in dated.items()
+        _row(task_id, now - row.when, tasks.get(task_id), elsewhere, held, row.paths)
+        for task_id, row in dated.items()
     ]
     return tuple(sorted(rows, key=lambda row: -row.age))
 
@@ -214,6 +227,7 @@ def _row(
     task: Task | None,
     elsewhere: tuple[tuple[Where, object], ...],
     held: float,
+    paths: tuple[str, ...] = (),
 ) -> Dated:
     """One registry entry as the two questions a reader is asking: is it a claim, and where."""
     if task is None:
@@ -222,6 +236,7 @@ def _row(
             age=age,
             state=State.STALE,
             where=next((name for name, ids in elsewhere if task_id in ids), Where.NOWHERE),  # type: ignore[operator]
+            paths=paths,
         )
     if task.status != IN_PROGRESS:
         state = State.STALE
@@ -234,6 +249,7 @@ def _row(
         where=Where.OPEN,
         marker=task.status,
         block=task.block,
+        paths=paths,
     )
 
 
@@ -271,7 +287,7 @@ def prune(config: Config) -> Pruning:
         if dropped:
             target = path(config.root)
             gone = {row.id for row in dropped}
-            _write(target, {n: w for n, w in _read(target).items() if n not in gone})
+            _write(target, {n: r for n, r in _read(target).items() if n not in gone})
     return Pruning(
         kept=tuple(row for row in rows if row.state is not State.STALE), dropped=dropped
     )
@@ -294,11 +310,11 @@ def live(config: Config, entries: Iterable[Entry]) -> tuple[Held, ...]:
         return ()
     now, held = time.time(), window(config)
     return tuple(
-        Held(entry.task.id, now - when)
+        Held(entry.task.id, now - row.when, row.paths)
         for entry in entries
         if entry.task.status == IN_PROGRESS
-        and (when := dated.get(entry.task.id)) is not None
-        and now - when < held
+        and (row := dated.get(entry.task.id)) is not None
+        and now - row.when < held
     )
 
 
@@ -357,18 +373,100 @@ def follow(
 
     It writes only when the result differs, so a project that never claims never gets a file:
     a `status` on a backlog with no registry is a read and a comparison.
+
+    A **re-assertion keeps the paths** it was holding (RK280): the row is dated again, and the
+    scope the holder declared is a statement about the same work, not one the clock revokes.
+    A release drops the row and the paths with it, which is what makes a marker the only thing
+    that has to be remembered.
     """
     target = path(root)
     dated = _read(target)
     started = {entry.task.id for entry in entries if entry.task.status == IN_PROGRESS}
-    kept = {name: when for name, when in dated.items() if name in started}
+    kept = {name: row for name, row in dated.items() if name in started}
     if marker == IN_PROGRESS:
-        kept[task_id] = time.time()
+        was = dated.get(task_id)
+        kept[task_id] = Dating(time.time(), was.paths if was is not None else ())
     if kept != dated:
         _write(target, kept)
     if marker == IN_PROGRESS:
         return Followed.CLAIMED
     return Followed.RELEASED if task_id in dated else Followed.NEITHER
+
+
+class NotHeld(ValueError):
+    """Declaring a scope for a line nobody is holding (RK280).
+
+    Refused rather than taken, because taking is a **marker** and this door writes no marker:
+    a command that dated a claim as a side effect of naming files would be a second way to
+    start work, which is the shape RK158 spent a task removing. Says the door that does open.
+    """
+
+    def __init__(self, task_id: str) -> None:
+        self.task_id = task_id
+        super().__init__(
+            f"no live claim on {task_id}: a scope is what a claim carries, so take the "
+            f"line first with `status {task_id} {IN_PROGRESS}` (or `pick --claim`)"
+        )
+
+
+def scope(config: Config, task_id: str, paths: Iterable[str]) -> tuple[str, ...]:
+    """Record the paths a held line's commit owns, and answer them back (RK280).
+
+    The write that was missing. RK117 locks a scan-to-save span and RK119 says who holds a
+    line, and both did their job — no governed file corrupted, no id spent twice — while two
+    sessions each committed a tree holding the other's source, because the commit step is a
+    `git add -A` in a shell script and nothing in the contract could name what belonged to
+    whom. `agents.md` carried the remedy as advice ("a tree holding unrelated work wants the
+    task's paths staged"), which is where L1's argument says advice does not hold: it is an
+    analysis to make at the moment of committing, out of a `git status` that shows both
+    sessions' work and says nothing about which is which.
+
+    So the claim carries it, because the claim is the one thing that already knows a line is
+    being worked on and by one worker. What is stored is what the holder **said**, verbatim
+    and in order: this never asks the disk whether a path exists, and never derives a path
+    from the task's prose. A scope inferred from a sentence would be RK55's guessing put in
+    charge of what a commit contains.
+
+    The **third** writer of the registry, and the exception is the same one :func:`rename`
+    takes: it writes no date. Dating is `follow`'s, so nothing here can start work, postpone
+    an expiry or take a line from the worker holding it — the invariant RK160 closed stays
+    exactly where it was. Refused on a line no live claim holds, for the same reason.
+
+    Replaces rather than appends. A scope is the answer to *what is this commit*, and a call
+    that only ever grew one would make a corrected answer unreachable without the file — which
+    is RK165's argument, one row along. Duplicates collapse, order kept, because the answer is
+    consumed by a `git add --` and a path staged twice is noise in a contract meant to be read.
+    """
+    wanted = tuple(dict.fromkeys(one for one in paths if one))
+    with exclusive(config.root):
+        backlog = Backlog.load(config)
+        if not any(one.id == task_id for one in live(config, backlog.roadmap.entries)):
+            raise NotHeld(task_id)
+        target = path(config.root)
+        dated = _read(target)
+        row = dated[task_id]
+        dated[task_id] = Dating(row.when, wanted)
+        _write(target, dated)
+    return wanted
+
+
+def elsewhere(config: Config, task_id: str, entries: Iterable[Entry]) -> tuple[Held, ...]:
+    """Every *other* live claim that has declared a scope, so a commit can leave it alone.
+
+    The half a claim could not answer before (RK280). A claim names nobody by design (RK119),
+    so no write can be refused on the grounds that it is somebody else's — the guard sees a
+    path and not a worker, and a session cannot be told it is not itself. What *is* decidable
+    is the reverse: given the id being committed, every path some other held line says is its
+    own. That is a list the caller subtracts, and it is why this closes at the commit rather
+    than at the write.
+
+    Claims with no scope are left out, and the omission is the honest one: silence is a
+    holder who has not said, not a holder claiming nothing, so a caller that treated it as
+    the second would be answering with a confidence the registry does not carry.
+    """
+    return tuple(
+        one for one in live(config, entries) if one.id != task_id and one.paths
+    )
 
 
 def rename(root: Path | str, old: str, new: str) -> bool:
@@ -387,37 +485,44 @@ def rename(root: Path | str, old: str, new: str) -> bool:
     """
     target = path(root)
     dated = _read(target)
-    when = dated.pop(old, None)
-    if when is None:
+    row = dated.pop(old, None)
+    if row is None:
         return False
-    dated[new] = when
+    dated[new] = row
     _write(target, dated)
     return True
 
 
-def _read(target: Path) -> dict[str, float]:
-    """The registry as it is on disk — `<id> <epoch>` a line — and empty when unreadable.
+def _read(target: Path) -> dict[str, Dating]:
+    """The registry as it is on disk — `<id> <epoch>[\\t<path>]*` a line — empty when unreadable.
 
     Unreadable is *empty* and never an error: the file is transient, a caller that cannot
     read it loses the dates and not the backlog, and refusing to answer `pick` because a
     temp file went missing would make the answer depend on the one thing that is allowed to
     disappear. A line this cannot parse is skipped for the same reason.
+
+    The paths follow the date behind a **tab** (RK280), which is the one separator a path this
+    tool would ever be handed cannot contain in practice and the space already spent on the
+    date certainly can. A row written before they existed has none and parses unchanged,
+    which is what lets a session upgrade under a claim it is holding.
     """
     try:
         raw = target.read_text(encoding="utf-8")
     except OSError:
         return {}
-    dated: dict[str, float] = {}
+    dated: dict[str, Dating] = {}
     for line in raw.splitlines():
-        task_id, _, when = line.partition(" ")
+        head, _, tail = line.partition("\t")
+        task_id, _, when = head.partition(" ")
         try:
-            dated[task_id] = float(when)
+            stamp = float(when)
         except ValueError:
             continue
+        dated[task_id] = Dating(stamp, tuple(p for p in tail.split("\t") if p))
     return dated
 
 
-def _write(target: Path, dated: Mapping[str, float]) -> None:
+def _write(target: Path, dated: Mapping[str, Dating]) -> None:
     """Replace the registry in one step, and never fail the command that was answering.
 
     Written aside and renamed because the *readers* take no lock — `pick` is a query (RK117)
@@ -425,7 +530,12 @@ def _write(target: Path, dated: Mapping[str, float]) -> None:
     read as expired and lines handed out twice. Sorted, so a human reading the file sees a
     stable order, and best-effort: an OSError here loses a date, never a task.
     """
-    body = "".join(f"{task_id} {when:.6f}\n" for task_id, when in sorted(dated.items()))
+    body = "".join(
+        f"{task_id} {row.when:.6f}"
+        + "".join(f"\t{one}" for one in row.paths)
+        + "\n"
+        for task_id, row in sorted(dated.items())
+    )
     staged = target.parent / f"{target.name}.writing"
     try:
         staged.write_text(body, encoding="utf-8")

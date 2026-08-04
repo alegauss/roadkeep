@@ -106,7 +106,9 @@ commit as the code, so the docs never describe a state that did not ship, and a 
 tasks is **not** permission to batch: `/loop`, one task per iteration. Use `run-commit.cmd -m
 "<conventional-commits title>"` from the repo root, **`-m` always** and ASCII — without it a
 docs commit's prose about shipped work is misread as `feat: implement <feature>`. It stages
-everything: a tree holding unrelated work wants the task's paths staged and
+everything, which is why a claim carries a **scope**: `claim <id> --path …` says what this
+commit owns and `claim <id>` reads it back, naming what the tree holds that another live claim
+says is its own (RK280) — stage `claim <id> --porcelain` and
 `python -m commitclerk -m …`. **Every commit bumps the patch version**, Claude Code re-reading
 an installed plugin per version (RK153) — `.githooks/pre-commit` does it and never blocks,
 wired in a fresh clone by `git config core.hooksPath .githooks`.

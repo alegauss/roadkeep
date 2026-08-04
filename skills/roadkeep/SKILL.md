@@ -243,3 +243,11 @@ the id is the only thing you can recognise your own by; who took it belongs in t
 
 What `ship` wrote goes in the *same* commit as the code, so the docs never describe a state
 that did not ship — and a batch of ready tasks is not permission to batch the commits.
+
+Which is decidable only if the commit knows what is **its**. A claim carries a scope:
+`claim <id> --path <p> …` says what this commit owns, declared verbatim and replacing
+whatever was there, and `claim <id>` reads it back beside what the working tree holds that
+another live claim says is *its* own and what no claim names at all — the analysis
+`git add -A` cannot make and a second session's work is what it sweeps up. `--porcelain`
+prints the paths alone, for `git add --`. Refused on a line no live claim holds: taking a
+line is a marker, and nothing here dates one.

@@ -234,6 +234,7 @@ def test_the_reads_that_can_write_are_the_ones_that_say_so():
         "pick": "claim",
         "brief": "claim",
         "claims": "prune",
+        "claim": "path",
         "lint": "fix",
     }
 

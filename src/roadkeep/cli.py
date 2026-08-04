@@ -73,6 +73,7 @@ from roadkeep.history import (
     Origin,
     anchors,
     cited_origin,
+    dirty,
     gaps,
     next_child,
     origin_of,
@@ -877,6 +878,37 @@ def build_parser() -> argparse.ArgumentParser:
     # A read that can write, so it declares which flag makes it one (RK167): `dispatch` keeps
     # deciding the lock, and reading the registry never waits on one.
     claims_parser.set_defaults(handler=_claims, reads_only=True, writes_when="prune")
+
+    claim_parser = subcommands.add_parser(
+        "claim",
+        help="the paths one held line's commit owns, declared once and answered on demand",
+        description=(
+            "Say which paths this task will touch, and read them back at the moment of "
+            "committing. Without --path it answers what was declared, plus what the tree "
+            "holds that another live claim says is its own — the analysis `git add -A` "
+            "cannot make. Declared verbatim: nothing here reads the disk or the task's "
+            "prose to guess a path, and nothing here dates a claim."
+        ),
+    )
+    claim_parser.add_argument("id", help="the task id, which a live claim must already hold")
+    claim_parser.add_argument(
+        "--path",
+        action="append",
+        default=[],
+        metavar="PATH",
+        help=(
+            "a path this task's commit owns, repeatable; replaces the whole scope, so a "
+            "correction is one call and not a file to edit"
+        ),
+    )
+    claim_parser.add_argument(
+        "--porcelain",
+        action="store_true",
+        help="the paths alone, one per line — what a commit script feeds to `git add --`",
+    )
+    claim_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    # A read that can write, declared the way `claims --prune` declares it (RK167).
+    claim_parser.set_defaults(handler=_claim, reads_only=True, writes_when="path")
 
     writes_parser = subcommands.add_parser(
         "writes",
@@ -3169,8 +3201,11 @@ def _claims(config: Config, args: argparse.Namespace) -> int:
 
     print(f"{len(rows)} dated, {held} held  (window {config.held}m)")
     for row in (*rows, *dropped):
+        # The scope is counted here and named by `claim <id>` (RK280): this listing ranks
+        # nothing and offers nothing, and four paths per row would make it the other command.
+        scoped = f"  {len(row.paths)} path(s)" if row.paths else ""
         print(f"  {'pruned' if row in dropped else str(row.state):<8} {row.id}  "
-              f"claimed {row.since} ago  {_claim_where(row)}")
+              f"claimed {row.since} ago  {_claim_where(row)}{scoped}")
     if args.prune and not dropped:
         print("  pruned   nothing: every row is a claim")
     # Named because the release is a marker and the *file* is what an operator deletes when a
@@ -3197,7 +3232,75 @@ def _claim_row(row: claiming.Dated) -> dict[str, object]:
         "since": row.since,
         "marker": row.marker or None,
         "block": row.block or None,
+        "paths": list(row.paths),
     }
+
+
+def _claim(config: Config, args: argparse.Namespace) -> int:
+    """One held line's scope: declared, or read back at the commit (RK280).
+
+    The read is the half that earns the command. `git status` shows a tree two sessions wrote
+    and says nothing about which half is whose, so the author committing was left an analysis
+    to make with no facts to make it from — and `agents.md` carried the answer as advice,
+    which RK1 says does not hold. Here the three lists are separate because the caller does
+    three different things with them: stage `mine`, leave `theirs`, and decide about `loose`.
+    """
+    backlog = Backlog.load(config)
+    entries = backlog.roadmap.entries
+    try:
+        if args.path:
+            mine = claiming.scope(config, args.id, args.path)
+        else:
+            held = next((one for one in claiming.live(config, entries) if one.id == args.id), None)
+            if held is None:
+                raise claiming.NotHeld(args.id)
+            mine = held.paths
+    except (claiming.NotHeld, KeyError, OSError) as error:
+        return _refused(error)
+
+    if args.porcelain:
+        # Nothing but the paths: this form is consumed by `git add --`, so a heading on it
+        # would be a filename to a shell and the contract has to be safe to pipe.
+        for one in mine:
+            print(one)
+        return EXIT_OK
+
+    others = claiming.elsewhere(config, args.id, entries)
+    spoken = {one for other in others for one in other.paths}
+    changed = dirty(config)
+    theirs = tuple(
+        (one, other.id)
+        for other in others
+        for one in sorted(other.paths)
+        if one in changed
+    )
+    # What nobody has spoken for. Named rather than counted, because it is the list the
+    # incident was made of: a path in neither scope is one `git add -A` takes silently.
+    loose = tuple(sorted(one for one in changed if one not in set(mine) and one not in spoken))
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "id": args.id,
+                    "paths": list(mine),
+                    "theirs": [{"path": one, "claimed_by": who} for one, who in theirs],
+                    "unclaimed": list(loose),
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+
+    print(f"{args.id} claims {len(mine)} path(s)")
+    for one in mine:
+        print(f"  mine     {one}")
+    for one, who in theirs:
+        print(f"  theirs   {one}  ({who} is holding it)")
+    for one in loose:
+        print(f"  loose    {one}  (no claim names it)")
+    if not mine:
+        print(f"  none declared: `claim {args.id} --path <p>` says what this commit owns")
+    return EXIT_OK
 
 
 def _writes(config: Config, args: argparse.Namespace) -> int:

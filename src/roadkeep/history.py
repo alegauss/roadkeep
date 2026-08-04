@@ -24,7 +24,7 @@ from __future__ import annotations
 import re
 import shutil
 import subprocess
-from collections.abc import Sequence
+from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -429,6 +429,48 @@ def tracked_now(config: Config) -> frozenset[str]:
         return frozenset()
     gone = {name for name in removed.split(chr(0)) if name}
     return frozenset(name for name in listed if name not in gone)
+
+
+def dirty(config: Config) -> frozenset[str]:
+    """Every path the working tree has changed, staged or not, untracked included (RK280).
+
+    What a `git add -A` would put in the next commit, which is the list a scope is subtracted
+    from — so it has to be exactly that list and not a tidier one: an untracked file is the
+    new test somebody's session just wrote, and leaving it out would answer *your commit is
+    clean* about the tree that carried the defect this exists for.
+
+    `status --porcelain -z` and not a diff: one process, git's own spelling on every platform,
+    and the rename case arrives as both its ends, which is the honest reading when the
+    question is what a commit would touch. Empty where git cannot answer, the rule every
+    reader here keeps — a checkout with no git is one this reports nothing about, never one
+    it refuses.
+    """
+    try:
+        listed = _run(config.root, "status", "--porcelain", "-z")
+    except HistoryUnavailable:
+        return frozenset()
+    return frozenset(_dirty_paths(listed))
+
+
+def _dirty_paths(listed: str) -> Iterator[str]:
+    """The paths out of `status --porcelain -z`, whose records are not one per NUL.
+
+    A rename spends **two** NUL-separated fields — `R  <to>\\0<from>` — so a naive split reads
+    the origin as a record and its first two characters as a status code. Both ends are
+    yielded, because both are paths the commit touches.
+    """
+    fields = [field for field in listed.split(_NUL) if field]
+    index = 0
+    while index < len(fields):
+        record = fields[index]
+        index += 1
+        code, _, name = record[:2], record[2:3], record[3:]
+        if not name:
+            continue
+        yield name
+        if code[0] in "RC" and index < len(fields):
+            yield fields[index]
+            index += 1
 
 
 @dataclass(frozen=True, slots=True)

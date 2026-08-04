@@ -20,6 +20,7 @@ from roadkeep.history import (
     HistoryUnavailable,
     anchors,
     commits_touching,
+    dirty,
     gaps,
     git_available,
     next_child,
@@ -568,3 +569,39 @@ def test_the_command_summarises_by_family_and_lists_one_on_request(tmp_path, cap
 def test_a_project_with_no_prose_file_is_a_usage_error_and_not_a_crash(tmp_path):
     repo(tmp_path)
     assert main(["-C", str(tmp_path), "anchors"]) == EXIT_USAGE
+
+
+# -- what a commit would carry (RK280) ---------------------------------------
+
+
+def test_the_dirty_listing_holds_every_kind_of_change_a_commit_would_take(tmp_path):
+    # `git add -A` is what the scope is subtracted from, so this has to be exactly that
+    # list: an untracked file is somebody's new test, and omitting it would answer "clean"
+    # about the tree that carried the defect this exists for.
+    config = repo(tmp_path)
+    (tmp_path / "ROADMAP.md").write_text("## Block A — Changed\n", encoding="utf-8")
+    (tmp_path / "new.py").write_text("x = 1\n", encoding="utf-8")
+    (tmp_path / "staged.py").write_text("y = 2\n", encoding="utf-8")
+    git(tmp_path, "add", "staged.py")
+    assert dirty(config) == {"ROADMAP.md", "new.py", "staged.py"}
+
+
+def test_a_rename_arrives_as_both_of_its_ends(tmp_path):
+    # `status --porcelain -z` spends two NUL-separated fields on a rename, so a naive split
+    # reads the origin as a record and its first two characters as a status code.
+    config = repo(tmp_path)
+    git(tmp_path, "mv", "CHANGELOG.md", "LEDGER.md")
+    assert dirty(config) == {"CHANGELOG.md", "LEDGER.md"}
+
+
+def test_a_clean_tree_says_nothing(tmp_path):
+    assert dirty(repo(tmp_path)) == frozenset()
+
+
+def test_a_checkout_git_cannot_answer_for_reports_nothing_rather_than_refusing(tmp_path):
+    # The rule every reader here keeps: no git is a question this answers nothing about.
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\n', encoding="utf-8"
+    )
+    (tmp_path / "ROADMAP.md").write_text("## Block A — The model\n", encoding="utf-8")
+    assert dirty(Config.discover(tmp_path)) == frozenset()
