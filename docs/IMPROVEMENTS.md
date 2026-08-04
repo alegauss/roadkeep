@@ -100,6 +100,28 @@ overrun would be back to guessing, with a smaller number to guess against.
 
 ## Block B — Authoring
 
+### §RK238 The advice a shipped id cannot take
+
+Found doing RK231, which fixed the neighbouring half: `_task_for` reads both live roles
+now, so a paused line is found and only an anchor no live line names still reaches
+`anchor.unknown`. An id the changelog holds is one of those, and rightly — a departure
+deletes the design (RK6), so there is no section to amend.
+
+What is wrong is the sentence. `no live task RK1 points at this section: add the line
+first` is a remedy `refuse_reuse` refuses: the id occurs in the ledger, so `add --id
+RK1` is `IdInUse`, and retired-never-reused (RK4) is the rule saying so. The author is
+handed the one door that cannot open, and the two that can go unnamed — an outline
+anchor for prose belonging to no task, which the message already offers for the *absent*
+case, and `record amend` where what actually needs correcting is the entry sentence.
+
+So this is RK16 one message over: a finding whose named remedy the tool refuses is worse
+than a finding with no remedy at all, because the author spends the attempt before
+learning it. The fact needed is one the writer already has —
+`config.document("changelog").by_id()`, the same read `_refuse_recorded` makes — and the
+split is what `NotSetAside` already does one module over: name where the id *is*,
+because "not here" is the same sentence for a task that shipped, one that was abandoned
+and one that never existed, and only the last is a typo.
+
 ## Block C — Query
 
 ### §RK200 The record with no way to read it
@@ -126,6 +148,29 @@ because `pick` stepped over ids and could not say whose; this record has one con
 and may not need a second.
 
 ## Block D — The gate
+
+### §RK239 The state every verb refuses and the gate does not report
+
+Measured while shipping RK232, and the number is the argument: Turing at `f08304fcb1`
+declares thirteen anchors in both `IMPROVEMENTS.md` and `STRATEGY.md`. One is pointed
+at, and `lint` reports it. The other twelve are reported by nothing.
+
+Four readers already treat that state as unresolvable. `show` and `brief` refuse to pick
+(RK186), `ship` keeps the section rather than choose which of two a line meant (RK196),
+`defer` reports the ambiguity instead of naming a file (RK229), and `_pointed_at`
+charges own prose because the gate does (RK232). So the tool has a settled opinion — one
+anchor names one section — and the only check that says it out loud fires from the
+pointer end, which reports the state when a task line happens to reach it and stays
+silent otherwise.
+
+That is the wrong end. The claim is about the prose files: `_declared` already builds
+the index, and a finding at each of the two headings is what an author can act on.
+`--fix` cannot repair it, which of the two is the design being editorial (RK16), and it
+has to stay separate from `ref.ambiguous` rather than replace it: a pointer resolving to
+two is what a reader of the roadmap hits, and that is worth saying at the line as well.
+
+Worth deciding with it whether this is one finding or one per heading. Two is the shape
+`id.duplicate` uses, and it is the one an editor can act on twice.
 
 ## Block E — Adoption
 
