@@ -629,14 +629,29 @@ def adopt(
         schema = replace(schema, prefixes=chosen)
         document = replace(document, schema=schema)
 
+    # The findings the gate would raise over **this file alone** (RK290), and not a second
+    # walk of the per-line rules. `adopt` used to call `Schema.validate` per entry, which is
+    # the per-line half only, so a duplicated id — decidable from one file, and refused by
+    # `lint` over that same file — read as `2 conform, 0 would change`. `within` is the half
+    # of the gate one file can run, already named and already relied on by the merge driver,
+    # so the estimate and the gate now disagree only where they read different files.
+    #
+    # `role` names the *schema* this file is being read in, which is what the finding's path
+    # is cosmetic against here: `adopt` reads a file the project may not declare at all, and
+    # only the codes are counted.
+    # Imported here and not at module level (RK260): `linting` reaches `backlog` and
+    # `exporting`, and an estimate is the only caller in this module.
+    from roadkeep.linting import within  # noqa: PLC0415
+
+    findings = within(config, "changelog" if ledger else "roadmap", document)
     counts: dict[str, int] = {}
-    conforming = 0
-    for entry in document.entries:
-        violations = schema.validate(entry.task)
-        if not violations:
-            conforming += 1
-        for violation in violations:
-            counts[violation.code] = counts.get(violation.code, 0) + 1
+    for finding in findings:
+        # `line.unparsed` is the reject, already reported as its own row with the reason that
+        # names a remedy (RK286) — counting it again here would price one line twice.
+        if finding.code != "line.unparsed":
+            counts[finding.code] = counts.get(finding.code, 0) + 1
+    faulted = {f.lineno for f in findings if f.code != "line.unparsed"}
+    conforming = sum(1 for entry in document.entries if entry.lineno not in faulted)
 
     return Estimate(
         path=target,

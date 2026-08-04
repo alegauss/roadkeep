@@ -405,31 +405,6 @@ shape at six. What stays true either way is that a *validation* refusal keeps th
 
 ## Block E — Adoption
 
-### §RK290 The estimate and the gate disagree about the same file
-
-One file, one line, one dep on an id nothing declares. `adopt` answers `1 line(s), 1
-conform, 0 would change`. `lint`, over that same file, answers `deps.unknown  RK1: waits
-on RK99, which is in neither the roadmap nor the changelog`. The disagreement is not a
-missing sibling file or a wrong reading — the finding is decidable from the one file
-both were given.
-
-`adopt` calls `Schema.validate` per entry, which is the per-*line* half of the rules.
-Every finding needing two lines is therefore invisible: `deps.unknown`,
-`ref.unresolved`, `ref.ambiguous`, `section.orphan`, and the budgets, which are facts
-about a file and not a line. The estimate is not slightly low on those; it is blind to
-the class.
-
-That inverts what RK18 is for. The number is taken *before* the commitment precisely so
-the commitment is informed, and an adopter who reads `0 would change` meets those
-findings after wiring the gate — the moment the estimate existed to move earlier.
-
-What makes it tractable is that `lint` owns the cross-line pass already and `adopt` already
-loads a `Document`. The care is about scope, not mechanism: the gate judges the files a project
-*declares*, and `adopt` reads one file that may not be declared at all, so checks reaching
-across files — a dep satisfied by the changelog, a pointer resolved in the rationale file — can
-run only over what it was handed. Reporting that as a count is honest; reporting a resolution
-it could not attempt is not.
-
 ## Block F — The plugin
 
 ### §RK267 A note that knows more than it says

@@ -38,6 +38,7 @@ from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config, Scope
 from roadkeep.schema import Schema
 from roadkeep.document import Document, ledger_slots
+from roadkeep.linting import lint
 from roadkeep.sections import unanchored, words
 
 SHIO = Path("D:/Git/viglet/shio/latest/docs/ROADMAP.md")
@@ -912,6 +913,58 @@ def test_the_payload_carries_every_field_of_the_estimate(tmp_path: Path, capsys)
     # property, and it is the number the whole report exists to give. What must not happen is a
     # *field* going missing, which is the direction RK276 measured.
     assert named <= set(payload)
+
+
+#: One id on two lines — a defect that needs *two* lines to see, and is decidable from the one
+#: file both the estimate and the gate were handed.
+DOUBLED = """# Roadmap
+
+## Block A — The model
+
+- 📋 **RK1** (deps: —) **A first symptom** — Because of a reason. → §RK1
+- 📋 **RK1** (deps: —) **A second line with one id** — Because of another. → §RK1
+"""
+
+
+def test_the_estimate_sees_what_needs_more_than_one_line(tmp_path: Path) -> None:
+    # RK290: `adopt` validated each task on its own — the per-line half of the rules — so a
+    # duplicated id read `2 conform, 0 would change` while `lint` over that same file refused
+    # it. The estimate was not slightly low on that class; it could not see it.
+    target = tmp_path / "ROADMAP.md"
+    target.write_text(DOUBLED, encoding="utf-8")
+    estimate = adopt(Config.default(tmp_path), target)
+    assert dict(estimate.codes)["id.duplicate"] == 1
+    assert estimate.conforming == 1 and estimate.changing == 1
+
+
+def test_the_estimate_and_the_gate_agree_over_one_file(tmp_path: Path, capsys) -> None:
+    """The claim RK18 rests on, asserted as an equality rather than described: what the
+    estimate reports and what the gate reports about the same file are the same codes."""
+    docs = tmp_path / "docs"
+    docs.mkdir()
+    (docs / "ROADMAP.md").write_text(DOUBLED, encoding="utf-8")
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "docs/ROADMAP.md"\n', encoding="utf-8"
+    )
+    config = Config.discover(tmp_path)
+    estimated = dict(adopt(config, docs / "ROADMAP.md").codes)
+
+    gated: dict[str, int] = {}
+    for finding in lint(config).findings:
+        gated[finding.code] = gated.get(finding.code, 0) + 1
+    # Only the half one file decides: the gate also resolves deps and pointers across the
+    # files a project declares, and an estimate is handed one file that may be declared by
+    # nothing (RK290).
+    assert estimated == {code: n for code, n in gated.items() if code == "id.duplicate"}
+
+
+def test_a_conforming_file_gains_no_finding_from_the_wider_pass(tmp_path: Path) -> None:
+    """The direction that would matter most if it broke: this repository's own backlog, and
+    two live corpora, must not acquire work because the estimate started looking wider."""
+    root = Path(__file__).resolve().parents[1]
+    config = Config.discover(root)
+    estimate = adopt(config, config.path("roadmap"))
+    assert estimate.changing == 0 and estimate.conforming == estimate.parsed
 
 
 def test_a_fenced_table_is_an_example(tmp_path: Path) -> None:

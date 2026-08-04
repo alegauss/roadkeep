@@ -244,6 +244,7 @@
 - ✅ **RK286** **The declaration a ledger reject names does not change the count** — The reject names every slot a line needs, and `adopt` re-reads the file under each `[ledger]` declaration to report what it recovers — whole hypotheses, the slots not being independent.
 - ✅ **RK288** **A rationale file's anchors read as absent under the other scheme** — A prose file's own heading anchors are a second source for the scheme, so `--sections` names `--ref-scheme` too — and only where the other scheme accounts for more of the file than the declared one.
 - ✅ **RK289** **Only one payload is held to the dataclass it renders** — `Estimate`, `Plan` and `Removal` are each held to their payload by a test over their fields, with the two renames declared beside it so the boundary that names them stays.
+- ✅ **RK290** **The estimate cannot see any finding that needs more than one line** — `adopt` counts what `within` finds — the half of the gate one file decides — so a duplicated id is priced instead of read as conforming, and the two disagree only across files.
 
 ## Block F — The Claude Code plugin
 
