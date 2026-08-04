@@ -47,9 +47,13 @@ the tree that was wired in is usually gone by then. The CI workflow is the one s
 keeps: that gate calls the published action, not the checkout, so un-wiring the write path
 does not un-gate the repository.
 
-The fifth surface is not written at all. A line in `CONTRIBUTING.md` telling a contributor
-not to hand-edit the governed files is prose about a project's own contribution policy, and
-this tool does not write prose (L4) — it is named in the report and left to its author.
+Two more surfaces are named rather than written, which is not the same as being left out.
+A line in `CONTRIBUTING.md` telling a contributor not to hand-edit the governed files is prose
+about a project's own contribution policy, and this tool does not write prose (L4). The **merge
+driver** (RK120) is configuration, so it stays opt-in — but being opt-in is no reason to be
+unmentioned (RK148): it is named in the report, and `--register-merge` writes the
+`.gitattributes` half for a caller that asks while the `git config` half is printed, that one
+being a write outside the files this tool was given (L2).
 """
 
 from __future__ import annotations
@@ -57,11 +61,12 @@ from __future__ import annotations
 import json
 import os
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 
-from roadkeep.config import Config
+from roadkeep.config import CONFIG_NAME, Config
 from roadkeep.linting import lint
+from roadkeep.merging import Registration, register
 from roadkeep.provenance import engine
 
 #: The server's name, which is also the prefix an agent reads on every tool it offers.
@@ -108,6 +113,17 @@ _ENTRY_RE = re.compile(
 #: the project reaching for this command is by definition running an unreleased checkout —
 #: an adopter that has pinned a release edits one line, which is the file's own from then on.
 ACTION_REF = "main"
+
+#: The fifth surface: opt-in, and until RK148 unmentioned. RK120 shipped the merge driver as
+#: configuration (L6) — right — but an adopter read a report naming four surfaces and a
+#: `CONTRIBUTING.md` line and was never told a driver exists, so the failure landed later and
+#: looked like the tool's: two branches spend one id, git writes conflict markers into the
+#: roadmap, and the resolution is the hand edit the guard denies.
+MERGE = (
+    ".gitattributes: `roadkeep merge --register` wires the merge driver for the governed "
+    "files, so two branches appending under one heading is two additions and not a conflict "
+    "— opt-in configuration, and `install --register-merge` runs it here"
+)
 
 #: The surface this command names and does not write (L4), and why. Printed by `install`.
 CONTRIBUTING = (
@@ -208,17 +224,29 @@ class Plan:
     #: It decides which workflow is written, and it is on the plan because a decision taken
     #: from a measurement the report does not state is one the adopter cannot check.
     debt: int | None = None
+    #: The merge driver, where `--register-merge` asked for it (RK148) — the attribute lines
+    #: written and the `git config` line to run, exactly as `merge --register` reports them.
+    registered: Registration | None = None
 
     @property
     def changing(self) -> tuple[Surface, ...]:
         return tuple(surface for surface in self.surfaces if surface.writes)
 
 
-def plan(root: str | Path = ".", *, source: str | Path | None = None) -> Plan:
+def plan(
+    root: str | Path = ".",
+    *,
+    source: str | Path | None = None,
+    registering: bool = False,
+) -> Plan:
     """Read the plugin's surfaces and the project's, and answer what would change.
 
     Writes nothing, which is what lets `install` and `install --check` be the same
     computation — a check that ran a different code path would be checking something else.
+
+    ``registering`` only moves the merge driver out of the *unwritten* list (RK148): the
+    driver is written by :func:`install`, and a `--check` that registered one would be a
+    check that changed the repository.
     """
     base = Path(root).resolve()
     origin = Path(source).resolve() if source is not None else _source()
@@ -234,6 +262,8 @@ def plan(root: str | Path = ".", *, source: str | Path | None = None) -> Plan:
         _copy(base / PROJECT_SKILL, _skill(origin, launcher)),
     ]
     skipped: list[tuple[str, str]] = [(CONTRIBUTING.split(":")[0], CONTRIBUTING)]
+    if not registering:
+        skipped.insert(0, (MERGE.split(":")[0], MERGE))
     debt = _standing(base)
     if (base / WORKFLOWS).is_dir():
         surfaces.append(_once(base / PROJECT_WORKFLOW, _workflow(origin, debt)))
@@ -249,18 +279,49 @@ def plan(root: str | Path = ".", *, source: str | Path | None = None) -> Plan:
     )
 
 
-def install(root: str | Path = ".", *, source: str | Path | None = None) -> Plan:
+def install(
+    root: str | Path = ".",
+    *,
+    source: str | Path | None = None,
+    register_merge: bool = False,
+) -> Plan:
     """Write every surface that would change, or write nothing.
 
     The order is `init`'s and for `init`'s reason: everything that can refuse has refused by
     the time the first file is opened, because a project wired for the tools but not for the
     hook is a project that looks governed and is not.
+
+    ``register_merge`` adds the fifth (RK148): the `.gitattributes` half of `merge --register`,
+    for a caller that asked. A flag and never a default, because the other half is a line in
+    somebody's `git config` — which this command prints and does not run (L2) — and the
+    project's own config is resolved *before* the first write, so a project with nothing to
+    register refuses instead of leaving four surfaces written and a flag unhonoured.
     """
-    intent = plan(root, source=source)
+    intent = plan(root, source=source, registering=register_merge)
+    governed = _governed(intent.root) if register_merge else None
     for surface in intent.changing:
         surface.path.parent.mkdir(parents=True, exist_ok=True)
         surface.path.write_text(surface.text, encoding="utf-8", newline="")
+    if governed is not None:
+        intent = replace(intent, registered=register(governed))
     return intent
+
+
+def _governed(base: Path) -> Config:
+    """This project's own configuration, or a refusal naming what a driver would be for.
+
+    A driver is registered per *governed file*, so a project that declares none has nothing to
+    register: writing `.gitattributes` lines for the paths a default config happens to name
+    would wire a driver for files nobody declared (L6).
+    """
+    config = Config.discover(base)
+    if config.source is None:
+        raise ValueError(
+            f"{base} declares no {CONFIG_NAME} and nothing was registered: a merge driver is "
+            f"wired per governed file, so `roadkeep init` (or a config) comes first — the "
+            f"four surfaces above do not depend on it"
+        )
+    return config
 
 
 # -- where the surfaces are read from ----------------------------------------

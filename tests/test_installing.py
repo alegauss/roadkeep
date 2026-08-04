@@ -307,6 +307,49 @@ def test_check_is_the_gate_and_the_exit_code_is_the_contract(project, source, ca
     assert "would update" in capsys.readouterr().out
 
 
+# -- the fifth surface (RK148) ------------------------------------------------
+
+
+def test_the_merge_driver_is_named_even_though_it_is_not_written(project, source, capsys):
+    """Opt-in was never the problem; being unmentioned was — the failure landed later and
+    looked like the tool's: two branches spend one id and the fix is the denied hand edit."""
+    intent = install(project, source=source)
+    named = dict(intent.skipped)
+    assert ".gitattributes" in named
+    assert "merge --register" in named[".gitattributes"]
+    assert "--register-merge" in named[".gitattributes"]
+
+    assert main(["-C", str(project), "install", "--source", str(source)]) == 0
+    assert "by hand        .gitattributes" in capsys.readouterr().out
+
+
+def test_the_flag_writes_the_attribute_half_and_prints_the_config_half(project, source, capsys):
+    declaring(project, CLEAN)
+    argv = ["-C", str(project), "install", "--source", str(source), "--register-merge"]
+    assert main(argv) == 0
+    out = capsys.readouterr().out
+    assert "ROADMAP.md merge=roadkeep" in (project / ".gitattributes").read_text(
+        encoding="utf-8"
+    )
+    assert "registered     .gitattributes  + ROADMAP.md merge=roadkeep" in out
+    # Printed and never run: setting somebody's git config is a write outside these files.
+    assert "git config merge.roadkeep.driver" in out
+    # And the unwritten list no longer names it, a surface being written not being one skipped.
+    assert ".gitattributes" not in dict(plan(project, source=source, registering=True).skipped)
+
+
+def test_the_flag_refuses_a_project_that_declares_no_governed_file(project, source):
+    """A driver is wired per governed file, so a default config's paths are nobody's."""
+    with pytest.raises(ValueError, match="declares no roadkeep.toml"):
+        install(project, source=source, register_merge=True)
+
+
+def test_a_check_never_registers_anything(project, source):
+    declaring(project, CLEAN)
+    assert main(["-C", str(project), "install", "--source", str(source), "--check"]) == 1
+    assert not (project / ".gitattributes").exists()
+
+
 # -- the workflow's own default (RK140) ---------------------------------------
 
 #: A project the gate would pass, and one it would not: a roadmap line with no pointer is a

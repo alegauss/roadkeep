@@ -220,27 +220,6 @@ and may not need a second.
 
 ## Block E — Adoption
 
-### §RK148 The fifth surface nobody is told about
-
-RK100's whole argument is that a vendored surface nobody keeps in step is worse than
-none, and `install` exists so an adopting project gets every one of them derived from
-what the plugin already ships. RK120 then added a fifth: a git merge driver, registered
-per file in `.gitattributes` and per checkout in `git config`, opt-in because it is
-configuration (L6).
-
-Opt-in is not the problem. Being unmentioned is. An adopter runs `install`, reads its
-report, and is told about the server, the guard, the skill, the workflow and the
-`CONTRIBUTING.md` line this tool will not write — and not that a driver exists. The
-failure lands later and looks like the tool's fault: two worktrees spend one id, git
-writes conflict markers into the roadmap, and the resolution is the hand edit the guard
-denies.
-
-The narrow shape is a line in `install`'s `skipped` report, beside `CONTRIBUTING.md`, naming
-`merge --register` and why it is not run — the `git config` half writes outside the files this
-tool was given (L2), so it is named there for the same reason. The wider one is `install
---register-merge` doing both halves for a caller that asks, which is a decision about somebody's
-git configuration and should stay a flag rather than a default.
-
 ### §RK205 A typed package nobody may type-check
 
 Every module in `src/roadkeep/` is annotated, and several carry `from __future__ import

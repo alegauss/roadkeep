@@ -154,7 +154,9 @@ wires `roadkeep merge` in as git's driver for the files `roadkeep.toml` declares
 merges by id: two branches appending under one heading is two additions, not a conflict, and
 an id **both branches created** is reported by name for `renumber` to move. What it cannot
 prove — prose changed on both sides, a line that does not round-trip, an output `lint` would
-refuse — it hands back as git's own conflict markers and exits 1.
+refuse — it hands back as git's own conflict markers and exits 1. `install` names it in its
+report and `install --register-merge` runs that half during adoption, so a wired project is
+never one whose first parallel branch conflicts by hand.
 
 1. **`symptom` states what does not work** — never a solution name: a line named after its fix
    cannot be falsified, so it never gets closed, only abandoned.

@@ -120,13 +120,13 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 4 | 48 | 0 |
 | C — Query (consult without reading the file) | 1 | 37 | 0 |
 | D — The gate | 0 | 50 | 0 |
-| E — Adoption | 2 | 26 | 1 |
+| E — Adoption | 1 | 27 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 32 | 1 |
-| **Total** | 8 | 218 | 3 |
+| **Total** | 7 | 219 | 3 |
 
 **Next ready:**
 
-- 📋 **RK148** (deps: —) **install wires four surfaces and leaves the merge driver to whoever remembers it** — merge --register is the opt-in RK120 shipped, and nothing offers it during adoption — so a wired project gets the tools, the guard and the skill, and its first parallel branch still conflicts by hand. → §RK148
+- 📋 **RK200** (deps: —) **Which governed files no verb wrote is answerable only by trying to end the turn** — RK175 records a digest per write and states one change once at the `Stop` hook, so the only way to ask is to be blocked — and it re-baselines as it reports, so the fact is gone. → §RK200
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -1369,6 +1369,15 @@ def build_parser() -> argparse.ArgumentParser:
             "from, which is the one whose hook and tools the project would get)"
         ),
     )
+    install_parser.add_argument(
+        "--register-merge",
+        action="store_true",
+        help=(
+            "wire the merge driver too — the `.gitattributes` half of `merge --register`, "
+            "with the `git config` line printed for you to run: a flag and not a default, "
+            "because it is configuration and the other half is outside these files"
+        ),
+    )
     install_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     install_parser.set_defaults(handler=_install)
 
@@ -4247,8 +4256,16 @@ def _install(config: Config, args: argparse.Namespace) -> int:
     """
     del config
     try:
-        intent = plan(args.directory, source=args.source) if args.check else install(
-            args.directory, source=args.source
+        intent = (
+            # `--check` writes nothing, so it reports the driver as unwritten either way: a
+            # check that registered one would be a check that changed the repository (RK148).
+            plan(args.directory, source=args.source)
+            if args.check
+            else install(
+                args.directory,
+                source=args.source,
+                register_merge=args.register_merge,
+            )
         )
     except (ValueError, OSError) as error:
         return _refused(error)
@@ -4271,6 +4288,14 @@ def _install(config: Config, args: argparse.Namespace) -> int:
                         for surface in intent.surfaces
                     ],
                     "skipped": [{"path": path, "why": why} for path, why in intent.skipped],
+                    "registered": None
+                    if intent.registered is None
+                    else {
+                        "attributes": intent.registered.attributes.as_posix(),
+                        "added": list(intent.registered.added),
+                        "present": list(intent.registered.present),
+                        "command": intent.registered.command,
+                    },
                     "changing": len(intent.changing),
                 },
                 indent=2,
@@ -4283,6 +4308,15 @@ def _install(config: Config, args: argparse.Namespace) -> int:
             # words in the past tense would claim a file changed that did not.
             state = _WOULD[surface.state] if args.check else surface.state
             print(f"  {state:<14} {surface.path.relative_to(intent.root).as_posix()}")
+        if intent.registered is not None:
+            # The same two lines `merge --register` prints, in the same order, because it is
+            # the same write (RK148) — and the `git config` half is still printed, not run.
+            where = intent.registered.attributes.name
+            for line in intent.registered.added:
+                print(f"  registered     {where}  + {line}")
+            for line in intent.registered.present:
+                print(f"  registered     {where}    {line} (already there)")
+            print(f"  then           {intent.registered.command}")
         if intent.debt:
             # Beside the surfaces, because it is the reason one of them was written the way
             # it was (RK140): a decision taken from a measurement nobody is shown is one the
