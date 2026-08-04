@@ -46,7 +46,10 @@ from roadkeep.installing import (
     PROJECT_SKILL,
     PROJECT_WORKFLOW,
     NotShipped,
+    Unanchored,
     Unreadable,
+    _ENTRY_RE,
+    _entry,
     install,
     plan,
 )
@@ -101,10 +104,33 @@ def test_it_writes_the_two_surfaces_init_does_not_scaffold(project, source):
         assert path.is_file()
 
 
-def test_the_skill_is_the_shipped_file_and_not_a_copy_of_it(project, source):
-    """The defect itself: a vendored authority is read with the trust of the original."""
+def test_the_skill_is_the_shipped_file_with_its_entry_point_re_addressed(project, source):
+    """The defect itself: a vendored authority is read with the trust of the original.
+
+    So the copy is the shipped bytes everywhere except the one sentence that would be false
+    here (RK137) — the package is not installed in an adopting project, and `roadkeep` is on
+    no PATH, which is a command that fails at exactly the moment the skill is being read.
+    """
     install(project, source=source)
-    assert read(project / PROJECT_SKILL) == read(HERE / PLUGIN_SKILL)
+    copied = read(project / PROJECT_SKILL)
+    shipped = read(HERE / PLUGIN_SKILL)
+    assert "`roadkeep` is the installed entry point" in shipped
+    assert "`roadkeep` is the installed entry point" not in copied
+    assert '`python "../roadkeep/scripts/roadkeep.py"` is this project\'s entry point' in copied
+    # And nothing else moved: one sentence out, one sentence in.
+    assert _ENTRY_RE.sub("", shipped) == _ENTRY_RE.sub("", copied).replace(
+        _entry("../roadkeep/scripts/roadkeep.py"), ""
+    )
+
+
+def test_a_skill_that_stopped_naming_its_entry_point_is_a_refusal(project, source, tmp_path):
+    """Never a verbatim copy: that is the defect, and it would be shipped silently."""
+    skill = source / PLUGIN_SKILL
+    skill.write_text("# roadkeep\n\nNothing about an entry point.\n", encoding="utf-8")
+    with pytest.raises(Unanchored) as refused:
+        install(project, source=source)
+    assert "0 time(s)" in str(refused.value)
+    assert not (project / PROJECT_SKILL).exists()
 
 
 def test_the_hooks_are_the_plugin_s_own_with_the_launcher_re_addressed(project, source):
@@ -258,7 +284,9 @@ def test_a_drifted_copy_is_refreshed_by_a_rerun(project, source):
     (project / PROJECT_SKILL).write_text("stale\n", encoding="utf-8")
     refreshed, = install(project, source=source).changing
     assert refreshed.path == project / PROJECT_SKILL
-    assert read(project / PROJECT_SKILL) == read(HERE / PLUGIN_SKILL)
+    # The shipped bytes again, entry point included — a rerun is the same translation.
+    assert read(project / PROJECT_SKILL) == refreshed.text
+    assert _entry("../roadkeep/scripts/roadkeep.py") in read(project / PROJECT_SKILL)
 
 
 def test_check_reports_the_drift_and_writes_nothing(project, source):

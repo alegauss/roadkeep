@@ -10,10 +10,11 @@ saying where it came from, which nothing keeps in step with the file it was take
 
 **Every byte written here is a translation of what the plugin already ships**, never a second
 statement of it. The hook events, their matcher and their timeouts are read out of
-`hooks/hooks.json`; the server argv out of `.claude-plugin/mcp.json`; the skill is copied
-verbatim; the workflow names the action this repository publishes. The one thing substituted
-is where the launcher is — `${CLAUDE_PLUGIN_ROOT}` becomes the path from the adopting project
-to the checkout that is answering, which is the only fact the plugin's own files cannot hold.
+`hooks/hooks.json`; the server argv out of `.claude-plugin/mcp.json`; the skill is copied with
+one sentence re-addressed; the workflow names the action this repository publishes. The one
+thing substituted is where the launcher is — `${CLAUDE_PLUGIN_ROOT}` becomes the path from the
+adopting project to the checkout that is answering, which is the only fact the plugin's own
+files cannot hold, and the skill's own entry point is the fourth place it is written (RK137).
 So a matcher added to the plugin reaches every installed project on its next `install`, and
 this module has no opinion to disagree with.
 
@@ -22,6 +23,9 @@ kinds of file:
 
 * **The skill is a copy, so it is refreshed** — always, unasked. It is the whole defect: a
   vendored authority that drifts is worse than none, because it is read with the same trust.
+  Which is also why its entry-point sentence is re-addressed rather than copied (RK137): a
+  copy that is faithful in every byte and names a command that does not exist here is read
+  with that same trust, and the failure arrives in the shell an agent fell back to.
 * **`.mcp.json` and `.claude/settings.json` are declarations**, and other tools declare in
   them too. Only this project's entry is re-derived — the launcher path is the part that
   moves — and everything else in the file is carried through untouched. An existing file that
@@ -42,6 +46,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -79,6 +84,14 @@ PLUGIN_ROOT = "${CLAUDE_PLUGIN_ROOT}"
 PROJECT_DIR = "${CLAUDE_PROJECT_DIR}"
 PROJECT_DIR_OR_CWD = "${CLAUDE_PROJECT_DIR:-.}"
 
+#: The sentence in the shipped skill that names the entry point, matched rather than located
+#: by line (RK137). Written as the two ends of it with anything between, so re-wrapping the
+#: paragraph — which is prose somebody edits — does not silently stop the substitution: what
+#: stops it is a refusal.
+_ENTRY_RE = re.compile(
+    r"`roadkeep` is the installed entry point.*?not on PATH\.", re.DOTALL
+)
+
 #: The ref the generated workflow calls the action at. `main` and not the version, because
 #: the project reaching for this command is by definition running an unreleased checkout —
 #: an adopter that has pinned a release edits one line, which is the file's own from then on.
@@ -108,6 +121,25 @@ class NotShipped(ValueError):
             f"(missing: {', '.join(missing)}) — `install` translates a checkout of roadkeep "
             f"for a project beside it; an installed copy has none to translate, and "
             f"`/plugin install roadkeep@alegauss` is the route that carries them"
+        )
+
+
+class Unanchored(ValueError):
+    """The shipped skill no longer spells the sentence the launcher is substituted into.
+
+    A refusal and not a verbatim copy (RK137): the copy would then tell an adopting project
+    to run a command that does not exist there, which is the whole defect `install` removes.
+    Reached only by editing `SKILL.md`, and the repair is in that file — so it names it.
+    """
+
+    def __init__(self, path: Path, found: int) -> None:
+        self.path = path
+        self.found = found
+        super().__init__(
+            f"{path} states the entry point {found} time(s) and nothing was written: "
+            f"`install` re-addresses that one sentence for a project wired to a checkout, "
+            f"and a copy carrying `roadkeep` where the package is not installed names a "
+            f"command that fails"
         )
 
 
@@ -183,7 +215,7 @@ def plan(root: str | Path = ".", *, source: str | Path | None = None) -> Plan:
     surfaces = [
         _declaration(base / PROJECT_MCP, lambda current: _merged_mcp(current, server)),
         _declaration(base / PROJECT_SETTINGS, lambda current: _merged_settings(current, hooks)),
-        _copy(base / PROJECT_SKILL, _read(origin / PLUGIN_SKILL)),
+        _copy(base / PROJECT_SKILL, _skill(origin, launcher)),
     ]
     skipped: list[tuple[str, str]] = [(CONTRIBUTING.split(":")[0], CONTRIBUTING)]
     if (base / WORKFLOWS).is_dir():
@@ -326,6 +358,41 @@ def _workflow(origin: Path) -> str:
 
 
 # -- what each kind of surface does to the file it lands in -------------------
+
+
+def _skill(origin: Path, launcher: str) -> str:
+    """The plugin's skill with its entry point re-addressed — the fourth substitution (RK137).
+
+    `install` states that the launcher's path is the only substituted fact, and the skill was
+    the one surface where it was not: the shipped sentence says `roadkeep` is the installed
+    entry point, and for a project wired to a checkout the package is *not* installed, so
+    every shell example in the copy names a command that resolves to nothing. Verified on a
+    real adoption. Nothing breaks until an agent falls back from the MCP tools to the shell —
+    which is exactly the moment the skill is being read.
+
+    The sentence is matched rather than the line number, and a match that is not exactly one
+    is a refusal: a copy written with the wrong entry point is the defect this module exists
+    to remove, and silently shipping it would be worse than the hand-written copy it replaced.
+    """
+    text = _read(origin / PLUGIN_SKILL)
+    # A function and not a replacement string: a launcher is a path, and `re.sub` would read
+    # a backslash in one as a group reference.
+    replaced, count = _ENTRY_RE.subn(lambda _: _entry(launcher), text)
+    if count != 1:
+        raise Unanchored(origin / PLUGIN_SKILL, count)
+    return replaced
+
+
+def _entry(launcher: str) -> str:
+    """What the entry-point sentence becomes for a project running this from a checkout.
+
+    Quoted, for the reason the hook command is: a checkout on a path with a space in it is
+    otherwise two arguments.
+    """
+    return (
+        f"`python \"{launcher}\"` is this project's entry point — `install` wired it to a "
+        f"checkout, so the package is not installed here and `roadkeep` is on no PATH."
+    )
 
 
 def _copy(path: Path, text: str) -> Surface:

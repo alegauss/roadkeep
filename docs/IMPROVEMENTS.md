@@ -220,21 +220,6 @@ and may not need a second.
 
 ## Block E — Adoption
 
-### §RK137 The one fact the skill still gets wrong
-
-`install` states its own contract: every byte is a translation of what the plugin ships,
-"the launcher's path being the only substituted fact". The skill is the one surface
-where it is not substituted. `skills/roadkeep/SKILL.md` says "`roadkeep` is the
-installed entry point - `python -m roadkeep.cli` when it is not on PATH", and for a
-project wired to a checkout both are false: the package is not installed, and the entry
-point is `<path>/scripts/roadkeep.py`, which the same command already computed and wrote
-into `.mcp.json` and into three hook entries. Verified on a real adoption: `roadkeep`
-resolves to nothing on the machine, so every shell example in the copied skill is a
-command that fails. The MCP tools carry the write path, so nothing is broken until an
-agent falls back to the shell - which is exactly when the skill is being read. The fix
-is the substitution the module already performs three times, applied to the one line
-that spells the entry point, and `--check` then holds it in step like the rest.
-
 ### §RK138 A wiring with no way out
 
 Claude Tray was wired to a sibling checkout and then moved to the plugin, which is the
