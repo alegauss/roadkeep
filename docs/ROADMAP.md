@@ -24,6 +24,10 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK294** (deps: —) **Nothing calls the scope at the moment the commit is made** — `ship` runs at exactly that second and says nothing about the tree, so RK280's mechanism is reached only by prose in agents.md — the shape RK1 says does not hold. → §RK294
+- 📋 **RK295** (deps: —) **A scope naming a path the tree does not have is recorded in silence** — `claim --path` takes the path verbatim and never asks the disk, so a typo is a file the commit will not stage and a scope that reads as complete. → §RK295
+- 📋 **RK296** (deps: —) **An undeclared-block refusal still lists every label the file declares** — RK257 gave it the file and the verb and left the list, so a project with 90 blocks answers a question nobody asked and buries the two clauses that are the remedy. → §RK296
+
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK265** (deps: —) **budget omits the pointer under an outline ref scheme, so it over-reports the room by the anchor width** — It answered 182 characters left for a why `add` then refused at 174, the 8 being ` → §XX.2` — a limit found after the prose exists, which this verb exists to prevent. → §RK265

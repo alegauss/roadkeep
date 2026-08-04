@@ -77,6 +77,65 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK294 A mechanism reached only by advice
+
+RK280 gave a claim the paths its commit owns and gave `claim <id>` the read that names
+what the tree holds for somebody else. What it did not give is a caller. The declaration
+is asked for in `agents.md` and in the skill, which is the same sentence the finding
+itself quoted as failing: advice about what to do at the moment of committing, where the
+analysis is expensive and the author is already finishing.
+
+`ship` is that moment. It runs when the work is validated, its answer is already the
+three edits it made, and it holds the id — so it can ask the registry the one question a
+departing task has: what does this tree hold that no claim of mine names. Reported and
+never refused, for the reason `_drop_section` keeps a section it does not own: a loose
+path is a legitimate state (a scope nobody declared is every project that has not
+adopted this) and a ship that failed over one would be an obstacle at the one moment the
+author cannot route around it.
+
+What it must not do is derive the scope. A ship that filed the dirty paths under the
+departing id would be answering the question the incident asked — which of these is mine
+— by assuming the answer, and the two sessions it exists to separate would each get the
+other's files with the tool's signature on it.
+
+### §RK295 A declared path nothing will stage
+
+Verbatim is the right rule and the reason RK280 gives for it stands: a scope inferred
+from a sentence would be RK55's guessing put in charge of what a commit contains, and a
+path declared before the file exists is the ordinary case — the test is written after
+the claim is taken.
+
+So this is not a refusal. It is the one comparison the read already has the facts for
+and does not make: `claim <id>` prints `mine` out of the registry and `loose` out of
+`git status`, and a path in `mine` that is in neither the dirty set nor the index is a
+path staging nothing. Today it prints as an ordinary line of the answer, and the real
+file — the one whose name was mistyped — prints two lines below under `loose`, where the
+eye reads it as somebody else's.
+
+What makes it worth a column rather than a refusal is when it is wrong: a scope declared
+ahead of the work names files that do not exist yet, and every one of them is correct.
+So the reading is not *this path is missing* but *this path stages nothing right now*,
+which is a fact about the tree at the moment of asking and not a judgement about the
+declaration.
+
+### §RK296 The half of RK257 that was left
+
+Stated plainly because it was a choice and not an oversight: RK257 named three missing
+things and this shipped two of them. The file the labels came from and the `block add`
+that opens the heading are now in the sentence; the labels themselves are still all of
+them.
+
+The list is load-bearing exactly once — when the label really was mangled, which is the
+incident RK216 was filed from, and there the neighbours are what makes the mistake
+visible. That is also the case `shading` already answers by name: it names the labels
+that share a prefix, which is the subset a confused author needs. Where nothing shades,
+the remaining labels are a set the author is not choosing from.
+
+So the shape is not a cap on the list but a question about when it is printed at all.
+What must not happen is the answer that reads well and helps nobody: an elision (`A, AA,
+AB, … and 87 more`) keeps the length and loses the one label that would have settled it,
+which is RK68's argument about a bounded list read as the whole one.
+
 ## Block C — Query
 
 ### §RK265 The pointer budget cannot be told about
