@@ -248,3 +248,22 @@ makes `merge register` fail on the machine most likely to want it, which is the 
 against.
 
 ## Block F — The plugin
+
+### §RK261 What is left is two names, and one of them is everybody's
+
+RK260 took the denial from 141 ms and 25 modules to 66 and 7 by giving each hook event
+its own imports. Attributing what is left: `schema` 34 ms, `document` 9, `config` itself
+7, `locking` 12, `serving` 11, `provenance` under 1. Two of those are names the
+`PreToolUse` path never reaches. `config` imports `Document` for
+`Config.document(role)`, and a guard asks only `config.paths` and `config.path(role)` —
+it decides where a write was going and never opens the file. `serving` imports
+`LockBusy` for the `except` in `call()`, and a denial dispatches no tool, so the lock is
+never taken or contested. Together 21 ms, a third of the remainder, on the hook the
+harness blocks on for every Edit, Write and Bash. The two differ in who pays for the
+fix. `LockBusy` is `serving`'s alone and the deferral is local: an exception class
+resolved inside the function that catches it, which the MCP server pays once per process
+and the guard not at all. `Document` is `config`'s, and `config` is imported by every
+command in the package — so deferring it into the one method that uses it moves the cost
+onto each of those instead of removing it, and the honest version of this task measures
+whether that is a wash before doing it. `schema` at 34 ms is the floor either way:
+parsing `[limits]` produces a `Schema`, and that is the question the guard asks.
