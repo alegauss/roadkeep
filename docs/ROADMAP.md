@@ -41,8 +41,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK248** (deps: —) **The drift note reads the launch directory, not the root the wiring is a fact about** — `_remedy` resolves the `-C` path while `Config.discover` walks up for the config, so a server started below the root reads a checkout as the plugin and names a bump nothing fires. → §RK248
-
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:

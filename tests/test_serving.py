@@ -984,6 +984,20 @@ def test_the_remedy_named_is_the_one_that_restarts_this_server(tmp_path, monkeyp
     assert "bumps the patch version" in cached and "RK153" in cached
 
 
+def test_the_wiring_is_read_from_the_project_root_and_not_the_launch_path(tmp_path, monkeypatch):
+    # RK248: `Config.discover` walks up, so a server started in `docs/` has a root above its
+    # `-C` — and reading the launch path there put the package outside it and named the bump on
+    # the one tree RK246 measured the bump never reaching.
+    monkeypatch.setattr(
+        "roadkeep.serving.engine",
+        lambda: replace(engine(), home=_moved(tmp_path)),
+    )
+    below = project(tmp_path) / "docs"
+    assert below.is_dir()  # the subdirectory is real, so this is the walk and not a fallback
+    refused = text_of(called(below, "status", id="RK99", marker="🛠"))
+    assert "no patch bump reloads it" in refused
+
+
 def test_the_drift_is_a_fact_beside_the_refusal_and_not_a_doubt_about_it(tmp_path, monkeypatch):
     # RK242: the note cannot know whether the files that moved reach the verb that refused, so
     # a sentence calling the refusal a possible build artefact doubted every refusal alike —

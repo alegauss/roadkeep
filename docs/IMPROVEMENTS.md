@@ -207,21 +207,3 @@ Worth deciding with it whether this is one finding or one per heading. Two is th
 ## Block E — Adoption
 
 ## Block F — The plugin
-
-### §RK248 The root the question is about is not the path it was asked from
-
-RK246 decides which of the two wirings answered by asking whether the package directory
-sits under the governed root: a plugin's copy is a cache elsewhere, a checkout's is
-inside the tree. `Engine.carried_by` takes that root, and `_remedy` hands it
-`Path(directory).resolve()` — the directory the server was launched with, which is not
-the same thing. `Config.discover` walks up until it finds a `roadkeep.toml`, so a server
-started in `docs/` or in any subdirectory of a governed project has a root above the
-path it was given. There `<root>/src/roadkeep` is not under `directory`, `carried_by`
-answers False, and the note names the patch bump on exactly the tree RK246 measured the
-bump never reaching. The fix is the root the call already resolved: `call` discovers a
-`Config` before it builds the argv, and `config.root` is that answer, resolved by
-`Config.parse`. What keeps this from being one substitution is the refusal above it — a
-`ConfigError` has no config to read a root from, and that path is the one place the note
-fires with nothing discovered. So the remedy takes an optional root and falls back to
-the launch path, which is the safe direction: that branch ends in restarting the session
-either way, and being wrong there costs a sentence rather than a false instruction.

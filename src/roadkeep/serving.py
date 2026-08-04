@@ -775,7 +775,11 @@ def call(tool: Tool, arguments: Mapping[str, Any], directory: str = ".") -> Answ
         # The engine is named on this one refusal unconditionally (RK155): a key the file
         # declares and the code does not know is the shape stale code produces, and which
         # build read the config is the fact that turns the puzzle into an instruction.
-        return _answered(f"roadkeep: {error} — read by {engine()}", directory, is_error=True)
+        # The one refusal with no root to name, the config that would have stated it being the
+        # thing that failed (RK248). The launch path is what is left, and it is the safe half.
+        return _answered(
+            f"roadkeep: {error} — read by {engine()}", Path(directory), is_error=True
+        )
     # One build for the whole call (RK198), and then one for the whole process (RK202). The
     # argv is rendered through the subcommands and parsed through the root they belong to,
     # and until this was threaded each of those three lookups built the entire CLI — 10.2 ms
@@ -785,7 +789,7 @@ def call(tool: Tool, arguments: Mapping[str, Any], directory: str = ".") -> Answ
     try:
         line = argv(tool, arguments, config, parsers)
     except ToolError as error:
-        return _answered(str(error), directory, is_error=True)
+        return _answered(str(error), config.root, is_error=True)
     out, err = io.StringIO(), io.StringIO()
     try:
         with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err), _spent_stdin():
@@ -797,9 +801,9 @@ def call(tool: Tool, arguments: Mapping[str, Any], directory: str = ".") -> Answ
     except SystemExit as exit_:  # argparse refused the argv: a missing required argument
         code = exit_.code if isinstance(exit_.code, int) else 2
     except LockBusy as busy:
-        return _answered(f"roadkeep: {busy}", directory, is_error=True)
+        return _answered(f"roadkeep: {busy}", config.root, is_error=True)
     reported = "\n".join(part for part in (err.getvalue().strip(), out.getvalue().strip()) if part)
-    return _answered(reported or f"{tool.name}: exit {code}", directory, is_error=bool(code))
+    return _answered(reported or f"{tool.name}: exit {code}", config.root, is_error=bool(code))
 
 
 @contextlib.contextmanager
@@ -828,7 +832,7 @@ def _spent_stdin() -> Iterator[None]:
         sys.stdin = saved
 
 
-def _answered(text: str, directory: str, *, is_error: bool) -> Answer:
+def _answered(text: str, root: Path, *, is_error: bool) -> Answer:
     """One tool's answer, plus the note a **refusal** needs when the code answering moved.
 
     RK155, measured twice in one session: the config is re-read per message on purpose, so a
@@ -855,8 +859,16 @@ def _answered(text: str, directory: str, *, is_error: bool) -> Answer:
     a *plugin*, so on a project running the tool from its own checkout the note's first clause
     named a mechanism never in play — measured here at five bumps in one session, with the note
     still naming seven changed files. Which wiring answered is
-    :meth:`~roadkeep.provenance.Engine.carried_by`, off ``directory``, so it is read and not
-    guessed. What stays untouched is the decision above it: nothing reloads itself (RK155).
+    :meth:`~roadkeep.provenance.Engine.carried_by`, so it is read and not guessed. What stays
+    untouched is the decision above it: nothing reloads itself (RK155).
+
+    ``root`` is the **project** root and not the path the server was launched from (RK248):
+    `Config.discover` walks up for a `roadkeep.toml`, so a server started in any subdirectory of
+    a governed checkout has a root above its `-C` — and there `<root>/src/roadkeep` is not under
+    the launch path, `carried_by` answers False, and the note names the bump on exactly the tree
+    RK246 measured the bump never reaching. Every caller past discovery passes `config.root`; the
+    `ConfigError` above it has no config to read one from and passes the launch path, which is
+    the safe direction because that branch ends in restarting the session either way.
     """
     if not is_error:
         return Answer(text, is_error=False)
@@ -867,17 +879,21 @@ def _answered(text: str, directory: str, *, is_error: bool) -> Answer:
         f"{text}\n\n"
         f"Separately, about this process and not about the refusal above: this server "
         f"imported roadkeep before {', '.join(changed)} changed on disk, and the refusal is "
-        f"what the code it did import answered — read it first. {_remedy(directory)} Re-run "
+        f"what the code it did import answered — read it first. {_remedy(root)} Re-run "
         f"only where the changed files are the ones that would decide this.",
         is_error=True,
     )
 
 
-def _remedy(directory: str) -> str:
-    """What actually restarts *this* server, which of the two wirings decides (RK246)."""
+def _remedy(root: Path) -> str:
+    """What actually restarts *this* server, which of the two wirings decides (RK246).
+
+    Resolved here and not asked of the caller: a `Config.root` already is, and the launch path the
+    `ConfigError` branch passes is the one that is not (RK248).
+    """
     try:
-        root = Path(directory).resolve()
-    except OSError:  # a directory that cannot be resolved is not the plugin's cache
+        root = root.resolve()
+    except OSError:  # a path that cannot be resolved is not evidence about either wiring
         return "Restart the session to run the changed files."
     if engine().carried_by(root):
         return (
