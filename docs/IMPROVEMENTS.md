@@ -118,6 +118,27 @@ agent chaining `add` into `section add` reads a field instead of a sentence. `se
 already reports its anchor when a section was written; this is that value for the case
 where one was not.
 
+### §RK257 A ship refusal names the missing block heading but not the verb that writes it
+
+Shipping the first task of a block whose heading only `ROADMAP.md` declares is refused,
+correctly: the ledger entry has nowhere to go. But the refusal reads
+
+    no heading declares Block BU (declares: A, AA, AB, ... BT, C, D.1, ...):
+    a heading invented by a write files the text where nothing looks for it —
+    but B shares a prefix with BU, so check that the label reached this command
+    whole before declaring a second heading over the first one's work
+
+Three of the four things an author needs are missing. It does not say **which file**
+lacks the heading — the roadmap plainly declares it, so the natural reading is that the
+label is wrong. It does not name `block add`, the one verb that fixes it. And the 90-odd
+labels it does print are the answer to a question nobody asked, while the prefix warning
+argues the author mistyped.
+
+The recovery is one command and the refusal knows enough to spell it: `block add BU
+--title "<the roadmap's exact title>"`. Naming the file and the verb turns a refusal an
+author has to research into one they can act on, which is the same standard `needs`
+already meets for a missing section.
+
 ## Block C — Query
 
 ### §RK200 The record with no way to read it

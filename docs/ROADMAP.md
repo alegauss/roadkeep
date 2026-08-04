@@ -26,6 +26,7 @@
 
 - 📋 **RK244** (deps: —) **A paused id cannot be named as what supersedes a retired line** — `retire --superseded-by` reads the roadmap and the ledger, so the deferred store is invisible to it and a live findable id is refused as `in neither file`, which is two false claims. → §RK244
 - 📋 **RK249** (deps: —) **The add answer names the id it derived and not the pointer** — The payload carries `rendered` and a `needs` command, so the anchor a follow-up `section add` takes is readable only by parsing one of those, and by neither where a section was written. → §RK249
+- 📋 **RK257** (deps: —) **A ship refusal names the missing block heading but not the verb that writes it** — It lists every declared label and warns about the prefix, so an author whose roadmap declares the block learns nothing about which file lacks the heading or that block add writes it. → §RK257
 
 ## Block C — Query (consult without reading the file)
 
