@@ -964,6 +964,22 @@ def test_a_refusal_says_when_the_code_answering_it_moved(tmp_path, monkeypatch):
     assert "restart the session" in refused
 
 
+def test_the_drift_is_a_fact_beside_the_refusal_and_not_a_doubt_about_it(tmp_path, monkeypatch):
+    # RK242: the note cannot know whether the files that moved reach the verb that refused, so
+    # a sentence calling the refusal a possible build artefact doubted every refusal alike —
+    # and the measured cost was calls spent disproving a constraint that was right.
+    monkeypatch.setattr(
+        "roadkeep.serving.engine",
+        lambda: replace(engine(), home=_moved(tmp_path)),
+    )
+    refused = text_of(called(project(tmp_path), "status", id="RK99", marker="🛠"))
+    # The refusal is first and is the answer, not a candidate for one.
+    assert refused.index("RK99") < refused.index("Separately")
+    assert "may be a build behind" not in refused
+    assert "not about the refusal above" in refused
+    assert "read it first" in refused
+
+
 def test_an_answer_that_worked_explains_nothing(tmp_path, monkeypatch):
     # A note on every answer is a note that stops being read, and a call that succeeded has
     # nothing to explain about the build that succeeded at it.

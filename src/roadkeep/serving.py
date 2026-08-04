@@ -842,6 +842,14 @@ def _answered(text: str, *, is_error: bool) -> Answer:
     explain, and a note on every answer is a note that stops being read. Nothing reloads — see
     :attr:`~roadkeep.provenance.Engine.stale` for why that is the harness's job and not this
     server's.
+
+    What it may not do is argue with the refusal it rides on (RK242). The sentence here said the
+    refusal "may be a build behind rather than a fact about this project", attached to every
+    refusal alike — and mtimes cannot know whether the files that moved reach the verb that
+    refused, so a correct `ref.missing` arrived pre-doubted. Measured, that costs calls: the
+    caller re-ran the command, tried a second spelling of the flag, then imported the CLI from a
+    source checkout to obtain the answer it already had. So the drift is stated as what it is, a
+    fact about this process, beside a refusal that stands as the answer the running code gave.
     """
     if not is_error:
         return Answer(text, is_error=False)
@@ -850,11 +858,11 @@ def _answered(text: str, *, is_error: bool) -> Answer:
         return Answer(text, is_error=True)
     return Answer(
         f"{text}\n\n"
-        f"This server imported roadkeep before {', '.join(changed)} changed on disk, so "
-        f"the refusal above may be a build behind rather than a fact about this project — "
-        f"the same command in a shell reads the current code. Every commit bumps the patch "
+        f"Separately, about this process and not about the refusal above: this server "
+        f"imported roadkeep before {', '.join(changed)} changed on disk, and the refusal is "
+        f"what the code it did import answered — read it first. Every commit bumps the patch "
         f"version so the harness reloads the plugin (RK153); restart the session if it has "
-        f"not.",
+        f"not, and re-run only where the changed files are the ones that would decide this.",
         is_error=True,
     )
 

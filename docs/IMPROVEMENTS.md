@@ -190,18 +190,6 @@ Worth deciding with it whether this is one finding or one per heading. Two is th
 
 ## Block F — The plugin
 
-### §RK242 A hedge on every refusal is a hedge on none
-
-When the loaded module predates the files on disk, every refusal gains a paragraph
-saying the refusal "may be a build behind rather than a fact about this project". It is
-attached whether or not the changed files could affect the verb that refused, so a
-correct `ref.missing` reads exactly like a stale-build artefact. The observed cost is
-calls: the caller re-ran the same command, tried a second spelling of the flag, then
-imported the CLI from source to get an answer it already had. Narrow it to the case it
-describes — name the verb's own module in the changed set, or drop the hedge and state
-the drift as a fact separate from the refusal — so a refusal that is right stops
-arriving pre-doubted.
-
 ### §RK246 The remedy that applies is the second half of the sentence
 
 Measured in this session: the version went 0.1.152 to 0.1.157, five commits each bumping
