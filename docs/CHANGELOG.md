@@ -209,6 +209,7 @@
 - ✅ **RK137** **The copied skill names a shell command that does not exist in the project it was copied into** — The copied skill names `python "<launcher>"` — the path `install` already wrote into the server and the hook — and a shipped skill that stopped spelling the sentence is a refusal, not a copy.
 - ✅ **RK138** **Un-wiring a project is the hand-edit this tool exists to deny** — `uninstall` takes out this project's server entry, the guard's three hook entries and the copied skill — keeping every entry that is not ours, and the CI gate, which calls the published action.
 - ✅ **RK139** **`adopt` measures the task lines and says nothing about the non-goals it will govern** — `adopt` reports the non-goals too — parsed, unread, over, and the longest lead and reason against their limits, declared or not — and counts them in the headline only where the project opted in.
+- ✅ **RK140** **The CI workflow `install` writes is red on its first run for every backlog with debt** — `install` runs the gate while it writes the workflow: a clean project gets the strict one, a backlog with debt gets the baseline plus the count it defers and when to drop the line.
 
 ## Block F — The Claude Code plugin
 

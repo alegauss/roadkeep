@@ -60,6 +60,8 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
+from roadkeep.config import Config
+from roadkeep.linting import lint
 from roadkeep.provenance import engine
 
 #: The server's name, which is also the prefix an agent reads on every tool it offers.
@@ -202,6 +204,10 @@ class Plan:
     #: Paths not written, each with the reason — the report's other half. A surface that is
     #: silently absent is one the adopter discovers is absent by needing it.
     skipped: tuple[tuple[str, str], ...] = ()
+    #: What this project's own gate reports today, or None where it could not be run (RK140).
+    #: It decides which workflow is written, and it is on the plan because a decision taken
+    #: from a measurement the report does not state is one the adopter cannot check.
+    debt: int | None = None
 
     @property
     def changing(self) -> tuple[Surface, ...]:
@@ -228,8 +234,9 @@ def plan(root: str | Path = ".", *, source: str | Path | None = None) -> Plan:
         _copy(base / PROJECT_SKILL, _skill(origin, launcher)),
     ]
     skipped: list[tuple[str, str]] = [(CONTRIBUTING.split(":")[0], CONTRIBUTING)]
+    debt = _standing(base)
     if (base / WORKFLOWS).is_dir():
-        surfaces.append(_once(base / PROJECT_WORKFLOW, _workflow(origin)))
+        surfaces.append(_once(base / PROJECT_WORKFLOW, _workflow(origin, debt)))
     else:
         skipped.insert(0, (PROJECT_WORKFLOW, f"no {WORKFLOWS}/ — this project has no CI to gate"))
     return Plan(
@@ -238,6 +245,7 @@ def plan(root: str | Path = ".", *, source: str | Path | None = None) -> Plan:
         launcher=launcher,
         surfaces=tuple(surfaces),
         skipped=tuple(skipped),
+        debt=debt,
     )
 
 
@@ -277,6 +285,28 @@ def _carried(root: Path) -> None:
     )
     if missing:
         raise NotShipped(root, missing)
+
+
+def _standing(base: Path) -> int | None:
+    """What this project's own gate reports today, or None where it cannot be asked (RK140).
+
+    Run while the workflow is being written, because that is the one moment the difference
+    between a strict gate and a baselined one is knowable without being told: the projects
+    that most need the gate are the ones carrying the most debt, and a workflow that is red on
+    its first push is a gate an adopter switches off rather than reads.
+
+    None for a project that declares nothing — there is no governed file to be in debt about,
+    so the strict workflow is the honest one — and None again where the gate itself refused,
+    because `install` writes four surfaces and a lint that raised is not a reason to write
+    none of them.
+    """
+    try:
+        config = Config.discover(base)
+        if config.source is None:
+            return None
+        return lint(config).problems
+    except (ValueError, OSError):
+        return None
 
 
 def _launcher(base: Path, origin: Path) -> str:
@@ -333,24 +363,60 @@ def _server(origin: Path, launcher: str) -> dict:
     }
 
 
-def _workflow(origin: Path) -> str:
+def _workflow(origin: Path, debt: int | None) -> str:
     """The gate as CI calls it: the action this repository publishes, at one line.
 
     The repository is read out of the plugin manifest rather than written here, because the
     manifest is what an install already trusts to say where this tool comes from.
+
+    ``debt`` is what this project's own gate reports **today** (RK140), which is what decides
+    between the two honest defaults. A backlog with standing findings gets the baseline, so
+    the gate fails on what a branch adds and forgives what nobody was going to redo — and the
+    count is named in the comment, because a baseline nobody remembers to remove is the other
+    failure mode. A project already clean gets the strict gate and no comment to act on.
     """
     repository = json.loads(_read(origin / PLUGIN_MANIFEST))["repository"]
     action = repository.removeprefix("https://github.com/").removesuffix(".git").strip("/")
+    head = [
+        "# The gate the write path already runs locally, called in CI through the action",
+        "# roadkeep publishes rather than a copied `run:` block, which drifts per",
+        "# repository. `roadkeep lint` exits 1 on a governed file that drifted, and that",
+        "# exit code is the whole contract.",
+        "#",
+    ]
+    if not debt:
+        head.append(
+            "# Yours from here: `with: {directory: .}` where roadkeep.toml is not at the root,"
+        )
+        head.append(
+            "# and `with: {baseline: origin/main}` to fail on what a branch added rather than"
+        )
+        head.append("# on a backlog's standing debt.")
+    else:
+        head += [
+            f"# Baselined, because `roadkeep lint` reported {debt} finding(s) here when this",
+            "# was written: the gate fails on what a branch adds and forgives the standing",
+            "# debt by name, which is the only setting a late gate can be switched on under.",
+            "# Drop the `baseline:` line — and the fetch-depth above it — the day `lint`",
+            "# exits 0 on the default branch, and the gate is absolute.",
+            "#",
+            "# Yours from here: `with: {directory: .}` where roadkeep.toml is not at the root.",
+        ]
+    checkout = ["      - uses: actions/checkout@v4"]
+    step = [f"      - uses: {action}@{ACTION_REF}"]
+    if debt:
+        # A baseline is a rev, so the diff needs the history to take it against.
+        checkout += ["        with:", "          fetch-depth: 0"]
+        step += [
+            "        with:",
+            "          # `base_ref` on a pull request, the default branch on a push — where",
+            "          # the two coincide the diff is empty and the gate passes on the debt.",
+            "          baseline: origin/${{ github.base_ref || "
+            "github.event.repository.default_branch }}",
+        ]
     return "\n".join(
         (
-            "# The gate the write path already runs locally, called in CI through the action",
-            "# roadkeep publishes rather than a copied `run:` block, which drifts per",
-            "# repository. `roadkeep lint` exits 1 on a governed file that drifted, and that",
-            "# exit code is the whole contract.",
-            "#",
-            "# Yours from here: `with: {directory: .}` where roadkeep.toml is not at the root,",
-            "# and `with: {baseline: origin/main}` to fail on what a branch added rather than",
-            "# on a backlog's standing debt.",
+            *head,
             "name: roadkeep",
             "",
             "on: [push, pull_request]",
@@ -360,8 +426,8 @@ def _workflow(origin: Path) -> str:
             "    name: roadkeep lint",
             "    runs-on: ubuntu-latest",
             "    steps:",
-            "      - uses: actions/checkout@v4",
-            f"      - uses: {action}@{ACTION_REF}",
+            *checkout,
+            *step,
             "",
         )
     )

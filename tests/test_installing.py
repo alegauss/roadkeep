@@ -307,6 +307,63 @@ def test_check_is_the_gate_and_the_exit_code_is_the_contract(project, source, ca
     assert "would update" in capsys.readouterr().out
 
 
+# -- the workflow's own default (RK140) ---------------------------------------
+
+#: A project the gate would pass, and one it would not: a roadmap line with no pointer is a
+#: finding, and a finding on the day the workflow lands is a gate switched off rather than read.
+CLEAN = (
+    'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\n',
+    "# Roadmap\n\n## Block A\n\n",
+)
+IN_DEBT = (
+    CLEAN[0],
+    "# Roadmap\n\n## Block A\n\n- 📋 **RK1** (deps: —) **A symptom** — Because of a reason.\n",
+)
+
+
+def declaring(project: Path, config_and_roadmap) -> Path:
+    config, roadmap = config_and_roadmap
+    project.mkdir(parents=True, exist_ok=True)
+    (project / "roadkeep.toml").write_text(config, encoding="utf-8")
+    (project / "ROADMAP.md").write_text(roadmap, encoding="utf-8")
+    return project
+
+
+def test_a_clean_project_gets_the_strict_gate(project, source):
+    install(declaring(project, CLEAN), source=source)
+    written = read(project / PROJECT_WORKFLOW)
+    # The advice is still in the comment; what a clean project does not get is the setting.
+    assert "github.base_ref" not in written and "fetch-depth" not in written
+    assert plan(project, source=source).debt == 0
+
+
+def test_a_backlog_with_standing_debt_gets_the_baseline_and_the_count(project, source):
+    """The projects that most need the gate carry the most debt, so the strict default is
+    the one that lands red — and a baseline nobody remembers to remove is the other half."""
+    intent = install(declaring(project, IN_DEBT), source=source)
+    written = read(project / PROJECT_WORKFLOW)
+    assert intent.debt == 1
+    assert "baseline: origin/${{ github.base_ref" in written
+    assert "fetch-depth: 0" in written  # a baseline is a rev, so the diff needs the history
+    assert "reported 1 finding(s) here" in written
+    assert "Drop the `baseline:` line" in written
+
+
+def test_a_project_declaring_nothing_is_not_reported_as_clean_or_in_debt(project, source):
+    """No governed file is nothing to be in debt about, and the strict gate is honest there."""
+    assert plan(project, source=source).debt is None
+    install(project, source=source)
+    assert "github.base_ref" not in read(project / PROJECT_WORKFLOW)
+
+
+def test_the_baseline_is_named_in_the_report_and_in_the_json(project, source, capsys):
+    argv = ["-C", str(declaring(project, IN_DEBT)), "install", "--source", str(source)]
+    assert main(argv) == 0
+    assert "1 standing finding(s) here" in capsys.readouterr().out
+    assert main([*argv, "--json"]) == 0
+    assert json.loads(capsys.readouterr().out)["debt"] == 1
+
+
 # -- the way out (RK138) ------------------------------------------------------
 
 

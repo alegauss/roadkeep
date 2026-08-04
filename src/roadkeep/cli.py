@@ -4261,6 +4261,7 @@ def _install(config: Config, args: argparse.Namespace) -> int:
                     "source": intent.source.as_posix(),
                     "launcher": intent.launcher,
                     "checked": args.check,
+                    "debt": intent.debt,
                     "surfaces": [
                         {
                             "path": surface.path.relative_to(intent.root).as_posix(),
@@ -4282,6 +4283,14 @@ def _install(config: Config, args: argparse.Namespace) -> int:
             # words in the past tense would claim a file changed that did not.
             state = _WOULD[surface.state] if args.check else surface.state
             print(f"  {state:<14} {surface.path.relative_to(intent.root).as_posix()}")
+        if intent.debt:
+            # Beside the surfaces, because it is the reason one of them was written the way
+            # it was (RK140): a decision taken from a measurement nobody is shown is one the
+            # adopter cannot check.
+            print(
+                f"  baselined      {intent.debt} standing finding(s) here, so the workflow "
+                f"fails on what a branch adds — drop the line once `lint` exits 0"
+            )
         for _, why in intent.skipped:
             print(f"  by hand        {why}")
         if args.check and intent.changing:

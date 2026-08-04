@@ -220,21 +220,6 @@ and may not need a second.
 
 ## Block E — Adoption
 
-### §RK140 A gate that is red before it is read
-
-The workflow is written once and then the adopter's, which is right - it takes a
-`directory:` and a `baseline:` this command cannot know it wants. But the default it
-ships is the strict one, and the projects that most need the gate are the ones with the
-most standing debt. Shio is the case: after a session of repair it still holds nine
-sections over budget and three findings that are this tool's own open defects, so the
-workflow as written would be red on every push from the day it lands. The workflow
-committed there sets `baseline: origin/main` by hand, with a comment saying which
-findings it is deferring and when to drop the line. `install` can tell the difference
-without being told: it can run `lint` while it writes, and a project that is already
-clean gets the strict workflow while one that is not gets the baseline plus a comment
-naming the count it deferred. That keeps the recommendation honest in both directions -
-a red nobody reads is the failure mode, and so is a baseline nobody remembers to remove.
-
 ### §RK148 The fifth surface nobody is told about
 
 RK100's whole argument is that a vendored surface nobody keeps in step is worse than
