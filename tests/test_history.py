@@ -18,12 +18,16 @@ from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.history import (
     HistoryUnavailable,
+    anchors,
     commits_touching,
     gaps,
     git_available,
+    next_child,
     origin_of,
     searchable,
 )
+from roadkeep.sections import AnchorRetired
+from roadkeep.sections import add as add_section
 from roadkeep.schema import DESIGNED, SHIPPED
 
 HERE = Path(__file__).resolve().parents[1]
@@ -446,3 +450,121 @@ def test_a_prefix_of_an_anchor_does_not_answer_for_it(tmp_path, capsys):
 
     assert main(["-C", str(tmp_path), "origin", "§RK1"]) == EXIT_OK
     assert "nothing ever wrote it" in capsys.readouterr().out
+
+
+# -- the addresses history spent (RK247) -------------------------------------
+
+
+def outlined(tmp_path: Path) -> Config:
+    """A project addressing its prose by an outline, which is the only scheme this asks of."""
+    config = repo(tmp_path)
+    prose(config)
+    (config.root / "roadkeep.toml").write_text(
+        (config.root / "roadkeep.toml")
+        .read_text(encoding="utf-8")
+        .replace('prefix = "RK"', 'prefix = "RK"\nref_scheme = "outline"'),
+        encoding="utf-8",
+    )
+    return Config.discover(tmp_path)
+
+
+def test_a_retired_anchor_is_named_where_the_file_says_nothing(tmp_path):
+    # The symptom: `section add` lists what exists, so after a fully-shipped family that is
+    # none of them and the next number looks like .1 — while the entries citing .1 are there.
+    config = outlined(tmp_path)
+    design(config, "### XXXVII.1 A first design", "docs: file it")
+    design(config, "### XXXVII.2 A second design", "docs: file the second")
+    unwrite(config, "### XXXVII.1 A first design", "feat: the first thing (RK1)")
+
+    found = {one.anchor: one.live for one in anchors(config, "improvements", "XXXVII")}
+    assert found == {"XXXVII.1": False, "XXXVII.2": True}
+
+
+def test_the_next_child_is_one_past_the_highest_ever_used(tmp_path):
+    # One past the highest **ever**, not one past the highest surviving, which is often none.
+    config = outlined(tmp_path)
+    for number in (1, 2, 3):
+        design(config, f"### XXXVII.{number} A design", f"docs: file {number}")
+    for number in (1, 2, 3):
+        unwrite(config, f"### XXXVII.{number} A design", f"feat: it works ({number})")
+
+    found = anchors(config, "improvements", "XXXVII")
+    assert [one.live for one in found] == [False, False, False]
+    assert next_child(found, "XXXVII") == "XXXVII.4"
+
+
+def test_an_address_removed_before_it_was_ever_added_here_is_still_spent(tmp_path):
+    # An anchor written before the clone's history appears only as a removed line, and that
+    # is exactly the retired address this exists to name.
+    config = outlined(tmp_path)
+    path = config.path("improvements")
+    path.write_text(
+        path.read_text(encoding="utf-8") + "\n### XL.7 An older design\n\nProse.\n",
+        encoding="utf-8",
+    )
+    commit(config.root, "docs: import the outline")
+    unwrite(config, "### XL.7 An older design", "feat: it shipped")
+
+    assert [one.anchor for one in anchors(config, "improvements", "XL")] == ["XL.7"]
+
+
+def test_reusing_a_retired_address_is_refused_and_the_free_one_is_named(tmp_path):
+    # The silent rewrite: the ledger entries citing §XXXVII.1 would point at this prose.
+    config = outlined(tmp_path)
+    design(config, "### XXXVII.1 A first design", "docs: file it")
+    unwrite(config, "### XXXVII.1 A first design", "feat: it works (RK1)")
+    config = Config.discover(tmp_path)
+
+    with pytest.raises(AnchorRetired) as raised:
+        add_section(config, "improvements", "XXXVII.1", "A reopened design", "Prose.")
+    assert raised.value.free == "XXXVII.2"
+    assert "still there" in str(raised.value)
+
+
+def test_an_address_nothing_ever_declared_is_written(tmp_path):
+    # The refusal is about reuse and never about the scheme: a fresh address still writes.
+    config = outlined(tmp_path)
+    design(config, "## XXXVII The family", "docs: open the family")
+    design(config, "### XXXVII.1 A first design", "docs: file it")
+    unwrite(config, "### XXXVII.1 A first design", "feat: it works (RK1)")
+    config = Config.discover(tmp_path)
+
+    document, section = add_section(config, "improvements", "XXXVII.2", "A design", "Prose.")
+    assert section.anchor == "XXXVII.2" and document is not None
+
+
+def test_an_id_scheme_project_is_not_asked_twice(tmp_path):
+    # Under the id scheme the address is the id, so reuse is `add`'s refusal (RK4) and the
+    # retired ones are every shipped task — a second check on a closed question.
+    config = repo(tmp_path)
+    prose(config)
+    config = Config.discover(tmp_path)
+    propose(config, "RK1", "docs: propose it")
+    design(config, "### §RK1 A design", "docs: file it")
+    unwrite(config, "### §RK1 A design", "feat: it works (RK1)")
+    propose(config, "RK2", "docs: propose the second")
+    config = Config.discover(tmp_path)
+
+    document, section = add_section(config, "improvements", "RK2", "A design", "Prose.")
+    assert section.anchor == "RK2" and document is not None
+
+
+def test_the_command_summarises_by_family_and_lists_one_on_request(tmp_path, capsys):
+    config = outlined(tmp_path)
+    design(config, "### XXXVII.1 A first design", "docs: file it")
+    unwrite(config, "### XXXVII.1 A first design", "feat: it works (RK1)")
+
+    assert main(["-C", str(tmp_path), "anchors"]) == EXIT_OK
+    summary = capsys.readouterr().out
+    assert "XXXVII" in summary and "1 retired" in summary
+    assert "XXXVII.1" not in summary
+
+    assert main(["-C", str(tmp_path), "anchors", "--family", "XXXVII", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["next"] == "XXXVII.2"
+    assert [one["anchor"] for one in payload["anchors"]] == ["XXXVII.1"]
+
+
+def test_a_project_with_no_prose_file_is_a_usage_error_and_not_a_crash(tmp_path):
+    repo(tmp_path)
+    assert main(["-C", str(tmp_path), "anchors"]) == EXIT_USAGE

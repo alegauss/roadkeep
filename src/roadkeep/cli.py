@@ -67,11 +67,14 @@ from roadkeep.graph import Graph, Leverage
 from roadkeep.deferring import Carried, defer, resume
 from roadkeep.guarding import START_EVENTS, STOP_EVENTS, announce, attested, guard, review
 from roadkeep.history import (
+    Anchor,
     Commit,
     HistoryUnavailable,
     Origin,
+    anchors,
     cited_origin,
     gaps,
+    next_child,
     origin_of,
 )
 from roadkeep.ids import highest, next_id
@@ -1174,6 +1177,30 @@ def build_parser() -> argparse.ArgumentParser:
     )
     gaps_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     gaps_parser.set_defaults(handler=_gaps, reads_only=True)
+
+    anchors_parser = subcommands.add_parser(
+        "anchors",
+        help="which outline addresses a prose file has ever declared, live or retired",
+        description=(
+            "Read the anchors out of the file and out of its diffs: live ones a heading "
+            "declares now, and retired ones a ship deleted while every entry citing them "
+            "stayed. An address is spent once a heading used it (RK4's rule for ids), so "
+            "this is the read that says which number a reopened family may take."
+        ),
+    )
+    anchors_parser.add_argument(
+        "--family",
+        default="",
+        metavar="ANCHOR",
+        help="only this subtree, e.g. XXXVII — omitted, one row per top-level family",
+    )
+    anchors_parser.add_argument(
+        "--role",
+        default="",
+        help=f"which prose file (default: the first of {', '.join(PROSE_ROLES)} declared)",
+    )
+    anchors_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    anchors_parser.set_defaults(handler=_anchors, reads_only=True)
 
     deps_parser = subcommands.add_parser(
         "deps",
@@ -4046,6 +4073,88 @@ def _gaps(config: Config, args: argparse.Namespace) -> int:
     tail = f", {skipped} never carried" if skipped else ""
     print(f"{len(found)} gap(s), {resolved} resolved against history{tail}")
     return EXIT_OK
+
+
+def _anchors(config: Config, args: argparse.Namespace) -> int:
+    """Live and retired addresses in one prose file (RK247). Nothing here is a failure."""
+    role = args.role or next((one for one in PROSE_ROLES if config.has(one)), "")
+    if not role or not config.has(role):
+        print(
+            f"roadkeep: this project declares no {role or 'prose'} file "
+            f"({', '.join(PROSE_ROLES)} is what an anchor lives in)",
+            file=sys.stderr,
+        )
+        return EXIT_USAGE
+    found = anchors(config, role, args.family)
+    retired = [one for one in found if not one.live]
+    # An address that is a task **id** is a question already answered: `add` refuses to
+    # reuse one (RK4), and every shipped task leaves its section retired — so on this
+    # project they are 287 of the 307 rows and none of them is a choice anybody makes.
+    ids = config.schema_for(role).id_pattern()
+    outline = [one for one in found if not ids.match(one.anchor.split(".")[0])]
+    spent = len(found) - len(outline)
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "role": role,
+                    "file": config.relative(config.path(role)),
+                    "family": args.family,
+                    "live": len(found) - len(retired),
+                    "retired": len(retired),
+                    # The rows are the answer where a family was named, and the families are
+                    # the answer where none was (RK264's rule, applied before it was asked):
+                    # 287 retired addresses is not a listing anybody reads.
+                    "anchors": [_anchor_row(one) for one in found] if args.family else [],
+                    "families": [] if args.family else _families(outline),
+                    "id_anchors": spent,
+                    "next": next_child(found, args.family) if args.family else None,
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+
+    where = config.relative(config.path(role))
+    print(f"{len(found)} anchor(s), {len(retired)} retired  ({where})")
+    if args.family:
+        for one in found:
+            written = f"  written in {one.written_in[:7]}" if one.written_in else ""
+            print(f"  {'live' if one.live else 'retired':<8} {one.anchor}{written}")
+        print(f"  next     §{next_child(found, args.family)} — nothing ever used it")
+        return EXIT_OK
+    for family in _families(outline):
+        print(
+            f"  {family['family']:<8} {family['live']} live, {family['retired']} retired"
+            f"  next §{family['next']}"
+        )
+    if spent:
+        print(f"  {spent} address(es) are task ids, which `add` already refuses to reuse")
+    if outline:
+        # Named because the listing above is per family and the addresses are what the
+        # caller came for: one flag away, and never printed by the hundred unasked.
+        print("  --family <anchor> lists the addresses under one of them")
+    return EXIT_OK
+
+
+def _anchor_row(one: Anchor) -> dict[str, object]:
+    return {
+        "anchor": one.anchor,
+        "live": one.live,
+        "written_in": one.written_in or None,
+    }
+
+
+def _families(found: Sequence[Anchor]) -> list[dict[str, object]]:
+    """One row per top-level address, in the order they were first declared."""
+    out: dict[str, dict[str, object]] = {}
+    for one in found:
+        top = one.anchor.split(".")[0]
+        row = out.setdefault(top, {"family": top, "live": 0, "retired": 0})
+        row["live" if one.live else "retired"] = int(row["live" if one.live else "retired"]) + 1
+    for top, row in out.items():
+        row["next"] = next_child(found, top)
+    return list(out.values())
 
 
 def _deps(config: Config, args: argparse.Namespace) -> int:

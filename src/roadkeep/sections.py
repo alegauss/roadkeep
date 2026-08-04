@@ -191,6 +191,42 @@ class AnchorClaimed(ValueError):
         )
 
 
+class AnchorRetired(ValueError):
+    """An outline address a heading already used, and a ship deleted (RK247).
+
+    :class:`SectionExists` for the anchors that are no longer there. Under an outline the
+    caller names the anchor, and the only list they are ever shown is of the sections that
+    **exist** — so after a fully-shipped family "the next one" looks like `.1`, and writing
+    it silently re-points every ledger entry whose prose cites that address at prose about
+    something else. `as_ledger` keeps no pointer, so nothing in the files says the address
+    was ever spent; the diff does, which is where this reads it.
+
+    The same rule ids have had since RK4, one file over: retired-never-reused. The remedy is
+    an address nobody used, so the refusal carries the derived one rather than sending the
+    author to grep a ledger — which is how the safe number was found before this existed.
+    """
+
+    def __init__(self, anchor: str, written_in: str, free: str = "", where: str = "") -> None:
+        self.anchor = anchor
+        self.written_in = written_in
+        #: The derived free child, or empty for a **top-level** address: what follows
+        #: `XXXVII` is somebody's numbering — roman, lettered, a phase — and inventing the
+        #: next one would be this tool choosing an author's outline (L4).
+        self.free = free
+        file = f" in {where}" if where else ""
+        commit = f" ({written_in[:7]})" if written_in else ""
+        remedy = (
+            f"§{free} is the next one nothing ever used"
+            if free
+            else "name an address this file has never declared"
+        )
+        super().__init__(
+            f"§{anchor}{file} was declared before{commit} and its section is gone: the "
+            f"entries whose prose cites it are still there, and reusing the address makes "
+            f"them cite this — {remedy}"
+        )
+
+
 class UnknownParent(ValueError):
     """An anchor states its place, and this file declares nothing it extends (RK45).
 
@@ -427,7 +463,7 @@ def unanchored(document: Document) -> tuple[Heading, ...]:
     """
     out: list[Heading] = []
     for heading in document.headings:
-        if heading.level < 2 or _anchor_of(heading.text, document.schema) is not None:
+        if heading.level < 2 or anchor_of(heading.text, document.schema) is not None:
             continue
         end = document.prose_end(heading)
         if any(not blank(line) for line in document.lines[heading.lineno : end]):
@@ -448,7 +484,7 @@ def anchored(document: Document) -> tuple[Section, ...]:
     """
     out: list[Section] = []
     for heading in document.headings:
-        anchor = _anchor_of(heading.text, document.schema)
+        anchor = anchor_of(heading.text, document.schema)
         if anchor is None:
             continue
         end = document.prose_end(heading)
@@ -618,6 +654,7 @@ def add(
     existing = find(document, anchor)
     if existing is not None:
         raise SectionExists(anchor, where, existing.first)
+    _refuse_reuse(config, role, anchor, where)
 
     lines = _render(document.schema, anchor, title, body, _depth(document, anchor, level))
     index = _placement(document, anchor, task, where)
@@ -632,6 +669,31 @@ def add(
     placed = find(document, anchor)
     assert placed is not None  # rendered by this function a moment ago
     return document, placed
+
+
+def _refuse_reuse(config: Config, role: str, anchor: str, where: str) -> None:
+    """Refuse an outline address a heading in this file's history already spent (RK247).
+
+    **Outline only.** Under the id scheme the anchor is the id, so reuse is refused one file
+    over by `refuse_reuse` (RK4) and an anchor whose task shipped fails `anchor.unknown`
+    before ever reaching here — a second check would be a second opinion about a closed
+    question, on every `add --section` this project makes.
+
+    Silence where history cannot answer, the rule every reader of it keeps: a shallow clone
+    and a directory that is not a repository must not stop a write, and what is lost is a
+    refusal and never a file. Imported here rather than at the top because `history` reads
+    this module (RK260), and the cycle is only avoided at the direction the caller is in.
+    """
+    if config.schema_for(role).ref_scheme == "id":
+        return
+    from roadkeep.history import anchors, next_child  # noqa: PLC0415 - RK260
+
+    taken = anchors(config, role)
+    spent = next((one for one in taken if one.anchor == anchor and not one.live), None)
+    if spent is None:
+        return
+    free = next_child(taken, anchor.rsplit(".", 1)[0]) if "." in anchor else ""
+    raise AnchorRetired(anchor, spent.written_in, free, where)
 
 
 def amend(
@@ -1228,8 +1290,12 @@ def heading_of(schema: Schema, section: Section) -> str:
     return f"{'#' * section.level} {anchor_text(schema, section.anchor)} {section.title}"
 
 
-def _anchor_of(text: str, schema: Schema) -> str | None:
+def anchor_of(text: str, schema: Schema) -> str | None:
     """The anchor this heading declares, or None when it declares none (RK27, RK44).
+
+    Public because a heading is read outside a parsed document too (RK247): the anchors a
+    file *used to* declare are in its diffs, and a second reader of this spelling one module
+    over is the drift :func:`anchor_text` refuses at the writing end.
 
     Read **per scheme**, because the two write it differently and requiring one spelling
     read the other as prose: measured on Shio, 151 headings yielded 0 sections and
@@ -1261,7 +1327,7 @@ def _anchor_of(text: str, schema: Schema) -> str | None:
 
 def _title_of(text: str, schema: Schema) -> str:
     """`§RK9 A design` → `A design`. The anchor is one token; the rest is the title."""
-    if _anchor_of(text, schema) is None:
+    if anchor_of(text, schema) is None:
         return text
     return text.lstrip().partition(" ")[2].strip()
 
@@ -1273,4 +1339,4 @@ def _names(text: str, anchor: str, schema: Schema) -> bool:
     claiming `§0.1` and `VIII.1` from claiming `VIII.10` without a second opinion about
     where an anchor ends.
     """
-    return _anchor_of(text, schema) == anchor
+    return anchor_of(text, schema) == anchor

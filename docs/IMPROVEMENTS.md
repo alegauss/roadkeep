@@ -147,19 +147,6 @@ only version of this that is a schema and not a warning.
 
 ## Block C — Query
 
-### §RK247 A retired anchor is invisible
-
-On `ref_scheme = "outline"` an anchor is retired when `ship` deletes its section, but
-the changelog entry that cited it keeps the pointer. Reopening that family is a real
-move — a block whose work resumes — and the caller has to pick the next free number with
-nothing to read: `section add`'s refusal lists the anchors that *exist*, which after a
-fully-shipped family is none of them, so \"the next one\" looks like .1. Observed on a
-project where §XXXVII.1 through §XXXVII.16 were all retired and all still cited: the
-safe number was found by grepping the ledger by hand. Two fixes compose. Have the
-refusal list retired anchors beside live ones, sourced from the pointers history still
-carries. And let `section add` derive the next free child of a family the way `add`
-derives an id — one past the highest ever used, not one past the highest surviving.
-
 ### §RK264 A distribution is six numbers, and this one arrives with its whole sample
 
 L5 is that a question is a command, so answering costs no context. Measured on this

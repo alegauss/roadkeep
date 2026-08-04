@@ -29,6 +29,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from roadkeep.config import PROSE_ROLES, Config
+from roadkeep.schema import Schema
 from roadkeep.sections import find
 
 _UNIT = "\x1f"  # between fields
@@ -619,6 +620,141 @@ def cited_origin(config: Config, anchor: str) -> Cited:
             searched=True,
         )
     return Cited(anchor=anchor, role=PROSE_ROLES[0], written_in=None, removed_in=None, searched=True)
+
+
+@dataclass(frozen=True, slots=True)
+class Anchor:
+    """One outline address a prose file declares, or used to (RK247)."""
+
+    anchor: str
+    role: str
+    #: Whether a heading declares it *now*. False is retired: the section was deleted by a
+    #: ship or a retirement, and every entry whose prose cited it still says `§<anchor>`.
+    live: bool
+    #: The first commit that wrote the heading, where history reaches it — a file older than
+    #: the clone has live anchors nothing here can date, and that is not a state to hide.
+    written_in: str = ""
+
+
+def anchors(config: Config, role: str, family: str = "") -> tuple[Anchor, ...]:
+    """Every anchor this prose file declares or ever declared, in outline order (RK247).
+
+    The read `section add` could not make. Its refusals list the anchors that **exist**, so
+    after a fully-shipped family that is none of them and the next free number looks like
+    `.1` — while the ledger entries whose prose cited `.1` are still in the file, addressing
+    a section that will now say something else. Observed on a project where §XXXVII.1 to
+    §XXXVII.16 were all retired and all still cited, and the safe number was found by
+    grepping the ledger by hand.
+
+    So the source is the diff and not the file: an anchor is *used* once a heading declared
+    it, and `ship` deleting that heading does not give the address back — the same rule
+    `add` applies to ids, where retired-never-reused is the roadmap's own property. One
+    `git log -U0` over the file, on :func:`added_ids`' reasoning: one process, not one
+    pickaxe per anchor.
+
+    Both sides of the diff are read. An anchor added before the clone's history and removed
+    inside it appears only as a **removed** line, and that is exactly the retired address
+    this exists to name; a live one the log cannot reach is still reported, off the file,
+    with no commit to point at.
+
+    ``family`` narrows to one subtree by segments — `XXXVII` gives `XXXVII.1` and
+    `XXXVII.1.a` and never `XXXVIII.1`, the care :func:`~roadkeep.sections._extends` takes
+    about where an anchor ends. Empty is the whole file.
+    """
+    if not config.has(role):
+        return ()
+    live = _declared(config, role) if config.path(role).is_file() else ()
+    first = _anchors_written(config, role, config.schema_for(role))
+    found = [
+        Anchor(anchor=anchor, role=role, live=True, written_in=first.get(anchor, ""))
+        for anchor in live
+    ] + [
+        Anchor(anchor=anchor, role=role, live=False, written_in=sha)
+        for anchor, sha in first.items()
+        if anchor not in live
+    ]
+    return tuple(sorted((a for a in found if _within(a.anchor, family)), key=_ordinal))
+
+
+def next_child(taken: Sequence[Anchor], family: str) -> str:
+    """The lowest numbered child of ``family`` no anchor above has ever used (RK247).
+
+    Derived one past the highest **ever** used and not one past the highest surviving, which
+    is the whole difference: the surviving one is often none. Numeric children only — a
+    lettered or roman segment is somebody's numbering and not this tool's to continue (L4) —
+    and the answer is a suggestion a reader takes, never an anchor any verb writes.
+    """
+    used = {
+        int(child)
+        for anchor in taken
+        for child in (anchor.anchor[len(family) + 1 :].split(".")[:1] or [""])
+        if anchor.anchor.startswith(f"{family}.") and child.isdigit()
+    }
+    return f"{family}.{max(used) + 1 if used else 1}"
+
+
+def _declared(config: Config, role: str) -> tuple[str, ...]:
+    from roadkeep.sections import anchored  # noqa: PLC0415 - RK260
+
+    return tuple(section.anchor for section in anchored(config.document(role)))
+
+
+def _anchors_written(config: Config, role: str, schema: Schema) -> dict[str, str]:
+    """Anchor → the first sha whose diff on this file carries its heading, oldest first."""
+    from roadkeep.sections import anchor_of  # noqa: PLC0415 - RK260
+
+    try:
+        relative = config.path(role).relative_to(config.root)
+    except ValueError:
+        relative = config.path(role)
+    try:
+        output = _run(
+            config.root,
+            "log",
+            "--reverse",
+            f"--format={_RECORD}%H",
+            "--no-color",
+            "-U0",
+            "--",
+            str(relative),
+        )
+    except HistoryUnavailable:
+        return {}
+    first: dict[str, str] = {}
+    for head, rows in _records(output):
+        for row in rows:
+            if row[:1] not in ("+", "-") or row.startswith(("+++", "---")):
+                continue
+            # A heading and not any line that starts with the anchor's spelling: under an
+            # outline the anchor is a bare number, so a table row or a bullet beginning
+            # `XXXVII.4` would otherwise register an address nobody declared.
+            text = row[1:].lstrip()
+            if not text.startswith("#"):
+                continue
+            # Read the way a parsed heading is read — `Heading.text` is what follows the
+            # hashes, and :func:`anchor_of` is written against that.
+            anchor = anchor_of(text.lstrip("#").lstrip(), schema)
+            if anchor is not None:
+                first.setdefault(anchor, head.strip())
+    return first
+
+
+def _within(anchor: str, family: str) -> bool:
+    """Is this anchor the family or under it, segment by segment rather than by string."""
+    if not family:
+        return True
+    segments, wanted = anchor.split("."), family.split(".")
+    return segments[: len(wanted)] == wanted
+
+
+def _ordinal(anchor: Anchor) -> tuple[object, ...]:
+    """File order is not sort order once retired addresses are back in the list, so the
+    segments are compared as numbers where they are numbers and as text where they are not —
+    `.2` before `.10`, and a lettered segment beside its siblings rather than among them."""
+    return tuple(
+        (0, int(part), "") if part.isdigit() else (1, 0, part)
+        for part in anchor.anchor.split(".")
+    )
 
 
 @dataclass(frozen=True, slots=True)

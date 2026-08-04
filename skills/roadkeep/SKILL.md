@@ -202,7 +202,11 @@ ways; `gaps` resolves an id in neither file against the commit that removed it; 
 --why` reads it out of history, and `origin §<anchor>` answers the other end of a pointer —
 a rationale address somebody's prose still cites after a ship deleted the section, which no
 file records, so the three answers are the commit that wrote it, the one that took it, and
-"searched and nobody ever wrote it", which is what a typo looks like. And **never restate a count in prose**: `export
+"searched and nobody ever wrote it", which is what a typo looks like. `anchors [--family <x>]`
+is that question about the **addresses**: which a heading declares now, which a ship retired
+while every entry citing them stayed, and the next child nothing ever used — the read to make
+before reopening a shipped family, since an outline anchor is spent once a heading used it and
+`section add` refuses the reuse by name. And **never restate a count in prose**: `export
 [--readme|--site|--json]` projects it.
 
 ## Picking work
