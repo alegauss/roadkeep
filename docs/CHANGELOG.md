@@ -202,6 +202,7 @@
 - ✅ **RK228** **How git spells a token is recomputed from scratch per token, and twice for most of them** — The root is normalised once and a token is spelled once per base, so the path check costs 81 ms of a 306 ms gate instead of 270 of 529.
 - ✅ **RK239** **Two prose files declaring one anchor is silent until a line points at it** — `section.ambiguous` fires at each of the two headings, so Turing's 13 doubled anchors are 26 findings where the pointer-end check reported none.
 - ✅ **RK263** **A test asserting about the live checkout fails the same way whether code or the tree moved** — A session `checkout` fixture skips the five checkout-reading tests with a warning naming the file that moved, so `-W error` still fails them.
+- ✅ **RK268** **A cached derivation survives the test that monkeypatched what it read** — An autouse fixture clears the two caches a monkeypatch can poison, and an inventory of all six names why the other four are cleared for nothing.
 
 ## Block E — Adoption
 

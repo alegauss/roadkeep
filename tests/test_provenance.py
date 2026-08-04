@@ -149,8 +149,9 @@ def test_the_shell_invocation_is_the_one_this_machine_has(tmp_path, monkeypatch)
     monkeypatch.setattr("roadkeep.provenance.engine", lambda: Engine("0.1.0", home, None))
 
     # The console script, where a PATH lookup finds it — nothing else is offered over that.
+    # No clear before this one: `conftest._volatile_caches` empties it around every test (RK268),
+    # and the clears that stay below are re-derivations after a patch rather than cleanup.
     monkeypatch.setattr("roadkeep.provenance.shutil.which", lambda name: f"/bin/{name}")
-    invocation.cache_clear()
     assert invocation() == "roadkeep"
 
     # Absent, the launcher this package ships beside itself (RK57), if it is on disk.
@@ -168,7 +169,6 @@ def test_the_shell_invocation_is_the_one_this_machine_has(tmp_path, monkeypatch)
     launcher.unlink()
     invocation.cache_clear()
     assert invocation() == "python -m roadkeep.cli"
-    invocation.cache_clear()
 
 
 def test_a_stored_invocation_is_absolute_and_names_what_ends_it(tmp_path, monkeypatch):
@@ -184,7 +184,6 @@ def test_a_stored_invocation_is_absolute_and_names_what_ends_it(tmp_path, monkey
     console.write_text("x = 1\n", encoding="utf-8")
 
     monkeypatch.setattr("roadkeep.provenance.shutil.which", lambda name: str(console))
-    persisted.cache_clear()
     stored = persisted()
     assert stored.command == console.resolve().as_posix()
     assert Path(stored.command).is_absolute() and stored.invalidated_by
@@ -208,7 +207,6 @@ def test_a_stored_invocation_is_absolute_and_names_what_ends_it(tmp_path, monkey
     stored = persisted()
     assert stored.command == "python -m roadkeep.cli"
     assert home.parent.as_posix() in stored.invalidated_by
-    persisted.cache_clear()
 
 
 def test_a_stored_path_holding_a_space_is_quoted_for_the_shell_git_runs(tmp_path, monkeypatch):
@@ -221,11 +219,9 @@ def test_a_stored_path_holding_a_space_is_quoted_for_the_shell_git_runs(tmp_path
     console.write_text("x = 1\n", encoding="utf-8")
     monkeypatch.setattr("roadkeep.provenance.engine", lambda: Engine("0.1.0", home, None))
     monkeypatch.setattr("roadkeep.provenance.shutil.which", lambda name: str(console))
-    persisted.cache_clear()
     stored = persisted()
     assert stored.command.startswith("'") and stored.command.endswith("'")
     assert '"' not in stored.command and "\\" not in stored.command
-    persisted.cache_clear()
 
 
 #: Every string constant in the package that spells `roadkeep <subcommand>` and is **not** an

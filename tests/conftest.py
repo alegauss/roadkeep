@@ -1,5 +1,8 @@
-"""The one fact a test asserting about this checkout cannot get from its own assertion: whether
-the tree moved under the run (RK263).
+"""The two things a test cannot get from its own assertion: whether the tree moved under the run
+(RK263), and whether a cache outlived the test that filled it (RK268). Both produce a red in a
+file that mentions nothing about the cause, so both are answered here rather than at a call site.
+
+## The tree moved under the run (RK263)
 
 Observed while shipping RK261: one run reported six failures and the same source reported 1940
 passed, with one genuine fix between them. Five of the six were not about the code. What ran
@@ -24,6 +27,37 @@ kind of not-a-defect. Two rules keep the skip from becoming a place failures hid
   recorded before the import it defends.
 * **Loud.** Every skip is a `UserWarning` as well, which `pytest -W error` turns into the
   failure a run that wants to be told asks for — the same contract `test_corpora` states.
+
+## A cache outlived the test that filled it (RK268)
+
+Six functions in the package are `lru_cache`d, and the suite used to clear them by hand at the
+call sites — before *and* after, eleven calls across three files, every one a thing the next
+test has to remember. The failure mode is not a wrong assertion: a test raising before its
+trailing clear leaves a `tmp_path` pytest has already deleted cached as this machine's launcher,
+so the *next* tests fail, in another file, about a path nothing in them mentions.
+
+:data:`VOLATILE` is cleared around every test by an autouse fixture, which is the answer the
+rationale said to check rather than assume — and the check moved it off "all six" twice.
+
+Three of the six are pure functions of their arguments or of the code (`_task_re`, `_parsed`,
+`_root`): a stale entry is never wrong, clearing them per test buys nothing, and two tests
+**assert** about their `cache_info`, so an autouse clear would quietly delete a measurement.
+
+`engine` is the fourth, and the reason is correctness rather than speed. Nothing patches what it
+reads: the tests that appear to patch it replace the *name*
+(`monkeypatch.setattr("roadkeep.provenance.engine", …)`), which leaves the real function's cache
+untouched, and its only two inputs are `roadkeep.__file__` and one git call in that directory. So
+a stale entry cannot be a lie, and clearing it protects nothing. It is also the one clear with a
+price — 65 ms of git per re-derivation, measured — though over the four files that read it most
+the difference was inside the run-to-run noise, so the price is not the argument. The argument is
+a claim, and the fixture enforces it instead of repeating it: at teardown, a populated `engine`
+cache is asked for its home — free, being a hit — and a home that is not the package's fails the
+test that left it there, naming this file.
+
+That leaves `invocation` and `persisted`, which read a PATH scan, the launcher on disk and the
+working directory, cost 9 ms, and are what every poisoning test actually patches.
+`tests/test_caches.py` holds the split as an inventory, so a seventh cache is a decision somebody
+makes rather than one nobody notices.
 """
 
 from __future__ import annotations
@@ -126,3 +160,47 @@ _AT_START = Checkout({name: _stamp(HERE / name) for name in WATCHED}, _head())
 def checkout() -> Checkout:
     """The tree as the run found it — see :class:`Checkout` and :data:`_AT_START`."""
     return _AT_START
+
+
+# -- a cache outlived the test that filled it (RK268) ------------------------
+
+#: The `lru_cache`d functions in `roadkeep.provenance` whose value is read off *this machine* and
+#: can therefore be a lie the moment a test that patched what they read has ended: a PATH scan,
+#: the launcher on disk, the working directory. `engine` is deliberately not one — see above.
+VOLATILE = ("invocation", "persisted")
+
+
+@pytest.fixture(autouse=True)
+def _volatile_caches():
+    """Cleared before and after **every** test, which is the point: an opt-in fixture only helps
+    the tests that already remembered, and forgetting is what the defect was.
+
+    Both ends on purpose. The trailing clear is what a raising test skips, so it is the half that
+    stops the leak; the leading one is what makes a test's own first derivation the test's, rather
+    than whatever an earlier file left behind. The mid-test clears stay at their call sites, where
+    they are the assertion — "the patch above changes what this reads" — and not cleanup.
+
+    The imports are inside the body so that conftest's own import does not pull the package in
+    before :data:`_AT_START` has fingerprinted the tree it would be read from.
+    """
+    import roadkeep
+    from roadkeep import provenance
+
+    # Resolved at setup, before the test can patch a name away: the objects are what get cleared,
+    # so a test that replaced `provenance.invocation` with a lambda still has its cache emptied.
+    caches = tuple(getattr(provenance, name) for name in VOLATILE)
+    identity = provenance.engine
+    for cache in caches:
+        cache.cache_clear()
+    yield
+    for cache in caches:
+        cache.cache_clear()
+    # The invariant that keeps `engine` out of the set above, and the only cost is a cache hit:
+    # an empty cache is nothing to check, and a populated one already paid for its git call.
+    if identity.cache_info().currsize:
+        home = Path(roadkeep.__file__).resolve().parent
+        assert identity().home == home, (
+            f"this test left {identity().home} cached as the running engine, which is not "
+            f"{home}: `engine` is process-constant and cleared for nothing, so patching what "
+            f"it reads means adding it to VOLATILE in tests/conftest.py"
+        )

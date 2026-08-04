@@ -227,28 +227,6 @@ is one nobody can scan for a gap, which is the other question anchors gets asked
 
 ## Block D — The gate
 
-### §RK268 A process-lifetime cache in a per-test world
-
-Six functions in this package are `lru_cache`d, each for a good reason: they answer a
-fact about the process — where the package lives, what a shell reaches it by, what a
-stored command must say, which root a server discovered, how a line parses. None of
-those change inside one run, and `invocation` in particular is read on the deny path,
-the one place a repeated `which` scan would be paid for over and over.
-
-A test that monkeypatches what such a function reads is therefore editing a value that
-outlives it. The suite handles this by calling `cache_clear` by hand, at the call sites,
-before and after — eleven such calls across three files, every one a thing a future test
-has to remember. The failure mode is not a wrong assertion: a test raising before its
-trailing clear leaves a `tmp_path` pytest has already removed cached as this machine's
-launcher, so the *next* tests fail, in another file, about a path nothing in them
-mentions. That is RK263's shape again — a failure indistinguishable from a defect —
-reached by a different route.
-
-An autouse fixture clearing all six is the obvious answer and the one to check rather
-than assume: it makes every test pay six calls, and it hides the case where clearing is
-itself the assertion. The alternative is a fixture the patching tests request by name,
-which keeps the coupling visible and only helps the tests that already remembered.
-
 ### §RK269 The transition only the console saw
 
 `ship` computes something no other verb does: whether the block it just emptied still
