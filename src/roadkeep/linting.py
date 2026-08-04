@@ -542,7 +542,6 @@ def _examine(config: Config, since: str | None, tree: Tree) -> Report:
     findings.extend(_across(config, documents))
     findings.extend(_scope(config, documents.get("roadmap")))
     notes: list[Note] = _collective(config, documents)
-    notes.extend(_closed_doors(config))
 
     prose: dict[str, Document] = {}
     for role in PROSE_ROLES:
@@ -907,40 +906,6 @@ def _collective(config: Config, documents: dict[str, Document]) -> list[Note]:
                 )
             )
     return out
-
-
-def _closed_doors(config: Config) -> list[Note]:
-    """The verb a project's own ledger shape rules out, said before it is reached (RK214).
-
-    `[ledger] marker = false` is a legitimate declaration — the file's heading is the marker,
-    which is what a ledger reconstructed from git history has — and it closes `retire`: a
-    departure that is not a shipment has no slot to be told from one, so `status.unrepresentable`
-    refuses the whole transaction.
-
-    A note and not a finding, because the configuration is right and failing a build over it
-    would fail the honest project it describes. What was wrong was the **timing**. Measured in
-    Claude Code Tray, whose ledger declares no marker because 163 of its entries predate this
-    grammar: the refusal arrived after somebody had already done the work of deciding against a
-    task, and the reachable alternative was `ship` with an outcome saying it was decided
-    against — a ✅ over work nobody did, which is the lie `marker = false` was declared to
-    prevent. Naming the door at the gate is the difference between a constraint and a surprise.
-
-    The remedy is the declaration and never a softer write, because the two shapes are not
-    interchangeable: `Backlog.retired` and the projected status block both read the marker, so
-    a retirement recorded without one is not merely unreadable to a person — it is counted as a
-    shipment by this tool.
-    """
-    if not config.has("changelog") or config.schema.ledger_marker:
-        return []
-    return [
-        Note(
-            "ledger.no-marker",
-            config.relative(config.path("changelog")),
-            "declares [ledger] marker = false, so `retire` is refused here: a departure "
-            "that is not a shipment has no slot to be told from one. Declaring the marker "
-            "is what opens that door",
-        )
-    ]
 
 
 def _unpaired(config: Config, sections: tuple[Section, ...], since: str) -> list[Note]:

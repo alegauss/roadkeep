@@ -992,7 +992,7 @@ def test_the_note_does_not_move_the_exit_code(tmp_path, capsys):
     assert "deps.collective" in out and "clean" in out
 
 
-# -- the door a ledger's own shape closes (RK214) ------------------------------
+# -- the door a markerless ledger keeps (RK214's note, RK125's answer) ---------
 
 #: Shio's and Claude Code Tray's shape: a ledger reconstructed before this grammar, whose
 #: entries carry no glyph because the file's heading is the marker.
@@ -1005,66 +1005,35 @@ MARKERLESS_LEDGER = """# Shipped
 """
 
 
-def test_a_markerless_ledger_is_told_which_door_that_closes(tmp_path):
-    # The refusal was right and its timing was not: it arrived after somebody had already
-    # done the work of deciding against a task, and the reachable alternative was `ship`
-    # with an outcome saying so — a ✅ over work nobody did.
+def test_a_markerless_ledger_is_no_longer_told_a_verb_is_closed(tmp_path):
+    # RK214 named the closed door at the gate rather than at the refusal; RK125 opened it,
+    # so the note is gone. A gate that repeats a constraint the tool no longer has is worse
+    # than silence: it is read with the same trust as the ones that are still true.
     report = lint(
         project(tmp_path, changelog=MARKERLESS_LEDGER, config=MARKERLESS_CONFIG)
     )
-    # A note and not a finding: the declaration is legitimate, and failing a build over it
-    # would fail the honest project it describes.
     assert report.clean and report.problems == 0
-    (note,) = [n for n in report.notes if n.code == "ledger.no-marker"]
-    assert "`retire` is refused here" in note.message
-    assert "Declaring the marker is what opens that door" in note.message
-    assert str(note).startswith("CHANGELOG.md  ledger.no-marker")
-
-
-def test_a_ledger_that_declares_its_marker_is_told_nothing(tmp_path):
-    # Said where it applies and nowhere else: a note on every project would be output
-    # nobody reads, which is the failure mode RK16 exists to avoid.
-    report = lint(project(tmp_path))
     assert not [n for n in report.notes if n.code == "ledger.no-marker"]
 
 
-def test_a_project_with_no_ledger_at_all_is_told_nothing(tmp_path):
-    # There is no door to close where there is no file: `retire` refuses for a different
-    # reason, and naming this one would send the reader to the wrong declaration.
-    report = lint(
-        project(
-            tmp_path,
-            changelog=None,
-            config='prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\n'
-            'improvements = "IMPROVEMENTS.md"\n[ledger]\nmarker = false\n',
-        )
-    )
-    assert not [n for n in report.notes if n.code == "ledger.no-marker"]
-
-
-def test_the_note_does_not_move_the_exit_code_either(tmp_path, capsys):
-    project(tmp_path, changelog=MARKERLESS_LEDGER, config=MARKERLESS_CONFIG)
-    assert main(["-C", str(tmp_path), "lint"]) == EXIT_OK
-    out = capsys.readouterr().out
-    assert "ledger.no-marker" in out and "clean" in out
-
-
-def test_the_refusal_it_warns_about_is_still_the_refusal(tmp_path):
-    # The note replaces no gate: `retire` still writes nothing, because a retirement
-    # recorded without a marker is one this tool would go on to count as a shipment.
-    from roadkeep.schema import SchemaError
+def test_the_verb_that_note_warned_about_now_writes(tmp_path):
+    # The door, taken: the retirement carries the marker on its own line, which is what
+    # keeps `Backlog.retired` from counting it as the shipment `ship` would have filed.
     from roadkeep.shipping import retire
 
     config = project(tmp_path, changelog=MARKERLESS_LEDGER, config=MARKERLESS_CONFIG)
-    before = (tmp_path / "CHANGELOG.md").read_text(encoding="utf-8")
-    with pytest.raises(SchemaError, match="status.unrepresentable"):
-        retire(config, "RK1", reason="The premise did not survive the measurement.")
-    assert (tmp_path / "CHANGELOG.md").read_text(encoding="utf-8") == before
+    retire(config, "RK1", reason="The premise did not survive the measurement.").save()
+    ledger = (tmp_path / "CHANGELOG.md").read_text(encoding="utf-8")
+    assert "- 🗑 **RK1**" in ledger
+    # And the gate reads that line back rather than reporting it: nothing about CHANGELOG.md,
+    # which is the claim (L3). The roadmap's `deps.retired` is RK32 working — a line waiting
+    # on work that left is the author's next edit.
+    assert not [f for f in lint(config).findings if f.file == "CHANGELOG.md"]
 
 
-def test_the_declaration_names_the_door_where_the_choice_is_made(tmp_path):
-    # `lint` repeats it every run, and this is where it is first read: a project told at
-    # `init` never reaches the refusal by surprise.
+def test_the_declaration_names_what_it_costs_where_the_choice_is_made(tmp_path):
+    # RK214's mechanism outlives the door it named: `init` states the consequence of
+    # `marker = false` in the file that declares it, and the consequence is now one line.
     from dataclasses import replace as replaced
 
     from roadkeep.adopting import render_config
@@ -1073,7 +1042,7 @@ def test_the_declaration_names_the_door_where_the_choice_is_made(tmp_path):
     rendered = render_config(
         replaced(Schema(), ledger_marker=False), {"roadmap": "docs/ROADMAP.md"}
     )
-    assert "marker = false" in rendered and "closes `retire`" in rendered
+    assert "marker = false" in rendered and "a retirement still carries 🗑" in rendered
 
 
 def test_a_range_dep_is_expanded_too(tmp_path):

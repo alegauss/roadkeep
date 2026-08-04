@@ -345,10 +345,23 @@ def test_a_marker_in_a_ledger_that_declares_none_is_reported_not_read():
     assert "carry none" in reject.reason
 
 
-def test_a_retired_line_cannot_be_written_to_a_ledger_that_declares_no_marker():
-    # The one thing the declaration costs (RK32): with no slot to carry 🗑, a retired
-    # line would read as shipped, so it is refused rather than recorded as a lie.
+def test_a_retirement_is_the_one_line_a_markerless_ledger_marks():
+    # What the declaration no longer costs (RK125 against RK32): the file says every entry
+    # in it shipped, so the one that did not is the one line that has to carry a marker —
+    # and it round-trips, which is what makes it a line this tool may write.
     task = Task(id="RK1", status=RETIRED, block="A", symptom="A symptom", why="a reason.")
+    line = MARKERLESS.render(task)
+    assert line == f"- {RETIRED} **RK1** **A symptom** — a reason."
+    assert MARKERLESS.validate(task) == ()
+    (entry,) = parse_in_block(line, schema=MARKERLESS).entries
+    assert entry.task.status == RETIRED  # not the file's ✅, which is the whole point
+    assert MARKERLESS.render(entry.task) == line
+
+
+def test_every_other_marker_is_still_unwritable_there():
+    # The declaration still means what it says: an open line in a file whose status is the
+    # file's would read as shipped, and 🗑 is the exception the file's own claim creates.
+    task = Task(id="RK1", status=DESIGNED, block="A", symptom="A symptom", why="a reason.")
     assert {v.code for v in MARKERLESS.validate(task)} == {"status.unrepresentable"}
 
 

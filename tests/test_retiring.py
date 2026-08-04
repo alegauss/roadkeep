@@ -226,15 +226,18 @@ def test_a_project_may_declare_its_own_retired_marker(tmp_path):
 NO_LEDGER_MARKER = "\n[ledger]\nmarker = false\n"
 
 
-def test_retiring_into_a_ledger_that_declares_no_marker_writes_nothing(tmp_path):
-    # What `[ledger] marker = false` costs (RK43 against RK32): with no slot to carry 🗑,
-    # the record would read as a shipment, so the whole transaction is refused instead.
+def test_retiring_into_a_ledger_that_declares_no_marker_is_a_door(tmp_path):
+    # The declaration made the file readable and took a verb away with it (RK125). The way
+    # through is the marker on that one line: the file states that every entry in it
+    # shipped, so the entry that did not is the exception, and the line says which.
     config = project(tmp_path, declare=NO_LEDGER_MARKER)
-    before = (tmp_path / "CHANGELOG.md").read_text(encoding="utf-8")
-    with pytest.raises(SchemaError, match=r"\[ledger\] marker = false"):
-        retire(config, "RK1", reason="Nobody will do it.")
-    assert (tmp_path / "CHANGELOG.md").read_text(encoding="utf-8") == before
-    assert "RK1" in config.document("roadmap").by_id()
+    retire(config, "RK1", reason="Nobody will do it.").save()
+    (entry,) = [e for e in config.document("changelog").entries if e.task.id == "RK1"]
+    assert entry.raw == "- 🗑 **RK1** **A first symptom** — abandoned: Nobody will do it."
+    # Read back off the line and not derived from the file, which is the difference between
+    # a departure and the shipment `Backlog.retired` would otherwise have counted it as.
+    assert entry.task.status == RETIRED
+    assert "RK1" not in config.document("roadmap").by_id()
 
 
 def test_a_ledger_that_declares_no_marker_still_takes_a_shipment(tmp_path):

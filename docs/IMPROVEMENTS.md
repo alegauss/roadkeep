@@ -220,25 +220,6 @@ and may not need a second.
 
 ## Block E — Adoption
 
-### §RK125 The declaration that makes a file parse removes a verb
-
-`[ledger] marker = false` exists so a ledger written before this tool can be read at all
-— Shio's 234 entries carry no marker, and declaring it is what lets 96 deps resolve
-instead of reading as "in neither file". It is adoption working exactly as designed.
-
-The cost is undeclared and total: `retire` refuses every id with `status:
-status.unrepresentable`, because `🗑` cannot be told from `✅` in a file with no marker
-column. So a project that adopted the tool the recommended way loses the ability to
-record a line leaving without shipping — one of the three doors RK's own design says the
-roadmap has, and the two undocumented ones were the reason `retire` was written.
-
-The refusal is honest and it is a dead end: it names the config and stops. At least
-three ways out, and the choice is a design decision, not a patch — carry the marker on
-retired entries only, since a file with no markers has nothing to be inconsistent with;
-or write the retirement to the roadmap rather than the ledger; or refuse at `adopt`
-time, so a project learns the cost before it inherits it rather than the first time it
-retires a line.
-
 ### §RK137 The one fact the skill still gets wrong
 
 `install` states its own contract: every byte is a translation of what the plugin ships,

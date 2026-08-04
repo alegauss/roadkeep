@@ -205,6 +205,7 @@
 - ✅ **RK103** **A bullet whose marker holds a space is read as prose and reported by nothing** — A bullet putting GitHub's `[ ]`, `[x]` or `[]` where the status goes, with a bold id after, is a named reject — counted by `adopt`, inside what would change, and never offered as a marker to declare.
 - ✅ **RK107** **A project that declares the format still has nothing enforcing it** — Dumont runs the plain gate green — `[ids] pad = 2` made its nine ids legal and rewrote no line — beside Turing's baselined one, so four projects declaring the format is two that cannot drift from it.
 - ✅ **RK110** **`adopt` counts the id findings without saying they are one declaration** — `adopt` names each leading-zero width and the split letter as an `[ids]` key with a count, so nine findings read as one unwritten declaration — and whether to write it stays the reader's call.
+- ✅ **RK125** **Declaring an unmarked ledger takes a whole verb away, and the refusal offers no way through** — A retirement is the one line a markerless ledger marks — a departure being the status such a file does not state about itself — so `retire` is a door on every project and 🗑 is never read as ✅.
 
 ## Block F — The Claude Code plugin
 

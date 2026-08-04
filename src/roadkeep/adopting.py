@@ -360,11 +360,12 @@ def render_config(schema: Schema, paths: Mapping[str, str]) -> str:
         for present, line in (
             (
                 schema.ledger_marker,
-                # Named where the choice is made, not where it is hit (RK214): this one
-                # closes `retire`, there being no slot for a departure that is not a
-                # shipment, and `lint` repeats it every run.
+                # What the declaration costs, said where the choice is made (RK214) — and
+                # since RK125 that cost is one line's worth: a departure is the one status
+                # such a file does not state, so it is the one line that carries a marker.
                 "# every entry in it shipped, so no line repeats it\n"
-                "# (this closes `retire`: a departure that is not a shipment has no slot)\n"
+                f"# (a retirement still carries {schema.retired_marker}: a departure is "
+                f"not a shipment)\n"
                 "marker = false",
             ),
             (schema.ledger_symptom, "# its lines are `- **id** — <prose>`, with no symptom slot\nsymptom = false"),

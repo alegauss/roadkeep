@@ -34,7 +34,10 @@ parsed as 0 entries *and* 0 rejects, the one shape that made the miss silent twi
 The marker slot is also the one part of the grammar a file may not have. Both live
 ledgers write `- **T1** — …`, so `[ledger] marker = false` (L6) says the status is the
 file's rather than the line's — every entry in it shipped — and there a marker on a line
-is the reject instead.
+is the reject instead, with one exception the file's own claim creates: a **departure** is
+what such a ledger does not say about itself, so the retired line is the one that carries a
+marker (RK125), and whether a line fills the slot is decided per line by
+:meth:`Schema.marks` — the same answer `render` writes from.
 """
 
 from __future__ import annotations
@@ -951,11 +954,21 @@ def _looks_like_marker(token: str, schema: Schema) -> bool:
     silence — invisible drift, uncounted and unreported. Read it instead, and let
     the round-trip refuse the write and lint name the character.
     """
-    stripped = token.rstrip("\ufe0f\u200d")  # variation selector, ZWJ
+    stripped = _bare(token)
     return any(
         token == marker or stripped == marker
         for marker in (*schema.markers, schema.shipped_marker)
     )
+
+
+def _bare(token: str) -> str:
+    """A marker token without the codepoints that render as nothing.
+
+    One function because two tests read a marker off a line \u2014 is this one at all, and is it
+    the departure a markerless ledger may carry (RK125) \u2014 and a second copy of the pair is a
+    second answer to "does a trash marker with a variation selector count".
+    """
+    return token.rstrip("\ufe0f\u200d")  # variation selector, ZWJ
 
 
 def _wears_the_marker_slot(rest: str, token: str) -> bool:
@@ -973,6 +986,22 @@ def _wears_the_marker_slot(rest: str, token: str) -> bool:
     return bool(token) and not any(c.isalnum() for c in token) and bool(
         _MARKER_SLOT_RE.match(rest)
     )
+
+
+def _retirement(token: str, schema: Schema) -> bool:
+    """The one marker a line in a markerless ledger may carry: a departure (RK125).
+
+    Asked of :meth:`Schema.marks`, so the grammar and the renderer cannot disagree about
+    which line writes the slot — the parser reads a marker exactly where `render` would put
+    one, which is what keeps the round-trip (L3) an identity rather than a hope.
+
+    Tolerant of the variation selector for the same reason :func:`_looks_like_marker` is: a
+    🗑️ renders identically in an editor, so reading it as prose would hide the line from
+    every count instead of letting `lint --fix` name the codepoint.
+    """
+    if schema.marker_field or not schema.marks(schema.retired_marker):
+        return False
+    return schema.retired_marker in (token, _bare(token))
 
 
 def _leads_with_the_id(rest: str) -> bool:
@@ -1035,10 +1064,16 @@ def _marker_slot(rest: str, token: str, schema: Schema) -> tuple[bool, str | Non
             f"another convention, so it reads as prose and no count sees it"
         )
     if not schema.marker_field:
+        if _retirement(token, schema):
+            # The one line such a file writes a marker on (RK125): a departure is the status
+            # the file does not state about itself, so the line has to.
+            return True, None
         if _looks_like_marker(token, schema):
             return False, (
                 f"{token} is a status marker, in a file whose lines carry none "
-                f"([ledger] marker = false): there the marker is the file's, not the line's"
+                f"([ledger] marker = false): there the marker is the file's, not the "
+                f"line's — {schema.retired_marker} alone carries one, a departure not "
+                f"being a shipment"
             )
         return _leads_with_the_id(rest), None
     if _looks_like_marker(token, schema):
@@ -1141,13 +1176,20 @@ def _read_bullet(body: str, schema: Schema, block: str) -> Task | str | None:
     Only a bullet that claims the task line's own shape can be rejected: every other one
     is prose, and reporting the non-goals list as malformed would make the report
     worthless. Which shape that is depends on the file — in a markerless ledger (RK43)
-    the claim is a leading bold id, and a marker there is the mistake instead.
+    the claim is a leading bold id, and a marker there is the mistake instead, 🗑 excepted
+    (RK125).
+
+    So whether *this line* fills the marker slot is a question per line and not per file:
+    the grammar is chosen from the same answer `render` writes from, which is what keeps
+    the retirement a markerless ledger carries byte-identical through the round trip.
     """
     bullet = _BULLET_RE.match(body)
     if not bullet:
         return None
     rest = bullet.group("rest").lstrip()
-    claimed, wrong = _marker_slot(rest, rest.split(" ", 1)[0], schema)
+    token = rest.split(" ", 1)[0]
+    marked = schema.marker_field or _retirement(token, schema)
+    claimed, wrong = _marker_slot(rest, token, schema)
     if wrong is not None:
         return wrong
     if not claimed:
@@ -1160,9 +1202,9 @@ def _read_bullet(body: str, schema: Schema, block: str) -> Task | str | None:
     # on the task so `render` puts it back: Shio nests four live tasks under a shipped
     # parent, and rejecting them made 4 ids invisible to every count and to `next-id`.
     head, ref = _split_ref(body[len(indent) :])
-    match = _task_re(schema.marker_field, schema.symptom_field).match(head)
+    match = _task_re(marked, schema.symptom_field).match(head)
     if not match:
-        return _diagnose(head, schema)
+        return _diagnose(head, schema, marked)
 
     raw_deps = match.group("deps")
     if schema.deps_field and raw_deps is None:
@@ -1182,7 +1224,7 @@ def _read_bullet(body: str, schema: Schema, block: str) -> Task | str | None:
         part=match.group("part"),
         # Where the file declares no marker, the status is the file's own: every entry in
         # a ledger that carries none shipped, which is the whole content of the claim.
-        status=match.group("status") if schema.marker_field else schema.shipped_marker,
+        status=match.group("status") if marked else schema.shipped_marker,
         block=block,
         # Absent where the file has no such slot (RK48): the whole tail is the `why`, and
         # an empty string is what `render` then reproduces by omitting the bold entirely.
@@ -1218,10 +1260,15 @@ def read_deps(raw: str, schema: Schema) -> tuple[Dep, ...]:
     return tuple(out)
 
 
-def _diagnose(head: str, schema: Schema) -> str:
-    """Name the missing piece. A reason is what makes a reject actionable."""
+def _diagnose(head: str, schema: Schema, marked: bool) -> str:
+    """Name the missing piece. A reason is what makes a reject actionable.
+
+    ``marked`` is whether *this line* filled the marker slot rather than whether the file's
+    lines do, so a retirement in a markerless ledger (RK125) is told where the id is missing
+    from and not sent to look at the start of a line that begins with 🗑.
+    """
     if not re.search(r"\*\*[A-Za-z0-9]+\*\*", head):
-        where = "after the marker" if schema.marker_field else "where the line starts"
+        where = "after the marker" if marked else "where the line starts"
         return f"no bold **<id>** {where}"
     if schema.deps_field and "(deps:" not in head:
         return "no (deps: …) field"

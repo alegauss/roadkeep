@@ -120,13 +120,13 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 4 | 48 | 0 |
 | C — Query (consult without reading the file) | 1 | 37 | 0 |
 | D — The gate | 0 | 50 | 0 |
-| E — Adoption | 7 | 21 | 1 |
+| E — Adoption | 6 | 22 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 32 | 1 |
-| **Total** | 13 | 213 | 3 |
+| **Total** | 12 | 214 | 3 |
 
 **Next ready:**
 
-- 📋 **RK125** (deps: —) **Declaring an unmarked ledger takes a whole verb away, and the refusal offers no way through** — Shio sets [ledger] marker = false so its 234 pre-tool entries parse, and that one line makes retire refuse every id: the adoption that made the file readable disabled a door. → §RK125
+- 📋 **RK137** (deps: —) **The copied skill names a shell command that does not exist in the project it was copied into** — `install` substitutes the launcher into the hook and into the server and not into the skill's own examples, so a checkout-wired project is told to run `roadkeep`, which is on no PATH here. → §RK137
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

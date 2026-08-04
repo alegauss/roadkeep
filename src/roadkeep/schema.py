@@ -686,6 +686,24 @@ class Schema:
         """
         return status in self.undesigned
 
+    def marks(self, status: str) -> bool:
+        """Whether a line carrying this status writes the marker slot at all (RK43, RK125).
+
+        True everywhere except the ledger a project declared markerless — and there too for
+        the one status that file cannot state about itself. `[ledger] marker = false` says
+        *every entry in this file shipped*, which is exactly why the one that did not has to
+        say so on its own line: there is no other slot for a departure, and a file whose
+        lines carry no marker has nothing for this one to be inconsistent with.
+
+        That is what keeps `retire` a door on an adopting project (RK125). The alternative
+        reachable before this was `ship` with an outcome saying the work was decided against
+        — a ✅ over work nobody did, which is the lie `marker = false` was declared to
+        prevent — and the two are not interchangeable to this tool either: `Backlog.retired`
+        and the projected status block both read the marker, so a retirement recorded without
+        one is *counted as a shipment*.
+        """
+        return self.marker_field or (self.is_ledger and status == self.retired_marker)
+
     @property
     def dep_markers(self) -> tuple[str, ...]:
         """The statuses a dep annotation may cache (RK8) — the open set, ✅ and ⏸.
@@ -719,7 +737,9 @@ class Schema:
         # tool renders differently from the one it read.
         named = f"{task.id} ({task.part})" if task.part else task.id
         head = (
-            f"{dash} {task.status} **{named}**" if self.marker_field else f"{dash} **{named}**"
+            f"{dash} {task.status} **{named}**"
+            if self.marks(task.status)
+            else f"{dash} **{named}**"
         )
         if self.deps_field:
             deps = ", ".join(d.render() for d in task.deps) or NO_DEPS
@@ -842,17 +862,19 @@ class Schema:
                 )
             )
         out.extend(self._check_part(task))
-        if not self.marker_field and task.status != self.shipped_marker:
-            # The one thing a markerless ledger cannot record is a departure that is not
-            # a shipment (RK32): with no slot to carry 🗑, a retired line would read as
-            # shipped. Refused here, so `retire` refuses the whole transaction (RK6).
+        if not self.marks(task.status) and task.status != self.shipped_marker:
+            # A markerless ledger states one status for the whole file, so every marker but
+            # the departure it cannot state is unwritable there: an open line filed as
+            # shipped work would read as shipped and no slot would say otherwise. 🗑 is the
+            # exception `marks` carries (RK125) — it writes the marker on that line alone.
             out.append(
                 Violation(
                     "status.unrepresentable",
                     "status",
                     f"this project declares a ledger with no marker "
                     f"([ledger] marker = false), so {task.status!r} cannot be told from "
-                    f"{self.shipped_marker}: declare the marker before recording one",
+                    f"{self.shipped_marker}: only {self.retired_marker} carries a marker "
+                    f"there, a departure being the one status the file does not state",
                 )
             )
         elif task.status == self.shipped_marker and not self.shipped_allowed:
