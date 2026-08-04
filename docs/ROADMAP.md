@@ -44,6 +44,8 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
+- 📋 **RK258** (deps: —) **The three prose bodies publish no limit, so 250 words reaches the author as a refusal** — `_BOUNDS` gives `symptom` and `why` a ceiling and a word aim and names no body, so the one field whose limit is already stated in words is the one a client cannot validate. → §RK258
+
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:
