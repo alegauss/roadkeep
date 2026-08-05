@@ -106,6 +106,7 @@
 - ✅ **RK294** **Nothing calls the scope at the moment the commit is made** — `ship` and `retire` name what the tree holds that no claim of theirs does, read while the claim is still live.
 - ✅ **RK295** **A scope naming a path the tree does not have is recorded in silence** — A declared path that is in neither the dirty set nor the index is marked where it stands, so a typo reads as one instead of as a complete scope.
 - ✅ **RK296** **An undeclared-block refusal still lists every label the file declares** — An undeclared-block refusal names the file and the verb and stops listing every label, which `shading` already answers by name in the one case it mattered.
+- ✅ **RK298** **A shipped line's commit cannot read the scope its claim carried** — A departure prints the `git add --` line for the scope it releases, so the answer is in the output the committer is already reading.
 
 ## Block C — Query
 

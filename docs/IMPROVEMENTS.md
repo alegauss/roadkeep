@@ -77,29 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK298 The scope that leaves with the claim that held it
-
-Hit once per task across Block D. `agents.md` documents the commit as `claim <id>
---porcelain` piped into staging, and RK280 is the reasoning: `git add -A` sweeps up a
-second session's work, so a claim carries the paths this commit owns. But the order the
-work happens in is claim, code, `ship`, commit — and `ship` releases the claim, which
-takes the scope with it. Reproduced on a scratch project: after `ship RK1 --why …`,
-`claim RK1 --porcelain` exits 2 with "no live claim on RK1", and the move it names,
-`status RK1 🛠`, exits 2 too because the ledger now holds the id. The verb that answers
-"what does this commit own" is unreachable exactly where the commit is, and the
-refusal's advice is a dead end rather than a detour.
-
-Two shapes, and the choice is the design. `ship` could report the scope it released,
-putting the answer in output the committer is already reading — the shape it uses for
-the section it dropped. Or the registry could keep a released claim's paths until
-something else claims that id, so `claim --porcelain` answers after a ship; that is a
-longer-lived record, and RK119 was explicit that a claim is an expiry and not a lock, so
-it needs an argument this section does not have.
-
-What must not be the answer is a sentence in `agents.md` telling the author to read the
-porcelain before shipping. Ordering held by prose is the drift this tool exists to
-remove.
-
 ### §RK302 The door that admits the state four verbs refuse
 
 `SectionExists` asks the document it is writing into and nobody else. RK297 taught the
@@ -153,6 +130,25 @@ without a verb choosing.
 ## Block D — The gate
 
 ## Block E — Adoption
+
+### §RK305 A majority that measures the backlog, not the file
+
+RK288's guard is right about the alarm it silences and wrong about how it decides. It
+prints `--ref-scheme <other>` only where the other scheme accounts for more headings
+than the declared one — a proxy for *this file is really addressed the other way*.
+
+The proxy holds on a static file. It does not hold here. This repository's rationale
+file carries a permanent preamble anchored `0.1`-style and one `RK<n>` section per
+**open** design, and a ship deletes the second kind. So the ratio falls with every task
+delivered, and at the moment the open designs stop outnumbering the preamble the tool
+tells a fully conforming file to be read the other way. Measured while shipping Block B:
+five and five, one ship from the alarm, on a file reporting every heading conforming.
+
+What the count cannot see is that the two kinds of heading are not competing readings of
+one file. One is prose the project keeps and the other is a queue. A file whose declared
+scheme parses **every** heading it was asked about has no minority reading to report,
+whatever the ratio — which is the condition RK288 was actually written about, and the
+one the majority was standing in for.
 
 ## Block F — The plugin
 

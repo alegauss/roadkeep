@@ -271,4 +271,6 @@ prints the paths alone, for `git add --`. Refused on a line no live claim holds:
 line is a marker, and nothing here dates one. **`ship` and `retire` make that read
 themselves**, while the claim is still live: what the tree holds that no claim names is
 named in the departure's own answer, so the analysis arrives at the moment of committing
-rather than being remembered there. Silent where no claim declared a path.
+rather than being remembered there — **and so is the `git add --` line for the scope being
+released**, which after the ship no verb can answer: the claim is gone and the id is in the
+ledger. Silent where no claim declared a path.

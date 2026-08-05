@@ -631,10 +631,11 @@ def test_a_ship_names_what_the_tree_holds_that_its_claim_does_not(tmp_path, caps
         (tmp_path / "stray.py").write_text("y = 2\n", encoding="utf-8")
         assert main(["-C", str(tmp_path), "ship", "RK2", "--why", "it works now."]) == EXIT_OK
         out = capsys.readouterr().out
-        # The path nobody spoke for is named. `mine.py` is not: the caller declared it, and a
-        # report that listed it back would be the whole `git status` again.
         assert "loose    stray.py  (no claim names it)" in out
-        assert "mine.py" not in out
+        # And the scope itself, as the command that stages it (RK298): the ship released the
+        # claim, so `claim RK2 --porcelain` now refuses and the `status RK2 🛠` it names is
+        # refused too — this is the last moment the answer exists.
+        assert "stage    git add -- mine.py" in out
     finally:
         claiming.path(tmp_path).unlink(missing_ok=True)
 
@@ -662,6 +663,44 @@ def test_the_command_marks_a_declared_path_that_would_stage_nothing(tmp_path, ca
         # reported for what it is: a change no claim names.
         assert "mine     ROADMAP.md\n" in out
         assert "loose    mine.py  (no claim names it)" in out
+    finally:
+        claiming.path(tmp_path).unlink(missing_ok=True)
+
+
+def test_the_verb_that_answered_that_before_the_ship_no_longer_does(tmp_path, capsys):
+    # The whole of RK298: the order the work happens in is claim, code, `ship`, commit, and
+    # the ship releases the claim — so the answer has to arrive in the ship's own output.
+    config = repo(tmp_path)
+    append(
+        config.path("roadmap"),
+        f"- {IN_PROGRESS} **RK2** (deps: —) **A symptom** — a reason.\n",
+    )
+    commit(tmp_path, "chore: a line under way")
+    try:
+        claiming.follow(tmp_path, "RK2", IN_PROGRESS, config.document("roadmap").entries)
+        claiming.scope(config, "RK2", ["mine.py"])
+        assert main(["-C", str(tmp_path), "ship", "RK2", "--why", "it works now."]) == EXIT_OK
+        capsys.readouterr()
+        assert main(["-C", str(tmp_path), "claim", "RK2", "--porcelain"]) == EXIT_USAGE
+        assert "no live claim on RK2" in capsys.readouterr().err
+    finally:
+        claiming.path(tmp_path).unlink(missing_ok=True)
+
+
+def test_a_path_holding_a_space_survives_the_staging_line(tmp_path, capsys):
+    # A scope is declared verbatim, so it may hold a blank — and a `git add --` line that
+    # split one in two would stage two files that do not exist.
+    config = repo(tmp_path)
+    append(
+        config.path("roadmap"),
+        f"- {IN_PROGRESS} **RK2** (deps: —) **A symptom** — a reason.\n",
+    )
+    commit(tmp_path, "chore: a line under way")
+    try:
+        claiming.follow(tmp_path, "RK2", IN_PROGRESS, config.document("roadmap").entries)
+        claiming.scope(config, "RK2", ["a file.py", "plain.py"])
+        assert main(["-C", str(tmp_path), "ship", "RK2", "--why", "it works now."]) == EXIT_OK
+        assert 'stage    git add -- "a file.py" plain.py' in capsys.readouterr().out
     finally:
         claiming.path(tmp_path).unlink(missing_ok=True)
 

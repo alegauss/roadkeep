@@ -2699,13 +2699,22 @@ def _print_cited(cited: Sequence[str]) -> None:
 def _print_scope(scope: claiming.Scope | None) -> None:
     """What the tree holds that this commit's claim does not name (RK280, RK294).
 
-    Theirs and loose, never `mine`: the caller that declared a scope already knows it, and the
-    two lists here are the ones a `git add -A` would take without being told. Silent on a
-    `None`, which is a project no claim spoke for — there the whole answer would be `git
-    status` under a heading claiming to have read something.
+    Silent on a `None`, which is a project no claim spoke for — there the whole answer would
+    be `git status` under a heading claiming to have read something.
+
+    **And the scope itself, at a departure** (RK298). `claim <id>` may leave it out, the
+    caller having just declared it; a ship may not, because the ship is what *releases* it —
+    after it, `claim <id> --porcelain` refuses with "no live claim" and the `status <id> 🛠` it
+    names is refused too, the ledger now holding the id. So the one moment a commit needs the
+    answer is the one moment the verb for it stops answering, and this is the output the
+    committer is already reading. Spelled as the command rather than as a list, the shape
+    every other unreachable next step in this tool takes (RK257): what the author does with
+    these paths is stage them.
     """
     if scope is None:
         return
+    if scope.mine:
+        print(f"  stage    git add -- {' '.join(_shell(one) for one in scope.mine)}")
     for one, who in scope.theirs:
         print(f"  theirs   {one}  ({who} is holding it)")
     for one in scope.loose:
@@ -2715,6 +2724,16 @@ def _print_scope(scope: claiming.Scope | None) -> None:
     # so a scope naming a file the tree does not have is a typo and not a file yet to be written.
     for one in scope.idle:
         print(f"  typo?    {one}  (declared, and stages nothing)")
+
+
+def _shell(path: str) -> str:
+    """One path as a shell would take it: quoted only where a space would split it (RK298).
+
+    Double quotes, the spelling :func:`~roadkeep.provenance._spelled` already uses for a
+    command a reader copies — a path is declared verbatim (RK280) and may hold a blank, and a
+    `git add --` line that split one in two would stage two files that do not exist.
+    """
+    return f'"{path}"' if " " in path else path
 
 
 def _scope_json(scope: claiming.Scope | None) -> dict[str, object] | None:

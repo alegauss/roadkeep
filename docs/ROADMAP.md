@@ -24,7 +24,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 💭 **RK298** (deps: —) **A shipped line's commit cannot read the scope its claim carried** — `ship` releases the claim, so the `claim <id> --porcelain` agents.md stages from is refused at the one moment a commit needs it, naming a `status 🛠` the ledger refuses too. → §RK298
 - 📋 **RK302** (deps: —) **section add writes an anchor another declared prose file already holds, and only a retired one is refused** — Reproduced on a two-file project: the second add reports success and lint then names four section.ambiguous findings whose own message says every verb reading one refuses. → §RK302
 
 ## Block C — Query (consult without reading the file)
@@ -34,6 +33,8 @@
 ## Block D — The gate
 
 ## Block E — Adoption
+
+- 📋 **RK305** (deps: —) **The scheme suggestion is suppressed by a majority that shipping erodes** — adopt hides it only while the declared scheme out-counts the other, and this repo's id-anchored sections are deleted at every ship, so a conforming file is told to switch once enough work lands. → §RK305
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 

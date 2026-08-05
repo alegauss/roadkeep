@@ -646,9 +646,12 @@ def test_a_file_that_mixes_anchors_is_not_told_to_switch(tmp_path: Path, capsys)
     config = Config.discover(root)
     estimate = adopt(config, config.path("improvements"), sections=True)
     assert estimate.conforming == estimate.parsed and estimate.changing == 0
-    # Both shapes are present; the declared one dominates, so nothing is suggested.
+    # Both shapes are present, and the declared one is not out-voted, so nothing is suggested.
+    # Not `>`: the id-anchored sections are this backlog's open designs and are deleted at
+    # every ship, so the ratio is a fact about how much work is left rather than about the
+    # file's shape — the fragility RK305 is filed for.
     counts = dict(estimate.schemes)
-    assert counts.get("outline") and counts["id"] > counts["outline"]
+    assert counts.get("outline") and counts["id"] >= counts["outline"]
     assert main(["-C", str(root), "adopt", str(config.path("improvements")), "--sections"]) == EXIT_OK
     assert "also" not in capsys.readouterr().out
 
