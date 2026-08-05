@@ -24,7 +24,9 @@ write is an opportunity to make every annotation true, and a tool that refreshed
 line it touched would leave the file in a state where some annotations are derived and
 some are remembered. What it will not do is write a line that the schema would then
 refuse — a derived ✅ makes a line two characters longer, so a line already at the cap is
-reported (:class:`~roadkeep.schema.SchemaError`) and the whole write is refused.
+reported (:class:`~roadkeep.schema.SchemaError`) and the whole write is refused. That
+report names the line's id and `file:line` (RK348): it is a dependent's sentence and never
+the one the caller passed, so a bare count sends the author to shorten the wrong prose.
 """
 
 from __future__ import annotations
@@ -32,8 +34,8 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 
 from roadkeep.backlog import Backlog, DepStatus
-from roadkeep.document import Document
-from roadkeep.schema import Dep, DepKind, Task
+from roadkeep.document import Document, Entry
+from roadkeep.schema import Dep, DepKind, SchemaError, Task
 
 
 @dataclass(frozen=True, slots=True)
@@ -64,11 +66,44 @@ def refresh(backlog: Backlog) -> Refresh:
             continue
         # Only what this write would change is validated: a violation elsewhere in the
         # file is `lint`'s to report, not this command's to refuse.
-        document.schema.check(derived)
+        try:
+            document.schema.check(derived)
+        except SchemaError as error:
+            raise _naming_the_line(backlog, entry, error) from None
         current = next(e for e in document.entries if e.lineno == entry.lineno)
         document = document.replace_task(current, derived)
         changed.append(entry.task.id)
     return Refresh(document=document, changed=tuple(changed))
+
+
+def _naming_the_line(backlog: Backlog, entry: Entry, error: SchemaError) -> SchemaError:
+    """The same refusal, told whose line it is about (RK348).
+
+    A length reported as a bare number reads as *your sentence is too long*, and here it
+    never is: the sentence that went over belongs to a **dependent**, and it went over
+    because this write re-derived its `(deps: …)` annotation and a ✅ costs two characters.
+    The author shortens what they just typed, gets the same count back, and finds the real
+    line by diffing the file.
+
+    So every violation raised here gets the clause the rest of this tool's refusals already
+    carry — the id and its `file:line` — appended rather than substituted, because what the
+    limit is has to survive alongside where it was hit. The repair after that is a real edit
+    and stays the author's: trimming a dependent's `why` to make room for a marker nobody
+    typed is legitimate, and only discovering it by elimination was not.
+    """
+    where = backlog.roadmap.path
+    address = (
+        f"{backlog.config.relative(where)}:{entry.lineno}"
+        if where is not None
+        else f"line {entry.lineno}"
+    )
+    said = (
+        f" — on {entry.task.id}'s line ({address}), whose dep annotation this write "
+        f"re-derives, and not on the text passed to this command"
+    )
+    return SchemaError(
+        tuple(replace(one, message=f"{one.message}{said}") for one in error.violations)
+    )
 
 
 def _annotate(backlog: Backlog, dep: Dep) -> Dep:

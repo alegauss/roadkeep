@@ -77,31 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK348 The refusal that is about somebody else's line
-
-Shipping RK325 was refused with `why: 173 characters, limit is 171: delete 2
-characters`. Nothing about the call was over: the `--why` being written was 119. The
-line at 173 was RK327's, which names RK325 as a dep — and `(deps: RK325)` becomes
-`(deps: RK325 ✅)` when the ship re-derives it, two characters that leave the prose
-budget two short.
-
-The refusal is correct and unreadable. It names the field, the count and the limit, and
-every one of those is about a line the caller is not editing and has no reason to be
-looking at. What it reads as is *your sentence is too long*, so the author shortens the
-one they just wrote, gets the same number back, and has to diff the file to find out
-why.
-
-The fact is in the transaction. `refresh` re-derives every dependent's annotation and
-knows which line it was validating when the schema refused, so the id belongs in the
-message — the same rule every other refusal here already keeps, which is that a length
-is reported against `file:line` and never as a bare number.
-
-Worth separating from the repair the author then needs. Trimming a dependent's `why` to
-make room for a marker nobody typed is a real edit and a legitimate one; what is not
-legitimate is discovering it by elimination. The design question is only whether the
-annotation's growth should be *offered* — `--lines`-style — or simply named, and named
-is the smaller answer.
-
 ### §RK349 One enrichment, four doors
 
 RK312 taught `ref.missing` to name `anchors --block <x>` and the free address under it.

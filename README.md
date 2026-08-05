@@ -117,16 +117,16 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 30 | 1 |
-| B — Authoring (insert, never hand-edit) | 3 | 77 | 0 |
+| B — Authoring (insert, never hand-edit) | 2 | 78 | 0 |
 | C — Query (consult without reading the file) | 0 | 51 | 1 |
 | D — The gate | 4 | 63 | 0 |
 | E — Adoption | 2 | 55 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 67 | 1 |
-| **Total** | 9 | 343 | 4 |
+| **Total** | 8 | 344 | 4 |
 
 **Next ready:**
 
-- 📋 **RK348** (deps: —) **A departure refused by a dependent's line reports the length and names no id** — The annotation a ship re-derives grows the dependent's line by two characters, so the refusal is about a sentence the caller did not write and cannot find. → §RK348
+- 📋 **RK349** (deps: —) **The refusal that names the anchor command reaches one verb, and three others refuse the same way** — RK312 enriched ref.missing inside add, and defer, resume and section add reach the same violation through their own doors and print the bare rule. → §RK349
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

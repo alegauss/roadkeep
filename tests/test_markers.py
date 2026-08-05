@@ -168,3 +168,27 @@ def test_a_line_the_annotation_would_push_over_the_cap_is_refused(tmp_path):
     assert violation.code == "why.too-long"
     assert f"limit of {len(long)}" in violation.message
     assert config.document("roadmap").render().endswith(f"{long}\n")
+
+
+def test_the_refusal_names_the_dependent_line_and_not_a_bare_count(tmp_path):
+    """The sentence that went over is somebody else's, so the count alone sends the author
+    to shorten the one they typed (RK348). The id and its `file:line` are what turn the
+    refusal into an address; the limit it already stated survives beside them.
+    """
+    long = (
+        "- 📋 **RK1** (deps: RK4) **A symptom that is quite long** — "
+        "Because of a reason that fills the line. → §RK1"
+    )
+    project(tmp_path, roadmap=f"## Block A — The model\n\n{long}\n")
+    (tmp_path / "roadkeep.toml").write_text(
+        f'prefix = "RK"\n[files]\nroadmap = "{ROADMAP}"\nchangelog = "{CHANGELOG}"\n'
+        f"[limits]\nline = {len(long)}\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(SchemaError) as raised:
+        refresh(Backlog.load(Config.discover(tmp_path)))
+    (violation,) = raised.value.violations
+    assert f"RK1's line ({ROADMAP}:3)" in violation.message
+    assert "dep annotation" in violation.message
+    # Appended, never substituted: the rule and its number are still what a fix needs.
+    assert violation.message.startswith("40 characters, limit is 38")
