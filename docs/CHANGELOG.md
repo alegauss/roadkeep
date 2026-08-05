@@ -108,6 +108,7 @@
 - ✅ **RK296** **An undeclared-block refusal still lists every label the file declares** — An undeclared-block refusal names the file and the verb and stops listing every label, which `shading` already answers by name in the one case it mattered.
 - ✅ **RK298** **A shipped line's commit cannot read the scope its claim carried** — A departure prints the `git add --` line for the scope it releases, so the answer is in the output the committer is already reading.
 - ✅ **RK302** **section add writes an anchor another declared prose file already holds, and only a retired one is refused** — section add asks the project's declarations rather than the file's, so an anchor a sibling prose file already holds is refused before the write.
+- ✅ **RK306** **A closure leaves the claim its departure would have released** — The closure path reconciles the registry as its sibling does, so a line closed against an entry already on disk releases the claim and the scope it carried.
 
 ## Block C — Query
 

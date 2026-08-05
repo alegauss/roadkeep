@@ -21,13 +21,13 @@ import pytest
 
 from roadkeep.provenance import invocation
 
-from roadkeep import document
+from roadkeep import claiming, document
 from roadkeep.authoring import UnknownBlock
 from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.document import Document, RoundTripError, StaleFile
 from roadkeep.linting import lint
-from roadkeep.schema import PARTIAL, Schema, SchemaError
+from roadkeep.schema import IN_PROGRESS, PARTIAL, Schema, SchemaError
 from roadkeep.shipping import SecondPartial
 from roadkeep.sections import SectionOccupied
 from roadkeep.shipping import (
@@ -487,6 +487,23 @@ def test_closing_drops_the_section_and_re_derives_the_dependents(tmp_path):
     assert "§RK1" not in read(config, IMPROVEMENTS)
     # RK2 and RK3 wait on RK1, and both annotations were written when RK1 was open.
     assert closure.refreshed == ("RK2", "RK3")
+
+
+def test_a_closure_releases_the_claim_its_departure_would_have(tmp_path):
+    # RK306: `Departure.save` obeys RK162 and this shape — the same departure minus the ledger
+    # edit — skipped it, so the line closed and the dated row and its scope stayed behind.
+    config = half_shipped(tmp_path, marker=IN_PROGRESS)
+    try:
+        claiming.follow(tmp_path, "RK1", IN_PROGRESS, config.document("roadmap").entries)
+        claiming.scope(config, "RK1", ["src/a.py"])
+        closure = ship(config, "RK1")
+        assert isinstance(closure, Closure)
+        # Read while it is still live, as the departure reads it (RK294).
+        assert closure.scope is not None and closure.scope.mine == ("src/a.py",)
+        closure.save()
+        assert claiming._read(claiming.path(tmp_path)) == {}  # noqa: SLF001
+    finally:
+        claiming.path(tmp_path).unlink(missing_ok=True)
 
 
 def test_a_restated_why_is_refused_where_the_ledger_is_not_written(tmp_path):

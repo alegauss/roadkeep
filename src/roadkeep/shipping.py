@@ -677,14 +677,31 @@ class Closure:
     #: here too because the moment is the same one — this door is `ship` on a line whose entry
     #: is already on disk, and the commit it precedes stages exactly the same files.
     scope: claiming.Scope | None = None
+    #: The checkout, so this door releases the claim its sibling releases (RK306).
+    root: Path | None = None
 
     @property
     def marker(self) -> str:
         return self.recorded.task.status
 
     def save(self) -> None:
-        """Write the roadmap and the prose file. The ledger is never opened for writing."""
+        """Write the roadmap and the prose file. The ledger is never opened for writing.
+
+        And reconcile the claim, which this was the one departure not to do (RK306). RK162
+        made every marker write a release and :meth:`Departure.save` obeys it; this shape is
+        the same departure minus the ledger edit, and skipped it — so the interrupted
+        transaction RK130 opened this door for closed its line and left the dated row and the
+        scope it carried behind, for `claims` to list against an id no file holds and for a
+        `--prune` the author was never told they needed.
+
+        The marker passed is the **ledger's**, which is what this door has: the line is gone,
+        so there is no roadmap marker to write, and the entry's ✅ or 🗑 is the terminal one
+        the rule reads as a release either way. Last and never a condition of the writes, for
+        the reason its sibling states.
+        """
         save_all(self.roadmap, self.prose)
+        if self.root is not None:
+            claiming.follow(self.root, self.task_id, self.marker, self.roadmap.entries)
 
 
 @dataclass(frozen=True, slots=True)
@@ -1492,6 +1509,7 @@ def _close(config: Config, task_id: str, recorded: Entry) -> Closure:
             e.task.id for e in derived.document.entries if task_id in e.task.dep_ids
         ),
         scope=claiming.departing(config, task_id, roadmap.entries),
+        root=config.root,
     )
 
 

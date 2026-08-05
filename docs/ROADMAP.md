@@ -24,7 +24,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK306** (deps: —) **A closure leaves the claim its departure would have released** — Closure.save writes the roadmap and the prose and never reconciles the registry, so the interrupted transaction RK130 opened this door for keeps a dated row and its scope after the line is gone. → §RK306
 - 💭 **RK307** (deps: —) **A scope corrected mid-task is restated in full or not at all** — claim --path replaces by design, so a tenth file discovered after nine were declared means retyping all ten at the moment the loose reading that found it is one command from the ship. → §RK307
 
 ## Block C — Query (consult without reading the file)
