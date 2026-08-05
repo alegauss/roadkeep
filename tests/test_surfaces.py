@@ -133,3 +133,31 @@ def test_the_job_that_may_not_skip_fails_where_its_reader_is_missing():
     # states from the other side: the tool never reads YAML, so it is no dev dependency.
     assert "pyyaml" in script
     assert "pytest -q tests/test_plugin.py" in script
+
+
+def test_the_gate_declares_what_its_token_may_do():
+    """RK335's half that is not a decision: three jobs that check out and read, and one of
+    them running a third-party installer under whatever the repository default grants."""
+    yaml = pytest.importorskip("yaml", reason="pyyaml is not installed")
+    workflow = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))
+    assert workflow["permissions"] == {"contents": "read"}
+
+
+def test_the_reader_that_gates_a_merge_is_a_version_and_not_a_channel():
+    """The half that is (RK335). A channel fetched fresh on every push means the tool the
+    merge was gated by was chosen by a clock, and the file cannot say which one it was.
+
+    What stays unpinned is named in the workflow rather than here: the loader is still a
+    script fetched over TLS from the vendor's URL, and moving that trust to a key is the apt
+    repository or the signed manifest. So the assertion is the one this file can make — the
+    version is declared, it is what the installer is handed, and the step that proves the
+    install happened proves it produced that version.
+    """
+    yaml = pytest.importorskip("yaml", reason="pyyaml is not installed")
+    job = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))["jobs"]["payload"]
+    pinned = job["env"]["CLAUDE_VERSION"]
+    assert re.fullmatch(r"\d+\.\d+\.\d+", str(pinned)), pinned
+    script = "\n".join(step.get("run", "") for step in job["steps"])
+    assert 'bash -s "$CLAUDE_VERSION"' in script
+    assert "stable" not in script, "a channel beside the pin is two answers about one reader"
+    assert 'claude --version | grep -F "$CLAUDE_VERSION"' in script

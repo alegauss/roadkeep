@@ -155,30 +155,6 @@ a gate that asked for prose there would be answered with prose nobody needed.
 
 ## Block D — The gate
 
-### §RK335 What the third job cost to buy
-
-RK334 is right and this is its bill. `curl -fsSL https://claude.ai/install.sh | bash -s
-stable` is the documented install and the shortest thing that works, and it is also a
-remote script fetched fresh on every push to main, in a workflow whose `permissions:`
-key is absent — so the job takes whatever the repository default grants, which is the
-one number nobody looks at until it matters.
-
-Two halves, and only one is a decision. The permissions block is not: `contents: read`
-is what `publish.yml` already declares for a job doing more than this one, and the gate
-declaring nothing is an omission.
-
-The installer is the decision, and the documented routes differ in what they cost to
-keep. A pinned version (`bash -s 2.1.89`) makes the reader reproducible and stops it
-tracking the loader an installing user gets, which is the whole reason the channel is
-`stable` rather than a number. The apt repository is signed with a key whose fingerprint
-is published, so the trust moves from a URL to a key, at four more lines and a
-distribution this job does not otherwise care about. The release manifest is GPG-signed
-too, which is that trust with the version pinned back on.
-
-What makes this a line rather than a shrug: this repository's argument is that a gate is
-only as good as what it reads, and the newest job reads a tool it fetches unverified
-every time.
-
 ### §RK353 The name the skill teaches and the parser does not know
 
 Two surfaces name one act differently on purpose. `scope` is the MCP tool for declaring

@@ -16,6 +16,13 @@ on:
     branches: [main]
   pull_request:
 
+# Not a decision, an omission (RK335): every job here checks out and reads, and the one that
+# runs a third-party installer was taking whatever the repository default grants — which is the
+# one number nobody looks at until it matters. `publish.yml` already declares this much for a
+# job doing more than any of these.
+permissions:
+  contents: read
+
 jobs:
   lint:
     name: roadkeep lint
@@ -55,6 +62,12 @@ jobs:
     # An update landing mid-run would swap the reader under the assertion.
     env:
       DISABLE_AUTOUPDATER: "1"
+      # The reader this job is about, named here rather than left to a channel (RK335). Moving
+      # it is a commit somebody reviews, which is what `stable` was not: that fetched whatever
+      # had been released since the last push, so the tool gating a merge was chosen by a clock.
+      # Raise it deliberately — a version behind what an installing user gets is the cost, and
+      # `tests/test_plugin.py` failing against a newer validator is the signal to pay it.
+      CLAUDE_VERSION: "2.1.220"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -64,16 +77,23 @@ jobs:
       # `tests/test_surfaces.py` states, and this is the one job whose subject is what a
       # parser makes of the files — so it is where the parser is worth installing.
       - run: pip install ".[dev]" pyyaml
-      # `stable` and not the default channel: this gates a merge, so a release that regresses
-      # the validator must not be able to redden one before anybody has installed it. No
-      # credential is needed — `plugin validate` reads files and exits, measured against a
+      # A version and not a channel: this gates a merge, so what the merge was gated by has to
+      # be a fact somebody can read off this file months later, and a release that regresses the
+      # validator must not be able to redden a merge before anybody has installed it. What stays
+      # unpinned is the loader itself — the script is fetched fresh, over TLS, from the vendor's
+      # own URL, which is the documented route; moving that trust from a URL to a key is the apt
+      # repository or the signed release manifest, at four more lines and a distribution this job
+      # does not otherwise care about. So the residual is named here rather than hidden, and the
+      # step below turns "we ran what came back" into "we ran it and it produced what we named".
+      # No credential is needed — `plugin validate` reads files and exits, measured against a
       # virgin `CLAUDE_CONFIG_DIR`, so a fork runs this job with no secret of ours.
       - name: install the reader that decides how a session loads the payload
-        run: curl -fsSL https://claude.ai/install.sh | bash -s stable
+        run: curl -fsSL https://claude.ai/install.sh | bash -s "$CLAUDE_VERSION"
       - name: put it where the next steps look
         run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
       # A skip is a green, and the one thing that makes the payload test skip is `claude`
-      # missing from PATH. So this step is the assertion that the step below ran at all.
-      - name: the CLI answers, so nothing below can skip
-        run: claude --version
+      # missing from PATH. So this step is the assertion that the step below ran at all — and,
+      # since the version is pinned, that the installer honoured the pin rather than the channel.
+      - name: the CLI answers, and it is the version this job named
+        run: claude --version | grep -F "$CLAUDE_VERSION"
       - run: python -m pytest -q tests/test_plugin.py

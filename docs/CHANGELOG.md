@@ -240,6 +240,7 @@
 - ✅ **RK326** **The gate passes a priority entry naming a shipped id, an unknown id or a block nothing declares** — The gate resolves every queue entry as it resolves a dep, so a token naming shipped, retired, set-aside or unknown work fails at its own line and column.
 - ✅ **RK328** **The one queue repair that is fully derived has no fixer, so a clean tree still costs a hand edit** — `--fix` drops the queue entry whose id the ledger holds as shipped or retired, naming each one at the line it was read from, and leaves the order and every live entry alone.
 - ✅ **RK333** **The refusal offers mcp__roadkeep__add, which is not the name a plugin-provided server gives it** — The refusal names the prefix this project's own files decide: bare where a `.mcp.json` declares the server, and the plugin's own spelling where the tree the engine runs out of is one.
+- ✅ **RK335** **The job that gates a release pipes an unpinned remote script into bash, under the workflow's default token** — The workflow declares `contents: read`, the reader gating a merge is a version this file names rather than a channel, and the step proving the install happened proves it produced that version.
 
 ## Block E — Adoption
 
