@@ -47,7 +47,7 @@ __all__ = [
 #: The one place the version is written (RK19). `pyproject.toml` declares it `dynamic` and
 #: reads this literal, so a release cannot ship a number the package disagrees with — which
 #: is also why it stays eager: a build backend parses this file, it does not import it.
-__version__ = "0.1.275"
+__version__ = "0.1.276"
 
 #: What the names above are, resolved once each. A frozenset and not a `TYPE_CHECKING`
 #: import of them: the conventional block would pull `typing` into every startup — 5.6ms,

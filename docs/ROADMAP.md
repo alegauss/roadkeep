@@ -34,6 +34,8 @@
 
 ## Block D — The gate
 
+- 📋 **RK320** (deps: —) **The version bump stages two whole files, so an unrelated edit to either rides into the next commit** — Measured once: another agent's manifest change was in the tree, the hook staged plugin.json to bump it, and the edit landed under a commit message about something else. → §RK320
+
 ## Block E — Adoption
 
 - 📋 **RK305** (deps: —) **The scheme suggestion is suppressed by a majority that shipping erodes** — adopt hides it only while the declared scheme out-counts the other, and this repo's id-anchored sections are deleted at every ship, so a conforming file is told to switch once enough work lands. → §RK305
