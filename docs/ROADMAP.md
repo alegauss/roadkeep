@@ -22,6 +22,8 @@
 
 ## Block A — The model (a task is data before it is a line)
 
+- 📋 **RK330** (deps: —) **Each feature needing state outside the documents invents its own file format and its own reader** — The claim registry is a hand-parsed line grammar, the write record is JSON, the lock is a filename — three encodings for three features, so the next one invents a fourth. → §RK330
+
 ## Block B — Authoring (insert, never hand-edit)
 
 - 📋 **RK310** (deps: —) **A design section can carry a stale premise and ship drops it in silence** — Twice in one block a section argued from a fact that had stopped being true, and the only reader who could find out is whoever claims the task years later. → §RK310
@@ -41,6 +43,7 @@
 - 📋 **RK320** (deps: —) **The version bump stages two whole files, so an unrelated edit to either rides into the next commit** — Measured once: another agent's manifest change was in the tree, the hook staged plugin.json to bump it, and the edit landed under a commit message about something else. → §RK320
 - 📋 **RK326** (deps: RK325) **The gate passes a priority entry naming a shipped id, an unknown id or a block nothing declares** — Measured after a ship: all three pass at exit 0, where the same three tokens written as deps are two findings and a resolution the annotation carries. → §RK326
 - 📋 **RK328** (deps: RK325, RK326) **The one queue repair that is fully derived has no fixer, so a clean tree still costs a hand edit** — Dropping the entry whose task shipped chooses nothing and writes no prose, which is the half --fix exists for, and after RK325 it is a governed file the fixer rewrites. → §RK328
+- 📋 **RK333** (deps: —) **The refusal offers mcp__roadkeep__add, which is not the name a plugin-provided server gives it** — Measured in an adopting project: the tools arrive as mcp__plugin_roadkeep_roadkeep__add, so the route the guard names first is one that session cannot call. → §RK333
 
 ## Block E — Adoption
 
@@ -48,6 +51,9 @@
 - 📋 **RK315** (deps: —) **A test asserting on this repository's own docs fails when another session writes them mid-run** — It read docs/IMPROVEMENTS.md live and failed once in three identical runs while a second session shipped into that file, so the red said nothing about the code under test. → §RK315
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
+
+- 📋 **RK331** (deps: —) **The skill's frontmatter is not valid YAML, so the loader drops its name and description in silence** — A description containing a colon is a plain scalar YAML refuses, and the tests split on the first one, so the surface that triggers the write path ships with no name at all. → §RK331
+- 📋 **RK332** (deps: —) **Nothing runs the payload's own validator, so a surface that loads with empty metadata passes CI** — The gate reads the governed prose and holds the manifests as JSON, and the two errors the plugin loader reports were found by hand, months after they shipped. → §RK332
 
 ## Non-goals
 
