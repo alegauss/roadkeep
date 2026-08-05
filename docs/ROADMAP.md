@@ -37,10 +37,12 @@
 ## Block E — Adoption
 
 - 📋 **RK305** (deps: —) **The scheme suggestion is suppressed by a majority that shipping erodes** — adopt hides it only while the declared scheme out-counts the other, and this repo's id-anchored sections are deleted at every ship, so a conforming file is told to switch once enough work lands. → §RK305
+- 📋 **RK315** (deps: —) **A test asserting on this repository's own docs fails when another session writes them mid-run** — It read docs/IMPROVEMENTS.md live and failed once in three identical runs while a second session shipped into that file, so the red said nothing about the code under test. → §RK315
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - 📋 **RK313** (deps: —) **A stale MCP server casts doubt on every refusal it returns** — The warning names four changed files and advises a restart an agent cannot perform, so the honest response is to abandon the protocol surface for the CLI. → §RK313
+- 📋 **RK314** (deps: —) **The marker argument publishes no enum on the one tool whose whole job is writing a marker** — budget --status offers the declared set under dest status, and the status command's own positional is dest marker, which RK304's per-dest table never reached. → §RK314
 
 ## Non-goals
 

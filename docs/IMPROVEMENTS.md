@@ -197,6 +197,22 @@ scheme parses **every** heading it was asked about has no minority reading to re
 whatever the ratio — which is the condition RK288 was actually written about, and the
 one the majority was standing in for.
 
+### §RK315 A fixture a second session can edit
+
+This repository's docs are the conformance fixture on purpose, and
+`test_a_file_that_mixes_anchors_is_not_told_to_switch` reads `docs/IMPROVEMENTS.md` from
+the live checkout to assert that a file mixing both anchor shapes is not told to switch.
+Measured across three runs of the same commit: one red, two green, with a concurrent
+session shipping tasks into that file throughout — the ships delete id-anchored
+sections, which is the ratio the assertion turns on.
+
+A fixture git holds is a fixture any process in the checkout may rewrite, so this
+failure names the scheduler rather than the code. The round-trip property tests read the
+same tree and survive it, because they assert a property of whatever they read; this one
+asserts a count. What needs deciding is whether the assertion belongs against a copy
+taken at collection, or whether a count over a file the backlog erodes is the wrong
+assertion whoever is writing it — RK305 already names that ratio as fragile.
+
 ## Block F — The plugin
 
 ### §RK313 Doubt an agent cannot resolve
@@ -222,3 +238,19 @@ not here.
 What would help is a narrower claim. The server knows which files changed and can
 compare them with the modules the refused verb touches, so a refusal the drift could not
 have affected should say so rather than casting doubt on itself.
+
+### §RK314 The dest the enum missed
+
+RK304 published `role` as an enum and its own line asserted `status` already published
+its markers. Measured on this repository after that shipped: `budget` offers them and
+`status` does not. The two arguments mean the same closed set and differ only in dest —
+`budget --status` is dest `status`, which \_BOUNDS keys on, and the `status` command's
+positional is dest `marker`, which nothing keys on. So the enum reaches the tool that
+prices a line and misses the tool that writes one, which is the call an agent makes on
+every task it starts.
+
+The set is already computed: `config.schema.markers` is what the existing entry
+publishes, and the narrowing RK304 needed for roles has no analogue here because a
+marker set is declared whole. What needs deciding is whether a second key is the answer
+or whether keying bounds by dest is what let one argument's bound miss its twin — the
+same question `_bounds_for` answers per verb for `role`, arriving one field over.
