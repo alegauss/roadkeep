@@ -22,10 +22,12 @@ from roadkeep.budgeting import (
     body_budget,
     budget,
     budget_of,
+    file_budget,
     non_goal_budget,
     words,
 )
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
+from roadkeep.linting import lint
 from roadkeep.config import Config
 from roadkeep.schema import DESIGNED, body_aim
 
@@ -675,6 +677,92 @@ def test_the_standalone_read_and_the_field_state_the_same_thing(tmp_path):
     # One shape at both doors: a second spelling of a body's budget would be a second answer.
     config = sectioned(tmp_path)
     assert budget(config, "RK1").section == body_budget(config, "RK1")
+
+
+# -- the one budget with no pre-write read (RK345) -----------------------------
+
+AGENTS = "# Agents\n\nOne line of guidance.\n"
+
+
+def budgeted(tmp_path: Path, *, declared: bool = True, on_disk: bool = True) -> Config:
+    """A project with an always-loaded file, which is the limit `[budgets]` holds."""
+    lines = ['prefix = "RK"', "[files]", 'roadmap = "ROADMAP.md"', 'changelog = "CHANGELOG.md"']
+    if declared:
+        lines += ["[budgets]", '"agents.md" = { lines = 5, bytes = 100 }']
+    if on_disk:
+        (tmp_path / "agents.md").write_text(AGENTS, encoding="utf-8")
+    (tmp_path / "roadkeep.toml").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    (tmp_path / "ROADMAP.md").write_text(BACKLOG, encoding="utf-8")
+    (tmp_path / "CHANGELOG.md").write_text(LEDGER, encoding="utf-8")
+    return Config.discover(tmp_path)
+
+
+def test_an_every_turn_file_states_what_it_costs_before_the_edit(tmp_path):
+    # The defect: every other limit here is answered before the text exists, and this one was
+    # measured with two `wc` reads and a subtraction — at the moment a module had to be named.
+    (load,) = file_budget(budgeted(tmp_path))
+    costs = {one.unit: one for one in load.costs}
+    assert load.path == "agents.md" and load.present and not load.over
+    assert costs["lines"].taken == 3 and costs["lines"].left == 2
+    # Off the bytes on disk and not off the string this test wrote: a budget is what the
+    # loader pays, and a line ending translated on the way out is part of what it pays.
+    written = (tmp_path / "agents.md").read_bytes()
+    assert costs["bytes"].taken == len(written) and costs["bytes"].limit == 100
+
+
+def test_the_gate_and_the_read_count_the_same_file_the_same_way(tmp_path):
+    # One measurement and not two (RK50): a read that composed the edit and a gate that
+    # refused it would be the disagreement this door exists to remove.
+    config = budgeted(tmp_path)
+    (tmp_path / "agents.md").write_text("# Agents\n" + "A line.\n" * 9, encoding="utf-8")
+    (load,) = file_budget(config)
+    costs = {one.unit: one for one in load.costs}
+    assert costs["lines"].over == 5 and costs["lines"].left == 0
+    # And `lint` refuses it, naming the same figure — the read reports, the gate holds.
+    findings = [one for one in lint(config).findings if one.code == "budget.lines"]
+    assert findings and f"{costs['lines'].taken} lines" in findings[0].message
+
+
+def test_a_declared_file_that_is_not_there_is_said_and_never_read_as_room(tmp_path):
+    # The state `lint` reports as `budget.absent`: the whole limit free is exactly what a
+    # missing file looks like, so the answer says which of the two it is.
+    (load,) = file_budget(budgeted(tmp_path, on_disk=False))
+    assert not load.present and all(one.taken == 0 for one in load.costs)
+
+
+def test_a_path_no_budget_declares_is_refused_with_the_ones_that_do(tmp_path):
+    with pytest.raises(KeyError) as refusal:
+        file_budget(budgeted(tmp_path), "README.md")
+    assert "agents.md" in str(refusal.value)
+    # And the file's own spelling reaches it, because the caller has the file open and not
+    # `roadkeep.toml`: an absolute path resolving to the same file is the same subject.
+    assert file_budget(budgeted(tmp_path), str(tmp_path / "agents.md"))[0].path == "agents.md"
+
+
+def test_a_project_declaring_no_budgets_is_refused_rather_than_given_a_number(tmp_path):
+    # The reason the non-goal read is: a limit for a file nobody declared is one invented
+    # here, and it would read as one the project is already held to.
+    with pytest.raises(KeyError):
+        file_budget(budgeted(tmp_path, declared=False))
+
+
+def test_the_command_answers_in_the_units_the_loader_pays(tmp_path, capsys):
+    # No aim and no word figure (RK258): `[budgets]` is declared in lines and bytes.
+    budgeted(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "--file"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "agents.md  budgeted" in printed and "3 of 5, 2 left" in printed
+    assert "aim" not in printed and "words" not in printed
+    assert main(["-C", str(tmp_path), "budget", "--file", "agents.md", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["subject"] == "file" and len(payload["files"]) == 1
+    assert {one["unit"] for one in payload["files"][0]["units"]} == {"lines", "bytes"}
+
+
+def test_the_fourth_subject_is_named_and_never_combined(tmp_path, capsys):
+    budgeted(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "--file", "--non-goal"]) == EXIT_USAGE
+    assert "one subject per answer" in capsys.readouterr().err
 
 
 # -- one anchor, two files, and no first match (RK303) -------------------------

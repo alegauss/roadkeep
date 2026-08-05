@@ -65,8 +65,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Sequence
 
+from pathlib import Path
+
 from roadkeep.authoring import compose, prose_role
-from roadkeep.config import Config
+from roadkeep.config import Budget as ConfigBudget
+from roadkeep.config import Config, spent
 from roadkeep.ids import next_id
 from roadkeep.schema import CHARS_PER_WORD, Task, body_aim, words
 from roadkeep.scoping import NoSuchNonGoal, NotGoverned, address, leads, read
@@ -80,10 +83,13 @@ __all__ = [
     "AmbiguousAnchor",
     "Body",
     "Budget",
+    "Cost",
+    "Load",
     "Share",
     "body_budget",
     "budget",
     "budget_of",
+    "file_budget",
     "non_goal_budget",
     "words",
 ]
@@ -412,6 +418,99 @@ def non_goal_budget(config: Config, lead: str | None = None) -> tuple[Share, ...
     return tuple(
         Share(field, limit, limit, taken[field])
         for field, limit in (("lead", scope.lead), ("why", scope.why))
+    )
+
+
+@dataclass(frozen=True, slots=True)
+class Cost:
+    """One unit of an always-loaded file's budget: what it may cost, and what it costs.
+
+    Neither unit is converted into the other and neither carries an aim (RK345). Lines and
+    bytes are what the loader pays and what `[budgets]` declares, so a word figure here
+    would be this module inventing a third number for a limit the config spells outright —
+    RK258's finding at the one budget whose units were never characters to begin with.
+    """
+
+    unit: str
+    limit: int
+    taken: int
+
+    @property
+    def left(self) -> int:
+        return max(0, self.limit - self.taken)
+
+    @property
+    def over(self) -> int:
+        """What the gate would refuse, which is the same subtraction the other way (RK30)."""
+        return max(0, self.taken - self.limit)
+
+
+@dataclass(frozen=True, slots=True)
+class Load:
+    """What one every-turn file costs against what it declared it may (RK345)."""
+
+    #: As the project spells it, which is how `[budgets]` addresses it and how `lint` names it.
+    path: str
+    costs: tuple[Cost, ...]
+    #: False is the state `lint` reports as `budget.absent`: a budget with nothing under it.
+    #: Said rather than answered as a free file, because the whole limit being available is
+    #: the one reading that would make a missing file look like room.
+    present: bool = True
+
+    @property
+    def over(self) -> bool:
+        return any(cost.over for cost in self.costs)
+
+
+def file_budget(config: Config, path: str | None = None) -> tuple[Load, ...]:
+    """What the always-loaded files have left, before an edit is composed (RK345).
+
+    The one limit this format holds that had no pre-write read. Every other budget here is
+    answered from the id, the marker, the deps and the pointer; this one is answered from
+    the file on disk and `roadkeep.toml`, and neither waited on the edit either — but the
+    room was measured with two `wc` reads and a subtraction by hand, and the second spelling
+    of a Layout entry was one line over. That is the analysis L1 exists to remove, one file
+    over from the ones this tool governs.
+
+    A tuple whether one file is named or none, so the shape does not depend on the question:
+    unnamed is every declared budget, and named is the one — matched on the path the project
+    declared *or* on any spelling that resolves to the same file, because the caller has the
+    file open and not `roadkeep.toml`. Not a second gate (RK50): `lint` refuses the file that
+    went over, this reports what is left, and both count through
+    :func:`~roadkeep.config.spent`.
+    """
+    if not config.budgets:
+        raise KeyError(
+            f"{config.relative(config.source or config.root)} declares no [budgets]: "
+            f"a budget for a file nobody declared is a limit invented here"
+        )
+    declared = config.budgets
+    if path is not None:
+        wanted = Path(path)
+        resolved = (config.root / wanted).resolve()
+        declared = tuple(
+            one
+            for one in config.budgets
+            if config.relative(one.path) == str(wanted).replace("\\", "/")
+            or one.path.resolve() == resolved
+        )
+        if not declared:
+            named = ", ".join(config.relative(one.path) for one in config.budgets)
+            raise KeyError(f"no [budgets] entry for {path}: this project budgets {named}")
+    return tuple(_load(config, one) for one in declared)
+
+
+def _load(config: Config, budget: ConfigBudget) -> Load:
+    raw = budget.path.read_bytes() if budget.path.is_file() else None
+    measured = spent(raw if raw is not None else b"")
+    return Load(
+        path=config.relative(budget.path),
+        costs=tuple(
+            Cost(unit, limit, measured[unit])
+            for unit, limit in (("lines", budget.lines), ("bytes", budget.bytes))
+            if limit is not None
+        ),
+        present=raw is not None,
     )
 
 

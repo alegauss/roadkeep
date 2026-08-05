@@ -155,6 +155,19 @@ class Budget:
     bytes: int | None = None
 
 
+def spent(raw: bytes) -> dict[str, int]:
+    """What an always-loaded file costs, in the two units `[budgets]` declares (RK30).
+
+    Bytes and not text, for the reason the gate reads them that way: a budget is about what
+    a loader pays, and an instruction file is not a format this tool has any business
+    decoding (L4). Here rather than in either reader, because the gate that refuses the
+    overrun (RK30) and the read that reports the room before an edit (RK345) are two callers
+    of one measurement — and two spellings of it would be the disagreement RK50 removed.
+    """
+    return {"lines": raw.count(b"\n") + (0 if raw.endswith(b"\n") or not raw else 1),
+            "bytes": len(raw)}
+
+
 @dataclass(frozen=True, slots=True)
 class Scope:
     """What a governed non-goal may say, when a project declares its list governed (RK70).

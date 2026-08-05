@@ -53,7 +53,16 @@ from roadkeep.authoring import StatusChange, add, amend, restate, set_status
 from roadkeep.backlog import Backlog
 from roadkeep.blocking import drop_block, open_block
 from roadkeep.briefing import Brief, brief, non_goals
-from roadkeep.budgeting import Body, Budget, Share, body_budget, budget, non_goal_budget
+from roadkeep.budgeting import (
+    Body,
+    Budget,
+    Load,
+    Share,
+    body_budget,
+    budget,
+    file_budget,
+    non_goal_budget,
+)
 from roadkeep.capturing import PARTS, body, capture, check, handoff, keep, offer, replay
 from roadkeep.config import PROSE_ROLES, Config, ConfigError
 from roadkeep.counting import Census
@@ -1279,6 +1288,18 @@ def build_parser() -> argparse.ArgumentParser:
     budget_parser.add_argument(
         "--lead",
         help="a non-goal that exists, with --non-goal: what its argument has left",
+    )
+    # The fourth subject, and the one limit this format holds that had no pre-write read
+    # (RK345): every other budget is derived from a line, and this one from the file on disk.
+    budget_parser.add_argument(
+        "--file",
+        nargs="?",
+        const="",
+        metavar="PATH",
+        help=(
+            "an every-turn file `[budgets]` declares, e.g. agents.md: what it costs in "
+            "lines and bytes and what is left — bare, every declared budget"
+        ),
     )
     budget_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     budget_parser.set_defaults(handler=_budget, reads_only=True)
@@ -4450,12 +4471,22 @@ def _show(config: Config, args: argparse.Namespace) -> int:
 
 
 def _budget(config: Config, args: argparse.Namespace) -> int:
-    # Three subjects and one verb (RK283). Named rather than inferred from the positional:
-    # under the id scheme `RK12` is both a line and an anchor, and a command that guessed
-    # which one was meant would be a budget the caller has to check before trusting.
-    if args.anchor and args.non_goal:
+    # Four subjects and one verb (RK283/RK345). Named rather than inferred from the
+    # positional: under the id scheme `RK12` is both a line and an anchor, and a command
+    # that guessed which one was meant would be a budget the caller has to check before
+    # trusting.
+    named = [
+        flag
+        for flag, given in (
+            ("--anchor", bool(args.anchor)),
+            ("--non-goal", args.non_goal),
+            ("--file", args.file is not None),
+        )
+        if given
+    ]
+    if len(named) > 1:
         print(
-            "roadkeep: one subject per answer: --anchor or --non-goal, not both",
+            f"roadkeep: one subject per answer: {' or '.join(named)}, not both",
             file=sys.stderr,
         )
         return EXIT_USAGE
@@ -4463,6 +4494,8 @@ def _budget(config: Config, args: argparse.Namespace) -> int:
         return _body_budget(config, args)
     if args.non_goal:
         return _non_goal_budget(config, args)
+    if args.file is not None:
+        return _file_budget(config, args)
     if args.lead or args.role:
         named = "--lead" if args.lead else "--role"
         subject = "--non-goal" if args.lead else "--anchor"
@@ -4554,6 +4587,41 @@ def _body_budget(config: Config, args: argparse.Namespace) -> int:
     print(f"§{answer.anchor}  {answer.role}  ({state})")
     print(f"  body       {_body(answer, named=False)}")
     return EXIT_OK
+
+
+def _file_budget(config: Config, args: argparse.Namespace) -> int:
+    """What an always-loaded file has left, before the edit is composed (RK345)."""
+    try:
+        loads = file_budget(config, args.file or None)
+    except REFUSALS as error:
+        return _refused(error)
+    if args.json:
+        print(json.dumps({"subject": "file", "files": [_load_json(one) for one in loads]},
+                         indent=2))
+        return EXIT_OK
+    for load in loads:
+        # The state `lint` calls `budget.absent`, said here too: a declared file that is not
+        # there has its whole budget free, which is the one reading that looks like room.
+        state = "on disk" if load.present else "not on disk — the entry holds nothing"
+        print(f"{load.path}  budgeted  ({state})")
+        for cost in load.costs:
+            # No aim and no second unit (RK258): `[budgets]` is declared in what the loader
+            # pays, so a word figure beside it would be a number this project never stated.
+            over = f", {cost.over} over" if cost.over else f", {cost.left} left"
+            print(f"  {cost.unit:<11}{cost.taken} of {cost.limit}{over}")
+    return EXIT_OK
+
+
+def _load_json(load: Load) -> dict[str, object]:
+    return {
+        "path": load.path,
+        "present": load.present,
+        "over": load.over,
+        "units": [
+            {"unit": c.unit, "limit": c.limit, "taken": c.taken, "left": c.left, "over": c.over}
+            for c in load.costs
+        ],
+    }
 
 
 def _non_goal_budget(config: Config, args: argparse.Namespace) -> int:

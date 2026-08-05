@@ -30,7 +30,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK345** (deps: —) **The budget every other field is read before is the one an every-turn file has no door for** — Its limit is held only by lint, so the room left in agents.md is measured with wc and a subtraction at the moment a module has to be named in it. → §RK345
 - 📋 **RK346** (deps: —) **One question is answered by two fields, and the older one names one namespace of several** — anchors --json carries next_family beside next_families, so a client reading the field it always read is handed the unprefixed namespace's address on a project whose roles each have one. → §RK346
 
 ## Block D — The gate

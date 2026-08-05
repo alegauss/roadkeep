@@ -98,7 +98,7 @@ from pathlib import Path
 
 from roadkeep import scoping
 from roadkeep.backlog import Backlog, DepStatus, id_order
-from roadkeep.config import PROSE_ROLES, ROLES, Config
+from roadkeep.config import PROSE_ROLES, ROLES, Config, spent
 from roadkeep.document import Document, Entry, ending
 from roadkeep.exporting import BEGIN, DEFAULTS, NoMarkers, project, splice
 from roadkeep.graph import Graph
@@ -862,10 +862,13 @@ def _budgets(config: Config, tree: Tree) -> list[Finding]:
                 )
             )
             continue
-        lines = raw.count(b"\n") + (0 if raw.endswith(b"\n") or not raw else 1)
+        # One measurement, called and not repeated (RK345): `budget --file` reports the room
+        # this refuses, and a second count here is a gate disagreeing with the read that
+        # composed the edit.
+        measured_in = spent(raw)
         for unit, measured, allowed in (
-            ("lines", lines, budget.lines),
-            ("bytes", len(raw), budget.bytes),
+            ("lines", measured_in["lines"], budget.lines),
+            ("bytes", measured_in["bytes"], budget.bytes),
         ):
             if allowed is not None and measured > allowed:
                 out.append(

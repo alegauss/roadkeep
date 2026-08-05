@@ -153,29 +153,6 @@ a gate that asked for prose there would be answered with prose nobody needed.
 
 ## Block C — Query
 
-### §RK345 The one budget with no pre-write read
-
-`budget` answers what a line leaves its prose fields, what an anchor leaves a section
-and what a non-goal may cost — every limit this format holds, read before the text
-exists, which is L1's whole argument. `[budgets]` is the exception, and it is the limit
-that binds hardest: `agents.md` here is 125 lines of 125, so any edit to it is a trade.
-
-Measured while shipping RK330. Naming one new module in the Layout index costs a line
-the file does not have, and `tests/test_linting.py` requires the naming — so two gates
-meet at an edit composed against a number no command reports. What was done was two
-`python -c` reads of the file, a subtraction by hand, and a second attempt when the
-first spelling was one line over.
-
-That is the analysis L1 exists to remove: the author is asked what to cut *after*
-writing, which is the linter-shaped failure this tool was built to stop, one file over.
-The answer has the shape every other budget read has — what the file costs, what it may
-cost, what that leaves — asked of a declared budget rather than of a field, and derived
-from the file on disk and `roadkeep.toml` with nothing to compose.
-
-Not a second gate: `lint` refuses the file that went over (RK30), and a second reader of
-one number is the disagreement RK50 removed. This one reaches the author before the
-edit.
-
 ### §RK346 Two fields, one free address
 
 RK340 made the free top-level address a question per namespace: two prose files that

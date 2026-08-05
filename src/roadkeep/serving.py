@@ -368,9 +368,13 @@ TOOLS: tuple[Tool, ...] = (
     # prose limits (RK283), and both are larger than the line's: a section body is the longest
     # thing an author writes and its ceiling reached them only as a refusal, at 366 words
     # against 300. Over this transport most of all — `maxLength` cannot publish a word count.
+    # `file` is the fourth subject (RK345) and the one this transport cannot answer any other
+    # way: an agent editing an every-turn file has no `wc` here, so the room it is composing
+    # against would otherwise arrive as a gate at the end of the turn.
     Tool(
         "budget",
-        ("id", "block", "deps", "status", "symptom", "anchor", "role", "non_goal", "lead"),
+        ("id", "block", "deps", "status", "symptom", "anchor", "role", "non_goal", "lead",
+         "file"),
         conditional=("ref",),
     ),
     # `designed` is exposed on both for the reason it exists (RK83): the caller that asks

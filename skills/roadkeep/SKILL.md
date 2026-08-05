@@ -221,7 +221,10 @@ every other reader of one refuses, `--role` naming which of them you mean; on a 
 budget that half comes back empty and states the same reason. **If a body is refused anyway, do not count by hand**:
 `body.too-long` names what each paragraph costs and which is the longest, so the second draft
 is composed once — and a `0` there is a table or a fence, which is prose no cut can reach. `budget --non-goal [--lead "…"]` is the roadmap's other
-bullet, whose two limits are the list's own and not the task line's. Every verb that prints a
+bullet, whose two limits are the list's own and not the task line's. **`budget --file <p>` is
+the fourth subject**, and the one that is not about prose at all: what an every-turn file
+`[budgets]` declares costs in lines and bytes and what is left — bare, every declared budget.
+Read it *before* editing one, never `wc` and a subtraction; `lint` is still what refuses. Every verb that prints a
 section's size states **two** figures where they differ — `48 words, 310 with subsections
 (limit 300)` — because the argument is what an `amend` can shorten and the subtree is what a
 reader pays; cutting to the second number cuts prose that was never over. Under an outline,
