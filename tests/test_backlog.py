@@ -281,8 +281,8 @@ def test_a_task_with_no_deps_is_ready(tmp_path):
 # -- the live corpora --------------------------------------------------------
 
 
-def test_this_repository_resolves_every_dep():
-    backlog = Backlog.load(Config.discover(HERE))
+def test_this_repository_resolves_every_dep(governed):
+    backlog = Backlog.load(Config.discover(governed))
     unresolved = [
         (e.task.id, r.dep.id, str(r.status))
         for e in backlog.roadmap.entries

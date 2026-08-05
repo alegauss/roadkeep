@@ -39,7 +39,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK315** (deps: —) **A test asserting on this repository's own docs fails when another session writes them mid-run** — It read docs/IMPROVEMENTS.md live and failed once in three identical runs while a second session shipped into that file, so the red said nothing about the code under test. → §RK315
 - 📋 **RK347** (deps: —) **The estimate reads one prose file at a time, so the state two of them are in is the one it cannot report** — adopt --sections never sees the sibling, and an address both files declare is met on the first lint rather than in the estimate taken to price adoption. → §RK347
 - 📋 **RK351** (deps: —) **A test asserting on an MCP answer fails when any source file is touched while the suite runs** — Measured three times: an edit during a two-minute run moves a module's mtime, the server appends its changed-on-disk note, and the assertion is about text nothing under test wrote. → §RK351
 - 📋 **RK352** (deps: —) **The replay test that asserts a codec drifted names a value the running process may already declare** — It records PYTHONIOENCODING as utf-8:surrogateescape and asserts this reader lacks it, so a shell exporting that reports one drifted fact of two and the red is about the shell. → §RK352

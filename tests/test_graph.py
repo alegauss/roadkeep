@@ -191,8 +191,8 @@ def test_a_clean_backlog_has_no_cycles(tmp_path):
 # -- this repository ---------------------------------------------------------
 
 
-def test_this_backlog_has_no_cycle_and_a_measurable_gap():
-    g = Graph.load(Config.discover(HERE))
+def test_this_backlog_has_no_cycle_and_a_measurable_gap(governed):
+    g = Graph.load(Config.discover(governed))
     assert g.cycles() == ()
     ranked = sorted(
         ((g.leverage(task).count, task) for task in g.edges), reverse=True

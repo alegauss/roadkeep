@@ -549,11 +549,11 @@ def test_an_anchor_is_not_the_parent_of_the_one_it_prefixes_as_a_string(tmp_path
     assert body.index("§0.10") < body.index("## Block A")
 
 
-def test_the_repository_s_own_preface_files_itself_before_the_first_block():
+def test_the_repository_s_own_preface_files_itself_before_the_first_block(governed):
     # The reading that opened RK45: writing §0.4 with `section add` put it under Block F,
     # 50 lines and five headings away from the §0.3 it continues. Unsaved — this file is
     # the conformance fixture, and a test that rewrote it would be measuring itself.
-    config = Config.discover(HERE)
+    config = Config.discover(governed)
     document, section = add(config, "improvements", "0.9", "A ninth reading", "Prose.")
     body = "".join(document.lines)
     assert body.index("### §0.4") < body.index("### §0.9") < body.index("## Block A")

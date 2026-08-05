@@ -299,17 +299,17 @@ def test_turings_leads_are_each_a_scope_and_none_is_a_stray_word():
 # -- this repository ---------------------------------------------------------
 
 
-def test_the_brief_here_is_bounded(capsys):
+def test_the_brief_here_is_bounded(governed, capsys):
     # The claim that pays for the command: it fits in a tool result. 4 KB is the ceiling
     # a section budget (250 words) plus a bounded dep list can reach.
-    assert main(["-C", str(HERE), "brief", "RK32"]) == EXIT_OK
+    assert main(["-C", str(governed), "brief", "RK32"]) == EXIT_OK
     out = capsys.readouterr().out
     assert len(out) < 4000, f"a brief grew to {len(out)} characters"
     assert "not      No model and no prompts" in out
 
 
-def test_every_open_task_here_briefs():
-    config = Config.discover(HERE)
+def test_every_open_task_here_briefs(governed):
+    config = Config.discover(governed)
     for entry in config.document("roadmap").entries:
         gathered = brief(config, entry.task.id)
         assert gathered.non_goals.leads and gathered.view.section is not None

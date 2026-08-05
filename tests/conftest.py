@@ -1,6 +1,7 @@
-"""The three things a test cannot get from its own assertion: whether the tree moved under the run
-(RK263), whether a cache outlived the test that filled it (RK268), and whether the frontmatter it
-read is the frontmatter a loader would (RK331). Each produces a red — or a green — in a file that
+"""The four things a test cannot get from its own assertion: whether the tree moved under the run
+(RK263), whether the docs it asserts about are the ones the run set out to measure (RK315),
+whether a cache outlived the test that filled it (RK268), and whether the frontmatter it read is
+the frontmatter a loader would (RK331). Each produces a red — or a green — in a file that
 mentions nothing about the cause, so each is answered here rather than at a call site.
 
 ## The tree moved under the run (RK263)
@@ -28,6 +29,37 @@ kind of not-a-defect. Two rules keep the skip from becoming a place failures hid
   recorded before the import it defends.
 * **Loud.** Every skip is a `UserWarning` as well, which `pytest -W error` turns into the
   failure a run that wants to be told asks for — the same contract `test_corpora` states.
+
+## The docs the run set out to measure (RK315)
+
+`checkout` defends an assertion the process anchored at *import*. The other half of this
+repository is the format's conformance fixture, and an assertion about that is anchored
+nowhere: `test_a_file_that_mixes_anchors_is_not_told_to_switch` read `docs/IMPROVEMENTS.md`
+from the live checkout and went red once in three runs of the same commit, with a second
+session shipping into that file throughout.
+
+A skip would be the wrong answer here, and the reason is in the shape of the assertion rather
+than in the odds. The round-trip property tests read the same tree and survive a concurrent
+write because they assert a property of whatever they read. These read the file **more than
+once** — a projection against the roadmap it was derived from, a README against the ledger it
+restates, every open line against the section it points at — so what breaks is not the
+freshness of one read but the agreement between two, and a fixture that skipped would be
+skipping the tests that are most worth running.
+
+:func:`_snapshot` is the answer, and it is the one §RK315 named: a copy taken at collection.
+Every governed file (:data:`GOVERNED`) is copied byte-for-byte at conftest import, and the
+copy is re-stamped afterwards and retaken while anything moved — so what a test reads is one
+coherent revision, and a ship landing mid-run changes the tree and not the fixture. That is a
+narrower claim than the live tree makes and the honest one: this run measures the revision it
+started at.
+
+What needs the *live* tree stays on it, and gets the other answer: :data:`GOVERNED` is stamped
+at session start too, so `checkout.steady(*GOVERNED)` is available where a copy cannot serve.
+Three do. `lint` resolves the paths its prose names against the project root, so on a copy
+holding only the governed files it reports `path.missing` for every `.claude/settings.json` the
+ledger mentions — a finding about the fixture. `weigh` and `origin_of` read `git log`, which a
+copy does not have. The version checks are `checkout`'s for the original reason: there the
+disagreement between the import and the disk **is** the defect.
 
 ## The frontmatter a loader would read (RK331)
 
@@ -75,7 +107,10 @@ makes rather than one nobody notices.
 
 from __future__ import annotations
 
+import atexit
+import shutil
 import subprocess
+import tempfile
 import warnings
 from pathlib import Path
 
@@ -92,6 +127,27 @@ WATCHED = (
     "src/roadkeep/__init__.py",
     ".claude-plugin/plugin.json",
 )
+
+#: This repository's own governed files, which are the format's conformance fixture — the set
+#: `lint` reports as `checked`, plus the config that declares it. Written out rather than read
+#: off `roadkeep.toml`, because these are stamped and copied before pytest has imported a test
+#: module and therefore before the package exists to ask; `tests/test_checkout.py` holds the
+#: two against each other, so a seventh governed file is a decision somebody makes rather than
+#: one that quietly stops being covered.
+GOVERNED = (
+    "roadkeep.toml",
+    "docs/ROADMAP.md",
+    "docs/CHANGELOG.md",
+    "docs/IMPROVEMENTS.md",
+    "README.md",
+    "agents.md",
+    ".claude/CLAUDE.md",
+)
+
+#: Everything fingerprinted at session start, and therefore everything :meth:`Checkout.steady`
+#: will answer about (RK315). Two sets because the reason differs: :data:`WATCHED` is what the
+#: process read at *import*, and the governed files are what the run set out to *measure*.
+RECORDED = WATCHED + GOVERNED
 
 
 def _stamp(path: Path) -> tuple[int, int] | None:
@@ -141,7 +197,7 @@ class Checkout:
         for name in paths:
             if name not in self.stamps:
                 raise AssertionError(
-                    f"{name} is not in WATCHED, so nothing recorded it before the import "
+                    f"{name} is not in RECORDED, so nothing stamped it before the assertion "
                     f"this would defend: add it there or assert without this fixture"
                 )
             now = _stamp(HERE / name)
@@ -169,13 +225,73 @@ class Checkout:
 #: the process imports `roadkeep` — the anchor the whole fixture is about. A session-scoped
 #: fixture body would run at the *first test that asks*, which is late enough for a bump landing
 #: between collection and that test to be recorded as the starting state and then never reported.
-_AT_START = Checkout({name: _stamp(HERE / name) for name in WATCHED}, _head())
+_AT_START = Checkout({name: _stamp(HERE / name) for name in RECORDED}, _head())
 
 
 @pytest.fixture(scope="session")
 def checkout() -> Checkout:
     """The tree as the run found it — see :class:`Checkout` and :data:`_AT_START`."""
     return _AT_START
+
+
+# -- the docs the run set out to measure (RK315) ------------------------------
+
+
+def _copy(into: Path) -> None:
+    """The governed files, byte-for-byte, under the same relative layout.
+
+    Bytes and not text: line endings are what L3 round-trips on, so a copy that normalised
+    them would be a fixture the tool is right to refuse and the tests would say so.
+    """
+    for name in GOVERNED:
+        source = HERE / name
+        if not source.exists():
+            continue
+        target = into / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(source.read_bytes())
+
+
+def _snapshot() -> tuple[Path | None, str]:
+    """One coherent revision of the governed files, or a reason there is none.
+
+    Stamped before and after, and retaken while anything moved: a copy is several reads, and a
+    ship writes the ledger and the roadmap in one transaction but not in one syscall — so a
+    copy taken across it would hold an id in two files and fail `lint` about a state that never
+    existed on disk. Three attempts, because a session shipping a task cannot keep a checkout
+    moving for three of them; a tree that never settles is reported and never quietly used.
+    """
+    root = Path(tempfile.mkdtemp(prefix="roadkeep-governed-"))
+    atexit.register(shutil.rmtree, root, True)
+    for _ in range(3):
+        before = {name: _stamp(HERE / name) for name in GOVERNED}
+        _copy(root)
+        if before == {name: _stamp(HERE / name) for name in GOVERNED}:
+            return root, ""
+    return None, (
+        "this checkout's governed files were rewritten throughout three attempts to copy "
+        "them, so there is no one revision to assert about: another session is writing here"
+    )
+
+
+#: Taken at conftest import for the reason :data:`_AT_START` is, and after it: what a test reads
+#: has to be the tree the run started at, and a session-scoped fixture body runs at the first
+#: test that asks — late enough for a ship to land in between and be copied as the start.
+_GOVERNED_AT_START, _UNSETTLED = _snapshot()
+
+
+@pytest.fixture(scope="session")
+def governed() -> Path:
+    """A project root holding this repository's governed files as the run found them (RK315).
+
+    `Config.discover` finds `roadkeep.toml` here, so every command reads the copy — which is
+    the point: two reads inside one test are two reads of the same revision, whatever a
+    concurrent session is doing to the checkout meanwhile.
+    """
+    if _GOVERNED_AT_START is None:
+        warnings.warn(_UNSETTLED, UserWarning, stacklevel=2)
+        pytest.skip(_UNSETTLED)
+    return _GOVERNED_AT_START
 
 
 # -- the frontmatter a loader would read (RK331) ------------------------------

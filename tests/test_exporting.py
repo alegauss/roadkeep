@@ -303,8 +303,8 @@ def test_json_carries_the_lines_and_the_totals(tmp_path, capsys):
 # -- this repository ----------------------------------------------------------
 
 
-def test_this_repositorys_projection_matches_its_own_files():
-    config = Config.discover(HERE)
+def test_this_repositorys_projection_matches_its_own_files(governed):
+    config = Config.discover(governed)
     projection = project(config)
     census_open = len(config.document("roadmap").entries)
     assert projection.totals.open == census_open
@@ -313,10 +313,10 @@ def test_this_repositorys_projection_matches_its_own_files():
     assert payload_ids == [e.task.id for e in config.document("roadmap").entries]
 
 
-def test_this_repositorys_readme_is_current():
+def test_this_repositorys_readme_is_current(governed):
     # The artefact proves the format: if this fails, run `roadkeep export --readme`.
-    config = Config.discover(HERE)
-    readme = (HERE / "README.md").read_text(encoding="utf-8", errors="strict")
+    config = Config.discover(governed)
+    readme = (governed / "README.md").read_text(encoding="utf-8", errors="strict")
     assert splice(readme, project(config).markdown(), "README.md") == readme
 
 

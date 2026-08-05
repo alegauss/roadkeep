@@ -322,8 +322,8 @@ def test_what_counts_as_a_path(text, expected):
 # -- this repository ---------------------------------------------------------
 
 
-def test_every_open_task_here_shows_its_own_section():
-    config = Config.discover(HERE)
+def test_every_open_task_here_shows_its_own_section(governed):
+    config = Config.discover(governed)
     absent = [
         entry.task.id
         for entry in config.document("roadmap").entries

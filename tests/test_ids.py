@@ -50,17 +50,17 @@ def project(
 # -- this repository ---------------------------------------------------------
 
 
-def test_the_next_id_here_is_one_past_the_highest():
-    config = Config.discover(HERE)
+def test_the_next_id_here_is_one_past_the_highest(governed):
+    config = Config.discover(governed)
     top = highest(config)
     assert next_id(config) == f"RK{top.number + 1}"
     assert top.number == max(ref.number for ref in scan(config))
 
 
-def test_the_answer_says_which_file_it_came_from():
+def test_the_answer_says_which_file_it_came_from(governed):
     # An answer an agent cannot audit gets verified by reading the file, which is the
     # cost the command exists to remove.
-    top = highest(Config.discover(HERE))
+    top = highest(Config.discover(governed))
     assert top.path.name in {"ROADMAP.md", "CHANGELOG.md", "IMPROVEMENTS.md", "agents.md"}
     assert top.lineno > 0
 

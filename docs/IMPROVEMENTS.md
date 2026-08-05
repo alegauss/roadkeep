@@ -250,22 +250,6 @@ boolean every reader has to know to check.
 
 ## Block E — Adoption
 
-### §RK315 A fixture a second session can edit
-
-This repository's docs are the conformance fixture on purpose, and
-`test_a_file_that_mixes_anchors_is_not_told_to_switch` reads `docs/IMPROVEMENTS.md` from
-the live checkout to assert that a file mixing both anchor shapes is not told to switch.
-Measured across three runs of the same commit: one red, two green, with a concurrent
-session shipping tasks into that file throughout — the ships delete id-anchored
-sections, which is the ratio the assertion turns on.
-
-A fixture git holds is a fixture any process in the checkout may rewrite, so this
-failure names the scheduler rather than the code. The round-trip property tests read the
-same tree and survive it, because they assert a property of whatever they read; this one
-asserts a count. What needs deciding is whether the assertion belongs against a copy
-taken at collection, or whether a count over a file the backlog erodes is the wrong
-assertion whoever is writing it — RK305 already names that ratio as fragile.
-
 ### §RK347 The collision an estimate is taken to find
 
 `adopt` exists so the commitment is priced before it is made: what parses, what

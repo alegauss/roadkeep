@@ -286,8 +286,8 @@ def test_an_empty_backlog_is_not_an_error(tmp_path):
 # -- this repository ---------------------------------------------------------
 
 
-def test_the_pick_here_is_the_lowest_ready_id_in_the_file():
-    config = Config.discover(HERE)
+def test_the_pick_here_is_the_lowest_ready_id_in_the_file(governed):
+    config = Config.discover(governed)
     choice = pick(config)
     if not choice.found:
         # This repository's backlog is empty since RK21, and "nothing to pick" is an answer

@@ -24,6 +24,7 @@ from pathlib import Path
 import pytest
 
 import corpora
+from conftest import GOVERNED
 from roadkeep import linting
 from roadkeep.cli import EXIT_GATE, EXIT_OK, main
 from roadkeep.config import Config
@@ -98,9 +99,15 @@ def codes(report) -> list[str]:
 # -- the fixture, and the pass -----------------------------------------------
 
 
-def test_this_repository_passes_its_own_gate():
+def test_this_repository_passes_its_own_gate(checkout):
     # The format is proven by the artefact: a limit that cannot express these lines is
     # the wrong limit rather than a set of wrong lines.
+    #
+    # The live tree and not the `governed` copy (RK315), because `path.missing` resolves the
+    # paths this ledger names against the project root: on a copy holding only the governed
+    # files every one of them is a finding about the fixture. So this gets the other answer —
+    # a loud skip where a concurrent session rewrote what is about to be read.
+    checkout.steady(*GOVERNED)
     report = lint(Config.discover(HERE))
     assert report.clean, [str(f) for f in report.findings]
     # A floor and not a count: the lines only grow, but `ship` deletes the rationale

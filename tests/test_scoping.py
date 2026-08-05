@@ -300,8 +300,8 @@ def test_the_gate_reports_a_field_over_the_limit_where_the_bullet_is(tmp_path):
 # -- this repository is the fixture ------------------------------------------
 
 
-def test_this_repository_declares_its_own_list_governed_and_passes():
-    config = Config.discover(HERE)
+def test_this_repository_declares_its_own_list_governed_and_passes(governed):
+    config = Config.discover(governed)
     assert config.non_goals is not None
     roadmap = config.document("roadmap")
     assert rejects(roadmap) == ()

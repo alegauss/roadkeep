@@ -171,18 +171,18 @@ def test_a_marker_filter_claims_no_misses(tmp_path):
 # -- the measurement this repository used to do by hand ---------------------
 
 
-def test_the_longest_line_is_derived_not_asserted():
+def test_the_longest_line_is_derived_not_asserted(governed):
     # Read off the ledger, which is where this repository's lines are: the roadmap is empty
     # since RK21, and a longest derived from zero lines is derived from nothing.
-    census = Census.read(Config.discover(HERE), "changelog")
+    census = Census.read(Config.discover(governed), "changelog")
     longest = census.longest()
     assert longest is not None
     assert len(longest.raw) == max(len(e.raw) for e in census.counted)
     assert len(longest.raw) <= census.schema.line_max
 
 
-def test_this_repositorys_own_files_have_nothing_uncounted():
-    config = Config.discover(HERE)
+def test_this_repositorys_own_files_have_nothing_uncounted(governed):
+    config = Config.discover(governed)
     for role in ("roadmap", "changelog"):
         census = Census.read(config, role)
         # `missed` is the claim, and it is the one that means something on an empty file too:

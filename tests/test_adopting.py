@@ -639,18 +639,19 @@ def test_the_scheme_line_fires_where_the_reading_is_the_minority(tmp_path: Path,
     assert "--ref-scheme outline" in printed
 
 
-def test_a_file_that_mixes_anchors_is_not_told_to_switch(tmp_path: Path, capsys) -> None:
+def test_a_file_that_mixes_anchors_is_not_told_to_switch(governed: Path, capsys) -> None:
     """This repository's own rationale file anchors its preamble `§0.1` and its task sections
     `§RK200`, so a bare "some headings are outline-shaped" fired on a file that conforms."""
-    root = Path(__file__).resolve().parents[1]
-    config = Config.discover(root)
+    config = Config.discover(governed)
     estimate = adopt(config, config.path("improvements"), sections=True)
     assert estimate.conforming == estimate.parsed and estimate.changing == 0
     # Both shapes are present and the ratio is not what decides (RK305): the id-anchored
     # sections are this backlog's open designs and are deleted at every ship, so a majority
     # is a fact about how much work is left rather than about the file's shape.
     assert dict(estimate.schemes).get("outline")
-    assert main(["-C", str(root), "adopt", str(config.path("improvements")), "--sections"]) == EXIT_OK
+    assert main(
+        ["-C", str(governed), "adopt", str(config.path("improvements")), "--sections"]
+    ) == EXIT_OK
     assert "also" not in capsys.readouterr().out
 
 
@@ -709,11 +710,10 @@ def test_a_fenced_list_is_an_example(tmp_path: Path) -> None:
     assert adopt(Config.default(tmp_path), target, prefix="T").listed == 0
 
 
-def test_a_conforming_backlog_lists_nothing() -> None:
+def test_a_conforming_backlog_lists_nothing(governed: Path) -> None:
     """The count has to be zero on a file already in the format, or every adopted project
     would read as having work it does not have — this repo's own docs are the fixture."""
-    root = Path(__file__).resolve().parents[1]
-    config = Config.discover(root)
+    config = Config.discover(governed)
     estimate = adopt(config, config.path("roadmap"))
     assert estimate.listed == 0 and estimate.changing == 0
 
@@ -777,11 +777,10 @@ def test_an_unanchored_section_is_measured_like_an_anchored_one(tmp_path: Path) 
     assert measure.longest > 5 and measure.over >= 1
 
 
-def test_an_adopted_rationale_file_has_nothing_loose(tmp_path: Path) -> None:
+def test_an_adopted_rationale_file_has_nothing_loose(governed: Path) -> None:
     """This repo's own file is the fixture: every section is anchored, so the count is zero
     and an adopted project cannot read as having work it does not have."""
-    root = Path(__file__).resolve().parents[1]
-    config = Config.discover(root)
+    config = Config.discover(governed)
     estimate = adopt(config, config.path("improvements"), sections=True)
     assert estimate.listed == 0 and estimate.changing == 0
 
@@ -1018,11 +1017,10 @@ def test_the_estimate_and_the_gate_agree_over_one_file(tmp_path: Path, capsys) -
     assert estimated == {code: n for code, n in gated.items() if code == "id.duplicate"}
 
 
-def test_a_conforming_file_gains_no_finding_from_the_wider_pass(tmp_path: Path) -> None:
+def test_a_conforming_file_gains_no_finding_from_the_wider_pass(governed: Path) -> None:
     """The direction that would matter most if it broke: this repository's own backlog, and
     two live corpora, must not acquire work because the estimate started looking wider."""
-    root = Path(__file__).resolve().parents[1]
-    config = Config.discover(root)
+    config = Config.discover(governed)
     estimate = adopt(config, config.path("roadmap"))
     assert estimate.changing == 0 and estimate.conforming == estimate.parsed
 
