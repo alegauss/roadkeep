@@ -77,30 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK362 A declaration is not a delivery
-
-RK350 closed the half that was a habit: which verbs owe a near-twin sentence is now read
-off the parsers, so a third pair is named by a failing test rather than by whoever types
-the report's name.
-
-It gates the `twin` default and stops there. Whether that default ever becomes output is
-`_Verb.error`, which fires on `"required" in message` — a substring test against the
-sentence argparse composes, in argparse's English. Both live pairs have a test that runs
-the bare call and reads the printed text, so delivery is held for `status` and `claim`
-by two tests naming them. A pair added tomorrow inherits the property and neither of
-those.
-
-Two ways that goes wrong and only one is exotic. The dull one: a verb whose required
-positional is declared with `nargs` the survey counts and the message words differently,
-so the gate is satisfied and the caller still reads argparse's own line. The other: a
-Python release rewording that message, which turns the sentence off for every pair at
-once and leaves a suite of green tests asserting the defaults are declared.
-
-The shape is the one already here — the property that enumerates the pairs can run each
-of them bare and assert the sentence arrives, which makes the enumeration answer both
-halves. What wants care is that it must not become a second copy of the two hand-written
-tests: those assert *which* sentence, and this one asserts only that one was printed.
-
 ## Block C — Query
 
 ## Block D — The gate

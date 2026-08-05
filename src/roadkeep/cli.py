@@ -213,6 +213,11 @@ class _Verb(argparse.ArgumentParser):
     verbs owe one is read off these parsers rather than remembered (RK350) —
     `test_every_verb_that_shadows_a_report_declares_the_sentence` is the survey RK339 ran once
     by hand, so a verb added tomorrow is measured by a test and not by whoever types it wrong.
+
+    That the sentence is *delivered* is a second property over the same list (RK362), because
+    the condition below is a substring of what argparse composes, in argparse's English: a
+    Python release wording it differently would turn every twin off at once and leave a suite
+    of tests asserting the defaults are still declared.
     """
 
     def error(self, message: str) -> NoReturn:

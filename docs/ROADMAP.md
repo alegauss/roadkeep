@@ -24,8 +24,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK362** (deps: —) **The gate over near-twin verbs proves the sentence is declared and never that it reaches a caller** — RK350 reads twin off the parsers, while whether it prints turns on a substring of argparse own English that no test holds for a pair added later. → §RK362
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate

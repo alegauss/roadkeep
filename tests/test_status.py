@@ -441,3 +441,23 @@ def test_the_survey_still_finds_the_two_pairs_it_was_written_from():
         ("status", "stats"),
         ("claim", "claims"),
     }
+
+
+def test_every_near_twin_prints_its_sentence_when_it_is_typed_bare(tmp_path, capsys):
+    """The other half of the same property (RK362): declared is not delivered.
+
+    Whether a `twin` default ever becomes output is `_Verb.error`, which fires on a substring
+    of the sentence argparse composes — in argparse's English. The two pairs alive today each
+    have a test that reads the printed words; a pair added tomorrow inherits the declaration
+    gate and neither of those, and a Python release rewording that message turns the sentence
+    off for every pair at once while leaving those green.
+
+    It asserts only that the verb's own sentence arrived and argparse's did not, which is what
+    keeps it from being a third copy of the two tests above: those say *which* words are right.
+    """
+    for path, _, parser in near_twins():
+        refused(tmp_path, *path)
+        err = capsys.readouterr().err
+        assert parser.get_default("twin") in err
+        # The whole delivery: `_Verb.error` short-circuited instead of falling through.
+        assert "the following arguments are required" not in err
