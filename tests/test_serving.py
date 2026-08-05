@@ -1421,6 +1421,37 @@ def test_the_verb_named_is_the_one_this_call_asked_for(tmp_path, monkeypatch):
     assert "--why" not in refused.split("Available now")[1]
 
 
+def test_the_command_offered_is_the_act_and_not_the_verb_under_it(tmp_path, monkeypatch):
+    # RK318: the sentence spelled `tool.command`, and RK150's mechanism is that a tool may *be* a
+    # flag on a command — so `claim` is `brief --claim` and the note advised `brief`, which
+    # succeeds, prints a briefing and takes no line. Worse than an error: the write the caller
+    # asked for silently does not happen.
+    monkeypatch.setattr(claiming, "path", lambda root: tmp_path / "claims.json")
+    monkeypatch.setattr(
+        "roadkeep.serving.engine",
+        lambda: replace(engine(), home=_moved(tmp_path, "picking.py", "briefing.py")),
+    )
+    refused = text_of(called(project(tmp_path), "claim", id="RK99"))
+    assert f"`{invocation()} brief --claim` runs the changed files" in refused
+    # And never the verb alone, which is the read this tool was split off from.
+    assert f"`{invocation()} brief` runs" not in refused
+
+
+def test_the_act_is_resolved_through_the_parser_for_every_tool_that_is_a_flag(tmp_path):
+    # Read by dest and through the parser, exactly as `argv` resolves the same flags, so a rename
+    # in `cli.py` cannot leave this sentence naming something that is gone.
+    assert serving._spelled(tool_named("merge_check")) == "merge --check"
+    assert serving._spelled(tool_named("claim")) == "brief --claim"
+    # `scope` is the real `claim` command and has no always flag, which is why it was already
+    # right — asserted so that a flag added to it does not silently go unnamed.
+    assert serving._spelled(tool_named("scope")) == "claim"
+    for tool in TOOLS:
+        spelled = serving._spelled(tool)
+        assert spelled.startswith(tool.command)
+        # Every always dest renders as its option string alone, so there is no value to quote.
+        assert len(spelled.split()) == len(tool.argv_head) + len(tool.always)
+
+
 def test_a_refusal_with_no_drift_offers_nothing_because_a_re_run_answers_the_same(tmp_path):
     # The advice is not circular, which is RK272's bar: it is offered only where the drift is a
     # fact about this process, so a fresh import is the one place a different answer comes from.

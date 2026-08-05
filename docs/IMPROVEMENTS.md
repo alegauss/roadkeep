@@ -215,26 +215,6 @@ assertion whoever is writing it — RK305 already names that ratio as fragile.
 
 ## Block F — The plugin
 
-### §RK318 The verb without the flag that makes it one
-
-RK313 gave the note the one remedy available in-session: the same verb through the CLI,
-which imports the changed files. It spells `tool.command`, and RK150's whole mechanism
-is that a tool may *be* a flag on a command — so the command alone is a different act
-wherever `always` is what names it.
-
-Measured on the three tools that have one. `claim` is `brief --claim`, and the note
-advises `brief`: that succeeds, prints a briefing, and takes no line — the write the
-caller asked for is silently not done, which is worse than an error. `merge_check` is
-`merge --check`, and the note advises `merge`, which exits 2 on its own usage string.
-`scope` is the real `claim` command and is the only one right by accident, having no
-always flag.
-
-The flags are already resolvable the way `argv` resolves them, through the parser and by
-dest, so a rename cannot leave the sentence naming something gone. What needs deciding
-is whether the note renders the whole argv it would have run — which means quoting a
-`--why` sentence, the second grammar §RK313 declined — or the verb plus its always flags
-and nothing else.
-
 ### §RK319 The flag every call carries
 
 `argv` ends every tool's command line with `--json` and never exposes it: a structured

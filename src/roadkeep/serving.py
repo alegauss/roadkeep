@@ -980,6 +980,30 @@ def _withheld(closed: Sequence[str]) -> str:
     return "".join(f". {dest}: {_CONDITIONAL[dest].because}" for dest in closed)
 
 
+def _spelled(tool: Tool, parsers: Mapping[str, argparse.ArgumentParser] | None = None) -> str:
+    """This tool's **act** as a command line: the verb, and the flags that make it that one (RK318).
+
+    `tool.command` alone is a different act wherever :attr:`Tool.always` is what names the tool,
+    which is RK150's whole mechanism — and a note advising it sends the reader somewhere else.
+    Measured on all three tools that have one: `claim` is `brief --claim`, and `brief` *succeeds*,
+    prints a briefing and takes no line, so the write the caller asked for silently does not
+    happen; `merge_check` is `merge --check`, and `merge` exits 2 on its own usage string; `scope`
+    is the real `claim` command and was right only by having no always flag.
+
+    Resolved through the parser and by dest, exactly as :func:`argv` resolves the same flags, so a
+    rename in `cli.py` cannot leave this sentence naming something that is gone.
+
+    The always flags and no arguments. Those are the caller's — they were just sent — and every
+    `always` dest is a `store_true` by construction, because `argv` renders it as the option
+    string alone: so there is no value here to quote, which is the second grammar §RK313 declined.
+    """
+    if not tool.always:
+        return tool.command
+    parser = _subparser(tool.command, parsers)
+    flags = (_action(parser, dest).option_strings[0] for dest in tool.always)
+    return " ".join((tool.command, *flags))
+
+
 def _bounded(dest: str, value: Any, config: Config) -> None:
     """Hold a conditional argument to the bound that opened it (RK111).
 
@@ -1060,7 +1084,7 @@ def call(tool: Tool, arguments: Mapping[str, Any], directory: str = ".") -> Answ
             f"roadkeep: {error} — read by {engine()}",
             Path(directory),
             is_error=True,
-            served=tool.command,
+            served=_spelled(tool),
         )
     # One build for the whole call (RK198), and then one for the whole process (RK202). The
     # argv is rendered through the subcommands and parsed through the root they belong to,
@@ -1074,7 +1098,7 @@ def call(tool: Tool, arguments: Mapping[str, Any], directory: str = ".") -> Answ
         # The three refusals this function raises or catches itself still have the exception, so
         # they witness here rather than leave the note with nothing to intersect (RK267).
         provenance.witness(error)
-        return _answered(str(error), config.root, is_error=True, served=tool.command)
+        return _answered(str(error), config.root, is_error=True, served=_spelled(tool, parsers))
     out, err = io.StringIO(), io.StringIO()
     try:
         with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err), _spent_stdin():
@@ -1087,13 +1111,15 @@ def call(tool: Tool, arguments: Mapping[str, Any], directory: str = ".") -> Answ
         code = exit_.code if isinstance(exit_.code, int) else 2
     except LockBusy as busy:
         provenance.witness(busy)
-        return _answered(f"roadkeep: {busy}", config.root, is_error=True, served=tool.command)
+        return _answered(
+            f"roadkeep: {busy}", config.root, is_error=True, served=_spelled(tool, parsers)
+        )
     reported = "\n".join(part for part in (err.getvalue().strip(), out.getvalue().strip()) if part)
     return _answered(
         reported or f"{tool.name}: exit {code}",
         config.root,
         is_error=bool(code),
-        served=tool.command,
+        served=_spelled(tool, parsers),
     )
 
 

@@ -333,3 +333,4 @@
 - ✅ **RK314** **The marker argument publishes no enum on the one tool whose whole job is writing a marker** — one bound serves both dests that mean the open set, and the filter that reads any governed file publishes the union.
 - ✅ **RK316** **Which bounds table describes a tool is a verb spelled in a function, where every other per-tool fact is a field** — the divergent verbs are a declared table whose every key a test holds against the commands the CLI accepts.
 - ✅ **RK317** **The driver path accepts a --json it silently ignores, on the one path git actually invokes** — the branches that cannot structure an answer refuse the flag by name, before anything is written.
+- ✅ **RK318** **The command the staleness note tells the reader to run is not the act the tool was called for** — the note spells the verb plus the always flags that make the tool that act, resolved through the parser as argv does.
