@@ -345,6 +345,50 @@ One row, outside the per-family table because it is not about a family: the next
 address, in the declared scheme. `add --section` can then default to it, turning the
 common case into no argument rather than a lookup the caller performs and retypes.
 
+### §RK345 The one budget with no pre-write read
+
+`budget` answers what a line leaves its prose fields, what an anchor leaves a section
+and what a non-goal may cost — every limit this format holds, read before the text
+exists, which is L1's whole argument. `[budgets]` is the exception, and it is the limit
+that binds hardest: `agents.md` here is 125 lines of 125, so any edit to it is a trade.
+
+Measured while shipping RK330. Naming one new module in the Layout index costs a line
+the file does not have, and `tests/test_linting.py` requires the naming — so two gates
+meet at an edit composed against a number no command reports. What was done was two
+`python -c` reads of the file, a subtraction by hand, and a second attempt when the
+first spelling was one line over.
+
+That is the analysis L1 exists to remove: the author is asked what to cut *after*
+writing, which is the linter-shaped failure this tool was built to stop, one file over.
+The answer has the shape every other budget read has — what the file costs, what it may
+cost, what that leaves — asked of a declared budget rather than of a field, and derived
+from the file on disk and `roadkeep.toml` with nothing to compose.
+
+Not a second gate: `lint` refuses the file that went over (RK30), and a second reader of
+one number is the disagreement RK50 removed. This one reaches the author before the
+edit.
+
+### §RK346 Two fields, one free address
+
+RK340 made the free top-level address a question per namespace: two prose files that
+each number their own outline have two answers, and one number across both hands the
+shorter file the taller one's. The listing prints a line for each. The JSON grew a
+second field beside the first — `next_families`, a row per namespace — and kept
+`next_family` as it was.
+
+Which is the shape a compatible field usually has and is not one here. `next_family`
+answers for the *unprefixed* namespace, so on a project that declares `[refs]` for both
+its prose roles it answers for a namespace that no longer exists and returns null; on
+one that declares it for a single role, it answers correctly for the other and says
+nothing about which. A client written before RK340 reads a number that is right by
+coincidence.
+
+Two readings with no way to tell them apart is what `ref.ambiguous` says about an
+address, one layer down. The remedy is the one this format applies to a line: an answer
+whose meaning is stated, and a caller wanting one namespace names it — which the row
+already carries. What the older field costs is a decision about this tool's own JSON
+surface, and it is a small one: the command is a read with no writer downstream.
+
 ## Block D — The gate
 
 ### §RK320 A hook that stages more than it wrote
@@ -499,5 +543,27 @@ same tree and survive it, because they assert a property of whatever they read; 
 asserts a count. What needs deciding is whether the assertion belongs against a copy
 taken at collection, or whether a count over a file the backlog erodes is the wrong
 assertion whoever is writing it — RK305 already names that ratio as fragile.
+
+### §RK347 The collision an estimate is taken to find
+
+`adopt` exists so the commitment is priced before it is made: what parses, what
+conforms, the longest field against its limit, the markers to declare. `--sections` is
+that read for a rationale file, and it takes one path.
+
+Which is right for every limit it reports and wrong for the one RK340 added. An address
+is doubled only across two files, so a per-file estimate cannot see it by construction —
+and this is the finding an adopting project meets most: measured in one,
+`IMPROVEMENTS.md` and `STRATEGY.md` both open at `I` and both declare a `III`, which is
+four `section.ambiguous` on the first run of the gate, against files the estimate had
+called conforming.
+
+The read exists: `history.doubled` answers it over the project, and `anchors` already
+prints it. What is missing is that `adopt` asks — and that having asked, it names
+`[refs]` as the declaration that makes the two sets two, which is a line of
+configuration rather than a renumbering of somebody's document.
+
+The estimate stays a read that writes nothing and exits 0 (RK18): what is added is a
+figure in it, not a refusal. An adopter told the number before they commit is the whole
+point of the command, and this is the one they are most likely to be surprised by.
 
 ## Block F — The plugin
