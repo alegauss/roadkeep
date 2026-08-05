@@ -243,6 +243,38 @@ def test_every_tool_is_a_subcommand_the_cli_accepts():
         assert parsed.json is True  # never exposed, always passed
 
 
+def test_every_served_command_that_gates_json_is_served_through_the_gate(tmp_path):
+    # RK319: `argv` ends every command line with `--json` and never exposes it, and RK317 made
+    # `merge` refuse that flag outside the branch it is the form of. Together those make a command
+    # servable only through a tool whose `always` carries the gating argument — and the coupling
+    # held by coincidence, one tool over that command happening to carry it. A served tool that
+    # did not would refuse every call it ever received, over a flag the caller cannot remove.
+    from roadkeep.cli import json_needs
+
+    gated = 0
+    for tool in TOOLS:
+        needed = json_needs(serving._subparser(tool.command))
+        if not needed:
+            continue
+        gated += 1
+        assert needed in tool.always, f"{tool.name} would refuse its own --json"
+    # Named rather than counted, so a command that grows the declaration is a deliberate addition:
+    # `merge_check` is the one, and `merge` itself is deliberately not served.
+    assert gated == 1
+
+
+def test_the_gate_is_read_from_the_parser_and_not_from_a_branch_position(tmp_path, capsys):
+    # The refusal used to sit after the `--check` branch and mean "everything past here", which is
+    # a claim no surface can read. Declared, the same argv answers the same way and the flag in the
+    # message is spelled from the parser rather than written a second time.
+    from roadkeep.cli import json_needs
+
+    assert json_needs(build_parser().parse_args(["merge", "--check"])) == "check"
+    served = called(project(tmp_path), "merge_check")
+    # The one tool over that command still answers as JSON, which is what the coupling protects.
+    assert json.loads(text_of(served))["sound"] is False
+
+
 def test_every_divergent_verb_is_one_the_cli_still_spells_that_way():
     # RK316: the selection used to be an `if` chain, and its failure was silent and in the
     # forbidden direction — a command renamed in `cli.py` left every `Tool` correct, no branch

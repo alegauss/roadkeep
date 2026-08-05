@@ -41,8 +41,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK319** (deps: —) **A branch that refuses --json cannot be served at all, and nothing states the coupling** — argv appends --json to every call, so RK317's refusal makes a tool over merge servable only while it always-passes --check, and no test holds that. → §RK319
-
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:

@@ -334,3 +334,4 @@
 - ✅ **RK316** **Which bounds table describes a tool is a verb spelled in a function, where every other per-tool fact is a field** — the divergent verbs are a declared table whose every key a test holds against the commands the CLI accepts.
 - ✅ **RK317** **The driver path accepts a --json it silently ignores, on the one path git actually invokes** — the branches that cannot structure an answer refuse the flag by name, before anything is written.
 - ✅ **RK318** **The command the staleness note tells the reader to run is not the act the tool was called for** — the note spells the verb plus the always flags that make the tool that act, resolved through the parser as argv does.
+- ✅ **RK319** **A branch that refuses --json cannot be served at all, and nothing states the coupling** — the command declares which argument its json is the form of, and a test holds every served tool against that declaration.

@@ -589,7 +589,15 @@ def build_parser() -> argparse.ArgumentParser:
     # reads, and the two arguments that turn it into a write say so. `ours` is where git has the
     # driver put the result, so a merge that names it writes; `--register` writes `.gitattributes`.
     # Neither is set by a `--check`, which is what lets it take no lock and be free to ask (L5).
-    merge_parser.set_defaults(handler=_merge, reads_only=True, writes_when=("register", "ours"))
+    # `json_needs` beside them for the reason they are here (RK319): which argument this command's
+    # `--json` is the form of is a fact about the command, and left as an `if` in the handler it
+    # was a constraint on every surface serving it that no surface could read.
+    merge_parser.set_defaults(
+        handler=_merge,
+        reads_only=True,
+        writes_when=("register", "ours"),
+        json_needs="check",
+    )
 
     ship_parser = subcommands.add_parser(
         "ship",
@@ -1736,6 +1744,30 @@ def _only_reads(args: argparse.Namespace) -> bool:
     return not any(getattr(args, flag, False) for flag in writes_when(args))
 
 
+def json_needs(source: argparse.Namespace | argparse.ArgumentParser) -> str:
+    """The argument this command's `--json` is the form *of*, or `""` where it is the command's.
+
+    Declared beside :func:`writes_when` and read the same way, because it is the same kind of
+    claim: a fact about the command that a surface serving it has to know (RK167). One command
+    makes it — `merge`, where `--json` is the form of `--check` and the driver's own answer is an
+    exit code and the bytes git reads out of `%A` (RK317).
+
+    It has to be **declared** rather than left as an `if` in the handler (RK319), because
+    :func:`~roadkeep.serving.argv` ends every tool's command line with `--json` and never exposes
+    it: so a command with a branch that refuses the flag is servable only through a tool whose
+    `always` carries the argument named here, and nothing said so. Held by a test over the two
+    halves (`tests/test_serving.py`), which is this project's answer to a declaration that can
+    stop matching — the alternative being a served tool refusing every call it receives, over a
+    flag the caller never passed and cannot remove.
+    """
+    declared = (
+        source.get_default("json_needs")
+        if isinstance(source, argparse.ArgumentParser)
+        else getattr(source, "json_needs", "")
+    )
+    return declared or ""
+
+
 def writes_when(source: argparse.Namespace | argparse.ArgumentParser) -> tuple[str, ...]:
     """The argument(s) that turn a declared read into a write, however it declared them.
 
@@ -2398,26 +2430,30 @@ def _merge(config: Config, args: argparse.Namespace) -> int:
     time this runs, so a non-zero exit that left `%A` untouched would leave the reviewer a
     file that reads as though one side simply won.
     """
+    # `--json` is the form of one argument on this command, and a request nothing else here can
+    # honour (RK317). Argparse scopes a flag to the subparser rather than to the branch, so `merge
+    # %O %A %B --json` parsed, was ignored, and exited as though the caller had been served —
+    # worse than a refusal, because it tells them the request was understood. Named rather than
+    # made to work: the driver has no answer to structure, git reading its exit code and the bytes
+    # it leaves in `%A`, and the registration's report is one rendering for two surfaces (RK276)
+    # rather than a second one for a flag.
+    #
+    # Read off the declaration and not off this branch's position (RK319), so the one surface that
+    # passes `--json` on every call can know which argument makes that legal — and so the flag is
+    # spelled from the parser rather than written twice.
+    needed = json_needs(args)
+    if args.json and needed and not getattr(args, needed, False):
+        print(
+            f"roadkeep: --json is the form of --{needed}, which reads the wiring and writes "
+            f"nothing; the driver leaves its answer in git's %A and an exit code, and "
+            f"--register prints the lines it wrote",
+            file=sys.stderr,
+        )
+        return EXIT_USAGE
     if args.check:
         # Before `--register`, so the two together read as the check: a `--check` that wrote
         # the attribute lines anyway would be the one thing this flag promises not to do.
         return _merge_check(config, args)
-    # And past the one branch that answers it, `--json` is a request nothing here can honour
-    # (RK317). Argparse scopes a flag to the subparser rather than to the branch, so `merge %O %A
-    # %B --json` parsed, was ignored, and exited as though the caller had been served — which is
-    # worse than a refusal, because it tells them the request was understood. Named rather than
-    # made to work: the driver has no answer to structure, git reading its exit code and the bytes
-    # it leaves in `%A`, and the registration's own report is one rendering for two surfaces
-    # (RK276) rather than a second one for a flag. Never on the driver's own line, which git
-    # spells and which carries this flag on no path.
-    if args.json:
-        print(
-            "roadkeep: --json is the form of --check, which reads the wiring and writes "
-            "nothing; the driver leaves its answer in git's %A and an exit code, and "
-            "--register prints the lines it wrote",
-            file=sys.stderr,
-        )
-        return EXIT_USAGE
     if args.register:
         return _merge_register(config)
     if not (args.base and args.ours and args.theirs):
