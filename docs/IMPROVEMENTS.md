@@ -295,6 +295,33 @@ Worth pairing with a read of whether any other verb in a list of thirty-eight ha
 same problem — the list is long enough that this is unlikely to be its only
 near-collision.
 
+### §RK342 RK342
+
+`claim <id>` is the read-back: it names the declared scope, prints the `git add --`
+line, and reports what the tree holds that no claim covers. Measured on a fresh
+repository, one path declared, nothing else touched by hand:
+
+    loose    README.md   (no claim names it)
+    loose    ROADMAP.md  (no claim names it)
+
+Both are writes of the claiming transaction itself. `brief --claim` moves the marker to
+in-progress, and every governed write carries the README refresh RK188 added, so the
+files the report calls unowned are the ones the command opening the claim wrote for that
+id.
+
+`ship` already has this right — its stage line is the scope plus what the departure
+wrote, `src/thing.py CHANGELOG.md ROADMAP.md IMPROVEMENTS.md README.md` — so the
+knowledge exists one command over and is not consulted here. The asymmetry is what makes
+it a defect rather than a preference: `loose` reads as *a file somebody else touched*,
+so the author declares the governed paths by hand to silence it, and the scope now
+carries paths that were never the work. That is the analysis `claim` exists to make,
+made wrong, on the first call of every task.
+
+What a repair cannot do is hand every dirty governed file to whoever asks: a roadmap the
+tree holds may hold another session's add. The distinction available is the id the
+transaction that wrote the line already knew — a governed file whose diff is this task's
+own line is `mine`, and one that is not stays `loose`.
+
 ## Block C — Query
 
 ### §RK303 First match, at the one door that had not learned it
@@ -521,3 +548,29 @@ taken at collection, or whether a count over a file the backlog erodes is the wr
 assertion whoever is writing it — RK305 already names that ratio as fragile.
 
 ## Block F — The plugin
+
+### §RK341 RK338
+
+RK337 arrived as a field capture and had to be finished as a test, and the reason is the
+capture's shape. `report` re-runs the failing command in *this* process: argv, exit
+code, engine, config and the offending line are recorded, and its stdio codecs are
+whatever the reporting session declared. The adopting project's `lint` had died with
+`UnicodeEncodeError: surrogates not allowed`; the re-run exited 0, so the stored file
+carries exit 0, no traceback, and a `why` blaming a module that opens its file `rb` and
+encodes nothing.
+
+Nothing in the capture could have contradicted that. `--embed` stages the config and the
+documents, so `replay` answers about the format and never about the machine — and a
+defect whose entire cause is one environment variable is one `replay` reports as fixed
+on every machine that never had it.
+
+What is absent is small and bounded: the variables deciding how a process reads and
+writes text, plus what the three streams actually resolved to, the fact and not the
+request. Bounded is the whole design question, because `os.environ` is a disclosure and
+RK87's answer to a disclosure was to make every part removable — so an allow-list,
+reachable by `--without` like any other part, and set by `replay` rather than inherited
+from whoever runs it.
+
+The alternative is what happened here: the diagnosis was guessed from prose, the guess
+named the wrong module, and it cost one session only because the crash class was narrow
+enough to re-derive by reading.
