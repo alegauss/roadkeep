@@ -172,6 +172,7 @@
 - ✅ **RK297** **The read that says which anchor address is free asks one prose file on a project with two** — anchors reads every declared prose file, so the free address is the project's and not the first file's, and any address two files both declare is named before a write can double it.
 - ✅ **RK301** **The pre-write budget is silent about the one field in the same transaction that also refuses** — budget carries a section row for the body add --section writes in the same transaction: the role's word limit, what that anchor spends, and an aim that sits under the limit.
 - ✅ **RK303** **The section budget picks the first of two prose files declaring one anchor, where every other reader refuses** — budget refuses an anchor two prose files declare, as every other reader of one does; --role names which, and a line's own budget keeps its fields and says why its section half is empty.
+- ✅ **RK324** **brief calls a shipped task ready, so the one command meant to start work invites redoing it** — brief answers shipped for an id the ledger holds, and quotes no unblocks count for it, so the command a session starts work with never describes finished work as startable.
 
 ## Block D — The gate
 

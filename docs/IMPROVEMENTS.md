@@ -153,27 +153,6 @@ a gate that asked for prose there would be answered with prose nobody needed.
 
 ## Block C — Query
 
-### §RK324 Two readers of one marker, and only one of them refuses
-
-Measured on an adopting repository: `show T275` answers `✅  shipped`, and `brief T275`
-answers `✅  ready` — same id, same file, same line, one word apart. `brief` then goes on
-to print `unblocks 0 of 8 open` and the whole non-goal list, which is the shape of an
-answer about work that has not happened.
-
-The marker is right in both. What differs is the second word, and that word is the one a
-caller acts on. `brief` exists so an agent can ask what a task costs before starting it,
-which means a loop that picks an id from anywhere other than `pick` — a commit message,
-a changelog entry, a user naming one — gets `ready` for a task already in the ledger,
-and nothing in the rest of the output contradicts it. The rationale section is gone, so
-the brief is thin rather than wrong-looking.
-
-`show` already computes the answer, so this is not a question needing a new derivation:
-it is one derivation with two readers, which is the shape of RK303 as well. Whether
-`brief` should refuse a shipped id outright or answer with `shipped` and no cost is the
-decision to make. Refusing is consistent with `amend`, which will not touch a shipped
-line; answering is friendlier to the loop that asked, provided the word it leads with
-cannot be read as an invitation.
-
 ### §RK336 The one address anchors does not report
 
 `anchors` knows this. It reads the retired addresses as well as the live ones — the

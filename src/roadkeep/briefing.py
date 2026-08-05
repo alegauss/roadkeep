@@ -184,10 +184,12 @@ def _gather(
     backlog = Backlog.load(config)
     graph = Graph.of(backlog)
     entry = backlog.entry(task_id)
-    # A shipped task has no readiness and no deps left to resolve: the ledger carries
-    # neither, which is the schema saying a shipped line has no dependency to state.
+    # A shipped task has no deps left to resolve: the ledger carries none, which is the
+    # schema saying a shipped line has no dependency to state. Its readiness is the ledger's
+    # own answer and not `ready` (RK324) — this is the command a session starts work with, so
+    # the one word it leads with is the one a caller acts on, and `show` already says shipped.
     task = entry.task if entry is not None else view.task
-    readiness = backlog.readiness(task) if entry is not None else Readiness.READY
+    readiness = backlog.readiness(task) if entry is not None else Readiness.SHIPPED
     return Brief(
         view=view,
         readiness=readiness,

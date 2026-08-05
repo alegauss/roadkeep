@@ -4332,7 +4332,11 @@ def _brief(config: Config, args: argparse.Namespace) -> int:
         print(f"  dep      {resolution.dep.id}  {resolution.status}  {resolution.detail}")
     for chain in gathered.chains:
         print(f"  chain    {chain.render(task.id)}  — {chain.detail}")
-    _print_leverage(gathered.leverage)
+    if not view.shipped:
+        # What shipping this would unblock, which a shipped line has already done (RK324):
+        # `unblocks 0 of 14 open` beside a checkmark is a cost quoted for work that happened,
+        # and the readiness word above is the whole answer a caller needs about it.
+        _print_leverage(gathered.leverage)
     for referenced in view.paths:
         print(f"  path     {referenced.path}{'' if referenced.exists else '  (missing)'}")
     for non_goal in gathered.non_goals.leads:

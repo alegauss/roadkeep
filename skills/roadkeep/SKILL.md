@@ -279,7 +279,8 @@ next caller is sent elsewhere. `brief --claim` is the one to reach for, being th
 starts a task anyway — and over MCP it is its own tool, `claim`, so that `brief` and `pick`
 keep the read-only hint that makes asking free; `brief <id> --claim` takes a line you were
 told to work on, and is **refused** where somebody already holds that one, there being nothing
-for it to choose instead. **The claim follows the marker**, so `status <id>` on the in-progress
+for it to choose instead. An id the ledger already holds briefs as `shipped` and quotes no cost
+for starting it: a task named from anywhere other than `pick` may be one that is done. **The claim follows the marker**, so `status <id>` on the in-progress
 one is the third way to start work and takes one too — refused the same way where somebody
 already holds that line — while any other marker drops it and is never refused, that being how
 a claim is given back. Nothing re-dates a live claim: it is an expiry and not a lock, stepped

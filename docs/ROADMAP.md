@@ -30,7 +30,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK324** (deps: —) **brief calls a shipped task ready, so the one command meant to start work invites redoing it** — show reads the same id and answers shipped; brief prints ready beside the checkmark and an unblocks count, which is a startable task described to whoever asked what starting it costs. → §RK324
 - 📋 **RK336** (deps: RK312 ✅) **anchors prices every family that exists and never says which one is free next** — The address a new section needs is one no family has ever declared, and the report is a per-family table of live, retired and next subsection, so the new-family question is answered by guessing. → §RK336
 - 📋 **RK345** (deps: —) **The budget every other field is read before is the one an every-turn file has no door for** — Its limit is held only by lint, so the room left in agents.md is measured with wc and a subtraction at the moment a module has to be named in it. → §RK345
 - 📋 **RK346** (deps: —) **One question is answered by two fields, and the older one names one namespace of several** — anchors --json carries next_family beside next_families, so a client reading the field it always read is handed the unprefixed namespace's address on a project whose roles each have one. → §RK346

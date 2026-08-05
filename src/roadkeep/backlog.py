@@ -142,7 +142,7 @@ class DepStatus(StrEnum):
 
 
 class Readiness(StrEnum):
-    """Whether a task can be started, and if not, in which of three senses."""
+    """Whether a task can be started, and if not, in which of four senses."""
 
     READY = "ready"
     BLOCKED = "blocked"
@@ -153,6 +153,11 @@ class Readiness(StrEnum):
     #: the blocker — but unlike :attr:`OUTSIDE` the block lifts on a `resume`, so what has
     #: to change is a decision and not this line.
     PAUSED = "blocked-paused"
+    #: Not startable because it is **done** (RK324) — the ledger's answer, never
+    #: :meth:`Backlog.readiness`'s, which is asked only about lines the roadmap still holds.
+    #: A fifth state rather than a reading of `ready`: every other value here says work
+    #: remains, so a shipped id described with one of them is an invitation to redo it.
+    SHIPPED = "shipped"
 
 
 @dataclass(frozen=True, slots=True)

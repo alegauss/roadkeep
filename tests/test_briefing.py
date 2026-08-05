@@ -17,6 +17,7 @@ from pathlib import Path
 import pytest
 
 import corpora
+from roadkeep.backlog import Readiness
 from roadkeep.briefing import CHAINS, NON_GOALS, NothingToBrief, brief, non_goals
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config, Scope
@@ -170,10 +171,19 @@ def test_nothing_ready_is_refused_with_the_reason(tmp_path):
 
 
 def test_a_shipped_task_briefs_from_the_ledger(tmp_path):
-    # No readiness to compute and no deps left to state: the ledger carries neither.
+    # No deps left to state: the ledger carries none.
     gathered = brief(project(tmp_path), "RK2")
     assert gathered.view.shipped and gathered.deps == () and gathered.chains == ()
     assert "deleted on ship" in gathered.view.section_absence
+
+
+def test_a_shipped_task_is_never_described_as_ready(tmp_path):
+    # RK324: this is the command a session starts work with, so the word it leads with is
+    # the one a caller acts on — and `show` on the same id has always answered shipped.
+    gathered = brief(project(tmp_path), "RK2")
+    assert gathered.readiness is Readiness.SHIPPED
+    # Which is not a blocked state either: nothing shipping unblocks it, and nothing is left.
+    assert gathered.readiness not in {Readiness.READY, Readiness.BLOCKED}
 
 
 def test_the_chains_are_bounded_tighter_than_the_graphs_own_limit(tmp_path):
@@ -334,6 +344,27 @@ def test_json_carries_the_whole_pack(tmp_path, capsys):
     assert payload["non_goals"] == ["No web UI and no server.", "No dates."]
     assert payload["unblocks"] == {"count": 0, "of": 1, "transitive": []}
     assert payload["picked"] is None
+
+
+def test_the_command_leads_with_shipped_and_quotes_no_cost_for_it(tmp_path, capsys):
+    # The measured defect (RK324): `✅  ready`, an unblocks count and a thin brief, which is
+    # the shape of an answer about work that has not happened.
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "brief", "RK2"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert out.startswith("RK2  Block A  ✅  shipped  CHANGELOG.md:5")
+    assert "unblocks" not in out and "budget" not in out
+    # And `show` still answers the same word about the same id, which is the whole point.
+    assert main(["-C", str(tmp_path), "show", "RK2"]) == EXIT_OK
+    assert "shipped" in capsys.readouterr().out
+
+
+def test_the_json_says_shipped_where_a_client_reads_the_readiness(tmp_path, capsys):
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "brief", "RK2", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["readiness"] == "shipped" and payload["shipped"] is True
+    assert payload["budget"] is None
 
 
 def test_nothing_to_brief_exits_two(tmp_path, capsys):
