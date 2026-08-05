@@ -26,6 +26,15 @@ Three boundaries this does not cross:
   — the whole reason RK79 comes first — so the command runs through the same
   :func:`roadkeep.cli.main` this interpreter loaded, and the capture states which tree that
   was. A crash is caught and kept: a traceback is the most identifying fact there is.
+
+  The price is one class of defect it cannot re-run, and RK341 is the record of that being
+  paid: an interpreter's stdio codecs are settled before its first line executes, so a re-run
+  here inherits *this* session's and not the field's. RK337 arrived that way — a
+  `UnicodeEncodeError` in an adopting project that exited 0 on the re-run, so the stored
+  capture blamed a module that opens its file `rb` and encodes nothing. What is recorded
+  instead is the :class:`Environment`: the variables that decide how a process reads and
+  writes text, and what the interpreter resolved them to. A fact the re-run cannot supply is
+  one the report has to carry.
 * **It never writes the claim.** `symptom` and `why` come from the caller, and a capture
   whose claim is over the limit is refused whole (L4). What is rendered for the maintainer
   is the `add` command that files it — a command, not a sentence, and one whose id stays
@@ -37,8 +46,11 @@ from __future__ import annotations
 import contextlib
 import io
 import json
+import locale
+import os
 import re
 import shlex
+import sys
 import traceback
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, replace
@@ -47,7 +59,7 @@ from hashlib import sha256
 from pathlib import Path
 
 from roadkeep.config import find_config
-from roadkeep.provenance import Engine, engine, invocation
+from roadkeep.provenance import STARTUP_CODECS, Engine, engine, invocation
 from roadkeep.schema import Schema, Task, Violation
 
 #: How much of the failing command's output is kept. A capture is read by a person, and a
@@ -100,7 +112,35 @@ class Failure:
 #: promises to find secrets is a promise nobody can check against a repository it never saw.
 #: `symptom`, `why`, `block` and the exit code are never droppable — without them there is
 #: no claim, and an empty report is worse than no report.
-PARTS = ("command", "engine", "where", "config", "source", "document", "output", "traceback")
+PARTS = (
+    "command",
+    "engine",
+    "where",
+    "config",
+    "source",
+    "document",
+    "output",
+    "traceback",
+    "environment",
+)
+
+#: The variables a capture records, and the only reason it records any (RK341). Every one of
+#: them decides how a *process* reads and writes text, which is a class of defect whose entire
+#: cause sits outside the repository: RK337 was a `UnicodeEncodeError` in the field that exited
+#: 0 on the re-run, so the stored capture blamed a module that opens its file `rb` and encodes
+#: nothing, and the diagnosis had to be re-derived by reading rather than replayed.
+#:
+#: An allow-list, and short. `os.environ` is a disclosure — tokens, hostnames, paths, the
+#: things RK87 exists to keep out of a tracker — and the answer RK87 gives to a disclosure is a
+#: reviewer who can read what leaves before it goes. A dump nobody can read is not that.
+TEXT_VARIABLES = (
+    "PYTHONIOENCODING",
+    "PYTHONUTF8",
+    "PYTHONLEGACYWINDOWSSTDIO",
+    "LC_ALL",
+    "LC_CTYPE",
+    "LANG",
+)
 
 #: What a replay cannot be staged without (RK88). The tension RK87 leaves behind, named
 #: rather than resolved: a capture that embeds nothing is safe and inert, and one that can
@@ -113,6 +153,118 @@ PARTS = ("command", "engine", "where", "config", "source", "document", "output",
 #: cheapest class of field report the one class that cannot be replayed. It is required
 #: exactly when the failure named a file — see :attr:`Capture.missing`.
 REPLAYABLE = ("command", "config")
+
+
+@dataclass(frozen=True, slots=True)
+class Environment:
+    """How the reporting process reads and writes text — what was asked for, and what happened.
+
+    The split is the whole value. `declared` is the request, and it is what a maintainer can
+    hand to somebody else to reproduce with; the rest is what the interpreter resolved, which
+    is the fact and is not always the request — `PYTHONUTF8=1` and `-X utf8` arrive at the same
+    place, `PYTHONIOENCODING` can name a codec the platform does not have, and a variable set
+    after the process started changes nothing at all.
+
+    `streams` is read at import (see :data:`roadkeep.provenance.STARTUP_CODECS`) and is the one
+    entry here that has to be taken at a moment rather than asked for: everything else is still
+    true when the capture is composed, and that one is gone by then.
+    """
+
+    #: The variables of :data:`TEXT_VARIABLES` this process actually has, in that order. Absent
+    #: ones are absent rather than empty: "not set" and "set to nothing" are different states,
+    #: and on Windows the second is how a variable is deleted.
+    declared: tuple[tuple[str, str], ...] = ()
+    #: `sys.flags.utf8_mode`, which is where `PYTHONUTF8` and `-X utf8` both end up.
+    utf8_mode: bool = False
+    #: `locale.getpreferredencoding(False)` — cp1252 on the machines this tool was written on,
+    #: and the default every un-hardened `open()` in a project takes.
+    locale: str = ""
+    #: `sys.getfilesystemencoding()`, which is what turns a filename into a `str` — and, with
+    #: `surrogateescape`, what puts a lone surrogate into one.
+    filesystem: str = ""
+    #: `name -> encoding/errors` for the three streams, as `main` found them.
+    streams: tuple[tuple[str, str], ...] = ()
+
+    def __str__(self) -> str:
+        rows = [
+            *((name, value) for name, value in self.declared),
+            ("utf8 mode", "on" if self.utf8_mode else "off"),
+            ("locale", self.locale),
+            ("filesystem", self.filesystem),
+            *((name, codec) for name, codec in self.streams),
+        ]
+        width = max(len(name) for name, _ in rows)
+        return "\n".join(f"  {name:<{width}}  {value}" for name, value in rows)
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "declared": dict(self.declared),
+            "utf8_mode": self.utf8_mode,
+            "locale": self.locale,
+            "filesystem": self.filesystem,
+            "streams": dict(self.streams),
+        }
+
+    @property
+    def facts(self) -> dict[str, str]:
+        """One flat mapping, which is what a comparison needs (see :func:`_drifted`).
+
+        The three streams collapse to one entry called `stdio`: they are reconfigured together
+        by one caller, and reporting three names for one cause is three lines a reader has to
+        recombine.
+        """
+        return {
+            **dict(self.declared),
+            "utf8 mode": "on" if self.utf8_mode else "off",
+            "locale": self.locale,
+            "filesystem": self.filesystem,
+            "stdio": ", ".join(f"{name}={codec}" for name, codec in self.streams),
+        }
+
+
+def environment() -> Environment:
+    """This process's text handling, read now — except the streams, read at import."""
+    return Environment(
+        declared=tuple((name, os.environ[name]) for name in TEXT_VARIABLES if name in os.environ),
+        utf8_mode=bool(sys.flags.utf8_mode),
+        locale=locale.getpreferredencoding(False),
+        filesystem=sys.getfilesystemencoding(),
+        streams=STARTUP_CODECS,
+    )
+
+
+def _read(recorded: object) -> Environment | None:
+    """One stored capture's `environment` back as the class, or `None` where it has none.
+
+    Forgiving by design: this reads corpus files written by older versions of this tool, and a
+    capture that predates the field is a capture with no environment rather than a broken one.
+    """
+    if not isinstance(recorded, Mapping):
+        return None
+    declared = recorded.get("declared")
+    streams = recorded.get("streams")
+    return Environment(
+        declared=tuple(declared.items()) if isinstance(declared, Mapping) else (),
+        utf8_mode=bool(recorded.get("utf8_mode")),
+        locale=str(recorded.get("locale", "")),
+        filesystem=str(recorded.get("filesystem", "")),
+        streams=tuple(streams.items()) if isinstance(streams, Mapping) else (),
+    )
+
+
+def _drifted(recorded: object) -> tuple[str, ...]:
+    """Which of a capture's recorded text-handling facts this process does not share.
+
+    Named rather than counted, and one-directional: a variable the capture recorded and this
+    process does not have has drifted, and one *this* process adds is not the capture's
+    business — a replay is asked whether the recorded conditions still hold, not whether the
+    two machines are the same machine.
+    """
+    stored = _read(recorded)
+    if stored is None:
+        return ()
+    here = environment().facts
+    return tuple(name for name, value in stored.facts.items() if here.get(name, "") != value)
 
 
 @dataclass(frozen=True, slots=True)
@@ -138,6 +290,10 @@ class Capture:
     #: one the finding named — never the project.
     document: str | None = None
     document_path: str | None = None
+    #: How the reporting process reads and writes text (RK341) — the half of the input that is
+    #: not in the repository and that a re-run in this interpreter silently supplies from
+    #: wherever it happens to be running.
+    environment: Environment | None = None
     #: Parts the operator deleted before this went anywhere (RK87). Held rather than
     #: applied to the data, so one capture can be read whole in the terminal and emitted
     #: redacted — and *named* in the output, because a report missing a section without
@@ -200,6 +356,11 @@ class Capture:
             ("output", "output", self.failure.output.rstrip() or "(nothing)"),
             ("config", "roadkeep.toml as it was read", self.config),
             ("document", f"{self.document_path} as it was read", self.document),
+            (
+                "environment",
+                "how this process reads and writes text",
+                str(self.environment) if self.environment is not None else None,
+            ),
         ]
         lines: list[str] = []
         for part, title, text in parts:
@@ -257,23 +418,28 @@ class Capture:
             "exit": self.failure.exit_code,
             "reproduces": True,
         }
-        if self.shows("command"):
-            data["argv"] = list(self.failure.argv)
-        if self.shows("engine"):
-            data["engine"] = str(self.engine)
-        if self.shows("where") and self.failure.where:
-            data["where"] = self.failure.where
-        if self.shows("output"):
-            data["output"] = self.failure.output
-        if self.shows("traceback") and self.failure.traceback:
-            data["traceback"] = self.failure.traceback
-        if self.shows("config") and self.config is not None:
-            data["config"] = self.config
-        if self.shows("source") and self.source is not None:
-            data["source"] = self.source
-        if self.shows("document") and self.document is not None:
-            data["document"] = self.document
-            data["document_path"] = self.document_path
+        # One row per key, so the two rules — the part is shown, and there is something to
+        # store — are stated once instead of at every field. `document` is two rows because it
+        # is two keys and one decision: a path without the file it names is not evidence.
+        rows: tuple[tuple[str, str, object], ...] = (
+            ("command", "argv", list(self.failure.argv)),
+            ("engine", "engine", str(self.engine)),
+            ("where", "where", self.failure.where),
+            ("output", "output", self.failure.output),
+            ("traceback", "traceback", self.failure.traceback),
+            ("config", "config", self.config),
+            ("source", "source", self.source),
+            ("document", "document", self.document),
+            ("document", "document_path", self.document_path if self.document else None),
+            (
+                "environment",
+                "environment",
+                self.environment.as_dict() if self.environment is not None else None,
+            ),
+        )
+        for part, key, value in rows:
+            if self.shows(part) and value is not None:
+                data[key] = value
         if self.hidden:
             data["omitted"] = sorted(self.hidden)
         return data
@@ -400,6 +566,7 @@ def capture(
         source=_source(failure.where, root),
         document=document,
         document_path=document_path,
+        environment=environment(),
     )
 
 
@@ -420,6 +587,10 @@ class Replay:
     #: is the whole answer. A staging that guessed at the missing half would be a test whose
     #: input this repository invented, which is the thing RK88 exists to avoid.
     missing: tuple[str, ...] = ()
+    #: Which of the capture's recorded text-handling facts this process does not share (RK341),
+    #: and `None` where it recorded none to compare. Not a verdict of its own: it is the reason
+    #: a verdict may be about a different machine than the one the defect was on.
+    drifted: tuple[str, ...] | None = None
 
     @property
     def ran(self) -> bool:
@@ -429,7 +600,15 @@ class Replay:
         if self.missing:
             return f"not replayable: the capture has no {', '.join(self.missing)}"
         verdict = "still reproduces" if self.reproduces else "no longer reproduces"
-        return f"{verdict}: recorded exit {self.recorded_exit}, now {self.exit_code}"
+        said = f"{verdict}: recorded exit {self.recorded_exit}, now {self.exit_code}"
+        # A *negative* verdict is an inference from an absence, and an unstaged environment is
+        # another absence — so the two are said together or the first reads as a fix (RK341).
+        # A positive one needs no caveat: the run just demonstrated it.
+        if self.drifted:
+            return f"{said}, under a different {', '.join(self.drifted)} than the capture recorded"
+        if self.drifted is None and not self.reproduces:
+            return f"{said}, and the capture records no environment to have staged"
+        return said
 
 
 def replay(recorded: Mapping[str, object], workdir: str | Path) -> Replay:
@@ -439,12 +618,23 @@ def replay(recorded: Mapping[str, object], workdir: str | Path) -> Replay:
     `roadkeep.toml` and the one file the capture carries, and the `-C` in the recorded argv
     is repointed at the staging. Everything else in that argv is passed through untouched —
     a replay that rewrote the flags would be testing a command nobody ran.
+
+    What this **cannot** stage is the environment (RK341), and the reason is two boundaries
+    this deliberately keeps. :func:`observe` runs the argv through the `main` this interpreter
+    already loaded, because a subprocess would be a second engine to be wrong about (RK79) —
+    and an interpreter's stdio codecs are settled before its first line runs, so no assignment
+    here reaches them. It then redirects both streams into a `StringIO`, which has no codec at
+    all, so the encoding path is not even on the route a replay takes. Hence the *comparison*:
+    the recorded facts are held against this process's, and a verdict reached under different
+    ones says so rather than reading as a fix.
     """
     needed = list(REPLAYABLE) + (["document"] if recorded.get("where") else [])
     missing = tuple(part for part in needed if not recorded.get(_FIELD[part]))
     recorded_exit = int(recorded.get("exit", 0) or 0)
+    stored = recorded.get("environment")
+    drifted = _drifted(stored) if stored is not None else None
     if missing:
-        return Replay(False, recorded_exit, 0, "", missing)
+        return Replay(False, recorded_exit, 0, "", missing, drifted)
 
     root = Path(workdir)
     (root / "roadkeep.toml").write_text(str(recorded["config"]), encoding="utf-8")
@@ -461,7 +651,7 @@ def replay(recorded: Mapping[str, object], workdir: str | Path) -> Replay:
     reproduces = failure.exit_code == recorded_exit and (
         where is None or str(where) in failure.output
     )
-    return Replay(reproduces, recorded_exit, failure.exit_code, failure.output)
+    return Replay(reproduces, recorded_exit, failure.exit_code, failure.output, (), drifted)
 
 
 #: Which key of a stored capture each replayable part lives under.

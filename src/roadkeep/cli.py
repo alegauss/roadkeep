@@ -1649,6 +1649,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     # mojibake characters the round-trip then preserved forever.
     # strict on the way in: input that is not UTF-8 is refused, never repaired, because
     # a substituted character round-trips out of the file it lands in (L3).
+    # What these three were before this line is `provenance.STARTUP_CODECS`, recorded at import
+    # because after the next three statements the fact is gone (RK341).
     _force_utf8(sys.stdin, errors="strict")
     _force_utf8(sys.stdout)
     _force_utf8(sys.stderr)
@@ -5645,6 +5647,10 @@ def _replay(config: Config, args: argparse.Namespace) -> int:
                     "expected": expected,
                     "recorded_exit": outcome.recorded_exit,
                     "exit": outcome.exit_code,
+                    # `null` and not `[]` where the capture recorded no environment (RK341):
+                    # "nothing drifted" and "nothing to compare" are different answers, and a
+                    # reader that cannot tell them apart is the defect this closes.
+                    "drifted": None if outcome.drifted is None else list(outcome.drifted),
                 },
                 indent=2,
             )

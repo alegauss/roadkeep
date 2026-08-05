@@ -57,8 +57,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK341** (deps: —) **A capture records no environment, so the field defect RK337 traced was unreplayable** — report re-ran the command in a process whose PYTHONIOENCODING was not the field's, so the stored capture carries exit 0 and a why naming a module that encodes nothing. → §RK341
-
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:

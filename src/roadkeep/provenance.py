@@ -35,6 +35,7 @@ answer, and it is the half that distinguishes the two engines above.
 from __future__ import annotations
 
 import shutil
+import sys
 import time
 from dataclasses import dataclass
 from functools import lru_cache
@@ -73,6 +74,34 @@ _HOME = Path(__file__).resolve().parent
 #: *a refusal decided outside this package*. A surface that cannot tell those apart would
 #: suppress a note on a refusal it never learned the origin of.
 _WITNESSED: tuple[str, ...] | None = None
+
+
+def _codecs() -> tuple[tuple[str, str], ...]:
+    """`name -> encoding/errors` for the three streams, as they are right now.
+
+    `?` and never a raise for a stream with neither attribute: that is `pythonw`'s `None`, or a
+    harness's own object, and a fact about provenance is not worth a crash on import.
+    """
+    return tuple(
+        (
+            name,
+            f"{getattr(stream, 'encoding', None) or '?'}/"
+            f"{getattr(stream, 'errors', None) or '?'}",
+        )
+        for name, stream in (("stdin", sys.stdin), ("stdout", sys.stdout), ("stderr", sys.stderr))
+    )
+
+
+#: The three streams as this process opened them — a fact about this process in the same class
+#: as :data:`_LOADED_AT`, and the reason it is read *here* is that here is early enough (RK341).
+#: `cli.main` reconfigures all three to UTF-8 in its first three statements, so a capture
+#: composed afterwards reads this tool's own hardening off them instead of the environment that
+#: broke the session: RK337 arrived that way, a field `UnicodeEncodeError` whose re-run exited 0.
+#: Import time is before `main` runs and after nothing this package did, which is exactly the
+#: moment wanted — and it is one dict per *interpreter* rather than per module copy, which
+#: `cli.main` could not be, since `python -m roadkeep.cli` loads that module twice (as
+#: `__main__` and as `roadkeep.cli`) and only one of the two would hold the pristine reading.
+STARTUP_CODECS: tuple[tuple[str, str], ...] = _codecs()
 
 
 @dataclass(frozen=True, slots=True)

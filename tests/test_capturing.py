@@ -34,6 +34,9 @@ from __future__ import annotations
 import ast
 import io
 import json
+import os
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -45,6 +48,7 @@ from roadkeep.capturing import (
     IGNORE_RULE,
     PARTS,
     REPORTS,
+    TEXT_VARIABLES,
     Capture,
     Failure,
     _tail,
@@ -58,6 +62,9 @@ from roadkeep.capturing import (
 )
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.provenance import engine
+
+#: `src/`, for the subprocesses that read the codecs an interpreter settled at startup.
+PACKAGE = Path(__file__).resolve().parents[1] / "src"
 
 ROADMAP = "docs/ROADMAP.md"
 
@@ -625,3 +632,127 @@ def test_there_is_no_flag_for_not_keeping_it(tmp_path):
         for option in action.option_strings
     }
     assert not {"--no-keep", "--keep", "--dry-run"} & flags
+
+
+# -- the half of the input the re-run cannot supply (RK341) -------------------
+
+
+def report_under(root: Path, environment: dict[str, str], *without: str) -> dict:
+    """One `report --json` in a process whose text handling is declared, parsed back.
+
+    A subprocess, and not `main` here: the streams this process holds are pytest's, and the
+    fact under test is the one an interpreter settles before its first line runs. `-m
+    roadkeep.cli` deliberately — that is how this repository invokes the tool, and it loads
+    `cli` twice, as `__main__` and as `roadkeep.cli`.
+    """
+    argv = [
+        sys.executable,
+        "-m",
+        "roadkeep.cli",
+        "-C",
+        str(root),
+        "report",
+        "--symptom",
+        SYMPTOM,
+        "--why",
+        WHY,
+        "--block",
+        "F",
+        "--json",
+    ]
+    for part in without:
+        argv += ["--without", part]
+    done = subprocess.run(
+        [*argv, "--", "lint"],
+        capture_output=True,
+        check=True,
+        encoding="utf-8",
+        env={**os.environ, "PYTHONPATH": str(PACKAGE), **environment},
+    )
+    return json.loads(done.stdout)
+
+
+def test_the_capture_records_the_codecs_the_environment_declared(tmp_path):
+    """The whole of RK341 in one assertion: a capture taken under a declared encoding says so.
+
+    Bounded to the variables that decide how a process reads and writes text — the class of
+    cause that is outside the repository and that `--embed` therefore cannot stage.
+    """
+    found = report_under(project(tmp_path), {"PYTHONIOENCODING": "utf-8:surrogateescape"})
+    said = found["environment"]
+    assert said["declared"]["PYTHONIOENCODING"] == "utf-8:surrogateescape"
+    assert said["locale"] and said["filesystem"]  # resolved, and always present
+
+
+def test_the_recorded_streams_are_the_ones_before_the_hardening(tmp_path):
+    """The trap this closes, and the reason the reading is taken at import.
+
+    `main` reconfigures all three streams to UTF-8 in its first three statements, so a capture
+    composed afterwards would read `utf-8/strict` off stdin no matter what the session
+    declared — which is a capture agreeing with itself about a codec nobody used. RK337 came
+    in that shape: a field `UnicodeEncodeError` whose stored capture blamed a module that
+    opens its file `rb` and encodes nothing.
+    """
+    found = report_under(project(tmp_path), {"PYTHONIOENCODING": "utf-8:surrogateescape"})
+    streams = found["environment"]["streams"]
+    assert streams["stdin"] == "utf-8/surrogateescape"
+    assert streams["stdout"] == "utf-8/surrogateescape"
+    # stderr is Python's own default and not the same word, which is why all three are kept:
+    # one reading would have been asserted as "whatever stdin said" and hidden the asymmetry.
+    assert streams["stderr"] == "utf-8/backslashreplace"
+
+
+def test_the_reading_is_the_interpreters_and_not_one_module_copys(tmp_path):
+    """`python -m roadkeep.cli` imports `cli` twice, and a fact held in that module would be
+    recorded by whichever copy `main` ran in — the launcher's — while the copy `capturing`
+    imports stays empty and answers `?/?`. Measured, before it moved to `provenance`.
+
+    So the two invocations have to agree: one where `cli` is `__main__` and one where it is
+    only ever `roadkeep.cli`.
+    """
+    declared = {"PYTHONIOENCODING": "utf-8:surrogateescape"}
+    once = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            "import json; from roadkeep.capturing import environment; "
+            "print(json.dumps(environment().as_dict()['streams']))",
+        ],
+        capture_output=True,
+        check=True,
+        encoding="utf-8",
+        env={**os.environ, "PYTHONPATH": str(PACKAGE), **declared},
+    )
+    twice = report_under(project(tmp_path), declared)
+    assert json.loads(once.stdout) == twice["environment"]["streams"]
+
+
+def test_only_the_declared_variables_leave(tmp_path):
+    """An allow-list and not `os.environ`. RK87's answer to a disclosure is a reviewer who can
+    read what leaves before it goes, and a dump of the environment is one nobody can approve —
+    every capture would carry a token, a hostname and a home directory."""
+    secret = "gho_thisisnotatokenbutitwouldbe"
+    found = report_under(
+        project(tmp_path),
+        {"PYTHONIOENCODING": "utf-8", "GITHUB_TOKEN": secret, "AWS_SECRET_ACCESS_KEY": secret},
+    )
+    assert secret not in json.dumps(found)
+    assert set(found["environment"]["declared"]) <= set(TEXT_VARIABLES)
+
+
+def test_the_environment_is_a_part_that_can_be_dropped_by_name(tmp_path):
+    """It is the reporting *machine* and not the defect, so RK87 governs it like every other
+    part: deletable by name, and named in what is left."""
+    found = report_under(project(tmp_path), {"PYTHONIOENCODING": "utf-8"}, "environment")
+    assert "environment" not in found and found["omitted"] == ["environment"]
+
+
+def test_what_is_shown_and_what_is_stored_are_one_reading(tmp_path):
+    """The printed block and the JSON come from the same object, which is what makes the
+    reviewer's approval mean anything (RK87)."""
+    found = capture(SYMPTOM, WHY, "F", ["-C", str(project(tmp_path)), "lint"], tmp_path)
+    assert found.environment is not None
+    said = str(found)
+    assert "--- how this process reads and writes text ---" in said
+    assert found.environment.locale in said
+    assert found.as_dict()["environment"] == found.environment.as_dict()

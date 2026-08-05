@@ -213,3 +213,82 @@ def test_a_file_that_is_not_a_capture_is_refused_and_not_staged(tmp_path, capsys
     path.write_text("this is not json", encoding="utf-8")
     assert main(["replay", str(path)]) != EXIT_OK
     assert "roadkeep:" in capsys.readouterr().err
+
+
+# -- the one input a replay cannot stage (RK341) ------------------------------
+
+
+def test_a_verdict_reached_under_different_codecs_says_which_ones(tmp_path):
+    """The defect RK341 names, from the reader's side.
+
+    `observe` runs the argv through the `main` this interpreter already loaded — a subprocess
+    would be a second engine to be wrong about (RK79) — and an interpreter's stdio codecs are
+    settled before its first line runs, so no assignment here reaches them. A replay therefore
+    answers under *its* text handling and not the reporter's, and a bare "no longer reproduces"
+    is how RK337 was closed against a module that encodes nothing.
+    """
+    recorded = recorded_from(tmp_path / "theirs")
+    recorded["environment"] = {
+        **recorded["environment"],
+        "declared": {"PYTHONIOENCODING": "utf-8:surrogateescape"},
+        "locale": "iso-8859-15",
+    }
+    recorded["exit"] = 99  # so the verdict is the negative one the caveat exists for
+    outcome = replay(recorded, staging(tmp_path))
+    assert not outcome.reproduces
+    assert outcome.drifted == ("PYTHONIOENCODING", "locale")
+    assert "under a different PYTHONIOENCODING, locale" in str(outcome)
+
+
+def test_an_environment_this_process_shares_adds_no_caveat(tmp_path):
+    """The other half, or the note is one every replay carries and nobody reads: the capture
+    was taken in this process, so there is nothing to warn about."""
+    recorded = recorded_from(tmp_path / "theirs")
+    outcome = replay(recorded, staging(tmp_path))
+    assert outcome.drifted == () and "different" not in str(outcome)
+
+
+def test_a_capture_with_no_environment_says_so_rather_than_reading_as_a_fix(tmp_path):
+    """`None` and not `()`: *nothing drifted* and *nothing to compare* are different answers,
+    and every capture this repository stored before RK341 is the second one.
+
+    Only on the negative verdict. "Still reproduces" is a claim the run just demonstrated; "no
+    longer reproduces" is an inference from an absence, and an unrecorded environment is
+    another absence — so the two are said together or the first is read as a fix.
+    """
+    recorded = recorded_from(tmp_path / "theirs")
+    recorded.pop("environment")
+    recorded["exit"] = 99
+    outcome = replay(recorded, staging(tmp_path))
+    assert outcome.drifted is None
+    assert "records no environment" in str(outcome)
+
+
+def test_a_capture_with_no_environment_that_reproduces_is_stated_plainly(tmp_path):
+    recorded = recorded_from(tmp_path / "theirs")
+    recorded.pop("environment")
+    outcome = replay(recorded, staging(tmp_path))
+    assert outcome.reproduces and str(outcome).endswith(f"now {outcome.exit_code}")
+
+
+def test_the_drift_is_null_and_not_empty_in_the_json(tmp_path, capsys):
+    """The distinction has to survive the machine-readable form too, or a caller reading
+    `drifted: []` concludes the environment matched when none was recorded."""
+    recorded = recorded_from(tmp_path / "theirs")
+    recorded.pop("environment")
+    path = tmp_path / "old.json"
+    path.write_text(json.dumps(recorded), encoding="utf-8")
+    assert main(["replay", str(path), "--json"]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["drifted"] is None
+
+
+def test_a_capture_that_cannot_run_still_reports_the_drift(tmp_path):
+    """The two answers are independent: what the staging lacks is about the capture, and what
+    the codecs are is about this machine, so a report missing a document still says the one it
+    can — which is the half that decides whether re-taking the capture is worth it."""
+    root = project(tmp_path / "theirs")
+    found = capture(SYMPTOM, WHY, "F", ["-C", str(root), "lint"], root)  # no embed
+    recorded = found.as_dict()
+    recorded["environment"] = {**recorded["environment"], "filesystem": "ascii"}
+    outcome = replay(recorded, staging(tmp_path))
+    assert outcome.missing == ("document",) and outcome.drifted == ("filesystem",)
