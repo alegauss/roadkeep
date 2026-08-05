@@ -330,3 +330,4 @@
 - ✅ **RK304** **The one closed-set argument on the MCP surface publishes no enum, so a role nobody declared is refused after the call** — role publishes the declared files of the kind its own command means, narrowed per project and empty on none.
 - ✅ **RK308** **The verb that declares a scope has no tool on the surface it was built for** — the verb that declares a scope is served as the tool scope, both writing flags exposed and the read left to ship.
 - ✅ **RK313** **The one refusal a stale server does explain names only a remedy the agent cannot perform** — the staleness note closes with the verb through the CLI, which is the one remedy available inside the session that reads it.
+- ✅ **RK314** **The marker argument publishes no enum on the one tool whose whole job is writing a marker** — one bound serves both dests that mean the open set, and the filter that reads any governed file publishes the union.

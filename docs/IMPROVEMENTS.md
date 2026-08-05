@@ -214,19 +214,3 @@ taken at collection, or whether a count over a file the backlog erodes is the wr
 assertion whoever is writing it — RK305 already names that ratio as fragile.
 
 ## Block F — The plugin
-
-### §RK314 The dest the enum missed
-
-RK304 published `role` as an enum and its own line asserted `status` already published
-its markers. Measured on this repository after that shipped: `budget` offers them and
-`status` does not. The two arguments mean the same closed set and differ only in dest —
-`budget --status` is dest `status`, which \_BOUNDS keys on, and the `status` command's
-positional is dest `marker`, which nothing keys on. So the enum reaches the tool that
-prices a line and misses the tool that writes one, which is the call an agent makes on
-every task it starts.
-
-The set is already computed: `config.schema.markers` is what the existing entry
-publishes, and the narrowing RK304 needed for roles has no analogue here because a
-marker set is declared whole. What needs deciding is whether a second key is the answer
-or whether keying bounds by dest is what let one argument's bound miss its twin — the
-same question `_bounds_for` answers per verb for `role`, arriving one field over.

@@ -391,6 +391,20 @@ TOOLS: tuple[Tool, ...] = (
 #: (RK58) resolves the full path itself.
 TOOL_NAMES = frozenset(tool.argv_head[0] for tool in TOOLS)
 
+def _markers(config: Config) -> dict[str, Any]:
+    """The open markers a caller may write, wherever the field means that set (RK314).
+
+    Above the table rather than beside the other bound functions, because the table names it
+    directly and not through a lambda: two dests share one bound here, and a wrapper per dest
+    would be the second spelling this exists to prevent.
+
+    The **roadmap's** set, which is what every dest reaching this writes into: `status` refuses
+    `✅` as `status.shipped`, so the shipped marker is not a value any of them may carry. The
+    changelog's own set is a different question and `list` is the only tool that asks it.
+    """
+    return {"enum": list(config.schema.markers)}
+
+
 #: What the config knows about a field that argparse does not: the limit, the marker set, the
 #: id shape. This is the whole of RK24 — the bound that refuses the prose and the bound the
 #: client validates against are read from the same `roadkeep.toml` (L6).
@@ -427,7 +441,13 @@ _BOUNDS = {
     # count would refuse prose this tool accepts, which is a bound on the client (RK183's rule).
     "body": lambda config: {"note": _paragraphed(config)},
     "section_body": lambda config: {"note": _paragraphed(config)},
-    "status": lambda config: {"enum": list(config.schema.markers)},
+    # One bound and two dests, because the dest is a spelling and the set is the fact (RK314).
+    # `budget --status` is dest `status` and the `status` command's own positional is dest
+    # `marker` — the same closed set, and keying by dest published it to the tool that *prices*
+    # a line while missing the tool that writes one, which is the call an agent makes on every
+    # task it starts. `resume --marker` is the third and was missing for the same reason.
+    "status": _markers,
+    "marker": _markers,
     # The remaining closed set, and the one that published a sentence (RK304). `section_add`,
     # `section_amend`, `section_drop` and `budget` each describe this as *"which prose file"* and
     # gave the client nothing to validate, so `role = "notes"` was a well-formed call the server
@@ -494,7 +514,17 @@ _CONDITIONAL: Mapping[str, Conditional] = {
 #: role this project declares, `roadmap` included, and that is the default. Published through the
 #: same table with the one key overridden, so a bound added to `_BOUNDS` tomorrow reaches this
 #: tool too: an enum of the prose files here would refuse the most common call this surface makes.
-_FILE_BOUNDS = {**_BOUNDS, "role": lambda config: _roles(config, ROLES)}
+#: — and its `marker` is every marker any of those files can carry (RK314), because the set is
+#: read per role: the changelog declares `✅ 🗑` where the roadmap declares the open four, so a
+#: filter is checked against `schema_for(--role)`. A schema cannot make one enum depend on
+#: another field, so this is the union — over-permissive by exactly the markers legal on a role
+#: the call did not name, which the read beneath refuses, where the narrow answer would refuse
+#: `--role changelog --marker ✅` on the client and never reach it.
+_FILE_BOUNDS = {
+    **_BOUNDS,
+    "role": lambda config: _roles(config, ROLES),
+    "marker": lambda config: _listed_markers(config),
+}
 
 #: The non-goals are their own two limits (RK70), so the same `why` means a different number
 #: here — a client validating a bullet against the *task* limit would refuse prose the tool
@@ -536,6 +566,30 @@ def _roles(config: Config, universe: Sequence[str]) -> dict[str, Any]:
     """
     declared = [role for role in universe if config.has(role)]
     return {"enum": declared} if declared else {}
+
+
+def _listed_markers(config: Config) -> dict[str, Any]:
+    """Every marker a declared file can carry, for the one filter that reads any of them (RK314).
+
+    `list --marker` is checked against `schema_for(--role)` — the changelog declares `✅ 🗑`, the
+    roadmap the open four — and JSON Schema cannot make one field's enum depend on another's
+    value. So the union, in the order `ROLES` declares the files, first occurrence winning: it is
+    over-permissive by the markers legal on some *other* role, and every one of those is refused
+    by the read beneath with the set that role does declare.
+
+    The direction matters and is the one rule this whole derivation keeps: a bound that refuses
+    what the tool accepts is a bound on the client (RK183), and a per-role enum would refuse
+    `--role changelog --marker ✅` before the call was ever made.
+    """
+    seen: list[str] = []
+    for role in ROLES:
+        if not config.has(role):
+            continue
+        schema = config.schema_for(role)
+        for marker in (*schema.markers, schema.shipped_marker):
+            if marker not in seen:
+                seen.append(marker)
+    return {"enum": seen} if seen else {}
 
 
 def _paragraphed(config: Config) -> str:

@@ -1086,6 +1086,44 @@ def test_the_tool_that_declares_a_scope_is_not_the_tool_that_takes_the_line(tmp_
     assert "porcelain" not in served["scope"]["inputSchema"]["properties"]
 
 
+# -- the dest the enum missed (RK314) -------------------------------------------
+
+
+def test_the_tool_that_writes_a_marker_publishes_the_set_the_one_that_prices_one_did(tmp_path):
+    # RK304 published `role` and its own line asserted `status` already published its markers.
+    # Measured after that shipped: `budget --status` is dest `status`, which the table keyed on,
+    # and the `status` command's positional is dest `marker`, which nothing keyed on — so the
+    # enum reached the tool that prices a line and missed the tool that writes one.
+    served = listed(project(tmp_path))
+    open_set = ["📋", "💭", "⏳", "🛠"]
+    for name in ("status", "resume", "budget", "add"):
+        published = served[name]["inputSchema"]["properties"]
+        dest = "marker" if "marker" in published else "status"
+        assert published[dest]["enum"] == open_set, name
+    # The roadmap's set and not the ledger's: `status RK1 ✅` is refused as `status.shipped`, so
+    # the shipped marker is not a value any of these may carry.
+    assert "✅" not in served["status"]["inputSchema"]["properties"]["marker"]["enum"]
+
+
+def test_the_filter_that_reads_any_governed_file_offers_every_marker_one_can_carry(tmp_path):
+    # `list --marker` is checked against `schema_for(--role)`, and the changelog declares `✅ 🗑`
+    # where the roadmap declares the open four. A schema cannot make one enum depend on another
+    # field, so the union is published — and the direction is the one rule that binds.
+    offered = listed(project(tmp_path))["list"]["inputSchema"]["properties"]["marker"]["enum"]
+    assert offered == ["📋", "💭", "⏳", "🛠", "✅", "🗑"]
+    # The call a narrow enum would have refused on the client, which the tool accepts.
+    answered = called(project(tmp_path), "list", role="changelog", marker="✅")
+    assert answered["isError"] is False
+
+
+def test_the_marker_the_union_admits_for_another_role_is_still_refused_beneath(tmp_path):
+    # Over-permissive by exactly the markers legal on a role the call did not name, and every one
+    # of those is refused by the read beneath with the set that role does declare.
+    answered = called(project(tmp_path), "list", role="roadmap", marker="🗑")
+    assert answered["isError"] is True
+    assert "is not a marker this project declares" in text_of(answered)
+
+
 # -- the bound that stayed prose (RK304) ----------------------------------------
 
 

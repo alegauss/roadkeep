@@ -41,8 +41,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK314** (deps: —) **The marker argument publishes no enum on the one tool whose whole job is writing a marker** — budget --status offers the declared set under dest status, and the status command's own positional is dest marker, which RK304's per-dest table never reached. → §RK314
-
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:
