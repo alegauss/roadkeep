@@ -77,30 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK325 The queue has no governed home
-
-`priority` in `roadkeep.toml` is the one tier of `pick` a project declares rather than
-derives (RK11), and `guarding.governed` is explicit that the config is not governed: it
-is "the per-project declaration, which a human edits by hand on purpose". That is right
-about the prefix, the paths and the limits — none stops being true by itself. The queue
-is the exception, because every token in it names work and work leaves.
-
-So it moves to where the plan is, as a governed section of the roadmap, and RK70 is the pattern
-rather than a precedent: a list that is not task lines, one renderer, refused at insertion,
-addressed by a verb. `picking`'s objection to a `## Priority queue` section is about
-*interpreting prose* — Shio's is a paragraph about why reachability comes first — and it does
-not apply to a section this tool renders.
-
-What that buys is more than a door. `ship` already rewrites the roadmap inside its
-atomic transaction, so the entry a departure kills cannot survive it (RK327); the gate
-reads a file it already reads (RK326); `--fix` repairs one it already repairs (RK328). A
-separate store makes each of those a fourth writer.
-
-No reason field: an entry is a token, an id or `Block X`. Why something jumps the queue
-is the commit that moved it, exactly as `restate` takes none. `priority` in the config
-stays *read* — Shio and Turing may have declared one — the section winning where both
-exist.
-
 ### §RK327 The departure that cannot take the entry with it
 
 `ship QQ1` on a project whose `priority` names QQ1 prints the ledger line, the removal,

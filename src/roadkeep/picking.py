@@ -11,10 +11,13 @@ Three tiers, in this order, and each one is a fact rather than a taste:
 1. **Work already in progress.** A 🛠 line says someone started; picking something else
    leaves it half-done, and half-done work is the one state the marker set can express
    and no count can repair. This tier is why `pick` does not simply mean "lowest".
-2. **The declared priority.** `priority = ["RK14", "Block D"]` in `roadkeep.toml` (L6),
-   applied in the order written. Declared, and not read out of a "## Priority queue"
-   section: Shio has one and it is prose — a paragraph about why reachability comes
-   first. A tool that ranked work by reading it would be interpreting prose (L4).
+2. **The declared priority.** A `## Priority` section of the roadmap, or `priority =
+   ["RK14", "Block D"]` in `roadkeep.toml` (L6), applied in the order written. The section
+   wins where both exist, and `roadkeep.queueing` is the reader — the objection this tier
+   used to state, that Shio's "## Priority queue" is a paragraph about why reachability
+   comes first, is about *interpreting prose* (L4) and does not reach a list this tool
+   renders (RK325). What the move buys is that the queue's tokens name work that **leaves**,
+   and the file the plan is in is the one every departure already rewrites.
 3. **The lowest ready id**, numerically. Blocks are ordered by dependency, so the id
    order already follows the build order and needs no second opinion.
 
@@ -62,6 +65,7 @@ from roadkeep.claiming import Held
 from roadkeep.config import Config
 from roadkeep.document import Entry, declares, shading
 from roadkeep.locking import exclusive
+from roadkeep.queueing import declared
 from roadkeep.schema import IN_PROGRESS, Dep
 
 #: How many runners-up an answer carries. Bounded on purpose: the value of `pick` is that
@@ -381,7 +385,12 @@ def _first(ordered: list[Entry], config: Config) -> tuple[Entry, Tier, str]:
             f"{started[0].task.id} is already in progress and ready to continue",
         )
 
-    for token in config.priority:
+    # The roadmap's section where one is declared, and `roadkeep.toml` otherwise (RK325).
+    # Named in the reason rather than merely applied: a project that wrote a section and is
+    # still being ordered by its config has a fact to learn, and the tier is where it reads.
+    queue = declared(config)
+    named = "the roadmap's queue" if queue.declared_in == "roadmap" else "declared priority"
+    for token in queue.tokens:
         # Typed by the code that types a dep, so `Block X` cannot come to mean two things.
         label = config.schema.block_of_dep(Dep(token))
         if label is not None:
@@ -390,17 +399,17 @@ def _first(ordered: list[Entry], config: Config) -> tuple[Entry, Tier, str]:
                 return (
                     inside[0],
                     Tier.PRIORITY,
-                    f"declared priority names Block {label}, whose lowest ready id it is",
+                    f"{named} names Block {label}, whose lowest ready id it is",
                 )
             continue
         match = next((e for e in ordered if e.task.id == token), None)
         if match is not None:
-            return match, Tier.PRIORITY, f"declared priority names {token} and it is ready"
+            return match, Tier.PRIORITY, f"{named} names {token} and it is ready"
 
-    if config.priority:
+    if queue:
         return (
             ordered[0],
             Tier.LOWEST,
-            "lowest ready id; the declared priority names nothing ready",
+            f"lowest ready id; {named} names nothing ready",
         )
     return ordered[0], Tier.LOWEST, "lowest ready id"

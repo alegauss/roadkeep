@@ -42,7 +42,7 @@ src/roadkeep/   the package (src layout, importable via pytest pythonpath). Each
   deferring renumbering merging       RK91/96/97/120  the doors that are not terminal,
                                                  and the merge git cannot make
   locking claiming storing  RK117/119/330  scan-to-save is one span, who holds a line, one grammar
-  scoping                                   RK69-70  the non-goal, and the list read before an add
+  scoping queueing  RK69-70/325  the non-goal, the list read before an add, the queue
   backlog counting picking showing graph  RK10-13/28-29/31/37/39-40/83/92/247  the query surface,
   briefing budgeting exporting history weighing      plus what git alone can answer
   linting fixing                            RK14-17  the gate, and the derived-only fixer
@@ -72,7 +72,6 @@ differently. Never construct a task line with an f-string; before writing a comm
 `roadkeep lint` **must pass on `docs/`** — the format is proven by the artefact, not asserted
 in a README. A limit that cannot express these lines is the wrong limit rather than a set of
 wrong lines, so a schema change validates here first, under this repo's own `roadkeep.toml`.
-
 Don't hand-check it: `… lint` **exits 1** on any violation, line that stopped round-tripping,
 dep nothing satisfies, pointer resolving to nothing, section nothing points at, over-budget
 every-turn file, or invisible codepoint — named as `file:line:column` rather than as its

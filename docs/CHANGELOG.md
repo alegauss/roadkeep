@@ -116,6 +116,7 @@
 - ✅ **RK310** **A design section can carry a stale premise and ship drops it in silence** — A shipment records what the design it deleted had been wrong about, in the ledger's own sentence, so the reader who found out is not the last one who ever knows.
 - ✅ **RK311** **A body refused for one word is discarded whole, so the check costs what the limit saves** — A refused body names what each paragraph costs and which is longest, so the second draft is composed once (design §RK311 superseded: the add --check it ranked cheapest costs a send twice).
 - ✅ **RK312** **The refusal that demands a ref names nothing that would produce one** — The refusal names the block's family and the free address under it, and anchors --block is the read it points at.
+- ✅ **RK325** **The queue that outranks the id order lives in the one file nothing governs, so no verb keeps it true** — The queue is a governed Priority section of the roadmap with an insert, a drop and a read, and it wins over the config.
 
 ## Block C — Query
 

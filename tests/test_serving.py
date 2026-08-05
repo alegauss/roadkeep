@@ -195,12 +195,18 @@ def test_the_tools_are_what_a_task_needs_end_to_end():
         "record_renumber",
         "non_goal_add",
         "non_goal_drop",
+        # The queue, once it had a governed home (RK325): the agent that ships a queued
+        # id is the one that has to take it out, and the file it lives in is one the
+        # guard denies an edit to.
+        "priority_add",
+        "priority_drop",
         "section_add",
         "section_amend",
         "section_drop",
         # The two reads a session that is *proposing* makes, so they head the reads: what
         # may not be proposed at all (RK69), and what a comparable one cost (RK71).
         "non_goal_list",
+        "priority_list",
         "weight",
         # And the third (RK190): what the line being proposed leaves its prose, which
         # `maxLength` cannot publish because it moves with the deps and the symptom.
@@ -714,6 +720,8 @@ def test_the_read_only_hint_says_which_tools_write(tmp_path):
         "record_renumber",
         "non_goal_add",
         "non_goal_drop",
+        "priority_add",
+        "priority_drop",
         "section_add",
         "section_amend",
         "section_drop",

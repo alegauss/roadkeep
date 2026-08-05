@@ -162,6 +162,11 @@ _INSTEAD: Mapping[str, tuple[tuple[str, str], ...]] = {
         # sentence because this is the file whose first bullet decides whether `add` may be
         # called at all: a denial that teaches the write and not the check teaches half.
         ("non-goal list", "what may not be proposed at all — before `add`, not after"),
+        # The other list this file holds that is not task lines (RK325), and the reason it
+        # arrived: the queue used to live in the config, which nothing governs — right for
+        # the prefix and the limits, wrong for a list whose every token names work that leaves.
+        ("priority add <token>", "an id or 'Block X' jumps the id order; --first, --after"),
+        ("priority drop <token>", "an entry that has shipped, or stopped being urgent"),
         # The repair for damage smaller than a line (RK126). Listed on both line files,
         # because a control character is the one defect no verb above reaches.
         ("lint --fix", "a derived field or a character that is not text, repaired"),

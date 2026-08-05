@@ -117,6 +117,9 @@ from roadkeep.picking import Choice, Claim, pick, take
 from roadkeep.provenance import engine, invocation
 from roadkeep.renumbering import renumber
 from roadkeep.schema import SchemaError
+from roadkeep.queueing import add as add_priority
+from roadkeep.queueing import declared as declared_queue
+from roadkeep.queueing import drop as drop_priority
 from roadkeep.scoping import add as add_non_goal
 from roadkeep.scoping import drop as drop_non_goal
 from roadkeep.sections import Section, heading_of
@@ -861,6 +864,69 @@ def build_parser() -> argparse.ArgumentParser:
     )
     scope_drop.add_argument("--json", action="store_true", help=_JSON_HELP)
     scope_drop.set_defaults(handler=_non_goal_drop)
+
+    queue_parser = subcommands.add_parser(
+        "priority",
+        help="the order that outranks the id order, in the file the plan lives in",
+        description=(
+            "The one tier of `pick` a project declares rather than derives, moved out of "
+            "`roadkeep.toml` and into a `## Priority` section of the roadmap (RK325). Every "
+            "token in it names work, and work leaves — so unlike the prefix, the paths and "
+            "the limits, the queue stops being true by itself, and the config was the one "
+            "file nothing governs. The section wins wherever both are declared."
+        ),
+    )
+    # Three verbs under one noun, for the reason `non-goal` has three (RK69): `priority` and
+    # `priorities` are two addresses for one list, and a near-twin is a command typed wrong.
+    ordering = queue_parser.add_subparsers(dest="action", required=True)
+
+    queue_add = ordering.add_parser(
+        "add",
+        help="put a token in the queue — an id, or 'Block X'",
+        description=(
+            "Insert one entry under the priority heading. Appended by default, because a "
+            "queue grows at the end and 'everything new is most urgent' is the order nobody "
+            "meant; --first and --after are the two places that are not the end, and moving "
+            "work up the order is the act the config file made unavailable."
+        ),
+    )
+    queue_add.add_argument("token", help="an id of this project, or 'Block X'")
+    placement = queue_add.add_mutually_exclusive_group()
+    placement.add_argument(
+        "--first", action="store_true", help="ahead of everything already queued"
+    )
+    placement.add_argument(
+        "--after", metavar="TOKEN", help="directly after this entry, which must be queued"
+    )
+    queue_add.add_argument(
+        "--json", action="store_true", help="the entry, its place in the order, and the line"
+    )
+    queue_add.set_defaults(handler=_priority_add)
+
+    queue_list = ordering.add_parser(
+        "list",
+        help="the order as it stands, and which file declared it",
+        description=(
+            "The queue `pick` applies, in order, with the file it came from — because a "
+            "project that wrote a section and is still being ordered by its config has a "
+            "fact to learn and no other way to learn it. Reading is never refused."
+        ),
+    )
+    queue_list.add_argument("--json", action="store_true", help=_JSON_HELP)
+    queue_list.set_defaults(handler=_priority_list, reads_only=True)
+
+    queue_drop = ordering.add_parser(
+        "drop",
+        help="take a token out of the queue",
+        description=(
+            "Delete one entry. There is no correction verb between the two: an entry carries "
+            "a token and nothing else, so a token that changed is a different entry and a "
+            "move is a drop and an insert."
+        ),
+    )
+    queue_drop.add_argument("token", help="the entry to remove, as the file spells it")
+    queue_drop.add_argument("--json", action="store_true", help=_JSON_HELP)
+    queue_drop.set_defaults(handler=_priority_drop)
 
     list_parser = subcommands.add_parser(
         "list",
@@ -3208,6 +3274,114 @@ def _non_goal_drop(config: Config, args: argparse.Namespace) -> int:
             f"  duplicate {dropped.carried} bullets carried this lead: the later one went, "
             f"the first is where the reader already found it"
         )
+    return EXIT_OK
+
+
+def _priority_add(config: Config, args: argparse.Namespace) -> int:
+    try:
+        written = add_priority(config, args.token, after=args.after, first=args.first)
+        written.save()
+    except REFUSALS as error:
+        return _refused(error)
+
+    where = config.relative(config.path("roadmap"))
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "token": written.entry.token,
+                    "file": where,
+                    "line": written.lineno,
+                    # The two a caller cannot read off a line number, and the whole content
+                    # of a list whose order is what it says (RK325).
+                    "position": written.position,
+                    "length": written.length,
+                    "rendered": written.entry.raw,
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+
+    print(f"{where}:{written.lineno}  queued {written.entry.token}")
+    print(f"  order    {written.position} of {written.length}")
+    # No event line (RK38): the payload a hook reads is an id and its block's open state, and
+    # an entry states neither — the token names work whose line is somewhere else.
+    return EXIT_OK
+
+
+def _priority_list(config: Config, args: argparse.Namespace) -> int:
+    """The order, and which file declared it (RK325).
+
+    Both, always. A project that wrote a section and is still being ordered by its config is
+    the state this move exists to make visible, and it is invisible from the tokens alone.
+    """
+    try:
+        queue = declared_queue(config)
+    except (KeyError, OSError) as error:
+        return _refused(error)
+
+    where = config.relative(config.path("roadmap"))
+    source = config.relative(config.source or config.root)
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "declared_in": queue.declared_in or None,
+                    "file": where if queue.declared_in == "roadmap" else source,
+                    "priority": list(queue.tokens),
+                    # Bullets under the heading the format could not read — counted apart
+                    # for `non-goal`'s reason: unreadable is not absent.
+                    "unread": [
+                        {"line": lineno, "raw": raw} for lineno, raw in queue.rejects
+                    ],
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+
+    if not queue.declared_in:
+        print(
+            f"{where}: no priority queue — add a `## Priority` heading, or declare "
+            f"`priority` in {source}; the id order stands either way"
+        )
+        return EXIT_OK
+    named = where if queue.declared_in == "roadmap" else source
+    empty = "  empty: the tier is declared and off" if not queue.tokens else ""
+    print(f"{named}  {len(queue.tokens)} entr(ies){empty}")
+    for place, token in enumerate(queue.tokens, 1):
+        print(f"  {place:<8} {token}")
+    for lineno, raw in queue.rejects:
+        print(f"  unread   {where}:{lineno}  {raw}")
+    return EXIT_OK
+
+
+def _priority_drop(config: Config, args: argparse.Namespace) -> int:
+    try:
+        dropped = drop_priority(config, args.token)
+        dropped.save()
+    except REFUSALS as error:
+        return _refused(error)
+
+    where = config.relative(config.path("roadmap"))
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "token": dropped.entry.token,
+                    "file": where,
+                    "removed": dropped.entry.lineno,
+                    "length": dropped.length,
+                    "rendered": dropped.entry.raw,
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+
+    print(f"{where}:{dropped.entry.lineno}  dropped  {dropped.entry.token}")
+    print(f"  order    {dropped.length} left")
     return EXIT_OK
 
 

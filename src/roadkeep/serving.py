@@ -340,6 +340,11 @@ TOOLS: tuple[Tool, ...] = (
     Tool("record renumber", ("id", "line", "to")),
     Tool("non-goal add", ("lead", "why")),
     Tool("non-goal drop", ("lead",)),
+    # The other list this file holds that is not task lines (RK325). Exposed for the reason
+    # the non-goals are: the agent that ships a queued id is the one that has to take it out,
+    # and the file it now lives in is the one the guard denies an edit to.
+    Tool("priority add", ("token", "first", "after")),
+    Tool("priority drop", ("token",)),
     Tool("section add", ("anchor", "title", "body", "role")),
     # The correction an open task's design needs (RK123). Exposed for the reason the whole
     # write path is: the agent that narrowed a hypothesis is the one the hook denies a hand
@@ -347,6 +352,7 @@ TOOLS: tuple[Tool, ...] = (
     Tool("section amend", ("anchor", "title", "body", "role")),
     Tool("section drop", ("anchor", "role")),
     Tool("non-goal list"),
+    Tool("priority list"),
     # `records` is exposed because the caller paying for them is this one (RK264): the
     # percentiles are the answer and the sample was 95% of the payload, so the evidence is
     # a flag an agent disputing the figure can still pass rather than a read it cannot make.

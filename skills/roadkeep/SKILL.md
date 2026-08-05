@@ -135,6 +135,12 @@ so a constraint whose lead changes is one dropped and one written. **Call `non-g
 an `add`** — the list binds what may be proposed, so reading it after the line exists is reading
 it too late; it prints on a project that never opted in, and nothing checks a proposal against it
 for you, that being a judgement about meaning and this tool having no model (L4).
+**The roadmap's third list is the queue**: `priority add <token> [--first|--after <t>]` and
+`priority drop <token>` write the `## Priority` section, whose entries are bare tokens — an
+id or `Block X`, no reason field, because why something jumps the order is the commit that
+moved it. A heading declares the list, as a block heading declares a block, and the section
+**wins over `priority` in `roadkeep.toml`** where both exist; `priority list` says which one
+answered. Take an id out of it in the commit that ships that id.
 Every write prints one `event <id> Block <x> open|empty` line, the whole payload a
 hook gets — a non-goal excepted, having neither an id nor a block. There is no second route: `Edit` on a governed file is denied, naming the command,
 and `lint` gates the turn's end.
