@@ -55,8 +55,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK337** (deps: —) **A crash in the environment's own stdio encoding is unreproducible and untested** — A capture from an adopting project raised UnicodeEncodeError under PYTHONIOENCODING=utf-8:surrogateescape, and `_force_utf8` runs inside `main`, after every import. → §RK337
-
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:
