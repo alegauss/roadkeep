@@ -756,3 +756,39 @@ def test_what_is_shown_and_what_is_stored_are_one_reading(tmp_path):
     assert "--- how this process reads and writes text ---" in said
     assert found.environment.locale in said
     assert found.as_dict()["environment"] == found.environment.as_dict()
+
+
+# -- the name the other surface publishes (RK353) -----------------------------
+
+
+def test_a_tool_name_typed_at_the_cli_is_answered_with_the_verb_it_is_here(capsys):
+    """Measured in a session: the skill teaches `scope`, argparse answers `invalid choice`
+    and forty verbs, and none of them is the one the reader was sent for. The arguments they
+    typed are already the right ones, so the answer is the verb and nothing else."""
+    with pytest.raises(SystemExit):
+        main(["scope", "RK1", "--path", "src/x.py"])
+    err = capsys.readouterr().err
+    assert f"the same act is `{invocation()} claim`" in err
+    assert "publishes that verb as over MCP" in err
+
+
+def test_the_qualified_name_is_answered_too(capsys):
+    # A name pasted out of a tool list arrives with its prefix (RK333).
+    with pytest.raises(SystemExit):
+        main(["mcp__roadkeep__merge_check"])
+    assert f"the same act is `{invocation()} merge --check`" in capsys.readouterr().err
+
+
+def test_a_typo_is_not_told_about_a_tool(capsys):
+    # A name nothing publishes is a typo, and the offer below is the whole of what is said.
+    with pytest.raises(SystemExit):
+        main(["nonsence"])
+    assert "publishes that verb" not in capsys.readouterr().err
+
+
+def test_a_word_inside_an_argument_is_not_read_as_the_verb(capsys, tmp_path):
+    # The first token that is not an option, and nothing after it: a `--why` about `scope` is
+    # not the command somebody typed.
+    with pytest.raises(SystemExit):
+        main(["-C", str(tmp_path), "add", "--why", "scope"])
+    assert "publishes that verb" not in capsys.readouterr().err

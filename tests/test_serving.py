@@ -1521,6 +1521,23 @@ def test_the_act_is_resolved_through_the_parser_for_every_tool_that_is_a_flag(tm
         assert len(spelled.split()) == len(tool.argv_head) + len(tool.always)
 
 
+def test_the_table_answers_for_a_name_the_parser_does_not_know(tmp_path):
+    """RK353: the same act, named for the surface the reader is not on. The tool table is the
+    authority — it is what publishes the other spelling — so the answer comes from here."""
+    assert serving.spelled("scope") == "claim"
+    assert serving.spelled("merge_check") == "merge --check"
+    assert serving.spelled("section_add") == "section add"
+    # A name nothing publishes is a typo, and a typo told about a tool is a second wrong turn.
+    assert serving.spelled("nonsense") is None
+
+
+def test_a_name_pasted_out_of_a_tool_list_arrives_with_its_prefix(tmp_path):
+    # Both prefixes, which is RK333 one surface along: a session reads the qualified name off
+    # its own tool list, and a refusal that only knew the bare form is the same defect.
+    assert serving.spelled("mcp__roadkeep__scope") == "claim"
+    assert serving.spelled("mcp__plugin_roadkeep_roadkeep__scope") == "claim"
+
+
 def test_a_refusal_with_no_drift_offers_nothing_because_a_re_run_answers_the_same(tmp_path):
     # The advice is not circular, which is RK272's bar: it is offered only where the drift is a
     # fact about this process, so a fresh import is the one place a different answer comes from.

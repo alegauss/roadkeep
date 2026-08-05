@@ -140,7 +140,7 @@ from roadkeep.sections import drop as drop_section
 from roadkeep.sections import find as find_section
 from roadkeep.sections import nested as nested_sections
 from roadkeep.sections import pointers
-from roadkeep.serving import Prose, serve
+from roadkeep.serving import Prose, serve, spelled
 from roadkeep.shipping import Closure, Partial, record, retire, ship
 from roadkeep.shipping import amend as amend_record
 from roadkeep.shipping import move as move_record
@@ -1842,6 +1842,43 @@ def _counting_flags(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--json", action="store_true", help=_JSON_HELP)
 
 
+#: Top-level options that take a value, so the token after one is not the verb. Two, because
+#: `--version` is an action and every other flag belongs to a subcommand that was never reached.
+_VALUED = ("-C", "--directory")
+
+
+def _crossed(argv: Sequence[str]) -> str | None:
+    """The other surface's name for the verb this argv asked for, if that is what it is (RK353).
+
+    Read from :func:`~roadkeep.serving.spelled`, which is the tool table's answer: the parser is
+    the authority on what a *command* is and the table is the authority on what a **tool** is
+    called, so this asks rather than carrying a second mapping that could disagree with either.
+
+    The first token that is not an option, and nothing after it: the verb is the first positional
+    argument, and scanning further would read a `--why` somebody wrote about `scope` as the
+    command they typed. `-C <path>` is the one option before the verb that consumes what follows
+    it, in both spellings and in the `=` form, which needs no skip at all.
+    """
+    skipping = False
+    for token in argv:
+        if skipping:
+            skipping = False
+            continue
+        if token.startswith("-"):
+            skipping = token in _VALUED
+            continue
+        line = spelled(token)
+        if line is None or line == token:
+            # Silent where the two surfaces agree, which is most of them: `add` is `add`, so a
+            # refusal about a missing `--block` would otherwise be told the verb it already used.
+            return None
+        return (
+            f"roadkeep: `{token}` is what this tool publishes that verb as over MCP; at this "
+            f"CLI the same act is `{invocation()} {line}`, which takes the arguments you typed."
+        )
+    return None
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     # stdin too, and for the same reason as the two below: a section's prose arrives on
     # a pipe (RK9), the governed files are UTF-8, and the default Windows console
@@ -1862,6 +1899,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         # argparse refuses before a handler exists, and its exit 2 is one of the three
         # places RK86 names. The argv is all this knows, and all the offer needs.
         if exit_.code:
+            crossed = _crossed(argv)
+            if crossed is not None:
+                print(crossed, file=sys.stderr)
             print(offer(argv), file=sys.stderr)
         raise
     try:

@@ -1025,6 +1025,29 @@ def _spelled(tool: Tool, parsers: Mapping[str, argparse.ArgumentParser] | None =
     return " ".join((tool.command, *flags))
 
 
+def spelled(name: str) -> str | None:
+    """The command line for a name this tool publishes **over MCP**, or None (RK353).
+
+    Two surfaces name one act differently on purpose — `scope` is the tool for declaring what
+    a commit owns, and at the CLI that act is `claim <id> --path …`, because there `claim`
+    without a path is the other act — and the skill teaches the tool name. What a session that
+    reads it and types `roadkeep scope RK345 --path …` gets is argparse's `invalid choice`
+    followed by forty verbs, none of which is the one it was sent for.
+
+    The **tool table is the authority on a name**, which is the question §RK353 left open: it
+    is what publishes the other spelling, it already carries the flags that make an act that
+    one (:func:`_spelled`, RK318), and a second mapping in `cli.py` would be a second thing to
+    keep in step with this one. So the parser asks here rather than answering itself.
+
+    A qualified name is taken too — `mcp__roadkeep__scope`, and the longer
+    `mcp__plugin_roadkeep_roadkeep__scope` a plugin-provided server gives it (RK333) — because
+    a name pasted out of a tool list arrives with its prefix, and the refusal that only knew
+    the bare form would be the same defect one surface along.
+    """
+    tool = next((one for one in TOOLS if one.name == name.rpartition("__")[2]), None)
+    return None if tool is None else _spelled(tool)
+
+
 def _bounded(dest: str, value: Any, config: Config) -> None:
     """Hold a conditional argument to the bound that opened it (RK111).
 

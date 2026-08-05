@@ -155,29 +155,6 @@ a gate that asked for prose there would be answered with prose nobody needed.
 
 ## Block D — The gate
 
-### §RK353 The name the skill teaches and the parser does not know
-
-Two surfaces name one act differently on purpose. `scope` is the MCP tool for declaring
-what a commit owns, and at the CLI that same act is `claim <id> --path …`, because there
-`claim` without a path is the other act — taking a line. The skill says so.
-
-What happens next was measured in this session: the skill was read, `roadkeep scope RK345
---path …` was typed, and argparse answered `invalid choice: 'scope'` followed by all forty
-verbs. Nothing in that refusal names `claim --path`, and nothing distinguishes a name this
-tool publishes elsewhere from a typo.
-
-The same gap has been closed once already at the other end: RK333 is the refusal that
-offers `mcp__roadkeep__add` under a name a plugin-provided server does not use. The
-pattern is a route named for the surface the reader is not on, and the fix in both
-directions is the same shape — the refusal knows the other surface's table and can say
-which verb the name it was given belongs to.
-
-Small in code and not in effect: a session that is refused a route it was taught either
-retypes from memory or falls back to editing the file, which is the door the guard
-denies and the whole reason these names are published at all. What is worth deciding is
-whether the mapping lives with the tool table or with the parser, since only one of them
-can be the authority on a name.
-
 ## Block E — Adoption
 
 ### §RK305 A majority that measures the backlog, not the file

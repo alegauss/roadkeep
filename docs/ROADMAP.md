@@ -32,8 +32,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK353** (deps: —) **A verb this tool publishes under one name on one surface is an unknown command on the other** — Typing the MCP tool name at the CLI prints argparse's list of forty choices and nothing about which verb does that job, measured on scope, whose CLI spelling is claim with a path flag. → §RK353
-
 ## Block E — Adoption
 
 - 📋 **RK305** (deps: —) **The scheme suggestion is suppressed by a majority that shipping erodes** — adopt hides it only while the declared scheme out-counts the other, and this repo's id-anchored sections are deleted at every ship, so a conforming file is told to switch once enough work lands. → §RK305
