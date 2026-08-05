@@ -152,7 +152,10 @@ TEXT_VARIABLES = (
 #: `document` is not here because it is not always input: a defect in reading
 #: `roadkeep.toml` has no governed file in it at all, and demanding one would make the
 #: cheapest class of field report the one class that cannot be replayed. It is required
-#: exactly when the failure named a file — see :attr:`Capture.missing`.
+#: exactly when the failure named a file — see :attr:`Capture.missing`. What it then requires
+#: is *the declared files*, not one of them (RK344): a staging short of what the command reads
+#: is refused by :func:`_unstaged`, so carrying only the file a finding named satisfied this
+#: check and failed the next one.
 REPLAYABLE = ("command", "config")
 
 
@@ -286,11 +289,16 @@ class Capture:
     config_path: str | None = None
     #: The input line the engine objected to, verbatim, and where it lives.
     source: str | None = None
-    #: The whole file that line is in, embedded only when the caller asked (RK88): it is
-    #: the input half of a test, and it is also a file leaving a repository. One file, the
-    #: one the finding named — never the project.
-    document: str | None = None
-    document_path: str | None = None
+    #: `path -> contents` for the governed files, embedded only when the caller asked (RK88):
+    #: they are the input half of a test, and they are also files leaving a repository.
+    #:
+    #: Every file the config **declares**, and not the one the finding named (RK344). One file
+    #: was the smaller disclosure and it stopped being a staging: `lint` — the command the fault
+    #: offer suggests most — reads all of them, so a capture of it from an ordinary three-file
+    #: project stages two files short and is refused. The governed documents are also the least
+    #: sensitive files a project has, being the ones this tool exists to write. Never anything
+    #: else in the repository, and still never without `--embed`.
+    documents: tuple[tuple[str, str], ...] = ()
     #: How the reporting process reads and writes text (RK341) — the half of the input that is
     #: not in the repository and that a re-run in this interpreter silently supplies from
     #: wherever it happens to be running.
@@ -356,7 +364,7 @@ class Capture:
             ("traceback", "traceback", self.failure.traceback),
             ("output", "output", self.failure.output.rstrip() or "(nothing)"),
             ("config", "roadkeep.toml as it was read", self.config),
-            ("document", f"{self.document_path} as it was read", self.document),
+            *(("document", f"{path} as it was read", text) for path, text in self.documents),
             (
                 "environment",
                 "how this process reads and writes text",
@@ -392,7 +400,7 @@ class Capture:
         held = {
             "command": bool(self.failure.argv),
             "config": self.config is not None,
-            "document": self.document is not None and self.document_path is not None,
+            "document": bool(self.documents),
         }
         needed = list(REPLAYABLE)
         if self.shows("where") and self.failure.where:
@@ -430,8 +438,9 @@ class Capture:
             ("traceback", "traceback", self.failure.traceback),
             ("config", "config", self.config),
             ("source", "source", self.source),
-            ("document", "document", self.document),
-            ("document", "document_path", self.document_path if self.document else None),
+            # `path -> contents`, so a capture that carries three files is three entries and
+            # not three parallel lists a reader has to zip back together.
+            ("document", "documents", dict(self.documents) or None),
             (
                 "environment",
                 "environment",
@@ -549,13 +558,12 @@ def capture(
 ) -> Capture:
     """Run the failing command and compose the report. The claim is already validated.
 
-    ``embed`` carries the file the finding named, which is what makes the capture a test
-    somewhere else (RK88) and also what makes it a file leaving a repository (RK87) — so it
-    is asked for, never assumed.
+    ``embed`` carries the governed files, which is what makes the capture a test somewhere
+    else (RK88) and also what makes them files leaving a repository (RK87) — so it is asked
+    for, never assumed.
     """
     failure = observe(argv)
     config_path, config = _configuration(root)
-    document_path, document = _document(failure.where, root) if embed else (None, None)
     return Capture(
         symptom=symptom,
         why=why,
@@ -565,8 +573,7 @@ def capture(
         config=config,
         config_path=config_path,
         source=_source(failure.where, root),
-        document=document,
-        document_path=document_path,
+        documents=_documents(root) if embed else (),
         environment=environment(),
     )
 
@@ -632,12 +639,11 @@ def replay(recorded: Mapping[str, object], workdir: str | Path) -> Replay:
     is repointed at the staging. Everything else in that argv is passed through untouched —
     a replay that rewrote the flags would be testing a command nobody ran.
 
-    And a staging that is not the project answers nothing (RK343). `--embed` carries the one
-    file the finding named, so a capture from a project declaring more than one governed file
-    stages fewer files than the command reads: measured on `list --block Z`, exit 2 recorded and
-    exit 2 replayed, where the second 2 was `No such file or directory` and the verdict was
-    `still reproduces`. Every declared file is checked for before the run, because after it the
-    exit code has already collapsed the two causes into one number.
+    And a staging that is not the project answers nothing (RK343). Measured on `list --block Z`:
+    exit 2 recorded and exit 2 replayed, where the second 2 was `No such file or directory` and
+    the verdict was `still reproduces`. Every declared file is checked for before the run,
+    because after it the exit code has already collapsed the two causes into one number — and
+    what closed the gap on the other side is `--embed` carrying all of them (RK344).
 
     What this **cannot** stage is the environment (RK341), and the reason is two boundaries
     this deliberately keeps. :func:`observe` runs the argv through the `main` this interpreter
@@ -648,8 +654,10 @@ def replay(recorded: Mapping[str, object], workdir: str | Path) -> Replay:
     the recorded facts are held against this process's, and a verdict reached under different
     ones says so rather than reading as a fix.
     """
+    carried = _carried(recorded)
+    held = {"command": recorded.get("argv"), "config": recorded.get("config"), "document": carried}
     needed = list(REPLAYABLE) + (["document"] if recorded.get("where") else [])
-    missing = tuple(part for part in needed if not recorded.get(_FIELD[part]))
+    missing = tuple(part for part in needed if not held[part])
     recorded_exit = int(recorded.get("exit", 0) or 0)
     stored = recorded.get("environment")
     drifted = _drifted(stored) if stored is not None else None
@@ -660,13 +668,13 @@ def replay(recorded: Mapping[str, object], workdir: str | Path) -> Replay:
 
     root = Path(workdir)
     (root / "roadkeep.toml").write_text(str(recorded["config"]), encoding="utf-8")
-    if recorded.get("document"):
-        document = root / str(recorded["document_path"])
+    for name, text in carried.items():
+        document = root / name
         document.parent.mkdir(parents=True, exist_ok=True)
         # `newline=""`: the round-trip invariant is about bytes, and a translated line
         # ending is a different file from the one that failed.
         with document.open("w", encoding="utf-8", newline="") as handle:
-            handle.write(str(recorded["document"]))
+            handle.write(text)
 
     # Before the run and not after it (RK343): the exit code is the whole of the evidence
     # wherever the failure named no address, and a staging the command cannot read produces the
@@ -706,8 +714,19 @@ def _unstaged(root: Path) -> tuple[str, ...]:
     return tuple(config.relative(config.path(role)) for role in config.missing())
 
 
-#: Which key of a stored capture each replayable part lives under.
-_FIELD = {"command": "argv", "config": "config", "document": "document"}
+def _carried(recorded: Mapping[str, object]) -> dict[str, str]:
+    """`path -> contents` for the files one stored capture holds, in either spelling.
+
+    `documents` is what a capture written since RK344 carries. `document`/`document_path` is
+    what every one before it carries, and reading both is what keeps a report already on
+    somebody's disk runnable — a corpus that only accepts the current format is a corpus that
+    loses the field reports it exists to keep.
+    """
+    documents = recorded.get("documents")
+    if isinstance(documents, Mapping):
+        return {str(name): str(text) for name, text in documents.items()}
+    single, name = recorded.get("document"), recorded.get("document_path")
+    return {str(name): str(single)} if single and name else {}
 
 #: Where a capture lands before anybody decides what to do with it (RK89). A fifth path in
 #: a repository that declared four — and one the repository never has to see, because the
@@ -839,15 +858,28 @@ def _configuration(root: str | Path) -> tuple[str | None, str | None]:
         return str(found), None
 
 
-def _document(where: str | None, root: str | Path) -> tuple[str | None, str | None]:
-    """The file the finding named, whole and verbatim — one file, never the project."""
-    if where is None:
-        return None, None
-    name = where.partition(":")[0]
+def _documents(root: str | Path) -> tuple[tuple[str, str], ...]:
+    """Every governed file the config declares, whole and verbatim — never the project (RK344).
+
+    Declared and not discovered: what leaves is the list a reader can check against the
+    `roadkeep.toml` printed beside it, which is the form of disclosure RK87 asks for. A file
+    that is declared and absent is simply not carried — that is a finding of its own
+    (`file.missing`), and inventing an empty one would stage a project the reporter did not have.
+    """
     try:
-        return name, (Path(root) / name).read_text(encoding="utf-8")
-    except (OSError, UnicodeDecodeError):
-        return None, None
+        config = Config.discover(root)
+    except (ConfigError, tomllib.TOMLDecodeError, OSError):
+        # The config is the defect. There is nothing declared to carry, and `_unstaged` reads
+        # that same unparseable file back to the same conclusion.
+        return ()
+    carried: list[tuple[str, str]] = []
+    for role in config.paths:
+        path = config.path(role)
+        try:
+            carried.append((config.relative(path), path.read_text(encoding="utf-8")))
+        except (OSError, UnicodeDecodeError):
+            continue
+    return tuple(carried)
 
 
 def _source(where: str | None, root: str | Path) -> str | None:

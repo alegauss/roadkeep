@@ -1426,8 +1426,8 @@ def build_parser() -> argparse.ArgumentParser:
         "--embed",
         action="store_true",
         help=(
-            "carry the file the finding named, so the capture can be replayed without this "
-            "repository — a test somewhere else, and a file leaving here"
+            "carry the governed files this project declares, so the capture can be replayed "
+            "without this repository — a test somewhere else, and files leaving here"
         ),
     )
     report_parser.add_argument("--json", action="store_true", help=_JSON_HELP)

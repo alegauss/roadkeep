@@ -374,3 +374,66 @@ def test_the_command_says_which_files_the_capture_never_carried(tmp_path, capsys
     assert main(["replay", str(path)]) == EXIT_GATE
     said = capsys.readouterr().out
     assert "not replayable" in said and "docs/CHANGELOG.md" in said
+
+
+# -- what `--embed` carries (RK344) -------------------------------------------
+
+
+def three_files(tmp_path: Path) -> Path:
+    """The ordinary project: a roadmap, a ledger and the rationale beside them — the shape
+    `lint` reads whole, and the shape one embedded file cannot stage."""
+    root = declaring_two(tmp_path)
+    (root / "roadkeep.toml").write_text(
+        TWO_FILES + 'improvements = "docs/IMPROVEMENTS.md"\n', encoding="utf-8"
+    )
+    with (root / "docs/IMPROVEMENTS.md").open("w", encoding="utf-8", newline="") as handle:
+        handle.write("# Improvements\n\n## Block A — The model\n\n### RK1 — A first symptom\n\nBecause.\n")
+    return root
+
+
+def test_an_embed_carries_every_governed_file_the_project_declares(tmp_path):
+    """What RK343 left: `lint` is the command the fault offer suggests most, and a capture of it
+    carrying the one file its finding named stages two short of what it reads."""
+    root = three_files(tmp_path / "theirs")
+    found = capture(SYMPTOM, WHY, "F", ["-C", str(root), "lint"], root, embed=True)
+    assert [name for name, _ in found.documents] == [
+        ROADMAP,
+        "docs/CHANGELOG.md",
+        "docs/IMPROVEMENTS.md",
+    ]
+    outcome = replay(found.as_dict(), staging(tmp_path))
+    assert outcome.ran and outcome.reproduces, str(outcome)
+
+
+def test_nothing_the_config_does_not_declare_leaves(tmp_path):
+    """The governed files and never the project. `--embed` is a wider disclosure than it was,
+    and the list a reviewer checks it against is the `roadkeep.toml` printed beside it."""
+    root = three_files(tmp_path / "theirs")
+    (root / ".env").write_text("TOKEN=hunter2\n", encoding="utf-8")
+    (root / "docs/notes.md").write_text("what we actually think\n", encoding="utf-8")
+    found = capture(SYMPTOM, WHY, "F", ["-C", str(root), "lint"], root, embed=True)
+    said = json.dumps(found.as_dict())
+    assert "hunter2" not in said and "what we actually think" not in said
+
+
+def test_a_declared_file_that_is_absent_is_not_invented(tmp_path):
+    """An empty file in its place would be a project the reporter did not have, and the
+    absence is a finding of its own — `lint` reports it as `file.missing`."""
+    root = three_files(tmp_path / "theirs")
+    (root / "docs/IMPROVEMENTS.md").unlink()
+    found = capture(SYMPTOM, WHY, "F", ["-C", str(root), "lint"], root, embed=True)
+    assert "docs/IMPROVEMENTS.md" not in dict(found.documents)
+    assert replay(found.as_dict(), staging(tmp_path)).unstaged == ("docs/IMPROVEMENTS.md",)
+
+
+def test_a_capture_written_before_the_format_changed_still_replays(tmp_path):
+    """A corpus that only accepts the current spelling is a corpus that loses the field reports
+    it exists to keep, and those are already on somebody's disk."""
+    root = project(tmp_path / "theirs")
+    found = capture(SYMPTOM, WHY, "F", ["-C", str(root), "lint"], root, embed=True)
+    recorded = found.as_dict()
+    (name, text), = found.documents
+    recorded.pop("documents")
+    recorded["document"], recorded["document_path"] = text, name  # how RK344 found them
+    outcome = replay(recorded, staging(tmp_path))
+    assert outcome.ran and outcome.reproduces, str(outcome)

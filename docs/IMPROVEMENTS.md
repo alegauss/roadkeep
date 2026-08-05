@@ -548,30 +548,3 @@ taken at collection, or whether a count over a file the backlog erodes is the wr
 assertion whoever is writing it — RK305 already names that ratio as fragile.
 
 ## Block F — The plugin
-
-### §RK344 RK344
-
-`--embed` carries the file the finding named — one file, never the project — because it
-is the input half of a test and also a file leaving somebody's repository. RK343 made
-the cost of that visible rather than creating it: a staging holding fewer files than the
-command reads is refused, and the ordinary project declares three.
-
-Measured on a `lint` capture from a project declaring a roadmap, a changelog and an
-improvements file, with `--embed` given: recorded exit 1 at `docs/ROADMAP.md:5`, one
-file embedded, and the replay answers
-
-    not replayable: the config declares docs/CHANGELOG.md, docs/IMPROVEMENTS.md
-
-The same capture before RK343 answered `still reproduces` — truthfully about the
-recorded address, and from a run that also printed two `file.missing` findings the
-reporter never saw. So the honest verdict and the useful one are now the same problem:
-`lint` is the command the fault offer suggests most, and no capture of it from an
-ordinary project can be re-run.
-
-Two shapes, and the choice is the whole task. Carrying **every declared governed file**
-makes `--embed` mean what its name claims and is one line; it also multiplies what
-leaves a private repository by three, against an RK87 promise a reviewer keeps by
-reading. Carrying **the files the command reads** is the smaller disclosure and needs a
-map from subcommand to role that nothing here has — a map that is wrong silently, since
-a command that grew a reader would stage one file short and be refused rather than
-corrected.

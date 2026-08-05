@@ -57,8 +57,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK344** (deps: —) **A capture embeds only the file a finding named, so a lint report from a three-file project cannot be replayed** — Measured: --embed carried docs/ROADMAP.md, and the replay now refuses the changelog and improvements files, which lint reads on every run. → §RK344
-
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:
