@@ -57,6 +57,7 @@ from roadkeep.sections import (
     drop,
     find,
     nested,
+    paragraphs,
     pointers,
     words,
 )
@@ -2113,3 +2114,61 @@ def test_the_limit_printed_is_the_roles_own_and_not_the_projects(tmp_path, capsy
     assert config.schema_for("improvements").section_max == 7
     assert main(["-C", str(tmp_path), "show", "RK1", "--no-body"]) == EXIT_OK
     assert "limit 7" in capsys.readouterr().out
+
+
+# -- where the words are, on the refusal that discards them (RK311) -----------
+
+
+def test_the_refusal_says_which_paragraph_the_cut_is_available_in(tmp_path):
+    # Fifteen `body.too-long` refusals in one session, three of them over one or two words.
+    # The overage says a cut is needed; without this the author counts by hand for somewhere
+    # to make it, against a number this module has already computed exactly.
+    config = project(tmp_path, extra="[limits]\nsection = 10\n")
+    body = "one two three\n\n" + "word " * 8 + "\n\nlast bit here"
+    with pytest.raises(SchemaError) as raised:
+        add(config, "improvements", "RK2", "A design", body)
+
+    message = raised.value.violations[0].message
+    assert "by paragraph ¶1 3, ¶2 8, ¶3 3" in message
+    assert "¶2 is the longest" in message
+    assert read(config) == RATIONALE
+
+
+def test_a_body_of_one_paragraph_is_not_told_its_own_total_twice(tmp_path):
+    # "¶1 335" restates the number the same sentence just gave, and a refusal that repeats
+    # itself is one an author stops reading.
+    config = project(tmp_path, extra="[limits]\nsection = 10\n")
+    with pytest.raises(SchemaError) as raised:
+        add(config, "improvements", "RK2", "A design", "word " * 11)
+
+    assert "by paragraph" not in raised.value.violations[0].message
+
+
+def test_a_paragraph_the_limit_does_not_charge_is_reported_as_nothing_to_cut(tmp_path):
+    # The other half of the question. A section over the limit whose longest paragraph is a
+    # table is not one to split, and the `0` says so — the same reading `words` already makes
+    # for the three shapes that are data rather than argument (RK136).
+    config = project(tmp_path, extra="[limits]\nsection = 10\n")
+    body = "| a | b |\n| - | - |\n| 1 | 2 |\n\n" + "word " * 11
+    with pytest.raises(SchemaError) as raised:
+        add(config, "improvements", "RK2", "A design", body)
+
+    assert "by paragraph ¶1 0, ¶2 11" in raised.value.violations[0].message
+
+
+def test_a_fenced_block_is_one_paragraph_however_many_blanks_are_inside_it(tmp_path):
+    # A fence opens inside whatever paragraph is being read, and the blank lines in the block
+    # are not paragraph breaks — a count that split there would number paragraphs the author
+    # cannot see.
+    body = "Intro line.\n```\ncode\n\nmore code\n```\n\nA second paragraph of four words."
+    assert paragraphs(body) == (2, 6)
+
+
+def test_the_counts_add_up_to_the_number_the_limit_charges():
+    # One reading, not two: a breakdown that did not sum to the total would send the author
+    # cutting in a paragraph the limit was never charging them for.
+    body = (
+        "A first paragraph here.\n\n> a quotation nobody is charged for\n\n"
+        "| a | b |\n\nA third paragraph with several words in it.\n\n```\nfenced\n```"
+    )
+    assert sum(paragraphs(body)) == words(body)

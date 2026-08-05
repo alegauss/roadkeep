@@ -77,31 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK311 Pricing a body that already exists
-
-Filing thirteen tasks in one session produced **fifteen** `body.too-long` refusals.
-Three asked for one or two words. Each refusal discards the whole body, so shaving one
-word means re-sending about 250 — roughly 3,750 words re-transmitted to remove 85 words
-of overage.
-
-`add`'s own docstring names the principle: a limit reported after the prose exists is a
-limit discovered too late to save the tokens it was meant to save. That is what the body
-limit does. `budget` prices the ceiling before a word exists, which is the right half;
-the missing half is any way to price a draft that already exists short of attempting the
-write.
-
-The asymmetry is what makes it expensive. A refusal over `symptom` or `why` costs a
-phrase. One over `--section-body` costs the whole rationale, and leaves the author
-counting words by hand against a number the tool has already computed exactly.
-
-Three candidate fixes, cheapest first. An `add --check` that validates and writes
-nothing, so a body is priced at the cost of a read. Or the refusal reports the count per
-paragraph, so the author knows where to cut rather than only that a cut is needed. Or
-`--section-body` accepts an over-long body under `--trim` and reports what it dropped.
-
-The measurement is the argument and it reproduces: any session filing more than a few
-tasks pays it.
-
 ### §RK312 A required argument nothing helps you compute
 
 On an outline-scheme project, `add` refused with `ref: every task points at its

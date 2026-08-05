@@ -951,6 +951,68 @@ def _rewrite(
     return updated.replace_line(heading.lineno - 1, heading_of(document.schema, section))
 
 
+def paragraphs(body: str) -> tuple[int, ...]:
+    """What each paragraph of a body costs, in the same unit :func:`words` charges (RK311).
+
+    The half a refusal was missing. `budget` prices the ceiling before a word exists, which
+    is the right half and the one L1 is about; what had no answer was a draft that already
+    exists — measured over one session of thirteen filings, **fifteen** `body.too-long`
+    refusals, three of them over one or two words, each discarding about 250 words to remove
+    a handful. The overage alone does not shorten the second attempt: it says a cut is needed
+    and leaves the author counting by hand for somewhere to make it, against a number this
+    module has already computed exactly.
+
+    So the refusal says **where**. Paragraphs are blank-line separated, a fenced block is one
+    paragraph however many blanks are inside it, and each is charged by the same reading the
+    limit uses — so the three shapes :func:`words` exempts show as `0` rather than as
+    something a cut could reach. That zero is the answer to the other half of the question: a
+    section over the limit whose longest paragraph is a table is not one to split.
+    """
+    out: list[int] = []
+    current: list[str] = []
+    fence: str | None = None
+    for raw in body.splitlines():
+        line = raw.lstrip()
+        if fence is not None:
+            current.append(raw)
+            if line.startswith(fence):
+                fence = None
+            continue
+        if line.startswith(_FENCES):
+            # A fence opens *inside* whatever paragraph is being read, so an intro line and
+            # the block under it stay one unit — which is how the author sees them.
+            fence = line[:3]
+            current.append(raw)
+            continue
+        if not line:
+            if current:
+                out.append(words("\n".join(current)))
+                current = []
+            continue
+        current.append(raw)
+    if current:
+        out.append(words("\n".join(current)))
+    return tuple(out)
+
+
+def _where_the_words_are(body: str) -> str:
+    """The per-paragraph counts, as the clause a refusal ends with (RK311).
+
+    Named for what it answers rather than for what it formats: the author has been told a cut
+    is needed and this is the sentence that says where one is available. Silent on a
+    single-paragraph body — "¶1 335" restates the total the same message already gave, and a
+    refusal that repeats itself is one an author stops reading.
+    """
+    counted = paragraphs(body)
+    if len(counted) < 2:
+        return ""
+    listed = ", ".join(f"¶{n} {count}" for n, count in enumerate(counted, 1))
+    # The longest is named because it is the one the author is looking for, and a tie names
+    # the first — the cut has to start somewhere and the file reads top down.
+    fattest = counted.index(max(counted)) + 1
+    return f"; by paragraph {listed} — ¶{fattest} is the longest"
+
+
 def words(body: str) -> int:
     """The words of **argument** in a body — the budget's unit, and never its whole text.
 
@@ -1079,7 +1141,11 @@ def _check(
                 "body.too-long",
                 "body",
                 f"{over_by(words(body), schema.section_max, unit='word')}; a section "
-                f"this long is two sections, or a paragraph that belongs in the commit",
+                f"this long is two sections, or a paragraph that belongs in the commit"
+                # Where the words are, on the refusal that discards them (RK311): the
+                # overage says a cut is needed, and this says where one is available, so
+                # the second draft is composed once instead of counted by hand.
+                f"{_where_the_words_are(body)}",
             )
         )
     if out:
