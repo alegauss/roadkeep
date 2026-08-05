@@ -908,13 +908,27 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     claim_parser.add_argument(
+        "--add-path",
+        action="append",
+        default=[],
+        metavar="PATH",
+        dest="add_path",
+        help=(
+            "a path this task's commit *also* owns, repeatable; keeps what was declared, so "
+            "a file the work turned up is one argument and not the whole scope again"
+        ),
+    )
+    claim_parser.add_argument(
         "--porcelain",
         action="store_true",
         help="the paths alone, one per line — what a commit script feeds to `git add --`",
     )
     claim_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
-    # A read that can write, declared the way `claims --prune` declares it (RK167).
-    claim_parser.set_defaults(handler=_claim, reads_only=True, writes_when="path")
+    # A read that can write, declared the way `claims --prune` declares it (RK167) — and by
+    # two arguments (RK307), because either of them is the write.
+    claim_parser.set_defaults(
+        handler=_claim, reads_only=True, writes_when=("path", "add_path")
+    )
 
     writes_parser = subcommands.add_parser(
         "writes",
@@ -1696,11 +1710,30 @@ def _only_reads(args: argparse.Namespace) -> bool:
     Read off `args` and not from a list here, so the answer comes from the parser that already
     declares it — and a `writes_when` naming an argument that parser does not accept is a test
     failure rather than a lock silently not taken (`tests/test_locking.py`).
+
+    One argument or several (RK307): `claim` writes on either of two, and a declaration that
+    could only name one would have left the second taking no lock at all — the failure this
+    mechanism exists to make impossible, arriving through the one shape it could not state.
     """
     if not getattr(args, "reads_only", False):
         return False
-    flag = getattr(args, "writes_when", "")
-    return not (flag and getattr(args, flag, False))
+    return not any(getattr(args, flag, False) for flag in writes_when(args))
+
+
+def writes_when(source: argparse.Namespace | argparse.ArgumentParser) -> tuple[str, ...]:
+    """The argument(s) that turn a declared read into a write, however it declared them.
+
+    A bare string is one of them, which is what every other parser passes and what this keeps
+    accepting: the plural is the general shape and not a migration (RK307).
+    """
+    declared = (
+        source.get_default("writes_when")
+        if isinstance(source, argparse.ArgumentParser)
+        else getattr(source, "writes_when", "")
+    )
+    if not declared:
+        return ()
+    return (declared,) if isinstance(declared, str) else tuple(declared)
 
 
 def _may_offer(
@@ -3389,12 +3422,30 @@ def _claim(config: Config, args: argparse.Namespace) -> int:
     to make with no facts to make it from — and `agents.md` carried the answer as advice,
     which RK1 says does not hold. Here the three lists are separate because the caller does
     three different things with them: stage `mine`, leave `theirs`, and decide about `loose`.
+
+    `--add-path` is the same write from the other end (RK307), and passing both is refused
+    rather than merged: `--path` says *this is the scope* and `--add-path` says *and this
+    too*, so a call making both statements is one whose author has not decided which — and
+    reading it as either would be the tool picking.
     """
     backlog = Backlog.load(config)
     entries = backlog.roadmap.entries
+    if args.path and args.add_path:
+        return _refused(
+            ValueError(
+                "--path replaces the scope and --add-path keeps it, so a call passing both "
+                "says two things about one commit: name the whole scope with --path, or add "
+                "to what is already there with --add-path alone"
+            )
+        )
     try:
-        if args.path:
-            mine = claiming.scope(config, args.id, args.path)
+        if args.path or args.add_path:
+            mine = claiming.scope(
+                config,
+                args.id,
+                args.path or args.add_path,
+                extend=bool(args.add_path),
+            )
         else:
             held = next((one for one in claiming.live(config, entries) if one.id == args.id), None)
             if held is None:

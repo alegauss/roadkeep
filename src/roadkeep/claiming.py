@@ -413,7 +413,9 @@ class NotHeld(ValueError):
         )
 
 
-def scope(config: Config, task_id: str, paths: Iterable[str]) -> tuple[str, ...]:
+def scope(
+    config: Config, task_id: str, paths: Iterable[str], *, extend: bool = False
+) -> tuple[str, ...]:
     """Record the paths a held line's commit owns, and answer them back (RK280).
 
     The write that was missing. RK117 locks a scan-to-save span and RK119 says who holds a
@@ -436,12 +438,24 @@ def scope(config: Config, task_id: str, paths: Iterable[str]) -> tuple[str, ...]
     an expiry or take a line from the worker holding it — the invariant RK160 closed stays
     exactly where it was. Refused on a line no live claim holds, for the same reason.
 
-    Replaces rather than appends. A scope is the answer to *what is this commit*, and a call
-    that only ever grew one would make a corrected answer unreachable without the file — which
-    is RK165's argument, one row along. Duplicates collapse, order kept, because the answer is
-    consumed by a `git add --` and a path staged twice is noise in a contract meant to be read.
+    Replaces rather than appends, and `extend` does not change that (RK307). A scope is the
+    answer to *what is this commit*, and a call that only ever grew one would make a corrected
+    answer unreachable without the file — which is RK165's argument, one row along. What
+    `extend` changes is where the answer is composed: the caller that found a tenth path after
+    declaring nine says *and this too* rather than retyping the nine, and the row is still
+    replaced, with the whole scope. Measured across one block here: three of five tasks needed
+    a second call, one of them ten paths long.
+
+    **One door and a parameter, not a second function** (RK159): the two are distinguishable
+    at the call site and identical at the write, so the invariants below — the refusal on a
+    line nobody holds, the untouched date, the collapse — are stated once and cannot come to
+    have two behaviours. The **existing paths come first**, because they were declared first
+    and the answer is read in the order it will be staged.
+
+    Duplicates collapse, order kept, because the answer is consumed by a `git add --` and a
+    path staged twice is noise in a contract meant to be read.
     """
-    wanted = tuple(dict.fromkeys(one for one in paths if one))
+    named = tuple(one for one in paths if one)
     with exclusive(config.root):
         backlog = Backlog.load(config)
         if not any(one.id == task_id for one in live(config, backlog.roadmap.entries)):
@@ -449,6 +463,9 @@ def scope(config: Config, task_id: str, paths: Iterable[str]) -> tuple[str, ...]
         target = path(config.root)
         dated = _read(target)
         row = dated[task_id]
+        # Read inside the lock, like everything else this decides from: a scope composed from
+        # a row read outside it would drop whatever another call added in between.
+        wanted = tuple(dict.fromkeys((*row.paths, *named) if extend else named))
         dated[task_id] = Dating(row.when, wanted)
         _write(target, dated)
     return wanted

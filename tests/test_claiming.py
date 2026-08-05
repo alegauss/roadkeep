@@ -1062,6 +1062,72 @@ def test_a_scope_replaces_rather_than_grows(tmp_path):
     assert claiming.scope(config, "RK2", ["src/b.py"]) == ("src/b.py",)
 
 
+def test_a_scope_can_be_extended_without_being_retyped(tmp_path):
+    # RK307: the scope is declared before the code and the code finds a file it did not name,
+    # so the correction is mechanical while the command was the whole list again.
+    config = project(tmp_path, BLOCKS + line("RK2"))
+    take(config)
+    claiming.scope(config, "RK2", ["src/a.py", "src/b.py"])
+    # The whole scope comes back, declared-order first: it is read in the order it is staged.
+    assert claiming.scope(config, "RK2", ["README.md"], extend=True) == (
+        "src/a.py",
+        "src/b.py",
+        "README.md",
+    )
+
+
+def test_extending_with_a_path_already_declared_changes_nothing(tmp_path):
+    # The same collapse the replacing call makes, at the one door where a caller is most
+    # likely to name a path twice: a path staged twice is noise in a contract meant to be read.
+    config = project(tmp_path, BLOCKS + line("RK2"))
+    take(config)
+    claiming.scope(config, "RK2", ["src/a.py"])
+    assert claiming.scope(config, "RK2", ["src/a.py"], extend=True) == ("src/a.py",)
+
+
+def test_extending_a_line_nobody_holds_is_refused_like_declaring_one(tmp_path):
+    # One door and a parameter (RK159): the invariants are stated once, so the additive call
+    # cannot come to have a second opinion about who may write a scope.
+    config = project(tmp_path, BLOCKS + line("RK2"))
+    with pytest.raises(claiming.NotHeld):
+        claiming.scope(config, "RK2", ["src/a.py"], extend=True)
+
+
+def test_extending_does_not_re_date_the_claim(tmp_path):
+    # Dating is `follow`'s, and this door writes no date whichever end it is called from.
+    config = project(tmp_path, BLOCKS + line("RK2"))
+    take(config)
+    claiming.scope(config, "RK2", ["src/a.py"])
+    when = claiming._read(claiming.path(tmp_path))["RK2"].when  # noqa: SLF001
+    claiming.scope(config, "RK2", ["src/b.py"], extend=True)
+    assert claiming._read(claiming.path(tmp_path))["RK2"].when == when  # noqa: SLF001
+
+
+def test_the_two_ends_of_the_scope_are_not_passed_together(tmp_path, capsys):
+    # `--path` says *this is the scope* and `--add-path` says *and this too*, so a call making
+    # both statements is one whose author has not decided which — and picking would be the tool
+    # answering that.
+    project(tmp_path, BLOCKS + line("RK2"))
+    config = Config.discover(tmp_path)
+    take(config)
+    at = ["-C", str(tmp_path), "claim", "RK2"]
+    assert main([*at, "--path", "src/a.py", "--add-path", "src/b.py"]) == EXIT_USAGE
+    assert "says two things about one commit" in capsys.readouterr().err
+    # Refused before the write: the scope is still whatever it was, which is nothing.
+    assert not claiming.path(tmp_path).read_text(encoding="utf-8").strip().endswith(".py")
+
+
+def test_the_command_extends_and_answers_the_whole_scope(tmp_path, capsys):
+    project(tmp_path, BLOCKS + line("RK2"))
+    config = Config.discover(tmp_path)
+    take(config)
+    at = ["-C", str(tmp_path), "claim", "RK2"]
+    assert main([*at, "--path", "src/a.py"]) == EXIT_OK
+    capsys.readouterr()
+    assert main([*at, "--add-path", "README.md", "--porcelain"]) == EXIT_OK
+    assert capsys.readouterr().out == "src/a.py\nREADME.md\n"
+
+
 def test_a_scope_collapses_a_path_named_twice(tmp_path):
     # The answer is fed to `git add --`, where a path staged twice is noise in a contract
     # meant to be read.

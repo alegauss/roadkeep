@@ -213,29 +213,35 @@ def test_an_mcp_query_is_not_blocked_by_a_held_lock(tmp_path):
 # -- a read that can write says so, and the dispatcher decides (RK167) --------
 
 
-def declared() -> dict[str, str]:
-    """Every subcommand that declares itself a read with a flag that makes it a write."""
-    from roadkeep.cli import build_parser
+def declared() -> dict[str, tuple[str, ...]]:
+    """Every subcommand that declares itself a read with a flag that makes it a write.
+
+    Read through the accessor the dispatcher uses (RK307), so a command declaring two of them
+    is compared as the dispatcher compares it rather than as the string it happens to store.
+    """
+    from roadkeep.cli import build_parser, writes_when
 
     return {
-        name: parser.get_default("writes_when")
+        name: writes_when(parser)
         for action in build_parser()._actions  # noqa: SLF001
         if isinstance(action, argparse._SubParsersAction)  # noqa: SLF001
         for name, parser in action.choices.items()
-        if parser.get_default("writes_when")
+        if writes_when(parser)
     }
 
 
 def test_the_reads_that_can_write_are_the_ones_that_say_so():
     # Named here rather than counted, because the list is the point: any further one is a
     # deliberate addition and not something a copied comment brought along. `lint` joined them
-    # (RK168) — the gate is a read, and the write in it is the repair.
+    # (RK168) — the gate is a read, and the write in it is the repair. `claim` declares two
+    # (RK307): either flag is the write, and one that named a single dest would have left the
+    # other taking no lock.
     assert declared() == {
-        "pick": "claim",
-        "brief": "claim",
-        "claims": "prune",
-        "claim": "path",
-        "lint": "fix",
+        "pick": ("claim",),
+        "brief": ("claim",),
+        "claims": ("prune",),
+        "claim": ("path", "add_path"),
+        "lint": ("fix",),
     }
 
 
@@ -251,8 +257,10 @@ def test_every_declared_flag_is_one_its_own_parser_accepts():
         if isinstance(action, argparse._SubParsersAction)  # noqa: SLF001
         for name, parser in action.choices.items()
     }
-    for command, flag in declared().items():
-        assert flag in {a.dest for a in subparsers[command]._actions}, command  # noqa: SLF001
+    for command, flags in declared().items():
+        dests = {a.dest for a in subparsers[command]._actions}  # noqa: SLF001
+        for flag in flags:
+            assert flag in dests, command
 
 
 @pytest.mark.parametrize(

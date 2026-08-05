@@ -222,8 +222,13 @@ class Tool:
         """
         if not parser.get_default("reads_only"):
             return True
-        flag = parser.get_default("writes_when") or ""
-        return bool(flag) and flag in (*self.exposes, *self.conditional, *self.always)
+        # One argument or several (RK307), read through the CLI's own accessor rather than
+        # off the default: a tuple compared as a string is a tool whose `readOnlyHint` says
+        # free-to-ask about an argv that writes.
+        from roadkeep.cli import writes_when  # noqa: PLC0415 - RK260
+
+        settable = (*self.exposes, *self.conditional, *self.always)
+        return any(flag in settable for flag in writes_when(parser))
 
 
 #: What a task needs end to end (RK24's four, extended by RK59). Order is the order

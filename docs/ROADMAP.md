@@ -24,8 +24,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 💭 **RK307** (deps: —) **A scope corrected mid-task is restated in full or not at all** — claim --path replaces by design, so a tenth file discovered after nine were declared means retyping all ten at the moment the loose reading that found it is one command from the ship. → §RK307
-
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK303** (deps: —) **The section budget picks the first of two prose files declaring one anchor, where every other reader refuses** — It answered improvements about an address strategy declares too, and show calls that state a pointer resolving to neither — so a limit is priced for an unreachable section. → §RK303

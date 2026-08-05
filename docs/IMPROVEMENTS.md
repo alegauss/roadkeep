@@ -77,26 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK307 Replacing is right, and it is not the only shape
-
-RK280's argument for replacement holds and is not in question: a scope answers *what is
-this commit*, and a call that only ever grew one would put the corrected answer back
-behind the file. That is why `--path` replaces, and it should keep replacing.
-
-What it leaves out is the loop the work actually has. The scope is declared before the
-code, the code discovers a file the declaration did not name — a projection this
-repository's README carries, a test fixture, the ledger — and the read that finds it is
-`claim <id>`, whose `loose` column names it. Measured across Block B here: three of five
-tasks needed a second `claim` call, each retyping every path it had already declared,
-and one of them was ten paths long. The correction is mechanical and the command is not.
-
-An additive flag is not the second behaviour RK159 warns about, because the two are
-distinguishable at the call site rather than at the write: `--path` says *this is the
-scope* and an additive one says *and this too*, and both end in the same replacement of
-the row. What needs deciding is whether the answer it prints is the whole scope or the
-delta — the whole one, on the argument `claim <id>` already makes, that the reader is
-about to stage it.
-
 ## Block C — Query
 
 ### §RK303 First match, at the one door that had not learned it
