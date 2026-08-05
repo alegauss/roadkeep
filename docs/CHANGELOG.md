@@ -237,6 +237,7 @@
 - ✅ **RK299** **A report names every path relative to a root it never states** — Both summary lines end with `(in <root>)` and `--json` leads with the `root` key `install` already uses, so every relative path in a report resolves.
 - ✅ **RK300** **Whether a block still holds open work is computed in two modules** — `Document.holds` is the one reader both the event line and the gate's note call, and a source test says those two are the only callers.
 - ✅ **RK320** **The version bump stages two whole files, so an unrelated edit to either rides into the next commit** — The hook reads the working tree before it bumps, and where either versioned file carries an unstaged edit it writes the number and stages neither, so a commit carries only what somebody staged.
+- ✅ **RK326** **The gate passes a priority entry naming a shipped id, an unknown id or a block nothing declares** — The gate resolves every queue entry as it resolves a dep, so a token naming shipped, retired, set-aside or unknown work fails at its own line and column.
 
 ## Block E — Adoption
 

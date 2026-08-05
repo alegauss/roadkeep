@@ -155,31 +155,6 @@ a gate that asked for prose there would be answered with prose nobody needed.
 
 ## Block D — The gate
 
-### §RK326 A queue the gate cannot read
-
-`Config._check_priority` already states the rule this asks for: an entry `pick` cannot
-resolve "is a queue the author believes is in force and is not", and a silent one is
-worse than none. It then checks the spelling alone — is the token an id of this project,
-or `Block X` — a config parser having no roadmap to resolve it against.
-
-Measured on a scratch project: `priority = ["QQ1", "Block Z", "QQ9"]` with QQ1 shipped,
-no heading declaring Z and QQ9 in no file lints clean, while `pick` answers "the
-declared priority names nothing ready" — one sentence covering three deaths and naming
-none. Written as deps, two of those tokens are `dep.unknown` and `dep.no-block`.
-
-Once RK325 puts the list in the roadmap the resolution is the one `backlog` already
-does, so the codes are the states a token can be dead in: shipped, retired, set aside,
-naming nothing, naming a block whose every line has left, and named twice — at
-`file:line:column` like everything else here (RK34).
-
-Two states are **not** findings. An entry naming a task that is merely blocked is a
-queue doing its job. And a declared block holding nothing yet is legitimate, `block add`
-writing the heading before the lines, so it is a note — told apart from an emptied block
-by whether the ledger has entries under that heading.
-
-A `priority` left in the config is the third: read, and named as a note beside the
-section that now holds the order.
-
 ### §RK328 The dead entry is mechanical
 
 RK16 splits the gate's findings in two: mechanical, recomputed from what is already

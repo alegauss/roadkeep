@@ -261,6 +261,132 @@ def test_an_entry_naming_nothing_ready_still_says_which_queue_was_read(tmp_path)
     assert "the roadmap's queue names nothing ready" in chosen.reason
 
 
+# -- what the gate says about it (RK326) -------------------------------------
+
+GATE_LEDGER = """# Changelog
+
+## Block A — The model
+
+## Block D — Later
+
+## Block E — Finished
+
+- ✅ **RK7** **A seventh symptom** — Because an outcome.
+- 🗑 **RK8** **An eighth symptom** — Because it will not happen.
+"""
+
+GATED = CONFIG + 'changelog = "CHANGELOG.md"\ndeferred = "DEFERRED.md"\n'
+
+GATE_STORE = """# Deferred
+
+## Block A — The model
+
+- ⏸ **RK6** (deps: —) **A sixth symptom** — Because a reason (set aside: waiting). → §RK6
+"""
+
+
+def gated(tmp_path: Path, queue: str, roadmap: str = ROADMAP, config: str = GATED) -> Config:
+    """The same project with a ledger and a store, so a token can be dead in every way."""
+    body = roadmap.replace("- RK2\n- Block D\n", queue)
+    (tmp_path / "CHANGELOG.md").write_text(GATE_LEDGER, encoding="utf-8")
+    (tmp_path / "DEFERRED.md").write_text(GATE_STORE, encoding="utf-8")
+    return project(tmp_path, roadmap=body + "\n## Block E — Finished\n", config=config)
+
+
+def codes(config: Config) -> dict[str, int]:
+    return lint(config).codes()
+
+
+def test_an_entry_naming_shipped_work_is_a_finding_at_its_line_and_column(tmp_path):
+    # The queue is the one list a departure did not reach before RK327, and the tier fires
+    # on nothing — which `pick` reports as one sentence covering three deaths.
+    config = gated(tmp_path, "- RK7\n")
+    finding = next(f for f in lint(config).findings if f.code == "priority.shipped")
+    assert finding.file == "ROADMAP.md" and (finding.lineno, finding.column) == (7, 3)
+    assert "RK7" in finding.message
+
+
+def test_the_three_other_ways_a_token_is_dead_are_each_their_own_code(tmp_path):
+    config = gated(tmp_path, "- RK8\n- RK6\n- RK9\n")
+    assert codes(config) == {
+        "priority.deferred": 1,
+        "priority.retired": 1,
+        "priority.unknown": 1,
+    }
+
+
+def test_a_block_nothing_declares_is_the_dep_resolvers_own_answer(tmp_path):
+    config = gated(tmp_path, "- Block Z\n")
+    finding = next(f for f in lint(config).findings if f.code == "priority.block")
+    assert "no heading declares Block Z" in finding.message
+
+
+def test_a_block_whose_every_line_has_left_is_a_finding(tmp_path):
+    config = gated(tmp_path, "- Block E\n")
+    assert codes(config) == {"priority.block-empty": 1}
+
+
+def test_a_block_declared_before_its_lines_is_a_note_and_not_a_finding(tmp_path):
+    # `block add` writes the heading before the lines, so a queue naming one is a plan.
+    config = gated(tmp_path, "- Block A\n", roadmap=NONE.replace(
+        "- 📋 **RK1** (deps: —) **A first symptom** — Because of a reason. → §RK1\n", ""
+    ).replace(
+        "- 📋 **RK2** (deps: —) **A second symptom** — Because of a reason. → §RK2\n",
+        "",
+    ).replace("## Block A — The model\n", "## Priority\n\n- Block A\n\n## Block A — The model\n"))
+    report = lint(config)
+    assert report.clean
+    assert [note.code for note in report.notes] == ["priority.block-unstarted"]
+
+
+def test_an_entry_naming_blocked_work_is_a_queue_doing_its_job(tmp_path):
+    # The tier fires the moment the blocker ships, which is what an order is for.
+    blocked = ROADMAP.replace(
+        "**RK5** (deps: —)", "**RK5** (deps: RK1 📋)"
+    )
+    config = gated(tmp_path, "- RK5\n", roadmap=blocked)
+    assert lint(config).clean
+
+
+def test_one_token_twice_is_two_answers_about_one_place_in_the_order(tmp_path):
+    # `add` refuses the second one; the gate is for the file that got one anyway.
+    config = gated(tmp_path, "- RK1\n- RK1\n")
+    finding = next(f for f in lint(config).findings if f.code == "priority.duplicate")
+    assert "already queued on line 7" in finding.message and finding.lineno == 8
+
+
+def test_a_bullet_the_grammar_could_not_read_is_reported_rather_than_ignored(tmp_path):
+    config = gated(tmp_path, "- RK1 first\n")
+    finding = next(f for f in lint(config).findings if f.code == "priority.shape")
+    assert "addresses no work" in finding.message and "'- RK1 first'" in finding.message
+
+
+def test_a_config_priority_beside_the_section_is_named_as_a_note(tmp_path):
+    # It is read by nothing and `priority drop` cannot reach it, so nothing else would say.
+    config = gated(tmp_path, "- RK1\n", config=GATED.replace(
+        'prefix = "RK"\n', 'prefix = "RK"\npriority = ["RK5"]\n'
+    ))
+    report = lint(config)
+    assert report.clean
+    note = next(n for n in report.notes if n.code == "priority.config")
+    assert "ROADMAP.md holds the queue" in note.message and "roadkeep.toml" in note.file
+
+
+def test_the_queue_a_config_declares_is_resolved_too(tmp_path):
+    # Where the defect was measured: `priority = ["RK7", "Block Z", "RK9"]` with RK7 shipped
+    # lints clean while `pick` says "names nothing ready" — three deaths, none named.
+    config = gated(tmp_path, "", roadmap=NONE, config=GATED.replace(
+        'prefix = "RK"\n', 'prefix = "RK"\npriority = ["RK7", "Block Z", "RK9"]\n'
+    ))
+    report = lint(config)
+    assert report.codes() == {
+        "priority.block": 1,
+        "priority.shipped": 1,
+        "priority.unknown": 1,
+    }
+    assert {f.file for f in report.findings} == {"roadkeep.toml"}
+
+
 # -- the surfaces ------------------------------------------------------------
 
 

@@ -32,6 +32,11 @@ What it reports, and why each one is a defect the other commands cannot see:
   here means the file was edited by something that is not this tool.
 * **A cycle** — three tasks waiting on each other are three tasks nothing can start
   (RK13), which is a defect and not a shape.
+* **A queue entry naming work that has left** (RK326) — the same resolution, applied to
+  the one list that outranks the id order: shipped, retired, set aside, naming nothing,
+  or naming a block whose every line is gone. Written as deps, most of these already
+  failed here; written as a priority they passed at exit 0 while `pick` said only that
+  the queue "names nothing ready".
 
 And the same question asked of the prose file, which is RK15's half: **a pointer that
 resolves to nothing reads exactly like a design that exists**, which is worse than no
@@ -96,7 +101,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 
-from roadkeep import scoping
+from roadkeep import queueing, scoping
 from roadkeep.backlog import Backlog, DepStatus, id_order
 from roadkeep.config import PROSE_ROLES, ROLES, Config, spent
 from roadkeep.document import Document, Entry, ending
@@ -114,7 +119,7 @@ from roadkeep.history import (
     tracked_now,
 )
 from roadkeep.markers import derive
-from roadkeep.schema import PARTIAL, DepKind, Task, over_by
+from roadkeep.schema import PARTIAL, Dep, DepKind, Task, over_by
 from roadkeep.sections import Section, anchored, find
 from roadkeep.sections import owners as section_owners
 from roadkeep.showing import known_directories, on_disk, paths_in
@@ -549,7 +554,10 @@ def _examine(config: Config, since: str | None, tree: Tree) -> Report:
         findings.extend(_characters(config, role, document))
     findings.extend(_across(config, documents))
     findings.extend(_scope(config, documents.get("roadmap")))
+    queued, queue_notes = _queue(config, documents)
+    findings.extend(queued)
     notes: list[Note] = _collective(config, documents)
+    notes.extend(queue_notes)
     if since is not None:
         notes.extend(_turned(config, documents, since))
 
@@ -1200,6 +1208,213 @@ def _scope(config: Config, roadmap: Document | None) -> list[Finding]:
             )
         seen.setdefault(lead, non_goal.first)
     return out
+
+
+def _queue(
+    config: Config, documents: dict[str, Document]
+) -> tuple[list[Finding], list[Note]]:
+    """Every entry in the queue that outranks the id order, resolved (RK326).
+
+    `Config._check_priority` types a token and stops there, a config parser having no
+    roadmap to resolve it against — so `priority = ["QQ1", "Block Z", "QQ9"]` with QQ1
+    shipped, no heading declaring Z and QQ9 in no file lints clean, while `pick` answers
+    "the declared priority names nothing ready": one sentence covering three deaths and
+    naming none. Written as deps, two of those tokens are already findings here.
+
+    Since RK325 the list is in the roadmap, so the resolution is the one
+    :class:`~roadkeep.backlog.Backlog` already does and the codes are the states a token
+    can be **dead** in: shipped, retired, set aside, naming nothing, and naming a block
+    whose every line has left — plus one named twice, which is two answers about where the
+    same work sits. At `file:line:column` like everything else (RK34).
+
+    Two states are deliberately **not** findings. An entry naming a merely blocked task is
+    a queue doing its job — that is what a queue is *for* — and a declared block holding
+    nothing **yet** is legitimate, `block add` writing the heading before the lines; the
+    two are told apart by whether the ledger has entries under that heading, which is the
+    only record that work ever left it.
+
+    And a `priority` still in `roadkeep.toml` beside a section that now holds the order is
+    the third note: it is read (:func:`~roadkeep.queueing.declared` says the section wins),
+    and a queue quietly coming from the other file is the failure RK325 is about.
+
+    A queue the **config** declares is resolved too, against `roadkeep.toml` and without a
+    line: that is where the defect was measured, and a project that has not written the
+    section is exactly the one whose queue nothing else reads.
+    """
+    roadmap = documents.get("roadmap")
+    if roadmap is None:
+        return [], []
+    backlog = Backlog.during(
+        config,
+        roadmap=roadmap,
+        ledger=documents.get("changelog"),
+        store=documents.get("deferred"),
+    )
+    file = config.relative(config.path("roadmap"))
+    found = queueing.read(roadmap, config)
+
+    out: list[Finding] = []
+    notes: list[Note] = []
+    for lineno, raw in found.rejects:
+        out.append(
+            Finding(
+                "priority.shape",
+                file,
+                f"a queue entry is `- <id>` or `- Block X` and nothing else, so this "
+                f"bullet addresses no work: {raw.strip()[:60]!r}",
+                lineno,
+            )
+        )
+
+    if found.declared_in:
+        if config.priority:
+            notes.append(
+                Note(
+                    "priority.config",
+                    config.relative(config.source) if config.source else "roadkeep.toml",
+                    f"declares priority = {list(config.priority)} while "
+                    f"{file} holds the queue: the section wins, so the config's order is "
+                    f"read by nothing and `priority drop` cannot reach it",
+                )
+            )
+        places = [
+            (entry.token, entry.lineno, entry.raw.index(entry.token) + 1)
+            for entry in queueing.entries(roadmap, config)
+        ]
+    else:
+        where = config.relative(config.source) if config.source else "roadkeep.toml"
+        file = where
+        places = [(token, None, None) for token in config.priority]
+
+    seen: dict[str, int | None] = {}
+    for token, lineno, column in places:
+        if token in seen:
+            first = f" on line {seen[token]}" if seen[token] else ""
+            out.append(
+                Finding(
+                    "priority.duplicate",
+                    file,
+                    f"{token} is already queued{first}: an entry is an address, so a "
+                    f"second one is two answers about where the same work sits",
+                    lineno,
+                    column=column,
+                )
+            )
+            continue
+        seen[token] = lineno
+        finding = _dead(config, backlog, token, file, lineno, column, documents)
+        if isinstance(finding, Note):
+            notes.append(finding)
+        elif finding is not None:
+            out.append(finding)
+    return out, notes
+
+
+def _dead(
+    config: Config,
+    backlog: Backlog,
+    token: str,
+    file: str,
+    lineno: int | None,
+    column: int | None,
+    documents: dict[str, Document],
+) -> Finding | Note | None:
+    """How this one entry is dead, or nothing where the tier can still fire.
+
+    One resolution, from the code that resolves a dep, so a token cannot mean one thing in
+    an annotation and another in the order (RK11's rule, and :func:`~roadkeep.queueing.typed`
+    at the other end).
+    """
+    resolution = backlog.resolve_dep(Dep(token))
+    if resolution.kind is DepKind.BLOCK:
+        return _dead_block(
+            config, backlog, token, file, lineno, column, documents, resolution.detail
+        )
+    if resolution.status is DepStatus.SHIPPED:
+        return Finding(
+            "priority.shipped",
+            file,
+            f"queues {token}, which is {resolution.detail}: work that left the roadmap "
+            f"cannot be first, and the queue is the one list its departure did not reach",
+            lineno,
+            column=column,
+        )
+    if resolution.status is DepStatus.DEFERRED:
+        return Finding(
+            "priority.deferred",
+            file,
+            f"queues {token}, which is {resolution.detail}: `pick` never offers a paused "
+            f"line, so the order is over work nothing can start",
+            lineno,
+            column=column,
+        )
+    if resolution.status is DepStatus.UNKNOWN:
+        return Finding(
+            "priority.unknown",
+            file,
+            f"queues {token}, which is {resolution.detail}: nothing can be first because "
+            f"of an id no file carries",
+            lineno,
+            column=column,
+        )
+    if resolution.status is DepStatus.UNRESOLVABLE:
+        return Finding(
+            "priority.retired",
+            file,
+            f"queues {token}, which is {resolution.detail}",
+            lineno,
+            column=column,
+        )
+    # OPEN, which includes blocked: a queue naming work that is waiting is a queue doing
+    # its job, and the tier fires the moment the blocker ships.
+    return None
+
+
+def _dead_block(
+    config: Config,
+    backlog: Backlog,
+    token: str,
+    file: str,
+    lineno: int | None,
+    column: int | None,
+    documents: dict[str, Document],
+    detail: str,
+) -> Finding | Note | None:
+    """The half of :func:`_dead` about a `Block X` entry, whose three states differ.
+
+    A block nothing declares is the dep resolver's own answer. Between the other two the
+    ledger is what decides: a heading with entries under it and no open line is a block
+    that **emptied**, and one with neither is a heading written before its lines — which is
+    the order `block add` prescribes, so it is a note.
+    """
+    label = config.schema.block_of_dep(Dep(token))
+    if label not in backlog.declared_blocks():
+        return Finding(
+            "priority.block",
+            file,
+            f"queues {token} and {detail}",
+            lineno,
+            column=column,
+        )
+    if backlog.open_in_block(label):
+        return None
+    ledger = documents.get("changelog")
+    if ledger is not None and ledger.block(label):
+        return Finding(
+            "priority.block-empty",
+            file,
+            f"queues {token}, whose every line has shipped or left: a tier that fires on "
+            f"nothing is an order the author believes is in force",
+            lineno,
+            column=column,
+        )
+    return Note(
+        "priority.block-unstarted",
+        file,
+        f"queues {token}, which no line is filed under yet: the tier fires on nothing "
+        f"until one is",
+        lineno,
+    )
 
 
 def _across(config: Config, documents: dict[str, Document]) -> list[Finding]:

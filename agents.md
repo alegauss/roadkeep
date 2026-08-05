@@ -74,10 +74,10 @@ in a README. A limit that cannot express these lines is the wrong limit rather t
 wrong lines, so a schema change validates here first, under this repo's own `roadkeep.toml`.
 Don't hand-check it: `… lint` **exits 1** on any violation, line that stopped round-tripping,
 dep nothing satisfies, pointer resolving to nothing, section nothing points at, over-budget
-every-turn file, or invisible codepoint — named as `file:line:column` rather than as its
-consequence, and nothing else judged on that line (RK14/RK15/RK30/RK34). CI runs it through the
-action this repo ships (RK17). `--fix` repairs only what is **derived** (annotation, pointer,
-dep order, marker codepoint, whitespace) and leaves the editorial (RK16).
+every-turn file, queue entry naming work that left, or invisible codepoint — as
+`file:line:column`, never as a consequence, nothing else judged there (RK14/15/30/34/326). CI
+runs it through the action this repo ships (RK17). `--fix` repairs only what is **derived**
+(annotation, pointer, dep order, marker codepoint, whitespace), leaving the editorial (RK16).
 
 ## The write path is a skill, not a preamble
 

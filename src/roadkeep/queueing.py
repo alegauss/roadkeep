@@ -65,6 +65,7 @@ __all__ = [
     "add",
     "declared",
     "drop",
+    "entries",
     "read",
     "render",
     "tokens",
@@ -306,7 +307,7 @@ def add(
         raise NotAnEntry(entry, where)
 
     held = read(document, config)
-    twin = _entries(document, config)
+    twin = entries(document, config)
     existing = next((one for one in twin if one.token == entry), None)
     if existing is not None:
         raise DuplicateEntry(entry, where, existing.lineno)
@@ -343,16 +344,16 @@ def drop(config: Config, token: str) -> Dropped:
     if _heading_index(document) is None:
         raise NoQueue(where)
 
-    entries = _entries(document, config)
-    going = next((one for one in entries if one.token == token.strip()), None)
+    held = entries(document, config)
+    going = next((one for one in held if one.token == token.strip()), None)
     if going is None:
         raise NoSuchEntry(
-            token.strip(), where, tuple(one.token for one in entries)
+            token.strip(), where, tuple(one.token for one in held)
         )
     return Dropped(
         document=_remove_line(document, going.lineno),
         entry=going,
-        length=len(entries) - 1,
+        length=len(held) - 1,
     )
 
 
@@ -375,14 +376,18 @@ def without(document: Document, config: Config, token: str) -> tuple[Document, s
     somebody's sentence. **A queue entry is derived dead by the departure itself** — the id it
     names has left the roadmap, so the tier could only ever fire on nothing.
     """
-    going = next((one for one in _entries(document, config) if one.token == token), None)
+    going = next((one for one in entries(document, config) if one.token == token), None)
     if going is None:
         return document, None
     return _remove_line(document, going.lineno), going.token
 
 
-def _entries(document: Document, config: Config) -> tuple[Entry, ...]:
-    """The readable bullets alone, which is what the two writers address against."""
+def entries(document: Document, config: Config) -> tuple[Entry, ...]:
+    """The readable bullets alone, with their lines — what the writers address against.
+
+    Public because the gate reports against a *line* (RK326): :func:`read` answers what the
+    order is, and a finding needs where the entry that is dead was written.
+    """
     start = _heading_index(document)
     if start is None:
         return ()
