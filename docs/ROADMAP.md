@@ -37,6 +37,7 @@
 
 - 📋 **RK303** (deps: —) **The section budget picks the first of two prose files declaring one anchor, where every other reader refuses** — It answered improvements about an address strategy declares too, and show calls that state a pointer resolving to neither — so a limit is priced for an unreachable section. → §RK303
 - 📋 **RK324** (deps: —) **brief calls a shipped task ready, so the one command meant to start work invites redoing it** — show reads the same id and answers shipped; brief prints ready beside the checkmark and an unblocks count, which is a startable task described to whoever asked what starting it costs. → §RK324
+- 📋 **RK336** (deps: RK312) **anchors prices every family that exists and never says which one is free next** — The address a new section needs is one no family has ever declared, and the report is a per-family table of live, retired and next subsection, so the new-family question is answered by guessing. → §RK336
 
 ## Block D — The gate
 
