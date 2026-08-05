@@ -77,6 +77,78 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK360 The clause that needs a block, for a caller who has none
+
+RK349 gave `section add` the sentence `add` has had since RK312: under an outline, an
+anchor that is not an address ends with the family this block's prose lives under and
+the free child inside it. It is reached through the task the anchor names, because the
+block is the clause's whole subject and `_task_for` is what answers it.
+
+Which leaves the case it cannot answer, and that case is not the rare one. `section add
+II-1` — a shape that is not an address, belonging to no line — refuses and names nothing,
+and whoever typed it is the one who did not know what an address here looks like. Type a
+*task id* and the refusal is the good one; guess at a number and it is bare.
+
+There is an answer that needs no block. `anchors` bare already reports the free
+**top-level**, which is what a section belonging to no task would take, and RK349's own
+two-family branch prints that sentence. So the silent path has a clause available and it
+was left out only because the one written was about a block.
+
+What this must not become is a guess: naming a free *child* requires the family, the
+family comes from the block, so an anchor owning nothing gets the top-level and never a
+number derived from whichever family was last.
+
+Worth measuring whether `section amend` reaches this at all — a mistyped anchor there
+refuses earlier, naming the file, which may already be the answer.
+
+### §RK361 The fourth caller of place, refusing into the dark
+
+RK348 and RK349 both landed the same rule from opposite ends: a length is reported
+against `file:line`, and a refusal names the command that answers it. `place` is where
+three of the four line writes now get both — `add`, `defer` and `resume` each pass
+`where` and a config.
+
+`merging.merged` is the fourth and passes neither. A line one branch added and the other
+did not is re-placed there, and every refusal that reach produces arrives naked: an
+over-length line says a number, an undeclared block lists labels with no file beside
+them, and the caller is in the middle of a merge with two versions of the file and no
+statement of which one the number is about.
+
+The comment above that call argues nothing can arrive wrong — every version was held to
+the round-trip, so the bytes are the ones already checked. That is true of the
+*rendering* and not of the schema: an annotation this tool re-derives during the merge
+is exactly the two characters RK348 was filed about, and the branch that shipped a dep
+is the branch that makes them appear.
+
+Cheap, because both arguments are already in hand at that call. What wants deciding is
+only whether the merge driver should also carry the anchor clause, or whether a merge is
+the one context where naming a command to run is wrong — the caller is inside git's
+driver, not at a prompt, and an instruction they cannot follow yet is noise.
+
+### §RK362 A declaration is not a delivery
+
+RK350 closed the half that was a habit: which verbs owe a near-twin sentence is now read
+off the parsers, so a third pair is named by a failing test rather than by whoever types
+the report's name.
+
+It gates the `twin` default and stops there. Whether that default ever becomes output is
+`_Verb.error`, which fires on `"required" in message` — a substring test against the
+sentence argparse composes, in argparse's English. Both live pairs have a test that runs
+the bare call and reads the printed text, so delivery is held for `status` and `claim`
+by two tests naming them. A pair added tomorrow inherits the property and neither of
+those.
+
+Two ways that goes wrong and only one is exotic. The dull one: a verb whose required
+positional is declared with `nargs` the survey counts and the message words differently,
+so the gate is satisfied and the caller still reads argparse's own line. The other: a
+Python release rewording that message, which turns the sentence off for every pair at
+once and leaves a suite of green tests asserting the defaults are declared.
+
+The shape is the one already here — the property that enumerates the pairs can run each
+of them bare and assert the sentence arrives, which makes the enumeration answer both
+halves. What wants care is that it must not become a second copy of the two hand-written
+tests: those assert *which* sentence, and this one asserts only that one was printed.
+
 ## Block C — Query
 
 ## Block D — The gate
