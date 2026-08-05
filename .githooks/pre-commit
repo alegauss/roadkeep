@@ -12,15 +12,37 @@
 # It never blocks a commit. A missing interpreter costs a plugin refresh and a refused commit
 # costs the session, so every path out of here is exit 0. `--no-verify` skips it entirely.
 #
+# It stages only what it wrote (RK320). `git add` takes a path and not a diff, so staging a
+# file that already carried an unstaged edit puts that edit under this commit's message —
+# measured once, with another agent's manifest change landing under an unrelated subject. So
+# the working tree is read *before* the bump, and where either file differs from the index
+# the number is written and nothing is staged: neither file alone either, the two numbers
+# being one fact (`tests/test_plugin.py`). The bump still happens, because RK153's argument
+# is about the checkout the session loads and not about the commit.
+#
 # Wired per clone, because a hook in `.git/hooks` is not something a clone carries:
 #     git config core.hooksPath .githooks
 
 root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
 
+versioned="src/roadkeep/__init__.py .claude-plugin/plugin.json"
+
+foreign=
+for file in $versioned; do
+	if ! git -C "$root" diff --quiet -- "$file" 2>/dev/null; then
+		foreign="$file"
+	fi
+done
+
 for interpreter in python python3 py; do
 	if command -v "$interpreter" >/dev/null 2>&1; then
 		if "$interpreter" "$root/scripts/bump_version.py" --level patch; then
-			git add -- "$root/src/roadkeep/__init__.py" "$root/.claude-plugin/plugin.json" || true
+			if [ -n "$foreign" ]; then
+				echo "pre-commit: $foreign carries an edit this hook did not write; version bumped in the working tree, staged nothing" >&2
+			else
+				# Deliberately unquoted: the list above is two paths, not one.
+				git -C "$root" add -- $versioned || true
+			fi
 		else
 			echo "pre-commit: bump_version.py failed, version not bumped" >&2
 		fi

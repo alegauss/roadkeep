@@ -236,6 +236,7 @@
 - ✅ **RK269** **A block emptying is stated once to the console and recorded nowhere a later verb can read** — `lint --since` notes every block this change emptied or reopened, which is what the shipped pre-commit hook runs and what the console-only event never reached.
 - ✅ **RK299** **A report names every path relative to a root it never states** — Both summary lines end with `(in <root>)` and `--json` leads with the `root` key `install` already uses, so every relative path in a report resolves.
 - ✅ **RK300** **Whether a block still holds open work is computed in two modules** — `Document.holds` is the one reader both the event line and the gate's note call, and a source test says those two are the only callers.
+- ✅ **RK320** **The version bump stages two whole files, so an unrelated edit to either rides into the next commit** — The hook reads the working tree before it bumps, and where either versioned file carries an unstaged edit it writes the number and stages neither, so a commit carries only what somebody staged.
 
 ## Block E — Adoption
 

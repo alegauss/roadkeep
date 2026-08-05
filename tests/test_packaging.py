@@ -30,6 +30,7 @@ from pathlib import Path
 import pytest
 
 import roadkeep
+from roadkeep.history import git_available
 
 HERE = Path(__file__).resolve().parents[1]
 PYPROJECT = HERE / "pyproject.toml"
@@ -86,6 +87,104 @@ def test_a_commit_bumps_the_patch_version() -> None:
     # Never blocks: a missing interpreter costs a plugin refresh, a refused commit costs the
     # session — so every path out of it is a zero.
     assert "exit 1" not in body
+
+
+def clone_of_the_hook(root: Path) -> None:
+    """The smallest checkout the hook runs in: the two files that state the number, the
+    bumper they are written by, and the hook itself on `core.hooksPath`."""
+    import shutil
+    import subprocess
+
+    def git(*args: str) -> None:
+        subprocess.run(["git", "-C", str(root), *args], check=True, capture_output=True)
+
+    for relative in ("scripts/bump_version.py", "src/roadkeep/__init__.py", ".claude-plugin/plugin.json"):
+        target = root / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(HERE / relative, target)
+    (root / ".githooks").mkdir()
+    shutil.copy2(HERE / ".githooks" / "pre-commit", root / ".githooks" / "pre-commit")
+
+    git("init", "--quiet")
+    git("config", "user.email", "test@example.invalid")
+    git("config", "user.name", "Test")
+    git("config", "commit.gpgsign", "false")
+    git("config", "core.hooksPath", ".githooks")
+    git("add", "-A")
+    git("commit", "--quiet", "-m", "chore: bootstrap")
+
+
+@pytest.mark.skipif(not git_available(), reason="git is not on PATH")
+def test_the_bump_is_not_staged_over_an_edit_the_hook_did_not_write(tmp_path) -> None:
+    """RK320, measured: another agent's manifest edit sat unstaged, the hook staged the whole
+    file to write the number into it, and the edit landed under a subject about something
+    else. Whichever way the number moves, what a commit carries is what somebody staged."""
+    import json
+    import subprocess
+
+    clone_of_the_hook(tmp_path)
+    manifest = tmp_path / ".claude-plugin" / "plugin.json"
+    at_head = json.loads(
+        subprocess.run(
+            ["git", "-C", str(tmp_path), "show", "HEAD:.claude-plugin/plugin.json"],
+            check=True,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+        ).stdout
+    )["version"]
+    foreign = manifest.read_text(encoding="utf-8").replace('"version"', '"foreign-marker"', 1)
+    manifest.write_text(foreign, encoding="utf-8")
+
+    (tmp_path / "unrelated.txt").write_text("a commit about something else\n", encoding="utf-8")
+    subprocess.run(["git", "-C", str(tmp_path), "add", "--", "unrelated.txt"], check=True)
+    subprocess.run(
+        ["git", "-C", str(tmp_path), "commit", "--quiet", "-m", "fix: something else"],
+        check=True,
+        capture_output=True,
+    )
+
+    committed = subprocess.run(
+        ["git", "-C", str(tmp_path), "show", "HEAD:.claude-plugin/plugin.json"],
+        check=True,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    ).stdout
+    assert "foreign-marker" not in committed, "the hook staged an edit nobody declared"
+    # And the bump still reached the working tree: the plugin a session loads is the point.
+    assert "foreign-marker" in manifest.read_text(encoding="utf-8")
+    # Neither file alone either: the number the commit carries is still the one before it.
+    assert json.loads(committed)["version"] == at_head
+
+
+@pytest.mark.skipif(not git_available(), reason="git is not on PATH")
+def test_a_clean_tree_still_carries_the_bump_into_the_commit(tmp_path) -> None:
+    """The refusal above is a fallback, not the path: with nothing else in either file the
+    number moves in the commit, which is what RK153 asked the hook for."""
+    import json
+    import subprocess
+
+    clone_of_the_hook(tmp_path)
+    before = json.loads((tmp_path / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))
+
+    (tmp_path / "unrelated.txt").write_text("a commit of its own\n", encoding="utf-8")
+    subprocess.run(["git", "-C", str(tmp_path), "add", "--", "unrelated.txt"], check=True)
+    subprocess.run(
+        ["git", "-C", str(tmp_path), "commit", "--quiet", "-m", "feat: a change"],
+        check=True,
+        capture_output=True,
+    )
+
+    for relative in (".claude-plugin/plugin.json", "src/roadkeep/__init__.py"):
+        shown = subprocess.run(
+            ["git", "-C", str(tmp_path), "show", f"HEAD:{relative}"],
+            check=True,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+        ).stdout
+        assert before["version"] not in shown, relative
 
 
 def test_the_bumper_moves_both_files_and_nothing_else(tmp_path, checkout) -> None:

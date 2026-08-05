@@ -155,27 +155,6 @@ a gate that asked for prose there would be answered with prose nobody needed.
 
 ## Block D — The gate
 
-### §RK320 A hook that stages more than it wrote
-
-RK153's argument stands: a checkout whose plugin version never moves is one the session
-keeps running the old copy of, so `.githooks/pre-commit` bumps on every commit and never
-blocks. To make the bump part of the commit it has to stage what it wrote, and it does
-that with `git add -- src/roadkeep/__init__.py .claude-plugin/plugin.json` — two paths,
-whole.
-
-Whole is the problem. Measured in one session: another agent had edited
-`.claude-plugin/plugin.json` in the working tree, removing a key deliberately; the next
-commit was an unrelated fix, the hook staged the file to write the number into it, and
-the key removal landed under that commit's message. Bisecting the manifest now names a
-commit whose subject is about something else, and the author who made the change has no
-commit carrying it.
-
-This is the failure a scope exists to prevent (RK280), arriving past it: `claim <id>
---path` says what a commit owns and `ship` prints the `git add --` line for exactly
-that, and then a hook stages two more paths nobody declared. What needs deciding is
-whether the bump can stage only its own diff — the number is one line in each file — or
-whether it refuses when either file carries an edit it did not make.
-
 ### §RK326 A queue the gate cannot read
 
 `Config._check_priority` already states the rule this asks for: an entry `pick` cannot
