@@ -37,12 +37,15 @@
 - 📋 **RK328** (deps: RK325 ✅, RK326) **The one queue repair that is fully derived has no fixer, so a clean tree still costs a hand edit** — Dropping the entry whose task shipped chooses nothing and writes no prose, which is the half --fix exists for, and after RK325 it is a governed file the fixer rewrites. → §RK328
 - 📋 **RK333** (deps: —) **The refusal offers mcp__roadkeep__add, which is not the name a plugin-provided server gives it** — Measured in an adopting project: the tools arrive as mcp__plugin_roadkeep_roadkeep__add, so the route the guard names first is one that session cannot call. → §RK333
 - 📋 **RK335** (deps: —) **The job that gates a release pipes an unpinned remote script into bash, under the workflow's default token** — RK334 bought the loader's own reader with a curl into bash and a workflow declaring no permissions, so the gate now runs code nobody pinned with whatever the token grants. → §RK335
+- 📋 **RK353** (deps: —) **A verb this tool publishes under one name on one surface is an unknown command on the other** — Typing the MCP tool name at the CLI prints argparse's list of forty choices and nothing about which verb does that job, measured on scope, whose CLI spelling is claim with a path flag. → §RK353
 
 ## Block E — Adoption
 
 - 📋 **RK305** (deps: —) **The scheme suggestion is suppressed by a majority that shipping erodes** — adopt hides it only while the declared scheme out-counts the other, and this repo's id-anchored sections are deleted at every ship, so a conforming file is told to switch once enough work lands. → §RK305
 - 📋 **RK315** (deps: —) **A test asserting on this repository's own docs fails when another session writes them mid-run** — It read docs/IMPROVEMENTS.md live and failed once in three identical runs while a second session shipped into that file, so the red said nothing about the code under test. → §RK315
 - 📋 **RK347** (deps: —) **The estimate reads one prose file at a time, so the state two of them are in is the one it cannot report** — adopt --sections never sees the sibling, and an address both files declare is met on the first lint rather than in the estimate taken to price adoption. → §RK347
+- 📋 **RK351** (deps: —) **A test asserting on an MCP answer fails when any source file is touched while the suite runs** — Measured three times: an edit during a two-minute run moves a module's mtime, the server appends its changed-on-disk note, and the assertion is about text nothing under test wrote. → §RK351
+- 📋 **RK352** (deps: —) **The replay test that asserts a codec drifted names a value the running process may already declare** — It records PYTHONIOENCODING as utf-8:surrogateescape and asserts this reader lacks it, so a shell exporting that reports one drifted fact of two and the red is about the shell. → §RK352
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 

@@ -271,6 +271,29 @@ What makes this a line rather than a shrug: this repository's argument is that a
 only as good as what it reads, and the newest job reads a tool it fetches unverified
 every time.
 
+### §RK353 The name the skill teaches and the parser does not know
+
+Two surfaces name one act differently on purpose. `scope` is the MCP tool for declaring
+what a commit owns, and at the CLI that same act is `claim <id> --path …`, because there
+`claim` without a path is the other act — taking a line. The skill says so.
+
+What happens next was measured in this session: the skill was read, `roadkeep scope RK345
+--path …` was typed, and argparse answered `invalid choice: 'scope'` followed by all forty
+verbs. Nothing in that refusal names `claim --path`, and nothing distinguishes a name this
+tool publishes elsewhere from a typo.
+
+The same gap has been closed once already at the other end: RK333 is the refusal that
+offers `mcp__roadkeep__add` under a name a plugin-provided server does not use. The
+pattern is a route named for the surface the reader is not on, and the fix in both
+directions is the same shape — the refusal knows the other surface's table and can say
+which verb the name it was given belongs to.
+
+Small in code and not in effect: a session that is refused a route it was taught either
+retypes from memory or falls back to editing the file, which is the door the guard
+denies and the whole reason these names are published at all. What is worth deciding is
+whether the mapping lives with the tool table or with the parser, since only one of them
+can be the authority on a name.
+
 ## Block E — Adoption
 
 ### §RK305 A majority that measures the backlog, not the file
@@ -329,5 +352,51 @@ configuration rather than a renumbering of somebody's document.
 The estimate stays a read that writes nothing and exits 0 (RK18): what is added is a
 figure in it, not a refusal. An adopter told the number before they commit is the whole
 point of the command, and this is the one they are most likely to be surprised by.
+
+### §RK351 The answer a running suite is not holding still for
+
+`_answered` appends what RK79 and RK200 exist to say: which tree answered, and whether
+the modules this process imported have moved on disk since. Both are right, and both are
+part of the string a test reads back with `text_of`.
+
+So the tests that assert on that string are asserting on a fact about the *repository*,
+not about the call. Reproduced deliberately: `touch src/roadkeep/cli.py` three seconds
+into `pytest tests/test_serving.py` fails a test that passes on a quiet tree, and the
+diff is the note being added rather than any field changing. Observed first as two
+failures in `test_serving.py` during a full run that overlapped a commit, both green in
+isolation minutes later — which reads as flakiness and is not.
+
+The cost is paid by the one workflow this tool is built for: an agent edits, runs the
+suite in the background, keeps editing, and is handed a red that says nothing about the
+change. A red that cannot be trusted is worse than no red, because the next one is
+discounted too.
+
+This is RK315's shape with a different input — that one is the governed docs being
+written mid-run, this is the source files being touched — so whatever answers it should
+answer both. What is worth deciding is where the seam goes: a test that reads the fields
+it asserts on rather than the whole string, or a fixture that pins the staleness answer
+for the duration of the call.
+
+### §RK352 A fixture that collides with the environment it is about
+
+`_drifted` compares a capture's recorded text-handling facts against this process's,
+which is the whole of RK341: a verdict reached under different codecs says so. The test
+for it records `PYTHONIOENCODING = utf-8:surrogateescape` and a locale, and asserts both
+come back as drifted.
+
+Both do — unless the process running the test already declares that variable with that
+value, in which case only the locale drifts and the assertion fails. Measured here: the
+PowerShell tool starts Python with exactly that value exported, so the suite is red
+under one shell and green under another with no change to the code between them.
+
+The fixture is asserting "this process does not have X" about a value chosen because it
+is the realistic one, which is the same reason a real environment would have it. A value
+nothing would ever export makes the same point about the comparison and cannot be shared
+by accident; reading the current environment and picking one it does not hold is the
+other direction, and says why in the test rather than in a constant.
+
+Small, and worth doing because of what it costs when it fires: this is one of the few
+tests that can be red for a reason outside the repository, and a red nobody can
+reproduce is the one that gets ignored on the run where it means something.
 
 ## Block F — The plugin
