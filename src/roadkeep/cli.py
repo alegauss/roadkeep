@@ -573,7 +573,17 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="read the driver back out of git config and say whether it still runs; write nothing",
     )
-    merge_parser.set_defaults(handler=_merge)
+    # For `--check` and for nothing else on this command (RK275). The MCP surface passes `--json`
+    # on every call and never exposes it, because a structured answer is the difference between
+    # one an agent can audit and one it re-reads the file to check (L5) — and the driver path has
+    # no answer to structure: git reads its exit code and its bytes in `%A`, not its stdout.
+    merge_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    # `--check` is a pure query wearing the driver's subparser (RK275), so the claim this parser
+    # makes is the one `writes_when` was built for, inverted the only way it can be: the command
+    # reads, and the two arguments that turn it into a write say so. `ours` is where git has the
+    # driver put the result, so a merge that names it writes; `--register` writes `.gitattributes`.
+    # Neither is set by a `--check`, which is what lets it take no lock and be free to ask (L5).
+    merge_parser.set_defaults(handler=_merge, reads_only=True, writes_when=("register", "ours"))
 
     ship_parser = subcommands.add_parser(
         "ship",
@@ -2385,7 +2395,7 @@ def _merge(config: Config, args: argparse.Namespace) -> int:
     if args.check:
         # Before `--register`, so the two together read as the check: a `--check` that wrote
         # the attribute lines anyway would be the one thing this flag promises not to do.
-        return _merge_check(config)
+        return _merge_check(config, args)
     if args.register:
         return _merge_register(config)
     if not (args.base and args.ours and args.theirs):
@@ -2537,7 +2547,7 @@ def _attributes_line(attributes: Attributes) -> str:
     return line
 
 
-def _merge_check(config: Config) -> int:
+def _merge_check(config: Config, args: argparse.Namespace) -> int:
     """Ask whether git would run this driver at all, and write nothing (RK266, RK270).
 
     The verb RK266 exists for. `lint` was the other candidate and is the wrong one: it is the
@@ -2554,11 +2564,36 @@ def _merge_check(config: Config) -> int:
     for where something routes to it. It is still *reported* either way — this narrows what the
     check demands and never what it says, because a driver configured where nothing reaches it
     is harmless and a driver silently not asked for is the silence this command exists to end.
+
+    **And it is the one query on this command, so it is the one that answers as JSON** (RK275).
+    The MCP surface reaches it as `merge_check` and passes `--json` on every call, and the halves
+    are fields there for the reason they are two lines here: a caller that got one string would
+    have to parse which half is broken out of prose this file is free to reword. `sound` is the
+    exit code as a boolean, so nothing has to infer it from the absence of repairs.
     """
     wired = wiring(config)
+    repairs = _repairs(wired)
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "attributes": {
+                        "state": wired.attributes.state,
+                        "file": config.relative(wired.attributes.path),
+                        "reported": _attributes_line(wired.attributes),
+                        "routes_here": wired.attributes.routes_here,
+                    },
+                    "driver": {"state": wired.driver.state, "reported": _wiring_line(wired)},
+                    "sound": wired.sound,
+                    "fix": repairs,
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK if wired.sound else EXIT_GATE
     print(f"  attributes  {_attributes_line(wired.attributes)}")
     print(f"  config      {_wiring_line(wired)}")
-    for repair in _repairs(wired):
+    for repair in repairs:
         print(f"  fix         {repair}")
     return EXIT_OK if wired.sound else EXIT_GATE
 

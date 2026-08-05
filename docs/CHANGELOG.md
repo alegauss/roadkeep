@@ -326,3 +326,4 @@
 - ✅ **RK260** **Every denied edit imports the MCP server module to read a tuple of tool names** — Each hook event imports in the branch that uses it and `words` comes from `schema`, so a denial loads 7 modules rather than 25, measured at 50.1 ms against 84.5 with a test holding the set.
 - ✅ **RK261** **A denial still loads the document model and the lock for names it never reaches** — `Document` and `LockBusy` are reached inside the one method and the one function that use them, so a denial loads 5 modules at 44.6 ms rather than 7 at 50.1, and no command pays more.
 - ✅ **RK267** **A staleness note lists every changed module and hands relevance back** — the note names the modules that both moved and decided the refusal, and says nothing when the sets are disjoint.
+- ✅ **RK275** **No MCP tool asks whether git would run this driver** — merge --check is served as the tool merge_check, read-only and answering both halves of the wiring as fields.

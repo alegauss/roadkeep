@@ -151,30 +151,6 @@ one the majority was standing in for.
 
 ## Block F — The plugin
 
-### §RK275 A check the agent it was built for cannot call
-
-L5 is that every question is a command, so answering one costs no context. `merge
---check` is exactly that shape: it writes nothing, reads two facts, answers in three
-lines. The MCP server exposes the query surface — `list`, `brief`, `budget`, `deps`,
-`weight` — and not this one, so the agent the plugin exists for reaches it by shelling
-out or not at all. In practice, not at all: nothing prompts the question, and an unwired
-driver is silent until the merge it was registered for.
-
-The reason it is absent is that `merge` is git's driver contract. Three positional
-paths, a `--path`, an exit code git reads — none of that belongs in a tool an agent
-calls, and the server was right to leave the verb alone. But `--check` is not that verb
-sharing a name; it is a different command wearing the same subparser, which is why it
-needed a flag.
-
-The shape to decide: whether the server grows a tool for a flag — one subparser per task
-is the mapping, and this the first exception — or whether `--check` becomes its own
-subcommand, `merge check`, picked up by the rule the server has.
-
-The second was argued for as cheap "before it is load-bearing". It no longer is: RK272,
-RK273, RK274, RK277 and RK278 each put behaviour behind that flag, so the rename moves a
-documented command with five decisions in it. Not an argument against — the measure of
-what an exception would hold.
-
 ### §RK304 The bound that stayed prose
 
 RK24's claim is that the input schema *is* the format's schema: `maxLength` is this

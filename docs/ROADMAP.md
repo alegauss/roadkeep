@@ -38,7 +38,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK275** (deps: —) **No MCP tool asks whether git would run this driver** — `merge --check` is a pure query the server does not expose, so the agent the plugin exists for reaches it only by shelling out — the read L5 says a command should replace. → §RK275
 - 📋 **RK304** (deps: —) **The one closed-set argument on the MCP surface publishes no enum, so a role nobody declared is refused after the call** — status publishes its markers and an id its pattern; role, declared in [files] and on four tools, publishes a sentence the client cannot validate. → §RK304
 - 📋 **RK308** (deps: —) **The verb that declares a scope has no tool on the surface it was built for** — claim <id> --path is CLI-only and the MCP claim is brief --claim, so an agent driving this over the protocol cannot say what its commit owns at all. → §RK308
 

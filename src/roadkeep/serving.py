@@ -363,6 +363,15 @@ TOOLS: tuple[Tool, ...] = (
     # project with standing debt — "did what I just wrote add anything" rather than a count
     # of 317 the caller cannot attribute — and it reads a revision without writing one.
     Tool("lint", ("baseline",)),
+    # The one query on this list that is not its own subcommand (RK275). `merge` is git's driver
+    # contract — three positional paths and an exit code git reads — and none of that belongs in
+    # a tool an agent calls, so the verb stays unexposed. `--check` is not that verb sharing a
+    # name: it writes nothing, reads the wiring back out of git config, and answers in three
+    # lines. RK150's mechanism is what makes that expressible without renaming a flag five
+    # decisions now sit behind — `always` puts the act on the surface and `named` calls it what
+    # it is, exactly as `claim` is `brief --claim`. Last, because an unwired driver is silent
+    # until the merge it was registered for, which is a thing to ask once and never in a loop.
+    Tool("merge", always=("check",), named="merge_check"),
 )
 
 #: The subcommands above by their first word. Kept because a caller asking "is this command

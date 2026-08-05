@@ -242,6 +242,11 @@ def test_the_reads_that_can_write_are_the_ones_that_say_so():
         "claims": ("prune",),
         "claim": ("path", "add_path"),
         "lint": ("fix",),
+        # The one that is a write unless a flag makes it a read (RK275): `merge --check` is a
+        # pure query on git's driver subparser, so the command declares itself a read and names
+        # the two arguments that turn it into the write — `ours`, where git has the driver put
+        # the result, and `--register`, which writes `.gitattributes`.
+        "merge": ("register", "ours"),
     }
 
 

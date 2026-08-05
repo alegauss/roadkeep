@@ -161,8 +161,9 @@ refuse — it hands back as git's own conflict markers and exits 1. `install` na
 report and `install --register-merge` runs that half during adoption, so a wired project is
 never one whose first parallel branch conflicts by hand. Wiring is two writes — a committed
 `.gitattributes` line per file, and a per-clone `git config` path that can stop resolving —
-so `merge --check` reads both back and exits 1 unless git would run this driver. Neither
-half is otherwise visible until the merge it was registered for.
+so `merge --check` reads both back and exits 1 unless git would run this driver — the one
+query on that command, and the one tool on this surface named for a flag rather than a verb.
+Neither half is otherwise visible until the merge it was registered for, so ask once per clone.
 
 1. **`symptom` states what does not work** — never a solution name: a line named after its fix
    cannot be falsified, so it never gets closed, only abandoned.

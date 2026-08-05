@@ -206,6 +206,10 @@ def test_the_tools_are_what_a_task_needs_end_to_end():
         "list",
         "deps",
         "lint",
+        # The one query that is not its own subcommand (RK275): `merge --check` writes nothing
+        # and answers in three lines, and the verb around it is git's driver contract — so the
+        # flag becomes the tool, by the mechanism `claim` already is (RK150).
+        "merge_check",
     ]
 
 
@@ -1031,6 +1035,52 @@ def test_an_argv_that_would_have_gone_to_the_pipe_names_the_argument(tmp_path):
         section_body="Because a pointer resolving to nothing reads like a design that exists.",
     )
     assert written["isError"] is False
+
+
+# -- the check the agent it was built for could not call (RK275) ----------------
+
+
+def test_the_driver_check_is_a_tool_and_the_driver_itself_is_not(tmp_path):
+    # L5 is that every question is a command. `merge --check` is exactly that shape and was the
+    # one query off this surface, so the agent the plugin exists for reached it by shelling out
+    # or — in practice, nothing prompting the question — not at all.
+    served = listed(project(tmp_path))
+    assert "merge_check" in served
+    # The verb around it stays off: three positional paths and an exit code git reads is git's
+    # contract, and none of it belongs in a tool an agent calls.
+    assert "merge" not in served
+    # Free to ask, which is the whole of L5 — and read off the parser, not written here.
+    assert served["merge_check"]["annotations"]["readOnlyHint"] is True
+    # It takes nothing: the flag *is* the tool, so there is no argument to get wrong.
+    assert served["merge_check"]["inputSchema"]["properties"] == {}
+    # And it says which flag it always passes, derived from that flag's own help (RK150).
+    assert "--check" in served["merge_check"]["description"]
+
+
+def test_the_check_answers_the_two_halves_as_fields_and_not_as_prose(tmp_path):
+    # A caller handed one string would have to parse which half is broken out of prose the CLI
+    # is free to reword — and the halves are two because they go missing for different reasons.
+    answered = called(project(tmp_path), "merge_check")
+    reported = json.loads(text_of(answered))
+    assert set(reported) == {"attributes", "driver", "sound", "fix"}
+    # An unregistered project: nothing is wired, so the check is the refusal it exists to be.
+    assert reported["sound"] is False
+    assert answered["isError"] is True
+    # `sound` is the exit code as a boolean, so nothing infers it from an empty `fix`.
+    assert reported["fix"]
+
+
+def test_the_check_takes_no_write_lock_because_it_writes_nothing(tmp_path):
+    # The claim `writes_when` was built for, inverted the only way it can be: the command reads,
+    # and the two arguments that make it a write say so.
+    parser = build_parser()
+    parsed = parser.parse_args(["-C", str(tmp_path), "merge", "--check"])
+    assert cli._only_reads(parsed) is True
+    # The driver path writes into `ours`, which is where git has it put the result.
+    driving = parser.parse_args(["-C", str(tmp_path), "merge", "a", "b", "c"])
+    assert cli._only_reads(driving) is False
+    registering = parser.parse_args(["-C", str(tmp_path), "merge", "--register"])
+    assert cli._only_reads(registering) is False
 
 
 # -- the refusal that was about the code and read as being about the project ----
