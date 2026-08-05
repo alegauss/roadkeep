@@ -719,6 +719,96 @@ def test_a_ship_in_a_project_no_claim_spoke_for_reports_nothing(tmp_path, capsys
     assert "loose" not in capsys.readouterr().out
 
 
+# -- the half of the commit no author declares (RK309) ------------------------
+
+
+def test_the_staging_line_holds_the_governed_files_the_ship_itself_wrote(tmp_path, capsys):
+    # Every scope named the roadmap and the ledger by hand, and neither was a judgement: they
+    # are what the departure just wrote, which the write already answers.
+    config = repo(tmp_path)
+    append(
+        config.path("roadmap"),
+        f"- {IN_PROGRESS} **RK2** (deps: —) **A symptom** — a reason.\n",
+    )
+    commit(tmp_path, "chore: a line under way")
+    try:
+        claiming.follow(tmp_path, "RK2", IN_PROGRESS, config.document("roadmap").entries)
+        claiming.scope(config, "RK2", ["mine.py"])  # the code, and nothing the tool writes
+        (tmp_path / "mine.py").write_text("x = 1\n", encoding="utf-8")
+        assert main(["-C", str(tmp_path), "ship", "RK2", "--why", "it works now."]) == EXIT_OK
+        out = capsys.readouterr().out
+        staged = next(one for one in out.splitlines() if "stage    git add --" in one)
+        # Declared first and verbatim, then what the write record holds — relative, because the
+        # caller pastes the line at the repository root.
+        assert staged.split("--", 1)[1].split() == ["mine.py", "CHANGELOG.md", "ROADMAP.md"]
+        # And never twice: a path this command wrote is not a change no claim accounts for, so
+        # answering both in one output would be the tool contradicting itself.
+        assert "loose" not in out
+    finally:
+        claiming.path(tmp_path).unlink(missing_ok=True)
+
+
+def test_the_declaration_and_the_record_stay_two_fields(tmp_path, capsys):
+    # A client that merged them would read back a scope this tool never received: `mine` is
+    # what the holder said (RK280) and `wrote` is what the departure did.
+    config = repo(tmp_path)
+    append(
+        config.path("roadmap"),
+        f"- {IN_PROGRESS} **RK2** (deps: —) **A symptom** — a reason.\n",
+    )
+    commit(tmp_path, "chore: a line under way")
+    try:
+        claiming.follow(tmp_path, "RK2", IN_PROGRESS, config.document("roadmap").entries)
+        claiming.scope(config, "RK2", ["mine.py"])
+        (tmp_path / "mine.py").write_text("x = 1\n", encoding="utf-8")
+        (tmp_path / "stray.py").write_text("y = 2\n", encoding="utf-8")
+        at = ["-C", str(tmp_path), "ship", "RK2", "--why", "it works now.", "--json"]
+        assert main(at) == EXIT_OK
+        scope = json.loads(capsys.readouterr().out)["scope"]
+        assert scope["mine"] == ["mine.py"]
+        assert scope["wrote"] == ["CHANGELOG.md", "ROADMAP.md"]
+        # A change neither the holder declared nor this command wrote is still reported.
+        assert scope["unclaimed"] == ["stray.py"]
+    finally:
+        claiming.path(tmp_path).unlink(missing_ok=True)
+
+
+def test_a_retirement_answers_for_its_own_writes_as_a_ship_does(tmp_path, capsys):
+    # A retirement is committed exactly as a ship is and releases the same claim, so the half
+    # of the commit it wrote is the same fact there.
+    config = repo(tmp_path)
+    append(
+        config.path("roadmap"),
+        f"- {IN_PROGRESS} **RK2** (deps: —) **A symptom** — a reason.\n",
+    )
+    commit(tmp_path, "chore: a line under way")
+    try:
+        claiming.follow(tmp_path, "RK2", IN_PROGRESS, config.document("roadmap").entries)
+        claiming.scope(config, "RK2", ["mine.py"])
+        (tmp_path / "mine.py").write_text("x = 1\n", encoding="utf-8")
+        at = ["-C", str(tmp_path), "retire", "RK2", "--reason", "the premise did not hold."]
+        assert main(at) == EXIT_OK
+        staged = next(
+            one for one in capsys.readouterr().out.splitlines() if "stage    git add --" in one
+        )
+        assert staged.split("--", 1)[1].split() == ["mine.py", "CHANGELOG.md", "ROADMAP.md"]
+    finally:
+        claiming.path(tmp_path).unlink(missing_ok=True)
+
+
+def test_a_ship_no_claim_spoke_for_stays_silent_about_what_it_wrote(tmp_path, capsys):
+    # The record is not a scope. With no claim there is nothing to report it beside, and a
+    # staging line under a heading that read nothing would be the RK294 defect reversed.
+    config = repo(tmp_path)
+    append(
+        config.path("roadmap"),
+        f"- {DESIGNED} **RK2** (deps: —) **A symptom** — a reason.\n",
+    )
+    commit(tmp_path, "chore: a line")
+    assert main(["-C", str(tmp_path), "ship", "RK2", "--why", "it works now."]) == EXIT_OK
+    assert "stage" not in capsys.readouterr().out
+
+
 # -- the next family, and the order that lets a reader check it (RK293) --------
 
 

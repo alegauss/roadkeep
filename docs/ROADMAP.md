@@ -24,7 +24,8 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 💭 **RK309** (deps: —) **Every scope restates the governed files the tool itself just wrote** — The docs a ship edits are in every commit and are named by hand in every scope, while the write record already holds exactly which files this task's verbs touched. → §RK309
+- 🛠 **RK309** (deps: —) **Every scope restates the governed files the tool itself just wrote** — The docs a ship edits are in every commit and are named by hand in every scope, while the write record already holds exactly which files this task's verbs touched. → §RK309
+- 📋 **RK310** (deps: —) **A design section can carry a stale premise and ship drops it in silence** — Twice in one block a section argued from a fact that had stopped being true, and the only reader who could find out is whoever claims the task years later. → §RK310
 
 ## Block C — Query (consult without reading the file)
 

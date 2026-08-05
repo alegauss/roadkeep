@@ -2587,7 +2587,9 @@ def _verbatim(path: Path) -> str:
 def _ship(config: Config, args: argparse.Namespace) -> int:
     try:
         shipment = ship(config, args.id, why=args.why, part=args.part, lines=args.lines)
-        shipment.save()
+        # The files this transaction wrote, answered by the write itself (RK309) — the half
+        # of the commit's contents no author declares, and never a second list rebuilt here.
+        wrote = shipment.save()
     except REFUSALS as error:
         return _refused(error)
 
@@ -2599,7 +2601,7 @@ def _ship(config: Config, args: argparse.Namespace) -> int:
         # The ledger already holds the entry, so there is none to report (RK62): what this
         # call did is remove the line that was left behind, and the evidence is where the
         # entry already was.
-        return _closed(config, shipment, args)
+        return _closed(config, shipment, args, wrote)
 
     roadmap = config.relative(config.path("roadmap"))
     ledger = config.relative(config.path("changelog"))
@@ -2633,7 +2635,7 @@ def _ship(config: Config, args: argparse.Namespace) -> int:
                         "kept": shipment.kept,
                     },
                     "refreshed": list(shipment.refreshed),
-                    "scope": _scope_json(shipment.scope),
+                    "scope": _scope_json(shipment.scope, wrote),
                     "event": event,
                 },
                 indent=2,
@@ -2656,7 +2658,7 @@ def _ship(config: Config, args: argparse.Namespace) -> int:
         print(f"  derived  {', '.join(shipment.refreshed)} (dep annotations re-derived)")
     # Last before the event line, because it is about the commit this ship precedes rather
     # than about the three edits above it (RK294).
-    _print_scope(shipment.scope)
+    _print_scope(shipment.scope, wrote)
     _print_event(event, "  ")
     return EXIT_OK
 
@@ -2729,11 +2731,19 @@ def _print_cited(cited: Sequence[str]) -> None:
     )
 
 
-def _print_scope(scope: claiming.Scope | None) -> None:
+def _print_scope(scope: claiming.Scope | None, wrote: Sequence[str] = ()) -> None:
     """What the tree holds that this commit's claim does not name (RK280, RK294).
 
     Silent on a `None`, which is a project no claim spoke for — there the whole answer would
     be `git status` under a heading claiming to have read something.
+
+    `wrote` is what the transaction **itself** just wrote, projections included (RK309), and
+    it joins the staging line without joining the scope: the scope is what the holder said,
+    verbatim, and these are not a declaration to be corrected but a record to be used. Six
+    scopes across one block named the roadmap, the ledger, the rationale file and the README
+    by hand, four of ten paths on the longest, and none of the four was a judgement anyone
+    made. They leave `loose` for the same reason — a path this command wrote is not a change
+    no claim accounts for, and saying both in one answer is the tool contradicting itself.
 
     **And the scope itself, at a departure** (RK298). `claim <id>` may leave it out, the
     caller having just declared it; a ship may not, because the ship is what *releases* it —
@@ -2746,11 +2756,14 @@ def _print_scope(scope: claiming.Scope | None) -> None:
     """
     if scope is None:
         return
-    if scope.mine:
-        print(f"  stage    git add -- {' '.join(_shell(one) for one in scope.mine)}")
+    staging = tuple(dict.fromkeys((*scope.mine, *wrote)))
+    if staging:
+        print(f"  stage    git add -- {' '.join(_shell(one) for one in staging)}")
     for one, who in scope.theirs:
         print(f"  theirs   {one}  ({who} is holding it)")
     for one in scope.loose:
+        if one in set(wrote):
+            continue
         print(f"  loose    {one}  (no claim names it)")
     # The declared paths that would stage nothing (RK295). Named here rather than folded into
     # `mine`, which this printer deliberately does not repeat: at a departure the work is done,
@@ -2769,14 +2782,22 @@ def _shell(path: str) -> str:
     return f'"{path}"' if " " in path else path
 
 
-def _scope_json(scope: claiming.Scope | None) -> dict[str, object] | None:
-    """The same three lists as fields, so a caller stages them rather than parsing a sentence."""
+def _scope_json(
+    scope: claiming.Scope | None, wrote: Sequence[str] = ()
+) -> dict[str, object] | None:
+    """The same lists as fields, so a caller stages them rather than parsing a sentence.
+
+    `mine` stays the declaration and `wrote` is its own key (RK309): a client that merged them
+    would be reading a scope this tool did not receive, and the two answer different questions.
+    """
     if scope is None:
         return None
+    written = set(wrote)
     return {
         "mine": list(scope.mine),
+        "wrote": list(wrote),
         "theirs": [{"path": one, "claimed_by": who} for one, who in scope.theirs],
-        "unclaimed": list(scope.loose),
+        "unclaimed": [one for one in scope.loose if one not in written],
         "staging_nothing": list(scope.idle),
     }
 
@@ -2827,7 +2848,9 @@ def _partly(config: Config, partial: Partial, args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
-def _closed(config: Config, closure: Closure, args: argparse.Namespace) -> int:
+def _closed(
+    config: Config, closure: Closure, args: argparse.Namespace, wrote: Sequence[str] = ()
+) -> int:
     """A roadmap line closed against an entry the ledger already had (RK62)."""
     roadmap = config.relative(config.path("roadmap"))
     ledger = config.relative(config.path("changelog"))
@@ -2854,7 +2877,7 @@ def _closed(config: Config, closure: Closure, args: argparse.Namespace) -> int:
                         "kept": closure.kept,
                     },
                     "refreshed": list(closure.refreshed),
-                    "scope": _scope_json(closure.scope),
+                    "scope": _scope_json(closure.scope, wrote),
                     "event": event,
                 },
                 indent=2,
@@ -2874,7 +2897,7 @@ def _closed(config: Config, closure: Closure, args: argparse.Namespace) -> int:
         _print_cited(closure.cited)
     if closure.refreshed:
         print(f"  derived  {', '.join(closure.refreshed)} (dep annotations re-derived)")
-    _print_scope(closure.scope)
+    _print_scope(closure.scope, wrote)
     _print_event(event, "  ")
     return EXIT_OK
 
@@ -4300,7 +4323,7 @@ def _retire(config: Config, args: argparse.Namespace) -> int:
             reason=args.reason,
             superseded_by=args.superseded_by,
         )
-        departure.save()
+        wrote = departure.save()
     except REFUSALS as error:
         return _refused(error)
 
@@ -4327,7 +4350,7 @@ def _retire(config: Config, args: argparse.Namespace) -> int:
                     else departure.dropped.anchor,
                     "dependents": list(departure.dependents),
                     "refreshed": list(departure.refreshed),
-                    "scope": _scope_json(departure.scope),
+                    "scope": _scope_json(departure.scope, wrote),
                     "event": event,
                 },
                 indent=2,
@@ -4355,7 +4378,7 @@ def _retire(config: Config, args: argparse.Namespace) -> int:
         # author's next edit. `deps` now resolves them as unresolvable, not as satisfied.
         print(f"  still    {', '.join(departure.dependents)} name {departure.task_id}")
     # A retirement is committed exactly as a ship is, and it releases the same claim (RK294).
-    _print_scope(departure.scope)
+    _print_scope(departure.scope, wrote)
     _print_event(event, "  ")
     return EXIT_OK
 

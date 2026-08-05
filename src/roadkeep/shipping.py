@@ -104,6 +104,7 @@ command that names it is not the same as a flag that hides one inside a correcti
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass, replace
 from pathlib import Path
 
@@ -166,6 +167,26 @@ __all__ = [
     "retire",
     "ship",
 ]
+
+
+def _spelled(root: Path | None, written: Sequence[Path]) -> tuple[str, ...]:
+    """The paths a departure wrote, as the project spells them (RK309).
+
+    Relative, in the order they were written, because the caller feeds them to a `git add --`
+    from the repository root — and an absolute path is an answer about one machine, the rule
+    every message here already keeps. Spelled without a :class:`~roadkeep.config.Config`,
+    which a saved transaction no longer has: the root is what it carries for the claim, and a
+    path this cannot place against it is answered whole rather than dropped.
+    """
+    if root is None:
+        return ()
+    spelled: list[str] = []
+    for target in written:
+        try:
+            spelled.append(target.resolve().relative_to(root).as_posix())
+        except (OSError, ValueError):  # another tree, or a path this filesystem will not place
+            spelled.append(target.as_posix())
+    return tuple(spelled)
 
 
 class AlreadyRecorded(ValueError):
@@ -567,8 +588,9 @@ class Departure:
     #: it — the direction :func:`_drop_section` already chooses.
     scope: claiming.Scope | None = None
 
-    def save(self) -> None:
-        """Write the files. Nothing here can fail on the format — that was decided.
+    def save(self) -> tuple[str, ...]:
+        """Write the files, and answer which ones (RK309). Nothing here can fail on the
+        format — that was decided.
 
         What can still fail is the disk: all three files are rendered to their scratch
         names, then asked whether they are still the files that were read, and only then
@@ -591,14 +613,21 @@ class Departure:
         lossless** — every file still holds what it held, and the gate names the state.
         Nothing here claims the three writes are one; what is claimed is that stopping
         between them costs a command and never a design.
+
+        **What it answers is which paths it wrote** (RK309), the projections RK188 refreshed
+        included, because that is the half of a commit's contents no author should have to
+        declare: a scope is what the holder *said* (RK280) and this is what the tool *did*.
+        Read off :func:`~roadkeep.document.save_all`'s own return and never rebuilt from the
+        config — a second list of the files a transaction touches is one that can be wrong.
         """
-        save_all(self.ledger.document, self.roadmap, self.prose)
+        written = save_all(self.ledger.document, self.roadmap, self.prose)
         if self.root is not None:
             # Last, and never a condition of the writes: a terminal marker is not the
             # in-progress one, so the rule every marker write obeys says *release* (RK162).
             # The entry is inert either way — an id is never reused — but a row that can never
             # mean anything is noise in the listing `claims` exists to be read (RK161).
             claiming.follow(self.root, self.task_id, self.marker, self.roadmap.entries)
+        return _spelled(self.root, written)
 
 
 Shipment = Departure
@@ -684,8 +713,9 @@ class Closure:
     def marker(self) -> str:
         return self.recorded.task.status
 
-    def save(self) -> None:
-        """Write the roadmap and the prose file. The ledger is never opened for writing.
+    def save(self) -> tuple[str, ...]:
+        """Write the roadmap and the prose file, and answer which. The ledger is never opened
+        for writing, so it is not in the answer either (RK309).
 
         And reconcile the claim, which this was the one departure not to do (RK306). RK162
         made every marker write a release and :meth:`Departure.save` obeys it; this shape is
@@ -699,9 +729,10 @@ class Closure:
         the rule reads as a release either way. Last and never a condition of the writes, for
         the reason its sibling states.
         """
-        save_all(self.roadmap, self.prose)
+        written = save_all(self.roadmap, self.prose)
         if self.root is not None:
             claiming.follow(self.root, self.task_id, self.marker, self.roadmap.entries)
+        return _spelled(self.root, written)
 
 
 @dataclass(frozen=True, slots=True)
