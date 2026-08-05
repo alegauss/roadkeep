@@ -46,6 +46,7 @@ import re
 import textwrap
 from collections.abc import Iterator, Mapping, Sequence
 from dataclasses import dataclass, replace
+from typing import TYPE_CHECKING
 
 from roadkeep.backlog import Whereabouts
 from roadkeep.config import PROSE_ROLES, Config
@@ -60,6 +61,9 @@ from roadkeep.schema import (
     over_by,
     split_ref,
 )
+
+if TYPE_CHECKING:  # imported for the annotation alone: `history` reads this module back
+    from roadkeep.history import Anchor
 
 #: A paragraph whose first characters are any of these is a structure, not prose.
 _STRUCTURE = ("|", ">", "-", "*", "+", "#", "```", "~~~", "1.")
@@ -755,6 +759,7 @@ def add(
             task.block if task is not None else None,
             error,
             namespace=document.schema.ref_prefix or "",
+            anchor=anchor,
         ) from None
     existing = find(document, anchor)
     if existing is not None:
@@ -1069,7 +1074,12 @@ _UNANCHORED = ("ref.missing", "anchor.format")
 
 
 def naming_the_anchor(
-    config: Config, block: str | None, error: SchemaError, *, namespace: str = ""
+    config: Config,
+    block: str | None,
+    error: SchemaError,
+    *,
+    namespace: str = "",
+    anchor: str = "",
 ) -> SchemaError:
     """The same refusal, told which command answers it (RK312, widened by RK349).
 
@@ -1091,11 +1101,11 @@ def naming_the_anchor(
 
     ``block`` is `None` where the anchor names no live task, and that is not the caller to
     stay silent for (RK360) — it is the one holding no address at all, since typing a task id
-    is what produces a block to read. What changes is which address is offered: a free
-    *child* needs the family and the family comes from the block, so an anchor owning nothing
-    is told the free **top-level**, which is what a section belonging to no task would take.
-    Never a child derived from whichever family happened to be last, which is the guess the
-    two-family branch below already refuses to make.
+    is what produces a block to read. What changes is which address is offered, and that is
+    :func:`_where_a_top_level_is`'s to decide from the anchor itself: a family the caller
+    already typed gets its next child, and everything else gets the free top-level. Never a
+    family derived from whichever one happened to be last, which is the guess the two-family
+    branch below also refuses to make.
 
     Silent where history cannot be searched, which is where the free address cannot be
     derived: naming a number this could not verify is the failure the whole read exists to
@@ -1105,7 +1115,7 @@ def naming_the_anchor(
     if not named:
         return error
     clause = (
-        _where_a_top_level_is(config, namespace)
+        _where_a_top_level_is(config, namespace, anchor)
         if block is None
         else _where_the_anchor_is(config, block)
     )
@@ -1150,25 +1160,44 @@ def _where_the_anchor_is(config: Config, block: str) -> str:
     )
 
 
-def _where_a_top_level_is(config: Config, namespace: str) -> str:
-    """The same clause for an anchor belonging to nobody: the free top-level, or the command.
+def _where_a_top_level_is(config: Config, namespace: str, anchor: str = "") -> str:
+    """The same clause for an anchor belonging to nobody: a free address, or the command.
 
-    Per namespace, for :func:`~roadkeep.history.next_family`'s reason (RK340): two prose
-    files each numbering themselves from `I` have two free top-levels, and the taller file's
-    number is not an answer about the shorter one.
+    **Which** free address is decided by what the caller typed (RK363). A malformed anchor
+    whose leading segment is a family that exists is a typo inside that family — `XVII-1`
+    is a hyphen where a dot belongs — and answering it with a new top-level says *start a
+    new subtree*, which is the one thing that author was not doing. So the segment is read
+    and, where it names a live family, that family's next child is the answer.
+
+    That is not the guess RK360 refused to make. Deriving a family from whichever one
+    happened to be last is context this cannot verify; reading the front of the address the
+    caller wrote down is the same read :func:`split_ref` already makes, and it answers
+    nothing where the segment names no family.
+
+    The top-level is what remains, per namespace, for :func:`~roadkeep.history.next_family`'s
+    reason (RK340): two prose files each numbering themselves from `I` have two free
+    top-levels, and the taller file's number is not an answer about the shorter one.
     """
     # Deferred for RK260's reason, and because git belongs on no successful write path.
     from roadkeep.history import (  # noqa: PLC0415
         HistoryUnavailable,
         anchors,
+        next_child,
         next_family,
     )
     from roadkeep.provenance import invocation  # noqa: PLC0415
 
     try:
-        free = next_family(anchors(config), namespace)
+        taken = anchors(config)
     except (HistoryUnavailable, OSError):
-        free = None
+        return f" — `{invocation()} anchors` names the addresses this outline has taken"
+    family = _family_typed(taken, namespace, anchor)
+    if family is not None:
+        return (
+            f" — §{family} is a family that exists, where §{next_child(taken, family)} is "
+            f"free (`{invocation()} anchors --family {family}` lists it)"
+        )
+    free = next_family(taken, namespace)
     if free is None:
         # None is the honest answer where the top-levels are not one numbering, and a guess
         # printed beside a rule reads exactly like a fact.
@@ -1177,6 +1206,25 @@ def _where_a_top_level_is(config: Config, namespace: str) -> str:
         f" — a section belonging to no task takes a top-level, and §{free} is free "
         f"(`{invocation()} anchors` lists what is taken)"
     )
+
+
+#: What counts as the segment a malformed address opens with: the letters and digits before
+#: whatever separator was typed wrong. `XVII-1` and `XVII 1` are one mistake (RK363).
+_LEADING = re.compile(r"[A-Za-z0-9]+")
+
+
+def _family_typed(taken: Sequence[Anchor], namespace: str, anchor: str) -> str | None:
+    """The live family this malformed address opens with, spelled as its anchors spell it."""
+    if not anchor:
+        return None
+    head = _LEADING.match(split_ref(anchor)[1])
+    if head is None:
+        return None
+    for one in taken:
+        space, bare = split_ref(one.anchor)
+        if space == namespace and bare.split(".")[0] == head.group():
+            return one.anchor.split(".")[0]
+    return None
 
 
 def _outline_violation(schema: Schema, anchor: str) -> Violation | None:

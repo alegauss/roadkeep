@@ -1318,6 +1318,35 @@ def test_an_anchor_naming_no_task_is_told_where_a_top_level_comes_from(tmp_path,
     assert "anchors --block" not in err
 
 
+def test_a_typo_inside_a_family_that_exists_is_answered_with_that_family(tmp_path, capsys):
+    # RK360's top-level was the wrong address here, and wrong is worse than silent: `XVII-1`
+    # is a hyphen where a dot belongs, and "start a new subtree" is what that author was not
+    # doing. The family is not a guess from context — it is a string they wrote down.
+    config = outlined_blocks(tmp_path)
+    assert (
+        main(["-C", str(config.root), "section", "add", "XVII-1", "--title", "A design",
+              "--body", "Some prose."])
+        == EXIT_USAGE
+    )
+
+    err = capsys.readouterr().err
+    assert "§XVII is a family that exists" in err and "§XVII.4 is free" in err
+    assert "anchors --family XVII" in err
+    assert "takes a top-level" not in err
+
+
+def test_the_separator_typed_wrong_is_one_mistake_however_it_is_typed(tmp_path, capsys):
+    # What counts as the segment: the letters and digits before whichever separator went
+    # wrong, so `XVII-1` and `XVII 1` are the same address written badly twice.
+    config = outlined_blocks(tmp_path)
+    assert (
+        main(["-C", str(config.root), "section", "add", "XVII 1", "--title", "A design",
+              "--body", "Some prose."])
+        == EXIT_USAGE
+    )
+    assert "§XVII.4 is free" in capsys.readouterr().err
+
+
 def test_the_free_top_level_is_read_per_namespace(tmp_path, capsys):
     # Two prose files each numbering themselves from I have two free top-levels, and the
     # taller file's number is not an answer about the shorter one (RK340's rule, one door on).
@@ -1336,8 +1365,9 @@ def test_the_free_top_level_is_read_per_namespace(tmp_path, capsys):
     append(config.path("strategy"), "\n### IV.1 A plan\n\nThe reasoning.\n")
     commit(tmp_path, "docs: a second outline of its own")
 
+    # A leading segment naming no family, so this is the top-level branch and not RK363's.
     assert (
-        main(["-C", str(config.root), "section", "add", "S:IV-1", "--role", "strategy",
+        main(["-C", str(config.root), "section", "add", "S:ZZ-1", "--role", "strategy",
               "--title", "A plan", "--body", "Some prose."])
         == EXIT_USAGE
     )

@@ -127,6 +127,7 @@
 - ✅ **RK360** **A section written at an address no live task owns is refused with no way to learn a free one** — A section written at an address no live task owns is told the free top-level and the command that lists what is taken, per namespace.
 - ✅ **RK361** **A line the merge driver re-places is refused without naming the file or the line it is about** — A merged line the schema refuses names the id it belongs to and the file being merged, so the count is about a line the reviewer can find.
 - ✅ **RK362** **The gate over near-twin verbs proves the sentence is declared and never that it reaches a caller** — Every near-twin verb is run bare by the same property that enumerates it, so a sentence declared but never printed is a failing test.
+- ✅ **RK363** **A mistyped address whose family exists is offered a new top-level instead of that family free child** — A malformed address whose leading segment names a live family is answered with that family next free child, and only the rest with a top-level.
 
 ## Block C — Query
 
