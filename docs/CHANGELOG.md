@@ -110,6 +110,7 @@
 - ✅ **RK302** **section add writes an anchor another declared prose file already holds, and only a retired one is refused** — section add asks the project's declarations rather than the file's, so an anchor a sibling prose file already holds is refused before the write.
 - ✅ **RK306** **A closure leaves the claim its departure would have released** — The closure path reconciles the registry as its sibling does, so a line closed against an entry already on disk releases the claim and the scope it carried.
 - ✅ **RK307** **A scope corrected mid-task is restated in full or not at all** — claim --add-path names a path the work turned up without restating the scope, and the row is still replaced with the whole of it.
+- ✅ **RK309** **Every scope restates the governed files the tool itself just wrote** — a departure prints the governed files it wrote itself, so a scope declares only what the author chose.
 
 ## Block C — Query
 

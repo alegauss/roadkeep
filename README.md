@@ -117,16 +117,16 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 28 | 1 |
-| B — Authoring (insert, never hand-edit) | 2 | 68 | 0 |
+| B — Authoring (insert, never hand-edit) | 1 | 69 | 0 |
 | C — Query (consult without reading the file) | 1 | 47 | 0 |
 | D — The gate | 0 | 57 | 0 |
 | E — Adoption | 1 | 50 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 4 | 46 | 1 |
-| **Total** | 8 | 296 | 3 |
+| **Total** | 7 | 297 | 3 |
 
 **Next ready:**
 
-- 🛠 **RK309** (deps: —) **Every scope restates the governed files the tool itself just wrote** — The docs a ship edits are in every commit and are named by hand in every scope, while the write record already holds exactly which files this task's verbs touched. → §RK309
+- 📋 **RK267** (deps: —) **A staleness note lists every changed module and hands relevance back** — The server appends `engine().stale` to any refusal, so one `schema.py` decided arrives naming three modules that did not, and the reader re-runs on a guess about which mattered. → §RK267
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

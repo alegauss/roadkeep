@@ -77,26 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK309 The paths that are not a guess
-
-RK280's rule is that a scope is what the holder **said**, verbatim: this never asks the
-disk whether a path exists and never derives one from the task's prose, because a scope
-inferred from a sentence would be RK55's guessing put in charge of what a commit
-contains. That rule is right and this does not touch it.
-
-It also does not reach the files this tool wrote itself. Measured over Block B here:
-every one of six scopes named the roadmap, the changelog, the improvements file and the
-README, four of ten paths on the longest — and none of the four is a judgement the
-author made. They are the files `add`, `section add` and `ship` edited under this id,
-and RK200's write record already holds exactly that: which governed file which verb
-wrote, attested rather than inferred.
-
-So the question this asks is narrow. Not *what did the author touch* — that is the part
-that must stay declared. Whether the answer a departure prints may include what the
-tool's own record says it wrote for this task, which is a fact it holds rather than one
-it would be reading out of prose. What needs deciding is whether that is the scope or a
-second list beside it, and `theirs` and `loose` are the precedent for the second.
-
 ### §RK310 The rationale a task was filed on decays, and nothing records that it did
 
 A design section is written when a task is filed and read when somebody claims it, which
