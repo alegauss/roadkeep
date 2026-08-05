@@ -30,8 +30,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK346** (deps: —) **One question is answered by two fields, and the older one names one namespace of several** — anchors --json carries next_family beside next_families, so a client reading the field it always read is handed the unprefixed namespace's address on a project whose roles each have one. → §RK346
-
 ## Block D — The gate
 
 - 📋 **RK320** (deps: —) **The version bump stages two whole files, so an unrelated edit to either rides into the next commit** — Measured once: another agent's manifest change was in the tree, the hook staged plugin.json to bump it, and the edit landed under a commit message about something else. → §RK320

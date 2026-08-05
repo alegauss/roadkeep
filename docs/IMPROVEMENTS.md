@@ -153,27 +153,6 @@ a gate that asked for prose there would be answered with prose nobody needed.
 
 ## Block C — Query
 
-### §RK346 Two fields, one free address
-
-RK340 made the free top-level address a question per namespace: two prose files that
-each number their own outline have two answers, and one number across both hands the
-shorter file the taller one's. The listing prints a line for each. The JSON grew a
-second field beside the first — `next_families`, a row per namespace — and kept
-`next_family` as it was.
-
-Which is the shape a compatible field usually has and is not one here. `next_family`
-answers for the *unprefixed* namespace, so on a project that declares `[refs]` for both
-its prose roles it answers for a namespace that no longer exists and returns null; on
-one that declares it for a single role, it answers correctly for the other and says
-nothing about which. A client written before RK340 reads a number that is right by
-coincidence.
-
-Two readings with no way to tell them apart is what `ref.ambiguous` says about an
-address, one layer down. The remedy is the one this format applies to a line: an answer
-whose meaning is stated, and a caller wanting one namespace names it — which the row
-already carries. What the older field costs is a decision about this tool's own JSON
-surface, and it is a small one: the command is a read with no writer downstream.
-
 ## Block D — The gate
 
 ### §RK320 A hook that stages more than it wrote

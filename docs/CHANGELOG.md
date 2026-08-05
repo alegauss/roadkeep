@@ -175,6 +175,7 @@
 - ✅ **RK324** **brief calls a shipped task ready, so the one command meant to start work invites redoing it** — brief answers shipped for an id the ledger holds, and quotes no unblocks count for it, so the command a session starts work with never describes finished work as startable.
 - 🗑 **RK336** **anchors prices every family that exists and never says which one is free next** — superseded by RK293: RK293 prints the free top-level and RK297 made it the project's, so this address is derived already; defaulting add --section to it would open a family where a child is meant.
 - ✅ **RK345** **The budget every other field is read before is the one an every-turn file has no door for** — budget --file reports what an every-turn file costs in lines and bytes and what is left, off the same count the gate holds, so an edit to agents.md is composed against a number.
+- ✅ **RK346** **One question is answered by two fields, and the older one names one namespace of several** — anchors --json answers the free top-level per namespace and nothing else, so the row states which namespace its address is for instead of a bare field meaning one of several.
 
 ## Block D — The gate
 

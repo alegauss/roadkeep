@@ -5253,12 +5253,16 @@ def _anchors(config: Config, args: argparse.Namespace) -> int:
                     # Both free addresses are the **project's** even where the listing was
                     # narrowed (RK297): the field an author acts on may not be per file.
                     "next": next_child(whole, args.family) if args.family else None,
-                    # The question one line up, and the one a reused block asks (RK293).
-                    # Null where the top-levels are not one numbering, which is an answer.
-                    "next_family": None if args.family else next_family(spread),
-                    # One per namespace where `[refs]` declares any (RK340): two files that
-                    # each number themselves have two next addresses, and the field above
-                    # answers for the unprefixed one alone.
+                    # The question one line up, and the one a reused block asks (RK293) —
+                    # asked **per namespace** and nowhere else (RK340/RK346). One row where a
+                    # project declares no `[refs]`, whose `namespace` is null, and one per
+                    # namespace where it does; `next` is null inside a row where those
+                    # top-levels are not one numbering, which is an answer and not an absence.
+                    # The bare `next_family` that sat beside this is gone: it answered for the
+                    # unprefixed namespace alone, so on a project whose roles each declare one
+                    # it named a namespace that no longer exists, and on a project with one it
+                    # was right by coincidence — two readings of one field with nothing to tell
+                    # them apart, which is what `ref.ambiguous` refuses one layer down.
                     "next_families": []
                     if args.family
                     else [

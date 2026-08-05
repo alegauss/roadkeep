@@ -900,12 +900,29 @@ def test_the_json_carries_the_next_family_beside_the_next_child(tmp_path, capsys
 
     assert main(["-C", str(tmp_path), "anchors", "--json"]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
-    assert payload["next_family"] == "X" and payload["next"] is None
+    # One field and not two (RK346): the free top-level is asked per namespace, and a project
+    # declaring no `[refs]` is the one row whose namespace is null.
+    assert payload["next_families"] == [{"namespace": None, "next": "X"}]
+    assert "next_family" not in payload and payload["next"] is None
     assert [one["family"] for one in payload["families"]] == ["IV", "IX"]
     # Narrowed to one family, the question is the child's again and the top-level is not asked.
     assert main(["-C", str(tmp_path), "anchors", "--family", "IX", "--json"]) == EXIT_OK
     narrowed = json.loads(capsys.readouterr().out)
-    assert narrowed["next"] == "IX.2" and narrowed["next_family"] is None
+    assert narrowed["next"] == "IX.2" and narrowed["next_families"] == []
+
+
+def test_the_json_states_the_namespace_of_every_free_top_level_it_answers(tmp_path, capsys):
+    # RK346: the older field answered for the unprefixed namespace alone, so on a project
+    # whose roles each declare one it named a namespace that no longer exists — and on one
+    # that declares a single `[refs]` it was right about the other by coincidence. A row
+    # carries its own namespace, which is the one reading that cannot be two.
+    config = outlined(tmp_path)
+    design(config, "### A.1 A design", "docs: file it")
+    assert main(["-C", str(tmp_path), "anchors", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    # `next` is null *inside* the row, which says which namespace derives nothing — where the
+    # older field's null said only that something, somewhere, did not derive.
+    assert payload["next_families"] == [{"namespace": None, "next": None}]
 
 
 # -- the address book that read half the addresses (RK297) ---------------------
