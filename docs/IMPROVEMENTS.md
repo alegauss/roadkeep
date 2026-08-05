@@ -77,30 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK361 The fourth caller of place, refusing into the dark
-
-RK348 and RK349 both landed the same rule from opposite ends: a length is reported
-against `file:line`, and a refusal names the command that answers it. `place` is where
-three of the four line writes now get both — `add`, `defer` and `resume` each pass
-`where` and a config.
-
-`merging.merged` is the fourth and passes neither. A line one branch added and the other
-did not is re-placed there, and every refusal that reach produces arrives naked: an
-over-length line says a number, an undeclared block lists labels with no file beside
-them, and the caller is in the middle of a merge with two versions of the file and no
-statement of which one the number is about.
-
-The comment above that call argues nothing can arrive wrong — every version was held to
-the round-trip, so the bytes are the ones already checked. That is true of the
-*rendering* and not of the schema: an annotation this tool re-derives during the merge
-is exactly the two characters RK348 was filed about, and the branch that shipped a dep
-is the branch that makes them appear.
-
-Cheap, because both arguments are already in hand at that call. What wants deciding is
-only whether the merge driver should also carry the anchor clause, or whether a merge is
-the one context where naming a command to run is wrong — the caller is inside git's
-driver, not at a prompt, and an instruction they cannot follow yet is noise.
-
 ### §RK362 A declaration is not a delivery
 
 RK350 closed the half that was a habit: which verbs owe a near-twin sentence is now read

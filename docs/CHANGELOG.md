@@ -125,6 +125,7 @@
 - ✅ **RK349** **The refusal that names the anchor command reaches one verb, and three others refuse the same way** — defer, resume and section add end their refusal with the same clause add has, so a caller who met the good one once never reads a bare rule as there being no answer.
 - ✅ **RK350** **A third near-twin verb would be found by the session that types it, not by a test** — The survey RK339 ran once by hand is a test over the parsers, so a verb added tomorrow that shadows a report is named by a failure and not by whoever types it wrong.
 - ✅ **RK360** **A section written at an address no live task owns is refused with no way to learn a free one** — A section written at an address no live task owns is told the free top-level and the command that lists what is taken, per namespace.
+- ✅ **RK361** **A line the merge driver re-places is refused without naming the file or the line it is about** — A merged line the schema refuses names the id it belongs to and the file being merged, so the count is about a line the reviewer can find.
 
 ## Block C — Query
 

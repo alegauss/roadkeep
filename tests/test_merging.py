@@ -16,6 +16,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.history import HistoryUnavailable
@@ -40,6 +42,7 @@ from roadkeep.merging import (
     wiring,
 )
 from roadkeep.provenance import persisted
+from roadkeep.schema import SchemaError
 
 ROADMAP = "docs/ROADMAP.md"
 CHANGELOG = "docs/CHANGELOG.md"
@@ -685,3 +688,35 @@ def test_git_that_cannot_be_asked_is_unknown_and_not_absent(tmp_path, monkeypatc
     assert driver.state == UNKNOWN and not driver.wired
     assert main(["-C", str(tmp_path), "merge", "--check"]) == EXIT_OK
 
+
+
+# -- the refusal that named neither the id nor the file (RK361) ---------------
+
+
+def test_a_merged_line_the_schema_refuses_names_the_id_and_the_file(tmp_path):
+    """RK348's rule, at the one door that did not keep it.
+
+    A length reported as a bare number is unreadable here for a reason the other three doors
+    do not have: the line is one branch's, landing in the other's file, so the caller has two
+    versions open and the count says which of them nothing.
+    """
+    (tmp_path / "roadkeep.toml").write_text(CONFIG + "[limits]\nline = 120\n", encoding="utf-8")
+    for name in (ROADMAP, CHANGELOG, IMPROVEMENTS):
+        path = tmp_path / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(BASE if name == ROADMAP else "# File\n", encoding="utf-8")
+    config = Config.discover(tmp_path)
+    theirs = under(
+        BASE,
+        "A",
+        line("RK3", "a symptom the other branch wrote", "Because the reason it gave runs past the limit this project declares for a line."),
+    )
+
+    with pytest.raises(SchemaError) as raised:
+        merge(config, "roadmap", BASE, BASE, theirs)
+
+    (violation,) = raised.value.violations
+    assert violation.code == "why.too-long"
+    # Appended, never substituted: the limit is still what a repair needs to know.
+    assert violation.message.startswith("80 characters, limit is 52")
+    assert f"on RK3's line, merging {ROADMAP}" in violation.message

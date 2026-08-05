@@ -44,7 +44,7 @@ from __future__ import annotations
 
 import shlex
 import shutil
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 from roadkeep.authoring import place, remove_entry
@@ -52,6 +52,7 @@ from roadkeep.config import Config
 from roadkeep.document import Document, Entry
 from roadkeep.linting import within
 from roadkeep.provenance import invocation, persisted
+from roadkeep.schema import SchemaError
 
 __all__ = [
     "Attributes",
@@ -413,7 +414,7 @@ def merge(config: Config, role: str, base: str, ours: str, theirs: str) -> Merge
     removed = tuple(
         task_id for task_id, entry in decided.items() if entry is None and _raw(frame, task_id)
     )
-    result = _materialize(frame, decided)
+    result = _materialize(frame, decided, where=config.relative(config.path(role)))
     findings = within(config, role, result)
     if findings:
         return Merge(role, None, took=took, removed=removed, reason=_refused(findings))
@@ -660,12 +661,19 @@ def _skeleton(document: Document) -> tuple[str, ...]:
     )
 
 
-def _materialize(frame: Document, decided: dict[str, Entry | None]) -> Document:
+def _materialize(
+    frame: Document, decided: dict[str, Entry | None], *, where: str = ""
+) -> Document:
     """Write the decided lines into the frame: replace, remove, then place what is new.
 
     In that order and re-located by id at every step, because each edit reparses and a line
     number held across one is a line number that has already moved — the care every mutator
     in :mod:`roadkeep.document` takes, for the same reason.
+
+    ``where`` is the file being merged, which is what makes a refusal here readable (RK361):
+    this is the fourth caller of `place` and it was the one passing neither the path nor an
+    id, so a merged line the schema refuses reported a rule and a number about a file the
+    caller is holding two versions of.
     """
     result = frame
     for task_id, entry in decided.items():
@@ -681,8 +689,33 @@ def _materialize(frame: Document, decided: dict[str, Entry | None]) -> Document:
             # `place` re-renders from the task, which is the same bytes: every version was
             # held to the round-trip above, so nothing arrives here that would come back
             # spelled differently — and the blank-line and block rules are `add`'s, once.
-            result = place(result, entry.task).document
+            # True of the *rendering* and not of the schema, which is why the refusal below
+            # is reachable at all: a dep this tool re-derives during the merge grows the line
+            # by the two characters RK348 was filed about.
+            try:
+                result = place(result, entry.task, where=where).document
+            except SchemaError as error:
+                raise _naming_the_merged_line(task_id, where, error) from None
     return result
+
+
+def _naming_the_merged_line(task_id: str, where: str, error: SchemaError) -> SchemaError:
+    """The same refusal, told which id and which file it is about (RK361).
+
+    RK348's rule, at the one door that did not keep it: a length is reported against a line
+    somebody can find, never as a bare number. Here the number is about a line neither side
+    typed in this state — it is one branch's line landing in the other's file — so a caller
+    reading it has two versions open and nothing saying which one the count belongs to.
+
+    Not `anchors`, which is the clause the other three doors carry (RK349): this caller is
+    inside git's merge driver rather than at a prompt, and a command they cannot run until
+    the merge is over is noise on a refusal that already needs reading twice.
+    """
+    at = f" merging {where}" if where else " in the merge"
+    said = f" — on {task_id}'s line,{at}"
+    return type(error)(
+        tuple(replace(one, message=f"{one.message}{said}") for one in error.violations)
+    )
 
 
 def _raw(document: Document, task_id: str) -> str | None:

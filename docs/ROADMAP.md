@@ -24,7 +24,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK361** (deps: —) **A line the merge driver re-places is refused without naming the file or the line it is about** — merging calls place with neither the path nor the config the three other doors pass, so a merged line the schema refuses reports a rule and no address. → §RK361
 - 📋 **RK362** (deps: —) **The gate over near-twin verbs proves the sentence is declared and never that it reaches a caller** — RK350 reads twin off the parsers, while whether it prints turns on a substring of argparse own English that no test holds for a pair added later. → §RK362
 
 ## Block C — Query (consult without reading the file)
