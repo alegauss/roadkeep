@@ -472,3 +472,24 @@ taken at collection, or whether a count over a file the backlog erodes is the wr
 assertion whoever is writing it — RK305 already names that ratio as fragile.
 
 ## Block F — The plugin
+
+### §RK337 A field crash the tests cannot inherit
+
+A capture from an adopting project recorded `lint` dying with `UnicodeEncodeError:
+surrogates not allowed`; by the time `report` re-ran the command it exited 0, so the
+stored file carries exit 0, no traceback, and a `why` blaming a strict encode in
+`config.py` — a module that opens its file `rb` and hands it to `tomllib`, and encodes
+nothing. A field diagnosis nobody can re-run is a guess, and this one is wrong.
+
+What is checkable is the surface the class needs. `main` forces UTF-8 on the three
+streams in its first three statements — strict in, `backslashreplace` out — covering
+everything after that point and nothing before it: interpreter startup, every import,
+and RK86's own traceback path print through whatever codec the environment declared.
+`PYTHONIOENCODING=utf-8:surrogateescape` turns undecodable bytes into lone surrogates
+that a later strict encode refuses, which is the shape the field saw.
+
+Nothing in the suite sets that variable, or any other stdio encoding — the hardening is
+attested by the absence of mojibake in tests that inherit a clean environment, so it
+cannot regress visibly. And the capture format has no slot for the environment, so
+`replay` stages config and document and answers about neither: this is a test to write,
+not a corpus entry to gate.
