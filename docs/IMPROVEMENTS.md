@@ -153,30 +153,6 @@ a gate that asked for prose there would be answered with prose nobody needed.
 
 ## Block C — Query
 
-### §RK336 The one address anchors does not report
-
-`anchors` knows this. It reads the retired addresses as well as the live ones — the
-whole reason it can say `0 live, 1 retired` — and printing the table puts the highest
-family that ever existed on screen. What it never prints is the sentence a caller
-writing a new section needs: the next family nothing has ever declared.
-
-Measured in an adopting project. `add --block F --section "…"` refused with
-`ref.missing`; the highest live heading was `§XL`, so `--ref XLI` was the obvious next,
-and it was refused too — correctly, because `XLI` had been declared and shipped away,
-and reusing it would have made the entries citing it cite something else. `XLII` was the
-same. Finding `XLIII` took a `git log --all -p` over the prose file. Two refused writes
-and a history walk for one Roman numeral, and every fact needed was already inside the
-table `anchors` had printed.
-
-This is not RK312, which is about the refusal naming no command and about which family a
-*block's* existing prose lives under. This is the opposite question — a family nobody
-has used — and the never-reuse rule makes it uncheckable by eye. Both land in the same
-command, hence the dep.
-
-One row, outside the per-family table because it is not about a family: the next free
-address, in the declared scheme. `add --section` can then default to it, turning the
-common case into no argument rather than a lookup the caller performs and retypes.
-
 ### §RK345 The one budget with no pre-write read
 
 `budget` answers what a line leaves its prose fields, what an anchor leaves a section
