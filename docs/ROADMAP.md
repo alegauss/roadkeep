@@ -24,6 +24,8 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK363** (deps: —) **A mistyped address whose family exists is offered a new top-level instead of that family free child** — RK360 answers an anchor owning no task with the top-level, and a hyphen where a dot belongs still names a family, so the number offered opens a subtree nobody meant. → §RK363
+
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate

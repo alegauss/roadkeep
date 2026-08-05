@@ -77,6 +77,30 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK363 The family the typo already named
+
+RK360 gave the caller holding no address the free top-level, on the argument that naming
+a free *child* needs a family and a task is what supplies one. Measured against a real
+typo, that argument has a hole: `section add XVII-1` — a hyphen where a dot belongs — is
+refused with "§XVIII is free", and the author meant §XVII.2, which `anchors --family
+XVII` was holding all along.
+
+So the refusal is now wrong rather than silent, which is the worse of the two. It reads as
+*start a new subtree*, and that is exactly what the author was not doing; the address they
+typed is one character from correct and the family in it is not a guess from context but a
+string they wrote down.
+
+The distinction RK360 drew still holds and is what makes this small. What it refused was
+deriving a family from whichever one was last — a guess, and a guess printed beside a
+rule reads as a fact. Reading the leading segment of the anchor the caller typed is not
+that: it is the read `split_ref` already makes, one branch earlier, and it answers
+nothing where that segment names no family.
+
+Which is the whole shape. A leading segment that is a live family gets that family's
+next child; anything else keeps the top-level RK360 wrote. What wants deciding is only
+how much counts as a segment — `XVII-1` and `XVII 1` are one mistake, and `XVIII` alone
+is none.
+
 ## Block C — Query
 
 ## Block D — The gate
