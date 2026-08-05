@@ -354,3 +354,87 @@ def test_a_bullet_rejected_because_of_a_control_character_becomes_an_entry(tmp_p
     after = Config.discover(tmp_path)
     assert [e.task.id for e in after.document("roadmap").entries] == ["RK2", "RK3"]
     assert after.document("roadmap").rejects == ()
+
+
+# -- the queue's one mechanical repair (RK328) --------------------------------
+
+
+QUEUED = """# Roadmap
+
+## Priority
+
+What jumps the id order.
+
+- RK1
+- RK2
+- RK9
+- Block A
+
+## Block A — The model
+
+- 📋 **RK2** (deps: RK1 ✅) **A second symptom** — Because of a reason. → §RK2
+- 💭 **RK3** (deps: RK1 ✅, RK2) **A third symptom** — Because of another reason. → §RK3
+"""
+
+#: The ledger with a retirement beside the shipment, which is the other terminal state.
+RETIRED = LEDGER + "- 🗑 **RK4** **A fourth symptom** — Because nobody will do it.\n"
+
+
+def test_the_entry_whose_task_shipped_is_dropped_and_named(tmp_path):
+    # There is exactly one repair, it chooses nothing, and no sentence of anybody's is
+    # touched — the same class as a stale dep annotation.
+    config = project(tmp_path, roadmap=QUEUED)
+    assert [f.code for f in lint(config).findings] == ["priority.shipped", "priority.unknown"]
+
+    applied = fix(config)
+
+    assert "- RK1\n" not in roadmap_of(config)
+    assert reasons(applied) == ["queued work that shipped"]
+    assert [(r.lineno, r.id) for r in applied.repairs] == [(7, "RK1")]
+
+
+def test_a_retired_entry_is_the_other_terminal_state_and_goes_the_same_way(tmp_path):
+    config = project(
+        tmp_path, roadmap=QUEUED.replace("- RK9\n", "- RK4\n")
+    )
+    (tmp_path / "CHANGELOG.md").write_text(RETIRED, encoding="utf-8")
+    config = Config.discover(tmp_path)
+
+    applied = fix(config)
+
+    assert reasons(applied) == ["queued work that shipped", "queued work that was retired"]
+    assert "- RK4\n" not in roadmap_of(config)
+
+
+def test_what_stays_is_the_order_and_every_entry_that_is_still_about_work(tmp_path):
+    # Order is the author's whole statement; a blocked task is live; an id no file carries
+    # is as likely a typo as a deletion; and a block is reopened by an `add`.
+    config = project(tmp_path, roadmap=QUEUED)
+    fix(config)
+    assert "- RK2\n- RK9\n- Block A\n" in roadmap_of(config)
+
+
+def test_emptying_the_queue_leaves_the_section_and_not_a_paragraph_break(tmp_path):
+    # `without` is the removal, so the blank a one-entry queue sits between cannot double.
+    config = project(tmp_path, roadmap=QUEUED.replace("- RK2\n- RK9\n- Block A\n", ""))
+    fix(config)
+    assert "What jumps the id order.\n\n## Block A" in roadmap_of(config)
+    assert lint(Config.discover(tmp_path)).clean
+
+
+def test_a_queue_repair_is_the_whole_reason_a_file_is_written(tmp_path):
+    # Nothing else on this roadmap is wrong, so a pass that only ever wrote after a
+    # re-render would leave the finding standing and report having done nothing.
+    config = project(tmp_path, roadmap=QUEUED.replace("- RK9\n- Block A\n", ""))
+    applied = fix(config)
+    assert applied.files == ("ROADMAP.md",) and applied.changed == 1
+    assert [f.code for f in lint(Config.discover(tmp_path)).findings] == []
+
+
+def test_the_hook_that_already_runs_fix_clears_it(tmp_path, capsys):
+    # `roadkeep-lint-fix` is the command, and every drop is in its report rather than
+    # silent: a fixer that shortens a plan quietly is worse than the stale entry.
+    project(tmp_path, roadmap=QUEUED.replace("- RK9\n", ""))
+    assert main(["-C", str(tmp_path), "lint", "--fix"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "ROADMAP.md:7  fixed  RK1: queued work that shipped" in printed

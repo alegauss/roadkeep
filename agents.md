@@ -76,8 +76,8 @@ Don't hand-check it: `… lint` **exits 1** on any violation, line that stopped 
 dep nothing satisfies, pointer resolving to nothing, section nothing points at, over-budget
 every-turn file, queue entry naming work that left, or invisible codepoint — as
 `file:line:column`, never as a consequence, nothing else judged there (RK14/15/30/34/326). CI
-runs it through the action this repo ships (RK17). `--fix` repairs only what is **derived**
-(annotation, pointer, dep order, marker codepoint, whitespace), leaving the editorial (RK16).
+runs it through the action this repo ships (RK17). `--fix` repairs only the **derived**
+(annotation, pointer, dep order, marker codepoint, whitespace, dead queue entry) (RK16).
 
 ## The write path is a skill, not a preamble
 

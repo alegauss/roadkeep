@@ -155,29 +155,6 @@ a gate that asked for prose there would be answered with prose nobody needed.
 
 ## Block D — The gate
 
-### §RK328 The dead entry is mechanical
-
-RK16 splits the gate's findings in two: mechanical, recomputed from what is already
-there, and editorial, needing a decision a tool making it would be writing prose. A
-queue entry whose task shipped is squarely the first. There is exactly one repair, it
-chooses nothing, and no sentence of anybody's is touched — the same class as a stale dep
-annotation.
-
-RK327 closes the common case: a departure takes its own entry out, so the queue cannot
-go stale through the door work normally leaves by. What is left is the drift every other
-file already has a fixer for — a hand edit, a merge that resolved into a list naming
-both sides' ids, an adopted backlog whose order predates the section. `fixing` is where
-a governed file's mechanical repairs live, and after RK325 this is a governed file.
-
-Two things stay editorial, and they are why this is not "make the queue match". **Order** is the
-author's whole statement, so nothing here reorders. And an entry naming a task that is merely
-*blocked* is live: dropping it would delete a declaration because a dep has not landed yet.
-
-What that leaves is the state the complaint was about — a queue accumulating the ids of
-finished work — cleared by the command the `roadkeep-lint-fix` hook already runs, with
-every entry it dropped named in the report rather than removed in silence. A fixer that
-shortens a plan quietly is the one thing worse than the stale entry.
-
 ### §RK333 One tool, two names, and the refusal knows neither
 
 RK58 put the MCP route ahead of the shell form on one argument: the plugin that refused

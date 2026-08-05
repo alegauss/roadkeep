@@ -197,7 +197,9 @@ Neither half is otherwise visible until the merge it was registered for, so ask 
 Markers are `[markers]` in `roadkeep.toml`: the open set is the roadmap's, and the shipped and
 retired ones are the ledger's alone — neither is legal in a roadmap. Limits are `[limits]`:
 `roadkeep lint` names the file, line and column of anything over, and `--fix` repairs only
-what is **derived** (annotation, pointer, dep order, marker codepoint, whitespace). On a
+what is **derived** (annotation, pointer, dep order, marker codepoint, whitespace, and the
+queue entry whose task shipped or was retired, named in the report and never dropped in
+silence). On a
 project that arrived with drift, an absolute count answers nothing: `--baseline <rev>`
 (`HEAD` after a write) reports **what you added** and forgives the standing debt by name.
 

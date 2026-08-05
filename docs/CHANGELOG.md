@@ -238,6 +238,7 @@
 - ✅ **RK300** **Whether a block still holds open work is computed in two modules** — `Document.holds` is the one reader both the event line and the gate's note call, and a source test says those two are the only callers.
 - ✅ **RK320** **The version bump stages two whole files, so an unrelated edit to either rides into the next commit** — The hook reads the working tree before it bumps, and where either versioned file carries an unstaged edit it writes the number and stages neither, so a commit carries only what somebody staged.
 - ✅ **RK326** **The gate passes a priority entry naming a shipped id, an unknown id or a block nothing declares** — The gate resolves every queue entry as it resolves a dep, so a token naming shipped, retired, set-aside or unknown work fails at its own line and column.
+- ✅ **RK328** **The one queue repair that is fully derived has no fixer, so a clean tree still costs a hand edit** — `--fix` drops the queue entry whose id the ledger holds as shipped or retired, naming each one at the line it was read from, and leaves the order and every live entry alone.
 
 ## Block E — Adoption
 

@@ -7,7 +7,9 @@ that needed it most. So the findings split in two:
 * **mechanical** — the dep annotation (derived data, RK8), a pointer the scheme derives
   (RK27), a duplicate or unordered dep, an invisible codepoint stuck to the marker, and
   whitespace around a field. Nothing here is anybody's prose, and every one of them is
-  recomputed from the parsed line rather than edited in place;
+  recomputed from the parsed line rather than edited in place. The queue's dead entry is
+  the same class from the roadmap's third list, and the one repair that *removes* a line
+  rather than re-rendering one (RK328, :func:`_dequeue`);
 * **editorial** — an over-long `why`, a symptom that is a sentence, a dep on a task in
   neither file. Each needs a decision, and a tool that made it would be writing prose (L4).
 
@@ -57,6 +59,7 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 from pathlib import Path
 
+from roadkeep import queueing
 from roadkeep.backlog import Backlog, id_order
 from roadkeep.config import Config
 from roadkeep.document import Document, StaleFile, ending, write_atomically
@@ -174,16 +177,26 @@ def _fix_file(config: Config, role: str, backlog: Backlog) -> Fix:
             Repair(file, entry.lineno, entry.task.id, entry.raw, rendered, tuple(reasons))
         )
 
+    text = "".join(lines)
+    if repairs:
+        # Against the file as it was **read**, not as the character pass left it: the question
+        # rule 3 asks is whether this whole run lost anything.
+        problem = _verify(text, before, {r.lineno for r in repairs})
+        if problem is not None:
+            # Rule 3: the pass proves its own output before the disk sees any of it.
+            return Fix(skipped=tuple(skipped), refused=(f"{file}: {problem}",))
+
+    if role == "roadmap":
+        # The one repair that **removes** a line rather than re-rendering one (RK328), so it
+        # runs after the pass above has proved its own output and proves this one itself:
+        # rule 3 asks about line numbers, and a removal moves every line under it.
+        text, dequeued, problem = _dequeue(config, text, document, backlog, file)
+        if problem is not None:
+            return Fix(skipped=tuple(skipped), refused=(f"{file}: {problem}",))
+        repairs.extend(dequeued)
+
     if not repairs:
         return Fix(skipped=tuple(skipped))
-
-    text = "".join(lines)
-    # Against the file as it was **read**, not as the character pass left it: the question
-    # rule 3 asks is whether this whole run lost anything.
-    problem = _verify(text, before, {r.lineno for r in repairs})
-    if problem is not None:
-        # Rule 3: the pass proves its own output before the disk sees any of it.
-        return Fix(skipped=tuple(skipped), refused=(f"{file}: {problem}",))
     try:
         # The same question `save` asks (RK116), asked here because this pass writes the
         # text and not the document: everything above happened after the file was read, and
@@ -194,6 +207,79 @@ def _fix_file(config: Config, role: str, backlog: Backlog) -> Fix:
         return Fix(skipped=tuple(skipped), refused=(str(moved),))
     write_atomically(Path(config.path(role)), text)
     return Fix(repairs=tuple(repairs), skipped=tuple(skipped), files=(file,))
+
+
+def _dequeue(
+    config: Config, text: str, before: Document, backlog: Backlog, file: str
+) -> tuple[str, list[Repair], str | None]:
+    """Drop every queue entry naming work the ledger has already accounted for (RK328).
+
+    The queue is the roadmap's third list and the only mechanical repair it has: an entry
+    whose task **shipped or was retired** names work that has left the backlog for good, so
+    there is exactly one repair, it chooses nothing, and no sentence of anybody's is touched
+    — the same class as a stale dep annotation. RK327 closes the common case inside the
+    departure itself; what reaches here is the drift every other file already has a fixer
+    for: a hand edit, a merge that resolved into a list naming both sides' ids, an adopted
+    backlog whose order predates the section.
+
+    Four states stay **editorial**, and they are why this is not "make the queue match":
+
+    * **order**, which is the author's whole statement, so nothing here reorders;
+    * an entry naming a merely *blocked* task, which is live — dropping it would delete a
+      declaration because a dep has not landed yet;
+    * one naming a **deferred** task, which is coming back and whose place in the order is
+      the one thing the store could not keep, so restoring it is `resume`'s caller's;
+    * one naming an id no file carries, or a block whose lines have all left: the first is
+      as likely a typo as a deletion, and the second is reopened by an `add`.
+
+    Every drop is **named in the report** rather than removed in silence, and at the line it
+    was read from: a fixer that shortens a plan quietly is the one thing worse than the
+    stale entry. The removal itself is :func:`~roadkeep.queueing.without`'s, which is what
+    keeps the blank line a one-entry queue sits between from doubling.
+    """
+    document = Document.parse(text, schema=before.schema, path=before.path)
+    gone = backlog.shipped() | frozenset(backlog.retired())
+    dead = [
+        entry
+        for entry in queueing.entries(document, config)
+        if entry.token in gone
+    ]
+    if not dead:
+        return text, [], None
+
+    updated = document
+    for entry in dead:
+        updated, _ = queueing.without(updated, config, entry.token)
+    written = "".join(updated.lines)
+
+    # This pass proves its own output, for rule 3's reason and not by rule 3's test: what a
+    # removal must not do is take a task line or make a bullet the grammar stops reading.
+    reparsed = Document.parse(written, schema=before.schema, path=before.path)
+    if {e.task.id for e in reparsed.entries} != {e.task.id for e in document.entries}:
+        return text, [], "the queue pass changed which tasks the file holds"
+    if len(reparsed.rejects) > len(document.rejects):
+        return text, [], "the queue pass made a line the grammar no longer reads"
+
+    shipped = backlog.shipped()
+    return (
+        written,
+        [
+            Repair(
+                file,
+                entry.lineno,
+                entry.token,
+                entry.raw,
+                "",
+                (
+                    "queued work that shipped"
+                    if entry.token in shipped
+                    else "queued work that was retired",
+                ),
+            )
+            for entry in dead
+        ],
+        None,
+    )
 
 
 def _decontrol(document: Document, file: str) -> tuple[list[str], list[Repair]]:
