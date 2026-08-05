@@ -250,28 +250,6 @@ boolean every reader has to know to check.
 
 ## Block E — Adoption
 
-### §RK347 The collision an estimate is taken to find
-
-`adopt` exists so the commitment is priced before it is made: what parses, what
-conforms, the longest field against its limit, the markers to declare. `--sections` is
-that read for a rationale file, and it takes one path.
-
-Which is right for every limit it reports and wrong for the one RK340 added. An address
-is doubled only across two files, so a per-file estimate cannot see it by construction —
-and this is the finding an adopting project meets most: measured in one,
-`IMPROVEMENTS.md` and `STRATEGY.md` both open at `I` and both declare a `III`, which is
-four `section.ambiguous` on the first run of the gate, against files the estimate had
-called conforming.
-
-The read exists: `history.doubled` answers it over the project, and `anchors` already
-prints it. What is missing is that `adopt` asks — and that having asked, it names
-`[refs]` as the declaration that makes the two sets two, which is a line of
-configuration rather than a renumbering of somebody's document.
-
-The estimate stays a read that writes nothing and exits 0 (RK18): what is added is a
-figure in it, not a refusal. An adopter told the number before they commit is the whole
-point of the command, and this is the one they are most likely to be surprised by.
-
 ### §RK351 The answer a running suite is not holding still for
 
 `_answered` appends what RK79 and RK200 exist to say: which tree answered, and whether

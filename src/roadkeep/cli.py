@@ -5856,6 +5856,18 @@ def _print_estimate(estimate: Estimate) -> None:
                 f"  also     {count} {spells} {scheme}, unread here: "
                 f"--ref-scheme {scheme} if that is how this project addresses its sections"
             )
+    # The one finding a per-file estimate could not reach (RK347), and a line here rather than
+    # a refusal for the reason every other one is: `adopt` writes nothing and exits 0 (RK18),
+    # and what an adopter is buying is the number *before* the commitment.
+    for roles, taken in _by_files(estimate.ambiguous):
+        # Grouped by the files that collide and not one line per address, because the repair is
+        # one line of configuration for all of them — printed per address it would state the
+        # same declaration four times, which is the shape that reads as four problems. The
+        # addresses stay named: a count alone sends somebody to diff two outlines by hand.
+        print(
+            f"  refs     {len(taken)} address(es) declared by both {' and '.join(roles)} "
+            f"({', '.join(taken)}), refused here: {_AMBIGUOUS_FIX[estimate.ref_scheme]}"
+        )
     for declaration, count in estimate.ledger_shape:
         # Beside the `[ids]` line and in its shape (RK286): a count, and the keys that close
         # it. The reason on each refused line names the slots; this is what declaring them
@@ -5918,10 +5930,28 @@ def _print_estimate(estimate: Estimate) -> None:
         )
 
 
+#: What closes a doubled address, per scheme (RK347). Under an outline it is a line of
+#: configuration and never a renumbering of somebody's document: `[refs]` reads each file's
+#: outline as its own, so the two `I`s stop being one address. Under `id` there is nothing to
+#: namespace — the anchor is the task's own id, unique across the project by construction — so
+#: two headings answering to one is a heading somebody has to delete.
+_AMBIGUOUS_FIX = {
+    "outline": '[refs] <role> = "<prefix>" puts each file\'s outline in its own namespace',
+    "id": "an id addresses one section, so one of the two headings is the one to delete",
+}
+
 #: The findings that mean "the declared scheme could not read this address" (RK305). Under
 #: `id` a pointer the author chose is `ref.mismatch`; under an outline one shaped like an id
 #: is `ref.format`. Both are the signal RK285 said arrived with no sentence naming the flag.
 _MISREAD_CODES = ("ref.mismatch", "ref.format")
+
+
+def _by_files(ambiguous) -> list[tuple[tuple[str, ...], list[str]]]:
+    """The doubled addresses gathered under the files that declare them, in first-seen order."""
+    grouped: dict[tuple[str, ...], list[str]] = {}
+    for anchor, roles in ambiguous:
+        grouped.setdefault(roles, []).append(anchor)
+    return list(grouped.items())
 
 
 def _misread(estimate) -> bool:
@@ -6040,6 +6070,9 @@ def _estimate_json(estimate: Estimate) -> dict[str, object]:
         "rejects": [{"reason": r, "count": n} for r, n in estimate.rejects],
         "non_canonical": estimate.non_canonical,
         "schemes": [{"scheme": s, "count": n} for s, n in estimate.schemes],
+        "ambiguous": [
+            {"anchor": a, "roles": list(roles)} for a, roles in estimate.ambiguous
+        ],
         "ledger_shape": [{"declaration": d, "count": n} for d, n in estimate.ledger_shape],
         "unopened": list(estimate.unopened),
         "declared": estimate.declared,

@@ -26,6 +26,7 @@ import json
 
 import pytest
 
+from roadkeep.adopting import adopt
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config, ConfigError
 from roadkeep.linting import lint
@@ -105,6 +106,52 @@ def test_without_the_namespace_the_same_files_are_the_defect(tmp_path):
     # And the roadmap line that points into the prefixed file now points at nothing, which
     # is what a project without `[refs]` has instead: one namespace and one of each address.
     assert "ref.unresolved" in rules
+
+
+# -- the estimate taken before the gate speaks (RK347) -----------------------
+
+
+def test_the_estimate_names_the_address_two_files_declare(tmp_path):
+    """RK347: every other limit `--sections` reports is a property of the file in front of it,
+    so a doubling — which only exists across two — was the one finding it could not reach."""
+    config = project(tmp_path, refs="")
+    estimate = adopt(config, config.path("improvements"), sections=True)
+    # Conforming on its own, which is the whole defect: this is the number an adopter priced
+    # the commitment from, and the gate then filed a finding per collision against it.
+    assert estimate.conforming == estimate.parsed and estimate.changing == 0
+    assert estimate.ambiguous == (
+        ("I", ("improvements", "strategy")),
+        ("I.1", ("improvements", "strategy")),
+    )
+
+
+def test_the_declaration_the_estimate_names_is_the_one_that_closes_it(tmp_path):
+    # The same run against the same files, with the line of configuration written: an estimate
+    # naming a repair that leaves the number where it was would be worth nothing.
+    config = project(tmp_path)
+    assert adopt(config, config.path("improvements"), sections=True).ambiguous == ()
+
+
+def test_the_command_names_both_files_and_the_declaration(tmp_path, capsys):
+    project(tmp_path, refs="")
+    target = str(tmp_path / IMPROVEMENTS)
+    assert main(["-C", str(tmp_path), "adopt", target, "--sections"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "2 address(es) declared by both improvements and strategy (I, I.1)" in printed
+    # Once, not once per address: the repair is one line of configuration for both of them.
+    assert printed.count("[refs]") == 1
+    # And the sibling it opened to answer that is not also reported as out of reach (RK291).
+    assert STRATEGY not in printed.split("scope")[1]
+
+
+def test_a_file_this_project_does_not_govern_is_measured_alone(tmp_path):
+    """RK292's rule, one check further on: pointed at somebody else's file, `[files]` names
+    siblings that belong to another project, and a collision between two of them is not a
+    fact about the file the caller asked about."""
+    config = project(tmp_path, refs="")
+    outside = tmp_path / "NOTES.md"
+    outside.write_text(IMPROVEMENTS_BODY, encoding="utf-8")
+    assert adopt(config, outside, sections=True).ambiguous == ()
 
 
 def test_the_gate_names_the_configuration_rather_than_an_edit(tmp_path):

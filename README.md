@@ -120,13 +120,13 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 3 | 77 | 0 |
 | C — Query (consult without reading the file) | 0 | 51 | 1 |
 | D — The gate | 4 | 63 | 0 |
-| E — Adoption | 3 | 52 | 1 |
+| E — Adoption | 2 | 53 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 67 | 1 |
-| **Total** | 10 | 340 | 4 |
+| **Total** | 9 | 341 | 4 |
 
 **Next ready:**
 
-- 📋 **RK347** (deps: —) **The estimate reads one prose file at a time, so the state two of them are in is the one it cannot report** — adopt --sections never sees the sibling, and an address both files declare is met on the first lint rather than in the estimate taken to price adoption. → §RK347
+- 📋 **RK348** (deps: —) **A departure refused by a dependent's line reports the length and names no id** — The annotation a ship re-derives grows the dependent's line by two characters, so the refusal is about a sentence the caller did not write and cannot find. → §RK348
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

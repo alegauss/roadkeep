@@ -22,7 +22,11 @@ reads a file it does not own and writes nothing at all.
   the cells would be a tool with two line formats. It reads **both** kinds of bullet a
   roadmap holds (RK139): the non-goals are measured against the two limits they would be
   held to, declared or not, because a third of one adoption's work was in that list and
-  arrived after the commitment.
+  arrived after the commitment. `--sections` is the one read that goes past the path it was
+  handed, and for one finding: an address is doubled only *across* two files, so a per-file
+  estimate calls both of them conforming and the gate then files a `section.ambiguous` per
+  collision (RK347). It opens the siblings only where the target is one of this project's
+  own, for the reason :func:`_unread` does not name them otherwise (RK292).
 
 Three decisions that are the point rather than details of it:
 
@@ -57,6 +61,7 @@ from roadkeep.config import (
     CLAIM_HELD,
     CONFIG_NAME,
     DEFAULT_PATHS,
+    PROSE_ROLES,
     PYPROJECT,
     Config,
     Scope,
@@ -314,6 +319,14 @@ class Estimate:
     #: the one an empty file gets, and the estimate that decides whether to adopt reports
     #: nothing to change about a file it has not read.
     tabular: int = 0
+    #: Every address more than one prose file declares **now**, with the roles (RK347) — the
+    #: one finding a per-file estimate cannot reach by construction, because a doubling only
+    #: exists across two files. Measured on a project whose `IMPROVEMENTS.md` and `STRATEGY.md`
+    #: both open at `I` and both declare a `III`: four `section.ambiguous` on the first run of
+    #: the gate, against two files this estimate had called conforming. Empty where the target
+    #: is not declared here (RK292) — there the siblings belong to another project — and empty
+    #: on a backlog, which holds lines and not headings.
+    ambiguous: tuple[tuple[str, tuple[str, ...]], ...] = ()
     #: What this file holds in a shape the format has no reader for, in whatever :attr:`unit`
     #: is being counted: plain list items under a block heading in a backlog (RK279), and
     #: headings with prose and no anchor in a rationale file (RK281). One field because it is
@@ -740,7 +753,11 @@ def _prose(config: Config, target: Path, ref_scheme: str | None) -> Estimate:
         # RK288: the second source. Without it `--sections` had no way to say "read this the
         # other way", which is the one sentence Shio's file needed.
         schemes=_heading_schemes(document),
-        unopened=_unread(config, target),
+        # RK347: the finding one path cannot hold. Read before `unopened`, which is told what
+        # this took — a sibling opened to answer the doubling is not one the report may then
+        # name as out of reach.
+        ambiguous=_ambiguous(config, target),
+        unopened=_unread(config, target, opened=PROSE_ROLES),
         declared=_declared(config, target),
         parsed=len(found),
         conforming=sum(1 for count in words if count <= schema.section_max),
@@ -997,7 +1014,43 @@ def _heading_schemes(document: Document) -> tuple[tuple[str, int], ...]:
     return _ranked(counts)
 
 
-def _unread(config: Config, target: Path) -> tuple[str, ...]:
+def _ambiguous(config: Config, target: Path) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    """Every address two prose files declare now, with the roles that declare it (RK347).
+
+    The one check `adopt` could not make from one path. Every other limit it reports is a
+    property of the file in front of it; a doubled address is a property of the *set*, so a
+    per-file read answers "conforming" about two files the gate then files four
+    `section.ambiguous` against — and that is the finding an adopting project meets first,
+    because two outlines written independently both start at `I`.
+
+    :func:`~roadkeep.history.doubled` is the reader, so this is the same answer `anchors`
+    prints rather than a second opinion about what a collision is. Handed live headings only
+    and never :func:`~roadkeep.history.anchors`, which reaches for `git log` to date them: an
+    estimate is taken on a tree that may not be a clone, and the address a *pointer* cannot
+    resolve is one two headings declare today.
+
+    Empty where the target is not one of this project's files (RK292), for the reason
+    :func:`_unread` is: there `[files]` names somebody else's siblings, and reporting a
+    collision between two of them would be measuring a project the caller did not ask about.
+
+    Reads the anchors **qualified** (RK340), which is what makes the report actionable rather
+    than merely true: declaring `[refs]` puts each file's outline in its own namespace, and
+    the same run then answers zero.
+    """
+    if not _declared(config, target):
+        return ()
+    from roadkeep.history import Anchor, doubled  # noqa: PLC0415 - RK260
+
+    taken = [
+        Anchor(anchor=section.anchor, role=role, live=True)
+        for role in PROSE_ROLES
+        if config.has(role) and config.path(role).is_file()
+        for section in anchored(config.document(role))
+    ]
+    return doubled(taken)
+
+
+def _unread(config: Config, target: Path, opened: Sequence[str] = ()) -> tuple[str, ...]:
     """The governed files this run did not open, in `[files]` order (RK291).
 
     Named by **file** and not by finding code, which is the decision the section settled:
@@ -1011,13 +1064,20 @@ def _unread(config: Config, target: Path) -> tuple[str, ...]:
     `docs/IMPROVEMENTS.md` went unread, which reads as the report not having read what it read
     — and offering siblings nobody can hand over. The limit is still real and simply narrower,
     and :attr:`Estimate.declared` is what lets the sentence say which one it is.
+
+    ``opened`` is what this run *did* read past the target (RK347): `--sections` opens every
+    prose file to answer the doubling, so naming them here too would say a file was out of
+    reach in the same report that measured it. What stays unread is what stays unread — the
+    checks that resolve through a task line — which is what the sentence was always about.
     """
     here = target.resolve()
     by_role = {role: config.path(role).resolve() for role in config.paths}
     if here not in by_role.values():
         return ()
     return tuple(
-        config.relative(config.path(role)) for role, path in by_role.items() if path != here
+        config.relative(config.path(role))
+        for role, path in by_role.items()
+        if path != here and role not in opened
     )
 
 
