@@ -3969,10 +3969,19 @@ def _claim(config: Config, args: argparse.Namespace) -> int:
     except (claiming.NotHeld, KeyError, OSError) as error:
         return _refused(error)
 
+    # What this task's own transactions already wrote (RK342), by the reading `ship` makes
+    # off its own `save` — which only exists inside a transaction, so here it is read off
+    # the files: a claim moved a marker onto this line and the projections were refreshed
+    # from it, and both diffs name the id. Without it the report called them `loose`, which
+    # reads as *somebody else touched this*, and the author declared them by hand to
+    # silence it — the scope then carrying paths that were never the work.
+    wrote = claiming.written(config, args.id, dirty(config))
     if args.porcelain:
         # Nothing but the paths: this form is consumed by `git add --`, so a heading on it
-        # would be a filename to a shell and the contract has to be safe to pipe.
-        for one in mine:
+        # would be a filename to a shell and the contract has to be safe to pipe. The
+        # written ones join it for the reason they join the stage line: what the author
+        # does with both lists is the same `git add`.
+        for one in dict.fromkeys((*mine, *wrote)):
             print(one)
         return EXIT_OK
 
@@ -3981,15 +3990,22 @@ def _claim(config: Config, args: argparse.Namespace) -> int:
     # Git is asked here and not there: this command was told to answer.
     scope = claiming.split(config, args.id, entries, dirty(config), indexed(config))
     if args.json:
+        written = set(wrote)
         print(
             json.dumps(
                 {
                     "id": args.id,
                     "paths": list(scope.mine),
+                    # Its own key and never merged into `paths` (RK309, RK342): a client
+                    # that read them as one would be handed a scope this tool never
+                    # received, and the two answer different questions.
+                    "wrote": list(wrote),
                     "theirs": [
                         {"path": one, "claimed_by": who} for one, who in scope.theirs
                     ],
-                    "unclaimed": list(scope.loose),
+                    "unclaimed": [
+                        one for one in scope.loose if one not in written
+                    ],
                     "staging_nothing": list(scope.idle),
                 },
                 indent=2,
@@ -4004,7 +4020,12 @@ def _claim(config: Config, args: argparse.Namespace) -> int:
         # and the real one are two lines apart, and the eye reads the second as somebody
         # else's unless the first says what is wrong with it.
         print(f"  mine     {one}{'  (stages nothing right now)' if one in idle else ''}")
-    _print_scope(scope)
+    for one in wrote:
+        # Named rather than folded into `mine`, for the reason a departure keeps them
+        # apart (RK309): the scope is what the holder said, verbatim, and these are not a
+        # declaration to be corrected but a record to be used.
+        print(f"  wrote    {one}  (this task's own transactions)")
+    _print_scope(scope, wrote)
     if not mine:
         print(f"  none declared: `claim {args.id} --path <p>` says what this commit owns")
     return EXIT_OK

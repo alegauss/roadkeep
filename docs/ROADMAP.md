@@ -24,8 +24,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK342** (deps: —) **A claim's read-back reports the files its own transaction wrote as owned by nothing** — brief --claim moves the marker and refreshes the README, and the next claim <id> lists both as loose, where ship writing the same files names them in its stage line. → §RK342
-
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK303** (deps: —) **The section budget picks the first of two prose files declaring one anchor, where every other reader refuses** — It answered improvements about an address strategy declares too, and show calls that state a pointer resolving to neither — so a limit is priced for an unreachable section. → §RK303

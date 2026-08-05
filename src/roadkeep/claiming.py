@@ -58,7 +58,7 @@ from enum import StrEnum
 from pathlib import Path
 
 from roadkeep.backlog import Backlog
-from roadkeep.config import Config
+from roadkeep.config import ROLES, Config
 from roadkeep.document import Entry
 from roadkeep.locking import exclusive
 from roadkeep.schema import IN_PROGRESS, Task
@@ -575,6 +575,46 @@ def _stages(one: str, known: frozenset[str]) -> bool:
         return True
     prefix = one.rstrip("/") + "/"
     return any(other.startswith(prefix) for other in known)
+
+
+def writable(config: Config) -> tuple[str, ...]:
+    """Every path a verb of this tool can leave bytes in, as the project spells them (RK342).
+
+    The governed files plus the projections RK188 refreshes with them. Narrow on purpose: the
+    claim of :func:`written` is that *this tool wrote it*, and a source file whose diff cites
+    the id is the author's work and not this tool's — calling it written would put the tool's
+    signature on somebody's code. So the candidate set is what a verb could have produced, and
+    the diff then says which of those this task's own transaction did.
+    """
+    # Deferred: `exporting` reaches the write path, which reaches this module (RK260).
+    from roadkeep.exporting import DEFAULTS  # noqa: PLC0415
+
+    out = [
+        config.relative(config.path(role)) for role in ROLES if config.has(role)
+    ]
+    out += [name for name, _ in DEFAULTS.values()]
+    return tuple(dict.fromkeys(out))
+
+
+def written(config: Config, task_id: str, changed: Iterable[str]) -> tuple[str, ...]:
+    """The changed paths this task's own transactions wrote (RK342).
+
+    `ship` answers this off :meth:`~roadkeep.shipping.Departure.save`'s own return, which is
+    the better source and only exists inside a transaction. `claim <id>` is asked *between*
+    them, so the record it has is the files themselves: a claim moved a marker onto this line
+    and the projections were refreshed from it, and both diffs therefore name the id.
+
+    Two readings and not one, because the tool's signature is the whole point — a path is
+    written only where it is both something a verb could have produced (:func:`writable`) and
+    something whose diff carries this id (:func:`~roadkeep.history.carrying`). Either alone is
+    the repair RK342 names and refuses: every dirty governed file hands one session another's
+    `add`, and every dirty file carrying the id claims authorship of somebody's code.
+    """
+    # Deferred for RK260's reason, and because git belongs on no path that did not ask.
+    from roadkeep.history import carrying  # noqa: PLC0415
+
+    changed = frozenset(changed)
+    return carrying(config, task_id, [one for one in writable(config) if one in changed])
 
 
 def departing(config: Config, task_id: str, entries: Iterable[Entry]) -> Scope | None:

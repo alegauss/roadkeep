@@ -77,33 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK342 RK342
-
-`claim <id>` is the read-back: it names the declared scope, prints the `git add --`
-line, and reports what the tree holds that no claim covers. Measured on a fresh
-repository, one path declared, nothing else touched by hand:
-
-    loose    README.md   (no claim names it)
-    loose    ROADMAP.md  (no claim names it)
-
-Both are writes of the claiming transaction itself. `brief --claim` moves the marker to
-in-progress, and every governed write carries the README refresh RK188 added, so the
-files the report calls unowned are the ones the command opening the claim wrote for that
-id.
-
-`ship` already has this right — its stage line is the scope plus what the departure
-wrote, `src/thing.py CHANGELOG.md ROADMAP.md IMPROVEMENTS.md README.md` — so the
-knowledge exists one command over and is not consulted here. The asymmetry is what makes
-it a defect rather than a preference: `loose` reads as *a file somebody else touched*,
-so the author declares the governed paths by hand to silence it, and the scope now
-carries paths that were never the work. That is the analysis `claim` exists to make,
-made wrong, on the first call of every task.
-
-What a repair cannot do is hand every dirty governed file to whoever asks: a roadmap the
-tree holds may hold another session's add. The distinction available is the id the
-transaction that wrote the line already knew — a governed file whose diff is this task's
-own line is `mine`, and one that is not stays `loose`.
-
 ## Block C — Query
 
 ### §RK303 First match, at the one door that had not learned it

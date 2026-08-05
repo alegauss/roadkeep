@@ -452,6 +452,54 @@ def dirty(config: Config) -> frozenset[str]:
     return frozenset(_dirty_paths(listed))
 
 
+def carrying(config: Config, task_id: str, paths: Iterable[str]) -> tuple[str, ...]:
+    """Which of these paths have this id **in their working-tree diff** (RK342).
+
+    The fact `claim <id>` was missing. A claim's own transaction writes governed files — the
+    marker moves in the roadmap, and every governed write carries the README refresh RK188
+    added — and the read-back then listed both as `loose`, which reads as *a file somebody
+    else touched*. So the author declares the governed paths by hand to silence it, and the
+    scope comes to carry paths that were never the work: the analysis this command exists to
+    make, made wrong, on the first call of every task.
+
+    **Not every dirty governed file**, which is the repair that was available and wrong: a
+    roadmap the tree holds may hold another session's `add`, and handing it to whoever asks
+    would be the two sessions RK294 separates each getting the other's files with this tool's
+    signature on it. The distinction the files themselves carry is the id — a line whose
+    marker this transaction moved is a changed line naming it, and a projection refreshed
+    from that line reproduces it.
+
+    Read off `git diff HEAD`, both sides, so a **removed** line counts: a ship takes the line
+    out, and a diff read for additions alone would answer "no" about the departure that is
+    most of the work. Whole-word, because `RK34` must not answer for `RK342` — the same care
+    :func:`cited_origin` takes with an anchor, and the same reason.
+
+    Empty where git cannot answer, the rule every reader here keeps.
+    """
+    wanted = tuple(dict.fromkeys(paths))
+    if not wanted or not task_id:
+        return ()
+    try:
+        # `-U0`, so only the changed lines are read: a context line naming the id belongs to
+        # a neighbour this transaction did not touch, and counting it would claim the file
+        # for whichever task happens to sit next to the one that moved.
+        listed = _run(config.root, "diff", "HEAD", "-U0", "--", *wanted)
+    except HistoryUnavailable:
+        return ()
+    found: list[str] = []
+    current = ""
+    pattern = re.compile(rf"(?<![\w-]){re.escape(task_id)}(?![\w-])")
+    for line in listed.splitlines():
+        if line.startswith("+++ b/"):
+            current = line[6:]
+        elif line[:1] in "+-" and not line.startswith(("+++", "---")) and current:
+            if pattern.search(line):
+                found.append(current)
+                current = ""  # one hit settles the file; the rest of its hunks are noise
+    # Answered in the caller's order and not git's, so two runs of the same tree read alike.
+    return tuple(one for one in wanted if one in set(found))
+
+
 def _dirty_paths(listed: str) -> Iterator[str]:
     """The paths out of `status --porcelain -z`, whose records are not one per NUL.
 

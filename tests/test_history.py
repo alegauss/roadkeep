@@ -21,6 +21,7 @@ from roadkeep.history import (
     HistoryUnavailable,
     anchors,
     commits_touching,
+    carrying,
     dirty,
     families_of_block,
     gaps,
@@ -1196,3 +1197,121 @@ def test_every_other_violation_still_arrives_with_it(tmp_path, capsys):
     err = capsys.readouterr().err
     assert "ref.missing" in err and "why.no-terminator" in err
     assert "§XVII.4 is free" in err
+
+
+# -- the read-back that called its own writes loose (RK342) -------------------
+
+
+def claimed(tmp_path: Path) -> Config:
+    """A committed repository with one line, taken, and the marker write left uncommitted."""
+    config = repo(tmp_path)
+    append(
+        config.path("roadmap"),
+        f"- {DESIGNED} **RK2** (deps: —) **A symptom** — a reason. → §RK2\n",
+    )
+    commit(tmp_path, "chore: a line to take")
+    config = Config.discover(tmp_path)
+    # The write a claim makes: the marker moves, which is the diff the read-back has to read.
+    assert main(["-C", str(tmp_path), "status", "RK2", IN_PROGRESS]) == EXIT_OK
+    return Config.discover(tmp_path)
+
+
+def test_a_claims_own_marker_write_is_not_a_file_nobody_owns(tmp_path, capsys):
+    # `loose` reads as *a file somebody else touched*, so the author declares the governed
+    # paths by hand to silence it — and the scope then carries paths that were never the work.
+    # That is the analysis `claim` exists to make, made wrong, on the first call of every task.
+    config = claimed(tmp_path)
+    try:
+        assert main(["-C", str(tmp_path), "claim", "RK2"]) == EXIT_OK
+        out = capsys.readouterr().out
+        assert "wrote    ROADMAP.md" in out
+        assert "loose" not in out
+        assert "stage    git add -- ROADMAP.md" in out
+    finally:
+        claiming.path(tmp_path).unlink(missing_ok=True)
+
+
+def test_a_governed_file_this_task_did_not_write_stays_loose(tmp_path, capsys):
+    # The repair that was available and wrong: a roadmap the tree holds may hold another
+    # session's `add`, and handing every dirty governed file to whoever asks would give the
+    # two sessions RK294 separates each other's files with this tool's signature on it.
+    config = claimed(tmp_path)
+    capsys.readouterr()  # the marker write the fixture made, not this test's
+    append(
+        config.path("changelog"),
+        f"- {SHIPPED} **RK7** **Another symptom** — somebody else's delivery.\n",
+    )
+    try:
+        assert main(["-C", str(tmp_path), "claim", "RK2", "--json"]) == EXIT_OK
+        payload = json.loads(capsys.readouterr().out)
+        assert payload["wrote"] == ["ROADMAP.md"]
+        assert payload["unclaimed"] == ["CHANGELOG.md"]
+    finally:
+        claiming.path(tmp_path).unlink(missing_ok=True)
+
+
+def test_a_source_file_citing_the_id_is_the_authors_and_not_the_tools(tmp_path, capsys):
+    # The other half of the same narrowness: the claim being made is that *this tool* wrote
+    # it, so a file no verb can produce is never in the list however its diff reads.
+    claimed(tmp_path)
+    capsys.readouterr()  # the marker write the fixture made, not this test's
+    (tmp_path / "mine.py").write_text("# RK2: the fix\nx = 1\n", encoding="utf-8")
+    try:
+        assert main(["-C", str(tmp_path), "claim", "RK2", "--json"]) == EXIT_OK
+        payload = json.loads(capsys.readouterr().out)
+        assert payload["wrote"] == ["ROADMAP.md"]
+        assert payload["unclaimed"] == ["mine.py"]
+    finally:
+        claiming.path(tmp_path).unlink(missing_ok=True)
+
+
+def test_the_declaration_stays_what_the_holder_said(tmp_path, capsys):
+    # `mine` is the scope, verbatim; `wrote` is a record to be used. Both reach the staging
+    # line, in that order, exactly as a departure prints them.
+    config = claimed(tmp_path)
+    capsys.readouterr()  # the marker write the fixture made, not this test's
+    claiming.scope(config, "RK2", ["mine.py"])
+    (tmp_path / "mine.py").write_text("x = 1\n", encoding="utf-8")
+    try:
+        assert main(["-C", str(tmp_path), "claim", "RK2", "--json"]) == EXIT_OK
+        payload = json.loads(capsys.readouterr().out)
+        assert payload["paths"] == ["mine.py"] and payload["wrote"] == ["ROADMAP.md"]
+
+        assert main(["-C", str(tmp_path), "claim", "RK2", "--porcelain"]) == EXIT_OK
+        assert capsys.readouterr().out.split() == ["mine.py", "ROADMAP.md"]
+    finally:
+        claiming.path(tmp_path).unlink(missing_ok=True)
+
+
+def test_a_near_id_does_not_answer_for_this_one(tmp_path):
+    # `RK2` must not be found in a line naming `RK25`, the care `cited_origin` takes with an
+    # anchor and for the same reason.
+    config = repo(tmp_path)
+    append(
+        config.path("roadmap"),
+        f"- {DESIGNED} **RK25** (deps: —) **A symptom** — a reason.\n",
+    )
+    commit(tmp_path, "chore: a neighbour")
+    append(config.path("roadmap"), f"- {DESIGNED} **RK251** (deps: —) **Another** — a reason.\n")
+
+    assert carrying(config, "RK251", ["ROADMAP.md"]) == ("ROADMAP.md",)
+    assert carrying(config, "RK25", ["ROADMAP.md"]) == ()
+
+
+def test_a_removed_line_counts_because_that_is_what_a_departure_leaves(tmp_path):
+    # Read off both sides of the diff: a ship takes the line out, and reading additions alone
+    # would answer "no" about the departure that is most of the work.
+    config = repo(tmp_path)
+    append(
+        config.path("roadmap"),
+        f"- {DESIGNED} **RK2** (deps: —) **A symptom** — a reason.\n",
+    )
+    commit(tmp_path, "chore: a line to remove")
+    kept = [
+        one
+        for one in config.path("roadmap").read_text(encoding="utf-8").splitlines(keepends=True)
+        if "**RK2**" not in one
+    ]
+    config.path("roadmap").write_text("".join(kept), encoding="utf-8")
+
+    assert carrying(config, "RK2", ["ROADMAP.md"]) == ("ROADMAP.md",)

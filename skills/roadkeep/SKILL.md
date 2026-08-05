@@ -293,9 +293,11 @@ that did not ship — and a batch of ready tasks is not permission to batch the 
 
 Which is decidable only if the commit knows what is **its**. A claim carries a scope:
 `claim <id> --path <p> …` says what this commit owns, declared verbatim and replacing
-whatever was there, and `claim <id>` reads it back beside what the working tree holds that
+whatever was there, and `claim <id>` reads it back beside what **this task's own transactions
+wrote** — the marker, the projections — what the working tree holds that
 another live claim says is *its* own, what no claim names at all, and which declared path
-would stage nothing right now — the analysis
+would stage nothing right now. **Declare only your code**: the governed files are supplied,
+and a scope naming them by hand carries paths that were never the work — the analysis
 `git add -A` cannot make and a second session's work is what it sweeps up. `--add-path <p>`
 is the same write from the other end, for the file the work turned up after the scope was
 declared; passing both is refused. Over MCP this verb is the tool `scope` — not `claim`,
