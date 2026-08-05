@@ -18,6 +18,7 @@ import pytest
 
 from roadkeep.budgeting import (
     CHARS_PER_WORD,
+    AmbiguousAnchor,
     body_budget,
     budget,
     budget_of,
@@ -674,3 +675,78 @@ def test_the_standalone_read_and_the_field_state_the_same_thing(tmp_path):
     # One shape at both doors: a second spelling of a body's budget would be a second answer.
     config = sectioned(tmp_path)
     assert budget(config, "RK1").section == body_budget(config, "RK1")
+
+
+# -- one anchor, two files, and no first match (RK303) -------------------------
+
+
+def doubled(tmp_path: Path) -> Config:
+    """A project where §RK1 is declared by both prose files, which is the ambiguity."""
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
+        'improvements = "IMPROVEMENTS.md"\nstrategy = "STRATEGY.md"\n'
+        "[limits.strategy]\nsection = 40\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "IMPROVEMENTS.md").write_text(
+        "# Improvements\n\n## Block A — The model\n\n### §RK1 A design\n\n"
+        "Eight words of prose, and nothing nested under it.\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "STRATEGY.md").write_text(
+        "# Strategy\n\n## Block A — The model\n\n### §RK1 A position\n\nProse.\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "ROADMAP.md").write_text(BACKLOG, encoding="utf-8")
+    (tmp_path / "CHANGELOG.md").write_text(LEDGER, encoding="utf-8")
+    return Config.discover(tmp_path)
+
+
+def test_two_files_declaring_one_anchor_are_refused_and_never_the_first_of_them(tmp_path):
+    # The direction every other reader already took: `show` answers that the pointer resolves
+    # to neither and `ship` leaves the section rather than choosing. A number about the first
+    # is right about a file that was picked rather than named.
+    config = doubled(tmp_path)
+    with pytest.raises(AmbiguousAnchor) as refusal:
+        body_budget(config, "RK1")
+    assert refusal.value.files == ("IMPROVEMENTS.md", "STRATEGY.md")
+    assert "IMPROVEMENTS.md and STRATEGY.md" in str(refusal.value)
+    # And the unambiguous anchor in the same project is untouched by the rule.
+    assert body_budget(config, "RK2").role == "improvements"
+
+
+def test_the_named_role_is_what_resolves_it_and_the_only_thing_that_can(tmp_path):
+    # The caller saying which of the two they mean, which is the one resolution that is not
+    # this verb choosing (L4) — and the limit that comes back is that role's own.
+    config = doubled(tmp_path)
+    assert body_budget(config, "RK1", "strategy").limit == 40
+    assert body_budget(config, "RK1", "improvements").role == "improvements"
+
+
+def test_the_lines_own_two_fields_survive_an_anchor_nobody_can_price(tmp_path):
+    # The ambiguity is about the body, not about the sentence: refusing the whole read would
+    # cost the author a `why` budget that is still exactly right.
+    answer = budget(doubled(tmp_path), "RK1")
+    assert answer.share("why").allowed > 0 and answer.section is None
+    # And the absence says which of the two nulls this is, because a project declaring no
+    # prose file at all reads identically otherwise.
+    assert "§RK1 is declared by" in answer.section_absence
+    plain = tmp_path / "plain"
+    plain.mkdir()
+    assert budget(sectioned(plain, prose=False), "RK1").section_absence == ""
+
+
+def test_the_command_refuses_the_anchor_and_names_the_flag_that_resolves_it(tmp_path, capsys):
+    config = doubled(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "--anchor", "RK1"]) == EXIT_USAGE
+    assert "--role" in capsys.readouterr().err
+    assert main(["-C", str(tmp_path), "budget", "--anchor", "RK1", "--role", "strategy"]) == EXIT_OK
+    assert f"{config.schema_for('strategy').section_max} words" in capsys.readouterr().out
+
+
+def test_the_json_says_why_the_section_is_null_rather_than_only_that_it_is(tmp_path, capsys):
+    doubled(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "RK1", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["section"] is None and payload["section_absence"]
+    assert payload["fields"], "the line's own fields are unaffected by the anchor"

@@ -66,17 +66,18 @@ from dataclasses import dataclass
 from typing import Sequence
 
 from roadkeep.authoring import compose, prose_role
-from roadkeep.config import PROSE_ROLES, Config
+from roadkeep.config import Config
 from roadkeep.ids import next_id
 from roadkeep.schema import CHARS_PER_WORD, Task, body_aim, words
 from roadkeep.scoping import NoSuchNonGoal, NotGoverned, address, leads, read
-from roadkeep.sections import find
+from roadkeep.sections import declaring, find
 
 #: Re-exported, not re-declared (RK201). The conversion moved down to `schema`, where the
 #: refusal that states a surplus can reach it: the aim and the surplus are the same
 #: arithmetic in opposite directions, and two constants would be two answers.
 __all__ = [
     "CHARS_PER_WORD",
+    "AmbiguousAnchor",
     "Body",
     "Budget",
     "Share",
@@ -86,6 +87,27 @@ __all__ = [
     "non_goal_budget",
     "words",
 ]
+
+
+class AmbiguousAnchor(ValueError):
+    """Two prose files declare one anchor, so no file is the one being budgeted (RK303).
+
+    A `ValueError` and deliberately not the `KeyError` this module already raises: that one
+    means "no prose file to be a fact about" and is swallowed where a line's own budget is
+    being read, and swallowing this one would put the answer back to a number about a file
+    nobody named. `show` and `ship` state the same finding in their own words; this is the
+    third door reaching it, and `--role` is what resolves it, the caller naming which of the
+    two they mean being the only thing that can.
+    """
+
+    def __init__(self, anchor: str, files: Sequence[str]) -> None:
+        self.anchor, self.files = anchor, tuple(files)
+        super().__init__(
+            f"§{anchor} is declared by {' and '.join(self.files)}: one anchor names one "
+            f"section, and a budget for the first of two prices a section the pointer does "
+            f"not reach — `budget --anchor {anchor} --role <role>` is which of the two "
+            f"you mean"
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -161,6 +183,11 @@ class Budget:
     #: mentioned only the line. None where the project declares no prose file, which is the
     #: only state in which that write does not exist.
     section: Body | None = None
+    #: Why there is no section budget, where the absence is a **defect** (RK303): an anchor
+    #: two prose files declare has no one file to be priced against, and a silent None reads
+    #: as the project that declares no prose file at all. Empty in every other state,
+    #: including that one, for the reason `show` states its absences apart.
+    section_absence: str = ""
 
     def share(self, field: str) -> Share:
         return next(one for one in self.shares if one.field == field)
@@ -224,6 +251,7 @@ def budget_of(
             Share("symptom", schema.symptom_max, min(schema.symptom_max, prose), len(task.symptom))
         )
     shares.append(Share("why", schema.why_max, schema.why_budget(task), len(task.why)))
+    section, absence = _section_of(config, task.ref or task.id)
     return Budget(
         task=task,
         open_line=open_line,
@@ -236,22 +264,27 @@ def budget_of(
         # The same anchor the line points at, which makes this one read for both halves of
         # the transaction (RK301): before the `add` it is the body about to be written, and
         # on an open line it is what a `section amend` has left.
-        section=_section_of(config, task.ref or task.id),
+        section=section,
+        section_absence=absence,
     )
 
 
-def _section_of(config: Config, anchor: str) -> Body | None:
-    """This anchor's body budget, or None where the project has no prose file to hold one.
+def _section_of(config: Config, anchor: str) -> tuple[Body | None, str]:
+    """This anchor's body budget, or None and why there is none.
 
     Swallowing the refusal :func:`body_budget` raises rather than propagating it, because
     the caller asked about a *line*: a project that declares no rationale file has a legal
     `add` with no `--section` in it, and turning that into an error would refuse the read
-    every other project uses.
+    every other project uses. The same holds for an anchor two files declare (RK303) — the
+    line's own two fields are unaffected by it — but that one is a defect and the other is
+    not, so the reason rides back with the absence rather than the two reading identically.
     """
     try:
-        return body_budget(config, anchor)
+        return body_budget(config, anchor), ""
+    except AmbiguousAnchor as error:
+        return None, str(error)
     except KeyError:
-        return None
+        return None, ""
 
 
 def _subject(
@@ -393,21 +426,27 @@ def body_budget(config: Config, anchor: str, role: str | None = None) -> Body:
     The role is resolved the way every other reader resolves it (RK196) and never assumed to
     be `improvements`: the file that *holds* the anchor where one does, and otherwise the one
     a `section add` would write into — because an unwritten anchor is the pre-write question
-    and the answer has to be about the file that write will land in. A named ``role`` wins,
-    and an anchor two files declare is `ref.ambiguous` for the gate to report rather than a
-    choice made here (L4), so the first declaring file answers and the caller may name the
-    other.
+    and the answer has to be about the file that write will land in. A named ``role`` wins.
+
+    An anchor **two files declare is refused** (RK303), which is what every other reader of
+    the same question does: `show` answers that the pointer resolves to neither, `ship`
+    leaves the section rather than choosing which of the two the line meant, and the gate
+    reports `section.ambiguous` at both headings. Answering with the first was the one door
+    that had not learned it, and it priced a limit for a section the author cannot address —
+    the number right about a file that was picked rather than named. ``role`` is the way
+    through, because naming which of the two is meant is the only thing that resolves it and
+    no verb here may resolve it by picking (L4).
     """
     named, where = role, config.relative(config.source or config.root)
     if role is None:
-        declaring = [
-            name
-            for name in PROSE_ROLES
-            if config.has(name)
-            and config.path(name).is_file()
-            and find(config.document(name), anchor) is not None
-        ]
-        role = declaring[0] if declaring else prose_role(config)
+        # One resolver, called and not repeated (RK229) — the copy that lived here is the
+        # copy that never learned what two declaring files mean.
+        holders = declaring(config, anchor)
+        if len(holders) > 1:
+            raise AmbiguousAnchor(
+                anchor, [config.relative(config.path(name)) for name in holders]
+            )
+        role = holders[0] if holders else prose_role(config)
     if role is None or not config.has(role):
         # Named or derived, and never the same sentence for both: a project that declares
         # `strategy` and was asked for it is a different mistake from one declaring neither.

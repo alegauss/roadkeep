@@ -118,15 +118,15 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 30 | 1 |
 | B — Authoring (insert, never hand-edit) | 3 | 77 | 0 |
-| C — Query (consult without reading the file) | 5 | 47 | 0 |
+| C — Query (consult without reading the file) | 4 | 48 | 0 |
 | D — The gate | 5 | 57 | 0 |
 | E — Adoption | 3 | 50 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 67 | 1 |
-| **Total** | 16 | 328 | 3 |
+| **Total** | 15 | 329 | 3 |
 
 **Next ready:**
 
-- 📋 **RK303** (deps: —) **The section budget picks the first of two prose files declaring one anchor, where every other reader refuses** — It answered improvements about an address strategy declares too, and show calls that state a pointer resolving to neither — so a limit is priced for an unreachable section. → §RK303
+- 📋 **RK305** (deps: —) **The scheme suggestion is suppressed by a majority that shipping erodes** — adopt hides it only while the declared scheme out-counts the other, and this repo's id-anchored sections are deleted at every ship, so a conforming file is told to switch once enough work lands. → §RK305
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

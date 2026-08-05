@@ -171,6 +171,7 @@
 - ✅ **RK293** **anchors names the next address under every family and not the next family** — anchors now prints the next free top-level above the rows and orders every family by the number its numeral spells, so the address a reused block needs is derived rather than read off a tail.
 - ✅ **RK297** **The read that says which anchor address is free asks one prose file on a project with two** — anchors reads every declared prose file, so the free address is the project's and not the first file's, and any address two files both declare is named before a write can double it.
 - ✅ **RK301** **The pre-write budget is silent about the one field in the same transaction that also refuses** — budget carries a section row for the body add --section writes in the same transaction: the role's word limit, what that anchor spends, and an aim that sits under the limit.
+- ✅ **RK303** **The section budget picks the first of two prose files declaring one anchor, where every other reader refuses** — budget refuses an anchor two prose files declare, as every other reader of one does; --role names which, and a line's own budget keeps its fields and says why its section half is empty.
 
 ## Block D — The gate
 

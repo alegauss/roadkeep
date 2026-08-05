@@ -153,29 +153,6 @@ a gate that asked for prose there would be answered with prose nobody needed.
 
 ## Block C — Query
 
-### §RK303 First match, at the one door that had not learned it
-
-RK172 taught resolution that a pointer addresses every governed prose file, and RK186
-taught `show`. Two roles declaring one anchor is the ambiguity and not a first match:
-`_rationale` answers *"§X is declared by both: one anchor names one section, and a
-pointer resolving to two resolves to neither"*, and `lint` reports `section.ambiguous`
-at both headings.
-
-`body_budget` (RK283) resolves the role by walking `PROSE_ROLES` and taking
-`declaring[0]`. Reproduced on a project holding §IX.1 in both files: it answers
-`improvements, 2 written, 248 left` while `show` refuses the same anchor. So the read
-built to state a limit before the prose exists states one for a section the author
-cannot address — and the number is right about a file that was picked rather than named.
-
-It reaches two commands: `budget --anchor`, and the `section` field every `budget` now
-carries (RK301), where the anchor is the line's own pointer and the caller never typed
-it.
-
-The direction is the one every other reader took, and the refusal already has its words.
-What is worth deciding is whether `--role` stays the way through — it is the caller
-naming which of the two they mean, which is the only thing that resolves the ambiguity
-without a verb choosing.
-
 ### §RK324 Two readers of one marker, and only one of them refuses
 
 Measured on an adopting repository: `show T275` answers `✅  shipped`, and `brief T275`

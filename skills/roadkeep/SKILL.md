@@ -216,7 +216,9 @@ the widest anchor on file and says so, which is never more room than the `add` w
 too, so every `budget` carries a `section` row — the role's word limit, what that anchor
 already spends, and an aim that sits **under** the limit, because composing to exactly the
 declared number is what refuses. `budget --anchor <a>` asks the same thing on its own, which
-is the read a `section amend` wants. **If a body is refused anyway, do not count by hand**:
+is the read a `section amend` wants — **refused where two prose files declare that anchor**, as
+every other reader of one refuses, `--role` naming which of them you mean; on a line's own
+budget that half comes back empty and states the same reason. **If a body is refused anyway, do not count by hand**:
 `body.too-long` names what each paragraph costs and which is the longest, so the second draft
 is composed once — and a `0` there is a table or a fence, which is prose no cut can reach. `budget --non-goal [--lead "…"]` is the roadmap's other
 bullet, whose two limits are the list's own and not the task line's. Every verb that prints a

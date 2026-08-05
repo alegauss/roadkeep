@@ -4513,6 +4513,11 @@ def _budget(config: Config, args: argparse.Namespace) -> int:
     # the body's limit refused the whole `add` while this read named only the line's fields.
     if answer.section is not None:
         print(f"  section    {_body(answer.section)}")
+    elif answer.section_absence:
+        # An absence that is a defect is said, never left as a missing row (RK303): the
+        # line's own two figures are still right, and the half nobody can price is the half
+        # a caller would otherwise read as "this project keeps no rationale file".
+        print(f"  section    none — {answer.section_absence}")
     return EXIT_OK
 
 
@@ -4617,6 +4622,9 @@ def _budget_json(answer: Budget) -> dict[str, object]:
         # The write this line is half of (RK301). Null where no prose file is declared,
         # which is the only project on which `add --section` does not exist.
         "section": None if answer.section is None else _body_json(answer.section),
+        # Why it is null, where that is a defect rather than a project shape (RK303). Empty
+        # otherwise, so a client can tell the two nulls apart without a second call.
+        "section_absence": answer.section_absence,
     }
 
 
