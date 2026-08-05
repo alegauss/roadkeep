@@ -68,6 +68,8 @@ __all__ = [
     "read",
     "render",
     "tokens",
+    "typed",
+    "without",
 ]
 
 #: Any heading whose text starts like this holds the queue. A prefix match for
@@ -352,6 +354,31 @@ def drop(config: Config, token: str) -> Dropped:
         entry=going,
         length=len(entries) - 1,
     )
+
+
+def without(document: Document, config: Config, token: str) -> tuple[Document, str | None]:
+    """The same roadmap with one entry gone, and the token if there was one (RK327).
+
+    A :class:`~roadkeep.document.Document` in, a document out, because every caller is a
+    **departure**: `ship`, `retire` and `defer` all rewrite the roadmap inside one atomic
+    transaction, and dropping the entry is one more change to a file already in hand. Going
+    through :func:`drop` would be a second read of the same file and a second write of it —
+    and then a state where the line has left and the queue still names it, which is precisely
+    what this closes.
+
+    Silent where nothing is queued, and that is not a fallback: most departures are of work
+    nobody put in the order, and a refusal there would make the queue an obstacle at the one
+    moment the author is finishing.
+
+    What separates this from `dependents` and `cited`, which the same transaction reports and
+    never touches: those are other lines and other prose, and editing them would be composing
+    somebody's sentence. **A queue entry is derived dead by the departure itself** — the id it
+    names has left the roadmap, so the tier could only ever fire on nothing.
+    """
+    going = next((one for one in _entries(document, config) if one.token == token), None)
+    if going is None:
+        return document, None
+    return _remove_line(document, going.lineno), going.token
 
 
 def _entries(document: Document, config: Config) -> tuple[Entry, ...]:

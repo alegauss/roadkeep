@@ -39,7 +39,7 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 from pathlib import Path
 
-from roadkeep import claiming
+from roadkeep import claiming, queueing
 from roadkeep.authoring import Insertion, place, remove_entry
 from roadkeep.backlog import Backlog, NotOpen, Whereabouts
 from roadkeep.config import PROSE_ROLES, Config
@@ -164,6 +164,10 @@ class Pause:
     removed_from: int
     refreshed: tuple[str, ...] = ()
     marker: str = ""
+    #: The priority entry this pause took out (RK327), or `None` where the queue never
+    #: named it. Taken and not kept, because a paused line is one `pick` can never offer;
+    #: put back by the author at the `resume`, which is where the order is known again.
+    dequeued: str | None = None
     #: The section this did **not** delete, named — silence about a carried design reads
     #: exactly like the deletion a departure makes. Resolved here and not by the caller
     #: (RK229): the role is a fact about the files this transaction read.
@@ -258,6 +262,10 @@ def defer(config: Config, task_id: str, *, reason: str) -> Pause:
         where=config.relative(config.path("deferred")),
     )
     remaining = remove_entry(roadmap, entry)
+    # And the queue entry, in the same rewrite (RK327). Worth naming apart from the two
+    # terminal doors: the line is still work, so an entry naming it reads as live — and yet
+    # `pick` can never offer a line the store holds, so the tier could only fire on nothing.
+    remaining, dequeued = queueing.without(remaining, config, task_id)
     # Derived against the state this write *creates* — the line is out of the roadmap — for
     # the same reason a departure does it (RK8): an annotation left un-derived by one door
     # is one nothing else revisits.
@@ -272,6 +280,7 @@ def defer(config: Config, task_id: str, *, reason: str) -> Pause:
         removed_from=entry.lineno,
         refreshed=derived.changed,
         marker=marker,
+        dequeued=dequeued,
         carried=_carried(config, entry.task.ref),
         dependents=tuple(
             e.task.id for e in derived.document.entries if task_id in e.task.dep_ids

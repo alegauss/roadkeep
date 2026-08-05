@@ -120,7 +120,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass, replace
 from pathlib import Path
 
-from roadkeep import claiming
+from roadkeep import claiming, queueing
 from roadkeep.authoring import Insertion, place, refuse_reuse, remove_entry
 from roadkeep.backlog import Backlog, NotOpen
 from roadkeep.config import PROSE_ROLES, Config
@@ -635,6 +635,11 @@ class Departure:
     #: wrote it — the clause this transaction appended to the ledger's sentence. `None` on
     #: every ordinary shipment, which is the ordinary case: the design held.
     superseded: str | None = None
+    #: The priority entry this departure took out with the line (RK327), or `None` where the
+    #: queue never named it. Removed inside the same rewrite rather than reported, because it
+    #: is derived dead by the departure — unlike :attr:`dependents` and :attr:`cited`, which
+    #: are somebody else's lines and somebody else's prose.
+    dequeued: str | None = None
     #: Open lines that still name this id. Reported and not refused: a supersession is
     #: legitimate and those lines are the author's next edit, which `lint` (RK14) gates.
     dependents: tuple[str, ...] = ()
@@ -767,6 +772,10 @@ class Closure:
     cited: tuple[str, ...] = ()
     refreshed: tuple[str, ...] = ()
     dependents: tuple[str, ...] = ()
+    #: The priority entry this closure took out (RK327). Here for the reason every other
+    #: field of the departure is: the line leaves, so the order naming it could only fire on
+    #: nothing — and a door that is `ship` minus the ledger edit is still a departure.
+    dequeued: str | None = None
     #: The tree split by whose claim names it (RK294), as :class:`Departure` carries it. Read
     #: here too because the moment is the same one — this door is `ship` on a line whose entry
     #: is already on disk, and the commit it precedes stages exactly the same files.
@@ -1514,6 +1523,9 @@ def _depart(
     else:
         insertion = place(ledger, recorded, where=where)
     remaining = remove_entry(roadmap, entry)
+    # One more change to a document already in hand (RK327): the queue names work, this line
+    # is the work, and no state exists where the line has left and the order still names it.
+    remaining, dequeued = queueing.without(remaining, config, task_id)
     prose, dropped, kept, taken, cited = _drop_section(
         config, entry.task.ref, leaving=task_id
     )
@@ -1537,6 +1549,7 @@ def _depart(
         refreshed=derived.changed,
         marker=marker,
         superseded=superseded,
+        dequeued=dequeued,
         dependents=tuple(
             e.task.id for e in derived.document.entries if task_id in e.task.dep_ids
         ),
@@ -1638,6 +1651,7 @@ def _close(config: Config, task_id: str, recorded: Entry) -> Closure:
     roadmap = config.document("roadmap")
     entry = roadmap.by_id()[task_id]
     remaining = remove_entry(roadmap, entry)
+    remaining, dequeued = queueing.without(remaining, config, task_id)
     prose, dropped, kept, taken, cited = _drop_section(
         config, entry.task.ref, leaving=task_id
     )
@@ -1658,6 +1672,7 @@ def _close(config: Config, task_id: str, recorded: Entry) -> Closure:
         dependents=tuple(
             e.task.id for e in derived.document.entries if task_id in e.task.dep_ids
         ),
+        dequeued=dequeued,
         scope=claiming.departing(config, task_id, roadmap.entries),
         root=config.root,
     )

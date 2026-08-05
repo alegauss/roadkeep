@@ -35,7 +35,9 @@ from roadkeep.queueing import (
     tokens,
     typed,
 )
+from roadkeep.deferring import defer
 from roadkeep.serving import TOOLS
+from roadkeep.shipping import retire, ship
 
 ROADMAP = """# Roadmap
 
@@ -306,3 +308,112 @@ def test_the_agent_that_ships_a_queued_id_can_take_it_out(tmp_path):
 def test_the_renderer_is_the_only_writer_of_the_bullet():
     assert render(" RK1 ") == "- RK1"
     assert render("Block D") == "- Block D"
+
+
+# -- the departure that takes the entry with it (RK327) -----------------------
+
+
+DEPARTING = ROADMAP.replace("- RK2\n- Block D\n", "- RK1\n- Block D\n- RK2\n")
+
+LEDGER = "# Shipped\n\n## Block A — The model\n\n## Block D — Later\n"
+STORE = "# Deferred\n\n## Block A — The model\n\n## Block D — Later\n"
+FULL = (
+    'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
+    'deferred = "DEFERRED.md"\n'
+)
+
+
+def departing(tmp_path: Path, roadmap: str = DEPARTING) -> Config:
+    """A project with all three destinations, so every door this task touches is reachable."""
+    project(tmp_path, roadmap=roadmap, config=FULL)
+    for name, body in (("CHANGELOG.md", LEDGER), ("DEFERRED.md", STORE)):
+        with (tmp_path / name).open("w", encoding="utf-8", newline="") as handle:
+            handle.write(body)
+    return Config.discover(tmp_path)
+
+
+def test_a_ship_takes_the_entry_out_in_its_own_transaction(tmp_path):
+    # Every fact it needs is in that transaction: the id, and a file open in memory. No state
+    # exists where the line has left and the queue still names it.
+    config = departing(tmp_path)
+    shipment = ship(config, "RK1", why="The first symptom no longer happens.")
+    shipment.save()
+
+    assert shipment.dequeued == "RK1"
+    assert tokens(Config.discover(tmp_path)) == ("Block D", "RK2")
+
+
+def test_a_retirement_is_the_same_transaction_and_the_same_removal(tmp_path):
+    config = departing(tmp_path)
+    departure = retire(config, "RK2", reason="Nobody will do it.")
+    departure.save()
+
+    assert departure.dequeued == "RK2"
+    assert tokens(Config.discover(tmp_path)) == ("RK1", "Block D")
+
+
+def test_a_pause_takes_it_out_because_pick_can_never_offer_a_paused_line(tmp_path):
+    # Worth naming apart from the two terminal doors: the line is still work, so an entry
+    # naming it reads as live — and yet the tier could only ever fire on nothing.
+    config = departing(tmp_path)
+    pause = defer(config, "RK1", reason="Waiting on a decision.")
+    pause.save()
+
+    assert pause.dequeued == "RK1"
+    assert tokens(Config.discover(tmp_path)) == ("Block D", "RK2")
+
+
+def test_a_resume_offers_the_requeue_and_never_makes_it(tmp_path, capsys):
+    # What the pause could not keep is *where in the order it sat*: the store holds a line
+    # and not a rank, so a resume that re-queued would choose a position nobody stated.
+    config = departing(tmp_path)
+    defer(config, "RK1", reason="Waiting on a decision.").save()
+    assert main(["-C", str(tmp_path), "resume", "RK1"]) == EXIT_OK
+
+    printed = capsys.readouterr().out
+    assert "priority add RK1" in printed and "not something the store kept" in printed
+    assert tokens(Config.discover(tmp_path)) == ("Block D", "RK2")
+
+
+def test_a_departure_of_work_nobody_queued_says_nothing_and_removes_nothing(tmp_path):
+    # Most departures are of work nobody put in the order, and a refusal there would make
+    # the queue an obstacle at the one moment the author is finishing.
+    config = departing(tmp_path)
+    shipment = ship(config, "RK5", why="The fifth symptom no longer happens.")
+    shipment.save()
+
+    assert shipment.dequeued is None
+    assert tokens(Config.discover(tmp_path)) == ("RK1", "Block D", "RK2")
+
+
+def test_a_block_entry_is_not_removed_by_shipping_one_line_under_it(tmp_path):
+    # `Block D` names the block and not RK5: an entry is derived dead when *its own* token's
+    # work leaves, and a block with lines left is a tier that still fires.
+    config = departing(tmp_path)
+    ship(config, "RK5", why="The fifth symptom no longer happens.").save()
+    assert "Block D" in tokens(Config.discover(tmp_path))
+
+
+def test_the_removal_lands_in_the_same_rename_as_the_rest(tmp_path):
+    # Validated before anything reaches the disk: a refusal leaves the queue exactly as it
+    # was, which is the claim that separates this from a second write.
+    config = departing(tmp_path)
+    with pytest.raises(Exception):
+        ship(config, "RK1")  # no --why: refused at input (RK142)
+    assert text(tmp_path) == DEPARTING
+
+
+def test_the_command_says_what_left_the_order(tmp_path, capsys):
+    # A departure that silently shortened the plan would be an ordering changed with no
+    # sentence about it, and the printed line is what a reviewer reads the diff against.
+    departing(tmp_path)
+    assert (
+        main(["-C", str(tmp_path), "ship", "RK1", "--why", "It works now."]) == EXIT_OK
+    )
+    assert "dequeued RK1 left the priority queue" in capsys.readouterr().out
+
+
+def test_the_json_answers_it_as_a_field(tmp_path, capsys):
+    departing(tmp_path)
+    main(["-C", str(tmp_path), "ship", "RK1", "--why", "It works now.", "--json"])
+    assert json.loads(capsys.readouterr().out)["dequeued"] == "RK1"

@@ -2841,6 +2841,9 @@ def _ship(config: Config, args: argparse.Namespace) -> int:
                         "superseded": shipment.superseded,
                     },
                     "refreshed": list(shipment.refreshed),
+                    # What left the order with the line (RK327), named because a plan
+                    # that silently got shorter is a change with no sentence about it.
+                    "dequeued": shipment.dequeued,
                     "scope": _scope_json(shipment.scope, wrote),
                     "event": event,
                 },
@@ -2867,6 +2870,7 @@ def _ship(config: Config, args: argparse.Namespace) -> int:
         print(f"  overtook the design it read: {shipment.superseded}")
     if shipment.refreshed:
         print(f"  derived  {', '.join(shipment.refreshed)} (dep annotations re-derived)")
+    _print_dequeued(shipment.dequeued)
     # Last before the event line, because it is about the commit this ship precedes rather
     # than about the three edits above it (RK294).
     _print_scope(shipment.scope, wrote)
@@ -2884,6 +2888,17 @@ def _follow_up(anchor: str, role: str | None) -> str:
     """
     named = "" if role in (None, "improvements") else f" --role {role}"
     return f"section add {anchor} --title …{named}"
+
+
+def _print_dequeued(token: str | None) -> None:
+    """What a departure took out of the priority queue (RK327).
+
+    Said and never silent, because a departure that quietly shortened the plan would be an
+    ordering changed with no sentence about it — and the printed line is what a reviewer
+    reads the diff against (RK298).
+    """
+    if token is not None:
+        print(f"  dequeued {token} left the priority queue with the line")
 
 
 def _prose_file(config: Config, prose: Document | None) -> str:
@@ -3088,6 +3103,7 @@ def _closed(
                         "kept": closure.kept,
                     },
                     "refreshed": list(closure.refreshed),
+                    "dequeued": closure.dequeued,
                     "scope": _scope_json(closure.scope, wrote),
                     "event": event,
                 },
@@ -3108,6 +3124,7 @@ def _closed(
         _print_cited(closure.cited)
     if closure.refreshed:
         print(f"  derived  {', '.join(closure.refreshed)} (dep annotations re-derived)")
+    _print_dequeued(closure.dequeued)
     _print_scope(closure.scope, wrote)
     _print_event(event, "  ")
     return EXIT_OK
@@ -4726,6 +4743,7 @@ def _defer(config: Config, args: argparse.Namespace) -> int:
                     },
                     "roadmap": {"file": roadmap, "removed": pause.removed_from},
                     "carried": _carried_json(config, pause.carried),
+                    "dequeued": pause.dequeued,
                     "dependents": list(pause.dependents),
                     "refreshed": list(pause.refreshed),
                     "event": event,
@@ -4747,6 +4765,7 @@ def _defer(config: Config, args: argparse.Namespace) -> int:
         print(f"  still    {', '.join(pause.dependents)} name {pause.task_id}")
     if pause.refreshed:
         print(f"  derived  {', '.join(pause.refreshed)} (dep annotations re-derived)")
+    _print_dequeued(pause.dequeued)
     _print_event(event, "  ")
     return EXIT_OK
 
@@ -4776,6 +4795,10 @@ def _resume(config: Config, args: argparse.Namespace) -> int:
                     "deferred": {"file": store, "removed": resumption.removed_from},
                     "was": resumption.was,
                     "refreshed": list(resumption.refreshed),
+                    # The half of the pause this does not undo (RK327): the entry the
+                    # pause removed is the author's to put back, because where in the
+                    # order it belonged is not a fact the store kept.
+                    "requeue": _requeue(config, resumption.task_id),
                     "event": event,
                 },
                 indent=2,
@@ -4794,8 +4817,32 @@ def _resume(config: Config, args: argparse.Namespace) -> int:
         print(f"  was      set aside: {resumption.was}")
     if resumption.refreshed:
         print(f"  derived  {', '.join(resumption.refreshed)} (dep annotations re-derived)")
+    follow = _requeue(config, resumption.task_id)
+    if follow is not None:
+        print(f"  requeue  {follow}")
     _print_event(event, "  ")
     return EXIT_OK
+
+
+def _requeue(config: Config, task_id: str) -> str | None:
+    """The `priority add` a resumed line may want, where this project has a queue (RK327).
+
+    Offered and never done. `defer` took the entry out because a paused line is one `pick`
+    can never offer; what it could not keep is **where in the order it sat**, the store
+    holding a line and not a rank — so a resume that re-queued would be choosing a position
+    nobody stated. Silent where no heading declares a section, which is most projects: a
+    follow-up naming a list that does not exist is a command that cannot run.
+    """
+    try:
+        queue = declared_queue(config)
+    except (KeyError, OSError):  # a roadmap this command already reported on
+        return None
+    if queue.declared_in != "roadmap" or task_id in queue.tokens:
+        return None
+    return (
+        f"`{invocation()} priority add {task_id}` if it goes back in the order — the "
+        f"pause took it out, and where it sat is not something the store kept"
+    )
 
 
 def _export(config: Config, args: argparse.Namespace) -> int:

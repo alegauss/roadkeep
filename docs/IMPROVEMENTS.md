@@ -77,31 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK327 The departure that cannot take the entry with it
-
-`ship QQ1` on a project whose `priority` names QQ1 prints the ledger line, the removal,
-the dropped section and the event, and leaves the entry standing. Every fact it needs is
-in that transaction: the id, and a file open in memory.
-
-Once RK325 puts the queue in the roadmap this stops being a report and becomes an edit.
-The roadmap is rewritten here anyway — the line comes out, the dependents' annotations
-are re-derived — so dropping the entry is one more change to a document in hand,
-validated before anything reaches the disk and landing in the same rename. No state
-exists where the line has left and the queue still names it.
-
-Which is what separates it from `dependents` and `cited`, the two facts this transaction
-reports and never touches: those are other lines and other prose, and editing them would
-be composing somebody's sentence. A queue entry is derived dead by the departure itself.
-
-All three doors. `retire` reaches the same transaction, and `defer` is worth naming
-apart: the line is still work, so the entry reads as live, and yet `pick` can never
-offer it from the deferred store — so the pause takes it out and `resume` is where an
-author puts it back.
-
-What the answer still does is *say* what it removed. A departure that silently shortened
-the plan would be an ordering changed with no sentence about it, and the printed line is
-what a reviewer reads the diff against (RK298).
-
 ### §RK329 The argument that needed stdin is the one that did not get it
 
 `add` takes two pieces of prose. `--section-body` documents that "omitted or '-' reads
