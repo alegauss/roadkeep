@@ -43,7 +43,7 @@ key, and `tests/test_plugin.py` holds it against a real parser wherever `pyyaml`
 
 ## A cache outlived the test that filled it (RK268)
 
-Six functions in the package are `lru_cache`d, and the suite used to clear them by hand at the
+Eight functions in the package are `lru_cache`d, and the suite used to clear them by hand at the
 call sites — before *and* after, eleven calls across three files, every one a thing the next
 test has to remember. The failure mode is not a wrong assertion: a test raising before its
 trailing clear leaves a `tmp_path` pytest has already deleted cached as this machine's launcher,
@@ -52,7 +52,7 @@ so the *next* tests fail, in another file, about a path nothing in them mentions
 :data:`VOLATILE` is cleared around every test by an autouse fixture, which is the answer the
 rationale said to check rather than assume — and the check moved it off "all six" twice.
 
-Three of the six are pure functions of their arguments or of the code (`_task_re`, `_parsed`,
+Three of the eight are pure functions of their arguments or of the code (`_task_re`, `_parsed`,
 `_root`): a stale entry is never wrong, clearing them per test buys nothing, and two tests
 **assert** about their `cache_info`, so an autouse clear would quietly delete a measurement.
 
@@ -231,8 +231,10 @@ def _scalar(path: Path, key: str, value: str) -> str:
 
 #: The `lru_cache`d functions in `roadkeep.provenance` whose value is read off *this machine* and
 #: can therefore be a lie the moment a test that patched what they read has ended: a PATH scan,
-#: the launcher on disk, the working directory. `engine` is deliberately not one — see above.
-VOLATILE = ("invocation", "persisted")
+#: the launcher on disk, the working directory, and — since RK333 — whether a project declares
+#: this server itself and what the tree this engine runs out of calls itself, both of which a
+#: `tmp_path` outlives. `engine` is deliberately not one — see above.
+VOLATILE = ("invocation", "persisted", "_declared_by", "_plugin_name")
 
 
 @pytest.fixture(autouse=True)

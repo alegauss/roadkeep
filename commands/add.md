@@ -1,7 +1,7 @@
 ---
 description: File one task line from words you already typed
 argument-hint: <block> | <symptom> | <why>
-allowed-tools: mcp__roadkeep__add, Bash(roadkeep add:*), Bash(roadkeep next-id:*)
+allowed-tools: mcp__roadkeep__add, mcp__plugin_roadkeep_roadkeep__add, Bash(roadkeep add:*), Bash(roadkeep next-id:*)
 ---
 
 File the task the user described in `$ARGUMENTS`.
@@ -10,7 +10,9 @@ Read it as up to three parts separated by `|`: the block label, the symptom, the
 parts arrive in that order; a single `|` means the block came first and the rest is the
 symptom.
 
-Then call `mcp__roadkeep__add` with those parts as `block`, `symptom` and `why` — or
+Then call this session's `add` tool — `mcp__roadkeep__add` where the project declares the
+server, `mcp__plugin_roadkeep_roadkeep__add` where the plugin provides it — with those parts
+as `block`, `symptom` and `why`, or
 `roadkeep add --block … --symptom … --why …` if that tool is not connected. Two rules bind
 this, and neither is negotiable:
 

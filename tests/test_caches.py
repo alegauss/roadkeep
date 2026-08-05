@@ -37,6 +37,14 @@ INVENTORY = {
     ),
     ("provenance.py", "invocation"): "reads the machine: a PATH scan and the launcher on disk",
     ("provenance.py", "persisted"): "reads the machine: the absolute command git will execute",
+    ("provenance.py", "_declared_by"): (
+        "reads the machine: whether a project's own `.mcp.json` declares this server, which a "
+        "test writes into a `tmp_path` after the first ask"
+    ),
+    ("provenance.py", "_plugin_name"): (
+        "reads the machine: the manifest of the tree this engine runs out of, which a test that "
+        "patches `engine` moves"
+    ),
     ("serving.py", "_root"): "pure: the parser is a function of the code and holds no config",
 }
 

@@ -13,7 +13,9 @@ not on PATH.
 
 ## Writing and shipping
 
-When the `mcp__roadkeep__*` tools are available, **prefer them**: the whole write path and
+When this session's roadkeep tools are available, **prefer them** — named `mcp__roadkeep__*`
+where a project's own `.mcp.json` declares the server and `mcp__plugin_<plugin>_roadkeep__*`
+where a plugin provides it, so read the prefix off the tool list rather than typing it: the whole write path and
 the reads a task needs are there — `add`, `block_add`, `block_drop`, `claim`, `scope`, `status`, `amend`, `restate`, `ship`, `retire`, `defer`, `resume`,
 `record_add`,
 `record_amend`, `record_move`, `record_drop`, `record_renumber`, `non_goal_add`, `non_goal_drop`, `section_add`, `section_amend`, `section_drop`, `budget`, `brief`, `pick`, `list`, `deps`, `lint`, `merge_check` — same engine and same

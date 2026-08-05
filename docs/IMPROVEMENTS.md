@@ -155,29 +155,6 @@ a gate that asked for prose there would be answered with prose nobody needed.
 
 ## Block D — The gate
 
-### §RK333 One tool, two names, and the refusal knows neither
-
-RK58 put the MCP route ahead of the shell form on one argument: the plugin that refused
-the edit is the plugin that installed the tool, so naming it is naming something
-certainly present. Measured against the published payload, with `claude --plugin-dir
-<tree> -p "<enumerate them>"` from a project that is not this one, the tools come back
-as `mcp__plugin_roadkeep_roadkeep__add`. The bare name is what a *project* `.mcp.json`
-produces — this checkout, and any project `install` wired — and the docs are explicit
-that a matcher written against it never fires for a plugin server.
-
-So both names are right, each in one scope, and `guarding` states one of them
-unconditionally: `mcp__roadkeep__{name}` is built at line 266, `commands/add.md`
-declares `allowed-tools: mcp__roadkeep__add`, and the skill tells the reader to prefer
-`mcp__roadkeep__*`. In the plugin's own audience, all three name a tool the session does
-not have — which is worse than the shell form the refusal demotes, because that one at
-least fails loudly.
-
-What is undecided is how the guard could know. The hook payload says which tool was
-denied, not which server offered the alternative, and the two spellings differ by the
-plugin name, which `${CLAUDE_PLUGIN_ROOT}` implies but nothing in argv states. Naming
-both is the cheap answer and doubles the sentence; deriving it needs a fact the hook is
-not given.
-
 ### §RK335 What the third job cost to buy
 
 RK334 is right and this is its bill. `curl -fsSL https://claude.ai/install.sh | bash -s

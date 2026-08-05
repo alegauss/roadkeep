@@ -128,11 +128,22 @@ def test_without_history_the_gate_judges_everything(tmp_path):
     assert review({"hook_event_name": "Stop"}, tmp_path) is not None
 
 
-def project(tmp_path: Path, *, roadmap: str = CLEAN, config: str = CONFIG) -> Path:
+def project(
+    tmp_path: Path, *, roadmap: str = CLEAN, config: str = CONFIG, wired: bool = False
+) -> Path:
     """A minimal governed project. Written with `newline=""` like every other fixture:
-    the round-trip invariant is about bytes, and a translated line ending is a difference."""
+    the round-trip invariant is about bytes, and a translated line ending is a difference.
+
+    `wired` writes the `.mcp.json` an `install`ed project has, which is what decides the
+    spelling of the tools the refusal offers (RK333) — without it the project is the adopting
+    one, whose server the plugin provides under a longer name.
+    """
     tmp_path.mkdir(parents=True, exist_ok=True)
     (tmp_path / "roadkeep.toml").write_text(config, encoding="utf-8")
+    if wired:
+        (tmp_path / ".mcp.json").write_text(
+            '{"mcpServers": {"roadkeep": {"command": "python", "args": []}}}', encoding="utf-8"
+        )
     for name, body in {ROADMAP: roadmap, CHANGELOG: LEDGER}.items():
         path = tmp_path / name
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -231,12 +242,47 @@ def test_the_refusal_names_the_tool_before_the_command(tmp_path):
     # Since RK57 the plugin installs with no console script, so the shell half may be a
     # `command not found` — and advice that does not run teaches that the tool's advice
     # does not run. The same install serves the tools, so they are named first (RK58).
-    root = project(tmp_path)
+    root = project(tmp_path, wired=True)
     reason = str(guard(write(str(root / ROADMAP)), root))
     assert reason.index("mcp__roadkeep__add") < reason.index(f"{invocation()} add --block")
     assert "this session's tools" in reason
     # Both stay: a project that pip-installed is real, and CI has no MCP client at all.
     assert "Or the same engine in a shell" in reason
+
+
+def test_the_project_that_declares_the_server_is_offered_the_bare_name(tmp_path):
+    # What an `install`ed project has, and what this checkout has: `.mcp.json` at the root
+    # declaring `roadkeep`, so the tools arrive as `mcp__roadkeep__add`.
+    root = project(tmp_path, wired=True)
+    refusal = guard(write(str(root / ROADMAP)), root)
+    assert refusal is not None and refusal.served == "mcp__roadkeep__"
+    assert "mcp__roadkeep__add" in str(refusal)
+
+
+def test_a_project_the_plugin_serves_is_offered_the_name_that_session_has(tmp_path):
+    """RK333, measured with `claude --plugin-dir <tree> -p …` from a project that is not
+    this one: the tools come back as `mcp__plugin_roadkeep_roadkeep__add`, and the refusal
+    named the bare form — a route that session cannot call, which is worse than the shell
+    form it demotes, because that one at least fails loudly."""
+    root = project(tmp_path)  # no `.mcp.json`: nothing here declares a server
+    refusal = guard(write(str(root / ROADMAP)), root)
+    assert refusal is not None
+    assert refusal.served == "mcp__plugin_roadkeep_roadkeep__"
+    reason = str(refusal)
+    assert "mcp__plugin_roadkeep_roadkeep__add" in reason
+    # And not both: naming two routes doubles every line of the table for one reader who
+    # can only call one of them.
+    assert "mcp__roadkeep__add" not in reason
+
+
+def test_the_plugin_name_is_read_from_the_manifest_and_not_from_the_directory(tmp_path):
+    # A plugin is installed under a path the marketplace chooses; the name in the payload is
+    # the one the manifest states.
+    from roadkeep.provenance import _plugin_name
+
+    assert _plugin_name() == json.loads(
+        (HERE / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8")
+    )["name"]
 
 
 def test_every_named_tool_is_one_the_server_serves():
@@ -328,7 +374,7 @@ def test_a_shell_command_writing_a_governed_file_is_no_longer_silence(tmp_path):
 def test_the_shell_answer_is_ask_because_the_command_is_not_read(tmp_path):
     # `deny` would refuse `git add docs/ROADMAP.md` and every `git log --` of a governed file,
     # and `allow` is not this hook's to give: the third answer is the only honest one.
-    root = project(tmp_path)
+    root = project(tmp_path, wired=True)
     refusal = guard(shell(f"git add {ROADMAP}", cwd=root), root)
     assert refusal is not None and refusal.decision == "ask"
     reason = str(refusal)

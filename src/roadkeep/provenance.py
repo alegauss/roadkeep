@@ -295,6 +295,84 @@ def invocation() -> str:
     return "python -m roadkeep.cli"
 
 
+#: The MCP server this distribution declares — the same name in both scopes, and the reason
+#: the two spellings below differ only by what wraps it.
+SERVER = "roadkeep"
+
+#: Where a plugin states its own name, relative to the tree that carries it.
+_MANIFEST = (".claude-plugin", "plugin.json")
+
+#: What a project declares its own servers in, relative to its root.
+_PROJECT_MCP = ".mcp.json"
+
+
+def served_as(root: Path) -> str:
+    """The prefix this session's roadkeep tools arrive under (RK333).
+
+    One engine, two names, each right in one scope: a **project** `.mcp.json` produces
+    `mcp__roadkeep__add` — this checkout, and any project `install` wired — while a server a
+    **plugin** provides arrives as `mcp__plugin_roadkeep_roadkeep__add`, measured against the
+    published payload with `claude --plugin-dir <tree> -p …` from a project that is not this
+    one. `Refusal` stated the first unconditionally, so in the plugin's own audience the route
+    it names first is one that session cannot call — worse than the shell form it demotes,
+    because that one at least fails loudly.
+
+    **Decided by what the two scopes actually put on disk**, in the same spirit as
+    :func:`invocation`: an adopting project has no `.mcp.json` and gets its tools from the
+    plugin tree the engine is running out of, while a wired project has one naming this
+    server. The environment is not asked — `${CLAUDE_PLUGIN_ROOT}` is substituted into a
+    command line rather than exported, which `tests/test_plugin.py` measured from the other
+    end — and the hook payload says which tool was denied, never which server offered it.
+
+    The bare name is the answer wherever nothing says otherwise: it is what every project
+    that ran `install` has, and naming a plugin nobody installed would be the same defect
+    with the scopes swapped.
+    """
+    if _declared_by(root):
+        return f"mcp__{SERVER}__"
+    plugin = _plugin_name()
+    return f"mcp__{SERVER}__" if plugin is None else f"mcp__plugin_{plugin}_{SERVER}__"
+
+
+@lru_cache(maxsize=8)
+def _declared_by(root: Path) -> bool:
+    """Does this project declare the server itself? Cached per root, read once per process.
+
+    Unreadable is *not* declared: a `.mcp.json` this cannot parse is one the session could
+    not launch a server from either, so the plugin is the likelier route and a crash inside a
+    hook would deny the edit and print a traceback instead of the command to run.
+    """
+    # Imported here and not at module level, the reason `_placed` gives: this is read on
+    # the denial path alone, and every other caller of this module pays for the import.
+    import json  # noqa: PLC0415
+
+    try:
+        declared = json.loads((root / _PROJECT_MCP).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return False
+    servers = declared.get("mcpServers") if isinstance(declared, dict) else None
+    return isinstance(servers, dict) and SERVER in servers
+
+
+@lru_cache(maxsize=1)
+def _plugin_name() -> str | None:
+    """The name the tree this engine runs out of publishes itself under, if it is a plugin.
+
+    Read from the manifest rather than from the directory: a plugin is installed under a
+    path the marketplace chooses, and the name in the payload is the one the manifest states.
+    """
+    import json  # noqa: PLC0415
+
+    try:
+        manifest = json.loads(
+            engine().home.parents[1].joinpath(*_MANIFEST).read_text(encoding="utf-8")
+        )
+    except (OSError, ValueError, IndexError):
+        return None
+    name = manifest.get("name") if isinstance(manifest, dict) else None
+    return name if isinstance(name, str) and name else None
+
+
 def _spelled(launcher: Path) -> str:
     """The launcher as a reader would type it: forward slashes, quoted only where a space forces it.
 

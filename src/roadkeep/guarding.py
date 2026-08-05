@@ -90,7 +90,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from roadkeep.config import Config, ConfigError, find_config
-from roadkeep.provenance import invocation
+from roadkeep.provenance import SERVER, invocation, served_as
 from roadkeep.serving import TOOLS
 
 if TYPE_CHECKING:  # annotations only, and already strings — see the docstring's sixth decision
@@ -239,6 +239,11 @@ class Refusal:
     role: str
     #: On disk already. A governed file that is *not* there yet is `init`'s, not `add`'s.
     exists: bool = True
+    #: The prefix this session's tools arrive under (RK333) — the bare `mcp__roadkeep__`
+    #: where a project declares the server, and `mcp__plugin_<plugin>_roadkeep__` where a
+    #: plugin provides it. A field and not a call, because it is a fact about the *project*
+    #: being refused and one hook process serves every repository the session touches.
+    served: str = f"mcp__{SERVER}__"
 
     @property
     def decision(self) -> str:
@@ -268,7 +273,7 @@ class Refusal:
         for command, purpose in self.commands:
             name = _tool_for(command)
             if name is not None:
-                found.append((f"mcp__roadkeep__{name}", purpose))
+                found.append((f"{self.served}{name}", purpose))
         return tuple(found)
 
     @property
@@ -452,7 +457,11 @@ def guard(payload: Mapping[str, object], root: str | Path = ".") -> Refusal | No
             continue
         config, role = found
         return Refusal(
-            tool=tool, path=config.relative(path), role=role, exists=path.is_file()
+            tool=tool,
+            path=config.relative(path),
+            role=role,
+            exists=path.is_file(),
+            served=served_as(config.root),
         )
     return None
 
@@ -487,7 +496,11 @@ def _mentioned(raw: object, base: Path, tool: str) -> Refusal | None:
         # the whole test: `./docs/ROADMAP.md` and a quoted absolute path both contain one.
         if any(_comparable_text(form) in spelled for form in (relative, str(declared))):
             return Refusal(
-                tool=tool, path=relative, role=role, exists=declared.is_file()
+                tool=tool,
+                path=relative,
+                role=role,
+                exists=declared.is_file(),
+                served=served_as(config.root),
             )
     return None
 
