@@ -24,6 +24,10 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK348** (deps: —) **A departure refused by a dependent's line reports the length and names no id** — The annotation a ship re-derives grows the dependent's line by two characters, so the refusal is about a sentence the caller did not write and cannot find. → §RK348
+- 📋 **RK349** (deps: —) **The refusal that names the anchor command reaches one verb, and three others refuse the same way** — RK312 enriched ref.missing inside add, and defer, resume and section add reach the same violation through their own doors and print the bare rule. → §RK349
+- 📋 **RK350** (deps: —) **A third near-twin verb would be found by the session that types it, not by a test** — The twin sentence is declared per parser and nothing measures the list, so the pair that earns one next is the pair somebody meets. → §RK350
+
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK303** (deps: —) **The section budget picks the first of two prose files declaring one anchor, where every other reader refuses** — It answered improvements about an address strategy declares too, and show calls that state a pointer resolving to neither — so a limit is priced for an unreachable section. → §RK303

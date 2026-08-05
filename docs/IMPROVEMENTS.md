@@ -77,6 +77,80 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK348 The refusal that is about somebody else's line
+
+Shipping RK325 was refused with `why: 173 characters, limit is 171: delete 2
+characters`. Nothing about the call was over: the `--why` being written was 119. The
+line at 173 was RK327's, which names RK325 as a dep — and `(deps: RK325)` becomes
+`(deps: RK325 ✅)` when the ship re-derives it, two characters that leave the prose
+budget two short.
+
+The refusal is correct and unreadable. It names the field, the count and the limit, and
+every one of those is about a line the caller is not editing and has no reason to be
+looking at. What it reads as is *your sentence is too long*, so the author shortens the
+one they just wrote, gets the same number back, and has to diff the file to find out
+why.
+
+The fact is in the transaction. `refresh` re-derives every dependent's annotation and
+knows which line it was validating when the schema refused, so the id belongs in the
+message — the same rule every other refusal here already keeps, which is that a length
+is reported against `file:line` and never as a bare number.
+
+Worth separating from the repair the author then needs. Trimming a dependent's `why` to
+make room for a marker nobody typed is a real edit and a legitimate one; what is not
+legitimate is discovering it by elimination. The design question is only whether the
+annotation's growth should be *offered* — `--lines`-style — or simply named, and named
+is the smaller answer.
+
+### §RK349 One enrichment, four doors
+
+RK312 taught `ref.missing` to name `anchors --block <x>` and the free address under it.
+It is wired into `authoring.add`, around the one `place` call that command makes.
+
+Every other write that validates a line reaches the same violation and gets the sentence
+as it was. Measured while building RK327's fixture: `defer RK2` on a project whose store
+declares `ref` refused with `ref: every task points at its rationale section`, naming
+nothing — the exact text RK312 was filed against, one verb over. `resume` writes the
+line back and validates it again, and `section add` reaches the same schema.
+
+The asymmetry is worse than the original defect, because a caller who has met the good
+refusal once now knows the tool can answer this and reads the bare one as *there is no
+answer here*.
+
+What makes it a small task is that the enrichment is already a function of a config and
+a block: `_naming_the_anchor(config, block, error)` needs the block, and every door that
+refuses a line has one — a `defer` reads it off the line it is moving, a `resume` off
+the line it is writing back. So the repair is a shared wrapper at the seam every write
+already passes rather than four call sites, which is what would otherwise drift.
+
+Worth checking whether that seam is `place` itself. It has no `Config` today, which is
+why RK312 went around it, and threading one in is the change that makes this one line.
+
+### §RK350 The property the survey made and did not keep
+
+RK339 gave `status` and `claim` a refusal naming their read-only near-twins, and found
+the second pair by a one-off script: edit distance over the forty-one verbs, crossed
+with whether each needs a positional. Exactly two pairs qualified.
+
+That script is the whole finding and it was thrown away. The next verb added is measured
+by nobody, so a third pair is found the way the first two were — by somebody typing the
+report's name and reading `error: the following arguments are required`.
+
+The shape to hold it in already exists one file over.
+`test_every_module_is_named_in_the_layout_index` turned an index that silently stopped
+being an index into a gate, on the argument that what held it was a habit; this is the
+same argument about a list that grows the same way.
+
+The property is decidable and narrow: for every pair of verbs within one edit where one
+requires a positional and the other does not, the one that requires it declares a
+`twin`. Both halves are read off the parsers — the distance from their names, the
+requirement from their actions — so nothing here is a table to keep in step, which is
+the trap `Prose` already avoided.
+
+What it must not do is demand a sentence for every near-collision. `lint`/`list` and
+`ship`/`show` are pairs where neither call fails in a way the other's name explains, and
+a gate that asked for prose there would be answered with prose nobody needed.
+
 ## Block C — Query
 
 ### §RK303 First match, at the one door that had not learned it
