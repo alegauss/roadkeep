@@ -24,7 +24,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK310** (deps: —) **A design section can carry a stale premise and ship drops it in silence** — Twice in one block a section argued from a fact that had stopped being true, and the only reader who could find out is whoever claims the task years later. → §RK310
 - 📋 **RK311** (deps: —) **A body refused for one word is discarded whole, so the check costs what the limit saves** — Fifteen refusals in one session, three of them over one or two words, and no add --check exists to price a draft short of attempting the write. → §RK311
 - 📋 **RK312** (deps: —) **The refusal that demands a ref names nothing that would produce one** — ref.missing states the rule while anchors answers it, and which family a block's prose lives under is derivable from no command at all. → §RK312
 - 📋 **RK325** (deps: —) **The queue that outranks the id order lives in the one file nothing governs, so no verb keeps it true** — Every other list this format holds has an insert and a drop; the one that outranks the id order has neither, so its only repair is the editor nothing watches. → §RK325

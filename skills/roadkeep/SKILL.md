@@ -46,7 +46,12 @@ pointer it just created, rather than leaving the gate to say so. **`ship <id> --
 its three edits** (ledger entry, roadmap line gone, `§<id>` deleted) plus the dependents'
 annotations, or none. It **names any section whose prose cited what it deleted**: the ship is
 right and that citation is your next edit, in *this* commit, because a shipped entry keeps no
-pointer and from the next command on the reference reads exactly like a typo. And `--why` is **required**, because the roadmap's sentence states a
+pointer and from the next command on the reference reads exactly like a typo. **You read that
+design and the code may have moved under it**: `--superseded-design "<what it was wrong
+about>"` is the trace, parenthesised into the ledger's own sentence with the anchor, because
+the deletion otherwise leaves the one reader who could ever know it was stale — you — with
+nowhere to say so; refused on a line that pointed at no design and on a `--part`, whose
+section stays. And `--why` is **required**, because the roadmap's sentence states a
 problem and the ledger's states an outcome, so inheriting it files a defect report under a
 heading meaning "done" (`record amend <id> --why` is the repair where one already did), and `retire <id> [--superseded-by <id>] --reason "…"` is the same
 transaction, two more doors — **open on every project, including one that declares

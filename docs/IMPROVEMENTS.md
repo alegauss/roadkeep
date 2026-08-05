@@ -77,30 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK310 The rationale a task was filed on decays, and nothing records that it did
-
-A design section is written when a task is filed and read when somebody claims it, which
-can be a year apart. In between the codebase moves, and the section does not: it keeps
-arguing from whatever was true when it was written.
-
-Measured in one block of eleven tasks, twice. One section proposed a `from` field for a
-redirect and argued for it at length; the implementation found that using the post's own
-friendly URL removed a lookup, a uniqueness rule and a shadow rule, all of which already
-existed. Another dismissed an on-demand image-resize endpoint as "a new subsystem and a
-cache-invalidation question" — and that subsystem had shipped two blocks earlier, so two
-of its three options were about building something built.
-
-Both times the task got smaller and better once the section was checked against the
-code. Both times `ship` then deleted the section with no trace that its reasoning had
-been wrong, so the next reader of the ledger sees an outcome and no warning that the
-file does this.
-
-What would help is small: a way for `ship` to record that the design was superseded, and
-by what. It is not a new document — the ledger entry is already the one place both the
-section's address and the outcome meet. The value is that a *pattern* becomes visible:
-if a third of claimed sections turn out stale, that is a fact about how far ahead this
-tool should let anybody design.
-
 ### §RK311 Pricing a body that already exists
 
 Filing thirteen tasks in one session produced **fifteen** `body.too-long` refusals.

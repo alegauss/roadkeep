@@ -640,6 +640,15 @@ def build_parser() -> argparse.ArgumentParser:
             "completes wraps, and refused where this call replaces no entry"
         ),
     )
+    ship_parser.add_argument(
+        "--superseded-design",
+        help=(
+            "what the design this deletes turned out to be wrong about, e.g. 'the resize "
+            "endpoint it called a new subsystem had shipped two blocks earlier'; appended "
+            "to the ledger's sentence with the section's address, since the entry is the "
+            "one place both survive the deletion"
+        ),
+    )
     ship_parser.add_argument("--json", action="store_true", help="every edit, as data")
     ship_parser.set_defaults(handler=_ship)
 
@@ -2695,7 +2704,14 @@ def _verbatim(path: Path) -> str:
 
 def _ship(config: Config, args: argparse.Namespace) -> int:
     try:
-        shipment = ship(config, args.id, why=args.why, part=args.part, lines=args.lines)
+        shipment = ship(
+            config,
+            args.id,
+            why=args.why,
+            part=args.part,
+            lines=args.lines,
+            superseded=args.superseded_design,
+        )
         # The files this transaction wrote, answered by the write itself (RK309) — the half
         # of the commit's contents no author declares, and never a second list rebuilt here.
         wrote = shipment.save()
@@ -2742,6 +2758,10 @@ def _ship(config: Config, args: argparse.Namespace) -> int:
                         "nested": list(shipment.nested),
                         "cited": list(shipment.cited),
                         "kept": shipment.kept,
+                        # What the deleted design was overtaken by (RK310), beside the
+                        # anchor it was written under: the two are one fact, and a caller
+                        # reading them off the rendered sentence would be parsing prose.
+                        "superseded": shipment.superseded,
                     },
                     "refreshed": list(shipment.refreshed),
                     "scope": _scope_json(shipment.scope, wrote),
@@ -2763,6 +2783,11 @@ def _ship(config: Config, args: argparse.Namespace) -> int:
         _print_cited(shipment.cited)
     else:
         print(f"  kept     nothing dropped: {shipment.kept}")
+    # Beside the drop rather than inside it (RK310): the deletion is what makes the clause
+    # the only surviving trace, and it is reported even where the section stayed — a design
+    # another open line still points at can be just as overtaken as one that went.
+    if shipment.superseded is not None:
+        print(f"  overtook the design it read: {shipment.superseded}")
     if shipment.refreshed:
         print(f"  derived  {', '.join(shipment.refreshed)} (dep annotations re-derived)")
     # Last before the event line, because it is about the commit this ship precedes rather

@@ -314,7 +314,10 @@ TOOLS: tuple[Tool, ...] = (
     # report filed under a heading meaning "done".
     # `lines` for `record amend`'s reason (RK193): the ship that completes a partial rewrites
     # that entry's span, and where the ledger arrived wrapped the count is the same door.
-    Tool("ship", ("id", "why", "part", "lines")),
+    # `superseded_design` because the agent that finds the design stale is this one (RK310):
+    # it claimed the line, read the section, and is the only reader who will ever know — and
+    # the trace it would otherwise leave is a hand-edit to the file the guard denies.
+    Tool("ship", ("id", "why", "part", "lines", "superseded_design")),
     Tool("retire", ("id", "reason", "superseded_by")),
     Tool("defer", ("id", "reason")),
     Tool("resume", ("id", "marker")),

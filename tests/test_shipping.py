@@ -33,7 +33,9 @@ from roadkeep.sections import SectionOccupied
 from roadkeep.shipping import (
     Divergent,
     NoCompletion,
+    NoDesign,
     NoOutcome,
+    NoSupersession,
     PartRecorded,
     AlreadyShipped,
     Closure,
@@ -1492,3 +1494,191 @@ def test_an_entry_already_written_wrong_is_corrected_where_it_stands(tmp_path):
 
     assert corrected.changed == ("why",) and corrected.lineno == 5
     assert "The first symptom no longer happens." in read(config, CHANGELOG)
+
+
+# -- the design the deletion overtook (RK310) ---------------------------------
+
+
+def test_the_ledger_records_which_design_this_shipment_overtook(tmp_path):
+    # A section is written when a task is filed and read when somebody claims it, and in
+    # between the codebase moves. `ship` deleted the reasoning either way, so the one reader
+    # who could ever know it had been wrong was the one who had already done the work.
+    config = project(tmp_path)
+    shipment = ship(
+        config,
+        "RK1",
+        why="The first symptom no longer happens.",
+        superseded="the lookup it proposed already existed",
+    )
+    shipment.save()
+
+    assert shipment.superseded == "the lookup it proposed already existed"
+    # One sentence, and the author's own terminator closes it: a clause bolted on behind the
+    # full stop is two, which `why.sentences` refuses at the door.
+    assert (
+        "- ✅ **RK1** **A first symptom** — The first symptom no longer happens "
+        "(design §RK1 superseded: the lookup it proposed already existed)."
+    ) in read(config, CHANGELOG)
+    # The clause is the *only* trace: the three edits are the three edits, and the section
+    # the entry now names is gone from the file exactly as it would otherwise be.
+    assert "§RK1 A first design" not in read(config, IMPROVEMENTS)
+    # And the `§RK1` the sentence now names is prose, not a pointer: the gate reads the
+    # parsed `ref` field and the ledger's schema carries none, so the trace is not an
+    # orphan the backstop then reports against a section this same call deleted.
+    assert lint(config).findings == ()
+
+
+def test_the_clause_names_the_anchor_and_never_the_id(tmp_path):
+    # Under an outline the pointer is an address the caller chose, so the address is read off
+    # the line that is leaving — the one fact about the deleted design that survives nowhere
+    # else, and the one a caller restating it from the id would get wrong.
+    outlined = BACKLOG
+    rationale = RATIONALE
+    for task_id, anchor in (("RK1", "I.2"), ("RK2", "I.3"), ("RK3", "II.1")):
+        outlined = outlined.replace(f"→ §{task_id}", f"→ §{anchor}")
+        rationale = rationale.replace(f"§{task_id} A", f"§{anchor} {task_id} A")
+    rationale = rationale.replace("§RK1.1 A subsection", "§I.2.1 A subsection")
+    project(tmp_path, roadmap=outlined, improvements=rationale)
+    # `ref_scheme` is a top-level key, so it goes before the `[files]` table rather than
+    # through `extra_config`, which appends after it.
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\nref_scheme = "outline"\n[files]\n'
+        f'roadmap = "{ROADMAP}"\nchangelog = "{CHANGELOG}"\n'
+        f'improvements = "{IMPROVEMENTS}"\n',
+        encoding="utf-8",
+    )
+    config = Config.discover(tmp_path)
+    ship(
+        config,
+        "RK1",
+        why="The first symptom no longer happens.",
+        superseded="the subsystem it called new had shipped",
+    ).save()
+
+    assert "(design §I.2 superseded: the subsystem it called new had shipped)" in read(
+        config, CHANGELOG
+    )
+
+
+def test_a_line_that_pointed_at_no_design_has_none_to_supersede(tmp_path):
+    # An entry saying a design was superseded, on a line that never had one, sends the next
+    # reader of the ledger through git looking for prose nobody ever wrote.
+    config = project(
+        tmp_path,
+        roadmap=BACKLOG.replace(" → §RK1", ""),
+        extra_config="\n[rules.roadmap]\nref = false\n",
+    )
+    before = files(config)
+    with pytest.raises(NoDesign) as caught:
+        ship(config, "RK1", why="It works now.", superseded="nothing, there was none")
+
+    assert "carries no pointer" in str(caught.value)
+    assert files(Config.discover(tmp_path)) == before
+
+
+def test_a_partial_keeps_its_design_so_it_has_not_been_overtaken_yet(tmp_path):
+    # The section stays on a partial because the rest of the work still reads it (RK121), so
+    # whether the premise held is not yet decided — and there is no second entry the clause
+    # could be corrected onto. The refusal names the call that does delete the section.
+    config = project(tmp_path)
+    before = files(config)
+    with pytest.raises(NoSupersession) as caught:
+        ship(
+            config,
+            "RK1",
+            why="Half of it works.",
+            part="local half",
+            superseded="too early to say",
+        )
+
+    assert "ship RK1" in str(caught.value) and "local half" in str(caught.value)
+    assert files(Config.discover(tmp_path)) == before
+
+
+def test_the_completion_is_where_the_partials_design_is_judged(tmp_path):
+    # The other half of that refusal: the call the message names accepts the clause, because
+    # it is the one that deletes the section.
+    config = project(tmp_path)
+    ship(config, "RK1", why="Half of it works.", part="local half").save()
+    ship(
+        config,
+        "RK1",
+        why="The first symptom no longer happens.",
+        superseded="the second half needed none of it",
+    ).save()
+
+    ledger = read(config, CHANGELOG)
+    assert "(local half)" not in ledger
+    assert "(design §RK1 superseded: the second half needed none of it)" in ledger
+
+
+def test_a_closure_writes_no_sentence_for_the_clause_to_join(tmp_path):
+    # The ledger already holds the entry, so this call only closes the line (RK62) — and a
+    # flag silently dropped is a flag the caller believes took effect.
+    config = project(tmp_path, changelog=INTERRUPTED)
+    before = files(config)
+    with pytest.raises(NoRestatement) as caught:
+        ship(config, "RK1", superseded="the design was overtaken")
+
+    assert "--superseded-design" in str(caught.value)
+    assert files(Config.discover(tmp_path)) == before
+
+
+def test_the_clause_is_held_to_the_sentences_own_limit(tmp_path):
+    # No second limit and no second field: the clause lands in the `why`, so the ledger's own
+    # `why` limit is what refuses it — with the number, as every other over-length write is.
+    config = project(tmp_path, extra_config="\n[limits]\nwhy = 80\n")
+    before = files(config)
+    with pytest.raises(SchemaError) as caught:
+        ship(
+            config,
+            "RK1",
+            why="The first symptom no longer happens.",
+            superseded="a clause long enough to push the whole sentence past the limit",
+        )
+
+    assert "why" in str(caught.value) and "80" in str(caught.value)
+    assert files(Config.discover(tmp_path)) == before
+
+
+def test_the_flag_reaches_the_command_line_and_reports_what_it_wrote(tmp_path, capsys):
+    config = project(tmp_path)
+    assert (
+        main(
+            [
+                "-C",
+                str(tmp_path),
+                "ship",
+                "RK1",
+                "--why",
+                "The first symptom no longer happens.",
+                "--superseded-design",
+                "the lookup it proposed already existed",
+            ]
+        )
+        == EXIT_OK
+    )
+    out = capsys.readouterr().out
+    assert "overtook the design it read: the lookup it proposed already existed" in out
+    assert "(design §RK1 superseded:" in read(config, CHANGELOG)
+
+
+def test_the_json_answers_the_clause_as_a_field(tmp_path, capsys):
+    # Read off the transaction rather than parsed back out of the rendered sentence, which
+    # is the rule every other half of this report already keeps.
+    project(tmp_path)
+    main(
+        [
+            "-C",
+            str(tmp_path),
+            "ship",
+            "RK1",
+            "--why",
+            "The first symptom no longer happens.",
+            "--superseded-design",
+            "the lookup it proposed already existed",
+            "--json",
+        ]
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["improvements"]["superseded"] == "the lookup it proposed already existed"
