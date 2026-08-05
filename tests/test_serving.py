@@ -40,7 +40,8 @@ from roadkeep import claiming, serving
 from roadkeep import cli
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, build_parser, main
 from roadkeep.config import Config
-from roadkeep.provenance import _LOADED_AT, engine, invocation
+from conftest import since_import
+from roadkeep.provenance import engine, invocation
 from roadkeep.schema import body_aim
 from roadkeep.serving import (
     KNOWN_PROTOCOLS,
@@ -1575,7 +1576,7 @@ def _moved(tmp_path: Path, *args: str) -> Path:
     home.mkdir(parents=True, exist_ok=True)
     for name in args or (DECIDES,):
         (home / name).write_text("x = 1\n", encoding="utf-8")
-        os.utime(home / name, (_LOADED_AT + 300, _LOADED_AT + 300))
+        os.utime(home / name, (since_import(300), since_import(300)))
     return home
 
 

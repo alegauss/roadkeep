@@ -1,7 +1,8 @@
-"""The four things a test cannot get from its own assertion: whether the tree moved under the run
+"""The five things a test cannot get from its own assertion: whether the tree moved under the run
 (RK263), whether the docs it asserts about are the ones the run set out to measure (RK315),
-whether a cache outlived the test that filled it (RK268), and whether the frontmatter it read is
-the frontmatter a loader would (RK331). Each produces a red — or a green — in a file that
+whether the answer it reads back is about the call or about the checkout (RK351), whether a cache
+outlived the test that filled it (RK268), and whether the frontmatter it read is the frontmatter a
+loader would (RK331). Each produces a red — or a green — in a file that
 mentions nothing about the cause, so each is answered here rather than at a call site.
 
 ## The tree moved under the run (RK263)
@@ -61,6 +62,32 @@ ledger mentions — a finding about the fixture. `weigh` and `origin_of` read `g
 copy does not have. The version checks are `checkout`'s for the original reason: there the
 disagreement between the import and the disk **is** the defect.
 
+## The answer is about the call, not about the checkout (RK351)
+
+RK315's shape with a different input. There the fixture was the governed docs; here it is the
+package's own source, and what reads it is `_answered`: an MCP refusal carries a note naming
+the modules that changed on disk after this process imported them, and that note is part of
+the string a test reads back with `text_of`.
+
+So a test asserting on a refusal is asserting on a fact about the *repository*. Reproduced
+deliberately: `touch src/roadkeep/cli.py` three seconds into `pytest tests/test_serving.py`
+fails a test that passes on a quiet tree, and the diff is the note being added rather than any
+field changing. The cost is paid by the one workflow this tool is built for — an agent edits,
+runs the suite in the background, keeps editing, and is handed a red that says nothing about
+the change.
+
+:func:`_pinned_staleness` is the answer §RK351 named second: the baseline staleness is measured
+against is moved to *this test's* setup, so what was already on disk when the test began is what
+this process imported, as far as this test can tell. A copy cannot serve here — the modules
+under test are the ones that would have to be copied — and the seam is one line rather than the
+fifty call sites that read a refusal back.
+
+It is a **narrowing** and never a silencing, which is what keeps it from being a place failures
+hide: a module written *during* the test is still ahead of the baseline, so every test that
+fabricates one goes on working. :func:`since_import` is how they say so — read live, because a
+timestamp captured at module import would be measured against a baseline this fixture has since
+moved.
+
 ## The frontmatter a loader would read (RK331)
 
 Two files here had frontmatter YAML refuses — a description with a colon in it, which is a plain
@@ -111,6 +138,7 @@ import atexit
 import shutil
 import subprocess
 import tempfile
+import time
 import warnings
 from pathlib import Path
 
@@ -292,6 +320,50 @@ def governed() -> Path:
         warnings.warn(_UNSETTLED, UserWarning, stacklevel=2)
         pytest.skip(_UNSETTLED)
     return _GOVERNED_AT_START
+
+
+# -- the answer is about the call, not about the checkout (RK351) -------------
+
+
+@pytest.fixture(autouse=True)
+def _pinned_staleness():
+    """Every test starts with the package on disk being the package this process imported.
+
+    Autouse for the reason :func:`_volatile_caches` is: an opt-in fixture only helps the tests
+    that already remembered, and every test that reads an MCP refusal back is exposed — the one
+    that failed was not asserting about staleness at all.
+
+    Set and restored by hand rather than through `monkeypatch`, which is the shape to prefer
+    everywhere else and is wrong here. `monkeypatch` is function-scoped and **shared** with the
+    test body, so an autouse fixture requesting it makes it set up earlier and therefore undone
+    *later* — after `_volatile_caches`' teardown, which is where the invariant keeping `engine`
+    out of :data:`VOLATILE` is enforced. `tests/test_caches.py` measured it: the nested run that
+    must report an error reported a pass, because `roadkeep.__file__` was still patched when the
+    check ran. One global, restored in this fixture's own teardown, moves nobody else's.
+
+    The import inside the body keeps conftest's own import from pulling the package in before
+    :data:`_AT_START` has fingerprinted the tree it would be read from.
+    """
+    from roadkeep import provenance  # noqa: PLC0415 - see above
+
+    was = provenance._LOADED_AT
+    provenance._LOADED_AT = time.time()
+    yield
+    provenance._LOADED_AT = was
+
+
+def since_import(seconds: float) -> float:
+    """A timestamp that far past the baseline staleness is measured from (RK351).
+
+    Read live and never captured at module import, because :func:`_pinned_staleness` moves that
+    baseline at every setup: a fixture writing `_LOADED_AT + 300` off the imported constant is
+    writing against a clock that has since advanced, and on a long enough run it stops being
+    ahead. The tests that fabricate a moved module are the ones this exists for, and they are
+    also the ones a pin must not disarm.
+    """
+    from roadkeep import provenance  # noqa: PLC0415 - RK260
+
+    return provenance._LOADED_AT + seconds
 
 
 # -- the frontmatter a loader would read (RK331) ------------------------------

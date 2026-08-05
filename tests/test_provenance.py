@@ -28,8 +28,8 @@ from pathlib import Path
 import pytest
 
 import roadkeep
+from conftest import since_import
 from roadkeep.provenance import (
-    _LOADED_AT,
     MODIFIED,
     UNTRACKED,
     Engine,
@@ -113,7 +113,7 @@ def test_a_tree_nothing_touched_is_not_stale(tmp_path):
     home = tmp_path / "roadkeep"
     home.mkdir()
     (home / "config.py").write_text("x = 1\n", encoding="utf-8")
-    os.utime(home / "config.py", (_LOADED_AT - 60, _LOADED_AT - 60))
+    os.utime(home / "config.py", (since_import(-60), since_import(-60)))
     assert Engine(version="0.1.0", home=home, commit=None).stale == ()
 
 
@@ -124,7 +124,7 @@ def test_a_module_written_after_the_import_is_named(tmp_path):
     home.mkdir()
     for name in ("config.py", "schema.py", "notes.txt"):
         (home / name).write_text("x = 1\n", encoding="utf-8")
-        os.utime(home / name, (_LOADED_AT + 300, _LOADED_AT + 300))
+        os.utime(home / name, (since_import(300), since_import(300)))
     # Only this package's own modules: a fixture or a `.pyc` beside them says nothing about
     # the code that answered.
     assert Engine(version="0.1.0", home=home, commit=None).stale == ("config.py", "schema.py")
@@ -138,7 +138,7 @@ def test_staleness_is_read_now_and_not_cached_like_the_identity(tmp_path):
     described = Engine(version="0.1.0", home=home, commit=None)
     assert described.stale == ()
     (home / "serving.py").write_text("x = 1\n", encoding="utf-8")
-    os.utime(home / "serving.py", (_LOADED_AT + 300, _LOADED_AT + 300))
+    os.utime(home / "serving.py", (since_import(300), since_import(300)))
     assert described.stale == ("serving.py",)
 
 

@@ -9,17 +9,23 @@ pass. The drift is fabricated rather than provoked: writing to this repository's
 
 The `governed` snapshot is the same question answered the other way, so its claims are held
 here too: that the copy is the tree byte-for-byte, and that :data:`~conftest.GOVERNED` is the
-set `lint` actually reads rather than a list that quietly stopped covering it.
+set `lint` actually reads rather than a list that quietly stopped covering it. The staleness
+pin (RK351) is the third, and the one that would otherwise be checked by nothing at all: it
+makes tests pass, so only an assertion about the pin itself can say it is still there.
 """
 
 from __future__ import annotations
+
+import os
+import time
 
 import pytest
 
 from roadkeep.config import Config
 from roadkeep.linting import lint
+from roadkeep.provenance import Engine
 
-from conftest import GOVERNED, HERE, RECORDED, WATCHED, Checkout, _stamp
+from conftest import GOVERNED, HERE, RECORDED, WATCHED, Checkout, _stamp, since_import
 
 MODULE = "src/roadkeep/__init__.py"
 MANIFEST = ".claude-plugin/plugin.json"
@@ -89,6 +95,25 @@ def test_the_snapshot_is_this_tree_byte_for_byte(governed, checkout):
         source = HERE / name
         if source.exists():
             assert (governed / name).read_bytes() == source.read_bytes(), name
+
+
+def test_the_staleness_baseline_is_this_test_s_and_not_the_run_s(tmp_path):
+    """RK351: `_answered` names the package modules that moved since this process imported
+    them, and that note is part of the string a served refusal reads back — so a suite that
+    edits source while it runs hands somebody a red about the checkout. The pin moves the
+    baseline to setup; this is the assertion that fails without it, on any run past a minute."""
+    from roadkeep import provenance
+
+    assert time.time() - provenance._LOADED_AT < 60, "the baseline is the run's, not this test's"
+    home = tmp_path / "roadkeep"
+    home.mkdir()
+    (home / "config.py").write_text("x = 1\n", encoding="utf-8")
+    os.utime(home / "config.py", (since_import(-60), since_import(-60)))
+    assert Engine(version="0.1.0", home=home, commit=None).stale == ()
+    # A narrowing and never a silencing: what a test writes past its own baseline is still
+    # named, which is what keeps every fabricated-engine test in `test_serving.py` working.
+    os.utime(home / "config.py", (since_import(300), since_import(300)))
+    assert Engine(version="0.1.0", home=home, commit=None).stale == ("config.py",)
 
 
 def test_the_governed_set_is_what_the_gate_reads(governed):

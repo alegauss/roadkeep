@@ -250,30 +250,6 @@ boolean every reader has to know to check.
 
 ## Block E — Adoption
 
-### §RK351 The answer a running suite is not holding still for
-
-`_answered` appends what RK79 and RK200 exist to say: which tree answered, and whether
-the modules this process imported have moved on disk since. Both are right, and both are
-part of the string a test reads back with `text_of`.
-
-So the tests that assert on that string are asserting on a fact about the *repository*,
-not about the call. Reproduced deliberately: `touch src/roadkeep/cli.py` three seconds
-into `pytest tests/test_serving.py` fails a test that passes on a quiet tree, and the
-diff is the note being added rather than any field changing. Observed first as two
-failures in `test_serving.py` during a full run that overlapped a commit, both green in
-isolation minutes later — which reads as flakiness and is not.
-
-The cost is paid by the one workflow this tool is built for: an agent edits, runs the
-suite in the background, keeps editing, and is handed a red that says nothing about the
-change. A red that cannot be trusted is worse than no red, because the next one is
-discounted too.
-
-This is RK315's shape with a different input — that one is the governed docs being
-written mid-run, this is the source files being touched — so whatever answers it should
-answer both. What is worth deciding is where the seam goes: a test that reads the fields
-it asserts on rather than the whole string, or a fixture that pins the staleness answer
-for the duration of the call.
-
 ### §RK352 A fixture that collides with the environment it is about
 
 `_drifted` compares a capture's recorded text-handling facts against this process's,

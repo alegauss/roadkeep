@@ -299,6 +299,7 @@
 - ✅ **RK305** **The scheme suggestion is suppressed by a majority that shipping erodes** — adopt names the other scheme only where the declared one left an address unread, so a file it reads whole is never told to switch however the ratio falls.
 - ✅ **RK315** **A test asserting on this repository's own docs fails when another session writes them mid-run** — a test asserting about this repository's docs reads one coherent copy taken at collection, so a concurrent session's ship changes the tree and not the fixture.
 - ✅ **RK347** **The estimate reads one prose file at a time, so the state two of them are in is the one it cannot report** — adopt --sections opens every prose file the project declares and names the address two of them answer to, before the gate files one finding per collision.
+- ✅ **RK351** **A test asserting on an MCP answer fails when any source file is touched while the suite runs** — the staleness baseline is pinned to each test's setup, so a suite that edits source while it runs cannot append a note about the checkout to a refusal under test.
 
 ## Block F — The Claude Code plugin
 
