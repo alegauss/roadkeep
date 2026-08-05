@@ -41,8 +41,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK317** (deps: —) **The driver path accepts a --json it silently ignores, on the one path git actually invokes** — RK275 added the flag for merge --check and argparse takes it anywhere, so a driver run parses it, answers plain text and exits as if the caller had been served. → §RK317
-
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:

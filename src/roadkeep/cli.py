@@ -577,7 +577,13 @@ def build_parser() -> argparse.ArgumentParser:
     # on every call and never exposes it, because a structured answer is the difference between
     # one an agent can audit and one it re-reads the file to check (L5) — and the driver path has
     # no answer to structure: git reads its exit code and its bytes in `%A`, not its stdout.
-    merge_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    # Argparse scopes a flag to the subparser and not to the branch, so the help says which
+    # branch honours it and `_merge` refuses the others (RK317).
+    merge_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="machine-readable form of --check; refused on the driver and on --register",
+    )
     # `--check` is a pure query wearing the driver's subparser (RK275), so the claim this parser
     # makes is the one `writes_when` was built for, inverted the only way it can be: the command
     # reads, and the two arguments that turn it into a write say so. `ours` is where git has the
@@ -2396,6 +2402,22 @@ def _merge(config: Config, args: argparse.Namespace) -> int:
         # Before `--register`, so the two together read as the check: a `--check` that wrote
         # the attribute lines anyway would be the one thing this flag promises not to do.
         return _merge_check(config, args)
+    # And past the one branch that answers it, `--json` is a request nothing here can honour
+    # (RK317). Argparse scopes a flag to the subparser rather than to the branch, so `merge %O %A
+    # %B --json` parsed, was ignored, and exited as though the caller had been served — which is
+    # worse than a refusal, because it tells them the request was understood. Named rather than
+    # made to work: the driver has no answer to structure, git reading its exit code and the bytes
+    # it leaves in `%A`, and the registration's own report is one rendering for two surfaces
+    # (RK276) rather than a second one for a flag. Never on the driver's own line, which git
+    # spells and which carries this flag on no path.
+    if args.json:
+        print(
+            "roadkeep: --json is the form of --check, which reads the wiring and writes "
+            "nothing; the driver leaves its answer in git's %A and an exit code, and "
+            "--register prints the lines it wrote",
+            file=sys.stderr,
+        )
+        return EXIT_USAGE
     if args.register:
         return _merge_register(config)
     if not (args.base and args.ours and args.theirs):

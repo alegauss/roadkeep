@@ -214,22 +214,3 @@ taken at collection, or whether a count over a file the backlog erodes is the wr
 assertion whoever is writing it — RK305 already names that ratio as fragile.
 
 ## Block F — The plugin
-
-### §RK317 A flag that parses and does nothing
-
-`--json` was added to the `merge` subparser for `--check`, which is the one query on
-that command and the one thing the MCP surface calls — that surface passes the flag on
-every call and never exposes it, so the alternative was a served tool whose answer no
-client could parse.
-
-Argparse scopes a flag to the subparser, not to the branch. So `merge %O %A %B --path %P
---json` is accepted, `_merge` never reads `args.json` on that path, and the refusal or
-the summary arrives as the prose it always was. Measured: exit code unchanged, stdout
-unchanged, no diagnostic. That is worse than a refusal, because a caller who passed it
-has been told the request was understood.
-
-Nobody types this today — git spells the driver line and git reads the exit code, never
-the stdout. The cost is what it teaches: the flag is documented on the command and true
-of one branch of it. What needs deciding is whether `--check` should have become its own
-subcommand after all, which \S RK275 weighed and declined on the five decisions then
-behind the flag, or whether the driver branch refuses a flag it cannot honour.

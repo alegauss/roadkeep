@@ -401,6 +401,31 @@ def test_the_check_writes_nothing(tmp_path):
     assert not (tmp_path / ".gitattributes").exists()
 
 
+def test_the_json_form_is_refused_on_the_branches_that_cannot_answer_it(tmp_path, capsys):
+    # RK317: argparse scopes a flag to the subparser and not to the branch, so `--json` parsed on
+    # the driver line, was ignored, and exited as though the caller had been served — worse than a
+    # refusal, which at least says the request was not understood.
+    config = repository(tmp_path)
+    assert main(["-C", str(tmp_path), "merge", "--register", "--json"]) == EXIT_USAGE
+    assert "--json is the form of --check" in capsys.readouterr().err
+    # Refused *before* the write, which is this tool's rule everywhere: nothing landed.
+    assert not (tmp_path / ".gitattributes").exists()
+    # And on the driver's own line, where git reads an exit code and the bytes it left in `%A`.
+    # The three paths are git's to spell and are never read here — the flag is refused before
+    # anything opens them, which is what the message rather than the code has to establish.
+    driving = ["merge", "base", "ours", "theirs", "--path", config.relative(config.path("roadmap"))]
+    assert main(["-C", str(tmp_path), *driving, "--json"]) == EXIT_USAGE
+    assert "--json is the form of --check" in capsys.readouterr().err
+
+
+def test_the_check_still_answers_as_json_because_it_is_whose_form_it_is(tmp_path):
+    # The branch RK275 added the flag for, and the one the MCP surface reaches: that surface
+    # passes `--json` on every call and never exposes it, so refusing it here would unserve the
+    # tool. Asserted beside the refusal, because the pair is the whole decision.
+    repository(tmp_path)
+    assert main(["-C", str(tmp_path), "merge", "--check", "--json"]) == EXIT_GATE
+
+
 def test_a_wired_config_over_no_attributes_is_not_a_wired_repository(tmp_path, capsys):
     # RK270: a driver is two writes. The config says what the name runs; `.gitattributes` is
     # what sends git to the name at all — so `config current` over an unwritten attribute file
