@@ -1296,19 +1296,53 @@ def test_a_section_written_at_an_id_under_an_outline_is_told_where_addresses_com
     assert "Block Q's prose is under §XVII" in err and "§XVII.4 is free" in err
 
 
-def test_an_anchor_naming_no_task_is_left_the_refusal_the_schema_wrote(tmp_path, capsys):
-    # The block is the clause's whole subject, and an address belonging to nobody has none —
-    # so the silence is the same one that answers a history this cannot search.
+# -- the caller who has no address at all (RK360) -----------------------------
+
+
+def test_an_anchor_naming_no_task_is_told_where_a_top_level_comes_from(tmp_path, capsys):
+    # RK349 read the block off the task the anchor names, which left this caller silent — and
+    # they are the one who did not know what an address here looks like, not the rare case.
     config = outlined_blocks(tmp_path)
     assert (
-        main(["-C", str(config.root), "section", "add", "not-an-anchor", "--title", "A design",
+        main(["-C", str(config.root), "section", "add", "II-1", "--title", "A design",
               "--body", "Some prose."])
         == EXIT_USAGE
     )
 
     err = capsys.readouterr().err
+    # The rule survives, and what follows it is the top-level — never a child derived from
+    # whichever family happened to be last, which is the guess there is no block to make.
     assert "the heading numbers itself" in err
+    assert "belonging to no task takes a top-level" in err
+    assert "§XXI is free" in err
     assert "anchors --block" not in err
+
+
+def test_the_free_top_level_is_read_per_namespace(tmp_path, capsys):
+    # Two prose files each numbering themselves from I have two free top-levels, and the
+    # taller file's number is not an answer about the shorter one (RK340's rule, one door on).
+    config = outlined_blocks(tmp_path)
+    prose(config, "STRATEGY.md")
+    (config.root / "roadkeep.toml").write_text(
+        (config.root / "roadkeep.toml")
+        .read_text(encoding="utf-8")
+        .replace('improvements = "STRATEGY.md"', 'strategy = "STRATEGY.md"')
+        + '[refs]\nstrategy = "S"\n',
+        encoding="utf-8",
+    )
+    config = Config.discover(tmp_path)
+    # Unprefixed in the file: the namespace rides on the pointer, and the heading keeps the
+    # number this file wrote — which is what makes `S:IV` and `XVII` two numberings and not one.
+    append(config.path("strategy"), "\n### IV.1 A plan\n\nThe reasoning.\n")
+    commit(tmp_path, "docs: a second outline of its own")
+
+    assert (
+        main(["-C", str(config.root), "section", "add", "S:IV-1", "--role", "strategy",
+              "--title", "A plan", "--body", "Some prose."])
+        == EXIT_USAGE
+    )
+    err = capsys.readouterr().err
+    assert "§S:V is free" in err
 
 
 # -- the read-back that called its own writes loose (RK342) -------------------

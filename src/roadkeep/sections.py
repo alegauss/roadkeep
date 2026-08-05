@@ -748,9 +748,14 @@ def add(
         # The third door onto the same gap (RK349). `anchor.format` fires on the caller who
         # typed an id where this scheme numbers its own headings, and the address they now
         # need is the free child of this block's family — which is what the line writes have
-        # been told since RK312. Only where a task answers for the anchor: the block is the
-        # clause's whole subject, and there is nothing to say about an address naming nobody.
-        raise (error if task is None else naming_the_anchor(config, task.block, error)) from None
+        # been told since RK312. An anchor naming no task is answered too (RK360), with the
+        # free top-level: that caller has no address at all, which is more and not less.
+        raise naming_the_anchor(
+            config,
+            task.block if task is not None else None,
+            error,
+            namespace=document.schema.ref_prefix or "",
+        ) from None
     existing = find(document, anchor)
     if existing is not None:
         raise SectionExists(anchor, where, existing.first)
@@ -1063,7 +1068,9 @@ def words(body: str) -> int:
 _UNANCHORED = ("ref.missing", "anchor.format")
 
 
-def naming_the_anchor(config: Config, block: str, error: SchemaError) -> SchemaError:
+def naming_the_anchor(
+    config: Config, block: str | None, error: SchemaError, *, namespace: str = ""
+) -> SchemaError:
     """The same refusal, told which command answers it (RK312, widened by RK349).
 
     This project's own standard applied to itself. `ref: every task points at its rationale
@@ -1082,6 +1089,14 @@ def naming_the_anchor(config: Config, block: str, error: SchemaError) -> SchemaE
     sentence is **appended** rather than replaced: what the rule is has to survive, because
     a refusal that only says what to type teaches nobody why the field exists.
 
+    ``block`` is `None` where the anchor names no live task, and that is not the caller to
+    stay silent for (RK360) — it is the one holding no address at all, since typing a task id
+    is what produces a block to read. What changes is which address is offered: a free
+    *child* needs the family and the family comes from the block, so an anchor owning nothing
+    is told the free **top-level**, which is what a section belonging to no task would take.
+    Never a child derived from whichever family happened to be last, which is the guess the
+    two-family branch below already refuses to make.
+
     Silent where history cannot be searched, which is where the free address cannot be
     derived: naming a number this could not verify is the failure the whole read exists to
     prevent, and the command that can say so is still named.
@@ -1089,7 +1104,11 @@ def naming_the_anchor(config: Config, block: str, error: SchemaError) -> SchemaE
     named = tuple(one for one in error.violations if one.code in _UNANCHORED)
     if not named:
         return error
-    clause = _where_the_anchor_is(config, block)
+    clause = (
+        _where_a_top_level_is(config, namespace)
+        if block is None
+        else _where_the_anchor_is(config, block)
+    )
     return type(error)(
         tuple(
             replace(one, message=f"{one.message}{clause}") if one in named else one
@@ -1128,6 +1147,35 @@ def _where_the_anchor_is(config: Config, block: str) -> str:
     return (
         f" — Block {block}'s prose is under §{family}, where §{free} is free "
         f"(`{invocation()} anchors --block {block}` lists it)"
+    )
+
+
+def _where_a_top_level_is(config: Config, namespace: str) -> str:
+    """The same clause for an anchor belonging to nobody: the free top-level, or the command.
+
+    Per namespace, for :func:`~roadkeep.history.next_family`'s reason (RK340): two prose
+    files each numbering themselves from `I` have two free top-levels, and the taller file's
+    number is not an answer about the shorter one.
+    """
+    # Deferred for RK260's reason, and because git belongs on no successful write path.
+    from roadkeep.history import (  # noqa: PLC0415
+        HistoryUnavailable,
+        anchors,
+        next_family,
+    )
+    from roadkeep.provenance import invocation  # noqa: PLC0415
+
+    try:
+        free = next_family(anchors(config), namespace)
+    except (HistoryUnavailable, OSError):
+        free = None
+    if free is None:
+        # None is the honest answer where the top-levels are not one numbering, and a guess
+        # printed beside a rule reads exactly like a fact.
+        return f" — `{invocation()} anchors` names the addresses this outline has taken"
+    return (
+        f" — a section belonging to no task takes a top-level, and §{free} is free "
+        f"(`{invocation()} anchors` lists what is taken)"
     )
 
 

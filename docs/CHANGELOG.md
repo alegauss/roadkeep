@@ -124,6 +124,7 @@
 - ✅ **RK348** **A departure refused by a dependent's line reports the length and names no id** — A refusal caused by a dependent's re-derived annotation names that line's id and address, so the author is not sent to shorten the sentence they just typed.
 - ✅ **RK349** **The refusal that names the anchor command reaches one verb, and three others refuse the same way** — defer, resume and section add end their refusal with the same clause add has, so a caller who met the good one once never reads a bare rule as there being no answer.
 - ✅ **RK350** **A third near-twin verb would be found by the session that types it, not by a test** — The survey RK339 ran once by hand is a test over the parsers, so a verb added tomorrow that shadows a report is named by a failure and not by whoever types it wrong.
+- ✅ **RK360** **A section written at an address no live task owns is refused with no way to learn a free one** — A section written at an address no live task owns is told the free top-level and the command that lists what is taken, per namespace.
 
 ## Block C — Query
 

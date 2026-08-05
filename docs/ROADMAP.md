@@ -24,7 +24,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK360** (deps: —) **A section written at an address no live task owns is refused with no way to learn a free one** — RK349 reads the block off the task the anchor names, so an address naming nobody — which is the caller holding no address at all — keeps the bare rule. → §RK360
 - 📋 **RK361** (deps: —) **A line the merge driver re-places is refused without naming the file or the line it is about** — merging calls place with neither the path nor the config the three other doors pass, so a merged line the schema refuses reports a rule and no address. → §RK361
 - 📋 **RK362** (deps: —) **The gate over near-twin verbs proves the sentence is declared and never that it reaches a caller** — RK350 reads twin off the parsers, while whether it prints turns on a substring of argparse own English that no test holds for a pair added later. → §RK362
 

@@ -77,30 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK360 The clause that needs a block, for a caller who has none
-
-RK349 gave `section add` the sentence `add` has had since RK312: under an outline, an
-anchor that is not an address ends with the family this block's prose lives under and
-the free child inside it. It is reached through the task the anchor names, because the
-block is the clause's whole subject and `_task_for` is what answers it.
-
-Which leaves the case it cannot answer, and that case is not the rare one. `section add
-II-1` — a shape that is not an address, belonging to no line — refuses and names nothing,
-and whoever typed it is the one who did not know what an address here looks like. Type a
-*task id* and the refusal is the good one; guess at a number and it is bare.
-
-There is an answer that needs no block. `anchors` bare already reports the free
-**top-level**, which is what a section belonging to no task would take, and RK349's own
-two-family branch prints that sentence. So the silent path has a clause available and it
-was left out only because the one written was about a block.
-
-What this must not become is a guess: naming a free *child* requires the family, the
-family comes from the block, so an anchor owning nothing gets the top-level and never a
-number derived from whichever family was last.
-
-Worth measuring whether `section amend` reaches this at all — a mistyped anchor there
-refuses earlier, naming the file, which may already be the answer.
-
 ### §RK361 The fourth caller of place, refusing into the dark
 
 RK348 and RK349 both landed the same rule from opposite ends: a length is reported
