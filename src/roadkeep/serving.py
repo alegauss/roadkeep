@@ -541,6 +541,18 @@ _SCOPE_BOUNDS = {
 }
 
 
+#: The verbs that mean something of their own by a field name every other verb shares, and the
+#: table that says what (RK316). By first argv word, which is what a `Tool` is keyed on: `non-goal
+#: add` and `non-goal drop` share `[non_goals]`' limits, and no divergence yet is narrower than a
+#: command. Every key is asserted to name a subcommand this CLI accepts, so the one way this can
+#: be wrong — a rename leaving nothing matched and the defaults silently published — is a test
+#: failure and not a client refusing a call the tool would have taken.
+_DIVERGENT: Mapping[str, Mapping[str, Any]] = {
+    "non-goal": _SCOPE_BOUNDS,
+    "list": _FILE_BOUNDS,
+}
+
+
 def _aimed(limit: int) -> str:
     """The character ceiling restated as the word count a model can count towards (RK185)."""
     return f"Aim for {words(limit)} words; {limit} characters is what refuses."
@@ -772,13 +784,20 @@ def _bounds_for(tool: Tool) -> Mapping[str, Any]:
 
     Two commands mean something of their own by a name every other command shares: `non-goal`'s
     `why` is `[non_goals]`' limit and not `[limits]`' (RK70), and `list`'s `role` is any governed
-    file where every other `role` is a prose one (RK304). Both are properties of the verb rather
-    than of the dest, so both are read off it, here and in one place: a second `if` at the caller
-    is how two tools over one dest come to publish two answers.
+    file and its `marker` any marker one can carry (RK304, RK314). Both are properties of the verb
+    rather than of the dest, so both are read off it, here and in one place: a second `if` at the
+    caller is how two tools over one dest come to publish two answers.
+
+    Read from :data:`_DIVERGENT` and no longer from an `if` chain (RK316). The chain's failure was
+    silent and in the forbidden direction: a command renamed in `cli.py` left every `Tool` correct
+    and no branch matching, so the fields fell back to `_BOUNDS` — narrower than the verb accepts,
+    which is a bound on the client (RK183). A table has the same words in it and is *checkable*,
+    which is RK167's own answer to a declaration that can stop matching: a key naming no command
+    is a test failure (`tests/test_serving.py`) rather than a schema quietly refusing a legal call.
+    Not moved onto :class:`Tool` — the tables are composed from the config below this line, and
+    two divergent verbs out of thirty-odd is a fact about those two rather than a field for all.
     """
-    if tool.argv_head[0] == "non-goal":
-        return _SCOPE_BOUNDS
-    return _FILE_BOUNDS if tool.argv_head[0] == "list" else _BOUNDS
+    return _DIVERGENT.get(tool.argv_head[0], _BOUNDS)
 
 
 def descriptor(

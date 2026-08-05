@@ -243,6 +243,30 @@ def test_every_tool_is_a_subcommand_the_cli_accepts():
         assert parsed.json is True  # never exposed, always passed
 
 
+def test_every_divergent_verb_is_one_the_cli_still_spells_that_way():
+    # RK316: the selection used to be an `if` chain, and its failure was silent and in the
+    # forbidden direction — a command renamed in `cli.py` left every `Tool` correct, no branch
+    # matching, and the fields falling back to bounds narrower than the verb accepts, which is a
+    # bound on the client. RK167's answer to a declaration that can stop matching, one file over.
+    spelled = {tool.argv_head[0] for tool in TOOLS}
+    for verb in serving._DIVERGENT:
+        assert verb in spelled, f"{verb} names no served command"
+        # And the CLI's own, not only this surface's: both halves have to agree or the table
+        # describes a tool that dispatches somewhere else.
+        assert serving._subparser(verb) is not None
+
+
+def test_the_verbs_that_diverge_are_named_and_not_counted():
+    # The list is the point: a third is a deliberate addition and not something a copied
+    # override brought along. `non-goal` is `[non_goals]`' two limits (RK70) and `list` is the
+    # one read whose `role` and `marker` mean every governed file (RK304, RK314).
+    assert set(serving._DIVERGENT) == {"non-goal", "list"}
+    # Every other tool gets the common table, which is what makes those two legible as exceptions.
+    for tool in TOOLS:
+        if tool.argv_head[0] not in serving._DIVERGENT:
+            assert serving._bounds_for(tool) is serving._BOUNDS
+
+
 def _minimal(tool: Tool) -> dict[str, str]:
     """The required arguments, filled with anything: this is about the argv, not the values.
 
