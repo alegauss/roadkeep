@@ -167,6 +167,10 @@ def test_the_tools_are_what_a_task_needs_end_to_end():
         # `brief --claim` under the name of the act (RK149, RK150): the write a session makes
         # first, split off so the two reads below keep the hint that makes them free to ask.
         "claim",
+        # The other verb with that word on it (RK308): the tool above takes a line, this one
+        # says which paths the commit owns — `claim <id> --path`, which was CLI-only, so the
+        # agent this ships for declared no scope and got every changed path back as loose.
+        "scope",
         "status",
         "amend",
         # The field `amend` excludes, at its own door (RK178): a premise that turned out false
@@ -661,6 +665,10 @@ def test_the_read_only_hint_says_which_tools_write(tmp_path):
         # `brief` and `pick` stay read-only *because* it is a separate tool (RK150), which is
         # the same reason `lint` is read-only: the writing flag is not reachable from it.
         "claim",
+        # `claim --path` and `--add-path` are both writes (RK307, RK308), and both are exposed,
+        # so this tool writes whichever one a call passes. The read half of that command is not
+        # served: `ship` prints the scope it releases at the moment it is wanted (RK298).
+        "scope",
     }
     # `lint` is read-only *because* `--fix` is not exposed, and `--baseline` (RK84) is the
     # one argument it takes: a revision to subtract, which reads history and writes none.
@@ -1035,6 +1043,47 @@ def test_an_argv_that_would_have_gone_to_the_pipe_names_the_argument(tmp_path):
         section_body="Because a pointer resolving to nothing reads like a design that exists.",
     )
     assert written["isError"] is False
+
+
+# -- one name, two acts, and the one an agent could not reach (RK308) -----------
+
+
+def test_the_scope_a_commit_owns_can_be_declared_over_the_protocol(tmp_path, monkeypatch):
+    # RK150's own sentence, applied to the whole of RK280: a flag only the CLI can reach is a
+    # flag the agent this ships for cannot pass. The `claim` tool is `brief --claim` and takes a
+    # line; the verb that says which paths the commit owns was exposed nowhere.
+    monkeypatch.setattr(claiming, "path", lambda root: tmp_path / "claims.json")
+    where = project(tmp_path)
+    assert called(where, "claim", id="RK1")["isError"] is False  # take the line first
+    declared = called(where, "scope", id="RK1", path=["src/a.py", "src/b.py"])
+    assert declared["isError"] is False
+    assert json.loads(text_of(declared))["paths"] == ["src/a.py", "src/b.py"]
+
+
+def test_a_path_the_work_turned_up_is_one_argument_and_not_the_whole_scope_again(
+    tmp_path, monkeypatch
+):
+    # Both writing flags travel (RK307): `--path` replaces the scope and `--add-path` extends it,
+    # and a surface offering only the first would make every correction a full restatement.
+    monkeypatch.setattr(claiming, "path", lambda root: tmp_path / "claims.json")
+    where = project(tmp_path)
+    called(where, "claim", id="RK1")
+    called(where, "scope", id="RK1", path=["src/a.py"])
+    extended = called(where, "scope", id="RK1", add_path=["tests/test_a.py"])
+    assert json.loads(text_of(extended))["paths"] == ["src/a.py", "tests/test_a.py"]
+
+
+def test_the_tool_that_declares_a_scope_is_not_the_tool_that_takes_the_line(tmp_path):
+    # Two acts under one word, which is why this stayed invisible: `named=` is what tells them
+    # apart, and the collision is the argument for using it rather than against exposing this.
+    served = listed(project(tmp_path))
+    assert served["claim"]["inputSchema"]["properties"].keys() == {"id", "block", "designed"}
+    assert served["scope"]["inputSchema"]["properties"].keys() == {"id", "path", "add_path"}
+    # Both write, and neither claims to be free to ask.
+    assert served["scope"]["annotations"]["readOnlyHint"] is False
+    # The read half is not served: `ship` prints the scope it releases (RK298), so a second
+    # answer here would be about a `git status` in whichever tree happened to answer.
+    assert "porcelain" not in served["scope"]["inputSchema"]["properties"]
 
 
 # -- the bound that stayed prose (RK304) ----------------------------------------

@@ -14,9 +14,9 @@ not on PATH.
 ## Writing and shipping
 
 When the `mcp__roadkeep__*` tools are available, **prefer them**: the whole write path and
-the reads a task needs are there — `add`, `block_add`, `block_drop`, `claim`, `status`, `amend`, `restate`, `ship`, `retire`, `defer`, `resume`,
+the reads a task needs are there — `add`, `block_add`, `block_drop`, `claim`, `scope`, `status`, `amend`, `restate`, `ship`, `retire`, `defer`, `resume`,
 `record_add`,
-`record_amend`, `record_move`, `record_drop`, `record_renumber`, `non_goal_add`, `non_goal_drop`, `section_add`, `section_amend`, `section_drop`, `budget`, `brief`, `pick`, `list`, `deps`, `lint` — same engine and same
+`record_amend`, `record_move`, `record_drop`, `record_renumber`, `non_goal_add`, `non_goal_drop`, `section_add`, `section_amend`, `section_drop`, `budget`, `brief`, `pick`, `list`, `deps`, `lint`, `merge_check` — same engine and same
 refusals, with
 the fields arriving as a schema instead of flag names typed from memory. `init`, `adopt` and
 `install` run once per project and want the CLI — the last of them wires this file, the tools
@@ -269,7 +269,8 @@ another live claim says is *its* own, what no claim names at all, and which decl
 would stage nothing right now — the analysis
 `git add -A` cannot make and a second session's work is what it sweeps up. `--add-path <p>`
 is the same write from the other end, for the file the work turned up after the scope was
-declared; passing both is refused. `--porcelain`
+declared; passing both is refused. Over MCP this verb is the tool `scope` — not `claim`,
+which is `brief --claim` and takes a line; the two words are two acts. `--porcelain`
 prints the paths alone, for `git add --`. Refused on a line no live claim holds: taking a
 line is a marker, and nothing here dates one. **`ship` and `retire` make that read
 themselves**, while the claim is still live: what the tree holds that no claim names is

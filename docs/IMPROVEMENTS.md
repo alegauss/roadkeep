@@ -101,6 +101,54 @@ section's address and the outcome meet. The value is that a *pattern* becomes vi
 if a third of claimed sections turn out stale, that is a fact about how far ahead this
 tool should let anybody design.
 
+### §RK311 Pricing a body that already exists
+
+Filing thirteen tasks in one session produced **fifteen** `body.too-long` refusals.
+Three asked for one or two words. Each refusal discards the whole body, so shaving one
+word means re-sending about 250 — roughly 3,750 words re-transmitted to remove 85 words
+of overage.
+
+`add`'s own docstring names the principle: a limit reported after the prose exists is a
+limit discovered too late to save the tokens it was meant to save. That is what the body
+limit does. `budget` prices the ceiling before a word exists, which is the right half;
+the missing half is any way to price a draft that already exists short of attempting the
+write.
+
+The asymmetry is what makes it expensive. A refusal over `symptom` or `why` costs a
+phrase. One over `--section-body` costs the whole rationale, and leaves the author
+counting words by hand against a number the tool has already computed exactly.
+
+Three candidate fixes, cheapest first. An `add --check` that validates and writes
+nothing, so a body is priced at the cost of a read. Or the refusal reports the count per
+paragraph, so the author knows where to cut rather than only that a cut is needed. Or
+`--section-body` accepts an over-long body under `--trim` and reports what it dropped.
+
+The measurement is the argument and it reproduces: any session filing more than a few
+tasks pays it.
+
+### §RK312 A required argument nothing helps you compute
+
+On an outline-scheme project, `add` refused with `ref: every task points at its
+rationale section [ref.missing]`. The refusal states the rule and names nothing that
+answers it. `anchors --family XVII` answers it exactly — free addresses under a family,
+which is the number `--ref` wants — and there was no way to learn that from the refusal.
+
+Two reads were needed instead. Which family holds a block's prose is derived nowhere:
+the mapping came from globbing existing pointers per block, `list --block Q | grep -oE
+"§[IVXL]+"`, repeated for four blocks. Then the next free number under that family came
+from grepping the prose file for `^### XVII\.` and reading the tail. Both are questions
+`anchors` was built for, and one of them — block to family — it does not answer at all.
+
+This is roadkeep's own standard applied to itself. A refusal that states a rule without
+naming the verb that satisfies it is the shape the project rejects everywhere else, and
+it is worse here than usual: `--ref` is required, unguessable, and wrong silently if a
+caller picks a number some heading already spent.
+
+Two fixes, and the first is a string. `ref.missing` should name `anchors --family <the
+block's>`, with the free address in the message when the family is derivable from the
+block. Second, `anchors` should be able to report per block, since a caller reaching for
+it already knows which block the task is in and not which numeral its prose lives under.
+
 ## Block C — Query
 
 ### §RK303 First match, at the one door that had not learned it
@@ -151,23 +199,26 @@ one the majority was standing in for.
 
 ## Block F — The plugin
 
-### §RK308 One name, two acts, and the one an agent cannot reach
+### §RK313 Doubt an agent cannot resolve
 
-RK150's own sentence is the finding: *a flag only the CLI can reach is a flag the agent
-this ships for cannot pass.* It was written about `--designed`, and it applies unchanged
-to the whole of RK280.
+Two staleness warnings reached one session from two directions. The MCP `add` refused
+and appended: this server imported roadkeep before `__init__.py`, `cli.py`,
+`provenance.py` and `serving.py` changed on disk, so the refusal is what the code it did
+import answered and restart if the harness has not reloaded. Separately the SessionStart
+hook reported the project's copy of `skills/roadkeep/SKILL.md` had drifted from the
+checkout answering, and that `install` refreshes it.
 
-The MCP surface has a `claim` tool, which is why this stayed invisible. That tool is
-`brief --claim` under RK150's `named=` mechanism — it *takes* a line. The command that
-says which paths a commit owns is a different verb with the same word on it, and it is
-exposed nowhere: an agent driving this over the protocol declares no scope, so `ship`
-reports every changed path as loose and the analysis RK280 exists to make lands back
-where L1 says advice does not hold.
+Both messages are honest and neither is actionable inside the session that reads them.
+An agent cannot restart its own harness, and it cannot know whether the four named files
+are the ones that decided its particular refusal without reading them. The outcome here
+was to abandon the MCP surface and drive the CLI for all thirteen filings — which
+worked, and left the protocol path untested for a whole session of real use.
 
-Three things need deciding and only the third is open. The **name** is what `named=`
-already solves, and the collision is the argument for using it rather than against
-exposing this. The **hint** is `writes_when`, which now names two arguments (RK307) and
-`writes_of` already reads: a call with neither is a read and the tool schema says so.
-What is left is whether the *read* half travels too — `theirs` and `loose` are derived
-from `git status` in the answering process's checkout, which over a remote transport is
-a tree the caller may not be in.
+That is the cost worth naming: the surface most likely to be stale is the one an agent
+is most likely to be driving, and the advice for it is the one thing an agent cannot do.
+A patch bump per commit (RK153) is the mechanism that should make this rare, and it did
+not here.
+
+What would help is a narrower claim. The server knows which files changed and can
+compare them with the modules the refused verb touches, so a refusal the drift could not
+have affected should say so rather than casting doubt on itself.

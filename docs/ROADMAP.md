@@ -25,6 +25,8 @@
 ## Block B — Authoring (insert, never hand-edit)
 
 - 📋 **RK310** (deps: —) **A design section can carry a stale premise and ship drops it in silence** — Twice in one block a section argued from a fact that had stopped being true, and the only reader who could find out is whoever claims the task years later. → §RK310
+- 📋 **RK311** (deps: —) **A body refused for one word is discarded whole, so the check costs what the limit saves** — Fifteen refusals in one session, three of them over one or two words, and no add --check exists to price a draft short of attempting the write. → §RK311
+- 📋 **RK312** (deps: —) **The refusal that demands a ref names nothing that would produce one** — ref.missing states the rule while anchors answers it, and which family a block's prose lives under is derivable from no command at all. → §RK312
 
 ## Block C — Query (consult without reading the file)
 
@@ -38,7 +40,7 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK308** (deps: —) **The verb that declares a scope has no tool on the surface it was built for** — claim <id> --path is CLI-only and the MCP claim is brief --claim, so an agent driving this over the protocol cannot say what its commit owns at all. → §RK308
+- 📋 **RK313** (deps: —) **A stale MCP server casts doubt on every refusal it returns** — The warning names four changed files and advises a restart an agent cannot perform, so the honest response is to abandon the protocol surface for the CLI. → §RK313
 
 ## Non-goals
 

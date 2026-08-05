@@ -281,6 +281,18 @@ TOOLS: tuple[Tool, ...] = (
         always=("claim",),
         named="claim",
     ),
+    # The *other* verb with that word on it, which the tool above is why nobody noticed was
+    # missing (RK308). RK150's own sentence is the finding — a flag only the CLI can reach is a
+    # flag the agent this ships for cannot pass — and it applies unchanged to the whole of RK280:
+    # an agent driving this over the protocol declared no scope, so every changed path came back
+    # `loose` and the analysis `git add -A` cannot make was the one it could not ask for.
+    #
+    # `named` for the act, which is what the collision argues for rather than against: the tool
+    # above *takes a line* and this one *says what the commit owns*. The read half stays at the
+    # terminal — `theirs` and `loose` are `git status` in the answering process's checkout, and
+    # `ship` already prints the scope it releases at the one moment it is wanted (RK298), so
+    # exposing it would add a second answer to a question that is already answered.
+    Tool("claim", ("id", "path", "add_path"), named="scope"),
     Tool("status", ("id", "marker")),
     # `lines` for `record amend`'s reason one file over (RK195): this is the door an adopting
     # project reaches for, and an adopted roadmap is the only place a wrapped line comes from.
