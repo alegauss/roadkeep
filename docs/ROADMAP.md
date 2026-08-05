@@ -27,6 +27,9 @@
 - 📋 **RK310** (deps: —) **A design section can carry a stale premise and ship drops it in silence** — Twice in one block a section argued from a fact that had stopped being true, and the only reader who could find out is whoever claims the task years later. → §RK310
 - 📋 **RK311** (deps: —) **A body refused for one word is discarded whole, so the check costs what the limit saves** — Fifteen refusals in one session, three of them over one or two words, and no add --check exists to price a draft short of attempting the write. → §RK311
 - 📋 **RK312** (deps: —) **The refusal that demands a ref names nothing that would produce one** — ref.missing states the rule while anchors answers it, and which family a block's prose lives under is derivable from no command at all. → §RK312
+- 📋 **RK325** (deps: —) **No verb writes the priority queue, so keeping it true is a hand edit of roadkeep.toml** — Every other list this format holds has an insert and a drop; the one that outranks the id order has neither, so its only repair is the editor nothing watches. → §RK325
+- 📋 **RK327** (deps: RK325) **A departure kills the priority entry that named it and reports nothing, so the queue outlives the line** — Shipping is the moment the entry stops being true and the only moment the author is present, and one task per commit means the correction lands there or in no commit at all. → §RK327
+- 📋 **RK329** (deps: —) **the two prose arguments of one command disagree about stdin, and the shell-hostile one is the literal** — --section-body reads stdin on '-' and --why does not, so the field whose prose carries apostrophes and backticks is the one that must survive a shell quote. → §RK329
 
 ## Block C — Query (consult without reading the file)
 
@@ -36,6 +39,8 @@
 ## Block D — The gate
 
 - 📋 **RK320** (deps: —) **The version bump stages two whole files, so an unrelated edit to either rides into the next commit** — Measured once: another agent's manifest change was in the tree, the hook staged plugin.json to bump it, and the edit landed under a commit message about something else. → §RK320
+- 📋 **RK326** (deps: RK325) **The gate passes a priority entry naming a shipped id, an unknown id or a block nothing declares** — Measured after a ship: all three pass at exit 0, where the same three tokens written as deps are two findings and a resolution the annotation carries. → §RK326
+- 📋 **RK328** (deps: RK325, RK326) **The one queue repair that is fully derived has no fixer, so a clean tree still costs a hand edit** — Dropping the entry whose task shipped chooses nothing and writes no prose, which is exactly the half --fix exists for, and the lint-fix hook already watches roadkeep.toml. → §RK328
 
 ## Block E — Adoption
 
@@ -44,7 +49,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK322** (deps: —) **The payload's root .mcp.json is auto-loaded as a plugin surface, naming a path no adopter has** — Both declarations exist under the one name in an adopting project and which of them a session launches is unobserved, so the tools that offer the write path may be absent. → §RK322
 - 📋 **RK323** (deps: —) **The published payload carries this repository's own CLAUDE.md, which the loader warns is not context** — It is this project's context file doing its job in the checkout and dead weight in the payload, which is RK322's shape without RK322's ambiguity about which file answers. → §RK323
 
 ## Non-goals

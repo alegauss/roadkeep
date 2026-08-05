@@ -26,7 +26,8 @@ decisions those two files encode live here, next to the assertions that hold the
   entry was a second reference to a loaded file and the loader failed the *whole plugin* over
   it: three hooks, five skills and the server, gone, on the first marketplace install. The
   convention was checkable all along. The MCP server stays declared, because its file is not
-  where the convention looks — and what the root `.mcp.json` costs is the open half below.
+  where the convention looks — and because the convention *would* find the root `.mcp.json`,
+  which names a launcher only this checkout has (RK322, measured below).
 * **Both surfaces run the launcher the plugin ships**, so `/plugin install` is the whole setup
   and nothing has to be on PATH (RK24).
 * **Declared twice, because a placeholder cannot be in two scopes.** `${CLAUDE_PLUGIN_ROOT}`
@@ -230,6 +231,37 @@ def test_every_hook_bounds_how_long_it_may_block_the_write():
 def test_the_manifest_points_at_the_server_it_ships():
     declared = HERE / read(MANIFEST)["mcpServers"].removeprefix("./")
     assert declared == MCP and declared.is_file()
+
+
+def test_the_declaration_decides_which_of_the_two_files_the_payload_launches():
+    """The payload carries both, and this is the line that says which one runs (RK322).
+
+    `.mcp.json` at a plugin root is a plugin surface by convention, exactly as
+    `hooks/hooks.json` is, so the published tree declares this server twice — once beside the
+    manifest for the plugin and once at the root for this repository (RK81). Which one an
+    adopting session launched was the open question. Measured with
+    `claude --plugin-dir <tree> mcp list`, from a project that is not this one:
+
+    | manifest declares    | root `.mcp.json` names       | what launched                     |
+    | -------------------- | ---------------------------- | --------------------------------- |
+    | `.claude-plugin/…`   | `${CLAUDE_PROJECT_DIR:-.}`   | the declared file, connected      |
+    | nothing              | `${CLAUDE_PROJECT_DIR:-.}`   | the root file, failed to connect  |
+    | nothing              | `${CLAUDE_PLUGIN_ROOT}`      | the root file, connected          |
+    | nothing              | `${CLAUDE_PLUGIN_ROOT:-.}`   | the root file, failed to connect  |
+
+    So RK321's lesson does **not** generalise: naming `hooks/hooks.json` failed the whole
+    plugin, and naming this one is the only thing that keeps the convention from starting a
+    launcher path no adopter has. The line stays, and a test says so, because deleting it
+    reads like the same tidy-up that fixed the hooks.
+
+    The last row is why one file cannot serve both roots: `${VAR:-default}` is expanded from
+    the environment, which has no `CLAUDE_PLUGIN_ROOT` in it, so the default reaches argv and
+    the placeholder is never substituted. Each root gets the form its own scope resolves.
+    """
+    assert read(MANIFEST)["mcpServers"] == "./.claude-plugin/mcp.json"
+    assert PROJECT_MCP.is_file(), "the file the convention finds when that declaration goes"
+    assert ":-" not in read(MCP)["mcpServers"]["roadkeep"]["args"][0]
+    assert "${CLAUDE_PLUGIN_ROOT}" not in json.dumps(read(PROJECT_MCP))
 
 
 def test_one_server_named_for_the_package():

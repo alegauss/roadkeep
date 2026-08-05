@@ -149,6 +149,76 @@ block's>`, with the free address in the message when the family is derivable fro
 block. Second, `anchors` should be able to report per block, since a caller reaching for
 it already knows which block the task is in and not which numeral its prose lives under.
 
+### §RK325 The queue is a declaration with no door
+
+`priority` in `roadkeep.toml` is the one tier of `pick` a project declares rather than
+derives (RK11), and `guarding.governed` is explicit that the config is not governed
+because it is "the per-project declaration, which a human edits by hand on purpose".
+That is right about the *prefix*, the paths and the limits: none of them stops being
+true by itself. The queue is the exception. Every token in it names work, and work
+leaves — so the one declaration that goes stale on its own is the one with no verb to
+correct it.
+
+What a door has to be careful about is the file. A config is comments as much as values:
+this repository writes three lines of reasoning above its own `priority = []`, and a
+writer that re-rendered the table would delete them. So the write is surgical — locate
+the array in the source, rewrite that span and no other byte, then re-parse the result
+and compare the whole `Config` to the one intended, or write nothing. That is L3's rule
+applied to a file this tool does not own, which is the only footing on which it may
+write one at all.
+
+And a `list` beside the two writes, because a drop is only decidable if the entries can
+be read: what each token resolves to now — open, shipped, retired, set aside, or nothing
+at all. `pick` says which tier answered and never which entries are dead.
+
+### §RK327 The departure knows, and says nothing
+
+`ship QQ1` on a project whose `priority` names QQ1 prints the ledger line, the removal,
+the dropped section and the event, and not one word about the queue. Every fact needed
+is in that transaction: the id, and a config already read.
+
+`Departure` is the right shape for it. It already carries `dependents` — open lines
+still naming the id — and `cited`, the sections whose prose quoted what the drop
+deleted, both reported and neither refused, because the ship is right and those are the
+author's next edit *in this commit*. A queue entry is the same kind of fact: naming it
+there puts the correction in the commit the ship belongs to, instead of leaving it for
+whoever next wonders why the declared priority names nothing ready.
+
+Both other doors out of the roadmap, too. `retire` reaches the same transaction, and a
+`defer` is worse than either: the line is still work, so the entry looks live, and
+`pick` can never offer it while it sits in the deferred store.
+
+What this deliberately is *not* is a write. The config is the project's declaration
+(`guarding.governed`), and a `ship` that edited it as a side effect would make the tool
+the author of a file it tells a human to own — the argument that also keeps `ship` from
+rewriting prose citing the section it deletes. So the answer names RK325's drop, in the
+shape the printed `git add --` line already has (RK298): a command the caller runs.
+
+### §RK329 The argument that needed stdin is the one that did not get it
+
+`add` takes two pieces of prose. `--section-body` documents that "omitted or '-' reads
+stdin". `--why` takes `-` as a why consisting of one hyphen, and refuses it for having
+no terminator.
+
+The asymmetry is backwards. A section body is long, so stdin was the obvious affordance
+for it. But a `why` is the field that reliably carries an apostrophe, a backtick, an em
+dash and a `§` — its sentence names types, files and prior ids — and every one of those
+is read by a shell before the program sees it. Measured twice in one session against an
+adopting repo: a `ship --why` lost to a PowerShell parse, another to a bash
+single-quoted string containing `T293's`. Both were recovered by writing the prose to a
+variable first, which is what stdin exists to avoid.
+
+No validation changes: the sentence is still refused for a missing terminator or a
+length it cannot have. What changes is how it arrives — and for `--why` wherever it
+appears (`add`, `amend`, `ship`, `record add`, `non-goal add`), because a caller who
+learns the convention on one verb reaches for it on the next.
+
+Worth doing because the failure is silent in the bad direction. A shell that eats a
+backtick does not refuse; it hands over prose subtly unlike what was written, and the
+line lands. A quote terminating early is the loud case, and the lucky one.
+
+`-` already spells "read stdin" here, so there is no convention to teach.
+
 ## Block C — Query
 
 ### §RK303 First match, at the one door that had not learned it
@@ -218,6 +288,56 @@ that, and then a hook stages two more paths nobody declared. What needs deciding
 whether the bump can stage only its own diff — the number is one line in each file — or
 whether it refuses when either file carries an edit it did not make.
 
+### §RK326 A queue the gate cannot read
+
+`Config._check_priority` already states the rule this asks for: an entry `pick` cannot
+resolve "is a queue the author believes is in force and is not", and a silent one is
+worse than none. It then checks the spelling alone — is the token an id of this project,
+or `Block X` — because a config parser has no roadmap to resolve it against. `lint` has
+both files open.
+
+Measured on a scratch project: `priority = ["QQ1", "Block Z", "QQ9"]` with QQ1 shipped,
+no heading declaring Z and QQ9 in no file lints clean, and `pick` answers "the declared
+priority names nothing ready" — one sentence covering three deaths and naming none of
+them. Written as deps on a line, two of those tokens are `dep.unknown` and
+`dep.no-block`.
+
+So the codes are the states a token can be dead in: shipped, retired, set aside, naming
+nothing, naming a block whose every line has left, and named twice. Located as
+`roadkeep.toml:line:column` like everything else the gate reports (RK34), which is what
+makes the array's position in the source a thing RK325 has to find anyway.
+
+Two states are **not** findings, and telling them apart is the care here. An entry
+naming a task that is merely blocked is a queue doing its job. And a declared block
+holding nothing yet is legitimate — `block add` writes the heading before the lines — so
+it is a note, told apart from an emptied block by whether the ledger has entries under
+that label.
+
+### §RK328 The dead entry is mechanical
+
+RK16 splits the gate's findings in two: mechanical, recomputed from what is already
+there, and editorial, needing a decision a tool making it would be writing prose. A
+priority entry whose task shipped is squarely the first. There is exactly one repair, it
+chooses nothing, and no sentence of anybody's is touched — the same class as a stale dep
+annotation.
+
+The surface is already declared. `.pre-commit-hooks.yaml` lists `roadkeep.toml` under
+`files:` for both the `roadkeep-lint` and `roadkeep-lint-fix` hooks, so a project that
+wired the fixer is already asking to be repaired when its config changes. What is new is
+that `fixing` would write a file it does not govern, which is why this waits on RK325:
+the locate-rewrite-reparse door is the guarantee, called rather than re-implemented, and
+its refusal — a comment inside the array, a key it cannot find — becomes a finding this
+pass leaves alone rather than a rewrite it guesses at.
+
+Two things stay editorial, and they are the reason this is not simply "make the queue
+match". **Order** is the author's whole statement, so nothing here reorders. And an
+entry naming a task that is merely *blocked* is live: dropping it would delete a
+declaration because a dep has not landed yet.
+
+What that leaves is the state the complaint was about: a queue accumulating ids of
+finished work, cleared by the command the hook already runs, with the entries it dropped
+named in the report rather than removed in silence.
+
 ## Block E — Adoption
 
 ### §RK305 A majority that measures the backlog, not the file
@@ -256,27 +376,6 @@ taken at collection, or whether a count over a file the backlog erodes is the wr
 assertion whoever is writing it — RK305 already names that ratio as fragile.
 
 ## Block F — The plugin
-
-### §RK322 The payload's root .mcp.json is auto-loaded as a plugin surface, naming a path no adopter has
-
-RK81 put the plugin's declaration in `.claude-plugin/mcp.json` because
-`${CLAUDE_PLUGIN_ROOT}` is defined only for a plugin-provided config, while a project's
-own server must sit at the root as `.mcp.json`. So this repository carries both, and the
-root one names `${CLAUDE_PROJECT_DIR:-.}/scripts/roadkeep.py`.
-
-That root file travels in the published payload, and the loader reads it: with
-`.claude-plugin/mcp.json` renamed away in an installed copy, `claude plugin details`
-still reported one server named `roadkeep`. The convention finds it exactly as it found
-`hooks/hooks.json` (RK321). So both declarations exist under one name in every adopting
-project, and which one a session launches is unobserved. If the root one wins, the argv
-names a `scripts/` directory only this repository has, and the tools are absent —
-RK321's silent failure again, in the surface that offers the write path.
-
-The fix is a decision and not a deletion, which is why it is not RK321's second half.
-Dropping the root file takes `mcp__roadkeep__*` out of the session that writes the tool,
-which is the whole of RK81; pointing it at `${CLAUDE_PLUGIN_ROOT}` leaves a variable
-nothing sets here. What is wanted is a payload carrying one declaration, so the question
-is whether a root file the repository must keep can be kept out of it.
 
 ### §RK323 The published payload carries this repository's own CLAUDE.md, which the loader warns is not context
 
