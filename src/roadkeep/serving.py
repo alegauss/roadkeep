@@ -71,7 +71,7 @@ from pathlib import Path
 from typing import Any, TextIO
 
 from roadkeep import __version__
-from roadkeep.config import PROSE_ROLES, Config, ConfigError, Scope
+from roadkeep.config import PROSE_ROLES, ROLES, Config, ConfigError, Scope
 from roadkeep import provenance
 from roadkeep.provenance import engine
 # `words` from where it is *defined* and not from `budgeting`, which re-exports it (RK260):
@@ -416,6 +416,13 @@ _BOUNDS = {
     "body": lambda config: {"note": _paragraphed(config)},
     "section_body": lambda config: {"note": _paragraphed(config)},
     "status": lambda config: {"enum": list(config.schema.markers)},
+    # The remaining closed set, and the one that published a sentence (RK304). `section_add`,
+    # `section_amend`, `section_drop` and `budget` each describe this as *"which prose file"* and
+    # gave the client nothing to validate, so `role = "notes"` was a well-formed call the server
+    # refused after it was made. The set is the project's declared prose files — `config.has` over
+    # `PROSE_ROLES`, the same narrowing `_paragraphed` makes to decide which limits to publish
+    # (RK259), because a role a project declares no file for is one every reader here refuses.
+    "role": lambda config: _roles(config, PROSE_ROLES),
     "id": lambda config: {"pattern": config.schema.id_pattern().pattern},
     # Not `id_pattern` (RK111): this is the *chosen* id, and the shape that admits a bare
     # number would admit exactly the choice deriving already makes. The narrower pattern is
@@ -471,6 +478,12 @@ _CONDITIONAL: Mapping[str, Conditional] = {
     ),
 }
 
+#: `list --role` is *which governed file*, not which prose file (RK304) — its universe is every
+#: role this project declares, `roadmap` included, and that is the default. Published through the
+#: same table with the one key overridden, so a bound added to `_BOUNDS` tomorrow reaches this
+#: tool too: an enum of the prose files here would refuse the most common call this surface makes.
+_FILE_BOUNDS = {**_BOUNDS, "role": lambda config: _roles(config, ROLES)}
+
 #: The non-goals are their own two limits (RK70), so the same `why` means a different number
 #: here — a client validating a bullet against the *task* limit would refuse prose the tool
 #: accepts, which is the one way this derivation can be wrong while looking right.
@@ -489,6 +502,28 @@ _SCOPE_BOUNDS = {
 def _aimed(limit: int) -> str:
     """The character ceiling restated as the word count a model can count towards (RK185)."""
     return f"Aim for {words(limit)} words; {limit} characters is what refuses."
+
+
+def _roles(config: Config, universe: Sequence[str]) -> dict[str, Any]:
+    """The roles a caller may name, as the enum a client validates against (RK304).
+
+    ``universe`` is what the *command* means by a role and the config is what this project has,
+    and the answer is the intersection: `section add` writes into a prose file and `list` prints
+    any governed one, so one enum over both would refuse `roadmap` on the read or offer it on the
+    write. Passed in rather than inferred, because it is a fact about the verb.
+
+    Not argparse `choices`, for the reason §RK304 gives: `--role` accepts what the *project*
+    declares, and a parser built once per process cannot say so without being rebuilt per project.
+    Nothing is checked here either — unlike a conditional field's `pattern` (:func:`_bounded`),
+    every role this narrows is one the write path beneath already refuses by name, so a check
+    here would be a second spelling of a refusal `Config.path` owns.
+
+    **Empty publishes nothing.** A project that declares no file of this kind has no legal value
+    to offer, and `"enum": []` is a keyword no value satisfies — a client holding it could not make
+    the call that earns the refusal explaining why, which is the one useful thing left to say.
+    """
+    declared = [role for role in universe if config.has(role)]
+    return {"enum": declared} if declared else {}
 
 
 def _paragraphed(config: Config) -> str:
@@ -666,13 +701,28 @@ def _description(tool: Tool, parser: argparse.ArgumentParser) -> str:
     return described
 
 
+def _bounds_for(tool: Tool) -> Mapping[str, Any]:
+    """Which bounds table describes this tool's fields, by the verb and never by the dest.
+
+    Two commands mean something of their own by a name every other command shares: `non-goal`'s
+    `why` is `[non_goals]`' limit and not `[limits]`' (RK70), and `list`'s `role` is any governed
+    file where every other `role` is a prose one (RK304). Both are properties of the verb rather
+    than of the dest, so both are read off it, here and in one place: a second `if` at the caller
+    is how two tools over one dest come to publish two answers.
+    """
+    if tool.argv_head[0] == "non-goal":
+        return _SCOPE_BOUNDS
+    return _FILE_BOUNDS if tool.argv_head[0] == "list" else _BOUNDS
+
+
 def descriptor(
     tool: Tool, config: Config, parsers: Mapping[str, argparse.ArgumentParser] | None = None
 ) -> dict[str, Any]:
     parser = _subparser(tool.command, parsers)
     # Which table holds this tool's numbers: the non-goals are governed by `[non_goals]` and
-    # every other command by `[limits]`, and `why` is a field both of them name (RK70).
-    bounds_for = _SCOPE_BOUNDS if tool.argv_head[0] == "non-goal" else _BOUNDS
+    # every other command by `[limits]`, and `why` is a field both of them name (RK70) — plus the
+    # one command whose `role` means *which governed file* rather than which prose file (RK304).
+    bounds_for = _bounds_for(tool)
     properties: dict[str, Any] = {}
     required: list[str] = []
     for dest in tool.exposed(config):

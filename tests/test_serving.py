@@ -1037,6 +1037,53 @@ def test_an_argv_that_would_have_gone_to_the_pipe_names_the_argument(tmp_path):
     assert written["isError"] is False
 
 
+# -- the bound that stayed prose (RK304) ----------------------------------------
+
+
+def test_the_prose_role_is_published_as_the_files_this_project_declares(tmp_path):
+    # RK24's claim is that the input schema *is* the format's schema, and `role` was the closed
+    # set that published a sentence: four tools described it as "which prose file" and gave the
+    # client nothing to validate, so `role = "notes"` was refused after the call.
+    served = listed(project(tmp_path, config=PROSE, improvements=DESIGN))
+    for name in ("section_add", "section_amend", "section_drop", "budget"):
+        assert served[name]["inputSchema"]["properties"]["role"]["enum"] == ["improvements"]
+    # `strategy` is a prose role this project declares no file for, so it is not offered: the
+    # same narrowing every other reader of this question makes (RK259).
+    assert "strategy" not in served["section_add"]["inputSchema"]["properties"]["role"]["enum"]
+
+
+def test_the_read_that_means_any_governed_file_is_not_narrowed_to_the_prose_ones(tmp_path):
+    # `list --role` is *which governed file* and defaults to `roadmap`, so an enum of the prose
+    # files would refuse the most common call this surface makes.
+    served = listed(project(tmp_path, config=PROSE, improvements=DESIGN))
+    offered = served["list"]["inputSchema"]["properties"]["role"]["enum"]
+    assert offered == ["roadmap", "changelog", "improvements"]
+
+
+def test_a_project_with_no_prose_file_publishes_no_enum_rather_than_an_empty_one(tmp_path):
+    # `"enum": []` is a keyword no value satisfies, so a client holding it could not make the
+    # call that earns the refusal explaining why — which is the one useful thing left to say.
+    served = listed(project(tmp_path))  # CONFIG declares roadmap and changelog only
+    assert "enum" not in served["section_add"]["inputSchema"]["properties"]["role"]
+    # And the field is still there, describing itself as the CLI does.
+    assert "prose file" in served["section_add"]["inputSchema"]["properties"]["role"]["description"]
+
+
+def test_the_role_the_enum_withholds_is_still_the_one_the_write_path_refuses(tmp_path):
+    # Nothing is checked on this surface: every role the enum narrows away is one `Config.path`
+    # already refuses by name, and a check here would be a second spelling of that refusal.
+    answered = called(
+        project(tmp_path, config=PROSE, improvements=DESIGN),
+        "section_add",
+        anchor="RK1",
+        title="A design",
+        body="Because a pointer resolving to nothing reads like a design that exists.",
+        role="notes",
+    )
+    assert answered["isError"] is True
+    assert "declares no 'notes' file" in text_of(answered)
+
+
 # -- the check the agent it was built for could not call (RK275) ----------------
 
 

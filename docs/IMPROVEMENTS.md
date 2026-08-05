@@ -151,29 +151,6 @@ one the majority was standing in for.
 
 ## Block F — The plugin
 
-### §RK304 The bound that stayed prose
-
-RK24's claim is that the input schema *is* the format's schema: `maxLength` is this
-project's limits, `enum` is its declared markers, `pattern` is its id shape. The point
-is the protocol refusing a wrong argument before the call, which is L1 one layer out.
-
-`role` is the remaining closed set and it publishes neither. Measured on this
-repository: `section_add`, `section_amend`, `section_drop` and `budget` each describe it
-as *"which prose file"* and give the client nothing to validate against, so `role =
-"notes"` is a well-formed call the server refuses. The set is not a guess — `config.has`
-over `PROSE_ROLES` is the same narrowing `_paragraphed` already makes to decide which
-limits to publish (RK259), so the answer is one line from a function that already
-computes it.
-
-Two things it is not. It is not `choices` on the parser: `--role` accepts a role the
-*project* declares, and argparse would have to be rebuilt per project to say so. And it
-is not a bound the client may skip — `argv` checks what it publishes (RK111's rule), so
-whatever is added here is checked at dispatch too.
-
-Worth deciding whether `--role` on `anchors` joins them. It narrows a listing rather
-than choosing a write target, and RK297 made it the one flag that does not change the
-number an author acts on.
-
 ### §RK308 One name, two acts, and the one an agent cannot reach
 
 RK150's own sentence is the finding: *a flag only the CLI can reach is a flag the agent

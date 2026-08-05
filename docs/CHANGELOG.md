@@ -327,3 +327,4 @@
 - ✅ **RK261** **A denial still loads the document model and the lock for names it never reaches** — `Document` and `LockBusy` are reached inside the one method and the one function that use them, so a denial loads 5 modules at 44.6 ms rather than 7 at 50.1, and no command pays more.
 - ✅ **RK267** **A staleness note lists every changed module and hands relevance back** — the note names the modules that both moved and decided the refusal, and says nothing when the sets are disjoint.
 - ✅ **RK275** **No MCP tool asks whether git would run this driver** — merge --check is served as the tool merge_check, read-only and answering both halves of the wiring as fields.
+- ✅ **RK304** **The one closed-set argument on the MCP surface publishes no enum, so a role nobody declared is refused after the call** — role publishes the declared files of the kind its own command means, narrowed per project and empty on none.
