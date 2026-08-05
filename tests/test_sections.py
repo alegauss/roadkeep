@@ -1081,6 +1081,63 @@ def test_an_anchor_two_prose_files_declare_is_charged_what_the_gate_charges_it(t
     assert sorted(f.code for f in lint(Config.discover(tmp_path)).findings) == doubled
 
 
+def test_an_anchor_the_sibling_prose_file_declares_is_refused_at_the_door(tmp_path):
+    # RK302, reproduced: `SectionExists` asked the document it was writing into and nobody
+    # else, so the second `section add` reported success and `lint` then named the state its
+    # own message calls unresolvable — out of which `drop` was the only exit.
+    both = "# Strategy\n\n## Block A — The model\n\n### §RK1 The same anchor\n\nElsewhere.\n"
+    config = project(
+        tmp_path,
+        roadmap=f"# Roadmap\n\n## Block A — The model\n\n{RK1_LINE}\n",
+        extra='strategy = "docs/STRATEGY.md"\n',
+        improvements="# Improvements\n\n## Block A — The model\n",
+    )
+    with (config.root / "docs" / "STRATEGY.md").open("w", encoding="utf-8", newline="") as h:
+        h.write(both)
+    config = Config.discover(tmp_path)
+
+    with pytest.raises(SectionExists) as raised:
+        add(config, "improvements", "RK1", "A design", "Prose.")
+    message = str(raised.value)
+    assert "docs/STRATEGY.md:5" in message
+    assert "across every prose file this project declares" in message
+    # Refused before the write, so the file the caller named still holds every byte it held.
+    assert "RK1" not in read(config)
+    assert lint(config).findings == ()
+
+
+def test_the_outline_repro_that_filed_it_is_refused_on_both_calls(tmp_path):
+    # The reproduction verbatim: `IX` and `IX.1` into improvements, then the same two into
+    # strategy. All four used to succeed and print their line counts.
+    config = project(
+        tmp_path,
+        top='ref_scheme = "outline"\n',
+        extra='strategy = "docs/STRATEGY.md"\n',
+        improvements="# Improvements\n\n## Block A — The model\n",
+    )
+    with (config.root / "docs" / "STRATEGY.md").open("w", encoding="utf-8", newline="") as h:
+        h.write("# Strategy\n\n## Block A — The model\n")
+    config = Config.discover(tmp_path)
+    for anchor, title in (("IX", "A design"), ("IX.1", "A child")):
+        document, _ = add(config, "improvements", anchor, title, "Prose here.")
+        document.save()
+    config = Config.discover(tmp_path)
+    for anchor, title in (("IX", "A design"), ("IX.1", "A child")):
+        with pytest.raises(SectionExists) as raised:
+            add(config, "strategy", anchor, title, "Prose here.")
+        assert IMPROVEMENTS in str(raised.value)
+
+
+def test_the_same_anchor_in_the_file_being_written_still_names_that_file(tmp_path):
+    # The local refusal is unchanged and is the one that runs first: an author writing into
+    # IMPROVEMENTS.md is told about IMPROVEMENTS.md, not about a file they did not mention.
+    config = project(tmp_path, roadmap=f"# Roadmap\n\n## Block A — The model\n\n{RK1_LINE}\n")
+    with pytest.raises(SectionExists) as raised:
+        add(config, "improvements", "RK1", "A second design", "Prose.")
+    assert IMPROVEMENTS in str(raised.value)
+    assert "across every prose file" not in str(raised.value)
+
+
 def test_the_state_this_condition_is_for_is_one_a_live_corpus_carries():
     """The count RK232 was filed to get, and it is what decided the condition over a retire.
 

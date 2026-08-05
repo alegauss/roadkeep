@@ -24,8 +24,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK302** (deps: —) **section add writes an anchor another declared prose file already holds, and only a retired one is refused** — Reproduced on a two-file project: the second add reports success and lint then names four section.ambiguous findings whose own message says every verb reading one refuses. → §RK302
-
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK303** (deps: —) **The section budget picks the first of two prose files declaring one anchor, where every other reader refuses** — It answered improvements about an address strategy declares too, and show calls that state a pointer resolving to neither — so a limit is priced for an unreachable section. → §RK303

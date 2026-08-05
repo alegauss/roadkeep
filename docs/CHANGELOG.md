@@ -107,6 +107,7 @@
 - ✅ **RK295** **A scope naming a path the tree does not have is recorded in silence** — A declared path that is in neither the dirty set nor the index is marked where it stands, so a typo reads as one instead of as a complete scope.
 - ✅ **RK296** **An undeclared-block refusal still lists every label the file declares** — An undeclared-block refusal names the file and the verb and stops listing every label, which `shading` already answers by name in the one case it mattered.
 - ✅ **RK298** **A shipped line's commit cannot read the scope its claim carried** — A departure prints the `git add --` line for the scope it releases, so the answer is in the output the committer is already reading.
+- ✅ **RK302** **section add writes an anchor another declared prose file already holds, and only a retired one is refused** — section add asks the project's declarations rather than the file's, so an anchor a sibling prose file already holds is refused before the write.
 
 ## Block C — Query
 

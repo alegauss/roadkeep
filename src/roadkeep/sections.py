@@ -85,13 +85,35 @@ class NoSuchSection(ValueError):
 
 
 class SectionExists(ValueError):
-    """One anchor, one section: two would make the pointer ambiguous."""
+    """One anchor, one section: two would make the pointer ambiguous.
 
-    def __init__(self, anchor: str, where: str, lineno: int) -> None:
+    Asked of **the project's declarations and not the file's** (RK302). This checked the
+    document it was writing into and nobody else, so on a project declaring two prose roles
+    the same four `section add` calls into each file all succeeded and printed their line
+    counts — and `lint` then reported four `section.ambiguous` findings whose own message is
+    the argument for refusing here: one anchor names one section, so no pointer resolves and
+    every verb that reads one refuses. The write path was building a state its own gate calls
+    unresolvable, out of which `drop` was the only exit — and that deletes prose somebody
+    wrote.
+
+    No `--force`, deliberately. RK297's measurement is that the doubled anchors in both live
+    corpora were made by hand rather than by this verb, so a door that never opens is the
+    cheaper answer than one whose only correct use is a hand edit the guard already denies.
+    """
+
+    def __init__(
+        self, anchor: str, where: str, lineno: int, *, elsewhere: bool = False
+    ) -> None:
         self.anchor = anchor
         self.lineno = lineno
+        self.elsewhere = elsewhere
+        span = (
+            "an anchor names one section across every prose file this project declares"
+            if elsewhere
+            else "an anchor names one section"
+        )
         super().__init__(
-            f"§{anchor} is already at {where}:{lineno}: an anchor names one section, "
+            f"§{anchor} is already at {where}:{lineno}: {span}, "
             f"and a pointer that resolves to two resolves to neither"
         )
 
@@ -688,6 +710,7 @@ def add(
     existing = find(document, anchor)
     if existing is not None:
         raise SectionExists(anchor, where, existing.first)
+    _refuse_doubling(config, role, anchor)
     _refuse_reuse(config, role, anchor, where)
 
     lines = _render(document.schema, anchor, title, body, _depth(document, anchor, level))
@@ -703,6 +726,36 @@ def add(
     placed = find(document, anchor)
     assert placed is not None  # rendered by this function a moment ago
     return document, placed
+
+
+def _refuse_doubling(config: Config, role: str, anchor: str) -> None:
+    """Refuse an anchor a **sibling** prose file already declares (RK302).
+
+    :func:`_refuse_reuse` catches the address a heading in history spent, which is the case
+    where history is the only witness. A live one is visible in the file next to it, and until
+    this ran nothing looked: RK297 taught the *read* that an outline spans every declared prose
+    file, and the write kept asking the document it was writing into.
+
+    :func:`declaring` and not a fourth reading of the same question (RK229) — the one resolver
+    three verbs already ask which file holds an anchor. The target role is skipped because the
+    caller checked it a line earlier, against the document it has open, and that refusal names
+    the file the author is writing to rather than one they did not mention.
+
+    Both schemes, unlike :func:`_refuse_reuse`: under `id` the anchor is the id and
+    :func:`~roadkeep.authoring.refuse_reuse` covers the roadmap, but two prose files can still
+    hold `§RK2` between them, which is the same `section.ambiguous` by the same reading.
+    """
+    for other in declaring(config, anchor):
+        if other == role:
+            continue
+        held = find(config.document(other), anchor)
+        if held is not None:
+            raise SectionExists(
+                anchor,
+                config.relative(config.path(other)),
+                held.first,
+                elsewhere=True,
+            )
 
 
 def _refuse_reuse(config: Config, role: str, anchor: str, where: str) -> None:

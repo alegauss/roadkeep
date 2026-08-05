@@ -77,31 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK302 The door that admits the state four verbs refuse
-
-`SectionExists` asks the document it is writing into and nobody else. RK297 taught the
-*read* that an outline spans every declared prose file, and `_refuse_reuse` with it —
-but that one catches a **retired** address, which is the case where history is the only
-witness. A live one is visible in the sibling file, and no check looks.
-
-Reproduced on a project declaring both roles: `section add IX --role improvements`,
-`section add IX.1 --role improvements`, then the same two into `strategy`. All four
-succeed and print their line counts. `lint` then reports four `section.ambiguous`
-findings, and the message it prints is the argument for refusing at the door: *one
-anchor names one section, so no pointer here resolves and every verb that reads one
-refuses.*
-
-So the write path builds a state its own gate calls unresolvable, and the four verbs
-that would repair it are among the ones that refuse. `anchors` names the doubling now
-(RK297) but names it afterwards, and `drop` is the only exit — which deletes prose
-somebody wrote.
-
-The shape is the one `_refuse_reuse` already has: the project's declarations rather than
-the file's, asked one line earlier. What needs deciding is whether the refusal names the
-sibling file's line number, which `declaring` can already reach, and whether a `--force`
-exists at all — RK297's evidence says the doubled anchors in the corpora were made by
-hand and not by this verb, so a door that never opens is the cheaper answer.
-
 ## Block C — Query
 
 ### §RK303 First match, at the one door that had not learned it
