@@ -527,13 +527,15 @@ def test_a_ledger_with_no_heading_for_the_block_is_refused(tmp_path):
     assert read(config, ROADMAP) == BACKLOG
 
 
-def test_that_refusal_names_the_file_whose_labels_it_listed(tmp_path):
-    # RK257: the roadmap plainly declares Block B, so a list that omits it and names no file
-    # reads as "your label is wrong" — which is the one thing it is not.
+def test_that_refusal_names_the_file_it_read(tmp_path):
+    # RK257: the roadmap plainly declares Block B, so a refusal naming no file reads as "your
+    # label is wrong" — which is the one thing it is not. RK296 dropped the list that went
+    # with it: 90 labels bury the two clauses that are the remedy.
     config = project(tmp_path, changelog="# Shipped\n\n## Block A — The model\n")
     with pytest.raises(UnknownBlock) as raised:
         ship(config, "RK3", why="Because of a third reason.")
-    assert f"({CHANGELOG} declares: A)" in str(raised.value)
+    assert f"Block B in {CHANGELOG}:" in str(raised.value)
+    assert "declares: A" not in str(raised.value)
 
 
 def test_that_refusal_spells_the_one_command_that_repairs_it(tmp_path):

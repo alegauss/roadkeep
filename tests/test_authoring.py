@@ -192,9 +192,13 @@ def test_a_block_no_heading_declares_is_refused_and_the_file_is_untouched(tmp_pa
     config = project(tmp_path)
     with pytest.raises(UnknownBlock) as raised:
         task(config, block="Z")
-    # The declared blocks are named: the fix is a heading or a different label, and
-    # inventing the heading would file the task where nothing looks for it.
-    assert "Block Z" in str(raised.value) and "A, B" in str(raised.value)
+    # The file and the verb are named: the fix is a heading or a different label, and
+    # inventing the heading would file the task where nothing looks for it. The labels the
+    # file *does* declare are not (RK296) — they are a set the caller is not choosing from.
+    message = str(raised.value)
+    assert "Block Z" in message and "block add Z" in message
+    assert "A, B" not in message
+    assert raised.value.declared == ("A", "B")  # still carried, for a caller that wants them
     assert source(config) == BODY
 
 

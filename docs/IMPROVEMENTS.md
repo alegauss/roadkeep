@@ -77,24 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK296 The half of RK257 that was left
-
-Stated plainly because it was a choice and not an oversight: RK257 named three missing
-things and this shipped two of them. The file the labels came from and the `block add`
-that opens the heading are now in the sentence; the labels themselves are still all of
-them.
-
-The list is load-bearing exactly once — when the label really was mangled, which is the
-incident RK216 was filed from, and there the neighbours are what makes the mistake
-visible. That is also the case `shading` already answers by name: it names the labels
-that share a prefix, which is the subset a confused author needs. Where nothing shades,
-the remaining labels are a set the author is not choosing from.
-
-So the shape is not a cap on the list but a question about when it is printed at all.
-What must not happen is the answer that reads well and helps nobody: an elision (`A, AA,
-AB, … and 87 more`) keeps the length and loses the one label that would have settled it,
-which is RK68's argument about a bounded list read as the whole one.
-
 ### §RK298 The scope that leaves with the claim that held it
 
 Hit once per task across Block D. `agents.md` documents the commit as `claim <id>

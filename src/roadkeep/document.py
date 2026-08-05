@@ -161,6 +161,34 @@ def shading(label: str, declared: Sequence[str]) -> str:
     )
 
 
+def declares(declared: Sequence[str], *, named: bool = False) -> str:
+    """What an undeclared-block refusal says about the labels that *are* declared (RK296).
+
+    Which is **nothing**, unless there are none. RK216 put the whole list in the sentence and
+    RK257 named the file it came from, and what was left is a project with 90 blocks answering
+    a question nobody asked: the two clauses that are the remedy — which file, and `block add`
+    — arrive after a line of labels the reader has to scan past.
+
+    The list is load-bearing exactly once, when the label really was mangled, and there the
+    neighbours are what makes the mistake visible. That case is :func:`shading`'s, and it
+    already answers it *by name* — the labels sharing a prefix are the subset a confused
+    author needs. Where nothing shades, the rest are a set the author is not choosing from:
+    they typed a label, they are not picking from a menu.
+
+    Not a cap on the list, which is the answer that reads well and helps nobody: an elision
+    (`A, AA, AB, … and 87 more`) keeps the length and loses the one label that would have
+    settled it — RK68's argument about a bounded list read as the whole one.
+
+    What survives is the empty case, because "this file declares no blocks at all" is a
+    different diagnosis rather than a shorter list: there is no label to have mistyped, and
+    `block add` is the whole answer. `named` says the refusal already spelled the file, so the
+    clause says *it* rather than repeating the path.
+    """
+    if declared:
+        return ""
+    return " (it declares none)" if named else " (nothing declares any block)"
+
+
 class UnknownBlock(ValueError):
     """A block is declared by a heading and by nothing else (RK37).
 
@@ -189,6 +217,11 @@ class UnknownBlock(ValueError):
     missing it, turns a refusal that had to be researched into one that can be acted on.
     ``where`` is the caller's to render (RK181), and every write that has a
     :class:`~roadkeep.config.Config` passes it.
+
+    The labels themselves are **not** listed (RK296), which is the half of RK257 that was
+    left: the file and the verb are the remedy, and a line of labels in front of them is a
+    question nobody asked. :func:`declares` is where that decision is written, and
+    :attr:`declared` still carries them for a caller that wants them.
     """
 
     def __init__(
@@ -196,8 +229,7 @@ class UnknownBlock(ValueError):
     ) -> None:
         self.label = label
         self.declared = tuple(declared)
-        known = ", ".join(self.declared) or "none"
-        file = f"{where} " if where else ""
+        file = f" in {where}" if where else ""
         # The tail this refusal adds to the shared diagnosis: at a *write* the danger is
         # taking "add the heading" at its word and opening a second one over the first's work.
         shades = shading(label, self.declared)
@@ -209,7 +241,8 @@ class UnknownBlock(ValueError):
         else:
             shades = "; the verb that opens it wherever it is missing is"
         super().__init__(
-            f"no heading declares {word} {label} ({file}declares: {known}): a heading "
+            f"no heading declares {word} {label}{file}"
+            f"{declares(self.declared, named=bool(where))}: a heading "
             f"invented by a write files the text where nothing looks for it{shades} "
             f'`block add {label} --title "<its title>"`'
         )

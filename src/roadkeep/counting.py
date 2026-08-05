@@ -32,7 +32,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 
 from roadkeep.config import Config
-from roadkeep.document import Document, Entry, Reject, shading
+from roadkeep.document import Document, Entry, Reject, declares, shading
 from roadkeep.schema import DEFAULT_HEADING_WORD, Schema
 
 
@@ -107,10 +107,12 @@ class Census:
         if block is not None:
             if block not in self.blocks:
                 raise KeyError(
-                    f"no heading declares {self.schema.block_named(block)} in {self.file} (declares: "
-                    f"{', '.join(self.blocks) or 'none'})"
+                    f"no heading declares {self.schema.block_named(block)} in {self.file}"
+                    # The labels are not listed (RK296) — a filter nobody can correct from the
+                    # list alone is not corrected by a longer one.
+                    f"{declares(self.blocks, named=True)}"
                     # The same diagnosis the write refusal gives (RK216): `--block A` against
-                    # a list containing AJ is a filter nobody can correct from the list alone.
+                    # a file declaring AJ reads as "that block is empty" dressed as "absent".
                     f"{shading(block, self.blocks)}"
                 )
             counted = tuple(e for e in counted if e.task.block == block)

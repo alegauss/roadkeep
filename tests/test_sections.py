@@ -499,7 +499,7 @@ def test_a_block_the_prose_file_does_not_declare_is_refused(tmp_path):
     )
     with pytest.raises(UnknownBlock) as raised:
         add(config, "improvements", "RK1", "A first design", "Prose.")
-    assert "Block A" in str(raised.value) and "declares: B" in str(raised.value)
+    assert "Block A" in str(raised.value) and IMPROVEMENTS in str(raised.value)
 
 
 def test_a_task_less_anchor_lands_after_the_section_it_extends(tmp_path):
@@ -1329,7 +1329,9 @@ def test_a_missing_parent_names_the_directory_it_is_in(tmp_path, capsys):
 
 def test_an_undeclared_block_names_the_directory_it_is_in(tmp_path, capsys):
     config = project(tmp_path, improvements="# Improvements\n\n## Block A — The model\n")
-    assert f"({IMPROVEMENTS} declares: A)" in refused(
+    # The file is the address and not `document.path.name` — two files of one name in one
+    # project are named identically by that. The labels it declares are not listed (RK296).
+    assert f"Block B in {IMPROVEMENTS}:" in refused(
         config, capsys, "section", "add", "RK2", "--title", "A design", "--body", "Prose."
     )
 

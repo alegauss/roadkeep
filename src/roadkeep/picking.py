@@ -60,7 +60,7 @@ from roadkeep.authoring import StatusChange, set_status
 from roadkeep.backlog import Backlog, Readiness, id_order
 from roadkeep.claiming import Held
 from roadkeep.config import Config
-from roadkeep.document import Entry, shading
+from roadkeep.document import Entry, declares, shading
 from roadkeep.locking import exclusive
 from roadkeep.schema import IN_PROGRESS, Dep
 
@@ -167,8 +167,10 @@ def pick(
     if block is not None and block not in backlog.declared_blocks():
         declared = sorted(backlog.declared_blocks())
         raise KeyError(
-            f"no heading declares {config.schema.block_named(block)} (declares: "
-            f"{', '.join(declared) or 'none'})"
+            f"no heading declares {config.schema.block_named(block)}"
+            # And not every label that is declared (RK296): the caller typed a block, they are
+            # not choosing from a menu of the other eighty-nine.
+            f"{declares(declared)}"
             # As at the write refusal (RK216): scoping a pick to `A` where `AJ` is declared
             # would otherwise read as "that block is empty" dressed as "that block is absent".
             f"{shading(block, declared)}"

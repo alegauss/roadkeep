@@ -219,7 +219,9 @@ def test_a_block_no_heading_declares_is_refused(tmp_path):
     with pytest.raises(KeyError) as caught:
         pick(config, "Z")
     assert "no heading declares Block Z" in caught.value.args[0]
-    assert "declares: A" in caught.value.args[0]
+    # And not the labels that are declared (RK296): the caller typed a block rather than
+    # choosing from a menu, and a read scoped to a block that is not there says only that.
+    assert "declares: A" not in caught.value.args[0]
     # Nothing extra where nothing shades into it (RK216): `Z` against A and B is already
     # actionable, and a hint on every refusal is output nobody reads.
     assert "prefix" not in caught.value.args[0]

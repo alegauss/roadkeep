@@ -33,6 +33,7 @@ from roadkeep.document import (
     StaleFile,
     UnknownBlock,
     _parsed,
+    declares,
     shading,
     write_atomically,
 )
@@ -1209,3 +1210,38 @@ def test_the_command_carries_the_label_that_was_asked_for():
     # the refused write already named, which is the whole reason it can be spelled here.
     assert "`block add BU " in str(UnknownBlock("BU", ("A", "B")))
     assert "`block add BU " in str(UnknownBlock("BU", ("B", "C")))  # shaded by B
+
+
+# -- and not the eighty-nine labels beside it (RK296) -------------------------
+
+
+def test_the_labels_the_file_declares_are_not_listed():
+    # The half of RK257 that was left: a project with 90 blocks answered a question nobody
+    # asked, and the two clauses that are the remedy arrived after a line of labels.
+    message = str(UnknownBlock("Z", TRAY_BLOCKS, where="docs/CHANGELOG.md"))
+    assert "no heading declares Block Z in docs/CHANGELOG.md:" in message
+    assert "declares:" not in message
+    for label in TRAY_BLOCKS:
+        assert f" {label}," not in message
+
+
+def test_the_labels_are_still_carried_for_a_caller_that_wants_them():
+    # Dropped from the sentence and not from the exception: what changed is what a reader is
+    # made to scan past, not what the refusal knows.
+    assert UnknownBlock("Z", TRAY_BLOCKS).declared == TRAY_BLOCKS
+
+
+def test_the_one_case_the_list_was_load_bearing_for_is_still_answered():
+    # `shading` names the labels that share a prefix, which is the subset a confused author
+    # needs — so removing the rest takes nothing away from the incident RK216 was filed from.
+    message = str(UnknownBlock("A", TRAY_BLOCKS, where="docs/CHANGELOG.md"))
+    assert "AG, AE, AB, AC, AI, AJ share a prefix with A" in message
+    assert "declares:" not in message
+
+
+def test_a_file_declaring_no_block_at_all_says_that_much():
+    # A different diagnosis rather than a shorter list: there is no label to have mistyped,
+    # and `block add` is the whole answer.
+    assert " (it declares none)" in str(UnknownBlock("Z", (), where="docs/CHANGELOG.md"))
+    assert " (nothing declares any block)" in str(UnknownBlock("Z", ()))
+    assert declares(("A",)) == "" and declares(("A",), named=True) == ""
