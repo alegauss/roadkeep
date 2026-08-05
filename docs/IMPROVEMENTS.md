@@ -77,31 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK350 The property the survey made and did not keep
-
-RK339 gave `status` and `claim` a refusal naming their read-only near-twins, and found
-the second pair by a one-off script: edit distance over the forty-one verbs, crossed
-with whether each needs a positional. Exactly two pairs qualified.
-
-That script is the whole finding and it was thrown away. The next verb added is measured
-by nobody, so a third pair is found the way the first two were — by somebody typing the
-report's name and reading `error: the following arguments are required`.
-
-The shape to hold it in already exists one file over.
-`test_every_module_is_named_in_the_layout_index` turned an index that silently stopped
-being an index into a gate, on the argument that what held it was a habit; this is the
-same argument about a list that grows the same way.
-
-The property is decidable and narrow: for every pair of verbs within one edit where one
-requires a positional and the other does not, the one that requires it declares a
-`twin`. Both halves are read off the parsers — the distance from their names, the
-requirement from their actions — so nothing here is a table to keep in step, which is
-the trap `Prose` already avoided.
-
-What it must not do is demand a sentence for every near-collision. `lint`/`list` and
-`ship`/`show` are pairs where neither call fails in a way the other's name explains, and
-a gate that asked for prose there would be answered with prose nobody needed.
-
 ## Block C — Query
 
 ## Block D — The gate

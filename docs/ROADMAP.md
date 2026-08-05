@@ -24,8 +24,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK350** (deps: —) **A third near-twin verb would be found by the session that types it, not by a test** — The twin sentence is declared per parser and nothing measures the list, so the pair that earns one next is the pair somebody meets. → §RK350
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate

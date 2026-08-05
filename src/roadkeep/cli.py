@@ -209,7 +209,10 @@ class _Verb(argparse.ArgumentParser):
 
     Keyed on a `twin` default rather than a table here, for :class:`~roadkeep.serving.Prose`'s
     reason (RK171): it is a claim about one command, so its own parser is where it belongs and
-    a third pair declares itself instead of being found by the session that meets it.
+    a third pair declares itself instead of being found by the session that meets it. Which
+    verbs owe one is read off these parsers rather than remembered (RK350) —
+    `test_every_verb_that_shadows_a_report_declares_the_sentence` is the survey RK339 ran once
+    by hand, so a verb added tomorrow is measured by a test and not by whoever types it wrong.
     """
 
     def error(self, message: str) -> NoReturn:

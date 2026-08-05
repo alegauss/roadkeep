@@ -11,6 +11,7 @@ status is how two files come to disagree in the first place.
 
 from __future__ import annotations
 
+import argparse
 import json
 from pathlib import Path
 
@@ -18,7 +19,7 @@ import pytest
 
 from roadkeep.authoring import DuplicateId, StatusElsewhere, set_status
 from roadkeep.backlog import NotOpen
-from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
+from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, build_parser, main
 from roadkeep.config import Config
 from roadkeep.document import RoundTripError
 from roadkeep.schema import SchemaError
@@ -345,3 +346,98 @@ def test_an_unknown_flag_is_not_a_missing_argument(tmp_path, capsys):
     project(tmp_path)
     refused(tmp_path, "status", "RK1", "🛠", "--nope")
     assert "unrecognized arguments" in capsys.readouterr().err
+
+
+# -- the pair nobody has typed yet (RK350) ------------------------------------
+
+
+def verbs(
+    parser: argparse.ArgumentParser, path: tuple[str, ...] = ()
+) -> dict[tuple[str, ...], argparse.ArgumentParser]:
+    """Every subcommand this CLI declares, keyed by the words that reach it.
+
+    Nested ones included, because a `_Verb` hands its class down and `section add` is one:
+    a near-twin a level below the top is the same mistake with the same fix.
+    """
+    found: dict[tuple[str, ...], argparse.ArgumentParser] = {}
+    for action in parser._actions:
+        if isinstance(action, argparse._SubParsersAction):
+            for name, sub in action.choices.items():
+                found[(*path, name)] = sub
+                found.update(verbs(sub, (*path, name)))
+    return found
+
+
+def needs_an_argument(parser: argparse.ArgumentParser) -> bool:
+    """Whether this verb refuses when it is typed bare, which is the whole mistake."""
+    return any(
+        not action.option_strings
+        and not isinstance(action, argparse._SubParsersAction)
+        and action.nargs not in ("?", "*")
+        for action in parser._actions
+    )
+
+
+def one_edit_apart(left: str, right: str) -> bool:
+    """A distance of exactly one: a letter typed, dropped or changed."""
+    if abs(len(left) - len(right)) > 1:
+        return False
+    row = list(range(len(right) + 1))
+    for index, here in enumerate(left, start=1):
+        following = [index]
+        for column, there in enumerate(right, start=1):
+            following.append(
+                min(row[column] + 1, following[column - 1] + 1, row[column - 1] + (here != there))
+            )
+        row = following
+    return row[-1] == 1
+
+
+def near_twins() -> list[tuple[tuple[str, ...], str, argparse.ArgumentParser]]:
+    """The verb that needs an argument, and the sibling one edit away that does not.
+
+    Siblings, because that is where the confusion lives: `record add` and `section add` are
+    reached by different first words, so neither is what the other's typo produces. And
+    **exactly one** of the pair, which is what leaves `lint`/`list` and `ship`/`show` out —
+    a pair where both calls fail the same way is one where neither name explains the other's
+    refusal, and a gate demanding prose there would be answered with prose nobody needed.
+    """
+    kin: dict[tuple[str, ...], list[tuple[str, argparse.ArgumentParser]]] = {}
+    for path, parser in verbs(build_parser()).items():
+        kin.setdefault(path[:-1], []).append((path[-1], parser))
+
+    found = []
+    for family, siblings in kin.items():
+        for index, (name, parser) in enumerate(siblings):
+            for other, its in siblings[index + 1 :]:
+                if not one_edit_apart(name, other) or needs_an_argument(parser) == (
+                    needs_an_argument(its)
+                ):
+                    continue
+                writes = (name, parser) if needs_an_argument(parser) else (other, its)
+                reads = other if writes[0] == name else name
+                found.append(((*family, writes[0]), reads, writes[1]))
+    return found
+
+
+def test_every_verb_that_shadows_a_report_declares_the_sentence():
+    """The survey RK339 ran by hand, kept (RK350).
+
+    That one was a script: edit distance over the verbs, crossed with whether each needs a
+    positional, run once and thrown away. So the third pair would be found the way the first
+    two were — by somebody typing the report's name and reading `error: the following
+    arguments are required`. Both halves are read off the parsers here, the distance from
+    their names and the requirement from their actions, so a verb added tomorrow is measured
+    by this and never by a session.
+    """
+    missing = [path for path, _, parser in near_twins() if parser.get_default("twin") is None]
+    assert missing == []
+
+
+def test_the_survey_still_finds_the_two_pairs_it_was_written_from():
+    # A property over a list read wrong is a test that passes by finding nothing, which is
+    # exactly the failure `test_every_module_is_named_in_the_layout_index` was written against.
+    assert {(path[-1], reads) for path, reads, _ in near_twins()} == {
+        ("status", "stats"),
+        ("claim", "claims"),
+    }
