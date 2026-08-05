@@ -560,6 +560,12 @@ class Departure:
     #: The checkout, so the claim on a line that left for good is released (RK162) — the one
     #: thing this transaction touches that is not a governed file.
     root: Path | None = None
+    #: What the working tree holds, split by whose claim names it (RK294) — read **before**
+    #: :meth:`save` releases this line's claim, and `None` where no live claim declared a
+    #: path. Reported and never refused: a loose path is a legitimate state, and a departure
+    #: that failed over one would be an obstacle at the moment the author cannot route around
+    #: it — the direction :func:`_drop_section` already chooses.
+    scope: claiming.Scope | None = None
 
     def save(self) -> None:
         """Write the files. Nothing here can fail on the format — that was decided.
@@ -667,6 +673,10 @@ class Closure:
     cited: tuple[str, ...] = ()
     refreshed: tuple[str, ...] = ()
     dependents: tuple[str, ...] = ()
+    #: The tree split by whose claim names it (RK294), as :class:`Departure` carries it. Read
+    #: here too because the moment is the same one — this door is `ship` on a line whose entry
+    #: is already on disk, and the commit it precedes stages exactly the same files.
+    scope: claiming.Scope | None = None
 
     @property
     def marker(self) -> str:
@@ -1387,6 +1397,9 @@ def _depart(
         ),
         replacement_in=replacement_in,
         root=config.root,
+        # Read off the roadmap as it *was*, and before `save` releases the claim (RK294): the
+        # line still carries 🛠 here, and a claim is only ever read against that marker.
+        scope=claiming.departing(config, task_id, roadmap.entries),
     )
 
 
@@ -1478,6 +1491,7 @@ def _close(config: Config, task_id: str, recorded: Entry) -> Closure:
         dependents=tuple(
             e.task.id for e in derived.document.entries if task_id in e.task.dep_ids
         ),
+        scope=claiming.departing(config, task_id, roadmap.entries),
     )
 
 

@@ -77,27 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK294 A mechanism reached only by advice
-
-RK280 gave a claim the paths its commit owns and gave `claim <id>` the read that names
-what the tree holds for somebody else. What it did not give is a caller. The declaration
-is asked for in `agents.md` and in the skill, which is the same sentence the finding
-itself quoted as failing: advice about what to do at the moment of committing, where the
-analysis is expensive and the author is already finishing.
-
-`ship` is that moment. It runs when the work is validated, its answer is already the
-three edits it made, and it holds the id — so it can ask the registry the one question a
-departing task has: what does this tree hold that no claim of mine names. Reported and
-never refused, for the reason `_drop_section` keeps a section it does not own: a loose
-path is a legitimate state (a scope nobody declared is every project that has not
-adopted this) and a ship that failed over one would be an obstacle at the one moment the
-author cannot route around it.
-
-What it must not do is derive the scope. A ship that filed the dirty paths under the
-departing id would be answering the question the incident asked — which of these is mine
-— by assuming the answer, and the two sessions it exists to separate would each get the
-other's files with the tool's signature on it.
-
 ### §RK295 A declared path nothing will stage
 
 Verbatim is the right rule and the reason RK280 gives for it stands: a scope inferred

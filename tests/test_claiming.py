@@ -1168,6 +1168,45 @@ def test_the_command_refuses_a_line_no_claim_holds_rather_than_answering_empty(
     assert "no live claim on RK2" in capsys.readouterr().err
 
 
+# -- the caller that reads it back, at the commit (RK294) ---------------------
+
+
+def test_the_split_names_what_no_claim_speaks_for(tmp_path):
+    # The list the incident was made of: a path in neither scope is one `git add -A` takes
+    # silently, so it is named rather than counted.
+    config = project(tmp_path, BLOCKS + line("RK2") + line("RK9"))
+    take(config)
+    hold(config, "RK9")
+    claiming.scope(config, "RK2", ["src/a.py"])
+    claiming.scope(config, "RK9", ["src/b.py"])
+    entries = config.document("roadmap").entries
+    split = claiming.split(config, "RK2", entries, ["src/a.py", "src/b.py", "src/c.py"])
+    assert split.mine == ("src/a.py",)
+    assert split.theirs == (("src/b.py", "RK9"),)
+    assert split.loose == ("src/c.py",)
+    # A path some other claim declared but nothing changed is not in any of the three: the
+    # question is what *this commit* would take.
+    assert claiming.split(config, "RK2", entries, ["src/a.py"]).theirs == ()
+
+
+def test_a_departure_reads_the_scope_while_the_claim_is_still_live(tmp_path):
+    # The caller RK280 did not have. `ship` releases the claim, so a read made after it is a
+    # read of nothing — this one is taken from the roadmap as it was, at 🛠.
+    config = project(tmp_path, BLOCKS + line("RK2", status=IN_PROGRESS))
+    hold(config, "RK2")
+    claiming.scope(config, "RK2", ["src/a.py"])
+    entries = config.document("roadmap").entries
+    assert claiming.departing(config, "RK2", entries).mine == ("src/a.py",)
+
+
+def test_a_departure_says_nothing_where_no_claim_declared_a_path(tmp_path):
+    # Every project that has not adopted this. There is nothing to subtract the tree from, so
+    # the honest report is no report — and git is not asked either.
+    config = project(tmp_path, BLOCKS + line("RK2", status=IN_PROGRESS))
+    hold(config, "RK2")
+    assert claiming.departing(config, "RK2", config.document("roadmap").entries) is None
+
+
 def test_the_listing_counts_a_scope_and_the_json_carries_it(tmp_path, capsys):
     # Counted in `claims` and named by `claim <id>`: that listing ranks nothing and offers
     # nothing, and four paths a row would make it the other command.

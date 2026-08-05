@@ -2599,6 +2599,7 @@ def _ship(config: Config, args: argparse.Namespace) -> int:
                         "kept": shipment.kept,
                     },
                     "refreshed": list(shipment.refreshed),
+                    "scope": _scope_json(shipment.scope),
                     "event": event,
                 },
                 indent=2,
@@ -2619,6 +2620,9 @@ def _ship(config: Config, args: argparse.Namespace) -> int:
         print(f"  kept     nothing dropped: {shipment.kept}")
     if shipment.refreshed:
         print(f"  derived  {', '.join(shipment.refreshed)} (dep annotations re-derived)")
+    # Last before the event line, because it is about the commit this ship precedes rather
+    # than about the three edits above it (RK294).
+    _print_scope(shipment.scope)
     _print_event(event, "  ")
     return EXIT_OK
 
@@ -2689,6 +2693,33 @@ def _print_cited(cited: Sequence[str]) -> None:
         f"  cited    {', '.join(f'§{a}' for a in cited)} "
         f"{'cites' if len(cited) == 1 else 'cite'} it in prose — now resolving to nothing"
     )
+
+
+def _print_scope(scope: claiming.Scope | None) -> None:
+    """What the tree holds that this commit's claim does not name (RK280, RK294).
+
+    Theirs and loose, never `mine`: the caller that declared a scope already knows it, and the
+    two lists here are the ones a `git add -A` would take without being told. Silent on a
+    `None`, which is a project no claim spoke for — there the whole answer would be `git
+    status` under a heading claiming to have read something.
+    """
+    if scope is None:
+        return
+    for one, who in scope.theirs:
+        print(f"  theirs   {one}  ({who} is holding it)")
+    for one in scope.loose:
+        print(f"  loose    {one}  (no claim names it)")
+
+
+def _scope_json(scope: claiming.Scope | None) -> dict[str, object] | None:
+    """The same three lists as fields, so a caller stages them rather than parsing a sentence."""
+    if scope is None:
+        return None
+    return {
+        "mine": list(scope.mine),
+        "theirs": [{"path": one, "claimed_by": who} for one, who in scope.theirs],
+        "unclaimed": list(scope.loose),
+    }
 
 
 def _partly(config: Config, partial: Partial, args: argparse.Namespace) -> int:
@@ -2764,6 +2795,7 @@ def _closed(config: Config, closure: Closure, args: argparse.Namespace) -> int:
                         "kept": closure.kept,
                     },
                     "refreshed": list(closure.refreshed),
+                    "scope": _scope_json(closure.scope),
                     "event": event,
                 },
                 indent=2,
@@ -2783,6 +2815,7 @@ def _closed(config: Config, closure: Closure, args: argparse.Namespace) -> int:
         _print_cited(closure.cited)
     if closure.refreshed:
         print(f"  derived  {', '.join(closure.refreshed)} (dep annotations re-derived)")
+    _print_scope(closure.scope)
     _print_event(event, "  ")
     return EXIT_OK
 
@@ -3351,26 +3384,20 @@ def _claim(config: Config, args: argparse.Namespace) -> int:
             print(one)
         return EXIT_OK
 
-    others = claiming.elsewhere(config, args.id, entries)
-    spoken = {one for other in others for one in other.paths}
-    changed = dirty(config)
-    theirs = tuple(
-        (one, other.id)
-        for other in others
-        for one in sorted(other.paths)
-        if one in changed
-    )
-    # What nobody has spoken for. Named rather than counted, because it is the list the
-    # incident was made of: a path in neither scope is one `git add -A` takes silently.
-    loose = tuple(sorted(one for one in changed if one not in set(mine) and one not in spoken))
+    # The subtraction is `claiming`'s (RK294), because `ship` asks for the same three lists
+    # at the moment of committing and two compositions of one answer is how they come to
+    # disagree. Git is asked here and not there: this command was told to answer.
+    scope = claiming.split(config, args.id, entries, dirty(config))
     if args.json:
         print(
             json.dumps(
                 {
                     "id": args.id,
-                    "paths": list(mine),
-                    "theirs": [{"path": one, "claimed_by": who} for one, who in theirs],
-                    "unclaimed": list(loose),
+                    "paths": list(scope.mine),
+                    "theirs": [
+                        {"path": one, "claimed_by": who} for one, who in scope.theirs
+                    ],
+                    "unclaimed": list(scope.loose),
                 },
                 indent=2,
             )
@@ -3378,12 +3405,9 @@ def _claim(config: Config, args: argparse.Namespace) -> int:
         return EXIT_OK
 
     print(f"{args.id} claims {len(mine)} path(s)")
-    for one in mine:
+    for one in scope.mine:
         print(f"  mine     {one}")
-    for one, who in theirs:
-        print(f"  theirs   {one}  ({who} is holding it)")
-    for one in loose:
-        print(f"  loose    {one}  (no claim names it)")
+    _print_scope(scope)
     if not mine:
         print(f"  none declared: `claim {args.id} --path <p>` says what this commit owns")
     return EXIT_OK
@@ -4221,6 +4245,7 @@ def _retire(config: Config, args: argparse.Namespace) -> int:
                     else departure.dropped.anchor,
                     "dependents": list(departure.dependents),
                     "refreshed": list(departure.refreshed),
+                    "scope": _scope_json(departure.scope),
                     "event": event,
                 },
                 indent=2,
@@ -4247,6 +4272,8 @@ def _retire(config: Config, args: argparse.Namespace) -> int:
         # Reported, not refused: a supersession is legitimate and these lines are the
         # author's next edit. `deps` now resolves them as unresolvable, not as satisfied.
         print(f"  still    {', '.join(departure.dependents)} name {departure.task_id}")
+    # A retirement is committed exactly as a ship is, and it releases the same claim (RK294).
+    _print_scope(departure.scope)
     _print_event(event, "  ")
     return EXIT_OK
 

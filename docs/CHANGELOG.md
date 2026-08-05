@@ -103,6 +103,7 @@
 - ✅ **RK257** **A ship refusal names the missing block heading but not the verb that writes it** — The refusal now names the file whose labels it listed and spells `block add <label> --title`, the one verb that declares the heading wherever it is missing.
 - ✅ **RK262** **A section add writes a heading ship will later decline to delete** — A heading written for a task now carries its id, appended by the writer that holds it, so the section binds to the line and ship deletes it instead of keeping it.
 - ✅ **RK280** **Two sessions each ship a commit carrying the other's code** — A claim now carries the paths its commit owns, so `claim <id>` names what the tree holds that another live claim says is its own.
+- ✅ **RK294** **Nothing calls the scope at the moment the commit is made** — `ship` and `retire` name what the tree holds that no claim of theirs does, read while the claim is still live.
 
 ## Block C — Query
 

@@ -33,6 +33,10 @@ depending on the line and the window — so :func:`survey` is the read that says
 and where the file is. Every other question this tool answers is a command (L5); this was the
 one that had to be answered by finding a temp file whose name is a digest.
 
+What a claim *says its commit owns* is the one field here that is not about the line at all
+(RK280), and :func:`departing` is what finally calls it (RK294): a scope declared and never
+read back at the moment of committing is the advice `agents.md` already carried.
+
 A claim is only ever read against a 🛠 line, so **the marker is what a claim follows** — which
 :func:`follow` makes true in both directions (RK158) rather than leaving half of it to be
 inferred by the read: a write that puts a line in progress dates a claim, and a write that
@@ -467,6 +471,94 @@ def elsewhere(config: Config, task_id: str, entries: Iterable[Entry]) -> tuple[H
     return tuple(
         one for one in live(config, entries) if one.id != task_id and one.paths
     )
+
+
+@dataclass(frozen=True, slots=True)
+class Scope:
+    """A dirty tree split by which claim speaks for each path (RK280, RK294).
+
+    Three lists and not one, because the caller does three different things with them:
+    stage :attr:`mine`, leave :attr:`theirs`, and *decide* about :attr:`loose`. The third is
+    the list the incident was made of — a path in neither scope is one `git add -A` takes
+    silently — so it is named rather than counted.
+    """
+
+    #: What the claim being committed says its commit owns, in the order it was declared.
+    mine: tuple[str, ...] = ()
+    #: `(path, holder)` for every changed path some *other* live claim declared.
+    theirs: tuple[tuple[str, str], ...] = ()
+    #: Changed paths no live claim names at all.
+    loose: tuple[str, ...] = ()
+
+    @property
+    def spoken(self) -> bool:
+        """Whether any live claim declared a path — the condition a volunteered read has.
+
+        `claim <id>` was *asked*, so it answers either way. A verb that reports this without
+        being asked has nothing to subtract the tree from when no claim spoke, and its whole
+        answer would be `git status` restated under a heading saying "loose".
+        """
+        return bool(self.mine or self.theirs)
+
+
+def split(
+    config: Config, task_id: str, entries: Iterable[Entry], changed: Iterable[str]
+) -> Scope:
+    """Split the changed paths by whose claim names them (RK280).
+
+    Pure over `changed`: git is the caller's to ask, because the two callers ask it under
+    different conditions — one was told to, the other only where a claim spoke. What is
+    shared, and the reason this is a function rather than a second composition at each call
+    site, is the *subtraction* — three lists that have to stay disjoint and stay in the same
+    order in both answers.
+    """
+    entries = tuple(entries)
+    rows = live(config, entries)
+    mine = next((one.paths for one in rows if one.id == task_id), ())
+    others = elsewhere(config, task_id, entries)
+    spoken = {one for other in others for one in other.paths}
+    changed = frozenset(changed)
+    theirs = tuple(
+        (one, other.id)
+        for other in others
+        for one in sorted(other.paths)
+        if one in changed
+    )
+    named = set(mine) | spoken
+    return Scope(
+        mine=mine,
+        theirs=theirs,
+        loose=tuple(sorted(one for one in changed if one not in named)),
+    )
+
+
+def departing(config: Config, task_id: str, entries: Iterable[Entry]) -> Scope | None:
+    """The same split, asked at the moment a line leaves the roadmap (RK294).
+
+    RK280 gave a claim the paths its commit owns and gave `claim <id>` the read that names
+    what the tree holds for somebody else, and left it with no caller: the declaration was
+    asked for in `agents.md` and in the skill, which is advice about what to do at the moment
+    of committing — where the analysis is expensive and the author is already finishing. A
+    departure *is* that moment, and it holds the id.
+
+    `None` where **no live claim declared a path**, which is every project that has not
+    adopted this. Silence and not an empty answer: there is nothing to subtract the tree
+    from, so the honest report is no report — and the git process is not paid for either.
+
+    It derives nothing. A departure that filed the dirty paths under the id that is leaving
+    would answer the question the incident asked — which of these is mine — by assuming it,
+    and the two sessions this exists to separate would each get the other's files with the
+    tool's signature on it.
+    """
+    entries = tuple(entries)
+    if not any(one.paths for one in live(config, entries)):
+        return None
+    # Imported here for the reason :mod:`roadkeep.provenance` does it (RK260): this is the
+    # only function in the file that asks git anything, and every other reader of a claim —
+    # `pick`, `brief`, every marker write — would otherwise pay for the wrapper.
+    from roadkeep.history import dirty  # noqa: PLC0415
+
+    return split(config, task_id, entries, dirty(config))
 
 
 def rename(root: Path | str, old: str, new: str) -> bool:

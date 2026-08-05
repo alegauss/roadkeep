@@ -14,6 +14,7 @@ from pathlib import Path
 
 import pytest
 
+from roadkeep import claiming
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.history import (
@@ -33,7 +34,7 @@ from roadkeep.history import (
 )
 from roadkeep.sections import AnchorRetired
 from roadkeep.sections import add as add_section
-from roadkeep.schema import DESIGNED, SHIPPED
+from roadkeep.schema import DESIGNED, IN_PROGRESS, SHIPPED
 
 HERE = Path(__file__).resolve().parents[1]
 
@@ -609,6 +610,47 @@ def test_a_checkout_git_cannot_answer_for_reports_nothing_rather_than_refusing(t
     )
     (tmp_path / "ROADMAP.md").write_text("## Block A — The model\n", encoding="utf-8")
     assert dirty(Config.discover(tmp_path)) == frozenset()
+
+
+# -- the caller a scope did not have, at the commit (RK294) -------------------
+
+
+def test_a_ship_names_what_the_tree_holds_that_its_claim_does_not(tmp_path, capsys):
+    # RK280 gave the claim a scope and `claim <id>` the read, and left it with no caller: the
+    # declaration was asked for in prose, at the one moment the author is already finishing.
+    config = repo(tmp_path)
+    append(
+        config.path("roadmap"),
+        f"- {IN_PROGRESS} **RK2** (deps: —) **A symptom** — a reason.\n",
+    )
+    commit(tmp_path, "chore: a line under way")
+    try:
+        claiming.follow(tmp_path, "RK2", IN_PROGRESS, config.document("roadmap").entries)
+        claiming.scope(config, "RK2", ["mine.py"])
+        (tmp_path / "mine.py").write_text("x = 1\n", encoding="utf-8")
+        (tmp_path / "stray.py").write_text("y = 2\n", encoding="utf-8")
+        assert main(["-C", str(tmp_path), "ship", "RK2", "--why", "it works now."]) == EXIT_OK
+        out = capsys.readouterr().out
+        # The path nobody spoke for is named. `mine.py` is not: the caller declared it, and a
+        # report that listed it back would be the whole `git status` again.
+        assert "loose    stray.py  (no claim names it)" in out
+        assert "mine.py" not in out
+    finally:
+        claiming.path(tmp_path).unlink(missing_ok=True)
+
+
+def test_a_ship_in_a_project_no_claim_spoke_for_reports_nothing(tmp_path, capsys):
+    # Every project that has not adopted a scope. There is nothing to subtract the tree from,
+    # so the whole answer would be `git status` under a heading claiming to have read it.
+    config = repo(tmp_path)
+    append(
+        config.path("roadmap"),
+        "- \U0001f4cb **RK2** (deps: —) **A symptom** — a reason.\n",
+    )
+    commit(tmp_path, "chore: a line")
+    (tmp_path / "stray.py").write_text("y = 2\n", encoding="utf-8")
+    assert main(["-C", str(tmp_path), "ship", "RK2", "--why", "it works now."]) == EXIT_OK
+    assert "loose" not in capsys.readouterr().out
 
 
 # -- the next family, and the order that lets a reader check it (RK293) --------

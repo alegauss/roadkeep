@@ -267,4 +267,7 @@ whatever was there, and `claim <id>` reads it back beside what the working tree 
 another live claim says is *its* own and what no claim names at all — the analysis
 `git add -A` cannot make and a second session's work is what it sweeps up. `--porcelain`
 prints the paths alone, for `git add --`. Refused on a line no live claim holds: taking a
-line is a marker, and nothing here dates one.
+line is a marker, and nothing here dates one. **`ship` and `retire` make that read
+themselves**, while the claim is still live: what the tree holds that no claim names is
+named in the departure's own answer, so the analysis arrives at the moment of committing
+rather than being remembered there. Silent where no claim declared a path.
