@@ -292,3 +292,85 @@ def test_a_capture_that_cannot_run_still_reports_the_drift(tmp_path):
     recorded["environment"] = {**recorded["environment"], "filesystem": "ascii"}
     outcome = replay(recorded, staging(tmp_path))
     assert outcome.missing == ("document",) and outcome.drifted == ("filesystem",)
+
+
+# -- a staging that is not the project (RK343) --------------------------------
+
+#: Two governed files declared, which is the ordinary shape and the one `--embed` cannot fill:
+#: it carries the single file a finding named, so a project declaring more than one stages
+#: fewer files than its own commands read.
+TWO_FILES = f'prefix = "RK"\n[files]\nroadmap = "{ROADMAP}"\nchangelog = "docs/CHANGELOG.md"\n'
+
+
+def declaring_two(tmp_path: Path) -> Path:
+    root = project(tmp_path)
+    (root / "roadkeep.toml").write_text(TWO_FILES, encoding="utf-8")
+    with (root / "docs/CHANGELOG.md").open("w", encoding="utf-8", newline="") as handle:
+        handle.write("# Changelog\n\n## Block A — The model\n")
+    return root
+
+
+def address_free(root: Path) -> dict:
+    """A capture whose failure named no `file:line`, which is where the exit code is the whole
+    of the evidence. `list --block Z` is the measured one: the block is not declared, so the
+    refusal is about the argument and mentions no line."""
+    found = capture(SYMPTOM, WHY, "C", ["-C", str(root), "list", "--block", "Z"], root)
+    assert found.failure.where is None and found.failure.exit_code == 2
+    return found.as_dict()
+
+
+def test_a_staging_the_command_cannot_read_answers_nothing(tmp_path):
+    """The measured false positive, and the worst kind: a green.
+
+    `list --block Z` against a project with no such block exits 2. Replayed, the staging holds
+    `roadkeep.toml` and no governed file at all, so the run exits 2 again — on `No such file or
+    directory` — and both `reproduces` and the corpus gate agreed that the recorded defect was
+    still there. 2 is the code for a usage error, a refused config and an unreadable file alike.
+    """
+    recorded = address_free(declaring_two(tmp_path / "theirs"))
+    outcome = replay(recorded, staging(tmp_path))
+    assert not outcome.ran
+    assert outcome.unstaged == (ROADMAP, "docs/CHANGELOG.md")
+    assert not outcome.reproduces
+    assert "the config declares" in str(outcome) and "not replayable" in str(outcome)
+
+
+def test_the_two_reasons_not_to_run_are_kept_apart(tmp_path):
+    """A part the capture lacks is a redaction somebody made; a file it never carried is a
+    capture to take again. Answering both with one list would tell the reader to un-redact a
+    file that was never in there."""
+    root = project(tmp_path / "theirs")
+    found = capture(SYMPTOM, WHY, "F", ["-C", str(root), "lint"], root, embed=True)
+    redacted = replay(found.without("config").as_dict(), staging(tmp_path))
+    assert redacted.missing == ("config",) and redacted.unstaged == ()
+
+    absent = replay(address_free(declaring_two(tmp_path / "theirs2")), staging(tmp_path))
+    assert absent.missing == () and absent.unstaged
+
+
+def test_a_config_that_does_not_parse_declares_no_files(tmp_path):
+    """The exemption that keeps this repository's own first corpus entry replayable: a defect in
+    *reading* `roadkeep.toml` has no governed file in its input, and demanding files from a
+    config nobody could read would refuse the one class of report that needs none."""
+    found = Capture(
+        symptom=SYMPTOM,
+        why=WHY,
+        block="F",
+        failure=Failure(argv=("lint",), exit_code=2, output="roadkeep: Invalid value"),
+        engine=engine(),
+        config="prefix = [\n",
+        config_path="roadkeep.toml",
+    )
+    outcome = replay(found.as_dict(), tmp_path)
+    assert outcome.ran and outcome.unstaged == ()
+
+
+def test_the_command_says_which_files_the_capture_never_carried(tmp_path, capsys):
+    """Exit 1 like every other capture that answered nothing, and the sentence names the files:
+    what to do next is take the capture again, which needs to know what was short."""
+    recorded = address_free(declaring_two(tmp_path / "theirs"))
+    path = tmp_path / "capture.json"
+    path.write_text(json.dumps(recorded), encoding="utf-8")
+    assert main(["replay", str(path)]) == EXIT_GATE
+    said = capsys.readouterr().out
+    assert "not replayable" in said and "docs/CHANGELOG.md" in said

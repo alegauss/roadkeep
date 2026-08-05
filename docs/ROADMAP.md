@@ -57,8 +57,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK343** (deps: —) **A replay reports a defect as still reproducing from a staging holding none of the files the command reads** — Measured: a capture of list --block Z, exit 2 and no address, replays at exit 2 against a staging with no ROADMAP.md, and the gate certifies that missing file as the defect. → §RK343
-
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:

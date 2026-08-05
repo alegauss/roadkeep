@@ -51,6 +51,7 @@ import os
 import re
 import shlex
 import sys
+import tomllib
 import traceback
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, replace
@@ -58,7 +59,7 @@ from datetime import datetime, timezone
 from hashlib import sha256
 from pathlib import Path
 
-from roadkeep.config import find_config
+from roadkeep.config import Config, ConfigError, find_config
 from roadkeep.provenance import STARTUP_CODECS, Engine, engine, invocation
 from roadkeep.schema import Schema, Task, Violation
 
@@ -587,6 +588,10 @@ class Replay:
     #: is the whole answer. A staging that guessed at the missing half would be a test whose
     #: input this repository invented, which is the thing RK88 exists to avoid.
     missing: tuple[str, ...] = ()
+    #: Governed files the staged config declares that the capture did not carry (RK343). A
+    #: second reason not to run, and a different one: :attr:`missing` is a *part* the capture
+    #: lacks, and this is a file the project had and the capture never held a copy of.
+    unstaged: tuple[str, ...] = ()
     #: Which of the capture's recorded text-handling facts this process does not share (RK341),
     #: and `None` where it recorded none to compare. Not a verdict of its own: it is the reason
     #: a verdict may be about a different machine than the one the defect was on.
@@ -594,11 +599,19 @@ class Replay:
 
     @property
     def ran(self) -> bool:
-        return not self.missing
+        return not (self.missing or self.unstaged)
 
     def __str__(self) -> str:
         if self.missing:
             return f"not replayable: the capture has no {', '.join(self.missing)}"
+        if self.unstaged:
+            # Said differently from the above on purpose: the capture is not incomplete, the
+            # *staging* is — and what to do about it is to take the capture again, not to stop
+            # redacting it.
+            return (
+                f"not replayable: the config declares {', '.join(self.unstaged)}, "
+                f"which the capture does not carry"
+            )
         verdict = "still reproduces" if self.reproduces else "no longer reproduces"
         said = f"{verdict}: recorded exit {self.recorded_exit}, now {self.exit_code}"
         # A *negative* verdict is an inference from an absence, and an unstaged environment is
@@ -619,6 +632,13 @@ def replay(recorded: Mapping[str, object], workdir: str | Path) -> Replay:
     is repointed at the staging. Everything else in that argv is passed through untouched —
     a replay that rewrote the flags would be testing a command nobody ran.
 
+    And a staging that is not the project answers nothing (RK343). `--embed` carries the one
+    file the finding named, so a capture from a project declaring more than one governed file
+    stages fewer files than the command reads: measured on `list --block Z`, exit 2 recorded and
+    exit 2 replayed, where the second 2 was `No such file or directory` and the verdict was
+    `still reproduces`. Every declared file is checked for before the run, because after it the
+    exit code has already collapsed the two causes into one number.
+
     What this **cannot** stage is the environment (RK341), and the reason is two boundaries
     this deliberately keeps. :func:`observe` runs the argv through the `main` this interpreter
     already loaded, because a subprocess would be a second engine to be wrong about (RK79) —
@@ -634,7 +654,9 @@ def replay(recorded: Mapping[str, object], workdir: str | Path) -> Replay:
     stored = recorded.get("environment")
     drifted = _drifted(stored) if stored is not None else None
     if missing:
-        return Replay(False, recorded_exit, 0, "", missing, drifted)
+        # Keyword arguments from here down: three optional fields in one constructor is where a
+        # positional call starts assigning one reason to another's slot.
+        return Replay(False, recorded_exit, 0, "", missing=missing, drifted=drifted)
 
     root = Path(workdir)
     (root / "roadkeep.toml").write_text(str(recorded["config"]), encoding="utf-8")
@@ -646,12 +668,42 @@ def replay(recorded: Mapping[str, object], workdir: str | Path) -> Replay:
         with document.open("w", encoding="utf-8", newline="") as handle:
             handle.write(str(recorded["document"]))
 
+    # Before the run and not after it (RK343): the exit code is the whole of the evidence
+    # wherever the failure named no address, and a staging the command cannot read produces the
+    # same 2 as a usage error and the same 1 as a finding. Nothing was going to be learned, so
+    # nothing is claimed.
+    unstaged = _unstaged(root)
+    if unstaged:
+        return Replay(False, recorded_exit, 0, "", drifted=drifted, unstaged=unstaged)
+
     failure = observe(_repointed([str(part) for part in recorded["argv"]], root))
     where = recorded.get("where")
     reproduces = failure.exit_code == recorded_exit and (
         where is None or str(where) in failure.output
     )
-    return Replay(reproduces, recorded_exit, failure.exit_code, failure.output, (), drifted)
+    return Replay(
+        reproduces, recorded_exit, failure.exit_code, failure.output, drifted=drifted
+    )
+
+
+def _unstaged(root: Path) -> tuple[str, ...]:
+    """The governed files the staged config declares and the capture never carried (RK343).
+
+    Asked of :meth:`Config.missing`, which is the reader `lint` already uses to report
+    `file.missing` — one rule and one implementation, so a role added to the format is staged
+    and surveyed by the same list. Loaded from the written path rather than discovered, because
+    a search upward from a scratch directory can find somebody else's project.
+
+    A config that does not parse declares nothing, deliberately. A defect in *reading*
+    `roadkeep.toml` is this repository's own first corpus entry: it has no governed file in its
+    input at all, and demanding files from a config nobody could read would refuse to replay
+    the one class of report that needs none.
+    """
+    try:
+        config = Config.load(root / "roadkeep.toml")
+    except (ConfigError, tomllib.TOMLDecodeError, OSError):
+        return ()
+    return tuple(config.relative(config.path(role)) for role in config.missing())
 
 
 #: Which key of a stored capture each replayable part lives under.

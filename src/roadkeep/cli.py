@@ -5643,6 +5643,10 @@ def _replay(config: Config, args: argparse.Namespace) -> int:
                     "path": args.path,
                     "ran": outcome.ran,
                     "missing": list(outcome.missing),
+                    # A second reason not to run, kept apart from the first (RK343): a part the
+                    # capture lacks is a redaction, and a file it never carried is a capture to
+                    # take again.
+                    "unstaged": list(outcome.unstaged),
                     "reproduces": outcome.reproduces,
                     "expected": expected,
                     "recorded_exit": outcome.recorded_exit,

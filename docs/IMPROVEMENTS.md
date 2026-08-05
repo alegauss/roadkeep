@@ -548,31 +548,3 @@ taken at collection, or whether a count over a file the backlog erodes is the wr
 assertion whoever is writing it — RK305 already names that ratio as fragile.
 
 ## Block F — The plugin
-
-### §RK343 RK343
-
-`reproduces` is the recorded exit code turning up again, plus the recorded address where
-there was one — not an output comparison, because a message this repository improved is
-not a defect that came back. Where the failure named no `file:line`, the exit code is
-the whole of the evidence.
-
-Measured on a capture of `list --block Z` against a project whose roadmap declares no
-such block: recorded exit 2, no address, `document` correctly not required — one is
-demanded only where a finding named a file, so the cheapest class of report is not the
-one nobody can re-run. The staging holds `roadkeep.toml` and nothing else, so the
-replay's own output is
-
-    roadkeep: [Errno 2] No such file or directory: '…/ROADMAP.md'
-
-which is exit 2 as well. The verdict is `still reproduces`, and the corpus gate
-certifies that.
-
-The exemption is right and its scope is wrong. A defect in *reading* `roadkeep.toml` has
-no governed file in its input; a command that opens one and printed no address has the
-same input as every other run of it — and 2 is the code for a usage error, a refused
-config and an unreadable file alike. The exit code alone is evidence only where nothing
-was to be read.
-
-What decides that is which files the recorded argv would open, which the carried config
-already answers: a config declaring a roadmap, with no roadmap beside it, is not a
-staging. Saying so costs less than a verdict about one.
