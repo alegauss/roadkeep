@@ -30,6 +30,7 @@ import argparse
 import re
 from pathlib import Path
 
+import conftest
 from roadkeep.config import Config
 from roadkeep.cli import build_parser
 
@@ -59,15 +60,8 @@ def text() -> str:
 
 
 def frontmatter() -> dict[str, str]:
-    """The YAML head, read as the two flat keys a skill declares — no parser needed."""
-    body = text()
-    assert body.startswith("---\n"), "a skill without frontmatter is a file nothing triggers"
-    head = body.split("---\n", 2)[1]
-    return {
-        key.strip(): value.strip()
-        for key, _, value in (line.partition(":") for line in head.splitlines())
-        if key and not key.startswith(" ")
-    }
+    """The two flat keys a skill declares, read the way a loader reads them (RK331)."""
+    return conftest.frontmatter(SKILL)
 
 
 def subcommands() -> set[str]:

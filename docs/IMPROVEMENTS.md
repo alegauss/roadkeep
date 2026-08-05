@@ -425,31 +425,6 @@ assertion whoever is writing it — RK305 already names that ratio as fragile.
 
 ## Block F — The plugin
 
-### §RK331 The frontmatter two readers disagree about
-
-Measured with `claude plugin validate --strict` on the published tree, which reports it
-twice: *"YAML frontmatter failed to parse: Unexpected token. At runtime this skill loads
-with empty metadata (all frontmatter fields silently dropped)"* — once for
-`skills/roadkeep/SKILL.md`, once for `commands/ship.md`.
-
-One cause. A plain YAML scalar may not contain a colon followed by a space, and both
-descriptions do: "Trigger words: roadmap, backlog" and "Ship one task: ledger entry".
-The other three commands have no colon and parse, so the two files that read best are
-the two that fail.
-
-What is dropped is the whole block and not the offending line. The skill loses `name`
-and `description`, which are the only reason it loads at all (RK23) — a description
-nothing reads is a write path nothing triggers, in every adopting project. `ship.md`
-loses its `allowed-tools`, so the command that writes three files asks for permission it
-was declared to have.
-
-And the tests read the fields the loader drops: `tests/test_commands.py` splits each
-line on its first colon with `str.partition`, so every assertion about the description,
-the hint and the allow-list passes against text no session ever sees. Two readers of one
-file disagreeing is the failure this project exists to remove. `pyyaml` is an
-`importorskip` here, so what a fix has to hold is the rule and not one parser's opinion
-of it.
-
 ### §RK332 The validator nothing runs
 
 `roadkeep lint` gates the prose, and `tests/test_plugin.py` holds the manifests — but

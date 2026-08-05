@@ -61,6 +61,9 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
+import conftest
 import roadkeep
 from roadkeep.cli import build_parser
 from roadkeep.guarding import ASK_TOOLS, GUARDED_TOOLS, STOP_EVENTS, WRITE_TOOLS
@@ -420,6 +423,29 @@ def test_the_source_resolves_to_the_directory_holding_the_manifest():
     root = (HERE / entry["source"]).resolve()
     assert root == HERE
     assert (root / ".claude-plugin" / "plugin.json").is_file()
+
+
+def test_every_surface_the_payload_ships_has_frontmatter_a_parser_accepts():
+    """The loader's reader, against ours, over every file whose head decides how it loads.
+
+    `conftest.frontmatter` refuses what YAML refuses — that is the fix RK331 needed, because
+    the two readers it replaced split on the first colon and certified two files the loader
+    was dropping whole. A rule stated in a helper is still a rule one project believes, so
+    where `pyyaml` is installed this holds the helper's answer against a real parse: same
+    keys, same values, no field the helper invented and none the parser lost.
+
+    `pyyaml` is a test-only import and skipped where absent, the way the corpora tests skip
+    an unpinnable checkout. What does not skip is the rule: the helper runs either way, in
+    every test that reads a description, so a machine without the parser still refuses.
+    """
+    yaml = pytest.importorskip("yaml", reason="pyyaml is not installed")
+    surfaces = sorted(HERE.glob("skills/*/SKILL.md")) + sorted(HERE.glob("commands/*.md"))
+    assert len(surfaces) >= 5, surfaces
+    for path in surfaces:
+        head = path.read_text(encoding="utf-8").split("---\n", 2)[1]
+        parsed = yaml.safe_load(head)
+        assert isinstance(parsed, dict), path.name
+        assert conftest.frontmatter(path) == {key: str(value) for key, value in parsed.items()}
 
 
 def test_the_plugin_root_carries_no_context_file_of_this_repositorys_own():

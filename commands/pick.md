@@ -1,6 +1,6 @@
 ---
 description: What to work on next, and the reason it was chosen
-argument-hint: [block]
+argument-hint: "[block]"
 allowed-tools: Bash(roadkeep pick:*), Bash(roadkeep brief:*), Bash(roadkeep deps:*)
 ---
 

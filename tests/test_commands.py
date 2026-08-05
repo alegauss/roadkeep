@@ -37,6 +37,7 @@ from pathlib import Path
 
 import pytest
 
+from conftest import frontmatter
 from roadkeep.cli import build_parser
 from roadkeep.serving import TOOLS
 
@@ -55,17 +56,6 @@ _RUNS = re.compile(r"`!?`?\s*(roadkeep [^`]+)`")
 
 def files() -> list[Path]:
     return sorted(COMMANDS.glob("*.md"))
-
-
-def frontmatter(path: Path) -> dict[str, str]:
-    body = path.read_text(encoding="utf-8")
-    assert body.startswith("---\n"), path.name
-    head = body.split("---\n", 2)[1]
-    return {
-        key.strip(): value.strip()
-        for key, _, value in (line.partition(":") for line in head.splitlines())
-        if key
-    }
 
 
 def commands_in(path: Path) -> list[str]:

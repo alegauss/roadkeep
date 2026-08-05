@@ -1,5 +1,5 @@
 ---
-description: Ship one task: ledger entry, line gone, rationale dropped
+description: "Ship one task: ledger entry, line gone, rationale dropped"
 argument-hint: <id>
 allowed-tools: Bash(roadkeep ship:*), Bash(roadkeep show:*), Bash(roadkeep lint:*)
 ---

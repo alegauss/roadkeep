@@ -52,7 +52,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK331** (deps: —) **The skill's frontmatter is not valid YAML, so the loader drops its name and description in silence** — A description containing a colon is a plain scalar YAML refuses, and the tests split on the first one, so the surface that triggers the write path ships with no name at all. → §RK331
 - 📋 **RK332** (deps: —) **Nothing runs the payload's own validator, so a surface that loads with empty metadata passes CI** — The gate reads the governed prose and holds the manifests as JSON, and the two errors the plugin loader reports were found by hand, months after they shipped. → §RK332
 
 ## Non-goals

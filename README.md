@@ -121,8 +121,8 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 2 | 47 | 0 |
 | D — The gate | 4 | 57 | 0 |
 | E — Adoption | 2 | 50 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 2 | 59 | 1 |
-| **Total** | 17 | 310 | 3 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 60 | 1 |
+| **Total** | 16 | 311 | 3 |
 
 **Next ready:**
 

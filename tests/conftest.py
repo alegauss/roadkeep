@@ -1,6 +1,7 @@
-"""The two things a test cannot get from its own assertion: whether the tree moved under the run
-(RK263), and whether a cache outlived the test that filled it (RK268). Both produce a red in a
-file that mentions nothing about the cause, so both are answered here rather than at a call site.
+"""The three things a test cannot get from its own assertion: whether the tree moved under the run
+(RK263), whether a cache outlived the test that filled it (RK268), and whether the frontmatter it
+read is the frontmatter a loader would (RK331). Each produces a red — or a green — in a file that
+mentions nothing about the cause, so each is answered here rather than at a call site.
 
 ## The tree moved under the run (RK263)
 
@@ -27,6 +28,18 @@ kind of not-a-defect. Two rules keep the skip from becoming a place failures hid
   recorded before the import it defends.
 * **Loud.** Every skip is a `UserWarning` as well, which `pytest -W error` turns into the
   failure a run that wants to be told asks for — the same contract `test_corpora` states.
+
+## The frontmatter a loader would read (RK331)
+
+Two files here had frontmatter YAML refuses — a description with a colon in it, which is a plain
+scalar no parser accepts — and the loader drops **the whole block** when one line fails, so the
+skill shipped with no name and no description and `/ship` with no `allowed-tools`. Nothing went
+red: both test files split each line on its first colon, so every assertion about a description
+passed against text no session ever read. That is two readers of one file disagreeing, which is
+the failure this project exists to remove, and it is a *green* rather than a red — the worst kind.
+
+:func:`frontmatter` is the one reader now. It refuses what YAML refuses, naming the file and the
+key, and `tests/test_plugin.py` holds it against a real parser wherever `pyyaml` is installed.
 
 ## A cache outlived the test that filled it (RK268)
 
@@ -160,6 +173,55 @@ _AT_START = Checkout({name: _stamp(HERE / name) for name in WATCHED}, _head())
 def checkout() -> Checkout:
     """The tree as the run found it — see :class:`Checkout` and :data:`_AT_START`."""
     return _AT_START
+
+
+# -- the frontmatter a loader would read (RK331) ------------------------------
+
+#: What a YAML plain scalar may not begin with: a flow collection, an anchor, an alias, a tag, a
+#: block scalar, a directive, a comment, a quote — every one of them read as structure and not as
+#: the text it looks like. `argument-hint: [block]` is the live case: a one-item *list*.
+_INDICATORS = tuple("-?:,[]{}#&*!|>'\"%@`")
+
+
+def frontmatter(path: Path) -> dict[str, str]:
+    """The head of a skill or command file, read as the loader reads it — or refused by name.
+
+    Flat keys only, which is all a skill or a command declares, and quotes are taken off so an
+    assertion is about the value and never about how it was spelled. What this does not do is
+    accept a plain scalar YAML would reject: the loader's answer to one bad line is to drop the
+    whole block and load the file with *empty metadata*, so a test reading past the mistake is a
+    test that certifies a surface no session can see (RK331).
+    """
+    body = path.read_text(encoding="utf-8")
+    assert body.startswith("---\n"), f"{path.name}: no frontmatter is nothing to trigger on"
+    head = body.split("---\n", 2)[1]
+    fields: dict[str, str] = {}
+    for line in head.splitlines():
+        if not line.strip() or line.startswith(" "):
+            continue
+        key, separator, value = line.partition(":")
+        assert separator, f"{path.name}: {line!r} declares no key"
+        fields[key.strip()] = _scalar(path, key.strip(), value.strip())
+    return fields
+
+
+def _scalar(path: Path, key: str, value: str) -> str:
+    """One value, quoted or plain — and a plain one held to what a parser will take."""
+    for quote in ('"', "'"):
+        if len(value) >= 2 and value.startswith(quote) and value.endswith(quote):
+            inner = value[1:-1]
+            return inner.replace(quote * 2, quote) if quote == "'" else inner
+    named = f"{path.name}: `{key}`"
+    assert ": " not in value and not value.endswith(":"), (
+        f"{named} is a plain scalar with a colon in it, which YAML refuses — and the loader "
+        f"drops every field in the block, not the line (RK331). Quote the value."
+    )
+    assert not value.startswith(_INDICATORS), (
+        f"{named} begins with {value[:1]!r}, which YAML reads as structure rather than as text "
+        f"(RK331). Quote the value."
+    )
+    assert " #" not in value, f"{named} carries an unquoted `#`, which starts a comment (RK331)."
+    return value
 
 
 # -- a cache outlived the test that filled it (RK268) ------------------------
