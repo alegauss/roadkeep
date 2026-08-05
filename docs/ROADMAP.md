@@ -23,6 +23,7 @@
 ## Block A — The model (a task is data before it is a line)
 
 - 📋 **RK330** (deps: —) **Each feature needing state outside the documents invents its own file format and its own reader** — The claim registry is a hand-parsed line grammar, the write record is JSON, the lock is a filename — three encodings for three features, so the next one invents a fourth. → §RK330
+- 📋 **RK340** (deps: —) **outline anchors are one namespace across prose roles, and every outline starts at I** — ref_scheme is read once per project and no role can prefix or scope its addresses, so two prose files each numbering their own headings collide at I and III with no configuration that avoids it. → §RK340
 
 ## Block B — Authoring (insert, never hand-edit)
 

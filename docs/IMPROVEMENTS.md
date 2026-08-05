@@ -98,6 +98,30 @@ deps and order live in the documents, which is why the queue went to the roadmap
 temp directory beside the lock, so consolidating them buys one grammar and one door, never
 durability. A committed store is a second decision, and the first must not presume it.
 
+### §RK340 One namespace for two outlines that each number themselves
+
+Under `ref_scheme = "outline"` a heading numbers itself (RK44), and an anchor two prose
+roles declare resolves to neither (RK172, RK239). Both are right alone. Together they
+describe a project that cannot be configured out of trouble: `improvements` and
+`strategy` each number their own outline, every outline starts at `I`, and those numbers
+land in one flat set for the whole project.
+
+Measured in an adopting project. `IMPROVEMENTS.md` opens at `§I — House constraints` and
+`STRATEGY.md` at `§I — What this is`; both also declare a `§III`. `lint` reports four
+`section.ambiguous` and has on every run for as long as the files existed, and the ten
+pointers the roadmap aims at `§I` and `§I.1`–`§I.8` — its binding non-goals — resolve to
+nothing. Those findings were read for a long time as noise about the tool rather than
+the accurate report they are, which is what a permanently non-clean `lint` teaches.
+
+`ref_scheme` is read once, at the top level, and applied to every role; there is no
+`ref_prefix`, no per-role scheme, nothing under `[rules.<role>]` that scopes an address.
+So a project's only fix is hand-picking ranges that do not overlap — numbering one
+outline from `L` because another reached `XLIX` — which is a shared sequence wearing two
+headings, and nothing keeps it true as either grows.
+
+What would: an address carrying its role under `outline`, so `§I` in strategy and `§I`
+in improvements are two addresses and a pointer says which it means.
+
 ## Block B — Authoring
 
 ### §RK310 The rationale a task was filed on decays, and nothing records that it did
