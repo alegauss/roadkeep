@@ -424,27 +424,3 @@ taken at collection, or whether a count over a file the backlog erodes is the wr
 assertion whoever is writing it — RK305 already names that ratio as fragile.
 
 ## Block F — The plugin
-
-### §RK332 The validator nothing runs
-
-`roadkeep lint` gates the prose, and `tests/test_plugin.py` holds the manifests — but
-JSON that parses is what RK81 already had, and frontmatter the tests can read is what
-RK331 already had. Neither reader is the loader. `claude plugin validate --strict
-<tree>` is, and it named both of RK331's errors in the same output as RK323's warning,
-which is how that pair was found at all: by running it once, by hand, long after the
-surfaces landed.
-
-So the question is where it belongs. It cannot be `lint`: that command has no
-dependencies by law, and this one needs the `claude` CLI, which no adopting project's CI
-is guaranteed to have. A test can call it and skip where it is absent, the way the
-corpora tests already skip an unpinnable checkout, and the way `pyyaml` is an
-`importorskip` — a check that skips is worth more than one nobody can run.
-
-What it buys is the class, not the case. RK321 failed the whole plugin and was found by
-an install; RK323 was a warning and RK331 two errors, both quiet, and both in the output
-of one command. Every future surface — a new skill, a command, a manifest field —
-arrives with the same two ways to be wrong, and only one of them stops a session.
-
-`--strict` because the warnings are the half that names the payload boundary this
-repository keeps rediscovering: a plugin root shared with the checkout that publishes
-it.

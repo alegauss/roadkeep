@@ -57,6 +57,7 @@ from __future__ import annotations
 
 import json
 import shlex
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -483,3 +484,65 @@ def test_the_entry_states_nothing_the_manifest_already_states():
     assert "version" not in entry
     # What is left is about the *listing* and has nowhere else to live.
     assert set(entry) == {"name", "source", "category"}
+
+
+# -- the loader's own reader, on the whole payload (RK332) --------------------
+
+
+def test_the_payload_passes_the_loaders_own_validator(tmp_path):
+    """Every assertion above is this repository reading its own files. This one is not.
+
+    JSON that parses is what RK81 had, and frontmatter the tests could read is what RK331
+    had: three defects in this family were found by running `claude plugin validate` once,
+    by hand, long after the surfaces shipped. So the fix for the class is to run it here —
+    the reader that decides how a session loads, against the tree that gets published.
+
+    **Not on this directory, which answers as something else.** `claude plugin validate .`
+    on this checkout reports *"Validating marketplace manifest"* and passes without walking a
+    single component: `marketplace.json` is found first and the listing is all it checks.
+    That is why nobody had run it on the payload — the obvious command on the obvious path
+    validates the wrong artefact. An install resolves `source: "./"` to the plugin, so the
+    copy below drops the listing and leaves the tree a session actually loads.
+
+    `--strict` because the warnings are the half that names the payload boundary (RK323), and
+    the copy is the whole tree because that is what the payload is: no manifest field excludes
+    a path, so a surface added anywhere is one this validates without being told about it.
+
+    Skipped where the CLI is absent, which is every adopting project's CI and possibly this
+    one. A check that skips there and holds on the machine that publishes the plugin is worth
+    more than one nobody can run at all — the argument `test_corpora` already makes.
+    """
+    claude = shutil.which("claude")
+    if claude is None:
+        pytest.skip("the `claude` CLI is not on PATH, so the loader's own reader cannot run")
+
+    def validate(tree: Path) -> tuple[int, str]:
+        finished = subprocess.run(
+            [claude, "plugin", "validate", "--strict", str(tree)],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        return finished.returncode, finished.stdout + finished.stderr
+
+    payload = tmp_path / "payload"
+    shutil.copytree(
+        HERE,
+        payload,
+        ignore=shutil.ignore_patterns(".git", "__pycache__", ".pytest_cache", ".ruff_cache"),
+    )
+    (payload / ".claude-plugin" / "marketplace.json").unlink()
+    code, reported = validate(payload)
+    assert code == 0, reported
+
+    # A clean run prints one line about the manifest and nothing about the surfaces, so that
+    # pass is no evidence it read one. This is: the same command, the same tree, one surface
+    # broken the way RK331 was broken — a plain scalar with a colon in it.
+    broken = payload / "commands" / "lint.md"
+    broken.write_text(
+        broken.read_text(encoding="utf-8").replace("description: Check", "description: Check: "),
+        encoding="utf-8",
+    )
+    code, reported = validate(payload)
+    assert code != 0, reported
+    assert "frontmatter" in reported.lower(), reported

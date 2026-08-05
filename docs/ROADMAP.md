@@ -52,8 +52,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK332** (deps: —) **Nothing runs the payload's own validator, so a surface that loads with empty metadata passes CI** — The gate reads the governed prose and holds the manifests as JSON, and the two errors the plugin loader reports were found by hand, months after they shipped. → §RK332
-
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:
