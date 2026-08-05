@@ -5836,15 +5836,11 @@ def _print_estimate(estimate: Estimate) -> None:
                 f"  also     {count} id(s) spell {prefix}, unread here: "
                 f"--prefix {prefix} if it is a track of this backlog"
             )
-    # Only where the other scheme accounts for *more* of the file than the declared one does
-    # (RK288). This repository's own rationale file anchors its preamble `§0.1` and its task
-    # sections `§RK200`, so a bare "some headings are outline-shaped" fired on a file that is
-    # 23 of 23 conforming — an alarm about a reading nothing is wrong with. The prefix line
-    # has the same guard by another name: it prints only families the chosen ones do not cover.
-    reading = dict(estimate.schemes).get(estimate.ref_scheme, 0)
-    for scheme, count in estimate.schemes:
-        if count <= reading:
-            continue
+    # Only where the declared scheme left something in this file unread (RK288/RK305). The
+    # prefix line has the same guard by another name: it prints only families the chosen ones
+    # do not cover.
+    unread = estimate.schemes if _misread(estimate) else ()
+    for scheme, count in unread:
         # The same sentence one field over (RK285). Shio read `0 conform, 65 would change`
         # under the default and `63 conform, 2 would change` under `--ref-scheme outline`,
         # with `ref.mismatch` on every line as the only signal — while the prefix half of the
@@ -5906,14 +5902,54 @@ def _print_estimate(estimate: Estimate) -> None:
         # and it was the one that was wrong. The number stays; what is added is which reading
         # produced it, so a reader can tell "your file is broken" from "read it another way".
         under = [f"--prefix {name}" for name, _ in estimate.prefixes if name not in estimate.families]
+        # Behind the same predicate as the `also` line above (RK305) and not behind a second
+        # spelling of it: an alternative reading offered here on a file the declared scheme read
+        # whole is the same wrong advice, and two conditions for one sentence is where the two
+        # would drift apart.
         under += [
-            f"--ref-scheme {name}" for name, _ in estimate.schemes if name != estimate.ref_scheme
+            f"--ref-scheme {name}"
+            for name, _ in unread
+            if name != estimate.ref_scheme
         ]
         because = f" — measured under this reading; {', '.join(under)} changes it" if under else ""
         print(
             f"  {estimate.non_canonical} line(s) do not round-trip: the tool would "
             f"refuse to write this file until they are rewritten by hand{because}"
         )
+
+
+#: The findings that mean "the declared scheme could not read this address" (RK305). Under
+#: `id` a pointer the author chose is `ref.mismatch`; under an outline one shaped like an id
+#: is `ref.format`. Both are the signal RK285 said arrived with no sentence naming the flag.
+_MISREAD_CODES = ("ref.mismatch", "ref.format")
+
+
+def _misread(estimate) -> bool:
+    """Whether the declared scheme left any address in this file unread (RK305).
+
+    RK288 asked a **majority**: print `--ref-scheme <other>` only where the other scheme
+    accounts for more of the file than the declared one. That is a proxy for *this file is
+    really addressed the other way*, and it holds on a file nothing writes to. It does not
+    hold here. This repository's rationale file carries a permanent preamble anchored `§0.1`
+    and one `§RK<n>` section per **open** design, and a ship deletes the second kind — so the
+    ratio falls with every task delivered and, at the moment the open designs stop
+    outnumbering the preamble, a fully conforming file is told to be read the other way.
+    Measured while shipping Block B: five and five, one ship from the alarm.
+
+    What the count cannot see is that the two kinds of heading are not competing readings of
+    one file — one is prose the project keeps and the other is a queue. So the question asked
+    here is the one RK288 was written about: did the declared scheme leave something *unread*?
+    A file whose scheme parses every address it was asked about has no minority reading to
+    report, whatever the ratio; Shio's `0.1` headings and its hand-chosen pointers are unread
+    under `id`, and still say so.
+
+    Two shapes because the evidence is: a rationale file's unread headings are the ones
+    :attr:`~roadkeep.adopting.Estimate.listed` already counts, and a backlog's are the
+    pointers the gate refuses.
+    """
+    if estimate.unit == "section":
+        return estimate.listed > 0
+    return any(code in _MISREAD_CODES for code, _ in estimate.codes)
 
 
 def _estimate_scope(estimate) -> str:

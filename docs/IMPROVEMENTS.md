@@ -250,25 +250,6 @@ boolean every reader has to know to check.
 
 ## Block E — Adoption
 
-### §RK305 A majority that measures the backlog, not the file
-
-RK288's guard is right about the alarm it silences and wrong about how it decides. It
-prints `--ref-scheme <other>` only where the other scheme accounts for more headings
-than the declared one — a proxy for *this file is really addressed the other way*.
-
-The proxy holds on a static file. It does not hold here. This repository's rationale
-file carries a permanent preamble anchored `0.1`-style and one `RK<n>` section per
-**open** design, and a ship deletes the second kind. So the ratio falls with every task
-delivered, and at the moment the open designs stop outnumbering the preamble the tool
-tells a fully conforming file to be read the other way. Measured while shipping Block B:
-five and five, one ship from the alarm, on a file reporting every heading conforming.
-
-What the count cannot see is that the two kinds of heading are not competing readings of
-one file. One is prose the project keeps and the other is a queue. A file whose declared
-scheme parses **every** heading it was asked about has no minority reading to report,
-whatever the ratio — which is the condition RK288 was actually written about, and the
-one the majority was standing in for.
-
 ### §RK315 A fixture a second session can edit
 
 This repository's docs are the conformance fixture on purpose, and

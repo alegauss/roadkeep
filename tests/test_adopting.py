@@ -646,14 +646,48 @@ def test_a_file_that_mixes_anchors_is_not_told_to_switch(tmp_path: Path, capsys)
     config = Config.discover(root)
     estimate = adopt(config, config.path("improvements"), sections=True)
     assert estimate.conforming == estimate.parsed and estimate.changing == 0
-    # Both shapes are present, and the declared one is not out-voted, so nothing is suggested.
-    # Not `>`: the id-anchored sections are this backlog's open designs and are deleted at
-    # every ship, so the ratio is a fact about how much work is left rather than about the
-    # file's shape — the fragility RK305 is filed for.
-    counts = dict(estimate.schemes)
-    assert counts.get("outline") and counts["id"] >= counts["outline"]
+    # Both shapes are present and the ratio is not what decides (RK305): the id-anchored
+    # sections are this backlog's open designs and are deleted at every ship, so a majority
+    # is a fact about how much work is left rather than about the file's shape.
+    assert dict(estimate.schemes).get("outline")
     assert main(["-C", str(root), "adopt", str(config.path("improvements")), "--sections"]) == EXIT_OK
     assert "also" not in capsys.readouterr().out
+
+
+#: The same file's shape with the ratio the other way up: every heading carries the sigil, so
+#: the declared `id` scheme reads all four, and three of them are outline-shaped (RK305).
+MIXED_PROSE = """# Design notes
+
+## §0.1 The goals, restated
+
+Prose under the first anchor, enough of it to be a section.
+
+## §0.2 What this is today
+
+More prose, under the second.
+
+## §0.3 What it is not
+
+More prose, under the third.
+
+## §T9 One open design
+
+The only id-anchored section, and the kind a ship deletes.
+"""
+
+
+def test_a_conforming_file_is_not_told_to_switch_by_a_majority(tmp_path: Path, capsys) -> None:
+    """RK305: what a ship erodes is the ratio, so the ratio cannot be what decides. Every
+    heading here is read by the declared scheme and outline-shaped ones outnumber id-shaped
+    ones three to one — the state this repository's rationale file reaches by delivering."""
+    target = tmp_path / "DESIGN.md"
+    target.write_text(MIXED_PROSE, encoding="utf-8")
+    estimate = adopt(Config.default(tmp_path), target, sections=True)
+    counts = dict(estimate.schemes)
+    assert counts["outline"] > counts["id"], "the majority RK288 would have fired on"
+    assert estimate.listed == 0, "and nothing is unread, which is what makes it a false alarm"
+    assert main(["-C", str(tmp_path), "adopt", str(target), "--sections"]) == EXIT_OK
+    assert "--ref-scheme" not in capsys.readouterr().out
 
 
 def test_unanchored_still_asks_the_declared_scheme(tmp_path: Path) -> None:
@@ -782,6 +816,29 @@ def test_the_scheme_that_is_already_being_read_under_is_not_advice(tmp_path: Pat
     estimate = adopt(Config.default(tmp_path), target, prefix="SH", ref_scheme="outline")
     assert estimate.schemes == (("outline", 2),) and estimate.ref_scheme == "outline"
     assert estimate.conforming == 2 and estimate.changing == 0
+
+
+#: A backlog that points by id on two lines and by hand on the third — the minority RK288's
+#: majority silenced, and the two lines the declared scheme genuinely cannot read (RK305).
+MOSTLY_DERIVED = """# Roadmap
+
+## Block A — The model
+
+- 📋 **SH1** (deps: —) **A first symptom** — Because of a reason. → §SH1
+- 📋 **SH2** (deps: —) **A second symptom** — Because of another. → §SH2
+- 📋 **SH3** (deps: —) **A third symptom** — Because of a third. → §XVI.3
+"""
+
+
+def test_a_minority_of_unread_pointers_is_still_reported(tmp_path: Path, capsys) -> None:
+    """RK305: what decides is whether the declared scheme left an address unread, and one
+    hand-chosen pointer among two derived ones is unread however small a share it is."""
+    target = tmp_path / "ROADMAP.md"
+    target.write_text(MOSTLY_DERIVED, encoding="utf-8")
+    estimate = adopt(Config.default(tmp_path), target, prefix="SH")
+    assert dict(estimate.schemes)["id"] > dict(estimate.schemes)["outline"]
+    assert main(["-C", str(tmp_path), "adopt", str(target), "--prefix", "SH"]) == EXIT_OK
+    assert "1 pointer(s) spell outline" in capsys.readouterr().out
 
 
 def test_the_scheme_half_is_named_where_the_prefix_was_inferred(tmp_path: Path, capsys) -> None:

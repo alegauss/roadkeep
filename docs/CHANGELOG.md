@@ -296,6 +296,7 @@
 - ✅ **RK290** **The estimate cannot see any finding that needs more than one line** — `adopt` counts what `within` finds — the half of the gate one file decides — so a duplicated id is priced instead of read as conforming, and the two disagree only across files.
 - ✅ **RK291** **Nothing in the estimate says which checks it did not run** — The report names the governed files it did not open, so the one class the estimate cannot decide is stated as a term of the measurement instead of being resolved from a file that cannot settle it.
 - ✅ **RK292** **The scope line names files from the project that did not supply the target** — The scope line asks whether the target is declared here, so a file no project owns names no siblings and states the narrower limit instead of offering files nobody can hand over.
+- ✅ **RK305** **The scheme suggestion is suppressed by a majority that shipping erodes** — adopt names the other scheme only where the declared one left an address unread, so a file it reads whole is never told to switch however the ratio falls.
 
 ## Block F — The Claude Code plugin
 
