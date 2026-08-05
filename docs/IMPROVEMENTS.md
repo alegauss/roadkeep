@@ -250,26 +250,4 @@ boolean every reader has to know to check.
 
 ## Block E — Adoption
 
-### §RK352 A fixture that collides with the environment it is about
-
-`_drifted` compares a capture's recorded text-handling facts against this process's,
-which is the whole of RK341: a verdict reached under different codecs says so. The test
-for it records `PYTHONIOENCODING = utf-8:surrogateescape` and a locale, and asserts both
-come back as drifted.
-
-Both do — unless the process running the test already declares that variable with that
-value, in which case only the locale drifts and the assertion fails. Measured here: the
-PowerShell tool starts Python with exactly that value exported, so the suite is red
-under one shell and green under another with no change to the code between them.
-
-The fixture is asserting "this process does not have X" about a value chosen because it
-is the realistic one, which is the same reason a real environment would have it. A value
-nothing would ever export makes the same point about the comparison and cannot be shared
-by accident; reading the current environment and picking one it does not hold is the
-other direction, and says why in the test rather than in a constant.
-
-Small, and worth doing because of what it costs when it fires: this is one of the few
-tests that can be red for a reason outside the repository, and a red nobody can
-reproduce is the one that gets ignored on the run where it means something.
-
 ## Block F — The plugin

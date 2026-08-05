@@ -35,7 +35,7 @@ from pathlib import Path
 
 import pytest
 
-from roadkeep.capturing import Capture, Failure, capture, replay
+from roadkeep.capturing import Capture, Failure, capture, environment, replay
 from roadkeep.cli import EXIT_GATE, EXIT_OK, main
 from roadkeep.provenance import engine
 
@@ -218,6 +218,39 @@ def test_a_file_that_is_not_a_capture_is_refused_and_not_staged(tmp_path, capsys
 # -- the one input a replay cannot stage (RK341) ------------------------------
 
 
+def unshared(name: str, *candidates: str) -> str:
+    """A value for ``name`` that this process does not itself hold (RK352).
+
+    These assertions are about the *comparison*: `_drifted` names the recorded facts this
+    reader does not share, so a fixture recording one it happens to share is asserting about
+    the shell. It used to hard-code `utf-8:surrogateescape`, which is realistic for exactly the
+    reason a shell exports it — measured here, the PowerShell tool starts Python with that
+    value, so the drift came back as one fact of two and the red was about the terminal the
+    suite was launched from.
+
+    So the value is read against this process rather than fixed once in a constant: the first
+    candidate is the realistic one, and the rest are there for the environment that already
+    declares it. Which is the thing a constant cannot say — that the choice is about avoiding a
+    collision and not about the value meaning anything.
+    """
+    here = environment().facts.get(name, "")
+    for candidate in candidates:
+        if candidate != here:
+            return candidate
+    raise AssertionError(f"{name} is {here!r} here, and every candidate collides with it")
+
+
+def test_the_fixture_picks_a_value_this_process_does_not_hold(monkeypatch):
+    # The helper is the fix, so it is the thing asserted on: with the realistic value exported,
+    # the fixture must move off it rather than record a fact this reader shares.
+    monkeypatch.setenv("PYTHONIOENCODING", "utf-8:surrogateescape")
+    assert unshared("PYTHONIOENCODING", "utf-8:surrogateescape", "iso-8859-15") == "iso-8859-15"
+    monkeypatch.delenv("PYTHONIOENCODING")
+    assert unshared("PYTHONIOENCODING", "utf-8:surrogateescape", "iso-8859-15") == (
+        "utf-8:surrogateescape"
+    )
+
+
 def test_a_verdict_reached_under_different_codecs_says_which_ones(tmp_path):
     """The defect RK341 names, from the reader's side.
 
@@ -230,8 +263,12 @@ def test_a_verdict_reached_under_different_codecs_says_which_ones(tmp_path):
     recorded = recorded_from(tmp_path / "theirs")
     recorded["environment"] = {
         **recorded["environment"],
-        "declared": {"PYTHONIOENCODING": "utf-8:surrogateescape"},
-        "locale": "iso-8859-15",
+        "declared": {
+            "PYTHONIOENCODING": unshared(
+                "PYTHONIOENCODING", "utf-8:surrogateescape", "iso-8859-15"
+            )
+        },
+        "locale": unshared("locale", "iso-8859-15", "cp874"),
     }
     recorded["exit"] = 99  # so the verdict is the negative one the caveat exists for
     outcome = replay(recorded, staging(tmp_path))
