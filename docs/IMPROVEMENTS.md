@@ -215,30 +215,6 @@ assertion whoever is writing it — RK305 already names that ratio as fragile.
 
 ## Block F — The plugin
 
-### §RK313 Doubt an agent cannot resolve
-
-Two staleness warnings reached one session from two directions. The MCP `add` refused
-and appended: this server imported roadkeep before `__init__.py`, `cli.py`,
-`provenance.py` and `serving.py` changed on disk, so the refusal is what the code it did
-import answered and restart if the harness has not reloaded. Separately the SessionStart
-hook reported the project's copy of `skills/roadkeep/SKILL.md` had drifted from the
-checkout answering, and that `install` refreshes it.
-
-Both messages are honest and neither is actionable inside the session that reads them.
-An agent cannot restart its own harness, and it cannot know whether the four named files
-are the ones that decided its particular refusal without reading them. The outcome here
-was to abandon the MCP surface and drive the CLI for all thirteen filings — which
-worked, and left the protocol path untested for a whole session of real use.
-
-That is the cost worth naming: the surface most likely to be stale is the one an agent
-is most likely to be driving, and the advice for it is the one thing an agent cannot do.
-A patch bump per commit (RK153) is the mechanism that should make this rare, and it did
-not here.
-
-What would help is a narrower claim. The server knows which files changed and can
-compare them with the modules the refused verb touches, so a refusal the drift could not
-have affected should say so rather than casting doubt on itself.
-
 ### §RK314 The dest the enum missed
 
 RK304 published `role` as an enum and its own line asserted `status` already published

@@ -40,7 +40,7 @@ from roadkeep import claiming, serving
 from roadkeep import cli
 from roadkeep.cli import build_parser
 from roadkeep.config import Config
-from roadkeep.provenance import _LOADED_AT, engine
+from roadkeep.provenance import _LOADED_AT, engine, invocation
 from roadkeep.schema import body_aim
 from roadkeep.serving import (
     KNOWN_PROTOCOLS,
@@ -1220,8 +1220,12 @@ def test_the_remedy_named_is_the_one_that_restarts_this_server(tmp_path, monkeyp
     assert "inside the tree it is governing" in own and "RK153" not in own
     # And it claims no more than the relation established (RK250): the launcher was never read,
     # so naming one would be true of this repository and of nothing else satisfying the same
-    # relation — a `pip install -e .` into a `.venv` under the root satisfies it too.
-    assert ".mcp.json" not in own and "scripts/roadkeep.py" not in own
+    # relation — a `pip install -e .` into a `.venv` under the root satisfies it too. Asserted
+    # against the *remedy* clause and not the whole answer, because the clause after it names a
+    # command `invocation()` resolved on this machine rather than a wiring it assumed (RK254,
+    # RK313) — and on a machine with the console script that is `roadkeep`, not a launcher path.
+    remedy = own.split("Available now")[0]
+    assert ".mcp.json" not in remedy and "scripts/roadkeep.py" not in remedy
     # And the plugin's own copy, which is a cache *outside* the governed root: the bump applies.
     monkeypatch.setattr(
         "roadkeep.serving.engine",
@@ -1322,6 +1326,45 @@ def test_the_note_is_never_composed_from_an_earlier_call_refusal(tmp_path, monke
     refused = text_of(called(where, "status", id="RK1"))
     assert f"imported roadkeep before {DECIDES} changed on disk" in refused
     assert "decided this refusal" not in refused
+
+
+def test_the_note_closes_with_the_one_remedy_the_reader_can_run(tmp_path, monkeypatch):
+    # RK313: every remedy this note named was a patch bump or a session restart, and the agent it
+    # is written for can perform neither — measured as one session abandoning the protocol surface
+    # and driving the CLI for all thirteen of its filings.
+    monkeypatch.setattr(
+        "roadkeep.serving.engine",
+        lambda: replace(engine(), home=_moved(tmp_path, DECIDES)),
+    )
+    refused = text_of(called(project(tmp_path), "status", id="RK99", marker="🛠"))
+    # The verb, spelled as this machine reaches it (RK254) — never `roadkeep` literally, which
+    # answers `command not found` wherever the console script was never installed.
+    assert f"`{invocation()} status` runs the changed files" in refused
+    # And after the remedy, not instead of it: the restart is still the cause's own answer.
+    assert refused.index("remedy") < refused.index("Available now")
+
+
+def test_the_verb_named_is_the_one_this_call_asked_for(tmp_path, monkeypatch):
+    # The verb and never the arguments: the reader has those, and a rendered argv would have to
+    # quote a `--why` sentence to be correct — a second grammar for a call this surface takes
+    # as JSON. So a refusal from a different tool names that tool.
+    monkeypatch.setattr(
+        "roadkeep.serving.engine",
+        lambda: replace(engine(), home=_moved(tmp_path, "authoring.py", "schema.py")),
+    )
+    refused = text_of(
+        called(project(tmp_path), "add", block="A", symptom="s", why="w" * 5000)
+    )
+    assert f"`{invocation()} add` runs the changed files" in refused
+    assert "--why" not in refused.split("Available now")[1]
+
+
+def test_a_refusal_with_no_drift_offers_nothing_because_a_re_run_answers_the_same(tmp_path):
+    # The advice is not circular, which is RK272's bar: it is offered only where the drift is a
+    # fact about this process, so a fresh import is the one place a different answer comes from.
+    answered = called(project(tmp_path), "status", id="RK99", marker="🛠")
+    assert answered["isError"] is True
+    assert "Available now" not in text_of(answered)
 
 
 def test_an_answer_that_worked_explains_nothing(tmp_path, monkeypatch):

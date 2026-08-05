@@ -73,7 +73,7 @@ from typing import Any, TextIO
 from roadkeep import __version__
 from roadkeep.config import PROSE_ROLES, ROLES, Config, ConfigError, Scope
 from roadkeep import provenance
-from roadkeep.provenance import engine
+from roadkeep.provenance import engine, invocation
 # `words` from where it is *defined* and not from `budgeting`, which re-exports it (RK260):
 # `config` already loads `schema`, and reaching the name through `budgeting` cost the guard
 # 30 ms and eight modules — `authoring`, `sections`, `claiming`, `ids`, `markers` and the
@@ -984,7 +984,10 @@ def call(tool: Tool, arguments: Mapping[str, Any], directory: str = ".") -> Answ
         # thing that failed (RK248). The launch path is what is left, and it is the safe half.
         provenance.witness(error)
         return _answered(
-            f"roadkeep: {error} — read by {engine()}", Path(directory), is_error=True
+            f"roadkeep: {error} — read by {engine()}",
+            Path(directory),
+            is_error=True,
+            served=tool.command,
         )
     # One build for the whole call (RK198), and then one for the whole process (RK202). The
     # argv is rendered through the subcommands and parsed through the root they belong to,
@@ -998,7 +1001,7 @@ def call(tool: Tool, arguments: Mapping[str, Any], directory: str = ".") -> Answ
         # The three refusals this function raises or catches itself still have the exception, so
         # they witness here rather than leave the note with nothing to intersect (RK267).
         provenance.witness(error)
-        return _answered(str(error), config.root, is_error=True)
+        return _answered(str(error), config.root, is_error=True, served=tool.command)
     out, err = io.StringIO(), io.StringIO()
     try:
         with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err), _spent_stdin():
@@ -1011,9 +1014,14 @@ def call(tool: Tool, arguments: Mapping[str, Any], directory: str = ".") -> Answ
         code = exit_.code if isinstance(exit_.code, int) else 2
     except LockBusy as busy:
         provenance.witness(busy)
-        return _answered(f"roadkeep: {busy}", config.root, is_error=True)
+        return _answered(f"roadkeep: {busy}", config.root, is_error=True, served=tool.command)
     reported = "\n".join(part for part in (err.getvalue().strip(), out.getvalue().strip()) if part)
-    return _answered(reported or f"{tool.name}: exit {code}", config.root, is_error=bool(code))
+    return _answered(
+        reported or f"{tool.name}: exit {code}",
+        config.root,
+        is_error=bool(code),
+        served=tool.command,
+    )
 
 
 @contextlib.contextmanager
@@ -1042,7 +1050,7 @@ def _spent_stdin() -> Iterator[None]:
         sys.stdin = saved
 
 
-def _answered(text: str, root: Path, *, is_error: bool) -> Answer:
+def _answered(text: str, root: Path, *, is_error: bool, served: str = "") -> Answer:
     """One tool's answer, plus the note a **refusal** needs when the code answering moved.
 
     RK155, measured twice in one session: the config is re-read per message on purpose, so a
@@ -1100,6 +1108,13 @@ def _answered(text: str, root: Path, *, is_error: bool) -> Answer:
     A refusal this process never witnessed is neither case: nothing decided it *here* — argparse
     refusing an argv, a handler exiting non-zero without raising — and the honest answer is then
     the inventory RK155 shipped, because suppressing on no evidence is the opposite mistake.
+
+    **And whatever it says, it closes with something the reader can do** (RK313). Every remedy
+    this note had named was a patch bump or a session restart, and the agent it is written for can
+    perform neither — measured as one session abandoning the protocol surface and driving the CLI
+    for all thirteen of its filings, which worked and left the served path untested for a session
+    of real use. ``served`` is what makes the alternative nameable: the command this call would
+    have run, so :func:`_now` says it.
     """
     if not is_error:
         return Answer(text, is_error=False)
@@ -1109,7 +1124,7 @@ def _answered(text: str, root: Path, *, is_error: bool) -> Answer:
     decided = provenance.witnessed()
     if decided is None:
         # Relevance is genuinely unknown, so the full list is what there is to say.
-        return Answer(f"{text}\n\n{_inventory(changed, root)}", is_error=True)
+        return Answer(f"{text}\n\n{_inventory(changed, root, served)}", is_error=True)
     both = tuple(one for one in changed if one in decided)
     if not both:
         return Answer(text, is_error=True)
@@ -1120,21 +1135,49 @@ def _answered(text: str, root: Path, *, is_error: bool) -> Answer:
         f"Separately, about this process and not about the refusal above: "
         f"{', '.join(both)} decided this refusal and changed on disk after this server imported "
         f"roadkeep, so the answer above is what the code it did import said — read it first, "
-        f"then re-run.{behind} {_remedy(root)}",
+        f"then re-run.{behind} {_remedy(root)}{_now(served)}",
         is_error=True,
     )
 
 
-def _inventory(changed: Sequence[str], root: Path) -> str:
+def _inventory(changed: Sequence[str], root: Path, served: str = "") -> str:
     """The note on a refusal nothing witnessed, which is RK155's and claims no relevance (RK267).
 
     It cannot ask the reader to establish one either, so it does not close with the sentence that
-    did: what is left is the fact and the remedy, and the refusal above stands as the answer.
+    did: what is left is the fact, the remedy, and the one thing available now (RK313).
     """
     return (
         f"Separately, about this process and not about the refusal above: this server "
         f"imported roadkeep before {', '.join(changed)} changed on disk, and the refusal is "
-        f"what the code it did import answered — read it first. {_remedy(root)}"
+        f"what the code it did import answered — read it first. {_remedy(root)}{_now(served)}"
+    )
+
+
+def _now(served: str) -> str:
+    """The remedy available **inside** the session that reads this, or nothing (RK313).
+
+    Every other sentence in this note is about a process the reader cannot address: a patch bump
+    is the harness's and a restart is the user's, both correct about the cause and empty as an
+    instruction. The one action that exists is the one the measured session found by itself — the
+    same verb through the CLI, which loads the changed files on the spot.
+
+    Not circular, which is RK272's bar for advice: this note fires only where the drift is a fact
+    about *this process*, so a run that imports fresh is the one place a different answer can come
+    from. And spelled through :func:`~roadkeep.provenance.invocation`, because a command named
+    literally is one that answers `command not found` on a plugin-installed machine (RK254).
+
+    The verb and never the arguments. The reader has those — they just sent them — and a rendered
+    argv would have to quote a `--why` sentence to be correct, which is a second grammar for
+    stating a call this surface already accepts as JSON.
+    """
+    if not served:
+        # Nothing to name, so nothing is claimed. Every branch in :func:`call` passes the command
+        # — the tool was resolved before dispatch — and this is the guard that keeps a caller
+        # composing a note by hand from getting a sentence about a verb it never named.
+        return ""
+    return (
+        f" Available now, in this session: `{invocation()} {served}` runs the changed files, "
+        f"the CLI importing them per process."
     )
 
 
