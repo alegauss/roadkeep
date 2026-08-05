@@ -40,6 +40,7 @@
 - ✅ **RK240** **Where an id actually is gets composed by two modules in the same words** — `Whereabouts` in `backlog` is the one composer of where an id is, so `resume` and both section refusals read one sentence — and `record amend` is offered off the marker, not off a non-empty string.
 - ✅ **RK243** **The one refusal no prose edit fixes now advises deleting words** — The word figure is now the caller's `prose=` switch, so `line.too-long` names the surplus and no edit, and the field refusals a shorter sentence does answer keep the hint.
 - ✅ **RK330** **Each feature needing state outside the documents invents its own file format and its own reader** — Claim dates, declared scopes and write digests share one TOML store beside the lock, so a fourth feature extends a grammar whose round-trip is a property test instead of writing a fourth.
+- ✅ **RK340** **outline anchors are one namespace across prose roles, and every outline starts at I** — A prose file declares its own namespace in [refs], so its addresses are written §<prefix>:<x.y> and two outlines that each start at I are two sets of addresses rather than one read twice.
 
 ## Block B — Authoring
 

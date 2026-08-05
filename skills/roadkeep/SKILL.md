@@ -32,7 +32,12 @@ list it numbers by track, and then `add --prefix <letter>` says which track whil
 stays derived, per family. Where it declares `ref_scheme = "outline"` the anchor is not
 derivable at all, so `add --ref <x.y>` is the field that names it — offered over MCP too, and
 only there, an `add` without it on such a project being refused `ref.missing`; there the id in
-a section's heading is what binds it to its line, and it too is appended for you. A refusal exits 2 naming the length and
+a section's heading is what binds it to its line, and it too is appended for you. Where
+`[refs]` gives a prose file a **namespace**, that file's addresses are written
+`<prefix>:<x.y>` and it answers no bare one — two files each numbering their own outline
+from `I` being one flat set of addresses otherwise, which `anchors` reports as `doubled` and
+the gate as `section.ambiguous`. The prefix rides on the pointer alone: the heading keeps the
+number the file wrote, and `anchors` names the free address in each namespace. A refusal exits 2 naming the length and
 the limit and writes nothing; the shipped marker never reaches the roadmap. **A line renders a
 pointer, and the pointer has to resolve**: `add --section "<title>"` writes the rationale in
 the same transaction — the prose on stdin or `--section-body`, both files validated before

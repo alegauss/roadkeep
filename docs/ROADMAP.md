@@ -22,8 +22,6 @@
 
 ## Block A — The model (a task is data before it is a line)
 
-- 📋 **RK340** (deps: —) **outline anchors are one namespace across prose roles, and every outline starts at I** — ref_scheme is read once per project and no role can prefix or scope its addresses, so two prose files each numbering their own headings collide at I and III with no configuration that avoids it. → §RK340
-
 ## Block B — Authoring (insert, never hand-edit)
 
 - 📋 **RK310** (deps: —) **A design section can carry a stale premise and ship drops it in silence** — Twice in one block a section argued from a fact that had stopped being true, and the only reader who could find out is whoever claims the task years later. → §RK310

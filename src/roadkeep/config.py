@@ -34,6 +34,8 @@ from roadkeep.schema import (
     DEFAULT_HEADING_WORD,
     DEFERRED,
     OPEN_MARKERS,
+    REF_PREFIX_RE,
+    REF_SEPARATOR,
     RETIRED,
     SHIPPED,
     UNDESIGNED,
@@ -81,6 +83,7 @@ _TOP_KEYS = frozenset(
         "headings",
         "report",
         "claims",
+        "refs",
     }
 )
 #: `[claims]` — how long a claim on a line reads as held (RK151). Its own table for the reason
@@ -216,6 +219,12 @@ class Config:
     #: `[rules.<role>]` — a prose rule one file is not held to (RK52), applied by
     #: :meth:`schema_for` alongside that file's limits.
     rules: Mapping[str, Mapping[str, bool]] = field(default_factory=dict)
+    #: `[refs]` — the namespace a prose role's outline addresses live in (RK340), keyed by
+    #: role and applied by :meth:`schema_for`. Empty is every project that has not declared
+    #: one, and the behaviour is exactly what it was: one flat set of addresses across both
+    #: prose files, which is right for a project whose two files never collide and is the
+    #: `section.ambiguous` nothing could configure away for the one where they do.
+    refs: Mapping[str, str] = field(default_factory=dict)
     #: `[non_goals]` — declared when this project's non-goals are governed too (RK70), and
     #: **None** when they are prose, which is what every project's were before it opted in.
     non_goals: Scope | None = None
@@ -277,6 +286,7 @@ class Config:
         per_role = _by_role(data.get("limits"), problems)
         rules = _rules(data.get("rules"), problems)
         paths = _paths(data.get("files"), base, problems)
+        refs = _refs(data.get("refs"), ref_scheme, paths, problems)
         extras = tuple(
             base / name for name in _string_list(data.get("id_sources"), "id_sources", problems)
         )
@@ -315,6 +325,7 @@ class Config:
             budgets=budgets,
             limits=per_role,
             rules=rules,
+            refs=refs,
             non_goals=non_goals,
             upstream=upstream,
             held=held,
@@ -351,7 +362,12 @@ class Config:
             schema = schema.as_ledger()
         elif role == "deferred":
             schema = schema.as_deferred()
-        own = {**self.limits.get(role, {}), **self.rules.get(role, {})}
+        own: dict[str, object] = {**self.limits.get(role, {}), **self.rules.get(role, {})}
+        # The namespace this role's addresses live in (RK340), carried on the schema for the
+        # reason every other per-role difference is: the file travels with the rules it is
+        # read under, so nothing downstream has to be handed a role beside a document.
+        if role in self.refs:
+            own["ref_prefix"] = self.refs[role]
         return replace(schema, **own) if own else schema
 
     def document(self, role: str) -> Document:
@@ -763,6 +779,74 @@ def _rules(raw: object, problems: list[str]) -> dict[str, dict[str, bool]]:
         }
         if found:
             out[role] = found
+    return out
+
+
+def _refs(
+    raw: object, ref_scheme: str, declared: Mapping[str, Path], problems: list[str]
+) -> dict[str, str]:
+    """`[refs]` — which namespace a prose role's outline addresses live in (RK340).
+
+    Its own table and not a fourth key under `[rules.<role>]`, which says which rules a file
+    is *not held to* and whose every value is a flag: a namespace is a name, and a string
+    among booleans is the shape that made `markers.ledger` carry half of two decisions.
+
+    Three refusals, each of them a way for a namespace to fail to be one:
+
+    * **A prose role only.** The roadmap and the ledger hold lines and not headings, so a
+      prefix on one addresses nothing — and the deferred store carries the section a pause
+      kept, which is the prose role it came from and not a fourth namespace.
+    * **Under an outline only.** The id scheme's anchor *is* the id, and ids are already one
+      namespace this format refuses to spend twice; prefixing them would put a second address
+      on a section whose first one the roadmap derives.
+    * **Unique.** Two roles sharing a prefix is the collision this exists to end, one level
+      up, and it would be the harder one to see: the addresses would agree and the files
+      would not.
+
+    A role a project does not declare is refused too. It reads as configuration nothing
+    applies, and the one thing worse than an unresolvable address is a declaration the author
+    believes resolved it.
+    """
+    if raw is None:
+        return {}
+    if not isinstance(raw, Mapping):
+        problems.append("refs must be a table of role = \"<prefix>\"")
+        return {}
+    out: dict[str, str] = {}
+    for role, value in raw.items():
+        where = f"refs.{role}"
+        if role not in PROSE_ROLES:
+            problems.append(
+                f"{where}: not a prose role ({', '.join(PROSE_ROLES)}): only a file that "
+                f"declares headings has addresses to put in a namespace"
+            )
+            continue
+        if not isinstance(value, str) or not REF_PREFIX_RE.match(value):
+            problems.append(
+                f"{where} must be one word of letters and digits starting with a letter: "
+                f"it is written in front of an address as <prefix>{REF_SEPARATOR}<x.y>"
+            )
+            continue
+        if ref_scheme != "outline":
+            problems.append(
+                f"{where}: a namespace is for ref_scheme = \"outline\" — under \"id\" the "
+                f"anchor is the task's own id, which is already unique across the project"
+            )
+            continue
+        if role not in declared:
+            problems.append(
+                f"{where}: this project declares no {role!r} file, so the namespace "
+                f"addresses nothing — declare it under [files], or drop this line"
+            )
+            continue
+        taken = next((other for other, one in out.items() if one == value), None)
+        if taken is not None:
+            problems.append(
+                f"{where}: {value!r} is already {taken}'s namespace, and two roles sharing "
+                f"one is the collision a namespace exists to end"
+            )
+            continue
+        out[role] = value
     return out
 
 

@@ -87,6 +87,30 @@ _BLOCK_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9.\-]{0,15}$")
 #: word prose, and a bare `§B` names a block rather than a section, so it stays refused.
 OUTLINE_ANCHOR_RE = re.compile(r"^(?:[0-9IVXLCDM]+|[A-Z](?=\.))(?:\.[0-9]+)*(?:\.[a-z])?$")
 
+#: The namespace an outline address may name in front of itself (RK340). `ref_scheme` is
+#: read once per project and every outline starts at `I`, so two prose files each numbering
+#: their own headings land in one flat set: measured in an adopting project, `IMPROVEMENTS.md`
+#: and `STRATEGY.md` both open at `§I` and both declare a `§III`, `lint` reports four
+#: `section.ambiguous`, and ten pointers resolve to nothing. A prefix is what makes `§S:I`
+#: and `§I` two addresses, and the **separator is a colon** for a reason the alternative
+#: makes plain: a dot is what an outline already segments by, so `§S.I` would be a child of
+#: something called `S` to every reader that splits one.
+REF_PREFIX_RE = re.compile(r"^[A-Za-z][A-Za-z0-9]*$")
+REF_SEPARATOR = ":"
+
+
+def split_ref(ref: str) -> tuple[str, str]:
+    """`S:I.2` → `("S", "I.2")`, and a bare `I.2` → `("", "I.2")` (RK340).
+
+    One reader of the spelling, for the reason :func:`~roadkeep.sections.anchor_text` is one
+    writer of it: an address parsed one way by the gate and another by the write is the
+    disagreement that made the ambiguity unreportable in the first place. Partitioning and
+    not a match, so an anchor carrying two colons keeps the tail verbatim and fails the
+    *anchor* check with the text the author typed rather than being silently re-cut.
+    """
+    prefix, found, bare = ref.partition(REF_SEPARATOR)
+    return (prefix, bare) if found else ("", ref)
+
 # A terminator followed by whitespace, i.e. a sentence that has a successor. A
 # trailing period never matches because the field is measured stripped.
 _SENTENCE_BREAK_RE = re.compile(r"[.!?][\"')\]]*\s")
@@ -520,12 +544,25 @@ class Schema:
     #: already use, kept because migrating a live outline is a separate decision
     #: from adopting the tool.
     ref_scheme: str = "id"
+    #: The namespace this role's outline addresses live in (`[refs]`, RK340). Empty is every
+    #: project that has not declared one, and every role under `ref_scheme = "id"`, where the
+    #: anchor is the id and the ids are already one namespace the format keeps unique. Where
+    #: it is set, this role answers **only** prefixed addresses and no bare one — which is
+    #: what makes `§S:I` and `§I` two addresses rather than one read twice.
+    ref_prefix: str = ""
 
     def __post_init__(self) -> None:
         if self.ref_scheme not in REF_SCHEMES:
             raise ValueError(
                 f"ref_scheme must be one of {', '.join(sorted(REF_SCHEMES))}, "
                 f"got {self.ref_scheme!r}"
+            )
+        if self.ref_prefix and not REF_PREFIX_RE.match(self.ref_prefix):
+            raise ValueError(
+                f"ref prefix must be one word of letters and digits starting with a "
+                f"letter, got {self.ref_prefix!r}: it is written in front of an address "
+                f"as {self.ref_prefix}{REF_SEPARATOR}<x.y>, so a dot in it would read as "
+                f"an outline segment"
             )
         _check_prefixes(self.prefixes)
         if self.id_pad < 1:
@@ -1230,7 +1267,22 @@ class Schema:
                     )
                 ]
             return []
-        if not OUTLINE_ANCHOR_RE.match(task.ref):
+        # The namespace a project may put in front of an address (RK340). Checked for shape
+        # and never for membership: which prefixes exist is `[refs]`, and a line naming one
+        # this project does not declare is a pointer at nothing — `ref.unresolved`, reported
+        # by the gate against the files, rather than a format violation about a legal
+        # spelling. The roadmap's own schema carries no prefix and could not answer anyway.
+        prefix, bare = split_ref(task.ref)
+        if prefix and not REF_PREFIX_RE.match(prefix):
+            return [
+                Violation(
+                    "ref.format",
+                    "ref",
+                    f"not a <prefix>:<x.y> anchor: {task.ref!r} — a namespace is one word "
+                    f"of letters and digits, starting with a letter",
+                )
+            ]
+        if not OUTLINE_ANCHOR_RE.match(bare):
             return [Violation("ref.format", "ref", f"not an <x.y> anchor: {task.ref!r}")]
         return []
 

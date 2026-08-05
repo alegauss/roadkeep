@@ -80,6 +80,7 @@ from roadkeep.history import (
     gaps,
     doubled,
     indexed,
+    namespaces,
     next_child,
     next_family,
     origin_of,
@@ -258,7 +259,10 @@ def build_parser() -> argparse.ArgumentParser:
     )
     add_parser.add_argument(
         "--ref",
-        help="the rationale anchor, for ref_scheme = 'outline' only; otherwise derived",
+        help=(
+            "the rationale anchor, for ref_scheme = 'outline' only; otherwise derived — "
+            "<prefix>:<x.y> for a prose file [refs] gives a namespace"
+        ),
     )
     add_parser.add_argument(
         "--section",
@@ -305,7 +309,9 @@ def build_parser() -> argparse.ArgumentParser:
             "or beneath the section it extends. A table or a list is inserted as written."
         ),
     )
-    section_add.add_argument("anchor", help="the anchor, e.g. RK9 (no §)")
+    section_add.add_argument(
+        "anchor", help="the anchor, e.g. RK9 or S:VIII.2 (no §)"
+    )
     section_add.add_argument("--title", required=True, help="the heading text")
     section_add.add_argument(
         "--body",
@@ -4704,6 +4710,15 @@ def _anchors(config: Config, args: argparse.Namespace) -> int:
                     # The question one line up, and the one a reused block asks (RK293).
                     # Null where the top-levels are not one numbering, which is an answer.
                     "next_family": None if args.family else next_family(spread),
+                    # One per namespace where `[refs]` declares any (RK340): two files that
+                    # each number themselves have two next addresses, and the field above
+                    # answers for the unprefixed one alone.
+                    "next_families": []
+                    if args.family
+                    else [
+                        {"namespace": space or None, "next": next_family(spread, space)}
+                        for space in namespaces(spread)
+                    ],
                     # What no question asked and only the gate said (RK297): an address two
                     # headings answer to is one no pointer resolves against.
                     "doubled": [
@@ -4731,12 +4746,16 @@ def _anchors(config: Config, args: argparse.Namespace) -> int:
     # Beside the totals and above the rows, because it is the question a reused block asks
     # first and the listing cannot be read for it (RK293): the rows are per family, and the
     # last one is only the maximum once they are ordered by the number a numeral spells.
-    if spread:
-        fresh = next_family(spread)
+    for space in namespaces(spread) if spread else ():
+        # One line per namespace (RK340). Where a project declares no `[refs]` this is the
+        # one line it always printed; where it does, the two files each continue their own
+        # numbering, and a single answer would give one file the other's next address.
+        fresh = next_family(spread, space)
+        named = f" in {space}" if space else ""
         print(
-            f"  next     §{fresh} — no family ever used it"
+            f"  next     §{fresh} — no family{named} ever used it"
             if fresh
-            else "  next     — these families are not one numbering, so none derives"
+            else f"  next     — these families{named} are not one numbering, so none derives"
         )
     for family in _families(outline):
         # The files only where there is more than one to name (RK297): on the single-file

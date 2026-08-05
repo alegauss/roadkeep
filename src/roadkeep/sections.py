@@ -52,11 +52,13 @@ from roadkeep.config import PROSE_ROLES, Config
 from roadkeep.document import Document, Heading, UnknownBlock, blank
 from roadkeep.schema import (
     OUTLINE_ANCHOR_RE,
+    REF_SEPARATOR,
     Schema,
     SchemaError,
     Task,
     Violation,
     over_by,
+    split_ref,
 )
 
 #: A paragraph whose first characters are any of these is a structure, not prose.
@@ -337,6 +339,34 @@ class Section:
         return f"§{self.anchor} ({self.first}-{self.last})"
 
 
+def local(schema: Schema, anchor: str) -> str | None:
+    """This address as the *file* writes it, or None where it is another role's (RK340).
+
+    The one seam between the project's namespace and a document's own. A role that declares
+    `[refs] <role> = "S"` answers `S:I` and never a bare `I`; a role that declares none
+    answers the bare address and never a prefixed one — which is what makes the two
+    addresses rather than one anchor read twice, and it is symmetric on purpose: a project
+    that prefixed only one of its files would otherwise have `S:I` and `I` both resolving in
+    strategy, and the collision back one file over.
+
+    None and not a raise, because every caller already has an answer for an anchor this file
+    does not hold: `find` returns nothing, `declaring` leaves the role out, and the gate says
+    `ref.unresolved` naming the files it looked in.
+    """
+    prefix, bare = split_ref(anchor)
+    return bare if prefix == schema.ref_prefix else None
+
+
+def qualified(schema: Schema, anchor: str) -> str:
+    """This file's address as a *pointer* writes it — `I.2` → `S:I.2` (RK340).
+
+    The inverse of :func:`local`, and the one writer of the prefixed spelling for the reason
+    :func:`anchor_text` is the one writer of the heading's: an address rendered by hand at a
+    call site is how the two ends of a pointer come to disagree.
+    """
+    return f"{schema.ref_prefix}{REF_SEPARATOR}{anchor}" if schema.ref_prefix else anchor
+
+
 def find(document: Document, anchor: str) -> Section | None:
     """The section this anchor names, or None. Subsections belong to it, not after it."""
     span = _span(document, anchor)
@@ -533,6 +563,12 @@ def anchored(document: Document) -> tuple[Section, ...]:
     grew), and a container like this repository's `§0` has no prose of its own at all —
     counting its children against it would measure the file's shape rather than anyone's
     paragraph. Which of the two the budget uses is the gate's decision, not this one's.
+
+    Each anchor is the **project's** address and not the heading's (RK340): a heading writes
+    `I` and a pointer writes `S:I` where `[refs]` gives this role a namespace, and the gate
+    reads these sections into one index across both prose files — which is the index the
+    collision was in. So the qualification happens here, once, and every reader downstream
+    compares addresses that are comparable. :func:`anchor_text` is the way back.
     """
     out: list[Section] = []
     for heading in document.headings:
@@ -542,7 +578,7 @@ def anchored(document: Document) -> tuple[Section, ...]:
         end = document.prose_end(heading)
         out.append(
             Section(
-                anchor=anchor,
+                anchor=qualified(document.schema, anchor),
                 title=_title_of(heading.text, document.schema),
                 level=heading.level,
                 first=heading.lineno,
@@ -950,6 +986,39 @@ def words(body: str) -> int:
 # -- validation --------------------------------------------------------------
 
 
+def _outline_violation(schema: Schema, anchor: str) -> Violation | None:
+    """What is wrong with this address under an outline — its namespace, or its shape.
+
+    Namespace first, because it is the question the other one cannot answer: `S:I` fails
+    every reading of `<x.y>` and saying so would send an author to fix a spelling that is
+    correct for the file they meant (RK340).
+    """
+    here = local(schema, anchor)
+    if here is None:
+        # An address in another role's namespace, written into this file: refused rather
+        # than resolved, because the write was told which role it is for and the anchor
+        # names a different one — and the heading drops the prefix, so the disagreement
+        # would not survive in the file to be seen.
+        return Violation(
+            "anchor.namespace",
+            "anchor",
+            f"{anchor!r} is not an address in this file's namespace ("
+            f"{schema.ref_prefix or 'none'}, per [refs]): a section written here is one "
+            f"every pointer to that address resolves somewhere else",
+        )
+    if not OUTLINE_ANCHOR_RE.match(here):
+        # Refused rather than written, because the heading would be read back by nothing:
+        # under this scheme the number is what announces a section (RK44), so an anchor
+        # that is not one is a section invisible from the moment it reaches the file.
+        return Violation(
+            "anchor.format",
+            "anchor",
+            f"not an <x.y> outline anchor: {anchor!r} — under ref_scheme = outline "
+            f"the heading numbers itself, and a heading with no number is prose",
+        )
+    return None
+
+
 def _check(
     schema: Schema,
     anchor: str,
@@ -986,18 +1055,8 @@ def _check(
         out.append(
             Violation("anchor.sigil", "anchor", f"store the anchor without §: {anchor!r}")
         )
-    elif schema.ref_scheme == "outline" and not OUTLINE_ANCHOR_RE.match(anchor):
-        # Refused rather than written, because the heading would be read back by nothing:
-        # under this scheme the number is what announces a section (RK44), so an anchor
-        # that is not one is a section invisible from the moment it reaches the file.
-        out.append(
-            Violation(
-                "anchor.format",
-                "anchor",
-                f"not an <x.y> outline anchor: {anchor!r} — under ref_scheme = outline "
-                f"the heading numbers itself, and a heading with no number is prose",
-            )
-        )
+    elif schema.ref_scheme == "outline" and (bad := _outline_violation(schema, anchor)):
+        out.append(bad)
     elif schema.id_pattern().match(anchor) and task is None:
         # The pointer is the id (RK27), so an id-shaped anchor that names no live task is
         # a section nothing can ever point at — an orphan the moment it is written. *Live*
@@ -1437,8 +1496,14 @@ def anchor_text(schema: Schema, anchor: str) -> str:
     show`, `brief`) cannot print a file back differently from how it is written. On the
     pointer the § is unconditional — that is the end of the reference where a sigil is
     what tells an anchor from a word, in either scheme.
+
+    The **namespace stays on the pointer** (RK340): `[refs]` says which file an address is
+    in, and a heading is already in one, so writing `S:I` above the prose in `STRATEGY.md`
+    would put the answer to "which file" inside the file that is the answer.
     """
-    return f"§{anchor}" if schema.ref_scheme == "id" else anchor
+    if schema.ref_scheme == "id":
+        return f"§{anchor}"
+    return local(schema, anchor) or anchor
 
 
 def heading_of(schema: Schema, section: Section) -> str:
@@ -1494,5 +1559,12 @@ def _names(text: str, anchor: str, schema: Schema) -> bool:
     Asked of the parsed anchor rather than of the text, which is what keeps `§0` from
     claiming `§0.1` and `VIII.1` from claiming `VIII.10` without a second opinion about
     where an anchor ends.
+
+    And asked in **this file's namespace** (RK340): the heading writes the bare address, so
+    an anchor naming another role's is one no heading here declares. One comparison rather
+    than a check at every reader, because this is the comparison every reader already makes.
     """
-    return anchor_of(text, schema) == anchor
+    here = local(schema, anchor)
+    # Both sides answer None — a heading that declares no anchor, and an address that is
+    # another role's — and the two Nones are not a match.
+    return here is not None and anchor_of(text, schema) == here

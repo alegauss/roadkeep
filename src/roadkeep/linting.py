@@ -1363,12 +1363,30 @@ def _pointers(
                         "ref.ambiguous",
                         file,
                         f"points at §{ref}, which {named} both declare: one anchor names "
-                        f"one section, and a pointer resolving to two resolves to neither",
+                        f"one section, and a pointer resolving to two resolves to neither"
+                        f"{_namespace_remedy(config)}",
                         entry.lineno,
                         entry.task.id,
                     )
                 )
     return out
+
+
+def _namespace_remedy(config: Config) -> str:
+    """The configuration that makes two colliding addresses two addresses (RK340).
+
+    Named at the finding and not only in the docs, because the state it reports is one a
+    project cannot edit its way out of: both files number their own outline from `I`, so
+    "rename one of them" is a renumbering of somebody's whole document. Silent where the
+    project already declares a namespace for both — there the collision is inside one of
+    them, and `[refs]` has nothing left to say about it.
+    """
+    if all(role in config.refs for role in PROSE_ROLES if config.has(role)):
+        return ""
+    return (
+        " — `[refs] <role> = \"<prefix>\"` in roadkeep.toml gives one of the two files its "
+        "own namespace, so its addresses are written §<prefix>:<x.y>"
+    )
 
 
 def _declared(anchors: dict[str, tuple[Section, ...]]) -> dict[str, tuple[str, ...]]:
@@ -1476,7 +1494,7 @@ def _orphans(
                     file,
                     f"§{anchor} is declared in {elsewhere} as well: one anchor names one "
                     f"section, so no pointer here resolves and every verb that reads one "
-                    f"refuses",
+                    f"refuses{_namespace_remedy(config)}",
                     section.first,
                     anchor,
                 )

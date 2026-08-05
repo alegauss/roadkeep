@@ -1,0 +1,306 @@
+"""Two prose files, two outlines, and the address that says which one (RK340).
+
+`ref_scheme` is read once per project and applied to every role, and every outline starts
+at `I`. Measured in an adopting project: `IMPROVEMENTS.md` opens at `§I — House constraints`
+and `STRATEGY.md` at `§I — What this is`, both declare a `§III`, `lint` reports four
+`section.ambiguous` on every run it has ever made, and ten pointers at the roadmap's own
+non-goals resolve to nothing. The only fix available was hand-picking ranges that do not
+overlap — numbering one file from `L` because the other reached `XLIX` — which is one
+sequence wearing two headings and nothing keeps it true as either grows.
+
+So `[refs] <role> = "<prefix>"` gives a file its own namespace, and what is asserted here is
+that the namespace is a *namespace* rather than a spelling:
+
+* the two files may both declare `I`, and the gate is clean about it;
+* a prefixed role answers **only** prefixed addresses, and an unprefixed one only bare ones,
+  because a role answering both would put the collision back one file over;
+* the prefix rides on the **pointer** and never on the heading — the file is the answer to
+  "which file", so writing it inside would be the answer stored in its own subject;
+* nothing changes for a project that declares no `[refs]`, which is every project that has
+  one prose file or two that never collided.
+"""
+
+from __future__ import annotations
+
+import json
+
+import pytest
+
+from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
+from roadkeep.config import Config, ConfigError
+from roadkeep.linting import lint
+from roadkeep.schema import split_ref
+from roadkeep.sections import SectionError, add, anchored, find, local, qualified
+
+ROADMAP = "docs/ROADMAP.md"
+IMPROVEMENTS = "docs/IMPROVEMENTS.md"
+STRATEGY = "docs/STRATEGY.md"
+
+BACKLOG = """# Roadmap
+
+## Block A — The model
+
+- 📋 **RK1** (deps: —) **A first symptom** — Because of a reason. → §I.1
+- 📋 **RK2** (deps: —) **A second symptom** — Because of another reason. → §S:I.1
+"""
+
+IMPROVEMENTS_BODY = """# Improvements
+
+## I. House constraints
+
+What this file is for.
+
+### I.1 A first design
+
+The reasoning the line has no room for.
+"""
+
+STRATEGY_BODY = """# Strategy
+
+## I. What this is
+
+What that file is for.
+
+### I.1 A positioning note
+
+The reasoning that line has no room for.
+"""
+
+
+def project(tmp_path, *, refs: str = '[refs]\nstrategy = "S"\n') -> Config:
+    """Two prose files whose outlines both start at `I`, and what the project says about it."""
+    (tmp_path / "roadkeep.toml").write_text(
+        f'prefix = "RK"\nref_scheme = "outline"\n{refs}'
+        f'[files]\nroadmap = "{ROADMAP}"\nimprovements = "{IMPROVEMENTS}"\n'
+        f'strategy = "{STRATEGY}"\n',
+        encoding="utf-8",
+    )
+    for name, body in {
+        ROADMAP: BACKLOG,
+        IMPROVEMENTS: IMPROVEMENTS_BODY,
+        STRATEGY: STRATEGY_BODY,
+    }.items():
+        path = tmp_path / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("w", encoding="utf-8", newline="") as handle:
+            handle.write(body)
+    return Config.discover(tmp_path)
+
+
+# -- the collision, and the configuration out of it --------------------------
+
+
+def test_two_files_declaring_one_address_is_clean_once_one_has_a_namespace(tmp_path):
+    # The whole task in one assertion: this is the exact shape that reported four
+    # `section.ambiguous` and ten unresolved pointers, and no edit to either file fixed it.
+    report = lint(project(tmp_path))
+    assert [f.code for f in report.findings] == []
+
+
+def test_without_the_namespace_the_same_files_are_the_defect(tmp_path):
+    # Held so the test above is a demonstration and not a tautology about a clean fixture.
+    config = project(tmp_path, refs="")
+    rules = {f.code for f in lint(config).findings}
+    assert "section.ambiguous" in rules
+    # And the roadmap line that points into the prefixed file now points at nothing, which
+    # is what a project without `[refs]` has instead: one namespace and one of each address.
+    assert "ref.unresolved" in rules
+
+
+def test_the_gate_names_the_configuration_rather_than_an_edit(tmp_path):
+    # The remedy is not "rename one of them": both files number their own outline from I, so
+    # the edit the finding would be asking for is a renumbering of somebody's whole document.
+    findings = lint(project(tmp_path, refs="")).findings
+    said = next(f for f in findings if f.code == "section.ambiguous")
+    assert "[refs]" in said.message and "§<prefix>:<x.y>" in said.message
+
+
+def test_declaring_a_namespace_moves_every_pointer_into_it(tmp_path):
+    # The cost of the declaration, stated: a role that answers only prefixed addresses is one
+    # whose old bare pointers now resolve to nothing — reported per line, by the gate, rather
+    # than silently re-resolved to the file that happens to still answer.
+    config = project(tmp_path, refs='[refs]\nstrategy = "S"\nimprovements = "D"\n')
+    assert [f.code for f in lint(config).findings] == ["ref.unresolved"]
+    (tmp_path / ROADMAP).write_text(
+        BACKLOG.replace("§I.1", "§D:I.1"), encoding="utf-8"
+    )
+    # Repointed, and the remedy sentence is gone with the collision: `[refs]` has nothing
+    # left to offer a project that has already declared both.
+    assert [f.code for f in lint(Config.discover(tmp_path)).findings] == []
+
+
+# -- an address in one namespace is not an address in the other --------------
+
+
+def test_a_prefixed_role_answers_only_prefixed_addresses(tmp_path):
+    config = project(tmp_path)
+    strategy = config.document("strategy")
+    assert find(strategy, "S:I.1") is not None
+    # The bare address is the *other* file's, and a role that answered both would be the
+    # collision one file over rather than the fix.
+    assert find(strategy, "I.1") is None
+
+
+def test_an_unprefixed_role_answers_only_bare_addresses(tmp_path):
+    config = project(tmp_path)
+    improvements = config.document("improvements")
+    assert find(improvements, "I.1") is not None
+    assert find(improvements, "S:I.1") is None
+
+
+def test_the_sections_of_a_prefixed_file_carry_the_project_address(tmp_path):
+    # `anchored` is what the gate reads both files into one index with, so the qualification
+    # happens there — once — and every reader downstream compares comparable addresses.
+    config = project(tmp_path)
+    assert [s.anchor for s in anchored(config.document("strategy"))] == ["S:I", "S:I.1"]
+    assert [s.anchor for s in anchored(config.document("improvements"))] == ["I", "I.1"]
+
+
+def test_the_namespace_is_on_the_pointer_and_never_in_the_heading(tmp_path):
+    config = project(tmp_path)
+    schema = config.schema_for("strategy")
+    assert qualified(schema, "I.1") == "S:I.1" and local(schema, "S:I.1") == "I.1"
+    # And the file says so: the heading a reader sees is the one the author wrote.
+    assert "## I. What this is" in (tmp_path / STRATEGY).read_text(encoding="utf-8")
+    assert "S:" not in (tmp_path / STRATEGY).read_text(encoding="utf-8")
+
+
+def test_a_section_written_into_the_wrong_namespace_is_refused(tmp_path):
+    config = project(tmp_path)
+    with pytest.raises(SectionError) as raised:
+        add(config, "improvements", "S:I.2", "A design", "The prose it carries.")
+    assert [v.code for v in raised.value.violations] == ["anchor.namespace"]
+
+
+def test_a_section_add_writes_the_bare_heading_under_the_named_role(tmp_path):
+    config = project(tmp_path)
+    document, section = add(config, "strategy", "S:I.2", "A second note", "The prose.")
+    assert section.anchor == "S:I.2"
+    assert "### I.2 A second note" in "".join(document.lines)
+    assert "S:I.2" not in "".join(document.lines)
+
+
+# -- what the reads say ------------------------------------------------------
+
+
+def test_the_free_address_is_derived_per_namespace(tmp_path, capsys):
+    # A maximum taken across both files would hand the shorter one the taller one's number,
+    # and reading the mixed set as one sequence answers "none derives" — which is the useful
+    # answer withheld from exactly the projects that configured their way out of the mess.
+    config = project(tmp_path)
+    assert main(["-C", str(config.root), "anchors", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    spaces = {row["namespace"]: row["next"] for row in payload["next_families"]}
+    assert spaces == {None: "II", "S": "S:II"}
+
+
+def test_the_listing_names_a_free_family_in_each_namespace(tmp_path, capsys):
+    config = project(tmp_path)
+    assert main(["-C", str(config.root), "anchors"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "§II — no family ever used it" in out
+    assert "§S:II — no family in S ever used it" in out
+
+
+def test_show_resolves_a_prefixed_pointer_to_one_file(tmp_path, capsys):
+    config = project(tmp_path)
+    assert main(["-C", str(config.root), "show", "RK2"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "A positioning note" in out and "A first design" not in out
+
+
+# -- the declaration itself --------------------------------------------------
+
+
+def test_a_namespace_for_a_role_that_holds_no_headings_is_refused(tmp_path):
+    with pytest.raises(ConfigError) as raised:
+        project(tmp_path, refs='[refs]\nroadmap = "R"\n')
+    assert "not a prose role" in str(raised.value)
+
+
+def test_a_namespace_under_the_id_scheme_is_refused(tmp_path):
+    (tmp_path / "roadkeep.toml").write_text(
+        f'prefix = "RK"\n[refs]\nstrategy = "S"\n[files]\nroadmap = "{ROADMAP}"\n'
+        f'strategy = "{STRATEGY}"\n',
+        encoding="utf-8",
+    )
+    with pytest.raises(ConfigError) as raised:
+        Config.discover(tmp_path)
+    assert "already unique" in str(raised.value)
+
+
+def test_two_roles_may_not_share_one_namespace(tmp_path):
+    with pytest.raises(ConfigError) as raised:
+        project(tmp_path, refs='[refs]\nstrategy = "S"\nimprovements = "S"\n')
+    assert "already" in str(raised.value)
+
+
+def test_a_namespace_is_one_word_and_never_a_dotted_one(tmp_path):
+    # A dot is what an outline segments by, so `S.I` would be a child of something called S
+    # to every reader that splits one — which is why the separator is a colon.
+    with pytest.raises(ConfigError) as raised:
+        project(tmp_path, refs='[refs]\nstrategy = "S.x"\n')
+    assert "letters and digits" in str(raised.value)
+
+
+def test_a_namespace_for_a_file_the_project_does_not_declare_is_refused(tmp_path):
+    (tmp_path / "roadkeep.toml").write_text(
+        f'prefix = "RK"\nref_scheme = "outline"\n[refs]\nstrategy = "S"\n'
+        f'[files]\nroadmap = "{ROADMAP}"\nimprovements = "{IMPROVEMENTS}"\n',
+        encoding="utf-8",
+    )
+    with pytest.raises(ConfigError) as raised:
+        Config.discover(tmp_path)
+    assert "declares no 'strategy' file" in str(raised.value)
+
+
+def test_a_line_may_carry_a_prefix_the_format_reads_but_no_file_answers(tmp_path, capsys):
+    # Shape is the schema's and membership is the gate's: a pointer at a namespace nothing
+    # declares is `ref.unresolved` against the files, not a violation about a legal spelling.
+    config = project(tmp_path)
+    (tmp_path / ROADMAP).write_text(
+        BACKLOG.replace("§S:I.1", "§Q:I.1"), encoding="utf-8"
+    )
+    rules = [f.code for f in lint(Config.discover(tmp_path)).findings]
+    assert rules == ["ref.unresolved"]
+    assert config.schema.validate  # the schema had nothing to say about it
+
+
+def test_an_address_is_split_once_and_kept_verbatim():
+    assert split_ref("S:I.1") == ("S", "I.1")
+    assert split_ref("I.1") == ("", "I.1")
+    # Two colons is one prefix and a tail that fails the anchor check with the text typed,
+    # rather than a silent re-cut into something that parses.
+    assert split_ref("S:x:1") == ("S", "x:1")
+
+
+def test_a_line_whose_prefix_is_not_a_word_is_a_format_violation(tmp_path):
+    config = project(tmp_path)
+    schema = config.schema
+    task = config.document("roadmap").entries[0].task
+    bad = [v.code for v in schema.validate(_reffed(task, "1S:I.1"))]
+    assert bad == ["ref.format"]
+
+
+def _reffed(task, ref):
+    from dataclasses import replace
+
+    return replace(task, ref=ref)
+
+
+def test_nothing_changes_for_a_project_that_declares_no_namespace(tmp_path):
+    # The default is what every project had: one flat set of addresses across both files,
+    # which is right where they never collide and is what `[refs]` is opt-in about.
+    config = project(tmp_path, refs="")
+    assert config.refs == {}
+    assert config.schema_for("strategy").ref_prefix == ""
+    assert [s.anchor for s in anchored(config.document("strategy"))] == ["I", "I.1"]
+
+
+def test_the_usage_exit_is_the_one_a_bad_declaration_gets(tmp_path, capsys):
+    project(tmp_path, refs='[refs]\nstrategy = "S"\n')
+    (tmp_path / "roadkeep.toml").write_text(
+        (tmp_path / "roadkeep.toml").read_text(encoding="utf-8").replace('"S"', '"S.x"'),
+        encoding="utf-8",
+    )
+    assert main(["-C", str(tmp_path), "lint"]) == EXIT_USAGE

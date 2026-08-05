@@ -29,7 +29,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from roadkeep.config import PROSE_ROLES, Config
-from roadkeep.schema import Schema
+from roadkeep.schema import REF_SEPARATOR, Schema, split_ref
 from roadkeep.sections import find
 
 _UNIT = "\x1f"  # between fields
@@ -723,7 +723,9 @@ def anchors(config: Config, role: str = "", family: str = "") -> tuple[Anchor, .
     # Whether this file numbers in Roman is a fact about the whole set (RK293), so it is
     # settled once here and handed to the key — a per-segment decision would read `C` as 100
     # in a file whose families are letters, and sort a listing by an arithmetic nobody meant.
-    numbered = bool(found) and all(numeral(one.anchor.split(".")[0]) for one in found)
+    # The namespace is not part of the numbering (RK340): `S:IX` spells nine in Roman, and a
+    # set read with the prefix on it would answer "no numerals here" and sort as text.
+    numbered = bool(found) and all(numeral(_family_of(one.anchor)) for one in found)
     wanted = [one for one in found if _within(one.anchor, family)]
     # The role breaks the tie, so an address two files declare comes out as two adjacent
     # rows in `[files]` order — which is the doubling, reported rather than collapsed.
@@ -823,7 +825,16 @@ def spell(value: int, system: str) -> str:
     return "".join(out)
 
 
-def next_family(taken: Sequence[Anchor]) -> str | None:
+def namespaces(taken: Sequence[Anchor]) -> tuple[str, ...]:
+    """Every namespace these addresses live in, `""` for the unprefixed one (RK340).
+
+    Sorted with the unprefixed first, because it is the one a project has before it declares
+    any and the one every listing had until this existed.
+    """
+    return tuple(sorted({split_ref(one.anchor)[0] for one in taken}))
+
+
+def next_family(taken: Sequence[Anchor], namespace: str = "") -> str | None:
     """The lowest top-level address no anchor has ever used, or None where none derives.
 
     The question one line up from :func:`next_child`, and the normal case rather than an edge
@@ -836,12 +847,21 @@ def next_family(taken: Sequence[Anchor]) -> str | None:
     fallback: a file whose families are `A`, `B` and `C` has a next nobody can derive, and a
     guess printed beside a total reads exactly like a fact. Spelled in the system of the
     family that holds the maximum, because that is the sequence being continued.
+
+    **Per namespace** (RK340), which is what a namespace is for: `[refs]` makes two files two
+    outlines, each numbering itself from `I`, so a maximum taken across both would answer
+    with the taller file's number for the shorter one — and reading the mixed set as one
+    sequence answers None, which is the useful answer withheld from exactly the projects
+    that declared their way out of the collision. The default is the unprefixed namespace,
+    which is every project that declares no `[refs]` at all.
     """
-    read = {top: numeral(top) for top in {one.anchor.split(".")[0] for one in taken}}
+    own = [one for one in taken if split_ref(one.anchor)[0] == namespace]
+    read = {top: numeral(top) for top in {_family_of(one.anchor) for one in own}}
     if not read or any(value is None for value in read.values()):
         return None
     system, highest = max((value for value in read.values() if value), key=lambda one: one[1])
-    return spell(highest + 1, system)
+    top = spell(highest + 1, system)
+    return f"{namespace}{REF_SEPARATOR}{top}" if namespace else top
 
 
 def _declared(config: Config, role: str) -> tuple[str, ...]:
@@ -852,7 +872,7 @@ def _declared(config: Config, role: str) -> tuple[str, ...]:
 
 def _anchors_written(config: Config, role: str, schema: Schema) -> dict[str, str]:
     """Anchor → the first sha whose diff on this file carries its heading, oldest first."""
-    from roadkeep.sections import anchor_of  # noqa: PLC0415 - RK260
+    from roadkeep.sections import anchor_of, qualified  # noqa: PLC0415 - RK260
 
     try:
         relative = config.path(role).relative_to(config.root)
@@ -886,7 +906,10 @@ def _anchors_written(config: Config, role: str, schema: Schema) -> dict[str, str
             # hashes, and :func:`anchor_of` is written against that.
             anchor = anchor_of(text.lstrip("#").lstrip(), schema)
             if anchor is not None:
-                first.setdefault(anchor, head.strip())
+                # The project's address and not the heading's (RK340) — the same
+                # qualification `anchored` makes of a live one, so the two halves of this
+                # listing are addresses of one kind and a retired `S:I` is not a second `I`.
+                first.setdefault(qualified(schema, anchor), head.strip())
     return first
 
 
@@ -911,8 +934,21 @@ def _ordinal(anchor: Anchor, numbered: bool = False) -> tuple[object, ...]:
         (0, int(part), "")
         if part.isdigit()
         else ((0, read[1], "") if numbered and (read := numeral(part)) else (1, 0, part))
-        for part in anchor.anchor.split(".")
+        # The first segment carries the namespace where a project declares one (RK340), and
+        # it is read off for the same reason `numbered` is: the number is what orders a
+        # listing, and a prefix in front of it is the file's name and not part of the number.
+        for part in _unprefixed(anchor.anchor).split(".")
     )
+
+
+def _family_of(anchor: str) -> str:
+    """The top-level segment, with any namespace taken off — `S:IX.2` → `IX` (RK340)."""
+    return _unprefixed(anchor).split(".")[0]
+
+
+def _unprefixed(anchor: str) -> str:
+    """The address without the namespace `[refs]` put in front of it (RK340)."""
+    return split_ref(anchor)[1]
 
 
 @dataclass(frozen=True, slots=True)
