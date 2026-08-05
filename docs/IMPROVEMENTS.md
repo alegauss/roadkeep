@@ -214,3 +214,41 @@ taken at collection, or whether a count over a file the backlog erodes is the wr
 assertion whoever is writing it — RK305 already names that ratio as fragile.
 
 ## Block F — The plugin
+
+### §RK316 The per-tool fact that is not on the tool
+
+RK70 gave the non-goals their own limits and RK304 gave `list` its own roles; RK314
+added a second key to that same override. Each is correct and each was wired the same
+way — a string compared against `tool.argv_head[0]` inside `_bounds_for`, now two
+branches deep.
+
+Everything else a tool needs is on the tool. `exposes` says which arguments travel,
+`always` makes a flag a tool, `named` says what a client sees, `conditional` says which
+fields a config opens. Whether its `why` means the non-goal limit and its `marker` the
+ledger's set is the same kind of fact and is the one held elsewhere, so the two halves
+are edited in different files and nothing ties them: a command renamed in `cli.py`
+leaves the `Tool` correct and the branch matching nothing, and the fields fall back to
+bounds narrower than what the verb accepts — which is a bound on the client, the one
+direction this derivation forbids.
+
+What needs deciding is whether the table becomes a `Tool` field defaulting to the common
+one, or whether two divergent verbs out of thirty-odd is the wrong thing to generalise.
+
+### §RK317 A flag that parses and does nothing
+
+`--json` was added to the `merge` subparser for `--check`, which is the one query on
+that command and the one thing the MCP surface calls — that surface passes the flag on
+every call and never exposes it, so the alternative was a served tool whose answer no
+client could parse.
+
+Argparse scopes a flag to the subparser, not to the branch. So `merge %O %A %B --path %P
+--json` is accepted, `_merge` never reads `args.json` on that path, and the refusal or
+the summary arrives as the prose it always was. Measured: exit code unchanged, stdout
+unchanged, no diagnostic. That is worse than a refusal, because a caller who passed it
+has been told the request was understood.
+
+Nobody types this today — git spells the driver line and git reads the exit code, never
+the stdout. The cost is what it teaches: the flag is documented on the command and true
+of one branch of it. What needs deciding is whether `--check` should have become its own
+subcommand after all, which \S RK275 weighed and declined on the five decisions then
+behind the flag, or whether the driver branch refuses a flag it cannot honour.
