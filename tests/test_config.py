@@ -66,7 +66,7 @@ def test_its_own_instruction_files_declare_their_budget_here(tmp_path):
     # it governs is room the prose grows back into, which is what RK23's trim had to reclaim.
     config = Config.discover(HERE)
     declared = {config.relative(b.path): b for b in config.budgets}
-    assert set(declared) == {"agents.md", "CLAUDE.md"}
+    assert set(declared) == {"agents.md", ".claude/CLAUDE.md"}
     for name, budget in declared.items():
         raw = (HERE / name).read_bytes()
         assert 0 <= budget.lines - len(raw.splitlines()) <= 25, name

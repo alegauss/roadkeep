@@ -115,7 +115,7 @@ def test_this_repository_passes_its_own_gate():
         # in this tuple — a pitch that states no count cannot state one wrongly.
         "README.md",
         "agents.md",
-        "CLAUDE.md",
+        ".claude/CLAUDE.md",
     )
     # The instruction files are inside the budget they declare, which is the reading that
     # matters: this repository is the file that reached 186 KB in the project next door.

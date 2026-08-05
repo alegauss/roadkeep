@@ -422,6 +422,31 @@ def test_the_source_resolves_to_the_directory_holding_the_manifest():
     assert (root / ".claude-plugin" / "plugin.json").is_file()
 
 
+def test_the_plugin_root_carries_no_context_file_of_this_repositorys_own():
+    """The payload is the tree, so the root is a namespace this repository shares (RK323).
+
+    `claude plugin validate --strict` on the published tree said it in one line: *"CLAUDE.md
+    at the plugin root is not loaded as project context. To ship context with your plugin,
+    use a skill instead."* Which was already the design — the write path is
+    `skills/roadkeep/SKILL.md` (RK23) — so the warning named a file doing its *other* job,
+    and every run of the validator spent it on a false alarm. Two real errors were in the
+    same output.
+
+    Nothing can be kept out of the payload: a marketplace install is a clone of the tree,
+    measured in `~/.claude/plugins/cache`, and no manifest field excludes a path. What can
+    move is the file. `./.claude/CLAUDE.md` is loaded in this checkout exactly as a root one
+    is, and `.claude/` is a directory the plugin loader looks in for nothing at all — which
+    is the same repair the two roles of `.mcp.json` do not have (RK322), because a project's
+    own server must sit at the root under that exact name.
+    """
+    assert not (HERE / "CLAUDE.md").exists()
+    context = HERE / ".claude" / "CLAUDE.md"
+    assert context.is_file()
+    # The import is relative to the file holding it, so the move is what makes `../` right.
+    assert "@../agents.md" in context.read_text(encoding="utf-8")
+    assert (HERE / "agents.md").is_file()
+
+
 def test_the_entry_states_nothing_the_manifest_already_states():
     """The listing and the manifest travel in one commit, so a description repeated here is
     the copy that goes stale — and a version repeated here is a third place to bump."""

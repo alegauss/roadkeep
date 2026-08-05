@@ -61,9 +61,10 @@ why = 200
 # twice it cost the module its entry instead. `tests/test_linting.py` holds the index against
 # `src/roadkeep/`; when this file is at the wall again, compress the prose and not the index.
 "agents.md" = { lines = 125, bytes = 8400 }
-# CLAUDE.md only points at agents.md, and a pointer that grew a second paragraph is a
-# second place the rules live.
-"CLAUDE.md" = { lines = 12, bytes = 600 }
+# The Claude Code entry point only points at agents.md, and a pointer that grew a second
+# paragraph is a second place the rules live. Under `.claude/` because a root CLAUDE.md is a
+# file the plugin payload publishes and the loader warns is not context (RK323).
+".claude/CLAUDE.md" = { lines = 12, bytes = 800 }
 # skills/roadkeep/SKILL.md is deliberately absent: it is trigger-loaded, so its cost falls on
 # the turns that write, and budgeting it would price it as if it were resident (RK23).
 

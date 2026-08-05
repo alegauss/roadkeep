@@ -149,50 +149,54 @@ block's>`, with the free address in the message when the family is derivable fro
 block. Second, `anchors` should be able to report per block, since a caller reaching for
 it already knows which block the task is in and not which numeral its prose lives under.
 
-### §RK325 The queue is a declaration with no door
+### §RK325 The queue has no governed home
 
 `priority` in `roadkeep.toml` is the one tier of `pick` a project declares rather than
-derives (RK11), and `guarding.governed` is explicit that the config is not governed
-because it is "the per-project declaration, which a human edits by hand on purpose".
-That is right about the *prefix*, the paths and the limits: none of them stops being
-true by itself. The queue is the exception. Every token in it names work, and work
-leaves — so the one declaration that goes stale on its own is the one with no verb to
-correct it.
+derives (RK11), and `guarding.governed` is explicit that the config is not governed: it
+is "the per-project declaration, which a human edits by hand on purpose". That is right
+about the prefix, the paths and the limits — none stops being true by itself. The queue
+is the exception, because every token in it names work and work leaves.
 
-What a door has to be careful about is the file. A config is comments as much as values:
-this repository writes three lines of reasoning above its own `priority = []`, and a
-writer that re-rendered the table would delete them. So the write is surgical — locate
-the array in the source, rewrite that span and no other byte, then re-parse the result
-and compare the whole `Config` to the one intended, or write nothing. That is L3's rule
-applied to a file this tool does not own, which is the only footing on which it may
-write one at all.
+So it moves to where the plan is, as a governed section of the roadmap, and RK70 is the pattern
+rather than a precedent: a list that is not task lines, one renderer, refused at insertion,
+addressed by a verb. `picking`'s objection to a `## Priority queue` section is about
+*interpreting prose* — Shio's is a paragraph about why reachability comes first — and it does
+not apply to a section this tool renders.
 
-And a `list` beside the two writes, because a drop is only decidable if the entries can
-be read: what each token resolves to now — open, shipped, retired, set aside, or nothing
-at all. `pick` says which tier answered and never which entries are dead.
+What that buys is more than a door. `ship` already rewrites the roadmap inside its
+atomic transaction, so the entry a departure kills cannot survive it (RK327); the gate
+reads a file it already reads (RK326); `--fix` repairs one it already repairs (RK328). A
+separate store makes each of those a fourth writer.
 
-### §RK327 The departure knows, and says nothing
+No reason field: an entry is a token, an id or `Block X`. Why something jumps the queue
+is the commit that moved it, exactly as `restate` takes none. `priority` in the config
+stays *read* — Shio and Turing may have declared one — the section winning where both
+exist.
+
+### §RK327 The departure that cannot take the entry with it
 
 `ship QQ1` on a project whose `priority` names QQ1 prints the ledger line, the removal,
-the dropped section and the event, and not one word about the queue. Every fact needed
-is in that transaction: the id, and a config already read.
+the dropped section and the event, and leaves the entry standing. Every fact it needs is
+in that transaction: the id, and a file open in memory.
 
-`Departure` is the right shape for it. It already carries `dependents` — open lines
-still naming the id — and `cited`, the sections whose prose quoted what the drop
-deleted, both reported and neither refused, because the ship is right and those are the
-author's next edit *in this commit*. A queue entry is the same kind of fact: naming it
-there puts the correction in the commit the ship belongs to, instead of leaving it for
-whoever next wonders why the declared priority names nothing ready.
+Once RK325 puts the queue in the roadmap this stops being a report and becomes an edit.
+The roadmap is rewritten here anyway — the line comes out, the dependents' annotations
+are re-derived — so dropping the entry is one more change to a document in hand,
+validated before anything reaches the disk and landing in the same rename. No state
+exists where the line has left and the queue still names it.
 
-Both other doors out of the roadmap, too. `retire` reaches the same transaction, and a
-`defer` is worse than either: the line is still work, so the entry looks live, and
-`pick` can never offer it while it sits in the deferred store.
+Which is what separates it from `dependents` and `cited`, the two facts this transaction
+reports and never touches: those are other lines and other prose, and editing them would
+be composing somebody's sentence. A queue entry is derived dead by the departure itself.
 
-What this deliberately is *not* is a write. The config is the project's declaration
-(`guarding.governed`), and a `ship` that edited it as a side effect would make the tool
-the author of a file it tells a human to own — the argument that also keeps `ship` from
-rewriting prose citing the section it deletes. So the answer names RK325's drop, in the
-shape the printed `git add --` line already has (RK298): a command the caller runs.
+All three doors. `retire` reaches the same transaction, and `defer` is worth naming
+apart: the line is still work, so the entry reads as live, and yet `pick` can never
+offer it from the deferred store — so the pause takes it out and `resume` is where an
+author puts it back.
+
+What the answer still does is *say* what it removed. A departure that silently shortened
+the plan would be an ordering changed with no sentence about it, and the printed line is
+what a reviewer reads the diff against (RK298).
 
 ### §RK329 The argument that needed stdin is the one that did not get it
 
@@ -293,25 +297,25 @@ whether it refuses when either file carries an edit it did not make.
 `Config._check_priority` already states the rule this asks for: an entry `pick` cannot
 resolve "is a queue the author believes is in force and is not", and a silent one is
 worse than none. It then checks the spelling alone — is the token an id of this project,
-or `Block X` — because a config parser has no roadmap to resolve it against. `lint` has
-both files open.
+or `Block X` — a config parser having no roadmap to resolve it against.
 
 Measured on a scratch project: `priority = ["QQ1", "Block Z", "QQ9"]` with QQ1 shipped,
-no heading declaring Z and QQ9 in no file lints clean, and `pick` answers "the declared
-priority names nothing ready" — one sentence covering three deaths and naming none of
-them. Written as deps on a line, two of those tokens are `dep.unknown` and
-`dep.no-block`.
+no heading declaring Z and QQ9 in no file lints clean, while `pick` answers "the
+declared priority names nothing ready" — one sentence covering three deaths and naming
+none. Written as deps, two of those tokens are `dep.unknown` and `dep.no-block`.
 
-So the codes are the states a token can be dead in: shipped, retired, set aside, naming
-nothing, naming a block whose every line has left, and named twice. Located as
-`roadkeep.toml:line:column` like everything else the gate reports (RK34), which is what
-makes the array's position in the source a thing RK325 has to find anyway.
+Once RK325 puts the list in the roadmap the resolution is the one `backlog` already
+does, so the codes are the states a token can be dead in: shipped, retired, set aside,
+naming nothing, naming a block whose every line has left, and named twice — at
+`file:line:column` like everything else here (RK34).
 
-Two states are **not** findings, and telling them apart is the care here. An entry
-naming a task that is merely blocked is a queue doing its job. And a declared block
-holding nothing yet is legitimate — `block add` writes the heading before the lines — so
-it is a note, told apart from an emptied block by whether the ledger has entries under
-that label.
+Two states are **not** findings. An entry naming a task that is merely blocked is a
+queue doing its job. And a declared block holding nothing yet is legitimate, `block add`
+writing the heading before the lines, so it is a note — told apart from an emptied block
+by whether the ledger has entries under that heading.
+
+A `priority` left in the config is the third: read, and named as a note beside the
+section that now holds the order.
 
 ### §RK328 The dead entry is mechanical
 
@@ -376,24 +380,3 @@ taken at collection, or whether a count over a file the backlog erodes is the wr
 assertion whoever is writing it — RK305 already names that ratio as fragile.
 
 ## Block F — The plugin
-
-### §RK323 The published payload carries this repository's own CLAUDE.md, which the loader warns is not context
-
-`claude plugin validate` reports it in one line: *"CLAUDE.md at the plugin root is not loaded as
-project context. To ship context with your plugin, use a skill instead."* Which is already the
-design — the write path is `skills/roadkeep/SKILL.md` and RK23 is the argument for why. The file
-is doing its other job: it is this repository's own project context, loaded when a session works
-*in* the checkout, and it says so in its first line.
-
-So nothing is broken, and that is what makes this worth a line rather than a fix. The
-payload publishes a file that no installed session reads, and the validator says so
-every time it runs — which means the one signal that would name a *real* packaging
-mistake arrives beside a warning the reader has learned to skip. RK321 was found by a
-failure loud enough to stop the plugin; this family's other members are quiet, and a
-validator whose output is routinely ignored is how they stay that way.
-
-It is the third file with two roles, after `hooks/hooks.json` (RK321) and the root
-`.mcp.json` (RK322): the repository is the plugin, so every file at its root is
-published whether it is a plugin surface or the repository's own. The question the three
-share is whether that boundary can be declared at all, or whether being the plugin's own
-root means the payload is simply the tree.
