@@ -22,6 +22,7 @@ from roadkeep.history import (
     anchors,
     commits_touching,
     dirty,
+    families_of_block,
     gaps,
     doubled,
     git_available,
@@ -1033,3 +1034,165 @@ def unwrite_in(config: Config, role: str, heading: str, message: str) -> str:
     ]
     path.write_text("".join(kept), encoding="utf-8")
     return commit(config.root, message)
+
+
+# -- the family a block's prose lives under (RK312) ---------------------------
+
+
+def outlined_blocks(tmp_path: Path) -> Config:
+    """An outline project whose two blocks have prose under two different families."""
+    config = outlined(tmp_path)
+    append(config.path("roadmap"), "\n## Block Q — Serving\n\n")
+    append(
+        config.path("roadmap"),
+        f"- {DESIGNED} **RK1** (deps: —) **A symptom** — a reason. → §XVII.1\n"
+        f"- {DESIGNED} **RK2** (deps: —) **A symptom** — a reason. → §XVII.3\n",
+    )
+    append(config.path("roadmap"), "\n## Block R — Later\n\n")
+    append(
+        config.path("roadmap"),
+        f"- {DESIGNED} **RK3** (deps: —) **A symptom** — a reason. → §XX.1\n",
+    )
+    for anchor in ("XVII.1", "XVII.3", "XX.1"):
+        design(config, f"### {anchor} A design", f"docs: file {anchor}")
+    return Config.discover(tmp_path)
+
+
+def test_which_family_a_blocks_prose_lives_under_is_a_command(tmp_path):
+    # Derivable from none before this: under an outline the prose file declares no block
+    # heading, so the mapping came from globbing pointers per block by hand, four times.
+    config = outlined_blocks(tmp_path)
+    assert families_of_block(config, "Q") == ("XVII",)
+    assert families_of_block(config, "R") == ("XX",)
+    assert families_of_block(config, "A") == ()
+
+
+def test_a_block_that_spans_two_families_answers_with_both(tmp_path):
+    # A block reopened under a fresh top-level has two, and returning one would be the guess
+    # this read exists to stop making.
+    config = outlined_blocks(tmp_path)
+    append(
+        config.path("roadmap"),
+        f"- {DESIGNED} **RK4** (deps: —) **A symptom** — a reason. → §XVII.5\n",
+    )
+    assert families_of_block(Config.discover(tmp_path), "R") == ("XX", "XVII")
+
+
+def test_the_block_a_caller_knows_narrows_to_the_family_they_do_not(tmp_path, capsys):
+    config = outlined_blocks(tmp_path)
+    assert main(["-C", str(config.root), "anchors", "--block", "Q", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+
+    assert payload["block"] == "Q" and payload["block_families"] == ["XVII"]
+    # Narrowed exactly as `--family XVII` would have, which is the whole claim: the caller
+    # names the address they have and the rest of the answer is unchanged.
+    assert payload["family"] == "XVII"
+    assert [one["anchor"] for one in payload["anchors"]] == ["XVII.1", "XVII.3"]
+    assert payload["next"] == "XVII.4"
+
+
+def test_two_families_are_reported_and_neither_is_picked(tmp_path, capsys):
+    config = outlined_blocks(tmp_path)
+    append(
+        config.path("roadmap"),
+        f"- {DESIGNED} **RK4** (deps: —) **A symptom** — a reason. → §XVII.5\n",
+    )
+    assert main(["-C", str(config.root), "anchors", "--block", "R"]) == EXIT_OK
+    printed = capsys.readouterr().out
+
+    assert "§XX, §XVII" in printed and "pick one" in printed
+
+
+def test_a_block_and_a_family_together_ask_two_questions(tmp_path, capsys):
+    config = outlined_blocks(tmp_path)
+    assert (
+        main(["-C", str(config.root), "anchors", "--block", "Q", "--family", "XX"])
+        == EXIT_USAGE
+    )
+    assert "asks two questions" in capsys.readouterr().err
+
+
+def test_a_block_whose_prose_has_not_started_says_so(tmp_path, capsys):
+    config = outlined_blocks(tmp_path)
+    assert main(["-C", str(config.root), "anchors", "--block", "A"]) == EXIT_USAGE
+    err = capsys.readouterr().err
+    assert "no open line in Block A carries a pointer" in err
+    assert "next free one is where a new block starts" in err
+
+
+def test_the_refusal_that_demands_a_ref_names_what_produces_one(tmp_path, capsys):
+    # This project's own standard applied to itself: `--ref` is required, unguessable, and
+    # wrong silently if the number picked is one some heading already spent.
+    config = outlined_blocks(tmp_path)
+    assert (
+        main(
+            [
+                "-C",
+                str(config.root),
+                "add",
+                "--block",
+                "Q",
+                "--symptom",
+                "A symptom",
+                "--why",
+                "A reason.",
+            ]
+        )
+        == EXIT_USAGE
+    )
+    err = capsys.readouterr().err
+    # The rule survives, because a refusal that only says what to type teaches nobody why.
+    assert "every task points at its rationale section" in err
+    assert "Block Q's prose is under §XVII" in err and "§XVII.4 is free" in err
+    assert "anchors --block Q" in err
+
+
+def test_a_block_spanning_two_families_is_told_to_ask_rather_than_given_one(tmp_path, capsys):
+    config = outlined_blocks(tmp_path)
+    append(
+        config.path("roadmap"),
+        f"- {DESIGNED} **RK4** (deps: —) **A symptom** — a reason. → §XVII.5\n",
+    )
+    assert (
+        main(
+            [
+                "-C",
+                str(config.root),
+                "add",
+                "--block",
+                "R",
+                "--symptom",
+                "A symptom",
+                "--why",
+                "A reason.",
+            ]
+        )
+        == EXIT_USAGE
+    )
+    err = capsys.readouterr().err
+    assert "anchors --block R" in err and "free top-level" in err
+
+
+def test_every_other_violation_still_arrives_with_it(tmp_path, capsys):
+    # Enriched around `place` and not before it: the schema reports every violation at once,
+    # and an early refusal would trade that for the one sentence it improves.
+    config = outlined_blocks(tmp_path)
+    assert (
+        main(
+            [
+                "-C",
+                str(config.root),
+                "add",
+                "--block",
+                "Q",
+                "--symptom",
+                "A symptom",
+                "--why",
+                "no terminator here",
+            ]
+        )
+        == EXIT_USAGE
+    )
+    err = capsys.readouterr().err
+    assert "ref.missing" in err and "why.no-terminator" in err
+    assert "§XVII.4 is free" in err

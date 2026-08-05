@@ -24,7 +24,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK312** (deps: —) **The refusal that demands a ref names nothing that would produce one** — ref.missing states the rule while anchors answers it, and which family a block's prose lives under is derivable from no command at all. → §RK312
 - 📋 **RK325** (deps: —) **The queue that outranks the id order lives in the one file nothing governs, so no verb keeps it true** — Every other list this format holds has an insert and a drop; the one that outranks the id order has neither, so its only repair is the editor nothing watches. → §RK325
 - 📋 **RK327** (deps: RK325) **A departure leaves the priority entry that named it in place, so the queue outlives the line it ordered** — Shipping is the moment the entry stops being true and the only moment the author is present, and one task per commit means the correction lands there or in no commit at all. → §RK327
 - 📋 **RK329** (deps: —) **the two prose arguments of one command disagree about stdin, and the shell-hostile one is the literal** — --section-body reads stdin on '-' and --why does not, so the field whose prose carries apostrophes and backticks is the one that must survive a shell quote. → §RK329
@@ -35,7 +34,7 @@
 
 - 📋 **RK303** (deps: —) **The section budget picks the first of two prose files declaring one anchor, where every other reader refuses** — It answered improvements about an address strategy declares too, and show calls that state a pointer resolving to neither — so a limit is priced for an unreachable section. → §RK303
 - 📋 **RK324** (deps: —) **brief calls a shipped task ready, so the one command meant to start work invites redoing it** — show reads the same id and answers shipped; brief prints ready beside the checkmark and an unblocks count, which is a startable task described to whoever asked what starting it costs. → §RK324
-- 📋 **RK336** (deps: RK312) **anchors prices every family that exists and never says which one is free next** — The address a new section needs is one no family has ever declared, and the report is a per-family table of live, retired and next subsection, so the new-family question is answered by guessing. → §RK336
+- 📋 **RK336** (deps: RK312 ✅) **anchors prices every family that exists and never says which one is free next** — The address a new section needs is one no family has ever declared, and the report is a per-family table of live, retired and next subsection, so the new-family question is answered by guessing. → §RK336
 - 📋 **RK345** (deps: —) **The budget every other field is read before is the one an every-turn file has no door for** — Its limit is held only by lint, so the room left in agents.md is measured with wc and a subtraction at the moment a module has to be named in it. → §RK345
 - 📋 **RK346** (deps: —) **One question is answered by two fields, and the older one names one namespace of several** — anchors --json carries next_family beside next_families, so a client reading the field it always read is handed the unprefixed namespace's address on a project whose roles each have one. → §RK346
 

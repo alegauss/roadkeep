@@ -732,6 +732,43 @@ def anchors(config: Config, role: str = "", family: str = "") -> tuple[Anchor, .
     return tuple(sorted(wanted, key=lambda one: (_ordinal(one, numbered), one.role)))
 
 
+def families_of_block(config: Config, block: str) -> tuple[str, ...]:
+    """Which outline families a block's prose already lives under (RK312).
+
+    The read that was derivable from no command at all. Under an outline a prose file
+    declares no block headings — the address *is* the placement — so which numeral a block's
+    designs sit in is written down nowhere, and the way to it was globbing pointers per block
+    by hand: `list --block Q | grep -oE "§[IVXL]+"`, repeated once per block. It is a
+    question, so it is a command (L5).
+
+    Read off the **pointers** and never off the prose file, for the reason
+    :func:`~roadkeep.sections.pointers` gives: a heading nested under another is that other's
+    prose until a line names it, and a task line is the only place that says which block an
+    address belongs to. Both files a line can be open in, because a block whose every live
+    line is paused still has a family and answering "none" would send the caller to open a
+    second one.
+
+    More than one is a real answer and not a failure. A block that reopened under a fresh
+    top-level has two, and returning both is what lets the caller see that before choosing —
+    a single answer would pick one, which is the guess this exists to stop making.
+
+    Spelled **with the namespace** where `[refs]` declares one (RK340), because that is how
+    :func:`_within` and :func:`next_child` read a family: `S:IX` and `IX` are two subtrees on
+    a project whose two files each number their own outline, and a family stripped of the
+    prefix here would be handed back an address the sibling file already spent.
+    """
+    found: list[str] = []
+    for role in ("roadmap", "deferred"):
+        if not config.has(role) or not config.path(role).is_file():
+            continue
+        for entry in config.document(role).entries:
+            if entry.task.block == block and entry.task.ref:
+                family = entry.task.ref.split(".")[0]
+                if family and family not in found:
+                    found.append(family)
+    return tuple(found)
+
+
 def _role_anchors(config: Config, role: str) -> list[Anchor]:
     """One prose file's share of the answer, live rows first and retired ones behind them."""
     live = _declared(config, role) if config.path(role).is_file() else ()

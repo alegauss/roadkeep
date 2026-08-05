@@ -77,29 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK312 A required argument nothing helps you compute
-
-On an outline-scheme project, `add` refused with `ref: every task points at its
-rationale section [ref.missing]`. The refusal states the rule and names nothing that
-answers it. `anchors --family XVII` answers it exactly — free addresses under a family,
-which is the number `--ref` wants — and there was no way to learn that from the refusal.
-
-Two reads were needed instead. Which family holds a block's prose is derived nowhere:
-the mapping came from globbing existing pointers per block, `list --block Q | grep -oE
-"§[IVXL]+"`, repeated for four blocks. Then the next free number under that family came
-from grepping the prose file for `^### XVII\.` and reading the tail. Both are questions
-`anchors` was built for, and one of them — block to family — it does not answer at all.
-
-This is roadkeep's own standard applied to itself. A refusal that states a rule without
-naming the verb that satisfies it is the shape the project rejects everywhere else, and
-it is worse here than usual: `--ref` is required, unguessable, and wrong silently if a
-caller picks a number some heading already spent.
-
-Two fixes, and the first is a string. `ref.missing` should name `anchors --family <the
-block's>`, with the free address in the message when the family is derivable from the
-block. Second, `anchors` should be able to report per block, since a caller reaching for
-it already knows which block the task is in and not which numeral its prose lives under.
-
 ### §RK325 The queue has no governed home
 
 `priority` in `roadkeep.toml` is the one tier of `pick` a project declares rather than

@@ -77,6 +77,7 @@ from roadkeep.history import (
     anchors,
     cited_origin,
     dirty,
+    families_of_block,
     gaps,
     doubled,
     indexed,
@@ -1314,6 +1315,16 @@ def build_parser() -> argparse.ArgumentParser:
         default="",
         metavar="ANCHOR",
         help="only this subtree, e.g. XXXVII — omitted, one row per top-level family",
+    )
+    anchors_parser.add_argument(
+        "--block",
+        default="",
+        metavar="LABEL",
+        help=(
+            "the subtree this block's prose already lives under, e.g. Q — the address a "
+            "caller knows, since a prose file under an outline declares no block heading; "
+            "refused with --family, and names both where a block spans two families"
+        ),
     )
     anchors_parser.add_argument(
         "--role",
@@ -4699,6 +4710,33 @@ def _anchors(config: Config, args: argparse.Namespace) -> int:
             file=sys.stderr,
         )
         return EXIT_USAGE
+    # The block a caller knows, resolved to the family they do not (RK312): under an outline
+    # the prose file declares no block heading, so which numeral a block's designs sit under
+    # is written nowhere and used to be globbed out of the pointers by hand. Resolved into
+    # `--family` rather than carried alongside it, so every line below stays one answer.
+    block = args.block or ""
+    if block and args.family:
+        print(
+            "roadkeep: --block resolves to a family, so passing both asks two questions: "
+            f"`anchors --block {block}` names the families, and --family narrows to one",
+            file=sys.stderr,
+        )
+        return EXIT_USAGE
+    spans: tuple[str, ...] = ()
+    if block:
+        spans = families_of_block(config, block)
+        if not spans:
+            print(
+                f"roadkeep: no open line in Block {block} carries a pointer, so nothing "
+                f"says which family its prose lives under — `anchors` alone lists every "
+                f"top-level, and its next free one is where a new block starts",
+                file=sys.stderr,
+            )
+            return EXIT_USAGE
+        # One family narrows; two are reported as the listing they are, because which of them
+        # a new line belongs under is the caller's judgement and not a fact any file holds.
+        if len(spans) == 1:
+            args.family = spans[0]
     found = anchors(config, role, args.family)
     whole = found if not role else anchors(config, "", args.family)
     retired = [one for one in found if not one.live]
@@ -4721,6 +4759,11 @@ def _anchors(config: Config, args: argparse.Namespace) -> int:
                     # comparing two runs needs to know which outline it was handed.
                     "files": [config.relative(config.path(one)) for one in read],
                     "family": args.family,
+                    # The block asked about and every family its pointers name (RK312) —
+                    # both, because one of them narrowed the listing and two did not, and a
+                    # client cannot tell those apart from `family` alone.
+                    "block": block or None,
+                    "block_families": list(spans),
                     "live": len(found) - len(retired),
                     "retired": len(retired),
                     # The rows are the answer where a family was named, and the families are
@@ -4758,6 +4801,15 @@ def _anchors(config: Config, args: argparse.Namespace) -> int:
 
     where = ", ".join(config.relative(config.path(one)) for one in read)
     print(f"{len(found)} anchor(s), {len(retired)} retired  ({where})")
+    if block:
+        # Said whichever way it went (RK312): one family is the narrowing the rest of this
+        # output is already about, and two is the answer itself — the caller picks, because
+        # which subtree a new line belongs under is a judgement no file holds.
+        named = ", ".join(f"§{one}" for one in spans)
+        print(
+            f"  block    Block {block}'s prose is under {named}"
+            + ("" if len(spans) == 1 else " — pick one, then --family it")
+        )
     if args.family:
         for one in found:
             written = f"  written in {one.written_in[:7]}" if one.written_in else ""
