@@ -111,9 +111,14 @@ placed after the last one and at the depth that file writes one at, which is how
 in the line files gets its first design at all; a *nested* one is written one level under the
 section it extends, so it stays inside the subtree its anchor names whatever depth that file
 nests at, and a nested anchor whose parent is missing is still refused, that being a typo in an
-address. A table or list is inserted exactly as written. Over MCP there is no pipe, so the
-three writes that read one (`add`'s `section_body`, `section_add`'s and `section_amend`'s `body`)
-take it **as a string** and refuse the omission rather than waiting for it. **`section amend <id>` is how a
+address. A table or list is inserted exactly as written. **At a terminal, `-` reads stdin on
+every prose argument** — `--section-body` and `--body`, and `--why` and `--reason` on every verb
+that take one. Reach for it on the sentence, not only the paragraph: a `why` names types, files
+and prior ids, so it carries the apostrophe, the backtick and the `§` a shell reads first, and a
+shell that eats a backtick does not refuse — it hands over prose subtly unlike what you wrote
+and the line lands. The pipe's own trailing newline comes off; a trailing space is still yours
+and still refused, and two arguments asking for one pipe is refused naming both. Over MCP there
+is no pipe, so every write that reads one takes it **as a string** and refuses `-` by name. **`section amend <id>` is how a
 live design is corrected**: `--body -` replaces its own prose, `--title` its heading, the
 subtree and the anchor are untouched, and it is the only door — `section drop` is refused
 while an open line points at the anchor **or at any address under it**, named in the refusal,

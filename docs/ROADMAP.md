@@ -24,7 +24,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK329** (deps: —) **the two prose arguments of one command disagree about stdin, and the shell-hostile one is the literal** — --section-body reads stdin on '-' and --why does not, so the field whose prose carries apostrophes and backticks is the one that must survive a shell quote. → §RK329
 - 📋 **RK339** (deps: —) **the verb that writes a marker is the one whose name reads as the report** — status mutates and stats reports, one character apart, and status with no arguments prints argparse usage that names neither the other verb nor the fact that it writes. → §RK339
 - 📋 **RK342** (deps: —) **A claim's read-back reports the files its own transaction wrote as owned by nothing** — brief --claim moves the marker and refreshes the README, and the next claim <id> lists both as loose, where ship writing the same files names them in its stage line. → §RK342
 

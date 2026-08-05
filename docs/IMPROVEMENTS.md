@@ -77,31 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK329 The argument that needed stdin is the one that did not get it
-
-`add` takes two pieces of prose. `--section-body` documents that "omitted or '-' reads
-stdin". `--why` takes `-` as a why consisting of one hyphen, and refuses it for having
-no terminator.
-
-The asymmetry is backwards. A section body is long, so stdin was the obvious affordance
-for it. But a `why` is the field that reliably carries an apostrophe, a backtick, an em
-dash and a `§` — its sentence names types, files and prior ids — and every one of those
-is read by a shell before the program sees it. Measured twice in one session against an
-adopting repo: a `ship --why` lost to a PowerShell parse, another to a bash
-single-quoted string containing `T293's`. Both were recovered by writing the prose to a
-variable first, which is what stdin exists to avoid.
-
-No validation changes: the sentence is still refused for a missing terminator or a
-length it cannot have. What changes is how it arrives — and for `--why` wherever it
-appears (`add`, `amend`, `ship`, `record add`, `non-goal add`), because a caller who
-learns the convention on one verb reaches for it on the next.
-
-Worth doing because the failure is silent in the bad direction. A shell that eats a
-backtick does not refuse; it hands over prose subtly unlike what was written, and the
-line lands. A quote terminating early is the loud case, and the lucky one.
-
-`-` already spells "read stdin" here, so there is no convention to teach.
-
 ### §RK339 status writes, stats reports, and the names are the wrong way round
 
 `status` writes one task's marker. `stats` prints the backlog's numbers. They differ by

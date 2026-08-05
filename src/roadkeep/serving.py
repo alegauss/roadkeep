@@ -901,7 +901,7 @@ def argv(
 
 def prose_of(
     command: str, parsers: Mapping[str, argparse.ArgumentParser] | None = None
-) -> Prose | None:
+) -> tuple[Prose, ...]:
     """What this subcommand takes off a pipe, as its own parser declares it (RK171).
 
     The inventory neither `TOOLS` nor `cli.py` stated. Read from the parser rather than held
@@ -911,8 +911,15 @@ def prose_of(
 
     ``parsers`` stays optional because that test asks one command at a time (RK198); the call
     path threads its index through, this lookup having been the second build of every call.
+
+    **A tuple, because one command can have two** (RK329). `--why` reads the pipe wherever it
+    appears, and on `add` that is beside `--section-body` — the field whose sentence carries
+    an apostrophe, a backtick and a `§` being the one a shell reads first. A single answer here
+    would have named one of the two and left the other to be found by the session that meets it,
+    which is the state RK171 exists to have ended.
     """
-    return _subparser(command, parsers).get_default("reads_stdin")
+    declared = _subparser(command, parsers).get_default("reads_stdin")
+    return () if declared is None else tuple(declared)
 
 
 def _companioned(
@@ -928,14 +935,15 @@ def _companioned(
     it did not arrive. Derived from :func:`prose_of` and not a table beside it, so all three
     declared paths answer the same way and a fourth cannot be the one that was forgotten.
     """
-    prose = prose_of(tool.command, parsers)
-    if prose is None or prose.dest not in tool.exposes or not prose.reached_by(arguments):
-        return
-    raise ToolError(
-        f"{tool.name}: {prose.dest} is the prose itself, and over this transport there is no "
-        f"pipe to read it from — pass it as a string. Omitted, or {prose.sentinel!r}, it is an "
-        f"empty body, and a section with no prose is a heading"
-    )
+    for prose in prose_of(tool.command, parsers):
+        if prose.dest not in tool.exposes or not prose.reached_by(arguments):
+            continue
+        raise ToolError(
+            f"{tool.name}: {prose.dest} is the prose itself, and over this transport there "
+            f"is no pipe to read it from — pass it as a string. Omitted, or "
+            f"{prose.sentinel!r}, it is nothing, and this format has no slot that may be "
+            f"empty"
+        )
 
 
 def _unrecognised(tool: Tool, unknown: Sequence[str], exposed: Sequence[str]) -> str:

@@ -38,7 +38,7 @@ import pytest
 
 from roadkeep import claiming, serving
 from roadkeep import cli
-from roadkeep.cli import build_parser
+from roadkeep.cli import EXIT_OK, EXIT_USAGE, build_parser, main
 from roadkeep.config import Config
 from roadkeep.provenance import _LOADED_AT, engine, invocation
 from roadkeep.schema import body_aim
@@ -313,9 +313,9 @@ def _minimal(tool: Tool) -> dict[str, str]:
     """
     required = descriptor(tool, Config.default())["inputSchema"].get("required", [])
     filled = {name: "RK1" if name == "id" else "x" for name in required}
-    prose = prose_of(tool.command)
-    if prose is not None and prose.dest in tool.exposes and prose.reached_by(filled):
-        filled[prose.dest] = "The prose, passed as a string because there is no pipe."
+    for prose in prose_of(tool.command):
+        if prose.dest in tool.exposes and prose.reached_by(filled):
+            filled[prose.dest] = "The prose, passed as a string because there is no pipe."
     return filled
 
 
@@ -983,16 +983,22 @@ def _watched_transport():
 
 
 def _variants(tool: Tool) -> list[dict[str, str]]:
-    """The argvs worth trying: the minimum, plus the two shapes a `Prose` calls a pipe read."""
+    """The argvs worth trying: the minimum, plus every shape a `Prose` calls a pipe read.
+
+    Plural since RK329, `add` declaring two: the section body and the `why`. A loop over
+    one of them would have left the other's shapes untried, which is the gap RK171 closed
+    for commands and this closes for arguments.
+    """
     base = _minimal(tool)
     out = [dict(base)]
-    prose = prose_of(tool.command)
-    if prose is None or prose.dest not in tool.exposes:
-        return out
-    omitted = {name: value for name, value in base.items() if name != prose.dest}
-    if prose.gated_by:
-        omitted[prose.gated_by] = "A design"
-    return [*out, omitted, {**base, prose.dest: prose.sentinel}]
+    for prose in prose_of(tool.command):
+        if prose.dest not in tool.exposes:
+            continue
+        omitted = {name: value for name, value in base.items() if name != prose.dest}
+        if prose.gated_by:
+            omitted[prose.gated_by] = "A design"
+        out += [omitted, {**base, prose.dest: prose.sentinel}]
+    return out
 
 
 def test_no_exposed_argv_reaches_a_read_of_the_transport():
@@ -1009,10 +1015,12 @@ def test_no_exposed_argv_reaches_a_read_of_the_transport():
     reviewer reading two diffs does not.
     """
     for tool in TOOLS:
-        prose = prose_of(tool.command)
+        declared = prose_of(tool.command)
         for arguments in _variants(tool):
-            reaches = prose is not None and prose.dest in tool.exposes
-            reaches = reaches and prose.reached_by(arguments)
+            reaches = any(
+                prose.dest in tool.exposes and prose.reached_by(arguments)
+                for prose in declared
+            )
             if not reaches:
                 argv(tool, arguments, Config.default())  # parses, and goes nowhere near a pipe
                 continue
@@ -1034,27 +1042,48 @@ def test_a_call_can_never_be_handed_the_transport_either(tmp_path):
             assert answered.text
 
 
-def test_the_three_paths_that_could_reach_it_are_the_ones_declared():
-    # The inventory §RK171 says neither file stated, now derived from the parsers. `record add`
-    # is the asymmetry that makes it a real question: it writes a ledger entry and exposes no
-    # body at all, so it cannot reach the read however it is called.
-    reaching = {tool.name for tool in TOOLS if prose_of(tool.command) is not None}
-    assert reaching == {"add", "section_add", "section_amend"}
-    assert prose_of("record add") is None
+def test_the_paths_that_could_reach_it_are_the_ones_declared():
+    # The inventory §RK171 says neither file stated, now derived from the parsers — and one
+    # `--why` per prose-writing verb since RK329, because the field a shell most reliably
+    # eats is the sentence and not the paragraph.
+    reaching = {tool.name for tool in TOOLS if prose_of(tool.command)}
+    assert reaching == {
+        "add",
+        "amend",
+        "ship",
+        "record_add",
+        "record_amend",
+        "non_goal_add",
+        "retire",
+        "defer",
+        "section_add",
+        "section_amend",
+    }
+    # `pick` is the asymmetry that makes it a real question: it writes no prose at all, so
+    # it cannot reach the read however it is called.
+    assert prose_of("pick") == ()
 
 
 def test_each_declaration_says_which_argv_goes_to_the_pipe():
     # Three commands, three different answers, which is why one comment in one handler was not
     # the statement of it: `add` is gated on a section being named, `section add` reads on a
     # plain omission, and `section amend` only on the `-` it documents.
-    assert prose_of("add") == Prose(dest="section_body", gated_by="section")
-    assert prose_of("section add") == Prose(dest="body")
-    assert prose_of("section amend") == Prose(dest="body", omitted=False)
+    assert prose_of("add") == (
+        Prose(dest="section_body", gated_by="section"),
+        Prose(dest="why", omitted=False),
+    )
+    assert prose_of("section add") == (Prose(dest="body"),)
+    assert prose_of("section amend") == (Prose(dest="body", omitted=False),)
+    body, why = prose_of("add")
     # An `add` naming no section must never block on a pipe — the comment that was the guard.
-    assert not prose_of("add").reached_by({"block": "A", "symptom": "s", "why": "w."})
-    assert prose_of("add").reached_by({"section": "A design"})
-    assert not prose_of("section amend").reached_by({"title": "A new heading"})
-    assert prose_of("section amend").reached_by({"body": "-"})
+    assert not body.reached_by({"block": "A", "symptom": "s", "why": "w."})
+    assert body.reached_by({"section": "A design"})
+    # And the `why` is ungated and sentinel-only (RK329): omitting a required argument is
+    # argparse's refusal, so only an outright `-` is the caller asking for the pipe.
+    assert why.reached_by({"why": "-"})
+    assert not why.reached_by({"why": "A reason."})
+    assert not prose_of("section amend")[0].reached_by({"title": "A new heading"})
+    assert prose_of("section amend")[0].reached_by({"body": "-"})
 
 
 def test_the_transport_is_intact_after_a_call_that_reads_it(tmp_path):
@@ -1797,3 +1826,67 @@ def test_the_lookups_answer_the_same_with_an_index_and_without(tmp_path):
     assert argv(tool_named("list"), {"block": "A"}, config, parsers) == argv(
         tool_named("list"), {"block": "A"}, config
     )
+
+
+# -- the argument that needed the pipe is the one that did not have it (RK329) -
+
+
+def test_a_why_arrives_off_the_pipe_wherever_it_appears(tmp_path, monkeypatch, capsys):
+    # A `why` is the field that reliably carries an apostrophe, a backtick, an em dash and a
+    # `§` — its sentence names types, files and prior ids — and every one of those is read by
+    # a shell before this program sees it. The failure is silent in the bad direction.
+    tree = str(project(tmp_path, config=PROSE, improvements=DESIGN))
+    sentence = "The `--why` survives now, T293's backtick included.\n"
+    monkeypatch.setattr(sys, "stdin", io.StringIO(sentence))
+    assert (
+        main(["-C", tree, "add", "--block", "A", "--symptom", "A symptom", "--why", "-"])
+        == EXIT_OK
+    )
+    # Read off the rendered line the command printed, which is what reached the file.
+    assert "The `--why` survives now, T293's backtick included." in capsys.readouterr().out
+
+
+def test_the_line_terminator_is_the_pipes_and_the_trailing_space_is_the_authors(tmp_path, monkeypatch):
+    # `echo`, `printf` and every heredoc end with one, so `why.whitespace` firing on it would
+    # make the affordance unusable by the tools that reach for it — the refusal correct about
+    # the bytes and wrong about who wrote them. A trailing *space* is still refused.
+    tree = str(project(tmp_path, config=PROSE, improvements=DESIGN))
+    monkeypatch.setattr(sys, "stdin", io.StringIO("A reason. \n"))
+    assert (
+        main(["-C", tree, "add", "--block", "A", "--symptom", "A symptom", "--why", "-"])
+        == EXIT_USAGE
+    )
+
+
+def test_two_arguments_cannot_split_one_pipe(tmp_path, monkeypatch, capsys):
+    # A body that silently absorbed the sentence meant for the line would be the quiet
+    # corruption this whole task is about, one layer further in.
+    tree = str(project(tmp_path, config=PROSE, improvements=DESIGN))
+    monkeypatch.setattr(sys, "stdin", io.StringIO("prose"))
+    assert (
+        main(
+            [
+                "-C", tree, "add", "--block", "A", "--symptom", "A symptom",
+                "--why", "-", "--section", "A design",
+            ]
+        )
+        == EXIT_USAGE
+    )
+    err = capsys.readouterr().err
+    assert "--why and --section-body both read stdin" in err
+
+
+def test_every_verb_that_takes_prose_declares_the_pipe(tmp_path):
+    # A caller who learns the convention on one verb reaches for it on the next, so the
+    # inventory is the claim rather than the five the design happened to list.
+    for command, dest in (
+        ("add", "why"),
+        ("amend", "why"),
+        ("ship", "why"),
+        ("record add", "why"),
+        ("record amend", "why"),
+        ("non-goal add", "why"),
+        ("retire", "reason"),
+        ("defer", "reason"),
+    ):
+        assert dest in {one.dest for one in prose_of(command)}, command

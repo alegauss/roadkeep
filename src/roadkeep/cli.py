@@ -37,6 +37,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 import tempfile
 import tomllib
@@ -149,6 +150,9 @@ EXIT_USAGE = 2
 REFUSALS = (RoundTripError, StaleFile, KeyError, ValueError, OSError)
 
 _JSON_HELP = "machine-readable form"
+#: Appended to every prose argument that reads the pipe (RK329), so the convention is one
+#: sentence in nine help strings rather than nine sentences that drift.
+_PIPE = "; '-' reads stdin, which is how an apostrophe or a backtick survives a shell"
 #: One sentence, on both `pick` and `brief`, because it is one flag (RK83): a caller asking
 #: to execute a block wants work whose design is written, and the markers already say which.
 _DESIGNED_HELP = (
@@ -235,7 +239,9 @@ def build_parser() -> argparse.ArgumentParser:
     add_parser.add_argument(
         "--symptom", required=True, help="what does not work — a phrase, never a fix"
     )
-    add_parser.add_argument("--why", required=True, help="one sentence, ending in a stop")
+    add_parser.add_argument(
+        "--why", required=True, help="one sentence, ending in a stop" + _PIPE
+    )
     add_parser.add_argument(
         "--dep",
         action="append",
@@ -290,7 +296,14 @@ def build_parser() -> argparse.ArgumentParser:
     # block on a pipe — which is what that comment said and nothing enforced.
     add_parser.set_defaults(
         handler=_add,
-        reads_stdin=Prose(dest="section_body", gated_by="section"),
+        # Two, and this is the command that has two (RK329): the body was the obvious
+        # affordance because it is long, and the `why` is the one that actually needed it
+        # because it is the field that reliably carries what a shell reads first. Ungated,
+        # unlike the body: a `--why -` is the caller asking for the pipe outright.
+        reads_stdin=(
+            Prose(dest="section_body", gated_by="section"),
+            Prose(dest="why", omitted=False),
+        ),
     )
 
     section_parser = subcommands.add_parser(
@@ -337,7 +350,7 @@ def build_parser() -> argparse.ArgumentParser:
     section_add.add_argument("--json", action="store_true", help=_JSON_HELP)
     # Ungated and reached by omission: this command's whole input is a paragraph, so `--body`
     # left out *is* the pipe, which the help above states and RK171 makes readable by a surface.
-    section_add.set_defaults(handler=_section_add, reads_stdin=Prose(dest="body"))
+    section_add.set_defaults(handler=_section_add, reads_stdin=(Prose(dest="body"),))
 
     section_amend = actions.add_parser(
         "amend",
@@ -367,7 +380,7 @@ def build_parser() -> argparse.ArgumentParser:
     # `omitted=False` and not an oversight: an amend with neither field is refused below rather
     # than defaulted to the pipe, so only the documented `-` reaches the read here.
     section_amend.set_defaults(
-        handler=_section_amend, reads_stdin=Prose(dest="body", omitted=False)
+        handler=_section_amend, reads_stdin=(Prose(dest="body", omitted=False),)
     )
 
     section_show = actions.add_parser(
@@ -482,7 +495,9 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     amend_parser.add_argument("id", help="the task, e.g. RK7")
-    amend_parser.add_argument("--why", help="the sentence, re-validated against the limit")
+    amend_parser.add_argument(
+        "--why", help="the sentence, re-validated against the limit" + _PIPE
+    )
     amend_parser.add_argument(
         "--dep",
         action="append",
@@ -502,7 +517,9 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     amend_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
-    amend_parser.set_defaults(handler=_amend)
+    amend_parser.set_defaults(
+        handler=_amend, reads_stdin=(Prose(dest="why", omitted=False),)
+    )
 
     restate_parser = subcommands.add_parser(
         "restate",
@@ -626,7 +643,7 @@ def build_parser() -> argparse.ArgumentParser:
         help=(
             "the outcome this shipped — required where an entry is written, because the "
             "roadmap's sentence states a problem and is not inherited; refused where the "
-            "ledger already holds the id and this call only closes the line"
+            "ledger already holds the id and this call only closes the line" + _PIPE
         ),
     )
     ship_parser.add_argument(
@@ -654,7 +671,9 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     ship_parser.add_argument("--json", action="store_true", help="every edit, as data")
-    ship_parser.set_defaults(handler=_ship)
+    ship_parser.set_defaults(
+        handler=_ship, reads_stdin=(Prose(dest="why", omitted=False),)
+    )
 
     record_parser = subcommands.add_parser(
         "record",
@@ -683,7 +702,9 @@ def build_parser() -> argparse.ArgumentParser:
         help="what did not work — a phrase, never the name of the patch that closed it",
     )
     record_add.add_argument(
-        "--why", required=True, help="one sentence, ending in a stop: the outcome"
+        "--why",
+        required=True,
+        help="one sentence, ending in a stop: the outcome" + _PIPE,
     )
     record_add.add_argument(
         "--id",
@@ -693,7 +714,9 @@ def build_parser() -> argparse.ArgumentParser:
     record_add.add_argument(
         "--json", action="store_true", help="the entry, with the file and line it landed on"
     )
-    record_add.set_defaults(handler=_record)
+    record_add.set_defaults(
+        handler=_record, reads_stdin=(Prose(dest="why", omitted=False),)
+    )
 
     record_amend = entries.add_parser(
         "amend",
@@ -708,7 +731,7 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     record_amend.add_argument("id", help="the recorded id, e.g. RK41")
-    record_amend.add_argument("--why", help="the corrected sentence, one stop")
+    record_amend.add_argument("--why", help="the corrected sentence, one stop" + _PIPE)
     record_amend.add_argument(
         "--part",
         help="correct a partial's qualifier; refused where the entry carries none",
@@ -722,7 +745,9 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     record_amend.add_argument("--json", action="store_true", help=_JSON_HELP)
-    record_amend.set_defaults(handler=_record_amend)
+    record_amend.set_defaults(
+        handler=_record_amend, reads_stdin=(Prose(dest="why", omitted=False),)
+    )
 
     record_move = entries.add_parser(
         "move",
@@ -826,12 +851,16 @@ def build_parser() -> argparse.ArgumentParser:
         help="what is not built — the bolded head a brief prints and a duplicate is judged on",
     )
     scope_add.add_argument(
-        "--why", required=True, help="the reason it is not, in this file's own limit"
+        "--why",
+        required=True,
+        help="the reason it is not, in this file's own limit" + _PIPE,
     )
     scope_add.add_argument(
         "--json", action="store_true", help="the bullet, with the file and line it landed on"
     )
-    scope_add.set_defaults(handler=_non_goal_add)
+    scope_add.set_defaults(
+        handler=_non_goal_add, reads_stdin=(Prose(dest="why", omitted=False),)
+    )
 
     scope_list = constraints.add_parser(
         "list",
@@ -1275,10 +1304,12 @@ def build_parser() -> argparse.ArgumentParser:
     retire_parser.add_argument(
         "--reason",
         required=True,
-        help="one sentence, the author's own: the tool never writes it",
+        help="one sentence, the author's own: the tool never writes it" + _PIPE,
     )
     retire_parser.add_argument("--json", action="store_true", help="every edit, as data")
-    retire_parser.set_defaults(handler=_retire)
+    retire_parser.set_defaults(
+        handler=_retire, reads_stdin=(Prose(dest="reason", omitted=False),)
+    )
 
     defer_parser = subcommands.add_parser(
         "defer",
@@ -1293,10 +1324,12 @@ def build_parser() -> argparse.ArgumentParser:
     defer_parser.add_argument(
         "--reason",
         required=True,
-        help="one sentence, the author's own: it wraps the why and a resume unwraps it",
+        help="one sentence, the author's own: it wraps the why and a resume unwraps it" + _PIPE,
     )
     defer_parser.add_argument("--json", action="store_true", help="every edit, as data")
-    defer_parser.set_defaults(handler=_defer)
+    defer_parser.set_defaults(
+        handler=_defer, reads_stdin=(Prose(dest="reason", omitted=False),)
+    )
 
     resume_parser = subcommands.add_parser(
         "resume",
@@ -1947,6 +1980,13 @@ def _next_id(config: Config, args: argparse.Namespace) -> int:
 
 
 def _add(config: Config, args: argparse.Namespace) -> int:
+    clash = _one_pipe(
+        ("--why", args.why == STDIN),
+        ("--section-body", args.section is not None and args.section_body in (None, STDIN)),
+    )
+    if clash is not None:
+        print(f"roadkeep: {clash}", file=sys.stderr)
+        return EXIT_USAGE
     try:
         # stdin inside the try for the reason `section add` reads it there: a paragraph
         # that is not UTF-8 raises UnicodeDecodeError, which is a ValueError, and is
@@ -1956,7 +1996,7 @@ def _add(config: Config, args: argparse.Namespace) -> int:
         if args.section is not None:
             body = (
                 sys.stdin.read()
-                if args.section_body in (None, "-")
+                if args.section_body in (None, STDIN)
                 else args.section_body
             )
             section = (args.section, body)
@@ -1964,7 +2004,7 @@ def _add(config: Config, args: argparse.Namespace) -> int:
             config,
             block=args.block,
             symptom=args.symptom,
-            why=args.why,
+            why=_piped(args.why),
             status=args.status,
             deps=args.deps,
             ref=args.ref,
@@ -2381,7 +2421,12 @@ def _amend(config: Config, args: argparse.Namespace) -> int:
         return EXIT_USAGE
     try:
         amended = amend(
-            config, args.id, why=args.why, deps=args.deps, ref=args.ref, lines=args.lines
+            config,
+            args.id,
+            why=_piped(args.why),
+            deps=args.deps,
+            ref=args.ref,
+            lines=args.lines,
         )
     except REFUSALS as error:
         return _refused(error)
@@ -2784,7 +2829,7 @@ def _ship(config: Config, args: argparse.Namespace) -> int:
         shipment = ship(
             config,
             args.id,
-            why=args.why,
+            why=_piped(args.why),
             part=args.part,
             lines=args.lines,
             superseded=args.superseded_design,
@@ -2888,6 +2933,63 @@ def _follow_up(anchor: str, role: str | None) -> str:
     """
     named = "" if role in (None, "improvements") else f" --role {role}"
     return f"section add {anchor} --title …{named}"
+
+
+#: The spelling every prose argument here reads as "take it off the pipe". One string, for
+#: :attr:`~roadkeep.serving.Prose.sentinel`'s reason: a second would be a second thing to know.
+STDIN = "-"
+
+#: The line terminators a pipe adds and nobody typed (RK329). All of them, so a file
+#: ending in a blank line reads as the sentence it holds — and nothing else, so a trailing
+#: space stays the author's and stays refused.
+_TRAILING_NEWLINES = re.compile(r"[\r\n]+\Z")
+
+
+def _piped(value: str | None) -> str | None:
+    """A prose argument, read off stdin where it spells `-` (RK329).
+
+    The asymmetry this closes was backwards. `--section-body` documented the pipe because a
+    paragraph is long; `--why` is the field that reliably carries an apostrophe, a backtick, an
+    em dash and a `§` — its sentence names types, files and prior ids — and every one of those
+    is read by a shell before this program sees it. Measured twice in one session against an
+    adopting repo: a `ship --why` lost to a PowerShell parse, another to a bash single-quoted
+    string containing `T293's`, both recovered by writing the prose to a variable first, which
+    is what stdin exists to avoid.
+
+    **The failure is silent in the bad direction**, which is why it is worth a door: a shell
+    that eats a backtick does not refuse, it hands over prose subtly unlike what was written
+    and the line lands. A quote terminating early is the loud case, and the lucky one.
+
+    No validation changes. The sentence is still refused for a missing terminator or a length
+    it cannot have — what changes is how it arrives.
+
+    **The line terminator is the pipe's and not the author's**, so it comes off. `echo`,
+    `printf` and every heredoc end with one, and `why.whitespace` firing on it would make the
+    affordance unusable by the tools that reach for it — the refusal correct about the bytes
+    and wrong about who wrote them. Only the terminators: a trailing *space* is the author's
+    and is still refused, and an interior newline is still `why.newline`, because prose that
+    arrived in two lines is a second sentence however it got here.
+    """
+    if value != STDIN:
+        return value
+    return _TRAILING_NEWLINES.sub("", sys.stdin.read())
+
+
+def _one_pipe(*asked: tuple[str, bool]) -> str | None:
+    """Why an argv that sent two arguments to one pipe is refused, or None (RK329).
+
+    There is one stdin and it is read to EOF, so a call whose `why` and whose section body
+    both want it has asked for a split no rule here can make. Refused rather than given to the
+    first: a body that silently absorbed the sentence meant for the line would be the quiet
+    corruption this whole task is about, one layer further in.
+    """
+    named = [name for name, reached in asked if reached]
+    if len(named) < 2:
+        return None
+    return (
+        f"{' and '.join(named)} both read stdin, and there is one: pass one of them as a "
+        f"string. A pipe is read to EOF, so splitting it between two fields is a guess"
+    )
 
 
 def _print_dequeued(token: str | None) -> None:
@@ -3136,7 +3238,7 @@ def _record(config: Config, args: argparse.Namespace) -> int:
             config,
             block=args.block,
             symptom=args.symptom,
-            why=args.why,
+            why=_piped(args.why),
             task_id=args.task_id,
         )
         entry.save()
@@ -3183,7 +3285,7 @@ def _record(config: Config, args: argparse.Namespace) -> int:
 
 def _non_goal_add(config: Config, args: argparse.Namespace) -> int:
     try:
-        written = add_non_goal(config, lead=args.lead, why=args.why)
+        written = add_non_goal(config, lead=args.lead, why=_piped(args.why))
         written.save()
     except REFUSALS as error:
         return _refused(error)
@@ -3408,7 +3510,7 @@ def _record_amend(config: Config, args: argparse.Namespace) -> int:
         return EXIT_USAGE
     try:
         corrected = amend_record(
-            config, args.id, why=args.why, part=args.part, lines=args.lines
+            config, args.id, why=_piped(args.why), part=args.part, lines=args.lines
         )
         corrected.save()
     except REFUSALS as error:
@@ -4656,7 +4758,7 @@ def _retire(config: Config, args: argparse.Namespace) -> int:
         departure = retire(
             config,
             args.id,
-            reason=args.reason,
+            reason=_piped(args.reason),
             superseded_by=args.superseded_by,
         )
         wrote = departure.save()
@@ -4721,7 +4823,7 @@ def _retire(config: Config, args: argparse.Namespace) -> int:
 
 def _defer(config: Config, args: argparse.Namespace) -> int:
     try:
-        pause = defer(config, args.id, reason=args.reason)
+        pause = defer(config, args.id, reason=_piped(args.reason))
         pause.save()
     except REFUSALS as error:
         return _refused(error)

@@ -118,6 +118,7 @@
 - ✅ **RK312** **The refusal that demands a ref names nothing that would produce one** — The refusal names the block's family and the free address under it, and anchors --block is the read it points at.
 - ✅ **RK325** **The queue that outranks the id order lives in the one file nothing governs, so no verb keeps it true** — The queue is a governed Priority section of the roadmap with an insert, a drop and a read, and it wins over the config.
 - ✅ **RK327** **A departure leaves the priority entry that named it in place, so the queue outlives the line it ordered** — Every door a line leaves by drops the entry that named it, in the same transaction, and says so.
+- ✅ **RK329** **the two prose arguments of one command disagree about stdin, and the shell-hostile one is the literal** — Every prose argument reads stdin on '-', so a sentence carrying a backtick or an apostrophe never meets a shell.
 
 ## Block C — Query
 
