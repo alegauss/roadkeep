@@ -44,6 +44,7 @@
 - 📋 **RK326** (deps: RK325) **The gate passes a priority entry naming a shipped id, an unknown id or a block nothing declares** — Measured after a ship: all three pass at exit 0, where the same three tokens written as deps are two findings and a resolution the annotation carries. → §RK326
 - 📋 **RK328** (deps: RK325, RK326) **The one queue repair that is fully derived has no fixer, so a clean tree still costs a hand edit** — Dropping the entry whose task shipped chooses nothing and writes no prose, which is the half --fix exists for, and after RK325 it is a governed file the fixer rewrites. → §RK328
 - 📋 **RK333** (deps: —) **The refusal offers mcp__roadkeep__add, which is not the name a plugin-provided server gives it** — Measured in an adopting project: the tools arrive as mcp__plugin_roadkeep_roadkeep__add, so the route the guard names first is one that session cannot call. → §RK333
+- 📋 **RK335** (deps: —) **The job that gates a release pipes an unpinned remote script into bash, under the workflow's default token** — RK334 bought the loader's own reader with a curl into bash and a workflow declaring no permissions, so the gate now runs code nobody pinned with whatever the token grants. → §RK335
 
 ## Block E — Adoption
 
