@@ -260,6 +260,7 @@ def defer(config: Config, task_id: str, *, reason: str) -> Pause:
         store,
         _as_paused(entry.task, marker, reason),
         where=config.relative(config.path("deferred")),
+        config=config,
     )
     remaining = remove_entry(roadmap, entry)
     # And the queue entry, in the same rewrite (RK327). Worth naming apart from the two
@@ -317,6 +318,7 @@ def resume(config: Config, task_id: str, *, marker: str | None = None) -> Resump
         backlog.roadmap,
         _as_open(held.task, status),
         where=config.relative(config.path("roadmap")),
+        config=config,
     )
     remaining = remove_entry(store, held)
     # The store this write leaves behind, for `defer`'s reason read backwards: a dependent

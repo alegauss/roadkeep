@@ -24,7 +24,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK349** (deps: —) **The refusal that names the anchor command reaches one verb, and three others refuse the same way** — RK312 enriched ref.missing inside add, and defer, resume and section add reach the same violation through their own doors and print the bare rule. → §RK349
 - 📋 **RK350** (deps: —) **A third near-twin verb would be found by the session that types it, not by a test** — The twin sentence is declared per parser and nothing measures the list, so the pair that earns one next is the pair somebody meets. → §RK350
 
 ## Block C — Query (consult without reading the file)

@@ -122,6 +122,7 @@
 - ✅ **RK339** **the verb that writes a marker is the one whose name reads as the report** — status with no arguments says it writes and names stats, and claim says the same about claims.
 - ✅ **RK342** **A claim's read-back reports the files its own transaction wrote as owned by nothing** — A claim's read-back names the governed files its own transactions wrote, so a scope carries only the code.
 - ✅ **RK348** **A departure refused by a dependent's line reports the length and names no id** — A refusal caused by a dependent's re-derived annotation names that line's id and address, so the author is not sent to shorten the sentence they just typed.
+- ✅ **RK349** **The refusal that names the anchor command reaches one verb, and three others refuse the same way** — defer, resume and section add end their refusal with the same clause add has, so a caller who met the good one once never reads a bare rule as there being no answer.
 
 ## Block C — Query
 

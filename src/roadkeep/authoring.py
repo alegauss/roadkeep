@@ -64,7 +64,6 @@ from roadkeep.document import (
 )
 from roadkeep.ids import next_id, scan
 from roadkeep.markers import derive, refresh
-from roadkeep.provenance import invocation
 from roadkeep.schema import SchemaError, Task
 from roadkeep.sections import Section
 
@@ -220,7 +219,12 @@ def compose(
 
 
 def place(
-    document: Document, task: Task, *, carrying: Sequence[str] = (), where: str = ""
+    document: Document,
+    task: Task,
+    *,
+    carrying: Sequence[str] = (),
+    where: str = "",
+    config: Config | None = None,
 ) -> Insertion:
     """Validate, render, insert — in memory, and refuse before any of it.
 
@@ -239,8 +243,26 @@ def place(
     `config.relative` is out of its reach, and a refusal that lists a *ledger's* labels
     without saying they are the ledger's reads as "your label is wrong" to an author whose
     roadmap declares it. Every caller holding a :class:`~roadkeep.config.Config` passes it.
+
+    ``config`` is what turns the refusal `ref.missing` into an address (RK349). RK312 wired
+    that enrichment around `add`'s own call and left `defer` and `resume` — which reach this
+    same `check` through their own doors — printing the bare rule, and an asymmetry is worse
+    than the original gap: a caller who has met the good refusal once reads the bare one as
+    *there is no answer here*. So it is made here, at the seam every line write passes,
+    rather than at four call sites that would drift apart again. Omitted, the refusal is the
+    schema's own, which is what a caller with no project to read anchors out of gets.
     """
-    document.schema.check(task)
+    try:
+        document.schema.check(task)
+    except SchemaError as error:
+        # Around `check` rather than before it, so a line that is missing a pointer *and*
+        # over on its `why` still hears both (RK312): the schema reports every violation at
+        # once, and an early refusal here would trade that for the one sentence it improves.
+        raise (
+            error
+            if config is None
+            else sections.naming_the_anchor(config, task.block, error)
+        ) from None
     heading = document.heading(task.block)
     if heading is None:
         raise UnknownBlock(
@@ -343,17 +365,12 @@ def add(
         deps=deps,
         ref=ref,
     )
-    try:
-        insertion = place(
-            config.document("roadmap"),
-            derive(Backlog.load(config), task),
-            where=config.relative(config.path("roadmap")),
-        )
-    except SchemaError as error:
-        # Around `place` rather than before it, so a line that is missing a pointer *and*
-        # over on its `why` still hears both (RK312): the schema reports every violation at
-        # once, and an early refusal here would trade that for the one sentence it improves.
-        raise _naming_the_anchor(config, block, error) from None
+    insertion = place(
+        config.document("roadmap"),
+        derive(Backlog.load(config), task),
+        where=config.relative(config.path("roadmap")),
+        config=config,
+    )
     if section is not None:
         insertion = _with_section(config, insertion, *section)
     elif insertion.entry.task.ref and (
@@ -364,71 +381,6 @@ def add(
         )
     insertion.save()
     return insertion
-
-
-def _naming_the_anchor(config: Config, block: str, error: SchemaError) -> SchemaError:
-    """The same refusal, with `ref.missing` told which command answers it (RK312).
-
-    This project's own standard applied to itself. `ref: every task points at its rationale
-    section` states the rule and names nothing that satisfies it — and `--ref` is the one
-    required field of the write path that is neither derived nor guessable, wrong *silently*
-    if the number picked is one some heading already spent. `anchors` answers it exactly, and
-    there was no way to learn that from the refusal; the two reads it replaced were a glob of
-    the pointers per block and a grep of the prose file's headings, done four times by hand.
-
-    Every other violation rides through untouched, and the sentence is **appended** rather
-    than replaced: what the rule is has to survive, because a refusal that only says what to
-    type teaches nobody why the field exists.
-
-    Silent where history cannot be searched, which is where the free address cannot be
-    derived: naming a number this could not verify is the failure the whole read exists to
-    prevent, and the command that can say so is still named.
-    """
-    named = next(
-        (one for one in error.violations if one.code == "ref.missing"), None
-    )
-    if named is None:
-        return error
-    return SchemaError(
-        tuple(
-            replace(one, message=f"{one.message}{_where_the_anchor_is(config, block)}")
-            if one is named
-            else one
-            for one in error.violations
-        )
-    )
-
-
-def _where_the_anchor_is(config: Config, block: str) -> str:
-    """The clause `ref.missing` ends with: the command, and the address where one derives."""
-    # Deferred for RK260's reason, and because git belongs on no successful write path.
-    from roadkeep.history import (  # noqa: PLC0415
-        HistoryUnavailable,
-        anchors,
-        families_of_block,
-        next_child,
-    )
-
-    spans = families_of_block(config, block)
-    if len(spans) != 1:
-        # Two families is a block that reopened under a fresh top-level, and none is a block
-        # whose prose has not started — different answers, and the same command gives both.
-        return (
-            f" — `{invocation()} anchors --block {block}` says which family this block's "
-            f"prose lives under, and `anchors` alone names the free top-level"
-        )
-    family = spans[0]
-    try:
-        free = next_child(anchors(config), family)
-    except (HistoryUnavailable, OSError):
-        return (
-            f" — Block {block}'s prose is under §{family}, and "
-            f"`{invocation()} anchors --family {family}` says which address is free"
-        )
-    return (
-        f" — Block {block}'s prose is under §{family}, where §{free} is free "
-        f"(`{invocation()} anchors --block {block}` lists it)"
-    )
 
 
 def _with_section(config: Config, insertion: Insertion, title: str, body: str) -> Insertion:

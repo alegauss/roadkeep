@@ -1216,6 +1216,101 @@ def test_every_other_violation_still_arrives_with_it(tmp_path, capsys):
     assert "§XVII.4 is free" in err
 
 
+# -- the same clause, at every door that refuses one (RK349) ------------------
+
+
+def excused_the_pointer(tmp_path: Path) -> Config:
+    """An outline project whose roadmap is let off the pointer its store still demands.
+
+    Which is the state `defer` refuses in, and the one RK349 was measured from: the line is
+    legal where the author wrote it and illegal where the pause files it, so the field named
+    in the refusal is one they never typed and the address it wants is one nothing named.
+    """
+    config = outlined_blocks(tmp_path)
+    (config.root / "roadkeep.toml").write_text(
+        'prefix = "RK"\nref_scheme = "outline"\n'
+        '[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
+        'improvements = "IMPROVEMENTS.md"\ndeferred = "DEFERRED.md"\n'
+        "[rules.roadmap]\nref = false\n",
+        encoding="utf-8",
+    )
+    (config.root / "DEFERRED.md").write_text("## Block Q — Serving\n", encoding="utf-8")
+    append(
+        config.path("roadmap"),
+        f"\n## Block Q — Serving\n\n- {DESIGNED} **RK9** (deps: —) **A symptom** — a reason.\n",
+    )
+    commit(tmp_path, "chore: a line with no pointer")
+    return Config.discover(tmp_path)
+
+
+def test_the_pause_that_demands_a_ref_names_what_produces_one(tmp_path, capsys):
+    # The measured case. `defer` reaches the same `check` through its own door and printed the
+    # bare rule, which is the exact text RK312 was filed against, one verb over.
+    config = excused_the_pointer(tmp_path)
+    assert main(["-C", str(config.root), "defer", "RK9", "--reason", "waiting"]) == EXIT_USAGE
+
+    err = capsys.readouterr().err
+    assert "every task points at its rationale section" in err
+    assert "Block Q's prose is under §XVII" in err and "§XVII.4 is free" in err
+
+
+def test_the_return_from_the_store_answers_the_same_way(tmp_path, capsys):
+    # `resume` writes the line back and validates it again, so it is the same gap read
+    # backwards: the store excused the pointer and the roadmap it returns to does not.
+    config = outlined_blocks(tmp_path)
+    (config.root / "roadkeep.toml").write_text(
+        'prefix = "RK"\nref_scheme = "outline"\n'
+        '[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
+        'improvements = "IMPROVEMENTS.md"\ndeferred = "DEFERRED.md"\n'
+        "[rules.deferred]\nref = false\n",
+        encoding="utf-8",
+    )
+    (config.root / "DEFERRED.md").write_text(
+        "## Block Q — Serving\n\n- ⏸ **RK9** (deps: —) **A symptom** — a reason (paused: waiting).\n",
+        encoding="utf-8",
+    )
+    commit(tmp_path, "chore: a paused line with no pointer")
+    config = Config.discover(tmp_path)
+    assert main(["-C", str(config.root), "resume", "RK9"]) == EXIT_USAGE
+
+    err = capsys.readouterr().err
+    assert "every task points at its rationale section" in err
+    assert "§XVII.4 is free" in err
+
+
+def test_a_section_written_at_an_id_under_an_outline_is_told_where_addresses_come_from(
+    tmp_path, capsys
+):
+    # The third door: `section add RK2` under a scheme that numbers its own headings refused
+    # `not an <x.y> outline anchor` and named nothing — the same author, holding no address.
+    config = outlined_blocks(tmp_path)
+    assert (
+        main(["-C", str(config.root), "section", "add", "RK2", "--title", "A design",
+              "--body", "Some prose."])
+        == EXIT_USAGE
+    )
+
+    err = capsys.readouterr().err
+    # The rule survives here too: what an outline anchor is, and then where to get one.
+    assert "the heading numbers itself" in err
+    assert "Block Q's prose is under §XVII" in err and "§XVII.4 is free" in err
+
+
+def test_an_anchor_naming_no_task_is_left_the_refusal_the_schema_wrote(tmp_path, capsys):
+    # The block is the clause's whole subject, and an address belonging to nobody has none —
+    # so the silence is the same one that answers a history this cannot search.
+    config = outlined_blocks(tmp_path)
+    assert (
+        main(["-C", str(config.root), "section", "add", "not-an-anchor", "--title", "A design",
+              "--body", "Some prose."])
+        == EXIT_USAGE
+    )
+
+    err = capsys.readouterr().err
+    assert "the heading numbers itself" in err
+    assert "anchors --block" not in err
+
+
 # -- the read-back that called its own writes loose (RK342) -------------------
 
 

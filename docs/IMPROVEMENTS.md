@@ -77,30 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK349 One enrichment, four doors
-
-RK312 taught `ref.missing` to name `anchors --block <x>` and the free address under it.
-It is wired into `authoring.add`, around the one `place` call that command makes.
-
-Every other write that validates a line reaches the same violation and gets the sentence
-as it was. Measured while building RK327's fixture: `defer RK2` on a project whose store
-declares `ref` refused with `ref: every task points at its rationale section`, naming
-nothing — the exact text RK312 was filed against, one verb over. `resume` writes the
-line back and validates it again, and `section add` reaches the same schema.
-
-The asymmetry is worse than the original defect, because a caller who has met the good
-refusal once now knows the tool can answer this and reads the bare one as *there is no
-answer here*.
-
-What makes it a small task is that the enrichment is already a function of a config and
-a block: `_naming_the_anchor(config, block, error)` needs the block, and every door that
-refuses a line has one — a `defer` reads it off the line it is moving, a `resume` off
-the line it is writing back. So the repair is a shared wrapper at the seam every write
-already passes rather than four call sites, which is what would otherwise drift.
-
-Worth checking whether that seam is `place` itself. It has no `Config` today, which is
-why RK312 went around it, and threading one in is the change that makes this one line.
-
 ### §RK350 The property the survey made and did not keep
 
 RK339 gave `status` and `claim` a refusal naming their read-only near-twins, and found

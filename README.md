@@ -117,16 +117,16 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 30 | 1 |
-| B — Authoring (insert, never hand-edit) | 2 | 78 | 0 |
+| B — Authoring (insert, never hand-edit) | 1 | 79 | 0 |
 | C — Query (consult without reading the file) | 0 | 51 | 1 |
 | D — The gate | 4 | 63 | 0 |
 | E — Adoption | 2 | 55 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 67 | 1 |
-| **Total** | 8 | 344 | 4 |
+| **Total** | 7 | 345 | 4 |
 
 **Next ready:**
 
-- 📋 **RK349** (deps: —) **The refusal that names the anchor command reaches one verb, and three others refuse the same way** — RK312 enriched ref.missing inside add, and defer, resume and section add reach the same violation through their own doors and print the bare rule. → §RK349
+- 📋 **RK350** (deps: —) **A third near-twin verb would be found by the session that types it, not by a test** — The twin sentence is declared per parser and nothing measures the list, so the pair that earns one next is the pair somebody meets. → §RK350
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
