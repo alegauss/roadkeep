@@ -1189,6 +1189,48 @@ def test_the_split_names_what_no_claim_speaks_for(tmp_path):
     assert claiming.split(config, "RK2", entries, ["src/a.py"]).theirs == ()
 
 
+def test_a_declared_path_that_would_stage_nothing_is_named(tmp_path):
+    # Not a refusal (RK295): verbatim is the right rule and a path declared before the file
+    # exists is the ordinary case. What is reported is a fact about the tree at this moment.
+    config = project(tmp_path, BLOCKS + line("RK2"))
+    take(config)
+    claiming.scope(config, "RK2", ["src/a.py", "src/typo.py"])
+    entries = config.document("roadmap").entries
+    split = claiming.split(config, "RK2", entries, ["src/a.py"], ["README.md"])
+    assert split.idle == ("src/typo.py",)
+
+
+def test_a_declared_directory_stages_what_is_under_it(tmp_path):
+    # git lists neither `status` nor `ls-files` by directory, so a name comparison would call
+    # every folder-shaped scope a typo — which is the false positive this reading avoids.
+    config = project(tmp_path, BLOCKS + line("RK2"))
+    take(config)
+    claiming.scope(config, "RK2", ["docs/", "tests"])
+    entries = config.document("roadmap").entries
+    split = claiming.split(config, "RK2", entries, ["docs/ROADMAP.md"], ["tests/test_a.py"])
+    assert split.idle == ()
+
+
+def test_a_tracked_path_with_no_change_yet_is_not_a_typo(tmp_path):
+    # The reading is *this path stages nothing right now*, and a file the index carries is a
+    # real file whose name was not mistyped.
+    config = project(tmp_path, BLOCKS + line("RK2"))
+    take(config)
+    claiming.scope(config, "RK2", ["src/a.py"])
+    entries = config.document("roadmap").entries
+    assert claiming.split(config, "RK2", entries, [], ["src/a.py"]).idle == ()
+
+
+def test_a_caller_with_no_index_gets_no_idle_reading_at_all(tmp_path):
+    # A checkout git cannot answer for is one this reports nothing about — never one where
+    # every declared path reads as staging nothing.
+    config = project(tmp_path, BLOCKS + line("RK2"))
+    take(config)
+    claiming.scope(config, "RK2", ["src/a.py"])
+    entries = config.document("roadmap").entries
+    assert claiming.split(config, "RK2", entries, [], []).idle == ()
+
+
 def test_a_departure_reads_the_scope_while_the_claim_is_still_live(tmp_path):
     # The caller RK280 did not have. `ship` releases the claim, so a read made after it is a
     # read of nothing — this one is taken from the roadmap as it was, at 🛠.

@@ -24,7 +24,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK295** (deps: —) **A scope naming a path the tree does not have is recorded in silence** — `claim --path` takes the path verbatim and never asks the disk, so a typo is a file the commit will not stage and a scope that reads as complete. → §RK295
 - 📋 **RK296** (deps: —) **An undeclared-block refusal still lists every label the file declares** — RK257 gave it the file and the verb and left the list, so a project with 90 blocks answers a question nobody asked and buries the two clauses that are the remedy. → §RK296
 - 💭 **RK298** (deps: —) **A shipped line's commit cannot read the scope its claim carried** — `ship` releases the claim, so the `claim <id> --porcelain` agents.md stages from is refused at the one moment a commit needs it, naming a `status 🛠` the ledger refuses too. → §RK298
 - 📋 **RK302** (deps: —) **section add writes an anchor another declared prose file already holds, and only a retired one is refused** — Reproduced on a two-file project: the second add reports success and lint then names four section.ambiguous findings whose own message says every verb reading one refuses. → §RK302

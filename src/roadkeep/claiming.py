@@ -489,6 +489,10 @@ class Scope:
     theirs: tuple[tuple[str, str], ...] = ()
     #: Changed paths no live claim names at all.
     loose: tuple[str, ...] = ()
+    #: Declared paths that would stage nothing right now (RK295) — in neither the dirty set
+    #: nor the index. A subset of :attr:`mine`, in the order it was declared, because this is
+    #: a reading *of* the declaration and not a fourth list beside it.
+    idle: tuple[str, ...] = ()
 
     @property
     def spoken(self) -> bool:
@@ -502,15 +506,25 @@ class Scope:
 
 
 def split(
-    config: Config, task_id: str, entries: Iterable[Entry], changed: Iterable[str]
+    config: Config,
+    task_id: str,
+    entries: Iterable[Entry],
+    changed: Iterable[str],
+    tracked: Iterable[str] = (),
 ) -> Scope:
-    """Split the changed paths by whose claim names them (RK280).
+    """Split the changed paths by whose claim names them (RK280, RK295).
 
-    Pure over `changed`: git is the caller's to ask, because the two callers ask it under
-    different conditions — one was told to, the other only where a claim spoke. What is
-    shared, and the reason this is a function rather than a second composition at each call
-    site, is the *subtraction* — three lists that have to stay disjoint and stay in the same
-    order in both answers.
+    Pure over `changed` and `tracked`: git is the caller's to ask, because the two callers ask
+    it under different conditions — one was told to, the other only where a claim spoke. What
+    is shared, and the reason this is a function rather than a second composition at each call
+    site, is the *subtraction* — lists that have to stay disjoint and stay in the same order
+    in both answers.
+
+    `tracked` is the index, and it is what makes :attr:`Scope.idle` a fact rather than a
+    guess: a declared path that is dirty stages itself, and one the index carries is a real
+    file whose name was not mistyped. A caller that omits it gets no idle reading at all
+    rather than one made against half the evidence — the empty default is the honest failure,
+    since every path would otherwise read as staging nothing.
     """
     entries = tuple(entries)
     rows = live(config, entries)
@@ -518,6 +532,7 @@ def split(
     others = elsewhere(config, task_id, entries)
     spoken = {one for other in others for one in other.paths}
     changed = frozenset(changed)
+    known = changed | frozenset(tracked)
     theirs = tuple(
         (one, other.id)
         for other in others
@@ -529,7 +544,23 @@ def split(
         mine=mine,
         theirs=theirs,
         loose=tuple(sorted(one for one in changed if one not in named)),
+        idle=() if not known else tuple(one for one in mine if not _stages(one, known)),
     )
+
+
+def _stages(one: str, known: frozenset[str]) -> bool:
+    """Would `git add -- <one>` put anything in the next commit (RK295)?
+
+    A **directory** is a legitimate scope and git lists neither `status` nor `ls-files` by
+    one, so a declared `docs/` compared as a name would read as a typo for every project that
+    declares its scope by folder — the false positive this reading exists to avoid being
+    worth a column rather than a refusal. So a prefix counts, which is exactly what the `git
+    add` this answers for would do with it.
+    """
+    if one in known:
+        return True
+    prefix = one.rstrip("/") + "/"
+    return any(other.startswith(prefix) for other in known)
 
 
 def departing(config: Config, task_id: str, entries: Iterable[Entry]) -> Scope | None:
@@ -556,9 +587,9 @@ def departing(config: Config, task_id: str, entries: Iterable[Entry]) -> Scope |
     # Imported here for the reason :mod:`roadkeep.provenance` does it (RK260): this is the
     # only function in the file that asks git anything, and every other reader of a claim —
     # `pick`, `brief`, every marker write — would otherwise pay for the wrapper.
-    from roadkeep.history import dirty  # noqa: PLC0415
+    from roadkeep.history import dirty, indexed  # noqa: PLC0415
 
-    return split(config, task_id, entries, dirty(config))
+    return split(config, task_id, entries, dirty(config), indexed(config))
 
 
 def rename(root: Path | str, old: str, new: str) -> bool:

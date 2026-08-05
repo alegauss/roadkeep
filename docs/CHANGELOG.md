@@ -104,6 +104,7 @@
 - ✅ **RK262** **A section add writes a heading ship will later decline to delete** — A heading written for a task now carries its id, appended by the writer that holds it, so the section binds to the line and ship deletes it instead of keeping it.
 - ✅ **RK280** **Two sessions each ship a commit carrying the other's code** — A claim now carries the paths its commit owns, so `claim <id>` names what the tree holds that another live claim says is its own.
 - ✅ **RK294** **Nothing calls the scope at the moment the commit is made** — `ship` and `retire` name what the tree holds that no claim of theirs does, read while the claim is still live.
+- ✅ **RK295** **A scope naming a path the tree does not have is recorded in silence** — A declared path that is in neither the dirty set nor the index is marked where it stands, so a typo reads as one instead of as a complete scope.
 
 ## Block C — Query
 

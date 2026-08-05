@@ -79,6 +79,7 @@ from roadkeep.history import (
     dirty,
     gaps,
     doubled,
+    indexed,
     next_child,
     next_family,
     origin_of,
@@ -2709,6 +2710,11 @@ def _print_scope(scope: claiming.Scope | None) -> None:
         print(f"  theirs   {one}  ({who} is holding it)")
     for one in scope.loose:
         print(f"  loose    {one}  (no claim names it)")
+    # The declared paths that would stage nothing (RK295). Named here rather than folded into
+    # `mine`, which this printer deliberately does not repeat: at a departure the work is done,
+    # so a scope naming a file the tree does not have is a typo and not a file yet to be written.
+    for one in scope.idle:
+        print(f"  typo?    {one}  (declared, and stages nothing)")
 
 
 def _scope_json(scope: claiming.Scope | None) -> dict[str, object] | None:
@@ -2719,6 +2725,7 @@ def _scope_json(scope: claiming.Scope | None) -> dict[str, object] | None:
         "mine": list(scope.mine),
         "theirs": [{"path": one, "claimed_by": who} for one, who in scope.theirs],
         "unclaimed": list(scope.loose),
+        "staging_nothing": list(scope.idle),
     }
 
 
@@ -3384,10 +3391,10 @@ def _claim(config: Config, args: argparse.Namespace) -> int:
             print(one)
         return EXIT_OK
 
-    # The subtraction is `claiming`'s (RK294), because `ship` asks for the same three lists
-    # at the moment of committing and two compositions of one answer is how they come to
-    # disagree. Git is asked here and not there: this command was told to answer.
-    scope = claiming.split(config, args.id, entries, dirty(config))
+    # The subtraction is `claiming`'s (RK294), because `ship` asks for the same lists at the
+    # moment of committing and two compositions of one answer is how they come to disagree.
+    # Git is asked here and not there: this command was told to answer.
+    scope = claiming.split(config, args.id, entries, dirty(config), indexed(config))
     if args.json:
         print(
             json.dumps(
@@ -3398,6 +3405,7 @@ def _claim(config: Config, args: argparse.Namespace) -> int:
                         {"path": one, "claimed_by": who} for one, who in scope.theirs
                     ],
                     "unclaimed": list(scope.loose),
+                    "staging_nothing": list(scope.idle),
                 },
                 indent=2,
             )
@@ -3405,8 +3413,12 @@ def _claim(config: Config, args: argparse.Namespace) -> int:
         return EXIT_OK
 
     print(f"{args.id} claims {len(mine)} path(s)")
+    idle = set(scope.idle)
     for one in scope.mine:
-        print(f"  mine     {one}")
+        # Annotated where it stands, and not listed again below (RK295): the mistyped path
+        # and the real one are two lines apart, and the eye reads the second as somebody
+        # else's unless the first says what is wrong with it.
+        print(f"  mine     {one}{'  (stages nothing right now)' if one in idle else ''}")
     _print_scope(scope)
     if not mine:
         print(f"  none declared: `claim {args.id} --path <p>` says what this commit owns")

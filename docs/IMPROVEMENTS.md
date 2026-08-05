@@ -77,26 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK295 A declared path nothing will stage
-
-Verbatim is the right rule and the reason RK280 gives for it stands: a scope inferred
-from a sentence would be RK55's guessing put in charge of what a commit contains, and a
-path declared before the file exists is the ordinary case — the test is written after
-the claim is taken.
-
-So this is not a refusal. It is the one comparison the read already has the facts for
-and does not make: `claim <id>` prints `mine` out of the registry and `loose` out of
-`git status`, and a path in `mine` that is in neither the dirty set nor the index is a
-path staging nothing. Today it prints as an ordinary line of the answer, and the real
-file — the one whose name was mistyped — prints two lines below under `loose`, where the
-eye reads it as somebody else's.
-
-What makes it worth a column rather than a refusal is when it is wrong: a scope declared
-ahead of the work names files that do not exist yet, and every one of them is correct.
-So the reading is not *this path is missing* but *this path stages nothing right now*,
-which is a fact about the tree at the moment of asking and not a judgement about the
-declaration.
-
 ### §RK296 The half of RK257 that was left
 
 Stated plainly because it was a choice and not an oversight: RK257 named three missing

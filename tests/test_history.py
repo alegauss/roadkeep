@@ -639,6 +639,33 @@ def test_a_ship_names_what_the_tree_holds_that_its_claim_does_not(tmp_path, caps
         claiming.path(tmp_path).unlink(missing_ok=True)
 
 
+def test_the_command_marks_a_declared_path_that_would_stage_nothing(tmp_path, capsys):
+    # The comparison the read already had the facts for and did not make (RK295): today the
+    # mistyped name printed as an ordinary line and the real file printed two lines below
+    # under `loose`, where the eye reads it as somebody else's.
+    config = repo(tmp_path)
+    append(
+        config.path("roadmap"),
+        f"- {IN_PROGRESS} **RK2** (deps: —) **A symptom** — a reason.\n",
+    )
+    commit(tmp_path, "chore: a line under way")
+    try:
+        claiming.follow(tmp_path, "RK2", IN_PROGRESS, config.document("roadmap").entries)
+        (tmp_path / "mine.py").write_text("x = 1\n", encoding="utf-8")
+        at = ["-C", str(tmp_path), "claim", "RK2"]
+        assert main([*at, "--path", "mnie.py", "--path", "ROADMAP.md"]) == EXIT_OK
+        capsys.readouterr()
+        assert main(at) == EXIT_OK
+        out = capsys.readouterr().out
+        assert "mine     mnie.py  (stages nothing right now)" in out
+        # The tracked file nothing has touched yet is not a typo, and the real file is still
+        # reported for what it is: a change no claim names.
+        assert "mine     ROADMAP.md\n" in out
+        assert "loose    mine.py  (no claim names it)" in out
+    finally:
+        claiming.path(tmp_path).unlink(missing_ok=True)
+
+
 def test_a_ship_in_a_project_no_claim_spoke_for_reports_nothing(tmp_path, capsys):
     # Every project that has not adopted a scope. There is nothing to subtract the tree from,
     # so the whole answer would be `git status` under a heading claiming to have read it.
