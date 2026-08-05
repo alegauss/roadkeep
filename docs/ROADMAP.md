@@ -39,6 +39,9 @@
 
 ## Block E — Adoption
 
+- 📋 **RK358** (deps: —) **The pick over this repository's own backlog is asserted lowest-ready, so a run made while a line is claimed is red** — `pick` answers STARTED for a 🛠 line and the test names LOWEST, so the suite is red for the length of every task the one-task-one-commit rule creates. → §RK358
+- 📋 **RK359** (deps: —) **The doubled address the estimate reports is reachable only where the file is already one this project declares** — Two unadopted prose files are the case adopt exists for and it takes one path, so the collision an adopter meets first stays invisible until after the commitment. → §RK359
+
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Non-goals

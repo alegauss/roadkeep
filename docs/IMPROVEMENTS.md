@@ -250,4 +250,47 @@ boolean every reader has to know to check.
 
 ## Block E — Adoption
 
+### §RK358 A fixture that forbids the state the workflow is in
+
+The suite asserts that a `pick` over this repository's own roadmap comes back at
+`Tier.LOWEST`. That holds on a quiet backlog and on an empty one, and it is false for
+exactly as long as a task is being worked on: `claim` and `status <id> 🛠` put a line in
+progress, `pick` then answers `Tier.STARTED` because finishing what is started is the
+tier above lowest-ready, and the assertion names the tier below it.
+
+Observed twice while shipping Block E, once per task. The workflow this repository
+documents is one task per commit, taken by claiming the line — so the window where the
+assertion is false is the window where work happens, and the runs that pass are the ones
+made between tasks. That is RK315 and RK351's shape a third time: a red about the state
+of the checkout rather than about the code, on a suite an agent runs in the background
+while it edits.
+
+What is worth deciding is whether the tier belongs in the claim at all. The two facts
+under it are that this backlog is pickable and that the chosen line's pointer is its own
+id, and both survive a claim; the tier is the one field encoding an assumption about who
+is working right now. A branch on `Tier.STARTED` would keep it and say so, which is the
+smaller answer if the tier is worth asserting.
+
+### §RK359 The collision the estimate can see, and the one it cannot
+
+RK347 gave `adopt --sections` the finding a per-file read cannot make: an address two
+prose files both declare, named with the files and the `[refs]` line that ends it. It is
+answered off `config`, so it fires where the target is one of this project's own files
+and is silent everywhere else — which is right, because `[files]` otherwise names
+somebody else's siblings (RK292).
+
+That leaves the shape the command is for. An adopter runs `adopt` from outside the
+project, against a file no `roadkeep.toml` declares, and there are two of them:
+`IMPROVEMENTS.md` and `STRATEGY.md`, both opening at `I`. The estimate reads one, calls
+it conforming, and the collision arrives on the first `lint` after the config is written
+— which is the one moment RK18 says the number is worth nothing, because the commitment
+is already made.
+
+The read is the same read; what is missing is a way to say which files to take it over.
+A second positional, or a `--with <path>` repeated, keeps the estimate a read that
+writes nothing and exits 0, and keeps one path meaning one file for every other measure
+in the report. What must not happen is inferring the sibling from the directory: a
+`DESIGN.md` beside an `IMPROVEMENTS.md` is a guess about somebody's layout, and the
+report would then be measuring a set the caller never named.
+
 ## Block F — The plugin
