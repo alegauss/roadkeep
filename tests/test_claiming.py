@@ -26,7 +26,8 @@ from pathlib import Path
 
 import pytest
 
-from roadkeep import claiming
+from roadkeep import claiming, storing
+from roadkeep.attesting import attest
 from roadkeep.briefing import NothingToBrief, brief
 from roadkeep.authoring import add, set_status
 from roadkeep.backlog import Backlog
@@ -81,12 +82,12 @@ def age(root: Path, task_id: str, seconds: float) -> None:
     The scope rides along untouched (RK280): a backdated claim is the same claim, and a
     helper that dropped the paths would stage a state no door writes.
     """
-    dated = claiming._read(claiming.path(root))  # noqa: SLF001 - the file under test
+    dated = claiming._read(root)  # noqa: SLF001 - the file under test
     held = dated.get(task_id)
     dated[task_id] = claiming.Dating(
         time.time() - seconds, held.paths if held is not None else ()
     )
-    claiming._write(claiming.path(root), dated)  # noqa: SLF001
+    claiming._write(root, dated)  # noqa: SLF001
 
 
 # -- the second caller gets a different line ---------------------------------
@@ -317,7 +318,7 @@ def test_a_claim_on_a_line_that_left_the_roadmap_is_forgotten(tmp_path):
     take(config)
     assert main(["-C", str(tmp_path), "ship", "RK2", "--why", "It works now."]) == EXIT_OK
     take(config)
-    assert "RK2" not in claiming._read(claiming.path(tmp_path))  # noqa: SLF001
+    assert "RK2" not in claiming._read(tmp_path)  # noqa: SLF001
 
 
 # -- the two doors the marker cannot express (RK156) ---------------------------
@@ -334,7 +335,7 @@ def test_a_renumber_carries_the_claim_to_the_new_address(tmp_path):
     moved.save()
     held = pick(config).held
     assert [h.id for h in held] == ["RK20"]
-    assert "RK2" not in claiming._read(claiming.path(tmp_path))  # noqa: SLF001
+    assert "RK2" not in claiming._read(tmp_path)  # noqa: SLF001
 
 
 def test_the_carried_claim_keeps_its_age_rather_than_restarting(tmp_path):
@@ -344,7 +345,7 @@ def test_the_carried_claim_keeps_its_age_rather_than_restarting(tmp_path):
     hold(config, "RK2")
     age(tmp_path, "RK2", HELD - 30)
     renumber(config, "RK2", "RK20").save()
-    dated = claiming._read(claiming.path(tmp_path))  # noqa: SLF001
+    dated = claiming._read(tmp_path)  # noqa: SLF001
     assert time.time() - dated["RK20"].when > HELD - 60
 
 
@@ -379,7 +380,7 @@ def test_retiring_a_claimed_line_leaves_no_entry_either(tmp_path):
     take(config)
     argv = ["-C", str(tmp_path), "retire", "RK2", "--reason", "Not happening."]
     assert main(argv) == EXIT_OK
-    assert claiming._read(claiming.path(tmp_path)) == {}  # noqa: SLF001
+    assert claiming._read(tmp_path) == {}  # noqa: SLF001
 
 
 def test_a_release_reconciles_every_row_and_not_only_its_own(tmp_path):
@@ -391,7 +392,7 @@ def test_a_release_reconciles_every_row_and_not_only_its_own(tmp_path):
     (tmp_path / "ROADMAP.md").write_text(BLOCKS + line("RK2") + line("RK9"), encoding="utf-8")
     # A marker write that is not about RK2 at all, and not a claim either.
     set_status(Config.discover(tmp_path), "RK9", IDEA)
-    assert claiming._read(claiming.path(tmp_path)) == {}  # noqa: SLF001
+    assert claiming._read(tmp_path) == {}  # noqa: SLF001
 
 
 def test_a_marker_write_on_a_backlog_with_no_registry_writes_no_file(tmp_path):
@@ -409,9 +410,9 @@ def test_the_prune_still_reconciles_what_no_door_reported(tmp_path):
     hold(config, "RK2")
     # As a `git checkout` would leave it: RK2 reads 📋 again and no door was told.
     (tmp_path / "ROADMAP.md").write_text(BLOCKS + line("RK2") + line("RK9"), encoding="utf-8")
-    assert "RK2" in claiming._read(claiming.path(tmp_path))  # noqa: SLF001
+    assert "RK2" in claiming._read(tmp_path)  # noqa: SLF001
     hold(Config.discover(tmp_path), "RK9")
-    assert set(claiming._read(claiming.path(tmp_path))) == {"RK9"}  # noqa: SLF001
+    assert set(claiming._read(tmp_path)) == {"RK9"}  # noqa: SLF001
 
 
 def test_deferring_a_claimed_line_drops_the_claim(tmp_path):
@@ -430,7 +431,7 @@ def test_deferring_a_claimed_line_drops_the_claim(tmp_path):
     config = Config.discover(tmp_path)
     hold(config, "RK2")
     defer(config, "RK2", reason="waiting on a decision").save()
-    assert "RK2" not in claiming._read(claiming.path(tmp_path))  # noqa: SLF001
+    assert "RK2" not in claiming._read(tmp_path)  # noqa: SLF001
     resume(config, "RK2", marker=DESIGNED).save()
     # Back, and unheld: the claim the pause dropped is not one the return brings with it.
     revived = pick(Config.discover(tmp_path))
@@ -473,7 +474,7 @@ def test_marking_it_anything_else_releases_the_claim(tmp_path):
     take(config)
     change = set_status(config, "RK2", DESIGNED)
     assert change.claim is Followed.RELEASED
-    assert "RK2" not in claiming._read(claiming.path(tmp_path))  # noqa: SLF001
+    assert "RK2" not in claiming._read(tmp_path)  # noqa: SLF001
     assert pick(config).entry.task.id == "RK2"
 
 
@@ -529,12 +530,12 @@ def test_a_release_is_never_refused(tmp_path):
 def test_the_refusal_writes_nothing_at_all(tmp_path):
     config = project(tmp_path, BLOCKS + line("RK2", status=IN_PROGRESS))
     set_status(config, "RK2", IN_PROGRESS)  # the first claim, on a line already 🛠
-    dated = claiming._read(claiming.path(tmp_path))  # noqa: SLF001
+    dated = claiming._read(tmp_path)  # noqa: SLF001
     before = (tmp_path / "ROADMAP.md").read_bytes()
     with pytest.raises(AlreadyHeld):
         set_status(config, "RK2", IN_PROGRESS)
     assert (tmp_path / "ROADMAP.md").read_bytes() == before
-    assert claiming._read(claiming.path(tmp_path)) == dated  # noqa: SLF001
+    assert claiming._read(tmp_path) == dated  # noqa: SLF001
 
 
 def test_every_door_that_claims_leaves_the_same_registry(tmp_path):
@@ -552,7 +553,7 @@ def test_every_door_that_claims_leaves_the_same_registry(tmp_path):
             hold(config, "RK2")
         else:
             set_status(config, "RK2", IN_PROGRESS)
-        dated = claiming._read(claiming.path(tmp_path))  # noqa: SLF001
+        dated = claiming._read(tmp_path)  # noqa: SLF001
         left.append({name: round(row.when) for name, row in dated.items()})
     assert [set(one) for one in left] == [{"RK2"}, {"RK2"}, {"RK2"}]
     # And each of them leaves a line the next caller is not sent at.
@@ -595,7 +596,7 @@ def test_an_entry_for_an_id_no_line_carries_is_stale_and_not_an_error(tmp_path):
     # hand-edited file can leave for ever: reported, because it is the entry a reader wants.
     config = project(tmp_path, BLOCKS + line("RK2"))
     claiming._write(  # noqa: SLF001
-        claiming.path(tmp_path), {"RK99": claiming.Dating(time.time())}
+        tmp_path, {"RK99": claiming.Dating(time.time())}
     )
     row = claiming.survey(Backlog.load(config))[0]
     assert (row.id, row.state, row.marker) == ("RK99", claiming.State.STALE, "")
@@ -626,7 +627,7 @@ def test_the_three_ids_that_left_by_a_door_say_which_one(tmp_path):
     config = Config.discover(tmp_path)
     now = time.time()
     claiming._write(  # noqa: SLF001
-        claiming.path(tmp_path),
+        tmp_path,
         {name: claiming.Dating(now) for name in ("RK7", "RK8", "RK9", "RK99")},
     )
     where = {row.id: row.where for row in claiming.survey(Backlog.load(config))}
@@ -677,16 +678,16 @@ def test_a_prune_drops_what_is_not_a_claim_and_keeps_what_is(tmp_path, capsys):
     )
     for task_id in ("RK2", "RK5", "RK99"):
         claiming._write(  # noqa: SLF001
-            claiming.path(tmp_path),
+            tmp_path,
             {
-                **claiming._read(claiming.path(tmp_path)),  # noqa: SLF001
+                **claiming._read(tmp_path),  # noqa: SLF001
                 task_id: claiming.Dating(time.time()),
             },
         )
     pruning = claiming.prune(config)
     assert [row.id for row in pruning.kept] == ["RK2"]
     assert {row.id for row in pruning.dropped} == {"RK5", "RK99"}
-    assert set(claiming._read(claiming.path(tmp_path))) == {"RK2"}  # noqa: SLF001
+    assert set(claiming._read(tmp_path)) == {"RK2"}  # noqa: SLF001
 
 
 def test_a_prune_keeps_an_expired_claim_because_it_is_still_one(tmp_path, capsys):
@@ -711,7 +712,7 @@ def test_a_prune_never_takes_a_live_claim(tmp_path):
 def test_the_prune_names_what_it_dropped_and_says_when_it_dropped_nothing(tmp_path, capsys):
     project(tmp_path, BLOCKS + line("RK2"))
     claiming._write(  # noqa: SLF001
-        claiming.path(tmp_path), {"RK99": claiming.Dating(time.time())}
+        tmp_path, {"RK99": claiming.Dating(time.time())}
     )
     assert main(["-C", str(tmp_path), "claims", "--prune"]) == EXIT_OK
     out = capsys.readouterr().out
@@ -724,7 +725,7 @@ def test_the_prune_names_what_it_dropped_and_says_when_it_dropped_nothing(tmp_pa
 def test_the_prune_carries_what_it_dropped_in_the_json(tmp_path, capsys):
     project(tmp_path, BLOCKS + line("RK2"))
     claiming._write(  # noqa: SLF001
-        claiming.path(tmp_path), {"RK99": claiming.Dating(time.time())}
+        tmp_path, {"RK99": claiming.Dating(time.time())}
     )
     assert main(["-C", str(tmp_path), "claims", "--prune", "--json"]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
@@ -784,6 +785,23 @@ def test_the_registry_lives_outside_the_checkout(tmp_path):
     take(config)
     assert tmp_path not in claiming.path(tmp_path).parents
     assert claiming.path(tmp_path).is_file()
+
+
+def test_a_claim_and_the_write_record_share_one_file_and_not_one_table(tmp_path):
+    # The hazard a shared store has and two files did not (RK330): every door replaces the
+    # table it owns and carries the other one over, so a claim does not cost the digests the
+    # last verb left — and the marker write that dates a claim is a verb, so both happen here.
+    config = project(tmp_path, BLOCKS + line("RK2") + line("RK9"))
+    attest(config)
+    recorded = storing.read(tmp_path).writes
+    assert set(recorded) == {"roadmap", "changelog"}
+    take(config)
+    claiming.scope(config, "RK2", ["src/a.py"])
+    assert storing.read(tmp_path).writes == recorded
+    assert storing.read(tmp_path).claims["RK2"].paths == ("src/a.py",)
+    # And the other direction: attesting again keeps the claim beside it.
+    attest(config)
+    assert set(storing.read(tmp_path).claims) == {"RK2"}
 
 
 def test_an_unreadable_registry_is_empty_rather_than_an_error(tmp_path):
@@ -1098,9 +1116,9 @@ def test_extending_does_not_re_date_the_claim(tmp_path):
     config = project(tmp_path, BLOCKS + line("RK2"))
     take(config)
     claiming.scope(config, "RK2", ["src/a.py"])
-    when = claiming._read(claiming.path(tmp_path))["RK2"].when  # noqa: SLF001
+    when = claiming._read(tmp_path)["RK2"].when  # noqa: SLF001
     claiming.scope(config, "RK2", ["src/b.py"], extend=True)
-    assert claiming._read(claiming.path(tmp_path))["RK2"].when == when  # noqa: SLF001
+    assert claiming._read(tmp_path)["RK2"].when == when  # noqa: SLF001
 
 
 def test_the_two_ends_of_the_scope_are_not_passed_together(tmp_path, capsys):
@@ -1154,7 +1172,7 @@ def test_releasing_the_line_drops_the_scope_with_the_claim(tmp_path):
     take(config)
     claiming.scope(config, "RK2", ["src/a.py"])
     set_status(config, "RK2", DESIGNED)
-    assert claiming._read(claiming.path(tmp_path)) == {}  # noqa: SLF001
+    assert claiming._read(tmp_path) == {}  # noqa: SLF001
 
 
 def test_a_scope_travels_with_a_renumbered_line(tmp_path):
@@ -1164,7 +1182,7 @@ def test_a_scope_travels_with_a_renumbered_line(tmp_path):
     hold(config, "RK2")
     claiming.scope(config, "RK2", ["src/a.py"])
     renumber(config, "RK2", "RK20").save()
-    assert claiming._read(claiming.path(tmp_path))["RK20"].paths == ("src/a.py",)  # noqa: SLF001
+    assert claiming._read(tmp_path)["RK20"].paths == ("src/a.py",)  # noqa: SLF001
 
 
 def test_a_path_holding_a_space_survives_the_registry(tmp_path):
@@ -1178,11 +1196,13 @@ def test_a_path_holding_a_space_survives_the_registry(tmp_path):
     )
 
 
-def test_a_row_written_before_scopes_existed_still_parses(tmp_path):
-    # A session upgrading under a claim it is holding keeps it: the paths are a tail, so a
-    # row without one is a claim with no scope and never a row that is skipped.
+def test_a_row_that_declared_no_scope_is_a_claim_and_not_a_skipped_row(tmp_path):
+    # A claim taken before its holder said what the commit owns: `paths` is optional in the
+    # store's grammar (RK330), so its absence is a claim with no scope and never a bad row.
     config = project(tmp_path, BLOCKS + line("RK2", status=IN_PROGRESS))
-    claiming.path(tmp_path).write_text(f"RK2 {time.time():.6f}\n", encoding="utf-8")
+    claiming.path(tmp_path).write_text(
+        f"[claims.RK2]\nwhen = {time.time():.6f}\n", encoding="utf-8"
+    )
     held = claiming.live(config, config.document("roadmap").entries)
     assert [(one.id, one.paths) for one in held] == [("RK2", ())]
 

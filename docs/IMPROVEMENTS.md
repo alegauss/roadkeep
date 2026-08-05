@@ -75,29 +75,6 @@ already written, not authorship.
 
 ## Block A — The model
 
-### §RK330 Three stores, three encodings
-
-Nothing this tool keeps outside the governed documents shares anything with anything
-else. `claiming` writes `<id> <epoch>` with tab-separated paths and parses it by hand,
-skipping any line it cannot read; `attesting` writes JSON; `locking` encodes its whole
-state in a filename, a sha256 of the resolved root. Each was right alone, and the third
-one is the trend: a fourth feature invents a fourth encoding, and no two of them can be
-held to one property test.
-
-What a shared store buys is also what makes it cheap — **it has exactly one writer**.
-`roadkeep.toml` cannot be governed because a human wrote its comments and chose its
-spellings (RK325), but a file only this tool writes has a canonical rendering, so L3's
-parse-render-compare becomes a property test over a renderer instead of a negotiation
-with somebody's formatting. TOML costs that renderer: `tomllib` reads and does not
-write, and the runtime has zero dependencies on purpose. Worth paying once for a store
-several features share; not worth paying for the queue.
-
-Two boundaries keep this from becoming the database L2 refuses. **No fact about a task** — status,
-deps and order live in the documents, which is why the queue went to the roadmap. And
-**transient stays transient**: claim dates and write digests are per-checkout and belong in the
-temp directory beside the lock, so consolidating them buys one grammar and one door, never
-durability. A committed store is a second decision, and the first must not presume it.
-
 ### §RK340 One namespace for two outlines that each number themselves
 
 Under `ref_scheme = "outline"` a heading numbers itself (RK44), and an anchor two prose

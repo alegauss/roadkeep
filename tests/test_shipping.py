@@ -501,7 +501,7 @@ def test_a_closure_releases_the_claim_its_departure_would_have(tmp_path):
         # Read while it is still live, as the departure reads it (RK294).
         assert closure.scope is not None and closure.scope.mine == ("src/a.py",)
         closure.save()
-        assert claiming._read(claiming.path(tmp_path)) == {}  # noqa: SLF001
+        assert claiming._read(tmp_path) == {}  # noqa: SLF001
     finally:
         claiming.path(tmp_path).unlink(missing_ok=True)
 

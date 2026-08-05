@@ -88,9 +88,12 @@ def sidecar(root: Path | str, suffix: str) -> Path:
     working tree. The digest carries the directory's name in front of it so a human looking
     at a temp directory can tell which project the file belongs to.
 
-    Shared with the claim registry (RK119) rather than copied: two transient files keyed by
-    one checkout through two digests would be two answers to "which project is this", and
-    the one that drifts is whichever was written second.
+    Shared with :mod:`roadkeep.storing` (RK330) rather than copied: two transient files keyed
+    by one checkout through two digests would be two answers to "which project is this", and
+    the one that drifts is whichever was written second. This is what the lock has in common
+    with the store and all it has — its own state is the *existence* of a file, which is the
+    one thing both platforms make atomic, and a lock that had to be parsed to be taken would
+    be a lock with the race in it that this module exists to close.
     """
     resolved = Path(root).resolve()
     digest = hashlib.sha256(str(resolved).encode("utf-8")).hexdigest()[:16]

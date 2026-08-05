@@ -52,18 +52,18 @@ belongs. The claim made is only that the bytes were not put there by a verb.
 from __future__ import annotations
 
 import hashlib
-import json
 from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
 
 from roadkeep.config import Config
-from roadkeep.locking import sidecar
 from roadkeep.provenance import invocation
+from roadkeep.storing import Store, path, read, write
 
-#: The sidecar's suffix, beside `.lock` and the claim registry and keyed by the same resolved
-#: root — a third way of spelling "this checkout" is a third answer that can drift (RK117).
-SUFFIX = "writes"
+#: What this module's rows are called inside the shared store (RK330). One file beside the
+#: lock, one grammar, and this is the table — a second encoding for a second sidecar was
+#: what made a fourth feature's fourth encoding the obvious next move.
+TABLE = "writes"
 
 
 @dataclass(frozen=True, slots=True)
@@ -192,8 +192,8 @@ def _state(
 
 
 def record_path(root: Path | str) -> Path:
-    """Where this checkout's digests live — outside it, keyed by its resolved path."""
-    return sidecar(root, SUFFIX)
+    """Where this checkout's digests live — in the shared store, outside the repository."""
+    return path(root)
 
 
 def _digests(config: Config) -> dict[str, str | None]:
@@ -213,23 +213,15 @@ def _digests(config: Config) -> dict[str, str | None]:
 
 
 def _recorded(config: Config) -> dict[str, str | None]:
-    try:
-        data = json.loads(record_path(config.root).read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return {}
-    if not isinstance(data, dict):
-        return {}
-    return {
-        role: value
-        for role, value in data.items()
-        if isinstance(role, str) and (value is None or isinstance(value, str))
-    }
+    """The digests the last verb left, out of the shared store's own table (RK330)."""
+    return dict(read(config.root).writes)
 
 
 def _store(config: Config, digests: dict[str, str | None]) -> None:
-    try:
-        record_path(config.root).write_text(
-            json.dumps(digests, indent=2, sort_keys=True), encoding="utf-8"
-        )
-    except OSError:
-        return
+    """Replace this module's table, and leave the claims beside it exactly as they were.
+
+    Read-modify-write under the checkout's exclusive lock, which is where every writer of
+    the store runs (:func:`roadkeep.cli.dispatch`) — and where this one in particular runs,
+    the record being taken after the handler and before the lock is given up.
+    """
+    write(config.root, Store(claims=read(config.root).claims, writes=digests))

@@ -51,7 +51,6 @@ the one thing about a claim the marker cannot express.
 
 from __future__ import annotations
 
-import os
 import time
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
@@ -61,8 +60,10 @@ from pathlib import Path
 from roadkeep.backlog import Backlog
 from roadkeep.config import Config
 from roadkeep.document import Entry
-from roadkeep.locking import exclusive, sidecar
+from roadkeep.locking import exclusive
 from roadkeep.schema import IN_PROGRESS, Task
+from roadkeep.storing import Claim, Store, read, write
+from roadkeep.storing import path as store_path
 
 
 def window(config: Config) -> float:
@@ -109,12 +110,10 @@ def since(age: float) -> str:
     return f"{minutes}m" if minutes < 60 else f"{minutes // 60}h{minutes % 60:02d}m"
 
 
-@dataclass(frozen=True, slots=True)
-class Dating:
-    """One registry row as it is on disk: when it was taken, and what it says it will touch."""
-
-    when: float
-    paths: tuple[str, ...] = ()
+#: One registry row as it is on disk. Defined in :mod:`roadkeep.storing` and named here,
+#: because the row is the store's to spell (RK330) and the *meaning* of its date is this
+#: module's alone — a claim is a date read against a 🛠 line and a window.
+Dating = Claim
 
 
 @dataclass(frozen=True, slots=True)
@@ -208,7 +207,7 @@ def survey(backlog: Backlog) -> tuple[Dated, ...]:
     makes about a checkout.
     """
     config = backlog.config
-    dated = _read(path(config.root))
+    dated = _read(config.root)
     if not dated:
         return ()
     tasks = {entry.task.id: entry.task for entry in backlog.roadmap.entries}
@@ -289,17 +288,17 @@ def prune(config: Config) -> Pruning:
         rows = survey(Backlog.load(config))
         dropped = tuple(row for row in rows if row.state is State.STALE)
         if dropped:
-            target = path(config.root)
             gone = {row.id for row in dropped}
-            _write(target, {n: r for n, r in _read(target).items() if n not in gone})
+            kept = {n: r for n, r in _read(config.root).items() if n not in gone}
+            _write(config.root, kept)
     return Pruning(
         kept=tuple(row for row in rows if row.state is not State.STALE), dropped=dropped
     )
 
 
 def path(root: Path | str) -> Path:
-    """Where this checkout's claims are dated — beside its lock, and outside it."""
-    return sidecar(root, "claims")
+    """Where this checkout's claims are dated — in the shared store, beside its lock (RK330)."""
+    return store_path(root)
 
 
 def live(config: Config, entries: Iterable[Entry]) -> tuple[Held, ...]:
@@ -309,7 +308,7 @@ def live(config: Config, entries: Iterable[Entry]) -> tuple[Held, ...]:
     id whose marker has moved on is not held — which is what makes every existing marker
     door a release, with nothing to wire and nothing to forget to call.
     """
-    dated = _read(path(config.root))
+    dated = _read(config.root)
     if not dated:
         return ()
     now, held = time.time(), window(config)
@@ -383,15 +382,14 @@ def follow(
     A release drops the row and the paths with it, which is what makes a marker the only thing
     that has to be remembered.
     """
-    target = path(root)
-    dated = _read(target)
+    dated = _read(root)
     started = {entry.task.id for entry in entries if entry.task.status == IN_PROGRESS}
     kept = {name: row for name, row in dated.items() if name in started}
     if marker == IN_PROGRESS:
         was = dated.get(task_id)
         kept[task_id] = Dating(time.time(), was.paths if was is not None else ())
     if kept != dated:
-        _write(target, kept)
+        _write(root, kept)
     if marker == IN_PROGRESS:
         return Followed.CLAIMED
     return Followed.RELEASED if task_id in dated else Followed.NEITHER
@@ -460,14 +458,13 @@ def scope(
         backlog = Backlog.load(config)
         if not any(one.id == task_id for one in live(config, backlog.roadmap.entries)):
             raise NotHeld(task_id)
-        target = path(config.root)
-        dated = _read(target)
+        dated = _read(config.root)
         row = dated[task_id]
         # Read inside the lock, like everything else this decides from: a scope composed from
         # a row read outside it would drop whatever another call added in between.
         wanted = tuple(dict.fromkeys((*row.paths, *named) if extend else named))
         dated[task_id] = Dating(row.when, wanted)
-        _write(target, dated)
+        _write(config.root, dated)
     return wanted
 
 
@@ -623,62 +620,31 @@ def rename(root: Path | str, old: str, new: str) -> bool:
     hand here, and a rename is rare while the next marker write is not — so a row this leaves
     unpruned is cleared by the first `ship` or `status` after it.
     """
-    target = path(root)
-    dated = _read(target)
+    dated = _read(root)
     row = dated.pop(old, None)
     if row is None:
         return False
     dated[new] = row
-    _write(target, dated)
+    _write(root, dated)
     return True
 
 
-def _read(target: Path) -> dict[str, Dating]:
-    """The registry as it is on disk — `<id> <epoch>[\\t<path>]*` a line — empty when unreadable.
+def _read(root: Path | str) -> dict[str, Dating]:
+    """This checkout's claims, out of the shared store — empty where it cannot be read.
 
-    Unreadable is *empty* and never an error: the file is transient, a caller that cannot
-    read it loses the dates and not the backlog, and refusing to answer `pick` because a
-    temp file went missing would make the answer depend on the one thing that is allowed to
-    disappear. A line this cannot parse is skipped for the same reason.
-
-    The paths follow the date behind a **tab** (RK280), which is the one separator a path this
-    tool would ever be handed cannot contain in practice and the space already spent on the
-    date certainly can. A row written before they existed has none and parses unchanged,
-    which is what lets a session upgrade under a claim it is holding.
+    The grammar, the atomic replace and the "unreadable is empty" rule all belong to
+    :mod:`roadkeep.storing` now (RK330); what stays here is the one table this module owns.
     """
-    try:
-        raw = target.read_text(encoding="utf-8")
-    except OSError:
-        return {}
-    dated: dict[str, Dating] = {}
-    for line in raw.splitlines():
-        head, _, tail = line.partition("\t")
-        task_id, _, when = head.partition(" ")
-        try:
-            stamp = float(when)
-        except ValueError:
-            continue
-        dated[task_id] = Dating(stamp, tuple(p for p in tail.split("\t") if p))
-    return dated
+    return dict(read(root).claims)
 
 
-def _write(target: Path, dated: Mapping[str, Dating]) -> None:
-    """Replace the registry in one step, and never fail the command that was answering.
+def _write(root: Path | str, dated: Mapping[str, Dating]) -> None:
+    """Replace the claims table, and leave every other table exactly as it was.
 
-    Written aside and renamed because the *readers* take no lock — `pick` is a query (RK117)
-    — so a reader catching a half-written file would lose the tail of it, which is claims
-    read as expired and lines handed out twice. Sorted, so a human reading the file sees a
-    stable order, and best-effort: an OSError here loses a date, never a task.
+    Read-modify-write, which is safe for the reason it is safe everywhere else here: every
+    writer of the store runs under the checkout's exclusive lock (:func:`roadkeep.cli.dispatch`),
+    so nothing can land between the read and the replace. A claim that dropped the write
+    record on its way past would be the digest sidecar's data lost to the registry's write —
+    the failure a shared file has and two files did not, closed at the one door that writes.
     """
-    body = "".join(
-        f"{task_id} {row.when:.6f}"
-        + "".join(f"\t{one}" for one in row.paths)
-        + "\n"
-        for task_id, row in sorted(dated.items())
-    )
-    staged = target.parent / f"{target.name}.writing"
-    try:
-        staged.write_text(body, encoding="utf-8")
-        os.replace(staged, target)
-    except OSError:
-        pass
+    write(root, Store(claims=dict(dated), writes=read(root).writes))

@@ -26,6 +26,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from roadkeep import storing
 from roadkeep.attesting import State, attest, record_path, survey, unattested
 from roadkeep.cli import EXIT_OK, main
 from roadkeep.config import Config
@@ -167,7 +168,7 @@ def test_an_unreadable_record_is_silence_and_not_a_blocked_turn(tmp_path):
     root = project(tmp_path)
     config = Config.discover(root)
     attest(config)
-    record_path(root).write_text("{not json", encoding="utf-8")
+    record_path(root).write_text("[writes\nroadmap =", encoding="utf-8")
     edit(root, "Because of a reason.", "Because of another reason.")
     assert unattested(config) is None
 
@@ -263,7 +264,5 @@ def test_the_record_lives_outside_the_repository(tmp_path):
     config = Config.discover(root)
     attest(config)
     assert root not in record_path(root).parents
-    assert set(json.loads(record_path(root).read_text(encoding="utf-8"))) == {
-        "roadmap",
-        "changelog",
-    }
+    # And in the store every other sidecar shares (RK330), under this module's own table.
+    assert set(storing.read(root).writes) == {"roadmap", "changelog"}

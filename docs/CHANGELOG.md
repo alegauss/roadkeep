@@ -39,6 +39,7 @@
 - ✅ **RK201** **A length refusal states its surplus in the one unit the author composing the retry cannot count** — A character overrun now names its surplus in words too — `delete 29 characters — about 5 words`, ceiled off the aim's own constant, so the retry is a deletion and not a re-guess.
 - ✅ **RK240** **Where an id actually is gets composed by two modules in the same words** — `Whereabouts` in `backlog` is the one composer of where an id is, so `resume` and both section refusals read one sentence — and `record amend` is offered off the marker, not off a non-empty string.
 - ✅ **RK243** **The one refusal no prose edit fixes now advises deleting words** — The word figure is now the caller's `prose=` switch, so `line.too-long` names the surplus and no edit, and the field refusals a shorter sentence does answer keep the hint.
+- ✅ **RK330** **Each feature needing state outside the documents invents its own file format and its own reader** — Claim dates, declared scopes and write digests share one TOML store beside the lock, so a fourth feature extends a grammar whose round-trip is a property test instead of writing a fourth.
 
 ## Block B — Authoring
 
