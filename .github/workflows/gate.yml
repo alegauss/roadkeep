@@ -2,6 +2,13 @@
 # run the gate on them — with the action this repository ships, not with a copy of its
 # command. If `uses: ./` ever fails while `roadkeep lint` passes locally, the action is
 # broken, which is the one failure a hand-written `run:` block here could not detect.
+#
+# The third job is the one reader this repository does not own. `roadkeep lint` reads the
+# prose and pytest reads the manifests, and both are this project reading its own files —
+# JSON that parses is what RK81 shipped broken, and frontmatter the tests could read is what
+# RK331 shipped broken. `claude plugin validate --strict` is the reader that decides how an
+# installed session loads the payload, and running it once by hand is how three defects in
+# that family were found. This repository *is* the plugin, so a push to main is the release.
 name: gate
 
 on:
@@ -41,3 +48,32 @@ jobs:
       # The round-trip corpus reaches for Shio's and Turing's roadmaps, which are on one
       # machine; those cases skip rather than fail, so CI tests what it has.
       - run: python -m pytest -q
+
+  payload:
+    name: claude plugin validate
+    runs-on: ubuntu-latest
+    # An update landing mid-run would swap the reader under the assertion.
+    env:
+      DISABLE_AUTOUPDATER: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      # pyyaml here and not in `[dev]`: the tool never reads YAML, which is the decision
+      # `tests/test_surfaces.py` states, and this is the one job whose subject is what a
+      # parser makes of the files — so it is where the parser is worth installing.
+      - run: pip install ".[dev]" pyyaml
+      # `stable` and not the default channel: this gates a merge, so a release that regresses
+      # the validator must not be able to redden one before anybody has installed it. No
+      # credential is needed — `plugin validate` reads files and exits, measured against a
+      # virgin `CLAUDE_CONFIG_DIR`, so a fork runs this job with no secret of ours.
+      - name: install the reader that decides how a session loads the payload
+        run: curl -fsSL https://claude.ai/install.sh | bash -s stable
+      - name: put it where the next steps look
+        run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      # A skip is a green, and the one thing that makes the payload test skip is `claude`
+      # missing from PATH. So this step is the assertion that the step below ran at all.
+      - name: the CLI answers, so nothing below can skip
+        run: claude --version
+      - run: python -m pytest -q tests/test_plugin.py

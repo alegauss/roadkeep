@@ -110,4 +110,26 @@ def test_the_surfaces_are_valid_yaml():
     hooks = yaml.safe_load(HOOKS.read_text(encoding="utf-8"))
     assert [hook["id"] for hook in hooks] == ["roadkeep-lint", "roadkeep-lint-fix"]
     workflow = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))
-    assert set(workflow["jobs"]) == {"lint", "tests"}
+    assert set(workflow["jobs"]) == {"lint", "tests", "payload"}
+
+
+def test_the_job_that_may_not_skip_fails_where_its_reader_is_missing():
+    """The payload check skips without the `claude` CLI, and a skip is a green (RK334).
+
+    `test_the_payload_passes_the_loaders_own_validator` is deliberately skippable: an
+    adopting project's CI has no reason to install the Claude CLI, and a check that cannot
+    skip would redden somebody else's build over a tool they do not run. That argument covers
+    every project except this one, where the payload *is* the release — so the job added for
+    it has to fail when the install did not happen, rather than reporting success over a
+    validator that never ran. `claude --version` is that assertion, and nothing else in the
+    job would notice: pytest exits 0 on a skip.
+    """
+    yaml = pytest.importorskip("yaml", reason="pyyaml is not installed")
+    job = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))["jobs"]["payload"]
+    script = "\n".join(step.get("run", "") for step in job["steps"])
+    assert "claude.ai/install.sh" in script
+    assert "claude --version" in script
+    # Installed for this job alone, which is the decision `test_the_surfaces_are_valid_yaml`
+    # states from the other side: the tool never reads YAML, so it is no dev dependency.
+    assert "pyyaml" in script
+    assert "pytest -q tests/test_plugin.py" in script
