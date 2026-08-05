@@ -36,6 +36,9 @@ from roadkeep.provenance import (
     engine,
     invocation,
     persisted,
+    raised_in,
+    witness,
+    witnessed,
 )
 
 HERE = Path(__file__).resolve().parents[1]
@@ -349,3 +352,61 @@ def test_a_copy_under_someone_elses_repository_borrows_no_commit_from_it(tmp_pat
         tmp_path, "from roadkeep.provenance import engine; print(engine().revision)"
     )
     assert printed == UNTRACKED
+
+
+# -- which modules decided a refusal (RK267) ---------------------------------
+
+
+def test_the_modules_that_decided_a_refusal_are_read_off_its_traceback(tmp_path):
+    # The half `stale` cannot supply, on the refusal §RK267 measured. An mtime says a file
+    # moved; this says which files were executing when the refusal was decided, and only the
+    # two together answer whether the drift reaches the verb that refused.
+    named = _refusing(tmp_path)
+    # Every package frame and not only the raiser: `schema.py` owns the limit and `authoring.py`
+    # is the verb it refused, and both decided this. Naming one would put the note back to
+    # guessing — and neither `cli.py` nor `merging.py` is here, which is the whole finding.
+    assert named == ("authoring.py", "schema.py")
+
+
+def test_the_frames_read_outermost_first_as_a_printed_traceback_has_them(tmp_path):
+    # The order is the traceback's own and not a sort, so a reader comparing the note against a
+    # stack trace is reading the same sequence rather than a rearrangement of it.
+    assert _refusing(tmp_path).index("authoring.py") == 0
+
+
+def _refusing(tmp_path: Path) -> tuple[str, ...]:
+    """What a `why.too-long` witnesses — the RK255 case, provoked through the real verb."""
+    from roadkeep.authoring import add
+    from roadkeep.config import Config
+
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\n', encoding="utf-8"
+    )
+    (tmp_path / "ROADMAP.md").write_text("## Block A — The model\n", encoding="utf-8")
+    try:
+        add(Config.discover(tmp_path), block="A", symptom="s", why="w" * 5000)
+    except Exception as error:  # noqa: BLE001 - the type is the verb's, not this test's
+        return raised_in(error)
+    pytest.fail("the schema accepted a why no limit allows")
+
+
+def test_a_frame_that_is_not_a_file_on_disk_is_not_evidence_of_anything():
+    # `exec` and a REPL give frames whose filename is `<string>`. A provenance note is the
+    # last place to start raising, which is `stale`'s own rule one function over.
+    try:
+        exec(compile("raise ValueError('x')", "<string>", "exec"), {})
+    except ValueError as error:
+        # This test's own frame is under `tests/`, not under the package, so nothing is named.
+        assert raised_in(error) == ()
+
+
+def test_nothing_witnessed_is_not_the_same_as_nothing_decided_here():
+    # The distinction the reporting surface turns on: `None` means relevance is unknown and the
+    # full list is what there is to say, `()` means the refusal was decided outside this package.
+    witness(None)
+    assert witnessed() is None
+    try:
+        raise ValueError("raised by this test, which is not a module of this package")
+    except ValueError as error:
+        witness(error)
+    assert witnessed() == ()

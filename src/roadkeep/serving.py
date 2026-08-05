@@ -72,6 +72,7 @@ from typing import Any, TextIO
 
 from roadkeep import __version__
 from roadkeep.config import PROSE_ROLES, Config, ConfigError, Scope
+from roadkeep import provenance
 from roadkeep.provenance import engine
 # `words` from where it is *defined* and not from `budgeting`, which re-exports it (RK260):
 # `config` already loads `schema`, and reaching the name through `budgeting` cost the guard
@@ -899,6 +900,9 @@ def call(tool: Tool, arguments: Mapping[str, Any], directory: str = ".") -> Answ
     # Discovered before the argv is built, because which arguments this tool takes is read
     # from it (RK111) — and discovered once, so the call cannot be checked against one config
     # and dispatched against another.
+    # Before anything that could refuse, so the note can never be composed from an earlier call's
+    # refusal (RK267): the slot is one call's out-parameter and this is where the call begins.
+    provenance.witness(None)
     try:
         config = Config.discover(directory)
     except ConfigError as error:
@@ -907,6 +911,7 @@ def call(tool: Tool, arguments: Mapping[str, Any], directory: str = ".") -> Answ
         # build read the config is the fact that turns the puzzle into an instruction.
         # The one refusal with no root to name, the config that would have stated it being the
         # thing that failed (RK248). The launch path is what is left, and it is the safe half.
+        provenance.witness(error)
         return _answered(
             f"roadkeep: {error} — read by {engine()}", Path(directory), is_error=True
         )
@@ -919,6 +924,9 @@ def call(tool: Tool, arguments: Mapping[str, Any], directory: str = ".") -> Answ
     try:
         line = argv(tool, arguments, config, parsers)
     except ToolError as error:
+        # The three refusals this function raises or catches itself still have the exception, so
+        # they witness here rather than leave the note with nothing to intersect (RK267).
+        provenance.witness(error)
         return _answered(str(error), config.root, is_error=True)
     out, err = io.StringIO(), io.StringIO()
     try:
@@ -931,6 +939,7 @@ def call(tool: Tool, arguments: Mapping[str, Any], directory: str = ".") -> Answ
     except SystemExit as exit_:  # argparse refused the argv: a missing required argument
         code = exit_.code if isinstance(exit_.code, int) else 2
     except LockBusy as busy:
+        provenance.witness(busy)
         return _answered(f"roadkeep: {busy}", config.root, is_error=True)
     reported = "\n".join(part for part in (err.getvalue().strip(), out.getvalue().strip()) if part)
     return _answered(reported or f"{tool.name}: exit {code}", config.root, is_error=bool(code))
@@ -999,19 +1008,62 @@ def _answered(text: str, root: Path, *, is_error: bool) -> Answer:
     RK246 measured the bump never reaching. Every caller past discovery passes `config.root`; the
     `ConfigError` above it has no config to read one from and passes the launch path, which is
     the safe direction because that branch ends in restarting the session either way.
+
+    **And it may not hand the relevance question back** (RK267). The note used to list every
+    module :attr:`~roadkeep.provenance.Engine.stale` found and close with "re-run only where the
+    changed files are the ones that would decide this", which is the reader being asked to know
+    the call graph of a refusal they did not raise. Measured while shipping RK255: a
+    `why.too-long` decided by `schema.py`, unchanged, arrived naming `cli.py`, `merging.py` and
+    `provenance.py` — 450 characters of correct and irrelevant text on a refusal that had already
+    said everything actionable in one line, fired on every error in every session that edits this
+    package.
+
+    Which modules decided it is knowable, so it is answered rather than delegated:
+    :func:`~roadkeep.provenance.raised_in` reads them off the traceback and
+    :func:`~roadkeep.provenance.witness` carries them across the exit code, and the note turns on
+    the **intersection**. Disjoint sets say nothing at all — that is the RK255 case, and a note
+    that fires there is the one nobody reads by the third time. An overlap names the module both
+    sets hold and keeps the rest behind it, because a helper whose frame has already returned is
+    the miss §RK267 accepts, and dropping the others would hide it.
+
+    A refusal this process never witnessed is neither case: nothing decided it *here* — argparse
+    refusing an argv, a handler exiting non-zero without raising — and the honest answer is then
+    the inventory RK155 shipped, because suppressing on no evidence is the opposite mistake.
     """
     if not is_error:
         return Answer(text, is_error=False)
     changed = engine().stale
     if not changed:
         return Answer(text, is_error=True)
+    decided = provenance.witnessed()
+    if decided is None:
+        # Relevance is genuinely unknown, so the full list is what there is to say.
+        return Answer(f"{text}\n\n{_inventory(changed, root)}", is_error=True)
+    both = tuple(one for one in changed if one in decided)
+    if not both:
+        return Answer(text, is_error=True)
+    rest = tuple(one for one in changed if one not in decided)
+    behind = f" ({', '.join(rest)} also changed and did not.)" if rest else ""
     return Answer(
         f"{text}\n\n"
+        f"Separately, about this process and not about the refusal above: "
+        f"{', '.join(both)} decided this refusal and changed on disk after this server imported "
+        f"roadkeep, so the answer above is what the code it did import said — read it first, "
+        f"then re-run.{behind} {_remedy(root)}",
+        is_error=True,
+    )
+
+
+def _inventory(changed: Sequence[str], root: Path) -> str:
+    """The note on a refusal nothing witnessed, which is RK155's and claims no relevance (RK267).
+
+    It cannot ask the reader to establish one either, so it does not close with the sentence that
+    did: what is left is the fact and the remedy, and the refusal above stands as the answer.
+    """
+    return (
         f"Separately, about this process and not about the refusal above: this server "
         f"imported roadkeep before {', '.join(changed)} changed on disk, and the refusal is "
-        f"what the code it did import answered — read it first. {_remedy(root)} Re-run "
-        f"only where the changed files are the ones that would decide this.",
-        is_error=True,
+        f"what the code it did import answered — read it first. {_remedy(root)}"
     )
 
 

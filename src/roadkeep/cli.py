@@ -44,7 +44,7 @@ import traceback
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 
-from roadkeep import attesting, claiming
+from roadkeep import attesting, claiming, provenance
 from roadkeep.adopting import Estimate, adopt, init
 from roadkeep.attesting import attest
 from roadkeep.authoring import StatusChange, add, amend, restate, set_status
@@ -2201,7 +2201,15 @@ def _print_event(event: dict[str, object], indent: str = "") -> None:
 
 
 def _refused(error: Exception) -> int:
-    """One error path for every command that writes. The exit code is the contract."""
+    """One error path for every command that writes. The exit code is the contract.
+
+    And the one place the exception still exists, so it is where the modules that decided it are
+    recorded (RK267): below here there is a printed line and an exit code, and a surface reading
+    those cannot tell a `why.too-long` from `schema.py` apart from a `ref.missing` from
+    `sections.py`. Free on this path — a refusal is already the slow branch — and read by nothing
+    a terminal reaches.
+    """
+    provenance.witness(error)
     if isinstance(error, SchemaError):
         # Every violation at once, each naming its limit: a refusal that reports one
         # problem per run turns a single fix into a conversation.

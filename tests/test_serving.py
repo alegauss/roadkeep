@@ -1057,7 +1057,7 @@ def test_a_refusal_says_when_the_code_answering_it_moved(tmp_path, monkeypatch):
     answered = called(project(tmp_path), "status", id="RK99", marker="🛠")
     assert answered["isError"] is True
     refused = text_of(answered)
-    assert "imported roadkeep before config.py changed on disk" in refused
+    assert f"{DECIDES} decided this refusal and changed on disk" in refused
     assert "restarting the session is the only remedy" in refused
 
 
@@ -1115,6 +1115,69 @@ def test_the_drift_is_a_fact_beside_the_refusal_and_not_a_doubt_about_it(tmp_pat
     assert "read it first" in refused
 
 
+def test_a_module_that_could_not_have_decided_it_earns_no_note_at_all(tmp_path, monkeypatch):
+    # RK267, the measured case: a `why.too-long` decided by `schema.py`, unchanged, arrived
+    # naming `cli.py`, `merging.py` and `provenance.py` — 450 characters of correct and
+    # irrelevant text, on every error in every session that edits this package.
+    monkeypatch.setattr(
+        "roadkeep.serving.engine",
+        lambda: replace(engine(), home=_moved(tmp_path, "merging.py", "linting.py")),
+    )
+    answered = called(project(tmp_path), "status", id="RK99", marker="🛠")
+    # Still a refusal, and still the whole answer: nothing was suppressed except the note.
+    assert answered["isError"] is True
+    refused = text_of(answered)
+    assert "RK99" in refused
+    assert "Separately" not in refused and "changed on disk" not in refused
+
+
+def test_the_modules_that_moved_and_did_not_decide_stay_behind_the_one_that_did(tmp_path, monkeypatch):
+    # The miss §RK267 accepts is a helper whose frame has already returned, so the others are
+    # kept rather than dropped — behind the module that is named, never instead of it.
+    monkeypatch.setattr(
+        "roadkeep.serving.engine",
+        lambda: replace(engine(), home=_moved(tmp_path, DECIDES, "merging.py")),
+    )
+    refused = text_of(called(project(tmp_path), "status", id="RK99", marker="🛠"))
+    assert f"{DECIDES} decided this refusal" in refused
+    assert "merging.py also changed and did not." in refused
+    # And the judgement leads: the relevance question is answered here, not handed back.
+    assert refused.index(DECIDES) < refused.index("merging.py")
+    assert "re-run only where the changed files" not in refused
+
+
+def test_a_refusal_this_process_did_not_witness_still_gets_the_full_list(tmp_path, monkeypatch):
+    # Suppressing on no evidence is the opposite mistake. argparse refusing an argv exits without
+    # raising through this package, so nothing decided it *here* and relevance is unknown.
+    monkeypatch.setattr(
+        "roadkeep.serving.engine",
+        lambda: replace(engine(), home=_moved(tmp_path, "merging.py")),
+    )
+    # A tool whose required argument is missing: `SystemExit` from the parser, never `_refused`.
+    answered = called(project(tmp_path), "status", id="RK1")
+    assert answered["isError"] is True
+    refused = text_of(answered)
+    assert "imported roadkeep before merging.py changed on disk" in refused
+    # What it may not do is ask the reader to establish the relevance it could not.
+    assert "re-run only where the changed files" not in refused
+
+
+def test_the_note_is_never_composed_from_an_earlier_call_refusal(tmp_path, monkeypatch):
+    # The slot is one call's out-parameter, so it is cleared where the call begins: a refusal
+    # witnessed by the call before would otherwise name a module this one never executed.
+    monkeypatch.setattr(
+        "roadkeep.serving.engine",
+        lambda: replace(engine(), home=_moved(tmp_path, DECIDES)),
+    )
+    where = project(tmp_path)
+    assert called(where, "status", id="RK99", marker="🛠")["isError"] is True
+    # Now a refusal the parser raises, which witnesses nothing: the note must fall back to the
+    # inventory rather than reuse the module the previous call recorded.
+    refused = text_of(called(where, "status", id="RK1"))
+    assert f"imported roadkeep before {DECIDES} changed on disk" in refused
+    assert "decided this refusal" not in refused
+
+
 def test_an_answer_that_worked_explains_nothing(tmp_path, monkeypatch):
     # A note on every answer is a note that stops being read, and a call that succeeded has
     # nothing to explain about the build that succeeded at it.
@@ -1127,12 +1190,24 @@ def test_an_answer_that_worked_explains_nothing(tmp_path, monkeypatch):
     assert "changed on disk" not in text_of(answered)
 
 
-def _moved(tmp_path: Path) -> Path:
-    """A package directory whose `config.py` is newer than this process's import of one."""
+#: The module that decides the refusal these tests provoke — `status` on an id no line carries,
+#: which `authoring.py` raises out of. Named because the note now fires on the intersection of
+#: what moved and what decided (RK267), so a fabricated engine has to move a module that did.
+DECIDES = "authoring.py"
+
+
+def _moved(tmp_path: Path, *args: str) -> Path:
+    """A package directory whose named modules are newer than this process's import of them.
+
+    Defaults to the module that decides the refusal under test, because a `_moved` naming an
+    uninvolved file is the disjoint case and says nothing at all (RK267) — which is a thing to
+    assert deliberately, never the accident of a helper's default.
+    """
     home = tmp_path / "engine" / "roadkeep"
     home.mkdir(parents=True, exist_ok=True)
-    (home / "config.py").write_text("x = 1\n", encoding="utf-8")
-    os.utime(home / "config.py", (_LOADED_AT + 300, _LOADED_AT + 300))
+    for name in args or (DECIDES,):
+        (home / name).write_text("x = 1\n", encoding="utf-8")
+        os.utime(home / name, (_LOADED_AT + 300, _LOADED_AT + 300))
     return home
 
 

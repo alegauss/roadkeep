@@ -62,6 +62,18 @@ _LOADED_AT = time.time()
 #: and a server that called itself stale on every start would be a warning nobody reads.
 _GRACE = 1.0
 
+#: The directory the modules that are **executing** were imported from. A fact about this
+#: process, in the same class as :data:`_LOADED_AT` and deliberately not :attr:`Engine.home`:
+#: which files ran is not a field a caller can describe, and the one surface that fabricates an
+#: engine to test the note would otherwise be fabricating the traceback too (RK267).
+_HOME = Path(__file__).resolve().parent
+
+#: This package's modules on the traceback of the last refusal witnessed in this process, or
+#: `None` for *nothing has been witnessed* (RK267) — which is not the same as the empty tuple,
+#: *a refusal decided outside this package*. A surface that cannot tell those apart would
+#: suppress a note on a refusal it never learned the origin of.
+_WITNESSED: tuple[str, ...] | None = None
+
 
 @dataclass(frozen=True, slots=True)
 class Engine:
@@ -130,6 +142,72 @@ class Engine:
 
     def __str__(self) -> str:
         return f"roadkeep {self.version} ({self.revision}, {self.home})"
+
+
+def raised_in(error: BaseException) -> tuple[str, ...]:
+    """This package's modules on a refusal's traceback, outermost frame first (RK267).
+
+    The half of the staleness note that :attr:`Engine.stale` cannot supply. An mtime says a file
+    moved; this says which files were *executing* when the refusal was decided, and only the two
+    together answer the question a reader actually has — whether the drift reaches the verb that
+    refused. Measured on RK255: a `why.too-long` decided by `schema.py`, unchanged, arrived
+    naming `cli.py`, `merging.py` and `provenance.py`, three modules that could not have decided
+    it, and closing with the reader being asked to know the call graph of a refusal they did not
+    raise.
+
+    **Every** package frame and not only the deepest, because a refusal is usually raised one or
+    two calls below the module that owns the rule — `Schema.validate` raising out of
+    `authoring.add` is two modules that both decided it, and naming only the raiser would put the
+    note back to guessing. What this still cannot see is a helper whose frame has already
+    returned; §RK267 states that as the miss it accepts, and it is why the changed modules this
+    does not name are kept *behind* the ones it does rather than dropped.
+
+    Reads the traceback and nothing else — no import machinery, no `sys.modules`: the frames carry
+    filenames, and a file directly under :data:`_HOME` is one of these modules by the same
+    directory relation :attr:`Engine.stale` globs. Names and not paths, because that is what
+    `stale` answers and the two are compared. Order is the traceback's own, so the outermost
+    package frame reads first, as a printed traceback has it.
+    """
+    seen: list[str] = []
+    frame = error.__traceback__
+    while frame is not None:
+        where = Path(frame.tb_frame.f_code.co_filename)
+        # Not resolved: a frame filename may be `<string>` or a path this filesystem will not
+        # place, and a provenance note is the last place to start raising (`stale`'s own rule).
+        if where.parent.name == _HOME.name and where.name not in seen:
+            try:
+                current = where.resolve().parent == _HOME
+            except OSError:
+                current = False
+            if current:
+                seen.append(where.name)
+        frame = frame.tb_next
+    return tuple(seen)
+
+
+def witness(error: BaseException | None) -> None:
+    """Record which modules decided a refusal, for the surface that will report it (RK267).
+
+    The seam this needs and had not got. A refusal reaches the MCP server as **text**: the CLI's
+    one error path prints it and returns an exit code, so by the time :mod:`roadkeep.serving` sees
+    `exit 1` the exception is gone and with it the only evidence of what decided it. Passing it
+    through would mean an error channel beside the exit code, which is the contract every other
+    caller reads.
+
+    So it is stated here rather than threaded: one slot, written by the path that consumes the
+    exception and read by the path that composes the note. Safe for exactly the reason it looks
+    unsafe — a write is serialised by RK117's lock and the server answers one message at a time,
+    and the reader clears it (`witness(None)`) *before* the call it is about, so a note can never
+    be attributed to an earlier refusal. Nothing else may read it: it is not a public fact about
+    the process, it is one call's out-parameter.
+    """
+    global _WITNESSED
+    _WITNESSED = None if error is None else raised_in(error)
+
+
+def witnessed() -> tuple[str, ...] | None:
+    """What :func:`witness` last recorded — `None` when nothing was, which is not `()` (RK267)."""
+    return _WITNESSED
 
 
 #: The console script `pyproject.toml` declares, which is what a message may name only where a

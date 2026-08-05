@@ -121,12 +121,12 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 1 | 47 | 0 |
 | D — The gate | 0 | 57 | 0 |
 | E — Adoption | 1 | 50 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 4 | 46 | 1 |
-| **Total** | 7 | 297 | 3 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 3 | 47 | 1 |
+| **Total** | 6 | 298 | 3 |
 
 **Next ready:**
 
-- 📋 **RK267** (deps: —) **A staleness note lists every changed module and hands relevance back** — The server appends `engine().stale` to any refusal, so one `schema.py` decided arrives naming three modules that did not, and the reader re-runs on a guess about which mattered. → §RK267
+- 📋 **RK275** (deps: —) **No MCP tool asks whether git would run this driver** — `merge --check` is a pure query the server does not expose, so the agent the plugin exists for reaches it only by shelling out — the read L5 says a command should replace. → §RK275
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -151,30 +151,6 @@ one the majority was standing in for.
 
 ## Block F — The plugin
 
-### §RK267 A note that knows more than it says
-
-RK155 made the MCP server say when its own modules moved after it imported them, because
-a config key added in one commit made every write refuse `unknown key` while the CLI
-accepted it. The note works. What it does with the relevance question is hand it back:
-it lists every module `Engine.stale` found and closes with "re-run only where the
-changed files are the ones that would decide this", which is the reader being asked to
-know the call graph of a refusal they did not raise.
-
-Measured while shipping RK255: a `why.too-long` refusal — decided by `schema.py`,
-unchanged — arrived naming `cli.py`, `merging.py` and `provenance.py`, three modules
-that could not have decided it. The note was 450 characters of correct and irrelevant
-text on a refusal that had already said everything actionable in one line, and it fires
-on every error in every session that edits this package, which is every session that
-develops it.
-
-The module that raised the refusal is knowable: the exception has a traceback, and the
-frames above the server are this package's. Intersecting that with `Engine.stale` turns
-the note from an inventory into a judgement — say nothing when the sets are disjoint,
-and say which module when they are not. The risk is a refusal raised in one module
-because a helper in another changed, which the intersection misses; that argues for
-narrowing the sentence rather than suppressing it, and for keeping the full list behind
-the one module that is named.
-
 ### §RK275 A check the agent it was built for cannot call
 
 L5 is that every question is a command, so answering one costs no context. `merge
