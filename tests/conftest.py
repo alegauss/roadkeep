@@ -112,7 +112,10 @@ def _head() -> str | None:
         finished = subprocess.run(
             ["git", "-C", str(HERE), "rev-parse", "HEAD"],
             capture_output=True,
-            text=True,
+            # Named rather than left to the locale, for the reason `test_plugin.py`'s validator
+            # measured: `text=True` is cp1252 here. A SHA is ASCII either way, so this is the
+            # shape being made consistent and not a failure being fixed.
+            encoding="utf-8",
             check=False,
         )
     except OSError:

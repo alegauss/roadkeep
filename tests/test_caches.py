@@ -146,7 +146,11 @@ def nested(tmp_path: Path, source: str) -> subprocess.CompletedProcess:
         [sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", str(tmp_path)],
         cwd=tmp_path,
         capture_output=True,
-        text=True,
+        # Not the locale codec: a nested failure prints the tool's own output, which is UTF-8
+        # by `_force_utf8`, into a decode that is cp1252 here — the defect `test_plugin.py`'s
+        # validator run measured. Latent while the inner assertions stay ASCII.
+        encoding="utf-8",
+        errors="replace",
         env={**os.environ, "PYTHONPATH": str(PACKAGE.parent)},
     )
 

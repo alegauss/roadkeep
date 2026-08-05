@@ -520,7 +520,16 @@ def test_the_payload_passes_the_loaders_own_validator(tmp_path):
         finished = subprocess.run(
             [claude, "plugin", "validate", "--strict", str(tree)],
             capture_output=True,
-            text=True,
+            # `text=True` decodes with the *locale* codec, which on the machine that publishes
+            # this plugin is cp1252 — and the validator answers in UTF-8. The clean run is
+            # ASCII and passed; the control run below reports `✘` and `❯`, whose UTF-8 carries
+            # `0x9d`, which cp1252 has no character for. So the reader thread raised
+            # `UnicodeDecodeError` and the check RK334 added a CI job to stop skipping could
+            # not run at all on Windows. `errors="replace"` because this string is a report
+            # asserted on and printed: a codec must never be what fails an assertion about
+            # the payload. Same argument as `_force_utf8` in `cli.py`, one process out.
+            encoding="utf-8",
+            errors="replace",
             check=False,
         )
         return finished.returncode, finished.stdout + finished.stderr
