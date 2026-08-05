@@ -214,3 +214,43 @@ taken at collection, or whether a count over a file the backlog erodes is the wr
 assertion whoever is writing it — RK305 already names that ratio as fragile.
 
 ## Block F — The plugin
+
+### §RK318 The verb without the flag that makes it one
+
+RK313 gave the note the one remedy available in-session: the same verb through the CLI,
+which imports the changed files. It spells `tool.command`, and RK150's whole mechanism
+is that a tool may *be* a flag on a command — so the command alone is a different act
+wherever `always` is what names it.
+
+Measured on the three tools that have one. `claim` is `brief --claim`, and the note
+advises `brief`: that succeeds, prints a briefing, and takes no line — the write the
+caller asked for is silently not done, which is worse than an error. `merge_check` is
+`merge --check`, and the note advises `merge`, which exits 2 on its own usage string.
+`scope` is the real `claim` command and is the only one right by accident, having no
+always flag.
+
+The flags are already resolvable the way `argv` resolves them, through the parser and by
+dest, so a rename cannot leave the sentence naming something gone. What needs deciding
+is whether the note renders the whole argv it would have run — which means quoting a
+`--why` sentence, the second grammar §RK313 declined — or the verb plus its always flags
+and nothing else.
+
+### §RK319 The flag every call carries
+
+`argv` ends every tool's command line with `--json` and never exposes it: a structured
+answer is the difference between one an agent can audit and one it re-reads the file to
+check (L5). RK317 then made `merge` refuse that flag on the two branches that cannot
+answer it — the driver, whose answer is an exit code and the bytes in `%A`, and
+`--register`, whose report is one rendering for two surfaces (RK276).
+
+Both decisions are right and together they are a constraint nobody wrote down: a `Tool`
+over `merge` is servable only while its `always` carries `check`, because any other argv
+reaches the refusal on a flag the caller never passed. Today exactly one tool is over
+that command and it does carry it, so the coupling holds by coincidence rather than by
+anything that would fail.
+
+The generalisation is what makes it worth a line: any command that grows a branch
+refusing `--json` becomes unservable except through a tool that avoids that branch, and
+the surface would report it as a refusal about the caller's own arguments. RK316's
+answer applies — the way a declaration can stop matching is a test failure, not a schema
+quietly refusing a legal call.

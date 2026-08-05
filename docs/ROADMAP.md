@@ -41,6 +41,9 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
+- 📋 **RK318** (deps: —) **The command the staleness note tells the reader to run is not the act the tool was called for** — It names Tool.command and drops the always flags that make the tool that act, so a claim refusal advises brief, which reads and takes no line. → §RK318
+- 📋 **RK319** (deps: —) **A branch that refuses --json cannot be served at all, and nothing states the coupling** — argv appends --json to every call, so RK317's refusal makes a tool over merge servable only while it always-passes --check, and no test holds that. → §RK319
+
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:
