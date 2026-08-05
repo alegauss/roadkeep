@@ -77,6 +77,26 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK309 The paths that are not a guess
+
+RK280's rule is that a scope is what the holder **said**, verbatim: this never asks the
+disk whether a path exists and never derives one from the task's prose, because a scope
+inferred from a sentence would be RK55's guessing put in charge of what a commit
+contains. That rule is right and this does not touch it.
+
+It also does not reach the files this tool wrote itself. Measured over Block B here:
+every one of six scopes named the roadmap, the changelog, the improvements file and the
+README, four of ten paths on the longest — and none of the four is a judgement the
+author made. They are the files `add`, `section add` and `ship` edited under this id,
+and RK200's write record already holds exactly that: which governed file which verb
+wrote, attested rather than inferred.
+
+So the question this asks is narrow. Not *what did the author touch* — that is the part
+that must stay declared. Whether the answer a departure prints may include what the
+tool's own record says it wrote for this task, which is a fact it holds rather than one
+it would be reading out of prose. What needs deciding is whether that is the scope or a
+second list beside it, and `theirs` and `loose` are the precedent for the second.
+
 ## Block C — Query
 
 ### §RK303 First match, at the one door that had not learned it
@@ -197,3 +217,24 @@ whatever is added here is checked at dispatch too.
 Worth deciding whether `--role` on `anchors` joins them. It narrows a listing rather
 than choosing a write target, and RK297 made it the one flag that does not change the
 number an author acts on.
+
+### §RK308 One name, two acts, and the one an agent cannot reach
+
+RK150's own sentence is the finding: *a flag only the CLI can reach is a flag the agent
+this ships for cannot pass.* It was written about `--designed`, and it applies unchanged
+to the whole of RK280.
+
+The MCP surface has a `claim` tool, which is why this stayed invisible. That tool is
+`brief --claim` under RK150's `named=` mechanism — it *takes* a line. The command that
+says which paths a commit owns is a different verb with the same word on it, and it is
+exposed nowhere: an agent driving this over the protocol declares no scope, so `ship`
+reports every changed path as loose and the analysis RK280 exists to make lands back
+where L1 says advice does not hold.
+
+Three things need deciding and only the third is open. The **name** is what `named=`
+already solves, and the collision is the argument for using it rather than against
+exposing this. The **hint** is `writes_when`, which now names two arguments (RK307) and
+`writes_of` already reads: a call with neither is a read and the tool schema says so.
+What is left is whether the *read* half travels too — `theirs` and `loose` are derived
+from `git status` in the answering process's checkout, which over a remote transport is
+a tree the caller may not be in.
