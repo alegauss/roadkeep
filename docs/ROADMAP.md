@@ -52,6 +52,8 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
+- 📋 **RK334** (deps: —) **The payload validator skips wherever the Claude CLI is absent, which is every CI run that gates a release** — It holds on the machine that publishes and nowhere the workflow runs, so a surface another session breaks reaches the marketplace under a green tick. → §RK334
+
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:

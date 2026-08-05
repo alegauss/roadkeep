@@ -424,3 +424,25 @@ taken at collection, or whether a count over a file the backlog erodes is the wr
 assertion whoever is writing it — RK305 already names that ratio as fragile.
 
 ## Block F — The plugin
+
+### §RK334 The check that runs where the author already looked
+
+RK332 chose a skipping test on purpose. `lint` takes no dependencies by law, and an
+adopting project's CI has no reason to install the Claude CLI, so a check that cannot
+skip is a check that turns somebody else's green build red for a tool they do not run.
+
+That argument covers every project except this one. Here the payload *is* the release:
+`marketplace.json` points at this tree, a `/plugin install` clones it, and the surfaces
+are what the install loads. So the one workflow that should not skip is the one place
+the test currently always does — GitHub Actions has no `claude` on PATH, and the
+assertion that found three defects in this family reports nothing there.
+
+What has to be established first is whether the command runs unauthenticated. Every
+measurement so far was made on a logged-in machine; if `plugin validate` needs a
+session, a CI step needs a secret, and a gate that needs a credential is one a fork
+cannot run at all. That is a fact to read, not a design to choose.
+
+The other route is worse and worth naming so it is not proposed again: reimplementing
+the checks inside `lint`. Frontmatter that parses and a surface the loader accepts are
+exactly what this repository already had two readers for, and RK331 is what the second
+reader costs. One reader, run in more places, is the shape of the answer.
