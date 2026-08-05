@@ -282,3 +282,66 @@ def test_a_drifted_file_exits_one_because_the_gate_says_no(tmp_path, capsys):
     project(tmp_path, roadmap=BACKLOG.replace("→ §RK2", "→ §4.2"))
     assert main(["-C", str(tmp_path), "status", "RK1", "🛠"]) == EXIT_GATE
     assert "will not be rewritten" in capsys.readouterr().err
+
+
+# -- the verb whose name reads as the report (RK339) --------------------------
+
+
+def refused(tmp_path: Path, *argv: str) -> None:
+    """Run a call argparse itself rejects, and assert the exit code (RK339).
+
+    `main` returns a code for the refusals this tool composes; a parser error raises
+    `SystemExit` before any handler is reached, which is exactly the path under test.
+    """
+    with pytest.raises(SystemExit) as caught:
+        main(["-C", str(tmp_path), *argv])
+    assert caught.value.code == EXIT_USAGE
+
+
+def test_status_with_no_arguments_says_it_writes_and_names_the_report(tmp_path, capsys):
+    # `git status`, `docker status`, `systemctl status`: every other tool spends this name on
+    # a read-only summary, so the verb typed wanting the backlog's state is the one that
+    # takes arguments — and what came back was argparse naming neither fact.
+    project(tmp_path)
+    refused(tmp_path, "status")
+
+    err = capsys.readouterr().err
+    assert "status writes a marker" in err
+    assert "`stats`" in err and "one character apart" in err
+    # Nothing was written and nothing was at risk: the required positionals are what make
+    # the mistake fail safe, and that is not what changed.
+    assert (tmp_path / ROADMAP).read_text(encoding="utf-8") == BACKLOG
+
+
+def test_the_same_refusal_answers_a_half_typed_call(tmp_path, capsys):
+    # An id and no marker is the same missing-argument error, and a caller who reached for
+    # the report and then guessed is exactly who needs the sentence.
+    project(tmp_path)
+    refused(tmp_path, "status", "RK1")
+    assert "`stats`" in capsys.readouterr().err
+
+
+def test_the_second_near_twin_answers_the_same_way(tmp_path, capsys):
+    # The read RK339 asked for, and there is exactly one other pair in forty-one verbs that
+    # differs by one edit *and* differs in whether it needs a positional.
+    project(tmp_path)
+    refused(tmp_path, "claim")
+
+    err = capsys.readouterr().err
+    assert "claim reads one line's scope back" in err and "`claims`" in err
+
+
+def test_a_verb_with_no_twin_still_gets_argparses_own_answer(tmp_path, capsys):
+    # One message per pair that has one, and never a second parser behaviour to reason about:
+    # a missing argument on a verb nothing collides with reads exactly as it always did.
+    project(tmp_path)
+    refused(tmp_path, "show")
+    assert "the following arguments are required" in capsys.readouterr().err
+
+
+def test_an_unknown_flag_is_not_a_missing_argument(tmp_path, capsys):
+    # Narrow on purpose: the sentence answers the caller who gave too little, and a typo in a
+    # flag name is a different mistake that the twin's name does not explain.
+    project(tmp_path)
+    refused(tmp_path, "status", "RK1", "🛠", "--nope")
+    assert "unrecognized arguments" in capsys.readouterr().err

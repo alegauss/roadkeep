@@ -77,31 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK339 status writes, stats reports, and the names are the wrong way round
-
-`status` writes one task's marker. `stats` prints the backlog's numbers. They differ by
-one character, and of the two it is the mutator that carries the name every other tool
-spends on a read-only summary — `git status`, `docker status`, `systemctl status`.
-
-Measured twice in one session in an adopting project: `roadkeep status` typed wanting
-the backlog's state, answered with `error: the following arguments are required: id,
-marker`. Nothing was written and nothing was at risk — the required positionals are what
-makes it fail safe, and `stats` needs none, so the mistake the other way is a harmless
-report. The cost is the confusion and the round trip, which recurs for as long as the
-names do.
-
-A rename is the wrong fix, worth saying because it is the first idea. Other projects
-have adopted this tool, `status` is in their skills and their hooks, and breaking a verb
-to improve a name spends their turn to save this one. The fix is the refusal, which is
-already the only thing a caller sees when they get this wrong: `status` with no
-arguments should say that it *writes* a marker and that `stats` is the report, instead
-of printing argparse's usage. One message, no schema change, landing where the mistake
-is made.
-
-Worth pairing with a read of whether any other verb in a list of thirty-eight has the
-same problem — the list is long enough that this is unlikely to be its only
-near-collision.
-
 ### §RK342 RK342
 
 `claim <id>` is the read-back: it names the declared scope, prints the `git add --`

@@ -44,6 +44,7 @@ import tomllib
 import traceback
 from collections.abc import Mapping, Sequence
 from pathlib import Path
+from typing import NoReturn
 
 from roadkeep import attesting, claiming, provenance
 from roadkeep.adopting import Estimate, adopt, init
@@ -177,6 +178,38 @@ class _Version(argparse.Action):
         parser.exit(EXIT_OK)
 
 
+class _Verb(argparse.ArgumentParser):
+    """A subcommand whose missing-argument refusal can name its near-twin (RK339).
+
+    Two pairs in a list of forty-one differ by one edit *and* differ in whether they need a
+    positional: `status <id> <marker>` writes and `stats` reports, `claim <id>` writes and
+    `claims` reports. In both, the mutator is the one carrying the name every other tool
+    spends on a read-only summary — `git status`, `systemctl status` — so the verb typed
+    wanting a report is the verb that takes arguments, and what comes back is `error: the
+    following arguments are required`.
+
+    Nothing is written and nothing is at risk: the required positionals are what make it fail
+    safe, and the twin needs none, so the mistake the other way is a harmless report. The cost
+    is the confusion and the round trip, and it recurs for as long as the names do.
+
+    **A rename is the wrong fix**, worth saying because it is the first idea. Other projects
+    have adopted this tool, these verbs are in their skills and their hooks, and breaking one
+    to improve a name spends their turn to save this one. So the fix is the refusal, which is
+    already the only thing a caller sees when they get this wrong — one message, no schema
+    change, landing exactly where the mistake is made.
+
+    Keyed on a `twin` default rather than a table here, for :class:`~roadkeep.serving.Prose`'s
+    reason (RK171): it is a claim about one command, so its own parser is where it belongs and
+    a third pair declares itself instead of being found by the session that meets it.
+    """
+
+    def error(self, message: str) -> NoReturn:
+        twin = self.get_default("twin")
+        if twin is None or "required" not in message:
+            super().error(message)
+        self.exit(EXIT_USAGE, f"roadkeep: {twin}\n")
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="roadkeep",
@@ -194,7 +227,12 @@ def build_parser() -> argparse.ArgumentParser:
         metavar="PATH",
         help="where to start looking for roadkeep.toml (default: the current directory)",
     )
-    subcommands = parser.add_subparsers(dest="command", required=True)
+    # Every subcommand is a `_Verb` (RK339), and a nested one inherits the class from its
+    # parent, so `section add` is one too — a pair of near-twins one level down declares
+    # itself the same way.
+    subcommands = parser.add_subparsers(
+        dest="command", required=True, parser_class=_Verb
+    )
 
     next_id_parser = subcommands.add_parser(
         "next-id",
@@ -481,7 +519,14 @@ def build_parser() -> argparse.ArgumentParser:
         "marker", help="the new marker, from the open set this project declares"
     )
     status_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
-    status_parser.set_defaults(handler=_status)
+    status_parser.set_defaults(
+        handler=_status,
+        twin=(
+            "status writes a marker onto one line and needs both: `status <id> <marker>`."
+            " The backlog's numbers are `stats`, which needs neither — one character "
+            "apart, and this is the one that writes"
+        ),
+    )
 
     amend_parser = subcommands.add_parser(
         "amend",
@@ -1062,7 +1107,16 @@ def build_parser() -> argparse.ArgumentParser:
     # A read that can write, declared the way `claims --prune` declares it (RK167) — and by
     # two arguments (RK307), because either of them is the write.
     claim_parser.set_defaults(
-        handler=_claim, reads_only=True, writes_when=("path", "add_path")
+        handler=_claim,
+        reads_only=True,
+        writes_when=("path", "add_path"),
+        # The second pair, found by the read RK339 asked for: same one-edit distance, same
+        # asymmetry, and the same verb typed wanting the listing.
+        twin=(
+            "claim reads one line's scope back and needs it: `claim <id>`, or "
+            "`claim <id> --path …` to declare what this commit owns. The registry "
+            "listing is `claims`, which needs no id"
+        ),
     )
 
     writes_parser = subcommands.add_parser(
