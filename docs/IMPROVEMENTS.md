@@ -174,6 +174,27 @@ What is worth deciding is whether `--role` stays the way through — it is the c
 naming which of the two they mean, which is the only thing that resolves the ambiguity
 without a verb choosing.
 
+### §RK324 Two readers of one marker, and only one of them refuses
+
+Measured on an adopting repository: `show T275` answers `✅  shipped`, and `brief T275`
+answers `✅  ready` — same id, same file, same line, one word apart. `brief` then goes on
+to print `unblocks 0 of 8 open` and the whole non-goal list, which is the shape of an
+answer about work that has not happened.
+
+The marker is right in both. What differs is the second word, and that word is the one a
+caller acts on. `brief` exists so an agent can ask what a task costs before starting it,
+which means a loop that picks an id from anywhere other than `pick` — a commit message,
+a changelog entry, a user naming one — gets `ready` for a task already in the ledger,
+and nothing in the rest of the output contradicts it. The rationale section is gone, so
+the brief is thin rather than wrong-looking.
+
+`show` already computes the answer, so this is not a question needing a new derivation:
+it is one derivation with two readers, which is the shape of RK303 as well. Whether
+`brief` should refuse a shipped id outright or answer with `shipped` and no cost is the
+decision to make. Refusing is consistent with `amend`, which will not touch a shipped
+line; answering is friendlier to the loop that asked, provided the word it leads with
+cannot be read as an invitation.
+
 ## Block D — The gate
 
 ### §RK320 A hook that stages more than it wrote
@@ -235,3 +256,45 @@ taken at collection, or whether a count over a file the backlog erodes is the wr
 assertion whoever is writing it — RK305 already names that ratio as fragile.
 
 ## Block F — The plugin
+
+### §RK322 The payload's root .mcp.json is auto-loaded as a plugin surface, naming a path no adopter has
+
+RK81 put the plugin's declaration in `.claude-plugin/mcp.json` because
+`${CLAUDE_PLUGIN_ROOT}` is defined only for a plugin-provided config, while a project's
+own server must sit at the root as `.mcp.json`. So this repository carries both, and the
+root one names `${CLAUDE_PROJECT_DIR:-.}/scripts/roadkeep.py`.
+
+That root file travels in the published payload, and the loader reads it: with
+`.claude-plugin/mcp.json` renamed away in an installed copy, `claude plugin details`
+still reported one server named `roadkeep`. The convention finds it exactly as it found
+`hooks/hooks.json` (RK321). So both declarations exist under one name in every adopting
+project, and which one a session launches is unobserved. If the root one wins, the argv
+names a `scripts/` directory only this repository has, and the tools are absent —
+RK321's silent failure again, in the surface that offers the write path.
+
+The fix is a decision and not a deletion, which is why it is not RK321's second half.
+Dropping the root file takes `mcp__roadkeep__*` out of the session that writes the tool,
+which is the whole of RK81; pointing it at `${CLAUDE_PLUGIN_ROOT}` leaves a variable
+nothing sets here. What is wanted is a payload carrying one declaration, so the question
+is whether a root file the repository must keep can be kept out of it.
+
+### §RK323 The published payload carries this repository's own CLAUDE.md, which the loader warns is not context
+
+`claude plugin validate` reports it in one line: *"CLAUDE.md at the plugin root is not loaded as
+project context. To ship context with your plugin, use a skill instead."* Which is already the
+design — the write path is `skills/roadkeep/SKILL.md` and RK23 is the argument for why. The file
+is doing its other job: it is this repository's own project context, loaded when a session works
+*in* the checkout, and it says so in its first line.
+
+So nothing is broken, and that is what makes this worth a line rather than a fix. The
+payload publishes a file that no installed session reads, and the validator says so
+every time it runs — which means the one signal that would name a *real* packaging
+mistake arrives beside a warning the reader has learned to skip. RK321 was found by a
+failure loud enough to stop the plugin; this family's other members are quiet, and a
+validator whose output is routinely ignored is how they stay that way.
+
+It is the third file with two roles, after `hooks/hooks.json` (RK321) and the root
+`.mcp.json` (RK322): the repository is the plugin, so every file at its root is
+published whether it is a plugin surface or the repository's own. The question the three
+share is whether that boundary can be declared at all, or whether being the plugin's own
+root means the payload is simply the tree.

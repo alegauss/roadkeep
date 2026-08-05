@@ -20,9 +20,14 @@ decisions those two files encode live here, next to the assertions that hold the
   the user's to say, since `deny` would refuse `git add` on a governed file.
 * **Every hook has a timeout.** A `PreToolUse` hook is synchronous: an unbounded one turns a
   hung interpreter into a session that cannot write anything at all.
-* **The MCP server is declared too, and starts the same way the hook does.** It is named in
-  the manifest for the reason `hooks` is: a declared path is one a test can check exists.
-  Both surfaces run the launcher the plugin ships, so `/plugin install` is the whole setup
+* **The hooks file is not declared, and that is what declaring it taught.** Both surfaces
+  used to be named in the manifest on one argument — a declared path is one a test can check
+  exists. But `hooks/hooks.json` at the plugin root is loaded by convention already, so the
+  entry was a second reference to a loaded file and the loader failed the *whole plugin* over
+  it: three hooks, five skills and the server, gone, on the first marketplace install. The
+  convention was checkable all along. The MCP server stays declared, because its file is not
+  where the convention looks — and what the root `.mcp.json` costs is the open half below.
+* **Both surfaces run the launcher the plugin ships**, so `/plugin install` is the whole setup
   and nothing has to be on PATH (RK24).
 * **Declared twice, because a placeholder cannot be in two scopes.** `${CLAUDE_PLUGIN_ROOT}`
   is defined only for a plugin-provided config, and a project's own server must sit at the
@@ -89,14 +94,26 @@ def declarations(event: str) -> list[dict]:
 # -- the manifest ------------------------------------------------------------
 
 
-def test_the_manifest_names_the_plugin_and_points_at_its_hooks():
+def test_the_manifest_names_the_plugin_and_leaves_its_hooks_to_the_convention():
+    """The hooks file is found by the loader, and naming it a second time cost every surface.
+
+    This used to assert the opposite, on the argument that a declared path is one a test can
+    check exists while a convention is not. The convention is checkable — `HOOKS.is_file()`
+    is this line — and the declaration was not free: `hooks/hooks.json` at the plugin root is
+    loaded *automatically*, so the manifest entry is a second reference to an already-loaded
+    file, and the loader answers `Duplicate hooks file detected` by failing the **whole
+    plugin**. Measured on the first marketplace install, in Turing and Shio: `× failed to
+    load`, and with it the three hooks, the five skills and the server. The guard was gone,
+    which is the one absence a session cannot notice — a hand-edit is simply allowed.
+
+    So this holds the same rule `test_commands.py` already held for `./commands`, and for the
+    same reason: a surface the loader finds by convention is declared by **not** declaring it.
+    """
     manifest = read(MANIFEST)
     assert manifest["name"] == "roadkeep"
     assert manifest["description"]
-    # Declared rather than left to the directory convention: a path stated in the manifest
-    # is a path this test can check exists, which the convention is not.
-    declared = HERE / manifest["hooks"].removeprefix("./")
-    assert declared == HOOKS and declared.is_file()
+    assert "hooks" not in manifest
+    assert HOOKS.is_file()
 
 
 def test_the_plugin_states_the_version_the_package_states(checkout):

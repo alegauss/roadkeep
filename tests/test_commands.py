@@ -22,7 +22,9 @@ these four are written the other way round — every sentence about the user's w
   nothing, and every command line in it is fed to the real parser here.
 * **Not declared in the manifest.** `./commands` is scanned by default and the manifest's
   `commands` field *supplements* that default — declaring it would register all four twice.
-  The opposite of `hooks` and `mcpServers`, which are single files and are declared.
+  This was written as the exception, against `hooks` and `mcpServers` — "single files, and
+  declared". Half of it was wrong and the manifest paid: `hooks` is found by convention too,
+  and naming it failed the whole plugin. Only `mcpServers` is genuinely the exception.
 """
 
 from __future__ import annotations
@@ -99,7 +101,12 @@ def test_they_sit_where_the_loader_looks_and_are_not_declared_twice():
     manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
     # `commands` supplements the default `./commands`; declaring it registers each file twice.
     assert "commands" not in manifest
-    assert manifest["hooks"] and manifest["mcpServers"]
+    # And `hooks` is the same rule, which this file stated and the manifest did not follow:
+    # `hooks/hooks.json` is loaded by convention too, and the duplicate reference failed the
+    # whole plugin rather than registering anything twice (see `tests/test_plugin.py`).
+    assert "hooks" not in manifest
+    # `mcpServers` is the one that is genuinely outside the convention's reach.
+    assert manifest["mcpServers"]
 
 
 # -- what /help shows --------------------------------------------------------

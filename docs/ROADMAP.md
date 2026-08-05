@@ -31,6 +31,7 @@
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK303** (deps: —) **The section budget picks the first of two prose files declaring one anchor, where every other reader refuses** — It answered improvements about an address strategy declares too, and show calls that state a pointer resolving to neither — so a limit is priced for an unreachable section. → §RK303
+- 📋 **RK324** (deps: —) **brief calls a shipped task ready, so the one command meant to start work invites redoing it** — show reads the same id and answers shipped; brief prints ready beside the checkmark and an unblocks count, which is a startable task described to whoever asked what starting it costs. → §RK324
 
 ## Block D — The gate
 
@@ -42,6 +43,9 @@
 - 📋 **RK315** (deps: —) **A test asserting on this repository's own docs fails when another session writes them mid-run** — It read docs/IMPROVEMENTS.md live and failed once in three identical runs while a second session shipped into that file, so the red said nothing about the code under test. → §RK315
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
+
+- 📋 **RK322** (deps: —) **The payload's root .mcp.json is auto-loaded as a plugin surface, naming a path no adopter has** — Both declarations exist under the one name in an adopting project and which of them a session launches is unobserved, so the tools that offer the write path may be absent. → §RK322
+- 📋 **RK323** (deps: —) **The published payload carries this repository's own CLAUDE.md, which the loader warns is not context** — It is this project's context file doing its job in the checkout and dead weight in the payload, which is RK322's shape without RK322's ambiguity about which file answers. → §RK323
 
 ## Non-goals
 

@@ -335,3 +335,4 @@
 - ✅ **RK317** **The driver path accepts a --json it silently ignores, on the one path git actually invokes** — the branches that cannot structure an answer refuse the flag by name, before anything is written.
 - ✅ **RK318** **The command the staleness note tells the reader to run is not the act the tool was called for** — the note spells the verb plus the always flags that make the tool that act, resolved through the parser as argv does.
 - ✅ **RK319** **A branch that refuses --json cannot be served at all, and nothing states the coupling** — the command declares which argument its json is the form of, and a test holds every served tool against that declaration.
+- ✅ **RK321** **The manifest declared the hooks file the loader already auto-loads, so no surface loaded at all** — The duplicate reference is gone and the convention is what finds the file, so the three hooks, the five skills and the server load on a marketplace install instead of failing together.
