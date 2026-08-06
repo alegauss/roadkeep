@@ -317,6 +317,7 @@
 - ✅ **RK352** **The replay test that asserts a codec drifted names a value the running process may already declare** — the replay fixture reads its codec and locale against this process and records values it does not hold, so the drift assertion is about the comparison and not about the shell.
 - ✅ **RK358** **The pick over this repository's own backlog is asserted lowest-ready, so a run made while a line is claimed is red** — The fixture takes in-progress as a second right answer, so the tier no longer asserts nobody is working.
 - ✅ **RK359** **The doubled address the estimate reports is reachable only where the file is already one this project declares** — The estimate takes the other prose files as arguments, so the doubled address is reachable where no configuration names them.
+- ✅ **RK369** **A prose file the estimate is handed by name is read unqualified, so a namespace already declared reads as a collision** — A named file is read through its role where it has one, so a declared namespace answers the same whichever way the run reached it.
 
 ## Block F — The Claude Code plugin
 

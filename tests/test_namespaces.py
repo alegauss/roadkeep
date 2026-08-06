@@ -213,6 +213,37 @@ def test_the_command_takes_the_second_file_and_names_both(tmp_path, capsys):
     assert "2 address(es) declared by both NOTES.md and PLANS.md (I, I.1)" in printed
 
 
+def test_a_named_file_keeps_the_namespace_its_project_declared(tmp_path):
+    """RK369: the prefix rides on the document's schema, so a path loaded directly carries
+    none — and the estimate reported a collision the configuration had already resolved."""
+    config = project(tmp_path)  # `[refs] strategy = "S"` is written
+    named = adopt(
+        config,
+        config.path("improvements"),
+        sections=True,
+        alongside=[str(config.path("strategy"))],
+    )
+    # The same answer the roles give over the same two files, which is the whole claim: how a
+    # file was reached may not change what the run says about it.
+    assert named.ambiguous == adopt(config, config.path("improvements"), sections=True).ambiguous
+    assert named.ambiguous == ()
+
+
+def test_a_governed_file_is_labelled_by_its_role_and_a_foreign_one_by_its_path(tmp_path):
+    # Each file named the truest way this project can name it: `[files]` gives one a role, and
+    # a file it does not govern has none to be called by.
+    config = project(tmp_path, refs="")
+    outside = tmp_path / "NOTES.md"
+    outside.write_text(STRATEGY_BODY, encoding="utf-8")
+    estimate = adopt(
+        config, config.path("improvements"), sections=True, alongside=[str(outside)]
+    )
+    assert estimate.ambiguous == (
+        ("I", ("improvements", "NOTES.md")),
+        ("I.1", ("improvements", "NOTES.md")),
+    )
+
+
 def test_a_named_file_this_project_governs_is_not_then_called_unread(tmp_path):
     # `opened`'s rule, applied to the second way a sibling gets read (RK347): a report may not
     # measure a file and say in the same breath that it was out of reach.

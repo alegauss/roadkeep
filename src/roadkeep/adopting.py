@@ -1068,23 +1068,42 @@ def _ambiguous(
     the same run then answers zero.
 
     ``alongside`` replaces that set with the one the caller named (RK359) — the target plus
-    those files, labelled by path because they have no role here to be labelled by. It
-    replaces rather than extends for the same reason the whole finding is guarded: a set
-    half chosen by the caller and half by a `[files]` table that may belong to another
-    project is a doubling the reader cannot act on. Resolved before pairing, so a file named
-    twice, or named as well as being the target, does not collide with itself.
+    those files. It replaces rather than extends for the same reason the whole finding is
+    guarded: a set half chosen by the caller and half by a `[files]` table that may belong to
+    another project is a doubling the reader cannot act on. Resolved before pairing, so a file
+    named twice, or named as well as being the target, does not collide with itself.
+
+    Each of them is read **through its role where it has one** (RK369), which is where the
+    qualification comes from: the prefix rides on the document's schema, so a path loaded
+    directly carries none and a project that already declared `[refs]` was told twice about a
+    collision its configuration resolved — the one thing an estimate may not do, its number
+    being the one bought before a commitment. So the label is a role where there is one and
+    the path where there is not: each file named the truest way this project can name it, and
+    a file it does not govern has no role to be called by.
     """
     from roadkeep.history import Anchor, doubled  # noqa: PLC0415 - RK260
 
     if alongside:
         read = schema or config.schema_for("improvements")
-        seen: dict[Path, str] = {}
+        by_path = {config.path(role).resolve(): role for role in config.paths}
+        seen: dict[Path, tuple[str, Document]] = {}
         for one in (target, *(Path(p) for p in alongside)):
-            seen.setdefault(one.resolve(), _relative(one.resolve(), config.root))
+            here = one.resolve()
+            if here in seen:
+                continue
+            role = by_path.get(here)
+            seen[here] = (
+                (role, config.document(role))
+                if role in PROSE_ROLES
+                # `read` and not the role's schema for a governed file that is not prose: a
+                # ledger read as a ledger has no headings to anchor, and the caller handed it
+                # over as the other half of an outline.
+                else (_relative(here, config.root), Document.load(here, read))
+            )
         named = [
             Anchor(anchor=section.anchor, role=label, live=True)
-            for path, label in seen.items()
-            for section in anchored(Document.load(path, read))
+            for label, document in seen.values()
+            for section in anchored(document)
         ]
         return doubled(named)
     if not _declared(config, target):

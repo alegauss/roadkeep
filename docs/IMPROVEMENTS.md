@@ -103,30 +103,6 @@ follows from the argument closely enough to cost nothing.
 
 ## Block E — Adoption
 
-### §RK369 The namespace a named path arrives without
-
-RK359 gave `adopt --sections` a `--with` so the doubled address is reachable where no
-configuration names the files — which is the case the command exists for, and there the
-answer is right: two unadopted outlines both open at `I`, nothing namespaces them, and
-the collision is real.
-
-What it also does is replace the declared set wherever it is passed. Handed this
-project's own `docs/STRATEGY.md`, the read no longer goes through
-`config.document(role)` and so no longer qualifies the anchors — RK340's mechanism,
-which puts each role's outline behind its own prefix. A project that declared `[refs]
-strategy = "S"` answers `()` through the roles and two collisions through the paths, for
-one tree on one run.
-
-The report is then naming a repair already in the configuration, which is the one thing
-an estimate may not do: the number is bought before a commitment, and a number counting
-work already done prices a commitment nobody is being asked to make.
-
-What a named path is missing is the role, and the role is knowable — `_named` already
-resolves which of them a `--with` argument is, for the `unopened` line one field over.
-Where an argument resolves to a declared file, reading it through its role is the same
-read every other caller makes; where it resolves to nothing this project governs, there
-is no `[refs]` entry to apply and the unqualified read is the correct one.
-
 ### §RK370 A refusal that names a machine and not an argument
 
 `adopt` opens the target and, since RK359, every path `--with` was handed. A path that
