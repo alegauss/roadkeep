@@ -120,13 +120,13 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 1 | 84 | 0 |
 | C — Query (consult without reading the file) | 0 | 53 | 1 |
 | D — The gate | 0 | 68 | 0 |
-| E — Adoption | 1 | 56 | 1 |
+| E — Adoption | 0 | 57 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 67 | 1 |
-| **Total** | 3 | 358 | 4 |
+| **Total** | 2 | 359 | 4 |
 
 **Next ready:**
 
-- 📋 **RK359** (deps: —) **The doubled address the estimate reports is reachable only where the file is already one this project declares** — Two unadopted prose files are the case adopt exists for and it takes one path, so the collision an adopter meets first stays invisible until after the commitment. → §RK359
+- 💭 **RK366** (deps: —) **The skill every adopting project loads has 24 body lines past 110 characters against a file otherwise wrapped at 90** — One pattern made them all — text appended to a line instead of the paragraph re-wrapped — so an edit arrives as a whole-paragraph diff and nothing holds the shape. → §RK366
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
@@ -177,14 +177,16 @@ are the one thing that wants a shell — the plugin's own copy answers, with no 
 R=~/.claude/plugins/marketplaces/alegauss/scripts/roadkeep.py
 
 python $R adopt docs/ROADMAP.md --prefix SH   # measures first: what would change, and where
-python $R adopt docs/IMPROVEMENTS.md --sections   # the other half: sections, and the width
+python $R adopt docs/IMPROVEMENTS.md --sections --with docs/STRATEGY.md   # the other half
 python $R init                                # writes roadkeep.toml and the files it declares
 ```
 
 Both halves, because both are limits you have to declare. The backlog run reports the longest
 `symptom`, `why` and rendered line; the `--sections` run reports the longest section in words
 and the width your prose is already wrapped to — the numbers `[limits]` gets set from, taken
-from your corpus rather than copied from this one.
+from your corpus rather than copied from this one. `--with` names the other prose files, and
+is the one measure that is about a set: two outlines written apart both start at `I`, so the
+address they share is a finding no per-file read can make and the first one `lint` would.
 
 Everything a *task* needs afterwards is already in the tools the plugin installed: `add`,
 `status`, `ship`, `retire`, `record_add`, `record_drop`, `section_add`, `section_drop`,

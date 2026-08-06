@@ -25,8 +25,10 @@ reads a file it does not own and writes nothing at all.
   arrived after the commitment. `--sections` is the one read that goes past the path it was
   handed, and for one finding: an address is doubled only *across* two files, so a per-file
   estimate calls both of them conforming and the gate then files a `section.ambiguous` per
-  collision (RK347). It opens the siblings only where the target is one of this project's
-  own, for the reason :func:`_unread` does not name them otherwise (RK292).
+  collision (RK347). Which files those are is the project's `[files]` where the target is one
+  of this project's own, for the reason :func:`_unread` does not name them otherwise (RK292),
+  and otherwise `--with`, repeated (RK359) — the case the command exists for being a file no
+  declaration reaches at all. Named and never found by looking in the directory.
 
 Three decisions that are the point rather than details of it:
 
@@ -596,6 +598,7 @@ def adopt(
     ref_scheme: str | None = None,
     ledger: bool = False,
     sections: bool = False,
+    alongside: Sequence[str | Path] = (),
 ) -> Estimate:
     """Read a backlog this tool does not own and report what it would cost to adopt it.
 
@@ -625,6 +628,15 @@ def adopt(
     the template argument L6 refuses, or writing a throwaway script, which is what
     adopting commitclerk actually did. A flag and not a second command, because a corpus
     measured by two commands is two sets of numbers to keep in step.
+
+    ``alongside`` names the *rest of the set* the doubled-address finding is about (RK359).
+    That finding is the one measure here that is not a property of one file, and until this
+    it was reachable only where the target was already one of this project's own — so the
+    adopter it exists for, running `--sections` from outside against a file no
+    `roadkeep.toml` declares, met the collision on the first `lint` after the commitment
+    instead. Named and never inferred from the directory: a `DESIGN.md` beside an
+    `IMPROVEMENTS.md` is a guess about somebody's layout, and the report would then be
+    measuring a set the caller never chose. Every other number stays about ``path`` alone.
     """
     target = Path(path)
     if ledger and sections:
@@ -632,8 +644,13 @@ def adopt(
             "--ledger and --sections measure different units — a ledger in lines and a "
             "rationale file in sections — so each is its own run over its own file"
         )
+    if alongside and not sections:
+        raise ValueError(
+            "--with names the other prose files an address could be doubled across, which "
+            "is a --sections measurement: a backlog holds lines and not headings"
+        )
     if sections:
-        return _prose(config, target, ref_scheme)
+        return _prose(config, target, ref_scheme, alongside)
     schema = config.schema_for("changelog" if ledger else "roadmap")
     if ref_scheme is not None and ref_scheme != schema.ref_scheme:
         schema = replace(schema, ref_scheme=ref_scheme)  # raises on an unknown scheme
@@ -707,7 +724,12 @@ def adopt(
     )
 
 
-def _prose(config: Config, target: Path, ref_scheme: str | None) -> Estimate:
+def _prose(
+    config: Config,
+    target: Path,
+    ref_scheme: str | None,
+    alongside: Sequence[str | Path] = (),
+) -> Estimate:
     """A rationale file, measured in sections against the two limits nobody reported (RK99).
 
     Read under the `improvements` role, so `[limits.improvements]` reaches it the same way
@@ -756,8 +778,11 @@ def _prose(config: Config, target: Path, ref_scheme: str | None) -> Estimate:
         # RK347: the finding one path cannot hold. Read before `unopened`, which is told what
         # this took — a sibling opened to answer the doubling is not one the report may then
         # name as out of reach.
-        ambiguous=_ambiguous(config, target),
-        unopened=_unread(config, target, opened=PROSE_ROLES),
+        ambiguous=_ambiguous(config, target, alongside, schema),
+        # A file the caller handed to `--with` was opened, whatever role it holds here, so it
+        # is not one the same report may call out of reach (RK359) — the rule `opened` was
+        # given for, applied to the second way a sibling gets read.
+        unopened=_unread(config, target, opened=(*PROSE_ROLES, *_named(config, alongside))),
         declared=_declared(config, target),
         parsed=len(found),
         conforming=sum(1 for count in words if count <= schema.section_max),
@@ -1014,7 +1039,12 @@ def _heading_schemes(document: Document) -> tuple[tuple[str, int], ...]:
     return _ranked(counts)
 
 
-def _ambiguous(config: Config, target: Path) -> tuple[tuple[str, tuple[str, ...]], ...]:
+def _ambiguous(
+    config: Config,
+    target: Path,
+    alongside: Sequence[str | Path] = (),
+    schema: Schema | None = None,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
     """Every address two prose files declare now, with the roles that declare it (RK347).
 
     The one check `adopt` could not make from one path. Every other limit it reports is a
@@ -1036,10 +1066,29 @@ def _ambiguous(config: Config, target: Path) -> tuple[tuple[str, tuple[str, ...]
     Reads the anchors **qualified** (RK340), which is what makes the report actionable rather
     than merely true: declaring `[refs]` puts each file's outline in its own namespace, and
     the same run then answers zero.
+
+    ``alongside`` replaces that set with the one the caller named (RK359) — the target plus
+    those files, labelled by path because they have no role here to be labelled by. It
+    replaces rather than extends for the same reason the whole finding is guarded: a set
+    half chosen by the caller and half by a `[files]` table that may belong to another
+    project is a doubling the reader cannot act on. Resolved before pairing, so a file named
+    twice, or named as well as being the target, does not collide with itself.
     """
+    from roadkeep.history import Anchor, doubled  # noqa: PLC0415 - RK260
+
+    if alongside:
+        read = schema or config.schema_for("improvements")
+        seen: dict[Path, str] = {}
+        for one in (target, *(Path(p) for p in alongside)):
+            seen.setdefault(one.resolve(), _relative(one.resolve(), config.root))
+        named = [
+            Anchor(anchor=section.anchor, role=label, live=True)
+            for path, label in seen.items()
+            for section in anchored(Document.load(path, read))
+        ]
+        return doubled(named)
     if not _declared(config, target):
         return ()
-    from roadkeep.history import Anchor, doubled  # noqa: PLC0415 - RK260
 
     taken = [
         Anchor(anchor=section.anchor, role=role, live=True)
@@ -1048,6 +1097,19 @@ def _ambiguous(config: Config, target: Path) -> tuple[tuple[str, tuple[str, ...]
         for section in anchored(config.document(role))
     ]
     return doubled(taken)
+
+
+def _named(config: Config, alongside: Sequence[str | Path]) -> tuple[str, ...]:
+    """The roles this project declares that ``--with`` happens to have named (RK359).
+
+    Usually none: the target of an `adopt` run is a file no configuration here declares, and
+    so are its siblings. It is the resolved path that decides and never the filename, an
+    `IMPROVEMENTS.md` in another checkout being a different file from this one's.
+    """
+    if not alongside:
+        return ()
+    given = {Path(path).resolve() for path in alongside}
+    return tuple(role for role in config.paths if config.path(role).resolve() in given)
 
 
 def _unread(config: Config, target: Path, opened: Sequence[str] = ()) -> tuple[str, ...]:

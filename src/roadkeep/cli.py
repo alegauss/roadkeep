@@ -1736,6 +1736,18 @@ def build_parser() -> argparse.ArgumentParser:
             "its prose is already wrapped to — the two limits an adopter has to declare"
         ),
     )
+    adopt_parser.add_argument(
+        "--with",
+        dest="alongside",
+        metavar="PATH",
+        action="append",
+        default=[],
+        help=(
+            "another prose file an address could be doubled across, repeatable — the one "
+            "measure here that is about a set of files rather than this one; requires "
+            "--sections, and never inferred from the directory"
+        ),
+    )
     adopt_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     adopt_parser.set_defaults(handler=_adopt)
 
@@ -5797,6 +5809,7 @@ def _adopt(config: Config, args: argparse.Namespace) -> int:
             ref_scheme=args.ref_scheme,
             ledger=args.ledger,
             sections=args.sections,
+            alongside=args.alongside,
         )
     except (ValueError, OSError) as error:
         return _refused(error)

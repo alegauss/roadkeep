@@ -154,6 +154,78 @@ def test_a_file_this_project_does_not_govern_is_measured_alone(tmp_path):
     assert adopt(config, outside, sections=True).ambiguous == ()
 
 
+# -- the set the caller names, where no project declares one (RK359) ---------
+
+
+def unadopted(tmp_path) -> tuple[Config, str, str]:
+    """Two prose files under no declaration at all — the case `adopt` exists for."""
+    config = project(tmp_path, refs="")
+    notes, plans = tmp_path / "NOTES.md", tmp_path / "PLANS.md"
+    notes.write_text(IMPROVEMENTS_BODY, encoding="utf-8")
+    plans.write_text(STRATEGY_BODY, encoding="utf-8")
+    return config, str(notes), str(plans)
+
+
+def test_the_doubling_is_reachable_over_files_the_caller_names(tmp_path):
+    """RK359: the collision an adopter meets first is between two files no `roadkeep.toml`
+    declares, and until this the estimate could only see it after the commitment."""
+    config, notes, plans = unadopted(tmp_path)
+    # Alone it is the RK292 answer, and the same two files are conforming apart.
+    assert adopt(config, notes, sections=True).ambiguous == ()
+    estimate = adopt(config, notes, sections=True, alongside=[plans])
+    # By path and not by role: these files hold none here, and labelling them with this
+    # project's would name a set the caller never handed over.
+    assert estimate.ambiguous == (
+        ("I", ("NOTES.md", "PLANS.md")),
+        ("I.1", ("NOTES.md", "PLANS.md")),
+    )
+    # Every other number stays about the target alone — one file's sections, one file's width.
+    assert estimate.path.name == "NOTES.md" and estimate.parsed == 2
+
+
+def test_a_file_named_twice_does_not_double_against_itself(tmp_path):
+    # The one way a report of this shape can be false: read once per name, `NOTES.md` declares
+    # every one of its own addresses twice and the answer is a collision with nobody.
+    config, notes, _ = unadopted(tmp_path)
+    assert adopt(config, notes, sections=True, alongside=[notes]).ambiguous == ()
+
+
+def test_the_sibling_is_never_inferred_from_the_directory(tmp_path):
+    # `PLANS.md` sits beside `NOTES.md` and is not read: which files are one outline is a fact
+    # about somebody's layout, and a report that guessed it would measure an unnamed set.
+    config, notes, _ = unadopted(tmp_path)
+    assert adopt(config, notes, sections=True).ambiguous == ()
+
+
+def test_the_set_is_a_sections_measurement_and_a_backlog_refuses_it(tmp_path):
+    config, _, plans = unadopted(tmp_path)
+    with pytest.raises(ValueError) as caught:
+        adopt(config, config.path("roadmap"), alongside=[plans])
+    assert "a backlog holds lines and not headings" in str(caught.value)
+
+
+def test_the_command_takes_the_second_file_and_names_both(tmp_path, capsys):
+    config, notes, plans = unadopted(tmp_path)
+    assert main(
+        ["-C", str(tmp_path), "adopt", notes, "--sections", "--with", plans]
+    ) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "2 address(es) declared by both NOTES.md and PLANS.md (I, I.1)" in printed
+
+
+def test_a_named_file_this_project_governs_is_not_then_called_unread(tmp_path):
+    # `opened`'s rule, applied to the second way a sibling gets read (RK347): a report may not
+    # measure a file and say in the same breath that it was out of reach.
+    config = project(tmp_path, refs="")
+    estimate = adopt(
+        config,
+        config.path("improvements"),
+        sections=True,
+        alongside=[str(config.path("roadmap"))],
+    )
+    assert "roadmap" not in estimate.unopened and ROADMAP not in estimate.unopened
+
+
 def test_the_gate_names_the_configuration_rather_than_an_edit(tmp_path):
     # The remedy is not "rename one of them": both files number their own outline from I, so
     # the edit the finding would be asking for is a renumbering of somebody's whole document.

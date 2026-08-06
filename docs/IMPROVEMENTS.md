@@ -103,28 +103,6 @@ follows from the argument closely enough to cost nothing.
 
 ## Block E — Adoption
 
-### §RK359 The collision the estimate can see, and the one it cannot
-
-RK347 gave `adopt --sections` the finding a per-file read cannot make: an address two
-prose files both declare, named with the files and the `[refs]` line that ends it. It is
-answered off `config`, so it fires where the target is one of this project's own files
-and is silent everywhere else — which is right, because `[files]` otherwise names
-somebody else's siblings (RK292).
-
-That leaves the shape the command is for. An adopter runs `adopt` from outside the
-project, against a file no `roadkeep.toml` declares, and there are two of them:
-`IMPROVEMENTS.md` and `STRATEGY.md`, both opening at `I`. The estimate reads one, calls
-it conforming, and the collision arrives on the first `lint` after the config is written
-— which is the one moment RK18 says the number is worth nothing, because the commitment
-is already made.
-
-The read is the same read; what is missing is a way to say which files to take it over.
-A second positional, or a `--with <path>` repeated, keeps the estimate a read that
-writes nothing and exits 0, and keeps one path meaning one file for every other measure
-in the report. What must not happen is inferring the sibling from the directory: a
-`DESIGN.md` beside an `IMPROVEMENTS.md` is a guess about somebody's layout, and the
-report would then be measuring a set the caller never named.
-
 ## Block F — The plugin
 
 ### §RK366 A shipped text whose wrap nothing holds
