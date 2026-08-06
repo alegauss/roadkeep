@@ -103,29 +103,6 @@ follows from the argument closely enough to cost nothing.
 
 ## Block E — Adoption
 
-### §RK372 Two answers to which project a file belongs to
-
-`adopt --sections --with docs/ROADMAP.md` reports `unopened: ()` and `ungoverned:
-('docs/ROADMAP.md',)` on the same run. The first says the file was read and is this
-project's, which is why it is not named as out of reach; the second says this project
-declares no role for it. Both are printed, and one of them is wrong.
-
-They disagree because each resolves the path itself. `_named` matches against every role
-in `[files]`, which is the right question for the sentence it feeds — was this opened.
-`_ambiguous` matches against `PROSE_ROLES` only, which is also right for its own
-question, a ledger having no outline to collide in. What is wrong is that the second
-answer is published under a word that means something the first denies.
-
-So the smaller repair is the name and not the rule. What the field records is which
-files were read by path rather than through a prose role, and `ungoverned` states a
-conclusion about ownership the run never established — RK292's distinction, borrowed for
-a case it was not about.
-
-The larger one is that a path resolves to a role in two places at all. One reader,
-answering with the role and with whether it is a prose role, would leave both callers
-asking their own question of one answer — and would have made this disagreement
-unspellable rather than merely fixed.
-
 ## Block F — The plugin
 
 ### §RK366 A shipped text whose wrap nothing holds

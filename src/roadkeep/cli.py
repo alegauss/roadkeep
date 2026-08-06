@@ -6113,15 +6113,15 @@ def _estimate_json(estimate: Estimate) -> dict[str, object]:
             {
                 "anchor": anchor,
                 "declared_by": [
-                    {"path": name} if name in estimate.ungoverned else {"role": name}
+                    {"path": name} if name in estimate.by_path else {"role": name}
                     for name in names
                 ],
             }
             for anchor, names in estimate.ambiguous
         ],
-        # Beside them and not merely inside them: this is which files the run treated as
-        # outside the project, which is the same answer when nothing collided at all.
-        "ungoverned": list(estimate.ungoverned),
+        # Beside them and not merely inside them: how the run named each file is the same
+        # answer when nothing collided at all, and it is not a claim about who owns one.
+        "by_path": list(estimate.by_path),
         "ledger_shape": [{"declaration": d, "count": n} for d, n in estimate.ledger_shape],
         "unopened": list(estimate.unopened),
         "declared": estimate.declared,

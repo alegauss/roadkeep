@@ -243,7 +243,7 @@ def test_a_governed_file_is_labelled_by_its_role_and_a_foreign_one_by_its_path(t
         ("I.1", ("improvements", "NOTES.md")),
     )
     # RK371: and which of the two is which is recorded, not left to the sentence around it.
-    assert estimate.ungoverned == ("NOTES.md",)
+    assert estimate.by_path == ("NOTES.md",)
 
 
 def test_which_files_were_outside_the_project_is_answered_without_a_collision(tmp_path):
@@ -256,7 +256,22 @@ def test_which_files_were_outside_the_project_is_answered_without_a_collision(tm
     estimate = adopt(
         config, config.path("improvements"), sections=True, alongside=[str(outside)]
     )
-    assert estimate.ambiguous == () and estimate.ungoverned == ("NOTES.md",)
+    assert estimate.ambiguous == () and estimate.by_path == ("NOTES.md",)
+
+
+def test_a_declared_file_read_by_path_is_not_therefore_called_ungoverned(tmp_path, capsys):
+    """RK372: the report said `unopened: ()` about a file and, in the same payload, that this
+    project had no role for it. Both were printed and one of them was wrong."""
+    config = project(tmp_path, refs="")
+    argv = ["-C", str(tmp_path), "adopt", str(config.path("improvements")), "--sections"]
+    assert main([*argv, "--with", str(config.path("roadmap")), "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    # It was read, so it is not out of reach — the RK359 rule, unchanged.
+    assert ROADMAP not in payload["unopened"]
+    # And the field beside it says only how the file was named: a backlog has no outline to
+    # collide in, so it is read by path, which is a fact about this run and not about who
+    # owns the file.
+    assert payload["by_path"] == [ROADMAP]
 
 
 def test_the_payload_files_each_name_under_the_key_that_says_what_it_is(tmp_path, capsys):

@@ -359,17 +359,22 @@ class Estimate:
     #: is not declared here (RK292) — there the siblings belong to another project — and empty
     #: on a backlog, which holds lines and not headings.
     ambiguous: tuple[tuple[str, tuple[str, ...]], ...] = ()
-    #: The files in this run's set that this project declares no role for, by the name
-    #: :attr:`ambiguous` calls them (RK371). Since RK369 a file is named the truest way this
-    #: project can name it, and a run given `--with` gets one of each: the printed line shows
-    #: which is which by sitting in a sentence, and `--json` — read by the caller who took it
-    #: *not* to open a file (L5) — had a `roles` key holding filenames `[files]` does not
-    #: answer, with no field saying the lookup would never work. Over the set that was read
-    #: and not over the collisions, because which files a run treated as outside this project
-    #: is a fact about the run: it is the same answer when nothing collided at all. Recorded
-    #: and never resolved away — inventing a role for a file this project does not govern is
-    #: the answer RK292 keeps out of the report.
-    ungoverned: tuple[str, ...] = ()
+    #: The files in this run's set that were read **by path** rather than through a prose
+    #: role, by the name :attr:`ambiguous` calls them (RK371). Since RK369 a file is named the
+    #: truest way this project can name it, and a run given `--with` gets one of each: the
+    #: printed line shows which is which by sitting in a sentence, and `--json` — read by the
+    #: caller who took it *not* to open a file (L5) — had a `roles` key holding filenames
+    #: `[files]` does not answer, with no field saying the lookup would never work. Over the
+    #: set that was read and not over the collisions, because how a run named a file is a fact
+    #: about the run: it is the same answer when nothing collided at all.
+    #:
+    #: What it does **not** say is that the project has no claim on the file (RK372). A
+    #: changelog handed to `--with` is declared here and still read by path, having no outline
+    #: to collide in — and calling that ungoverned put the contradiction in the report, beside
+    #: an `unopened` that had already counted the same file as this project's. Recorded and
+    #: never resolved away either way: inventing a role for a file this project does not govern
+    #: is the answer RK292 keeps out of the report.
+    by_path: tuple[str, ...] = ()
     #: What this file holds in a shape the format has no reader for, in whatever :attr:`unit`
     #: is being counted: plain list items under a block heading in a backlog (RK279), and
     #: headings with prose and no anchor in a rationale file (RK281). One field because it is
@@ -818,7 +823,7 @@ def _prose(
     # RK347: the finding one path cannot hold, with the kind of name each file got (RK371).
     # Read before `unopened`, which is told what this took — a sibling opened to answer the
     # doubling is not one the report may then name as out of reach.
-    ambiguous, ungoverned = _ambiguous(config, target, alongside, schema)
+    ambiguous, by_path = _ambiguous(config, target, alongside, schema)
     return Estimate(
         path=target,
         prefix="",
@@ -830,7 +835,7 @@ def _prose(
         # other way", which is the one sentence Shio's file needed.
         schemes=_heading_schemes(document),
         ambiguous=ambiguous,
-        ungoverned=ungoverned,
+        by_path=by_path,
         # A file the caller handed to `--with` was opened, whatever role it holds here, so it
         # is not one the same report may call out of reach (RK359) — the rule `opened` was
         # given for, applied to the second way a sibling gets read.
@@ -1141,13 +1146,13 @@ def _ambiguous(
 
     if alongside:
         read = schema or config.schema_for("improvements")
-        by_path = {config.path(role).resolve(): role for role in config.paths}
+        roles = _by_role(config)
         seen: dict[Path, tuple[str, Document]] = {}
         for one in (target, *(Path(p) for p in alongside)):
             here = one.resolve()
             if here in seen:
                 continue
-            role = by_path.get(here)
+            role = roles.get(here)
             seen[here] = (
                 (role, config.document(role))
                 if role in PROSE_ROLES
@@ -1161,10 +1166,10 @@ def _ambiguous(
             for label, document in seen.values()
             for section in anchored(document)
         ]
-        ungoverned = tuple(
-            label for path, (label, _) in seen.items() if by_path.get(path) not in PROSE_ROLES
+        by_path = tuple(
+            label for path, (label, _) in seen.items() if roles.get(path) not in PROSE_ROLES
         )
-        return doubled(named), ungoverned
+        return doubled(named), by_path
     if not _declared(config, target):
         return (), ()
 
@@ -1174,21 +1179,36 @@ def _ambiguous(
         if config.has(role) and config.path(role).is_file()
         for section in anchored(config.document(role))
     ]
-    # Every name here is a role by construction, so nothing is ungoverned.
+    # Every name here is a role by construction, so nothing was read by path.
     return doubled(taken), ()
+
+
+def _by_role(config: Config) -> dict[Path, str]:
+    """Every path this project declares, resolved, against the role that declares it (RK372).
+
+    The one place a path becomes a role. Two callers asked it separately and narrowed it
+    differently — one against every role, one against the prose roles alone — and each was
+    right about its own question while the report carried both answers about one file, one of
+    them saying it had been read and the other that this project had no role for it. Neither
+    rule moved; what changed is that there is one answer to narrow.
+
+    It is the **resolved** path that decides and never the filename: an `IMPROVEMENTS.md` in
+    another checkout is a different file from this one's, and the whole case `adopt` exists
+    for is a caller standing outside the project.
+    """
+    return {config.path(role).resolve(): role for role in config.paths}
 
 
 def _named(config: Config, alongside: Sequence[str | Path]) -> tuple[str, ...]:
     """The roles this project declares that ``--with`` happens to have named (RK359).
 
     Usually none: the target of an `adopt` run is a file no configuration here declares, and
-    so are its siblings. It is the resolved path that decides and never the filename, an
-    `IMPROVEMENTS.md` in another checkout being a different file from this one's.
+    so are its siblings. In `[files]` order, which is the order the sentence it feeds lists.
     """
     if not alongside:
         return ()
     given = {Path(path).resolve() for path in alongside}
-    return tuple(role for role in config.paths if config.path(role).resolve() in given)
+    return tuple(role for path, role in _by_role(config).items() if path in given)
 
 
 def _unread(config: Config, target: Path, opened: Sequence[str] = ()) -> tuple[str, ...]:
