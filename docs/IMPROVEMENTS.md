@@ -103,30 +103,6 @@ follows from the argument closely enough to cost nothing.
 
 ## Block E — Adoption
 
-### §RK374 The refusal a comment cites and no command makes
-
-`adopt roadkeep.toml` exits 0 with `0 line(s), 0 conform, 0 would change`. That is what
-an empty roadmap reports, and RK98 is the rule it breaks: a zero the reader cannot tell
-from an empty file is the one answer an estimate may not give. It is why table rows and
-plain bullets are counted at all — so a file the format has no reader for stops
-answering nothing.
-
-`WouldOverwrite` already leaves the configuration out of the `adopt <file>` it suggests,
-on the stated ground that "pointing it at `roadkeep.toml` is a different refusal one
-command later". There is no such refusal. The comment is the only place the behaviour is
-written down, and it describes a command that does not do this.
-
-`--with` takes it too, since RK359, and there the silence is worse: a config file
-contributes no anchors, so it neither collides nor is reported as anything, and the
-caller who meant a sibling prose file gets a clean run.
-
-What is not settled is which of the two answers this should be. A refusal is what the
-comment claims and what `init` would do; a *measurement* — the file counted as
-unreadable in whatever unit is being asked for — is what every other unreadable shape
-here gets, and it keeps `adopt` a command that never fails (RK18). The second is the
-smaller change and the one consistent with `tabular` and `listed`; the first is what
-somebody already wrote down as true.
-
 ## Block F — The plugin
 
 ### §RK366 A shipped text whose wrap nothing holds

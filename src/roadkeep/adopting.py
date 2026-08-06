@@ -122,8 +122,9 @@ class WouldOverwrite(ValueError):
     def __init__(self, paths: Sequence[Path], base: Path | None = None) -> None:
         self.paths = tuple(paths)
         #: Those of :attr:`paths` an estimate can actually be taken over. The configuration is
-        #: not one: `adopt` reads a backlog, and pointing it at `roadkeep.toml` is a different
-        #: refusal one command later.
+        #: not one: `adopt` reads a backlog, and pointing it at `roadkeep.toml` is
+        #: :class:`NotACorpus` one command later — which this said before there was such a
+        #: refusal, the command having answered `0 lines, 0 would change` instead (RK374).
         self.adoptable = tuple(path for path in self.paths if path.name != CONFIG_NAME)
         listed = ", ".join(str(path) for path in self.paths)
         message = f"{len(self.paths)} path(s) already exist and nothing was written: {listed}"
@@ -175,6 +176,51 @@ class Unreadable(ValueError):
         super().__init__(
             f"{len(self.missing)} path(s) are not a file this can read and nothing was "
             f"measured: {listed}"
+        )
+
+
+class NotACorpus(ValueError):
+    """`adopt` was pointed at a `roadkeep.toml` rather than at anything it measures (RK374).
+
+    The file opens, so :class:`Unreadable` lets it through, and every reader below then finds
+    no line and no heading in it: `0 line(s), 0 conform, 0 would change`, which is what an
+    empty roadmap reports and is the one answer an estimate may not give (RK98). Counting the
+    rows of a table and the plain bullets of a checklist exists so that a file the format has
+    no reader for stops answering nothing; a configuration is that case with the reader's own
+    declaration in it.
+
+    A refusal and not a count, which is the choice §RK374 left open. `adopt` exits 0 over a
+    corpus however far from the format it is (RK18) — the estimate is the thing being bought
+    — and refuses the *arguments* that name no corpus to measure: `--ledger` with `--sections`,
+    a path that does not open, and this. Measuring it would need a counter and a sentence for
+    a file nobody wants measured, while the refusal is the one already written down as true in
+    :class:`WouldOverwrite`, which leaves the configuration out of the door it offers on
+    exactly this ground.
+
+    By **name** and never by reading it: `roadkeep.toml` is the one filename this format
+    reserves, and a tool that sniffed a file's content to decide whether to refuse it would be
+    guessing about somebody's repository. A `pyproject.toml` carrying `[tool.roadkeep]` is
+    deliberately not caught — it is a configuration among other things, and refusing every
+    `pyproject.toml` by name would refuse the ones that configure nothing here.
+    """
+
+    def __init__(self, named: str, path: Path, config: Config | None = None) -> None:
+        self.named = named
+        self.path = path
+        base = config.root if config else None
+        # What that configuration declares, where it is the one this run loaded — the door,
+        # said precisely. Another project's `roadkeep.toml` names files this run has not read,
+        # and offering this project's paths for it would send the caller at the wrong tree.
+        declared = (
+            [config.relative(config.path(role)) for role in config.paths]
+            if config is not None and config.source is not None
+            and config.source.resolve() == path.resolve()
+            else []
+        )
+        door = f" — measure {' or '.join(declared)}" if declared else ""
+        super().__init__(
+            f"{_relative(path.resolve(), base)} ({named}) configures roadkeep and is not a "
+            f"corpus: `adopt` measures a backlog, a ledger or a rationale file{door}"
         )
 
 
@@ -725,6 +771,10 @@ def adopt(
     unreadable = [(named, one) for named, one in handed if not one.is_file()]
     if unreadable:
         raise Unreadable(unreadable, config.root)
+    # And before that, the one file that is readable and is still not a corpus (RK374).
+    declaration = [(named, one) for named, one in handed if one.name == CONFIG_NAME]
+    if declaration:
+        raise NotACorpus(declaration[0][0], declaration[0][1], config)
     if sections:
         return _prose(config, target, ref_scheme, alongside)
     schema = config.schema_for("changelog" if ledger else "roadmap")

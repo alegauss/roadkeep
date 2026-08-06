@@ -28,6 +28,7 @@ import corpora
 from roadkeep.adopting import (
     AlreadyConfigured,
     Estimate,
+    NotACorpus,
     Unreadable,
     UnreadableBlock,
     WouldOverwrite,
@@ -1285,6 +1286,55 @@ def test_a_file_that_is_not_there_is_a_usage_error(tmp_path: Path, capsys) -> No
     # `pathlib`'s own sentence carries, and a run takes several paths now.
     assert "nope.md (the file to measure)" in said
     assert "No such file or directory" not in said
+
+
+def test_the_configuration_is_refused_rather_than_measured_as_an_empty_backlog(
+    tmp_path: Path,
+) -> None:
+    """RK374: it opens, so every reader below found no line in it and the estimate answered
+    `0 lines, 0 would change` — what an empty roadmap reports, and the one answer RK98 says
+    an estimate may not give."""
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\n', encoding="utf-8"
+    )
+    (tmp_path / "ROADMAP.md").write_text(CONFORMING, encoding="utf-8")
+    config = Config.discover(tmp_path)
+    with pytest.raises(NotACorpus) as caught:
+        adopt(config, tmp_path / "roadkeep.toml")
+    # The door, said precisely: this *is* the configuration this run loaded, so what it
+    # declares is what the caller almost certainly meant.
+    assert "measure ROADMAP.md" in str(caught.value)
+
+
+def test_a_configuration_belonging_to_another_tree_is_refused_without_a_door(
+    tmp_path: Path,
+) -> None:
+    # Offering this project's paths for somebody else's `roadkeep.toml` would send the caller
+    # at the wrong tree — the RK292 care, one refusal over.
+    (tmp_path / "roadkeep.toml").write_text('prefix = "RK"\n', encoding="utf-8")
+    elsewhere = tmp_path / "vendor"
+    elsewhere.mkdir()
+    (elsewhere / "roadkeep.toml").write_text('prefix = "SH"\n', encoding="utf-8")
+    said = str(NotACorpus("the file to measure", elsewhere / "roadkeep.toml",
+                          Config.discover(tmp_path)))
+    assert "is not a corpus" in said and "measure " not in said
+
+
+def test_the_configuration_is_refused_through_the_second_argument_too(tmp_path: Path) -> None:
+    # `--with` takes paths as well, and there the silence was worse: a config file contributes
+    # no anchors, so it neither collided nor was reported, and the caller who meant a sibling
+    # prose file got a clean run.
+    (tmp_path / "roadkeep.toml").write_text('prefix = "RK"\n', encoding="utf-8")
+    target = tmp_path / "IMPROVEMENTS.md"
+    target.write_text("# Improvements\n\n## §I A design\n\nProse.\n", encoding="utf-8")
+    with pytest.raises(NotACorpus) as caught:
+        adopt(
+            Config.discover(tmp_path),
+            target,
+            sections=True,
+            alongside=[str(tmp_path / "roadkeep.toml")],
+        )
+    assert caught.value.named == "--with"
 
 
 def test_the_refusal_names_the_argument_that_carried_each_path(tmp_path: Path) -> None:

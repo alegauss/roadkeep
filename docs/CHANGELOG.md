@@ -322,6 +322,7 @@
 - ✅ **RK371** **A doubling over files the caller named comes back in a field called `roles`, holding filenames no `[files]` answers** — Each file in the payload sits under the key that says what its name is, and which of them the run treated as outside the project is its own field.
 - ✅ **RK372** **One report calls a governed file both read and ungoverned, two functions resolving the same path by different rules** — One reader answers what role a path holds and the field says only how the file was named, so neither sentence is a claim the other denies.
 - ✅ **RK373** **A prose file the run left out of its set is still absent from the unread list, so a check it never made reads as covered** — The unread sentence is derived from the files the across-files read opened, so a set the caller narrowed is not covered for.
+- ✅ **RK374** **The configuration measured as a backlog answers zero of everything, under a comment saying a later command refuses it** — A path naming this format's own declaration is refused with the files it declares, so the comment that cited that refusal is now true.
 
 ## Block F — The Claude Code plugin
 
