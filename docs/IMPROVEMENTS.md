@@ -104,28 +104,6 @@ prices an effort field against lines varying 27-fold.
 
 ## Block D — The gate
 
-### §RK365 The one function every check goes through
-
-`_examine` is the one function every check in this module is threaded through: it opens
-the line-bearing documents, runs six families of finding over them, opens the prose
-files, runs four more, then the targets and the budgets — and it also builds `checked`,
-whose order is the order findings print in. RK354 added the fifteenth branch and an
-editor put the cognitive complexity at 18 against a limit of 15.
-
-Nothing here holds that number, which is what to decide rather than what to fix: there
-is no complexity gate in this repository, so the reading came from an editor's default.
-This project's answer to a claim nobody holds has been the same twice (RK30, RK203) —
-move it into something that fails, or stop making it — and a third is available here,
-that a linear composition of independent passes is what this function is *for* and the
-metric is measuring the wrong property.
-
-What is worth deciding is whether the growth has a cost that is not the number. Two
-candidates, both about the same field: `checked` is appended to in four places and one
-of them is now conditional (RK354), so the order findings sort in is decided across the
-whole body rather than at one place; and a check added without a `checked` entry sorts
-to the end by falling off the index, which was right by accident before RK354 and is
-stated nowhere.
-
 ## Block E — Adoption
 
 ### §RK358 A fixture that forbids the state the workflow is in

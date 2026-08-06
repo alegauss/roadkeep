@@ -30,8 +30,6 @@
 
 ## Block D — The gate
 
-- 💭 **RK365** (deps: —) **The function every gate check is threaded through grew a fifteenth branch, and what holds its size is an editor** — RK354 added a conditional to `_examine` and an editor reads 18 against 15, a claim this repository holds nowhere and has twice answered by gating it or dropping it. → §RK365
-
 ## Block E — Adoption
 
 - 📋 **RK358** (deps: —) **The pick over this repository's own backlog is asserted lowest-ready, so a run made while a line is claimed is red** — `pick` answers STARTED for a 🛠 line and the test names LOWEST, so the suite is red for the length of every task the one-task-one-commit rule creates. → §RK358

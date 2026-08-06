@@ -253,6 +253,7 @@
 - ✅ **RK355** **What `--fix` repairs is enumerated in four places and none of them is derived from the fixer** — `fixing.REPAIRS` is the list and a test holds all six statements against it, one direction; the three RK328 missed — the hook's copy among them — now name the dead queue entry.
 - ✅ **RK356** **Nothing says when the version this gate pins stopped being the one an installing user gets** — A `drift` job asks the channel where the answer cannot gate — `continue-on-error` and an annotation, never a red — so a newer reader refusing this payload is named before an adopter meets it.
 - ✅ **RK357** **A repair that removed a line reports the line number of whatever moved up into its place** — A removal reports `gone` where a rewrite reports `fixed`, `--json` carries `removed` on the one list, and the run says once that those addresses are the file as it was read.
+- ✅ **RK365** **The function every gate check is threaded through grew a fifteenth branch, and what holds its size is an editor** — The number is gated by nothing, deliberately; the cost was `checked` decided at five points, now one — and the rule that an unnamed file sorts last is stated and held.
 
 ## Block E — Adoption
 

@@ -520,6 +520,25 @@ def test_a_declared_file_that_is_absent_is_reported_not_crashed(tmp_path):
     assert report.lines == 2  # the roadmap was still read
 
 
+def test_a_finding_about_a_file_the_report_never_read_sorts_last(tmp_path):
+    """The rule `checked` doubles as, stated rather than left in a `dict.get` default (RK365).
+
+    `checked` is what the gate judged *and* the order findings print in, so a finding about a
+    file that is not in it has no place in that order — and the answer is the end, because the
+    report is read against the list. An absent declared file is the live case: it is a finding
+    with no document behind it, so nothing put it in `checked`.
+
+    Right by accident until RK354 put `roadkeep.toml` in the list; held here now, so a check
+    added tomorrow against a file nobody was told was read cannot land in the middle.
+    """
+    report = lint(project(tmp_path, changelog=None, roadmap=CLEAN.replace(
+        "Because of another reason.", "Because of another reason. And a second sentence."
+    )))
+    assert "CHANGELOG.md" not in report.checked
+    assert {f.file for f in report.findings} == {"ROADMAP.md", "CHANGELOG.md"}
+    assert [f.file for f in report.findings][-1] == "CHANGELOG.md"
+
+
 # -- the pointer, resolved in both directions (RK15) -------------------------
 
 

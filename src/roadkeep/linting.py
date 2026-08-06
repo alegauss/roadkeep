@@ -550,7 +550,6 @@ def _examine(config: Config, since: str | None, tree: Tree) -> Report:
         if document is not None:
             documents[role] = document
 
-    checked = [config.relative(config.path(role)) for role in documents]
     for role, document in documents.items():
         findings.extend(within(config, role, document))
         findings.extend(_characters(config, role, document))
@@ -571,7 +570,6 @@ def _examine(config: Config, since: str | None, tree: Tree) -> Report:
     anchors = {role: anchored(document) for role, document in prose.items()}
     sections = tuple(section for found in anchors.values() for section in found)
     if prose:
-        checked.extend(config.relative(config.path(role)) for role in prose)
         findings.extend(_pointers(config, documents, anchors))
         for role, document in prose.items():
             findings.extend(_orphans(config, documents, document, anchors, role=role))
@@ -580,44 +578,83 @@ def _examine(config: Config, since: str | None, tree: Tree) -> Report:
     findings.extend(_paths(config, documents, tree))
 
     targets = _targets(config, tree)
-    checked.extend(target.where for target in targets)
     findings.extend(_projections(config, documents, targets))
-
-    for budget in config.budgets:
-        checked.append(config.relative(budget.path))
     findings.extend(_budgets(config, tree))
 
-    # The config, only where it carries a `priority` (RK354). `checked` is what this gate
-    # **judged**, which is the reading that keeps it honest against the findings: a queue the
-    # config declares is resolved against that file, and one the section shadows is noted
-    # against it, so both are about a file the list would otherwise not name. Where there is
-    # no queue the config was read to know what to judge and judged nothing, and naming it
-    # would promise coverage of a file no finding here can be about. Last, because the order
-    # of this list is the order findings print in and the config is not a governed file.
+    checked = _checked(config, documents, prose, targets)
+    return Report(
+        findings=_ordered(_untainted(findings), checked),
+        checked=checked,
+        lines=sum(len(d.entries) for d in documents.values()),
+        sections=len(sections),
+        budgets=len(config.budgets),
+        notes=tuple(notes),
+    )
+
+
+def _checked(
+    config: Config,
+    documents: dict[str, Document],
+    prose: dict[str, Document],
+    targets: tuple[Target, ...],
+) -> tuple[str, ...]:
+    """Every file this run judged, in the order its findings print in (RK365).
+
+    One place, because the list is two things at once: what the report *says* was read, and
+    the sort key :func:`_ordered` applies to every finding. It was appended to at five points
+    down `_examine`'s body, three of them conditional, so the order findings print in was
+    decided by where a check happened to be added rather than by anything anybody wrote down.
+
+    The order is the reader's. The line-bearing files first, because they are what this format
+    is about; the prose they point into next; then the files this tool does not own — a
+    projection target, an instruction file with a budget — and `roadkeep.toml` last, judged
+    only where it carries a queue (RK354) and not a governed file at all.
+
+    Conditional membership is the rule and not the exception: a budgeted file is here because
+    `[budgets]` names it, a target because a marked block asked to be projected into it, and
+    the config because it declared an order. What decides each is one expression, all four in
+    view of each other.
+    """
+    checked = [config.relative(config.path(role)) for role in documents]
+    checked.extend(config.relative(config.path(role)) for role in prose)
+    checked.extend(target.where for target in targets)
+    checked.extend(config.relative(budget.path) for budget in config.budgets)
     if config.priority:
         checked.append(_configured(config))
+    return tuple(checked)
 
-    # A line carrying a byte nobody typed is not a line this format can judge: the parser
-    # read a string the author cannot see, so every other diagnosis of it names a
-    # consequence (RK34). Report the codepoint; the rest is decidable on the next run.
+
+def _untainted(findings: list[Finding]) -> list[Finding]:
+    """Every finding except the ones a codepoint already explains (RK34).
+
+    A line carrying a byte nobody typed is not a line this format can judge: the parser read a
+    string the author cannot see, so every other diagnosis of it names a consequence. Report
+    the codepoint; the rest is decidable on the next run.
+    """
     tainted = {
         (f.file, f.lineno) for f in findings if f.code.startswith("char.") and f.lineno
     }
-    findings = [
+    return [
         f
         for f in findings
         if f.code.startswith("char.") or (f.file, f.lineno) not in tainted
     ]
 
+
+def _ordered(findings: list[Finding], checked: tuple[str, ...]) -> tuple[Finding, ...]:
+    """Every finding, in the order the report prints them (RK365).
+
+    `checked` **is** the order, so a file sorts where the reader was told it was read, and the
+    two halves of the report cannot disagree about which file came first.
+
+    A finding whose file the list does not name sorts **last**, by falling off the end of the
+    index. That was right by accident until RK354 put the config in `checked`, and it is stated
+    here rather than left in a `dict.get` default: the report is read against the list, so
+    anything the list does not name belongs after everything it does.
+    """
     order = {name: index for index, name in enumerate(checked)}
-    findings.sort(key=lambda f: (order.get(f.file, len(order)), f.lineno or 0, f.code))
-    return Report(
-        findings=tuple(findings),
-        checked=tuple(checked),
-        lines=sum(len(d.entries) for d in documents.values()),
-        sections=len(sections),
-        budgets=len(config.budgets),
-        notes=tuple(notes),
+    return tuple(
+        sorted(findings, key=lambda f: (order.get(f.file, len(order)), f.lineno or 0, f.code))
     )
 
 
