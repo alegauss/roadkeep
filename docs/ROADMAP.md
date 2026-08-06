@@ -26,6 +26,8 @@
 
 ## Block C — Query (consult without reading the file)
 
+- 💭 **RK367** (deps: —) **The two figures the no-size-field non-goal argues from are stated in five places and both have drifted** — Lines vary 53-fold and not 27, files 3 to 25 and not 4 to 14, so the half of the argument that says files barely vary is the half that moved. → §RK367
+
 ## Block D — The gate
 
 ## Block E — Adoption

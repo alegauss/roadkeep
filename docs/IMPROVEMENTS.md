@@ -79,6 +79,29 @@ already written, not authorship.
 
 ## Block C — Query
 
+### §RK367 The two numbers a non-goal argues from
+
+RK364 restated the median and left the two figures beside it, which are the ones the
+non-goal's argument actually rests on. Measured at 359 entries: lines run 26 to 1384, which is
+**53-fold** and not 27, and files run 3 to 25, not 4 to 14. Both are present tense in five
+places — the non-goal, `weighing`'s module docstring, `Spread`'s docstring, `cli.py`'s help,
+and a sentence in `history` — and none is derived.
+
+The drift does not break the argument, which is what makes this worth deciding rather
+than editing. "Lines vary hugely, files barely" is why a size letter prices the axis
+nobody pays, and at 53-fold the first half is *stronger*. The second moved: 3 to 25 is
+eightfold, and "barely" was doing real work there.
+
+What holds is the comparison rather than either range, and it is scale-free: by p90 over
+median, lines vary 2.7× and files 1.4×, so the axis an agent pays is still the flatter
+one by half. Stated that way the sentence stops aging, and `weight` prints both numbers
+a reader would check it against.
+
+Which leaves RK364's choice, where the answer was the third one: the figures come out of
+the prose and the command is where a current reading lives (L5). The cost is that a
+reader of the non-goal sees no number — and a non-goal is read before somebody proposes
+the thing, so this may be the one place a stale figure beats a pointer to a command.
+
 ## Block D — The gate
 
 ## Block E — Adoption
