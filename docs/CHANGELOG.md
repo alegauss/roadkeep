@@ -183,6 +183,7 @@
 - 🗑 **RK336** **anchors prices every family that exists and never says which one is free next** — superseded by RK293: RK293 prints the free top-level and RK297 made it the project's, so this address is derived already; defaulting add --section to it would open a family where a child is meant.
 - ✅ **RK345** **The budget every other field is read before is the one an every-turn file has no door for** — budget --file reports what an every-turn file costs in lines and bytes and what is left, off the same count the gate holds, so an edit to agents.md is composed against a number.
 - ✅ **RK346** **One question is answered by two fields, and the older one names one namespace of several** — anchors --json answers the free top-level per namespace and nothing else, so the row states which namespace its address is for instead of a bare field meaning one of several.
+- ✅ **RK364** **The median this repository's own granularity claim is stated against has fallen below the floor a test holds** — The floor is 100 and far from the reading on purpose — by quarters the median falls 349 to 154, so the tasks got smaller under one-task-one-commit and the shape carries the claim.
 
 ## Block D — The gate
 

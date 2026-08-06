@@ -5,6 +5,15 @@ ledger entry: median 376, p75 574, p90 826. Nine are above 800 and they are the
 architectural ones. The spread is real, nothing in the backlog says it, and a line being
 written cannot consult it — so whether a task should be two tasks is decided by feel.
 
+**That reading was taken at 69 entries and is not maintained here** (RK364). `roadkeep
+weight` is the current answer, which is the whole argument for deriving it (L5), and a
+number restated in prose is one that goes stale while reading as current. What has held
+across 359 entries is the *shape* rather than the figures: the tail is the architectural
+work, the middle is an ordinary task, and the two are more than an order of magnitude
+apart. The middle has more than halved on the way — the tasks got smaller, monotonically,
+under one task one commit — and none of the three sentences this module is here to support
+depended on where it was.
+
 **Derived, never stored.** The commit that added an entry is findable by pickaxe over the
 ledger (RK31), so this is a query over git and not a number anybody maintains: it cannot
 rot, it costs nothing on the turns nobody asks (L5), and a reader who doubts it can check

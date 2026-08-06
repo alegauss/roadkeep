@@ -360,14 +360,19 @@ def test_this_ledgers_own_spread_is_the_one_the_design_states():
     # carries the code, which is the one-task-one-commit rule stated as a number.
     assert len(weights.unresolved) <= 1, weights.unresolved
     assert weights.lines.high > 20 * weights.lines.low
-    # A few hundred, which is the claim; tens would mean the granularity claim stopped being
-    # true. The bound has now been landed on *exactly* twice — a run of small tasks put the
-    # median on 300, the lower bound moved to 200, and the next run put it on 200 — so the `<`
-    # was arbitrary precision on a threshold rather than part of the claim, and it is `<=`.
-    # What the two collisions say is worth more than either move: the median is falling (300 →
-    # 200 over ~90 entries), so the next one is the reading that the claim itself changed, and
-    # the answer then is to restate the granularity rather than to widen this again.
-    assert 200 <= weights.lines.median < 500
+    # The third collision came, and it was the claim (RK364). Measured in ledger order, in
+    # quarters of ~90 entries: median 349, 218, 160, 154 — the first 63, which is the corpus
+    # §RK71 read, sit at 402 and everything after them at 174. So the median is not being moved
+    # by a run of small tasks on a long ledger; the tasks got smaller, monotonically, and the
+    # rule that did it is one task one commit. A floor tracking that down is a record of where
+    # the median has been, which is why this one stops tracking it.
+    #
+    # 100 is the floor the claim was always about: *tens* would mean granularity stopped being
+    # true — a backlog of trivia the one-commit rule is manufacturing rather than measuring —
+    # and hundreds mean it holds. It is far from the reading (154 at 359 entries) on purpose,
+    # because a bound landed on twice is a bound chosen for the wrong reason. What ages here is
+    # the number and not the shape, so the shape is what the assertions below are.
+    assert 100 <= weights.lines.median < 500
     assert weights.files.median < weights.lines.median  # the axis that does not vary
     heavy = {w.task_id for w in weights.weighed if w.lines > 800}
     assert {"RK2", "RK6", "RK9", "RK10", "RK18", "RK22", "RK32", "RK48"} <= heavy

@@ -79,29 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK364 The granularity claim, measured below what it says
-
-`test_this_ledgers_own_spread_is_the_one_the_design_states` holds §RK71's reading of
-this repository against the ledger it measured: the spread is 27-fold, the architectural
-tasks are the tail, and the median is *a few hundred lines*. That last one is now 198
-against a floor of 200, and the test refuses.
-
-The comment above the assertion is what makes this a task rather than a one-character
-edit. The bound has been landed on exactly twice — a run of small tasks put the median
-on 300, the floor moved to 200, the next run put it on 200 — and the note left there
-says the third collision is the reading that **the claim itself changed**. Widening it
-again would make the assertion a record of where the median has been rather than a
-statement of what this project claims about the size of its own work.
-
-Which claim replaces it is a measurement before it is a sentence: whether the median is
-falling because the tasks got smaller — one task one commit, against a floor measured on
-63 entries that predate the rule — or because the ledger got long enough for a run of
-small ones to move it. The first restates the number; the second says the median is the
-wrong statistic for this claim and names the one that is not.
-
-And the claim is in three places: the assertion, its comment, and the non-goal that
-prices an effort field against lines varying 27-fold.
-
 ## Block D — The gate
 
 ## Block E — Adoption

@@ -26,8 +26,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 💭 **RK364** (deps: —) **The median this repository's own granularity claim is stated against has fallen below the floor a test holds** — 198 against a floor of 200, and the test says a third collision is the claim changing rather than the bound wanting room, so what to restate is the claim. → §RK364
-
 ## Block D — The gate
 
 ## Block E — Adoption
