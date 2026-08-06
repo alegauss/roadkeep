@@ -75,6 +75,28 @@ already written, not authorship.
 
 ## Block A — The model
 
+### §RK378 Two prose files must share one outline, with no way to give either its own
+
+`anchors` says it plainly — "the free address stays the project's either way, since one
+outline spans both". That is the right default for a project whose prose files are one
+argument split across two documents. It is the wrong one for a project where each file
+is its own argument: Turing's `STRATEGY.md` runs §VIII–§XVI as a strategy outline, and
+`IMPROVEMENTS.md` runs a rationale outline that happens to reach the same numerals.
+Thirteen collide. Neither file is wrong about its own numbering; they are wrong about
+each other's, and only because they were never told they were sharing.
+
+The fix is a namespace per role, not a renumbering: `[refs] strategy = "S"`, after which
+that file's addresses read `§S:VIII` and its outline stops competing. The scheme stays
+`outline`; only the space changes. `declaring`, `find` and `_refuse_doubling` already
+take the role, so the resolver has the fact it needs.
+
+Without it the only repair is to renumber one file into free numerals — for Turing, nine
+top-levels and forty-nine headings moved past §LXXI, which reads as history rather than
+as an outline and buys nothing a namespace would not.
+
+Related: RK377 is the missing verb, this is the missing configuration. Either one alone
+leaves the case half-open.
+
 ## Block B — Authoring
 
 ### §RK368 The correction a non-goal has no door for
@@ -97,34 +119,35 @@ the address — `drop` plus `add` is right there, and is what the skill already 
 changed lead takes. Which leaves whether that asymmetry needs stating in a refusal, or
 follows from the argument closely enough to cost nothing.
 
+### §RK377 A doubled anchor has no verb that repairs it
+
+`_refuse_doubling` stops a *new* section from taking an address a sibling prose file
+already declares, and `lint` reports every pair already there. Neither helps a corpus
+that arrives with the collision: Turing adopted roadkeep with 13 anchors declared by
+both `IMPROVEMENTS.md` and `STRATEGY.md`, and there is nothing to call.
+
+The machinery is already written. `renumbering._rename_anchor` re-addresses a section
+and every subsection whose anchor extends it, in one transaction. It is simply
+unreachable here: `renumber` moves an *id*, and line 172 keeps the pointer as
+`entry.task.ref` unless `ref_scheme == "id"` — so under `outline` the anchor never
+moves, which is precisely the scheme a project with a hand-kept outline is on.
+
+Nothing else is a door. `section amend` says so itself — "Neither is the anchor itself,
+which is `renumber`'s" — and `add` plus `drop` is not a rename: it loses the section's
+place in the outline, and `drop` refuses while an open line points at the anchor, which
+is the case worth repairing.
+
+What is missing is the reachable form: `section move <from> <to>`, or `--anchor` on
+`section amend`, taking the refusals `add` already computes — refuse a target another
+file declares, refuse an address history spent.
+
+Turing's T902 is the case in hand.
+
 ## Block C — Query
 
 ## Block D — The gate
 
 ## Block E — Adoption
-
-### §RK376 The zero one shape further out than the counters reach
-
-A fourteen-line `README.md` of ordinary prose and a roadmap holding one heading and no
-tasks both report `0 line(s), 0 conform, 0 would change`. That is RK98's rule at the far
-end of itself: `tabular` and `listed` were built so a backlog in a shape this format
-cannot read stops answering the number an empty file answers, and a file that is not a
-backlog in any shape walks past both of them.
-
-The path in is a typo or a guess — `adopt README.md`, `adopt docs/ROADMAP` corrected to
-the wrong sibling — and the reading is the most reassuring one the report can give: a
-corpus already conforming, nothing to change, adopt away. It is the answer an estimate
-exists to not give, arriving on the run where the caller is least able to check it.
-
-The fact is already in hand and never stated. The estimate knows how many lines the file
-has and how many of them it read in any shape at all — as an entry, a reject, a table
-row, a plain bullet, a heading. Zero of everything against a file with bulk is a
-different answer from zero against a file with none, and only the second means what the
-headline currently says.
-
-What it must not become is a judgement about whether the file *is* a backlog. Counting
-what was read against what is there is a measurement; deciding somebody pointed at the
-wrong file is the tool having an opinion (L4).
 
 ## Block F — The plugin
 

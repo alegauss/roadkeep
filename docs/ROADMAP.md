@@ -22,17 +22,18 @@
 
 ## Block A — The model (a task is data before it is a line)
 
+- 📋 **RK378** (deps: —) **Two prose files must share one outline, with no way to give either its own** — every declared prose file numbers into a single anchor space, so a project whose STRATEGY and IMPROVEMENTS each keep their own outline collides by construction rather than by mistake. → §RK378
+
 ## Block B — Authoring (insert, never hand-edit)
 
 - 💭 **RK368** (deps: —) **A non-goal whose reason changes has no door but drop and re-add, which moves the bullet to the end of the list** — `record amend` exists so a ledger correction is not a move; the non-goal list has no equivalent, and `add` appends, so a reworded reason reads as a deletion elsewhere. → §RK368
+- 📋 **RK377** (deps: —) **A doubled anchor has no verb that repairs it** — lint reports section.ambiguous and the write path refuses a doubling, but no verb changes a section's address, so the only repair left is the hand edit the hook denies. → §RK377
 
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
 
 ## Block E — Adoption
-
-- 📋 **RK376** (deps: —) **A file that is not a backlog reports the headline an empty one gets, so a mistyped path reads as needing nothing** — `tabular` and `listed` catch a backlog in a shape nothing reads, and a file that is no backlog at all still answers zero of everything. → §RK376
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 

@@ -443,6 +443,22 @@ class Estimate:
     #: never resolved away either way: inventing a role for a file this project does not govern
     #: is the answer RK292 keeps out of the report.
     by_path: tuple[str, ...] = ()
+    #: The lines this file holds, and how many of them were read in **any** shape at all —
+    #: as an entry, a reject, a table row, a plain bullet or a heading (RK376). RK98's rule at
+    #: the far end of itself: :attr:`tabular` and :attr:`listed` stop a backlog written in a
+    #: shape nothing reads from answering the number an empty file answers, and a file that is
+    #: not a backlog in any shape walked past both — a fourteen-line `README.md` and a roadmap
+    #: with one heading and no tasks reporting the same `0 conform, 0 would change`, on the run
+    #: where a typo puts the caller least able to check it.
+    #:
+    #: Two numbers because one of them alone is the ambiguity: zero read against a file with
+    #: bulk is a different answer from zero against a file with none, and only the second means
+    #: what the headline says. Reported and deliberately **not** added to :attr:`changing` — how
+    #: many lines would have to change is an answer about a backlog becoming conforming, and
+    #: this file may be no backlog at all. Counting what was read against what is there is a
+    #: measurement; concluding somebody named the wrong file is an opinion (L4).
+    lines: int = 0
+    recognised: int = 0
     #: What this file holds in a shape the format has no reader for, in whatever :attr:`unit`
     #: is being counted: plain list items under a block heading in a backlog (RK279), and
     #: headings with prose and no anchor in a rationale file (RK281). One field because it is
@@ -871,6 +887,8 @@ def adopt(
         non_goals=None if ledger else _scoped(config, document),
         tabular=len(document.tabular),
         listed=len(document.listed),
+        lines=len(document.lines),
+        recognised=_recognised(document),
     )
 
 
@@ -1373,6 +1391,36 @@ def _alpha_head(text: str) -> str:
         if not char.isalpha():
             return text[:index]
     return text
+
+
+def _recognised(document: Document) -> int:
+    """How many of this file's lines were read in **any** shape at all (RK376).
+
+    Every shape the reader has a name for, and no judgement about which: an entry is read, a
+    marker line it refused is read, a table row and a plain bullet are read as the shapes RK98
+    counts, and a heading is read where it **declares a block**. What is left over is prose,
+    blank lines, and a file that is not a backlog.
+
+    That last qualifier is the measurement rather than a detail of it. Counting every heading
+    put this back where it started: a `README.md` opens at `# My project` and carries an
+    `## Install`, so a file with nothing else the format can read answers two — while the same
+    headings are already absent from :attr:`Estimate.blocks`, which reads a label and finds
+    none. A heading this format cannot read as structure is exactly the prose that walked past.
+
+    Distinct line numbers rather than a sum, because the shapes are not disjoint by
+    construction and a total that double-counted one line would be a number nobody could
+    check against the file. Zero is the whole point of it — beside :attr:`Estimate.lines` it
+    is what tells an empty roadmap apart from a file this format read nothing in.
+    """
+    return len(
+        {
+            *(entry.lineno for entry in document.entries),
+            *(reject.lineno for reject in document.rejects),
+            *(row.lineno for row in document.tabular),
+            *(item.lineno for item in document.listed),
+            *(h.lineno for h in document.headings if h.label),
+        }
+    )
 
 
 def _grouped(reasons: Iterable[str]) -> tuple[tuple[str, int], ...]:

@@ -5843,6 +5843,14 @@ def _print_estimate(estimate: Estimate) -> None:
         f"  read     {estimate.parsed} {estimate.unit}(s), {estimate.conforming} conform, "
         f"{estimate.changing} would change"
     )
+    if estimate.lines and not estimate.recognised:
+        # First of the three, because it is the one that says the headline above means nothing
+        # about a backlog (RK376). A measurement and never a verdict on the file: what was read
+        # against what is there, leaving "you named the wrong file" to the reader (L4).
+        print(
+            f"  unread   nothing in {estimate.lines} line(s) was read in any shape — "
+            f"no entry, reject, table row, bullet or block heading"
+        )
     if estimate.tabular:
         # Directly under the headline, because it is the headline it explains: a table-shaped
         # backlog reads as 0 lines, which is what an empty file reads as (RK98).
@@ -6127,6 +6135,9 @@ def _estimate_json(estimate: Estimate) -> dict[str, object]:
         "declared": estimate.declared,
         "tabular": estimate.tabular,
         "listed": estimate.listed,
+        # RK376: the pair that tells an empty roadmap apart from a file nothing was read in.
+        "lines": estimate.lines,
+        "recognised": estimate.recognised,
     }
 
 

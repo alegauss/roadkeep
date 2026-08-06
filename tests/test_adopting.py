@@ -1288,6 +1288,58 @@ def test_a_file_that_is_not_there_is_a_usage_error(tmp_path: Path, capsys) -> No
     assert "No such file or directory" not in said
 
 
+NOT_A_BACKLOG = """# My project
+
+A paragraph about the project, several lines long.
+
+## Install
+
+    pip install myproject
+"""
+
+
+def test_a_file_that_is_no_backlog_is_told_apart_from_an_empty_one(tmp_path: Path) -> None:
+    """RK376: RK98's rule at the far end of itself. `tabular` and `listed` stop a backlog in a
+    shape nothing reads from answering an empty file's number, and a file that is not a backlog
+    in any shape walked past both — on the run a typo puts the caller least able to check."""
+    target = tmp_path / "README.md"
+    target.write_text(NOT_A_BACKLOG, encoding="utf-8")
+    config = Config.discover(tmp_path)
+    foreign = adopt(config, target)
+    assert (foreign.parsed, foreign.recognised) == (0, 0) and foreign.lines > 0
+
+    # The roadmap that really is empty answers the same headline and is a different fact: its
+    # block heading was read, so the zero above it means what it says.
+    empty = tmp_path / "ROADMAP.md"
+    empty.write_text("# Roadmap\n\n## Block A\n", encoding="utf-8")
+    assert adopt(config, empty).recognised == 1
+
+    # And a file with nothing in it at all needs no sentence: there the zero is simply true.
+    blank = tmp_path / "BLANK.md"
+    blank.write_text("", encoding="utf-8")
+    assert (adopt(config, blank).lines, adopt(config, blank).recognised) == (0, 0)
+
+
+def test_a_heading_the_format_cannot_read_as_structure_is_not_read(tmp_path: Path) -> None:
+    # The qualifier that is the measurement rather than a detail of it: counting every heading
+    # put this back where it started, a `README.md` answering two for `# My project` and
+    # `## Install` — the same headings `blocks` already looks at and finds no label in.
+    target = tmp_path / "README.md"
+    target.write_text(NOT_A_BACKLOG, encoding="utf-8")
+    assert adopt(Config.discover(tmp_path), target).blocks == ()
+
+
+def test_the_command_says_which_zero_this_is(tmp_path: Path, capsys) -> None:
+    target = tmp_path / "README.md"
+    target.write_text(NOT_A_BACKLOG, encoding="utf-8")
+    assert main(["-C", str(tmp_path), "adopt", str(target)]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "nothing in 7 line(s) was read in any shape" in printed
+    # A measurement and not a verdict: the count of lines that would have to change is an
+    # answer about a backlog becoming conforming, and this file may be no backlog at all.
+    assert "0 conform, 0 would change" in printed
+
+
 def test_the_configuration_is_refused_rather_than_measured_as_an_empty_backlog(
     tmp_path: Path,
 ) -> None:
