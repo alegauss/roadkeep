@@ -103,6 +103,30 @@ follows from the argument closely enough to cost nothing.
 
 ## Block E — Adoption
 
+### §RK375 The second file that declares this format
+
+RK374 refused `adopt roadkeep.toml`, because measuring this format's own declaration
+answers `0 lines, 0 would change` — the reading an empty backlog gets, and the one RK98
+says an estimate may not give. A `pyproject.toml` carrying `[tool.roadkeep]` still gets
+exactly that.
+
+The guard was written by filename and reasoned that way: refusing every `pyproject.toml`
+by name would refuse the ones that configure nothing here, which is most of them. That
+argument is sound against a name check and settles nothing about the question under it,
+because the name is not how this tool recognises the file anywhere else. `_configured`
+reads the table and answers whether a pyproject declares roadkeep, and `init` refuses
+against that answer rather than against a filename.
+
+So the two doors into this format disagree about what the format's own declaration is,
+and the newer one is the narrower. That is the shape worth naming: RK374's refusal is
+right and reaches one of two files, and the reason it reaches one is a sentence about
+`pyproject.toml` in general rather than about this one.
+
+What the reader is not is free — `_configured` takes a directory and answers about the
+declaration at that root, and what is being asked here is about a path the caller typed,
+which may be in another tree entirely. Whether that is one function taking a path or two
+readers agreeing is the part to decide.
+
 ## Block F — The plugin
 
 ### §RK366 A shipped text whose wrap nothing holds
