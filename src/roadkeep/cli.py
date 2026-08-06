@@ -1562,11 +1562,11 @@ def build_parser() -> argparse.ArgumentParser:
             "block whose last comparables shipped at 800+ lines is a block where the next "
             "line is probably two lines. Derived from the commit that wrote each ledger "
             "entry, so nothing stores it and `git show` refutes it. Two axes and no score — "
-            "lines vary 27-fold here and files, which is what an agent holds in context, do "
-            "not. An entry whose commit wrote several is named and left out rather than "
-            "given a share of it, a divided cost being one no commit contains. This ranks "
-            "nothing: every tier of `pick` is a fact, and a cheapness tier would defer the "
-            "architectural tasks, which is where the leverage is."
+            "median to p90 lines vary 2.7× here and files, which is what an agent holds in "
+            "context, 1.4×. An entry whose commit wrote several is named and left out "
+            "rather than given a share of it, a divided cost being one no commit contains. "
+            "This ranks nothing: every tier of `pick` is a fact, and a cheapness tier would "
+            "defer the architectural tasks, which is where the leverage is."
         ),
     )
     weight_parser.add_argument("--block", help="only this block's comparables, e.g. C")

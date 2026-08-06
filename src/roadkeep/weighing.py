@@ -20,9 +20,11 @@ rot, it costs nothing on the turns nobody asks (L5), and a reader who doubts it 
 it against `git log`. That is also why there is no field on a line — §RK72 carries that
 argument, and the non-goal it produced is binding.
 
-**Two axes, because the corpus disagrees about which one is paid.** Lines vary 27-fold;
-files, which is what an agent holds in context, vary from 4 to 14. Reporting one would be
-choosing the author's axis for them, so both are here and neither is combined into a score.
+**Two axes, because the corpus disagrees about which one is paid.** What carries that is
+the comparison and not either range, so it is stated scale-free (RK367): median to p90,
+lines vary 2.7× and files — which is what an agent holds in context — 1.4×, the axis paid
+being the flatter one by half. Reporting one would be choosing the author's axis for them,
+so both are here and neither is combined into a score.
 
 What this is for: **granularity, at the moment the line is written.** A block whose last
 comparables shipped at 800+ lines is a block where the next line is probably two lines.
@@ -84,8 +86,8 @@ class Weight:
 class Spread:
     """A distribution over one axis. Empty is a real answer: nothing shipped yet.
 
-    Percentiles rather than a mean: the corpus is 27-fold and the eight architectural tasks
-    at the top would pull an average into a number no task ever cost.
+    Percentiles rather than a mean: the corpus spans two orders of magnitude and the
+    architectural tasks at the top would pull an average into a number no task ever cost.
     """
 
     count: int = 0

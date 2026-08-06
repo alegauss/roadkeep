@@ -184,6 +184,7 @@
 - ✅ **RK345** **The budget every other field is read before is the one an every-turn file has no door for** — budget --file reports what an every-turn file costs in lines and bytes and what is left, off the same count the gate holds, so an edit to agents.md is composed against a number.
 - ✅ **RK346** **One question is answered by two fields, and the older one names one namespace of several** — anchors --json answers the free top-level per namespace and nothing else, so the row states which namespace its address is for instead of a bare field meaning one of several.
 - ✅ **RK364** **The median this repository's own granularity claim is stated against has fallen below the floor a test holds** — The floor is 100 and far from the reading on purpose — by quarters the median falls 349 to 154, so the tasks got smaller under one-task-one-commit and the shape carries the claim.
+- ✅ **RK367** **The two figures the no-size-field non-goal argues from are stated in five places and both have drifted** — The two ranges are restated as the comparison they were for — median to p90, lines 2.7× against files 1.4× — which is scale-free, so a test holds it and `weight` prints it.
 
 ## Block D — The gate
 

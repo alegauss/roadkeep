@@ -526,9 +526,10 @@ class Cost:
     """What one commit changed: lines either side, and how many files (RK71).
 
     Both, because the two live corpora disagree about which one an author pays. Lines are
-    what varies — 40 to 1384 here — and files are what an agent holds in context, which the
-    "no size field" non-goal measured at 4 to 14. A derivation that reported one would be
-    picking the axis for the reader.
+    what varies and files are what an agent holds in context, which is the comparison the
+    "no size field" non-goal argues from — median to p90, 2.7× against 1.4×, a ratio
+    holding where the ranges it was first stated as have not (RK367). A derivation that
+    reported one would be picking the axis for the reader.
     """
 
     sha: str

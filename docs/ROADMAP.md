@@ -26,8 +26,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 💭 **RK367** (deps: —) **The two figures the no-size-field non-goal argues from are stated in five places and both have drifted** — Lines vary 53-fold and not 27, files 3 to 25 and not 4 to 14, so the half of the argument that says files barely vary is the half that moved. → §RK367
-
 ## Block D — The gate
 
 ## Block E — Adoption
@@ -50,9 +48,6 @@ Deliberately **not** built — check this list before proposing work:
 - **No enforced id scheme beyond `<prefix><n>`.** Non-contiguous, retired-never-reused
   is a property of real backlogs, not a defect to normalize.
 - **No dates or quarters.** A marker is maturity, not a schedule.
-- **No effort or size field.** Nothing can verify a letter, `pick`'s every tier is a
-  fact, and what an agent pays is context: 4 to 14 files a task, against lines that vary
-  27-fold, so the letter prices the axis nobody pays.
 - **No backlog in an issue tracker** (Jira, Linear, GitHub Issues.) A backlog that lives
   in a service is one an agent cannot `Grep`; a one-way report about this tool, sent
   explicitly, moves nothing out of the files.
@@ -62,3 +57,6 @@ Deliberately **not** built — check this list before proposing work:
 - **No supported Python API.** The CLI, the MCP tools and the plugin are the surface;
   `from roadkeep import Schema` is how the tests reach the vocabulary, so no `py.typed`
   ships and a rename inside the package breaks nobody.
+- **No effort or size field.** Nothing can verify a letter, `pick`'s every tier is a
+  fact, and what an agent pays is context — median to p90, files vary 1.4× against lines
+  2.7×, so the letter prices the axis nobody pays.

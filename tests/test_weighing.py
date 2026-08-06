@@ -353,7 +353,7 @@ def test_no_history_is_reported_as_absent_and_not_as_zero(tmp_path):
 
 def test_this_ledgers_own_spread_is_the_one_the_design_states():
     # 63 tasks then, more now, so the claims that hold are the shape ones: the spread is
-    # 27-fold, the median is a few hundred lines, and the architectural tasks are the tail.
+    # an order of magnitude, the median a few hundred lines, the architectural tasks the tail.
     weights = weigh(Config.discover(HERE))
     assert weights.lines.count > 60
     # At most one: the entry `ship` wrote this turn has no commit until the commit that
@@ -374,5 +374,12 @@ def test_this_ledgers_own_spread_is_the_one_the_design_states():
     # the number and not the shape, so the shape is what the assertions below are.
     assert 100 <= weights.lines.median < 500
     assert weights.files.median < weights.lines.median  # the axis that does not vary
+    # The comparison the "no size field" non-goal argues from, held here rather than in the
+    # five prose copies that stated it as two ranges and drifted (RK367). Scale-free on
+    # purpose: p90 over median holds where 26-to-1384 has not, and the claim was never the
+    # range — it is that the axis an agent pays is the flatter one. 1.5 and not the reading
+    # (2.7 against 1.4, so 1.9) for the reason the median's floor is far from its: a bound
+    # landed on is a bound chosen for the wrong reason. Cross-multiplied to stay in ints.
+    assert weights.lines.p90 * weights.files.median * 2 > 3 * weights.files.p90 * weights.lines.median
     heavy = {w.task_id for w in weights.weighed if w.lines > 800}
     assert {"RK2", "RK6", "RK9", "RK10", "RK18", "RK22", "RK32", "RK48"} <= heavy
