@@ -103,6 +103,28 @@ follows from the argument closely enough to cost nothing.
 
 ## Block E — Adoption
 
+### §RK373 A sentence about what was read, derived from what used to be
+
+`adopt --sections docs/IMPROVEMENTS.md --with NOTES.md` on a project declaring a
+`STRATEGY.md` reports `docs/ROADMAP.md not read` and nothing about the strategy file.
+The run opened two files and neither was that one: `--with` replaces the declared set,
+which is RK359's rule and the right one.
+
+The sentence is derived from a constant. `_unread` is handed `opened=(*PROSE_ROLES, …)`,
+which was exactly true while `--sections` opened every prose file the project declared —
+RK347's read — and became a claim about a set the caller had since narrowed. So the one
+line whose job is to say which cross-file checks went unmade is the line that says a
+collision was checked for in a file nobody looked at.
+
+It is RK372 one direction over, and the same root: a fact about the run stated as a rule
+about the configuration. There the field said a declared file was outside the project;
+here the argument says an unopened file was opened. Both were true of the run RK347
+wrote them for.
+
+What `_ambiguous` already builds is the answer — `seen` is exactly the set of files that
+were read, keyed by resolved path. Handing that back, and deriving `opened` from it,
+makes the sentence a report of what happened rather than a restatement of what used to.
+
 ## Block F — The plugin
 
 ### §RK366 A shipped text whose wrap nothing holds
