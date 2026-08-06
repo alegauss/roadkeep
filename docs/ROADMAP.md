@@ -24,6 +24,8 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 💭 **RK368** (deps: —) **A non-goal whose reason changes has no door but drop and re-add, which moves the bullet to the end of the list** — `record amend` exists so a ledger correction is not a move; the non-goal list has no equivalent, and `add` appends, so a reworded reason reads as a deletion elsewhere. → §RK368
+
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate

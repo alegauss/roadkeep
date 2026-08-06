@@ -77,6 +77,26 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK368 The correction a non-goal has no door for
+
+RK367 changed one clause of a non-goal's reason and had to drop the bullet and write it
+again, that being the only door. The lead is the address and `non-goal add` inserts
+after the last one there, so a constraint that sat fifth of eight now sits eighth: a
+reviewer reads a deletion and an addition where a word moved, and the order a reader
+takes for the shape of the list changed for a reason no commit is about.
+
+The ledger settled this one layer up. `record amend` exists so that a correction is not
+a move — never drop-and-re-add, which shows a reviewer a deletion where a word changed —
+and `section amend` is the same door for a design that would otherwise be write-once
+until it shipped. The non-goal list is the third bullet grammar this tool owns and the
+one that never got one.
+
+The shape the other two settle: `non-goal amend <lead> --why …`, rewriting the reason in
+place, filled to the same width, the bullet's position untouched. Not the lead, which is
+the address — `drop` plus `add` is right there, and is what the skill already says a
+changed lead takes. Which leaves whether that asymmetry needs stating in a refusal, or
+follows from the argument closely enough to cost nothing.
+
 ## Block C — Query
 
 ## Block D — The gate
