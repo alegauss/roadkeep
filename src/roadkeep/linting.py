@@ -464,8 +464,10 @@ class Report:
     """What was checked, and everything wrong with it. Emptiness is the pass."""
 
     findings: tuple[Finding, ...]
-    #: The files read, as the project spells them — printed even when clean, because a
-    #: gate that passed by reading nothing is the failure mode of every gate.
+    #: The files this run **judged**, as the project spells them — printed even when clean,
+    #: because a gate that passed by reading nothing is the failure mode of every gate. Judged
+    #: and not merely read, so every finding's file is in here (RK354): `roadkeep.toml` is one
+    #: where it carries a queue and is not one where it only said which files to open.
     checked: tuple[str, ...]
     lines: int
     #: Anchored sections read in the prose file — the other half of what was checked.
@@ -584,6 +586,16 @@ def _examine(config: Config, since: str | None, tree: Tree) -> Report:
     for budget in config.budgets:
         checked.append(config.relative(budget.path))
     findings.extend(_budgets(config, tree))
+
+    # The config, only where it carries a `priority` (RK354). `checked` is what this gate
+    # **judged**, which is the reading that keeps it honest against the findings: a queue the
+    # config declares is resolved against that file, and one the section shadows is noted
+    # against it, so both are about a file the list would otherwise not name. Where there is
+    # no queue the config was read to know what to judge and judged nothing, and naming it
+    # would promise coverage of a file no finding here can be about. Last, because the order
+    # of this list is the order findings print in and the config is not a governed file.
+    if config.priority:
+        checked.append(_configured(config))
 
     # A line carrying a byte nobody typed is not a line this format can judge: the parser
     # read a string the author cannot see, so every other diagnosis of it names a
@@ -1210,6 +1222,15 @@ def _scope(config: Config, roadmap: Document | None) -> list[Finding]:
     return out
 
 
+def _configured(config: Config) -> str:
+    """Where a finding about `roadkeep.toml`'s own keys goes, as the project spells it.
+
+    One expression, because :attr:`Report.checked` names this file and `_queue` files against
+    it: two spellings of the same path is a count and a finding disagreeing (RK354).
+    """
+    return config.relative(config.source) if config.source else "roadkeep.toml"
+
+
 def _queue(
     config: Config, documents: dict[str, Document]
 ) -> tuple[list[Finding], list[Note]]:
@@ -1271,7 +1292,7 @@ def _queue(
             notes.append(
                 Note(
                     "priority.config",
-                    config.relative(config.source) if config.source else "roadkeep.toml",
+                    _configured(config),
                     f"declares priority = {list(config.priority)} while "
                     f"{file} holds the queue: the section wins, so the config's order is "
                     f"read by nothing and `priority drop` cannot reach it",
@@ -1282,8 +1303,7 @@ def _queue(
             for entry in queueing.entries(roadmap, config)
         ]
     else:
-        where = config.relative(config.source) if config.source else "roadkeep.toml"
-        file = where
+        file = _configured(config)
         places = [(token, None, None) for token in config.priority]
 
     seen: dict[str, int | None] = {}

@@ -119,14 +119,14 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 30 | 1 |
 | B — Authoring (insert, never hand-edit) | 0 | 84 | 0 |
 | C — Query (consult without reading the file) | 0 | 51 | 1 |
-| D — The gate | 4 | 63 | 0 |
+| D — The gate | 3 | 64 | 0 |
 | E — Adoption | 2 | 55 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 67 | 1 |
-| **Total** | 6 | 350 | 4 |
+| **Total** | 5 | 351 | 4 |
 
 **Next ready:**
 
-- 📋 **RK354** (deps: —) **The report names a file it does not list among the ones it checked, so a count and a finding disagree** — RK326 resolves a queue the config declares and files findings against roadkeep.toml, which `checked` never carried: the summary reads 1 problem across 2 files and names a third. → §RK354
+- 📋 **RK355** (deps: —) **What `--fix` repairs is enumerated in four places and none of them is derived from the fixer** — RK328 added the sixth repair and the `Stop` hook's sentence still names five, so the message an agent reads at the moment of the drift is the one place the list went stale. → §RK355
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

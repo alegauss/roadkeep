@@ -81,30 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK354 A finding about a file nobody was told was read
-
-`Report.checked` is printed even on a clean run, and the argument for it is in
-`linting`'s own docstring: a gate that passed by reading nothing looks exactly like a
-gate that passed. RK326 put a finding outside that list.
-
-The queue is read from the roadmap where a heading declares one and from `roadkeep.toml`
-where none does — the second being where the defect was measured — so there the
-finding's `file` is the config. Measured on a scratch project: `checked` is
-`('ROADMAP.md', 'CHANGELOG.md')`, the finding names `roadkeep.toml`, and the summary
-reads `1 problem(s) in 1 line(s) across 2 file(s)`. A reader counting files against
-findings is told two things that cannot both be true, and the sort in `_examine` puts
-anything not in `checked` last by falling off the end of the index, which is right by
-accident.
-
-Two shapes, and the choice is what `checked` means. If it is *every file this run read*,
-the config belongs in it always — and then a project with no queue names a file no
-finding can be about. If it is *every file this gate judges*, it belongs there only
-where it declared the queue, which is the one thing about that file this gate has an
-opinion on.
-
-Neither is free: the first widens a list that is a promise about coverage, and the
-second makes membership conditional on a config key.
-
 ### §RK355 The list of derived repairs, stated four times
 
 RK16's split is the tool's most-repeated sentence: `--fix` repairs *annotation, pointer,

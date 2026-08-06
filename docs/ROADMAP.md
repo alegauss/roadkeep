@@ -28,7 +28,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK354** (deps: —) **The report names a file it does not list among the ones it checked, so a count and a finding disagree** — RK326 resolves a queue the config declares and files findings against roadkeep.toml, which `checked` never carried: the summary reads 1 problem across 2 files and names a third. → §RK354
 - 📋 **RK355** (deps: —) **What `--fix` repairs is enumerated in four places and none of them is derived from the fixer** — RK328 added the sixth repair and the `Stop` hook's sentence still names five, so the message an agent reads at the moment of the drift is the one place the list went stale. → §RK355
 - 💭 **RK356** (deps: —) **Nothing says when the version this gate pins stopped being the one an installing user gets** — RK335 named the reader so a merge is gated by a fact somebody can read, and the cost it bought is a number that ages silently until a payload defect the newer validator sees ships. → §RK356
 - 📋 **RK357** (deps: —) **A repair that removed a line reports the line number of whatever moved up into its place** — RK328's drop is the one repair that is not a rewrite, and it is reported as `file:line` like the others, so following the address lands on the entry that took the removed one's place. → §RK357

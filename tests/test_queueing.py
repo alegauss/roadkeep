@@ -387,6 +387,36 @@ def test_the_queue_a_config_declares_is_resolved_too(tmp_path):
     assert {f.file for f in report.findings} == {"roadkeep.toml"}
 
 
+def test_every_file_a_finding_names_is_one_the_report_says_it_checked(tmp_path):
+    # The invariant RK354 is about, in the shape the summary reads it: `1 problem(s) across
+    # 2 file(s)` naming a third is two statements that cannot both be true.
+    config = gated(tmp_path, "", roadmap=NONE, config=GATED.replace(
+        'prefix = "RK"\n', 'prefix = "RK"\npriority = ["RK7"]\n'
+    ))
+    report = lint(config)
+    assert {f.file for f in report.findings} <= set(report.checked)
+    assert report.checked[-1] == "roadkeep.toml"
+
+
+def test_a_config_with_no_queue_is_not_named_among_the_files_judged(tmp_path):
+    # The other half of the choice: `checked` promises coverage, and a config read only to
+    # learn which files to open is one no finding here can be about.
+    config = gated(tmp_path, "- RK1\n")
+    report = lint(config)
+    assert report.clean and "roadkeep.toml" not in report.checked
+
+
+def test_a_shadowed_config_queue_is_judged_and_so_is_named(tmp_path):
+    # It is the note's own file: naming a file in a note the list of judged files omits is
+    # the same disagreement one line further down the output.
+    config = gated(tmp_path, "- RK1\n", config=GATED.replace(
+        'prefix = "RK"\n', 'prefix = "RK"\npriority = ["RK5"]\n'
+    ))
+    report = lint(config)
+    assert report.clean and "roadkeep.toml" in report.checked
+    assert {n.file for n in report.notes} <= set(report.checked)
+
+
 # -- the surfaces ------------------------------------------------------------
 
 

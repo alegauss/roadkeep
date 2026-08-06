@@ -249,6 +249,7 @@
 - ✅ **RK333** **The refusal offers mcp__roadkeep__add, which is not the name a plugin-provided server gives it** — The refusal names the prefix this project's own files decide: bare where a `.mcp.json` declares the server, and the plugin's own spelling where the tree the engine runs out of is one.
 - ✅ **RK335** **The job that gates a release pipes an unpinned remote script into bash, under the workflow's default token** — The workflow declares `contents: read`, the reader gating a merge is a version this file names rather than a channel, and the step proving the install happened proves it produced that version.
 - ✅ **RK353** **A verb this tool publishes under one name on one surface is an unknown command on the other** — A refused argv whose verb is a name this tool publishes over MCP is answered with the CLI's own spelling of that act, read from the tool table, which is what publishes the other one.
+- ✅ **RK354** **The report names a file it does not list among the ones it checked, so a count and a finding disagree** — `checked` is now what the gate judged: roadkeep.toml joins it where it carries a queue and stays out where it declares none, so every finding's file is in the count.
 
 ## Block E — Adoption
 
