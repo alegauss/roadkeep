@@ -31,7 +31,11 @@
 
 ## Block C — Query (consult without reading the file)
 
+- 📋 **RK379** (deps: —) **The refusal for a missing anchor does not name the anchor to use** — under ref_scheme outline every add without --ref is refused by a fixed sentence, while `anchors` already computes the next free address in the family the line is going into. → §RK379
+
 ## Block D — The gate
+
+- 📋 **RK380** (deps: —) **A block can carry open lines for months and be found missing only by the first ship** — add writes a line under a roadmap block without checking the changelog declares it, so the heading a ship needs is discovered at the end of the first task in the block rather than at the start. → §RK380
 
 ## Block E — Adoption
 

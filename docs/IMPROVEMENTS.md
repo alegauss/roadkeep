@@ -145,7 +145,49 @@ Turing's T902 is the case in hand.
 
 ## Block C — Query
 
+### §RK379 The refusal for a missing anchor does not name the anchor to use
+
+`_check_ref` returns one static string — "every task points at its rationale section" —
+and nothing else. Under `ref_scheme = "outline"` that is every `add` an author writes
+from memory, because the anchor is not derivable from the id and so cannot be defaulted.
+
+The value the message wants already exists. `anchors --family <x>` ends with `next
+§LXIX.9 — nothing ever used it`, computed from the live headings and the retired ones
+history holds. The refusal is raised in a schema check that does not have the corpus,
+but the caller that reports it does: `add` has the config and the block, and the block's
+existing lines say which family this line joins.
+
+Measured on one session against Turing: four `add` calls, each costing a refusal, an
+`anchors --family` and a retry. The retry is free once the first message says `--ref
+LXIX.9`.
+
+The same argument as RK144's, one field over: a refusal that states the rule without the
+value teaches the schema, and a refusal that names the value ends the turn.
+
 ## Block D — The gate
+
+### §RK380 A block can carry open lines for months and be found missing only by the first ship
+
+Turing's Block BV carried eight open lines and no `## Block BV` heading in
+`CHANGELOG.md`. Nothing said so. The first `ship` refused:
+
+```
+no heading declares Block BV in docs/CHANGELOG.md
+```
+
+which is a good refusal — it names `block add BV --title "<its title>"` and even warns
+that `B` shares a prefix with `BV`. The cost is *when*. A ship is the end of a task: the
+code is written, the tests pass, the commit is drafted, and the author is now told the
+backlog was mis-set-up before any of it started.
+
+`add --block BV` is where the fact is available and where nothing is at stake yet. It
+has the config, the label, and `declaring`-style access to the ledger. Either refuse
+there with the same message, or write the heading in the same transaction, the way `add
+--section` writes the rationale rather than leaving a pointer to nothing — the precedent
+is in this tool and the argument is the one that verb already makes.
+
+`lint` is the other half: a roadmap block with open lines and no ledger heading is a
+finding, and reporting it costs one pass rather than one ship.
 
 ## Block E — Adoption
 
