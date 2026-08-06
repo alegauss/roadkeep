@@ -119,14 +119,14 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 30 | 1 |
 | B — Authoring (insert, never hand-edit) | 0 | 84 | 0 |
 | C — Query (consult without reading the file) | 0 | 51 | 1 |
-| D — The gate | 2 | 65 | 0 |
+| D — The gate | 1 | 66 | 0 |
 | E — Adoption | 2 | 55 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 67 | 1 |
-| **Total** | 4 | 352 | 4 |
+| **Total** | 3 | 353 | 4 |
 
 **Next ready:**
 
-- 💭 **RK356** (deps: —) **Nothing says when the version this gate pins stopped being the one an installing user gets** — RK335 named the reader so a merge is gated by a fact somebody can read, and the cost it bought is a number that ages silently until a payload defect the newer validator sees ships. → §RK356
+- 📋 **RK357** (deps: —) **A repair that removed a line reports the line number of whatever moved up into its place** — RK328's drop is the one repair that is not a rewrite, and it is reported as `file:line` like the others, so following the address lands on the entry that took the removed one's place. → §RK357
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

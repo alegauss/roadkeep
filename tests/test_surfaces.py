@@ -110,7 +110,7 @@ def test_the_surfaces_are_valid_yaml():
     hooks = yaml.safe_load(HOOKS.read_text(encoding="utf-8"))
     assert [hook["id"] for hook in hooks] == ["roadkeep-lint", "roadkeep-lint-fix"]
     workflow = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))
-    assert set(workflow["jobs"]) == {"lint", "tests", "payload"}
+    assert set(workflow["jobs"]) == {"lint", "tests", "payload", "drift"}
 
 
 def test_the_job_that_may_not_skip_fails_where_its_reader_is_missing():
@@ -136,8 +136,8 @@ def test_the_job_that_may_not_skip_fails_where_its_reader_is_missing():
 
 
 def test_the_gate_declares_what_its_token_may_do():
-    """RK335's half that is not a decision: three jobs that check out and read, and one of
-    them running a third-party installer under whatever the repository default grants."""
+    """RK335's half that is not a decision: every job here checks out and reads, and two of
+    them run a third-party installer under whatever the repository default grants."""
     yaml = pytest.importorskip("yaml", reason="pyyaml is not installed")
     workflow = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))
     assert workflow["permissions"] == {"contents": "read"}
@@ -161,3 +161,32 @@ def test_the_reader_that_gates_a_merge_is_a_version_and_not_a_channel():
     assert 'bash -s "$CLAUDE_VERSION"' in script
     assert "stable" not in script, "a channel beside the pin is two answers about one reader"
     assert 'claude --version | grep -F "$CLAUDE_VERSION"' in script
+
+
+def test_the_channel_is_asked_where_its_answer_cannot_gate_a_merge():
+    """The cost RK335 accepted, given a signal that does not undo it (RK356).
+
+    The pin means the validator drifts behind what an installing user gets, and the drift is
+    quiet in the direction that matters: a payload defect the newer reader sees and the pinned
+    one does not ships green. So the channel is asked again, in a job that **cannot fail the
+    workflow** — which is what makes the question free to ask rather than a second answer about
+    the reader a merge was gated by.
+
+    Both halves are asserted, because either alone puts the channel back in the gate: a script
+    that exits non-zero reddens the run whatever the flag says it meant to do, and the flag on
+    a job that gates nothing is the declaration that it never should. And the pin is not read
+    here — one number in two jobs is two numbers that will disagree, so this job compares
+    nothing and reports which reader answered.
+    """
+    yaml = pytest.importorskip("yaml", reason="pyyaml is not installed")
+    workflow = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))
+    job = workflow["jobs"]["drift"]
+    assert job["continue-on-error"] is True
+    assert job["needs"] == "payload"
+    script = "\n".join(step.get("run", "") for step in job["steps"])
+    assert "bash -s stable" in script
+    assert "::warning::" in script and "::notice::" in script
+    assert "exit 1" not in script
+    # Named in the advice and never expanded: telling a reader which number to raise is the
+    # useful half, and reading it here would be the number living in two jobs.
+    assert "$CLAUDE_VERSION" not in script and "CLAUDE_VERSION" not in job.get("env", {})

@@ -3,7 +3,8 @@
 # command. If `uses: ./` ever fails while `roadkeep lint` passes locally, the action is
 # broken, which is the one failure a hand-written `run:` block here could not detect.
 #
-# The third job is the one reader this repository does not own. `roadkeep lint` reads the
+# The third job is the one reader this repository does not own, and the fourth asks it the same
+# question off the channel instead of the pin, where the answer cannot gate. `roadkeep lint` reads the
 # prose and pytest reads the manifests, and both are this project reading its own files —
 # JSON that parses is what RK81 shipped broken, and frontmatter the tests could read is what
 # RK331 shipped broken. `claude plugin validate --strict` is the reader that decides how an
@@ -16,8 +17,8 @@ on:
     branches: [main]
   pull_request:
 
-# Not a decision, an omission (RK335): every job here checks out and reads, and the one that
-# runs a third-party installer was taking whatever the repository default grants — which is the
+# Not a decision, an omission (RK335): every job here checks out and reads, and the two that
+# run a third-party installer were taking whatever the repository default grants — which is the
 # one number nobody looks at until it matters. `publish.yml` already declares this much for a
 # job doing more than any of these.
 permissions:
@@ -97,3 +98,48 @@ jobs:
       - name: the CLI answers, and it is the version this job named
         run: claude --version | grep -F "$CLAUDE_VERSION"
       - run: python -m pytest -q tests/test_plugin.py
+
+  # The cost of the job above, given the one signal that does not undo it (RK356). A pin means
+  # the validator drifts behind what an installing user gets, and the drift is quiet in the
+  # direction that matters: a payload defect the newer reader reports and the pinned one does
+  # not is a release that goes out green, met first by an adopter whose session loads the
+  # plugin. So the question the pin stopped asking is asked here instead.
+  #
+  # **This job cannot redden a merge, and that is the whole reason it is allowed to exist.**
+  # Both halves say so — `continue-on-error` at the job, and a script whose only report is an
+  # annotation — because either alone puts the channel back in the gate that RK335 took it out
+  # of. There is therefore no convention to learn about which reds block: this produces none.
+  # It is the shape `tests/test_corpora.py` already settled for the other pin this repository
+  # keeps, where a live tree that moved past the revision warns and the pinned numbers stand.
+  #
+  # What it does not promise is coverage. An install that fails here says nothing at all, and
+  # nothing downstream notices — the assertion that a reader ran belongs to the job that gates.
+  drift:
+    name: the channel, which gates nothing
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    # After the gate, not beside it: a red payload is the same news arriving twice, and on a
+    # push that already failed this spends a runner to say it again.
+    needs: payload
+    env:
+      DISABLE_AUTOUPDATER: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install ".[dev]" pyyaml
+      # `stable` and not a number, which is the one place in this file where that is right: the
+      # question is what an *installing* user gets, and that is the channel the documented
+      # install line follows. The pin stays where it gates, and no number lives in two jobs.
+      - name: install the reader an adopter would get today
+        run: curl -fsSL https://claude.ai/install.sh | bash -s stable
+      - run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: it reads this payload too, or it is named before an adopter meets it
+        run: |
+          reader="$(claude --version)"
+          if python -m pytest -q tests/test_plugin.py; then
+            echo "::notice::$reader reads this payload"
+          else
+            echo "::warning::$reader refuses a payload the pinned reader accepts — raise CLAUDE_VERSION in the payload job and fix what it names, before a session that loads this plugin meets it"
+          fi

@@ -81,29 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK356 A pin that ages without saying so
-
-RK335 traded a channel for a number, and the trade is stated in the workflow: what a
-merge was gated by is now a fact somebody can read off the file months later, and the
-cost is that the validator drifts behind what an installing user runs. That cost was
-accepted knowingly and has no signal attached to it.
-
-The failure it leaves is quiet in the direction that matters. A payload defect the newer
-validator reports and the pinned one does not is a release that goes out green, and the
-first reader to meet it is an adopter whose session loads the plugin — which is the
-audience RK334 bought this job for in the first place.
-
-Three shapes, none obviously right. A second job on the *unpinned* channel, allowed to
-fail without blocking, turns the drift into a red somebody sees while keeping the merge
-gated by the pin; it costs a job and a convention about which reds block. A scheduled
-run of the same job asks the same question daily rather than per push, and puts a
-network call on a clock this repository does not otherwise keep. Or nothing at all, and
-the pin is raised whenever somebody notices — which is what `stable` was, with the
-number written down.
-
-What makes this an idea rather than a task: which of the three is right depends on
-whether this repository wants a red that nobody is required to act on.
-
 ### §RK357 An address that stopped resolving when the line left
 
 Every other repair `--fix` makes replaces a line in place, so `file:line` in the report

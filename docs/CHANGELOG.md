@@ -251,6 +251,7 @@
 - ✅ **RK353** **A verb this tool publishes under one name on one surface is an unknown command on the other** — A refused argv whose verb is a name this tool publishes over MCP is answered with the CLI's own spelling of that act, read from the tool table, which is what publishes the other one.
 - ✅ **RK354** **The report names a file it does not list among the ones it checked, so a count and a finding disagree** — `checked` is now what the gate judged: roadkeep.toml joins it where it carries a queue and stays out where it declares none, so every finding's file is in the count.
 - ✅ **RK355** **What `--fix` repairs is enumerated in four places and none of them is derived from the fixer** — `fixing.REPAIRS` is the list and a test holds all six statements against it, one direction; the three RK328 missed — the hook's copy among them — now name the dead queue entry.
+- ✅ **RK356** **Nothing says when the version this gate pins stopped being the one an installing user gets** — A `drift` job asks the channel where the answer cannot gate — `continue-on-error` and an annotation, never a red — so a newer reader refusing this payload is named before an adopter meets it.
 
 ## Block E — Adoption
 
