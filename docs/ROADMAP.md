@@ -32,6 +32,8 @@
 
 ## Block E — Adoption
 
+- 📋 **RK372** (deps: —) **One report calls a governed file both read and ungoverned, two functions resolving the same path by different rules** — `_named` asks `[files]` and `_ambiguous` asks it narrowed to the prose roles, so a file handed over is opened by one answer and outside the project by the other. → §RK372
+
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - 💭 **RK366** (deps: —) **The skill every adopting project loads has 24 body lines past 110 characters against a file otherwise wrapped at 90** — One pattern made them all — text appended to a line instead of the paragraph re-wrapped — so an edit arrives as a whole-paragraph diff and nothing holds the shape. → §RK366
