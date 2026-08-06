@@ -259,6 +259,22 @@ def test_which_files_were_outside_the_project_is_answered_without_a_collision(tm
     assert estimate.ambiguous == () and estimate.by_path == ("NOTES.md",)
 
 
+def test_a_prose_file_the_set_left_out_is_named_unread(tmp_path):
+    """RK373: `--with` replaces the declared set, and the sentence naming what went unread was
+    handed every prose role — so the one line whose job is to say which cross-file checks were
+    not made said a collision had been looked for in a file nobody opened."""
+    config = project(tmp_path, refs="")
+    outside = tmp_path / "NOTES.md"
+    outside.write_text(STRATEGY_BODY, encoding="utf-8")
+    narrowed = adopt(
+        config, config.path("improvements"), sections=True, alongside=[str(outside)]
+    )
+    assert narrowed.unopened == (ROADMAP, STRATEGY)
+    # And the run that reads every prose file still says so: the answer follows what was
+    # opened, so neither case is a rule the other has to be an exception to.
+    assert adopt(config, config.path("improvements"), sections=True).unopened == (ROADMAP,)
+
+
 def test_a_declared_file_read_by_path_is_not_therefore_called_ungoverned(tmp_path, capsys):
     """RK372: the report said `unopened: ()` about a file and, in the same payload, that this
     project had no role for it. Both were printed and one of them was wrong."""

@@ -321,6 +321,7 @@
 - ✅ **RK370** **A file the estimate cannot open is refused in the OS's own sentence, with an absolute path and no argument named** — Every path is checked before the first is opened, so a run over a set refuses whole and names the argument that carried each one.
 - ✅ **RK371** **A doubling over files the caller named comes back in a field called `roles`, holding filenames no `[files]` answers** — Each file in the payload sits under the key that says what its name is, and which of them the run treated as outside the project is its own field.
 - ✅ **RK372** **One report calls a governed file both read and ungoverned, two functions resolving the same path by different rules** — One reader answers what role a path holds and the field says only how the file was named, so neither sentence is a claim the other denies.
+- ✅ **RK373** **A prose file the run left out of its set is still absent from the unread list, so a check it never made reads as covered** — The unread sentence is derived from the files the across-files read opened, so a set the caller narrowed is not covered for.
 
 ## Block F — The Claude Code plugin
 

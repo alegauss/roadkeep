@@ -32,8 +32,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK373** (deps: —) **A prose file the run left out of its set is still absent from the unread list, so a check it never made reads as covered** — `opened` is the constant every prose role, true while `--sections` read all of them, and `--with` replaces the set without changing what the sentence excludes. → §RK373
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - 💭 **RK366** (deps: —) **The skill every adopting project loads has 24 body lines past 110 characters against a file otherwise wrapped at 90** — One pattern made them all — text appended to a line instead of the paragraph re-wrapped — so an edit arrives as a whole-paragraph diff and nothing holds the shape. → §RK366

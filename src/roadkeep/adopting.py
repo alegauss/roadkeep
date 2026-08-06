@@ -273,6 +273,27 @@ class Shape:
 
 
 @dataclass(frozen=True, slots=True)
+class Doubling:
+    """What the across-files read found, and what it opened to find it (RK373).
+
+    Three answers off one walk, because each of them is only knowable there and each was
+    being restated somewhere else instead: RK372's contradiction and RK373's were both a fact
+    about *this* run written down as a rule about the configuration. The one that reads worst
+    is :attr:`opened` — the sentence it feeds exists to say which cross-file checks went
+    unmade, and derived from a constant it said a collision had been looked for in a file
+    nobody opened.
+    """
+
+    #: Every address more than one of the files read declares now, with their names.
+    addresses: tuple[tuple[str, tuple[str, ...]], ...] = ()
+    #: Those names that are paths rather than roles — see :attr:`Estimate.by_path`.
+    by_path: tuple[str, ...] = ()
+    #: The declared roles whose files this read opened, prose or not. What makes a file read
+    #: is that it was opened, and a changelog handed to `--with` was.
+    opened: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
 class Estimate:
     """What an existing backlog would cost to bring under the schema. Written by nothing."""
 
@@ -821,9 +842,9 @@ def _prose(
     # about the file, and a preamble above the first anchor is written to the same margin.
     widths = [len(line) for line in _filled(document)]
     # RK347: the finding one path cannot hold, with the kind of name each file got (RK371).
-    # Read before `unopened`, which is told what this took — a sibling opened to answer the
-    # doubling is not one the report may then name as out of reach.
-    ambiguous, by_path = _ambiguous(config, target, alongside, schema)
+    # Taken before `unopened`, which is derived from it — a file this opened is not one the
+    # same report may name as out of reach, and a file it did not is not one it may cover for.
+    across = _ambiguous(config, target, alongside, schema)
     return Estimate(
         path=target,
         prefix="",
@@ -834,12 +855,10 @@ def _prose(
         # RK288: the second source. Without it `--sections` had no way to say "read this the
         # other way", which is the one sentence Shio's file needed.
         schemes=_heading_schemes(document),
-        ambiguous=ambiguous,
-        by_path=by_path,
-        # A file the caller handed to `--with` was opened, whatever role it holds here, so it
-        # is not one the same report may call out of reach (RK359) — the rule `opened` was
-        # given for, applied to the second way a sibling gets read.
-        unopened=_unread(config, target, opened=(*PROSE_ROLES, *_named(config, alongside))),
+        ambiguous=across.addresses,
+        by_path=across.by_path,
+        # What that read opened, and never a rule about what a read of this kind opens (RK373).
+        unopened=_unread(config, target, opened=across.opened),
         declared=_declared(config, target),
         parsed=len(found),
         conforming=sum(1 for count in words if count <= schema.section_max),
@@ -1101,7 +1120,7 @@ def _ambiguous(
     target: Path,
     alongside: Sequence[str | Path] = (),
     schema: Schema | None = None,
-) -> tuple[tuple[tuple[str, tuple[str, ...]], ...], tuple[str, ...]]:
+) -> Doubling:
     """Every address two prose files declare now, with the roles that declare it (RK347).
 
     The one check `adopt` could not make from one path. Every other limit it reports is a
@@ -1141,6 +1160,12 @@ def _ambiguous(
     Which kind each name is, is returned beside them (RK371). It is known here and nowhere
     after — the printed line survives on the sentence around it, and `--json` was left with a
     `roles` key holding filenames and no way to tell.
+
+    So is **which declared files this actually opened** (RK373). The sentence naming what went
+    unread used to be handed every prose role, which was exactly true while this read all of
+    them and became a claim about a set the caller had since narrowed: with `--with`, a
+    `STRATEGY.md` nobody looked at was reported as covered by the one line whose job is to say
+    what was not. What was read is known here and derived nowhere else.
     """
     from roadkeep.history import Anchor, doubled  # noqa: PLC0415 - RK260
 
@@ -1169,18 +1194,24 @@ def _ambiguous(
         by_path = tuple(
             label for path, (label, _) in seen.items() if roles.get(path) not in PROSE_ROLES
         )
-        return doubled(named), by_path
+        # Every declared role behind one of those paths, prose or not: what makes a file
+        # "read" here is that this opened it, and a changelog handed over was opened.
+        opened = tuple(role for path in seen if (role := roles.get(path)) is not None)
+        return Doubling(doubled(named), by_path, opened)
     if not _declared(config, target):
-        return (), ()
+        return Doubling()
 
+    kept = [role for role in PROSE_ROLES if config.has(role) and config.path(role).is_file()]
     taken = [
         Anchor(anchor=section.anchor, role=role, live=True)
-        for role in PROSE_ROLES
-        if config.has(role) and config.path(role).is_file()
+        for role in kept
         for section in anchored(config.document(role))
     ]
-    # Every name here is a role by construction, so nothing was read by path.
-    return doubled(taken), ()
+    # Every name here is a role by construction, so nothing was read by path. A declared prose
+    # file that is not on disk is *not* in `kept` and so is named as unread: `file.missing` is
+    # the gate's word for it, and claiming a collision was checked for in it would be this
+    # sentence covering for the other one.
+    return Doubling(doubled(taken), (), tuple(kept))
 
 
 def _by_role(config: Config) -> dict[Path, str]:
@@ -1199,18 +1230,6 @@ def _by_role(config: Config) -> dict[Path, str]:
     return {config.path(role).resolve(): role for role in config.paths}
 
 
-def _named(config: Config, alongside: Sequence[str | Path]) -> tuple[str, ...]:
-    """The roles this project declares that ``--with`` happens to have named (RK359).
-
-    Usually none: the target of an `adopt` run is a file no configuration here declares, and
-    so are its siblings. In `[files]` order, which is the order the sentence it feeds lists.
-    """
-    if not alongside:
-        return ()
-    given = {Path(path).resolve() for path in alongside}
-    return tuple(role for path, role in _by_role(config).items() if path in given)
-
-
 def _unread(config: Config, target: Path, opened: Sequence[str] = ()) -> tuple[str, ...]:
     """The governed files this run did not open, in `[files]` order (RK291).
 
@@ -1226,9 +1245,12 @@ def _unread(config: Config, target: Path, opened: Sequence[str] = ()) -> tuple[s
     — and offering siblings nobody can hand over. The limit is still real and simply narrower,
     and :attr:`Estimate.declared` is what lets the sentence say which one it is.
 
-    ``opened`` is what this run *did* read past the target (RK347): `--sections` opens every
-    prose file to answer the doubling, so naming them here too would say a file was out of
-    reach in the same report that measured it. What stays unread is what stays unread — the
+    ``opened`` is what this run *did* read past the target (RK347), which the caller takes off
+    the read itself and never off a rule about what a read of this kind opens (RK373): naming
+    an opened file here would say it was out of reach in the same report that measured it, and
+    excluding one that was not opened would cover for a check nobody made. Both were the same
+    mistake, and the second arrived the moment `--with` let a caller narrow the set of files
+    the doubling is taken over. What stays unread is what stays unread — the
     checks that resolve through a task line — which is what the sentence was always about.
     """
     here = target.resolve()
