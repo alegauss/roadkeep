@@ -103,6 +103,29 @@ follows from the argument closely enough to cost nothing.
 
 ## Block E — Adoption
 
+### §RK371 One field, two kinds of name
+
+RK369 settled what a file in the doubled-address report is called: a role where this
+project governs it, and the path where it does not. In the printed line that reads, the
+sentence is right there — `declared by both improvements and NOTES.md` names one of each
+and a reader can see which is which.
+
+`--json` carries the same pair under `"roles"`, and there the sentence is gone. An agent
+takes `--json` precisely so that an answer costs no file read (L5), looks each entry up
+in `[files]`, and finds nothing for the ones that were never roles — with no field
+saying that a lookup was never going to work. That is the shape RK176 was about one
+command over: a payload an agent cannot audit sends it back to the file the command
+replaced.
+
+What the report knows and does not say is which kind of name each one is. It is decided
+where the anchors are read and thrown away immediately after, so the fix is a field and
+not a second read — `{"role": …}` or `{"path": …}`, or a `kind` beside the name, and the
+printed line stays exactly as it is.
+
+What must not happen is resolving the paths into roles to make the field true. The set
+is the caller's, most of it is outside any configuration here, and inventing a role for
+a file this project does not govern is the collision RK292 keeps out of the report.
+
 ## Block F — The plugin
 
 ### §RK366 A shipped text whose wrap nothing holds

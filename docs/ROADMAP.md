@@ -32,6 +32,8 @@
 
 ## Block E — Adoption
 
+- 📋 **RK371** (deps: —) **A doubling over files the caller named comes back in a field called `roles`, holding filenames no `[files]` answers** — The name a file gets depends on how the run reached it, so the one consumer that cannot read the sentence around it is the one told that a path is a role. → §RK371
+
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - 💭 **RK366** (deps: —) **The skill every adopting project loads has 24 body lines past 110 characters against a file otherwise wrapped at 90** — One pattern made them all — text appended to a line instead of the paragraph re-wrapped — so an edit arrives as a whole-paragraph diff and nothing holds the shape. → §RK366
