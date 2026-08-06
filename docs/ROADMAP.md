@@ -32,6 +32,8 @@
 
 ## Block E — Adoption
 
+- 📋 **RK374** (deps: —) **The configuration measured as a backlog answers zero of everything, under a comment saying a later command refuses it** — `adopt roadkeep.toml` reports 0 lines and 0 to change and exits 0, which is the reading an empty backlog gets and the one an estimate may not give. → §RK374
+
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - 💭 **RK366** (deps: —) **The skill every adopting project loads has 24 body lines past 110 characters against a file otherwise wrapped at 90** — One pattern made them all — text appended to a line instead of the paragraph re-wrapped — so an edit arrives as a whole-paragraph diff and nothing holds the shape. → §RK366
