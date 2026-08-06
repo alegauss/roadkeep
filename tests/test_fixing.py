@@ -442,7 +442,69 @@ def test_the_hook_that_already_runs_fix_clears_it(tmp_path, capsys):
     project(tmp_path, roadmap=QUEUED.replace("- RK9\n", ""))
     assert main(["-C", str(tmp_path), "lint", "--fix"]) == EXIT_OK
     printed = capsys.readouterr().out
-    assert "ROADMAP.md:7  fixed  RK1: queued work that shipped" in printed
+    # `gone` and not `fixed`, in the column `kept` already sits in (RK357).
+    assert "ROADMAP.md:7  gone   RK1: queued work that shipped" in printed
+
+
+# -- the one repair whose address outlives its line (RK357) -------------------
+
+
+def test_the_address_of_a_removal_says_the_line_is_gone(tmp_path):
+    """The defect, in the fixture that holds it (RK357).
+
+    `- RK1`, `- RK2`, `- RK9` with RK1 shipped reported `ROADMAP.md:7  fixed  RK1`, and line 7
+    of the file the pass had just written was `- RK2` — an entry the run never touched, under
+    an address that named the one it did. Both halves are asserted: the line that moved up is
+    still what lives at that address, which is why the verb has to carry the difference.
+    """
+    config = project(tmp_path, roadmap=QUEUED)
+    applied = fix(config)
+    repair = applied.repairs[0]
+    assert (repair.lineno, repair.removed) == (7, True)
+    assert roadmap_of(config).splitlines()[6] == "- RK2"
+    assert str(repair) == "ROADMAP.md:7  gone   RK1: queued work that shipped"
+
+
+def test_a_rewrite_is_still_fixed_and_its_address_still_resolves(tmp_path):
+    """The other direction, which is what makes the verb worth reading: every repair but this
+    one replaces a line in place, so its `file:line` means the same thing after the write."""
+    config = project(tmp_path, roadmap=CLEAN.replace("(deps: RK1 ✅)", "(deps: RK1)"))
+    repair = fix(config).repairs[0]
+    assert repair.removed is False
+    assert str(repair).endswith("fixed  RK2: dep annotation derived")
+    assert roadmap_of(config).splitlines()[repair.lineno - 1] == repair.after.rstrip("\n")
+
+
+def test_two_removals_in_one_pass_each_name_where_they_were_read(tmp_path):
+    """The compounding case: the linenos are read before any removal, so the second entry's
+    address is off by one more once the first is gone. Which is correct, and now says so."""
+    project(tmp_path, roadmap=QUEUED.replace("- RK9\n", "- RK4\n"))
+    (tmp_path / "CHANGELOG.md").write_text(RETIRED, encoding="utf-8")
+    applied = fix(Config.discover(tmp_path))
+    assert [(r.lineno, r.id, r.removed) for r in applied.repairs] == [
+        (7, "RK1", True),
+        (9, "RK4", True),
+    ]
+
+
+def test_the_run_says_once_which_tree_those_addresses_are_in(tmp_path, capsys):
+    """Once per run rather than on every line (RK357). Reporting the position *before* the
+    write is deliberate — the reader who wants to see what was taken needs the line and not
+    the gap — so what was missing was the sentence naming which of the two trees it is."""
+    project(tmp_path, roadmap=QUEUED)
+    assert main(["-C", str(tmp_path), "lint", "--fix"]) == EXIT_GATE
+    printed = capsys.readouterr().out
+    assert "1 of them removed, at the line each was read from" in printed
+
+
+def test_the_payload_carries_the_removal_on_the_list_a_consumer_already_reads(tmp_path, capsys):
+    """A key and not a third list: `fixed` is the one list, and a consumer resolving addresses
+    learns which are pre-pass from the payload instead of inferring it from an empty `after`."""
+    project(tmp_path, roadmap=QUEUED)
+    main(["-C", str(tmp_path), "lint", "--fix", "--json"])
+    payload = json.loads(capsys.readouterr().out)
+    assert "removed" not in payload
+    assert [(f["line"], f["removed"]) for f in payload["fixed"]] == [(7, True)]
 
 
 # -- the six statements of the split, held against the fixer (RK355) ----------

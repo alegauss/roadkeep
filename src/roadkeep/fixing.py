@@ -91,7 +91,7 @@ REPAIRS: tuple[str, ...] = (
 
 @dataclass(frozen=True, slots=True)
 class Repair:
-    """One line, rewritten, and the mechanical reasons it was."""
+    """One line, rewritten or removed, and the mechanical reasons it was."""
 
     file: str
     lineno: int
@@ -99,12 +99,29 @@ class Repair:
     before: str
     after: str
     reasons: tuple[str, ...]
+    #: Whether the line is **gone** rather than rewritten (RK357). RK328's drop is the one
+    #: repair that is not a re-render, and `lineno` is the position it was read at — so after
+    #: the pass that address names whatever moved up into its place, and the two readings of
+    #: the same `file:line` were indistinguishable in a line a terminal renders as a link.
+    #:
+    #: A field here rather than a third report kind: `--json` would carry three lists where a
+    #: consumer reads one, and every caller that prints repairs would learn a second loop. The
+    #: cost a field is supposed to have — a boolean a reader has to know to check — is not paid,
+    #: because neither surface makes anybody check it: :meth:`__str__` says `gone` where it
+    #: says `fixed`, and the payload carries the key. Set and not derived from an empty
+    #: ``after``: :func:`_decontrol` can empty a final line that had nothing but control
+    #: characters on it, and that is a character repair rather than a removal.
+    removed: bool = False
 
     def __str__(self) -> str:
         # The id is empty on a line that is not an entry — the continuation line RK126 is
         # about — and a report reading "fixed  :" names a task that does not exist.
         named = f"{self.id}: " if self.id else ""
-        return f"{self.file}:{self.lineno}  fixed  {named}{', '.join(self.reasons)}"
+        # Five wide, which is the column `Skipped`'s `kept` already sits in: three states a
+        # report is read by, and a verb that pushed the reason across would be the fix for
+        # this defect making the report harder to read than the defect did.
+        verb = "gone" if self.removed else "fixed"
+        return f"{self.file}:{self.lineno}  {verb:<5}  {named}{', '.join(self.reasons)}"
 
 
 @dataclass(frozen=True, slots=True)
@@ -297,6 +314,7 @@ def _dequeue(
                     if entry.token in shipped
                     else "queued work that was retired",
                 ),
+                removed=True,
             )
             for entry in dead
         ],

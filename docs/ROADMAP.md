@@ -28,8 +28,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK357** (deps: —) **A repair that removed a line reports the line number of whatever moved up into its place** — RK328's drop is the one repair that is not a rewrite, and it is reported as `file:line` like the others, so following the address lands on the entry that took the removed one's place. → §RK357
-
 ## Block E — Adoption
 
 - 📋 **RK358** (deps: —) **The pick over this repository's own backlog is asserted lowest-ready, so a run made while a line is claimed is red** — `pick` answers STARTED for a 🛠 line and the test names LOWEST, so the suite is red for the length of every task the one-task-one-commit rule creates. → §RK358

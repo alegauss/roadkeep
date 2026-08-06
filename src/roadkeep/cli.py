@@ -4214,6 +4214,14 @@ def _print_fix(applied: Fix) -> None:
         print(str(kept))
     if applied.repairs:
         print(f"{applied.changed} line(s) normalized in {', '.join(applied.files)}")
+        # Once per run and not on every line (RK357): a `gone` address is a position in the
+        # file as this pass *read* it, which is the reading git still has and the written file
+        # no longer does. Reporting it before the write is deliberate — the reader who wants to
+        # see what was taken needs the line, not the gap — so what was missing was the sentence
+        # saying which of the two trees the address is about.
+        left = sum(1 for repair in applied.repairs if repair.removed)
+        if left:
+            print(f"{left} of them removed, at the line each was read from")
 
 
 def _print_refusals(applied: Fix) -> None:
@@ -4253,6 +4261,10 @@ def _lint_json(report: Report, applied: Fix, root: str) -> dict[str, object]:
                 "reasons": list(repair.reasons),
                 "before": repair.before,
                 "after": repair.after,
+                # A key on the same list rather than a `removed` list beside `fixed` (RK357):
+                # `line` means the pre-pass position here, and a consumer resolving addresses
+                # has to know that from the payload rather than from an empty `after`.
+                "removed": repair.removed,
             }
             for repair in applied.repairs
         ],

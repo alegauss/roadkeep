@@ -81,29 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK357 An address that stopped resolving when the line left
-
-Every other repair `--fix` makes replaces a line in place, so `file:line` in the report
-is still the line that was repaired after the file is written. RK328's is the exception:
-the line is gone, and every line under it has moved up one.
-
-Measured on the fixture that holds it. A queue of `- RK1`, `- RK2`, `- RK9` with RK1
-shipped reports `ROADMAP.md:7  fixed  RK1: queued work that shipped`, and line 7 of the
-file the pass just wrote is `- RK2` — an entry the run did not touch, under an address
-that names the one it did. A second drop in the same pass compounds it, the linenos
-being read before any removal.
-
-Reporting the position *before* the write is deliberate and is not the defect: the
-reader who wants to see what was taken has the file as it was, in git, at that line.
-What is missing is anything saying which file the address is about, so the two readings
-— the tree before the pass, and the tree after it — are indistinguishable in a line that
-a terminal renders as a link.
-
-What is worth deciding is whether a removal is a third kind of report beside `Repair`
-and `Skipped`, or whether the same shape carries a field saying the line is gone. The
-first makes `--json` carry three lists where a consumer reads one; the second is a
-boolean every reader has to know to check.
-
 ## Block E — Adoption
 
 ### §RK358 A fixture that forbids the state the workflow is in
