@@ -1306,6 +1306,29 @@ def test_the_configuration_is_refused_rather_than_measured_as_an_empty_backlog(
     assert "measure ROADMAP.md" in str(caught.value)
 
 
+def test_a_pyproject_that_declares_this_tool_is_the_same_refusal(tmp_path: Path) -> None:
+    """RK375: RK374's guard was by filename, so the newer of the two doors into this format
+    reached one of the two files it is declared in — and the other went on measuring as the
+    empty backlog that refusal exists to stop."""
+    (tmp_path / "pyproject.toml").write_text(
+        '[project]\nname = "whatever"\n\n[tool.roadkeep]\nprefix = "SH"\n', encoding="utf-8"
+    )
+    with pytest.raises(NotACorpus):
+        adopt(Config.discover(tmp_path), tmp_path / "pyproject.toml")
+
+
+def test_a_pyproject_declaring_nothing_here_is_measured_and_not_refused(tmp_path: Path) -> None:
+    # The reason the guard could not simply take the filename: most repositories have one of
+    # these and this format only sometimes lives in it, so the table is what decides — the
+    # same question `init` asks, and now the same reader asking it.
+    (tmp_path / "pyproject.toml").write_text('[project]\nname = "plain"\n', encoding="utf-8")
+    assert adopt(Config.discover(tmp_path), tmp_path / "pyproject.toml").parsed == 0
+    # Unparseable is not a declaration either: refusing a file because its TOML is broken
+    # would be refusing it on a hunch about what somebody meant to put in it.
+    (tmp_path / "pyproject.toml").write_text("not toml [[[\n", encoding="utf-8")
+    assert adopt(Config.discover(tmp_path), tmp_path / "pyproject.toml").parsed == 0
+
+
 def test_a_configuration_belonging_to_another_tree_is_refused_without_a_door(
     tmp_path: Path,
 ) -> None:

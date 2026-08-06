@@ -323,6 +323,7 @@
 - ✅ **RK372** **One report calls a governed file both read and ungoverned, two functions resolving the same path by different rules** — One reader answers what role a path holds and the field says only how the file was named, so neither sentence is a claim the other denies.
 - ✅ **RK373** **A prose file the run left out of its set is still absent from the unread list, so a check it never made reads as covered** — The unread sentence is derived from the files the across-files read opened, so a set the caller narrowed is not covered for.
 - ✅ **RK374** **The configuration measured as a backlog answers zero of everything, under a comment saying a later command refuses it** — A path naming this format's own declaration is refused with the files it declares, so the comment that cited that refusal is now true.
+- ✅ **RK375** **A pyproject that configures roadkeep measures as an empty backlog, the reading RK374 refused for the other declaration** — Both doors into this format ask one reader whether a file declares it, so the refusal reaches the pyproject that does.
 
 ## Block F — The Claude Code plugin
 

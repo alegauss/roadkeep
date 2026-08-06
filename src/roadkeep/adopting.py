@@ -180,7 +180,7 @@ class Unreadable(ValueError):
 
 
 class NotACorpus(ValueError):
-    """`adopt` was pointed at a `roadkeep.toml` rather than at anything it measures (RK374).
+    """`adopt` was pointed at this format's own declaration, not at anything it measures (RK374).
 
     The file opens, so :class:`Unreadable` lets it through, and every reader below then finds
     no line and no heading in it: `0 line(s), 0 conform, 0 would change`, which is what an
@@ -197,11 +197,12 @@ class NotACorpus(ValueError):
     :class:`WouldOverwrite`, which leaves the configuration out of the door it offers on
     exactly this ground.
 
-    By **name** and never by reading it: `roadkeep.toml` is the one filename this format
-    reserves, and a tool that sniffed a file's content to decide whether to refuse it would be
-    guessing about somebody's repository. A `pyproject.toml` carrying `[tool.roadkeep]` is
-    deliberately not caught — it is a configuration among other things, and refusing every
-    `pyproject.toml` by name would refuse the ones that configure nothing here.
+    Which files those are is :func:`_declares`, the reader `init` refuses against (RK375).
+    This was written to catch `roadkeep.toml` by name, on the ground that refusing every
+    `pyproject.toml` by name would refuse the ones configuring nothing here — sound against a
+    *name* check, and no answer to the question under it, since the name is not how this tool
+    recognises the file anywhere else. A pyproject declaring `[tool.roadkeep]` was left
+    measuring as an empty backlog by the refusal written to stop exactly that.
     """
 
     def __init__(self, named: str, path: Path, config: Config | None = None) -> None:
@@ -625,21 +626,43 @@ def render_config(schema: Schema, paths: Mapping[str, str]) -> str:
     return "\n".join(lines)
 
 
+def _declares(path: Path) -> bool:
+    """Whether this **file** is a declaration of this format (RK375).
+
+    The reader both doors into it share. `init` refuses against a declaration and `adopt`
+    refuses a path that is one, and they disagreed: this asked whether a `pyproject.toml`
+    carries `[tool.roadkeep]`, while :class:`NotACorpus` asked only for the filename — so the
+    newer refusal reached one of the two files and a pyproject that configures this tool was
+    still measured as an empty backlog, which is the reading RK374 exists to stop.
+
+    Two files and two rules, because they are not the same claim. A `roadkeep.toml` **is** the
+    declaration by existing, whatever is in it; a `pyproject.toml` is a file most repositories
+    have and this format only sometimes lives in, so the table is what decides. Unparseable is
+    not a declaration — a caller who pointed here at a broken TOML has a different problem, and
+    guessing it configures this tool would refuse a file on a hunch.
+    """
+    if path.name == CONFIG_NAME:
+        return True
+    if path.name != PYPROJECT:
+        return False
+    try:
+        with path.open("rb") as handle:
+            data = tomllib.load(handle)
+    except (OSError, tomllib.TOMLDecodeError):
+        return False
+    return "roadkeep" in data.get("tool", {})
+
+
 def _configured(base: Path) -> Path | None:
     """A declaration *at this root*. An ancestor's is shadowed, not clobbered."""
-    candidate = base / CONFIG_NAME
-    if candidate.is_file():
-        return candidate
-    pyproject = base / PYPROJECT
-    if pyproject.is_file():
-        try:
-            with pyproject.open("rb") as handle:
-                data = tomllib.load(handle)
-        except (OSError, tomllib.TOMLDecodeError):
-            return None
-        if "roadkeep" in data.get("tool", {}):
-            return pyproject
-    return None
+    return next(
+        (
+            candidate
+            for name in (CONFIG_NAME, PYPROJECT)
+            if (candidate := base / name).is_file() and _declares(candidate)
+        ),
+        None,
+    )
 
 
 def _verify(text: str, schema: Schema, base: Path, paths: Mapping[str, Path]) -> None:
@@ -771,8 +794,9 @@ def adopt(
     unreadable = [(named, one) for named, one in handed if not one.is_file()]
     if unreadable:
         raise Unreadable(unreadable, config.root)
-    # And before that, the one file that is readable and is still not a corpus (RK374).
-    declaration = [(named, one) for named, one in handed if one.name == CONFIG_NAME]
+    # And before that, the file that is readable and is still not a corpus (RK374) — which is
+    # either of the two this format is declared in, asked the way `init` asks (RK375).
+    declaration = [(named, one) for named, one in handed if _declares(one)]
     if declaration:
         raise NotACorpus(declaration[0][0], declaration[0][1], config)
     if sections:
