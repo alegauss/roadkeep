@@ -103,27 +103,6 @@ follows from the argument closely enough to cost nothing.
 
 ## Block E — Adoption
 
-### §RK358 A fixture that forbids the state the workflow is in
-
-The suite asserts that a `pick` over this repository's own roadmap comes back at
-`Tier.LOWEST`. That holds on a quiet backlog and on an empty one, and it is false for
-exactly as long as a task is being worked on: `claim` and `status <id> 🛠` put a line in
-progress, `pick` then answers `Tier.STARTED` because finishing what is started is the
-tier above lowest-ready, and the assertion names the tier below it.
-
-Observed twice while shipping Block E, once per task. The workflow this repository
-documents is one task per commit, taken by claiming the line — so the window where the
-assertion is false is the window where work happens, and the runs that pass are the ones
-made between tasks. That is RK315 and RK351's shape a third time: a red about the state
-of the checkout rather than about the code, on a suite an agent runs in the background
-while it edits.
-
-What is worth deciding is whether the tier belongs in the claim at all. The two facts
-under it are that this backlog is pickable and that the chosen line's pointer is its own
-id, and both survive a claim; the tier is the one field encoding an assumption about who
-is working right now. A branch on `Tier.STARTED` would keep it and say so, which is the
-smaller answer if the tier is worth asserting.
-
 ### §RK359 The collision the estimate can see, and the one it cannot
 
 RK347 gave `adopt --sections` the finding a per-file read cannot make: an address two

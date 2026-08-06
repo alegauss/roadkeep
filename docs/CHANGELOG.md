@@ -315,6 +315,7 @@
 - ✅ **RK347** **The estimate reads one prose file at a time, so the state two of them are in is the one it cannot report** — adopt --sections opens every prose file the project declares and names the address two of them answer to, before the gate files one finding per collision.
 - ✅ **RK351** **A test asserting on an MCP answer fails when any source file is touched while the suite runs** — the staleness baseline is pinned to each test's setup, so a suite that edits source while it runs cannot append a note about the checkout to a refusal under test.
 - ✅ **RK352** **The replay test that asserts a codec drifted names a value the running process may already declare** — the replay fixture reads its codec and locale against this process and records values it does not hold, so the drift assertion is about the comparison and not about the shell.
+- ✅ **RK358** **The pick over this repository's own backlog is asserted lowest-ready, so a run made while a line is claimed is red** — The fixture takes in-progress as a second right answer, so the tier no longer asserts nobody is working.
 
 ## Block F — The Claude Code plugin
 

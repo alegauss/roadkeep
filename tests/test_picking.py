@@ -297,7 +297,11 @@ def test_the_pick_here_is_the_lowest_ready_id_in_the_file(governed):
         assert choice.reason == "nothing is open"
         assert (choice.ready, choice.blocked, choice.outside, choice.paused) == (0, 0, 0, 0)
         return
-    assert choice.tier is Tier.LOWEST
+    # Tier.STARTED while a line is claimed, and that is the workflow rather than a defect:
+    # one task per commit means the 🛠 window is the window work happens in, so asserting
+    # LOWEST alone would redden every run made mid-task (RK358). What survives a claim is
+    # that this backlog is pickable and that the chosen line points at its own section.
+    assert choice.tier in (Tier.LOWEST, Tier.STARTED)
     assert choice.ready > 0 and choice.entry.task.ref == choice.entry.task.id
 
 

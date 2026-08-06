@@ -120,13 +120,13 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 1 | 84 | 0 |
 | C — Query (consult without reading the file) | 0 | 53 | 1 |
 | D — The gate | 0 | 68 | 0 |
-| E — Adoption | 2 | 55 | 1 |
+| E — Adoption | 1 | 56 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 67 | 1 |
-| **Total** | 4 | 357 | 4 |
+| **Total** | 3 | 358 | 4 |
 
 **Next ready:**
 
-- 📋 **RK358** (deps: —) **The pick over this repository's own backlog is asserted lowest-ready, so a run made while a line is claimed is red** — `pick` answers STARTED for a 🛠 line and the test names LOWEST, so the suite is red for the length of every task the one-task-one-commit rule creates. → §RK358
+- 📋 **RK359** (deps: —) **The doubled address the estimate reports is reachable only where the file is already one this project declares** — Two unadopted prose files are the case adopt exists for and it takes one path, so the collision an adopter meets first stays invisible until after the commitment. → §RK359
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
