@@ -103,6 +103,52 @@ follows from the argument closely enough to cost nothing.
 
 ## Block E — Adoption
 
+### §RK369 The namespace a named path arrives without
+
+RK359 gave `adopt --sections` a `--with` so the doubled address is reachable where no
+configuration names the files — which is the case the command exists for, and there the
+answer is right: two unadopted outlines both open at `I`, nothing namespaces them, and
+the collision is real.
+
+What it also does is replace the declared set wherever it is passed. Handed this
+project's own `docs/STRATEGY.md`, the read no longer goes through
+`config.document(role)` and so no longer qualifies the anchors — RK340's mechanism,
+which puts each role's outline behind its own prefix. A project that declared `[refs]
+strategy = "S"` answers `()` through the roles and two collisions through the paths, for
+one tree on one run.
+
+The report is then naming a repair already in the configuration, which is the one thing
+an estimate may not do: the number is bought before a commitment, and a number counting
+work already done prices a commitment nobody is being asked to make.
+
+What a named path is missing is the role, and the role is knowable — `_named` already
+resolves which of them a `--with` argument is, for the `unopened` line one field over.
+Where an argument resolves to a declared file, reading it through its role is the same
+read every other caller makes; where it resolves to nothing this project governs, there
+is no `[refs]` entry to apply and the unqualified read is the correct one.
+
+### §RK370 A refusal that names a machine and not an argument
+
+`adopt` opens the target and, since RK359, every path `--with` was handed. A path that
+does not resolve raises out of `Document.load` and reaches the caller as `[Errno 2] No
+such file or directory: 'D:\Git\alegauss\roadkeep\docs\NOPE.md'` — tolerable while a run
+read one file the caller had just typed, and a guess now that it reads a set.
+
+Two things are missing, and they are the two `WouldOverwrite` already gets right. The
+path is absolute, and `_relative` exists precisely because an absolute path is a message
+about one machine rather than about a project. And nothing says which argument it came
+from: with a target and two `--with` files the reader has three candidates and one
+filename, and on a typo the filename is the part that is wrong.
+
+Where the sentence belongs is the part that is not obvious. Every other refusal here is
+raised by the code that knows the constraint, and this one comes out of `pathlib` inside
+a reader three modules along; catching it at the boundary means `adopt` deciding what an
+`OSError` from a document load means, which is a claim about a layer it does not own.
+
+The narrow reading is that `adopt` checks the paths it was handed before it reads any of
+them — the order `init` takes, for the reason it takes it: a report that measured two of
+three files is worse than none, because it looks complete.
+
 ## Block F — The plugin
 
 ### §RK366 A shipped text whose wrap nothing holds

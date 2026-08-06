@@ -32,6 +32,9 @@
 
 ## Block E — Adoption
 
+- 📋 **RK369** (deps: —) **A prose file the estimate is handed by name is read unqualified, so a namespace already declared reads as a collision** — The qualified read reaches a file through its role and a named path has none, so a project that declared `[refs]` is told to declare the line it already wrote. → §RK369
+- 💭 **RK370** (deps: —) **A file the estimate cannot open is refused in the OS's own sentence, with an absolute path and no argument named** — A run takes several paths now, so the one that failed is a guess, and the module's own rule is that an absolute path is a message about one machine. → §RK370
+
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - 💭 **RK366** (deps: —) **The skill every adopting project loads has 24 body lines past 110 characters against a file otherwise wrapped at 90** — One pattern made them all — text appended to a line instead of the paragraph re-wrapped — so an edit arrives as a whole-paragraph diff and nothing holds the shape. → §RK366
