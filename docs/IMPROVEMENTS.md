@@ -79,7 +79,52 @@ already written, not authorship.
 
 ## Block C — Query
 
+### §RK364 The granularity claim, measured below what it says
+
+`test_this_ledgers_own_spread_is_the_one_the_design_states` holds §RK71's reading of
+this repository against the ledger it measured: the spread is 27-fold, the architectural
+tasks are the tail, and the median is *a few hundred lines*. That last one is now 198
+against a floor of 200, and the test refuses.
+
+The comment above the assertion is what makes this a task rather than a one-character
+edit. The bound has been landed on exactly twice — a run of small tasks put the median
+on 300, the floor moved to 200, the next run put it on 200 — and the note left there
+says the third collision is the reading that **the claim itself changed**. Widening it
+again would make the assertion a record of where the median has been rather than a
+statement of what this project claims about the size of its own work.
+
+Which claim replaces it is a measurement before it is a sentence: whether the median is
+falling because the tasks got smaller — one task one commit, against a floor measured on
+63 entries that predate the rule — or because the ledger got long enough for a run of
+small ones to move it. The first restates the number; the second says the median is the
+wrong statistic for this claim and names the one that is not.
+
+And the claim is in three places: the assertion, its comment, and the non-goal that
+prices an effort field against lines varying 27-fold.
+
 ## Block D — The gate
+
+### §RK365 The one function every check goes through
+
+`_examine` is the one function every check in this module is threaded through: it opens
+the line-bearing documents, runs six families of finding over them, opens the prose
+files, runs four more, then the targets and the budgets — and it also builds `checked`,
+whose order is the order findings print in. RK354 added the fifteenth branch and an
+editor put the cognitive complexity at 18 against a limit of 15.
+
+Nothing here holds that number, which is what to decide rather than what to fix: there
+is no complexity gate in this repository, so the reading came from an editor's default.
+This project's answer to a claim nobody holds has been the same twice (RK30, RK203) —
+move it into something that fails, or stop making it — and a third is available here,
+that a linear composition of independent passes is what this function is *for* and the
+metric is measuring the wrong property.
+
+What is worth deciding is whether the growth has a cost that is not the number. Two
+candidates, both about the same field: `checked` is appended to in four places and one
+of them is now conditional (RK354), so the order findings sort in is decided across the
+whole body rather than at one place; and a check added without a `checked` entry sorts
+to the end by falling off the index, which was right by accident before RK354 and is
+stated nowhere.
 
 ## Block E — Adoption
 
