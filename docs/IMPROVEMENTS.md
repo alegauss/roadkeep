@@ -81,29 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK355 The list of derived repairs, stated four times
-
-RK16's split is the tool's most-repeated sentence: `--fix` repairs *annotation, pointer,
-dep order, marker codepoint, whitespace* and leaves the editorial. It is written in
-`fixing`'s docstring, in `agents.md`, in the shipped skill, and in `guarding.Review` —
-the one an agent actually reads, because the `Stop` hook prints it at the moment a
-governed file has drifted.
-
-RK328 added a sixth repair and moved three of the four. The fourth still says five, and
-nothing went red: no test compares that sentence to anything, so the copy with the most
-readers is the copy with no gate.
-
-This is the family RK30 and RK104 already answered twice, in the same shape both times —
-a claim in prose is a claim that goes stale, so the sentence moves into something that
-fails. Here the fact is derivable: `fixing` knows which reasons it can write, because it
-writes them, and every one of them is a literal in that module.
-
-What needs deciding is which end holds it. A `reasons()` the fixer exports and the four
-copies quote is one answer and makes `guarding` import `fixing`, which RK260 spent
-milliseconds getting out of the hook's path. A test that reads the four files and
-compares them to each other holds the same invariant, costs the hook nothing, and is a
-fifth reader of a list that already has four.
-
 ### §RK356 A pin that ages without saying so
 
 RK335 traded a channel for a number, and the trade is stated in the workflow: what a

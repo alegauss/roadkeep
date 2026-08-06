@@ -119,14 +119,14 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 30 | 1 |
 | B — Authoring (insert, never hand-edit) | 0 | 84 | 0 |
 | C — Query (consult without reading the file) | 0 | 51 | 1 |
-| D — The gate | 3 | 64 | 0 |
+| D — The gate | 2 | 65 | 0 |
 | E — Adoption | 2 | 55 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 67 | 1 |
-| **Total** | 5 | 351 | 4 |
+| **Total** | 4 | 352 | 4 |
 
 **Next ready:**
 
-- 📋 **RK355** (deps: —) **What `--fix` repairs is enumerated in four places and none of them is derived from the fixer** — RK328 added the sixth repair and the `Stop` hook's sentence still names five, so the message an agent reads at the moment of the drift is the one place the list went stale. → §RK355
+- 💭 **RK356** (deps: —) **Nothing says when the version this gate pins stopped being the one an installing user gets** — RK335 named the reader so a merge is gated by a fact somebody can read, and the cost it bought is a number that ages silently until a payload defect the newer validator sees ships. → §RK356
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
@@ -252,8 +252,9 @@ repos:
 ```
 
 `--fix` repairs only what the format *derives* — the dep annotation, the pointer, dep order,
-an invisible codepoint, whitespace around a field — and leaves every editorial finding to a
-human, which is what keeps a first run on a real backlog down to a report somebody reads.
+an invisible codepoint, whitespace around a field, a queue entry whose task has left — and
+leaves every editorial finding to a human, which is what keeps a first run on a real backlog
+down to a report somebody reads.
 
 Two things it reports **without** failing, because refusing them would fail an honest file
 and a gate that gets bypassed is worth nothing: what a `Block X` dep expands to (one token

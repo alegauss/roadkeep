@@ -67,6 +67,28 @@ from roadkeep.linting import LINE_ROLES, indentation, repaired
 from roadkeep.markers import derive
 from roadkeep.schema import Dep, DepKind, Schema, Task
 
+#: Every repair `--fix` makes, as the word each statement of the split has to contain
+#: (RK355). Six files tell a reader what is mechanical — this docstring, `agents.md`, the
+#: shipped skill, the `lint` command, the README and :class:`~roadkeep.guarding.Review`, which
+#: is the one an agent reads because the `Stop` hook prints it — and RK328's sixth repair
+#: reached three of them. So the list lives beside the code that writes it, and
+#: `tests/test_fixing.py` holds every copy against it: one direction, like RK203's index.
+#:
+#: A word and not a sentence, because the six phrasings are deliberate — a hook message names
+#: the repair, the README explains it — and a test comparing sentences would be a seventh
+#: statement of the list rather than a gate on the six. Nothing imports this at run time:
+#: `guarding` stays out of this module's import path, which is milliseconds RK260 already paid
+#: for, so the hook's copy is prose the test proves rather than a string it interpolates.
+REPAIRS: tuple[str, ...] = (
+    "annotation",
+    "pointer",
+    "order",
+    "codepoint",
+    "whitespace",
+    "queue",
+)
+
+
 @dataclass(frozen=True, slots=True)
 class Repair:
     """One line, rewritten, and the mechanical reasons it was."""

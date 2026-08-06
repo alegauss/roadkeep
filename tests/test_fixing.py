@@ -17,11 +17,16 @@ byte-for-byte, and the result is re-parsed before the disk sees it — or nothin
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
+import pytest
+
+from roadkeep import fixing
 from roadkeep.cli import EXIT_GATE, EXIT_OK, main
 from roadkeep.config import Config
-from roadkeep.fixing import fix
+from roadkeep.fixing import REPAIRS, fix
+from roadkeep.guarding import Review
 from roadkeep.linting import lint
 
 CONFIG = (
@@ -438,3 +443,78 @@ def test_the_hook_that_already_runs_fix_clears_it(tmp_path, capsys):
     assert main(["-C", str(tmp_path), "lint", "--fix"]) == EXIT_OK
     printed = capsys.readouterr().out
     assert "ROADMAP.md:7  fixed  RK1: queued work that shipped" in printed
+
+
+# -- the six statements of the split, held against the fixer (RK355) ----------
+
+HERE = Path(__file__).resolve().parents[1]
+
+#: Where each copy of RK16's split is, and the phrase that finds the statement inside it.
+#: An inventory of **readers** and not of repairs: the repairs are `fixing.REPAIRS`, which is
+#: what makes this a gate rather than a seventh copy. Paths because nothing derives who chose
+#: to explain the split, phrases because each file says it in its own voice and the sentence a
+#: hook prints is not the sentence a README writes.
+STATED = (
+    ("agents.md", "`--fix` repairs only the **derived**"),
+    ("README.md", "`--fix` repairs only what the format"),
+    ("commands/lint.md", "Whitespace, a marker's codepoint"),
+    ("skills/roadkeep/SKILL.md", "`--fix` repairs only"),
+)
+
+
+def _statement(text: str, phrase: str) -> str:
+    """The one paragraph or bullet a copy lives in, ending where the next one starts.
+
+    Tight on purpose: `commands/lint.md` puts the derived list one bullet below a structural
+    one that names a pointer, so a window taking the whole list would pass on a copy that
+    named five of six. The bullet the phrase is in, and nothing after it.
+    """
+    lines = text.splitlines()
+    start = next(i for i, line in enumerate(lines) if phrase in line)
+    stop = start + 1
+    while stop < len(lines) and lines[stop].strip():
+        if re.match(r"\s*([-*]\s|\d+\.\s|#)", lines[stop]):
+            break
+        stop += 1
+    return " ".join(lines[start:stop])
+
+
+def _unnamed(statement: str) -> list[str]:
+    return [word for word in REPAIRS if word not in statement.lower()]
+
+
+@pytest.mark.parametrize("path,phrase", STATED, ids=[path for path, _ in STATED])
+def test_every_file_that_states_the_split_names_every_repair(path, phrase):
+    """RK328 added the sixth repair and reached three of the six copies (RK355).
+
+    Nothing went red, because no test compared any of those sentences to anything — and the
+    copy with the most readers, the `Stop` hook's, was one of the three left behind. This is
+    RK203's shape applied to a list instead of an index: the fact is derivable, so it moves
+    into something that fails, and it moves *one direction only* — that a repair is named is
+    decidable, that a name has outlived its repair would mean reading the English (L4).
+
+    Held here rather than exported and interpolated. A `reasons()` the four copies quote would
+    make `guarding` import `fixing`, which is the import RK260 spent milliseconds removing
+    from the hook's path, and it would flatten six deliberate phrasings into one.
+    """
+    statement = _statement((HERE / path).read_text(encoding="utf-8"), phrase)
+    assert _unnamed(statement) == [], statement
+
+
+def test_the_module_that_writes_the_repairs_states_them_too():
+    """The authority is prose in the same file, so it is checked like every other copy."""
+    assert fixing.__doc__ is not None
+    assert _unnamed(_statement(fixing.__doc__, "**mechanical**")) == []
+
+
+def test_the_copy_an_agent_reads_is_the_one_the_hook_prints(tmp_path):
+    """`guarding.Review`, which is the copy RK328 left saying five (RK355).
+
+    Built and read rather than grepped: the sentence is an f-string carrying the invocation
+    this machine has, so the only honest way to hold it is to make the hook say it.
+    """
+    editorial = CLEAN.replace("Because of a reason.", "Because of a reason. And a second.")
+    config = project(tmp_path, roadmap=editorial)
+    printed = str(Review(lint(config)))
+    statement = _statement(printed, "repairs what is derived")
+    assert _unnamed(statement) == [], statement

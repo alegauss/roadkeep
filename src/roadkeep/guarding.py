@@ -366,9 +366,11 @@ class Review:
             )
         lines += [
             "",
+            # Six repairs, held against `fixing.REPAIRS` by a test and not imported (RK355):
+            # this module stays out of that import path, which is what RK260 bought.
             f"`{reached} lint --fix` repairs what is derived (annotation, pointer, dep "
-            f"order, marker codepoint, whitespace); everything left is editorial and "
-            f"wants a command, not an edit.",
+            f"order, marker codepoint, whitespace, dead queue entry); everything left is "
+            f"editorial and wants a command, not an edit.",
         ]
         return "\n".join(lines)
 
