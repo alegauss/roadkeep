@@ -103,6 +103,29 @@ follows from the argument closely enough to cost nothing.
 
 ## Block E — Adoption
 
+### §RK376 The zero one shape further out than the counters reach
+
+A fourteen-line `README.md` of ordinary prose and a roadmap holding one heading and no
+tasks both report `0 line(s), 0 conform, 0 would change`. That is RK98's rule at the far
+end of itself: `tabular` and `listed` were built so a backlog in a shape this format
+cannot read stops answering the number an empty file answers, and a file that is not a
+backlog in any shape walks past both of them.
+
+The path in is a typo or a guess — `adopt README.md`, `adopt docs/ROADMAP` corrected to
+the wrong sibling — and the reading is the most reassuring one the report can give: a
+corpus already conforming, nothing to change, adopt away. It is the answer an estimate
+exists to not give, arriving on the run where the caller is least able to check it.
+
+The fact is already in hand and never stated. The estimate knows how many lines the file
+has and how many of them it read in any shape at all — as an entry, a reject, a table
+row, a plain bullet, a heading. Zero of everything against a file with bulk is a
+different answer from zero against a file with none, and only the second means what the
+headline currently says.
+
+What it must not become is a judgement about whether the file *is* a backlog. Counting
+what was read against what is there is a measurement; deciding somebody pointed at the
+wrong file is the tool having an opinion (L4).
+
 ## Block F — The plugin
 
 ### §RK366 A shipped text whose wrap nothing holds
