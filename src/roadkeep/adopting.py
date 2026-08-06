@@ -148,6 +148,36 @@ def _relative(path: Path, base: Path | None) -> str:
         return path.as_posix()
 
 
+class Unreadable(ValueError):
+    """One path that is not a readable file is enough to refuse the whole estimate (RK370).
+
+    `adopt` was handed one path until RK359 gave it a set, and a set opened a file at a time
+    stops partway: the report an adopter reads then measured two of three files and looks
+    complete, which is the state :class:`WouldOverwrite` refuses one command over for the same
+    reason. So every path is checked before the first one is opened.
+
+    Named by the **argument** that carried it and spelled from the project root, neither of
+    which `pathlib`'s own sentence has. With a target and two `--with` files the reader is
+    otherwise left with three candidates and one filename, on the one failure — a typo — where
+    the filename is the part that is wrong; and the absolute path it prints is the message
+    `provenance.invocation` refuses, one about a machine rather than about a project.
+
+    A pre-check and not a replacement for the reader's own raise: a file that exists and
+    cannot be read still comes out of :meth:`Document.load` as an `OSError`, which the command
+    already reports. What is removed is the case the estimate can see coming.
+    """
+
+    def __init__(self, missing: Sequence[tuple[str, Path]], base: Path | None = None) -> None:
+        self.missing = tuple(missing)
+        listed = ", ".join(
+            f"{_relative(path.resolve(), base)} ({named})" for named, path in self.missing
+        )
+        super().__init__(
+            f"{len(self.missing)} path(s) are not a file this can read and nothing was "
+            f"measured: {listed}"
+        )
+
+
 class UnreadableBlock(ValueError):
     """A `--block` value no heading parser would recognise as declaring a block.
 
@@ -649,6 +679,15 @@ def adopt(
             "--with names the other prose files an address could be doubled across, which "
             "is a --sections measurement: a backlog holds lines and not headings"
         )
+    # Every path before the first one is opened (RK370), so a run over a set refuses whole
+    # rather than reporting the files it reached before the one it could not.
+    handed = (
+        ("the file to measure", target),
+        *(("--with", Path(one)) for one in alongside),
+    )
+    unreadable = [(named, one) for named, one in handed if not one.is_file()]
+    if unreadable:
+        raise Unreadable(unreadable, config.root)
     if sections:
         return _prose(config, target, ref_scheme, alongside)
     schema = config.schema_for("changelog" if ledger else "roadmap")

@@ -28,6 +28,7 @@ import corpora
 from roadkeep.adopting import (
     AlreadyConfigured,
     Estimate,
+    Unreadable,
     UnreadableBlock,
     WouldOverwrite,
     adopt,
@@ -1279,7 +1280,43 @@ def test_an_estimate_is_not_a_gate(tmp_path: Path, capsys) -> None:
 
 def test_a_file_that_is_not_there_is_a_usage_error(tmp_path: Path, capsys) -> None:
     assert main(["-C", str(tmp_path), "adopt", str(tmp_path / "nope.md")]) == EXIT_USAGE
-    assert capsys.readouterr().err
+    said = capsys.readouterr().err
+    # RK370: the argument, and the path spelled from the project root — neither of which
+    # `pathlib`'s own sentence carries, and a run takes several paths now.
+    assert "nope.md (the file to measure)" in said
+    assert "No such file or directory" not in said
+
+
+def test_the_refusal_names_the_argument_that_carried_each_path(tmp_path: Path) -> None:
+    target = tmp_path / "IMPROVEMENTS.md"
+    target.write_text("# Improvements\n\n## §I A design\n\nProse.\n", encoding="utf-8")
+    with pytest.raises(Unreadable) as caught:
+        adopt(
+            Config.discover(tmp_path),
+            target,
+            sections=True,
+            alongside=[str(tmp_path / "gone.md"), str(tmp_path / "also-gone.md")],
+        )
+    assert [named for named, _ in caught.value.missing] == ["--with", "--with"]
+    assert "gone.md (--with), also-gone.md (--with)" in str(caught.value)
+
+
+def test_no_file_is_opened_when_one_of_the_set_cannot_be(tmp_path: Path) -> None:
+    # The reason the check runs before the first read and not inside the loop: a report that
+    # measured two of three files stops looking like a partial answer and starts looking
+    # like a complete one — `init`'s all-or-nothing order, one command over.
+    target = tmp_path / "IMPROVEMENTS.md"
+    target.write_text("# Improvements\n\n## §I A design\n\nProse.\n", encoding="utf-8")
+    sibling = tmp_path / "STRATEGY.md"
+    sibling.write_text("# Strategy\n\n## §I A bet\n\nProse.\n", encoding="utf-8")
+    config = Config.discover(tmp_path)
+    # The two that exist would collide at `I`, so a run that read them and then stopped would
+    # have a finding to report — and reporting it is exactly what must not happen.
+    with pytest.raises(Unreadable):
+        adopt(
+            config, target, sections=True, alongside=[str(sibling), str(tmp_path / "gone.md")]
+        )
+    assert adopt(config, target, sections=True, alongside=[str(sibling)]).ambiguous
 
 
 def test_json_carries_every_number_the_report_prints(tmp_path: Path, capsys) -> None:

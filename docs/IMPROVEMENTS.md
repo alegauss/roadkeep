@@ -103,28 +103,6 @@ follows from the argument closely enough to cost nothing.
 
 ## Block E — Adoption
 
-### §RK370 A refusal that names a machine and not an argument
-
-`adopt` opens the target and, since RK359, every path `--with` was handed. A path that
-does not resolve raises out of `Document.load` and reaches the caller as `[Errno 2] No
-such file or directory: 'D:\Git\alegauss\roadkeep\docs\NOPE.md'` — tolerable while a run
-read one file the caller had just typed, and a guess now that it reads a set.
-
-Two things are missing, and they are the two `WouldOverwrite` already gets right. The
-path is absolute, and `_relative` exists precisely because an absolute path is a message
-about one machine rather than about a project. And nothing says which argument it came
-from: with a target and two `--with` files the reader has three candidates and one
-filename, and on a typo the filename is the part that is wrong.
-
-Where the sentence belongs is the part that is not obvious. Every other refusal here is
-raised by the code that knows the constraint, and this one comes out of `pathlib` inside
-a reader three modules along; catching it at the boundary means `adopt` deciding what an
-`OSError` from a document load means, which is a claim about a layer it does not own.
-
-The narrow reading is that `adopt` checks the paths it was handed before it reads any of
-them — the order `init` takes, for the reason it takes it: a report that measured two of
-three files is worse than none, because it looks complete.
-
 ## Block F — The plugin
 
 ### §RK366 A shipped text whose wrap nothing holds
