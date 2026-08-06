@@ -359,6 +359,17 @@ class Estimate:
     #: is not declared here (RK292) — there the siblings belong to another project — and empty
     #: on a backlog, which holds lines and not headings.
     ambiguous: tuple[tuple[str, tuple[str, ...]], ...] = ()
+    #: The files in this run's set that this project declares no role for, by the name
+    #: :attr:`ambiguous` calls them (RK371). Since RK369 a file is named the truest way this
+    #: project can name it, and a run given `--with` gets one of each: the printed line shows
+    #: which is which by sitting in a sentence, and `--json` — read by the caller who took it
+    #: *not* to open a file (L5) — had a `roles` key holding filenames `[files]` does not
+    #: answer, with no field saying the lookup would never work. Over the set that was read
+    #: and not over the collisions, because which files a run treated as outside this project
+    #: is a fact about the run: it is the same answer when nothing collided at all. Recorded
+    #: and never resolved away — inventing a role for a file this project does not govern is
+    #: the answer RK292 keeps out of the report.
+    ungoverned: tuple[str, ...] = ()
     #: What this file holds in a shape the format has no reader for, in whatever :attr:`unit`
     #: is being counted: plain list items under a block heading in a backlog (RK279), and
     #: headings with prose and no anchor in a rationale file (RK281). One field because it is
@@ -804,6 +815,10 @@ def _prose(
     # Every prose paragraph, not only a section's: the width an author wraps to is a fact
     # about the file, and a preamble above the first anchor is written to the same margin.
     widths = [len(line) for line in _filled(document)]
+    # RK347: the finding one path cannot hold, with the kind of name each file got (RK371).
+    # Read before `unopened`, which is told what this took — a sibling opened to answer the
+    # doubling is not one the report may then name as out of reach.
+    ambiguous, ungoverned = _ambiguous(config, target, alongside, schema)
     return Estimate(
         path=target,
         prefix="",
@@ -814,10 +829,8 @@ def _prose(
         # RK288: the second source. Without it `--sections` had no way to say "read this the
         # other way", which is the one sentence Shio's file needed.
         schemes=_heading_schemes(document),
-        # RK347: the finding one path cannot hold. Read before `unopened`, which is told what
-        # this took — a sibling opened to answer the doubling is not one the report may then
-        # name as out of reach.
-        ambiguous=_ambiguous(config, target, alongside, schema),
+        ambiguous=ambiguous,
+        ungoverned=ungoverned,
         # A file the caller handed to `--with` was opened, whatever role it holds here, so it
         # is not one the same report may call out of reach (RK359) — the rule `opened` was
         # given for, applied to the second way a sibling gets read.
@@ -1083,7 +1096,7 @@ def _ambiguous(
     target: Path,
     alongside: Sequence[str | Path] = (),
     schema: Schema | None = None,
-) -> tuple[tuple[str, tuple[str, ...]], ...]:
+) -> tuple[tuple[tuple[str, tuple[str, ...]], ...], tuple[str, ...]]:
     """Every address two prose files declare now, with the roles that declare it (RK347).
 
     The one check `adopt` could not make from one path. Every other limit it reports is a
@@ -1119,6 +1132,10 @@ def _ambiguous(
     being the one bought before a commitment. So the label is a role where there is one and
     the path where there is not: each file named the truest way this project can name it, and
     a file it does not govern has no role to be called by.
+
+    Which kind each name is, is returned beside them (RK371). It is known here and nowhere
+    after — the printed line survives on the sentence around it, and `--json` was left with a
+    `roles` key holding filenames and no way to tell.
     """
     from roadkeep.history import Anchor, doubled  # noqa: PLC0415 - RK260
 
@@ -1144,9 +1161,12 @@ def _ambiguous(
             for label, document in seen.values()
             for section in anchored(document)
         ]
-        return doubled(named)
+        ungoverned = tuple(
+            label for path, (label, _) in seen.items() if by_path.get(path) not in PROSE_ROLES
+        )
+        return doubled(named), ungoverned
     if not _declared(config, target):
-        return ()
+        return (), ()
 
     taken = [
         Anchor(anchor=section.anchor, role=role, live=True)
@@ -1154,7 +1174,8 @@ def _ambiguous(
         if config.has(role) and config.path(role).is_file()
         for section in anchored(config.document(role))
     ]
-    return doubled(taken)
+    # Every name here is a role by construction, so nothing is ungoverned.
+    return doubled(taken), ()
 
 
 def _named(config: Config, alongside: Sequence[str | Path]) -> tuple[str, ...]:

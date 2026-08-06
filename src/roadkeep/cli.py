@@ -6103,9 +6103,25 @@ def _estimate_json(estimate: Estimate) -> dict[str, object]:
         "rejects": [{"reason": r, "count": n} for r, n in estimate.rejects],
         "non_canonical": estimate.non_canonical,
         "schemes": [{"scheme": s, "count": n} for s, n in estimate.schemes],
+        # Each file under the key that says what its name **is** (RK371): a role `[files]`
+        # answers, or a path it does not. The printed line can leave this to the sentence
+        # around it; a payload read so that an answer costs no file read (L5) cannot, and a
+        # `roles` list holding filenames sent an agent to look up something that was never
+        # there. Never resolved into roles to make one key true — a file this project does not
+        # govern has none, and inventing one is what RK292 keeps out of the report.
         "ambiguous": [
-            {"anchor": a, "roles": list(roles)} for a, roles in estimate.ambiguous
+            {
+                "anchor": anchor,
+                "declared_by": [
+                    {"path": name} if name in estimate.ungoverned else {"role": name}
+                    for name in names
+                ],
+            }
+            for anchor, names in estimate.ambiguous
         ],
+        # Beside them and not merely inside them: this is which files the run treated as
+        # outside the project, which is the same answer when nothing collided at all.
+        "ungoverned": list(estimate.ungoverned),
         "ledger_shape": [{"declaration": d, "count": n} for d, n in estimate.ledger_shape],
         "unopened": list(estimate.unopened),
         "declared": estimate.declared,

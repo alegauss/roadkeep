@@ -319,6 +319,7 @@
 - ✅ **RK359** **The doubled address the estimate reports is reachable only where the file is already one this project declares** — The estimate takes the other prose files as arguments, so the doubled address is reachable where no configuration names them.
 - ✅ **RK369** **A prose file the estimate is handed by name is read unqualified, so a namespace already declared reads as a collision** — A named file is read through its role where it has one, so a declared namespace answers the same whichever way the run reached it.
 - ✅ **RK370** **A file the estimate cannot open is refused in the OS's own sentence, with an absolute path and no argument named** — Every path is checked before the first is opened, so a run over a set refuses whole and names the argument that carried each one.
+- ✅ **RK371** **A doubling over files the caller named comes back in a field called `roles`, holding filenames no `[files]` answers** — Each file in the payload sits under the key that says what its name is, and which of them the run treated as outside the project is its own field.
 
 ## Block F — The Claude Code plugin
 

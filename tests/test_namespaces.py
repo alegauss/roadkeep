@@ -242,6 +242,41 @@ def test_a_governed_file_is_labelled_by_its_role_and_a_foreign_one_by_its_path(t
         ("I", ("improvements", "NOTES.md")),
         ("I.1", ("improvements", "NOTES.md")),
     )
+    # RK371: and which of the two is which is recorded, not left to the sentence around it.
+    assert estimate.ungoverned == ("NOTES.md",)
+
+
+def test_which_files_were_outside_the_project_is_answered_without_a_collision(tmp_path):
+    # Over the set that was read and not over the doubling: a run whose files agree is the run
+    # an adopter most wants the scope of, and a field derived from the collisions would be
+    # empty exactly then.
+    config = project(tmp_path, refs="")
+    outside = tmp_path / "NOTES.md"
+    outside.write_text("# Notes\n\n## XL. A design\n\nProse.\n", encoding="utf-8")
+    estimate = adopt(
+        config, config.path("improvements"), sections=True, alongside=[str(outside)]
+    )
+    assert estimate.ambiguous == () and estimate.ungoverned == ("NOTES.md",)
+
+
+def test_the_payload_files_each_name_under_the_key_that_says_what_it_is(tmp_path, capsys):
+    """RK371: `--json` is taken by the caller who took it *not* to open a file, and a `roles`
+    list holding filenames sent it to look up something `[files]` was never going to answer."""
+    config = project(tmp_path, refs="")
+    outside = tmp_path / "NOTES.md"
+    outside.write_text(STRATEGY_BODY, encoding="utf-8")
+    argv = ["-C", str(tmp_path), "adopt", str(config.path("improvements")), "--sections"]
+    assert main([*argv, "--with", str(outside), "--json"]) == EXIT_OK
+    mixed = json.loads(capsys.readouterr().out)["ambiguous"]
+    assert mixed[0] == {
+        "anchor": "I",
+        "declared_by": [{"role": "improvements"}, {"path": "NOTES.md"}],
+    }
+    # And a run that named nothing is all roles, which is every project that has not used
+    # `--with`: the key is a fact about each name and not a mode the flag switches on.
+    assert main([*argv, "--json"]) == EXIT_OK
+    roles = json.loads(capsys.readouterr().out)["ambiguous"]
+    assert roles[0]["declared_by"] == [{"role": "improvements"}, {"role": "strategy"}]
 
 
 def test_a_named_file_this_project_governs_is_not_then_called_unread(tmp_path):
