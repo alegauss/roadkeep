@@ -139,32 +139,6 @@ instead is a `section amend`, and a judgement; noticing is not.
 
 ## Block C — Query
 
-### §RK396 A dep on a partially shipped task is annotated as satisfied
-
-Turing's T927 was shipped with `--part "the seven with a same-major patch"`. The line
-stayed open and marked ⏳, exactly as designed: seven advisories were remediated, one
-needs a major migration.
-
-A task filed afterwards with `--dep T927` was written as:
-
-```
-- 📋 **T933** (deps: T927 ✅) ...
-```
-
-The ✅ is wrong in the way that matters. `T927` is `⏳ open` — `show` says so on the same
-corpus, in the same breath. The annotation is derived from the ledger holding the id,
-and `--part` puts it there while the work is unfinished, so the two readings disagree.
-
-The consequence is the one dep annotations exist to prevent. A reader picking work sees
-a satisfied dependency and starts; if what they needed was the unshipped half — here,
-the react-router migration rather than the version floors — they are blocked by
-something the roadmap told them was done. `pick` and `deps` inherit the same reading.
-
-The fix is to source the annotation from the line's own state rather than from the
-ledger's membership: shipped when no open line carries the id, and something
-distinguishable when one does — `T927 ⏳` reads correctly and needs no new vocabulary,
-since the marker is already the line's.
-
 ## Block D — The gate
 
 ### §RK380 A block can carry open lines for months and be found missing only by the first ship

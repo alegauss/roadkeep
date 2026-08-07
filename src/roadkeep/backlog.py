@@ -246,6 +246,20 @@ class Backlog:
             if entry.task.status == marker
         )
 
+    def partial(self, task_id: str) -> str:
+        """Which half the ledger says landed, where this id shipped in halves (RK121, RK396).
+
+        Empty for every other id, which is what makes it a *detail* and not a status: a
+        partial is an open line whose ledger entry names the delivered part, so the answer
+        about whether to start work stays the line's and this only says what already exists.
+        """
+        if self.ledger is None:
+            return ""
+        entry = self.ledger.by_id().get(task_id)
+        if entry is None or entry.task.status != self.config.schema.shipped_marker:
+            return ""
+        return entry.task.part or ""
+
     def deferred(self) -> dict[str, Entry]:
         """Ids the store holds, with the line that says why they were set aside.
 
@@ -341,6 +355,23 @@ class Backlog:
         )
 
     def _resolve_task(self, dep: Dep, kind: DepKind) -> Resolution:
+        # A **partial** is read before the ledger (RK396). `ship --part` writes an entry and
+        # deliberately leaves the line open at ⏳, so membership stopped meaning the work is
+        # finished — and the dependent was annotated ✅ by the half that landed rather than by
+        # the half it waits on, which is the one thing this annotation exists to prevent.
+        #
+        # Narrowed to the qualifier the entry carries, and not to "open line wins", because
+        # an id in both files with *no* qualifier is a ship that crashed between its writes:
+        # there the intended end state is shipped, `deps.stale` on the dependents is part of
+        # what makes that middle state loud (RK118), and reading it as open would quietly
+        # complete the transaction's story in the one file that had not been written yet.
+        landed = self.partial(dep.id)
+        open_line = self.entry(dep.id)
+        if landed and open_line is not None:
+            where = f" in Block {open_line.task.block}" if open_line.task.block else ""
+            return Resolution(
+                dep, kind, DepStatus.OPEN, f"open{where}, the {landed} in the changelog"
+            )
         if dep.id in self.shipped():
             return Resolution(dep, kind, DepStatus.SHIPPED, "in the changelog")
         gone = self.retired().get(dep.id)

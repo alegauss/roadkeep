@@ -30,8 +30,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK396** (deps: —) **A dep on a partially shipped task is annotated as satisfied** — ship --part writes a ledger entry and leaves the line open, but the dep annotation reads the ledger, so a dependent is marked unblocked by the half that landed rather than by the half it needs. → §RK396
-
 ## Block D — The gate
 
 - 📋 **RK380** (deps: —) **A block can carry open lines for months and be found missing only by the first ship** — add writes a line under a roadmap block without checking the changelog declares it, so the heading a ship needs is discovered at the end of the first task in the block rather than at the start. → §RK380

@@ -23,11 +23,12 @@ from roadkeep.provenance import invocation
 
 from roadkeep import claiming, document
 from roadkeep.authoring import UnknownBlock
+from roadkeep.backlog import Backlog, DepStatus
 from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.document import Document, RoundTripError, StaleFile
 from roadkeep.linting import lint
-from roadkeep.schema import IN_PROGRESS, PARTIAL, Schema, SchemaError
+from roadkeep.schema import IN_PROGRESS, PARTIAL, Dep, Schema, SchemaError
 from roadkeep.shipping import SecondPartial
 from roadkeep.sections import SectionOccupied
 from roadkeep.shipping import (
@@ -920,6 +921,37 @@ def test_a_partial_and_its_completion_both_lint_clean(tmp_path):
     assert lint(Config.discover(tmp_path)).clean
     ship(Config.discover(tmp_path), "RK1", why="Because of a reason.").save()
     assert lint(Config.discover(tmp_path)).clean
+
+
+def test_a_dependent_of_a_partial_is_annotated_by_the_line_and_not_by_the_ledger(tmp_path):
+    # Measured in Turing (RK396): T927 shipped `--part` and stayed ⏳, and T933 was written
+    # `(deps: T927 ✅)` — the annotation read ledger membership, which `--part` grants while
+    # the work is unfinished. A reader picking work is then blocked by what the roadmap said
+    # was done, which is the one failure a dep annotation exists to prevent.
+    config = project(tmp_path)
+    ship(config, "RK1", part="local half", why="Because of a reason.").save()
+    roadmap = read(Config.discover(tmp_path), ROADMAP)
+    assert "(deps: RK1 ⏳)" in roadmap
+    assert "RK1 ✅" not in roadmap
+
+
+def test_the_completion_is_what_turns_that_annotation_into_the_shipped_one(tmp_path):
+    # The other end of the same fact: ✅ is a claim about the *line*, so it arrives exactly
+    # when the line does not, and not when half of it was recorded.
+    config = project(tmp_path)
+    ship(config, "RK1", part="local half", why="Because of a reason.").save()
+    ship(Config.discover(tmp_path), "RK1", why="Because it all landed.").save()
+    assert "(deps: RK1 ✅)" in read(Config.discover(tmp_path), ROADMAP)
+
+
+def test_the_partial_a_dep_resolves_against_names_which_half_landed(tmp_path):
+    # The marker says open and the detail says what already exists, so the reader deciding
+    # whether to start does not have to open the ledger to find out which half is left.
+    config = project(tmp_path)
+    ship(config, "RK1", part="local half", why="Because of a reason.").save()
+    found = Backlog.load(Config.discover(tmp_path)).resolve_dep(Dep("RK1"))
+    assert found.status is DepStatus.OPEN
+    assert "local half" in found.detail and "changelog" in found.detail
 
 
 def test_the_cli_reports_the_qualifier_and_how_to_finish(tmp_path, capsys):

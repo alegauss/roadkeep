@@ -116,12 +116,16 @@ def _annotate(backlog: Backlog, dep: Dep) -> Dep:
         # and an unannotated dep on it reads as ordinary open work somebody is doing.
         return replace(dep, marker=backlog.config.schema.deferred_marker)
     if resolution.status is DepStatus.OPEN:
-        if dep.marker is None:
-            return dep  # unannotated open work stays unannotated
         if resolution.kind is not DepKind.TASK:
             # A block or a range is many lines with many markers, so a stale ✅ on one
             # is dropped rather than replaced: any single marker would claim too much.
-            return replace(dep, marker=None)
+            return dep if dep.marker is None else replace(dep, marker=None)
+        if dep.marker is None and not backlog.partial(dep.id):
+            return dep  # unannotated open work stays unannotated
+        # Written whether or not one was typed where the blocker shipped in halves (RK396),
+        # for the reason RK92 writes the paused one: the ledger already records that part of
+        # this dep landed, and an unannotated dep reads as work nobody has started on — which
+        # is the reading that sends somebody to pick up the half that is still open.
         entry = backlog.entry(dep.id)
         return replace(dep, marker=entry.task.status if entry is not None else None)
     # UNKNOWN and UNRESOLVABLE: nothing to read, so nothing is written — including the
