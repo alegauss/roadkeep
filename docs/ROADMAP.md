@@ -28,16 +28,20 @@
 - 📋 **RK377** (deps: —) **A doubled anchor has no verb that repairs it** — lint reports section.ambiguous and the write path refuses a doubling, but no verb changes a section's address, so the only repair left is the hand edit the hook denies. → §RK377
 - 📋 **RK381** (deps: —) **A refusal on a short field costs the whole rationale a second time** — the section body arrives on stdin, so a why over the limit by three words discards a prose block the author must resend verbatim, which is the expense the pre-write validation was meant to avoid. → §RK381
 - 📋 **RK382** (deps: —) **A symptom that discovery widens has no verb, only retire and refile** — amend refuses the field because a different claim is a different task, but a claim found to hold in four places rather than one is the same task with a symptom that has become false. → §RK382
+- 📋 **RK385** (deps: —) **Nothing notices that a new line asks for what a shipped entry already delivered** — RK378 was filed the day after RK340 shipped the same namespace and nothing refused it, so a duplicate costs a claim, a brief and a retirement before anyone reads the ledger. → §RK385
 
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK379** (deps: —) **The refusal for a missing anchor does not name the anchor to use** — under ref_scheme outline every add without --ref is refused by a fixed sentence, while `anchors` already computes the next free address in the family the line is going into. → §RK379
+- 📋 **RK383** (deps: —) **The free-address help says one outline spans both files, which a declared namespace makes false** — anchors --role and its comment predate [refs], so a project whose prose files each declare a namespace reads a promise of a shared free address the command no longer computes. → §RK383
 
 ## Block D — The gate
 
 - 📋 **RK380** (deps: —) **A block can carry open lines for months and be found missing only by the first ship** — add writes a line under a roadmap block without checking the changelog declares it, so the heading a ship needs is discovered at the end of the first task in the block rather than at the start. → §RK380
 
 ## Block E — Adoption
+
+- 📋 **RK384** (deps: —) **A prefix named with --sections is taken and never used, and a value the command refuses elsewhere passes silently** — A section is not addressed by a family, so the flag is right to go unread — but the same string is a refusal one flag over, and the report reads as taken under it. → §RK384
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
