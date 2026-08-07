@@ -38,7 +38,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK405** (deps: —) **A ledger organised by nothing is a project every ship refuses and no verb can repair** — The block verb writes only into a file already organised by blocks, so the heading a ship names cannot be opened by any command and the guard denies the hand edit. → §RK405
 - 📋 **RK406** (deps: —) **The body flag that takes a path refuses the dash every other tool reads as standard input** — It opens the argument as a filename, so a caller spelling the default explicitly gets a file-not-found naming the dash rather than the sentence saying stdin is already it. → §RK406
 
 ## Block E — Adoption

@@ -550,6 +550,16 @@ def build_parser() -> argparse.ArgumentParser:
             "wants the heading declares no such neighbour"
         ),
     )
+    block_add.add_argument(
+        "--organise",
+        action="append",
+        default=[],
+        metavar="ROLE",
+        help=(
+            "also write the first block heading into this file, e.g. changelog; a file "
+            "organised by nothing is skipped without it, and every ship there refuses"
+        ),
+    )
     block_add.add_argument("--json", action="store_true", help=_JSON_HELP)
     block_add.set_defaults(handler=_block_add)
 
@@ -2296,7 +2306,9 @@ def _add(config: Config, args: argparse.Namespace) -> int:
 
 def _block_add(config: Config, args: argparse.Namespace) -> int:
     try:
-        opened = open_block(config, args.label, args.title, after=args.after)
+        opened = open_block(
+            config, args.label, args.title, after=args.after, organise=args.organise
+        )
         opened.save()
     except REFUSALS as error:
         return _refused(error)

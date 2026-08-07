@@ -154,6 +154,10 @@ while an open line points at the anchor **or at any address under it**, named in
 whether this file writes that address as a heading or as a bullet; that is right, and shipping
 is not a way to fix a paragraph. No write invents a block
 heading — **`block add <x> --title "…"` is the one that declares one**, in every governed file already organised by blocks, placed after the last block's subtree and spelled at that file's own level and separator. Reach for it the moment any write refuses with "no heading declares".
+A file organised by *nothing* is skipped, because the level, the separator and the placement
+are all read off a heading it does not have — so a ledger that is plain prose is a project
+every `ship` refuses; `--organise <role>` is you saying that file is to be organised by
+blocks, and the refusal names it where that is the state.
 Block order is what `list` reports and what a reader takes for the shape of the plan, so
 `--after <label>` opens one **between** two existing blocks: it names a neighbour rather than an
 index, each file placing the heading after its own copy of that heading, and a file that wants

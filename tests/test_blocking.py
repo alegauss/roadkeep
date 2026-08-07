@@ -34,6 +34,7 @@ from roadkeep.blocking import (
     NoSuchBlock,
     NoSuchNeighbour,
     NotALabel,
+    NotOrganisable,
     NothingToDrop,
     drop_block,
     open_block,
@@ -182,8 +183,81 @@ def test_a_file_that_is_not_organised_by_blocks_is_named_and_left_alone(tmp_path
     opened.save()
 
     assert set(opened.documents) == {"roadmap", "changelog"}
-    assert opened.skipped == ((IMPROVEMENTS, "declares no block, so there is none to open beside"),)
+    # And the reason names the argument that writes it anyway (RK405), so the author does
+    # not learn the way out from the next command that refuses.
+    assert opened.skipped == (
+        (IMPROVEMENTS, "declares no block; --organise improvements writes the first one"),
+    )
     assert "Block C" not in read(config, IMPROVEMENTS)
+
+
+# -- the file organised by nothing, and the key to it (RK405) ----------------
+
+FLAT = "# Shipped\n\nProse, and no block heading anywhere in it.\n"
+
+
+def test_the_first_heading_is_written_where_the_author_asks_for_it(tmp_path):
+    # Measured: `ship` refused naming this verb, this verb skipped the file, and a fresh
+    # label skipped it too — so no argument to any command put a heading there.
+    config = project(tmp_path, changelog=FLAT)
+    opened = open_block(config, "A", "The model", organise=["changelog"])
+    opened.save()
+
+    ledger = read(config, CHANGELOG)
+    # Spelled the project's way, not this module's, and at the end: there is no block
+    # subtree to follow and no `--after` to resolve against.
+    # The blank on either side is `_insert`'s, and the same one every other heading gets.
+    assert ledger == FLAT + "\n## Block A — The model\n\n"
+    assert opened.rendered["changelog"] == "## Block A — The model"
+
+
+def test_the_ship_that_refused_goes_through_afterwards(tmp_path):
+    config = project(tmp_path, changelog=FLAT)
+    open_block(config, "A", "The model", organise=["changelog"]).save()
+    shipped = ship(config, "RK1", why="It works now.")
+    shipped.save()
+    assert "**RK1**" in read(config, CHANGELOG)
+
+
+def test_the_refusal_names_the_argument_that_opens_the_file(tmp_path):
+    # The obligation is stated by the command that created it, never discovered from the
+    # backstop: the bare `block add` skips this file, so naming it alone is one more refusal.
+    config = project(tmp_path, changelog=FLAT)
+    with pytest.raises(ValueError) as raised:
+        ship(config, "RK1", why="It works now.")
+    assert 'block add A --title "<its title>" --organise changelog' in str(raised.value)
+
+
+def test_a_ledger_that_declares_blocks_hears_nothing_about_organising(tmp_path):
+    # Spent where the file has a heading of its own: `block add` writes there already.
+    config = project(tmp_path, changelog="# Shipped\n\n## Block Z — Something else\n")
+    with pytest.raises(ValueError) as raised:
+        ship(config, "RK1", why="It works now.")
+    assert "--organise" not in str(raised.value)
+
+
+def test_a_role_the_project_does_not_declare_is_refused_by_name(tmp_path):
+    config = project(tmp_path, changelog=FLAT)
+    with pytest.raises(NotOrganisable) as raised:
+        open_block(config, "C", "Query", organise=["deferred"])
+    message = str(raised.value)
+    assert "--organise deferred" in message and "changelog, improvements, roadmap" in message
+    assert read(config, CHANGELOG) == FLAT
+
+
+def test_a_project_with_no_block_anywhere_is_init_s_and_not_this_verb_s(tmp_path):
+    # There is no level and no separator to read, and punctuation invented here would be a
+    # second convention in a project that has one.
+    config = project(
+        tmp_path,
+        roadmap="# Roadmap\n\nProse.\n",
+        changelog=FLAT,
+        improvements="# Improvements\n\nProse.\n",
+    )
+    with pytest.raises(NotOrganisable) as raised:
+        open_block(config, "A", "The model", organise=["changelog"])
+    assert "`init` scaffolds" in str(raised.value)
+    assert read(config, CHANGELOG) == FLAT
 
 
 # -- what is derived, per file ------------------------------------------------

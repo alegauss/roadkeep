@@ -263,7 +263,11 @@ TOOLS: tuple[Tool, ...] = (
     # `after` rides with it (RK145): block order is what `list` reports and what a reader takes
     # for the shape of the plan, and without it a phase belonging between two existing ones was
     # appended after both — repaired only by reordering three files by hand.
-    Tool("block add", ("label", "title", "after")),
+    # `organise` rides with them (RK405): a ledger organised by nothing is a project every
+    # `ship` refuses and no bare `block add` repairs, and the agent that meets that refusal
+    # is the one the guard denies the hand-edit to — a flag only the CLI can reach would
+    # leave this surface holding the deadlock the two above exist to break.
+    Tool("block add", ("label", "title", "after", "organise")),
     # And the key that could not close the door (RK144). Exposed for the same reason: the
     # caller that opened a label by mistake is the one the guard denies the hand-edit to, and
     # the removal is refused by name over anything filed under it.

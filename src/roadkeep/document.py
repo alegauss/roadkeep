@@ -231,6 +231,12 @@ class UnknownBlock(ValueError):
     wrong*, which is the one thing it is not. The same confusion RK257 measured one surface
     over. Absent where the two are one file, which is every other raiser: there the clause
     would say the thing the sentence already said.
+
+    ``organise`` is the role the remedy needs when the file declares **no** block at all
+    (RK405). `block add` skips such a file, so the bare command this sentence names is one
+    more refusal — measured on a project whose ledger was prose, where `ship`, `block add
+    <its label>` and `block add <a fresh label>` all declined and the guard denied the edit.
+    Said only in that state, because where the file declares blocks the argument is spent.
     """
 
     def __init__(
@@ -241,11 +247,17 @@ class UnknownBlock(ValueError):
         word: str = "Block",
         *,
         into: str = "",
+        organise: str = "",
     ) -> None:
         self.label = label
         self.declared = tuple(declared)
         self.into = into
+        self.organise = organise
         file = f" in {where}" if where else ""
+        # The remedy that works on *this* file (RK405). `block add` skips a file organised
+        # by nothing, so where the labels came back empty the bare command is one more
+        # refusal, and the argument that opens the first heading is the whole answer.
+        starting = f" --organise {organise}" if organise and not self.declared else ""
         elsewhere = (
             f", though {into} (where this line goes) declares it"
             if into and into != where
@@ -265,7 +277,7 @@ class UnknownBlock(ValueError):
             f"no heading declares {word} {label}{file}"
             f"{declares(self.declared, named=bool(where))}{elsewhere}: a heading "
             f"invented by a write files the text where nothing looks for it{shades} "
-            f'`block add {label} --title "<its title>"`'
+            f'`block add {label} --title "<its title>"{starting}`'
         )
 
 

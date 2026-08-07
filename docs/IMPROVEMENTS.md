@@ -238,35 +238,6 @@ every `add` instead of from memory.
 
 ## Block D — The gate
 
-### §RK405 The deadlock the block verb was written to open, one file shape over
-
-Measured on a project whose `CHANGELOG.md` is prose:
-
-```
-ship RK1          no heading declares Block A in docs/CHANGELOG.md (it declares none)
-                  … the verb that opens it wherever it is missing is `block add A`
-block add A       A is already declared in docs/ROADMAP.md: nothing to open
-block add Q       not      docs/CHANGELOG.md: declares no block, so there is none to open
-```
-
-The third line is the one that decides it. Even a label nothing declares anywhere skips
-that file, so there is no argument to any command that puts a heading in it — and the
-guard denies the `Edit` that would. The project can plan, and can never ship.
-
-This is exactly the pair the block verb exists to break, one file shape over: two
-refusals each right alone, and no key. The narrowing that closed the add's half left
-this half standing, because the add can decline to ask and the ship cannot.
-
-The rule being defended is real. Level and separator are read off the file's own first
-block heading, and placement is *after a neighbour* — a file with no blocks holds
-neither, so writing one there is a decision about that file's shape.
-
-But the shape is not being decided freely: this project's ledger has to be organised by
-blocks or nothing in it ever ships, and the tool already knows that. What is missing is
-a way to say so once. A flag on the block verb that opens the **first** heading in a
-named file is one shape; deriving the spelling from the file that does declare the label
-is another, and narrower than it reads, since the label is carried and not invented.
-
 ### §RK406 The one spelling of stdin the door does not take
 
 Measured while filing a task in this repository:

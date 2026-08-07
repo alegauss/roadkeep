@@ -232,6 +232,7 @@ def place(
     carrying: Sequence[str] = (),
     where: str = "",
     config: Config | None = None,
+    organise: str = "",
 ) -> Insertion:
     """Validate, render, insert — in memory, and refuse before any of it.
 
@@ -278,6 +279,10 @@ def place(
             sorted({h.label for h in document.headings if h.label}),
             where,
             word=document.schema.heading_word,
+            # Which file the remedy has to start organising, where it declares no block at
+            # all (RK405). Passed by the callers that write into one that can be in that
+            # state — the ledger — and empty everywhere else, where it is not said.
+            organise=organise,
         )
     if len(declared) > 1:
         # The ambiguity is not resolved by position (RK391) — see `RepeatedHeading`. Here

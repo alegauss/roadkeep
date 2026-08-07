@@ -71,6 +71,7 @@ __all__ = [
     "NoSuchBlock",
     "NoSuchNeighbour",
     "NotALabel",
+    "NotOrganisable",
     "NothingToDrop",
     "Opened",
     "drop_block",
@@ -129,6 +130,37 @@ class NoSuchNeighbour(KeyError):
             f"{where} declares no {word} {after} to open {word} {label} after (declares: "
             f"{known}): --after names a neighbour, and a file that cannot find it would be "
             f"the one file ordered by a different rule"
+        )
+
+
+class NotOrganisable(ValueError):
+    """An `--organise` this project cannot honour, refused before anything is written (RK405).
+
+    Two ways to be that, and the sentence says which. A role the project does not declare, or
+    whose file is not on disk, is nothing this verb can write into at all — and the roles it
+    *can* are named, because the commonest cause is the role's own spelling.
+
+    The other is subtler and is the rule this argument does not weaken: with **no** governed
+    file declaring a block, there is no level and no separator to read, and a heading composed
+    out of this module's own punctuation would write a second convention into a project that
+    has one (see :func:`_heading`). That project is one `init` scaffolds, not one this verb
+    guesses the shape of.
+    """
+
+    def __init__(self, role: str, roles: Sequence[str], *, spelling: bool = False) -> None:
+        self.role = role
+        self.roles = tuple(roles)
+        if spelling:
+            super().__init__(
+                f"--organise {role}: no file this project declares carries a block heading "
+                f"to read the level and the separator off, so the first one is not this "
+                f"verb's to compose — `init` scaffolds a project that has none"
+            )
+            return
+        known = ", ".join(self.roles) or "none"
+        super().__init__(
+            f"--organise {role}: this project declares no such file on disk (it declares: "
+            f"{known}) — the argument names a role, which is how [files] names one"
         )
 
 
@@ -342,6 +374,26 @@ def _kept(held: Standing) -> str:
     return f"{len(held.names)} line(s) of {kind} under it: the ledger's heading is not moved"
 
 
+def _readable(config: Config) -> dict[str, tuple[str, Document, tuple[Heading, ...]]]:
+    """Every governed file a block heading can belong in that is on disk, in report order.
+
+    Read once and in one place because :func:`open_block` now asks two questions of the set
+    rather than one (RK405): *which files want the heading* and *how does this project spell
+    one* — and the second is answered by a file the first may skip.
+    """
+    found: dict[str, tuple[str, Document, tuple[Heading, ...]]] = {}
+    for role in BLOCK_ROLES:
+        if not config.has(role) or not config.path(role).is_file():
+            continue
+        document = config.document(role)
+        found[role] = (
+            config.relative(config.path(role)),
+            document,
+            tuple(h for h in document.headings if h.label),
+        )
+    return found
+
+
 def _declaring(
     config: Config, label: str
 ) -> tuple[tuple[str, str, Document, Heading], ...]:
@@ -474,7 +526,12 @@ class Opened:
 
 
 def open_block(
-    config: Config, label: str, title: str, *, after: str | None = None
+    config: Config,
+    label: str,
+    title: str,
+    *,
+    after: str | None = None,
+    organise: Sequence[str] = (),
 ) -> Opened:
     """Declare one block in every governed file already organised by blocks.
 
@@ -486,6 +543,27 @@ def open_block(
     of *its own* `<label>` subtree, so the argument stays honest where two files order their
     blocks differently. Omitted, the neighbour is the last block, which is what opening a new
     one means and what every call before this argument existed got.
+
+    ``organise`` names the roles this verb may write the **first** block heading into (RK405),
+    and it is the key to the one deadlock the rest of this module left. Measured on a project
+    whose `CHANGELOG.md` was prose: `ship` refused, naming this verb; this verb skipped that
+    file, because a file declaring no block is not one it starts organising; and `block add`
+    on a label nothing declares anywhere skipped it too — so no argument to any command put a
+    heading there, and the guard denies the `Edit`. Plan freely, ship never.
+
+    The rule being defended is real and is not weakened: the level, the separator and the
+    placement are the file's own, and a file with no blocks holds none of them. What this
+    argument supplies is the missing **statement** — *this file is to be organised by blocks*
+    — which is the author's to make and never the tool's to infer, exactly as the title is.
+    Given it, the spelling is derived from a file that does declare one, because the project's
+    convention is a project fact and a second punctuation invented here would be the thing
+    :func:`_heading` exists to avoid; and the placement is the end of the file, which is the
+    only honest answer where there is no block subtree to follow and no `--after` to resolve.
+
+    Refused where the role is not declared, where its file is absent, and where **no** file
+    declares a block to read the spelling off — that last one being `init`'s job and not a
+    heading this verb may compose out of nothing. A role that already declares blocks is
+    written the ordinary way and the argument is simply spent: it says what is already true.
     """
     schema = config.schema
     # The dep's pattern rather than the heading's, because that one is anchored at both
@@ -504,16 +582,33 @@ def open_block(
     skipped: list[tuple[str, str]] = []
     declared: list[str] = []
 
-    for role in BLOCK_ROLES:
-        if not config.has(role) or not config.path(role).is_file():
-            continue
-        where = config.relative(config.path(role))
-        document = config.document(role)
-        blocks = tuple(h for h in document.headings if h.label)
+    readable = _readable(config)
+    asked = tuple(dict.fromkeys(organise))
+    for role in asked:
+        if role not in readable:
+            raise NotOrganisable(role, sorted(readable))
+    # The project's own convention, read before anything is written and off the first file
+    # that has one — `BLOCK_ROLES` order, so it is the roadmap wherever the roadmap has
+    # blocks. A file being organised for the first time has no heading of its own to copy.
+    convention = next((blocks for _, _, blocks in readable.values() if blocks), ())
+
+    for role, (where, document, blocks) in readable.items():
         if not blocks:
-            # Not a file this verb starts organising: a heading here would be the first of
-            # its kind, which is a decision about the file's shape and not about a block.
-            skipped.append((where, "declares no block, so there is none to open beside"))
+            if role not in asked:
+                # Not a file this verb starts organising unless told to: a heading here
+                # would be the first of its kind, which is a decision about the file's
+                # shape and not about a block (RK405 names the argument that makes it).
+                skipped.append(
+                    (where, f"declares no block; --organise {role} writes the first one")
+                )
+                continue
+            if not convention:
+                raise NotOrganisable(role, sorted(readable), spelling=True)
+            raw = _heading(convention, schema.block_named(label), title.strip())
+            index = len(document.lines)
+            changed[role] = _insert(document, index, raw)
+            rendered[role] = raw
+            placed[role] = _lineno(changed[role], raw)
             continue
         if any(h.label == label for h in blocks):
             declared.append(where)
