@@ -165,29 +165,6 @@ for the deferred store, and the default is the wrong one.
 
 ## Block D — The gate
 
-### §RK380 A block can carry open lines for months and be found missing only by the first ship
-
-Turing's Block BV carried eight open lines and no `## Block BV` heading in
-`CHANGELOG.md`. Nothing said so. The first `ship` refused:
-
-```
-no heading declares Block BV in docs/CHANGELOG.md
-```
-
-which is a good refusal — it names `block add BV --title "<its title>"` and even warns
-that `B` shares a prefix with `BV`. The cost is *when*. A ship is the end of a task: the
-code is written, the tests pass, the commit is drafted, and the author is now told the
-backlog was mis-set-up before any of it started.
-
-`add --block BV` is where the fact is available and where nothing is at stake yet. It
-has the config, the label, and `declaring`-style access to the ledger. Either refuse
-there with the same message, or write the heading in the same transaction, the way `add
---section` writes the rationale rather than leaving a pointer to nothing — the precedent
-is in this tool and the argument is the one that verb already makes.
-
-`lint` is the other half: a roadmap block with open lines and no ledger heading is a
-finding, and reporting it costs one pass rather than one ship.
-
 ### §RK391 The door the scaffold closed, and the three still open
 
 RK390 made `init` refuse two `--block` values sharing a label, because one heading twice

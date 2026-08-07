@@ -54,6 +54,11 @@ LEDGER = """# Shipped
 - ✅ **RK5** **An earlier symptom** — Because it was done.
 """
 
+#: The same ledger with the second block declared, and the helper's default: a roadmap that
+#: opens Block B and a ledger that does not is its own finding (RK380), so a fixture about
+#: anything else declares both. `LEDGER` itself is what the tests *about* that state pass.
+LEDGER_AB = LEDGER + "\n## Block B — Authoring\n"
+
 PROSE = """# Design rationale
 
 ## Block A — The model
@@ -76,7 +81,7 @@ CONFIG = (
 def project(
     tmp_path: Path,
     roadmap: str = CLEAN,
-    changelog: str | None = LEDGER,
+    changelog: str | None = LEDGER_AB,
     improvements: str | None = PROSE,
     config: str = CONFIG,
 ) -> Config:
@@ -497,6 +502,36 @@ def test_an_annotation_that_no_longer_matches_its_target_is_a_finding(tmp_path):
     report = lint(project(tmp_path, roadmap=stale))
     finding = next(f for f in report.findings if f.code == "deps.stale")
     assert "RK1 📋" in finding.message
+
+
+# -- the block the ledger cannot receive work into (RK380) -------------------
+
+PLANNED = (
+    CLEAN
+    + """
+## Block B — Authoring
+
+- 📋 **RK3** (deps: —) **A third symptom** — Because of a third reason. → §RK3
+- 📋 **RK4** (deps: —) **A fourth symptom** — Because of a fourth reason. → §RK4
+"""
+)
+
+
+def test_a_block_with_open_lines_and_no_ledger_heading_is_a_finding(tmp_path):
+    report = lint(project(tmp_path, roadmap=PLANNED, changelog=LEDGER, improvements=None))
+    (finding,) = [f for f in report.findings if f.code == "block.unrecorded"]
+    # At the heading, once, counting the work that cannot be delivered — and naming the
+    # verb, so the answer is the command rather than a diagnosis to research.
+    assert finding.file == "ROADMAP.md" and finding.lineno == 8
+    assert "2 open line(s)" in finding.message
+    assert 'block add B --title "<its title>"' in finding.message
+    assert not report.clean
+
+
+def test_a_roadmap_heading_over_nothing_is_a_block_being_drafted(tmp_path):
+    empty = CLEAN + "\n## Block B — Authoring\n"
+    report = lint(project(tmp_path, roadmap=empty, changelog=LEDGER))
+    assert not [f for f in report.findings if f.code == "block.unrecorded"]
 
 
 # -- the defect the graph finds ----------------------------------------------

@@ -37,6 +37,7 @@ from roadkeep.schema import SchemaError
 
 ROADMAP = "docs/ROADMAP.md"
 IMPROVEMENTS = "docs/IMPROVEMENTS.md"
+CHANGELOG = "docs/CHANGELOG.md"
 
 FIRST = "- 📋 **RK1** (deps: —) **A first symptom** — Because of a reason. → §RK1"
 BODY = f"""# Roadmap
@@ -67,20 +68,28 @@ def project(
     declares: tuple[str, ...] = (),
     files: dict[str, str] | None = None,
     prose: str | None = None,
+    ledger: str | None = None,
 ) -> Config:
     """A throwaway project: a config, its roadmap, and whatever else it declares.
 
     `prose` declares *and* writes the improvements file, which is the only state in
     which a pointer resolves to anything at all (RK93). A project that declares none
     is the third case those tests care about, and it stays this helper's default.
+
+    `ledger` does the same for the changelog, which is what makes `add`'s second heading
+    refusal reachable (RK380): a project declaring no ledger has nothing for it to read,
+    and that is this helper's default for the same reason `prose` is.
     """
     lines = ['prefix = "RK"', *declares, "[files]", f'roadmap = "{ROADMAP}"']
     if prose is not None:
         lines.append(f'improvements = "{IMPROVEMENTS}"')
+    if ledger is not None:
+        lines.append(f'changelog = "{CHANGELOG}"')
     (tmp_path / "roadkeep.toml").write_text("\n".join(lines) + "\n", encoding="utf-8")
     written = {
         ROADMAP: body,
         **({IMPROVEMENTS: prose} if prose is not None else {}),
+        **({CHANGELOG: ledger} if ledger is not None else {}),
         **(files or {}),
     }
     for name, text in written.items():
@@ -200,6 +209,53 @@ def test_a_block_no_heading_declares_is_refused_and_the_file_is_untouched(tmp_pa
     assert "A, B" not in message
     assert raised.value.declared == ("A", "B")  # still carried, for a caller that wants them
     assert source(config) == BODY
+
+
+# -- the other heading, asked one task before the ship needs it (RK380) ------
+
+LEDGER = """# Changelog
+
+## Block A — The model
+"""
+
+
+def test_a_block_the_ledger_does_not_declare_is_refused_at_the_add(tmp_path):
+    config = project(tmp_path, ledger=LEDGER)
+    with pytest.raises(UnknownBlock) as raised:
+        task(config, block="B")
+    # The roadmap declares B, so this is the half only the ledger knows — and the sentence
+    # is the one the first ship in this block would have given, at the end of the task.
+    message = str(raised.value)
+    assert CHANGELOG in message and 'block add B --title "<its title>"' in message
+    assert source(config) == BODY
+
+
+def test_the_roadmap_answers_first_when_neither_file_declares_the_block(tmp_path):
+    config = project(tmp_path, ledger=LEDGER)
+    with pytest.raises(UnknownBlock) as raised:
+        task(config, block="Z")
+    # One mistake, named against the file the line was going into: `block add Z` opens the
+    # heading in both, so a second sentence about the ledger would be the same remedy twice.
+    assert ROADMAP in str(raised.value)
+
+
+def test_a_block_both_files_declare_is_written(tmp_path):
+    config = project(tmp_path, ledger=LEDGER)
+    added = task(config, block="A")
+    assert added.rendered.startswith("- 📋 **RK2**")
+
+
+def test_a_project_that_declares_no_ledger_is_not_asked_about_one(tmp_path):
+    # The refusal has to be about a file `ship` would read. Nothing declares a changelog
+    # here, so there is no heading to be missing and no command that would add one.
+    added = project(tmp_path)
+    assert task(added, block="B").rendered.startswith("- 📋 **RK2**")
+
+
+def test_a_declared_ledger_that_is_not_on_disk_yet_is_not_asked_about(tmp_path):
+    config = project(tmp_path, ledger=LEDGER)
+    config.path("changelog").unlink()
+    assert task(config, block="B").rendered.startswith("- 📋 **RK2**")
 
 
 # -- refusing before the prose exists ----------------------------------------

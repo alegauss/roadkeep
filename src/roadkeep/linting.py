@@ -1475,7 +1475,8 @@ def _dead_block(
 
 
 def _across(config: Config, documents: dict[str, Document]) -> list[Finding]:
-    """What needs both files: one id in two of them, and every dep resolved."""
+    """What needs both files: one id in two of them, a block only one declares, and every
+    dep resolved."""
     roadmap = documents.get("roadmap")
     if roadmap is None:
         return []
@@ -1487,6 +1488,7 @@ def _across(config: Config, documents: dict[str, Document]) -> list[Finding]:
     out: list[Finding] = []
 
     if ledger is not None:
+        out.extend(_undeclared_blocks(config, roadmap, ledger, file))
         shipped = ledger.by_id()
         for task_id, entry in roadmap.by_id().items():
             if task_id in shipped and not _in_halves(entry, shipped[task_id]):
@@ -1519,6 +1521,49 @@ def _across(config: Config, documents: dict[str, Document]) -> list[Finding]:
             )
 
     out.extend(_cycles(backlog, file))
+    return out
+
+
+def _undeclared_blocks(
+    config: Config, roadmap: Document, ledger: Document, file: str
+) -> list[Finding]:
+    """A block planning work the ledger cannot receive it into (RK380).
+
+    Measured in Turing: `## Block BV` carried eight open lines for months and `CHANGELOG.md`
+    declared no such heading. Nothing said so — every one of those lines is valid, its deps
+    resolve, its pointer resolves — and the fact surfaced at the first `ship`, which is the
+    end of a task rather than the start. :func:`~roadkeep.authoring.declaring` closes the
+    door for lines written from here on; this is the state a project already in it is in, and
+    reporting it costs one pass rather than one ship.
+
+    **Only where the block has open lines**, which is what makes it a defect rather than an
+    observation. A roadmap heading over nothing is a block being drafted, and one whose lines
+    have all shipped or left keeps a ledger heading anyway — so the finding fires exactly
+    when there is work that cannot be delivered.
+
+    Reported at the roadmap's heading and not at each line under it: one heading is missing,
+    one command adds it, and a finding per open line would report an eight-line block eight
+    times for a single omission.
+    """
+    out: list[Finding] = []
+    word = config.schema.heading_word
+    for heading in roadmap.headings:
+        if heading.label is None or ledger.heading(heading.label) is not None:
+            continue
+        open_lines = roadmap.block(heading.label)
+        if not open_lines:
+            continue
+        out.append(
+            Finding(
+                "block.unrecorded",
+                file,
+                f"{word} {heading.label} plans {len(open_lines)} open line(s) and "
+                f"{config.relative(config.path('changelog'))} declares no heading for it: "
+                f"the first ship in this block refuses — "
+                f'`block add {heading.label} --title "<its title>"`',
+                heading.lineno,
+            )
+        )
     return out
 
 

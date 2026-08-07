@@ -348,6 +348,10 @@ def add(
     RK1 has shipped and the author never types a marker. Only this line is derived: no
     existing line can name an id that did not exist a moment ago.
 
+    **Both headings, not one** (RK380): the roadmap's is `place`'s refusal, and
+    :func:`declaring` asks the same question of the ledger — the one the first `ship` in this
+    block would otherwise ask at the end of the task instead of the start.
+
     ``section`` is the rationale as ``(title, body)``, and the reason this door takes
     prose at all (RK93). Under ``ref_scheme = "id"`` every line renders a pointer `lint`
     requires to resolve, so an `add` on its own could not leave a gate-clean tree and the
@@ -387,6 +391,10 @@ def add(
         where=config.relative(config.path("roadmap")),
         config=config,
     )
+    # After the roadmap's own refusal and before the prose is read (RK380, RK381): a label
+    # neither file declares is one mistake, and hearing it named against the file the line
+    # was going into is the half that tells a typo from a block only half opened.
+    declaring(config, block)
     if section is not None:
         insertion = _with_section(config, insertion, *section)
     elif insertion.entry.task.ref and (
@@ -806,6 +814,44 @@ def refuse_reuse(config: Config, task_id: str) -> None:
     clash = next((ref for ref in scan(config) if ref.id == task_id), None)
     if clash is not None:
         raise IdInUse(task_id, config.relative(clash.path), clash.lineno)
+
+
+def declaring(config: Config, block: str) -> None:
+    """Refuse a block the **ledger** does not declare, at the door that opens it (RK380).
+
+    The roadmap's own heading is `place`'s refusal and this is the other half. Measured in
+    Turing: Block BV carried eight open lines and no `## Block BV` in `CHANGELOG.md`, and the
+    first `ship` in that block refused — correctly, and at the worst possible moment. A ship
+    is the *end* of a task: the code is written, the tests pass, the commit is drafted, and
+    the author is then told the backlog was mis-set-up before any of it started. The fact was
+    available at the `add` that opened the block, where nothing is at stake and the retry
+    costs one command.
+
+    So the condition is exactly `ship`'s — the ledger declares no heading for this label —
+    asked one task earlier, and the refusal is :class:`~roadkeep.document.UnknownBlock`
+    itself, spelling the same file and the same `block add` remedy. A second sentence for one
+    condition is a second thing to keep true.
+
+    Not a write, which is the option this deliberately does not take (RK141): `block add`
+    takes the **title** because naming a block is editorial, and `add` holds a label and no
+    title. A heading composed here would be one nobody looks under, and L4 forbids the tool
+    inventing the words for it.
+
+    Silent where the project declares no ledger and where its file is not on disk yet: a
+    refusal about a file nothing reads is one the author cannot act on, and `ship` on such a
+    project has nothing to refuse over either.
+    """
+    if not config.has("changelog") or not config.path("changelog").is_file():
+        return
+    ledger = config.document("changelog")
+    if ledger.heading(block) is not None:
+        return
+    raise UnknownBlock(
+        block,
+        sorted({heading.label for heading in ledger.headings if heading.label}),
+        config.relative(config.path("changelog")),
+        word=ledger.schema.heading_word,
+    )
 
 
 def _placement(
