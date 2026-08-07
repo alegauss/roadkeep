@@ -97,32 +97,6 @@ the address — `drop` plus `add` is right there, and is what the skill already 
 changed lead takes. Which leaves whether that asymmetry needs stating in a refusal, or
 follows from the argument closely enough to cost nothing.
 
-### §RK382 A symptom that discovery widens has no verb, only retire and refile
-
-`amend` states the rule plainly: "The `symptom` is not amendable — it is the claim the
-line is, so a different one is a different task." That is right when the claim is
-different. It cannot distinguish a *different* claim from one the same work narrowed or
-widened.
-
-Two instances from Turing, a day apart.
-
-**Widened.** T917 was filed as "The showcase build rewrites a tracked file on every
-run". An hour later the same `gen-manifest` was found stamping three marketplace
-apps too — same script, same fix, three more instances.
-
-**Narrowed.** T927 was filed as "Ten high advisories are open in the frontend
-dependency tree". A partial ship cleared seven, and the line still reads ten — the
-number is the claim, and the claim is false.
-
-The available doors were wrong both times. `amend --why` and `section amend` took the
-correction, so the line said one thing and the prose beside it another. `retire` plus a
-fresh `add` would have been honest about the symptom and dishonest about everything
-else: a new id, a dropped dep edge, and a retirement that reads as abandonment.
-
-What is missing is the narrow door: `amend --symptom` gated on the existing text, or an
-explicit `--restate` that records the old spelling in the ledger rather than discarding
-it. The reason to refuse a silent rewrite is not a reason to refuse a recorded one.
-
 ### §RK385 Nothing notices that a new line asks for what a shipped entry already delivered
 
 RK340 shipped on 2026-08-05: "outline anchors are one namespace across prose roles". On

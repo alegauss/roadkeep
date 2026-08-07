@@ -131,6 +131,7 @@
 - ✅ **RK363** **A mistyped address whose family exists is offered a new top-level instead of that family free child** — A malformed address whose leading segment names a live family is answered with that family next free child, and only the rest with a top-level.
 - ✅ **RK377** **A doubled anchor has no verb that repairs it** — A section's address moves with its subtree and every pointer at it, and a pointer follows only where nothing else answers it or the heading names its task.
 - ✅ **RK381** **A refusal on a short field costs the whole rationale a second time** — The rationale is fetched below every refusal the line can raise, and `--section-body-file`/`--body-file` name it by path so a retry re-reads it.
+- 🗑 **RK382** **A symptom that discovery widens has no verb, only retire and refile** — superseded by RK178: RK178 shipped `restate <id> --symptom`, which is this door: both instances named are unchanged work under a claim that became false, and the verb prints the old spelling.
 
 ## Block C — Query
 
