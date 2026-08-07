@@ -339,6 +339,10 @@ TOOLS: tuple[Tool, ...] = (
     Tool("record drop", ("id", "line")),
     Tool("record renumber", ("id", "line", "to")),
     Tool("non-goal add", ("lead", "why")),
+    # The correction the other two bullet grammars had and this one did not (RK368). Exposed
+    # beside them for `record amend`'s reason: without it a reworded constraint is a drop and
+    # an append, which moves the bullet to the end of a list a reader takes for the plan's shape.
+    Tool("non-goal amend", ("lead", "why")),
     Tool("non-goal drop", ("lead",)),
     # The other list this file holds that is not task lines (RK325). Exposed for the reason
     # the non-goals are: the agent that ships a queued id is the one that has to take it out,

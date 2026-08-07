@@ -195,6 +195,8 @@ def test_the_tools_are_what_a_task_needs_end_to_end():
         "record_drop",
         "record_renumber",
         "non_goal_add",
+        # The correction the other two bullet grammars had and this one did not (RK368).
+        "non_goal_amend",
         "non_goal_drop",
         # The queue, once it had a governed home (RK325): the agent that ships a queued
         # id is the one that has to take it out, and the file it lives in is one the
@@ -723,6 +725,8 @@ def test_the_read_only_hint_says_which_tools_write(tmp_path):
         "record_drop",
         "record_renumber",
         "non_goal_add",
+        # The correction the other two bullet grammars had and this one did not (RK368).
+        "non_goal_amend",
         "non_goal_drop",
         "priority_add",
         "priority_drop",
@@ -1061,6 +1065,7 @@ def test_the_paths_that_could_reach_it_are_the_ones_declared():
         "record_add",
         "record_amend",
         "non_goal_add",
+        "non_goal_amend",
         "retire",
         "defer",
         "section_add",

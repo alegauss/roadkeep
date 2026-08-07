@@ -18,7 +18,7 @@ where a project's own `.mcp.json` declares the server and `mcp__plugin_<plugin>_
 where a plugin provides it, so read the prefix off the tool list rather than typing it: the whole write path and
 the reads a task needs are there — `add`, `block_add`, `block_drop`, `claim`, `scope`, `status`, `amend`, `restate`, `ship`, `retire`, `defer`, `resume`,
 `record_add`,
-`record_amend`, `record_move`, `record_drop`, `record_renumber`, `non_goal_add`, `non_goal_drop`, `section_add`, `section_amend`, `section_move`, `section_drop`, `budget`, `brief`, `pick`, `list`, `deps`, `lint`, `merge_check` — same engine and same
+`record_amend`, `record_move`, `record_drop`, `record_renumber`, `non_goal_add`, `non_goal_amend`, `non_goal_drop`, `section_add`, `section_amend`, `section_move`, `section_drop`, `budget`, `brief`, `pick`, `list`, `deps`, `lint`, `merge_check` — same engine and same
 refusals, with
 the fields arriving as a schema instead of flag names typed from memory. `init`, `adopt` and
 `install` run once per project and want the CLI — the last of them wires this file, the tools
@@ -159,7 +159,11 @@ rationale section — is named in a refusal that writes nothing, because a headi
 not an empty heading. The ledger keeps its heading either way, history being filed under it. `non-goal add --lead "…" --why "…"` writes the one bullet that is not a task line,
 where `[non_goals]` declares the list governed: addressed by its lead, which is unique and
 checked, and carrying no marker, dep or pointer, because a constraint has no status to state.
-`non-goal drop <lead>` is the other half, and what a *correction* takes: the lead is the address,
+`non-goal amend <lead> --why "…"` corrects the reason **where the bullet already sits**,
+for `record amend`'s reason: `add` appends, so drop-and-re-add moves a constraint to the end of a
+list a reader takes for the plan's shape. The lead is not one of its fields — it is the address —
+and a bullet carrying no bold head is refused by name, that shape's repair being the pair below.
+`non-goal drop <lead>` is the other half, and what a changed *lead* takes: the lead is the address,
 so a constraint whose lead changes is one dropped and one written. **Call `non-goal list` before
 an `add`** — the list binds what may be proposed, so reading it after the line exists is reading
 it too late; it prints on a project that never opted in, and nothing checks a proposal against it

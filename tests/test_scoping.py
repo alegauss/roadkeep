@@ -31,8 +31,10 @@ from roadkeep.scoping import (
     NoNonGoals,
     NoSuchNonGoal,
     NotGoverned,
+    Unshaped,
     add,
     address,
+    amend,
     drop,
     leads,
     read,
@@ -529,3 +531,145 @@ def test_the_tool_schema_reads_the_non_goals_own_limits(tmp_path):
     assert properties["why"]["maxLength"] == 400
     assert properties["lead"]["maxLength"] == 40
     assert described["inputSchema"]["required"] == ["lead", "why"]
+
+
+# -- the correction that is not a move (RK368) --------------------------------
+
+
+def body(config: Config) -> str:
+    with config.path("roadmap").open("r", encoding="utf-8", newline="") as handle:
+        return handle.read()
+
+
+def test_a_reworded_reason_keeps_the_bullet_where_it_was(tmp_path):
+    # Measured at RK367: the only door was drop-and-re-add, and `add` inserts after the last
+    # bullet — so a constraint that sat fifth of eight moved to eighth, and a reviewer read a
+    # deletion and an addition where a word changed.
+    config = project(tmp_path)
+    before = read(config.document("roadmap"))
+    amended = amend(config, "No web UI and no server", "Files and a CLI, and nothing else.")
+    amended.save()
+
+    after = read(Config.discover(tmp_path).document("roadmap"))
+    assert [one.lead for one in after] == [one.lead for one in before]
+    assert after[0].first == before[0].first
+    assert after[0].why == "Files and a CLI, and nothing else."
+
+
+def test_the_reason_is_the_only_field_and_the_lead_is_the_address(tmp_path):
+    config = project(tmp_path)
+    amend(config, "no web ui and no server.", "A corrected reason.").save()
+
+    # Addressed case-folded and without the stop, and the head the file spells is what is
+    # written back — composing from the argument would rewrite the address this verb keeps.
+    assert "- **No web UI and no server.** A corrected reason." in body(
+        Config.discover(tmp_path)
+    )
+
+
+def test_a_reason_that_already_reads_that_way_writes_nothing(tmp_path):
+    config = project(tmp_path)
+    was = body(config)
+    amended = amend(config, "No web UI and no server", "Files and a CLI. The store is the repository.")
+
+    assert not amended.changed
+    amended.save()
+    assert body(Config.discover(tmp_path)) == was
+
+
+def test_the_corrected_reason_is_filled_to_the_same_width(tmp_path):
+    # One renderer, so a correction cannot produce a bullet `add` would not have written.
+    config = project(tmp_path)
+    amended = amend(config, "No web UI and no server", "one two three four five six " * 5)
+    amended.save()
+
+    assert len(amended.rendered) > 1
+    assert all(len(line) <= 88 for line in amended.rendered)
+    assert all(line.startswith("  ") for line in amended.rendered[1:])
+
+
+def test_a_reason_over_the_limit_is_refused_and_nothing_moves(tmp_path):
+    config = project(tmp_path)
+    was = body(config)
+    with pytest.raises(SchemaError) as raised:
+        amend(config, "No web UI and no server", "word " * 60)
+
+    assert [v.code for v in raised.value.violations] == ["non-goal.why"]
+    assert body(config) == was
+
+
+def test_a_lead_the_list_does_not_carry_is_refused(tmp_path):
+    config = project(tmp_path)
+    with pytest.raises(NoSuchNonGoal):
+        amend(config, "No telemetry", "A reason for a constraint nobody filed.")
+
+
+def test_a_project_that_never_opted_in_is_refused_like_the_other_two(tmp_path):
+    config = project(tmp_path, config=PROSE)
+    with pytest.raises(NotGoverned):
+        amend(config, "No web UI and no server", "A corrected reason.")
+
+
+def test_a_bullet_with_no_bold_lead_is_sent_to_the_pair_that_is_honest(tmp_path):
+    # `read` accepts it so every constraint has an address (RK233), and that is safe because
+    # nothing renders one back. An amend would be the first thing that does, and on this shape
+    # the render imposes the bold head — which moves the lead, and the lead is the address.
+    roadmap = ROADMAP + "- A bullet whose head is its first sentence. And its reason.\n"
+    config = project(tmp_path, roadmap=roadmap)
+    with pytest.raises(Unshaped) as raised:
+        amend(config, "A bullet whose head is its first sentence", "A corrected reason.")
+
+    assert "`non-goal drop`" in str(raised.value)
+    assert body(config) == roadmap
+
+
+def test_the_first_of_two_bullets_sharing_a_lead_is_the_one_corrected(tmp_path):
+    # `drop` removes the later copy because the first is where the reader already found it
+    # (RK67), so the one that stays is the one a correction is about.
+    roadmap = ROADMAP + "- **No web UI and no server.** A second copy of the same address.\n"
+    config = project(tmp_path, roadmap=roadmap)
+    amend(config, "No web UI and no server", "The corrected reason.").save()
+
+    written = read(Config.discover(tmp_path).document("roadmap"))
+    same = [one for one in written if address(one.lead) == address("No web UI and no server")]
+    assert [one.why for one in same] == [
+        "The corrected reason.",
+        "A second copy of the same address.",
+    ]
+
+
+def test_the_command_prints_the_bullet_it_rewrote(tmp_path, capsys):
+    config = project(tmp_path)
+    argv = ["-C", str(config.root), "non-goal", "amend", "No web UI and no server"]
+    assert main([*argv, "--why", "A corrected reason."]) == EXIT_OK
+
+    out = capsys.readouterr().out
+    assert "amended  1 line(s)" in out
+    assert "- **No web UI and no server.** A corrected reason." in out
+
+
+def test_the_command_answers_in_json_with_both_readings(tmp_path, capsys):
+    config = project(tmp_path)
+    argv = ["-C", str(config.root), "non-goal", "amend", "No web UI and no server", "--json"]
+    assert main([*argv, "--why", "A corrected reason."]) == EXIT_OK
+
+    answer = json.loads(capsys.readouterr().out)
+    assert answer["was"] == "Files and a CLI. The store is the repository."
+    assert answer["now"] == "A corrected reason." and answer["changed"]
+
+
+def test_a_refusal_exits_two_and_writes_nothing(tmp_path, capsys):
+    config = project(tmp_path)
+    was = body(config)
+    argv = ["-C", str(config.root), "non-goal", "amend", "No telemetry", "--why", "A reason."]
+    assert main(argv) == EXIT_USAGE
+
+    assert body(config) == was
+
+
+def test_the_gate_passes_the_bullet_this_verb_wrote(tmp_path):
+    # The rule every door here holds: what the write path accepts, the gate accepts (L1).
+    config = project(tmp_path)
+    amend(config, "No web UI and no server", "A corrected reason for the constraint.").save()
+
+    assert [f.code for f in lint(Config.discover(tmp_path)).findings] == []

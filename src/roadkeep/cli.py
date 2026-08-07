@@ -132,6 +132,7 @@ from roadkeep.queueing import add as add_priority
 from roadkeep.queueing import declared as declared_queue
 from roadkeep.queueing import drop as drop_priority
 from roadkeep.scoping import add as add_non_goal
+from roadkeep.scoping import amend as amend_non_goal
 from roadkeep.scoping import drop as drop_non_goal
 from roadkeep.sections import Section, heading_of
 from roadkeep.sections import add as add_section
@@ -972,6 +973,29 @@ def build_parser() -> argparse.ArgumentParser:
     )
     scope_add.set_defaults(
         handler=_non_goal_add, reads_stdin=(Prose(dest="why", omitted=False),)
+    )
+
+    scope_amend = constraints.add_parser(
+        "amend",
+        help="rewrite one non-goal's reason where it already sits",
+        description=(
+            "Correct a constraint's reason in place, keeping the bullet's position. The door "
+            "`record amend` and `section amend` already are one grammar over: without it the "
+            "only route was drop-and-re-add, and `add` inserts after the last bullet — so a "
+            "constraint that sat fifth of eight moved to eighth, and a reviewer read a "
+            "deletion where a word changed. The lead is not a field: it is the address, so a "
+            "changed one is a `drop` and an `add`."
+        ),
+    )
+    scope_amend.add_argument(
+        "lead", help="the lead, as the file reads it; the trailing stop and case do not matter"
+    )
+    scope_amend.add_argument(
+        "--why", required=True, help="the corrected reason, in this file's own limit" + _PIPE
+    )
+    scope_amend.add_argument("--json", action="store_true", help=_JSON_HELP)
+    scope_amend.set_defaults(
+        handler=_non_goal_amend, reads_stdin=(Prose(dest="why", omitted=False),)
     )
 
     scope_list = constraints.add_parser(
@@ -3594,6 +3618,42 @@ def _non_goal_add(config: Config, args: argparse.Namespace) -> int:
         print(f"  {line}")
     # No event line (RK38): the payload a hook reads is an id and its block's open state, and
     # a non-goal has neither — it is the constraint on what a block may hold, not a member.
+    return EXIT_OK
+
+
+def _non_goal_amend(config: Config, args: argparse.Namespace) -> int:
+    try:
+        amended = amend_non_goal(config, args.lead, _piped(args.why))
+        amended.save()
+    except REFUSALS as error:
+        return _refused(error)
+
+    where = config.relative(config.path("roadmap"))
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "lead": amended.non_goal.lead,
+                    # Both readings, which is what makes this reviewable as a correction
+                    # rather than as a move: the word changed and the bullet did not.
+                    "was": amended.before,
+                    "now": amended.non_goal.why,
+                    "changed": amended.changed,
+                    "file": where,
+                    "line": amended.lineno,
+                    "rendered": list(amended.rendered),
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+
+    if not amended.changed:
+        print(f"{amended.non_goal.lead} unchanged: the bullet already reads that way")
+        return EXIT_OK
+    print(f"{where}:{amended.lineno}  amended  {len(amended.rendered)} line(s)")
+    for line in amended.rendered:
+        print(f"  {line}")
     return EXIT_OK
 
 

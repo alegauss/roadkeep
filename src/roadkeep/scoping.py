@@ -33,7 +33,7 @@ from __future__ import annotations
 
 import re
 import textwrap
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from roadkeep.config import Config, Scope
 from roadkeep.document import Document, blank
@@ -44,15 +44,18 @@ __all__ = [
     "LEAD",
     "SHAPE",
     "WHY",
+    "Amended",
     "DuplicateLead",
     "Dropped",
     "NoNonGoals",
     "NoSuchNonGoal",
     "NonGoal",
     "NotGoverned",
+    "Unshaped",
     "Written",
     "add",
     "address",
+    "amend",
     "check",
     "drop",
     "leads",
@@ -132,6 +135,30 @@ class NoSuchNonGoal(KeyError):
         )
 
 
+class Unshaped(ValueError):
+    """A correction to a bullet this module could not have written (RK368).
+
+    :func:`read` accepts a bullet with no bold head so that every constraint has an address
+    (RK233), and that is safe precisely because nothing renders one back: `drop` removes the
+    source span and :func:`render` writes only what `add` composed. An `amend` is the first
+    verb that would render over lines it did not write, and on an unshaped bullet the render
+    imposes the shape — which moves the lead, and the lead is the address.
+
+    So the gate's `non-goal.shape` keeps the door it already had, and this refusal names it: a
+    bullet whose head is its first sentence is repaired by `drop` and `add`, the pair that is
+    honest about a changed address.
+    """
+
+    def __init__(self, lead: str, where: str, lineno: int) -> None:
+        self.lead = lead
+        self.lineno = lineno
+        super().__init__(
+            f"the bullet at {where}:{lineno} carries no bold lead, so {lead!r} is its first "
+            f"sentence rather than an address this verb can write around — `non-goal drop` "
+            f"then `non-goal add` is the repair, and it is honest about the lead changing"
+        )
+
+
 @dataclass(frozen=True, slots=True)
 class NonGoal:
     """One bullet under the non-goals heading, as data and as the file spells it."""
@@ -161,6 +188,32 @@ class Written:
 
     document: Document
     non_goal: NonGoal
+
+    @property
+    def lineno(self) -> int:
+        return self.non_goal.first
+
+    @property
+    def rendered(self) -> tuple[str, ...]:
+        return self.non_goal.lines
+
+    def save(self) -> None:
+        self.document.save()
+
+
+@dataclass(frozen=True, slots=True)
+class Amended:
+    """A non-goal's reason rewritten where it already sat. Save writes one file."""
+
+    document: Document
+    non_goal: NonGoal
+    #: The reason as the file read it. Both readings, because what makes a correction
+    #: reviewable is that a word changed and the bullet did not move.
+    before: str = ""
+
+    @property
+    def changed(self) -> bool:
+        return self.before != self.non_goal.why
 
     @property
     def lineno(self) -> int:
@@ -352,6 +405,65 @@ def add(config: Config, lead: str, why: str) -> Written:
             last=at + len(lines),
             lines=lines,
         ),
+    )
+
+
+def amend(config: Config, lead: str, why: str) -> Amended:
+    """Rewrite one non-goal's reason where it already sits, keeping its place (RK368).
+
+    The door the other two bullet grammars have and this one did not. `record amend` exists so
+    a ledger correction is not a move — never drop-and-re-add, which shows a reviewer a
+    deletion where a word changed — and `section amend` is the same door for a live design.
+    The non-goals had only `drop` plus `add`, and `add` inserts after the last bullet: measured
+    at RK367, a constraint that sat fifth of eight moved to eighth for a reason no commit was
+    about, and the order a reader takes for the shape of the list changed with it.
+
+    **The lead is not a field**, exactly as a task's `symptom` is not `amend`'s: it is the
+    address, so a constraint whose lead changes is one retired and one written, which is what
+    `drop` already says and what the skill already tells an author. The asymmetry needs no
+    refusal of its own — there is no argument to pass — and this sentence is where it is stated.
+
+    Where two bullets carry one address the **first** is corrected, which is the other half of
+    `drop`'s rule (RK67): that verb removes the later copy because the first is where the
+    reader already found it, so the one that stays is the one a correction is about.
+
+    Nothing is written when nothing differs, as at every other door: rewriting the same bytes
+    makes a no-op look like an edit to every hook watching the file.
+    """
+    if config.non_goals is None:
+        raise NotGoverned(config.relative(config.source or config.root))
+    document = config.document("roadmap")
+    where = config.relative(config.path("roadmap"))
+    if _heading_index(document) is None:
+        raise NoNonGoals(where)
+
+    existing = read(document)
+    wanted = address(lead)
+    matches = tuple(one for one in existing if address(one.lead) == wanted)
+    if not matches:
+        raise NoSuchNonGoal(lead.strip(), where, tuple(one.lead for one in existing))
+    standing = matches[0]
+    if not standing.shaped:
+        raise Unshaped(standing.lead, where, standing.first)
+
+    # Its own lead and not the address the caller typed: `address` folds case and drops the
+    # stop, so composing from the argument would rewrite the head this verb promises not to.
+    check(config, standing.lead, why)
+    reason = " ".join(why.split())
+    if reason == standing.why:
+        return Amended(document=document, non_goal=standing, before=standing.why)
+
+    lines = render(config, standing.lead, reason)
+    start = standing.first - 1
+    updated = document.remove_lines(start, standing.last)
+    for offset, line in enumerate(lines):
+        updated = updated.insert_line(start + offset, line)
+    return Amended(
+        document=updated,
+        non_goal=replace(
+            standing, why=reason, last=start + len(lines), lines=lines
+        ),
+        before=standing.why,
     )
 
 
