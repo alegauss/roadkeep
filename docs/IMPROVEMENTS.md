@@ -275,6 +275,52 @@ decision into a refusal.
 
 ## Block D — The gate
 
+### §RK417 A diagnosis that stops one word before the remedy
+
+Measured on a real corpus: `CHANGELOG.md` declared `## Block AH` twice, once over an
+entry and once over nothing. The gate said
+
+```
+Block AH is already declared on line 788: one label is one heading, and a write files
+under this one by position alone
+```
+
+which is true, complete about the *state*, and silent about what to do. Running the
+block verb's removal took the empty one out and left the occupied one, in one command
+and with no editorial judgement at all — and nothing in the message suggested trying it.
+
+That silence is the shape this tool removes everywhere else. The undeclared-block
+refusal names the verb that declares one; the ledger-with-no-headings finding names the
+argument that opens the first. This one was written as a report and stopped there.
+
+The clause is conditional and that is what makes it honest. Removal refuses a heading
+with anything filed under it, by name, so the verb is the answer **only** where one of
+the two stands over nothing — which the gate has already read, since it walked both
+subtrees to find the pair. Where both hold work the repair really is an editorial merge
+and there is no command to name; saying so is still better than saying nothing, because
+it tells the reader which of the two cases they are in.
+
+### §RK418 The number that could not answer this question before
+
+The verb that reads the three copies back compares the two that state a version, and it
+compares the **release string**. That is the exact fact an earlier task proved
+insufficient: two `src/roadkeep/` trees, fourteen files apart, both answering the same
+number — which is why the running engine carries its directory and its commit at all.
+
+So the reader is one step short of its own evidence. Both copies carry a revision: the
+running one from git, the installed one from the marketplace row that records the sha it
+was built at. Both are read, both are printed, and neither is compared.
+
+The case that gets through is the one a machine developing this tool is in every day. A
+checkout at the plugin's own version, with uncommitted work, writes; the plugin judges;
+the numbers match and the verb says they agree. The files do not.
+
+What is *not* obvious is what agreement should mean once the commit is in it. A checkout
+whose files are modified is not at any commit the plugin could match, so the honest
+answer may be three states rather than two — agreed, behind, and unpinnable — and a
+boolean that collapses the third into either of the others will be wrong for one of
+them. That choice is the task; the numbers to make it with are already on the screen.
+
 ## Block E — Adoption
 
 ### §RK402 The tree that ships the plugin is told to wire the guard a second time
