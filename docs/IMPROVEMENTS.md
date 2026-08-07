@@ -238,28 +238,6 @@ every `add` instead of from memory.
 
 ## Block D — The gate
 
-### §RK411 The narrowing whose reason has been shipped away
-
-Two doors were narrowed on one argument: *a refusal here would name a remedy that
-refuses*. The add stopped asking the ledger for a block heading where the ledger
-declares none, and the gate stopped reporting it, because `block add` skipped that file
-and the sentence would have sent the author to a command that declined.
-
-`--organise <role>` is that command now, and the ship's refusal already names it. What
-is left is the two doors that go quiet before they get there.
-
-Restoring them is not a revert. The narrowing was right for a week and its own docstring
-says which fact it rests on, so this is that fact having changed: a project whose ledger
-is prose is one where every `ship` refuses, and it can now be told so at the `add` that
-opens the block and by the gate that reads the tree — one pass instead of one ship,
-which is the argument the original check was made on.
-
-What has to be decided rather than defaulted is the gate's volume. One finding per block
-is what the state deserves; on a project whose ledger is prose it is every heading in
-the roadmap at once, which is the noise the narrowing also avoided. A finding about the
-*file* says the same thing once, and the remedy is one command either way. The add's
-half has no such question: there the author is opening one block.
-
 ### §RK412 One fact, two arguments, five places to forget it
 
 `place` takes `where`, the file the refusal names, rendered by the caller because it

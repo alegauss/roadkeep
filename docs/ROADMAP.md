@@ -38,7 +38,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK411** (deps: —) **The add and the gate stay quiet about a ledger organised by nothing, and now a verb repairs it** — Both were narrowed because the remedy they would have named refused, and that premise moved when the block verb learned to open the first heading in such a file. → §RK411
 - 📋 **RK412** (deps: —) **The seam every line write passes is told which file it is writing into twice** — The path is rendered by the caller and the role is spelled beside it at five call sites, so a door passing one and forgetting the other prints a remedy that refuses. → §RK412
 
 ## Block E — Adoption

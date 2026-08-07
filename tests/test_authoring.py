@@ -292,14 +292,16 @@ def test_a_declared_ledger_that_is_not_on_disk_yet_is_not_asked_about(tmp_path):
     assert task(config, block="B").rendered.startswith("- 📋 **RK2**")
 
 
-def test_a_ledger_organised_by_nothing_is_not_asked_about_either(tmp_path):
-    # RK403, measured: this refused and named `block add`, which answered "already declared
-    # in the roadmap: nothing to open" — a file declaring no block is not one that verb
-    # starts organising, so the refusal named a remedy that refuses.
+def test_a_ledger_organised_by_nothing_is_asked_too_and_names_the_argument(tmp_path):
+    # RK403 silenced this door, because the `block add` it named answered "already declared
+    # in the roadmap: nothing to open". RK405 gave that verb `--organise`, so the remedy is
+    # real and the narrowing's whole reason went with it (RK411).
     flat = "# Changelog\n\nProse, and no block heading anywhere in it.\n"
-    assert task(project(tmp_path, ledger=flat), block="B").rendered.startswith(
-        "- 📋 **RK2**"
-    )
+    config = project(tmp_path, ledger=flat)
+    with pytest.raises(UnknownBlock) as raised:
+        task(config, block="B")
+    assert 'block add B --title "<its title>" --organise changelog' in str(raised.value)
+    assert source(config) == BODY
 
 
 # -- refusing before the prose exists ----------------------------------------

@@ -1592,15 +1592,20 @@ def _undeclared_blocks(
     one command adds it, and a finding per open line would report an eight-line block eight
     times for a single omission.
 
-    Silent over a ledger that declares **no** block at all (RK403), for the reason
-    :func:`~roadkeep.authoring.declaring` is: `block add` does not start organising such a
-    file, so the finding would name a verb that refuses — once per block, which on the
-    project it was measured against is every heading in the roadmap.
+    A ledger organised by **nothing** is one finding and not one per block (RK403, RK411).
+    It was silent for a week, because `block add` did not start organising such a file and
+    the sentence would have named a verb that refuses; `--organise <role>` is that remedy now
+    (RK405), and what is restored is deliberately not the per-block shape. There is one thing
+    wrong with that project — its ledger has no headings — and saying it once per roadmap
+    heading is the same omission reported as many defects. So the finding is about the
+    **file**, reported against the ledger and at no line, which is where `file.missing`
+    already reports a whole-file fact. It names one label, because `--organise` is needed for
+    the first heading and never for the second.
     """
     out: list[Finding] = []
     word = config.schema.heading_word
     if not any(heading.label for heading in ledger.headings):
-        return out
+        return _unorganised(config, roadmap, word)
     for heading in roadmap.headings:
         if heading.label is None or ledger.heading(heading.label) is not None:
             continue
@@ -1619,6 +1624,38 @@ def _undeclared_blocks(
             )
         )
     return out
+
+
+def _unorganised(config: Config, roadmap: Document, word: str) -> list[Finding]:
+    """The whole-file half of :func:`_undeclared_blocks`: a ledger with no heading at all.
+
+    Every `ship` in this project refuses, and one command ends it — so the count that matters
+    is how much work is waiting rather than which block is first, and the label named is only
+    there to make the remedy copyable. Silent where nothing is open: a ledger organised by
+    nothing is how every project starts, and it is a defect only once there is work it cannot
+    receive.
+    """
+    planned = [
+        (heading.label, roadmap.block(heading.label))
+        for heading in roadmap.headings
+        if heading.label
+    ]
+    waiting = [(label, lines) for label, lines in planned if lines]
+    if not waiting:
+        return []
+    label = waiting[0][0]
+    lines = sum(len(entries) for _, entries in waiting)
+    return [
+        Finding(
+            "block.unorganised",
+            config.relative(config.path("changelog")),
+            f"declares no {word.lower()} heading at all, and "
+            f"{config.relative(config.path('roadmap'))} plans {lines} open line(s) under "
+            f"{len(waiting)} of them: every ship here refuses until one exists — "
+            f'`block add {label} --title "<its title>" --organise changelog`',
+            None,
+        )
+    ]
 
 
 def _in_halves(open_line: Entry, recorded: Entry) -> bool:

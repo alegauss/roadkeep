@@ -568,12 +568,28 @@ def test_a_block_with_open_lines_and_no_ledger_heading_is_a_finding(tmp_path):
     assert not report.clean
 
 
-def test_a_ledger_organised_by_nothing_is_not_reported_block_by_block(tmp_path):
-    # RK403: `block add` does not start organising such a file, so the finding would name a
-    # verb that refuses — once for every heading the roadmap has.
-    flat = "# Shipped\n\nProse, and no block heading anywhere in it.\n"
-    report = lint(project(tmp_path, roadmap=PLANNED, changelog=flat, improvements=None))
+FLAT = "# Shipped\n\nProse, and no block heading anywhere in it.\n"
+
+
+def test_a_ledger_organised_by_nothing_is_one_finding_about_the_file(tmp_path):
+    # One thing is wrong with that project — its ledger has no headings — and saying it once
+    # per roadmap heading is the same omission reported as many defects (RK411).
+    report = lint(project(tmp_path, roadmap=PLANNED, changelog=FLAT, improvements=None))
     assert not [f for f in report.findings if f.code == "block.unrecorded"]
+    (finding,) = [f for f in report.findings if f.code == "block.unorganised"]
+    # Against the ledger and at no line, where `file.missing` already reports a whole-file
+    # fact — and counting the work waiting rather than naming every block it is under.
+    assert finding.file == "CHANGELOG.md" and finding.lineno is None
+    assert "plans 4 open line(s) under 2 of them" in finding.message
+    # One label, because `--organise` is needed for the first heading and never the second.
+    assert 'block add A --title "<its title>" --organise changelog' in finding.message
+
+
+def test_a_ledger_organised_by_nothing_over_a_backlog_with_no_open_line_is_clean(tmp_path):
+    # How every project starts. It is a defect only once there is work it cannot receive.
+    empty = "# Roadmap\n\n## Block A — The model\n"
+    report = lint(project(tmp_path, roadmap=empty, changelog=FLAT, improvements=None))
+    assert not [f for f in report.findings if f.code == "block.unorganised"]
 
 
 def test_a_roadmap_heading_over_nothing_is_a_block_being_drafted(tmp_path):

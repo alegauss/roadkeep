@@ -859,23 +859,21 @@ def declaring(config: Config, block: str) -> None:
     refusal about a file nothing reads is one the author cannot act on, and `ship` on such a
     project has nothing to refuse over either.
 
-    **And silent where the ledger declares no block at all** (RK403), which is the same rule
-    said once more and not an exception to it. Measured on a fresh project whose changelog is
-    prose: this refused and named `block add`, which answered *A is already declared in
-    docs/ROADMAP.md: nothing to open* — a file organised by nothing is not one that verb
-    starts organising, because the level and the separator are read off the file's own first
-    block heading and the placement is *after a neighbour* (L6, RK145). Neither is a fact
-    such a file holds, and carrying the roadmap's answer across is a guess about somebody
-    else's file. So a refusal here would name a remedy that refuses, and this door goes back
-    to the timing that project had: `ship` still asks, at the end of the first task, which is
-    RK380's own complaint left standing for exactly the projects nothing can say it to.
+    **A ledger organised by nothing is asked too** — and for a week it was not (RK403,
+    RK411), which is the one fact this docstring exists to keep straight. Measured on a fresh
+    project whose changelog was prose: this refused and named `block add`, which answered *A
+    is already declared in docs/ROADMAP.md: nothing to open*, because a file declaring no
+    block is not one that verb started organising. A refusal naming a remedy that refuses is
+    worse than silence, so the check was narrowed to ledgers that declare a block. RK405 gave
+    that verb `--organise <role>`, the remedy exists, and the narrowing's whole reason went
+    with it — restored here, and it is the premise having moved rather than a decision
+    reversed. The refusal names the argument, so the author is never sent to the refusing
+    command: see :class:`~roadkeep.document.UnknownBlock`.
     """
     if not config.has("changelog") or not config.path("changelog").is_file():
         return
     ledger = config.document("changelog")
     if ledger.heading(block) is not None:
-        return
-    if not any(heading.label for heading in ledger.headings):
         return
     raise UnknownBlock(
         block,
@@ -885,6 +883,9 @@ def declaring(config: Config, block: str) -> None:
         # The one raiser whose two files differ (RK404): the labels are the ledger's and the
         # line is the roadmap's, and unsaid that reads as the label being wrong.
         into=config.relative(config.path("roadmap")),
+        # And the argument that opens a first heading, where this file has none (RK411):
+        # without it this door is the one that sends the author to a refusing command.
+        organise="changelog",
     )
 
 
