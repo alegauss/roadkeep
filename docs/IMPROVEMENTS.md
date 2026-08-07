@@ -238,6 +238,50 @@ every `add` instead of from memory.
 
 ## Block D — The gate
 
+### §RK411 The narrowing whose reason has been shipped away
+
+Two doors were narrowed on one argument: *a refusal here would name a remedy that
+refuses*. The add stopped asking the ledger for a block heading where the ledger
+declares none, and the gate stopped reporting it, because `block add` skipped that file
+and the sentence would have sent the author to a command that declined.
+
+`--organise <role>` is that command now, and the ship's refusal already names it. What
+is left is the two doors that go quiet before they get there.
+
+Restoring them is not a revert. The narrowing was right for a week and its own docstring
+says which fact it rests on, so this is that fact having changed: a project whose ledger
+is prose is one where every `ship` refuses, and it can now be told so at the `add` that
+opens the block and by the gate that reads the tree — one pass instead of one ship,
+which is the argument the original check was made on.
+
+What has to be decided rather than defaulted is the gate's volume. One finding per block
+is what the state deserves; on a project whose ledger is prose it is every heading in
+the roadmap at once, which is the noise the narrowing also avoided. A finding about the
+*file* says the same thing once, and the remedy is one command either way. The add's
+half has no such question: there the author is opening one block.
+
+### §RK412 One fact, two arguments, five places to forget it
+
+`place` takes `where`, the file the refusal names, rendered by the caller because it
+holds a `Config` and this function holds a `Document`. It now also takes `organise`, the
+*role* that same file has, so the refusal can name the argument that opens a first
+heading in it. Two arguments, one fact, and the second is spelled `organise="changelog"`
+at four call sites in the shipping module and once more in authoring.
+
+Nothing holds them level. A door added tomorrow that passes `where` and forgets
+`organise` prints the bare `block add`, which on the file this is about is one more
+refusal — and the gate cannot see it, because both spellings round-trip.
+
+The shape the rest of this package uses is one caller: `Config.document(role)` is how a
+document is got, and every reader of a file goes through it. A `place` given the
+**role** derives both — `config.relative(config.path(role))` is what the callers already
+write out by hand — and the argument that can be forgotten stops existing.
+
+What stands in the way is the caller with no role: `move` re-places an entry into a
+ledger it opened itself. So the role would be optional beside the path rather than
+instead of it, which is a smaller saving than it first looks — and the question is
+whether an optional second spelling beats the two that are there.
+
 ## Block E — Adoption
 
 ### §RK402 The tree that ships the plugin is told to wire the guard a second time
