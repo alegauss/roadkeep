@@ -33,6 +33,9 @@
 
 ## Block C — Query (consult without reading the file)
 
+- 📋 **RK409** (deps: —) **The machine-readable brief answers a finished block in prose** — It exits 2 with an empty stdout and an English sentence on stderr, so a caller who asked for JSON to detect "nothing is open" is the one caller that gets none. → §RK409
+- 📋 **RK410** (deps: —) **The free address is the last line of a listing of spent ones** — Asking `anchors` which child to write next prints every anchor the family ever had, so under a 27-anchor family the one number wanted is 28 rows down. → §RK410
+
 ## Block D — The gate
 
 - 📋 **RK405** (deps: —) **A ledger organised by nothing is a project every ship refuses and no verb can repair** — The block verb writes only into a file already organised by blocks, so the heading a ship names cannot be opened by any command and the guard denies the hand edit. → §RK405
