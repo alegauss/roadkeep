@@ -76,7 +76,7 @@ from pathlib import Path
 from roadkeep.adopting import BlockedParent, blocking
 from roadkeep.config import CONFIG_NAME, Config
 from roadkeep.linting import lint
-from roadkeep.merging import Registration, register
+from roadkeep.merging import ATTRIBUTES, Registration, register
 from roadkeep.provenance import engine
 from roadkeep.provenance import invocation
 
@@ -142,6 +142,15 @@ MERGE = (
     ".gitattributes: `{invocation} merge --register` wires the merge driver for the governed "
     "files, so two branches appending under one heading is two additions and not a conflict "
     "— opt-in configuration, and `install --register-merge` runs it here"
+)
+
+#: The same line where that file cannot be written at all (RK394). `not written` is the honest
+#: half of the report and it names a remedy on every run; a remedy that exits 2 is a different
+#: entry from one the caller simply has not chosen yet, so it says which this is and stops
+#: advertising the flag.
+MERGE_BLOCKED = (
+    ".gitattributes: {blocker} is in the way, so the merge driver cannot be wired here at "
+    "all — `install --register-merge` would refuse, and moving that is what comes first"
 )
 
 #: What the two *copies* become when the tree being wired is the tree answering (RK235). Not
@@ -287,6 +296,12 @@ class Plan:
     #: raised here, because `--check` writes nothing and still has to report it: its whole
     #: job is naming the remedy, and `install` was the remedy it named and could not do.
     blocked: tuple[tuple[Path, Path], ...] = ()
+    #: What is standing in the way of `.gitattributes`, where anything is (RK394). Its own
+    #: field and not a row in :attr:`blocked`, because the driver is not one of the surfaces:
+    #: it is written after the loop, by `--register-merge` alone, and the report names it on
+    #: every run whether or not the flag was given — so this answers two questions, whether
+    #: the write can happen and whether the sentence advertising it is true.
+    driver: Path | None = None
 
     @property
     def changing(self) -> tuple[Surface, ...]:
@@ -332,8 +347,13 @@ def plan(
         _declaration(base / PROJECT_SETTINGS, lambda current: _merged_settings(current, hooks)),
     ]
     skipped: list[tuple[str, str]] = [(CONTRIBUTING.split(":")[0], CONTRIBUTING)]
+    driver = blocking(base / ATTRIBUTES)
     if not registering:
-        described = MERGE.format(invocation=invocation())
+        described = (
+            MERGE.format(invocation=invocation())
+            if driver is None
+            else MERGE_BLOCKED.format(blocker=driver.name)
+        )
         skipped.insert(0, (described.split(":")[0], described))
     debt = _standing(base) if gauging else None
     if own:
@@ -360,6 +380,9 @@ def plan(
             for surface in surfaces
             if surface.writes and (parent := blocking(surface.path))
         ),
+        # Always, and not only under `--register-merge` (RK394): the report names the flag on
+        # every run, so whether running it could work is part of every run's answer.
+        driver=driver,
     )
 
 
@@ -386,6 +409,11 @@ def install(
     # paragraph above claims and the `mkdir` below used to break.
     if intent.blocked:
         raise BlockedParent(intent.blocked, intent.root)
+    if register_merge and intent.driver is not None:
+        # The config was already resolved up here and the file was not (RK394), so the flag
+        # was honoured or not by a write three modules along and after the loop below — four
+        # surfaces on disk, the driver unwired, and `--check` green over it.
+        raise BlockedParent([(intent.root / ATTRIBUTES, intent.driver)], intent.root)
     governed = _governed(intent.root) if register_merge else None
     for surface in intent.changing:
         surface.path.parent.mkdir(parents=True, exist_ok=True)

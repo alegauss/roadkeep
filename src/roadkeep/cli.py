@@ -6239,6 +6239,12 @@ def _install(config: Config, args: argparse.Namespace) -> int:
                         }
                         for path, parent in intent.blocked
                     ],
+                    # RK394: what stands in the way of the driver's own file, where anything
+                    # does. Null and not absent when nothing does, so a reader tells "checked
+                    # and clear" from "this payload predates the field".
+                    "driver": None
+                    if intent.driver is None
+                    else intent.driver.relative_to(intent.root).as_posix(),
                 },
                 indent=2,
             )

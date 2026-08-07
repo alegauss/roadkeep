@@ -159,12 +159,16 @@ class BlockedParent(ValueError):
     def __init__(self, blocked: Sequence[tuple[Path, Path]], base: Path | None = None) -> None:
         self.blocked = tuple(blocked)
         listed = ", ".join(
-            f"{_relative(path, base)} (blocked by {_relative(parent, base)})"
+            # Two shapes, because they are two obstacles (RK394): a parent that is a file is
+            # a directory that cannot be made, and a target that is a directory is a write
+            # with nowhere to go. Saying "blocked by itself" would name neither.
+            f"{_relative(path, base)} (is a directory)"
+            if parent == path
+            else f"{_relative(path, base)} (blocked by {_relative(parent, base)})"
             for path, parent in self.blocked
         )
         super().__init__(
-            f"{len(self.blocked)} declared file(s) have a directory that cannot be created "
-            f"and nothing was written: {listed}"
+            f"{len(self.blocked)} declared file(s) cannot be written and nothing was: {listed}"
         )
 
 
@@ -178,8 +182,12 @@ def blocking(path: Path) -> Path | None:
     The whole chain and not the immediate parent: `docs/backlog/ROADMAP.md` is stopped just
     as dead by a `docs` that is a file, and `mkdir(parents=True)` is what would have walked
     it. Returns the blocker itself rather than a bool, because the file to act on is that one
-    and not the one that was asked for.
+    and not the one that was asked for — and where that is the target, the target is returned:
+    a `.mcp.json` that is a *directory* stops the write as completely as a parent does, and
+    checking only the ancestors let it through both times this was written (RK394).
     """
+    if path.is_dir():
+        return path
     for ancestor in path.parents:
         if ancestor.exists():
             return None if ancestor.is_dir() else ancestor

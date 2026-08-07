@@ -35,7 +35,7 @@ from pathlib import Path
 import pytest
 
 from roadkeep.adopting import BlockedParent
-from roadkeep.cli import EXIT_GATE, build_parser, main, registration_report
+from roadkeep.cli import EXIT_GATE, EXIT_OK, build_parser, main, registration_report
 from roadkeep.merging import Attributes, Driver, Registration, Wiring
 from roadkeep.installing import (
     CARRIED,
@@ -642,6 +642,45 @@ def test_the_gate_tells_a_blocked_surface_apart_from_a_stale_one(project, source
     # Two sentences, because they are two states and only one of them `install` can close.
     assert "cannot be written at all" in err
     assert "surface(s) differ" in err and "3 surface(s) differ" not in err
+
+
+def test_the_driver_is_refused_before_the_surfaces_land(project, source):
+    """RK394: the config `--register-merge` needs was resolved before the first write and the
+    `.gitattributes` write was not, so a directory in its place exited 2 with all four
+    surfaces on disk — the state this command's own prose says the ordering prevents."""
+    project.mkdir(parents=True, exist_ok=True)
+    (project / ".gitattributes").mkdir()
+    with pytest.raises(BlockedParent):
+        install(project, source=source, register_merge=True)
+    assert not (project / PROJECT_MCP).exists()
+    # And without the flag it is not in anybody's way: the driver is written by `--register-
+    # merge` alone, so the same tree wires the four surfaces and says why the fifth is absent.
+    assert install(project, source=source).changing
+
+
+def test_a_surface_that_is_itself_a_directory_is_in_its_own_way(project, source):
+    # The half `blocking` missed twice: it answered about ancestors, and a `.mcp.json` that is
+    # a directory stops the write as completely as a parent that is a file (RK394).
+    project.mkdir(parents=True, exist_ok=True)
+    (project / PROJECT_MCP).mkdir()
+    with pytest.raises(BlockedParent) as caught:
+        install(project, source=source)
+    assert "is a directory" in str(caught.value)
+    assert not (project / PROJECT_SETTINGS).exists()
+
+
+def test_the_report_stops_advertising_a_flag_that_would_refuse(project, source, capsys):
+    """The question §RK394 left open. `not written` names a remedy on every run, and a remedy
+    that exits 2 is a different entry from one the caller has simply not chosen yet."""
+    project.mkdir(parents=True, exist_ok=True)
+    (project / ".gitattributes").mkdir()
+    assert main(["-C", str(project), "install", "--source", str(source), "--check"]) in (
+        EXIT_OK,
+        EXIT_GATE,
+    )
+    said = capsys.readouterr().out
+    assert "the merge driver cannot be wired here at all" in said
+    assert "`install --register-merge` runs it here" not in said
 
 
 def test_the_uninstall_payload_carries_every_field_of_the_removal(project, source, capsys):

@@ -130,11 +130,11 @@ class Merge:
         return self.text is not None
 
 
-
 #: The file whose lines send git to this driver. Named here because `install` has to
 #: know the path before it writes anything (RK394), and a second spelling at that call site
 #: is the two ends of one write disagreeing.
 ATTRIBUTES = ".gitattributes"
+
 
 @dataclass(frozen=True, slots=True)
 class Attributes:

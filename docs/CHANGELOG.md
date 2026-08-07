@@ -332,6 +332,7 @@
 - ✅ **RK390** **A block label checked only to its first line, and never against the others, scaffolds a file no verb can address** — A block value must be one heading and no two may share a label, so the scaffold refuses what it would otherwise write out unasked.
 - ✅ **RK392** **A scaffold that cannot create a declared file's directory leaves the configuration behind, and both doors out refuse** — A directory a file is standing in is refused with the rest, and the directories are made before the config, so a failing write leaves nothing that looks configured.
 - ✅ **RK393** **The gate names a command that cannot run, on a tree the wiring half wrote and refuses to finish** — The wiring refuses a directory a file is standing in before it writes, and the gate reports that apart from a difference it can close.
+- ✅ **RK394** **The wiring writes four surfaces and leaves the flag unhonoured when the driver's file cannot be written** — The driver's own file is checked with the surfaces and a target that is a directory is in its own way, so the flag refuses instead of landing four.
 
 ## Block F — The Claude Code plugin
 

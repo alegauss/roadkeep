@@ -45,8 +45,6 @@
 
 ## Block E — Adoption
 
-- 🛠 **RK394** (deps: —) **The wiring writes four surfaces and leaves the flag unhonoured when the driver's file cannot be written** — The config it needs is resolved before the first write and the `.gitattributes` write is not, so a directory in its place exits 2 with the surfaces on disk and the gate green. → §RK394
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - 💭 **RK366** (deps: —) **The skill every adopting project loads has 24 body lines past 110 characters against a file otherwise wrapped at 90** — One pattern made them all — text appended to a line instead of the paragraph re-wrapped — so an edit arrives as a whole-paragraph diff and nothing holds the shape. → §RK366
