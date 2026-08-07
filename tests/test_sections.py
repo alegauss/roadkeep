@@ -63,6 +63,7 @@ from roadkeep.sections import (
     nested,
     paragraphs,
     pointers,
+    structural,
     words,
 )
 
@@ -2610,3 +2611,53 @@ def test_the_id_scheme_keeps_its_heading_too(tmp_path):
 
     assert changed == ("body",)
     assert "### §RK1 A first design" in read(Config.discover(tmp_path))
+
+
+# -- a marker is the character and the space after it (RK397) -----------------
+
+
+def test_a_paragraph_that_breaks_before_a_bold_span_is_still_prose(tmp_path):
+    # The measured defect, found writing §RK385: one line of an ordinary paragraph happened to
+    # begin `**does not separate them**`, `*` is a bullet character, and the whole paragraph was
+    # inserted verbatim — the author's incidental breaks kept, none of them filled.
+    config = project(tmp_path)
+    body = (
+        "A first line of an ordinary paragraph.\n"
+        "**does not separate them** is how the second one opens, and it is not a list."
+    )
+    document, section = add(config, "improvements", "RK2", "A design", body)
+    document.save()
+
+    written = read(Config.discover(tmp_path))
+    assert "A first line of an ordinary paragraph. **does not separate them** is how the" in written
+
+
+def test_every_marker_still_reads_as_the_shape_it_is(tmp_path):
+    # The rule is the space, not a shorter alphabet: each of these is a structure and each is
+    # inserted exactly as written, which is what `_reflow` has always promised (L4).
+    assert structural(["- one", "- two"])
+    assert structural(["* one"]) and structural(["+ one"])
+    assert structural(["1. one"]) and structural(["1) one"])
+    assert structural(["### A heading inside a body"])
+    # No space is required of these three, `|a|b|` and `>quoted` both being legal.
+    assert structural(["|a|b|"]) and structural([">quoted"]) and structural(["```"])
+    # A run of three is a thematic break, which is the same prefix with the opposite reading.
+    assert structural(["---"]) and structural(["***"]) and structural(["___"])
+    assert structural(["    indented code"])
+
+
+def test_what_is_no_longer_read_as_a_marker(tmp_path):
+    assert not structural(["**bold** opens this line."])
+    assert not structural(["*emphasis* opens this one."])
+    # `1.5 seconds` fell to the `1.` prefix for the same reason, and is a sentence.
+    assert not structural(["1.5 seconds is the budget this line is about."])
+    assert not structural(["A sentence carrying **bold** and *emphasis* mid-line."])
+
+
+def test_the_estimate_measures_the_width_the_writer_would_fill(tmp_path):
+    # One predicate on purpose (RK99): `adopt --sections` reads the width a file is already
+    # wrapped to over the paragraphs `_reflow` would touch, so a corpus with bold-led lines
+    # used to report a width nobody wrote. The two readers move together or not at all.
+    from roadkeep.sections import _shape
+
+    assert _shape("- a bullet") and not _shape("**not a bullet**")

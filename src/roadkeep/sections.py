@@ -78,8 +78,18 @@ from roadkeep.schema import (
 if TYPE_CHECKING:  # imported for the annotation alone: `history` reads this module back
     from roadkeep.history import Anchor
 
-#: A paragraph whose first characters are any of these is a structure, not prose.
-_STRUCTURE = ("|", ">", "-", "*", "+", "#", "```", "~~~", "1.")
+#: Openers that are a shape whatever follows them: a table row, a blockquote, a fence. No
+#: space is required after any of these, `|a|b|` and `>quoted` both being legal Markdown.
+_VERBATIM = ("|", ">", "```", "~~~")
+#: A list marker or a heading, which is the character **and the space after it** (RK397). The
+#: space is the whole rule: `*` was read as a bullet, so a prose line breaking before a
+#: `**bold**` span made the paragraph a structure and the tool stopped filling it — silently,
+#: `lint` charging a body in words and never in width. `1.5 seconds` fell the same way.
+_MARKER = re.compile(r"(?:[-*+]|#{1,6}|\d+[.)])(?:\s|$)")
+#: The same characters with no space, which is a thematic break and is still a shape. Kept
+#: apart from :data:`_MARKER` rather than folded in, because the two are opposite readings of
+#: one prefix and a rule that guessed between them is the defect above with a longer alphabet.
+_BREAK = re.compile(r"(?:-{3,}|\*{3,}|_{3,})\s*$")
 #: What opens a block whose contents are quoted or generated rather than written (RK136).
 _FENCES = ("```", "~~~")
 #: A line that is data rather than argument, so the budget does not charge for it. A list
@@ -1904,8 +1914,26 @@ def structural(lines: Sequence[str]) -> bool:
     adopter would read `prose` off by mistake. One predicate, so the width that is measured
     is the width that would be written.
     """
-    return any(
-        line.lstrip().startswith(_STRUCTURE) or line.startswith("    ") for line in lines
+    return any(_shape(line) for line in lines)
+
+
+def _shape(line: str) -> bool:
+    """Is this one line a Markdown structure rather than a sentence in a paragraph? (RK397)
+
+    Read as three questions because the prefixes answer to three rules. A pipe, a quote and a
+    fence are shapes on sight. A bullet, a number and a heading are a character **followed by
+    a space** — that is what CommonMark says a marker is, and the space is what tells `* item`
+    from `*emphasis*` and `1. one` from `1.5 seconds`. A run of three or more is a thematic
+    break, which has no space and is a shape anyway.
+
+    Four indented spaces stay a code block. Asked of the raw line and not the stripped one,
+    which is the only place in here where the leading whitespace is the meaning.
+    """
+    if line.startswith("    "):
+        return True
+    head = line.lstrip()
+    return bool(
+        head.startswith(_VERBATIM) or _BREAK.match(head) or _MARKER.match(head)
     )
 
 

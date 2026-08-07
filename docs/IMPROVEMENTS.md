@@ -145,30 +145,6 @@ What is missing is small: `record amend --superseded-by <id>`, or a `record reve
 transaction. The precedent and the wording are already in `retire`; only the target file
 differs.
 
-### §RK397 A prose paragraph whose line starts with a bold span is inserted verbatim instead of filled
-
-Found writing §RK385. A paragraph of ordinary prose landed in `IMPROVEMENTS.md` exactly
-as it arrived — the author's incidental line breaks kept, none filled to the declared
-`prose` width — while the three paragraphs around it reflowed normally. The only
-difference was where a line happened to break: one began `**does not separate them**`.
-
-`_STRUCTURE` lists `*` because a bullet may be written `* item`, and `structural` asks
-whether *any* line in the paragraph starts with one of those characters. A `**bold**`
-span opening a line answers yes, and so does an `*emphasis*` one.
-
-The test is right about intent and wrong about the alphabet. A list marker is the
-character **followed by a space**; `**` is a delimiter with no space and never a bullet.
-
-It is silent, which is what makes it a line rather than a note. `lint` holds a body to a
-word budget and never to the prose width, so a paragraph the writer declined to fill
-passes the gate — and `adopt --sections` reads this same predicate to measure the width
-a file is already wrapped to (RK99), so a corpus with bold-led lines reports a width
-nobody wrote. Both readers agree and both are wrong together.
-
-The fix is the space: a marker counts only where a space or the line's end follows it.
-`structural` is one predicate on purpose, so one edit moves the writer and the estimate
-at once, and this repository's own `docs/` is the fixture that shows the difference.
-
 ## Block C — Query
 
 ### §RK379 The refusal for a missing anchor does not name the anchor to use
