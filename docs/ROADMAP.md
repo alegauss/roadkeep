@@ -44,6 +44,8 @@
 
 ## Block E — Adoption
 
+- 📋 **RK392** (deps: —) **A scaffold that cannot create a declared file's directory leaves the configuration behind, and both doors out refuse** — The write order is what makes all-or-nothing true, and the directory is created below the line that can still refuse, so the config lands and the roles do not. → §RK392
+
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - 💭 **RK366** (deps: —) **The skill every adopting project loads has 24 body lines past 110 characters against a file otherwise wrapped at 90** — One pattern made them all — text appended to a line instead of the paragraph re-wrapped — so an edit arrives as a whole-paragraph diff and nothing holds the shape. → §RK366
