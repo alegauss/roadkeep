@@ -266,6 +266,29 @@ finding, and reporting it costs one pass rather than one ship.
 
 ## Block E — Adoption
 
+### §RK387 Half a file told apart from an empty one
+
+RK376 gave the estimate two numbers — the lines a file holds and how many were read in
+any shape — so that `0 conform, 0 would change` over a `README.md` stops reading as the
+answer an empty roadmap gets. Handed the same file, `--sections` still answers exactly
+that.
+
+The fix landed where the estimate is assembled for entries and the rationale run
+assembles its own, three hundred lines away, and nothing carried across. Measured on a
+file of three prose paragraphs and no headings: as a backlog it says `nothing in 5
+line(s) was read in any shape`, and as a rationale file it says `0 section(s), 0
+conform, 0 would change` — the same words a genuinely blank file gets.
+
+The `prose longest 58 of 88` line is not the missing signal. It is a width, it appears
+unchanged on a conforming file, and it says nothing about whether anything was read.
+
+What the two paths do not share is the counting, and that is the thing to decide rather
+than the sentence. Both build an `Estimate` by hand from a `Document` each has already
+loaded, which is why three fields have now arrived in one and not the other — this is
+the third. Whether the shared part becomes one constructor or the fields simply get
+filled twice is the choice; filling them twice is smaller and leaves the fourth field
+free to go missing the same way.
+
 ## Block F — The plugin
 
 ### §RK366 A shipped text whose wrap nothing holds
