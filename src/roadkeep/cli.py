@@ -1603,7 +1603,8 @@ def build_parser() -> argparse.ArgumentParser:
         default="",
         help=(
             "list only this prose file's addresses (default: every declared one) — the "
-            "free address stays the project's either way, since one outline spans both"
+            "free top-level is per namespace, so it stays the project's where no [refs] "
+            "declares one and is that file's own where one does"
         ),
     )
     anchors_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
@@ -5491,8 +5492,11 @@ def _gaps(config: Config, args: argparse.Namespace) -> int:
 def _anchors(config: Config, args: argparse.Namespace) -> int:
     """Live and retired addresses across this project's prose (RK247, RK297)."""
     # Every declared role unless one is named. `--role` narrows the *listing* and never the
-    # free address: an outline spans both files, so a `next` taken from one of them is the
-    # answer this read exists to stop somebody acting on (RK297).
+    # free address, which is computed per namespace (RK340, RK346): where no `[refs]` declares
+    # one, both files number into the same namespace and a `next` taken from one of them is
+    # the answer this read exists to stop somebody acting on (RK297); where one is declared,
+    # the row for that namespace is that file's own and the sibling's is not an answer about
+    # it. Reading every role either way is what makes `doubled` visible before a pick (RK383).
     asked = [one for one in PROSE_ROLES if config.has(one)]
     role = args.role or ""
     if (role and not config.has(role)) or not asked:

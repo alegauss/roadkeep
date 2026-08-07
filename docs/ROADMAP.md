@@ -25,10 +25,10 @@
 ## Block B — Authoring (insert, never hand-edit)
 
 - 💭 **RK385** (deps: —) **Nothing notices that a new line asks for what a shipped entry already delivered** — RK378 was filed the day after RK340 shipped the same namespace and nothing refused it, so a duplicate costs a claim, a brief and a retirement before anyone reads the ledger. → §RK385
+- 📋 **RK399** (deps: —) **One field is spelled --status on add and --marker on resume** — The open marker is a single declared field, and a caller who learns its flag name on one verb is refused by the other. → §RK399
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK383** (deps: —) **The free-address help says one outline spans both files, which a declared namespace makes false** — anchors --role and its comment predate [refs], so a project whose prose files each declare a namespace reads a promise of a shared free address the command no longer computes. → §RK383
 - 📋 **RK389** (deps: —) **A dep naming two real ids is accepted as one thing outside the backlog** — the value falls through to the free-text arm when it does not parse as a single id, so a compound spelling becomes an unresolvable external and the line reads blocked on work that does not exist. → §RK389
 - 📋 **RK396** (deps: —) **A dep on a partially shipped task is annotated as satisfied** — ship --part writes a ledger entry and leaves the line open, but the dep annotation reads the ledger, so a dependent is marked unblocked by the half that landed rather than by the half it needs. → §RK396
 

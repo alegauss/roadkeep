@@ -103,33 +103,24 @@ exactness rather than similarity: a read the author is told to make before propo
 `non-goal list`'s precedent, where the tool states what a block already delivered
 instead of guessing which entry is yours.
 
+### §RK399 Name the marker field once across the verbs
+
+`add --status 💭` and `resume <id> --marker 💭` write the same field, read from the same
+`[markers] open` list, and are spelled differently. The skill's prose calls it a marker
+throughout — "the shipped marker never reaches the roadmap", "`--marker` is where you
+say which it was", `[markers]` is the config section — so a caller who has read the
+skill reaches for `--marker` on `add` and gets an argparse usage dump with no hint that
+the field exists under another name.
+
+`status <id>` being a third spelling is fine: that one is a verb because moving a marker
+is an act. The flag is not.
+
+Take `--marker` as an alias on `add` (and `--status` on `resume`, so neither direction
+is the wrong guess), or rename one and keep the other accepted. Whichever way,
+"unrecognized arguments" is the wrong answer to a caller who named the field correctly
+and the verb's synonym for it wrongly.
+
 ## Block C — Query
-
-### §RK383 The free-address help says one outline spans both files, which a declared namespace makes false
-
-`anchors --role` documents itself as narrowing the listing and never the free address —
-"the free address stays the project's either way, since one outline spans both". The
-comment above `_anchors` says the same thing in the same words. Both were written when
-one outline did span both files.
-
-RK340 ended that. `next_family(spread, space)` is computed per namespace, and RK346 made
-`--json` answer one row per namespace precisely because a single free address stopped
-being the truth. So on any project that declares `[refs]`, the sentence the caller reads
-before running the command contradicts the number the command prints.
-
-The damage is not a wrong answer; it is a caller who believes the answer is project-wide
-and picks a top-level out of the other file's namespace, which is the collision `[refs]`
-exists to end. Help that was accurate is worse here than help that was missing: nothing
-prompts a re-read.
-
-The repair is two sentences, conditioned on nothing: state that the free address is per
-namespace where one is declared, and that a project declaring no `[refs]` has one
-namespace and therefore the old behaviour. That keeps a single sentence true for both
-shapes instead of documenting the default and leaving the configured case to be
-discovered.
-
-Related: RK340 shipped the namespace, RK346 shipped the per-namespace answer, and this
-is the prose neither of them carried forward.
 
 ### §RK389 A dep naming two real ids is accepted as one thing outside the backlog
 

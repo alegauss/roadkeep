@@ -194,6 +194,7 @@
 - ✅ **RK364** **The median this repository's own granularity claim is stated against has fallen below the floor a test holds** — The floor is 100 and far from the reading on purpose — by quarters the median falls 349 to 154, so the tasks got smaller under one-task-one-commit and the shape carries the claim.
 - ✅ **RK367** **The two figures the no-size-field non-goal argues from are stated in five places and both have drifted** — The two ranges are restated as the comparison they were for — median to p90, lines 2.7× against files 1.4× — which is scale-free, so a test holds it and `weight` prints it.
 - ✅ **RK379** **The refusal for a missing anchor does not name the anchor to use** — amend, restate, status and renumber name the block's family and the free address under it when a line has no pointer (design §RK379 superseded: add had been enriched by RK312 the day before).
+- ✅ **RK383** **The free-address help says one outline spans both files, which a declared namespace makes false** — both accounts of the free top-level say it is per namespace, and a test holds the skill and the help against what the command computes.
 
 ## Block D — The gate
 

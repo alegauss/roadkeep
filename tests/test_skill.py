@@ -27,12 +27,13 @@ The decisions that arrangement encodes, and the assertions that hold them:
 from __future__ import annotations
 
 import argparse
+import contextlib
 import re
 from pathlib import Path
 
 import conftest
 from roadkeep.config import Config
-from roadkeep.cli import build_parser
+from roadkeep.cli import build_parser, main
 
 HERE = Path(__file__).resolve().parents[1]
 SKILL = HERE / "skills" / "roadkeep" / "SKILL.md"
@@ -145,3 +146,22 @@ def test_the_skill_keeps_the_two_rules_a_schema_cannot_check():
     body = text()
     assert "states what does not work" in body
     assert "one sentence" in body
+
+
+def test_the_free_address_is_taught_as_the_command_computes_it(capsys):
+    """Both accounts of `anchors`, held against the one thing the command answers (RK383).
+
+    The failure this pins is help that *was* accurate: RK340 made the free top-level a
+    per-namespace number and RK346 made `--json` answer one row each, and the two sentences a
+    caller reads first went on promising one address for the project. Nothing prompts a
+    re-read of prose that reads correct, so the caller picks a top-level out of the sibling's
+    namespace — the collision `[refs]` exists to end.
+    """
+    with contextlib.suppress(SystemExit):
+        main(["anchors", "--help"])
+    surfaces = {"the skill": text(), "anchors --help": capsys.readouterr().out}
+    for where, body in surfaces.items():
+        assert "namespace" in body, where
+        # The claim itself, not a paraphrase: it is true of a project declaring no `[refs]`
+        # and false of one that does, so it may not be stated unconditionally.
+        assert "one outline spans both" not in body, where

@@ -266,8 +266,10 @@ reader pays; cutting to the second number cuts prose that was never over. Under 
 `anchors` names both free addresses before you choose one: `next §<family>.<n>` for a child
 and, above the rows, the next free **top-level** — which is what a block reused after its
 family shipped needs, and what the listing could not be read for. It reads **every** prose
-file the project declares, because one outline spans both and a free address taken from one
-of them is one the sibling already spent; `--role` narrows the listing and never that number,
+file the project declares, and the free top-level is **per namespace**: where `[refs]` gives
+a file one, that file's own numbering is the answer and the sibling's is not, and where a
+project declares none its files share one namespace, so a free address taken from either is
+one the other already spent; `--role` narrows the listing and never that number,
 and any address two files both declare is named as `doubled` before you pick one. `brief` prints the `why`'s share of the line it hands over,
 so a task started through it never has to ask. **`weight [--block <x>]` is the other pre-`add` read**: what
 comparable tasks cost, derived from the commits that shipped them, so whether the line being
