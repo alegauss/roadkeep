@@ -527,6 +527,41 @@ def test_the_rationale_file_is_judged_by_the_same_rule(tmp_path):
     assert finding.file == "IMPROVEMENTS.md"
 
 
+def test_the_finding_names_the_verb_where_the_verb_would_work(tmp_path):
+    # RK417, measured on a real corpus: one of the two stood over nothing and the removal
+    # took exactly that one out, in one command — and the report stopped at the diagnosis.
+    twice = CLEAN + "\n## Block A — The model again\n"
+    report = lint(project(tmp_path, roadmap=twice, improvements=None))
+    (finding,) = [f for f in report.findings if f.code == "block.repeated"]
+    assert "`block drop A` takes the empty one out" in finding.message
+
+
+def test_two_regions_that_both_hold_work_are_told_there_is_no_command(tmp_path):
+    # The clause is conditional, and that is what makes it honest: the removal refuses a
+    # heading with work under it, so naming it here would name a command that refuses.
+    both = CLEAN + (
+        "\n## Block A — The model again\n\n"
+        "- 📋 **RK3** (deps: —) **A third symptom** — Because of a third. → §RK3\n"
+    )
+    report = lint(project(tmp_path, roadmap=both, improvements=None))
+    (finding,) = [f for f in report.findings if f.code == "block.repeated"]
+    assert "the repair is a merge by hand" in finding.message
+    assert "block drop" not in finding.message
+
+
+def test_a_file_where_nothing_is_removable_silences_the_offer_for_the_others(tmp_path):
+    # That removal is all-or-nothing across the governed set: one file it would refuse on
+    # refuses the run, including the files whose heading *was* removable.
+    twice = CLEAN + "\n## Block A — The model again\n"
+    prose = PROSE + "\n## Block A — The model again\n\n### §RK9 A design\n\nProse.\n"
+    report = lint(project(tmp_path, roadmap=twice, improvements=prose))
+    assert all(
+        "block drop" not in f.message
+        for f in report.findings
+        if f.code == "block.repeated"
+    )
+
+
 def test_three_headings_under_one_label_are_reported_twice(tmp_path):
     thrice = CLEAN + "\n## Block A — Again\n\n## Block A — And again\n"
     report = lint(project(tmp_path, roadmap=thrice))

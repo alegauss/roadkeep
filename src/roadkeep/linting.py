@@ -103,6 +103,7 @@ from pathlib import Path
 
 from roadkeep import queueing, scoping
 from roadkeep.backlog import Backlog, DepStatus, id_order
+from roadkeep.blocking import removable
 from roadkeep.config import PROSE_ROLES, ROLES, Config, spent
 from roadkeep.document import Document, Entry, ending
 from roadkeep.exporting import BEGIN, DEFAULTS, NoMarkers, project, splice
@@ -553,7 +554,6 @@ def _examine(config: Config, since: str | None, tree: Tree) -> Report:
     for role, document in documents.items():
         findings.extend(within(config, role, document))
         findings.extend(_characters(config, role, document))
-        findings.extend(_repeated(config, role, document))
     findings.extend(_across(config, documents))
     findings.extend(_scope(config, documents.get("roadmap")))
     queued, queue_notes = _queue(config, documents)
@@ -575,9 +575,11 @@ def _examine(config: Config, since: str | None, tree: Tree) -> Report:
         findings.extend(_pointers(config, documents, anchors))
         for role, document in prose.items():
             findings.extend(_orphans(config, documents, document, anchors, role=role))
-            findings.extend(_repeated(config, role, document))
         if since is not None:
             notes.extend(_unpaired(config, anchors.get("improvements", ()), since))
+    # After both halves are loaded, because the remedy this names is decided against the
+    # *whole* governed set and not against the file the duplicate is in (RK417).
+    findings.extend(_repeated(config, {**documents, **prose}))
     findings.extend(_paths(config, documents, tree))
 
     targets = _targets(config, tree)
@@ -1564,7 +1566,7 @@ def _disagreeing(config: Config, tree: Tree) -> list[Note]:
     ]
 
 
-def _repeated(config: Config, role: str, document: Document) -> list[Finding]:
+def _repeated(config: Config, files: dict[str, Document]) -> list[Finding]:
     """One label declared by two headings in one file — the gate's half of RK391.
 
     RK390 made `init` refuse it, which closed one of four doors: a hand edit, an `adopt`, and
@@ -1587,26 +1589,67 @@ def _repeated(config: Config, role: str, document: Document) -> list[Finding]:
     Reported once per label, at the **second** heading and naming the first. The second is
     the one that was added, and the message needs both addresses because the fix is an
     editorial merge of two regions that nothing but their line numbers locates.
+
+    **And it names the verb where the verb works** (RK417). One of two headings often stands
+    over nothing — measured on a real corpus — and `block drop <label>` takes exactly that
+    one out, in one command and with no editorial judgement at all; a report that stopped at
+    the diagnosis left the author to research it. The clause is conditional, because that
+    removal is all-or-nothing across the governed set: a file where nothing is removable
+    refuses the whole run, so the condition is asked of every file that declares the label
+    and :func:`~roadkeep.blocking.removable` is the one expression both sides read. Where
+    both regions hold work there is no command to name, and saying so is still the useful
+    half — it tells the reader which of the two cases they are in.
     """
-    where = config.relative(config.path(role))
     word = config.schema.heading_word
     out: list[Finding] = []
-    for label in dict.fromkeys(h.label for h in document.headings if h.label):
-        declared = document.declaring(label)
-        if len(declared) < 2:
-            continue
-        first, *rest = declared
-        for later in rest:
-            out.append(
-                Finding(
-                    "block.repeated",
-                    where,
-                    f"{word} {label} is already declared on line {first.lineno}: one label "
-                    f"is one heading, and a write files under this one by position alone",
-                    later.lineno,
-                )
+    for role, document in files.items():
+        where = config.relative(config.path(role))
+        for label in dict.fromkeys(h.label for h in document.headings if h.label):
+            declared = document.declaring(label)
+            if len(declared) < 2:
+                continue
+            first, *rest = declared
+            remedy = (
+                f"`block drop {label}` takes the empty one out"
+                if _droppable(files, label)
+                # Named as an edit and not as a command, because there is none: two regions
+                # holding work is a merge somebody has to make.
+                else "both regions hold work, so the repair is a merge by hand"
             )
+            for later in rest:
+                out.append(
+                    Finding(
+                        "block.repeated",
+                        where,
+                        f"{word} {label} is already declared on line {first.lineno}: one "
+                        f"label is one heading, and a write files under this one by "
+                        f"position alone — {remedy}",
+                        later.lineno,
+                    )
+                )
     return out
+
+
+def _droppable(files: dict[str, Document], label: str) -> bool:
+    """Whether `block drop <label>` would remove a heading rather than refuse (RK417).
+
+    Asked of every file that declares the label, because that verb is all-or-nothing: one
+    file where nothing is removable refuses the run, including the files whose heading *was*
+    removable. The ledger is the exception it is at the door — its headings hold history and
+    are skipped rather than refused over — so a ledger with nothing removable is not what
+    stops the rest.
+    """
+    declaring = {
+        role: document for role, document in files.items() if document.declaring(label)
+    }
+    if not declaring:
+        return False
+    return any(
+        removable(document, label) is not None for document in declaring.values()
+    ) and all(
+        role == "changelog" or removable(document, label) is not None
+        for role, document in declaring.items()
+    )
 
 
 def _undeclared_blocks(

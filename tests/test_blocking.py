@@ -193,6 +193,47 @@ def test_a_file_that_is_not_organised_by_blocks_is_named_and_left_alone(tmp_path
     assert "Block C" not in read(config, IMPROVEMENTS)
 
 
+# -- the duplicate one of two headings the removal may take (RK417) ----------
+
+ONLY_B = """# Improvements
+
+## Block B — Authoring
+"""
+
+
+def test_the_empty_heading_is_taken_even_where_it_is_the_second(tmp_path):
+    # Reading the first alone was right while a label had one heading. On a file declaring
+    # it twice it refused over the occupied one while an empty one sat below — and the
+    # corpus this was measured on happened to have them the other way round.
+    doubled = BACKLOG.replace(
+        "## Non-goals", "## Block A — The model again\n\n## Non-goals"
+    )
+    # The rationale file is left out of it: it declares Block A over a section, which is
+    # work, and this removal is all-or-nothing across the governed set.
+    config = project(tmp_path, roadmap=doubled, improvements=ONLY_B)
+    closed = drop_block(config, "A")
+    closed.save()
+
+    text = read(config, ROADMAP)
+    # The occupied one stayed, with its line under it; the empty one went.
+    assert text.count("## Block A") == 1
+    assert "**RK1**" in text and "## Block A — The model again" not in text
+
+
+def test_a_label_whose_every_heading_holds_work_is_still_refused(tmp_path):
+    doubled = BACKLOG.replace(
+        "## Non-goals",
+        "## Block A — The model again\n\n"
+        "- 📋 **RK3** (deps: —) **A third symptom** — Because of a third. → §RK3\n\n"
+        "## Non-goals",
+    )
+    config = project(tmp_path, roadmap=doubled, improvements=ONLY_B)
+    with pytest.raises(BlockOccupied):
+        drop_block(config, "A")
+    # A heading over work is never removed: the rule is per heading, not per file.
+    assert read(config, ROADMAP).count("## Block A") == 2
+
+
 # -- the file organised by nothing, and the key to it (RK405) ----------------
 
 FLAT = "# Shipped\n\nProse, and no block heading anywhere in it.\n"

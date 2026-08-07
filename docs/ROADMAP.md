@@ -40,7 +40,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK417** (deps: —) **The finding for one label under two headings names no verb, and one of the two is often removable** — The gate reports both line numbers and stops, so an author whose first heading stands over nothing researches a repair the block verb already makes in one command. → §RK417
 - 📋 **RK418** (deps: —) **Two copies at one version number are called agreed, on the one fact known not to tell trees apart** — The comparison is the release string, which a modified checkout and a released plugin can share while their files differ, and the commit each carries is read and dropped. → §RK418
 
 ## Block E — Adoption

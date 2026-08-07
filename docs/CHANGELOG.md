@@ -279,6 +279,7 @@
 - ✅ **RK413** **The first block heading lands after the section the blocks are supposed to precede** — the first block heading goes before the file's next section at that level, and only takes the end where there is none.
 - ✅ **RK412** **The seam every line write passes is told which file it is writing into twice** — place takes the role and derives the path and the organise remedy from it, so defer names its own file too.
 - ✅ **RK415** **Three engines write and judge one project and none names the others** — engines reads the running copy, the plugin the harness wired and every workflow ref, and lint notes a pen and judge apart.
+- ✅ **RK417** **The finding for one label under two headings names no verb, and one of the two is often removable** — the finding names block drop where that verb would remove the empty heading, and says it is a hand merge where it would not.
 
 ## Block E — Adoption
 

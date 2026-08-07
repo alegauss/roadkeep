@@ -275,31 +275,6 @@ decision into a refusal.
 
 ## Block D — The gate
 
-### §RK417 A diagnosis that stops one word before the remedy
-
-Measured on a real corpus: `CHANGELOG.md` declared `## Block AH` twice, once over an
-entry and once over nothing. The gate said
-
-```
-Block AH is already declared on line 788: one label is one heading, and a write files
-under this one by position alone
-```
-
-which is true, complete about the *state*, and silent about what to do. Running the
-block verb's removal took the empty one out and left the occupied one, in one command
-and with no editorial judgement at all — and nothing in the message suggested trying it.
-
-That silence is the shape this tool removes everywhere else. The undeclared-block
-refusal names the verb that declares one; the ledger-with-no-headings finding names the
-argument that opens the first. This one was written as a report and stopped there.
-
-The clause is conditional and that is what makes it honest. Removal refuses a heading
-with anything filed under it, by name, so the verb is the answer **only** where one of
-the two stands over nothing — which the gate has already read, since it walked both
-subtrees to find the pair. Where both hold work the repair really is an editorial merge
-and there is no command to name; saying so is still better than saying nothing, because
-it tells the reader which of the two cases they are in.
-
 ### §RK418 The number that could not answer this question before
 
 The verb that reads the three copies back compares the two that state a version, and it

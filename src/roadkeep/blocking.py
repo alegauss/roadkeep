@@ -394,6 +394,27 @@ def _readable(config: Config) -> dict[str, tuple[str, Document, tuple[Heading, .
     return found
 
 
+def removable(document: Document, label: str) -> Heading | None:
+    """The heading :func:`drop_block` would take out of this file for ``label``, or None.
+
+    One expression, read by the verb that removes and by the gate that reports a label two
+    headings declare (RK391, RK417): a finding naming a command that then refuses is worse
+    than one naming none, and the only thing that keeps those two level is asking the same
+    function rather than each spelling the rule.
+
+    **The empty one, wherever in the file it is**, which is what makes a duplicate repairable
+    at all. Reading the first heading alone was right while a label had one; on a file that
+    declares it twice it would refuse over an occupied first while an empty one sat below —
+    measured on a real corpus, where the removable heading happened to come first and the
+    reverse order would have had no exit at all. A heading over work is still never removed:
+    that rule is per *heading* here, which is how it was always written.
+
+    Prose is not empty. `--prose` is a decision the caller makes at the door, and a reader
+    asking whether a heading is removable without it must not be told yes.
+    """
+    return next((h for h in document.declaring(label) if not _held(document, h)), None)
+
+
 def _declaring(
     config: Config, label: str
 ) -> tuple[tuple[str, str, Document, Heading], ...]:
@@ -403,8 +424,11 @@ def _declaring(
         if not config.has(role) or not config.path(role).is_file():
             continue
         document = config.document(role)
-        heading = document.heading(label)
-        if heading is not None:
+        declared = document.declaring(label)
+        if declared:
+            # The removable one where there is one, and otherwise the first — which is then
+            # the heading the refusal is rightly about (RK417).
+            heading = removable(document, label) or declared[0]
             found.append((role, config.relative(config.path(role)), document, heading))
     return tuple(found)
 
