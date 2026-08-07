@@ -18,7 +18,7 @@ where a project's own `.mcp.json` declares the server and `mcp__plugin_<plugin>_
 where a plugin provides it, so read the prefix off the tool list rather than typing it: the whole write path and
 the reads a task needs are there — `add`, `block_add`, `block_drop`, `claim`, `scope`, `status`, `amend`, `restate`, `ship`, `retire`, `defer`, `resume`,
 `record_add`,
-`record_amend`, `record_move`, `record_drop`, `record_renumber`, `non_goal_add`, `non_goal_drop`, `section_add`, `section_amend`, `section_drop`, `budget`, `brief`, `pick`, `list`, `deps`, `lint`, `merge_check` — same engine and same
+`record_amend`, `record_move`, `record_drop`, `record_renumber`, `non_goal_add`, `non_goal_drop`, `section_add`, `section_amend`, `section_move`, `section_drop`, `budget`, `brief`, `pick`, `list`, `deps`, `lint`, `merge_check` — same engine and same
 refusals, with
 the fields arriving as a schema instead of flag names typed from memory. `init`, `adopt` and
 `install` run once per project and want the CLI — the last of them wires this file, the tools
@@ -122,7 +122,19 @@ and the line lands. The pipe's own trailing newline comes off; a trailing space 
 and still refused, and two arguments asking for one pipe is refused naming both. Over MCP there
 is no pipe, so every write that reads one takes it **as a string** and refuses `-` by name. **`section amend <id>` is how a
 live design is corrected**: `--body -` replaces its own prose, `--title` its heading, the
-subtree and the anchor are untouched, and it is the only door — `section drop` is refused
+subtree and the anchor are untouched, and it is the only door for prose. **The anchor is
+`section move <anchor> --to <address>`**, and only under an outline: `renumber` moves an id and
+leaves the pointer as typed under every other scheme, so an address had no verb at all and the
+one state that needs one is the address two prose files both declare — `section.ambiguous` to
+the gate, refused by `add`, and what an adopting corpus arrives with. It re-addresses the
+heading, every nested anchor that extends it and the `→ §<anchor>` on every line naming one of
+them in one transaction, taking the refusals `add` computes about a destination: held here,
+declared by the sibling file, or spent by a heading in history. A pointer follows only where
+**nothing else answers its address or this heading names its task**, which is what keeps
+repairing one file from taking the other file's line with it, and every one that stays is
+reported. The destination keeps the parent the address already had — this write changes the
+address and not the place — and under `ref_scheme = "id"` it is refused by name, the anchor
+being the id and `renumber` the verb that moves both ends. `section drop` is refused
 while an open line points at the anchor **or at any address under it**, named in the refusal,
 whether this file writes that address as a heading or as a bullet; that is right, and shipping
 is not a way to fix a paragraph. No write invents a block

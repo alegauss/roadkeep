@@ -38,7 +38,7 @@ agents.md, roadkeep.toml   this file, and this project's own configuration
 src/roadkeep/   the package (src layout, importable via pytest pythonpath). Each module's
                 own docstring is the authority on it — this is only where to look:
   schema document config ids                RK1-4  the format, the file, the config, the id
-  authoring blocking shipping markers sections  RK5-9/32/41/67/93/141  the writes, whole
+  authoring blocking shipping markers sections  RK5-9/32/41/67/93/141/377  the writes, whole
   deferring renumbering merging       RK91/96/97/120  the doors that are not terminal,
                                                  and the merge git cannot make
   locking claiming storing  RK117/119/330  scan-to-save is one span, who holds a line, one grammar

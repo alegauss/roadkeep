@@ -25,7 +25,6 @@
 ## Block B — Authoring (insert, never hand-edit)
 
 - 💭 **RK368** (deps: —) **A non-goal whose reason changes has no door but drop and re-add, which moves the bullet to the end of the list** — `record amend` exists so a ledger correction is not a move; the non-goal list has no equivalent, and `add` appends, so a reworded reason reads as a deletion elsewhere. → §RK368
-- 🛠 **RK377** (deps: —) **A doubled anchor has no verb that repairs it** — lint reports section.ambiguous and the write path refuses a doubling, but no verb changes a section's address, so the only repair left is the hand edit the hook denies. → §RK377
 - 📋 **RK381** (deps: —) **A refusal on a short field costs the whole rationale a second time** — the section body arrives on stdin, so a why over the limit by three words discards a prose block the author must resend verbatim, which is the expense the pre-write validation was meant to avoid. → §RK381
 - 📋 **RK382** (deps: —) **A symptom that discovery widens has no verb, only retire and refile** — amend refuses the field because a different claim is a different task, but a claim found to hold in four places rather than one is the same task with a symptom that has become false. → §RK382
 - 📋 **RK385** (deps: —) **Nothing notices that a new line asks for what a shipped entry already delivered** — RK378 was filed the day after RK340 shipped the same namespace and nothing refused it, so a duplicate costs a claim, a brief and a retirement before anyone reads the ledger. → §RK385

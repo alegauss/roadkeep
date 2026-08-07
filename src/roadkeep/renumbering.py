@@ -54,7 +54,7 @@ from roadkeep.config import Config
 from roadkeep.document import Document, Entry, save_all
 from roadkeep.ids import id_scanner, next_id
 from roadkeep.markers import refresh
-from roadkeep.sections import Section, find, heading_of, nested
+from roadkeep.sections import Section, descending, find, heading_of
 
 __all__ = ["NotAnId", "Renumbering", "SameId", "family_of", "renumber"]
 
@@ -285,12 +285,13 @@ def _section_document(
     has. `find` deliberately returns the subtree and this function rewrote one line of it;
     that asymmetry was the whole defect.
 
-    Only the anchors this one owns. A nested heading is renamed when it *extends* the id
-    segment by segment, so a `§RK1.1` travels and a `§RK50` someone filed inside the subtree
-    keeps the address of the task that owns it — the same question :func:`_move_deps` cannot
-    answer about a dep, answered here by the anchor itself rather than by depth. The
-    destination cannot already carry one of these: `refuse_reuse` refused `to` if anything
-    in any configured source so much as mentions it, and `§RK9.1` mentions RK9.
+    Only the anchors this one owns, which is :func:`~roadkeep.sections.descending`'s reading
+    and not a second one: a nested heading is renamed when it *extends* the id segment by
+    segment, so a `§RK1.1` travels and a `§RK50` someone filed inside the subtree keeps the
+    address of the task that owns it — the same question :func:`_move_deps` cannot answer
+    about a dep, answered by the anchor itself rather than by depth. The destination cannot
+    already carry one of these: `refuse_reuse` refused `to` if anything in any configured
+    source so much as mentions it, and `§RK9.1` mentions RK9.
     """
     if not config.has("improvements") or not config.path("improvements").is_file():
         return None
@@ -303,28 +304,13 @@ def _section_document(
     # line for one line, so no heading below the first edit moves under the edits above it.
     edits = [(section.first - 1, heading_of(document.schema, moved))]
     renamed: list[str] = []
-    for child in _subsections(document, anchor):
+    for child in descending(document, anchor):
         under = replace(child, anchor=f"{to}{child.anchor[len(anchor) :]}")
         edits.append((child.first - 1, heading_of(document.schema, under)))
         renamed.append(under.anchor)
     for index, raw in edits:
         document = document.replace_line(index, raw)
     return document, moved, tuple(renamed)
-
-
-def _subsections(document: Document, anchor: str) -> tuple[Section, ...]:
-    """The nested anchors that are this id's own numbering — `RK1.1`, never `RK50`.
-
-    Segment by segment and not by string prefix, which is what keeps `§RK1` from claiming
-    `§RK10`'s subtree — the same care :func:`~roadkeep.sections._extends` takes at the other
-    end of the question.
-    """
-    segments = anchor.split(".")
-    return tuple(
-        child
-        for child in nested(document, anchor)
-        if child.anchor.split(".")[: len(segments)] == segments
-    )
 
 
 def family_of(config: Config, task_id: str) -> str:

@@ -117,16 +117,16 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 30 | 2 |
-| B — Authoring (insert, never hand-edit) | 7 | 84 | 0 |
-| C — Query (consult without reading the file) | 3 | 53 | 1 |
+| B — Authoring (insert, never hand-edit) | 6 | 85 | 0 |
+| C — Query (consult without reading the file) | 4 | 53 | 1 |
 | D — The gate | 2 | 68 | 0 |
 | E — Adoption | 0 | 72 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 67 | 1 |
-| **Total** | 13 | 374 | 5 |
+| **Total** | 13 | 375 | 5 |
 
 **Next ready:**
 
-- 🛠 **RK377** (deps: —) **A doubled anchor has no verb that repairs it** — lint reports section.ambiguous and the write path refuses a doubling, but no verb changes a section's address, so the only repair left is the hand edit the hook denies. → §RK377
+- 💭 **RK366** (deps: —) **The skill every adopting project loads has 24 body lines past 110 characters against a file otherwise wrapped at 90** — One pattern made them all — text appended to a line instead of the paragraph re-wrapped — so an edit arrives as a whole-paragraph diff and nothing holds the shape. → §RK366
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

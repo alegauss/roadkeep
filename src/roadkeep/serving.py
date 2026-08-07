@@ -350,6 +350,11 @@ TOOLS: tuple[Tool, ...] = (
     # write path is: the agent that narrowed a hypothesis is the one the hook denies a hand
     # edit to, and until this verb existed the only way through was shipping the task.
     Tool("section amend", ("anchor", "title", "body", "role")),
+    # The address `section amend` refuses to spell as a correction (RK377), and `renumber`
+    # cannot reach under an outline. Exposed beside them because the state it repairs is one
+    # an adopting corpus arrives with — 13 doubled addresses in Turing — and the only other
+    # way through is the hand edit this server's own guard denies the agent making it.
+    Tool("section move", ("anchor", "to", "role")),
     Tool("section drop", ("anchor", "role")),
     Tool("non-goal list"),
     Tool("priority list"),

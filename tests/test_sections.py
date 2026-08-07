@@ -43,8 +43,11 @@ from roadkeep.schema import Schema, SchemaError
 from roadkeep.linting import lint
 from roadkeep.sections import (
     AnchorClaimed,
+    AnchorIsId,
     _elsewhere,
     NoSuchSection,
+    NotASibling,
+    SameAnchor,
     SectionClaimed,
     SectionExists,
     SectionError,
@@ -56,6 +59,7 @@ from roadkeep.sections import (
     citing,
     drop,
     find,
+    move,
     nested,
     paragraphs,
     pointers,
@@ -66,6 +70,7 @@ from roadkeep.sections import (
 HERE = Path(__file__).resolve().parents[1]
 ROADMAP = "docs/ROADMAP.md"
 IMPROVEMENTS = "docs/IMPROVEMENTS.md"
+STRATEGY = "docs/STRATEGY.md"
 
 RK1_LINE = "- 📋 **RK1** (deps: —) **A first symptom** — Because of a reason. → §RK1"
 
@@ -2172,3 +2177,277 @@ def test_the_counts_add_up_to_the_number_the_limit_charges():
         "| a | b |\n\nA third paragraph with several words in it.\n\n```\nfenced\n```"
     )
     assert sum(paragraphs(body)) == words(body)
+
+
+# -- moving an address (RK377) -----------------------------------------------
+
+#: Two prose files whose outlines collide, which is the state Turing adopted the tool in:
+#: 13 addresses declared by both, `lint` reporting `section.ambiguous` at every one of them,
+#: and no verb that changes a section's address. The roadmap points into the file that names
+#: its task in the heading, which is what `owners` reads and what decides the pointer below.
+DOUBLED_BACKLOG = """# Roadmap
+
+## Block A — The model
+
+- 📋 **RK1** (deps: —) **A first symptom** — Because of a reason. → §I.2
+
+- 📋 **RK2** (deps: —) **A second symptom** — Because of another reason. → §I.2.1
+"""
+
+DOUBLED_IMPROVEMENTS = """# Improvements
+
+## I The first family
+
+Prose that is not numbered by anybody.
+
+### I.1 An earlier design
+
+The reasoning the line has no room for.
+
+### I.2 A doubled design (RK1)
+
+The reasoning the other file also claims.
+
+#### I.2.1 A subsection (RK2)
+
+Which belongs to the section above.
+
+### I.9 A later design
+
+This one names §I.2 in its own prose.
+"""
+
+DOUBLED_STRATEGY = """# Strategy
+
+## I The first family
+
+A second file that numbered its own outline from the same place.
+
+### I.2 The other one at this address
+
+The collision the corpus arrived with.
+"""
+
+
+def doubled(tmp_path: Path, *, refs: str = "") -> Config:
+    """An outline project whose two prose files both declare `§I` and `§I.2`."""
+    (tmp_path / "roadkeep.toml").write_text(
+        f'prefix = "RK"\nref_scheme = "outline"\n{refs}[files]\n'
+        f'roadmap = "{ROADMAP}"\nimprovements = "{IMPROVEMENTS}"\nstrategy = "{STRATEGY}"\n',
+        encoding="utf-8",
+    )
+    for name, body in {
+        ROADMAP: DOUBLED_BACKLOG,
+        IMPROVEMENTS: DOUBLED_IMPROVEMENTS,
+        STRATEGY: DOUBLED_STRATEGY,
+    }.items():
+        path = tmp_path / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("w", encoding="utf-8", newline="") as handle:
+            handle.write(body)
+    return Config.discover(tmp_path)
+
+
+def test_the_doubled_address_the_gate_reports_now_has_a_verb(tmp_path):
+    # The whole task in one assertion. `lint` named this state on every run and the write path
+    # refuses to create it, and between the two there was nothing to call: `renumber` moves an
+    # id and keeps the pointer as typed under any scheme but `id`, `section amend` says the
+    # anchor is not one of its fields, and `drop` is refused while a line points at it.
+    config = doubled(tmp_path)
+    assert "section.ambiguous" in {f.code for f in lint(config).findings}
+
+    move(config, "strategy", "I.2", "I.10").save()
+    move(Config.discover(tmp_path), "strategy", "I", "II").save()
+
+    assert [f.code for f in lint(Config.discover(tmp_path)).findings] == []
+
+
+def test_the_pointer_stays_with_the_file_whose_heading_names_the_task(tmp_path):
+    # The half that must not be a guess. Both files declared §I.2 and RK1 pointed at it; the
+    # repair moves the copy in `strategy`, whose heading names nobody, so following the move
+    # would take RK1 away from the design that is actually its own — the state `lint` then
+    # reports as `section.unreachable`, one defect traded for another.
+    config = doubled(tmp_path)
+    moved = move(config, "strategy", "I.2", "I.10")
+    moved.save()
+
+    assert moved.repointed == ()
+    assert moved.kept == (("RK1", "I.2"),)
+    assert "Because of a reason. → §I.2" in read(Config.discover(tmp_path), ROADMAP)
+
+
+def test_a_pointer_nothing_else_answers_follows_the_heading(tmp_path):
+    # The ordinary re-address, and the reason the rule above is two clauses rather than one:
+    # here nothing else declares §I.2, so a pointer left behind resolves to nothing — which is
+    # the dangling reference this module refuses a file over.
+    config = doubled(tmp_path)
+    move(config, "strategy", "I.2", "I.10").save()  # the doubling out of the way first
+    moved = move(Config.discover(tmp_path), "improvements", "I.2", "I.11")
+    moved.save()
+
+    # Each to its **own** address: the subsection's pointer follows to §I.11.1 and not to the
+    # address this call was about, which is what a report checked against the file needs.
+    assert moved.repointed == (("RK1", "I.11"), ("RK2", "I.11.1"))
+    assert "ref.unresolved" not in {f.code for f in lint(Config.discover(tmp_path)).findings}
+
+
+def test_the_subtree_moves_with_the_address_and_a_stranger_does_not(tmp_path):
+    # RK113's rule at the other end: a half-renamed subtree leaves a §I.2.1 claiming an
+    # address the file no longer has, under a heading naming §I.11 — and the gate calls it
+    # clean. Segment by segment, so `descending` is the one reader of "whose numbering is this".
+    config = doubled(tmp_path)
+    moved = move(config, "improvements", "I.2", "I.11")
+    moved.save()
+
+    assert moved.subsections == (("I.2.1", "I.11.1"),)
+    body = read(Config.discover(tmp_path))
+    assert "#### I.11.1 A subsection (RK2)" in body
+    # The sibling at §I.1 is not `I.2`'s numbering and stays exactly where it was.
+    assert "### I.1 An earlier design" in body
+
+
+def test_the_prose_that_still_cites_the_old_address_is_named(tmp_path):
+    # Reported and never rewritten, for the reason `drop` reports the same thing (RK206): a
+    # pointer is a promise the format makes and a citation is a sentence, which is the author's.
+    config = doubled(tmp_path)
+    moved = move(config, "improvements", "I.2", "I.11")
+
+    assert moved.cited == (("I.2", "I.9"),)
+    assert "names §I.2 in its own prose" in read(config)
+
+
+def test_a_destination_under_another_parent_is_refused(tmp_path):
+    # The bound that keeps the verb honest: this write changes the address and moves no prose,
+    # so a §XIV.5 re-addressed in place still sits inside §I's subtree — where `_span` ends it
+    # and the next `drop I` takes it, with nothing in the file saying so.
+    config = doubled(tmp_path)
+    with pytest.raises(NotASibling) as raised:
+        move(config, "improvements", "I.2", "XIV.5")
+
+    assert raised.value.parent == "I"
+    assert "name an address under §I" in str(raised.value)
+    assert read(config) == DOUBLED_IMPROVEMENTS
+
+
+def test_a_destination_the_sibling_file_declares_is_refused(tmp_path):
+    # The refusal `add` computes about a destination, asked by this verb too (RK302): a repair
+    # that could land on the address the other file holds would recreate the doubling it was
+    # called to remove.
+    config = doubled(tmp_path)
+    with pytest.raises(SectionExists) as raised:
+        move(config, "improvements", "I.1", "I.2")
+
+    assert raised.value.anchor == "I.2"
+
+
+def test_a_subsection_s_derived_destination_is_asked_too(tmp_path):
+    # Every **new** address and not only the named one: a subsection's is derived from its
+    # parent's, so a collision one segment down is a collision this transaction would write.
+    doubled(tmp_path)
+    (tmp_path / STRATEGY).write_text(
+        DOUBLED_STRATEGY.replace("### I.2 The other one", "### I.11.1 The other one"),
+        encoding="utf-8",
+    )
+    config = Config.discover(tmp_path)
+    with pytest.raises(SectionExists) as raised:
+        move(config, "improvements", "I.2", "I.11")
+
+    assert raised.value.anchor == "I.11.1" and raised.value.elsewhere
+
+
+def test_moving_to_the_address_it_already_has_is_refused(tmp_path):
+    # `renumber`'s argument one file over: the write would rewrite the file to the bytes it
+    # already holds, and an untouched file with a moved mtime reads as an edit.
+    config = doubled(tmp_path)
+    with pytest.raises(SameAnchor):
+        move(config, "improvements", "I.2", "I.2")
+
+
+def test_an_address_that_is_not_one_is_refused_before_anything_moves(tmp_path):
+    config = doubled(tmp_path)
+    with pytest.raises(SectionError) as raised:
+        move(config, "improvements", "I.2", "§I.11")
+
+    assert [v.code for v in raised.value.violations] == ["anchor.sigil"]
+
+
+def test_the_id_scheme_sends_the_caller_to_the_verb_that_moves_both_ends(tmp_path):
+    # The one scheme this verb has nothing to do: there the anchor *is* the id, so a section
+    # re-addressed alone is one its own task no longer points at — and moving both is
+    # `renumber`, in one transaction with every dep.
+    config = project(tmp_path)
+    with pytest.raises(AnchorIsId) as raised:
+        move(config, "improvements", "RK1", "RK9")
+
+    assert "`renumber RK1 --to <id>`" in str(raised.value)
+    assert "`section drop`" in str(raised.value)
+    assert read(config) == RATIONALE
+
+
+def test_a_namespaced_role_is_moved_by_the_address_it_answers(tmp_path):
+    # The prefix is part of the address and not a spelling (RK340): the role answers only its
+    # own, and the heading keeps writing the bare number because the file is the answer to
+    # "which file".
+    config = doubled(tmp_path, refs='[refs]\nstrategy = "S"\n')
+    with pytest.raises(NoSuchSection):
+        move(config, "strategy", "I.2", "I.10")
+
+    move(config, "strategy", "S:I.2", "S:I.10").save()
+    assert "### I.10 The other one at this address" in read(Config.discover(tmp_path), STRATEGY)
+
+
+def test_a_destination_in_another_file_s_namespace_is_refused(tmp_path):
+    config = doubled(tmp_path, refs='[refs]\nstrategy = "S"\n')
+    with pytest.raises(SectionError) as raised:
+        move(config, "strategy", "S:I.2", "I.10")
+
+    assert [v.code for v in raised.value.violations] == ["anchor.namespace"]
+
+
+def test_a_paused_line_s_pointer_moves_with_the_heading(tmp_path):
+    # The deferred store is a pointing file too (RK96): pausing a line keeps its section, so
+    # its pointer is as live as the roadmap's and the gate reads both.
+    doubled(tmp_path)
+    with (tmp_path / "roadkeep.toml").open("a", encoding="utf-8") as handle:
+        handle.write('deferred = "docs/DEFERRED.md"\n')
+    (tmp_path / "docs" / "DEFERRED.md").write_text(
+        "# Deferred\n\n## Block A — The model\n\n"
+        "- ⏸ **RK3** (deps: —) **A paused symptom** — Paused: because of a reason. → §I.1\n",
+        encoding="utf-8",
+    )
+    config = Config.discover(tmp_path)
+
+    moved = move(config, "improvements", "I.1", "I.10")
+    moved.save()
+
+    assert moved.repointed == (("RK3", "I.10"),)
+    assert "→ §I.10" in read(Config.discover(tmp_path), "docs/DEFERRED.md")
+
+
+def test_the_command_reports_every_end_of_the_move(tmp_path, capsys):
+    config = doubled(tmp_path)
+    assert main(["-C", str(config.root), "section", "move", "I.2", "--to", "I.11"]) == EXIT_OK
+
+    out = capsys.readouterr().out
+    assert "§I.2 → §I.11" in out
+    assert "nested   §I.2.1 → §I.11.1" in out
+    assert "pointer  RK2 follows it to §I.11.1" in out
+    assert "cited    §I.9 names §I.2 in its prose" in out
+
+
+def test_the_command_answers_in_json_too(tmp_path, capsys):
+    config = doubled(tmp_path)
+    argv = ["-C", str(config.root), "section", "move", "I.2", "--to", "I.10"]
+    assert main([*argv, "--role", "strategy", "--json"]) == EXIT_OK
+
+    answer = json.loads(capsys.readouterr().out)
+    assert (answer["from"], answer["anchor"]) == ("I.2", "I.10")
+    assert answer["kept"] == [{"id": "RK1", "address": "I.2"}]
+
+
+def test_a_refusal_writes_nothing_and_exits_two(tmp_path, capsys):
+    config = doubled(tmp_path)
+    argv = ["-C", str(config.root), "section", "move", "I.2", "--to", "XIV.5"]
+    assert main(argv) == EXIT_USAGE
+
+    assert read(config) == DOUBLED_IMPROVEMENTS

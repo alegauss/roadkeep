@@ -138,6 +138,7 @@ from roadkeep.sections import add as add_section
 from roadkeep.sections import amend as amend_section
 from roadkeep.sections import drop as drop_section
 from roadkeep.sections import find as find_section
+from roadkeep.sections import move as move_section
 from roadkeep.sections import nested as nested_sections
 from roadkeep.sections import pointers
 from roadkeep.serving import Prose, serve, spelled
@@ -416,7 +417,8 @@ def build_parser() -> argparse.ArgumentParser:
             "anchor, `add` refuses the duplicate and the guard denies the hand edit, so a "
             "design was write-once until it shipped — which is the opposite of when it "
             "changes. The subtree is not touched: a subsection is amended by its own "
-            "anchor. Neither is the anchor itself, which is `renumber`'s."
+            "anchor. Neither is the anchor itself: that is `section move` under an outline, "
+            "and `renumber` where the address is the task's id."
         ),
     )
     section_amend.add_argument("anchor", help="the anchor, e.g. RK9 (no §)")
@@ -437,6 +439,31 @@ def build_parser() -> argparse.ArgumentParser:
     section_amend.set_defaults(
         handler=_section_amend, reads_stdin=(Prose(dest="body", omitted=False),)
     )
+
+    section_move = actions.add_parser(
+        "move",
+        help="re-address a section, its subtree and every pointer at it",
+        description=(
+            "Move one section to a free address, keeping its prose exactly where it is. The "
+            "verb an outline had none of: `renumber` moves an id and leaves the pointer as "
+            "typed under any other scheme, so a doubled address — what `lint` calls "
+            "`section.ambiguous` and `add` refuses to create — was repairable only by the "
+            "hand edit the guard denies. The heading, every nested anchor that extends it "
+            "and the `→ §<anchor>` on every line naming one of them move together, or none "
+            "of them do. The destination takes every refusal `add` computes, and stays under "
+            "the parent the address already had: this write changes the address, not the "
+            "place."
+        ),
+    )
+    section_move.add_argument("anchor", help="the anchor to move, e.g. I.2 (no §)")
+    section_move.add_argument(
+        "--to", required=True, help="the free address to move it to — `anchors` names one"
+    )
+    section_move.add_argument(
+        "--role", default="improvements", help="which prose file (default: improvements)"
+    )
+    section_move.add_argument("--json", action="store_true", help=_JSON_HELP)
+    section_move.set_defaults(handler=_section_move)
 
     section_show = actions.add_parser(
         "show",
@@ -2359,6 +2386,47 @@ def _section_amend(config: Config, args: argparse.Namespace) -> int:
         f"§{section.anchor} amended  {where}:{section.first}  "
         f"({', '.join(changed)})  {_counted(section, config.schema_for(args.role).section_max)}"
     )
+    return EXIT_OK
+
+
+def _section_move(config: Config, args: argparse.Namespace) -> int:
+    try:
+        moved = move_section(config, args.role, args.anchor, args.to)
+        moved.save()
+    except REFUSALS as error:
+        return _refused(error)
+
+    where = config.relative(config.path(args.role))
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    **_section_json(moved.section, where),
+                    "from": moved.anchor,
+                    "subsections": [
+                        {"from": before, "to": after} for before, after in moved.subsections
+                    ],
+                    "repointed": [{"id": one, "to": a} for one, a in moved.repointed],
+                    "kept": [{"id": one, "address": a} for one, a in moved.kept],
+                    "cited": [{"address": a, "by": by} for a, by in moved.cited],
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+    print(f"§{moved.anchor} → §{moved.to}  {where}:{moved.section.first}")
+    for before, after in moved.subsections:
+        print(f"  nested   §{before} → §{after}")
+    # Named for `renumber`'s reason (RK97): a pointer is the other end of the address that
+    # moved, and the line that changed is the one whose author has to agree it should have.
+    for one, address in moved.repointed:
+        print(f"  pointer  {one} follows it to §{address}")
+    for one, address in moved.kept:
+        # The doubling this verb is usually called for: the address still resolves, to the
+        # section that stayed, and that is the answer rather than a thing left half done.
+        print(f"  kept     {one} still points at §{address}, which the other file declares")
+    for address, by in moved.cited:
+        print(f"  cited    §{by} names §{address} in its prose — that address has moved")
     return EXIT_OK
 
 

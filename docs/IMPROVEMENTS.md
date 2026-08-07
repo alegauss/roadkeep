@@ -97,30 +97,6 @@ the address — `drop` plus `add` is right there, and is what the skill already 
 changed lead takes. Which leaves whether that asymmetry needs stating in a refusal, or
 follows from the argument closely enough to cost nothing.
 
-### §RK377 A doubled anchor has no verb that repairs it
-
-`_refuse_doubling` stops a *new* section from taking an address a sibling prose file
-already declares, and `lint` reports every pair already there. Neither helps a corpus
-that arrives with the collision: Turing adopted roadkeep with 13 anchors declared by
-both `IMPROVEMENTS.md` and `STRATEGY.md`, and there is nothing to call.
-
-The machinery is already written. `renumbering._rename_anchor` re-addresses a section
-and every subsection whose anchor extends it, in one transaction. It is simply
-unreachable here: `renumber` moves an *id*, and line 172 keeps the pointer as
-`entry.task.ref` unless `ref_scheme == "id"` — so under `outline` the anchor never
-moves, which is precisely the scheme a project with a hand-kept outline is on.
-
-Nothing else is a door. `section amend` says so itself — "Neither is the anchor itself,
-which is `renumber`'s" — and `add` plus `drop` is not a rename: it loses the section's
-place in the outline, and `drop` refuses while an open line points at the anchor, which
-is the case worth repairing.
-
-What is missing is the reachable form: `section move <from> <to>`, or `--anchor` on
-`section amend`, taking the refusals `add` already computes — refuse a target another
-file declares, refuse an address history spent.
-
-Turing's T902 is the case in hand.
-
 ### §RK381 A refusal on a short field costs the whole rationale a second time
 
 `add` validates everything before writing, and the docstring says why: "a limit reported

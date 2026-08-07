@@ -23,7 +23,20 @@ pointer names the anchor, `add` on the duplicate, and the guard on the hand edit
 to a rationale that could not be corrected at all while its task was open, which is exactly
 when a design changes. It rewrites the heading text and the section's **own** prose, never
 the subtree and never the anchor: a subsection has an anchor of its own to be named by, and
-an address is `renumber`'s.
+an address under the id scheme is `renumber`'s.
+
+`move` is the same sentence's other half (RK377). Under an outline the anchor is *not* an id,
+so `renumber` never reaches it — line 172 there keeps the pointer as typed — and a doubled
+address had no verb at all: `lint` reports `section.ambiguous`, `add` refuses the second one,
+and Turing adopted the tool with 13 addresses its two prose files both declared. So the
+re-address is a door, taking every refusal `add` computes about a destination
+(:func:`unspent`) and moving the whole address in one transaction — the heading, every nested
+anchor that extends it, and the `→ §<anchor>` on every line that points at one of them. Which
+line meant which of two doubled sections is the thing the files do not say, so the pointers
+move with the heading and are **named** in the answer, for the reason
+:mod:`~roadkeep.renumbering` names the deps it moved. Only within the address's own parent:
+the section stays where it is in the file, and a heading re-addressed across parents would
+sit inside a subtree its address no longer names — where the next `drop` takes it.
 
 `drop` is the operation `ship` (RK6) calls for rule one of its three edits — it lives here
 rather than there because deleting a section is a fact about this file's grammar, not
@@ -45,12 +58,12 @@ from __future__ import annotations
 import re
 import textwrap
 from collections.abc import Iterator, Mapping, Sequence
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from typing import TYPE_CHECKING
 
 from roadkeep.backlog import Whereabouts
 from roadkeep.config import PROSE_ROLES, Config
-from roadkeep.document import Document, Heading, UnknownBlock, blank
+from roadkeep.document import Document, Heading, UnknownBlock, blank, save_all
 from roadkeep.schema import (
     OUTLINE_ANCHOR_RE,
     REF_SEPARATOR,
@@ -282,6 +295,66 @@ class UnknownParent(ValueError):
         super().__init__(
             f"no section §{anchor} extends ({file}declares: {known}): an anchor states "
             f"its own place, and appending files the prose under the last block"
+        )
+
+
+class SameAnchor(ValueError):
+    """A move to the address the section already carries (RK377)."""
+
+    def __init__(self, anchor: str) -> None:
+        self.anchor = anchor
+        super().__init__(
+            f"§{anchor} already is that address: a move that changes nothing would still "
+            f"rewrite the file, and an untouched file with a moved mtime reads as an edit"
+        )
+
+
+class AnchorIsId(ValueError):
+    """A re-address under `ref_scheme = "id"`, where the address is the task's (RK377).
+
+    The one scheme this verb has nothing to do. There the anchor *is* the id, so a section
+    whose address moved and whose line did not is a section its own task no longer points at
+    — and moving both is :func:`~roadkeep.renumbering.renumber`, which does it in one
+    transaction with every dep. The other reason to be here is a doubled anchor, and under
+    this scheme that is two files holding one task's design rather than two addresses
+    colliding: one of them is the design and the other is a copy, which is `section drop`.
+    """
+
+    def __init__(self, anchor: str, where: str = "") -> None:
+        self.anchor = anchor
+        file = f" in {where}" if where else ""
+        super().__init__(
+            f"§{anchor}{file} is addressed by its task's id, so the address is not this "
+            f"verb's to move: `renumber {anchor} --to <id>` moves the line, the heading, the "
+            f"subtree and every dep together, and a second file holding the same design is "
+            f"`section drop`"
+        )
+
+
+class NotASibling(ValueError):
+    """A destination under a different parent, which is a relocation and not a move (RK377).
+
+    The bound that keeps this verb honest about what it does. A section's **place** is derived
+    from its address (RK45), and this write changes the address without moving a line of prose
+    — which is right while the parent is the same, and wrong the moment it is not: a `§XIV.5`
+    re-addressed in place still sits inside `§I`'s subtree, where :func:`_span` ends it, `drop`
+    takes it and `_extends` reads the file's shape past it. So the two would disagree, and the
+    disagreement is invisible until a deletion acts on it.
+
+    Refused rather than relocated, because relocating carries prose the caller never named:
+    a subtree holds sections other lines point at (:class:`SectionOccupied`'s whole argument),
+    and re-levelling one to fit a new depth is a rewrite of headings nobody asked about.
+    """
+
+    def __init__(self, anchor: str, to: str, parent: str) -> None:
+        self.anchor = anchor
+        self.to = to
+        self.parent = parent
+        under = f"under §{parent}" if parent else "at the top level"
+        super().__init__(
+            f"§{anchor} cannot move to §{to}: this write changes the address and not the "
+            f"place, so a destination under another parent leaves the heading inside the "
+            f"subtree it no longer names — name an address {under}"
         )
 
 
@@ -611,6 +684,28 @@ def nested(document: Document, anchor: str) -> tuple[Section, ...]:
     )
 
 
+def descending(document: Document, anchor: str) -> tuple[Section, ...]:
+    """The nested sections that are this address's own numbering — `I.2.1`, never `XIV.8`.
+
+    :func:`nested` bounded by the **name** rather than by the span, which is the difference
+    that matters to anything re-addressing a subtree: a `§I.2.1` travels with `§I.2` because
+    the address says it is part of it, and a `§XIV.8` somebody filed inside that subtree keeps
+    the address of the thing that owns it. Segment by segment and never as a string prefix,
+    the care :func:`_extends` takes at the other end of the same question — `§0.1` is not
+    above `§0.10`.
+
+    Public and here rather than beside either caller (RK377): `renumber` asks it of an id's
+    subtree and `move` of an outline address's, and two readings of "which anchors are this
+    one's own" is how one door renames half a subtree the other would have renamed whole.
+    """
+    segments = anchor.split(".")
+    return tuple(
+        child
+        for child in nested(document, anchor)
+        if child.anchor.split(".")[: len(segments)] == segments
+    )
+
+
 def pointers(config: Config, *, leaving: str = "") -> dict[str, tuple[str, ...]]:
     """Which open lines point at which anchor — the claims a drop may not orphan (RK78).
 
@@ -761,11 +856,7 @@ def add(
             namespace=document.schema.ref_prefix or "",
             anchor=anchor,
         ) from None
-    existing = find(document, anchor)
-    if existing is not None:
-        raise SectionExists(anchor, where, existing.first)
-    _refuse_doubling(config, role, anchor)
-    _refuse_reuse(config, role, anchor, where)
+    unspent(config, role, anchor, document=document, where=where)
 
     lines = _render(document.schema, anchor, title, body, _depth(document, anchor, level))
     index = _placement(document, anchor, task, where)
@@ -780,6 +871,26 @@ def add(
     placed = find(document, anchor)
     assert placed is not None  # rendered by this function a moment ago
     return document, placed
+
+
+def unspent(config: Config, role: str, anchor: str, *, document: Document, where: str) -> None:
+    """Refuse an address anything has already taken — this file, a sibling, or history.
+
+    The three questions `add` asks about a destination, asked once (RK377). `move` asks the
+    same three about the address it is re-writing to, and a second call site spelling them out
+    is how one door comes to refuse what the other writes: the whole reason RK302 exists is
+    that the doubling check was made against the file being written and not against the
+    project, and a repair verb that inherited two of the three would recreate the state it was
+    added to fix.
+
+    ``document`` is the caller's own parse rather than a fourth read of the same file: both
+    callers already hold it, and reading it again is what makes two readings possible.
+    """
+    existing = find(document, anchor)
+    if existing is not None:
+        raise SectionExists(anchor, where, existing.first)
+    _refuse_doubling(config, role, anchor)
+    _refuse_reuse(config, role, anchor, where)
 
 
 def _refuse_doubling(config: Config, role: str, anchor: str) -> None:
@@ -861,8 +972,9 @@ def amend(
     subsection as a side effect of correcting a paragraph, which is `drop`'s job and
     `drop`'s refusals.
 
-    The anchor is not a field. An address is `renumber`'s (RK97) at one end and nothing's at
-    the other, and a section that changed anchor is a section no pointer resolves to.
+    The anchor is not a field. An address is `renumber`'s (RK97) under the id scheme and
+    :func:`move`'s under an outline (RK377), and either way a section that changed anchor is a
+    section every pointer at it has to change with — which is a transaction and not a field.
 
     A rewrite that leaves nothing of the original is **not** refused, and the question the
     design left open is answered here: the falsifiable claim is the `symptom` on the task
@@ -943,6 +1055,225 @@ def amend(
             )
         )
     return updated, amended, changed
+
+
+#: The governed files whose lines carry a `→ §<anchor>`, which is the end of a pointer a
+#: re-address has to move with the heading. The deferred store is one (RK96): pausing a line
+#: keeps its section, so its pointer is as live as the roadmap's and the gate reads both.
+POINTING_ROLES = ("roadmap", "deferred")
+
+
+@dataclass(frozen=True, slots=True)
+class Moved:
+    """Every edit one section's change of address makes, as data, before it is written."""
+
+    anchor: str
+    to: str
+    role: str
+    #: The section as it now reads, at its new address.
+    section: Section
+    #: The nested addresses re-written with it, `(before, after)` in file order.
+    subsections: tuple[tuple[str, str], ...] = ()
+    #: The governed files this write leaves changed, by role. A mapping and not named fields
+    #: for :class:`~roadkeep.renumbering.Renumbering`'s reason: which files are in it is a
+    #: property of the project, a deferred store being optional and a pointer being a line
+    #: some backlogs carry none of.
+    documents: Mapping[str, Document] = field(default_factory=dict)
+    #: Every line whose pointer followed, as `(id, address)`. Its own address and not the
+    #: named one: a line pointing at a subsection follows to `§I.11.1` while the section this
+    #: was called about lands at `§I.11`, and one destination for both would be a report
+    #: nobody can check against the file. Named and never silent — a pointer is the other end
+    #: of the address that moved, and the author is who can say whether it should have.
+    repointed: tuple[tuple[str, str], ...] = ()
+    #: Lines left pointing at the old address because a sibling prose file still declares it,
+    #: as `(id, address)` — the doubling this verb is usually called for, resolving to the
+    #: section that stayed rather than following the one that moved.
+    kept: tuple[tuple[str, str], ...] = ()
+    #: Sections whose **prose** still cites an address that moved, as `(address, by)`.
+    #: Reported and never rewritten, for the reason `drop` reports the same thing: a pointer
+    #: is a promise the format makes and a citation is a sentence (L4).
+    cited: tuple[tuple[str, str], ...] = ()
+
+    def save(self) -> None:
+        save_all(*self.documents.values())
+
+
+def move(config: Config, role: str, anchor: str, to: str) -> Moved:
+    """Re-address one live section, its own subtree and every pointer at it (RK377).
+
+    The verb an outline had none of. `renumber` moves an **id**, and keeps the pointer as
+    typed wherever the scheme is not `id` — which is precisely the scheme a project with a
+    hand-kept outline is on — so a doubled address, the thing `lint` reports as
+    `section.ambiguous` and the write path refuses to create, was repairable only by the hand
+    edit the guard denies. Turing adopted the tool with 13 of them.
+
+    Everything the address owns, or nothing. The heading, every nested anchor that
+    :func:`descending` says is this one's own numbering, and the `→ §<anchor>` on every line
+    in :data:`POINTING_ROLES` naming one of them, validated before a file is touched — a
+    re-address that moved the heading and not the pointer is the dangling reference this
+    module exists to prevent, one verb over.
+
+    The destination takes :func:`unspent`, which is every refusal `add` computes about an
+    address: taken here, declared by a sibling prose file, or spent by a heading in this
+    file's history. Each **new** address is asked, not only the named one, because a
+    subsection's is derived from its parent's and a collision on `§I.14.1` is the same
+    collision one segment down.
+
+    **A pointer follows the section when nothing else answers its address, or when this
+    heading names its task.** Both halves are readings this module already makes, and neither
+    is a guess. The ordinary re-address is the first: nothing else declares the old address,
+    so a pointer left behind is the dangling reference, and it moves. The doubling this verb
+    exists for is the second, and moving every pointer there would be exactly wrong — the
+    address resolved to two sections, one of them names the task in its heading
+    (:func:`owners`), and repairing the *other* file must leave that line pointing where its
+    design still is. What stays is reported as :attr:`Moved.kept`, because a line the caller
+    expected to move and that did not is the half of the answer the files no longer state.
+
+    What it does not do is move prose. The section stays exactly where it is in the file and
+    only its address changes, which is why :class:`NotASibling` bounds the destination to the
+    parent the source already had — see that class for why the two cannot be separated.
+    """
+    document = config.document(role)
+    where = config.relative(config.path(role))
+    schema = document.schema
+    if schema.ref_scheme == "id":
+        raise AnchorIsId(anchor, where)
+    section = find(document, anchor)
+    if section is None:
+        raise NoSuchSection(anchor, where)
+    # The project's spelling of the address and not the caller's: `find` resolves a bare `I.2`
+    # in a namespaced file, and every comparison below is against anchors :func:`anchored`
+    # already qualified (RK340).
+    anchor = section.anchor
+    if (bad := _address_violation(schema, to)) is not None:
+        raise SectionError((bad,))
+    if to == anchor:
+        raise SameAnchor(anchor)
+    if _parent(to) != _parent(anchor):
+        raise NotASibling(anchor, to, _parent(anchor))
+
+    children = descending(document, anchor)
+    subsections = tuple(
+        (child.anchor, f"{to}{child.anchor[len(anchor) :]}") for child in children
+    )
+    for address in (to, *(after for _, after in subsections)):
+        unspent(config, role, address, document=document, where=where)
+
+    ids = schema.id_pattern()
+    carried = {
+        moving.anchor: Carried(
+            to=after,
+            owns=owners(moving, ids),
+            # Whichever files answer the old address once this one stops: empty is the plain
+            # re-address, where a pointer left behind resolves to nothing.
+            answered_by=tuple(r for r in declaring(config, moving.anchor) if r != role),
+        )
+        for moving, after in ((section, to), *zip(children, (a for _, a in subsections), strict=True))
+    }
+    # Read before the rewrite, while the prose and the addresses it names still agree. Nothing
+    # is ignored: a citation inside the moving subtree is as stale afterwards as one outside it.
+    cited = citing(document, tuple(carried))
+    # By line number and applied to a document that reparses, which is why the headings are
+    # collected first: one `replace_line` is one line for one line, so no heading below an edit
+    # has moved under the edits above it (the care :func:`_rewrite` takes for the same reason).
+    updated = document.replace_line(
+        section.first - 1, heading_of(schema, replace(section, anchor=to))
+    )
+    for child, after in zip(children, (after for _, after in subsections), strict=True):
+        updated = updated.replace_line(
+            child.first - 1, heading_of(schema, replace(child, anchor=after))
+        )
+    documents: dict[str, Document] = {role: updated}
+    repointed, kept = _repoint(config, carried, documents)
+
+    landed = find(updated, to)
+    assert landed is not None  # the heading this function wrote a moment ago
+    return Moved(
+        anchor=anchor,
+        to=to,
+        role=role,
+        section=landed,
+        subsections=subsections,
+        documents=documents,
+        repointed=repointed,
+        kept=kept,
+        cited=cited,
+    )
+
+
+@dataclass(frozen=True, slots=True)
+class Carried:
+    """One address on the move, and what decides whether a pointer at it goes too (RK377)."""
+
+    to: str
+    #: The task ids this heading names, which is the claim to be their design (:func:`owners`).
+    owns: tuple[str, ...]
+    #: The other prose roles still declaring the address after this write — the doubling.
+    answered_by: tuple[str, ...]
+
+    def follows(self, task_id: str) -> bool:
+        """Whether this line's pointer moves with the heading — see :func:`move`."""
+        return not self.answered_by or task_id in self.owns
+
+
+def _repoint(
+    config: Config, carried: Mapping[str, Carried], documents: dict[str, Document]
+) -> tuple[tuple[tuple[str, str], ...], tuple[tuple[str, str], ...]]:
+    """Rewrite every `→ §<old>` that follows its heading, by line file (RK377).
+
+    Which lines those are is read once, before any of them is rewritten, and re-fetched by id
+    inside the loop: `replace_task` reparses, so an entry held across an edit is one whose line
+    number may already have moved — the care every mutator in :mod:`roadkeep.document` takes.
+
+    Through `schema.check`, which is what refuses a longer address that pushes the rendered
+    line past its limit. That refusal belongs here rather than after the write: a pointer left
+    behind because the line would not fit is the dangling reference, and this transaction has
+    touched nothing yet.
+    """
+    moved: list[tuple[str, str]] = []
+    stayed: list[tuple[str, str]] = []
+    for name in POINTING_ROLES:
+        if not config.has(name) or not config.path(name).is_file():
+            continue
+        lines = config.document(name)
+        pointing = _following(lines, carried, stayed)
+        for task_id in pointing:
+            current = next(e for e in lines.entries if e.task.id == task_id)
+            lines = lines.replace_task(
+                current,
+                lines.schema.check(
+                    replace(current.task, ref=carried[current.task.ref].to)
+                ),
+            )
+        if pointing:
+            documents[name] = lines
+            moved.extend((one, carried[ref].to) for one, ref in pointing.items())
+    return tuple(moved), tuple(stayed)
+
+
+def _following(
+    lines: Document, carried: Mapping[str, Carried], stayed: list[tuple[str, str]]
+) -> dict[str, str]:
+    """Which of this file's lines follow their heading, by id, and which are left behind."""
+    out: dict[str, str] = {}
+    for entry in lines.entries:
+        one = carried.get(entry.task.ref)
+        if one is None:
+            continue
+        if one.follows(entry.task.id):
+            out[entry.task.id] = entry.task.ref
+        else:
+            stayed.append((entry.task.id, entry.task.ref))
+    return out
+
+
+def _parent(anchor: str) -> str:
+    """The address one segment up — `S:I.2` → `S:I`, and `''` for a top level.
+
+    The namespace is not a segment (RK340): `S:I` is one address whose separator is a colon,
+    so a top level keeps its prefix and answers `''` here like any other.
+    """
+    return anchor.rsplit(".", 1)[0] if "." in anchor else ""
 
 
 def _rewrite(
@@ -1260,6 +1591,20 @@ def _outline_violation(schema: Schema, anchor: str) -> Violation | None:
     return None
 
 
+def _address_violation(schema: Schema, anchor: str) -> Violation | None:
+    """What is wrong with this address as an address, whichever scheme reads it (RK377).
+
+    The half of :func:`_check` a verb that writes no prose still has to make: `move` validates
+    a destination and has no title and no body to be told about, and re-spelling two branches
+    at that call site is the second reader of a rule this module keeps one of.
+    """
+    if not anchor or anchor.startswith("§"):
+        return Violation("anchor.sigil", "anchor", f"store the anchor without §: {anchor!r}")
+    if schema.ref_scheme == "outline":
+        return _outline_violation(schema, anchor)
+    return None
+
+
 def _check(
     schema: Schema,
     anchor: str,
@@ -1292,11 +1637,7 @@ def _check(
     can trip.
     """
     out: list[Violation] = []
-    if not anchor or anchor.startswith("§"):
-        out.append(
-            Violation("anchor.sigil", "anchor", f"store the anchor without §: {anchor!r}")
-        )
-    elif schema.ref_scheme == "outline" and (bad := _outline_violation(schema, anchor)):
+    if (bad := _address_violation(schema, anchor)) is not None:
         out.append(bad)
     elif schema.id_pattern().match(anchor) and task is None:
         # The pointer is the id (RK27), so an id-shaped anchor that names no live task is

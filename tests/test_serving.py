@@ -203,6 +203,9 @@ def test_the_tools_are_what_a_task_needs_end_to_end():
         "priority_drop",
         "section_add",
         "section_amend",
+        # The address `renumber` cannot reach under an outline (RK377), beside the two
+        # writes that reach everything else about a section.
+        "section_move",
         "section_drop",
         # The two reads a session that is *proposing* makes, so they head the reads: what
         # may not be proposed at all (RK69), and what a comparable one cost (RK71).
@@ -725,6 +728,9 @@ def test_the_read_only_hint_says_which_tools_write(tmp_path):
         "priority_drop",
         "section_add",
         "section_amend",
+        # The address `renumber` cannot reach under an outline (RK377), beside the two
+        # writes that reach everything else about a section.
+        "section_move",
         "section_drop",
         # `brief --claim` moves a marker, so the tool that always passes it says so — and
         # `brief` and `pick` stay read-only *because* it is a separate tool (RK150), which is

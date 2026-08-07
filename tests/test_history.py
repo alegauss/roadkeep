@@ -36,6 +36,7 @@ from roadkeep.history import (
 )
 from roadkeep.sections import AnchorRetired
 from roadkeep.sections import add as add_section
+from roadkeep.sections import move as move_section
 from roadkeep.schema import DESIGNED, IN_PROGRESS, SHIPPED
 
 HERE = Path(__file__).resolve().parents[1]
@@ -527,6 +528,22 @@ def test_reusing_a_retired_address_is_refused_and_the_free_one_is_named(tmp_path
         add_section(config, "improvements", "XXXVII.1", "A reopened design", "Prose.")
     assert raised.value.free == "XXXVII.2"
     assert "still there" in str(raised.value)
+
+
+def test_a_move_onto_a_retired_address_is_refused_by_the_same_read(tmp_path):
+    # RK377 takes every refusal `add` computes about a destination, and this is the one only
+    # history can answer: the repair verb reaching for "the next free number" would otherwise
+    # re-point every ledger entry citing §XXXVII.1 at prose about something else.
+    config = outlined(tmp_path)
+    design(config, "## XXXVII The family", "docs: open the family")
+    design(config, "### XXXVII.1 A first design", "docs: file it")
+    design(config, "### XXXVII.2 A second design", "docs: file the second")
+    unwrite(config, "### XXXVII.1 A first design", "feat: it works (RK1)")
+    config = Config.discover(tmp_path)
+
+    with pytest.raises(AnchorRetired) as raised:
+        move_section(config, "improvements", "XXXVII.2", "XXXVII.1")
+    assert raised.value.anchor == "XXXVII.1"
 
 
 def test_an_address_nothing_ever_declared_is_written(tmp_path):
