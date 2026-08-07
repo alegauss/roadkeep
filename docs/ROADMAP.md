@@ -27,6 +27,7 @@
 - 💭 **RK385** (deps: —) **Nothing notices that a new line asks for what a shipped entry already delivered** — RK378 was filed the day after RK340 shipped the same namespace and nothing refused it, so a duplicate costs a claim, a brief and a retirement before anyone reads the ledger. → §RK385
 - 📋 **RK399** (deps: —) **One field is spelled --status on add and --marker on resume** — The open marker is a single declared field, and a caller who learns its flag name on one verb is refused by the other. → §RK399
 - 📋 **RK400** (deps: —) **Shipping a family's last child leaves its parent describing deleted work** — The introduction a subtree was written under survives every ship that emptied it, so the file's most-read paragraph is the one nothing checks. → §RK400
+- 📋 **RK401** (deps: —) **A line the gate calls clean is refused by the door that corrects it** — amend, restate, status and renumber validate against Config.schema, so a file whose [rules.<role>] excuses a field is judged by the roadmap's rules and the correction has no door. → §RK401
 
 ## Block C — Query (consult without reading the file)
 
@@ -37,6 +38,8 @@
 - 📋 **RK398** (deps: —) **The version bump the hook writes is never staged again once both files are dirty** — It refuses to stage a file carrying an edit it did not write, and writing the bump is that edit, so the refusal re-arms itself on every commit after the first. → §RK398
 
 ## Block E — Adoption
+
+- 📋 **RK402** (deps: —) **The tree that ships the plugin is told to wire the guard a second time** — install --check names two surfaces this checkout provides as a plugin and skips them, and asks to write the same hooks into .claude/settings.json, so the read never reports clean here. → §RK402
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 

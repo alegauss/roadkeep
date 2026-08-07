@@ -137,6 +137,30 @@ The fix is one line in the ship's answer, alongside the citation one: *"§X now 
 subsections — its prose introduces work that shipped"*. Deciding what it should say
 instead is a `section amend`, and a judgement; noticing is not.
 
+### §RK401 A line the gate calls clean is refused by the door that corrects it
+
+Measured while shipping RK379. A project that declares `[rules.roadmap] ref = false`
+lints clean with a line carrying no pointer — that is what the rule is for — and `amend
+RK9 --why "…"` on that same line is refused `ref.missing`.
+
+The cause is one attribute. `place` validates through `document.schema.check`, which is
+the file's own grammar; every door that *rewrites* a line reaches `Config.schema`
+instead, which is the roadmap's. So `add` is right and the four corrections are wrong,
+and they are wrong exactly where a project configured a file away from the default — the
+case `[rules]` exists for.
+
+RK76 settled this argument one command over: `adopt` reads its file through
+`Config.schema_for` "like every other command, so that role's own limits and rules reach
+the estimate". The rewrite doors are the commands that were not every other command.
+
+The consequence is worse than a stray refusal. The gate says the line is legal and the
+tool says it cannot be corrected, so the only remaining edit is the hand edit the guard
+denies — a state with no exit, on a line the project deliberately configured.
+
+The repair is `Config.schema_for(role)` at the four call sites, which is the same seam
+RK379 routed them through: `sections.checked` already takes the schema as a parameter,
+for the deferred store, and the default is the wrong one.
+
 ## Block C — Query
 
 ## Block D — The gate
@@ -214,6 +238,33 @@ Left undone because it is shell in a hook that must never block — every path o
 — so the change wants its own commit and its own test.
 
 ## Block E — Adoption
+
+### §RK402 The tree that ships the plugin is told to wire the guard a second time
+
+`install --check` is what holds this checkout's own wiring in step. Run here it reports
+`1 surface(s) differ`, permanently: `.claude/settings.json` `would update`, because the
+guard's hooks are not in it.
+
+They are not in it because this tree ships them as a **plugin** — `hooks/hooks.json`,
+referenced by `.claude-plugin/plugin.json`. Writing them into the project settings too
+would run the guard twice on every turn, which is precisely the reason the same command
+already skips two other surfaces by name:
+
+```
+not written  .github/workflows/roadkeep.yml: this tree *is* the action, and its own
+             workflow already calls the gate — a second one would run the same lint twice
+not written  .claude/skills/roadkeep/SKILL.md: this tree ships skills/roadkeep/SKILL.md,
+             so a copy of it here would be the drift `install` exists to remove
+```
+
+The hooks are the third member of that set and the only one missing from it.
+
+The cost is the signal, not the file. A check that can never report clean is one nobody
+reads, so the drift it exists to catch — a `.mcp.json` that fell behind, a launcher path
+that moved — arrives inside a report that already said "1 differs" yesterday.
+
+The repair is a skip with a reason, spelled as its two siblings are, conditioned on the
+tree providing the plugin rather than on this repository's name.
 
 ## Block F — The plugin
 
