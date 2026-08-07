@@ -1298,20 +1298,46 @@ A paragraph about the project, several lines long.
 """
 
 
-def test_a_prefix_means_nothing_under_sections_and_is_refused_rather_than_dropped(
-    tmp_path: Path,
+#: Every pair of `adopt` arguments that names no measurement, with the words its refusal
+#: turns on (RK386). A table rather than one test each: they are a family, and written one
+#: test at a time the family was invisible — the oldest of the three had no test at all,
+#: because it shipped before the two whose task *was* the refusal. A fourth arrives here with
+#: its row empty, which is the whole reason for the shape.
+REFUSED_PAIRS = (
+    ("--ledger with --sections", {"ledger": True, "sections": True}, "measure different units"),
+    (
+        "--with without --sections",
+        {"alongside": ["STRATEGY.md"]},
+        "a backlog holds lines and not headings",
+    ),
+    ("--prefix with --sections", {"sections": True, "prefix": "SH"}, "for a prefix to choose"),
+)
+
+
+@pytest.mark.parametrize(
+    ("arguments", "says"),
+    [(arguments, says) for _, arguments, says in REFUSED_PAIRS],
+    ids=[named for named, _, _ in REFUSED_PAIRS],
+)
+def test_an_argument_pair_that_names_no_measurement_is_refused(
+    tmp_path: Path, arguments: dict, says: str
 ) -> None:
-    """RK384: `--prefix "not a prefix at all"` was a refusal on the backlog path and a no-op
-    here, and the one line that would have contradicted the caller — a prefix in the report —
-    is the line this mode omits by design, so nothing on screen said otherwise."""
+    """RK386: an untested refusal here is not an internal invariant — these are the sentences
+    an adopter reads while deciding whether to adopt, on the one command that runs before a
+    project has a gate of its own."""
+    with pytest.raises(ValueError) as caught:
+        # No file is written, and that is an assertion too: all three are refused before
+        # anything is opened, so the reason reaches a caller whose path was wrong as well.
+        adopt(Config.discover(tmp_path), tmp_path / "ROADMAP.md", **arguments)
+    assert says in str(caught.value)
+
+
+def test_the_halves_of_a_refused_pair_each_still_stand_alone(tmp_path: Path) -> None:
+    """RK384, which the table above cannot say: the refusal is about the combination, so
+    neither flag may be the one that stopped working."""
     target = tmp_path / "IMPROVEMENTS.md"
     target.write_text("# Improvements\n\n## §I A design\n\nProse.\n", encoding="utf-8")
     config = Config.discover(tmp_path)
-    with pytest.raises(ValueError) as caught:
-        adopt(config, target, sections=True, prefix="SH")
-    assert "nothing here for a prefix to choose between" in str(caught.value)
-    # The two halves it is refusing between still stand on their own, so the refusal is about
-    # the combination and not about either flag.
     assert adopt(config, target, sections=True).parsed == 1
     assert adopt(config, target, prefix="SH").prefix == "SH"
 

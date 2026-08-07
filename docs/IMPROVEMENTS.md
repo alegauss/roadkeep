@@ -266,29 +266,6 @@ finding, and reporting it costs one pass rather than one ship.
 
 ## Block E — Adoption
 
-### §RK386 The refusal that predates the habit of testing one
-
-`adopt` refuses three combinations of arguments: `--ledger` with `--sections`, `--with`
-without `--sections` (RK359), and `--prefix` with `--sections` (RK384). The second and
-third carry a test asserting both the refusal and that each flag still stands alone. The
-first has none — grepping its sentence across `tests/` returns nothing.
-
-It is the oldest, and that is the whole explanation rather than an excuse: the two newer
-ones were written when the refusal was the point of the task, so a test came with each,
-and the first predates them. Nothing about it is harder to hold. The assertion is the
-same three lines its siblings use.
-
-What an untested refusal costs here is specific. These are not internal invariants — they
-are the sentences an adopter reads at the moment they are deciding whether to adopt, and
-`adopt` is the one command that runs before a project has a gate of its own. Deleting the
-check, or letting a future guard shadow it, leaves the suite green while `--ledger
---sections` starts measuring a ledger in sections.
-
-Worth deciding beside it is whether the three want one test over a table rather than
-three of the same shape. A table names them as a family, which is what they are, and
-makes the fourth arrive with its row already empty — the reason this one went missing at
-all.
-
 ## Block F — The plugin
 
 ### §RK366 A shipped text whose wrap nothing holds
