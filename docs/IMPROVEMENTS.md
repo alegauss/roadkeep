@@ -165,6 +165,30 @@ case.
 Cheaper still, and complementary: validate the scalar fields before draining stdin, so a
 refusal that cannot succeed never consumes the body at all.
 
+### §RK382 A symptom that discovery widens has no verb, only retire and refile
+
+`amend` states the rule plainly: "The `symptom` is not amendable — it is the claim the
+line is, so a different one is a different task." That is right when the claim is
+different. It cannot distinguish a *different* claim from a *widened* one.
+
+The case, from Turing. T917 was filed as "The showcase build rewrites a tracked file on
+every run". Running the full matrix an hour later showed the same `gen-manifest`
+stamping three marketplace apps too — same script, same defect, same fix, three more
+instances. The task was not different; its symptom was now false, naming one app out of
+four.
+
+The doors available were all wrong. `amend --why` and `section amend --title` took the
+correction, so the line said "showcase" while the prose beside it said "four apps" — the
+divergence RK's own design note tolerates, here caused by the rule rather than by an
+author. `retire` plus a fresh `add` would have been honest about the symptom and
+dishonest about everything else: a new id, a dropped dep edge, and a retirement that
+reads as abandonment.
+
+What is missing is the narrow door: `amend --symptom` gated on the existing text being a
+**prefix-preserving widening**, or an explicit `--widen` that records the old spelling
+in the ledger rather than discarding it. The audit trail is the point — the reason to
+refuse a silent rewrite is not a reason to refuse a recorded one.
+
 ## Block C — Query
 
 ### §RK379 The refusal for a missing anchor does not name the anchor to use
