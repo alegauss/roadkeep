@@ -165,6 +165,62 @@ for the deferred store, and the default is the wrong one.
 
 ## Block D — The gate
 
+### §RK405 The deadlock the block verb was written to open, one file shape over
+
+Measured on a project whose `CHANGELOG.md` is prose:
+
+```
+ship RK1          no heading declares Block A in docs/CHANGELOG.md (it declares none)
+                  … the verb that opens it wherever it is missing is `block add A`
+block add A       A is already declared in docs/ROADMAP.md: nothing to open
+block add Q       not      docs/CHANGELOG.md: declares no block, so there is none to open
+```
+
+The third line is the one that decides it. Even a label nothing declares anywhere skips
+that file, so there is no argument to any command that puts a heading in it — and the
+guard denies the `Edit` that would. The project can plan, and can never ship.
+
+This is exactly the pair the block verb exists to break, one file shape over: two
+refusals each right alone, and no key. The narrowing that closed the add's half left
+this half standing, because the add can decline to ask and the ship cannot.
+
+The rule being defended is real. Level and separator are read off the file's own first
+block heading, and placement is *after a neighbour* — a file with no blocks holds
+neither, so writing one there is a decision about that file's shape.
+
+But the shape is not being decided freely: this project's ledger has to be organised by
+blocks or nothing in it ever ships, and the tool already knows that. What is missing is
+a way to say so once. A flag on the block verb that opens the **first** heading in a
+named file is one shape; deriving the spelling from the file that does declare the label
+is another, and narrower than it reads, since the label is carried and not invented.
+
+### §RK406 The one spelling of stdin the door does not take
+
+Measured while filing a task in this repository:
+
+```
+add --block D --section "…" --section-body-file -
+roadkeep: [Errno 2] No such file or directory: '-'
+```
+
+Both halves of that are wrong for the same reason. The dash is the convention every
+command-line tool in the neighbourhood reads as standard input, and this door already
+*has* standard input — it is the default for the body, and the flag that takes a path
+was added beside it so a retry could re-read a file instead of re-spending a pipe. So
+the caller who spells the default explicitly is asking for the thing the command was
+going to do anyway, and gets an error about the filesystem.
+
+The second half is the message. A path that does not exist is a legitimate refusal and
+this is not one of those: `-` is not a path anybody meant, and the sentence says nothing
+about the two ways this argument is passed. The refusal an author can act on names the
+default and the flag together.
+
+Two ways to take it, and the choice is the task. Read `-` as standard input, which is
+what every caller typing it means, and costs one branch at the reader. Or refuse it by
+name with a sentence that says the body already comes from stdin unless a path is given,
+which teaches the door's shape instead of assuming it. Both beat an `Errno 2`, and the
+second is the one that does not add a second spelling of the same thing.
+
 ## Block E — Adoption
 
 ### §RK402 The tree that ships the plugin is told to wire the guard a second time
