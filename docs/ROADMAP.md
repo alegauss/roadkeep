@@ -33,8 +33,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK398** (deps: —) **The version bump the hook writes is never staged again once both files are dirty** — It refuses to stage a file carrying an edit it did not write, and writing the bump is that edit, so the refusal re-arms itself on every commit after the first. → §RK398
-
 ## Block E — Adoption
 
 - 📋 **RK402** (deps: —) **The tree that ships the plugin is told to wire the guard a second time** — install --check names two surfaces this checkout provides as a plugin and skips them, and asks to write the same hooks into .claude/settings.json, so the read never reports clean here. → §RK402

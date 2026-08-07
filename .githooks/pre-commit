@@ -14,11 +14,16 @@
 #
 # It stages only what it wrote (RK320). `git add` takes a path and not a diff, so staging a
 # file that already carried an unstaged edit puts that edit under this commit's message —
-# measured once, with another agent's manifest change landing under an unrelated subject. So
-# the working tree is read *before* the bump, and where either file differs from the index
-# the number is written and nothing is staged: neither file alone either, the two numbers
-# being one fact (`tests/test_plugin.py`). The bump still happens, because RK153's argument
-# is about the checkout the session loads and not about the commit.
+# measured once, with another agent's manifest change landing under an unrelated subject.
+#
+# "An edit this hook did not write" is a comparison and not a dirty flag (RK398). Read as a
+# flag it re-armed itself for ever: the bump is written to the working tree unconditionally,
+# which *is* an unstaged edit to both files, so the next commit saw one and refused again —
+# measured over eight commits, the checkout reaching 0.1.392 while HEAD said 0.1.388. So the
+# question is asked of the version string alone, against the index, by the one thing that
+# knows how to read it: `--for-commit` derives the number from the committed one and exits 3
+# where either file differs by anything wider. The bump still happens there, because RK153's
+# argument is about the checkout the session loads and not about the commit.
 #
 # Wired per clone, because a hook in `.git/hooks` is not something a clone carries:
 #     git config core.hooksPath .githooks
@@ -27,25 +32,21 @@ root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
 
 versioned="src/roadkeep/__init__.py .claude-plugin/plugin.json"
 
-foreign=
-for file in $versioned; do
-	if ! git -C "$root" diff --quiet -- "$file" 2>/dev/null; then
-		foreign="$file"
-	fi
-done
-
 for interpreter in python python3 py; do
 	if command -v "$interpreter" >/dev/null 2>&1; then
-		if "$interpreter" "$root/scripts/bump_version.py" --level patch; then
-			if [ -n "$foreign" ]; then
-				echo "pre-commit: $foreign carries an edit this hook did not write; version bumped in the working tree, staged nothing" >&2
-			else
+		"$interpreter" "$root/scripts/bump_version.py" --level patch --for-commit
+		case $? in
+			0)
 				# Deliberately unquoted: the list above is two paths, not one.
 				git -C "$root" add -- $versioned || true
-			fi
-		else
-			echo "pre-commit: bump_version.py failed, version not bumped" >&2
-		fi
+				;;
+			3)
+				echo "pre-commit: a version file carries an edit this hook did not write; version bumped in the working tree, staged nothing" >&2
+				;;
+			*)
+				echo "pre-commit: bump_version.py failed, version not bumped" >&2
+				;;
+		esac
 		exit 0
 	fi
 done

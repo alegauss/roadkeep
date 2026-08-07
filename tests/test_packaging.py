@@ -187,6 +187,81 @@ def test_a_clean_tree_still_carries_the_bump_into_the_commit(tmp_path) -> None:
         assert before["version"] not in shown, relative
 
 
+def _version_at_head(root: Path) -> str:
+    import json
+    import subprocess
+
+    return json.loads(
+        subprocess.run(
+            ["git", "-C", str(root), "show", "HEAD:.claude-plugin/plugin.json"],
+            check=True,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+        ).stdout
+    )["version"]
+
+
+def _commit(root: Path, name: str) -> None:
+    import subprocess
+
+    (root / name).write_text(f"{name}\n", encoding="utf-8")
+    subprocess.run(["git", "-C", str(root), "add", "--", name], check=True)
+    subprocess.run(
+        ["git", "-C", str(root), "commit", "--quiet", "-m", f"feat: {name}"],
+        check=True,
+        capture_output=True,
+    )
+
+
+@pytest.mark.skipif(not git_available(), reason="git is not on PATH")
+def test_the_hooks_own_unstaged_bump_does_not_refuse_the_next_one(tmp_path) -> None:
+    """RK398, measured over eight commits: RK320's guard writes the bump into the working
+    tree and then reads that write back as somebody else's edit, so once the two files are
+    dirty nothing is ever staged again. The checkout reached 0.1.392 and HEAD said 0.1.388.
+
+    What makes an edit foreign is the difference being wider than the number, so a tree
+    holding nothing but a bump this hook could not stage is still its own."""
+    import subprocess
+    import sys
+
+    clone_of_the_hook(tmp_path)
+    # The state another session leaves behind: both files bumped, neither staged.
+    subprocess.run(
+        [sys.executable, str(tmp_path / "scripts" / "bump_version.py"), "--level", "patch"],
+        check=True,
+        capture_output=True,
+    )
+
+    numbers = [_version_at_head(tmp_path)]
+    for name in ("first.txt", "second.txt"):
+        _commit(tmp_path, name)
+        numbers.append(_version_at_head(tmp_path))
+    # Three distinct numbers: the second commit is the one that used to carry the first's.
+    assert len(set(numbers)) == 3, numbers
+
+
+@pytest.mark.skipif(not git_available(), reason="git is not on PATH")
+def test_the_number_a_commit_carries_follows_the_one_before_it(tmp_path) -> None:
+    """Derived from the index and never from the working tree (RK398): a checkout that ran
+    ahead is put back on the sequence the commits are in, rather than committing the drift."""
+    import subprocess
+    import sys
+
+    clone_of_the_hook(tmp_path)
+    at_head = _version_at_head(tmp_path)
+    for _ in range(3):  # a tree three bumps ahead of anything committed
+        subprocess.run(
+            [sys.executable, str(tmp_path / "scripts" / "bump_version.py"), "--level", "patch"],
+            check=True,
+            capture_output=True,
+        )
+
+    _commit(tmp_path, "a-change.txt")
+    major, minor, patch = (int(part) for part in at_head.split("."))
+    assert _version_at_head(tmp_path) == f"{major}.{minor}.{patch + 1}"
+
+
 def test_the_bumper_moves_both_files_and_nothing_else(tmp_path, checkout) -> None:
     """`--dry-run` is asserted rather than the write: this repository's own version is not a
     fixture, and a test that bumped it would put its own number in the next commit."""

@@ -165,30 +165,6 @@ for the deferred store, and the default is the wrong one.
 
 ## Block D — The gate
 
-### §RK398 The version bump the hook writes is never staged again once both files are dirty
-
-Measured over eight commits in one session. The two version files stood dirty at the
-start — another session had left them so — and every commit afterwards printed `carries
-an edit this hook did not write; version bumped in the working tree, staged nothing`.
-The checkout reached `0.1.392` while `HEAD` still said `0.1.388`: two shipped commits
-carried no bump, and RK153's guarantee was off.
-
-RK320's guard is right about what it refuses: `git add` takes a path and not a diff, so
-staging a file that already carried an unstaged edit files that edit under this commit's
-message. What it has no exit from is the state it creates. It writes the bump into the
-working tree unconditionally, which *is* an unstaged edit to both files, so the next
-commit reads `foreign` again. Only a hand-staged commit ends the loop — and the hook is
-what starts it.
-
-The repair the shape suggests is a comparison rather than a flag. What makes an edit
-foreign is that it is not the one this hook wrote, and the bump is derived from the
-committed number: read the index, derive what would be written, and stage where the tree
-holds exactly that. A file differing by anything wider stays refused, which is the case
-RK320 measured.
-
-Left undone because it is shell in a hook that must never block — every path out exits 0
-— so the change wants its own commit and its own test.
-
 ## Block E — Adoption
 
 ### §RK402 The tree that ships the plugin is told to wire the guard a second time

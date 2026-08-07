@@ -270,6 +270,7 @@
 - ✅ **RK365** **The function every gate check is threaded through grew a fifteenth branch, and what holds its size is an editor** — The number is gated by nothing, deliberately; the cost was `checked` decided at five points, now one — and the rule that an unnamed file sorts last is stated and held.
 - ✅ **RK380** **A block can carry open lines for months and be found missing only by the first ship** — add asks the ledger for the block's heading too, and lint reports a block whose open lines nothing there can receive.
 - ✅ **RK391** **The gate holds no one-heading-per-label rule, and the write path resolves a repeated one by position** — lint reports block.repeated at the second heading, and every write through place refuses instead of picking one.
+- ✅ **RK398** **The version bump the hook writes is never staged again once both files are dirty** — the hook asks whether the difference is the number, against the index, so its own unstaged bump is still its own.
 
 ## Block E — Adoption
 
