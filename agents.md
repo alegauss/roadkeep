@@ -46,7 +46,8 @@ src/roadkeep/   the package (src layout, importable via pytest pythonpath). Each
   backlog counting picking showing graph  RK10-13/28-29/31/37/39-40/83/92/247  the query surface,
   briefing budgeting exporting history weighing      plus what git alone can answer
   linting fixing                            RK14-17  the gate, and the derived-only fixer
-  adopting installing   RK18/100  `init` scaffolds, `adopt` estimates, `install` wires it in
+  adopting installing  RK18/100/415  `init` scaffolds, `adopt` estimates, `install` wires it
+                          in, `engines` says which three copies write, judge and gate
   guarding screening attesting serving provenance  RK22/24/79/175-176/200  the hook, what it
                     loads for, what no verb wrote, the stdio tools, and which tree answered
   capturing                        RK85-89  a defect in this tool, as facts a replay re-runs
@@ -107,10 +108,9 @@ tasks is **not** permission to batch: `/loop`, one task per iteration. Use `run-
 docs commit's prose about shipped work is misread as `feat: implement <feature>`. It stages
 everything, which is why a claim carries a **scope**: `claim <id> --path …` says what this
 commit owns, and `claim <id>` reads it back against the tree (RK280). **`ship` prints the `git
-add --` line** for the scope it releases (RK298) — run that, then `python -m commitclerk -m
-…`. **Every commit bumps the patch version**, Claude Code re-reading
-an installed plugin per version (RK153) — `.githooks/pre-commit` does it and never blocks,
-wired in a fresh clone by `git config core.hooksPath .githooks`.
+add --` line** for the scope it releases (RK298) — run that, then commit. **Every commit bumps
+the patch version**, Claude Code re-reading an installed plugin per version (RK153) —
+`.githooks/pre-commit` does it and never blocks, wired by `git config core.hooksPath .githooks`.
 
 ## Non-goals are binding
 

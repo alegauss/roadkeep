@@ -275,26 +275,6 @@ decision into a refusal.
 
 ## Block D — The gate
 
-### §RK415 The writer, the hook and the gate are three versions
-
-An adopting project wires three copies of this tool: the plugin its `PreToolUse` hook
-and skill run, the action its workflow gates on, and whatever `roadkeep` the caller has
-— which on a machine that also develops this tool is `python -m roadkeep.cli` resolving
-to a checkout.
-
-A real session had all three at once: the checkout at `0.1.418 (modified)` doing every
-write, the plugin at `0.1.285` denying the hand edits, and `alegauss/roadkeep@main` in
-CI. Nothing said so. The writes were fine, but they were made by an engine mid-refactor
-in another session's working tree, judged by one 133 versions older — and that project's
-own backlog carries a task blocked on exactly what `0.1.285` will accept, reasoning
-about "the plugin this repository runs" while a newer one held the pen.
-
-The facts are all local and cheap: the plugin version is in the installed-plugins
-registry beside the project path, the action's ref is in the workflow, and the running
-engine knows its own. A verb that reads the three back — and a write that says so when
-they differ — turns a silent disagreement into a line, which is what this tool does with
-every other kind of drift.
-
 ## Block E — Adoption
 
 ### §RK402 The tree that ships the plugin is told to wire the guard a second time

@@ -77,7 +77,7 @@ from roadkeep.adopting import BlockedParent, blocking
 from roadkeep.config import CONFIG_NAME, Config
 from roadkeep.linting import lint
 from roadkeep.merging import ATTRIBUTES, Registration, register
-from roadkeep.provenance import engine
+from roadkeep.provenance import Engine, Installed, engine, installed
 from roadkeep.provenance import invocation
 
 #: The server's name, which is also the prefix an agent reads on every tool it offers.
@@ -458,6 +458,102 @@ def stale(root: str | Path = ".") -> tuple[str, ...]:
         for surface in intent.changing
         if surface.refresh
     )
+
+
+@dataclass(frozen=True, slots=True)
+class Engines:
+    """The three copies of this tool one project runs, read back together (RK415).
+
+    An adopting project wires three: the plugin its `PreToolUse` hook and skill run, the
+    action its workflow gates on, and whatever `roadkeep` the caller invokes — which on a
+    machine that also develops this tool is a checkout. Measured live, all three at once: the
+    checkout at 0.1.418 doing every write, the plugin at 0.1.285 denying the hand edits, and
+    `@main` in CI. Every write was fine; what nothing said is that the pen and the judge were
+    133 versions apart, in a project whose own backlog reasoned about *the plugin this
+    repository runs* while a newer one held the pen.
+
+    Read and never reconciled, which is :mod:`roadkeep.provenance`'s rule one level up: a
+    cache is allowed to lag a checkout, and what is not survivable is being unable to say
+    which of them answered.
+    """
+
+    #: The copy this process is, always known.
+    running: Engine
+    #: The copy the harness wired to this project, or None where none is registered — which
+    #: is every project served by a checkout alone, and is not a defect.
+    plugin: Installed | None = None
+    #: `(file, ref)` per workflow step calling the action, in file order.
+    gates: tuple[tuple[str, str], ...] = ()
+
+    @property
+    def agree(self) -> bool:
+        """Whether the two engines that state a *version* state the same one.
+
+        The gate is deliberately not in this: `main` and `v0.2.1` and `./` are refs, and a
+        ref is not a number to compare — what CI runs is decided when CI runs. It is reported
+        beside the two because a reader comparing them needs to know a third exists.
+        """
+        return self.plugin is None or self.plugin.version == self.running.version
+
+
+def engines(root: str | Path = ".") -> Engines:
+    """The three, for one project. Reads four small files and asks git nothing new."""
+    base = Path(root).resolve()
+    return Engines(running=engine(), plugin=installed(base), gates=gated_at(base))
+
+
+#: A workflow step calling this action, in either of the two spellings a repository writes:
+#: `<owner>/roadkeep@<ref>` in an adopting project, and `./` in the tree that *is* the action.
+#: The owner is not matched, because a fork publishes the same action under another name and
+#: the question is which ref gates this project rather than whose copy does.
+_GATE_RE = re.compile(
+    r"^\s*-?\s*uses:\s*(?P<action>\./|[^\s#]*?/roadkeep)(?:@(?P<ref>[^\s#]+))?\s*(?:#.*)?$",
+    re.MULTILINE,
+)
+
+
+def gated_at(root: str | Path = ".") -> tuple[tuple[str, str], ...]:
+    """Which ref of this action every workflow calls, as `(file, ref)` in file order (RK415).
+
+    The third engine, and the only one stated in a file the project owns: the checkout
+    answers for itself and the plugin is a row in the harness's registry, while CI runs
+    whatever a `uses:` line names — `main` as `install` writes it, a tag where an adopter
+    pinned one, and `./` in this tree, which gates on its own working copy.
+
+    Every workflow and not the one this command writes, because an adopter is free to call
+    the gate from a pipeline of their own and a reader that only knew `roadkeep.yml` would
+    report *no gate* about a repository that has one. The file rides with the ref and
+    duplicates are kept: two workflows calling two refs is the disagreement this exists to
+    show, not a set to fold, and folding it would lose the one thing that locates the fix.
+
+    Empty where the directory is absent or unreadable — a repository with no workflows has
+    not asked for CI, which is a different answer from one whose ref cannot be read, and
+    neither is worth failing over.
+    """
+    base = Path(root).resolve()
+    directory = base / WORKFLOWS
+    refs: list[tuple[str, str]] = []
+    try:
+        files = sorted(
+            path
+            for path in directory.iterdir()
+            if path.suffix in (".yml", ".yaml") and path.is_file()
+        )
+    except OSError:
+        return ()
+    for path in files:
+        try:
+            body = path.read_text(encoding="utf-8")
+        except (OSError, ValueError):
+            continue
+        refs.extend(
+            # A local `uses: ./` carries no ref and is the tree itself, said as the caller
+            # spelled it rather than resolved to a revision this function has no business
+            # asking git for.
+            (path.relative_to(base).as_posix(), found.group("ref") or found.group("action"))
+            for found in _GATE_RE.finditer(body)
+        )
+    return tuple(refs)
 
 
 def _governed(base: Path) -> Config:

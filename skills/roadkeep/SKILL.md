@@ -18,7 +18,7 @@ where a project's own `.mcp.json` declares the server and `mcp__plugin_<plugin>_
 where a plugin provides it, so read the prefix off the tool list rather than typing it: the whole write path and
 the reads a task needs are there — `add`, `block_add`, `block_drop`, `claim`, `scope`, `status`, `amend`, `restate`, `ship`, `retire`, `defer`, `resume`,
 `record_add`,
-`record_amend`, `record_move`, `record_drop`, `record_renumber`, `non_goal_add`, `non_goal_amend`, `non_goal_drop`, `section_add`, `section_amend`, `section_move`, `section_drop`, `budget`, `brief`, `pick`, `list`, `deps`, `lint`, `merge_check` — same engine and same
+`record_amend`, `record_move`, `record_drop`, `record_renumber`, `non_goal_add`, `non_goal_amend`, `non_goal_drop`, `section_add`, `section_amend`, `section_move`, `section_drop`, `budget`, `brief`, `pick`, `list`, `deps`, `lint`, `engines`, `merge_check` — same engine and same
 refusals, with
 the fields arriving as a schema instead of flag names typed from memory. `init`, `adopt` and
 `install` run once per project and want the CLI — the last of them wires this file, the tools
@@ -26,6 +26,10 @@ and the guard into a project running the tool from a checkout, and `install --ch
 holds its copy of this file in step. `uninstall` is the way back out, for a project moving to
 the plugin: it takes out this project's entries and nothing else, keeps the CI workflow, and
 needs no checkout to read, so it still works once that tree is gone. Every guarantee below holds either way.
+Three copies of this tool can be in play at once — the plugin your hook and this file come from, the action CI
+gates on, and whatever `roadkeep` you are calling — and they are allowed to differ. **`engines` reads all three**
+and exits 1 where the two that state a version state different ones; reach for it when a hook denies a write the
+command you just ran would have made, because then the refusal is that copy's rule and not this one's.
 
 `roadkeep <add|status|amend|restate|ship|retire|record|non-goal|section> --help` has the flags. What they guarantee,
 so it costs you no thought: the id, the `→ §<id>` pointer, the status default and every

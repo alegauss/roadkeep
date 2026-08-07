@@ -544,6 +544,45 @@ def test_the_same_label_in_two_files_is_the_normal_state(tmp_path):
     ]
 
 
+# -- the pen and the judge, where they are two versions (RK415) --------------
+
+
+def test_a_plugin_older_than_the_gate_is_a_note_and_not_a_finding(tmp_path, monkeypatch):
+    import sys
+
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from test_provenance import wired
+
+    config = project(tmp_path)
+    wired(tmp_path / "config", tmp_path)
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / "config"))
+
+    report = lint(config)
+    # A cache lagging a checkout is allowed; what is not survivable is not being told (RK79),
+    # so the exit code does not move and the sentence is said once per commit.
+    assert report.clean
+    (note,) = [n for n in report.notes if n.code == "engine.disagreement"]
+    assert "the plugin wired to this project is 0.1.285" in note.message
+
+
+def test_a_run_over_a_revision_says_nothing_about_engines(tmp_path, monkeypatch):
+    import sys
+
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from test_provenance import wired
+
+    config = project(tmp_path)
+    wired(tmp_path / "config", tmp_path)
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / "config"))
+
+    # `--baseline` judges the files as they were and the engines are a fact about right now,
+    # so the same note subtracted from itself would read as debt the moment they agreed.
+    assert not [
+        n for n in linting._examine(config, since=None, tree=Tree(config, "HEAD")).notes
+        if n.code == "engine.disagreement"
+    ]
+
+
 # -- the block the ledger cannot receive work into (RK380) -------------------
 
 PLANNED = (

@@ -98,7 +98,7 @@ from roadkeep.history import (
     origin_of,
 )
 from roadkeep.ids import highest, next_id
-from roadkeep.installing import install, plan, removal, uninstall
+from roadkeep.installing import engines, install, plan, removal, uninstall
 from roadkeep.linting import Finding, Report, lint
 from roadkeep.locking import LockBusy, exclusive
 from roadkeep.merging import (
@@ -1893,6 +1893,22 @@ def build_parser() -> argparse.ArgumentParser:
     )
     install_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     install_parser.set_defaults(handler=_install)
+
+    engines_parser = subcommands.add_parser(
+        "engines",
+        help="which copies of roadkeep write, judge and gate this project",
+        description=(
+            "An adopting project wires three: the plugin its hook and skill run, the action "
+            "its workflow gates on, and whatever `roadkeep` the caller invokes. They are "
+            "allowed to differ — a cache may lag a checkout — and what is not survivable is "
+            "not being able to say which one answered. Exits 1 where the two that state a "
+            "version state different ones, so a session can ask this and act on it."
+        ),
+    )
+    engines_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    # A read, and the exit code is its verdict rather than a fault (RK271): the three lines
+    # above it have already said everything, and `/plugin update` is the move.
+    engines_parser.set_defaults(handler=_engines, reads_only=True)
 
     uninstall_parser = subcommands.add_parser(
         "uninstall",
@@ -6438,6 +6454,68 @@ _WOULD_REMOVE = {
     "absent": "absent",
     "untouched": "untouched",
 }
+
+
+def _engines(config: Config, args: argparse.Namespace) -> int:
+    """The three copies this project runs, and whether the two versions agree (RK415).
+
+    `config` is read for its root alone — the registry is keyed by project path, so the
+    question is about the tree and not about the governed files in it.
+
+    The exit code is the answer, the way `install --check`'s is: a session that has to grep a
+    sentence to learn the pen and the judge are 133 versions apart is one that will not ask.
+    """
+    found = engines(config.root)
+    running, plugin = found.running, found.plugin
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "writing": {
+                        "version": running.version,
+                        "home": running.home.as_posix(),
+                        "revision": running.revision,
+                    },
+                    # Null where no plugin is registered for this project, which is every
+                    # tree served by a checkout alone and is not a defect (RK415).
+                    "plugin": None
+                    if plugin is None
+                    else {
+                        "version": plugin.version,
+                        "home": None if plugin.home is None else plugin.home.as_posix(),
+                        "revision": plugin.revision,
+                        "scope": plugin.scope,
+                    },
+                    "gates": [
+                        {"file": where, "ref": ref} for where, ref in found.gates
+                    ],
+                    "agree": found.agree,
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK if found.agree else EXIT_GATE
+
+    print(f"writing  {running.version:<10}{running.revision}  {running.home.as_posix()}")
+    if plugin is None:
+        # Said, never silent: "no plugin" and "a plugin this could not read" look the same
+        # to a reader, and only one of them means the writes are unjudged by a second copy.
+        print("plugin   —         no plugin is registered for this project")
+    else:
+        home = "" if plugin.home is None else f"  {plugin.home.as_posix()}"
+        print(f"plugin   {plugin.version:<10}{plugin.revision}  {plugin.scope} scope{home}")
+    for where, ref in found.gates or ():
+        print(f"gate     {ref:<10}{where}")
+    if not found.gates:
+        print("gate     —         no workflow here calls the action")
+    if not found.agree:
+        print(
+            f"differ   the pen is {running.version} and the judge is "
+            f"{plugin.version if plugin else '—'}: `/plugin update` moves the judge, and "
+            f"until then a hook's refusal is that copy's rule and not this one's"
+        )
+        return EXIT_GATE
+    return EXIT_OK
 
 
 def _install(config: Config, args: argparse.Namespace) -> int:

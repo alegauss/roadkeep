@@ -404,6 +404,11 @@ TOOLS: tuple[Tool, ...] = (
     # project with standing debt — "did what I just wrote add anything" rather than a count
     # of 317 the caller cannot attribute — and it reads a revision without writing one.
     Tool("lint", ("baseline",)),
+    # Which copies of this tool write, judge and gate the project (RK415). Exposed because
+    # the agent is the one it happens to: its writes go through whatever `roadkeep` the
+    # session reaches and its hand edits are denied by whatever the harness installed, and
+    # measured live those were 133 versions apart with nothing anywhere saying so.
+    Tool("engines", ()),
     # The one query on this list that is not its own subcommand (RK275). `merge` is git's driver
     # contract — three positional paths and an exit code git reads — and none of that belongs in
     # a tool an agent calls, so the verb stays unexposed. `--check` is not that verb sharing a

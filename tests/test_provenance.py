@@ -410,3 +410,91 @@ def test_nothing_witnessed_is_not_the_same_as_nothing_decided_here():
     except ValueError as error:
         witness(error)
     assert witnessed() == ()
+
+
+# -- the second engine: the plugin the harness wired to this project (RK415) --
+
+
+def registry(config_dir: Path, rows: object) -> None:
+    """The harness's own file, written where `CLAUDE_CONFIG_DIR` points this process."""
+    import json
+
+    path = config_dir / "plugins" / "installed_plugins.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(rows), encoding="utf-8")
+
+
+def wired(config_dir: Path, project: Path, version: str = "0.1.285") -> None:
+    registry(
+        config_dir,
+        {
+            "version": 2,
+            "plugins": {
+                "roadkeep@alegauss": [
+                    {
+                        "scope": "project",
+                        # As the harness spells it, which on Windows is not how a config
+                        # names the same directory — the compare is on resolved paths.
+                        "projectPath": str(project),
+                        "installPath": str(config_dir / "cache" / version),
+                        "version": version,
+                        "gitCommitSha": "34523d028e553f7a9acf2e69e878382f88e7d084",
+                    }
+                ]
+            },
+        },
+    )
+
+
+def test_the_plugin_wired_to_this_project_is_read_back(tmp_path, monkeypatch):
+    from roadkeep.provenance import installed
+
+    project = tmp_path / "project"
+    project.mkdir()
+    wired(tmp_path / "config", project)
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / "config"))
+
+    found = installed(project)
+    assert found is not None
+    assert found.version == "0.1.285" and found.scope == "project"
+    # Short, because the registry stores the full sha and no other revision here is 40 wide.
+    assert found.revision == "34523d0"
+
+
+def test_a_project_the_registry_does_not_name_has_no_plugin(tmp_path, monkeypatch):
+    from roadkeep.provenance import installed
+
+    wired(tmp_path / "config", tmp_path / "project")
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / "config"))
+    # Every tree served by a checkout alone. Not a defect, and not an error either.
+    assert installed(tmp_path / "elsewhere") is None
+
+
+def test_a_registry_naming_another_plugin_answers_about_this_one(tmp_path, monkeypatch):
+    from roadkeep.provenance import installed
+
+    project = tmp_path / "project"
+    project.mkdir()
+    registry(
+        tmp_path / "config",
+        {"plugins": {"something-else@alegauss": [{"projectPath": str(project), "version": "9.9"}]}},
+    )
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / "config"))
+    assert installed(project) is None
+
+
+def test_a_registry_this_cannot_parse_is_not_worth_failing_a_write_over(tmp_path, monkeypatch):
+    from roadkeep.provenance import installed
+
+    path = tmp_path / "config" / "plugins" / "installed_plugins.json"
+    path.parent.mkdir(parents=True)
+    path.write_text("{ not json", encoding="utf-8")
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / "config"))
+    assert installed(tmp_path) is None
+
+
+def test_no_registry_at_all_is_the_same_silence(tmp_path, monkeypatch):
+    from roadkeep.provenance import installed
+
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / "nowhere"))
+    assert installed(tmp_path) is None

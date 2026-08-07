@@ -222,6 +222,10 @@ def test_the_tools_are_what_a_task_needs_end_to_end():
         "list",
         "deps",
         "lint",
+        # The read the agent is the subject of (RK415): its writes go through whatever
+        # `roadkeep` the session reaches and its hand edits are denied by whatever the
+        # harness installed, and those are allowed to be two versions of this tool.
+        "engines",
         # The one query that is not its own subcommand (RK275): `merge --check` writes nothing
         # and answers in three lines, and the verb around it is git's driver contract — so the
         # flag becomes the tool, by the mechanism `claim` already is (RK150).

@@ -40,8 +40,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK415** (deps: —) **Three engines write and judge one project and none names the others** — A checkout CLI wrote this repo at 0.1.418-modified while its hook ran the 0.1.285 plugin and CI gated on @main, and no verb says the writer and the gate disagree. → §RK415
-
 ## Block E — Adoption
 
 - 📋 **RK402** (deps: —) **The tree that ships the plugin is told to wire the guard a second time** — install --check names two surfaces this checkout provides as a plugin and skips them, and asks to write the same hooks into .claude/settings.json, so the read never reports clean here. → §RK402

@@ -710,3 +710,102 @@ def test_a_tree_carrying_no_plugin_names_what_it_lacks(project, tmp_path):
         install(project, source=empty)
     assert PLUGIN_SKILL in refused.value.missing
     assert not (project / PROJECT_MCP).exists()
+
+
+# -- the three engines one project runs (RK415) ------------------------------
+
+
+def test_every_workflow_that_calls_the_action_is_read_not_only_the_written_one(project):
+    from roadkeep.installing import gated_at
+
+    workflows = project / ".github" / "workflows"
+    (workflows / "roadkeep.yml").write_text(
+        "jobs:\n  lint:\n    steps:\n      - uses: actions/checkout@v4\n"
+        "      - uses: alegauss/roadkeep@main\n",
+        encoding="utf-8",
+    )
+    # An adopter is free to call the gate from a pipeline of their own, and a reader that
+    # only knew `roadkeep.yml` would report *no gate* about a repository that has one.
+    (workflows / "ci.yaml").write_text(
+        "steps:\n  - uses: someone/roadkeep@v0.2.1  # pinned\n", encoding="utf-8"
+    )
+    assert gated_at(project) == (
+        (".github/workflows/ci.yaml", "v0.2.1"),
+        (".github/workflows/roadkeep.yml", "main"),
+    )
+
+
+def test_the_tree_that_is_the_action_gates_on_its_own_working_copy(project):
+    from roadkeep.installing import gated_at
+
+    (project / ".github" / "workflows" / "gate.yml").write_text(
+        "steps:\n  - uses: ./\n", encoding="utf-8"
+    )
+    # `./` carries no ref and is said as the caller spelled it: resolving it to a revision
+    # is a question this reader has no business asking git.
+    assert gated_at(project) == ((".github/workflows/gate.yml", "./"),)
+
+
+def test_a_repository_that_has_not_asked_for_ci_reports_no_gate(tmp_path):
+    from roadkeep.installing import gated_at
+
+    assert gated_at(tmp_path) == ()
+
+
+def test_the_pen_and_the_judge_are_read_back_together(project, tmp_path, monkeypatch):
+    import sys
+
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from roadkeep.installing import engines
+    from test_provenance import wired
+
+    project.mkdir(parents=True, exist_ok=True)
+    wired(tmp_path / "config", project)
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / "config"))
+
+    found = engines(project)
+    # The checkout running this suite is not 0.1.285, which is the measured shape: the pen
+    # and the judge are two versions and nothing before this could say so.
+    assert found.plugin is not None and found.plugin.version == "0.1.285"
+    assert found.running.version != "0.1.285"
+    assert not found.agree
+
+
+def test_a_project_with_no_plugin_registered_is_not_a_disagreement(project, tmp_path, monkeypatch):
+    from roadkeep.installing import engines
+
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / "nowhere"))
+    # Every tree served by a checkout alone. There is one engine, so there is nothing to
+    # differ with — `agree` is about two versions and not about how many there are.
+    found = engines(project)
+    assert found.plugin is None and found.agree
+
+
+def test_the_verb_prints_the_three_and_the_exit_code_is_the_verdict(project, tmp_path, monkeypatch, capsys):
+    import sys
+
+    from roadkeep.cli import EXIT_GATE, main
+
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from test_provenance import wired
+
+    project.mkdir(parents=True, exist_ok=True)
+    (project / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\n', encoding="utf-8"
+    )
+    (project / "ROADMAP.md").write_text("# Roadmap\n\n## Block A — X\n", encoding="utf-8")
+    (project / ".github" / "workflows" / "roadkeep.yml").write_text(
+        "steps:\n  - uses: alegauss/roadkeep@main\n", encoding="utf-8"
+    )
+    wired(tmp_path / "config", project)
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / "config"))
+
+    # The exit code is the answer, the way `install --check`'s is: a session that has to
+    # grep a sentence to learn the pen and the judge are apart is one that will not ask.
+    assert main(["-C", str(project), "engines"]) == EXIT_GATE
+    printed = capsys.readouterr()
+    assert "writing  " in printed.out and "plugin   0.1.285" in printed.out
+    assert "gate     main" in printed.out
+    assert "differ   " in printed.out
+    # A read, so the verdict closes with nothing (RK271): the lines above already said it.
+    assert "capture it before the session ends" not in printed.err

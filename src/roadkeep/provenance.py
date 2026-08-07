@@ -471,3 +471,102 @@ def _placed(home: Path) -> tuple[str | None, bool]:
     except HistoryUnavailable:
         return None, False
     return commit or None, modified
+
+
+#: Where the harness keeps the registry of installed plugins, under its config directory —
+#: `CLAUDE_CONFIG_DIR` where the environment sets one, and `~/.claude` otherwise, which is
+#: the same pair the harness itself resolves. Read and never written: this file is the
+#: harness's, and a tool that edited it would be answering a question by changing it.
+_REGISTRY = ("plugins", "installed_plugins.json")
+
+#: The name this package is published under, matched against the registry key's `<name>@
+#: <marketplace>` left half. A literal, and not configuration (L6): every other name in this
+#: tool is the adopting project's, and this one is *ours* — the question being asked is which
+#: copy of **this** plugin a project has, so a project that could answer it differently would
+#: be answering about something else.
+PLUGIN = "roadkeep"
+
+
+@dataclass(frozen=True, slots=True)
+class Installed:
+    """The plugin copy the harness has wired to one project (RK415).
+
+    The second of the three engines an adopting project runs, and the one no other reader in
+    this package could name: the checkout answers for itself, the workflow states its ref in
+    a file, and this one is a row in the harness's own registry.
+    """
+
+    version: str
+    #: Where the marketplace unpacked it — the directory a hook and the MCP server run out of.
+    home: Path | None
+    #: The commit the marketplace recorded for that copy, or None where it recorded none.
+    commit: str | None
+    #: `project` or `user`, as the registry spells it: which scope wired this project to it.
+    scope: str = ""
+
+    @property
+    def revision(self) -> str:
+        return UNTRACKED if self.commit is None else self.commit[:7]
+
+
+def installed(root: Path) -> Installed | None:
+    """The plugin the harness has installed **for this project**, or None (RK415).
+
+    Measured live: a checkout at 0.1.418 did every write in a project whose hooks ran the
+    plugin at 0.1.285 — 133 versions apart, both correct on their own terms, and nothing
+    anywhere said so. The facts were local the whole time; what was missing was a reader.
+
+    Matched on the **project path** and not on the marketplace, because a project is wired to
+    one copy and the question is which one judges *this* tree. Rows are the harness's own
+    format, so every field is read defensively and a registry this cannot parse is None
+    rather than a refusal: nothing here is worth failing a write over.
+
+    Not cached. `engine()` is a fact about the running process and this is a fact about a
+    file somebody else writes — a `/plugin update` between two calls is exactly the change
+    this exists to report, and an answer decided at import would hide it.
+    """
+    import json  # noqa: PLC0415
+
+    import os  # noqa: PLC0415
+
+    home = os.environ.get("CLAUDE_CONFIG_DIR") or Path.home() / ".claude"
+    try:
+        payload = json.loads(Path(home).joinpath(*_REGISTRY).read_text(encoding="utf-8"))
+        wanted = root.resolve()
+    except (OSError, ValueError):
+        return None
+    plugins = payload.get("plugins") if isinstance(payload, dict) else None
+    if not isinstance(plugins, dict):
+        return None
+    for key, rows in plugins.items():
+        if not isinstance(key, str) or key.partition("@")[0] != PLUGIN:
+            continue
+        for row in rows if isinstance(rows, list) else ():
+            if not isinstance(row, dict) or not _is(row.get("projectPath"), wanted):
+                continue
+            version = row.get("version")
+            if not isinstance(version, str) or not version:
+                continue
+            place = row.get("installPath")
+            commit = row.get("gitCommitSha")
+            return Installed(
+                version=version,
+                home=Path(place) if isinstance(place, str) and place else None,
+                commit=commit if isinstance(commit, str) and commit else None,
+                scope=row.get("scope") if isinstance(row.get("scope"), str) else "",
+            )
+    return None
+
+
+def _is(stated: object, wanted: Path) -> bool:
+    """Whether a registry row's project path is this tree — resolved, and never as text.
+
+    The harness writes the path the way its platform spells it, so a Windows row and a
+    posix-spelled config are one project written twice and a string compare calls them two.
+    """
+    if not isinstance(stated, str) or not stated:
+        return False
+    try:
+        return Path(stated).resolve() == wanted
+    except OSError:
+        return False

@@ -560,6 +560,7 @@ def _examine(config: Config, since: str | None, tree: Tree) -> Report:
     findings.extend(queued)
     notes: list[Note] = _collective(config, documents)
     notes.extend(queue_notes)
+    notes.extend(_disagreeing(config, tree))
     if since is not None:
         notes.extend(_turned(config, documents, since))
 
@@ -1524,6 +1525,43 @@ def _across(config: Config, documents: dict[str, Document]) -> list[Finding]:
 
     out.extend(_cycles(backlog, file))
     return out
+
+
+def _disagreeing(config: Config, tree: Tree) -> list[Note]:
+    """The pen and the judge, where they are two versions of this tool (RK415).
+
+    An adopting project runs three copies — the plugin its hook and skill run, the action its
+    workflow gates on, and whatever `roadkeep` the caller invokes. Measured live: a checkout
+    at 0.1.418 doing every write while the plugin at 0.1.285 denied the hand edits, 133
+    versions apart, in a project whose backlog reasoned about *the plugin this repository
+    runs* while a newer copy held the pen. Nothing said so, and the facts were local the
+    whole time.
+
+    Here because this is the gate, and once per commit is the right frequency: the same
+    sentence on every `add` is noise the author learns to skip, and `engines` is the verb for
+    asking on purpose. A **note**, so the exit code does not move — a cache lagging a
+    checkout is allowed, and what is not survivable is not being told (RK79).
+
+    Never over a **revision** (`--baseline`, `--at`): those runs judge the files as they were
+    and the engines are a fact about right now, so the same note subtracted from itself would
+    be reported as resolved debt the moment the versions agreed again.
+    """
+    if tree.rev is not None:
+        return []
+    from roadkeep.installing import engines  # noqa: PLC0415
+
+    found = engines(config.root)
+    if found.agree or found.plugin is None:
+        return []
+    return [
+        Note(
+            "engine.disagreement",
+            config.relative(config.root),
+            f"this gate is {found.running.version} and the plugin wired to this project is "
+            f"{found.plugin.version}: a hook's refusal is that copy's rule — `engines` "
+            f"reads all three, and `/plugin update` moves the judge",
+        )
+    ]
 
 
 def _repeated(config: Config, role: str, document: Document) -> list[Finding]:
