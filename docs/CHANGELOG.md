@@ -195,6 +195,7 @@
 - ✅ **RK367** **The two figures the no-size-field non-goal argues from are stated in five places and both have drifted** — The two ranges are restated as the comparison they were for — median to p90, lines 2.7× against files 1.4× — which is scale-free, so a test holds it and `weight` prints it.
 - ✅ **RK379** **The refusal for a missing anchor does not name the anchor to use** — amend, restate, status and renumber name the block's family and the free address under it when a line has no pointer (design §RK379 superseded: add had been enriched by RK312 the day before).
 - ✅ **RK383** **The free-address help says one outline spans both files, which a declared namespace makes false** — both accounts of the free top-level say it is per namespace, and a test holds the skill and the help against what the command computes.
+- ✅ **RK389** **A dep naming two real ids is accepted as one thing outside the backlog** — a dep that names this project's ids inside free text is refused at the write, naming them, instead of resolving as work nothing can satisfy.
 
 ## Block D — The gate
 

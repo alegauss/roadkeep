@@ -89,6 +89,32 @@ def test_a_range_that_does_not_ascend_is_reported_rather_than_called_external():
     assert codes == {"deps.range"}
 
 
+def test_free_text_naming_this_projects_ids_is_reported_rather_than_called_external():
+    # The measured case (RK389): `--dep "RK5 + RK7"` matched no arm but the last, so a line
+    # blocked on two real ids — one of them already shipped — read as blocked forever on work
+    # that does not exist, and only a separate `deps` call ever said so.
+    found = Schema().validate(_task(deps=("RK5 + RK7",)))
+    assert {v.code for v in found} == {"deps.compound"}
+    assert "RK5 and RK7" in found[0].message
+
+
+def test_one_id_buried_in_prose_is_the_same_mistake_told_in_the_singular():
+    found = Schema().validate(_task(deps=("the rewrite after RK5",)))
+    assert {v.code for v in found} == {"deps.compound"}
+    assert "names RK5 of this project" in found[0].message
+    assert "its own dep" in found[0].message
+
+
+def test_external_work_that_names_no_id_of_this_project_stays_external():
+    # The arm this must not close. Turing's T902 waits on `roadkeep RK378 + RK377`, which is
+    # another project's backlog — ids, but not *these* ids, and the whole point of free text.
+    schema = Schema()
+    assert schema.validate(_task(deps=("roadkeep T378 + T377",))) == ()
+    assert schema.validate(_task(deps=("upstream review",))) == ()
+    # And an id is bounded on both sides: `RK55` is one id, not `RK5` inside a longer word.
+    assert schema.ids_named("RK55") == ("RK55",)
+
+
 def _task(**over):
     from roadkeep.schema import Task
 

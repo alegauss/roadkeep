@@ -30,7 +30,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK389** (deps: —) **A dep naming two real ids is accepted as one thing outside the backlog** — the value falls through to the free-text arm when it does not parse as a single id, so a compound spelling becomes an unresolvable external and the line reads blocked on work that does not exist. → §RK389
 - 📋 **RK396** (deps: —) **A dep on a partially shipped task is annotated as satisfied** — ship --part writes a ledger entry and leaves the line open, but the dep annotation reads the ledger, so a dependent is marked unblocked by the half that landed rather than by the half it needs. → §RK396
 
 ## Block D — The gate

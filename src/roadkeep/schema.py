@@ -34,6 +34,7 @@ from __future__ import annotations
 
 import math
 import re
+from collections.abc import Sequence
 from dataclasses import dataclass, replace
 from enum import StrEnum
 
@@ -892,6 +893,31 @@ class Schema:
         """
         return re.compile(rf"^{self.id_fragment}$")
 
+    def ids_named(self, text: str) -> tuple[str, ...]:
+        """Every id of this project written **inside** a string, in order (RK389).
+
+        :meth:`id_pattern` answers *is this an id*, which is the question every other reader
+        has. This one answers *does this mention one*, and it exists for the dep arm that
+        matches nothing: `RK5 + RK7` is not an id, not a block and not a range, so it is
+        accepted as work outside the backlog — a statement about two ids that are in it.
+
+        Bounded on both sides by an alphanumeric lookaround rather than `\\b`, because an id
+        ends in a digit and `\\b` would find `RK5` inside `RK55`. The same reason
+        :attr:`id_fragment` exists at all: a spelling only some readers know is how a number
+        gets counted twice.
+        """
+        pattern = rf"(?<![A-Za-z0-9]){self.id_fragment}(?![A-Za-z0-9])"
+        return tuple(match.group() for match in re.finditer(pattern, text))
+
+    @staticmethod
+    def _spell_ids(ids: Sequence[str]) -> str:
+        """`RK5`, or `RK5 and RK7`, or `2 ids (RK5, RK7, …)` — a refusal names what it read."""
+        if len(ids) == 1:
+            return ids[0]
+        if len(ids) == 2:
+            return f"{ids[0]} and {ids[1]}"
+        return f"{len(ids)} ids ({', '.join(ids)})"
+
     def split_id_pattern(self) -> re.Pattern[str]:
         """The ids :meth:`spell_id` cannot reach: the same shape with the letter **required**.
 
@@ -1163,6 +1189,22 @@ class Schema:
                         "deps",
                         f"{dep.id!r} reads as a range but does not ascend from a "
                         f"{self._families()} id",
+                    )
+                )
+            elif kind is DepKind.EXTERNAL and (named := self.ids_named(dep.id)):
+                # The same argument as the range above, one arm over (RK389): free text is
+                # the arm nothing matches, so `RK5 + RK7` lands whole and resolves as
+                # "outside the backlog: shipping cannot satisfy it" — about two ids that are
+                # in the backlog, one of which may already have shipped.
+                one = len(named) == 1
+                out.append(
+                    Violation(
+                        "deps.compound",
+                        "deps",
+                        f"{dep.id!r} names {self._spell_ids(named)} of this project inside "
+                        f"work outside it: pass "
+                        f"{'it as its own dep' if one else 'a dep each'}, or spell the "
+                        f"external work without {'it' if one else 'them'}",
                     )
                 )
             if dep.marker is not None and dep.marker not in allowed:
