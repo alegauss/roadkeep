@@ -165,6 +165,62 @@ for the deferred store, and the default is the wrong one.
 
 ## Block D — The gate
 
+### §RK403 The refusal and the remedy that refuse each other
+
+Measured on a fresh project whose `CHANGELOG.md` is prose with no block headings:
+
+```
+add --block A     no heading declares Block A in docs/CHANGELOG.md (it declares none)
+                  … the verb that opens it wherever it is missing is `block add A`
+block add A       A is already declared in docs/ROADMAP.md: nothing to open
+```
+
+Both refusals are right alone. The add now asks the ledger for the heading the first
+`ship` would ask for, and `block add` only writes into a file *already organised by
+blocks* — a file that declares none is not one that verb starts organising, which is a
+decision about the file's shape rather than about a block. The pair is a deadlock, and
+it is the one the block verb was written to open.
+
+What moved is *when*. Before, such a project could add lines and met this at its first
+`ship`; now it cannot write a line at all, so the tool is unusable on it rather than
+inconvenient. `lint` says the same thing per block — two headings, two findings, each
+naming the verb that refuses — so the gate is unactionable there too.
+
+Three exits, and the choice is the task. Ask the ledger only where it declares blocks
+already, which restores the old timing for exactly this project and keeps the check for
+every other. Or let `block add` open the first heading in a file that declares none when
+another governed file already declares the label, which is narrower than it sounds: the
+label is not being invented, it is being carried across. Or refuse the add with a
+sentence naming the ledger's flatness, which is honest and leaves the project with
+nowhere to go.
+
+### §RK404 One sentence, two doors, and only one of them writes there
+
+The refusal is reused deliberately: one condition should not grow a second sentence to
+keep true. But it was written for a write *into* the file it names, and at the add that
+is not what is happening — the line goes into the roadmap, and the ledger is being asked
+about a heading a later `ship` will need. So the author reads:
+
+```
+no heading declares Block A in docs/CHANGELOG.md: a heading invented by a write files
+the text where nothing looks for it
+```
+
+while adding a line to a roadmap whose `## Block A` is on the screen in front of them.
+The middle clause explains a write nobody asked for, and the file named is not the file
+being written. It is the same confusion RK257 measured one surface over, where the
+labels listed were the ledger's and the author concluded the label was wrong.
+
+What is missing is one fact: *which file the line is going into*. A clause naming it
+turns the sentence from "your block is wrong" into "your block is fine here and not
+there yet", which is the whole content of the refusal.
+
+Not a second exception. The refusal already carries `where` — the file it read the
+labels from — and what it does not carry is the other end. Giving it that, and letting
+the clause appear only when the two differ, keeps one sentence for one condition and
+costs the ship's own refusal nothing: there both ends are the ledger, so the clause is
+absent.
+
 ## Block E — Adoption
 
 ### §RK402 The tree that ships the plugin is told to wire the guard a second time
