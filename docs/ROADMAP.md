@@ -33,7 +33,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK391** (deps: —) **The gate holds no one-heading-per-label rule, and the write path resolves a repeated one by position** — RK390 closed the scaffold, and a hand edit, an adoption or a merge reaches the same state: lint calls it clean and add files under the last of the two headings. → §RK391
 - 📋 **RK398** (deps: —) **The version bump the hook writes is never staged again once both files are dirty** — It refuses to stage a file carrying an edit it did not write, and writing the bump is that edit, so the refusal re-arms itself on every commit after the first. → §RK398
 
 ## Block E — Adoption

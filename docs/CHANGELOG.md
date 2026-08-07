@@ -269,6 +269,7 @@
 - ✅ **RK357** **A repair that removed a line reports the line number of whatever moved up into its place** — A removal reports `gone` where a rewrite reports `fixed`, `--json` carries `removed` on the one list, and the run says once that those addresses are the file as it was read.
 - ✅ **RK365** **The function every gate check is threaded through grew a fifteenth branch, and what holds its size is an editor** — The number is gated by nothing, deliberately; the cost was `checked` decided at five points, now one — and the rule that an unnamed file sorts last is stated and held.
 - ✅ **RK380** **A block can carry open lines for months and be found missing only by the first ship** — add asks the ledger for the block's heading too, and lint reports a block whose open lines nothing there can receive.
+- ✅ **RK391** **The gate holds no one-heading-per-label rule, and the write path resolves a repeated one by position** — lint reports block.repeated at the second heading, and every write through place refuses instead of picking one.
 
 ## Block E — Adoption
 

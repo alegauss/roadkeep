@@ -504,6 +504,46 @@ def test_an_annotation_that_no_longer_matches_its_target_is_a_finding(tmp_path):
     assert "RK1 📋" in finding.message
 
 
+# -- one label, two headings (RK391) -----------------------------------------
+
+
+def test_a_label_two_headings_declare_is_a_finding_naming_both(tmp_path):
+    twice = CLEAN + "\n## Block A — The model again\n"
+    report = lint(project(tmp_path, roadmap=twice))
+    (finding,) = [f for f in report.findings if f.code == "block.repeated"]
+    # At the second, naming the first: the fix is an editorial merge of two regions, and
+    # nothing but the two addresses locates it.
+    assert finding.file == "ROADMAP.md" and finding.lineno == 8
+    assert "already declared on line 3" in finding.message
+    assert not report.clean
+
+
+def test_the_rationale_file_is_judged_by_the_same_rule(tmp_path):
+    # `section add` resolves a block there the way `add` does in the roadmap, so the file
+    # filed under the same headings gets the same rule.
+    twice = PROSE + "\n## Block A — The model again\n"
+    report = lint(project(tmp_path, improvements=twice))
+    (finding,) = [f for f in report.findings if f.code == "block.repeated"]
+    assert finding.file == "IMPROVEMENTS.md"
+
+
+def test_three_headings_under_one_label_are_reported_twice(tmp_path):
+    thrice = CLEAN + "\n## Block A — Again\n\n## Block A — And again\n"
+    report = lint(project(tmp_path, roadmap=thrice))
+    repeats = [f for f in report.findings if f.code == "block.repeated"]
+    # Each later heading is its own line to delete, and each names the first one.
+    assert [f.lineno for f in repeats] == [8, 10]
+    assert all("already declared on line 3" in f.message for f in repeats)
+
+
+def test_the_same_label_in_two_files_is_the_normal_state(tmp_path):
+    # Block A is declared in the roadmap, the ledger and the rationale file: the rule is
+    # about one label twice in *one* file, and every governed file names the same blocks.
+    assert not [
+        f for f in lint(project(tmp_path)).findings if f.code == "block.repeated"
+    ]
+
+
 # -- the block the ledger cannot receive work into (RK380) -------------------
 
 PLANNED = (

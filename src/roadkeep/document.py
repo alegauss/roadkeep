@@ -248,6 +248,40 @@ class UnknownBlock(ValueError):
         )
 
 
+class RepeatedHeading(ValueError):
+    """One label, two headings — refused at every write that files under it (RK391).
+
+    RK390 shut this door at `init`, which was one of four ways in: a roadmap edited by hand,
+    brought under the tool by `adopt`, or merged from two branches arrives at the same file,
+    and there `add --block A` filed under the **last** of them. That was never a decision —
+    it is what scanning to the end leaves — and a verb resolving an ambiguity by position is
+    the part that may not survive whatever the gate does about the state.
+
+    Refused rather than defaulted to the first, which is the same act one line earlier: both
+    headings are somebody's, the entries under each are already filed, and a tool that picks
+    one files the next line where half the readers are not looking. The **line numbers of
+    both** are the whole message, because the fix is an editorial merge of two regions and
+    nothing but the addresses helps with it.
+
+    `block.repeated` is the other end, and this is not it: the gate reports the state and
+    this stops a write from adding to it.
+    """
+
+    def __init__(
+        self, label: str, linenos: Sequence[int], where: str = "", word: str = "Block"
+    ) -> None:
+        self.label = label
+        self.linenos = tuple(linenos)
+        self.where = where
+        file = f"{where}:" if where else "line "
+        lines = ", ".join(f"{file}{lineno}" for lineno in self.linenos)
+        super().__init__(
+            f"{len(self.linenos)} headings declare {word} {label} ({lines}): one label is "
+            f"one heading, and a write that chose between them would file this line where "
+            f"half the readers are not looking — merge the two regions by hand first"
+        )
+
+
 class RoundTripError(RuntimeError):
     """The tool may not write a file whose lines it cannot reproduce.
 
@@ -659,8 +693,23 @@ class Document:
         return any(entry.task.block == label for entry in self.entries)
 
     def heading(self, label: str) -> Heading | None:
-        """The first heading naming ``label`` — where `add` inserts (RK5)."""
+        """The first heading naming ``label`` — where `add` inserts (RK5).
+
+        A **read**, and it keeps the first of two because every question asked of a broken
+        file has to have an answer. What may not resolve by position is a *write*, which is
+        :func:`~roadkeep.authoring.place`'s refusal off :meth:`declaring` (RK391).
+        """
         return next((h for h in self.headings if h.label == label), None)
+
+    def declaring(self, label: str) -> tuple[Heading, ...]:
+        """Every heading naming ``label`` — one, in a file any verb can address (RK391).
+
+        The distinction :meth:`heading` cannot make, and the reason it is a method rather
+        than a comprehension at the one call site: two headings under one label is a state
+        the gate reports and the write path refuses, and both ends have to be reading the
+        same thing. A file with none is :class:`UnknownBlock`'s case and returns empty here.
+        """
+        return tuple(heading for heading in self.headings if heading.label == label)
 
     def subtree_end(self, heading: Heading) -> int:
         """Where a heading's whole region ends: the next heading of the **same or higher**

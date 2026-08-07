@@ -553,6 +553,7 @@ def _examine(config: Config, since: str | None, tree: Tree) -> Report:
     for role, document in documents.items():
         findings.extend(within(config, role, document))
         findings.extend(_characters(config, role, document))
+        findings.extend(_repeated(config, role, document))
     findings.extend(_across(config, documents))
     findings.extend(_scope(config, documents.get("roadmap")))
     queued, queue_notes = _queue(config, documents)
@@ -573,6 +574,7 @@ def _examine(config: Config, since: str | None, tree: Tree) -> Report:
         findings.extend(_pointers(config, documents, anchors))
         for role, document in prose.items():
             findings.extend(_orphans(config, documents, document, anchors, role=role))
+            findings.extend(_repeated(config, role, document))
         if since is not None:
             notes.extend(_unpaired(config, anchors.get("improvements", ()), since))
     findings.extend(_paths(config, documents, tree))
@@ -1521,6 +1523,51 @@ def _across(config: Config, documents: dict[str, Document]) -> list[Finding]:
             )
 
     out.extend(_cycles(backlog, file))
+    return out
+
+
+def _repeated(config: Config, role: str, document: Document) -> list[Finding]:
+    """One label declared by two headings in one file — the gate's half of RK391.
+
+    RK390 made `init` refuse it, which closed one of four doors: a hand edit, an `adopt`, and
+    a merge of two branches all reach the same file, and there `lint` said *clean* while
+    `add --block A` filed under the last of the two. That is L1 read the wrong way round —
+    the law is that the schema is enforced where the text is created *and* the gate is the
+    backstop, not that the write path is the only way in. Every other rule here has both
+    ends; this one had the first alone.
+
+    A **finding**, not a note, and the exit code is the argument: a file no verb can address
+    is not a stylistic drift, and `add`, `ship` and `record add` now all refuse over it
+    (:class:`~roadkeep.document.RepeatedHeading`) — a gate that stayed quiet would be the
+    only thing in this tool that saw the state and let it stand. A project mid-adoption that
+    has not reached its duplicate yet is what `--baseline` answers (RK84), which is the
+    general answer to standing debt and not a reason to weaken one rule.
+
+    Every governed file with headings, prose included: the rationale file is filed under the
+    same block headings, and `section add` resolves a block there the same way.
+
+    Reported once per label, at the **second** heading and naming the first. The second is
+    the one that was added, and the message needs both addresses because the fix is an
+    editorial merge of two regions that nothing but their line numbers locates.
+    """
+    where = config.relative(config.path(role))
+    word = config.schema.heading_word
+    out: list[Finding] = []
+    for label in dict.fromkeys(h.label for h in document.headings if h.label):
+        declared = document.declaring(label)
+        if len(declared) < 2:
+            continue
+        first, *rest = declared
+        for later in rest:
+            out.append(
+                Finding(
+                    "block.repeated",
+                    where,
+                    f"{word} {label} is already declared on line {first.lineno}: one label "
+                    f"is one heading, and a write files under this one by position alone",
+                    later.lineno,
+                )
+            )
     return out
 
 

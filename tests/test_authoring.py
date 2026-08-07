@@ -24,6 +24,7 @@ from roadkeep.authoring import (
     IdInUse,
     NoAnchor,
     NoProseFile,
+    RepeatedHeading,
     UnknownBlock,
     add,
     amend,
@@ -209,6 +210,31 @@ def test_a_block_no_heading_declares_is_refused_and_the_file_is_untouched(tmp_pa
     assert "A, B" not in message
     assert raised.value.declared == ("A", "B")  # still carried, for a caller that wants them
     assert source(config) == BODY
+
+
+# -- one label, two headings, and no write that picks (RK391) ----------------
+
+TWICE = BODY.replace(
+    "## Non-goals", "## Block B — Authoring again\n\n## Non-goals"
+)
+
+
+def test_a_label_two_headings_declare_is_refused_rather_than_resolved(tmp_path):
+    config = project(tmp_path, TWICE)
+    with pytest.raises(RepeatedHeading) as raised:
+        task(config, block="B")
+    # Both addresses, because the fix is an editorial merge and nothing else locates it —
+    # and the file is untouched, which is what "refused rather than resolved" means.
+    message = str(raised.value)
+    assert f"{ROADMAP}:7" in message and f"{ROADMAP}:9" in message
+    assert raised.value.linenos == (7, 9)
+    assert source(config) == TWICE
+
+
+def test_the_other_block_is_still_writable(tmp_path):
+    # Narrow: one broken label does not close the file. A is declared once and takes lines.
+    config = project(tmp_path, TWICE)
+    assert task(config, block="A").rendered.startswith("- 📋 **RK2**")
 
 
 # -- the other heading, asked one task before the ship needs it (RK380) ------

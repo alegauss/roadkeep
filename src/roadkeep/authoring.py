@@ -56,6 +56,7 @@ from roadkeep.document import (
     Document,
     Entry,
     Heading,
+    RepeatedHeading,
     UnknownBlock,
     counted,
     save_all,
@@ -235,7 +236,8 @@ def place(
     """Validate, render, insert — in memory, and refuse before any of it.
 
     Raises :class:`~roadkeep.schema.SchemaError` with every violation,
-    :class:`UnknownBlock` when no heading declares the block, and
+    :class:`UnknownBlock` when no heading declares the block,
+    :class:`~roadkeep.document.RepeatedHeading` when two do (RK391), and
     :class:`~roadkeep.document.RoundTripError` when either the file already carries a
     line the schema would rewrite or the new line does not read back as it was written.
 
@@ -269,14 +271,25 @@ def place(
             if config is None
             else sections.naming_the_anchor(config, task.block, error)
         ) from None
-    heading = document.heading(task.block)
-    if heading is None:
+    declared = document.declaring(task.block)
+    if not declared:
         raise UnknownBlock(
             task.block,
             sorted({h.label for h in document.headings if h.label}),
             where,
             word=document.schema.heading_word,
         )
+    if len(declared) > 1:
+        # The ambiguity is not resolved by position (RK391) — see `RepeatedHeading`. Here
+        # rather than at `add`, because this is the seam every line write passes and `ship`,
+        # `record add` and `move` reach a repeated heading through their own doors.
+        raise RepeatedHeading(
+            task.block,
+            [h.lineno for h in declared],
+            where,
+            word=document.schema.heading_word,
+        )
+    heading = declared[0]
 
     rendered = document.schema.render(task)
     index, payload = _placement(document, heading, rendered, tuple(carrying))
