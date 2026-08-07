@@ -129,7 +129,10 @@ fetched *below* every refusal the line itself can raise — and where that is no
 field alone. Prefer the path over the heredoc for prose you drafted before filing it; naming
 both the prose and its path is refused. **`section amend <id>` is how a
 live design is corrected**: `--body -` or `--body-file` replaces its own prose, `--title` its heading, the
-subtree and the anchor are untouched, and it is the only door for prose. **The anchor is
+subtree and the anchor are untouched, and it is the only door for prose. A body-only amend
+leaves the **heading line's bytes** alone too — the reader takes a `§` an author wrote under an
+outline and the writer would not reproduce it, so re-rendering a heading nobody named silently
+restyled the file. **The anchor is
 `section move <anchor> --to <address>`**, and only under an outline: `renumber` moves an id and
 leaves the pointer as typed under every other scheme, so an address had no verb at all and the
 one state that needs one is the address two prose files both declare — `section.ambiguous` to

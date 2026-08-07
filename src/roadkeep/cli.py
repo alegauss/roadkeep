@@ -434,7 +434,8 @@ def build_parser() -> argparse.ArgumentParser:
             "design was write-once until it shipped — which is the opposite of when it "
             "changes. The subtree is not touched: a subsection is amended by its own "
             "anchor. Neither is the anchor itself: that is `section move` under an outline, "
-            "and `renumber` where the address is the task's id."
+            "and `renumber` where the address is the task's id. Nor is the heading line, "
+            "unless --title asks for it: a body-only amend leaves those bytes alone."
         ),
     )
     section_amend.add_argument("anchor", help="the anchor, e.g. RK9 (no §)")

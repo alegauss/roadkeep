@@ -132,6 +132,7 @@
 - ✅ **RK377** **A doubled anchor has no verb that repairs it** — A section's address moves with its subtree and every pointer at it, and a pointer follows only where nothing else answers it or the heading names its task.
 - ✅ **RK381** **A refusal on a short field costs the whole rationale a second time** — The rationale is fetched below every refusal the line can raise, and `--section-body-file`/`--body-file` name it by path so a retry re-reads it.
 - 🗑 **RK382** **A symptom that discovery widens has no verb, only retire and refile** — superseded by RK178: RK178 shipped `restate <id> --symptom`, which is this door: both instances named are unchanged work under a claim that became false, and the verb prints the old spelling.
+- ✅ **RK388** **A heading that parsed with its sigil is rewritten without one by a verb amending a different part of the file** — A body-only amend leaves the heading line's bytes alone, so a sigil the reader accepts and the writer would not reproduce survives a write to the prose beneath it.
 
 ## Block C — Query
 

@@ -123,33 +123,6 @@ exactness rather than similarity: a read the author is told to make before propo
 `non-goal list`'s precedent, where the tool states what a block already delivered
 instead of guessing which entry is yours.
 
-### §RK388 The line no round-trip covers
-
-Under `ref_scheme = "outline"`, `section amend I --body …` rewrites the heading above
-the body it was asked to change:
-
-| on disk | after the amend |
-|---|---|
-| `## §I A design` | `## I A design` |
-| `##  I   A design` | `## I A design` |
-
-Both parse. The reader takes the sigil as optional here — a bare `0.1` is what an
-outline heading looks like on disk — and then `anchor_text` writes the canonical form,
-so a file that opened with `§` loses it on the first write to any section in it. `lint`
-reports the same file clean, and `adopt --sections` reports `1 conform, 0 would change`.
-
-L3 is round-trip **or refuse**, and this is neither. What holds it is `Document`, whose
-mutators refuse the whole file when a line they parsed would render back differently —
-and that check runs over entries. A rationale file has none, so `non_canonical` is `()`
-for every prose file ever measured, not because they round-trip but because nothing
-looked.
-
-What is not obvious is which way the repair goes. Refusing the file is L3 as written and
-turns an existing `§`-under-outline project into one no verb will write to until it is
-migrated. Accepting the sigil as canonical under both schemes keeps those files writable
-and makes the anchor two spellings, which is what RK340 spent a task removing. The third
-answer is that the reader stops accepting what the writer will not reproduce.
-
 ### §RK395 A shipped entry that gets reverted stays in the ledger saying it shipped
 
 Turing shipped T922 and T924, then reverted both an hour later: they had read a

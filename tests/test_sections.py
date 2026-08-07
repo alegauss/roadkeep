@@ -2517,3 +2517,96 @@ def test_an_amend_with_none_of_the_three_names_all_three(tmp_path, capsys):
     assert main(["-C", str(config.root), "section", "amend", "RK1"]) == EXIT_USAGE
 
     assert "--body-file" in capsys.readouterr().err
+
+
+# -- the heading nobody named (RK388) -----------------------------------------
+
+#: An outline file whose headings carry a sigil the reader accepts and the writer would not
+#: reproduce (RK44), plus one with spacing nobody would write twice. Both parse; neither is
+#: what `anchor_text` renders, which is the whole of the defect.
+SIGILLED = """# Improvements
+
+## §I The first family
+
+Prose that is not numbered by anybody.
+
+### §I.1  A design
+
+The reasoning the line has no room for.
+"""
+
+
+def sigilled(tmp_path: Path) -> Config:
+    (tmp_path / "roadkeep.toml").write_text(
+        f'prefix = "RK"\nref_scheme = "outline"\n[files]\n'
+        f'roadmap = "{ROADMAP}"\nimprovements = "{IMPROVEMENTS}"\n',
+        encoding="utf-8",
+    )
+    for name, body in {ROADMAP: "# Roadmap\n\n## Block A — The model\n", IMPROVEMENTS: SIGILLED}.items():
+        path = tmp_path / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("w", encoding="utf-8", newline="") as handle:
+            handle.write(body)
+    return Config.discover(tmp_path)
+
+
+def test_a_body_amend_leaves_the_heading_byte_identical(tmp_path):
+    # The measured defect: `--body` re-rendered the heading above the prose it was passed, so
+    # a file that opened with `§` lost it on the first write to any section in it — and `lint`
+    # called the result clean, L3 being held over task lines and a prose file having none.
+    config = sigilled(tmp_path)
+    document, section, changed = amend(
+        config, "improvements", "I.1", body="The corrected reasoning."
+    )
+    document.save()
+
+    assert changed == ("body",)
+    written = read(Config.discover(tmp_path))
+    assert "### §I.1  A design" in written
+    assert "The corrected reasoning." in written
+
+
+def test_the_sibling_headings_are_untouched_too(tmp_path):
+    config = sigilled(tmp_path)
+    document, _, _ = amend(config, "improvements", "I.1", body="The corrected reasoning.")
+    document.save()
+
+    assert "## §I The first family" in read(Config.discover(tmp_path))
+
+
+def test_a_title_amend_is_the_caller_asking_for_the_heading_to_change(tmp_path):
+    # The other half, and why this is a fourth answer rather than a refusal: passing `--title`
+    # *is* the request to rewrite that line, so there the canonical spelling is right.
+    config = sigilled(tmp_path)
+    document, section, changed = amend(config, "improvements", "I.1", title="A better name")
+    document.save()
+
+    assert changed == ("title",)
+    written = read(Config.discover(tmp_path))
+    assert "### I.1 A better name" in written
+    assert "§I.1" not in written
+
+
+def test_the_prose_under_an_untouched_heading_is_still_reflowed(tmp_path):
+    # Not touching the heading is not leaving the section alone: the body is filled to the
+    # declared width exactly as before, which is the half `--body` was passed for.
+    config = sigilled(tmp_path)
+    document, _, _ = amend(
+        config, "improvements", "I.1", body="one two three four five six seven " * 6
+    )
+    document.save()
+
+    written = read(Config.discover(tmp_path)).splitlines()
+    filled = [line for line in written if line.startswith("one two")]
+    assert filled and all(len(line) <= 88 for line in filled)
+
+
+def test_the_id_scheme_keeps_its_heading_too(tmp_path):
+    # The sigil is required under `id`, so the canonical form and the file already agree —
+    # what this holds is that the *rule* is the same one, not a branch on the scheme.
+    config = project(tmp_path)
+    document, _, changed = amend(config, "improvements", "RK1", body="The corrected reasoning.")
+    document.save()
+
+    assert changed == ("body",)
+    assert "### §RK1 A first design" in read(Config.discover(tmp_path))

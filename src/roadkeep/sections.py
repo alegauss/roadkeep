@@ -1022,7 +1022,13 @@ def amend(
         owner,
         elsewhere=_elsewhere(config, document.schema, anchor, owner),
     )
-    updated = _rewrite(document, heading, replace(section, title=wanted_title.strip()), wanted_body)
+    updated = _rewrite(
+        document,
+        heading,
+        replace(section, title=wanted_title.strip()),
+        wanted_body,
+        retitle="title" in changed,
+    )
     amended = find(updated, anchor)
     assert amended is not None  # the heading this function just wrote
     # Charged against the subtree **only where a line points at this anchor**, which is
@@ -1277,13 +1283,32 @@ def _parent(anchor: str) -> str:
 
 
 def _rewrite(
-    document: Document, heading: Heading, section: Section, body: str
+    document: Document,
+    heading: Heading,
+    section: Section,
+    body: str,
+    *,
+    retitle: bool = True,
 ) -> Document:
     """Swap a heading's line and the prose under it for the reflowed replacement.
 
     One removal and one insertion per line rather than a patch, because every mutator in
     :mod:`roadkeep.document` reparses — so the region is taken out first and the new lines
     go in at the heading's own index, where nothing below has moved yet.
+
+    ``retitle`` is false where only the prose changed, and then the heading line is not
+    touched at all (RK388). It used to be re-rendered unconditionally, and under an outline
+    that is a **silent rewrite of something nobody named**: the reader accepts `## §I A
+    design` because a sigil an author wrote is not a spelling to punish (RK44), and
+    :func:`anchor_text` then writes the canonical `## I A design` — so a `section amend
+    --body` on any section in the file took the `§` off the one it was passed, along with
+    whatever spacing that heading had. `lint` called the result clean, because L3 is held
+    over task lines and a prose file has none.
+
+    Of the three repairs the design weighed — refuse the file, make the sigil canonical, or
+    narrow the reader — this is a fourth, and it is the one that costs nothing: the writer
+    stops reproducing a line it was not asked about. An amend that *does* pass `--title` is
+    the caller asking for the heading to change, and there the canonical spelling is right.
     """
     end = document.prose_end(heading)
     payload = ["", *_body_lines(document.schema, body)]
@@ -1295,6 +1320,8 @@ def _rewrite(
     updated = document.remove_lines(heading.lineno, end)
     for offset, raw in enumerate(payload):
         updated = updated.insert_line(heading.lineno + offset, raw)
+    if not retitle:
+        return updated
     # The heading last and through :func:`heading_of`, so the one writer of that spelling
     # stays one (RK44) — an amend that composed it here would be the second.
     return updated.replace_line(heading.lineno - 1, heading_of(document.schema, section))
