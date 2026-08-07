@@ -161,6 +161,43 @@ The repair is `Config.schema_for(role)` at the four call sites, which is the sam
 RK379 routed them through: `sections.checked` already takes the schema as a parameter,
 for the deferred store, and the default is the wrong one.
 
+### §RK407 The refusal that names the field but not the shell
+
+Every field this tool refuses is prose an agent composed in a shell, and one shell
+rewrites it on the way in: PowerShell reads a backtick as its escape character, so a
+`why` quoting `renderItem` or `\n` arrives carrying a carriage return, a bell or a form
+feed that the author never wrote and cannot see in the answer.
+
+What comes back is `why.newline: a task is one line: no newlines`. That is accurate
+about the value and wrong about the cause, and the cause is the part a caller has to fix
+— the sentence has no newline in it, so the message sends them to re-read prose that is
+already correct instead of to their quoting. A markdown-shaped backlog makes this the
+common case rather than the rare one, because the format wants backticks around every
+identifier a line names.
+
+A control character other than a plain newline is never authorial. So the refusal can
+say so — name the codepoint, name the field, and name the escape that produces it —
+which costs one branch on a path that already has the value in hand, and turns a
+two-retry diagnosis into a read.
+
+### §RK408 The empty event states a fact and stops short of the door
+
+`ship` closes its answer with `event <id> Block <x> open|empty`, and `empty` is the one
+moment a heading becomes droppable: the block just lost its last open line. A project
+whose convention is to withdraw the heading then — and a roadmap that reads as a list of
+what is left has every reason to be one — needs `block drop <x>` next, and the answer
+that told it the block is empty does not say so.
+
+This is the shape the tool already commits to elsewhere: an `add` without `--section`
+answers with the `section add` that closes the pointer it just created, rather than
+leaving the gate to report the dangling reference later. The `empty` event is the same
+situation one verb earlier — the state is computed, the next command is derivable from
+it, and the caller is the one asked to remember.
+
+It is a suggestion and not an action: whether an emptied block is dropped or kept for
+the work still to be filed under it is the project's call, and `block drop` refuses
+anyway where the subtree is not blank in every file.
+
 ## Block C — Query
 
 ## Block D — The gate

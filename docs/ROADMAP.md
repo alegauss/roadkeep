@@ -28,6 +28,8 @@
 - 📋 **RK399** (deps: —) **One field is spelled --status on add and --marker on resume** — The open marker is a single declared field, and a caller who learns its flag name on one verb is refused by the other. → §RK399
 - 📋 **RK400** (deps: —) **Shipping a family's last child leaves its parent describing deleted work** — The introduction a subtree was written under survives every ship that emptied it, so the file's most-read paragraph is the one nothing checks. → §RK400
 - 📋 **RK401** (deps: —) **A line the gate calls clean is refused by the door that corrects it** — amend, restate, status and renumber validate against Config.schema, so a file whose [rules.<role>] excuses a field is judged by the roadmap's rules and the correction has no door. → §RK401
+- 📋 **RK407** (deps: —) **A refusal blames the author for a character its own shell wrote** — PowerShell expands a backtick, so prose quoting an identifier arrives carrying a carriage return and the answer is why.newline, which names a newline nobody typed. → §RK407
+- 📋 **RK408** (deps: —) **The ship that empties a block reports it and names no verb for it** — It already prints `Block <x> empty`, so a caller whose project drops a heading with its last line has to know `block drop` from somewhere other than the answer telling them to run it. → §RK408
 
 ## Block C — Query (consult without reading the file)
 
