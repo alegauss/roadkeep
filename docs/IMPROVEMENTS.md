@@ -321,6 +321,33 @@ finding, and reporting it costs one pass rather than one ship.
 
 ## Block E — Adoption
 
+### §RK390 A label checked one line at a time
+
+`init` refuses a `--block` value no heading parser recognises, which is
+`UnreadableBlock` and the right rule. It runs `Document.parse` over the first line of
+`## Block <value>` and asks for a label. Two things get past it:
+
+    init --block "A\nB"      ## Block A          init --block A --block A   ## Block A
+                             B                                              ## Block A
+
+The first writes a stray prose line the author never asked for, under a heading that did
+parse. The second writes one heading twice, and `add --block A` then files under
+whichever comes first while `ship` looks for the same label in the changelog. `lint`
+calls both files clean, because neither is a rule it holds.
+
+One root, and it is the shape RK372 and RK386 already named: the check is per label and
+there is no check of the *set* or of the whole string. `_label` answers about one
+heading, correctly, and nothing asks whether what was handed over is one heading, or
+whether two of them are the same.
+
+`init` is where this costs most. It is the command that runs before a project has a
+gate, its whole promise is that nothing is written unless everything can be, and what it
+writes here is a file the author will find broken at the first `add` — the RK18
+argument, one command earlier than `adopt`.
+
+What is undecided is only the duplicate: a repeated label is plainly a mistake, and
+whether `init` refuses it or folds it to one is a choice about how much it may assume.
+
 ## Block F — The plugin
 
 ### §RK366 A shipped text whose wrap nothing holds

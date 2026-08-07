@@ -43,6 +43,8 @@
 
 ## Block E — Adoption
 
+- 📋 **RK390** (deps: —) **A block label checked only to its first line, and never against the others, scaffolds a file no verb can address** — The check parses one heading and the scaffold writes what it was given, so a newline leaves a stray line and a repeat writes the heading twice, both clean to lint. → §RK390
+
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - 💭 **RK366** (deps: —) **The skill every adopting project loads has 24 body lines past 110 characters against a file otherwise wrapped at 90** — One pattern made them all — text appended to a line instead of the paragraph re-wrapped — so an edit arrives as a whole-paragraph diff and nothing holds the shape. → §RK366

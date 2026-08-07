@@ -120,9 +120,9 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 6 | 84 | 0 |
 | C — Query (consult without reading the file) | 3 | 53 | 1 |
 | D — The gate | 1 | 68 | 0 |
-| E — Adoption | 0 | 68 | 1 |
+| E — Adoption | 1 | 68 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 67 | 1 |
-| **Total** | 11 | 370 | 5 |
+| **Total** | 12 | 370 | 5 |
 
 **Next ready:**
 
