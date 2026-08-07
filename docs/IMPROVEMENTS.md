@@ -346,6 +346,30 @@ ambiguity by position is the part that should not survive.
 
 ## Block E — Adoption
 
+### §RK394 The half the ordering does not reach
+
+`install --register-merge` says in its own prose that the project's config is resolved
+before the first write, so a project with nothing to register refuses rather than
+leaving four surfaces written and a flag unhonoured. That holds for the config. It does
+not hold for the file.
+
+With a `.gitattributes` that is a directory, all four surfaces land, `register` raises,
+and the command exits 2 on the operating system's own sentence. A re-run does the same.
+Nothing is stuck and nothing progresses, which is RK393's shape — and the gate is worse
+here than there: `install --check` exits **0**, because the four surfaces are in step,
+while printing `install --register-merge` as the way to wire the driver. There the red
+gate named a red command; here a green one advertises it.
+
+This is the third of a family. RK392 was `init` creating a directory below the line
+where nothing refuses, RK393 the same in `install`, and this is the write that happens
+after the loop those two guard. `blocking` answers it — `.gitattributes` is known before
+anything is written, and the registration is the one surface whose path the plan does
+not carry.
+
+What is not settled is the `not written` line. It is the report's honest half, naming
+every surface this command leaves alone, and a reason that cannot be acted on is a
+different kind of entry from one the caller simply has not chosen yet.
+
 ## Block F — The plugin
 
 ### §RK366 A shipped text whose wrap nothing holds
