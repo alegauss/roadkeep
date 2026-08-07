@@ -73,6 +73,7 @@ import re
 from dataclasses import dataclass, replace
 from pathlib import Path
 
+from roadkeep.adopting import BlockedParent, blocking
 from roadkeep.config import CONFIG_NAME, Config
 from roadkeep.linting import lint
 from roadkeep.merging import Registration, register
@@ -279,6 +280,13 @@ class Plan:
     #: The merge driver, where `--register-merge` asked for it (RK148) — the attribute lines
     #: written and the `git config` line to run, exactly as `merge --register` reports them.
     registered: Registration | None = None
+    #: Surfaces that would be written and cannot be, each with the ancestor standing in the
+    #: way (RK393). RK392's question one command over: `exists` says whether a write would
+    #: clobber, and this says whether it can happen — a `.claude` that is a file left the
+    #: server declaration on disk with no hook and no skill beside it. On the plan and not
+    #: raised here, because `--check` writes nothing and still has to report it: its whole
+    #: job is naming the remedy, and `install` was the remedy it named and could not do.
+    blocked: tuple[tuple[Path, Path], ...] = ()
 
     @property
     def changing(self) -> tuple[Surface, ...]:
@@ -345,6 +353,13 @@ def plan(
         surfaces=tuple(surfaces),
         skipped=tuple(skipped),
         debt=debt,
+        # Over what would be written and never every surface: a directory nobody needs to
+        # create is not in anybody's way (RK393).
+        blocked=tuple(
+            (surface.path, parent)
+            for surface in surfaces
+            if surface.writes and (parent := blocking(surface.path))
+        ),
     )
 
 
@@ -367,6 +382,10 @@ def install(
     register refuses instead of leaving four surfaces written and a flag unhonoured.
     """
     intent = plan(root, source=source, registering=register_merge)
+    # With the rest of the refusals and above the first write (RK393), which is what the
+    # paragraph above claims and the `mkdir` below used to break.
+    if intent.blocked:
+        raise BlockedParent(intent.blocked, intent.root)
     governed = _governed(intent.root) if register_merge else None
     for surface in intent.changing:
         surface.path.parent.mkdir(parents=True, exist_ok=True)

@@ -34,7 +34,7 @@ from roadkeep.adopting import (
     Unreadable,
     UnreadableBlock,
     WouldOverwrite,
-    _blocking,
+    blocking,
     adopt,
     init,
     render_config,
@@ -288,8 +288,8 @@ def test_the_blocker_is_the_ancestor_and_not_only_the_parent(tmp_path: Path) -> 
     # The whole chain, because `mkdir(parents=True)` is what would have walked it: a nested
     # target is stopped just as dead by a `docs` two levels up.
     (tmp_path / "docs").write_text("not a directory\n", encoding="utf-8")
-    assert _blocking(tmp_path / "docs" / "deep" / "ROADMAP.md") == tmp_path / "docs"
-    assert _blocking(tmp_path / "elsewhere" / "ROADMAP.md") is None
+    assert blocking(tmp_path / "docs" / "deep" / "ROADMAP.md") == tmp_path / "docs"
+    assert blocking(tmp_path / "elsewhere" / "ROADMAP.md") is None
 
 
 def test_a_block_that_names_one_and_then_more_is_refused(tmp_path: Path) -> None:

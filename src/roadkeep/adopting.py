@@ -168,8 +168,12 @@ class BlockedParent(ValueError):
         )
 
 
-def _blocking(path: Path) -> Path | None:
+def blocking(path: Path) -> Path | None:
     """The nearest ancestor of ``path`` that exists and is not a directory (RK392).
+
+    Public because `install` asks it too (RK393): it writes four surfaces under directories it
+    creates as it goes, and a `.claude` that is a file stopped it with the server declaration
+    already on disk — `init`'s defect one command over, and the same question answers both.
 
     The whole chain and not the immediate parent: `docs/backlog/ROADMAP.md` is stopped just
     as dead by a `docs` that is a file, and `mkdir(parents=True)` is what would have walked
@@ -618,7 +622,7 @@ def init(
     # `exists` answers whether a write would clobber, and not whether it can happen at all
     # (RK392): a `docs` that is a file is a `docs/ROADMAP.md` no write reaches, and the
     # question was never asked. Knowable in advance, so it is decided up here with the rest.
-    blocked = [(path, parent) for path in paths.values() if (parent := _blocking(path))]
+    blocked = [(path, parent) for path in paths.values() if (parent := blocking(path))]
     if blocked:
         raise BlockedParent(blocked, base)
 

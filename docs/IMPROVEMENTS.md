@@ -346,29 +346,6 @@ ambiguity by position is the part that should not survive.
 
 ## Block E — Adoption
 
-### §RK393 The remedy the gate names and the command cannot do
-
-RK392 gave `init` the check `exists` never made: whether a declared file's directory can
-be created at all. `install` writes four surfaces the same way and never asks.
-
-With a `.claude` that is a file, `.mcp.json` lands and `.claude/settings.json` raises.
-The project then declares an MCP server with no hook and no skill, `install` exits 2
-with the operating system's own sentence — localised, absolute path, the shape RK370
-removed one command over — and `install --check` exits 1 saying `install` writes them.
-It does not. A CI job holding that pair has a red gate whose named remedy is a red
-command.
-
-The half-wired state is worse here than the half-scaffolded one RK392 fixed, and for the
-opposite reason: `init` refuses a second run and says so, while `install` is built to be
-re-run and simply fails the same way each time. Nothing is stuck and nothing progresses.
-
-The fix is RK392's, one command over — `_blocking` already answers which ancestor is in
-the way, and the surfaces are known before the first write. What is not settled is
-`--check`. Its contract is that it writes nothing and reports what would change, and
-"this could not be written even if you ran it" is a third answer beside changed and
-unchanged. Folding it into the exit-1 it already gives keeps the two states, at the cost
-of a gate that says run this when running it will not help.
-
 ## Block F — The plugin
 
 ### §RK366 A shipped text whose wrap nothing holds

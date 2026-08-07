@@ -34,7 +34,8 @@ from pathlib import Path
 
 import pytest
 
-from roadkeep.cli import build_parser, main, registration_report
+from roadkeep.adopting import BlockedParent
+from roadkeep.cli import EXIT_GATE, build_parser, main, registration_report
 from roadkeep.merging import Attributes, Driver, Registration, Wiring
 from roadkeep.installing import (
     CARRIED,
@@ -614,6 +615,33 @@ def test_the_install_payload_carries_every_field_of_the_plan(project, source, ca
     payload = json.loads(capsys.readouterr().out)
     named = {PLAN_RENAMES.get(field.name, field.name) for field in fields(Plan)}
     assert named <= set(payload)
+
+
+def test_a_surface_whose_directory_a_file_is_standing_in_stops_the_write(project, source):
+    """RK393: RK392's question one command over. The directories were made as the surfaces
+    were written, so a `.claude` that is a file left the server declaration on disk with no
+    hook and no skill beside it — and `install` states the opposite order in its own prose."""
+    project.mkdir(parents=True, exist_ok=True)
+    (project / ".claude").write_text("not a directory\n", encoding="utf-8")
+    with pytest.raises(BlockedParent):
+        install(project, source=source)
+    # The one the caller put there, and nothing this command reached for: `.mcp.json` is the
+    # surface that used to land before the failure, and its absence is what says nothing ran.
+    assert not (project / ".mcp.json").exists()
+
+
+def test_the_gate_tells_a_blocked_surface_apart_from_a_stale_one(project, source, capsys):
+    # The half that matters most: `--check` used to answer "1 surface differs, `install` writes
+    # them" about files `install` exits 2 on, so a CI job's red gate named a red command.
+    project.mkdir(parents=True, exist_ok=True)
+    (project / ".claude").write_text("not a directory\n", encoding="utf-8")
+    argv = ["-C", str(project), "install", "--source", str(source), "--check"]
+    assert main(argv) == EXIT_GATE
+    out, err = capsys.readouterr()
+    assert ".claude is a file, so the directory cannot be made" in out
+    # Two sentences, because they are two states and only one of them `install` can close.
+    assert "cannot be written at all" in err
+    assert "surface(s) differ" in err and "3 surface(s) differ" not in err
 
 
 def test_the_uninstall_payload_carries_every_field_of_the_removal(project, source, capsys):

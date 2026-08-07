@@ -6229,6 +6229,16 @@ def _install(config: Config, args: argparse.Namespace) -> int:
                         "left_alone": [list(pair) for pair in intent.registered.left_alone],
                     },
                     "changing": len(intent.changing),
+                    # RK393: the surfaces `install` cannot write, each with the file standing
+                    # in the way. Its own key and not folded into `changing`, because a reader
+                    # acting on that number would run the command this one says will not run.
+                    "blocked": [
+                        {
+                            "path": path.relative_to(intent.root).as_posix(),
+                            "blocked_by": parent.relative_to(intent.root).as_posix(),
+                        }
+                        for path, parent in intent.blocked
+                    ],
                 },
                 indent=2,
             )
@@ -6261,12 +6271,34 @@ def _install(config: Config, args: argparse.Namespace) -> int:
             # two at the plugin's own root are files the tree already ships (RK235). "by hand"
             # said all three, and on the last two it told the reader to write them.
             print(f"  not written    {why}")
-        if args.check and intent.changing:
+        for path, parent in intent.blocked:
+            # Beside the surfaces and before the verdict (RK393): this one is not a difference
+            # `install` closes, and saying so is the whole repair. The remedy named is the
+            # blocker, because that is the file somebody has to move.
             print(
-                f"{len(intent.changing)} surface(s) differ from what this checkout ships: "
-                f"`{invocation()} install` writes them",
-                file=sys.stderr,
+                f"  blocked        {path.relative_to(intent.root).as_posix()}: "
+                f"{parent.relative_to(intent.root).as_posix()} is a file, "
+                f"so the directory cannot be made"
             )
+        if args.check and intent.changing:
+            # Two sentences and not one, because they are two states (RK393). A surface that
+            # differs is one `install` writes; a surface that is blocked is one it exits 2 on,
+            # and a gate whose named remedy is a red command sends a CI job round a loop.
+            blocked = {path for path, _ in intent.blocked}
+            differing = [s for s in intent.changing if s.path not in blocked]
+            if differing:
+                print(
+                    f"{len(differing)} surface(s) differ from what this checkout ships: "
+                    f"`{invocation()} install` writes them",
+                    file=sys.stderr,
+                )
+            if intent.blocked:
+                print(
+                    f"{len(intent.blocked)} surface(s) cannot be written at all: "
+                    f"move what is standing in the directory first, and `{invocation()} "
+                    f"install` will not run until you do",
+                    file=sys.stderr,
+                )
     if args.check and intent.changing:
         return EXIT_GATE
     return EXIT_OK

@@ -331,6 +331,7 @@
 - ✅ **RK387** **The line telling an unread file from an empty one is on the backlog path only, so --sections still gives that zero** — Both runs count what they read and one test holds the pair across them, so a rationale file of prose no longer answers a blank one's words.
 - ✅ **RK390** **A block label checked only to its first line, and never against the others, scaffolds a file no verb can address** — A block value must be one heading and no two may share a label, so the scaffold refuses what it would otherwise write out unasked.
 - ✅ **RK392** **A scaffold that cannot create a declared file's directory leaves the configuration behind, and both doors out refuse** — A directory a file is standing in is refused with the rest, and the directories are made before the config, so a failing write leaves nothing that looks configured.
+- ✅ **RK393** **The gate names a command that cannot run, on a tree the wiring half wrote and refuses to finish** — The wiring refuses a directory a file is standing in before it writes, and the gate reports that apart from a difference it can close.
 
 ## Block F — The Claude Code plugin
 
