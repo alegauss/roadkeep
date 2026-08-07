@@ -266,6 +266,34 @@ discovered.
 Related: RK340 shipped the namespace, RK346 shipped the per-namespace answer, and this
 is the prose neither of them carried forward.
 
+### §RK389 A dep naming two real ids is accepted as one thing outside the backlog
+
+`--dep` is repeatable and takes "an id, 'Block X', a range, or work outside the
+backlog". The last arm is free text, so anything the first three do not match is
+accepted as-is. `--dep "T919 + T922"` therefore lands as a single external dep.
+
+The result parses and reads plausibly. `deps` is where it surfaces:
+
+```
+T919 + T922  unresolvable external outside the backlog: nothing here will
+             ever mark this done
+chain    T923 → T919 + T922  — outside the backlog: shipping cannot satisfy it
+```
+
+Both ids are real, one already shipped. The line claimed to be blocked forever on
+something that does not exist, and nothing said so at write time — `add` succeeded, and
+the finding required a separate `deps` call to notice.
+
+Free text is the right arm to have: Turing's T902 legitimately depends on `roadkeep
+RK378 + RK377`, this tool's backlog, which is exactly what it is for. The gap is that
+the two cases are indistinguishable to the writer.
+
+The cheap discriminator is already computable: if the free-text value **contains** one
+or more ids matching this project's `prefix` pattern, it is almost certainly a compound
+the author meant as separate `--dep` flags. Refuse it, and say so — "`T919 + T922` names
+2 ids; pass `--dep` once each" — rather than storing a dependency nothing can ever
+satisfy.
+
 ## Block D — The gate
 
 ### §RK380 A block can carry open lines for months and be found missing only by the first ship

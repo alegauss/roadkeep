@@ -35,6 +35,7 @@
 
 - 📋 **RK379** (deps: —) **The refusal for a missing anchor does not name the anchor to use** — under ref_scheme outline every add without --ref is refused by a fixed sentence, while `anchors` already computes the next free address in the family the line is going into. → §RK379
 - 📋 **RK383** (deps: —) **The free-address help says one outline spans both files, which a declared namespace makes false** — anchors --role and its comment predate [refs], so a project whose prose files each declare a namespace reads a promise of a shared free address the command no longer computes. → §RK383
+- 📋 **RK389** (deps: —) **A dep naming two real ids is accepted as one thing outside the backlog** — the value falls through to the free-text arm when it does not parse as a single id, so a compound spelling becomes an unresolvable external and the line reads blocked on work that does not exist. → §RK389
 
 ## Block D — The gate
 
