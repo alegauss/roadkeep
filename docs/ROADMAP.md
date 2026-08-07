@@ -22,8 +22,6 @@
 
 ## Block A — The model (a task is data before it is a line)
 
-- 📋 **RK378** (deps: —) **Two prose files must share one outline, with no way to give either its own** — every declared prose file numbers into a single anchor space, so a project whose STRATEGY and IMPROVEMENTS each keep their own outline collides by construction rather than by mistake. → §RK378
-
 ## Block B — Authoring (insert, never hand-edit)
 
 - 💭 **RK368** (deps: —) **A non-goal whose reason changes has no door but drop and re-add, which moves the bullet to the end of the list** — `record amend` exists so a ledger correction is not a move; the non-goal list has no equivalent, and `add` appends, so a reworded reason reads as a deletion elsewhere. → §RK368

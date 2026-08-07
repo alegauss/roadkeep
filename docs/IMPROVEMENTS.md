@@ -75,28 +75,6 @@ already written, not authorship.
 
 ## Block A — The model
 
-### §RK378 Two prose files must share one outline, with no way to give either its own
-
-`anchors` says it plainly — "the free address stays the project's either way, since one
-outline spans both". That is the right default for a project whose prose files are one
-argument split across two documents. It is the wrong one for a project where each file
-is its own argument: Turing's `STRATEGY.md` runs §VIII–§XVI as a strategy outline, and
-`IMPROVEMENTS.md` runs a rationale outline that happens to reach the same numerals.
-Thirteen collide. Neither file is wrong about its own numbering; they are wrong about
-each other's, and only because they were never told they were sharing.
-
-The fix is a namespace per role, not a renumbering: `[refs] strategy = "S"`, after which
-that file's addresses read `§S:VIII` and its outline stops competing. The scheme stays
-`outline`; only the space changes. `declaring`, `find` and `_refuse_doubling` already
-take the role, so the resolver has the fact it needs.
-
-Without it the only repair is to renumber one file into free numerals — for Turing, nine
-top-levels and forty-nine headings moved past §LXXI, which reads as history rather than
-as an outline and buys nothing a namespace would not.
-
-Related: RK377 is the missing verb, this is the missing configuration. Either one alone
-leaves the case half-open.
-
 ## Block B — Authoring
 
 ### §RK368 The correction a non-goal has no door for
