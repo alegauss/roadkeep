@@ -130,6 +130,12 @@ class Merge:
         return self.text is not None
 
 
+
+#: The file whose lines send git to this driver. Named here because `install` has to
+#: know the path before it writes anything (RK394), and a second spelling at that call site
+#: is the two ends of one write disagreeing.
+ATTRIBUTES = ".gitattributes"
+
 @dataclass(frozen=True, slots=True)
 class Attributes:
     """Which governed files `.gitattributes` sends to this driver, and which it does not (RK270).
@@ -507,7 +513,7 @@ def attributed(config: Config) -> Attributes:
     # driver runs on git's merge path and `history` reaches `backlog` and `sections`.
     from roadkeep.history import HistoryUnavailable, check_attr  # noqa: PLC0415
 
-    path = config.root / ".gitattributes"
+    path = config.root / ATTRIBUTES
     existing = _attribute_lines(path)
     paths = tuple(config.relative(config.path(role)) for role in config.paths)
     wanted = tuple(f"{name} merge={DRIVER}" for name in paths)

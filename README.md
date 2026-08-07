@@ -117,16 +117,16 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 30 | 2 |
-| B — Authoring (insert, never hand-edit) | 6 | 84 | 0 |
+| B — Authoring (insert, never hand-edit) | 7 | 84 | 0 |
 | C — Query (consult without reading the file) | 3 | 53 | 1 |
 | D — The gate | 2 | 68 | 0 |
 | E — Adoption | 1 | 71 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 67 | 1 |
-| **Total** | 13 | 373 | 5 |
+| **Total** | 14 | 373 | 5 |
 
 **Next ready:**
 
-- 💭 **RK366** (deps: —) **The skill every adopting project loads has 24 body lines past 110 characters against a file otherwise wrapped at 90** — One pattern made them all — text appended to a line instead of the paragraph re-wrapped — so an edit arrives as a whole-paragraph diff and nothing holds the shape. → §RK366
+- 🛠 **RK394** (deps: —) **The wiring writes four surfaces and leaves the flag unhonoured when the driver's file cannot be written** — The config it needs is resolved before the first write and the `.gitattributes` write is not, so a directory in its place exits 2 with the surfaces on disk and the gate green. → §RK394
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

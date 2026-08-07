@@ -30,6 +30,7 @@
 - 📋 **RK382** (deps: —) **A symptom that discovery widens has no verb, only retire and refile** — amend refuses the field because a different claim is a different task, but a claim found to hold in four places rather than one is the same task with a symptom that has become false. → §RK382
 - 📋 **RK385** (deps: —) **Nothing notices that a new line asks for what a shipped entry already delivered** — RK378 was filed the day after RK340 shipped the same namespace and nothing refused it, so a duplicate costs a claim, a brief and a retirement before anyone reads the ledger. → §RK385
 - 📋 **RK388** (deps: —) **A heading that parsed with its sigil is rewritten without one by a verb amending a different part of the file** — Round-trip is held over task lines only, so under an outline scheme a section verb re-renders a heading nobody named, and lint and the estimate both call the file clean. → §RK388
+- 📋 **RK395** (deps: —) **A shipped entry that gets reverted stays in the ledger saying it shipped** — retire needs a roadmap line the ship already removed and record drop refuses a non-duplicate, so the revert can only be a second unlinked entry and the first still reads as delivered. → §RK395
 
 ## Block C — Query (consult without reading the file)
 
@@ -44,7 +45,7 @@
 
 ## Block E — Adoption
 
-- 📋 **RK394** (deps: —) **The wiring writes four surfaces and leaves the flag unhonoured when the driver's file cannot be written** — The config it needs is resolved before the first write and the `.gitattributes` write is not, so a directory in its place exits 2 with the surfaces on disk and the gate green. → §RK394
+- 🛠 **RK394** (deps: —) **The wiring writes four surfaces and leaves the flag unhonoured when the driver's file cannot be written** — The config it needs is resolved before the first write and the `.gitattributes` write is not, so a directory in its place exits 2 with the surfaces on disk and the gate green. → §RK394
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
