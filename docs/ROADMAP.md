@@ -41,8 +41,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK384** (deps: —) **A prefix named with --sections is taken and never used, and a value the command refuses elsewhere passes silently** — A section is not addressed by a family, so the flag is right to go unread — but the same string is a refusal one flag over, and the report reads as taken under it. → §RK384
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - 💭 **RK366** (deps: —) **The skill every adopting project loads has 24 body lines past 110 characters against a file otherwise wrapped at 90** — One pattern made them all — text appended to a line instead of the paragraph re-wrapped — so an edit arrives as a whole-paragraph diff and nothing holds the shape. → §RK366

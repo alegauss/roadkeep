@@ -326,6 +326,7 @@
 - ✅ **RK374** **The configuration measured as a backlog answers zero of everything, under a comment saying a later command refuses it** — A path naming this format's own declaration is refused with the files it declares, so the comment that cited that refusal is now true.
 - ✅ **RK375** **A pyproject that configures roadkeep measures as an empty backlog, the reading RK374 refused for the other declaration** — Both doors into this format ask one reader whether a file declares it, so the refusal reaches the pyproject that does.
 - ✅ **RK376** **A file that is not a backlog reports the headline an empty one gets, so a mistyped path reads as needing nothing** — The estimate counts what it read against what the file holds, so a zero over prose is told apart from a zero over an empty backlog.
+- ✅ **RK384** **A prefix named with --sections is taken and never used, and a value the command refuses elsewhere passes silently** — A prefix named beside --sections is refused, so the combination that reads nothing cannot look like one that read it.
 
 ## Block F — The Claude Code plugin
 

@@ -801,6 +801,12 @@ def adopt(
             "--with names the other prose files an address could be doubled across, which "
             "is a --sections measurement: a backlog holds lines and not headings"
         )
+    if prefix is not None and sections:
+        raise ValueError(
+            "--prefix selects the ids to read, and --sections measures a rationale file "
+            "whose sections are addressed by § and not by a family: there is nothing here "
+            "for a prefix to choose between"
+        )
     # Every path before the first one is opened (RK370), so a run over a set refuses whole
     # rather than reporting the files it reached before the one it could not.
     handed = (
@@ -908,7 +914,10 @@ def _prose(
 
     No prefix is reported and none is inferred, because a section is not addressed by one:
     :func:`~roadkeep.sections.anchored` reads the § and not the family behind it, so a
-    prefix printed here would be a claim this run never made.
+    prefix printed here would be a claim this run never made. Which is why one *named* is
+    refused rather than dropped (RK384): the report has no prefix line by design, so nothing
+    on screen would have contradicted a caller who believed the run was taken under theirs —
+    and `--prefix "not a prefix at all"` was a refusal one flag over and a no-op here.
 
     ``prose`` is a measurement and never a violation — the width is what a written section
     is *filled to*, and nothing gates a hand-wrapped file at it. It is here because it is

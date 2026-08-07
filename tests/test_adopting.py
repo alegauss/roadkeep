@@ -1298,6 +1298,24 @@ A paragraph about the project, several lines long.
 """
 
 
+def test_a_prefix_means_nothing_under_sections_and_is_refused_rather_than_dropped(
+    tmp_path: Path,
+) -> None:
+    """RK384: `--prefix "not a prefix at all"` was a refusal on the backlog path and a no-op
+    here, and the one line that would have contradicted the caller — a prefix in the report —
+    is the line this mode omits by design, so nothing on screen said otherwise."""
+    target = tmp_path / "IMPROVEMENTS.md"
+    target.write_text("# Improvements\n\n## §I A design\n\nProse.\n", encoding="utf-8")
+    config = Config.discover(tmp_path)
+    with pytest.raises(ValueError) as caught:
+        adopt(config, target, sections=True, prefix="SH")
+    assert "nothing here for a prefix to choose between" in str(caught.value)
+    # The two halves it is refusing between still stand on their own, so the refusal is about
+    # the combination and not about either flag.
+    assert adopt(config, target, sections=True).parsed == 1
+    assert adopt(config, target, prefix="SH").prefix == "SH"
+
+
 def test_a_file_that_is_no_backlog_is_told_apart_from_an_empty_one(tmp_path: Path) -> None:
     """RK376: RK98's rule at the far end of itself. `tabular` and `listed` stop a backlog in a
     shape nothing reads from answering an empty file's number, and a file that is not a backlog

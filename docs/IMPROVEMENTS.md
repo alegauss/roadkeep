@@ -266,30 +266,6 @@ finding, and reporting it costs one pass rather than one ship.
 
 ## Block E — Adoption
 
-### §RK384 An argument absorbed where it means nothing
-
-`adopt IMPROVEMENTS.md --sections --prefix "not a prefix at all"` exits 0 with an
-ordinary report. `adopt ROADMAP.md --prefix "not a prefix at all"` refuses with `prefix
-must be uppercase alphanumeric`. One flag apart, the same string is a refusal and a
-no-op.
-
-`_prose` never reads `prefix`, and that is correct: an anchor is `§I.2` and not
-`§RK9:I.2`, so no family addresses a section and none is reported. What is wrong is the
-swallowing. The caller who typed it believes the run was taken under it, and the one
-measurement that would contradict them — a prefix line in the report — is the line this
-mode deliberately omits, so nothing on screen says otherwise.
-
-It is the shape RK359 already settled one argument over: `--with` names files a backlog
-has no use for, and passing it without `--sections` is refused rather than ignored. The
-rule that came out of it is that an argument naming nothing this run can use is a
-refusal, because an estimate is bought before a commitment and a caller who cannot tell
-which question was answered has bought nothing.
-
-What is not obvious is how far it goes. `--ref-scheme` is read under `--sections` and
-`--ledger` is refused beside it, so the two other flags are already decided; `--prefix`
-is the one left. Whether the refusal names the flag or the combination is the wording to
-pick.
-
 ## Block F — The plugin
 
 ### §RK366 A shipped text whose wrap nothing holds
