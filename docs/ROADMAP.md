@@ -39,7 +39,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK412** (deps: —) **The seam every line write passes is told which file it is writing into twice** — The path is rendered by the caller and the role is spelled beside it at five call sites, so a door passing one and forgetting the other prints a remedy that refuses. → §RK412
 - 📋 **RK415** (deps: —) **Three engines write and judge one project and none names the others** — A checkout CLI wrote this repo at 0.1.418-modified while its hook ran the 0.1.285 plugin and CI gated on @main, and no verb says the writer and the gate disagree. → §RK415
 
 ## Block E — Adoption

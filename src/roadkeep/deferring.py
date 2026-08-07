@@ -259,7 +259,7 @@ def defer(config: Config, task_id: str, *, reason: str) -> Pause:
     insertion = place(
         store,
         _as_paused(entry.task, marker, reason),
-        where=config.relative(config.path("deferred")),
+        role="deferred",
         config=config,
     )
     remaining = remove_entry(roadmap, entry)
@@ -317,7 +317,7 @@ def resume(config: Config, task_id: str, *, marker: str | None = None) -> Resump
     insertion = place(
         backlog.roadmap,
         _as_open(held.task, status),
-        where=config.relative(config.path("roadmap")),
+        role="roadmap",
         config=config,
     )
     remaining = remove_entry(store, held)

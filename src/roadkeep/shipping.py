@@ -1054,8 +1054,8 @@ def move(config: Config, task_id: str, *, to_block: str) -> Refiled:
         remove_entry(ledger, entry),
         replace(entry.task, block=to_block),
         carrying=carrying,
-        where=where,
-        organise="changelog",
+        role="changelog",
+        config=config,
     )
     return Refiled(
         task_id=task_id,
@@ -1388,8 +1388,8 @@ def record(
     insertion = place(
         ledger,
         Task(id=task_id, status=marker, block=block, symptom=symptom, why=why),
-        where=config.relative(config.path("changelog")),
-        organise="changelog",
+        role="changelog",
+        config=config,
     )
     # Resolved against the state this write creates, for the same reason `_depart` does it
     # (RK8): an id is normally too new for any line to name, but a range dep can already
@@ -1497,12 +1497,7 @@ def _partial(
     landed = replace(
         _as_recorded(entry.task, config.schema.shipped_marker, why), part=part
     )
-    insertion = place(
-        ledger,
-        landed,
-        where=config.relative(config.path("changelog")),
-        organise="changelog",
-    )
+    insertion = place(ledger, landed, role="changelog", config=config)
     # ⏳ where the project declares it, and the line's own marker where it does not: the
     # marker set is the project's (L6), and a command that invented one would write a line
     # its own gate refuses. Either way the line stays open, which is the claim.
@@ -1600,7 +1595,7 @@ def _depart(
         replaced = ledger.rewrite_entry(completing, recorded)
         insertion = Insertion(document=replaced, entry=replaced.by_id()[task_id])
     else:
-        insertion = place(ledger, recorded, where=where, organise="changelog")
+        insertion = place(ledger, recorded, role="changelog", config=config)
     remaining = remove_entry(roadmap, entry)
     # One more change to a document already in hand (RK327): the queue names work, this line
     # is the work, and no state exists where the line has left and the order still names it.

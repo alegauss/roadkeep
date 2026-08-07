@@ -277,6 +277,7 @@
 - ✅ **RK406** **The body flag that takes a path refuses the dash every other tool reads as standard input** — the path flag refuses the dash by name and says where the body comes from, at both doors that take one.
 - ✅ **RK411** **The add and the gate stay quiet about a ledger organised by nothing, and now a verb repairs it** — the add asks a flat ledger again, and the gate reports it once about the file rather than once per block.
 - ✅ **RK413** **The first block heading lands after the section the blocks are supposed to precede** — the first block heading goes before the file's next section at that level, and only takes the end where there is none.
+- ✅ **RK412** **The seam every line write passes is told which file it is writing into twice** — place takes the role and derives the path and the organise remedy from it, so defer names its own file too.
 
 ## Block E — Adoption
 

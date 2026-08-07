@@ -232,7 +232,7 @@ def place(
     carrying: Sequence[str] = (),
     where: str = "",
     config: Config | None = None,
-    organise: str = "",
+    role: str = "",
 ) -> Insertion:
     """Validate, render, insert — in memory, and refuse before any of it.
 
@@ -247,11 +247,23 @@ def place(
     to carry its continuation with it, since the schema renders one line and the rest is
     prose no task holds. A newly composed line carries nothing, which is every other caller.
 
-    ``where`` is the file the refusal names, rendered by the caller in the way `sections`
-    already renders its own (RK181, RK257): this function takes a :class:`Document`, so
-    `config.relative` is out of its reach, and a refusal that lists a *ledger's* labels
-    without saying they are the ledger's reads as "your label is wrong" to an author whose
-    roadmap declares it. Every caller holding a :class:`~roadkeep.config.Config` passes it.
+    ``role`` is **which governed file this is**, and it is the one argument to reach for
+    (RK412). The refusal needs that file twice over — as a path, so it can be named, and as
+    a role, so it can name `block add --organise <role>` where the file declares no heading
+    at all (RK405) — and until this those were two arguments, the second spelled out at five
+    call sites and derivable from the first at none of them. Nothing held them level: a door
+    passing the path and forgetting the role printed the bare `block add`, which on the file
+    the sentence is about is one more refusal, and no test and no gate can see the difference
+    because it is a sentence. `defer` was in exactly that state. One argument, derived
+    together, and the one that can be forgotten stops existing.
+
+    ``where`` is the same file as a path, for the caller that has no role to give: `merge`
+    re-places entries into a document it composed itself, and a role would be a claim about a
+    file on disk it is not writing. Rendered by the caller in the way `sections` already
+    renders its own (RK181, RK257), because this function takes a :class:`Document` and
+    `config.relative` is out of its reach. Passing both is refused, being two answers to one
+    question — and `role` without a :class:`~roadkeep.config.Config` is refused for the same
+    reason it is not a guess: there is nothing to resolve it against.
 
     ``config`` is what turns the refusal `ref.missing` into an address (RK349). RK312 wired
     that enrichment around `add`'s own call and left `defer` and `resume` — which reach this
@@ -261,6 +273,15 @@ def place(
     rather than at four call sites that would drift apart again. Omitted, the refusal is the
     schema's own, which is what a caller with no project to read anchors out of gets.
     """
+    if role:
+        if where:
+            raise ValueError(
+                "place takes the role or the path it resolves to, not both: they are two "
+                "answers to one question and the role is the one that derives the other"
+            )
+        if config is None:
+            raise ValueError(f"place(role={role!r}) needs a config to resolve it against")
+        where = config.relative(config.path(role))
     try:
         document.schema.check(task)
     except SchemaError as error:
@@ -280,9 +301,9 @@ def place(
             where,
             word=document.schema.heading_word,
             # Which file the remedy has to start organising, where it declares no block at
-            # all (RK405). Passed by the callers that write into one that can be in that
-            # state — the ledger — and empty everywhere else, where it is not said.
-            organise=organise,
+            # all (RK405) — the same fact `where` is, which is why it is derived and not
+            # asked for (RK412). Empty only for the caller that gave a path alone.
+            organise=role,
         )
     if len(declared) > 1:
         # The ambiguity is not resolved by position (RK391) — see `RepeatedHeading`. Here
@@ -406,7 +427,7 @@ def add(
     insertion = place(
         config.document("roadmap"),
         derive(Backlog.load(config), task),
-        where=config.relative(config.path("roadmap")),
+        role="roadmap",
         config=config,
     )
     # After the roadmap's own refusal and before the prose is read (RK380, RK381): a label

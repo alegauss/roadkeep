@@ -256,28 +256,6 @@ every `add` instead of from memory.
 
 ## Block D — The gate
 
-### §RK412 One fact, two arguments, five places to forget it
-
-`place` takes `where`, the file the refusal names, rendered by the caller because it
-holds a `Config` and this function holds a `Document`. It now also takes `organise`, the
-*role* that same file has, so the refusal can name the argument that opens a first
-heading in it. Two arguments, one fact, and the second is spelled `organise="changelog"`
-at four call sites in the shipping module and once more in authoring.
-
-Nothing holds them level. A door added tomorrow that passes `where` and forgets
-`organise` prints the bare `block add`, which on the file this is about is one more
-refusal — and the gate cannot see it, because both spellings round-trip.
-
-The shape the rest of this package uses is one caller: `Config.document(role)` is how a
-document is got, and every reader of a file goes through it. A `place` given the
-**role** derives both — `config.relative(config.path(role))` is what the callers already
-write out by hand — and the argument that can be forgotten stops existing.
-
-What stands in the way is the caller with no role: `move` re-places an entry into a
-ledger it opened itself. So the role would be optional beside the path rather than
-instead of it, which is a smaller saving than it first looks — and the question is
-whether an optional second spelling beats the two that are there.
-
 ### §RK415 The writer, the hook and the gate are three versions
 
 An adopting project wires three copies of this tool: the plugin its `PreToolUse` hook

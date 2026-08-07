@@ -39,8 +39,10 @@ from roadkeep.blocking import (
     drop_block,
     open_block,
 )
+from roadkeep.authoring import place
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
+from roadkeep.deferring import defer
 from roadkeep.linting import lint
 from roadkeep.shipping import ship
 
@@ -249,6 +251,41 @@ def test_the_refusal_names_the_argument_that_opens_the_file(tmp_path):
     with pytest.raises(ValueError) as raised:
         ship(config, "RK1", why="It works now.")
     assert 'block add A --title "<its title>" --organise changelog' in str(raised.value)
+
+
+def test_every_door_names_its_own_file_without_being_told_twice(tmp_path):
+    # RK412: the path and the role were two arguments, and `defer` passed the first and not
+    # the second — so a store organised by nothing got the bare `block add`, which skips it.
+    # Derived from one role, the door that nobody remembered says the right thing.
+    config = project(
+        tmp_path,
+        config=(
+            'prefix = "RK"\n[files]\n'
+            f'roadmap = "{ROADMAP}"\nchangelog = "{CHANGELOG}"\n'
+            f'improvements = "{IMPROVEMENTS}"\ndeferred = "docs/DEFERRED.md"\n'
+        ),
+    )
+    (tmp_path / "docs" / "DEFERRED.md").write_text(
+        "# Deferred\n\nProse, and no block heading anywhere in it.\n", encoding="utf-8"
+    )
+    with pytest.raises(ValueError) as raised:
+        defer(config, "RK1", reason="Waiting on something.")
+    assert 'block add A --title "<its title>" --organise deferred' in str(raised.value)
+
+
+def test_the_path_and_the_role_are_two_answers_to_one_question(tmp_path):
+    # Refused, because the role derives the path: honouring either would let the two drift
+    # in the one place this whole argument exists to keep them together.
+    config = project(tmp_path)
+    with pytest.raises(ValueError) as raised:
+        place(
+            config.document("roadmap"),
+            config.document("roadmap").entries[0].task,
+            where=ROADMAP,
+            role="roadmap",
+            config=config,
+        )
+    assert "not both" in str(raised.value)
 
 
 def test_a_ledger_that_declares_blocks_hears_nothing_about_organising(tmp_path):
