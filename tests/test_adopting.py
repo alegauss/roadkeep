@@ -27,12 +27,14 @@ import pytest
 import corpora
 from roadkeep.adopting import (
     AlreadyConfigured,
+    BlockedParent,
     Estimate,
     NotACorpus,
     RepeatedBlock,
     Unreadable,
     UnreadableBlock,
     WouldOverwrite,
+    _blocking,
     adopt,
     init,
     render_config,
@@ -262,6 +264,32 @@ def test_a_block_no_heading_could_declare_is_refused(tmp_path: Path) -> None:
     with pytest.raises(UnreadableBlock):
         init(tmp_path, blocks=("— The model",))
     assert written(tmp_path) == set()
+
+
+def test_a_directory_a_file_is_standing_in_is_refused_before_anything_lands(
+    tmp_path: Path,
+) -> None:
+    """RK392: `exists` answers whether a write would clobber, not whether it can happen — so
+    a `docs` that is a file left `roadkeep.toml` on disk and every file it declares unwritten,
+    which is the half-scaffolded project `init` says out loud it exists to prevent."""
+    (tmp_path / "docs").write_text("not a directory\n", encoding="utf-8")
+    with pytest.raises(BlockedParent) as caught:
+        init(tmp_path)
+    # The `docs` handed in is all that survives: the config is what made the old state look
+    # configured, and it is the one file whose absence says nothing happened.
+    assert written(tmp_path) == {"docs"}
+    # Per file and per blocker, because they are different paths and the second is the one to
+    # act on — deleting the roadmap they were never given would be the wrong move.
+    assert [blocker.name for _, blocker in caught.value.blocked] == ["docs"] * 3
+    assert "blocked by docs" in str(caught.value)
+
+
+def test_the_blocker_is_the_ancestor_and_not_only_the_parent(tmp_path: Path) -> None:
+    # The whole chain, because `mkdir(parents=True)` is what would have walked it: a nested
+    # target is stopped just as dead by a `docs` two levels up.
+    (tmp_path / "docs").write_text("not a directory\n", encoding="utf-8")
+    assert _blocking(tmp_path / "docs" / "deep" / "ROADMAP.md") == tmp_path / "docs"
+    assert _blocking(tmp_path / "elsewhere" / "ROADMAP.md") is None
 
 
 def test_a_block_that_names_one_and_then_more_is_refused(tmp_path: Path) -> None:

@@ -330,6 +330,7 @@
 - ✅ **RK386** **The oldest of the estimate's three argument refusals is the one no test holds** — The three argument refusals are one parametrised table, so the untested one is held and a fourth arrives with its row empty.
 - ✅ **RK387** **The line telling an unread file from an empty one is on the backlog path only, so --sections still gives that zero** — Both runs count what they read and one test holds the pair across them, so a rationale file of prose no longer answers a blank one's words.
 - ✅ **RK390** **A block label checked only to its first line, and never against the others, scaffolds a file no verb can address** — A block value must be one heading and no two may share a label, so the scaffold refuses what it would otherwise write out unasked.
+- ✅ **RK392** **A scaffold that cannot create a declared file's directory leaves the configuration behind, and both doors out refuse** — A directory a file is standing in is refused with the rest, and the directories are made before the config, so a failing write leaves nothing that looks configured.
 
 ## Block F — The Claude Code plugin
 

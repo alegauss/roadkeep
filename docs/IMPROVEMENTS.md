@@ -346,30 +346,6 @@ ambiguity by position is the part that should not survive.
 
 ## Block E — Adoption
 
-### §RK392 The line below which nothing was supposed to refuse
-
-`init` states its own invariant: nothing is written unless everything can be, because a
-half-scaffolded project is worse than an unscaffolded one — it looks configured. The
-code says how it is held, in a comment above the first write: everything above this line
-can refuse, nothing below it can. `mkdir` is below it.
-
-With a `docs` that is a file rather than a directory, `roadkeep.toml` lands and the
-first role file raises. What is left declares three files and holds none, and the two
-doors out point at each other: `init` refuses with `AlreadyConfigured` and names
-`adopt`, `adopt` refuses the config as `NotACorpus` and names `docs/ROADMAP.md`, which
-is the file that was never written. `lint` reports `file.missing` three times. Deleting
-`roadkeep.toml` by hand is the only way forward and no command says so.
-
-The existing check is `path.exists()` over the targets, which answers whether a write
-would clobber and not whether it can happen at all. The parent is the part nobody asked
-about.
-
-What is worth deciding is how far the check goes. A parent that exists as a file is
-knowable before writing and is the case measured here. Permissions and a full disk are
-not — they are answerable only by writing — so the honest fix is either the narrow check
-plus an admission that the invariant is best-effort, or a rollback of what landed, which
-is a second way to leave a tree the author did not have.
-
 ## Block F — The plugin
 
 ### §RK366 A shipped text whose wrap nothing holds

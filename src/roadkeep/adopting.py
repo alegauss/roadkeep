@@ -141,6 +141,47 @@ class WouldOverwrite(ValueError):
         super().__init__(message)
 
 
+class BlockedParent(ValueError):
+    """A declared file whose directory cannot be created, because a file is standing in it.
+
+    :class:`WouldOverwrite` asks whether a target already exists, which is whether writing
+    would clobber. This is the other question nobody asked (RK392): whether writing can happen
+    at all. A `docs` that is a file rather than a directory left `roadkeep.toml` on disk and
+    every file it declares unwritten — the half-scaffolded project `init` says out loud it
+    exists to prevent, reachable because the directory was created below the line where
+    nothing is supposed to refuse.
+
+    Named per file **and** per blocker, because they are different paths and the second is the
+    one to act on: the reader is told `docs/ROADMAP.md` cannot be written and that `docs` is
+    why, and deleting the roadmap they were never given would be the wrong move.
+    """
+
+    def __init__(self, blocked: Sequence[tuple[Path, Path]], base: Path | None = None) -> None:
+        self.blocked = tuple(blocked)
+        listed = ", ".join(
+            f"{_relative(path, base)} (blocked by {_relative(parent, base)})"
+            for path, parent in self.blocked
+        )
+        super().__init__(
+            f"{len(self.blocked)} declared file(s) have a directory that cannot be created "
+            f"and nothing was written: {listed}"
+        )
+
+
+def _blocking(path: Path) -> Path | None:
+    """The nearest ancestor of ``path`` that exists and is not a directory (RK392).
+
+    The whole chain and not the immediate parent: `docs/backlog/ROADMAP.md` is stopped just
+    as dead by a `docs` that is a file, and `mkdir(parents=True)` is what would have walked
+    it. Returns the blocker itself rather than a bool, because the file to act on is that one
+    and not the one that was asked for.
+    """
+    for ancestor in path.parents:
+        if ancestor.exists():
+            return None if ancestor.is_dir() else ancestor
+    return None
+
+
 def _relative(path: Path, base: Path | None) -> str:
     """A path as a reader would type it from the project root, or absolute where it is not one."""
     try:
@@ -574,14 +615,25 @@ def init(
     clashes = [path for path in (target, *paths.values()) if path.exists()]
     if clashes:
         raise WouldOverwrite(clashes, base)
+    # `exists` answers whether a write would clobber, and not whether it can happen at all
+    # (RK392): a `docs` that is a file is a `docs/ROADMAP.md` no write reaches, and the
+    # question was never asked. Knowable in advance, so it is decided up here with the rest.
+    blocked = [(path, parent) for path in paths.values() if (parent := _blocking(path))]
+    if blocked:
+        raise BlockedParent(blocked, base)
 
-    # Everything above this line can refuse; nothing below it can, which is what makes
-    # the all-or-nothing claim a property of the order rather than a hope.
+    # Everything that can be decided in advance is decided above this line, which is what
+    # makes the all-or-nothing claim a property of the order rather than a hope. What cannot
+    # be is a write the filesystem refuses — a permission, a full disk — and the directories
+    # go first so that failure lands before the configuration rather than after it: an empty
+    # `docs/` is a tree nobody has to recognise, and a `roadkeep.toml` declaring three files
+    # that do not exist is the half-scaffolded project this order exists to prevent.
+    for path in paths.values():
+        path.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(text, encoding="utf-8", newline="")
     written: list[Path] = []
     for role in roles:
         path = paths[role]
-        path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(bodies[role], encoding="utf-8", newline="")
         written.append(path)
     return Created(config=target, files=tuple(written), blocks=labels)
