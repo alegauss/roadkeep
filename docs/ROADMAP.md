@@ -29,6 +29,7 @@
 - 📋 **RK381** (deps: —) **A refusal on a short field costs the whole rationale a second time** — the section body arrives on stdin, so a why over the limit by three words discards a prose block the author must resend verbatim, which is the expense the pre-write validation was meant to avoid. → §RK381
 - 📋 **RK382** (deps: —) **A symptom that discovery widens has no verb, only retire and refile** — amend refuses the field because a different claim is a different task, but a claim found to hold in four places rather than one is the same task with a symptom that has become false. → §RK382
 - 📋 **RK385** (deps: —) **Nothing notices that a new line asks for what a shipped entry already delivered** — RK378 was filed the day after RK340 shipped the same namespace and nothing refused it, so a duplicate costs a claim, a brief and a retirement before anyone reads the ledger. → §RK385
+- 📋 **RK388** (deps: —) **A heading that parsed with its sigil is rewritten without one by a verb amending a different part of the file** — Round-trip is held over task lines only, so under an outline scheme a section verb re-renders a heading nobody named, and lint and the estimate both call the file clean. → §RK388
 
 ## Block C — Query (consult without reading the file)
 
