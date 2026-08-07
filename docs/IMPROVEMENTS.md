@@ -100,27 +100,28 @@ follows from the argument closely enough to cost nothing.
 ### §RK385 Nothing notices that a new line asks for what a shipped entry already delivered
 
 RK340 shipped on 2026-08-05: "outline anchors are one namespace across prose roles". On
-2026-08-06 RK378 was filed asking for a per-role anchor namespace, with a rationale
-naming the exact configuration RK340 had written. `add` accepted it, `lint` passed it,
-`pick` offered it, and the duplication surfaced only when a worker claimed the line and
-went looking for the code to write.
+2026-08-06 RK378 was filed asking for a per-role anchor namespace. `add` accepted it,
+`lint` passed it, `pick` offered it, and the duplication surfaced only when a worker
+claimed the line and went looking for the code. RK382 repeated it a day later against
+RK178.
 
-The ledger is the file that already held the answer, and it is greppable by construction
-(L2). Nothing consulted it. `add` reads the backlog for the next id and reads nothing
-else, so the one question worth asking before a line is written — has this shipped? — is
-the question the write path never asks.
+A lexical match at write time, above a declared threshold, was the mechanism proposed
+here. This ledger labels four supersessions and two survive in history as filed;
+measured against those, it **does not separate them**. Over the symptom alone RK340
+places 9th of 382. Over symptom and `why`, RK378 → RK340 ranks 1st at 0.277 while RK382
+→ RK178 ranks **33rd** at 0.125 — against a median 0.208 for an ordinary line's nearest
+*non*-duplicate, so the true match scores below the typical false positive. Narrowing to
+rare tokens moves the two ranks apart and lifts neither. An alphabet of identifiers is
+emptier still: 192 of 382 entries name none.
 
-The refusal is the wrong shape here: a symptom that overlaps a shipped entry is often a
-real second problem, and a hard block would be wrong more often than right. What is
-missing is a *warning at write time* naming the entries whose symptom is close, printed
-before the line lands, on the same argument as every other pre-write check — the saving
-is the analysis, not the characters.
+The reason is in the pair. RK382 and RK178 state one problem in disjoint vocabularies,
+which is what a problem discovered twice looks like — recognising it takes meaning, and
+L4 has no model.
 
-Two constraints bind it. No model and no prompts (L4), so the match is lexical and the
-threshold is declared, not learned. And it stays advisory, so a false positive costs a
-sentence read and never a re-filing.
-
-Related: RK382 is the symptom that changed; this is the symptom already answered.
+So the threshold is the wrong instrument and the symptom stands. What is untried is
+exactness rather than similarity: a read the author is told to make before proposing, on
+`non-goal list`'s precedent, where the tool states what a block already delivered
+instead of guessing which entry is yours.
 
 ### §RK388 The line no round-trip covers
 
@@ -170,6 +171,30 @@ What is missing is small: `record amend --superseded-by <id>`, or a `record reve
 --why`, that writes the new entry *and* appends the pointer to the old one in the same
 transaction. The precedent and the wording are already in `retire`; only the target file
 differs.
+
+### §RK397 A prose paragraph whose line starts with a bold span is inserted verbatim instead of filled
+
+Found writing §RK385. A paragraph of ordinary prose landed in `IMPROVEMENTS.md` exactly
+as it arrived — the author's incidental line breaks kept, none filled to the declared
+`prose` width — while the three paragraphs around it reflowed normally. The only
+difference was where a line happened to break: one began `**does not separate them**`.
+
+`_STRUCTURE` lists `*` because a bullet may be written `* item`, and `structural` asks
+whether *any* line in the paragraph starts with one of those characters. A `**bold**`
+span opening a line answers yes, and so does an `*emphasis*` one.
+
+The test is right about intent and wrong about the alphabet. A list marker is the
+character **followed by a space**; `**` is a delimiter with no space and never a bullet.
+
+It is silent, which is what makes it a line rather than a note. `lint` holds a body to a
+word budget and never to the prose width, so a paragraph the writer declined to fill
+passes the gate — and `adopt --sections` reads this same predicate to measure the width
+a file is already wrapped to (RK99), so a corpus with bold-led lines reports a width
+nobody wrote. Both readers agree and both are wrong together.
+
+The fix is the space: a marker counts only where a space or the line's end follows it.
+`structural` is one predicate on purpose, so one edit moves the writer and the estimate
+at once, and this repository's own `docs/` is the fixture that shows the difference.
 
 ## Block C — Query
 
