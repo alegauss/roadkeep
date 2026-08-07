@@ -238,33 +238,6 @@ every `add` instead of from memory.
 
 ## Block D — The gate
 
-### §RK406 The one spelling of stdin the door does not take
-
-Measured while filing a task in this repository:
-
-```
-add --block D --section "…" --section-body-file -
-roadkeep: [Errno 2] No such file or directory: '-'
-```
-
-Both halves of that are wrong for the same reason. The dash is the convention every
-command-line tool in the neighbourhood reads as standard input, and this door already
-*has* standard input — it is the default for the body, and the flag that takes a path
-was added beside it so a retry could re-read a file instead of re-spending a pipe. So
-the caller who spells the default explicitly is asking for the thing the command was
-going to do anyway, and gets an error about the filesystem.
-
-The second half is the message. A path that does not exist is a legitimate refusal and
-this is not one of those: `-` is not a path anybody meant, and the sentence says nothing
-about the two ways this argument is passed. The refusal an author can act on names the
-default and the flag together.
-
-Two ways to take it, and the choice is the task. Read `-` as standard input, which is
-what every caller typing it means, and costs one branch at the reader. Or refuse it by
-name with a sentence that says the body already comes from stdin unless a path is given,
-which teaches the door's shape instead of assuming it. Both beat an `Errno 2`, and the
-second is the one that does not add a second spelling of the same thing.
-
 ## Block E — Adoption
 
 ### §RK402 The tree that ships the plugin is told to wire the guard a second time

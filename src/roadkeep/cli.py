@@ -3302,7 +3302,22 @@ def _one_body(named: str, literal: str | None, path: str | None) -> str | None:
     question, and honouring either silently is how a caller comes to believe the file is what
     landed — which is worse than the refusal, because the wrong prose is in the file and the
     command said it worked.
+
+    And the dash, which is the other way to name a source twice (RK406). Measured filing a
+    task in this repository: `--section-body-file -` opened a file called `-` and answered
+    `[Errno 2] No such file or directory: '-'`, from a door whose body **already** comes from
+    stdin unless a path is given. The refusal is by name and not a second reading of it: `-`
+    is already this CLI's spelling on the *literal* flag, and taking it here too would be two
+    spellings of one thing on one pair of arguments — which is what this function exists to
+    refuse. So the sentence says where the body comes from, which is the fact the caller
+    typing it did not have.
     """
+    if path == STDIN:
+        return (
+            f"{named}-file takes a path and {STDIN!r} is not one: the body already comes "
+            f"from stdin unless a path is given, so pass no source at all — or {named} "
+            f"{STDIN} where a flag is wanted"
+        )
     if literal in (None, STDIN) or path is None:
         return None
     return (

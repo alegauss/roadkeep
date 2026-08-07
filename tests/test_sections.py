@@ -2501,6 +2501,22 @@ def test_an_amend_naming_the_prose_twice_is_refused(tmp_path, capsys):
     assert read(config) == RATIONALE
 
 
+def test_the_dash_on_the_path_flag_is_refused_by_name(tmp_path, capsys, monkeypatch):
+    # RK406, measured filing a task in this repository: it opened a file called `-` and
+    # answered `[Errno 2] No such file or directory`, from a door whose body already comes
+    # from stdin. The pipe is not opened either — the refusal is about argv.
+    config = project(tmp_path)
+    monkeypatch.setattr("sys.stdin", _Unread())
+    argv = ["-C", str(config.root), "section", "amend", "RK1", "--body-file", "-"]
+    assert main(argv) == EXIT_USAGE
+
+    error = capsys.readouterr().err
+    assert "already comes from stdin unless a path is given" in error
+    # And the spelling that does mean stdin, so the refusal is not a dead end.
+    assert "--body -" in error
+    assert read(config) == RATIONALE
+
+
 def test_a_title_only_amend_still_never_opens_the_pipe(tmp_path, capsys, monkeypatch):
     # The third source must not become a fourth default: `--body-file` absent leaves a
     # title-only amend exactly as it was, which is the prose untouched and no pipe opened.

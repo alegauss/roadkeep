@@ -38,8 +38,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK406** (deps: —) **The body flag that takes a path refuses the dash every other tool reads as standard input** — It opens the argument as a filename, so a caller spelling the default explicitly gets a file-not-found naming the dash rather than the sentence saying stdin is already it. → §RK406
-
 ## Block E — Adoption
 
 - 📋 **RK402** (deps: —) **The tree that ships the plugin is told to wire the guard a second time** — install --check names two surfaces this checkout provides as a plugin and skips them, and asks to write the same hooks into .claude/settings.json, so the read never reports clean here. → §RK402

@@ -1352,6 +1352,35 @@ def test_naming_the_prose_and_the_path_it_is_in_is_refused(tmp_path, capsys):
     assert "two answers to one question" in capsys.readouterr().err
 
 
+def test_the_dash_is_refused_at_this_door_too(tmp_path, capsys, monkeypatch):
+    # RK406: the same rule at the other pair, and the refusal is about argv — the pipe this
+    # command would otherwise have read is never opened.
+    config = project(tmp_path, prose=DESIGN)
+    monkeypatch.setattr("sys.stdin", _Unread())
+    assert (
+        main(
+            [
+                "-C",
+                str(tmp_path),
+                "add",
+                "--block",
+                "B",
+                "--symptom",
+                "A second symptom",
+                "--why",
+                "Because of another reason.",
+                "--section",
+                "A design",
+                "--section-body-file",
+                "-",
+            ]
+        )
+        == EXIT_USAGE
+    )
+    assert "already comes from stdin unless a path is given" in capsys.readouterr().err
+    assert source(config) == BODY
+
+
 def test_a_path_that_is_not_there_is_refused_like_any_other_bad_input(tmp_path, capsys):
     project(tmp_path, prose=DESIGN)
     assert (
