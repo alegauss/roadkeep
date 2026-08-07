@@ -605,7 +605,7 @@ def open_block(
             if not convention:
                 raise NotOrganisable(role, sorted(readable), spelling=True)
             raw = _heading(convention, schema.block_named(label), title.strip())
-            index = len(document.lines)
+            index = _region_end(document, convention[0].level)
             changed[role] = _insert(document, index, raw)
             rendered[role] = raw
             placed[role] = _lineno(changed[role], raw)
@@ -658,6 +658,28 @@ def _neighbour(
             word=schema.heading_word,
         )
     return found
+
+
+def _region_end(document: Document, level: int) -> int:
+    """Where a file with no blocks yet keeps its block region, as a 0-based index (RK413).
+
+    The end of the file is what the first version of `--organise` used, and it is the one
+    placement :func:`open_block` refuses by name everywhere else: a roadmap's `## Non-goals`
+    follows its blocks, so appending filed the first task of the new block under it —
+    measured, and `lint` called the result clean, because which sections a project puts after
+    its blocks is not a rule this format holds.
+
+    So the file is asked instead. A heading at the level the new one is being written at is
+    where the next section begins, and the block region stops in front of it. The **level**
+    and not any heading, which is what keeps the file's own title out of the answer, and
+    `==` rather than `<=` for the same reason: a `# Roadmap` on line 1 is not a section the
+    blocks come after.
+
+    None of them is the flat ledger this door was built for, and there the end of the file is
+    right after all — one rule for both shapes, read off the file rather than assumed.
+    """
+    section = next((h for h in document.headings if h.level == level), None)
+    return len(document.lines) if section is None else section.lineno - 1
 
 
 def _heading(blocks: tuple[Heading, ...], named: str, title: str) -> str:

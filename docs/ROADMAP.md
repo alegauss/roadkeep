@@ -30,6 +30,7 @@
 - 📋 **RK401** (deps: —) **A line the gate calls clean is refused by the door that corrects it** — amend, restate, status and renumber validate against Config.schema, so a file whose [rules.<role>] excuses a field is judged by the roadmap's rules and the correction has no door. → §RK401
 - 📋 **RK407** (deps: —) **A refusal blames the author for a character its own shell wrote** — PowerShell expands a backtick, so prose quoting an identifier arrives carrying a carriage return and the answer is why.newline, which names a newline nobody typed. → §RK407
 - 📋 **RK408** (deps: —) **The ship that empties a block reports it and names no verb for it** — It already prints `Block <x> empty`, so a caller whose project drops a heading with its last line has to know `block drop` from somewhere other than the answer telling them to run it. → §RK408
+- 📋 **RK414** (deps: —) **A slip of the pen in a symptom has to borrow the verb for a false premise** — amend refuses the field by design and restate is documented as the correction for a claim that turned out wrong, so a typo is repaired by a door that means something else. → §RK414
 
 ## Block C — Query (consult without reading the file)
 

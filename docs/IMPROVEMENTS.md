@@ -198,6 +198,24 @@ It is a suggestion and not an action: whether an emptied block is dropped or kep
 the work still to be filed under it is the project's call, and `block drop` refuses
 anyway where the subtree is not blank in every file.
 
+### §RK414 The typo has no door of its own
+
+`amend` refuses `symptom` on purpose: the symptom is the falsifiable claim the line is,
+so a different one is a different task. `restate` is the exception, and it is documented
+for one case — the premise itself turned out false, the work never changed, so the id,
+the deps and the section all stay.
+
+A typo is neither. The claim is the one intended; a word in it is misspelt, or a
+possessive is missing. Repairing that today means calling `restate`, whose answer says
+`the work never changed` and whose commit reads, to anyone scanning history for why a
+claim moved, as a correction of substance. The record ends up describing a decision
+nobody took.
+
+The distinction is not one the tool can infer, and it does not have to: the caller knows
+which they are doing, so the field is a flag. What it buys is a truthful ledger of when
+a line's claim actually changed — the thing `restate` exists to make greppable — and a
+`restate` whose every occurrence still means what its documentation says.
+
 ## Block C — Query
 
 ### §RK409 The one branch a loop reads is the one --json does not cover

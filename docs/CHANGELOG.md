@@ -276,6 +276,7 @@
 - ✅ **RK405** **A ledger organised by nothing is a project every ship refuses and no verb can repair** — block add --organise <role> writes the first heading into a file organised by nothing, and the refusal names it.
 - ✅ **RK406** **The body flag that takes a path refuses the dash every other tool reads as standard input** — the path flag refuses the dash by name and says where the body comes from, at both doors that take one.
 - ✅ **RK411** **The add and the gate stay quiet about a ledger organised by nothing, and now a verb repairs it** — the add asks a flat ledger again, and the gate reports it once about the file rather than once per block.
+- ✅ **RK413** **The first block heading lands after the section the blocks are supposed to precede** — the first block heading goes before the file's next section at that level, and only takes the end where there is none.
 
 ## Block E — Adoption
 

@@ -211,6 +211,29 @@ def test_the_first_heading_is_written_where_the_author_asks_for_it(tmp_path):
     assert opened.rendered["changelog"] == "## Block A — The model"
 
 
+def test_the_first_heading_goes_before_the_section_the_blocks_precede(tmp_path):
+    # RK413, measured: appended at the end, the roadmap's `## Non-goals` swallowed the new
+    # block and every task added to it — the one placement the ordinary path refuses by name.
+    config = project(
+        tmp_path,
+        roadmap="# Roadmap\n\n## Non-goals\n\n- **No web UI.** Files and a CLI.\n",
+    )
+    opened = open_block(config, "A", "The model", organise=["roadmap"])
+    opened.save()
+
+    assert read(config, ROADMAP) == (
+        "# Roadmap\n\n## Block A — The model\n\n## Non-goals\n\n- **No web UI.** Files and a CLI.\n"
+    )
+
+
+def test_a_file_with_no_section_at_that_level_still_takes_the_end(tmp_path):
+    # The flat ledger this door was built for: nothing marks where the region stops, so the
+    # end of the file is right after all. One rule, both shapes.
+    config = project(tmp_path, changelog=FLAT)
+    open_block(config, "A", "The model", organise=["changelog"]).save()
+    assert read(config, CHANGELOG) == FLAT + "\n## Block A — The model\n\n"
+
+
 def test_the_ship_that_refused_goes_through_afterwards(tmp_path):
     config = project(tmp_path, changelog=FLAT)
     open_block(config, "A", "The model", organise=["changelog"]).save()
