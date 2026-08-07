@@ -103,28 +103,6 @@ exactness rather than similarity: a read the author is told to make before propo
 `non-goal list`'s precedent, where the tool states what a block already delivered
 instead of guessing which entry is yours.
 
-### §RK395 A shipped entry that gets reverted stays in the ledger saying it shipped
-
-Turing shipped T922 and T924, then reverted both an hour later: they had read a
-deliberate configuration change as an accident. Recording that took three attempts at
-the wrong verb.
-
-`retire` starts from an open roadmap line, and `ship` had already removed it. `record
-drop` refuses anything but a duplicate — rightly, and its message is the argument:
-"removing the only record of a decision is deleting history rather than de-duplicating
-it." What remained was `record add`, writing the revert as a new entry.
-
-That is the correct model — the ledger is history, and both the ship and the revert
-happened — but the two entries do not know about each other. A reader who finds T922
-sees an entry that says it shipped, with no forward pointer to the one saying it did not
-hold. `retire --superseded-by` exists for exactly this shape one file over; the ledger
-has no equivalent.
-
-What is missing is small: `record amend --superseded-by <id>`, or a `record revert <id>
---why`, that writes the new entry *and* appends the pointer to the old one in the same
-transaction. The precedent and the wording are already in `retire`; only the target file
-differs.
-
 ## Block C — Query
 
 ### §RK379 The refusal for a missing anchor does not name the anchor to use

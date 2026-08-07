@@ -825,6 +825,22 @@ def build_parser() -> argparse.ArgumentParser:
         help="the id (default: derived, one past the highest anywhere)",
     )
     record_add.add_argument(
+        "--supersedes",
+        metavar="ID",
+        help=(
+            "the entry this one reverts: its sentence gains `(superseded by <id>)` in the "
+            "same write, so the ledger's two records of one decision know about each other"
+        ),
+    )
+    record_add.add_argument(
+        "--lines",
+        type=int,
+        help=(
+            "how many lines the --supersedes entry occupies, for a hand-written ledger "
+            "whose bullet wraps: the pointer is appended over the whole span"
+        ),
+    )
+    record_add.add_argument(
         "--json", action="store_true", help="the entry, with the file and line it landed on"
     )
     record_add.set_defaults(
@@ -3547,6 +3563,8 @@ def _record(config: Config, args: argparse.Namespace) -> int:
             symptom=args.symptom,
             why=_piped(args.why),
             task_id=args.task_id,
+            supersedes=args.supersedes,
+            lines=args.lines,
         )
         entry.save()
     except REFUSALS as error:
@@ -3570,6 +3588,15 @@ def _record(config: Config, args: argparse.Namespace) -> int:
                     },
                     "roadmap": {"touched": bool(entry.refreshed)},
                     "refreshed": list(entry.refreshed),
+                    # The other half of the transaction (RK395): null on every record that
+                    # supersedes nothing, and the earlier entry as it now reads otherwise.
+                    "superseded": None
+                    if entry.superseded is None
+                    else {
+                        "id": entry.superseded.task.id,
+                        "line": entry.superseded.lineno,
+                        "rendered": entry.superseded.raw,
+                    },
                     "event": event,
                 },
                 indent=2,
@@ -3584,6 +3611,13 @@ def _record(config: Config, args: argparse.Namespace) -> int:
     # Said out loud, because the absence is the whole point: a reader of this output has to
     # be able to tell "nothing was planned" from "the roadmap edit was forgotten".
     print("  planned  never: straight to the ledger, so there was no roadmap line to remove")
+    if entry.superseded is not None:
+        # The edit the caller did not spell, printed where every other derived write is: the
+        # forward pointer is this command's fact, and a reviewer reads the diff against it.
+        print(
+            f"  pointed  {ledger}:{entry.superseded.lineno} "
+            f"{entry.superseded.task.id} now names {entry.task_id} as what replaced it"
+        )
     if entry.refreshed:
         print(f"  derived  {', '.join(entry.refreshed)} (dep annotations re-derived)")
     _print_event(event, "  ")

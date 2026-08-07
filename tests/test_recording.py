@@ -921,3 +921,144 @@ def test_a_dropped_duplicate_takes_its_own_continuation_and_no_others(tmp_path):
 
     drop(config, "SH1").save()
     assert read(tmp_path, "CHANGELOG.md") == WRAPPED_LEDGER
+
+
+# -- the revert the earlier entry knows about (RK395) -------------------------
+
+#: A ledger holding a shipped decision that turned out not to hold, which is the state
+#: Turing was in an hour after T922: `ship` had removed the roadmap line, so `retire` had
+#: nothing to start from, and `record drop` refuses anything but a duplicate — rightly.
+SHIPPED_LEDGER = """# Shipped
+
+## Block A — The model
+
+- ✅ **RK9** **A configuration change was read as an accident** — The reader takes the declared value.
+
+## Block B — Authoring
+"""
+
+
+def test_the_revert_and_the_forward_pointer_are_one_write(tmp_path):
+    # Both entries stay, because both happened. What is added is the pointer `retire
+    # --superseded-by` already writes one file over, and it lands in *this* write rather than
+    # in a second one a crash can lose.
+    config = project(tmp_path, ledger=SHIPPED_LEDGER)
+    entry = record(
+        config,
+        block="A",
+        symptom="The change RK9 made was deliberate and the revert removed it",
+        why="The declared value is honoured again and that reading is withdrawn.",
+        supersedes="RK9",
+    )
+    entry.save()
+
+    written = read(tmp_path, "CHANGELOG.md")
+    assert "The reader takes the declared value (superseded by RK10)." in written
+    assert "**RK10** **The change RK9 made was deliberate" in written
+    assert entry.superseded is not None and entry.superseded.task.id == "RK9"
+
+
+def test_the_clause_sits_inside_the_terminator(tmp_path):
+    # A `why` is one sentence and has to end like one, so a clause bolted on behind the full
+    # stop is two — `why.sentences` and `why.no-terminator`, the right refusal about the wrong
+    # thing. One writer for both derived clauses, so neither can drift into that state.
+    config = project(tmp_path, ledger=SHIPPED_LEDGER)
+    record(
+        config,
+        block="A",
+        symptom="The change was deliberate and the revert removed it",
+        why="The declared value is honoured again.",
+        supersedes="RK9",
+    ).save()
+
+    assert [f.code for f in lint(Config.discover(tmp_path)).findings] == []
+
+
+def test_an_id_the_ledger_does_not_carry_is_refused_and_nothing_lands(tmp_path):
+    config = project(tmp_path, ledger=SHIPPED_LEDGER)
+    was = read(tmp_path, "CHANGELOG.md")
+    with pytest.raises(NotRecorded):
+        record(
+            config,
+            block="A",
+            symptom="A revert of something nobody recorded",
+            why="Because the entry it names is not there.",
+            supersedes="RK99",
+        )
+
+    # Not even the new entry: the two edits reach disk together or neither does.
+    assert read(tmp_path, "CHANGELOG.md") == was
+
+
+def test_an_id_the_ledger_states_twice_leaves_the_choice_unanswerable(tmp_path):
+    doubled = SHIPPED_LEDGER.replace(
+        "## Block B — Authoring",
+        "- ✅ **RK9** **A second entry under one id** — Which of the two this names.\n\n"
+        "## Block B — Authoring",
+    )
+    config = project(tmp_path, ledger=doubled)
+    with pytest.raises(Ambiguous):
+        record(
+            config,
+            block="A",
+            symptom="A revert against an id stated twice",
+            why="Because which entry it points at is not a fact any file holds.",
+            supersedes="RK9",
+        )
+
+
+def test_an_open_roadmap_line_is_named_as_where_the_id_actually_is(tmp_path):
+    config = project(tmp_path)
+    with pytest.raises(NotRecorded) as raised:
+        record(
+            config,
+            block="A",
+            symptom="A revert against a line that never shipped",
+            why="Because the entry it names is still an open line.",
+            supersedes="RK1",
+        )
+
+    assert "open roadmap line" in str(raised.value)
+
+
+def test_a_record_that_supersedes_nothing_carries_no_pointer(tmp_path):
+    config = project(tmp_path, ledger=SHIPPED_LEDGER)
+    entry = record(
+        config,
+        block="B",
+        symptom="A fix nobody planned",
+        why="Because it was found on the way to something else.",
+    )
+    entry.save()
+
+    assert entry.superseded is None
+    assert "superseded by" not in read(tmp_path, "CHANGELOG.md")
+
+
+def test_the_command_prints_the_edit_the_caller_did_not_spell(tmp_path, capsys):
+    config = project(tmp_path, ledger=SHIPPED_LEDGER)
+    argv = [
+        "-C", str(config.root), "record", "add", "--block", "A",
+        "--symptom", "The change was deliberate and the revert removed it",
+        "--why", "The declared value is honoured again.",
+        "--supersedes", "RK9",
+    ]
+    assert main(argv) == EXIT_OK
+
+    out = capsys.readouterr().out
+    assert "pointed  CHANGELOG.md:5 RK9 now names RK10 as what replaced it" in out
+
+
+def test_the_command_carries_the_superseded_entry_in_json(tmp_path, capsys):
+    config = project(tmp_path, ledger=SHIPPED_LEDGER)
+    argv = [
+        "-C", str(config.root), "record", "add", "--block", "A",
+        "--symptom", "The change was deliberate and the revert removed it",
+        "--why", "The declared value is honoured again.",
+        "--supersedes", "RK9", "--json",
+    ]
+    assert main(argv) == EXIT_OK
+
+    answer = json.loads(capsys.readouterr().out)
+    assert answer["superseded"]["id"] == "RK9"
+    assert "(superseded by RK10)" in answer["superseded"]["rendered"]

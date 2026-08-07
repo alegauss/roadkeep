@@ -89,7 +89,12 @@ open marker is what the store could not keep, so `--marker` is where you say whi
 A dep on a paused task resolves as **deferred**, and the line waiting on it as
 `blocked-paused` — not offered, counted apart, and unblocked by a `resume` rather than a ship.
 Reach for `retire` only when the work is not coming back. `record add --block <x> --symptom "…" --why "…"` is the fourth — never
-planned, so the ledger entry alone and the roadmap untouched, and `record drop <id>` is its inverse:
+planned, so the ledger entry alone and the roadmap untouched. It is also **the revert**:
+`--supersedes <id>` writes the entry saying the work did not hold *and* appends the forward
+pointer to the entry saying it shipped, in one write — reach for it there, because `retire`
+needs a roadmap line the ship already removed and `record drop` refuses a non-duplicate, so
+without it the ledger holds two records of one decision that do not name each other. Both
+entries stay: the ledger is history and both happened. `record drop <id>` is its inverse:
 refused unless the ledger states that id **twice** *and the two say the same thing*, then the
 later entry goes and the first stays,
 because removing the only record of a decision is deleting history. Two entries that differ are

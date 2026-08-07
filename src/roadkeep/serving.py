@@ -321,7 +321,10 @@ TOOLS: tuple[Tool, ...] = (
     Tool("retire", ("id", "reason", "superseded_by")),
     Tool("defer", ("id", "reason")),
     Tool("resume", ("id", "marker")),
-    Tool("record add", ("block", "symptom", "why")),
+    # `supersedes` rides with it because the revert is one transaction (RK395): the entry that
+    # says the work did not hold and the pointer on the entry that says it shipped are two
+    # edits an agent cannot make separately — the second one is a hand edit the guard denies.
+    Tool("record add", ("block", "symptom", "why", "supersedes", "lines")),
     # The ledger's update (RK124). `part` rides with it because a qualifier that stopped
     # being true is the commonest correction an entry needs, and the agent that wrote it is
     # the one the hook denies a hand-edit to.

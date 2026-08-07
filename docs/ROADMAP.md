@@ -25,7 +25,6 @@
 ## Block B — Authoring (insert, never hand-edit)
 
 - 💭 **RK385** (deps: —) **Nothing notices that a new line asks for what a shipped entry already delivered** — RK378 was filed the day after RK340 shipped the same namespace and nothing refused it, so a duplicate costs a claim, a brief and a retirement before anyone reads the ledger. → §RK385
-- 📋 **RK395** (deps: —) **A shipped entry that gets reverted stays in the ledger saying it shipped** — retire needs a roadmap line the ship already removed and record drop refuses a non-duplicate, so the revert can only be a second unlinked entry and the first still reads as delivered. → §RK395
 
 ## Block C — Query (consult without reading the file)
 

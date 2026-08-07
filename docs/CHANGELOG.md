@@ -135,6 +135,7 @@
 - ✅ **RK388** **A heading that parsed with its sigil is rewritten without one by a verb amending a different part of the file** — A body-only amend leaves the heading line's bytes alone, so a sigil the reader accepts and the writer would not reproduce survives a write to the prose beneath it.
 - ✅ **RK397** **A prose paragraph whose line starts with a bold span is inserted verbatim instead of filled** — A list marker is the character and the space after it, so a line opening with a bold span is prose the writer fills and the estimate measures.
 - ✅ **RK368** **A non-goal whose reason changes has no door but drop and re-add, which moves the bullet to the end of the list** — non-goal amend rewrites the reason where the bullet already sits, so a reworded constraint is a word changing rather than a deletion and an append.
+- ✅ **RK395** **A shipped entry that gets reverted stays in the ledger saying it shipped** — record add --supersedes writes the revert entry and appends the forward pointer to the entry it replaces, so the ledger's two records of one decision name each other.
 
 ## Block C — Query
 

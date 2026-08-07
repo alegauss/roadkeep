@@ -826,6 +826,9 @@ class Record:
     refreshed: tuple[str, ...] = ()
     #: The marker the entry carries: ✅, the only one a record can mean.
     marker: str = ""
+    #: The earlier entry this one supersedes, as it now reads with the forward pointer on it
+    #: (RK395). None on every `record add` that supersedes nothing, which is most of them.
+    superseded: Entry | None = None
 
     def save(self) -> None:
         """Write the ledger, and the roadmap only if a line in it actually changed."""
@@ -1330,6 +1333,13 @@ def _holding(backlog: Backlog, task_id: str) -> str | None:
     return None
 
 
+#: How an entry names the one that replaced it (RK395). Parenthesised into the ledger's own
+#: sentence by :func:`_parenthesised`, for `--superseded-design`'s reason (RK310): the line has
+#: one prose slot, and the clause is a fact this command holds rather than prose it writes
+#: (L4, RK8). The wording is `retire`'s, the shape being that verb with the target file changed.
+_SUPERSEDED = "superseded by {replacement}"
+
+
 def record(
     config: Config,
     *,
@@ -1337,6 +1347,8 @@ def record(
     symptom: str,
     why: str,
     task_id: str | None = None,
+    supersedes: str | None = None,
+    lines: int | None = None,
 ) -> Record:
     """Write a ledger entry for work that shipped without ever being planned (RK41).
 
@@ -1351,6 +1363,17 @@ def record(
     `symptom` rule is the one that must not soften: what did not work, stated so it could
     have been falsified — never the name of the patch that closed it (L4 leaves that to
     the caller, here as everywhere).
+
+    ``supersedes`` is the **revert**, and it is one transaction rather than two (RK395).
+    Measured on Turing: T922 and T924 shipped and were reverted an hour later, and recording
+    that took three attempts at the wrong verb. `retire` starts from a roadmap line `ship`
+    had already removed; `record drop` refuses anything but a duplicate, rightly, because
+    removing the only record of a decision is deleting history. What was left was this
+    command — which wrote the revert as an entry the earlier one knew nothing about, so a
+    reader who found T922 read an entry saying it shipped with no pointer to the one saying
+    it did not hold. Both entries stay, because both happened; what is added is the forward
+    pointer `retire --superseded-by` already writes one file over, appended to the earlier
+    sentence in **this** write rather than in a second one a crash can lose.
     """
     if task_id is None:
         task_id = next_id(config)
@@ -1359,6 +1382,8 @@ def record(
 
     ledger = config.document("changelog")
     marker = config.schema.shipped_marker
+    if supersedes is not None:
+        ledger = _supersede(config, ledger, supersedes, task_id, lines)
     insertion = place(
         ledger,
         Task(id=task_id, status=marker, block=block, symptom=symptom, why=why),
@@ -1378,7 +1403,54 @@ def record(
         roadmap=derived.document,
         refreshed=derived.changed,
         marker=marker,
+        # Read back off the document the insertion left, because the entry above it moved if
+        # the new line landed first — a report naming the line it was read at would name
+        # whatever came up into its place (the care RK357 takes about the same address).
+        superseded=(
+            None if supersedes is None else insertion.document.by_id()[supersedes]
+        ),
     )
+
+
+def _supersede(
+    config: Config,
+    ledger: Document,
+    task_id: str,
+    replacement: str,
+    lines: int | None,
+) -> Document:
+    """Append the forward pointer to the entry this write replaces (RK395).
+
+    The rewrite `record amend` makes, with the sentence derived rather than passed: what a
+    reverted entry is missing is not a better `why`, it is the address of the entry that says
+    it did not hold — and an author asked to compose that clause is an author who can spell it
+    two ways (RK8's split, and `retire --superseded-by`'s exactly).
+
+    Its refusals are that verb's, for the same reasons: an id the ledger does not carry has no
+    sentence to append to, an id it carries **twice** leaves which entry unanswerable by any
+    file, and an entry that **wraps** is rewritten over its whole span — so a hand-written
+    ledger costs a `--lines` saying how many, or the write deletes text the parse never held
+    (RK179). Nothing is written by this function; the caller places the new entry into what it
+    returns, so the two edits reach disk together or neither does.
+    """
+    # No self-pointer check: the replacement is derived, or `refuse_reuse` refused an id any
+    # file already mentions, so an entry naming itself is a state neither door can reach.
+    where = config.relative(config.path("changelog"))
+    twins = tuple(entry for entry in ledger.entries if entry.task.id == task_id)
+    if not twins:
+        raise NotRecorded(
+            task_id, where, open_line=task_id in config.document("roadmap").by_id()
+        )
+    if len(twins) > 1:
+        raise Ambiguous(task_id, where, tuple(entry.lineno for entry in twins))
+
+    entry = twins[0]
+    counted(task_id, where, entry, lines, verb="pointing it forward")
+    wanted = replace(
+        entry.task,
+        why=_parenthesised(entry.task.why, _SUPERSEDED.format(replacement=replacement)),
+    )
+    return ledger.rewrite_entry(entry, ledger.schema.check(wanted))
 
 
 def _partial(
@@ -1564,23 +1636,33 @@ def _depart(
 def _superseding(why: str, anchor: str, superseded: str) -> str:
     """The outcome with the overtaken design named inside it, as one sentence (RK310).
 
-    **Inside the terminator, not after it**, and that is the whole of what this function is
-    for: a `why` is one sentence and has to end like one, so a clause bolted on behind the
-    full stop is two — refused by `why.sentences` and `why.no-terminator` at the door, which
-    is the right refusal about the wrong thing. The author's own punctuation is what closes
-    the composed sentence, so a `why` that never ended like one is still refused, and the
-    terminator is moved rather than chosen: this writes no prose (L4), it parenthesises.
-
     The note is the author's verbatim. A full stop *inside* it is still two sentences and is
     still refused, which is right — the second sentence belongs in the design file the same
     way it does anywhere else, and there is no case for saying it in the one clause whose
     subject is a design that no longer exists.
     """
+    return _parenthesised(why, f"design §{anchor} superseded: {superseded}")
+
+
+def _parenthesised(why: str, clause: str) -> str:
+    """A `why` carrying a derived clause **inside its terminator** (RK310, RK395).
+
+    That placement is the whole of what this function is for: a `why` is one sentence and has
+    to end like one, so a clause bolted on behind the full stop is two — refused by
+    `why.sentences` and `why.no-terminator` at the door, which is the right refusal about the
+    wrong thing. The author's own punctuation is what closes the composed sentence, so a `why`
+    that never ended like one is still refused, and the terminator is moved rather than
+    chosen: this writes no prose (L4), it parenthesises.
+
+    One writer for both clauses the ledger derives — the design a ship overtook, and the entry
+    a revert replaced — because two call sites composing the same shape is how one of them
+    comes to be refused by the gate the other passes.
+    """
     stem = why.rstrip()
     terminator = ""
     if stem and stem[-1] in ".!?":
         stem, terminator = stem[:-1].rstrip(), stem[-1]
-    return f"{stem} (design §{anchor} superseded: {superseded}){terminator}"
+    return f"{stem} ({clause}){terminator}"
 
 
 def _others_pointing(config: Config, anchor: str, leaving: str) -> tuple[str, ...]:
