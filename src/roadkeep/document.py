@@ -222,14 +222,35 @@ class UnknownBlock(ValueError):
     left: the file and the verb are the remedy, and a line of labels in front of them is a
     question nobody asked. :func:`declares` is where that decision is written, and
     :attr:`declared` still carries them for a caller that wants them.
+
+    ``into`` is the file the line was going into, said only when it is **not** the file the
+    labels came from (RK404). One raiser is in that position: `add` asks the ledger for the
+    heading the first `ship` will need (RK380), and the sentence it reuses was written for a
+    write into the file it names — so an author adding a line to a roadmap whose `## Block A`
+    is on the screen in front of them reads a refusal about `CHANGELOG.md` as *your label is
+    wrong*, which is the one thing it is not. The same confusion RK257 measured one surface
+    over. Absent where the two are one file, which is every other raiser: there the clause
+    would say the thing the sentence already said.
     """
 
     def __init__(
-        self, label: str, declared: Sequence[str], where: str = "", word: str = "Block"
+        self,
+        label: str,
+        declared: Sequence[str],
+        where: str = "",
+        word: str = "Block",
+        *,
+        into: str = "",
     ) -> None:
         self.label = label
         self.declared = tuple(declared)
+        self.into = into
         file = f" in {where}" if where else ""
+        elsewhere = (
+            f", though {into} (where this line goes) declares it"
+            if into and into != where
+            else ""
+        )
         # The tail this refusal adds to the shared diagnosis: at a *write* the danger is
         # taking "add the heading" at its word and opening a second one over the first's work.
         shades = shading(label, self.declared)
@@ -242,7 +263,7 @@ class UnknownBlock(ValueError):
             shades = "; the verb that opens it wherever it is missing is"
         super().__init__(
             f"no heading declares {word} {label}{file}"
-            f"{declares(self.declared, named=bool(where))}: a heading "
+            f"{declares(self.declared, named=bool(where))}{elsewhere}: a heading "
             f"invented by a write files the text where nothing looks for it{shades} "
             f'`block add {label} --title "<its title>"`'
         )

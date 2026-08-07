@@ -877,6 +877,9 @@ def declaring(config: Config, block: str) -> None:
         sorted({heading.label for heading in ledger.headings if heading.label}),
         config.relative(config.path("changelog")),
         word=ledger.schema.heading_word,
+        # The one raiser whose two files differ (RK404): the labels are the ledger's and the
+        # line is the roadmap's, and unsaid that reads as the label being wrong.
+        into=config.relative(config.path("roadmap")),
     )
 
 

@@ -272,6 +272,7 @@
 - ✅ **RK391** **The gate holds no one-heading-per-label rule, and the write path resolves a repeated one by position** — lint reports block.repeated at the second heading, and every write through place refuses instead of picking one.
 - ✅ **RK398** **The version bump the hook writes is never staged again once both files are dirty** — the hook asks whether the difference is the number, against the index, so its own unstaged bump is still its own.
 - ✅ **RK403** **A project whose ledger is organised by nothing can no longer write its first line** — the add and the gate ask the ledger only where it is organised by blocks, so neither names a remedy that refuses.
+- ✅ **RK404** **The refusal that sends an add to the block verb never says which file the line was going into** — the refusal names the file the line was going into, where that is not the file its labels came from.
 
 ## Block E — Adoption
 

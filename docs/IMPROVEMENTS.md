@@ -165,33 +165,6 @@ for the deferred store, and the default is the wrong one.
 
 ## Block D — The gate
 
-### §RK404 One sentence, two doors, and only one of them writes there
-
-The refusal is reused deliberately: one condition should not grow a second sentence to
-keep true. But it was written for a write *into* the file it names, and at the add that
-is not what is happening — the line goes into the roadmap, and the ledger is being asked
-about a heading a later `ship` will need. So the author reads:
-
-```
-no heading declares Block A in docs/CHANGELOG.md: a heading invented by a write files
-the text where nothing looks for it
-```
-
-while adding a line to a roadmap whose `## Block A` is on the screen in front of them.
-The middle clause explains a write nobody asked for, and the file named is not the file
-being written. It is the same confusion RK257 measured one surface over, where the
-labels listed were the ledger's and the author concluded the label was wrong.
-
-What is missing is one fact: *which file the line is going into*. A clause naming it
-turns the sentence from "your block is wrong" into "your block is fine here and not
-there yet", which is the whole content of the refusal.
-
-Not a second exception. The refusal already carries `where` — the file it read the
-labels from — and what it does not carry is the other end. Giving it that, and letting
-the clause appear only when the two differ, keeps one sentence for one condition and
-costs the ship's own refusal nothing: there both ends are the ledger, so the clause is
-absent.
-
 ## Block E — Adoption
 
 ### §RK402 The tree that ships the plugin is told to wire the guard a second time

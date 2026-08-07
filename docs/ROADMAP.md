@@ -33,8 +33,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK404** (deps: —) **The refusal that sends an add to the block verb never says which file the line was going into** — It names the ledger and the labels the ledger declares, so an author looking at a roadmap heading they can see reads it as the label being wrong. → §RK404
-
 ## Block E — Adoption
 
 - 📋 **RK402** (deps: —) **The tree that ships the plugin is told to wire the guard a second time** — install --check names two surfaces this checkout provides as a plugin and skips them, and asks to write the same hooks into .claude/settings.json, so the read never reports clean here. → §RK402

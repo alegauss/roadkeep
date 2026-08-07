@@ -253,6 +253,10 @@ def test_a_block_the_ledger_does_not_declare_is_refused_at_the_add(tmp_path):
     # is the one the first ship in this block would have given, at the end of the task.
     message = str(raised.value)
     assert CHANGELOG in message and 'block add B --title "<its title>"' in message
+    # And the file the line was going into (RK404), because the roadmap's own `## Block B`
+    # is on the author's screen and a refusal naming only the ledger reads as a bad label.
+    assert f"though {ROADMAP} (where this line goes) declares it" in message
+    assert raised.value.into == ROADMAP
     assert source(config) == BODY
 
 
@@ -262,7 +266,11 @@ def test_the_roadmap_answers_first_when_neither_file_declares_the_block(tmp_path
         task(config, block="Z")
     # One mistake, named against the file the line was going into: `block add Z` opens the
     # heading in both, so a second sentence about the ledger would be the same remedy twice.
-    assert ROADMAP in str(raised.value)
+    message = str(raised.value)
+    assert ROADMAP in message
+    # And no clause about a second file (RK404): the two ends are one file here, so saying
+    # it would repeat what the sentence has already said.
+    assert "where this line goes" not in message
 
 
 def test_a_block_both_files_declare_is_written(tmp_path):
