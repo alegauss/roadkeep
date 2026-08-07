@@ -126,7 +126,7 @@ called unbuilt were already in the ledger.
 
 **Next ready:**
 
-- 💭 **RK366** (deps: —) **The skill every adopting project loads has 24 body lines past 110 characters against a file otherwise wrapped at 90** — One pattern made them all — text appended to a line instead of the paragraph re-wrapped — so an edit arrives as a whole-paragraph diff and nothing holds the shape. → §RK366
+- 🛠 **RK377** (deps: —) **A doubled anchor has no verb that repairs it** — lint reports section.ambiguous and the write path refuses a doubling, but no verb changes a section's address, so the only repair left is the hand edit the hook denies. → §RK377
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

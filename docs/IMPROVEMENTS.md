@@ -147,25 +147,27 @@ refusal that cannot succeed never consumes the body at all.
 
 `amend` states the rule plainly: "The `symptom` is not amendable — it is the claim the
 line is, so a different one is a different task." That is right when the claim is
-different. It cannot distinguish a *different* claim from a *widened* one.
+different. It cannot distinguish a *different* claim from one the same work narrowed or
+widened.
 
-The case, from Turing. T917 was filed as "The showcase build rewrites a tracked file on
-every run". Running the full matrix an hour later showed the same `gen-manifest`
-stamping three marketplace apps too — same script, same defect, same fix, three more
-instances. The task was not different; its symptom was now false, naming one app out of
-four.
+Two instances from Turing, a day apart.
 
-The doors available were all wrong. `amend --why` and `section amend --title` took the
-correction, so the line said "showcase" while the prose beside it said "four apps" — the
-divergence RK's own design note tolerates, here caused by the rule rather than by an
-author. `retire` plus a fresh `add` would have been honest about the symptom and
-dishonest about everything else: a new id, a dropped dep edge, and a retirement that
-reads as abandonment.
+**Widened.** T917 was filed as "The showcase build rewrites a tracked file on every
+run". An hour later the same `gen-manifest` was found stamping three marketplace
+apps too — same script, same fix, three more instances.
 
-What is missing is the narrow door: `amend --symptom` gated on the existing text being a
-**prefix-preserving widening**, or an explicit `--widen` that records the old spelling
-in the ledger rather than discarding it. The audit trail is the point — the reason to
-refuse a silent rewrite is not a reason to refuse a recorded one.
+**Narrowed.** T927 was filed as "Ten high advisories are open in the frontend
+dependency tree". A partial ship cleared seven, and the line still reads ten — the
+number is the claim, and the claim is false.
+
+The available doors were wrong both times. `amend --why` and `section amend` took the
+correction, so the line said one thing and the prose beside it another. `retire` plus a
+fresh `add` would have been honest about the symptom and dishonest about everything
+else: a new id, a dropped dep edge, and a retirement that reads as abandonment.
+
+What is missing is the narrow door: `amend --symptom` gated on the existing text, or an
+explicit `--restate` that records the old spelling in the ledger rather than discarding
+it. The reason to refuse a silent rewrite is not a reason to refuse a recorded one.
 
 ### §RK385 Nothing notices that a new line asks for what a shipped entry already delivered
 
