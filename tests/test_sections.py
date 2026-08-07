@@ -2451,3 +2451,69 @@ def test_a_refusal_writes_nothing_and_exits_two(tmp_path, capsys):
     assert main(argv) == EXIT_USAGE
 
     assert read(config) == DOUBLED_IMPROVEMENTS
+
+
+# -- the paragraph named by path (RK381) --------------------------------------
+
+
+class _Unread:
+    """A pipe that fails the test if anything drains it — see the same class one file over."""
+
+    def read(self) -> str:
+        raise AssertionError("a body named by path must not reach the pipe (RK381)")
+
+
+def test_a_section_body_can_be_named_by_path(tmp_path, capsys, monkeypatch):
+    # The affordance is the retry: `anchor.unknown` and every title rule are checked with the
+    # body, so a refusal on either spends a paragraph the pipe cannot hand over twice.
+    config = project(tmp_path)
+    body = tmp_path / "body.md"
+    body.write_text("The reasoning, drafted before it was filed.\n", encoding="utf-8")
+    monkeypatch.setattr("sys.stdin", _Unread())
+
+    argv = ["-C", str(tmp_path), "section", "add", "--title", "A design", "--body-file", str(body)]
+    assert main([*argv, "RK99"]) == EXIT_USAGE
+    capsys.readouterr()
+
+    assert main([*argv, "RK2"]) == EXIT_OK
+    assert "The reasoning, drafted before it was filed." in read(config)
+
+
+def test_an_amend_can_name_the_replacement_by_path(tmp_path, capsys, monkeypatch):
+    config = project(tmp_path)
+    body = tmp_path / "body.md"
+    body.write_text("The corrected reasoning, from a file.\n", encoding="utf-8")
+    monkeypatch.setattr("sys.stdin", _Unread())
+
+    argv = ["-C", str(tmp_path), "section", "amend", "RK1", "--body-file", str(body)]
+    assert main(argv) == EXIT_OK
+    assert "(body)" in capsys.readouterr().out
+    assert "The corrected reasoning, from a file." in read(config)
+
+
+def test_an_amend_naming_the_prose_twice_is_refused(tmp_path, capsys):
+    config = project(tmp_path)
+    argv = ["-C", str(config.root), "section", "amend", "RK1", "--body", "x", "--body-file", "y"]
+    assert main(argv) == EXIT_USAGE
+
+    assert "two answers to one question" in capsys.readouterr().err
+    assert read(config) == RATIONALE
+
+
+def test_a_title_only_amend_still_never_opens_the_pipe(tmp_path, capsys, monkeypatch):
+    # The third source must not become a fourth default: `--body-file` absent leaves a
+    # title-only amend exactly as it was, which is the prose untouched and no pipe opened.
+    config = project(tmp_path)
+    monkeypatch.setattr("sys.stdin", _Unread())
+    argv = ["-C", str(tmp_path), "section", "amend", "RK1", "--title", "A better name"]
+
+    assert main(argv) == EXIT_OK
+    assert "(title)" in capsys.readouterr().out
+    assert "The reasoning the line has no room for." in read(config)
+
+
+def test_an_amend_with_none_of_the_three_names_all_three(tmp_path, capsys):
+    config = project(tmp_path)
+    assert main(["-C", str(config.root), "section", "amend", "RK1"]) == EXIT_USAGE
+
+    assert "--body-file" in capsys.readouterr().err

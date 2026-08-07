@@ -45,7 +45,7 @@ one for the same id is refused instead of reconciled.
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, replace
 
 from roadkeep import claiming, sections
@@ -66,6 +66,12 @@ from roadkeep.ids import next_id, scan
 from roadkeep.markers import derive, refresh
 from roadkeep.schema import SchemaError, Task
 from roadkeep.sections import Section
+
+#: The rationale a line arrives with: the heading, and prose that is either the string itself
+#: or a **reader** for it (RK381). A reader is called once, at the last moment it can be — see
+#: :func:`_with_section` — so a caller whose paragraph comes off a pipe does not spend it on a
+#: call the line's own fields were going to refuse.
+Rationale = tuple[str, "str | Callable[[], str]"]
 
 
 class IdInUse(ValueError):
@@ -325,7 +331,7 @@ def add(
     ref: str | None = None,
     task_id: str | None = None,
     family: str | None = None,
-    section: tuple[str, str] | None = None,
+    section: Rationale | None = None,
 ) -> Insertion:
     """Insert one task into the roadmap and save it. The whole write path.
 
@@ -350,6 +356,16 @@ def add(
     it points at arrive together or neither does. Omitted, nothing is invented (L4):
     :attr:`Insertion.needs` carries the anchor that resolves to nothing, so the command
     that created the obligation is the one that states it.
+
+    Its body may be a **reader** rather than a string, and the ordering below is the whole
+    reason (RK381). Every refusal the *line* can raise — a spent id, a `why` three words
+    over, an undeclared block, a rendered line past its limit — happens above
+    :func:`_with_section`, and the docstring at the top of this module says why that is
+    right. What it stopped short of is that a caller reading the paragraph off a pipe has
+    already spent it by the time the refusal arrives, and a pipe does not rewind: measured
+    against Turing, a `--why` 15 characters over cost a 184-word body a second time, to
+    correct three words in a different argument. So the prose is not fetched until the line
+    it belongs to has passed.
     """
     if task_id is None:
         task_id = next_id(config, family)
@@ -383,13 +399,23 @@ def add(
     return insertion
 
 
-def _with_section(config: Config, insertion: Insertion, title: str, body: str) -> Insertion:
+def _with_section(
+    config: Config, insertion: Insertion, title: str, body: str | Callable[[], str]
+) -> Insertion:
     """Validate the rationale against the line that is not on disk yet (RK93).
 
     Every refusal the prose file has — the word budget, an undeclared block, an anchor
     already taken — arrives here, *before* the roadmap is written: a transaction that
     wrote the line and then refused the section would leave exactly the dangling pointer
     this closes, and one the author did not choose.
+
+    A reader is called at the **last** moment it can be (RK381), which is below the two
+    refusals this function makes itself: a line with no anchor and a project with no prose
+    file are both facts known before a paragraph is needed, and reading one to discard it is
+    the cost this door exists to stop paying. What is left above the read is
+    :func:`sections.add`'s own anchor and title checking, which cannot be split from the
+    body's without giving up reporting every violation at once — and that residue is what a
+    body named by *path* answers instead, the retry re-reading the file.
     """
     task = insertion.entry.task
     if not task.ref:
@@ -397,7 +423,9 @@ def _with_section(config: Config, insertion: Insertion, title: str, body: str) -
     role = prose_role(config)
     if role is None:
         raise NoProseFile(task.id)
-    prose, written = sections.add(config, role, task.ref, title, body, task=task)
+    prose, written = sections.add(
+        config, role, task.ref, title, body() if callable(body) else body, task=task
+    )
     return replace(insertion, prose=prose, section=written)
 
 

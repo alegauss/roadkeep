@@ -120,8 +120,15 @@ and prior ids, so it carries the apostrophe, the backtick and the `§` a shell r
 shell that eats a backtick does not refuse — it hands over prose subtly unlike what you wrote
 and the line lands. The pipe's own trailing newline comes off; a trailing space is still yours
 and still refused, and two arguments asking for one pipe is refused naming both. Over MCP there
-is no pipe, so every write that reads one takes it **as a string** and refuses `-` by name. **`section amend <id>` is how a
-live design is corrected**: `--body -` replaces its own prose, `--title` its heading, the
+is no pipe, so every write that reads one takes it **as a string** and refuses `-` by name.
+**A pipe does not rewind, and a paragraph is the expensive argument**: an `add` refused for a
+`why` three words over used to cost the whole rationale a second time, so the body is now
+fetched *below* every refusal the line itself can raise — and where that is not enough, because
+`section add` reports the anchor, the title and the body together, `--section-body-file` and
+`--body-file` name the paragraph by **path** and the retry re-reads it, costing the corrected
+field alone. Prefer the path over the heredoc for prose you drafted before filing it; naming
+both the prose and its path is refused. **`section amend <id>` is how a
+live design is corrected**: `--body -` or `--body-file` replaces its own prose, `--title` its heading, the
 subtree and the anchor are untouched, and it is the only door for prose. **The anchor is
 `section move <anchor> --to <address>`**, and only under an outline: `renumber` moves an id and
 leaves the pointer as typed under every other scheme, so an address had no verb at all and the

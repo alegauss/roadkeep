@@ -42,7 +42,7 @@ import sys
 import tempfile
 import tomllib
 import traceback
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 from typing import NoReturn
 
@@ -164,6 +164,13 @@ _JSON_HELP = "machine-readable form"
 #: Appended to every prose argument that reads the pipe (RK329), so the convention is one
 #: sentence in nine help strings rather than nine sentences that drift.
 _PIPE = "; '-' reads stdin, which is how an apostrophe or a backtick survives a shell"
+#: Appended to every prose argument that also answers to a path (RK381), so the convention is
+#: one sentence in three help strings rather than three that drift. What it buys over the pipe
+#: is the **retry**: a refusal on a short field re-reads the file and costs that field alone.
+_BODY_FILE = (
+    "read the {what} from this file instead — a pipe does not rewind, so a refusal on a "
+    "short field costs the paragraph again; a path costs the corrected field alone"
+)
 #: One sentence, on both `pick` and `brief`, because it is one flag (RK83): a caller asking
 #: to execute a block wants work whose design is written, and the markers already say which.
 _DESIGNED_HELP = (
@@ -344,6 +351,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="the rationale prose; omitted or '-' reads stdin. Read only with --section",
     )
     add_parser.add_argument(
+        "--section-body-file",
+        dest="section_body_file",
+        metavar="PATH",
+        help=_BODY_FILE.format(what="rationale"),
+    )
+    add_parser.add_argument(
         "--json", action="store_true", help="the line, with the file and line it landed on"
     )
     # `reads_stdin` is declared here for the reason `reads_only` is (RK171): it is a claim about
@@ -391,6 +404,9 @@ def build_parser() -> argparse.ArgumentParser:
         help="the prose; omitted or '-' reads stdin, which is how a paragraph gets in",
     )
     section_add.add_argument(
+        "--body-file", dest="body_file", metavar="PATH", help=_BODY_FILE.format(what="prose")
+    )
+    section_add.add_argument(
         "--role",
         default="improvements",
         help="which prose file (default: improvements)",
@@ -429,6 +445,12 @@ def build_parser() -> argparse.ArgumentParser:
             "the replacement prose; '-' reads stdin, and stdin is the default unless "
             "--title is the only thing being changed"
         ),
+    )
+    section_amend.add_argument(
+        "--body-file",
+        dest="body_file",
+        metavar="PATH",
+        help=_BODY_FILE.format(what="replacement prose"),
     )
     section_amend.add_argument(
         "--role", default="improvements", help="which prose file (default: improvements)"
@@ -2142,26 +2164,31 @@ def _next_id(config: Config, args: argparse.Namespace) -> int:
 
 
 def _add(config: Config, args: argparse.Namespace) -> int:
-    clash = _one_pipe(
+    piped = (
+        args.section is not None
+        and args.section_body_file is None
+        and args.section_body in (None, STDIN)
+    )
+    clash = _one_body("--section-body", args.section_body, args.section_body_file) or _one_pipe(
         ("--why", args.why == STDIN),
-        ("--section-body", args.section is not None and args.section_body in (None, STDIN)),
+        ("--section-body", piped),
     )
     if clash is not None:
         print(f"roadkeep: {clash}", file=sys.stderr)
         return EXIT_USAGE
     try:
-        # stdin inside the try for the reason `section add` reads it there: a paragraph
-        # that is not UTF-8 raises UnicodeDecodeError, which is a ValueError, and is
-        # refused with the exit code every other bad input gets. Read only when a title
-        # was given — an `add` with no rationale must never block on a pipe.
+        # The reader is handed over unread (RK381), so the paragraph is fetched below every
+        # refusal the *line* raises — an id already spent, a `why` three words over, a block
+        # nothing declares — and a pipe does not rewind. Inside the try for the reason
+        # `section add` reads there: prose that is not UTF-8 raises UnicodeDecodeError, which
+        # is a ValueError, and is refused with the code every other bad input gets. Gated on
+        # the title, because an `add` with no rationale must never block on a pipe.
         section = None
         if args.section is not None:
-            body = (
-                sys.stdin.read()
-                if args.section_body in (None, STDIN)
-                else args.section_body
+            section = (
+                args.section,
+                _body_reader(args.section_body, args.section_body_file),
             )
-            section = (args.section, body)
         insertion = add(
             config,
             block=args.block,
@@ -2328,11 +2355,16 @@ def _block_drop(config: Config, args: argparse.Namespace) -> int:
 
 def _section_add(config: Config, args: argparse.Namespace) -> int:
     # stdin by default: a paragraph does not fit comfortably in a shell argument, and a
-    # heredoc is how the caller of this tool already passes prose.
+    # heredoc is how the caller of this tool already passes prose. `--body-file` is the third
+    # source (RK381), and the one whose retry costs the corrected field alone.
+    clash = _one_body("--body", args.body, args.body_file)
+    if clash is not None:
+        print(f"roadkeep: {clash}", file=sys.stderr)
+        return EXIT_USAGE
     try:
         # Inside the try: a paragraph that is not UTF-8 raises UnicodeDecodeError, which
         # is a ValueError, so it is refused with the exit code every other bad input gets.
-        body = sys.stdin.read() if args.body in (None, "-") else args.body
+        body = _body_reader(args.body, args.body_file)()
         document, section = add_section(
             config, args.role, args.anchor, args.title, body, level=args.level
         )
@@ -2352,18 +2384,28 @@ def _section_add(config: Config, args: argparse.Namespace) -> int:
 
 
 def _section_amend(config: Config, args: argparse.Namespace) -> int:
-    if args.title is None and args.body is None:
+    if args.title is None and args.body is None and args.body_file is None:
         # Refused rather than defaulted to stdin: an `amend` with neither field is a
         # command that would block on a pipe nobody meant to open.
         print(
-            "roadkeep: nothing to amend: pass --body (or '-' for stdin) or --title",
+            "roadkeep: nothing to amend: pass --body (or '-' for stdin), --body-file or --title",
             file=sys.stderr,
         )
+        return EXIT_USAGE
+    clash = _one_body("--body", args.body, args.body_file)
+    if clash is not None:
+        print(f"roadkeep: {clash}", file=sys.stderr)
         return EXIT_USAGE
     try:
         # Inside the try for `section add`'s reason: prose that is not UTF-8 raises
         # UnicodeDecodeError, which is a ValueError, and is refused with the same code.
-        body = sys.stdin.read() if args.body == "-" else args.body
+        # `None` stays None here and does not become the pipe: a title-only amend leaves
+        # the prose alone, which is what `omitted=False` says one file over.
+        body = (
+            None
+            if args.body is None and args.body_file is None
+            else _body_reader(args.body, args.body_file)()
+        )
         document, section, changed = amend_section(
             config, args.role, args.anchor, title=args.title, body=body
         )
@@ -3176,6 +3218,43 @@ def _piped(value: str | None) -> str | None:
     if value != STDIN:
         return value
     return _TRAILING_NEWLINES.sub("", sys.stdin.read())
+
+
+def _body_reader(literal: str | None, path: str | None) -> Callable[[], str]:
+    """Where a paragraph comes from, as a reader nobody calls until it is needed (RK381).
+
+    Three sources and one function, because the caller that has to know which of them a given
+    argv chose is the caller that gets it wrong: a path, a string, and the pipe that both an
+    omitted argument and the documented `-` reach. Returned rather than read, so the ordering
+    :func:`~roadkeep.authoring.add` now guarantees is available to every door — a body fetched
+    at the call site is a body spent before the field that refuses has been looked at.
+
+    A file is read whole, in UTF-8, and its bytes are the author's: the trailing newline every
+    editor writes is `_normalize`'s to take off, exactly as it is for the pipe, and nothing
+    here reflows or strips. A path that is not there raises `OSError`, which is in
+    :data:`REFUSALS` and exits 2 like every other bad input.
+    """
+    if path is not None:
+        return lambda: Path(path).read_text(encoding="utf-8")
+    if literal is not None and literal != STDIN:
+        return lambda: literal
+    return sys.stdin.read
+
+
+def _one_body(named: str, literal: str | None, path: str | None) -> str | None:
+    """Why an argv naming a paragraph twice is refused, or None (RK381).
+
+    :func:`_one_pipe`'s rule for the other pair. A string and a path are two answers to one
+    question, and honouring either silently is how a caller comes to believe the file is what
+    landed — which is worse than the refusal, because the wrong prose is in the file and the
+    command said it worked.
+    """
+    if literal in (None, STDIN) or path is None:
+        return None
+    return (
+        f"{named} and {named}-file are two answers to one question: pass the prose or "
+        f"the path it is in, not both"
+    )
 
 
 def _one_pipe(*asked: tuple[str, bool]) -> str | None:

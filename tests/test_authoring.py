@@ -1098,3 +1098,211 @@ def test_the_prose_arrives_on_stdin_when_only_a_title_is_given(tmp_path, capsys,
         == EXIT_OK
     )
     assert "Because the gate said so." in design(config)
+
+
+# -- the paragraph a refusal must not spend (RK381) ---------------------------
+
+
+class _Unread:
+    """A pipe that fails the test if anything drains it.
+
+    The assertion cannot be made after the fact — a drained pipe and an unread one leave the
+    same files behind, which is exactly why this was invisible until it was measured against a
+    real corpus. So the pipe itself is what reports it.
+    """
+
+    def __init__(self) -> None:
+        self.text = "A paragraph that costs real tokens to compose, and to send again."
+
+    def read(self) -> str:
+        raise AssertionError(
+            "the body was read off stdin before the line's own fields had passed: a pipe "
+            "does not rewind, so this refusal costs the paragraph a second time (RK381)"
+        )
+
+
+def test_a_refusal_on_a_short_field_never_reaches_the_pipe(tmp_path, capsys, monkeypatch):
+    # Measured against Turing: `--why` 15 characters over a limit of 200, and acting on the
+    # refusal meant resending a 184-word heredoc unchanged to correct three words in a
+    # different argument. Every refusal the line can raise happens above the read now.
+    project(tmp_path, prose=DESIGN)
+    monkeypatch.setattr("sys.stdin", _Unread())
+    assert (
+        main(
+            [
+                "-C",
+                str(tmp_path),
+                "add",
+                "--block",
+                "B",
+                "--symptom",
+                "A second symptom",
+                "--why",
+                "Because of a reason that runs on well past the two hundred characters this "
+                "field is allowed, which is the ordinary way to trip it: one clause too many "
+                "in a sentence that was otherwise saying the right thing about the defect.",
+                "--section",
+                "A design",
+            ]
+        )
+        == EXIT_USAGE
+    )
+    assert "why.too-long" in capsys.readouterr().err
+
+
+def test_a_block_nothing_declares_is_the_same_refusal_one_field_over(tmp_path, monkeypatch):
+    # Not only the length rules: the id, the block and the rendered line are all decided
+    # above the read, so the property is the ordering rather than a list of codes.
+    project(tmp_path, prose=DESIGN)
+    monkeypatch.setattr("sys.stdin", _Unread())
+    with pytest.raises(UnknownBlock):
+        add(
+            Config.discover(tmp_path),
+            block="Z",
+            symptom="A second symptom",
+            why="Because of another reason.",
+            section=("A design", _Unread().read),
+        )
+
+
+def test_the_pipe_is_still_what_an_omitted_body_reaches(tmp_path, capsys, monkeypatch):
+    # The ordering changes when the paragraph is fetched and nothing else: an `add` whose
+    # fields pass still reads the pipe, which is the affordance every heredoc caller uses.
+    config = project(tmp_path, prose=DESIGN)
+    monkeypatch.setattr("sys.stdin", io.StringIO("Because the gate said so, by pipe."))
+    assert (
+        main(
+            [
+                "-C",
+                str(tmp_path),
+                "add",
+                "--block",
+                "B",
+                "--symptom",
+                "A second symptom",
+                "--why",
+                "Because of another reason.",
+                "--section",
+                "A design",
+            ]
+        )
+        == EXIT_OK
+    )
+    assert "Because the gate said so, by pipe." in design(config)
+
+
+def test_a_body_named_by_path_survives_the_retry(tmp_path, capsys, monkeypatch):
+    # The half the ordering cannot reach: `sections.add` reports every violation at once, so
+    # its anchor and title checks cannot be split from the body's — and there a path is what
+    # makes the second attempt cost the corrected field alone.
+    config = project(tmp_path, prose=DESIGN)
+    body = tmp_path / "body.md"
+    body.write_text("The rationale, drafted before it was filed.\n", encoding="utf-8")
+    monkeypatch.setattr("sys.stdin", _Unread())
+    argv = [
+        "-C",
+        str(tmp_path),
+        "add",
+        "--block",
+        "B",
+        "--symptom",
+        "A second symptom",
+        "--section",
+        "A design",
+        "--section-body-file",
+        str(body),
+        "--why",
+    ]
+    assert main([*argv, "A why with no full stop"]) == EXIT_USAGE
+    capsys.readouterr()
+
+    # The same argv with the sentence corrected, and the file re-read: nothing about the
+    # paragraph was resent, which is the whole saving.
+    assert main([*argv, "Because of another reason."]) == EXIT_OK
+    assert "The rationale, drafted before it was filed." in design(config)
+
+
+def test_naming_the_prose_and_the_path_it_is_in_is_refused(tmp_path, capsys):
+    # Two answers to one question. Honouring either silently is how a caller comes to believe
+    # the file is what landed, which is worse than the refusal: the wrong prose is in the file
+    # and the command said it worked.
+    project(tmp_path, prose=DESIGN)
+    assert (
+        main(
+            [
+                "-C",
+                str(tmp_path),
+                "add",
+                "--block",
+                "B",
+                "--symptom",
+                "A second symptom",
+                "--why",
+                "Because of another reason.",
+                "--section",
+                "A design",
+                "--section-body",
+                "Inline prose.",
+                "--section-body-file",
+                str(tmp_path / "body.md"),
+            ]
+        )
+        == EXIT_USAGE
+    )
+    assert "two answers to one question" in capsys.readouterr().err
+
+
+def test_a_path_that_is_not_there_is_refused_like_any_other_bad_input(tmp_path, capsys):
+    project(tmp_path, prose=DESIGN)
+    assert (
+        main(
+            [
+                "-C",
+                str(tmp_path),
+                "add",
+                "--block",
+                "B",
+                "--symptom",
+                "A second symptom",
+                "--why",
+                "Because of another reason.",
+                "--section",
+                "A design",
+                "--section-body-file",
+                str(tmp_path / "nothing-here.md"),
+            ]
+        )
+        == EXIT_USAGE
+    )
+    assert "nothing-here.md" in capsys.readouterr().err
+
+
+def test_a_file_and_the_why_on_the_pipe_are_not_a_clash(tmp_path, capsys, monkeypatch):
+    # `--why -` and an omitted `--section-body` are two arguments reaching one pipe and are
+    # refused (RK329). A body named by path is not on the pipe at all, so the sentence may be.
+    config = project(tmp_path, prose=DESIGN)
+    body = tmp_path / "body.md"
+    body.write_text("The rationale, from a file.\n", encoding="utf-8")
+    monkeypatch.setattr("sys.stdin", io.StringIO("Because a shell would eat the backtick.\n"))
+    assert (
+        main(
+            [
+                "-C",
+                str(tmp_path),
+                "add",
+                "--block",
+                "B",
+                "--symptom",
+                "A second symptom",
+                "--why",
+                "-",
+                "--section",
+                "A design",
+                "--section-body-file",
+                str(body),
+            ]
+        )
+        == EXIT_OK
+    )
+    assert "Because a shell would eat the backtick." in source(config)
+    assert "The rationale, from a file." in design(config)
