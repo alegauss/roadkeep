@@ -143,6 +143,28 @@ file declares, refuse an address history spent.
 
 Turing's T902 is the case in hand.
 
+### §RK381 A refusal on a short field costs the whole rationale a second time
+
+`add` validates everything before writing, and the docstring says why: "a limit reported
+after the prose exists is a limit discovered too late to save the tokens it was meant to
+save." That reasoning stops one step short. Nothing is written, but the *body* is
+already spent — it came in on stdin, and stdin does not rewind.
+
+Measured, on one `add` against Turing: `--why` was 215 characters against a limit of
+200. The refusal was correct and precise ("delete 15 characters — about 3 words").
+Acting on it meant resending a 184-word `--section-body` heredoc unchanged, to fix
+fifteen characters in a different argument. For an agent composing these, the body is
+the expensive half by an order of magnitude, and it is the half that was never in
+question.
+
+`--section-body-file <path>` fixes it completely: the retry re-reads the file and costs
+the corrected `--why` alone. It is also the more natural form for prose that was drafted
+somewhere before it was filed, and it leaves `-`/stdin exactly as it is for the piped
+case.
+
+Cheaper still, and complementary: validate the scalar fields before draining stdin, so a
+refusal that cannot succeed never consumes the body at all.
+
 ## Block C — Query
 
 ### §RK379 The refusal for a missing anchor does not name the anchor to use
