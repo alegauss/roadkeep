@@ -226,17 +226,54 @@ class NotACorpus(ValueError):
 
 
 class UnreadableBlock(ValueError):
-    """A `--block` value no heading parser would recognise as declaring a block.
+    """A `--block` value that is not one heading declaring a label.
 
     Refused at input rather than written: `## Block <whatever>` that yields no label is a
     heading `add` cannot file a task under, and the author would discover that later.
+
+    Two ways to be that, and the message says which (RK390). A value yielding no label is the
+    original; a value yielding a label **and more** is the one that got through, because the
+    check read the first heading and returned — so `A\\nB` was a block by that reading and the
+    scaffold wrote the `B` out as prose beneath it. Naming the cause is the rule RK370 settled
+    one refusal over: a caller holding a sentence about the wrong problem debugs the wrong
+    thing, and here the two problems are "this is not a block" and "this is a block plus a
+    line I did not ask you to write".
     """
 
-    def __init__(self, given: str) -> None:
+    def __init__(self, given: str, *, beyond: bool = False) -> None:
         self.given = given
+        #: Whether a label *was* read and the value carried more past it.
+        self.beyond = beyond
+        said = (
+            "names a block and then more, which would be written out under it"
+            if beyond
+            else "does not name a block"
+        )
         super().__init__(
-            f"--block {given!r} does not name a block: give the label first, "
+            f"--block {given!r} {said}: give the label first, "
             f"optionally with a title — 'A' or 'A {chr(0x2014)} The model'"
+        )
+
+
+class RepeatedBlock(ValueError):
+    """Two `--block` values that declare the same label (RK390).
+
+    One heading twice is a file no verb can address: `add --block A` files under whichever
+    comes first, and `ship` looks for that label in the changelog. It is refused rather than
+    folded to one, which is the choice §RK390 left open — folding makes `--block A --block A`
+    and `--block A` produce identical output, so the author never learns the command was
+    wrong, and `init` inventing what somebody meant is the one thing it does not do.
+
+    Read off the **labels** and never the values handed over, because `A` and `A — The model`
+    are one block written two ways, and it is the heading the label lands in that a verb has
+    to find exactly once.
+    """
+
+    def __init__(self, label: str) -> None:
+        self.label = label
+        super().__init__(
+            f"--block {label!r} was given twice: one label is one heading, and two of them "
+            f"is a file `add` files into by position and `ship` cannot resolve at all"
         )
 
 
@@ -519,6 +556,13 @@ def init(
     labels = tuple(_label(block, schema) for block in blocks)
     if not labels:
         raise UnreadableBlock("")
+    # The check of the *set*, which per-value validation cannot make (RK390): `_label` is right
+    # about each one and two of them being the same label is a fact about neither.
+    seen: set[str] = set()
+    for label in labels:
+        if label in seen:
+            raise RepeatedBlock(label)
+        seen.add(label)
 
     paths = {role: base / DEFAULT_PATHS[role] for role in roles}
     text = render_config(schema, {role: DEFAULT_PATHS[role] for role in roles})
@@ -703,11 +747,21 @@ def _verify(text: str, schema: Schema, base: Path, paths: Mapping[str, Path]) ->
 
 
 def _label(block: str, schema: Schema) -> str:
-    """The label a `--block` value declares, or a refusal — under this project's word."""
+    """The label a `--block` value declares, or a refusal — under this project's word.
+
+    **One heading and the whole value** (RK390). This used to read the label off the first
+    heading it found and return, which is true of `A` and true of `A\\nB` — where the parse
+    also produced a second line, and the scaffold then wrote it out as prose under a heading
+    that had, correctly, parsed. What refuses it is the line count and not a hunt for
+    newlines: the claim being made is that this value is one heading, and a value that came
+    back as two lines is not, whatever split it.
+    """
     document = Document.parse(f"## {schema.block_named(block.strip())}\n", schema)
     label = document.headings[0].label if document.headings else None
     if not label:
         raise UnreadableBlock(block)
+    if len(document.lines) != 1:
+        raise UnreadableBlock(block, beyond=True)
     return label
 
 

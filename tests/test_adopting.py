@@ -29,6 +29,7 @@ from roadkeep.adopting import (
     AlreadyConfigured,
     Estimate,
     NotACorpus,
+    RepeatedBlock,
     Unreadable,
     UnreadableBlock,
     WouldOverwrite,
@@ -260,6 +261,35 @@ def test_more_than_one_backlog_names_one_door_and_counts_the_rest(tmp_path: Path
 def test_a_block_no_heading_could_declare_is_refused(tmp_path: Path) -> None:
     with pytest.raises(UnreadableBlock):
         init(tmp_path, blocks=("— The model",))
+    assert written(tmp_path) == set()
+
+
+def test_a_block_that_names_one_and_then_more_is_refused(tmp_path: Path) -> None:
+    """RK390: the check read the first heading and returned, so `A\\nB` was a block by that
+    reading — and the scaffold wrote the `B` out as prose under a heading that did parse."""
+    with pytest.raises(UnreadableBlock) as caught:
+        init(tmp_path, blocks=("A\nB",))
+    assert written(tmp_path) == set()
+    # The message says which of the two problems it is, so a caller is not sent at the other
+    # (RK370): this value *does* name a block, and that is the confusing part of it.
+    assert caught.value.beyond and "and then more" in str(caught.value)
+
+
+def test_one_label_given_twice_is_refused_and_not_folded(tmp_path: Path) -> None:
+    # The check of the set, which per-value validation cannot make. Refused rather than folded,
+    # which §RK390 left open: folding makes this and `blocks=("A",)` produce identical files,
+    # so the author never learns the command was wrong.
+    with pytest.raises(RepeatedBlock):
+        init(tmp_path, blocks=("A", "A"))
+    assert written(tmp_path) == set()
+
+
+def test_one_label_spelled_two_ways_is_still_one_label(tmp_path: Path) -> None:
+    # Read off the labels and never the values: `A` and `A — The model` are one block written
+    # twice, and it is the heading the label lands in that a verb has to find exactly once.
+    with pytest.raises(RepeatedBlock) as caught:
+        init(tmp_path, blocks=("A", "A — The model"))
+    assert caught.value.label == "A"
     assert written(tmp_path) == set()
 
 
