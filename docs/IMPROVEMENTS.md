@@ -120,6 +120,23 @@ is the wrong guess), or rename one and keep the other accepted. Whichever way,
 "unrecognized arguments" is the wrong answer to a caller who named the field correctly
 and the verb's synonym for it wrongly.
 
+### §RK400 Name the parent a ship just emptied
+
+`ship` deletes the task's own `§<id>` section and already names any section whose prose
+cited what it deleted. Under an outline it leaves one thing standing that nothing names:
+the **parent** the deleted children hung under. That paragraph was written as an
+introduction to them — it states the problem they solve, in the present tense, often
+under a banner about what is or is not worth building.
+
+Shipping the last of `§X.1`–`§X.4` therefore leaves `§X` telling a reader the work is
+open, sometimes that it is on hold, and always describing a defect the ship just
+removed. It is the first thing anyone reads about that family and the only part of it a
+ship never touches.
+
+The fix is one line in the ship's answer, alongside the citation one: *"§X now has no
+subsections — its prose introduces work that shipped"*. Deciding what it should say
+instead is a `section amend`, and a judgement; noticing is not.
+
 ## Block C — Query
 
 ### §RK389 A dep naming two real ids is accepted as one thing outside the backlog
