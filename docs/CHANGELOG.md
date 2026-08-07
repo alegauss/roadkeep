@@ -328,6 +328,7 @@
 - ✅ **RK376** **A file that is not a backlog reports the headline an empty one gets, so a mistyped path reads as needing nothing** — The estimate counts what it read against what the file holds, so a zero over prose is told apart from a zero over an empty backlog.
 - ✅ **RK384** **A prefix named with --sections is taken and never used, and a value the command refuses elsewhere passes silently** — A prefix named beside --sections is refused, so the combination that reads nothing cannot look like one that read it.
 - ✅ **RK386** **The oldest of the estimate's three argument refusals is the one no test holds** — The three argument refusals are one parametrised table, so the untested one is held and a fourth arrives with its row empty.
+- ✅ **RK387** **The line telling an unread file from an empty one is on the backlog path only, so --sections still gives that zero** — Both runs count what they read and one test holds the pair across them, so a rationale file of prose no longer answers a blank one's words.
 
 ## Block F — The Claude Code plugin
 

@@ -5847,9 +5847,16 @@ def _print_estimate(estimate: Estimate) -> None:
         # First of the three, because it is the one that says the headline above means nothing
         # about a backlog (RK376). A measurement and never a verdict on the file: what was read
         # against what is there, leaving "you named the wrong file" to the reader (L4).
+        # Worded off `unit`, for the reason the `loose` line below is: the shapes a run reads
+        # are entries and bullets on a backlog and headings on a rationale file (RK387), and
+        # one sentence naming both would name neither run's.
+        shapes = (
+            "no entry, reject, table row, bullet or block heading"
+            if estimate.unit == "line"
+            else "no anchored section, and no heading carrying prose"
+        )
         print(
-            f"  unread   nothing in {estimate.lines} line(s) was read in any shape — "
-            f"no entry, reject, table row, bullet or block heading"
+            f"  unread   nothing in {estimate.lines} line(s) was read in any shape — {shapes}"
         )
     if estimate.tabular:
         # Directly under the headline, because it is the headline it explains: a table-shaped

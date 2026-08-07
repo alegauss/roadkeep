@@ -41,8 +41,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK387** (deps: —) **The line telling an unread file from an empty one is on the backlog path only, so --sections still gives that zero** — RK376 counted what was read where the estimate is built for entries, and the rationale run builds its own, so prose with no heading reports what a blank file reports. → §RK387
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - 💭 **RK366** (deps: —) **The skill every adopting project loads has 24 body lines past 110 characters against a file otherwise wrapped at 90** — One pattern made them all — text appended to a line instead of the paragraph re-wrapped — so an edit arrives as a whole-paragraph diff and nothing holds the shape. → §RK366

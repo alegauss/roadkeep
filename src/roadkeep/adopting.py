@@ -894,7 +894,13 @@ def adopt(
         tabular=len(document.tabular),
         listed=len(document.listed),
         lines=len(document.lines),
-        recognised=_recognised(document),
+        recognised=_recognised(
+            (entry.lineno for entry in document.entries),
+            (reject.lineno for reject in document.rejects),
+            (row.lineno for row in document.tabular),
+            (item.lineno for item in document.listed),
+            (heading.lineno for heading in document.headings if heading.label),
+        ),
     )
 
 
@@ -967,6 +973,15 @@ def _prose(
         # adopted the sigil has sections in every sense but this tool's, and the zero it used
         # to get is the one RK98 forbids.
         listed=len(loose),
+        # The same pair the backlog run carries (RK387). Its shapes are entries and bullets and
+        # this one's are headings, so what is read differs — what may not is whether the run
+        # says so, a rationale file of prose and no heading having answered a blank file's
+        # `0 conform, 0 would change` for as long as the other one stopped doing that.
+        lines=len(document.lines),
+        recognised=_recognised(
+            (section.first for section in found),
+            (heading.lineno for heading in loose),
+        ),
         measures=(
             Measure(
                 field="section",
@@ -1402,34 +1417,25 @@ def _alpha_head(text: str) -> str:
     return text
 
 
-def _recognised(document: Document) -> int:
-    """How many of this file's lines were read in **any** shape at all (RK376).
-
-    Every shape the reader has a name for, and no judgement about which: an entry is read, a
-    marker line it refused is read, a table row and a plain bullet are read as the shapes RK98
-    counts, and a heading is read where it **declares a block**. What is left over is prose,
-    blank lines, and a file that is not a backlog.
-
-    That last qualifier is the measurement rather than a detail of it. Counting every heading
-    put this back where it started: a `README.md` opens at `# My project` and carries an
-    `## Install`, so a file with nothing else the format can read answers two — while the same
-    headings are already absent from :attr:`Estimate.blocks`, which reads a label and finds
-    none. A heading this format cannot read as structure is exactly the prose that walked past.
+def _recognised(*shapes: Iterable[int]) -> int:
+    """How many of a file's lines were read in **any** shape at all (RK376, RK387).
 
     Distinct line numbers rather than a sum, because the shapes are not disjoint by
     construction and a total that double-counted one line would be a number nobody could
     check against the file. Zero is the whole point of it — beside :attr:`Estimate.lines` it
     is what tells an empty roadmap apart from a file this format read nothing in.
+
+    The shapes are named by the **caller** and not gathered here, because the two runs do not
+    read the same ones (RK387). A backlog is read as entries, the marker lines it refused,
+    table rows and plain bullets (RK98's two counters), and headings that *declare a block* —
+    that last qualifier being the measurement rather than a detail of it, since a `README.md`
+    opening at `# My project` would otherwise answer two for headings this format cannot read
+    as structure, which is exactly the prose that walked past. A rationale file has no entries
+    at all and is read as its anchored sections and the headings carrying prose without one.
+    Gathering both sets here would mean a function that knows which run it is in; naming them
+    at the call site is what lets one counter serve two readings.
     """
-    return len(
-        {
-            *(entry.lineno for entry in document.entries),
-            *(reject.lineno for reject in document.rejects),
-            *(row.lineno for row in document.tabular),
-            *(item.lineno for item in document.listed),
-            *(h.lineno for h in document.headings if h.label),
-        }
-    )
+    return len({lineno for shape in shapes for lineno in shape})
 
 
 def _grouped(reasons: Iterable[str]) -> tuple[tuple[str, int], ...]:

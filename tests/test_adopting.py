@@ -1364,6 +1364,37 @@ def test_a_file_that_is_no_backlog_is_told_apart_from_an_empty_one(tmp_path: Pat
     assert (adopt(config, blank).lines, adopt(config, blank).recognised) == (0, 0)
 
 
+JUST_PROSE = """Just prose, no headings at all.
+
+A second paragraph, also prose, nothing this format reads.
+
+A third one for bulk.
+"""
+
+
+def test_both_runs_say_a_file_was_read_in_no_shape(tmp_path: Path) -> None:
+    """RK387: RK376 landed where the estimate is assembled for entries, and the rationale run
+    assembles its own — so `--sections` went on answering a blank file's words over prose. The
+    third field to arrive in one path and not the other, which is why this asserts the pair."""
+    target = tmp_path / "NOTES.md"
+    target.write_text(JUST_PROSE, encoding="utf-8")
+    config = Config.discover(tmp_path)
+    backlog, prose = adopt(config, target), adopt(config, target, sections=True)
+    # The shapes each run reads differ — entries and bullets against headings — and what may
+    # not differ is whether the run says nothing was read.
+    assert (backlog.lines, backlog.recognised) == (prose.lines, prose.recognised)
+    assert backlog.lines > 0 and backlog.recognised == 0
+
+
+def test_a_heading_a_rationale_run_does_read_is_not_called_unread(tmp_path: Path) -> None:
+    # The other side of it, so the parity above is not satisfied by both paths answering zero
+    # to everything: a heading with prose and no anchor is a shape this run reads (RK281), and
+    # a run that found one has not read nothing.
+    target = tmp_path / "NOTES.md"
+    target.write_text("# Notes\n\n## A design\n\nProse with no anchor.\n", encoding="utf-8")
+    assert adopt(Config.discover(tmp_path), target, sections=True).recognised == 1
+
+
 def test_a_heading_the_format_cannot_read_as_structure_is_not_read(tmp_path: Path) -> None:
     # The qualifier that is the measurement rather than a detail of it: counting every heading
     # put this back where it started, a `README.md` answering two for `# My project` and
