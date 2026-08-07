@@ -33,7 +33,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK403** (deps: —) **A project whose ledger is organised by nothing can no longer write its first line** — The add asks the changelog for the block's heading and `block add` skips a file declaring none, so the refusal names a verb that answers `nothing to open`. → §RK403
 - 📋 **RK404** (deps: —) **The refusal that sends an add to the block verb never says which file the line was going into** — It names the ledger and the labels the ledger declares, so an author looking at a roadmap heading they can see reads it as the label being wrong. → §RK404
 
 ## Block E — Adoption

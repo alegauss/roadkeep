@@ -568,6 +568,14 @@ def test_a_block_with_open_lines_and_no_ledger_heading_is_a_finding(tmp_path):
     assert not report.clean
 
 
+def test_a_ledger_organised_by_nothing_is_not_reported_block_by_block(tmp_path):
+    # RK403: `block add` does not start organising such a file, so the finding would name a
+    # verb that refuses — once for every heading the roadmap has.
+    flat = "# Shipped\n\nProse, and no block heading anywhere in it.\n"
+    report = lint(project(tmp_path, roadmap=PLANNED, changelog=flat, improvements=None))
+    assert not [f for f in report.findings if f.code == "block.unrecorded"]
+
+
 def test_a_roadmap_heading_over_nothing_is_a_block_being_drafted(tmp_path):
     empty = CLEAN + "\n## Block B — Authoring\n"
     report = lint(project(tmp_path, roadmap=empty, changelog=LEDGER))

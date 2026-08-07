@@ -853,11 +853,24 @@ def declaring(config: Config, block: str) -> None:
     Silent where the project declares no ledger and where its file is not on disk yet: a
     refusal about a file nothing reads is one the author cannot act on, and `ship` on such a
     project has nothing to refuse over either.
+
+    **And silent where the ledger declares no block at all** (RK403), which is the same rule
+    said once more and not an exception to it. Measured on a fresh project whose changelog is
+    prose: this refused and named `block add`, which answered *A is already declared in
+    docs/ROADMAP.md: nothing to open* — a file organised by nothing is not one that verb
+    starts organising, because the level and the separator are read off the file's own first
+    block heading and the placement is *after a neighbour* (L6, RK145). Neither is a fact
+    such a file holds, and carrying the roadmap's answer across is a guess about somebody
+    else's file. So a refusal here would name a remedy that refuses, and this door goes back
+    to the timing that project had: `ship` still asks, at the end of the first task, which is
+    RK380's own complaint left standing for exactly the projects nothing can say it to.
     """
     if not config.has("changelog") or not config.path("changelog").is_file():
         return
     ledger = config.document("changelog")
     if ledger.heading(block) is not None:
+        return
+    if not any(heading.label for heading in ledger.headings):
         return
     raise UnknownBlock(
         block,

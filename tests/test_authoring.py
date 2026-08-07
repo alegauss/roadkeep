@@ -284,6 +284,16 @@ def test_a_declared_ledger_that_is_not_on_disk_yet_is_not_asked_about(tmp_path):
     assert task(config, block="B").rendered.startswith("- 📋 **RK2**")
 
 
+def test_a_ledger_organised_by_nothing_is_not_asked_about_either(tmp_path):
+    # RK403, measured: this refused and named `block add`, which answered "already declared
+    # in the roadmap: nothing to open" — a file declaring no block is not one that verb
+    # starts organising, so the refusal named a remedy that refuses.
+    flat = "# Changelog\n\nProse, and no block heading anywhere in it.\n"
+    assert task(project(tmp_path, ledger=flat), block="B").rendered.startswith(
+        "- 📋 **RK2**"
+    )
+
+
 # -- refusing before the prose exists ----------------------------------------
 
 

@@ -1591,9 +1591,16 @@ def _undeclared_blocks(
     Reported at the roadmap's heading and not at each line under it: one heading is missing,
     one command adds it, and a finding per open line would report an eight-line block eight
     times for a single omission.
+
+    Silent over a ledger that declares **no** block at all (RK403), for the reason
+    :func:`~roadkeep.authoring.declaring` is: `block add` does not start organising such a
+    file, so the finding would name a verb that refuses — once per block, which on the
+    project it was measured against is every heading in the roadmap.
     """
     out: list[Finding] = []
     word = config.schema.heading_word
+    if not any(heading.label for heading in ledger.headings):
+        return out
     for heading in roadmap.headings:
         if heading.label is None or ledger.heading(heading.label) is not None:
             continue
