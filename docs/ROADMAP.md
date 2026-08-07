@@ -40,6 +40,7 @@
 ## Block D — The gate
 
 - 📋 **RK380** (deps: —) **A block can carry open lines for months and be found missing only by the first ship** — add writes a line under a roadmap block without checking the changelog declares it, so the heading a ship needs is discovered at the end of the first task in the block rather than at the start. → §RK380
+- 📋 **RK391** (deps: —) **The gate holds no one-heading-per-label rule, and the write path resolves a repeated one by position** — RK390 closed the scaffold, and a hand edit, an adoption or a merge reaches the same state: lint calls it clean and add files under the last of the two headings. → §RK391
 
 ## Block E — Adoption
 

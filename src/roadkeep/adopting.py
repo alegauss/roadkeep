@@ -258,8 +258,9 @@ class UnreadableBlock(ValueError):
 class RepeatedBlock(ValueError):
     """Two `--block` values that declare the same label (RK390).
 
-    One heading twice is a file no verb can address: `add --block A` files under whichever
-    comes first, and `ship` looks for that label in the changelog. It is refused rather than
+    One heading twice is a file no verb can address: `add --block A` files under the **last**
+    of them — what scanning to the end leaves, rather than anything decided — and `ship` looks
+    for that label in the changelog. It is refused rather than
     folded to one, which is the choice §RK390 left open — folding makes `--block A --block A`
     and `--block A` produce identical output, so the author never learns the command was
     wrong, and `init` inventing what somebody meant is the one thing it does not do.

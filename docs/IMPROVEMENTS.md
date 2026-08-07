@@ -319,6 +319,31 @@ is in this tool and the argument is the one that verb already makes.
 `lint` is the other half: a roadmap block with open lines and no ledger heading is a
 finding, and reporting it costs one pass rather than one ship.
 
+### §RK391 The door the scaffold closed, and the three still open
+
+RK390 made `init` refuse two `--block` values sharing a label, because one heading twice
+is a file no verb can address. It was one door. A roadmap edited by hand, brought under
+the tool by `adopt`, or merged from two branches reaches the same state, and there:
+
+    lint            docs/ROADMAP.md: 2 line(s), clean
+    add --block A   files under the *second* heading
+
+That is L1 read the wrong way round. The law is that the schema is enforced where the
+text is created and `lint` is the backstop — not that the write path is the only way in.
+Every other rule here has both ends: a symptom too long is refused by `add` and reported
+by the gate. This one now has the first and not the second.
+
+What the gate would say is not obvious, and it is the reason to decide rather than to
+default. `block.repeated` naming both line numbers is the honest report. But the
+changelog and the rationale file are filed under the same headings, so the rule is about
+a label across the governed set, and a project mid-adoption may have a duplicate it has
+not reached yet — which is an argument for the finding and against making it the thing
+that stops a first `lint` from ever passing.
+
+Also worth naming: `add` picking the last of two is not a decision anybody made. It is
+what scanning to the end leaves, and whichever way the gate goes, a verb resolving an
+ambiguity by position is the part that should not survive.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
