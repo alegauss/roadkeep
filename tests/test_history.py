@@ -1392,6 +1392,90 @@ def test_the_free_top_level_is_read_per_namespace(tmp_path, capsys):
     assert "§S:V is free" in err
 
 
+# -- the doors that rewrite a line already on the file (RK379) ----------------
+
+
+def imported_without_a_pointer(tmp_path: Path) -> Config:
+    """An outline project holding one line that arrived with no `→ §` at all.
+
+    The population every door below is for: `add` refuses to write such a line, so the only
+    way one exists is an import — and correcting it is exactly what `amend` and `restate` are
+    the doors for. RK312 enriched the refusal on the way *in*, which none of these calls take.
+
+    The line lands under Block R, which is where an append to this file puts it, and whose
+    prose is the second family — so the address offered is read from the block the line is
+    actually in and never from whichever family happened to be first.
+    """
+    config = outlined_blocks(tmp_path)
+    append(
+        config.path("roadmap"),
+        f"- {DESIGNED} **RK9** (deps: —) **A symptom** — a reason.\n",
+    )
+    commit(tmp_path, "chore: an imported line with no pointer")
+    return Config.discover(tmp_path)
+
+
+def test_the_correction_that_demands_a_ref_names_what_produces_one(tmp_path, capsys):
+    # The measured door, one file over from RK312's: an adopted line's `why` is the field
+    # `amend` exists to compress, and the author is told a pointer is required by a sentence
+    # that names no address — while `anchors` has computed one all along.
+    config = imported_without_a_pointer(tmp_path)
+    assert (
+        main(["-C", str(config.root), "amend", "RK9", "--why", "a shorter reason."])
+        == EXIT_USAGE
+    )
+
+    err = capsys.readouterr().err
+    assert "every task points at its rationale section" in err
+    assert "Block R's prose is under §XX" in err and "§XX.2 is free" in err
+
+
+def test_the_restated_symptom_answers_the_same_way(tmp_path, capsys):
+    # The door next to it, which composes its own task and validates it the same way.
+    config = imported_without_a_pointer(tmp_path)
+    assert (
+        main(["-C", str(config.root), "restate", "RK9", "--symptom", "Another symptom"])
+        == EXIT_USAGE
+    )
+    assert "§XX.2 is free" in capsys.readouterr().err
+
+
+def test_the_marker_write_answers_the_same_way(tmp_path, capsys):
+    # Taking a line is a marker write, so this is the refusal that meets an author who asked
+    # to *start* the imported task — the first call of the work, and the worst one to be bare.
+    config = imported_without_a_pointer(tmp_path)
+    assert main(["-C", str(config.root), "status", "RK9", IN_PROGRESS]) == EXIT_USAGE
+    assert "§XX.2 is free" in capsys.readouterr().err
+
+
+def test_the_id_that_moves_answers_the_same_way(tmp_path, capsys):
+    # `renumber` re-validates the line under its new id, so a merge repair hits it too.
+    config = imported_without_a_pointer(tmp_path)
+    assert main(["-C", str(config.root), "renumber", "RK9"]) == EXIT_USAGE
+    assert "§XX.2 is free" in capsys.readouterr().err
+
+
+def test_a_paused_line_that_moves_is_still_judged_by_the_stores_own_grammar(tmp_path):
+    # The regression the clause could have bought: `renumber` reaches the deferred store too,
+    # and this project excuses its pointer. Validating one against the roadmap's schema would
+    # refuse a paused line for lacking a field its own file was configured not to want.
+    config = outlined_blocks(tmp_path)
+    (config.root / "roadkeep.toml").write_text(
+        'prefix = "RK"\nref_scheme = "outline"\n'
+        '[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
+        'improvements = "IMPROVEMENTS.md"\ndeferred = "DEFERRED.md"\n'
+        "[rules.deferred]\nref = false\n",
+        encoding="utf-8",
+    )
+    (config.root / "DEFERRED.md").write_text(
+        "## Block Q — Serving\n\n- ⏸ **RK9** (deps: —) **A symptom** — a reason (paused: waiting).\n",
+        encoding="utf-8",
+    )
+    commit(tmp_path, "chore: a paused line with no pointer")
+    assert main(["-C", str(tmp_path), "renumber", "RK9", "--to", "RK12"]) == EXIT_OK
+    assert "RK12" in (config.root / "DEFERRED.md").read_text(encoding="utf-8")
+
+
 # -- the read-back that called its own writes loose (RK342) -------------------
 
 

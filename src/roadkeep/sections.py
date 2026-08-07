@@ -1495,6 +1495,38 @@ def naming_the_anchor(
     )
 
 
+def checked(config: Config, task: Task, *, schema: Schema | None = None) -> Task:
+    """`schema.check`, with the anchor named — the seam a **rewrite** passes (RK379).
+
+    RK312 enriched the refusal an `add` raises and RK349 widened it to the other doors that
+    *insert* a line, by putting the call in :func:`~roadkeep.authoring.place`. Every door that
+    rewrites a line already on the file misses that seam entirely: `amend`, `restate`, `status`
+    and `renumber` each validate the task they composed and none of them goes through `place`.
+
+    So the bare rule survived exactly where an adopting project meets it. `ref.missing` on an
+    insertion is a field the author forgot; on a rewrite it is a line that was **imported
+    without a pointer**, which is the whole population `amend` exists for — the author is
+    correcting that line's `why`, is told a pointer is required, and is told nothing about
+    which address is free. That is the same measured cost RK312 removed, on the door the
+    correction path actually uses.
+
+    Not folded into `place`, which takes a :class:`~roadkeep.document.Document` and an optional
+    config: these callers hold a :class:`Config` unconditionally, and a rewrite has no
+    insertion to make. The enrichment stays :func:`naming_the_anchor`, so this is a call and
+    still not a copy of the sentence.
+
+    ``schema`` is which grammar validates, and it is a parameter because `renumber` moves an
+    id that may be the **ledger's**: a shipped entry is `as_ledger()`, which requires no
+    pointer at all, and validating one against the roadmap's schema would refuse an entry for
+    lacking a field its own file has no column for. The default is this project's roadmap
+    schema, which is every other caller.
+    """
+    try:
+        return (schema or config.schema).check(task)
+    except SchemaError as error:
+        raise naming_the_anchor(config, task.block, error) from None
+
+
 def _where_the_anchor_is(config: Config, block: str) -> str:
     """The clause an unanchored refusal ends with: the command, and where an address derives."""
     # Deferred for RK260's reason, and because git belongs on no successful write path.

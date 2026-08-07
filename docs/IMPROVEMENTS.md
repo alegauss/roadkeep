@@ -105,25 +105,6 @@ instead of guessing which entry is yours.
 
 ## Block C — Query
 
-### §RK379 The refusal for a missing anchor does not name the anchor to use
-
-`_check_ref` returns one static string — "every task points at its rationale section" —
-and nothing else. Under `ref_scheme = "outline"` that is every `add` an author writes
-from memory, because the anchor is not derivable from the id and so cannot be defaulted.
-
-The value the message wants already exists. `anchors --family <x>` ends with `next
-§LXIX.9 — nothing ever used it`, computed from the live headings and the retired ones
-history holds. The refusal is raised in a schema check that does not have the corpus,
-but the caller that reports it does: `add` has the config and the block, and the block's
-existing lines say which family this line joins.
-
-Measured on one session against Turing: four `add` calls, each costing a refusal, an
-`anchors --family` and a retry. The retry is free once the first message says `--ref
-LXIX.9`.
-
-The same argument as RK144's, one field over: a refusal that states the rule without the
-value teaches the schema, and a refusal that names the value ends the turn.
-
 ### §RK383 The free-address help says one outline spans both files, which a declared namespace makes false
 
 `anchors --role` documents itself as narrowing the listing and never the free address —

@@ -54,7 +54,7 @@ from roadkeep.config import Config
 from roadkeep.document import Document, Entry, save_all
 from roadkeep.ids import id_scanner, next_id
 from roadkeep.markers import refresh
-from roadkeep.sections import Section, descending, find, heading_of
+from roadkeep.sections import Section, checked, descending, find, heading_of
 
 __all__ = ["NotAnId", "Renumbering", "SameId", "family_of", "renumber"]
 
@@ -171,7 +171,12 @@ def renumber(config: Config, task_id: str, to: str | None = None) -> Renumbering
     # an outline it names a heading this line does not own, and is left exactly as typed.
     pointer = to if schema.ref_scheme == "id" and entry.task.ref else entry.task.ref
     documents[role] = documents[role].replace_task(
-        entry, documents[role].schema.check(replace(entry.task, id=to, ref=pointer))
+        entry,
+        checked(
+            config,
+            replace(entry.task, id=to, ref=pointer),
+            schema=documents[role].schema,
+        ),
     )
     changed[role] = documents[role]
 

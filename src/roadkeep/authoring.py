@@ -557,7 +557,7 @@ def set_status(config: Config, task_id: str, marker: str) -> StatusChange:
     # all it takes for that to be somebody else's.
     claiming.refuse_taken(config, task_id, marker, roadmap.entries)
 
-    updated = config.schema.check(replace(entry.task, status=marker))
+    updated = sections.checked(config, replace(entry.task, status=marker))
     if updated.status == entry.task.status:
         # Nothing to write: rewriting the same bytes would make a no-op look like an
         # edit to every tool that watches the file.
@@ -660,7 +660,7 @@ def amend(
     )
     # Derived on write like every other annotation (RK8): the author names the dep and the
     # tool states whether it shipped.
-    updated = config.schema.check(derive(backlog, wanted))
+    updated = sections.checked(config, derive(backlog, wanted))
     if updated == entry.task:
         return Amendment(document=roadmap, entry=entry, before=entry.task)
     # Asked after the no-op check, so an amend that alters nothing never demands a count for
@@ -758,7 +758,7 @@ def restate(
     if len(twins) > 1:
         raise DuplicateId(task_id, config.relative(config.path("roadmap")), twins)
 
-    updated = config.schema.check(derive(backlog, replace(entry.task, symptom=symptom)))
+    updated = sections.checked(config, derive(backlog, replace(entry.task, symptom=symptom)))
     if updated == entry.task:
         return Restatement(document=roadmap, entry=entry, before=entry.task)
     # The same count as the door next to this one (RK195): a restatement rewrites the line's
