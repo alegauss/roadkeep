@@ -437,6 +437,10 @@ TOOLS: tuple[Tool, ...] = (
     # is grepping the package, which is the context cost L5 exists to remove. `code` is
     # optional here for the reason it is on the CLI: with none, the answer is the vocabulary.
     Tool("explain", ("code",)),
+    # The read before a proposal that `non_goal_list` is the other half of (RK385). Exposed
+    # because the caller filing the duplicate is this one: RK378 restated RK340 the day after
+    # it shipped, and the collision surfaced only once a worker claimed the line.
+    Tool("delivered", ("block",)),
     # Which copies of this tool write, judge and gate the project (RK415). Exposed because
     # the agent is the one it happens to: its writes go through whatever `roadkeep` the
     # session reaches and its hand edits are denied by whatever the harness installed, and

@@ -1411,6 +1411,24 @@ def build_parser() -> argparse.ArgumentParser:
     explain_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     explain_parser.set_defaults(handler=_explain, reads_only=True)
 
+    delivered_parser = subcommands.add_parser(
+        "delivered",
+        help="what a block has already shipped, as claims — the read before an `add`",
+        description=(
+            "The other list to consult before proposing work, beside `non-goal list` "
+            "(RK69). A duplicate is not refused and could not be: RK378 restated RK340 the "
+            "day after it shipped and RK382 restated RK178 a day later, and measured over "
+            "this ledger a lexical match ranks the true pair 33rd — below the typical false "
+            "positive — because two people describing one problem use disjoint words, and "
+            "recognising that takes meaning this tool has none of (L4). So it states what "
+            "the block delivered and you read it. Symptoms alone: the claim is what a "
+            "duplicate collides with, and the outcome sentence doubles the length."
+        ),
+    )
+    delivered_parser.add_argument("block", help="the block label, e.g. B")
+    delivered_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    delivered_parser.set_defaults(handler=_delivered, reads_only=True)
+
     reversals_parser = subcommands.add_parser(
         "reversals",
         help="the decisions this ledger already made and undid, with the argument",
@@ -4842,6 +4860,71 @@ def _explain(config: Config, args: argparse.Namespace) -> int:
         )
         return EXIT_USAGE
     print(json.dumps(found.payload(), indent=2) if args.json else str(found))
+    return EXIT_OK
+
+
+def _delivered(config: Config, args: argparse.Namespace) -> int:
+    """Every claim this block has already made good on (RK385).
+
+    **Symptoms and not entries.** A shipped line states two things — the problem it claimed
+    and the outcome it delivered — and a duplicate collides with the first. Printing both
+    doubles a read the author makes before every proposal, and the second half is the one
+    that never matches: an outcome is written in the vocabulary of the fix.
+
+    Unbounded, unlike `brief`'s carry of the non-goals (RK68). The bound there is what keeps
+    a *brief* an answer rather than the file; here the list **is** the answer, and a
+    truncated one is the failure mode this exists for — the entry that got elided is exactly
+    the one nobody read.
+
+    Retired lines are in it. A claim that was abandoned is still a claim somebody made and
+    argued about, and a proposal restating one wants the argument more than the outcome —
+    the marker says which, so nothing is hidden and nothing is conflated.
+    """
+    try:
+        backlog = Backlog.load(config)
+    except (KeyError, OSError) as error:
+        return _refused(error)
+
+    ledger = backlog.ledger
+    if ledger is None:
+        print(
+            "roadkeep: this project declares no changelog, so nothing records what was "
+            "delivered — `non-goal list` is the other read before an `add`",
+            file=sys.stderr,
+        )
+        return EXIT_USAGE
+    label = args.block.strip()
+    entries = [e for e in ledger.entries if e.task.block == label]
+    where = config.relative(config.path("changelog"))
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "file": where,
+                    "block": label,
+                    "delivered": [
+                        {
+                            "id": e.task.id,
+                            "marker": e.task.status,
+                            "symptom": e.task.symptom,
+                            "line": e.lineno,
+                        }
+                        for e in entries
+                    ],
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+
+    if not entries:
+        # Said, never an empty stdout: "this block has delivered nothing" and "this command
+        # found nothing to read" look the same to a caller, and only one of them is an answer.
+        print(f"{where}  Block {label} has delivered nothing yet")
+        return EXIT_OK
+    print(f"{where}  Block {label}, {len(entries)} delivered")
+    for entry in entries:
+        print(f"  {entry.task.status} {entry.task.id:<8} {entry.task.symptom}")
     return EXIT_OK
 
 

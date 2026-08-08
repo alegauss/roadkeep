@@ -233,6 +233,8 @@ def test_the_tools_are_what_a_task_needs_end_to_end():
         # And what a code *means*, for the caller meeting one it has not seen (RK423): the
         # alternative was grepping the package for a docstring written for an implementer.
         "explain",
+        # The read before a proposal, beside `non_goal_list` (RK385).
+        "delivered",
         # The read the agent is the subject of (RK415): its writes go through whatever
         # `roadkeep` the session reaches and its hand edits are denied by whatever the
         # harness installed, and those are allowed to be two versions of this tool.

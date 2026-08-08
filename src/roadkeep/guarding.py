@@ -162,6 +162,12 @@ _INSTEAD: Mapping[str, tuple[tuple[str, str], ...]] = {
         # sentence because this is the file whose first bullet decides whether `add` may be
         # called at all: a denial that teaches the write and not the check teaches half.
         ("non-goal list", "what may not be proposed at all — before `add`, not after"),
+        # The second read before a proposal (RK385), and beside the first for the same
+        # reason: a duplicate is not refusable — measured over this ledger a lexical match
+        # ranks the true pair 33rd, below the typical false positive, because two people
+        # describing one problem use disjoint words. So the block states what it delivered
+        # and the author reads it, which costs one call against a claim and a retirement.
+        ("delivered <x>", "what this block already shipped, as claims — also before `add`"),
         # The other list this file holds that is not task lines (RK325), and the reason it
         # arrived: the queue used to live in the config, which nothing governs — right for
         # the prefix and the limits, wrong for a list whose every token names work that leaves.

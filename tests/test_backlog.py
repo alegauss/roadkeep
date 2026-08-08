@@ -446,3 +446,93 @@ def test_the_number_is_read_within_one_family_when_a_range_asks_for_one():
     assert number_of("C14", tracks, "C") == 14
     assert number_of("V15", tracks, "C") is None
     assert number_of("D1", PADDED) is None
+
+
+# -- the read before a proposal (RK385) ---------------------------------------
+
+
+def test_a_block_states_what_it_delivered(tmp_path, capsys):
+    """RK378 restated RK340 the day after it shipped; `add` accepted it, `lint` passed it,
+    `pick` offered it, and the duplication surfaced only when a worker claimed the line."""
+    from roadkeep.cli import EXIT_OK, main
+
+    root = _shipped(tmp_path)
+    assert main(["-C", str(root), "delivered", "A"]) == EXIT_OK
+    out = capsys.readouterr().out
+    # Three, because the retired one is a claim too — see below.
+    assert "Block A, 3 delivered" in out
+    assert "A first symptom" in out and "A second symptom" in out
+
+
+def test_the_outcome_sentence_is_left_out(tmp_path, capsys):
+    # A duplicate collides with the *claim*; the outcome is written in the vocabulary of the
+    # fix and never matches, so printing it doubles a read made before every proposal.
+    from roadkeep.cli import EXIT_OK, main
+
+    root = _shipped(tmp_path)
+    assert main(["-C", str(root), "delivered", "A"]) == EXIT_OK
+    assert "it was done" not in capsys.readouterr().out
+
+
+def test_a_retired_claim_is_in_it_and_says_which_it_is(tmp_path, capsys):
+    # A claim that was abandoned is still one somebody argued about, and a proposal restating
+    # it wants the argument more than the outcome — so the marker says which.
+    from roadkeep.cli import EXIT_OK, main
+
+    root = _shipped(tmp_path)
+    assert main(["-C", str(root), "delivered", "A"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "🗑 DX3" in out
+
+
+def test_a_block_that_delivered_nothing_says_so(tmp_path, capsys):
+    # Never an empty stdout: "this block has delivered nothing" and "this command found
+    # nothing to read" look the same to a caller, and only one of them is an answer.
+    from roadkeep.cli import EXIT_OK, main
+
+    root = _shipped(tmp_path)
+    assert main(["-C", str(root), "delivered", "Z"]) == EXIT_OK
+    assert "has delivered nothing yet" in capsys.readouterr().out
+
+
+def test_the_payload_carries_the_claim_and_the_marker(tmp_path, capsys):
+    import json
+
+    from roadkeep.cli import EXIT_OK, main
+
+    root = _shipped(tmp_path)
+    assert main(["-C", str(root), "delivered", "A", "--json"]) == EXIT_OK
+    rows = json.loads(capsys.readouterr().out)["delivered"]
+    assert [row["id"] for row in rows] == ["DX1", "DX2", "DX3"]
+    assert all("symptom" in row and "marker" in row for row in rows)
+    assert "why" not in rows[0]
+
+
+def test_the_guard_names_it_beside_the_other_read():
+    # Both reads before a proposal, in the table an agent meets when its `Edit` is denied:
+    # `non-goal list` says what may not be proposed, and this says what already was.
+    from roadkeep.guarding import _INSTEAD
+
+    offered = dict(_INSTEAD["roadmap"])
+    assert "delivered <x>" in offered
+    assert "before `add`" in offered["delivered <x>"]
+
+
+def _shipped(tmp_path):
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "DX"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n',
+        encoding="utf-8",
+    )
+    for name, body in (
+        ("ROADMAP.md", "# Roadmap\n\n## Block A — The model\n"),
+        (
+            "CHANGELOG.md",
+            "# Shipped\n\n## Block A — The model\n\n"
+            "- ✅ **DX1** **A first symptom** — it was done.\n"
+            "- ✅ **DX2** **A second symptom** — it was done.\n"
+            "- 🗑 **DX3** **A third symptom** — superseded by DX1: it was the same thing.\n",
+        ),
+    ):
+        with (tmp_path / name).open("w", encoding="utf-8", newline="") as handle:
+            handle.write(body)
+    return tmp_path

@@ -77,32 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK385 Nothing notices that a new line asks for what a shipped entry already delivered
-
-RK340 shipped on 2026-08-05: "outline anchors are one namespace across prose roles". On
-2026-08-06 RK378 was filed asking for a per-role anchor namespace. `add` accepted it,
-`lint` passed it, `pick` offered it, and the duplication surfaced only when a worker
-claimed the line and went looking for the code. RK382 repeated it a day later against
-RK178.
-
-A lexical match at write time, above a declared threshold, was the mechanism proposed
-here. This ledger labels four supersessions and two survive in history as filed;
-measured against those, it **does not separate them**. Over the symptom alone RK340
-places 9th of 382. Over symptom and `why`, RK378 → RK340 ranks 1st at 0.277 while RK382
-→ RK178 ranks **33rd** at 0.125 — against a median 0.208 for an ordinary line's nearest
-*non*-duplicate, so the true match scores below the typical false positive. Narrowing to
-rare tokens moves the two ranks apart and lifts neither. An alphabet of identifiers is
-emptier still: 192 of 382 entries name none.
-
-The reason is in the pair. RK382 and RK178 state one problem in disjoint vocabularies,
-which is what a problem discovered twice looks like — recognising it takes meaning, and
-L4 has no model.
-
-So the threshold is the wrong instrument and the symptom stands. What is untried is
-exactness rather than similarity: a read the author is told to make before proposing, on
-`non-goal list`'s precedent, where the tool states what a block already delivered
-instead of guessing which entry is yours.
-
 ## Block C — Query
 
 ## Block D — The gate

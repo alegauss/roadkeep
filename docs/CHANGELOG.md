@@ -144,6 +144,7 @@
 - ✅ **RK407** **A refusal blames the author for a character its own shell wrote** — a control character that is not a line break is refused as its own code, naming the codepoint, its position and the backtick escape that writes it.
 - ✅ **RK426** **A call breaching two limits is refused twice, the second time for a limit the first refusal already measured** — add validates the line and a re-readable section body together and raises once, so a call breaching both is corrected in one resubmission instead of two.
 - ✅ **RK400** **Shipping a family's last child leaves its parent describing deleted work** — the ship names the parent its drop left with no subsections, beside the citation it already named, so an introduction to work that shipped is an edit in the same commit.
+- ✅ **RK385** **Nothing notices that a new line asks for what a shipped entry already delivered** — delivered <block> states every claim a block already made good on, named in the guard's table beside non-goal list, because a duplicate is a read and never a refusal.
 
 ## Block C — Query
 

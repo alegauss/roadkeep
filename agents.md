@@ -42,7 +42,7 @@ src/roadkeep/   the package (src layout, importable via pytest pythonpath). Each
   deferring renumbering merging       RK91/96/97/120  the doors that are not terminal,
                                                  and the merge git cannot make
   locking claiming storing  RK117/119/330  scan-to-save is one span, who holds a line, one grammar
-  scoping queueing reverting  RK69-70/325/416  the non-goal, the queue, what was undone
+  scoping queueing reverting  RK69-70/325/385/416  the non-goal, the queue, the undone
   backlog counting picking showing graph  RK10-13/28-29/31/37/39-40/83/92/247  the query surface,
   briefing budgeting exporting history weighing      plus what git alone can answer
   linting fixing remedying repairing  RK14-17/420-422  the gate, the derived-only fixer,

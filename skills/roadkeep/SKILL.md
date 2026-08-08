@@ -65,9 +65,9 @@ section whose prose cited what it deleted**: the ship is right and that citation
 next edit, in *this* commit, because a shipped entry keeps no pointer and from the next
 command on the reference reads exactly like a typo. Under an outline it names one thing
 more: the **parent** left with no subsections, whose prose was written as an introduction
-to children that have now all shipped — `section amend <parent> --body -` is that edit, and
-what it should say instead is yours. **You read that design and the code
-may have moved under it**: `--superseded-design "<what it was wrong about>"` is the trace,
+to children that have now all shipped — `section amend <parent> --body -` is that edit,
+and what it should say instead is yours. **You read that design and the code may have
+moved under it**: `--superseded-design "<what it was wrong about>"` is the trace,
 parenthesised into the ledger's own sentence with the anchor, because the deletion
 otherwise leaves the one reader who could ever know it was stale — you — with nowhere to
 say so; refused on a line that pointed at no design and on a `--part`, whose section
@@ -121,108 +121,115 @@ also **the revert**: `--supersedes <id>` writes the entry saying the work did no
 *and* appends the forward pointer to the entry saying it shipped, in one write — reach for
 it there, because `retire` needs a roadmap line the ship already removed and `record drop`
 refuses a non-duplicate, so without it the ledger holds two records of one decision that
-do not name each other. Both entries stay: the ledger is history and both happened.
-**`reversals` is how you find them before spending an id** — a revert is filed as a
-delivery, so a duplicate check answers "yes, shipped" about the entry saying the work did
-not hold; this reads that forward pointer back with the reversing entry's sentence, which
-is the argument a fresh proposal is against. `reversals --id <id>` exits 1 where that
-decision was reversed. It refuses nothing: re-proposing reverted work is sometimes right,
-and which is a judgement no tool makes. `record drop <id>` is its inverse: refused unless
-the ledger states that id **twice** *and the two say the same thing*, then the later entry
-goes and the first stays, because removing the only record of a decision is deleting
-history. Two entries that differ are two deliveries under one id, not one recorded twice:
-`record drop <id> --line <n>` if you have read both, or `record renumber <id> --line <n>`
-to give one its own address. To *fix* an entry use `record amend <id> --why "…"` (or
-`--part` on a partial) — never drop-and-re-add, which moves the line to the end of its
-block and shows a reviewer a deletion where a word changed. On a ledger written before the
-tool, where a bullet **wraps**, that correction is refused until `--lines <n>` says how
-many lines it replaces: the parse holds only as much of the sentence as fits on the first
-one, so rewriting that line alone leaves the tail of the old sentence under the new one.
-The block is not one of its fields, because filing an entry elsewhere **is** a move:
-`record move <id> --to-block <x>` is that one, and it says so — the line is re-placed
-under the named heading, both positions are reported, and a heading nothing declares is
-refused. Reach for it when `ship` filed an entry under the block its roadmap line was
-wrongly under. `section add <id> --title "…"` is that same write for a line that already
-exists, and takes prose on **stdin**, within the word budget, filled to the configured
-width, under the task's block — or, where the pointer is an outline anchor, under the
-section that anchor extends, since there the anchor is what states the place. A
-one-segment anchor **opens a new top level**, placed after the last one and at the depth
-that file writes one at, which is how a block declared in the line files gets its first
-design at all; a *nested* one is written one level under the section it extends, so it
-stays inside the subtree its anchor names whatever depth that file nests at, and a nested
-anchor whose parent is missing is still refused, that being a typo in an address. A table
-or list is inserted exactly as written. **At a terminal, `-` reads stdin on every prose
-argument** — `--section-body` and `--body`, and `--why` and `--reason` on every verb that
-take one. Reach for it on the sentence, not only the paragraph: a `why` names types, files
-and prior ids, so it carries the apostrophe, the backtick and the `§` a shell reads first,
-and a shell that eats a backtick does not refuse — it hands over prose subtly unlike what
-you wrote and the line lands. The pipe's own trailing newline comes off; a trailing space
-is still yours and still refused, and two arguments asking for one pipe is refused naming
-both. Over MCP there is no pipe, so every write that reads one takes it **as a string**
-and refuses `-` by name. **A pipe does not rewind, and a paragraph is the expensive
-argument**: an `add` refused for a `why` three words over used to cost the whole rationale
-a second time, so the body is now fetched *below* every refusal the line itself can raise
-— and where that is not enough, because `section add` reports the anchor, the title and
-the body together, `--section-body-file` and `--body-file` name the paragraph by **path**
-and the retry re-reads it, costing the corrected field alone. Prefer the path over the
-heredoc for prose you drafted before filing it; naming both the prose and its path is
-refused. **`section amend <id>` is how a live design is corrected**: `--body -` or
-`--body-file` replaces its own prose, `--title` its heading, the subtree and the anchor
-are untouched, and it is the only door for prose. A body-only amend leaves the **heading
-line's bytes** alone too — the reader takes a `§` an author wrote under an outline and the
-writer would not reproduce it, so re-rendering a heading nobody named silently restyled
-the file. **The anchor is `section move <anchor> --to <address>`**, and only under an
-outline: `renumber` moves an id and leaves the pointer as typed under every other scheme,
-so an address had no verb at all and the one state that needs one is the address two prose
-files both declare — `section.ambiguous` to the gate, refused by `add`, and what an
-adopting corpus arrives with. It re-addresses the heading, every nested anchor that
-extends it and the `→ §<anchor>` on every line naming one of them in one transaction,
-taking the refusals `add` computes about a destination: held here, declared by the sibling
-file, or spent by a heading in history. A pointer follows only where **nothing else
-answers its address or this heading names its task**, which is what keeps repairing one
-file from taking the other file's line with it, and every one that stays is reported. The
-destination keeps the parent the address already had — this write changes the address and
-not the place — and under `ref_scheme = "id"` it is refused by name, the anchor being the
-id and `renumber` the verb that moves both ends. `section drop` is refused while an open
-line points at the anchor **or at any address under it**, named in the refusal, whether
-this file writes that address as a heading or as a bullet; that is right, and shipping is
-not a way to fix a paragraph. No write invents a block heading — **`block add <x> --title
-"…"` is the one that declares one**, in every governed file already organised by blocks,
-placed after the last block's subtree and spelled at that file's own level and separator.
-Reach for it the moment any write refuses with "no heading declares". A file organised by
-*nothing* is skipped, because the level, the separator and the placement are all read off
-a heading it does not have — so a ledger that is plain prose is a project every `ship`
-refuses; `--organise <role>` is you saying that file is to be organised by blocks, and the
-refusal names it where that is the state. Block order is what `list` reports and what a
-reader takes for the shape of the plan, so `--after <label>` opens one **between** two
-existing blocks: it names a neighbour rather than an index, each file placing the heading
-after its own copy of that heading, and a file that wants the heading and declares no such
-neighbour is refused rather than appended. `block drop <x>` withdraws a label opened by
-mistake: the heading goes only from the files where its whole subtree is blank, and
-anything filed under it — an open line, a paused one, a rationale section — is named in a
-refusal that writes nothing, because a heading over work is not an empty heading. The
-ledger keeps its heading either way, history being filed under it. **`block merge <x>` is
-the key to the doubled heading** — the state a textual git merge, an `adopt` or a hand
-edit leaves, that the gate reports `block.repeated` and every write refuses with "merge
-the two regions by hand". It keeps the first heading and folds every later duplicate's
-entries into it, all files or none; the ledger is included, not skipped, because history
-stays under a heading of the same label. A nested section is `section move`'s to place and
-refused here, and loose prose is dropped only under `--prose`. Reach for it the moment
-`lint` reports `block.repeated` or a write refuses with `RepeatedHeading`. `non-goal add
---lead "…" --why "…"` writes the one bullet that is not a task line, where `[non_goals]`
-declares the list governed: addressed by its lead, which is unique and checked, and
-carrying no marker, dep or pointer, because a constraint has no status to state. `non-goal
-amend <lead> --why "…"` corrects the reason **where the bullet already sits**, for `record
-amend`'s reason: `add` appends, so drop-and-re-add moves a constraint to the end of a list
-a reader takes for the plan's shape. The lead is not one of its fields — it is the address
-— and a bullet carrying no bold head is refused by name, that shape's repair being the
-pair below. `non-goal drop <lead>` is the other half, and what a changed *lead* takes: the
-lead is the address, so a constraint whose lead changes is one dropped and one written.
-**Call `non-goal list` before an `add`** — the list binds what may be proposed, so reading
-it after the line exists is reading it too late; it prints on a project that never opted
-in, and nothing checks a proposal against it for you, that being a judgement about meaning
-and this tool having no model (L4). **The roadmap's third list is the queue**: `priority
-add <token> [--first|--after <t>]` and `priority drop <token>` write the `## Priority`
+do not name each other. Both entries stay: the ledger is history and both happened. **Two
+reads come before a proposal, not after it.** `non-goal list` says what may not be
+proposed at all, and **`delivered <block>`** says what that block already shipped, as
+claims — a duplicate is never refused and could not be, since two people describing one
+problem use disjoint words and recognising that takes meaning this tool has none of;
+measured on this ledger a lexical match ranks the true duplicate 33rd, below the typical
+false positive. So you read the list, and the alternative is discovering the collision
+after a claim, a brief and a retirement. **`reversals` is how you find them before
+spending an id** — a revert is filed as a delivery, so a duplicate check answers "yes,
+shipped" about the entry saying the work did not hold; this reads that forward pointer
+back with the reversing entry's sentence, which is the argument a fresh proposal is
+against. `reversals --id <id>` exits 1 where that decision was reversed. It refuses
+nothing: re-proposing reverted work is sometimes right, and which is a judgement no tool
+makes. `record drop <id>` is its inverse: refused unless the ledger states that id
+**twice** *and the two say the same thing*, then the later entry goes and the first stays,
+because removing the only record of a decision is deleting history. Two entries that
+differ are two deliveries under one id, not one recorded twice: `record drop <id> --line
+<n>` if you have read both, or `record renumber <id> --line <n>` to give one its own
+address. To *fix* an entry use `record amend <id> --why "…"` (or `--part` on a partial) —
+never drop-and-re-add, which moves the line to the end of its block and shows a reviewer a
+deletion where a word changed. On a ledger written before the tool, where a bullet
+**wraps**, that correction is refused until `--lines <n>` says how many lines it replaces:
+the parse holds only as much of the sentence as fits on the first one, so rewriting that
+line alone leaves the tail of the old sentence under the new one. The block is not one of
+its fields, because filing an entry elsewhere **is** a move: `record move <id> --to-block
+<x>` is that one, and it says so — the line is re-placed under the named heading, both
+positions are reported, and a heading nothing declares is refused. Reach for it when
+`ship` filed an entry under the block its roadmap line was wrongly under. `section add
+<id> --title "…"` is that same write for a line that already exists, and takes prose on
+**stdin**, within the word budget, filled to the configured width, under the task's block
+— or, where the pointer is an outline anchor, under the section that anchor extends, since
+there the anchor is what states the place. A one-segment anchor **opens a new top level**,
+placed after the last one and at the depth that file writes one at, which is how a block
+declared in the line files gets its first design at all; a *nested* one is written one
+level under the section it extends, so it stays inside the subtree its anchor names
+whatever depth that file nests at, and a nested anchor whose parent is missing is still
+refused, that being a typo in an address. A table or list is inserted exactly as written.
+**At a terminal, `-` reads stdin on every prose argument** — `--section-body` and
+`--body`, and `--why` and `--reason` on every verb that take one. Reach for it on the
+sentence, not only the paragraph: a `why` names types, files and prior ids, so it carries
+the apostrophe, the backtick and the `§` a shell reads first, and a shell that eats a
+backtick does not refuse — it hands over prose subtly unlike what you wrote and the line
+lands. The pipe's own trailing newline comes off; a trailing space is still yours and
+still refused, and two arguments asking for one pipe is refused naming both. Over MCP
+there is no pipe, so every write that reads one takes it **as a string** and refuses `-`
+by name. **A pipe does not rewind, and a paragraph is the expensive argument**: an `add`
+refused for a `why` three words over used to cost the whole rationale a second time, so
+the body is now fetched *below* every refusal the line itself can raise — and where that
+is not enough, because `section add` reports the anchor, the title and the body together,
+`--section-body-file` and `--body-file` name the paragraph by **path** and the retry
+re-reads it, costing the corrected field alone. Prefer the path over the heredoc for prose
+you drafted before filing it; naming both the prose and its path is refused. **`section
+amend <id>` is how a live design is corrected**: `--body -` or `--body-file` replaces its
+own prose, `--title` its heading, the subtree and the anchor are untouched, and it is the
+only door for prose. A body-only amend leaves the **heading line's bytes** alone too — the
+reader takes a `§` an author wrote under an outline and the writer would not reproduce it,
+so re-rendering a heading nobody named silently restyled the file. **The anchor is
+`section move <anchor> --to <address>`**, and only under an outline: `renumber` moves an
+id and leaves the pointer as typed under every other scheme, so an address had no verb at
+all and the one state that needs one is the address two prose files both declare —
+`section.ambiguous` to the gate, refused by `add`, and what an adopting corpus arrives
+with. It re-addresses the heading, every nested anchor that extends it and the `→
+§<anchor>` on every line naming one of them in one transaction, taking the refusals `add`
+computes about a destination: held here, declared by the sibling file, or spent by a
+heading in history. A pointer follows only where **nothing else answers its address or
+this heading names its task**, which is what keeps repairing one file from taking the
+other file's line with it, and every one that stays is reported. The destination keeps the
+parent the address already had — this write changes the address and not the place — and
+under `ref_scheme = "id"` it is refused by name, the anchor being the id and `renumber`
+the verb that moves both ends. `section drop` is refused while an open line points at the
+anchor **or at any address under it**, named in the refusal, whether this file writes that
+address as a heading or as a bullet; that is right, and shipping is not a way to fix a
+paragraph. No write invents a block heading — **`block add <x> --title "…"` is the one
+that declares one**, in every governed file already organised by blocks, placed after the
+last block's subtree and spelled at that file's own level and separator. Reach for it the
+moment any write refuses with "no heading declares". A file organised by *nothing* is
+skipped, because the level, the separator and the placement are all read off a heading it
+does not have — so a ledger that is plain prose is a project every `ship` refuses;
+`--organise <role>` is you saying that file is to be organised by blocks, and the refusal
+names it where that is the state. Block order is what `list` reports and what a reader
+takes for the shape of the plan, so `--after <label>` opens one **between** two existing
+blocks: it names a neighbour rather than an index, each file placing the heading after its
+own copy of that heading, and a file that wants the heading and declares no such neighbour
+is refused rather than appended. `block drop <x>` withdraws a label opened by mistake: the
+heading goes only from the files where its whole subtree is blank, and anything filed
+under it — an open line, a paused one, a rationale section — is named in a refusal that
+writes nothing, because a heading over work is not an empty heading. The ledger keeps its
+heading either way, history being filed under it. **`block merge <x>` is the key to the
+doubled heading** — the state a textual git merge, an `adopt` or a hand edit leaves, that
+the gate reports `block.repeated` and every write refuses with "merge the two regions by
+hand". It keeps the first heading and folds every later duplicate's entries into it, all
+files or none; the ledger is included, not skipped, because history stays under a heading
+of the same label. A nested section is `section move`'s to place and refused here, and
+loose prose is dropped only under `--prose`. Reach for it the moment `lint` reports
+`block.repeated` or a write refuses with `RepeatedHeading`. `non-goal add --lead "…" --why
+"…"` writes the one bullet that is not a task line, where `[non_goals]` declares the list
+governed: addressed by its lead, which is unique and checked, and carrying no marker, dep
+or pointer, because a constraint has no status to state. `non-goal amend <lead> --why "…"`
+corrects the reason **where the bullet already sits**, for `record amend`'s reason: `add`
+appends, so drop-and-re-add moves a constraint to the end of a list a reader takes for the
+plan's shape. The lead is not one of its fields — it is the address — and a bullet
+carrying no bold head is refused by name, that shape's repair being the pair below.
+`non-goal drop <lead>` is the other half, and what a changed *lead* takes: the lead is the
+address, so a constraint whose lead changes is one dropped and one written. **Call
+`non-goal list` before an `add`** — the list binds what may be proposed, so reading it
+after the line exists is reading it too late; it prints on a project that never opted in,
+and nothing checks a proposal against it for you, that being a judgement about meaning and
+this tool having no model (L4). **The roadmap's third list is the queue**: `priority add
+<token> [--first|--after <t>]` and `priority drop <token>` write the `## Priority`
 section, whose entries are bare tokens — an id or `Block X`, no reason field, because why
 something jumps the order is the commit that moved it. A heading declares the list, as a
 block heading declares a block, and the section **wins over `priority` in
