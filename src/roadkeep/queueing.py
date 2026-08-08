@@ -79,6 +79,11 @@ __all__ = [
 #: after the first is not a fact this tool needs.
 HEADING = re.compile(r"^priority\b", re.IGNORECASE)
 
+#: What a migration *writes*, which the pattern above deliberately cannot say (RK427): the
+#: match is a prefix so a project may title its own section, and one that has none yet gets
+#: the plainest spelling rather than a guess at which words it would have chosen.
+SECTION = "## Priority"
+
 #: `- <token>`, at column zero and nothing else on the line. Deliberately the whole bullet:
 #: an entry is an address, so a trailing note would be prose the renderer cannot reproduce
 #: and the round trip is what refuses it (L3).
@@ -88,9 +93,27 @@ _ANY_BULLET = re.compile(r"^[-*+] (?P<rest>.*)$")
 
 
 class NoQueue(KeyError):
-    """No heading holds a queue to write to. A heading is the only thing that declares one."""
+    """No heading holds a queue to write to. A heading is the only thing that declares one.
 
-    def __init__(self, where: str) -> None:
+    ``in_config`` is the case that had no door at all (RK427). RK325 moved the queue out of
+    `roadkeep.toml` and into the roadmap, and `lint` still reads the old declaration — which
+    is right, a project that has not migrated still has a real order. But it reported
+    `priority.shipped` naming **roadkeep.toml**, and the verb whose whole job is that repair
+    refused with "no priority heading in docs/ROADMAP.md", having never looked at the file
+    the finding named. A finding in one file and its door on another is a defect with no
+    exit but the hand edit this tool exists to replace, so the refusal names the migration.
+    """
+
+    def __init__(self, where: str, tokens: tuple[str, ...] = ()) -> None:
+        self.tokens = tokens
+        if tokens:
+            listed = ", ".join(tokens)
+            super().__init__(
+                f"this project's queue is still `priority` in roadkeep.toml ({listed}), "
+                f"which no verb writes: `priority migrate` moves it into {where} as the "
+                f"section RK325 introduced, and then every queue verb reaches it"
+            )
+            return
         super().__init__(
             f"no priority heading in {where}: the heading declares the queue, exactly as a "
             f"block heading declares a block (RK37) — add `## Priority` above the blocks"
@@ -301,7 +324,7 @@ def add(
     document = config.document("roadmap")
     heading = _heading_index(document)
     if heading is None:
-        raise NoQueue(where)
+        raise NoQueue(where, _in_config(config))
     entry = token.strip()
     if not typed(config, entry):
         raise NotAnEntry(entry, where)
@@ -342,7 +365,7 @@ def drop(config: Config, token: str) -> Dropped:
     where = config.relative(config.path("roadmap"))
     document = config.document("roadmap")
     if _heading_index(document) is None:
-        raise NoQueue(where)
+        raise NoQueue(where, _in_config(config))
 
     held = entries(document, config)
     going = next((one for one in held if one.token == token.strip()), None)
@@ -417,6 +440,99 @@ def _remove_line(document: Document, lineno: int) -> Document:
     if start >= len(lines) and start > 0 and blank(lines[start - 1]):
         return updated.remove_line(start - 1)
     return updated
+
+
+def _in_config(config: Config) -> tuple[str, ...]:
+    """The tokens `roadkeep.toml` still declares, where the roadmap declares no section."""
+    return tuple(config.priority)
+
+
+@dataclass(frozen=True, slots=True)
+class Migrated:
+    """A config-declared queue written into the roadmap as the section (RK427)."""
+
+    document: Document
+    tokens: tuple[str, ...]
+    #: The heading's line, 1-based, so the answer names where the section landed.
+    lineno: int
+
+    def save(self) -> None:
+        self.document.save()
+
+
+def migrate(config: Config) -> Migrated:
+    """Write `roadkeep.toml`'s `priority` into the roadmap as the section RK325 introduced.
+
+    The one door between the two declarations, and it exists because the gate reads the old
+    one and every write verb reads the new one — so without it a project that never migrated
+    was reported a defect no command could reach.
+
+    **The config line is not deleted**, and that is deliberate rather than a shortcut. Nothing
+    in this package writes `roadkeep.toml`: it carries an author's comments and a TOML rewrite
+    that preserves them is a parser this tool would have to grow and a dependency it refuses
+    to take. What happens instead is already designed — the section wins over the config
+    (:func:`declared`), so the order is live the moment this returns, and `lint` reports
+    `priority.config` about the line left behind, whose own remedy is the one-line edit the
+    guard does not deny because `roadkeep.toml` is not a governed file.
+
+    Refused where the roadmap already declares a section: two orders concatenated is a third
+    order nobody wrote, which is the same reason :func:`declared` does not merge them.
+    """
+    where = config.relative(config.path("roadmap"))
+    document = config.document("roadmap")
+    if _heading_index(document) is not None:
+        raise AlreadyDeclared(where)
+    tokens = _in_config(config)
+    if not tokens:
+        raise NothingToMigrate(where)
+    for token in tokens:
+        if not typed(config, token):
+            raise NotAnEntry(token, _configured(config))
+
+    at = _first_block_index(document)
+    lines = [SECTION, ""] + [render(token) for token in tokens] + [""]
+    updated = document
+    for offset, line in enumerate(lines):
+        updated = updated.insert_line(at + offset, line)
+    return Migrated(document=updated, tokens=tokens, lineno=at + 1)
+
+
+class AlreadyDeclared(KeyError):
+    """The roadmap already holds the section, so there is nothing for a migration to open."""
+
+    def __init__(self, where: str) -> None:
+        super().__init__(
+            f"{where} already declares a priority section, so the queue is already the one "
+            f"every verb writes — take `priority` out of roadkeep.toml, which `lint` reports "
+            f"as `priority.config` until you do"
+        )
+
+
+class NothingToMigrate(KeyError):
+    """Neither file declares a queue: there is no order to move."""
+
+    def __init__(self, where: str) -> None:
+        super().__init__(
+            f"roadkeep.toml declares no `priority`, so nothing is waiting to move into "
+            f"{where}: `priority add <token>` writes the first entry of a new one"
+        )
+
+
+def _configured(config: Config) -> str:
+    return config.relative(config.source) if config.source else "roadkeep.toml"
+
+
+def _first_block_index(document: Document) -> int:
+    """Where the section goes: above the first block heading, which is where it is read.
+
+    The same placement rule `priority add` already assumes and the gate already checks — the
+    order is about the work below it, and a queue underneath the blocks is one a reader meets
+    after the list it was meant to reorder.
+    """
+    for at, line in enumerate(document.lines):
+        if line.lstrip().startswith("## "):
+            return at
+    return len(document.lines)
 
 
 def _heading_index(document: Document) -> int | None:

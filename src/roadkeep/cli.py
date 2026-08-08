@@ -134,6 +134,7 @@ from roadkeep.schema import SchemaError
 from roadkeep.queueing import add as add_priority
 from roadkeep.queueing import declared as declared_queue
 from roadkeep.queueing import drop as drop_priority
+from roadkeep.queueing import migrate as migrate_priority
 from roadkeep.scoping import add as add_non_goal
 from roadkeep.scoping import amend as amend_non_goal
 from roadkeep.scoping import drop as drop_non_goal
@@ -1177,6 +1178,23 @@ def build_parser() -> argparse.ArgumentParser:
     queue_drop.add_argument("--json", action="store_true", help=_JSON_HELP)
     queue_drop.set_defaults(handler=_priority_drop)
 
+    # The third verb, and the one that exists because the other two could not be reached
+    # (RK427): a project whose queue is still `roadkeep.toml`'s was reported a defect by the
+    # gate and refused by both doors, which had never opened that file.
+    queue_migrate = ordering.add_parser(
+        "migrate",
+        help="move roadkeep.toml's queue into the roadmap, where every queue verb reaches it",
+        description=(
+            "RK325 moved the queue into the roadmap and the gate still reads the old "
+            "declaration, which is right — a project that has not migrated has a real "
+            "order. This is the door between them. The config line is left alone, because "
+            "nothing here writes `roadkeep.toml`: the section wins from the moment this "
+            "returns, and `lint` names the leftover as `priority.config`."
+        ),
+    )
+    queue_migrate.add_argument("--json", action="store_true", help=_JSON_HELP)
+    queue_migrate.set_defaults(handler=_priority_migrate)
+
     list_parser = subcommands.add_parser(
         "list",
         help="the task lines, filtered, printed verbatim",
@@ -1412,6 +1430,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     reversals_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     reversals_parser.set_defaults(handler=_reversals, reads_only=True)
+
 
     brief_parser = subcommands.add_parser(
         "brief",
@@ -4129,6 +4148,49 @@ def _priority_drop(config: Config, args: argparse.Namespace) -> int:
     print(f"{where}:{dropped.entry.lineno}  dropped  {dropped.entry.token}")
     print(f"  order    {dropped.length} left")
     return EXIT_OK
+
+
+def _priority_migrate(config: Config, args: argparse.Namespace) -> int:
+    """Move the config's queue into the roadmap, which is the only door between them (RK427).
+
+    Prints what `lint` will now say, because that is the half a caller would otherwise learn
+    from a red run: the section wins from here, so the `priority` line left in `roadkeep.toml`
+    becomes `priority.config` — a finding whose remedy is a one-line edit the guard does not
+    deny, that file being one this tool does not govern and deliberately does not write.
+    """
+    try:
+        migrated = migrate_priority(config)
+        migrated.save()
+    except REFUSALS as error:
+        return _refused(error)
+
+    where = config.relative(config.path("roadmap"))
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "file": where,
+                    "line": migrated.lineno,
+                    "tokens": list(migrated.tokens),
+                    "configured": _configured_source(config),
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+
+    print(f"{where}:{migrated.lineno}  priority section written")
+    for position, token in enumerate(migrated.tokens, start=1):
+        print(f"  {position:<8} {token}")
+    print(
+        f"  left     `priority` is still in {_configured_source(config)} and is now read by "
+        f"nothing — take the line out; `lint` reports it as `priority.config` until you do"
+    )
+    return EXIT_OK
+
+
+def _configured_source(config: Config) -> str:
+    return config.relative(config.source) if config.source else "roadkeep.toml"
 
 
 def _record_amend(config: Config, args: argparse.Namespace) -> int:

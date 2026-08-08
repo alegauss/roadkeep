@@ -88,6 +88,12 @@ def composed() -> set[str]:
     return {f"{field}.{suffix}" for field in fields for suffix in suffixes}
 
 
+#: Rows that are not codes: a `varies` answer swapped in for one that is (RK427). Named,
+#: because the alternative is loosening the assertion that every row is reachable — and the
+#: row nothing reaches is exactly what the other direction of this test exists to catch.
+_SWAPPED_IN = frozenset({"priority.unmigrated"})
+
+
 # -- totality (RK421) --------------------------------------------------------
 
 
@@ -142,7 +148,7 @@ def test_the_table_answers_no_code_that_cannot_be_reported():
     # The other direction, which is the one that rots quietly: a row for a code deleted
     # from the gate is a row nothing ever reaches, and `explain` would list it as
     # vocabulary this tool does not have.
-    stale = sorted(set(codes()) - emitted())
+    stale = sorted(set(codes()) - emitted() - _SWAPPED_IN)
     assert not stale, f"remedy rows for codes nothing emits: {stale}"
 
 
@@ -288,8 +294,15 @@ def test_the_mechanical_class_is_lint_fix_and_says_so():
 # -- what the project decides, not the table (L6) -----------------------------
 
 
-def test_the_two_varying_rows_are_derived_from_the_table():
-    assert VARIES == {"ref.mismatch": "ref_scheme", "id.duplicate": "role"}
+def test_the_varying_rows_are_derived_from_the_table():
+    # Each is a per-project answer L6 makes and the table cannot: which scheme derives the
+    # pointer, which file a finding is about, and which declaration holds the queue (RK427).
+    assert VARIES == {
+        "ref.mismatch": "ref_scheme",
+        "id.duplicate": "role",
+        "priority.shipped": "queue",
+        "priority.retired": "queue",
+    }
 
 
 def test_a_duplicate_id_in_the_roadmap_is_renumber_and_not_record_renumber(tmp_path):

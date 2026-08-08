@@ -23,13 +23,16 @@ from roadkeep.guarding import Refusal
 from roadkeep.linting import lint
 from roadkeep.picking import pick
 from roadkeep.queueing import (
+    AlreadyDeclared,
     DuplicateEntry,
     NoQueue,
+    NothingToMigrate,
     NoSuchEntry,
     NotAnEntry,
     add,
     declared,
     drop,
+    migrate,
     read,
     render,
     tokens,
@@ -573,3 +576,108 @@ def test_the_json_answers_it_as_a_field(tmp_path, capsys):
     departing(tmp_path)
     main(["-C", str(tmp_path), "ship", "RK1", "--why", "It works now.", "--json"])
     assert json.loads(capsys.readouterr().out)["dequeued"] == "RK1"
+
+
+# -- the door between the two declarations (RK427) ---------------------------
+
+
+def test_a_config_queue_refuses_by_naming_the_migration(tmp_path):
+    """The gate reports `priority.shipped` naming roadkeep.toml, and both queue verbs refused
+    with "no priority heading in docs/ROADMAP.md", having never opened the file the finding
+    named — a defect with no exit but the hand edit this tool exists to replace."""
+    config = _legacy(tmp_path)
+    for call in (lambda: drop(config, "DX2"), lambda: add(config, "DX1")):
+        with pytest.raises(NoQueue) as raised:
+            call()
+        assert "priority migrate" in str(raised.value)
+        assert "DX2" in str(raised.value), "the refusal names the order it found"
+
+
+def test_the_migration_writes_the_section_above_the_first_block(tmp_path):
+    # Where the order is read: a queue underneath the blocks is one a reader meets after the
+    # list it was meant to reorder.
+    config = _legacy(tmp_path)
+    migrated = migrate(config)
+    migrated.save()
+    text = (tmp_path / "docs" / "ROADMAP.md").read_text(encoding="utf-8")
+    assert text.index("## Priority") < text.index("## Block A")
+    assert migrated.tokens == ("DX2", "Block A")
+
+
+def test_the_door_opens_once_the_queue_has_moved(tmp_path):
+    config = _legacy(tmp_path)
+    migrate(config).save()
+    dropped = drop(Config.discover(tmp_path), "DX2")
+    dropped.save()
+    assert "DX2" not in tokens(Config.discover(tmp_path))
+
+
+def test_roadkeep_toml_is_never_written(tmp_path):
+    # Nothing here writes the config: it carries an author's comments, and a TOML rewrite
+    # that preserves them is a parser this tool would grow and a dependency it refuses.
+    config = _legacy(tmp_path)
+    before = (tmp_path / "roadkeep.toml").read_text(encoding="utf-8")
+    migrate(config).save()
+    assert (tmp_path / "roadkeep.toml").read_text(encoding="utf-8") == before
+    # And the section wins from here, so the order is live and the leftover is `lint`'s.
+    assert declared(Config.discover(tmp_path)).declared_in == "roadmap"
+
+
+def test_a_project_that_already_declares_a_section_is_refused(tmp_path):
+    # Two orders concatenated is a third order nobody wrote, which is why `declared` does
+    # not merge them either.
+    config = _legacy(tmp_path)
+    migrate(config).save()
+    with pytest.raises(AlreadyDeclared):
+        migrate(Config.discover(tmp_path))
+
+
+def test_a_project_with_no_config_queue_is_told_what_to_call_instead(tmp_path):
+    config = _legacy(tmp_path, priority="")
+    with pytest.raises(NothingToMigrate) as raised:
+        migrate(config)
+    assert "priority add" in str(raised.value)
+
+
+def test_the_remedy_names_the_migration_where_the_queue_is_the_configs(tmp_path):
+    # RK420's table: `--fix` reads the roadmap's section and only that, so on a project that
+    # never migrated the mechanical remedy repairs nothing — and a remedy that does nothing
+    # is the retry loop the whole table exists to remove.
+    from roadkeep.linting import Finding
+    from roadkeep.remedying import remedy
+
+    config = _legacy(tmp_path)
+    found = remedy(Finding("priority.shipped", "roadkeep.toml", "", None, subject="DX2"), config)
+    assert found is not None and found.doors[0].argv == ("priority", "migrate")
+    migrate(config).save()
+    moved = remedy(
+        Finding("priority.shipped", "docs/ROADMAP.md", "", 4, subject="DX2"),
+        Config.discover(tmp_path),
+    )
+    assert moved is not None and moved.kind == "fix"
+
+
+def _legacy(tmp_path, priority: str = 'priority = ["DX2", "Block A"]\n'):
+    """A project whose order is still `roadkeep.toml`'s — the state RK325 left behind."""
+    docs = tmp_path / "docs"
+    docs.mkdir(parents=True, exist_ok=True)
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "DX"\n' + priority + '[files]\nroadmap = "docs/ROADMAP.md"\n'
+        'changelog = "docs/CHANGELOG.md"\n',
+        encoding="utf-8",
+    )
+    for name, body in (
+        (
+            "ROADMAP.md",
+            "# Roadmap\n\n## Block A — The first block\n\n"
+            "- 📋 **DX1** (deps: —) **A first symptom** — Because of a reason.\n",
+        ),
+        (
+            "CHANGELOG.md",
+            "# Shipped\n\n## Block A — The first block\n\n"
+            "- ✅ **DX2** **A shipped symptom** — it was done.\n",
+        ),
+    ):
+        with (docs / name).open("w", encoding="utf-8", newline="") as handle:
+            handle.write(body)
+    return Config.discover(tmp_path)

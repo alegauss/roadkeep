@@ -206,6 +206,7 @@ def test_the_tools_are_what_a_task_needs_end_to_end():
         # guard denies an edit to.
         "priority_add",
         "priority_drop",
+        "priority_migrate",
         "section_add",
         "section_amend",
         # The address `renumber` cannot reach under an outline (RK377), beside the two
@@ -748,6 +749,9 @@ def test_the_read_only_hint_says_which_tools_write(tmp_path):
         "non_goal_drop",
         "priority_add",
         "priority_drop",
+        # And the door between the two declarations (RK427), which writes the roadmap:
+        # a project whose queue is still the config's could not reach either verb above.
+        "priority_migrate",
         "section_add",
         "section_amend",
         # The address `renumber` cannot reach under an outline (RK377), beside the two

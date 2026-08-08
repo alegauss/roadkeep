@@ -181,6 +181,14 @@ def _compose(argv: tuple[str, ...], what: str) -> _Rule:
     return _Rule("compose", ((argv, what),))
 
 
+def _varies_on_queue(cause: str, what: str) -> _Rule:
+    """A dead queue entry: mechanical where the section holds the order, `migrate` where the
+    config still does (RK427). `--fix` reads the roadmap and only the roadmap, so on a project
+    that never migrated it repairs nothing and the caller is left holding a finding whose
+    named door does not open that file."""
+    return _Rule("fix", ((("lint", "--fix"), what),), varies="queue", cause=cause)
+
+
 def _decide(decision: str, *doors: tuple[tuple[str, ...], str]) -> _Rule:
     return _Rule("decide", tuple(doors), decision)
 
@@ -254,12 +262,12 @@ _TABLE: Mapping[str, _Rule] = {
         "the line is re-rendered from the task the parser read out of it",
     ),
     # --------------------------------------------------------------------- the three lists
-    "priority.shipped": _fix(
+    "priority.shipped": _varies_on_queue(
         "the queue names work that has shipped: every token in an order names work, and "
         "work leaves — the one list a departure does not reach",
         "the entry is dropped, named in the report and never in silence",
     ),
-    "priority.retired": _fix(
+    "priority.retired": _varies_on_queue(
         "the queue names work that was retired, which is the same departure by the other "
         "door and leaves the same dead entry",
         "the entry is dropped, named in the report and never in silence",
@@ -289,6 +297,15 @@ _TABLE: Mapping[str, _Rule] = {
         ("priority", "list"),
         "the section wins over the config: read the queue that is live, then take the "
         "`priority = [...]` line out of roadkeep.toml",
+    ),
+    # Not a finding of its own — the row the two above become on a project that never
+    # migrated (RK427). `--fix` reads the roadmap's section, so on a config-declared queue
+    # it repairs nothing and the caller is left with a defect the gate names in a file no
+    # verb opens. `_varied` swaps this in when `lint` read the order out of the config.
+    "priority.unmigrated": _run(
+        ("priority", "migrate"),
+        "this queue is still roadkeep.toml's, which no verb writes: move it into the "
+        "roadmap and every queue verb reaches it",
     ),
     "priority.block": _decide(
         "a block with no open line under it cannot be first, and whether that is a "
@@ -754,6 +771,10 @@ def _varied(code: str, rule: _Rule, finding: object, config: Config) -> _Rule:
             ("amend", "{id}", "--ref", BLANK),
             "the anchor is not derived under this project's scheme, so it is yours to state",
         )
+    if rule.varies == "queue" and _queue_in_config(config):
+        # The order lives where no verb writes, so the mechanical pass cannot reach it and
+        # the honest remedy is the one door between the two declarations.
+        return _TABLE["priority.unmigrated"]
     if code == "id.duplicate" and _role_of(finding, config) == "roadmap":
         # `record renumber` opens the ledger and this is the other file: two *open* lines
         # sharing an id are two tasks, and one of them takes a free address.
@@ -763,6 +784,17 @@ def _varied(code: str, rule: _Rule, finding: object, config: Config) -> _Rule:
             (("show", "{id}"), "read both first — they may be one line written twice"),
         )
     return rule
+
+
+def _queue_in_config(config: Config) -> bool:
+    """Whether this project's order is still `roadkeep.toml`'s (RK427).
+
+    Asked of :func:`~roadkeep.queueing.declared`, which is the one reader that can see both
+    declarations — a second rule here about which file wins is the disagreement RK427 is.
+    """
+    from .queueing import declared  # noqa: PLC0415 - one branch, and never on a clean run
+
+    return declared(config).declared_in == "config"
 
 
 def _role_of(finding: object, config: Config) -> str:

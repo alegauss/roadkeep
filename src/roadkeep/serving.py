@@ -373,6 +373,10 @@ TOOLS: tuple[Tool, ...] = (
     # and the file it now lives in is the one the guard denies an edit to.
     Tool("priority add", ("token", "first", "after")),
     Tool("priority drop", ("token",)),
+    # The door the other two could not be reached without (RK427). Exposed because the caller
+    # that meets the deadlock is this one: the gate names a defect in `roadkeep.toml`, both
+    # verbs above refuse having never opened it, and the hand edit is what the guard denies.
+    Tool("priority migrate", ()),
     Tool("section add", ("anchor", "title", "body", "role")),
     # The correction an open task's design needs (RK123). Exposed for the reason the whole
     # write path is: the agent that narrowed a hypothesis is the one the hook denies a hand

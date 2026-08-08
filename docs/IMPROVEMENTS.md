@@ -191,31 +191,6 @@ keeping the file's existing order — and what the title must become, with both 
 `--json` fields. The tool knows both regions' line ranges, so printing them is the whole
 of what a caller works out by hand.
 
-### §RK427 The finding in one file, the door on another
-
-RK325 moved the queue out of `roadkeep.toml` and into a `## Priority` section of the
-roadmap, for a good reason: every token in it names work, and work leaves, so the config
-was the one file nothing governed. A project that has not migrated still declares it in
-the config — and `lint` still reads it there, which is right.
-
-The two halves disagree about where the queue is. `lint` reports `priority.shipped` and
-names **`roadkeep.toml`** as the location. `priority drop <id>` — the verb whose whole
-job is that repair — refuses with *no priority heading in docs/ROADMAP.md*, having never
-looked at the file the finding named. So the gate reports a defect in a file the door
-will not open, and the only way out is the hand-edit the tool exists to replace.
-
-Measured: shipping a task whose id led the queue produced the finding, and the drop that
-answers it could not run.
-
-Three ways to close it, in increasing order of what they cost. `priority drop` and `add`
-operate on whichever declaration `lint` read, since it already resolves that. Or the
-refusal names the migration as the fix and prints the tokens to move. Or `lint` declines
-to report a finding no verb can repair — which is the worst of the three, because the
-drift is real.
-
-The first is the one that matches how the codes are supposed to work: a finding names a
-door, and that door opens.
-
 ## Block E — Adoption
 
 ### §RK402 The tree that ships the plugin is told to wire the guard a second time
