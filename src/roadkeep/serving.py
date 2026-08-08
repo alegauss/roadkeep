@@ -318,7 +318,10 @@ TOOLS: tuple[Tool, ...] = (
     # The field `amend` excludes, at its own door (RK178). Exposed beside it because the agent
     # that discovers a premise is false is the one executing the line, and the exit designed
     # for it — retire plus add — spends an id and deletes a section that was already right.
-    Tool("restate", ("id", "symptom", "lines")),
+    # `typo` rides with it (RK414): which of the two acts a rewording is cannot be inferred
+    # from the strings, so it is the caller's declaration — and the caller this surface is
+    # for is the one whose every restatement would otherwise read as a premise turning false.
+    Tool("restate", ("id", "symptom", "lines", "typo")),
     # The repair a merge needs, exposed for the reason it exists at all (RK97): the agent
     # that hits a doubled id is the one the hook denies a hand-edit to, so a door only a
     # human can reach is no door. `to` is offered because the derived answer is not always

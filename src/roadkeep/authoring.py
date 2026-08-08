@@ -753,6 +753,10 @@ class Restatement:
     #: Other lines whose dep annotation this write made true again (RK8). Normally empty: a
     #: symptom is nobody's dependency, and this is here because the write path derives it.
     refreshed: tuple[str, ...] = ()
+    #: Whether the caller declared this a slip of the pen rather than a false premise (RK414).
+    #: Declared and **never inferred**: which of the two a rewording is cannot be read off two
+    #: strings, and a tool that guessed would be filing the caller's intent under its own.
+    typo: bool = False
 
     @property
     def changed(self) -> bool:
@@ -768,9 +772,29 @@ class Restatement:
 
 
 def restate(
-    config: Config, task_id: str, symptom: str, *, lines: int | None = None
+    config: Config,
+    task_id: str,
+    symptom: str,
+    *,
+    lines: int | None = None,
+    typo: bool = False,
 ) -> Restatement:
     """Correct one open line's symptom, keeping its id, its deps and its section (RK178).
+
+    ``typo`` splits the two acts this door had to carry as one (RK414). The verb is
+    documented for the case it was written for — the premise itself turned out false — and a
+    misspelt word is not that: the claim is the one intended, and repairing it through a
+    door whose answer reads *the work never changed, the premise did* files a decision
+    nobody took. So the caller says which, the answer says which, and `restate`'s every
+    other occurrence still means what its documentation says, which is the only thing that
+    makes it greppable.
+
+    Declared and never inferred, deliberately. Whether "the annotaton is stale" → "the
+    annotation is stale" is a spelling fix and "the annotation is stale" → "the annotation
+    is absent" is a new claim cannot be read off the two strings — the difference is what
+    the author meant — so a tool that decided would be recording its guess as the record.
+    Nothing is validated differently either: a typo's symptom faces the same schema, because
+    a slip of the pen that lands over the limit is still over the limit.
 
     The door RK65 was right to leave shut and the one nothing else opened. Measured in
     claude-tray: T210 was written from a list of response headers, executing it meant reading
@@ -807,7 +831,7 @@ def restate(
 
     updated = sections.checked(config, derive(backlog, replace(entry.task, symptom=symptom)))
     if updated == entry.task:
-        return Restatement(document=roadmap, entry=entry, before=entry.task)
+        return Restatement(document=roadmap, entry=entry, before=entry.task, typo=typo)
     # The same count as the door next to this one (RK195): a restatement rewrites the line's
     # prose, so on a wrapped line it strands the same tail.
     counted(
@@ -824,6 +848,7 @@ def restate(
         entry=next(e for e in derived.document.entries if e.lineno == entry.lineno),
         before=entry.task,
         refreshed=tuple(name for name in derived.changed if name != task_id),
+        typo=typo,
     )
 
 

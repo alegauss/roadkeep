@@ -163,24 +163,6 @@ say so — name the codepoint, name the field, and name the escape that produces
 which costs one branch on a path that already has the value in hand, and turns a
 two-retry diagnosis into a read.
 
-### §RK414 The typo has no door of its own
-
-`amend` refuses `symptom` on purpose: the symptom is the falsifiable claim the line is,
-so a different one is a different task. `restate` is the exception, and it is documented
-for one case — the premise itself turned out false, the work never changed, so the id,
-the deps and the section all stay.
-
-A typo is neither. The claim is the one intended; a word in it is misspelt, or a
-possessive is missing. Repairing that today means calling `restate`, whose answer says
-`the work never changed` and whose commit reads, to anyone scanning history for why a
-claim moved, as a correction of substance. The record ends up describing a decision
-nobody took.
-
-The distinction is not one the tool can infer, and it does not have to: the caller knows
-which they are doing, so the field is a flag. What it buys is a truthful ledger of when
-a line's claim actually changed — the thing `restate` exists to make greppable — and a
-`restate` whose every occurrence still means what its documentation says.
-
 ### §RK426 One refusal per call, not one per field
 
 `add` refuses the fields at input, which is the right design and the reason nothing

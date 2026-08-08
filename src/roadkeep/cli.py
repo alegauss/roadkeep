@@ -717,6 +717,14 @@ def build_parser() -> argparse.ArgumentParser:
         type=int,
         help="how many lines this restatement replaces; required where the line wraps",
     )
+    restate_parser.add_argument(
+        "--typo",
+        action="store_true",
+        help=(
+            "a slip of the pen rather than a false premise: the claim is the one intended "
+            "and a word in it was wrong, so the answer and the payload say so"
+        ),
+    )
     restate_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     restate_parser.set_defaults(handler=_restate)
 
@@ -2940,7 +2948,9 @@ def _amend(config: Config, args: argparse.Namespace) -> int:
 
 def _restate(config: Config, args: argparse.Namespace) -> int:
     try:
-        restated = restate(config, args.id, args.symptom, lines=args.lines)
+        restated = restate(
+            config, args.id, args.symptom, lines=args.lines, typo=args.typo
+        )
     except REFUSALS as error:
         return _refused(error)
 
@@ -2957,6 +2967,9 @@ def _restate(config: Config, args: argparse.Namespace) -> int:
                     "was": restated.before.symptom,
                     "now": restated.entry.task.symptom,
                     "changed": restated.changed,
+                    # Which of the two acts this was (RK414), so a consumer counting how
+                    # often a claim actually moved is not counting spelling fixes with them.
+                    "typo": restated.typo,
                     "rendered": restated.rendered,
                     "refreshed": list(restated.refreshed),
                 },
@@ -2973,8 +2986,15 @@ def _restate(config: Config, args: argparse.Namespace) -> int:
     print(f"  now      {restated.entry.task.symptom}")
     print(f"  {restated.rendered}")
     # Said out loud, because keeping them is the whole argument for the verb: the work never
-    # changed, so nothing the history is keyed on moves.
+    # changed, so nothing the history is keyed on moves. Which of the two acts it was is the
+    # other half (RK414): the default sentence claims a premise turned out false, and printing
+    # that over a misspelt word is the record describing a decision nobody took.
     print("  kept     the id, the deps and the section: the work never changed")
+    print(
+        "  spelling the claim is the one intended — a slip of the pen, not a false premise"
+        if restated.typo
+        else "  claim    the premise this line asserted turned out to be false"
+    )
     if restated.refreshed:
         print(f"  derived  {', '.join(restated.refreshed)} (dep annotations re-derived)")
     return EXIT_OK

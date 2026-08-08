@@ -139,6 +139,7 @@
 - ✅ **RK403** **A block heading the changelog declares twice has no verb to fold into one, leaving only the hand-edit the guard denies** — block merge folds a label's duplicate headings into the first, moving the entries and including the ledger, so the doubled heading only a hand-edit could repair has a verb at last.
 - ✅ **RK399** **One field is spelled --status on add and --marker on resume** — add, budget, list and resume each accept --marker and --status for the one declared field, so the name learned on any verb is the name the others answer to.
 - ✅ **RK408** **The ship that empties a block reports it and names no verb for it** — the empty event names block drop for the label it just finished, so the state the answer computes and the command it makes available arrive together.
+- ✅ **RK414** **A slip of the pen in a symptom has to borrow the verb for a false premise** — restate --typo declares a slip of the pen, so the answer and the payload say which of the two acts it was and every other restatement still means a premise that turned out false.
 
 ## Block C — Query
 

@@ -1489,3 +1489,72 @@ def _parse(parser, command, spelled):
         "resume": ["RK1"],
     }[command]
     return parser.parse_args([command, *required, spelled, "💭"])
+
+
+# -- the typo has a door of its own (RK414) ----------------------------------
+
+
+def test_a_slip_of_the_pen_is_declared_and_the_answer_says_so(tmp_path, capsys):
+    """`restate` is documented for one case — the premise turned out false — and a misspelt
+    word is not it. Repairing one through that door files a decision nobody took."""
+    config = project(tmp_path, body=TYPO)
+    root = config.root
+    assert main(
+        ["-C", str(root), "restate", "RK1", "--symptom", "The annotation is stale", "--typo"]
+    ) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "a slip of the pen, not a false premise" in out
+    assert "the premise this line asserted turned out to be false" not in out
+
+
+def test_without_the_flag_the_answer_still_reads_as_a_false_premise(tmp_path, capsys):
+    config = project(tmp_path, body=TYPO)
+    root = config.root
+    assert main(
+        ["-C", str(root), "restate", "RK1", "--symptom", "Nothing derives the annotation"]
+    ) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "the premise this line asserted turned out to be false" in out
+    assert "slip of the pen" not in out
+
+
+def test_the_payload_carries_which_act_it_was(tmp_path, capsys):
+    # So a consumer counting how often a claim actually moved is not counting spelling
+    # fixes among them, which is the whole thing `restate` exists to keep greppable.
+    config = project(tmp_path, body=TYPO)
+    root = config.root
+    assert main(
+        ["-C", str(root), "restate", "RK1", "--symptom", "The annotation is stale",
+         "--typo", "--json"]
+    ) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["typo"] is True
+
+
+def test_a_typo_faces_the_same_schema_as_any_other_symptom(tmp_path, capsys):
+    # A slip of the pen that lands over the limit is still over the limit: the flag records
+    # an intent and relaxes nothing, or it becomes the way round the field's own rule.
+    config = project(tmp_path, body=TYPO)
+    root = config.root
+    assert main(
+        ["-C", str(root), "restate", "RK1", "--symptom", "x" * 400, "--typo"]
+    ) == EXIT_USAGE
+    assert "symptom" in capsys.readouterr().err
+
+
+def test_nothing_is_inferred_from_the_two_strings(tmp_path):
+    # The declaration is the caller's and the tool never second-guesses it: whether a
+    # rewording is a spelling fix or a new claim is what the author meant, and a rule that
+    # decided from the edit distance would record its guess as the record.
+    config = project(tmp_path, body=TYPO)
+    root = config.root
+    restated = restate(config, "RK1", "Something else entirely", typo=True)
+    assert restated.typo is True
+    assert restated.entry.task.symptom == "Something else entirely"
+
+
+TYPO = """# Roadmap
+
+## Block A — The model
+
+- 📋 **RK1** (deps: —) **The annotaton is stale** — Because of a reason. → §RK1
+"""
