@@ -1741,6 +1741,36 @@ def _check(
         raise SectionError(tuple(out))
 
 
+def violations(
+    schema: Schema,
+    anchor: str,
+    title: str,
+    body: str,
+    task: Task | None = None,
+    *,
+    elsewhere: Whereabouts | None = None,
+) -> tuple[Violation, ...]:
+    """The same rules, collected rather than raised (RK426).
+
+    `add --section` refuses the line and the section in two passes, so a call whose `why` is
+    fifteen characters over and whose body is fifty words over costs **two** full
+    resubmissions — the second for a limit the first refusal already knew was breached. That
+    is the cost `--section-body-file` exists to avoid, charged for a field the tool had not
+    looked at, and re-passing the prose is the expensive half.
+
+    So the caller that holds both sets asks for them and raises once. This is the collector
+    and :func:`_check` is the raiser above it, rather than the reverse, because every other
+    caller wants the refusal at the point of the check — a function that returned violations
+    to twelve call sites would put the raise in twelve places, which is the shape L1 exists
+    to avoid one layer up.
+    """
+    try:
+        _check(schema, anchor, title, body, task, elsewhere=elsewhere)
+    except SectionError as error:
+        return tuple(error.violations)
+    return ()
+
+
 def _bound(schema: Schema, anchor: str, title: str, task: Task | None) -> str:
     """The heading text with the task named in it, which is what makes it that task's (RK262).
 

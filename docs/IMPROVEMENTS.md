@@ -120,28 +120,6 @@ The fix is one line in the ship's answer, alongside the citation one: *"§X now 
 subsections — its prose introduces work that shipped"*. Deciding what it should say
 instead is a `section amend`, and a judgement; noticing is not.
 
-### §RK426 One refusal per call, not one per field
-
-`add` refuses the fields at input, which is the right design and the reason nothing
-half-written reaches the file. It refuses them **one at a time**. A call whose `why` is
-245 characters and whose `--section-body` is 302 words is refused twice: once for
-`why.too-long`, and then — after the sentence has been rewritten and the whole call
-resubmitted — for `body.too-long`, a limit the first refusal already knew was breached.
-
-Measured filing four tasks across two projects in one session: seven refusals, of which
-two were the second limit of a call whose first had just been fixed. Each costs a full
-resubmission, and `--section-body-file` exists precisely because resubmitting the prose
-is the expensive part — so the tool has already conceded that a refusal's cost is the
-re-passing, and then makes the caller pay it for a field it never looked at.
-
-The remedy is to validate every field and report every breach in one refusal, in the
-order the schema declares them. The message shape is already right — each finding names
-its code, its measurement and its delta — so this is a change to how many findings
-print, not to what one says.
-
-`--json` gains the same: a caller correcting programmatically wants the list, not the
-first entry of it.
-
 ## Block C — Query
 
 ## Block D — The gate

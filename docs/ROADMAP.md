@@ -26,7 +26,6 @@
 
 - 💭 **RK385** (deps: —) **Nothing notices that a new line asks for what a shipped entry already delivered** — RK378 was filed the day after RK340 shipped the same namespace and nothing refused it, so a duplicate costs a claim, a brief and a retirement before anyone reads the ledger. → §RK385
 - 📋 **RK400** (deps: —) **Shipping a family's last child leaves its parent describing deleted work** — The introduction a subtree was written under survives every ship that emptied it, so the file's most-read paragraph is the one nothing checks. → §RK400
-- 📋 **RK426** (deps: —) **A call breaching two limits is refused twice, the second time for a limit the first refusal already measured** — add validates one field at a time, so a why and a body both long cost two full resubmissions - and re-passing the prose is the cost --section-body-file exists to avoid. → §RK426
 
 ## Block C — Query (consult without reading the file)
 

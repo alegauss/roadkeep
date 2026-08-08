@@ -424,6 +424,17 @@ def add(
         deps=deps,
         ref=ref,
     )
+    # Both fields' breaches in one refusal, where the body is already in hand (RK426). A
+    # call whose `why` is fifteen characters over and whose body is fifty words over used to
+    # cost two full resubmissions, the second for a limit the first refusal had already
+    # measured — and re-passing the prose is exactly what `--section-body-file` exists to
+    # avoid, so the tool had conceded the cost and then charged it for a field it never read.
+    #
+    # **Only where the body is a string.** RK381's ordering is not relaxed: a body arriving
+    # off a *pipe* is spent by reading it, and a pipe does not rewind, so for that one shape
+    # the line still has to pass before the paragraph is fetched. A `str` costs nothing to
+    # look at twice, which is the whole distinction and the reason it is drawn on the type.
+    _refuse_together(config, task, section)
     insertion = place(
         config.document("roadmap"),
         derive(Backlog.load(config), task),
@@ -444,6 +455,57 @@ def add(
         )
     insertion.save()
     return insertion
+
+
+@dataclass(frozen=True, slots=True)
+class Rereadable:
+    """A body that can be fetched more than once, so it may be validated early (RK426).
+
+    RK381 made the body a *reader* because a paragraph off a pipe is spent by reading it and
+    a pipe does not rewind — so a `why` fifteen characters over cost a 184-word body a second
+    time. That argument holds for one of the three sources and not the other two: a literal
+    string and a path both cost nothing to look at twice.
+
+    Collapsing all three into a bare lambda lost that, and with it the only distinction that
+    decides whether both fields can be refused in one call. So the two cheap sources arrive
+    wrapped and the pipe stays a plain callable — the type is the answer, rather than a flag
+    the caller has to remember to pass and `add` has to trust.
+    """
+
+    read: Callable[[], str]
+
+    def __call__(self) -> str:
+        return self.read()
+
+
+def _refuse_together(
+    config: Config, task: Task, section: Rationale | None
+) -> None:
+    """Raise once for every field breached across the line and its section (RK426).
+
+    Silent unless *both* halves are checkable now: a body that is a reader is RK381's case
+    and stays deferred, and a task with no anchor or a project with no prose file are
+    refusals :func:`_with_section` makes for reasons of their own. What this adds is the one
+    thing neither pass could see — the other pass's findings — so it reports and never
+    decides, and every rule below it still runs exactly as it did.
+    """
+    if section is None:
+        return
+    title, body = section
+    if isinstance(body, Rereadable):
+        # Cheap to fetch twice, which is the whole condition: a path re-read costs a file
+        # read and a literal costs nothing, while a pipe is spent by looking at it.
+        body = body()
+    if not isinstance(body, str) or not task.ref:
+        return
+    role = prose_role(config)
+    if role is None:
+        return
+    found = tuple(config.schema_for("roadmap").validate(task)) + sections.violations(
+        config.schema_for(role), task.ref, title, body, task
+    )
+    if found:
+        raise SchemaError(found)
 
 
 def _with_section(

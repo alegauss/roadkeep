@@ -49,7 +49,7 @@ from typing import NoReturn
 from roadkeep import attesting, claiming, provenance
 from roadkeep.adopting import Estimate, adopt, init
 from roadkeep.attesting import attest
-from roadkeep.authoring import StatusChange, add, amend, restate, set_status
+from roadkeep.authoring import Rereadable, StatusChange, add, amend, restate, set_status
 from roadkeep.backlog import Backlog
 from roadkeep.blocking import drop_block, merge_block, open_block
 from roadkeep.briefing import Brief, NothingToBrief, brief, non_goals
@@ -3529,10 +3529,14 @@ def _body_reader(literal: str | None, path: str | None) -> Callable[[], str]:
     here reflows or strips. A path that is not there raises `OSError`, which is in
     :data:`REFUSALS` and exits 2 like every other bad input.
     """
+    # Two of the three are **re-readable**, and saying so is what lets `add` refuse both
+    # fields at once (RK426): a path costs a file read to fetch twice and a literal costs
+    # nothing, while the pipe is the one source spent by looking at it. RK381's deferral is
+    # unchanged for that one — it is the only case its argument was ever about.
     if path is not None:
-        return lambda: Path(path).read_text(encoding="utf-8")
+        return Rereadable(lambda: Path(path).read_text(encoding="utf-8"))
     if literal is not None and literal != STDIN:
-        return lambda: literal
+        return Rereadable(lambda: literal)
     return sys.stdin.read
 
 

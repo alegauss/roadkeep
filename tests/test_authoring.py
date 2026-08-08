@@ -1609,3 +1609,89 @@ def test_a_dep_is_read_under_the_files_own_grammar_too(tmp_path):
     config = _excused(tmp_path)
     amended = amend(config, "RK1", deps=["RK4"])
     assert "RK4" in amended.rendered
+
+
+# -- one refusal per call, not one per field (RK426) --------------------------
+
+
+def _tight(tmp_path):
+    """A project whose two budgets are small enough to breach in one call."""
+    return project(
+        tmp_path,
+        body="# Roadmap\n\n## Block A — The model\n",
+        declares=("[limits]", "why = 60", "section = 12"),
+        prose="# Improvements\n\n## Block A — The model\n",
+    )
+
+
+def test_both_fields_are_refused_in_one_call(tmp_path):
+    """A `why` fifteen characters over and a body fifty words over cost two full
+    resubmissions, the second for a limit the first refusal had already measured — and
+    re-passing the prose is the cost `--section-body-file` exists to avoid."""
+    config = _tight(tmp_path)
+    with pytest.raises(SchemaError) as raised:
+        add(
+            config,
+            block="A",
+            symptom="A symptom",
+            why="Because of a reason that runs well past the limit this project declares.",
+            section=("A design", "A body that is also far past the twelve word budget this project declares for one."),
+        )
+    codes = {v.code for v in raised.value.violations}
+    assert codes == {"why.too-long", "body.too-long"}
+
+
+def test_a_body_off_a_pipe_is_still_read_last(tmp_path):
+    """RK381 is not relaxed. A pipe does not rewind, so a paragraph read to discard it is
+    spent — which is the whole reason the body became a reader, and the one source that
+    argument was ever about."""
+    read: list[str] = []
+
+    def from_pipe() -> str:
+        read.append("fetched")
+        return "A body."
+
+    config = _tight(tmp_path)
+    with pytest.raises(SchemaError) as raised:
+        add(
+            config,
+            block="A",
+            symptom="A symptom",
+            why="Because of a reason that runs well past the limit this project declares.",
+            section=("A design", from_pipe),
+        )
+    assert {v.code for v in raised.value.violations} == {"why.too-long"}
+    assert read == [], "the pipe was spent on a call the line already failed"
+
+
+def test_a_rereadable_body_is_fetched_and_the_pipe_is_not(tmp_path):
+    from roadkeep.authoring import Rereadable
+
+    fetched: list[str] = []
+    config = _tight(tmp_path)
+    with pytest.raises(SchemaError) as raised:
+        add(
+            config,
+            block="A",
+            symptom="A symptom",
+            why="Because of a reason that runs well past the limit this project declares.",
+            section=(
+                "A design",
+                Rereadable(lambda: (fetched.append("read"), "A body far past the twelve word budget this project declares for one section")[1]),
+            ),
+        )
+    assert {v.code for v in raised.value.violations} == {"why.too-long", "body.too-long"}
+    assert fetched == ["read"], "a re-readable body costs a second fetch and nothing else"
+
+
+def test_a_legal_call_is_unaffected(tmp_path):
+    # The pass reports and never decides: every rule below it still runs exactly as it did.
+    config = _tight(tmp_path)
+    inserted = add(
+        config,
+        block="A",
+        symptom="A symptom",
+        why="Because of a reason.",
+        section=("A design", "A short body."),
+    )
+    assert inserted.entry.task.id == "RK1"

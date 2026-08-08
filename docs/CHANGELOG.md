@@ -142,6 +142,7 @@
 - ✅ **RK414** **A slip of the pen in a symptom has to borrow the verb for a false premise** — restate --typo declares a slip of the pen, so the answer and the payload say which of the two acts it was and every other restatement still means a premise that turned out false.
 - ✅ **RK401** **A line the gate calls clean is refused by the door that corrects it** — status, amend and restate validate against the schema the file was loaded under, so a role that [rules] excused a field for is corrected by the grammar the gate reads it with.
 - ✅ **RK407** **A refusal blames the author for a character its own shell wrote** — a control character that is not a line break is refused as its own code, naming the codepoint, its position and the backtick escape that writes it.
+- ✅ **RK426** **A call breaching two limits is refused twice, the second time for a limit the first refusal already measured** — add validates the line and a re-readable section body together and raises once, so a call breaching both is corrected in one resubmission instead of two.
 
 ## Block C — Query
 

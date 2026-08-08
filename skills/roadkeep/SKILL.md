@@ -44,7 +44,10 @@ a section's heading is what binds it to its line, and it too is appended for you
 from `I` being one flat set of addresses otherwise, which `anchors` reports as `doubled` and
 the gate as `section.ambiguous`. The prefix rides on the pointer alone: the heading keeps the
 number the file wrote, and `anchors` names the free address in each namespace. A refusal exits 2 naming the length and
-the limit and writes nothing; the shipped marker never reaches the roadmap. **A line renders a
+the limit and writes nothing — **every field it looked at, in one message**, so a call whose
+`why` and whose body are both over is corrected once rather than twice (a body arriving off a
+*pipe* is the one exception: it stays unread until the line passes, since a pipe does not
+rewind, which is what `--section-body-file` is for); the shipped marker never reaches the roadmap. **A line renders a
 pointer, and the pointer has to resolve**: `add --section "<title>"` writes the rationale in
 the same transaction — the prose on stdin or `--section-body`, both files validated before
 either is written — and an `add` without it answers with the `section add` that closes the
