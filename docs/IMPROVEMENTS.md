@@ -144,25 +144,6 @@ first entry of it.
 
 ## Block C — Query
 
-### §RK416 A reverted premise is not a delivered one
-
-`origin <id> --why` reads a claim out of history and `gaps` resolves an id in neither
-file, so history is queryable. What it cannot be asked is the question that matters
-before writing a line: *has this been tried and undone?*
-
-A real corpus has the shape. Two tasks proposed automatic CI triggers, a third shipped
-the revert, and its entry names both by id and says the state they read as an oversight
-is deliberate. The heading of every affected file repeats it. All of that is in the
-ledger, and a fourth proposal would still be filed without a word — a reversal is
-recorded as a delivery, so a duplicate check that asks "did a shipped entry already do
-this" answers yes about the revert and misses that the new line asks to undo it.
-
-The distinction is the whole value: a duplicate wastes an id, and this wastes an id plus
-the argument the revert already had. The signal is cheap where a project spells it — an
-entry naming prior ids as wrong — and a query that surfaces those before an `add`, or a
-verb to mark an entry as reverting the ids it names, turns re-litigating a settled
-decision into a refusal.
-
 ## Block D — The gate
 
 ### §RK418 The number that could not answer this question before

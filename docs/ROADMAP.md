@@ -30,8 +30,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK416** (deps: —) **A line proposing what a revert already undid reads as new work** — The ledger files a reversal as a delivery, so the entry that says a change was wrong looks like any other shipped one and nothing connects a fresh proposal to it. → §RK416
-
 ## Block D — The gate
 
 - 📋 **RK418** (deps: —) **Two copies at one version number are called agreed, on the one fact known not to tell trees apart** — The comparison is the release string, which a modified checkout and a released plugin can share while their files differ, and the commit each carries is read and dropped. → §RK418

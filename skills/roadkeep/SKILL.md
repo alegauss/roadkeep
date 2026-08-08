@@ -103,7 +103,12 @@ planned, so the ledger entry alone and the roadmap untouched. It is also **the r
 pointer to the entry saying it shipped, in one write — reach for it there, because `retire`
 needs a roadmap line the ship already removed and `record drop` refuses a non-duplicate, so
 without it the ledger holds two records of one decision that do not name each other. Both
-entries stay: the ledger is history and both happened. `record drop <id>` is its inverse:
+entries stay: the ledger is history and both happened. **`reversals` is how you find them
+before spending an id** — a revert is filed as a delivery, so a duplicate check answers "yes,
+shipped" about the entry saying the work did not hold; this reads that forward pointer back
+with the reversing entry's sentence, which is the argument a fresh proposal is against.
+`reversals --id <id>` exits 1 where that decision was reversed. It refuses nothing: re-proposing
+reverted work is sometimes right, and which is a judgement no tool makes. `record drop <id>` is its inverse:
 refused unless the ledger states that id **twice** *and the two say the same thing*, then the
 later entry goes and the first stays,
 because removing the only record of a decision is deleting history. Two entries that differ are

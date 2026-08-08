@@ -128,6 +128,7 @@ from roadkeep.picking import Choice, Claim, pick, take
 from roadkeep.provenance import engine, invocation
 from roadkeep.remedying import Remedy, codes as remedy_codes, explain, remedy
 from roadkeep.renumbering import renumber
+from roadkeep.reverting import reversals
 from roadkeep.repairing import MAX_PASSES, Repaired, repair
 from roadkeep.schema import SchemaError
 from roadkeep.queueing import add as add_priority
@@ -1391,6 +1392,26 @@ def build_parser() -> argparse.ArgumentParser:
     )
     explain_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     explain_parser.set_defaults(handler=_explain, reads_only=True)
+
+    reversals_parser = subcommands.add_parser(
+        "reversals",
+        help="the decisions this ledger already made and undid, with the argument",
+        description=(
+            "A revert is filed as a delivery, so a duplicate check answers `yes, shipped` "
+            "about the entry that says the work did not hold. This reads the forward "
+            "pointer back: every id the ledger marks superseded, the entry that superseded "
+            "it, and that entry's sentence — which is the argument a fresh proposal is "
+            "against. Read it before an `add`, not after. It refuses nothing: re-proposing "
+            "reverted work is sometimes right, and which is a judgement the tool never makes."
+        ),
+    )
+    reversals_parser.add_argument(
+        "--id",
+        dest="task_id",
+        help="ask about one id: exits 1 where that id's decision was reversed",
+    )
+    reversals_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    reversals_parser.set_defaults(handler=_reversals, reads_only=True)
 
     brief_parser = subcommands.add_parser(
         "brief",
@@ -4732,6 +4753,52 @@ def _explain(config: Config, args: argparse.Namespace) -> int:
         return EXIT_USAGE
     print(json.dumps(found.payload(), indent=2) if args.json else str(found))
     return EXIT_OK
+
+
+def _reversals(config: Config, args: argparse.Namespace) -> int:
+    """What the ledger already undid (RK416), and with `--id` whether one thing is among it.
+
+    `--id` exits 1 rather than 0 for a reason the plain listing does not need: the caller is
+    a script or an agent about to spend an id, and an exit code is what it can branch on
+    without reading either stream. Exit 1 is "this was tried and undone" and never "you may
+    not" — the read states a fact, and whether the revert was about a broken implementation
+    or a wrong idea is the one thing nobody here can tell.
+    """
+    try:
+        found = reversals(config)
+    except (KeyError, OSError) as error:
+        return _refused(error)
+
+    if args.task_id:
+        found = tuple(one for one in found if one.undone == args.task_id)
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "root": config.root.as_posix(),
+                    "asked": args.task_id,
+                    "reversed": [
+                        {
+                            "undone": one.undone,
+                            "by": one.by,
+                            "line": one.undone_entry.lineno,
+                            "why": one.why,
+                        }
+                        for one in found
+                    ],
+                },
+                indent=2,
+            )
+        )
+    else:
+        for one in found:
+            print(str(one))
+        where = config.relative(config.path("changelog"))
+        print(
+            f"{len(found)} reversal(s) in {where}"
+            + (f" for {args.task_id}" if args.task_id else "")
+        )
+    return EXIT_GATE if args.task_id and found else EXIT_OK
 
 
 def _print_repair(outcome: Repaired, root: str) -> None:

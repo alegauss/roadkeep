@@ -206,6 +206,7 @@
 - ✅ **RK423** **A code is the only stable name a defect has and nothing will say what it means** — explain <code> answers the class, what produces it and which doors close it in three lines, and with no argument lists every code the gate can report.
 - ✅ **RK409** **The machine-readable brief answers a finished block in prose** — the finished branch answers on stdout in the shape it was asked for, carrying empty, the block and the reason, so a loop reads a payload instead of matching English on stderr.
 - ✅ **RK410** **The free address is the last line of a listing of spent ones** — anchors --next prints the free address alone in both surfaces, so the read an add --ref makes every time is one line instead of the last of twenty-eight.
+- ✅ **RK416** **A line proposing what a revert already undid reads as new work** — reversals reads the forward pointer back with the reversing entry's sentence, so what was tried and undone is a read an author makes before spending an id rather than after.
 
 ## Block D — The gate
 
