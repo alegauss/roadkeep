@@ -282,6 +282,7 @@
 - ✅ **RK415** **Three engines write and judge one project and none names the others** — engines reads the running copy, the plugin the harness wired and every workflow ref, and lint notes a pen and judge apart.
 - ✅ **RK417** **The finding for one label under two headings names no verb, and one of the two is often removable** — the finding names block drop where that verb would remove the empty heading, and says it is a hand merge where it would not.
 - ✅ **RK420** **25 of the gate's 37 codes report a defect and name no verb for it** — every finding carries the command that closes it — a complete argv where one exists, the doors and what separates them where a decision does, and the blank where L4 forbids the tool the sentence.
+- ✅ **RK421** **Nothing holds the tool to having a door for every defect it reports** — the codes are scraped from the modules that emit them and every one must resolve to a door, so a check added without stating its repair is a red here instead of a dead end on someone's backlog.
 
 ## Block E — Adoption
 

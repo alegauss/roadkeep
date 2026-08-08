@@ -4,6 +4,11 @@ A remedy per finding is a convenience; a remedy per *code the package can emit* 
 guarantee, and only the second one saves a turn reliably. The difference is what this file
 holds:
 
+* **Totality** (RK421). Every code string reachable from `linting` or `schema` has a row.
+  The domain is scraped from the source rather than listed here, so a check added to the
+  gate without stating its repair is a red in this file rather than a discovery six months
+  later on somebody else's backlog. A second list of codes would be exactly the drift this
+  package exists to stop, one layer down.
 * **Runnable means runnable.** A `run` or `fix` remedy carries no placeholder, and the
   first word of its argv is a subcommand this CLI actually parses. An argv that looks
   complete and is not is worse than no remedy at all, because a caller spends the turn
@@ -15,6 +20,7 @@ holds:
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import pytest
@@ -27,6 +33,45 @@ from roadkeep.provenance import invocation
 from roadkeep.remedying import BLANK, KINDS, VARIES, Remedy, codes, remedy
 
 SOURCE = Path(remedying.__file__).resolve().parent
+
+#: Strings that match the code shape and are not codes. Named individually, because a
+#: pattern loose enough to exclude them by shape would exclude real codes too.
+_NOT_CODES = frozenset({"roadkeep.toml"})
+
+
+def emitted() -> set[str]:
+    """Every code the package can report, read out of the modules that report them.
+
+    The scrape is the point: a hand-written list here would go stale in exactly the
+    direction that matters, since the code nobody remembered to add is the code whose
+    remedy nobody wrote either.
+    """
+    found: set[str] = set()
+    for name in ("linting.py", "schema.py"):
+        text = (SOURCE / name).read_text(encoding="utf-8")
+        found |= set(re.findall(r'"([a-z]+\.[a-z][a-z-]*)"', text))
+    return found - _NOT_CODES
+
+
+# -- totality (RK421) --------------------------------------------------------
+
+
+def test_every_code_the_package_can_emit_has_a_door():
+    missing = sorted(emitted() - set(codes()))
+    assert not missing, (
+        f"{len(missing)} code(s) report a defect and name no remedy: {missing}. "
+        f"A check added to the gate states its repair in roadkeep.remedying, or the "
+        f"only route left is the hand-edit the guard denies."
+    )
+
+
+def test_the_table_answers_no_code_that_cannot_be_reported():
+    # The other direction, which is the one that rots quietly: a row for a code deleted
+    # from the gate is a row nothing ever reaches, and `explain` would list it as
+    # vocabulary this tool does not have.
+    stale = sorted(set(codes()) - emitted())
+    assert not stale, f"remedy rows for codes nothing emits: {stale}"
+
 
 def test_every_kind_is_one_of_the_four():
     for code in codes():

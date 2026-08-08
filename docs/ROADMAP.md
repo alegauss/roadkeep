@@ -43,7 +43,6 @@
 ## Block D — The gate
 
 - 📋 **RK418** (deps: —) **Two copies at one version number are called agreed, on the one fact known not to tell trees apart** — The comparison is the release string, which a modified checkout and a released plugin can share while their files differ, and the commit each carries is read and dropped. → §RK418
-- 📋 **RK421** (deps: RK420 ✅) **Nothing holds the tool to having a door for every defect it reports** — A code is added to the gate without anything asking which verb closes it, so the report can grow a class whose only repair is the hand-edit the guard denies. → §RK421
 - 📋 **RK422** (deps: RK420 ✅) **Nothing turns a report into the commands that clear it** — --fix applies the mechanical repairs and leaves the rest as prose, so a caller holding eight findings composes eight command lines by hand and pays a turn for each. → §RK422
 - 📋 **RK425** (deps: —) **The repair block.repeated names sends the caller into a worse state than the one it reported** — Merge by hand is right and omits the two facts that decide it - a rename detaches the region it renamed, and a region ends at the next heading of any level. → §RK425
 - 📋 **RK427** (deps: —) **The queue defect lint reports in roadkeep.toml is refused by the only verb that repairs a queue** — priority drop reads the roadmap section RK325 introduced and never the config lint named, so a project that has not migrated is told about a drift it has no door for. → §RK427

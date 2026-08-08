@@ -339,27 +339,6 @@ answer may be three states rather than two — agreed, behind, and unpinnable �
 boolean that collapses the third into either of the others will be wrong for one of
 them. That choice is the task; the numbers to make it with are already on the screen.
 
-### §RK421 Every code has a door, and a test says so
-
-RK420 gives a finding somewhere to carry its remedy; nothing yet says every finding has
-one. That distinction is the whole task. A table filled in once is a table that decays
-at the next code added, and the decay is invisible in exactly the way this tool exists
-to stop: the report still prints, the exit code is still 1, and the only thing missing
-is the sentence that would have saved the turn.
-
-So the coverage is a test over the source rather than a promise in a docstring. Every
-code string the gate can emit is collected from the emission sites, and each must
-resolve to one of three answers: `--fix` takes it, a verb takes it, or it is editorial
-and the doors are named with what has to be decided between them. A code in none of the
-three fails the suite, which makes adding a check to `lint` and leaving its repair
-unstated a red rather than a discovery six months later on somebody else's backlog.
-
-The third answer is the one worth defending. L4 forbids the tool from writing prose, so
-a finding about an over-long `why` cannot be handed an argv — there is no shorter
-sentence the tool may compose. Naming that as *editorial* is not a gap in the table; it
-is the table being honest, and it is still an answer a caller can act on in one turn
-instead of discovering by refusal.
-
 ### §RK422 The verb that reads its own report back
 
 A remedy per finding is the fact; running it is still the caller's loop. Eight findings
