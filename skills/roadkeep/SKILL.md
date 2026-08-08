@@ -392,11 +392,14 @@ spans two and leaves the choice with you. And **never restate a count in prose**
 
 `roadkeep brief [--block <x>]` picks and briefs in one call, printing why: in-progress
 first, then `priority` in `roadkeep.toml`, then the lowest ready id, never one blocked
-outside. **Scope it to finish a block**: only "nothing is open in Block <x>" means
-finished — and with `--json` that branch answers `{"empty": true, "reason": …}` on stdout
-rather than a sentence on stderr, so a loop reads the payload and never matches English.
-Unscoped, the answer may be another block's, and the block order is the headings' own
-(`list`). **Ready is not implementable**: the tiers rank by id, so add `--designed` when
+outside. **Scope it to finish a block**, and the empty answer says which of three states
+that block is in: **finished** — the ledger files entries under it — **empty**, a heading
+declared before its lines, or **unknown**, the one that is a typo and the one that stays a
+refusal. `--json` carries the word beside the sentence (`standing.state`, on `brief`,
+`pick` and `list` alike), so a loop driving a block to completion branches on `finished`
+and never matches English. Unscoped, the answer may be another block's, and the block
+order is the headings' own (`list`, whose own empty listing says the same thing on
+stderr). **Ready is not implementable**: the tiers rank by id, so add `--designed` when
 you asked to *execute* and not to plan — it sets aside the markers `[markers] undesigned`
 names, and says how many. Without it the answer still tells you, in the same sentence that
 names the tier, that the line it chose has its design to write — which is a `section add`,

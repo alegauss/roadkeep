@@ -14,7 +14,8 @@ suggestion, and the user cannot tell whether it skipped something.
 Two things worth saying afterwards, when they apply:
 
 - **Scope it to finish a block.** Unscoped, the answer may belong to a block the user is not
-  working in. Only "nothing is open in Block X" means that block is done.
+  working in. Scoped, an answer with no task says which of three states the block is in —
+  finished, empty, or a label nothing declares — so report the one it named.
 - **`roadkeep brief <id>` starts it in one call** — the line, its rationale, its resolved
   deps, the blocker chain and the non-goals that bind it. Offer that instead of reading the
   files, which costs context and answers less.

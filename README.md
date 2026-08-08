@@ -118,15 +118,15 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 30 | 2 |
 | B — Authoring (insert, never hand-edit) | 1 | 99 | 1 |
-| C — Query (consult without reading the file) | 1 | 61 | 1 |
+| C — Query (consult without reading the file) | 0 | 62 | 1 |
 | D — The gate | 1 | 87 | 0 |
 | E — Adoption | 0 | 73 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 69 | 1 |
-| **Total** | 3 | 419 | 6 |
+| **Total** | 2 | 420 | 6 |
 
 **Next ready:**
 
-- 📋 **RK429** (deps: —) **A query against a finished block answers the same as one against a block that never existed** — brief, pick and list all say nothing is open, so a reader cannot tell a shipped block from a typo without grepping the ledger the tool exists to replace. → §RK429
+- 📋 **RK430** (deps: —) **The line-length limit counts code points and the gate that enforces it counts UTF-16 units** — A line roadkeep validates at exactly the limit fails the build, and the character responsible is the status marker roadkeep itself wrote. → §RK430
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

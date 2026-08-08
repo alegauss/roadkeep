@@ -18,7 +18,7 @@ from pathlib import Path
 import pytest
 
 import corpora
-from roadkeep.backlog import Backlog, DepStatus, Readiness, id_order, number_of
+from roadkeep.backlog import Backlog, DepStatus, Readiness, Stage, id_order, number_of
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.document import Document
@@ -235,6 +235,131 @@ def test_a_range_with_no_open_members_is_satisfied_not_unknown(tmp_path):
     backlog = Backlog.load(config)
     (resolution,) = backlog.resolve(backlog.entry("RK9").task)
     assert resolution.status is DepStatus.SHIPPED
+
+
+# -- what became of a label (RK429) ------------------------------------------
+
+
+def test_the_four_states_a_label_can_be_in(tmp_path):
+    """One reader, because three commands were about to compose this three times.
+
+    The discriminator between `finished` and `empty` is **entries under the label**, not
+    the heading: `block add` writes the heading into every organised file the moment the
+    label is declared, so a heading in the ledger proves only that somebody declared it.
+    """
+    config = write_project(
+        tmp_path,
+        "## Block A — The model\n"
+        + line("RK9", "—")
+        + "\n## Block B — Authoring\n"
+        + "\n## Block C — Query\n",
+        "## Block B — Authoring\n" + shipped("RK1") + "\n## Block C — Query\n",
+    )
+    backlog = Backlog.load(config)
+    states = {label: backlog.standing(label).stage for label in "ABCZ"}
+    assert states == {
+        "A": Stage.LIVE,
+        # Declared in both files and filed under in the ledger: done.
+        "B": Stage.FINISHED,
+        # Declared in both files and filed under in neither — the heading is what
+        # `block add` wrote, and it is the fact this must not read as completion.
+        "C": Stage.EMPTY,
+        "Z": Stage.UNKNOWN,
+    }
+    assert backlog.standing("B").recorded == 1
+    assert backlog.standing("A").open == 1
+
+
+def test_every_count_is_taken_whatever_the_state_turned_out_to_be(tmp_path):
+    # An early return once made `recorded` read 0 for a live block the ledger files
+    # entries under — a field only true in the branch that needed it, which is a payload
+    # a caller reads wrongly exactly once.
+    config = write_project(
+        tmp_path,
+        "## Block A — The model\n" + line("RK9", "—"),
+        "## Block A — The model\n" + shipped("RK1") + shipped("RK2"),
+    )
+    standing = Backlog.load(config).standing("A")
+    assert standing.stage is Stage.LIVE
+    assert (standing.open, standing.recorded, standing.paused) == (1, 2, 0)
+
+
+def test_a_ledger_that_only_retired_work_still_had_the_last_word(tmp_path):
+    # `recorded` and not `shipped`: a retirement is filed in the ledger too, so the claim
+    # `finished` makes is that the ledger has the last word — not that anything shipped.
+    config = write_project(
+        tmp_path,
+        "## Block A — The model\n",
+        f"## Block A — The model\n- 🗑 **RK1** **A symptom** — nobody will do it.\n",
+    )
+    standing = Backlog.load(config).standing("A")
+    assert (standing.stage, standing.recorded) == (Stage.FINISHED, 1)
+
+
+def test_a_block_whose_lines_were_all_set_aside_is_neither_of_the_two(tmp_path):
+    """The state the first cut of this read as `empty`, in a sentence that was false.
+
+    A deferred line is work: it keeps its id, its deps and its design, and a `resume`
+    brings it back (RK92). Calling that block empty says nothing was ever filed under it,
+    which the store on disk contradicts — and calling it finished is worse.
+    """
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\n'
+        'changelog = "CHANGELOG.md"\ndeferred = "DEFERRED.md"\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "ROADMAP.md").write_text("## Block A — The model\n", encoding="utf-8")
+    (tmp_path / "CHANGELOG.md").write_text(
+        "## Block A — The model\n" + shipped("RK1"), encoding="utf-8"
+    )
+    (tmp_path / "DEFERRED.md").write_text(
+        "## Block A — The model\n"
+        "- ⏸ **RK2** (deps: —) **A symptom** — set aside: waiting. → §RK2\n",
+        encoding="utf-8",
+    )
+    standing = Backlog.load(Config.discover(tmp_path)).standing("A")
+    # Paused outranks the ledger: a block that shipped one line and set the other aside
+    # is not finished, and that is the fact a `resume` would change.
+    assert standing.stage is Stage.PAUSED
+    assert (standing.paused, standing.recorded) == (1, 1)
+    assert "1 set aside" in standing.sentence
+
+
+def test_the_sentence_each_state_answers_with(tmp_path):
+    # Spelled verbatim once, here, where it is written. Every other test asserts the word
+    # or the distinguishing prefix, so a reword is one edit rather than four.
+    config = write_project(
+        tmp_path,
+        "## Block A — The model\n" + line("RK9", "—") + "\n## Block C — Query\n",
+        "## Block A — The model\n" + shipped("RK1") + "\n## Block B — Authoring\n"
+        + shipped("RK2"),
+    )
+    backlog = Backlog.load(config)
+    said = {label: backlog.standing(label).sentence for label in "ABCZ"}
+    assert said == {
+        "A": "Block A has 1 open",
+        "B": "Block B is finished: nothing open, and the ledger records 1 filed under it",
+        "C": "Block C is empty: the heading is declared and no task line is filed under it",
+        "Z": "no heading declares Block Z",
+    }
+    # Only three of them explain an empty answer: `live` was emptied by a filter and
+    # `unknown` is already refused in every surface's own words.
+    settled = {label: backlog.standing(label).settled for label in "ABCZ"}
+    assert settled == {"A": False, "B": True, "C": True, "Z": False}
+
+
+def test_the_sentence_is_spelled_once_and_names_the_project_word(tmp_path):
+    # `heading_word` is configurable (RK75), so a report saying "Block G" on a project
+    # whose headings all say "Track" names nothing its author wrote.
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[headings]\nword = "Track"\n[files]\n'
+        'roadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "ROADMAP.md").write_text("## Track A — The model\n", encoding="utf-8")
+    (tmp_path / "CHANGELOG.md").write_text("", encoding="utf-8")
+    standing = Backlog.load(Config.discover(tmp_path)).standing("A")
+    assert standing.sentence.startswith("Track A is empty")
 
 
 # -- the distinction that matters -------------------------------------------

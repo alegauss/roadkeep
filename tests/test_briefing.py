@@ -17,7 +17,7 @@ from pathlib import Path
 import pytest
 
 import corpora
-from roadkeep.backlog import Readiness
+from roadkeep.backlog import Readiness, Stage
 from roadkeep.briefing import CHAINS, NON_GOALS, NothingToBrief, brief, non_goals
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config, Scope
@@ -156,11 +156,15 @@ def test_an_id_and_designed_together_are_refused(tmp_path, capsys):
     assert "give an id or --designed, not both" in capsys.readouterr().err
 
 
-def test_a_finished_block_is_reported_as_finished(tmp_path):
+def test_a_block_declared_and_never_filed_is_reported_as_empty(tmp_path):
+    # Named `finished` until RK429, which is the defect rather than the fixture: the
+    # ledger files nothing under Block B here, so this is a heading opened before its
+    # lines — and the sentence it used to answer with was the one a shipped block gave.
     roadmap = ROADMAP.replace("## Non-goals", "## Block B — Authoring\n\n## Non-goals")
     with pytest.raises(NothingToBrief) as caught:
         brief(project(tmp_path, roadmap=roadmap), block="B")
-    assert "nothing is open in Block B" in caught.value.args[0]
+    assert "Block B is empty" in caught.value.args[0]
+    assert caught.value.standing.stage is Stage.EMPTY
 
 
 def test_nothing_ready_is_refused_with_the_reason(tmp_path):
@@ -407,7 +411,18 @@ def test_a_finished_block_answers_in_json_when_json_was_asked_for(tmp_path, caps
     assert payload["brief"] is None
     assert payload["empty"] is True
     assert payload["block"] == "A"
-    assert payload["reason"] == "nothing is open in Block A"
+    assert payload["reason"].startswith("Block A is finished")
+    # The boolean could not carry the third state and still cannot (RK429) — `empty` is
+    # true here, for a finished block, for a heading before its lines and for a backlog
+    # whose every line is blocked. The word beside it is what a loop branches on.
+    assert payload["standing"] == {
+        "block": "A",
+        "state": "finished",
+        "open": 0,
+        "recorded": 1,
+        "paused": 0,
+        "sentence": payload["reason"],
+    }
 
 
 def test_the_empty_answer_is_never_a_success(tmp_path, capsys):
@@ -429,7 +444,7 @@ def test_without_json_the_finished_block_still_answers_in_prose(tmp_path, capsys
     assert main(["-C", str(tmp_path), "brief", "--block", "A"]) == EXIT_USAGE
     out = capsys.readouterr()
     assert out.out == ""
-    assert "nothing is open in Block A" in out.err
+    assert "Block A is finished" in out.err
 
 
 def test_the_reason_is_carried_and_never_reconstructed_from_the_message():

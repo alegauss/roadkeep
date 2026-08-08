@@ -125,6 +125,133 @@ class Whereabouts:
         return "no file mentions it"
 
 
+class Stage(StrEnum):
+    """Which state a **block** is in (RK429) — :class:`Where` for a label.
+
+    A block is discovered and never registered, so "nothing open in Block C" was the one
+    answer four different facts produced: the work is done, its lines were all set aside,
+    the heading was opened before any line, or the letter is a typo. One sentence for four
+    states, and only the last is a mistake — which is why a query that collapses them sends
+    three of the four readers to grep the ledger this tool exists to replace.
+
+    The discriminator between `finished` and `empty` is **entries under the label** and
+    never the heading: `block add` writes the heading into every organised file at
+    declaration time, so a heading proves the label was declared and nothing more. The
+    gate already made that choice for a queue token (`priority.block-empty` against
+    `priority.block-unstarted`), and one rule spelled twice is the drift this repeats.
+
+    :attr:`PAUSED` is here for the reason :attr:`Readiness.PAUSED` is (RK92): a block
+    whose every line was deferred is not finished and not empty, and reading it as either
+    loses the one fact about it that a `resume` would change.
+    """
+
+    #: The roadmap carries open lines under it. Nothing here is about them.
+    LIVE = "live"
+    #: Nothing open, and the ledger records entries filed under the label. Not "shipped":
+    #: a retirement is filed there too, and the ledger having the last word is the claim.
+    FINISHED = "finished"
+    #: Nothing open, and the deferred store holds lines under it. Checked before the
+    #: ledger, because a block that shipped half its work and set the rest aside has work.
+    PAUSED = "paused"
+    #: Declared, and no file files a task line under it — a heading before its lines.
+    EMPTY = "empty"
+    #: No heading in the roadmap or the ledger. The only one that is a typo, and the same
+    #: oracle every other refusal about a label uses, so the four answers cannot disagree.
+    UNKNOWN = "unknown"
+
+
+@dataclass(frozen=True, slots=True)
+class Standing:
+    """What became of a block, in one type and one sentence (RK429).
+
+    The block analogue of :class:`Whereabouts`, and here for its reason: the fact is about
+    a label, and this module is already where a label is read from every file that can
+    declare one. Not :class:`~roadkeep.blocking.Standing`, which is what one heading stands
+    over inside one file.
+
+    :attr:`sentence` is the one spelling, so `brief`, `pick` and `list` answer a finished
+    block in the same words; callers that *act* on the state branch on :attr:`stage`, never
+    on the prose — a `list` that read the sentence to decide its exit code would be the
+    second reader of a rule this states once.
+
+    **Every count is taken whatever the state is.** An early return would make `recorded`
+    read 0 for a live block the ledger files thirty entries under, and a payload whose
+    fields are only true in the branch that needed them is one a caller reads wrongly
+    exactly once.
+    """
+
+    #: The label as the caller typed it, for a payload that has to name what was asked.
+    label: str
+    stage: Stage
+    #: The label as this project spells one — `Block C`, or whatever `heading_word` says.
+    named: str
+    #: Open lines the roadmap files under it.
+    open: int = 0
+    #: Entries the ledger files under it — shipped **and** retired, which is what a ledger
+    #: records. The count is the evidence for `finished`, so it is carried and not recomputed.
+    recorded: int = 0
+    #: Lines the deferred store holds under it (RK92) — the work a `resume` brings back.
+    paused: int = 0
+
+    @classmethod
+    def of(cls, backlog: Backlog, label: str) -> Standing:
+        """Read every file that can file a line under a label, and rank what they say.
+
+        The order is the answer's own: open work outranks paused work, which outranks a
+        ledger, because each of those is a reason the one below it is not the whole story.
+        A block that shipped nine lines and deferred the tenth is not finished.
+        """
+        named = backlog.config.schema.block_named(label)
+        if label not in backlog.declared_blocks():
+            return cls(label, Stage.UNKNOWN, named)
+        counts = {
+            "open": len(backlog.open_in_block(label)),
+            "recorded": 0 if backlog.ledger is None else len(backlog.ledger.block(label)),
+            "paused": 0 if backlog.store is None else len(backlog.store.block(label)),
+        }
+        if counts["open"]:
+            stage = Stage.LIVE
+        elif counts["paused"]:
+            stage = Stage.PAUSED
+        elif counts["recorded"]:
+            stage = Stage.FINISHED
+        else:
+            stage = Stage.EMPTY
+        return cls(label, stage, named, **counts)
+
+    @property
+    def settled(self) -> bool:
+        """Whether this is one of the states an empty answer needs explaining by.
+
+        `live` is not: a listing that came back empty under a live block was emptied by
+        the filter, and a sentence about the block would answer a question nobody asked.
+        Neither is `unknown`, which every surface already refuses in its own words.
+        """
+        return self.stage in (Stage.FINISHED, Stage.PAUSED, Stage.EMPTY)
+
+    @property
+    def sentence(self) -> str:
+        """What to print where "nothing is open in Block C" used to be the whole answer."""
+        if self.stage is Stage.LIVE:
+            return f"{self.named} has {self.open} open"
+        if self.stage is Stage.FINISHED:
+            return (
+                f"{self.named} is finished: nothing open, and the ledger records "
+                f"{self.recorded} filed under it"
+            )
+        if self.stage is Stage.PAUSED:
+            return (
+                f"{self.named} has nothing open: {self.paused} set aside, which a "
+                f"resume brings back"
+            )
+        if self.stage is Stage.EMPTY:
+            # "No task line" and not "nothing has ever been filed": a marker-bearing line
+            # the parser rejected sits under the heading and is reported by `audit`, and an
+            # absolute claim here would contradict the note printed on the next line.
+            return f"{self.named} is empty: the heading is declared and no task line is filed under it"
+        return f"no heading declares {self.named}"
+
+
 class DepStatus(StrEnum):
     """How a single dep resolved."""
 
@@ -298,6 +425,15 @@ class Backlog:
             for heading in document.headings
             if heading.label
         )
+
+    def standing(self, label: str) -> Standing:
+        """Which of :class:`Stage`'s four states this label is in (RK429).
+
+        The read every query makes after its own count comes back empty, and the reason
+        it is a method here rather than four lines at three call sites: the files it joins
+        are the two this class already holds open.
+        """
+        return Standing.of(self, label)
 
     # -- resolving ---------------------------------------------------------
 

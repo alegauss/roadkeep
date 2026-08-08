@@ -29,7 +29,7 @@ stale against a changelog it never read.
 from __future__ import annotations
 
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from roadkeep.config import Config
 from roadkeep.document import Document, Entry, Reject, declares, shading
@@ -95,6 +95,21 @@ class Census:
         )
 
     # -- narrowing ---------------------------------------------------------
+
+    def elsewhere(self, block: str) -> Census:
+        """This file counted for a label only the *other* file declares (RK429).
+
+        :meth:`select` refuses a block no heading here declares, and it is right to: a
+        filter matching nothing reads as a clean file. But a block whose last task shipped
+        keeps its heading in the ledger and may have lost the one in the roadmap, so the
+        same refusal fires for a label that exists and is done — which is the answer this
+        module's own docstring says a table must not omit.
+
+        Nothing is read: the caller has already established the label elsewhere, and what
+        comes back is this file's honest zero rather than a second file folded into a count
+        that promises to read one.
+        """
+        return replace(self, counted=(), missed=(), blocks=(block,))
 
     def select(self, block: str | None = None, marker: str | None = None) -> Census:
         """The same census over fewer lines. A filter that matches nothing is refused.

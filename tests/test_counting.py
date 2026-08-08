@@ -276,6 +276,96 @@ def test_an_undeclared_block_exits_two_naming_what_is_declared(tmp_path, capsys)
     assert "no heading declares Block Z" in capsys.readouterr().err
 
 
+# -- which silence this is (RK429) -------------------------------------------
+
+#: Block C declared in the roadmap and filed under by nobody: a heading before its lines.
+UNFILED = CLEAN + "\n## Block C — Query\n"
+
+#: Block D's last line shipped and `block drop` took the roadmap heading, which is the
+#: state `list` refused as though the label had never existed.
+DELIVERED = LEDGER + "\n## Block D — The gate\n\n- ✅ **RK7** **A symptom** — Because.\n"
+
+
+def test_a_block_whose_heading_only_the_ledger_keeps_is_not_a_typo(tmp_path, capsys):
+    # It refused with "no heading declares Block D in ROADMAP.md", which is true about
+    # that file and false about the project — the same answer a mistyped letter gets.
+    project(tmp_path, changelog=DELIVERED)
+    assert main(["-C", str(tmp_path), "list", "--block", "D"]) == EXIT_OK
+    out = capsys.readouterr()
+    # stdout stays exactly what the file holds, so a listing piped anywhere is unchanged
+    # by this: the sentence goes where the uncounted note goes.
+    assert out.out == ""
+    assert "Block D is finished" in out.err and "records 1 filed under it" in out.err
+
+
+def test_a_declared_block_nothing_was_ever_filed_under_says_which_it_is(tmp_path, capsys):
+    project(tmp_path, roadmap=UNFILED)
+    assert main(["-C", str(tmp_path), "list", "--block", "C"]) == EXIT_OK
+    out = capsys.readouterr()
+    assert out.out == "" and "Block C is empty" in out.err
+
+
+def test_the_listing_carries_the_state_of_the_block_it_was_scoped_to(tmp_path, capsys):
+    project(tmp_path, roadmap=UNFILED)
+    assert main(["-C", str(tmp_path), "list", "--block", "C", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["total"] == 0 and payload["tasks"] == []
+    assert payload["standing"]["state"] == "empty"
+    # Null and not absent where nothing narrowed the listing: a key that appears only
+    # sometimes is one a caller writes a branch for before it can read it.
+    capsys.readouterr()
+    assert main(["-C", str(tmp_path), "list", "--json"]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["standing"] is None
+
+
+def test_nothing_is_said_about_a_block_whose_own_lines_the_filter_missed(tmp_path, capsys):
+    # `--marker` matching none of Block A's two open lines is a fact about the filter,
+    # and a sentence about the block would be the tool answering a question nobody asked.
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "list", "--block", "A", "--marker", "🛠"]) == EXIT_OK
+    out = capsys.readouterr()
+    assert out.out == "" and out.err == ""
+
+
+def test_a_live_block_missing_from_the_counted_file_is_still_a_refusal(tmp_path, capsys):
+    # The narrow case is a block with nothing left anywhere. Block B has open work and no
+    # ledger heading yet, so "no heading declares Block B in CHANGELOG.md" is true about
+    # that file and is the answer — a silent zero here would hide the count's own scope.
+    project(tmp_path)
+    argv = ["-C", str(tmp_path), "list", "--role", "changelog", "--block", "B"]
+    assert main(argv) == EXIT_USAGE
+    assert "no heading declares Block B in CHANGELOG.md" in capsys.readouterr().err
+
+
+def test_an_undeclared_marker_is_refused_on_the_empty_block_too(tmp_path, capsys):
+    # The path that answers a finished block still narrows by marker first: a filter
+    # nobody validated is one that silently matches nothing, which is the answer a clean
+    # file gives — the whole ambiguity this module exists to remove.
+    project(tmp_path, changelog=DELIVERED)
+    argv = ["-C", str(tmp_path), "list", "--block", "D", "--marker", "🍕"]
+    assert main(argv) == EXIT_USAGE
+    assert "is not a marker this project declares" in capsys.readouterr().err
+
+
+def test_the_state_of_the_scope_reaches_every_payload_that_narrows_by_one(tmp_path, capsys):
+    project(tmp_path, changelog=DELIVERED)
+    for verb in ("list", "stats", "audit"):
+        assert main(["-C", str(tmp_path), verb, "--block", "D", "--json"]) == EXIT_OK
+        payload = json.loads(capsys.readouterr().out)
+        assert payload["standing"]["state"] == "finished", verb
+        assert payload["standing"]["recorded"] == 1, verb
+
+
+def test_the_same_sentence_reaches_the_other_two_readers_of_one_file(tmp_path, capsys):
+    # `stats` and `audit` narrow through the same census, so the label that was a typo
+    # to one of them was a typo to all three.
+    project(tmp_path, changelog=DELIVERED)
+    assert main(["-C", str(tmp_path), "stats", "--block", "D"]) == EXIT_OK
+    assert "Block D is finished" in capsys.readouterr().err
+    assert main(["-C", str(tmp_path), "audit", "--block", "D"]) == EXIT_OK
+    assert "Block D is finished" in capsys.readouterr().err
+
+
 def test_the_ledger_is_counted_under_its_own_schema(tmp_path, capsys):
     project(tmp_path)
     assert main(["-C", str(tmp_path), "stats", "--role", "changelog", "--json"]) == EXIT_OK

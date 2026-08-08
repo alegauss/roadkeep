@@ -60,7 +60,7 @@ from enum import StrEnum
 
 from roadkeep import claiming
 from roadkeep.authoring import StatusChange, set_status
-from roadkeep.backlog import Backlog, Readiness, id_order
+from roadkeep.backlog import Backlog, Readiness, Stage, Standing, id_order
 from roadkeep.claiming import Held
 from roadkeep.config import Config
 from roadkeep.document import Entry, declares, shading
@@ -124,10 +124,20 @@ class Choice:
     #: because a claim names nobody: a caller can only tell one of these is its own by
     #: reading the id, and a number it cannot read is a line it will ask about twice.
     held: tuple[Held, ...] = ()
+    #: What became of the block the question was scoped to (RK429). Absent on an unscoped
+    #: pick, where there is no label to have a state — and carried even when a line *was*
+    #: chosen, so a caller reading the payload never has to ask a second command what the
+    #: scope it just picked from is.
+    standing: Standing | None = None
 
     @property
     def found(self) -> bool:
         return self.entry is not None
+
+    @property
+    def stage(self) -> Stage | None:
+        """The scope's state as the one word a caller branches on, or None if unscoped."""
+        return None if self.standing is None else self.standing.stage
 
     @property
     def counts(self) -> str:
@@ -180,6 +190,10 @@ def pick(
             f"{shading(block, declared)}"
         )
     scope = f" in {config.schema.block_named(block)}" if block else ""
+    # Read before the survey and kept whatever the answer is (RK429): the ledger is what
+    # tells a finished block from a heading opened before its lines, and the tiers below
+    # cannot see it — they rank open lines, and both of those states have none.
+    standing = None if block is None else backlog.standing(block)
     considered = [
         entry
         for entry in backlog.roadmap.entries
@@ -212,12 +226,19 @@ def pick(
         "stalled": survey.stalled,
         "undesigned": set_aside,
         "held": held,
+        "standing": standing,
     }
     if not ordered:
         return Choice(
             entry=None,
             tier=None,
-            reason=_absence(scope, open_lines=bool(considered), held=held, set_aside=set_aside),
+            reason=_absence(
+                scope,
+                open_lines=bool(considered),
+                held=held,
+                set_aside=set_aside,
+                standing=standing,
+            ),
             ready=len(survey.ready),
             **counts,
         )
@@ -307,7 +328,12 @@ def hold(config: Config, task_id: str) -> Claim:
 
 
 def _absence(
-    scope: str, *, open_lines: bool, held: tuple[Held, ...], set_aside: int
+    scope: str,
+    *,
+    open_lines: bool,
+    held: tuple[Held, ...],
+    set_aside: int,
+    standing: Standing | None = None,
 ) -> str:
     """Why nothing was offered — four sentences, because they are four different states.
 
@@ -315,6 +341,12 @@ def _absence(
     finished, one whose lines are all blocked is not, one whose ready lines are all ideas is
     waiting on a design session, and one whose ready lines are all claimed is waiting on the
     workers holding them — which is the only one of the four that ends by itself.
+
+    The first of those four was itself two (RK429). "Nothing is open in Block C" is what a
+    finished block and a heading opened before its lines both produce, and the caller who
+    typed the wrong letter reads the same words — so where a label was named, the sentence
+    is :attr:`Standing.sentence` and states which. Unscoped there is no label to have a
+    state, and the old sentence is still the whole truth.
     """
     if held and not set_aside:
         return f"every ready task{scope} is claimed by a worker who has not finished it"
@@ -324,7 +356,7 @@ def _absence(
             "to implement"
         )
     if not open_lines:
-        return f"nothing is open{scope}"
+        return f"nothing is open{scope}" if standing is None else standing.sentence
     return f"every open task{scope} is blocked, so there is nothing to start"
 
 

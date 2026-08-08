@@ -36,7 +36,7 @@ from __future__ import annotations
 import textwrap
 from dataclasses import dataclass
 
-from roadkeep.backlog import Backlog, Readiness, Resolution
+from roadkeep.backlog import Backlog, Readiness, Resolution, Standing
 from roadkeep.budgeting import Budget, budget_of
 from roadkeep.config import Config, Scope
 from roadkeep.document import Document
@@ -71,8 +71,17 @@ class NothingToBrief(KeyError):
     would otherwise ask about again next turn.
     """
 
-    def __init__(self, reason: str, held: tuple[Held, ...] = ()) -> None:
+    def __init__(
+        self,
+        reason: str,
+        held: tuple[Held, ...] = (),
+        standing: Standing | None = None,
+    ) -> None:
         self.held = held
+        #: What became of the block this was scoped to (RK429), where one was named. The
+        #: sentence above already states it; this is the same fact as a word, so a loop
+        #: driving a block to completion branches on `finished` rather than on English.
+        self.standing = standing
         #: The bare sentence, before this class wraps it (RK409). Kept as a field because
         #: `brief --json` answers this branch too now, and recovering it from `str(self)`
         #: means stripping a prefix and `KeyError`'s own quoting — two spellings of the
@@ -161,7 +170,7 @@ def brief(
     if task_id is None:
         chosen = pick(config, block, designed)
         if chosen.entry is None:
-            raise NothingToBrief(chosen.reason, chosen.held)
+            raise NothingToBrief(chosen.reason, chosen.held, chosen.standing)
         return _gather(config, chosen.entry.task.id, chosen, None)
     return _gather(config, task_id, None, None)
 
@@ -177,7 +186,11 @@ def _claimed(
         # The same absence `pick` reports and not a refusal: a caller asking for work and
         # being told there is none got the fact it asked for, and nothing was written.
         held = () if taken.choice is None else taken.choice.held
-        raise NothingToBrief("" if taken.choice is None else taken.choice.reason, held)
+        raise NothingToBrief(
+            "" if taken.choice is None else taken.choice.reason,
+            held,
+            None if taken.choice is None else taken.choice.standing,
+        )
     return taken.choice.entry.task.id, taken.choice, taken
 
 

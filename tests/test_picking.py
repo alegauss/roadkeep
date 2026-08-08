@@ -18,6 +18,7 @@ from pathlib import Path
 
 import pytest
 
+from roadkeep.backlog import Stage
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config, ConfigError
 from roadkeep.picking import Tier, pick
@@ -208,10 +209,19 @@ def test_a_finished_block_and_a_stuck_one_read_differently(tmp_path):
         tmp_path, BLOCKS + line("RK2", "RK5") + MORE
     )
     empty = pick(config, "B")
-    assert not empty.found and empty.reason == "nothing is open in Block B"
+    # Declared here and filed under in neither file, so the state is `empty` and not
+    # `finished` (RK429) — this fixture is a heading opened before its lines, which is
+    # what "nothing is open in Block B" used to say about a shipped block as well.
+    assert not empty.found and empty.stage is Stage.EMPTY
+    # The wording itself is `Standing.sentence`'s, and asserted verbatim once, where it is
+    # written: a sentence pinned in three test files is a reword that fails in three.
+    assert empty.reason.startswith("Block B is empty")
     stuck = pick(config, "A")
     assert not stuck.found and "every open task in Block A is blocked" in stuck.reason
     assert (stuck.blocked, stuck.ready) == (1, 0)
+    # A block with open lines is neither of the two absences, and the state says so even
+    # though the sentence above is about the deps rather than about the block.
+    assert stuck.stage is Stage.LIVE
 
 
 def test_a_block_no_heading_declares_is_refused(tmp_path):
@@ -252,7 +262,53 @@ def test_a_block_whose_last_task_shipped_still_resolves(tmp_path):
         f"**A symptom** — done.\n",
     )
     choice = pick(config, "B")
-    assert not choice.found and choice.reason == "nothing is open in Block B"
+    assert not choice.found and choice.stage is Stage.FINISHED
+    # The count is the evidence for the word: `finished` is a claim about the ledger, and
+    # an answer that makes it without saying how many entries it read is one the caller
+    # has to check with the grep this command replaces (RK429).
+    assert choice.reason.startswith("Block B is finished") and "1 filed" in choice.reason
+    assert (choice.standing.recorded, choice.standing.open) == (1, 0)
+
+
+def test_the_three_ways_a_block_can_answer_nothing_are_three_sentences(tmp_path):
+    """Finished, empty and unknown — the whole of RK429 in one comparison.
+
+    They were one sentence, and two of the three readers of it were being sent to grep
+    the ledger: a block that is done and a block letter nobody ever used are opposite
+    facts, and "nothing is open in Block B" is what both of them said.
+    """
+    config = project(
+        tmp_path,
+        BLOCKS + line("RK2") + MORE + "\n## Block C — Query\n",
+        changelog=f"# Shipped\n\n## Block B — Authoring\n\n- {SHIPPED} **RK8** "
+        f"**A symptom** — done.\n",
+    )
+    finished, empty = pick(config, "B"), pick(config, "C")
+    assert (finished.stage, empty.stage) == (Stage.FINISHED, Stage.EMPTY)
+    assert finished.reason != empty.reason
+    with pytest.raises(KeyError) as caught:
+        pick(config, "Z")
+    # The third stays a refusal and keeps its own wording: it is the only one of the
+    # three that is a typo, and an exit code is the part of that answer a loop reads.
+    assert "no heading declares Block Z" in caught.value.args[0]
+
+
+def test_the_state_of_the_scope_is_carried_even_when_a_line_was_picked(tmp_path):
+    # So that a caller driving a block to completion never needs a second command to ask
+    # what the block it is working through currently is.
+    config = project(tmp_path, BLOCKS + line("RK2") + MORE + line("RK8", block="B"))
+    choice = pick(config, "B")
+    assert choice.found and choice.stage is Stage.LIVE
+    assert choice.standing.open == 1 and choice.standing.label == "B"
+
+
+def test_an_unscoped_pick_has_no_block_to_have_a_state(tmp_path):
+    # There is no label, so there is nothing for `finished` or `empty` to be about, and
+    # the sentence that was always the whole truth here is left exactly as it was.
+    config = project(tmp_path, BLOCKS)
+    choice = pick(config)
+    assert choice.standing is None and choice.stage is None
+    assert choice.reason == "nothing is open"
 
 
 def test_the_scope_does_not_change_the_tiers(tmp_path):
@@ -346,6 +402,16 @@ def test_the_command_scopes_and_says_so(tmp_path, capsys):
     payload = json.loads(capsys.readouterr().out)
     assert payload["pick"]["id"] == "RK8" and payload["scope"] == "B"
     assert payload["reason"].endswith("in Block B")
+
+
+def test_the_scoped_payload_carries_the_state_and_the_wire_value_is_the_word(tmp_path, capsys):
+    project(tmp_path, BLOCKS + line("RK2") + MORE)
+    assert main(["-C", str(tmp_path), "pick", "--block", "B", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["pick"] is None and payload["scope"] == "B"
+    # The word and not the enum's repr: it is what a loop matches on, so it is asserted.
+    assert payload["standing"]["state"] == "empty"
+    assert payload["standing"]["sentence"] == payload["reason"]
 
 
 def test_an_undeclared_block_exits_two(tmp_path, capsys):

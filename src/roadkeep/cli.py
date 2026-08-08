@@ -50,7 +50,7 @@ from roadkeep import attesting, claiming, provenance
 from roadkeep.adopting import Estimate, adopt, init
 from roadkeep.attesting import attest
 from roadkeep.authoring import Rereadable, StatusChange, add, amend, restate, set_status
-from roadkeep.backlog import Backlog
+from roadkeep.backlog import Backlog, Stage, Standing
 from roadkeep.blocking import drop_block, merge_block, open_block
 from roadkeep.briefing import Brief, NothingToBrief, brief, non_goals
 from roadkeep.budgeting import (
@@ -4410,15 +4410,58 @@ def _record_drop(config: Config, args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
-def _census(config: Config, args: argparse.Namespace) -> Census:
-    return Census.read(config, args.role).select(
-        block=args.block, marker=getattr(args, "marker", None)
-    )
+def _census(config: Config, args: argparse.Namespace) -> tuple[Census, Standing | None]:
+    """The census a `--block` narrows, and what became of the label it named (RK429).
+
+    A count reads one file, and keeping it that way is why `stats` cannot go stale against
+    a changelog it never read. So the second file is opened only where a label was named,
+    and what it answers is never counted — only said, on stderr, beside a listing that is
+    still exactly what the file holds.
+
+    Exactly one state changes what this returns, and it is the narrow one: a label this
+    file declares no heading for **and** that has nothing left anywhere — the block whose
+    last line shipped and whose roadmap heading `block drop` then took. A **live** block
+    missing from the file being counted keeps its refusal, because there the file really
+    does not declare a label that work is filed under, and `unknown` keeps its own for the
+    reason it exists: it is the only one that is a typo.
+    """
+    marker = getattr(args, "marker", None)
+    census = Census.read(config, args.role)
+    if args.block is None:
+        return census.select(marker=marker), None
+    if not config.has("roadmap") or not config.path("roadmap").is_file():
+        # Nothing to join against: the reader below needs the roadmap, and a project
+        # counting a ledger before `init` wrote one still gets the count it asked for.
+        return census.select(block=args.block, marker=marker), None
+    standing = Backlog.load(config).standing(args.block)
+    if standing.settled and args.block not in census.blocks:
+        # Narrowed by the marker first and *then* emptied, so an undeclared marker is
+        # refused here exactly as it is on every other path: a filter nobody validated is
+        # a filter that silently matches nothing, which is the answer a clean file gives.
+        return census.select(marker=marker).elsewhere(args.block), standing
+    if standing.stage is Stage.UNKNOWN and args.block in census.blocks:
+        # The file being counted declares a label the roadmap and the ledger do not — a
+        # deferred store is the one that can. Saying `unknown` beside the lines it just
+        # listed would be the payload contradicting the listing.
+        return census.select(block=args.block, marker=marker), None
+    return census.select(block=args.block, marker=marker), standing
+
+
+def _print_standing(standing: Standing | None) -> None:
+    """Say which of the two silences this is, where a listing came back empty (RK429).
+
+    On stderr, for the reason the uncounted note is: stdout stays exactly what the file
+    says, so `list` substitutes for the grep it replaces, and a sentence in the pipe is a
+    line no `--ids` consumer asked for. Nothing is said about a **live** block — that a
+    marker filter matched none of its open lines is a fact about the filter.
+    """
+    if standing is not None and standing.settled:
+        print(f"roadkeep: {standing.sentence}", file=sys.stderr)
 
 
 def _list(config: Config, args: argparse.Namespace) -> int:
     try:
-        census = _census(config, args)
+        census, standing = _census(config, args)
     except (KeyError, OSError) as error:
         return _refused(error)
 
@@ -4429,6 +4472,10 @@ def _list(config: Config, args: argparse.Namespace) -> int:
                     "file": census.file,
                     "total": census.total,
                     "uncounted": [_miss_json(m) for m in census.missed],
+                    # Beside the count and not instead of it (RK429): a total of 0 is the
+                    # answer to what was asked, and this is what the label it was scoped to
+                    # turned out to be. Null where no block narrowed the listing.
+                    "standing": _standing_json(standing),
                     "tasks": [_row_json(entry) for entry in census.counted],
                 },
                 indent=2,
@@ -4438,6 +4485,8 @@ def _list(config: Config, args: argparse.Namespace) -> int:
 
     for entry in census.counted:
         print(entry.task.id if args.ids else entry.raw)
+    if not census.counted:
+        _print_standing(standing)
     # stdout stays exactly what the file says, so `list` substitutes for the grep it
     # replaces; the miss goes to stderr, where it cannot be silent and cannot corrupt
     # a pipe either. A listing that looked complete is the whole symptom (RK10).
@@ -4452,7 +4501,7 @@ def _list(config: Config, args: argparse.Namespace) -> int:
 
 def _stats(config: Config, args: argparse.Namespace) -> int:
     try:
-        census = _census(config, args)
+        census, standing = _census(config, args)
     except (KeyError, OSError) as error:
         return _refused(error)
 
@@ -4481,6 +4530,7 @@ def _stats(config: Config, args: argparse.Namespace) -> int:
                         "length": len(longest.raw),
                         "limit": census.schema.line_max,
                     },
+                    "standing": _standing_json(standing),
                 },
                 indent=2,
             )
@@ -4507,12 +4557,14 @@ def _stats(config: Config, args: argparse.Namespace) -> int:
             f"  {'longest':<{width}}  {longest.task.id} at {len(longest.raw)} "
             f"of {census.schema.line_max}"
         )
+    if not census.total:
+        _print_standing(standing)
     return EXIT_OK
 
 
 def _audit(config: Config, args: argparse.Namespace) -> int:
     try:
-        census = _census(config, args)
+        census, standing = _census(config, args)
     except (KeyError, OSError) as error:
         return _refused(error)
 
@@ -4523,6 +4575,7 @@ def _audit(config: Config, args: argparse.Namespace) -> int:
                     "file": census.file,
                     "counted": census.total,
                     "uncounted": [_miss_json(m) for m in census.missed],
+                    "standing": _standing_json(standing),
                 },
                 indent=2,
             )
@@ -4531,6 +4584,8 @@ def _audit(config: Config, args: argparse.Namespace) -> int:
 
     if not census.missed:
         print(f"{census.file}: {census.total} counted, none uncounted")
+        if not census.total:
+            _print_standing(standing)
         return EXIT_OK
     for miss in census.missed:
         where = f"Block {miss.block}" if miss.block else "no block"
@@ -5281,8 +5336,9 @@ def _brief(config: Config, args: argparse.Namespace) -> int:
         # Still **not** exit 0, and still not a fourth exit code. An empty answer is nothing
         # to brief, so succeeding would make a typo'd block name look like a finished one;
         # and what the caller could not do at exit 2 was tell those two apart, which the
-        # payload now answers directly — `empty` is true for the finished block and the
-        # refusal for a name nothing declares never reaches here at all.
+        # payload now answers directly — `standing.state` is the word, `empty` stays the
+        # boolean it always was, and the refusal for a name nothing declares never reaches
+        # here at all (RK429 made the sentence say which; this comment predates it).
         if args.json:
             print(json.dumps(_nothing_json(nothing, args), indent=2))
             return EXIT_USAGE
@@ -5369,6 +5425,11 @@ def _nothing_json(nothing: NothingToBrief, args: argparse.Namespace) -> dict[str
         "block": args.block,
         "designed": args.designed,
         "reason": nothing.reason,
+        # The boolean could not carry the third state and still cannot (RK429): `empty` is
+        # true for a finished block, a heading opened before its lines and a backlog whose
+        # every line is blocked. It stays, because a caller reading it is reading the
+        # question it asked; this says which of them answered.
+        "standing": _standing_json(nothing.standing),
         "held": [{"id": one.id, "since": one.since} for one in nothing.held],
     }
 
@@ -5811,6 +5872,10 @@ def _pick_json(
         "tier": None if choice.tier is None else str(choice.tier),
         "reason": choice.reason,
         "scope": choice.block,
+        # Beside `scope` and never instead of it (RK429): the label is what was asked and
+        # this is what became of it, so a loop scoped to a block reads one word rather than
+        # matching the sentence `reason` states it in.
+        "standing": _standing_json(choice.standing),
         "alternatives": list(choice.alternatives),
         "ready": choice.ready,
         "blocked": choice.blocked,
@@ -5834,6 +5899,25 @@ def _pick_json(
             "to": None if claim.change is None else claim.change.after,
         },
         "event": event,
+    }
+
+
+def _standing_json(standing: Standing | None) -> dict[str, object] | None:
+    """What became of the block a query was scoped to (RK429), or nothing if none was.
+
+    The counts ride with the state because they are its evidence: `finished` is a claim
+    about the ledger, and a payload asserting it without saying how many entries it read
+    is one a caller has to verify with a second command.
+    """
+    if standing is None:
+        return None
+    return {
+        "block": standing.label,
+        "state": str(standing.stage),
+        "open": standing.open,
+        "recorded": standing.recorded,
+        "paused": standing.paused,
+        "sentence": standing.sentence,
     }
 
 

@@ -28,8 +28,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK429** (deps: —) **A query against a finished block answers the same as one against a block that never existed** — brief, pick and list all say nothing is open, so a reader cannot tell a shipped block from a typo without grepping the ledger the tool exists to replace. → §RK429
-
 ## Block D — The gate
 
 - 📋 **RK430** (deps: —) **The line-length limit counts code points and the gate that enforces it counts UTF-16 units** — A line roadkeep validates at exactly the limit fails the build, and the character responsible is the status marker roadkeep itself wrote. → §RK430
