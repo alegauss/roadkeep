@@ -205,24 +205,6 @@ first entry of it.
 
 ## Block C — Query
 
-### §RK410 The anchor read that is made most often is the narrowest one
-
-`anchors [--family <x>]` answers two questions at once: which addresses a heading
-declares or retired, and which one nothing ever used. The second is the read an `add
---ref` makes every time, and the first is the read made once, before reopening a shipped
-family.
-
-Under `LXIX` the listing is 28 rows and the answer is the last of them. That is not a
-formatting complaint: a caller taking the next child has to scroll past 27 lines it did
-not ask for, and on a tool result the rows are what gets truncated first — so the one
-line that matters is the one most likely to be cut.
-
-`--role` narrows the listing and deliberately not the number, which is right, and leaves
-no way to narrow it to the number alone. A flag that prints the free addresses and
-nothing else — the `next-id` of anchors, and named for that symmetry — costs a filter
-over a list already computed, and makes the common call cheap enough to make before
-every `add` instead of from memory.
-
 ### §RK416 A reverted premise is not a delivered one
 
 `origin <id> --why` reads a claim out of history and `gaps` resolves an id in neither

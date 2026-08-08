@@ -1703,6 +1703,15 @@ def build_parser() -> argparse.ArgumentParser:
             "declares one and is that file's own where one does"
         ),
     )
+    anchors_parser.add_argument(
+        "--next",
+        dest="only_next",
+        action="store_true",
+        help=(
+            "the free address alone, without the listing of spent ones — the `next-id` of "
+            "anchors, and the read an `add --ref` makes every time"
+        ),
+    )
     anchors_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     anchors_parser.set_defaults(handler=_anchors, reads_only=True)
 
@@ -5959,6 +5968,26 @@ def _anchors(config: Config, args: argparse.Namespace) -> int:
     # the listing was narrowed to one file (RK297).
     spread = [one for one in whole if not ids.match(one.anchor.split(".")[0])]
     spent = len(found) - len(outline)
+    if args.only_next and args.json:
+        # The narrow read, in the narrow shape (RK410). `family` and `namespace` are kept
+        # because the answer is meaningless without saying which numbering it continues —
+        # everything else in the wide payload is the listing this flag exists to leave out.
+        print(
+            json.dumps(
+                {
+                    "family": args.family,
+                    "next": next_child(whole, args.family) if args.family else None,
+                    "next_families": []
+                    if args.family
+                    else [
+                        {"namespace": space or None, "next": next_family(spread, space)}
+                        for space in namespaces(spread)
+                    ],
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
     if args.json:
         print(
             json.dumps(
@@ -6011,6 +6040,9 @@ def _anchors(config: Config, args: argparse.Namespace) -> int:
             )
         )
         return EXIT_OK
+
+    if args.only_next:
+        return _next_anchor(args, whole, spread)
 
     where = ", ".join(config.relative(config.path(one)) for one in read)
     print(f"{len(found)} anchor(s), {len(retired)} retired  ({where})")
@@ -6075,6 +6107,42 @@ def _doubled(taken: Sequence[Anchor]) -> None:
     """
     for anchor, roles in doubled(taken):
         print(f"  doubled  §{anchor} is declared by {' and '.join(roles)}")
+
+
+def _next_anchor(args: argparse.Namespace, whole, spread) -> int:
+    """The free address alone, which is the read this command answers most often (RK410).
+
+    `anchors` answers two questions at once: which addresses a family has spent, asked once
+    before reopening a shipped subtree, and which one nothing ever used, asked by every `add
+    --ref`. Under a 27-anchor family the second answer was the 28th row — so the caller
+    taking the next child scrolled past 27 lines it had not asked for, and on a tool result
+    the rows are what gets truncated first, which made the one line that mattered the one
+    most likely to be cut.
+
+    A filter over a list already computed, so nothing here re-derives an address: the point
+    is to leave the listing out, not to answer differently. `--role` still narrows the
+    listing and never the number (RK297), which is why the wide read stays the way to see
+    where an address came from.
+    """
+    if args.family:
+        print(f"§{next_child(whole, args.family)}")
+        return EXIT_OK
+    if not spread:
+        # No outline family at all: the free address is the first numeral, and saying so is
+        # the answer — an empty stdout here reads as a command that failed quietly.
+        print(
+            "roadkeep: no outline family exists yet, so none is spent — `add --ref I.1` "
+            "opens the first",
+            file=sys.stderr,
+        )
+        return EXIT_USAGE
+    for space in namespaces(spread):
+        fresh = next_family(spread, space)
+        named = f"  {space}" if space else ""
+        # The same refusal the wide read gives, in one line: a namespace whose top-levels
+        # are not one numbering derives nothing, and a blank row would read as an address.
+        print(f"§{fresh}{named}" if fresh else f"—{named}  not one numbering, so none derives")
+    return EXIT_OK
 
 
 def _anchor_row(one: Anchor) -> dict[str, object]:

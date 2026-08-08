@@ -382,3 +382,76 @@ def test_an_unknown_id_exits_two(tmp_path, capsys):
     project(tmp_path)
     assert main(["-C", str(tmp_path), "show", "RK99"]) == EXIT_USAGE
     assert "no task RK99" in capsys.readouterr().err
+
+
+# -- the free address alone (RK410) ------------------------------------------
+
+
+def _outline(tmp_path):
+    """A project numbering its prose by outline, with one family several children deep."""
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\nref_scheme = "outline"\n[files]\nroadmap = "ROADMAP.md"\n'
+        'changelog = "CHANGELOG.md"\nimprovements = "IMPROVEMENTS.md"\n',
+        encoding="utf-8",
+    )
+    for name, body in (
+        (
+            "ROADMAP.md",
+            "# Roadmap\n\n## Block A — The model\n\n"
+            "- 📋 **RK1** (deps: —) **A first symptom** — Because of a reason. → §I.1\n",
+        ),
+        ("CHANGELOG.md", "# Shipped\n\n## Block A — The model\n"),
+        (
+            "IMPROVEMENTS.md",
+            "# Improvements\n\n## I A first family\n\n### §I.1 RK1 A first design\n\n"
+            "The reasoning.\n\n### §I.2 A second design\n\nThe reasoning.\n\n"
+            "## II A second family\n\n### §II.1 Another design\n\nThe reasoning.\n",
+        ),
+    ):
+        with (tmp_path / name).open("w", encoding="utf-8", newline="") as handle:
+            handle.write(body)
+    return tmp_path
+
+
+def test_the_next_child_is_the_whole_answer(tmp_path, capsys):
+    """Under a 27-anchor family the free address was the 28th row, and on a tool result the
+    rows are what gets truncated first — so the one line that mattered was the likeliest cut."""
+    root = _outline(tmp_path)
+    assert main(["-C", str(root), "anchors", "--family", "I", "--next"]) == EXIT_OK
+    assert capsys.readouterr().out == "§I.3\n"
+
+
+def test_the_next_family_is_the_whole_answer_when_none_is_named(tmp_path, capsys):
+    root = _outline(tmp_path)
+    assert main(["-C", str(root), "anchors", "--next"]) == EXIT_OK
+    assert capsys.readouterr().out == "§III\n"
+
+
+def test_the_narrow_read_answers_what_the_wide_one_does(tmp_path, capsys):
+    # A filter over a list already computed: the flag leaves the listing out and must never
+    # answer differently, or it becomes a second derivation of the same address.
+    root = _outline(tmp_path)
+    assert main(["-C", str(root), "anchors", "--family", "I"]) == EXIT_OK
+    wide = capsys.readouterr().out
+    assert main(["-C", str(root), "anchors", "--family", "I", "--next"]) == EXIT_OK
+    narrow = capsys.readouterr().out.strip()
+    assert f"next     {narrow} — nothing ever used it" in wide
+
+
+def test_the_narrow_payload_keeps_what_makes_the_answer_readable(tmp_path, capsys):
+    root = _outline(tmp_path)
+    assert main(["-C", str(root), "anchors", "--next", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    # The address is meaningless without which numbering it continues; the listing is what
+    # this flag exists to leave out, so those keys are gone rather than empty.
+    assert payload["next_families"] == [{"namespace": None, "next": "III"}]
+    assert "anchors" not in payload and "retired" not in payload
+
+
+def test_a_project_with_no_family_yet_says_so_rather_than_printing_nothing(tmp_path, capsys):
+    root = _outline(tmp_path)
+    (root / "IMPROVEMENTS.md").write_text("# Improvements\n", encoding="utf-8")
+    assert main(["-C", str(root), "anchors", "--next"]) == EXIT_USAGE
+    out = capsys.readouterr()
+    assert out.out == ""
+    assert "no outline family exists yet" in out.err

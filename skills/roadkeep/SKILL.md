@@ -293,7 +293,10 @@ section's size states **two** figures where they differ — `48 words, 310 with 
 reader pays; cutting to the second number cuts prose that was never over. Under an outline,
 `anchors` names both free addresses before you choose one: `next §<family>.<n>` for a child
 and, above the rows, the next free **top-level** — which is what a block reused after its
-family shipped needs, and what the listing could not be read for. It reads **every** prose
+family shipped needs, and what the listing could not be read for. **`--next` is that answer
+alone**, without the listing of spent ones: it is the read an `add --ref` makes every time,
+and under a 27-anchor family the address you want is otherwise the 28th row — the first thing
+a tool result truncates. Reach for the wide read only to see where an address came from. It reads **every** prose
 file the project declares, and the free top-level is **per namespace**: where `[refs]` gives
 a file one, that file's own numbering is the answer and the sibling's is not, and where a
 project declares none its files share one namespace, so a free address taken from either is
