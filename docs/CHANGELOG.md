@@ -305,6 +305,7 @@
 - ✅ **RK425** **The repair block.repeated names sends the caller into a worse state than the one it reported** — the finding names block merge instead of an edit the guard denies, and says how many lines under the later heading it moves, counted to the next heading of any level.
 - ✅ **RK418** **Two copies at one version number are called agreed, on the one fact known not to tell trees apart** — engines compares the commit as well as the version and answers agreed, behind or unpinnable, the last being one version and a modified checkout, which is no commit to match.
 - ✅ **RK430** **The line-length limit counts code points and the gate that enforces it counts UTF-16 units** — every character limit is measured in UTF-16 code units, the unit each payload declares and each refusal names where it differs from an editor's count, so this gate agrees with the one a project runs.
+- ✅ **RK434** **The gate decides whether a block is finished, empty or undeclared with its own copy of the rule** — A queued block's state comes from the backlog's one reader, so a block with nothing open is reported as paused wherever the store holds a line under it rather than as finished or unstarted.
 
 ## Block E — Adoption
 

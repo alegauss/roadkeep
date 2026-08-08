@@ -115,23 +115,6 @@ ask for it.
 
 ## Block D — The gate
 
-### §RK434 One rule, two readers, and the second one predates the first
-
-`_dead_block` was where this project first worked out that a block with nothing open is
-three different facts: `priority.block` for a label nothing declares,
-`priority.block-empty` for one the ledger files entries under, and
-`priority.block-unstarted` for a heading written before its lines. RK429 then wrote that
-same walk as `Backlog.standing`, because `brief`, `pick` and `list` needed it too.
-
-Both are correct today, which is exactly the state that does not last. They already
-disagree in one place: RK429 added a fourth state for a block whose lines were all
-deferred, and the gate has no such answer — a queue entry naming a paused block is
-reported as one nothing has been added to yet.
-
-The gate keeps its own codes and its own remedies; what should move is the
-classification under them. This project's whole discipline is that one rule has one
-reader, and a rule spelled twice is the drift it exists to refuse.
-
 ### §RK435 A remedy that states the other code's condition
 
 Three codes share one shape and their remedies were written together. `priority.block`

@@ -232,6 +232,18 @@ def test_a_queue_finding_substitutes_its_token_and_not_its_id():
     assert found.doors[0].argv == ("priority", "drop", "Block D")
 
 
+def test_a_paused_block_is_read_by_id_and_dropped_by_token():
+    # The only value this table can substitute is the queue token, and neither door a task
+    # would take accepts one: `resume` takes an id, `list --block` takes a bare label. A
+    # door that refuses when run is the defect RK420 exists to remove, one row down (RK434).
+    found = remedy(Finding("priority.block-paused", "ROADMAP.md", "", 9, subject="Block A"))
+    assert found is not None and found.kind == "decide"
+    assert [door.argv for door in found.doors] == [
+        ("list", "--role", "deferred"),
+        ("priority", "drop", "Block A"),
+    ]
+
+
 def test_a_note_gets_a_remedy_on_the_same_lookup():
     found = remedy(Note("block.emptied", "ROADMAP.md", "", 3, "D"))
     assert found is not None and found.kind == "read"

@@ -34,7 +34,7 @@ What it reports, and why each one is a defect the other commands cannot see:
   (RK13), which is a defect and not a shape.
 * **A queue entry naming work that has left** (RK326) — the same resolution, applied to
   the one list that outranks the id order: shipped, retired, set aside, naming nothing,
-  or naming a block whose every line is gone. Written as deps, most of these already
+  or naming a block whose every line has left or been set aside. Written as deps, most already
   failed here; written as a priority they passed at exit 0 while `pick` said only that
   the queue "names nothing ready".
 
@@ -102,7 +102,7 @@ from dataclasses import dataclass, field, replace
 from pathlib import Path
 
 from roadkeep import queueing, scoping
-from roadkeep.backlog import Backlog, DepStatus, id_order
+from roadkeep.backlog import Backlog, DepStatus, Stage, id_order
 from roadkeep.blocking import removable
 from roadkeep.config import PROSE_ROLES, ROLES, Config, spent
 from roadkeep.document import Document, Entry, Heading, ending
@@ -1308,14 +1308,14 @@ def _queue(
     Since RK325 the list is in the roadmap, so the resolution is the one
     :class:`~roadkeep.backlog.Backlog` already does and the codes are the states a token
     can be **dead** in: shipped, retired, set aside, naming nothing, and naming a block
-    whose every line has left — plus one named twice, which is two answers about where the
-    same work sits. At `file:line:column` like everything else (RK34).
+    whose every line has left or is set aside — plus one named twice, which is two answers
+    about where the same work sits. At `file:line:column` like everything else (RK34).
 
     Two states are deliberately **not** findings. An entry naming a merely blocked task is
     a queue doing its job — that is what a queue is *for* — and a declared block holding
-    nothing **yet** is legitimate, `block add` writing the heading before the lines; the
-    two are told apart by whether the ledger has entries under that heading, which is the
-    only record that work ever left it.
+    nothing **yet** is legitimate, `block add` writing the heading before the lines. Which
+    of those a label is in is :class:`~roadkeep.backlog.Stage`'s answer and not this
+    module's (RK434); what stays here is which code and which tier each state costs a queue.
 
     And a `priority` still in `roadkeep.toml` beside a section that now holds the order is
     the third note: it is read (:func:`~roadkeep.queueing.declared` says the section wins),
@@ -1386,7 +1386,7 @@ def _queue(
             )
             continue
         seen[token] = lineno
-        finding = _dead(config, backlog, token, file, lineno, column, documents)
+        finding = _dead(config, backlog, token, file, lineno, column)
         if isinstance(finding, Note):
             notes.append(finding)
         elif finding is not None:
@@ -1401,19 +1401,20 @@ def _dead(
     file: str,
     lineno: int | None,
     column: int | None,
-    documents: dict[str, Document],
 ) -> Finding | Note | None:
     """How this one entry is dead, or nothing where the tier can still fire.
 
     One resolution, from the code that resolves a dep, so a token cannot mean one thing in
     an annotation and another in the order (RK11's rule, and :func:`~roadkeep.queueing.typed`
     at the other end).
+
+    The block half opens no file of its own since RK434: the states it used to read out of
+    the ledger are :class:`~roadkeep.backlog.Stage`'s, read off the same backlog this
+    resolution came from — which was already built from those documents.
     """
     resolution = backlog.resolve_dep(Dep(token))
     if resolution.kind is DepKind.BLOCK:
-        return _dead_block(
-            config, backlog, token, file, lineno, column, documents, resolution.detail
-        )
+        return _dead_block(config, backlog, token, file, lineno, column, resolution.detail)
     if resolution.status is DepStatus.SHIPPED:
         return Finding(
             "priority.shipped",
@@ -1465,18 +1466,37 @@ def _dead_block(
     file: str,
     lineno: int | None,
     column: int | None,
-    documents: dict[str, Document],
     detail: str,
 ) -> Finding | Note | None:
-    """The half of :func:`_dead` about a `Block X` entry, whose three states differ.
+    """The half of :func:`_dead` about a `Block X` entry, and what each state costs a queue.
 
-    A block nothing declares is the dep resolver's own answer. Between the other two the
-    ledger is what decides: a heading with entries under it and no open line is a block
-    that **emptied**, and one with neither is a heading written before its lines — which is
-    the order `block add` prescribes, so it is a note.
+    The states are :class:`~roadkeep.backlog.Stage`'s and not this function's (RK434). They
+    were worked out here first — a heading the ledger files entries under is a block that
+    emptied, one with neither is a heading written before its lines — and RK429 wrote the
+    same walk as :meth:`~roadkeep.backlog.Backlog.standing`, because `brief`, `pick` and
+    `list` needed it too. The copy that goes is this one, and not for being second: it read
+    the roadmap and the ledger and never the store, though `lint` already loads all three,
+    so a block whose lines were set aside was reported as one nothing had been filed under
+    yet — a finding arguing from the opposite of what the file says.
+
+    What stays is the **codes and the tier**, which are the gate's and not a property of a
+    block. `empty` is a note because `block add` writes the heading before the lines, which
+    is the order this tool prescribes and so is a plan rather than a defect; the other
+    three fail a build, `paused` for the reason a queued id in the store does
+    (`priority.deferred`) — the same fact must not change tier by whether it was written as
+    an id or as the label above it. `live` is the one state with nothing to say, so it is
+    the fall-through: a stage this does not name yet is a silence, and a code naming a
+    state the file is not in is worse than no code.
+
+    ``detail`` is the resolver's sentence for the same label, which since RK432 *is*
+    :attr:`Standing.sentence` — one oracle reached two ways, and it is taken as an argument
+    rather than re-read so that a message and the dep report quoting it cannot drift.
     """
     label = config.schema.block_of_dep(Dep(token))
-    if label not in backlog.declared_blocks():
+    # Never None here: `_dead` calls this only where `classify_dep` answered `BLOCK`, which
+    # is the same pattern `block_of_dep` matches.
+    standing = backlog.standing(label)
+    if standing.stage is Stage.UNKNOWN:
         return Finding(
             "priority.block",
             file,
@@ -1485,10 +1505,18 @@ def _dead_block(
             column=column,
             subject=token,
         )
-    if backlog.open_in_block(label):
-        return None
-    ledger = documents.get("changelog")
-    if ledger is not None and ledger.block(label):
+    if standing.stage is Stage.PAUSED:
+        return Finding(
+            "priority.block-paused",
+            file,
+            f"queues {token}, which has nothing open and {standing.paused} set aside: "
+            f"`pick` never offers a paused line, so the order is over work nothing can "
+            f"start",
+            lineno,
+            column=column,
+            subject=token,
+        )
+    if standing.stage is Stage.FINISHED:
         return Finding(
             "priority.block-empty",
             file,
@@ -1498,14 +1526,16 @@ def _dead_block(
             column=column,
             subject=token,
         )
-    return Note(
-        "priority.block-unstarted",
-        file,
-        f"queues {token}, which no line is filed under yet: the tier fires on nothing "
-        f"until one is",
-        lineno,
-        subject=token,
-    )
+    if standing.stage is Stage.EMPTY:
+        return Note(
+            "priority.block-unstarted",
+            file,
+            f"queues {token}, which no line is filed under yet: the tier fires on nothing "
+            f"until one is",
+            lineno,
+            subject=token,
+        )
+    return None
 
 
 def _across(config: Config, documents: dict[str, Document]) -> list[Finding]:

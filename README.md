@@ -119,14 +119,14 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 30 | 2 |
 | B — Authoring (insert, never hand-edit) | 2 | 100 | 1 |
 | C — Query (consult without reading the file) | 0 | 64 | 1 |
-| D — The gate | 2 | 88 | 0 |
+| D — The gate | 1 | 89 | 0 |
 | E — Adoption | 0 | 73 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 69 | 1 |
-| **Total** | 5 | 424 | 6 |
+| **Total** | 4 | 425 | 6 |
 
 **Next ready:**
 
-- 📋 **RK434** (deps: —) **The gate decides whether a block is finished, empty or undeclared with its own copy of the rule** — Resolving a queue token walks the same three states the backlog now answers in one reader, so a correction to either is a correction to one of two. → §RK434
+- 📋 **RK435** (deps: —) **The door offered for a queued block that has no lines yet says the block was never declared** — That note fires only where a heading does declare the label, so the reason printed under it argues from the premise the finding it belongs to refutes. → §RK435
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
@@ -301,7 +301,7 @@ between two doors, is printed with both and never guessed at — the tool does n
 `repair --dry-run` prints the commands and runs none of them, and `roadkeep explain <code>`
 answers what a code *means* — the class, what produces it, and its doors — which is the one
 question the report could never answer, since a finding is about a line and a code is about a
-kind. With no argument it lists all 72, which is a vocabulary this tool had never published.
+kind. With no argument it lists them all, which is a vocabulary this tool had never published.
 
 Two things it reports **without** failing, because refusing them would fail an honest file
 and a gate that gets bypassed is worth nothing: what a `Block X` dep expands to (one token

@@ -140,8 +140,10 @@ class Stage(StrEnum):
     The discriminator between `finished` and `empty` is **entries under the label** and
     never the heading: `block add` writes the heading into every organised file at
     declaration time, so a heading proves the label was declared and nothing more. The
-    gate already made that choice for a queue token (`priority.block-empty` against
-    `priority.block-unstarted`), and one rule spelled twice is the drift this repeats.
+    gate made that choice first, for a queue token (`priority.block-empty` against
+    `priority.block-unstarted`), and reads it from here since RK434 —
+    :func:`~roadkeep.linting._dead_block` maps a stage to a code and a tier, and decides no
+    state of its own.
 
     :attr:`PAUSED` is here for the reason :attr:`Readiness.PAUSED` is (RK92): a block
     whose every line was deferred is not finished and not empty, and reading it as either
@@ -456,9 +458,11 @@ class Backlog:
     def standing(self, label: str) -> Standing:
         """Which of :class:`Stage`'s four states this label is in (RK429).
 
-        The read every query makes after its own count comes back empty, and the reason
-        it is a method here rather than four lines at three call sites: the files it joins
-        are the two this class already holds open.
+        The read every query makes after its own count comes back empty — and the gate's,
+        resolving a queue entry that names a block (RK434), which is where the second copy
+        of this walk had already drifted: it never opened the store, so a paused block was
+        reported as an unstarted one. A method here rather than the same four lines at each
+        call site: the files it joins are the three this class holds open.
         """
         return Standing.of(self, label)
 

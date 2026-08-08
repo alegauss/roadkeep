@@ -288,11 +288,17 @@ GATE_STORE = """# Deferred
 """
 
 
-def gated(tmp_path: Path, queue: str, roadmap: str = ROADMAP, config: str = GATED) -> Config:
+def gated(
+    tmp_path: Path,
+    queue: str,
+    roadmap: str = ROADMAP,
+    config: str = GATED,
+    store: str = GATE_STORE,
+) -> Config:
     """The same project with a ledger and a store, so a token can be dead in every way."""
     body = roadmap.replace("- RK2\n- Block D\n", queue)
     (tmp_path / "CHANGELOG.md").write_text(GATE_LEDGER, encoding="utf-8")
-    (tmp_path / "DEFERRED.md").write_text(GATE_STORE, encoding="utf-8")
+    (tmp_path / "DEFERRED.md").write_text(store, encoding="utf-8")
     return project(tmp_path, roadmap=body + "\n## Block E — Finished\n", config=config)
 
 
@@ -331,15 +337,55 @@ def test_a_block_whose_every_line_has_left_is_a_finding(tmp_path):
 
 def test_a_block_declared_before_its_lines_is_a_note_and_not_a_finding(tmp_path):
     # `block add` writes the heading before the lines, so a queue naming one is a plan.
-    config = gated(tmp_path, "- Block A\n", roadmap=NONE.replace(
-        "- 📋 **RK1** (deps: —) **A first symptom** — Because of a reason. → §RK1\n", ""
-    ).replace(
-        "- 📋 **RK2** (deps: —) **A second symptom** — Because of a reason. → §RK2\n",
-        "",
-    ).replace("## Block A — The model\n", "## Priority\n\n- Block A\n\n## Block A — The model\n"))
+    #
+    # The label is F and not A because *nothing* may be filed under it in any of the three
+    # files — which is what `empty` means. This queued Block A while the store still held a
+    # line under that heading, so it asserted `unstarted` about a block that is paused: the
+    # two readers disagreeing, inside the test that was holding one of them (RK434).
+    config = gated(
+        tmp_path,
+        "- Block F\n",
+        roadmap=ROADMAP.replace("## Block D", "## Block F — Planned\n\n## Block D"),
+    )
     report = lint(config)
     assert report.clean
     assert [note.code for note in report.notes] == ["priority.block-unstarted"]
+
+
+def test_a_block_with_nothing_open_and_a_line_in_the_store_is_paused(tmp_path):
+    # The gate's own walk read the roadmap and the ledger and never the store, so the one
+    # file that knew was the one it did not open (RK434) — and `lint` had loaded it all
+    # along. Same tier as a queued id in the store: the fact must not change tier by
+    # whether it was written as an id or as the label above it.
+    config = gated(
+        tmp_path,
+        "- Block A\n",
+        roadmap=ROADMAP.replace(
+            "- 📋 **RK1** (deps: —) **A first symptom** — Because of a reason. → §RK1\n", ""
+        ).replace(
+            "- 📋 **RK2** (deps: —) **A second symptom** — Because of a reason. → §RK2\n", ""
+        ),
+    )
+    assert codes(config) == {"priority.block-paused": 1}
+    finding = next(f for f in lint(config).findings if f.code == "priority.block-paused")
+    assert finding.subject == "Block A" and (finding.lineno, finding.column) == (7, 3)
+    assert "1 set aside" in finding.message
+
+
+def test_a_block_that_shipped_half_and_paused_the_rest_is_not_finished(tmp_path):
+    # The other half of the disagreement, and the ranking `Standing.of` exists for: paused
+    # outranks recorded, so a block that shipped two lines and set a third aside is not one
+    # "whose every line has shipped or left" — that message named a line a `resume` returns.
+    config = gated(
+        tmp_path,
+        "- Block E\n",
+        store=GATE_STORE
+        + "\n## Block E — Finished\n\n"
+        "- ⏸ **RK9** (deps: —) **A ninth symptom** — Because a reason (set aside: waiting). → §RK9\n",
+    )
+    assert codes(config) == {"priority.block-paused": 1}
+    finding = next(f for f in lint(config).findings if f.code == "priority.block-paused")
+    assert "shipped" not in finding.message
 
 
 def test_an_entry_naming_blocked_work_is_a_queue_doing_its_job(tmp_path):

@@ -31,7 +31,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK434** (deps: —) **The gate decides whether a block is finished, empty or undeclared with its own copy of the rule** — Resolving a queue token walks the same three states the backlog now answers in one reader, so a correction to either is a correction to one of two. → §RK434
 - 📋 **RK435** (deps: —) **The door offered for a queued block that has no lines yet says the block was never declared** — That note fires only where a heading does declare the label, so the reason printed under it argues from the premise the finding it belongs to refutes. → §RK435
 
 ## Block E — Adoption

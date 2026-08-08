@@ -268,8 +268,10 @@ def _dequeue(
       declaration because a dep has not landed yet;
     * one naming a **deferred** task, which is coming back and whose place in the order is
       the one thing the store could not keep, so restoring it is `resume`'s caller's;
-    * one naming an id no file carries, or a block whose lines have all left: the first is
-      as likely a typo as a deletion, and the second is reopened by an `add`.
+    * one naming an id no file carries, or a block with nothing open: an unknown id is as
+      likely a typo as a deletion, a block whose lines have all left is reopened by an
+      `add`, and one whose lines are in the store by a `resume` — which of those a label is
+      in is :class:`~roadkeep.backlog.Stage`'s answer and not a fourth reading of it (RK434).
 
     Every drop is **named in the report** rather than removed in silence, and at the line it
     was read from: a fixer that shortens a plan quietly is the one thing worse than the

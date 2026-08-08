@@ -317,6 +317,24 @@ _TABLE: Mapping[str, _Rule] = {
         ("priority", "drop", "{id}"),
         "the block holds no open line, so nothing in it can be first",
     ),
+    # The coming-back door first, as `priority.deferred`'s is: what the order names is work
+    # a decision would restore, so dropping it is the one move that guarantees it never
+    # fires. `--block` is deliberately absent from the read — it takes a bare label and the
+    # only value this table can substitute is the queue token — and `resume` is absent for
+    # the same reason: it takes an id, and which line comes back is what the read answers.
+    "priority.block-paused": _decide(
+        "every line filed under this block is in the store, so the tier can only fire once "
+        "one comes back — and where in the order it sat is what the store did not keep:",
+        (
+            ("list", "--role", "deferred"),
+            "read what is set aside: the address is an id, so `resume <id>` is what makes "
+            "this tier fire again",
+        ),
+        (
+            ("priority", "drop", "{id}"),
+            "the order should not name a block whose lines are all paused",
+        ),
+    ),
     "priority.block-unstarted": _run(
         ("priority", "drop", "{id}"),
         "the block was never declared, so the token addresses nothing",
