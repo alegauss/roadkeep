@@ -70,7 +70,12 @@ itself turned out false, `restate <id> --symptom "…"` is that correction and t
 it: the id, the deps, the marker and the section all stay, because the work never changed and
 only the description of it was wrong. Reach for it instead of `retire` plus `add`, which spends
 an id and deletes a design that was already right. It takes no reason: the format has nowhere
-to put one, so the commit that removes the false claim is where it belongs. **`ship <id>` is also how one that stopped halfway is finished**:
+to put one, so the commit that removes the false claim is where it belongs. **A misspelt word
+is not that case**: `restate <id> --symptom "…" --typo` says the claim is the one intended and
+a word in it was wrong, so the answer and the payload record which of the two acts it was —
+without it every spelling fix reads as a premise that turned out false, which is the one thing
+this verb exists to keep greppable. It is a declaration and never inferred, and it relaxes no
+limit: a slip of the pen that lands over the budget is still over it. **`ship <id>` is also how one that stopped halfway is finished**:
 the ledger is written first, so a crash leaves the id in two files (`lint` says `id.two-files`)
 and re-running `ship` closes the line without writing a second entry. It refuses instead where
 the files say the work is in halves — a ⏳ line or an entry naming one — or where the line and
