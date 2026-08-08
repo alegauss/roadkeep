@@ -79,6 +79,28 @@ already written, not authorship.
 
 ## Block C — Query
 
+### §RK429 A finished block and a typo are the same answer
+
+`brief --block B` against Shio's backlog answers `nothing to brief: nothing is open in
+Block B`. Block B there is **finished** — ten tasks shipped, its heading still standing
+in the ledger. A reader who typed `B` for `H` gets that identical sentence, and so does
+one asking about a block letter the project has never used. Three states, one answer.
+
+The verb that knows the difference exists for ids and not for blocks: `gaps` says what
+happened to an id that is in neither file, and nothing says what happened to a block. So
+resolving the ambiguity means grepping `CHANGELOG.md` for the heading by hand — the read
+`brief` exists to replace, and the one the guard denies for a write.
+
+It cost a real session: an instruction to execute a block was answered with a grep,
+because the tool could not say whether the block was done or misheard.
+
+The fix is a sentence rather than a verb. When a block resolves to nothing open, name
+which of the three it is: **finished** (the ledger carries the heading), **empty**
+(declared in the roadmap, nothing under it), or **unknown** (no such heading in either
+file). All three are already computable from files the reader has open — only the
+reporting is absent. `pick --block` and `list --block` reach the same dead end and want
+the same sentence.
+
 ## Block D — The gate
 
 ## Block E — Adoption

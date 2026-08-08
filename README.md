@@ -118,11 +118,15 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 30 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 99 | 1 |
-| C — Query (consult without reading the file) | 0 | 61 | 1 |
+| C — Query (consult without reading the file) | 1 | 61 | 1 |
 | D — The gate | 0 | 87 | 0 |
 | E — Adoption | 0 | 73 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 69 | 1 |
-| **Total** | 0 | 419 | 6 |
+| **Total** | 1 | 419 | 6 |
+
+**Next ready:**
+
+- 📋 **RK429** (deps: —) **A query against a finished block answers the same as one against a block that never existed** — brief, pick and list all say nothing is open, so a reader cannot tell a shipped block from a typo without grepping the ledger the tool exists to replace. → §RK429
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
