@@ -32,7 +32,6 @@
 ## Block D — The gate
 
 - 📋 **RK418** (deps: —) **Two copies at one version number are called agreed, on the one fact known not to tell trees apart** — The comparison is the release string, which a modified checkout and a released plugin can share while their files differ, and the commit each carries is read and dropped. → §RK418
-- 📋 **RK425** (deps: —) **The repair block.repeated names sends the caller into a worse state than the one it reported** — Merge by hand is right and omits the two facts that decide it - a rename detaches the region it renamed, and a region ends at the next heading of any level. → §RK425
 
 ## Block E — Adoption
 

@@ -1067,3 +1067,77 @@ def test_the_merge_json_says_which_ids_moved_where(tmp_path, capsys):
     changelog = next(r for r in payload["merged"] if r["role"] == "changelog")
     assert changelog["moved"] == ["RK4"]
     assert changelog["folded"] == ["## Block B — First"]
+
+
+# -- the named repair, and what it moves (RK425) ------------------------------
+
+
+def test_the_repeated_heading_names_the_verb_and_what_it_moves(tmp_path):
+    """The clause read *a merge by hand* until RK425 — prose left behind when RK403 shipped
+    the verb. It named an edit the guard denies, and the obvious reading of it is a rename,
+    which detaches every entry beneath the second heading: measured, renaming five headings
+    produced 83 findings and had to be reverted."""
+    from roadkeep.linting import lint
+
+    config = _repeated(tmp_path)
+    found = next(f for f in lint(config).findings if f.code == "block.repeated")
+    assert "block merge A" in found.message
+    assert "by hand" not in found.message
+    # What the caller's next question is: whether their lines survive it, and how many move.
+    assert "moving the 1 line(s) under it" in found.message
+    assert "keeping the file's order" in found.message
+
+
+def test_the_count_is_the_later_region_and_not_the_whole_label(tmp_path):
+    # `document.block(label)` is every entry with that label anywhere in the file, which on
+    # a repeated heading is both regions — a number that promised to move lines already in
+    # the first one would be wrong in the direction that matters.
+    from roadkeep.linting import lint
+
+    config = _repeated(tmp_path, later="- 📋 **DX2** (deps: —) **A second** — A reason.\n"
+                                       "- 📋 **DX4** (deps: —) **A fourth** — A reason.\n")
+    found = next(f for f in lint(config).findings if f.code == "block.repeated")
+    assert "moving the 2 line(s)" in found.message
+
+
+def test_a_region_ends_at_the_next_heading_of_any_level(tmp_path):
+    """The second fact RK425 is about: a `###` cannot group entries inside a block, so a
+    subheading between two regions ends the first — and a count that ignored the level would
+    promise to move lines the merge leaves where they are."""
+    from roadkeep.linting import lint
+
+    config = _repeated(
+        tmp_path,
+        later="- 📋 **DX2** (deps: —) **A second** — A reason.\n\n"
+        "### A grouping title\n\n"
+        "- 📋 **DX4** (deps: —) **A fourth** — A reason.\n",
+    )
+    found = next(f for f in lint(config).findings if f.code == "block.repeated")
+    assert "moving the 1 line(s)" in found.message
+
+
+def test_the_droppable_branch_states_no_count(tmp_path):
+    # A region that holds nothing is removed rather than merged, and "moving the 0 line(s)"
+    # is a sentence about the absence of a fact.
+    from roadkeep.linting import lint
+
+    config = _repeated(tmp_path, later="")
+    found = next(f for f in lint(config).findings if f.code == "block.repeated")
+    assert "block drop A" in found.message
+    assert "moving the" not in found.message
+
+
+def _repeated(tmp_path, later: str = "- 📋 **DX2** (deps: —) **A second** — A reason.\n"):
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "DX"\nref_scheme = "outline"\n[rules.roadmap]\nref = false\n'
+        '[files]\nroadmap = "ROADMAP.md"\n',
+        encoding="utf-8",
+    )
+    body = (
+        "# Roadmap\n\n## Block A — The first block\n\n"
+        "- 📋 **DX1** (deps: —) **A first** — A reason.\n\n"
+        "## Block A — The first block, again\n\n" + later
+    )
+    with (tmp_path / "ROADMAP.md").open("w", encoding="utf-8", newline="") as handle:
+        handle.write(body)
+    return Config.discover(tmp_path)

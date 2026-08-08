@@ -536,16 +536,19 @@ def test_the_finding_names_the_verb_where_the_verb_would_work(tmp_path):
     assert "`block drop A` takes the empty one out" in finding.message
 
 
-def test_two_regions_that_both_hold_work_are_told_there_is_no_command(tmp_path):
-    # The clause is conditional, and that is what makes it honest: the removal refuses a
-    # heading with work under it, so naming it here would name a command that refuses.
+def test_two_regions_that_both_hold_work_are_told_the_verb_that_folds_them(tmp_path):
+    # The clause is conditional, and that is what makes it honest: the *removal* refuses a
+    # heading with work under it, so naming it here would name a command that refuses. What
+    # it named instead was "a merge by hand" — prose left behind when RK403 shipped the verb
+    # that does exactly this, and an edit the guard denies (RK425).
     both = CLEAN + (
         "\n## Block A — The model again\n\n"
         "- 📋 **RK3** (deps: —) **A third symptom** — Because of a third. → §RK3\n"
     )
     report = lint(project(tmp_path, roadmap=both, improvements=None))
     (finding,) = [f for f in report.findings if f.code == "block.repeated"]
-    assert "the repair is a merge by hand" in finding.message
+    assert "block merge A" in finding.message
+    assert "moving the 1 line(s) under it" in finding.message
     assert "block drop" not in finding.message
 
 

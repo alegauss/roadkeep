@@ -296,6 +296,7 @@
 - ✅ **RK422** **Nothing turns a report into the commands that clear it** — repair runs the mechanical pass and then every finding whose remedy is a complete command, re-reading the report between writes, and prints what needs a sentence or a choice.
 - ✅ **RK428** **The totality check cannot see a code the gate builds by f-string** — the totality read crosses the suffixes the schema composes with the fields it validates, both scraped from the source, and the six codes that were invisible now have doors.
 - ✅ **RK427** **The queue defect lint reports in roadkeep.toml is refused by the only verb that repairs a queue** — priority migrate moves the config's order into the roadmap, and both write verbs refuse by naming it, so the queue defect the gate reports has a door that opens.
+- ✅ **RK425** **The repair block.repeated names sends the caller into a worse state than the one it reported** — the finding names block merge instead of an edit the guard denies, and says how many lines under the later heading it moves, counted to the next heading of any level.
 
 ## Block E — Adoption
 

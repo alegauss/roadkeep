@@ -105,7 +105,7 @@ from roadkeep import queueing, scoping
 from roadkeep.backlog import Backlog, DepStatus, id_order
 from roadkeep.blocking import removable
 from roadkeep.config import PROSE_ROLES, ROLES, Config, spent
-from roadkeep.document import Document, Entry, ending
+from roadkeep.document import Document, Entry, Heading, ending
 from roadkeep.exporting import BEGIN, DEFAULTS, NoMarkers, project, splice
 from roadkeep.graph import Graph
 from roadkeep.history import (
@@ -1642,10 +1642,14 @@ def _repeated(config: Config, files: dict[str, Document]) -> list[Finding]:
             remedy = (
                 f"`block drop {label}` takes the empty one out"
                 if _droppable(files, label)
-                # Named as an edit and not as a command, because there is none: two regions
-                # holding work is a merge somebody has to make.
-                else "both regions hold work, so the repair is a merge by hand"
-
+                # `block merge` is that command, and this clause read "a merge by hand"
+                # until RK425 — prose left behind when RK403 shipped the verb. It named an
+                # edit the guard denies, and the obvious reading of it is a *rename*, which
+                # detaches every entry beneath the second heading: measured, renaming five
+                # produced 83 findings and had to be reverted. So the sentence says what the
+                # command does, because the caller's next question is whether their lines
+                # survive it.
+                else f"`block merge {label}` folds the later region into the first"
             )
             for later in rest:
                 out.append(
@@ -1654,7 +1658,8 @@ def _repeated(config: Config, files: dict[str, Document]) -> list[Finding]:
                         where,
                         f"{word} {label} is already declared on line {first.lineno}: one "
                         f"label is one heading, and a write files under this one by "
-                        f"position alone — {remedy}",
+                        f"position alone — {remedy}"
+                        + _moving(document, later, files, label),
                         later.lineno,
                         # The label rather than a task id: this finding is about a heading,
                         # and it is what `block merge` takes (RK420).
@@ -1662,6 +1667,37 @@ def _repeated(config: Config, files: dict[str, Document]) -> list[Finding]:
                     )
                 )
     return out
+
+
+def _moving(
+    document: Document, later: Heading, files: dict[str, Document], label: str
+) -> str:
+    """What the merge would move, where there is a merge to make (RK425).
+
+    Said only on the branch that names `block merge`: the drop branch removes a region that
+    holds nothing, so a count of zero beside it is a sentence about the absence of a fact.
+    """
+    if _droppable(files, label):
+        return ""
+    held = _under(document, later)
+    return f", moving the {held} line(s) under it and keeping the file's order"
+
+
+def _under(document: Document, heading: Heading) -> int:
+    """How many entries sit in **this heading's region** — the lines a merge would move.
+
+    Printed because it is the caller's next question, and the one the report could answer
+    all along: `block merge` moves exactly these, and a number beside the verb is the
+    difference between running it and reading the source first.
+
+    The region ends at the next heading of **any level**, which is the second fact RK425 is
+    about: a `###` cannot group entries inside a block, so a subheading between two regions
+    ends the first one — and a count that ignored the level would promise to move lines the
+    merge leaves where they are.
+    """
+    after = [one.lineno for one in document.headings if one.lineno > heading.lineno]
+    end = min(after) if after else len(document.lines) + 1
+    return sum(1 for e in document.entries if heading.lineno < e.lineno < end)
 
 
 def _droppable(files: dict[str, Document], label: str) -> bool:

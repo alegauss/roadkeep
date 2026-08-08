@@ -145,30 +145,6 @@ answer may be three states rather than two — agreed, behind, and unpinnable �
 boolean that collapses the third into either of the others will be wrong for one of
 them. That choice is the task; the numbers to make it with are already on the screen.
 
-### §RK425 The named repair that makes it worse
-
-`block.repeated` names its repair — *both regions hold work, so the repair is a merge by
-hand* — and that sentence is correct and insufficient. Two facts decide whether the
-merge succeeds, the gate knows both, and neither is said:
-
-- **A rename is not a merge.** The obvious reading of "one label is one heading" is to take the
-  label out of the second heading. That detaches every entry beneath it: the region ends and the
-  lint becomes `block.missing` for each. Measured, renaming five headings produced 83 findings and
-  had to be reverted.
-- **A region ends at the next heading of *any* level.** A `###` cannot group entries inside a
-  block, so the grouping title has to stop being a heading — a bold paragraph works. That is why
-  the second attempt fails after the first is undone.
-
-The cost is not reading time. `ship` refuses a repeated label outright, so the caller
-holds an unrelated diff and a task they cannot land, and each wrong repair is a
-write-and-revert of a file the guard otherwise forbids them to touch. Three of twelve
-blocks were unshippable here.
-
-The fix is in the message: say what the entries must do — move into the one region,
-keeping the file's existing order — and what the title must become, with both as
-`--json` fields. The tool knows both regions' line ranges, so printing them is the whole
-of what a caller works out by hand.
-
 ## Block E — Adoption
 
 ### §RK402 The tree that ships the plugin is told to wire the guard a second time
