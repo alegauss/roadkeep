@@ -24,6 +24,8 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK431** (deps: —) **An id mentioned in prose is consumed by the next add, so the sentence that named it is now wrong** — Writing 'filed as SH614' in a ledger entry made SH614 exist for the deriver, so the task it promised got SH615 and the promise became a dangling reference. → §RK431
+
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK429** (deps: —) **A query against a finished block answers the same as one against a block that never existed** — brief, pick and list all say nothing is open, so a reader cannot tell a shipped block from a typo without grepping the ledger the tool exists to replace. → §RK429

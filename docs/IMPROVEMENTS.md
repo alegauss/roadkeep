@@ -77,6 +77,30 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK431 The id a sentence spent
+
+Shipping SH207 meant recording a defect it had uncovered. The ledger entry said *"filed
+as SH614"* — the id `next-id` had just reported — and then `add` handed the new task
+**SH615**.
+
+Nothing malfunctioned. `id_sources` scans the governed files for `SH<n>`, the entry had
+just been written into one, so the highest id in the corpus was the one the sentence had
+promised to a task that did not exist yet. The deriver cannot tell an id that was
+*declared* from one merely *mentioned*, and every id starts as a mention.
+
+The cost is quiet. The `add` succeeds, the number looks unremarkable, and the only
+signal is a prose reference to an id nothing will occupy — in a file the guard forbids
+hand-editing. It is also a gap `gaps` cannot cover: that verb explains an id in neither
+file, and this one *is* in one.
+
+Two candidate answers. **Warn on derivation**: when the id below the derived one appears
+only in prose and never as a task line or ledger entry, say so — the reader knows
+whether it was a promise. **Or reserve**: let `next-id --claim` hold a number, so the
+sentence and the task agree by construction rather than by ordering.
+
+Recovery was clean, worth recording: `record amend` existed, named itself in `record
+--help`, and fixed the entry in place rather than deleting and re-appending it.
+
 ## Block C — Query
 
 ### §RK429 A finished block and a typo are the same answer
