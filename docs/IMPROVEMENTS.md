@@ -103,6 +103,32 @@ the same sentence.
 
 ## Block D — The gate
 
+### §RK430 One limit, two counters, and the emoji is ours
+
+Shio's `ShRoadmapLineLengthRatchetTest` failed on a line `roadkeep stats` had just
+reported as `longest SH611 at 320 of 320` — inside the limit. The Java gate measured
+321.
+
+Neither is wrong. Python's `len()` counts **code points**; Java's `String.length()`
+counts **UTF-16 code units**, and a character outside the Basic Multilingual Plane is
+one of the first and two of the second. The line held exactly one: `📋`, U+1F4CB, the
+status marker — which roadkeep writes. The tool emits the character that makes its own
+measurement disagree with the consumer's, then certifies a line the consumer rejects.
+
+The failure lands in the wrong place: on the next person to run the suite, in a build
+they did not break, on a file the guard forbids them to hand-edit. Diagnosing it cost a
+full-suite run and a character-by-character count, because both numbers look right and
+the difference is one.
+
+Every backlog roadkeep governs has this, silently: the markers `[markers]` declares are
+overwhelmingly astral-plane emoji (📋 💭 ⏳ 🛠 ✅), and any gate written in Java — or C#, or
+against JavaScript's `.length` — counts them double.
+
+The likely answer is to **measure in UTF-16 units and say so**: it is the stricter of
+the two, so a line that passes is portable to a code-point counter and the reverse is
+not. Declaring the unit in `roadkeep.toml` is the alternative. Either way `stats` and
+the limit check must agree with the gate the project runs.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
