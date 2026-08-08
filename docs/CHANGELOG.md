@@ -137,6 +137,7 @@
 - ✅ **RK368** **A non-goal whose reason changes has no door but drop and re-add, which moves the bullet to the end of the list** — non-goal amend rewrites the reason where the bullet already sits, so a reworded constraint is a word changing rather than a deletion and an append.
 - ✅ **RK395** **A shipped entry that gets reverted stays in the ledger saying it shipped** — record add --supersedes writes the revert entry and appends the forward pointer to the entry it replaces, so the ledger's two records of one decision name each other.
 - ✅ **RK403** **A block heading the changelog declares twice has no verb to fold into one, leaving only the hand-edit the guard denies** — block merge folds a label's duplicate headings into the first, moving the entries and including the ledger, so the doubled heading only a hand-edit could repair has a verb at last.
+- ✅ **RK399** **One field is spelled --status on add and --marker on resume** — add, budget, list and resume each accept --marker and --status for the one declared field, so the name learned on any verb is the name the others answer to.
 
 ## Block C — Query
 

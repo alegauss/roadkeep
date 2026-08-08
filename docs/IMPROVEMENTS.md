@@ -103,23 +103,6 @@ exactness rather than similarity: a read the author is told to make before propo
 `non-goal list`'s precedent, where the tool states what a block already delivered
 instead of guessing which entry is yours.
 
-### §RK399 Name the marker field once across the verbs
-
-`add --status 💭` and `resume <id> --marker 💭` write the same field, read from the same
-`[markers] open` list, and are spelled differently. The skill's prose calls it a marker
-throughout — "the shipped marker never reaches the roadmap", "`--marker` is where you
-say which it was", `[markers]` is the config section — so a caller who has read the
-skill reaches for `--marker` on `add` and gets an argparse usage dump with no hint that
-the field exists under another name.
-
-`status <id>` being a third spelling is fine: that one is a verb because moving a marker
-is an act. The flag is not.
-
-Take `--marker` as an alias on `add` (and `--status` on `resume`, so neither direction
-is the wrong guess), or rename one and keep the other accepted. Whichever way,
-"unrecognized arguments" is the wrong answer to a caller who named the field correctly
-and the verb's synonym for it wrongly.
-
 ### §RK400 Name the parent a ship just emptied
 
 `ship` deletes the task's own `§<id>` section and already names any section whose prose

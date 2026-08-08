@@ -238,6 +238,31 @@ class _Verb(argparse.ArgumentParser):
         self.exit(EXIT_USAGE, f"roadkeep: {twin}\n")
 
 
+def _marker_flag(
+    parser: argparse.ArgumentParser, help_text: str, *, dest: str = "status"
+) -> None:
+    """The open marker, under both names four verbs had spelled it (RK399).
+
+    `add --status` and `resume --marker` write the same field, read from the same
+    `[markers] open` list, and disagreed about what it is called — so a caller who learned
+    the name on one verb got `unrecognized arguments` from the other, which is argparse
+    saying the field does not exist rather than that this verb calls it something else.
+
+    The skill says *marker* throughout, `roadkeep.toml` says `[markers]`, and `status <id>`
+    is a verb rather than a flag because moving one is an act. So `--marker` is the name and
+    `--status` is kept accepted rather than removed: every adopting project's scripts, hooks
+    and half-remembered invocations spell it, and a rename that breaks them to win a synonym
+    is a cost paid by everyone to fix nobody's defect.
+
+    ``dest`` stays whatever each verb already handed its handler. Which of the two argparse
+    treats as canonical is decided by option order alone, so this takes the destination
+    explicitly instead: a helper that silently renamed a field on two of four verbs would be
+    the same defect, arriving through its own repair.
+    """
+    names = ("--marker", "--status") if dest == "marker" else ("--status", "--marker")
+    parser.add_argument(*names, dest=dest, help=help_text)
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="roadkeep",
@@ -316,9 +341,9 @@ def build_parser() -> argparse.ArgumentParser:
         metavar="DEP",
         help="a dep, repeatable: an id, 'Block X', a range, or work outside the backlog",
     )
-    add_parser.add_argument(
-        "--status",
-        help="the status marker (default: the first marker roadkeep.toml declares)",
+    _marker_flag(
+        add_parser,
+        "the status marker (default: the first marker roadkeep.toml declares)",
     )
     add_parser.add_argument(
         "--id",
@@ -1153,7 +1178,7 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     _counting_flags(list_parser)
-    list_parser.add_argument("--marker", help="only this status marker")
+    _marker_flag(list_parser, "only this status marker", dest="marker")
     list_parser.add_argument(
         "--ids", action="store_true", help="print ids alone, one per line"
     )
@@ -1417,8 +1442,8 @@ def build_parser() -> argparse.ArgumentParser:
         metavar="DEP",
         help="a dep the line would carry, repeatable: the group is what moves the budget",
     )
-    budget_parser.add_argument(
-        "--status", help="the marker the line would carry (default: the first declared)"
+    _marker_flag(
+        budget_parser, "the marker the line would carry (default: the first declared)"
     )
     budget_parser.add_argument(
         "--symptom",
@@ -1586,12 +1611,11 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     resume_parser.add_argument("id", help="the task coming back, e.g. RK33")
-    resume_parser.add_argument(
-        "--marker",
-        help=(
-            "the open marker it returns with; omitted, the first this project declares — "
-            "the store holds one marker, so which one it was is not a fact any file kept"
-        ),
+    _marker_flag(
+        resume_parser,
+        "the open marker it returns with; omitted, the first this project declares — "
+        "the store holds one marker, so which one it was is not a fact any file kept",
+        dest="marker",
     )
     resume_parser.add_argument("--json", action="store_true", help="every edit, as data")
     resume_parser.set_defaults(handler=_resume)

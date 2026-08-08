@@ -1437,3 +1437,55 @@ def test_a_file_and_the_why_on_the_pipe_are_not_a_clash(tmp_path, capsys, monkey
     )
     assert "Because a shell would eat the backtick." in source(config)
     assert "The rationale, from a file." in design(config)
+
+
+# -- the field's two names (RK399) -------------------------------------------
+
+
+def test_the_open_marker_answers_to_both_names_on_every_verb_that_takes_it():
+    """One declared field, spelled `--status` on two verbs and `--marker` on two others.
+
+    A caller who learned the name on one got `unrecognized arguments` from the other, which
+    is argparse saying the field does not exist rather than that this verb has a synonym for
+    it — and the skill, `[markers]` and every refusal say *marker*, so the guess that fails
+    is the informed one.
+    """
+    from roadkeep.cli import build_parser
+
+    parser = build_parser()
+    for command, dest in (
+        ("add", "status"),
+        ("budget", "status"),
+        ("list", "marker"),
+        ("resume", "marker"),
+    ):
+        flags = {
+            option
+            for action in _subparser(parser, command)._actions  # noqa: SLF001
+            for option in action.option_strings
+            if option in ("--status", "--marker")
+        }
+        assert flags == {"--status", "--marker"}, command
+        # And both write the destination that verb's handler already reads: a helper that
+        # renamed the field on two of the four would be this defect through its own repair.
+        for spelled in ("--status", "--marker"):
+            args = _parse(parser, command, spelled)
+            assert getattr(args, dest) == "💭", (command, spelled)
+
+
+def _subparser(parser, command):
+    for action in parser._subparsers._group_actions:  # noqa: SLF001
+        if command in action.choices:
+            return action.choices[command]
+    raise AssertionError(f"no subcommand {command}")
+
+
+def _parse(parser, command, spelled):
+    #: The positional each verb needs before its flags are legal.
+    required = {
+        "add": ["--block", "A", "--symptom", "s", "--why", "w."],
+        "budget": ["--block", "A"],
+        "list": [],
+        "resume": ["RK1"],
+    }[command]
+    return parser.parse_args([command, *required, spelled, "💭"])
