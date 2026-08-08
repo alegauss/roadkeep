@@ -120,30 +120,6 @@ The fix is one line in the ship's answer, alongside the citation one: *"§X now 
 subsections — its prose introduces work that shipped"*. Deciding what it should say
 instead is a `section amend`, and a judgement; noticing is not.
 
-### §RK401 A line the gate calls clean is refused by the door that corrects it
-
-Measured while shipping RK379. A project that declares `[rules.roadmap] ref = false`
-lints clean with a line carrying no pointer — that is what the rule is for — and `amend
-RK9 --why "…"` on that same line is refused `ref.missing`.
-
-The cause is one attribute. `place` validates through `document.schema.check`, which is
-the file's own grammar; every door that *rewrites* a line reaches `Config.schema`
-instead, which is the roadmap's. So `add` is right and the four corrections are wrong,
-and they are wrong exactly where a project configured a file away from the default — the
-case `[rules]` exists for.
-
-RK76 settled this argument one command over: `adopt` reads its file through
-`Config.schema_for` "like every other command, so that role's own limits and rules reach
-the estimate". The rewrite doors are the commands that were not every other command.
-
-The consequence is worse than a stray refusal. The gate says the line is legal and the
-tool says it cannot be corrected, so the only remaining edit is the hand edit the guard
-denies — a state with no exit, on a line the project deliberately configured.
-
-The repair is `Config.schema_for(role)` at the four call sites, which is the same seam
-RK379 routed them through: `sections.checked` already takes the schema as a parameter,
-for the deferred store, and the default is the wrong one.
-
 ### §RK407 The refusal that names the field but not the shell
 
 Every field this tool refuses is prose an agent composed in a shell, and one shell

@@ -29,6 +29,7 @@ from roadkeep.authoring import (
     add,
     amend,
     restate,
+    set_status,
 )
 from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
@@ -1558,3 +1559,53 @@ TYPO = """# Roadmap
 
 - 📋 **RK1** (deps: —) **The annotaton is stale** — Because of a reason. → §RK1
 """
+
+
+# -- the door reads the file's own rules (RK401) ------------------------------
+
+#: `[rules.roadmap] ref = false` is what the table exists for: this project's lines carry no
+#: pointer, the gate calls them clean, and until this the four rewrite doors judged them by
+#: the default grammar instead — so the only edit left was the one the guard denies.
+NO_POINTER = """# Roadmap
+
+## Block A — The model
+
+- 📋 **RK1** (deps: —) **A first symptom** — Because of a reason.
+"""
+
+
+def _excused(tmp_path):
+    return project(
+        tmp_path,
+        body=NO_POINTER,
+        declares=("[rules.roadmap]", "ref = false"),
+    )
+
+
+def test_the_gate_and_the_correction_agree_about_a_configured_file(tmp_path):
+    from roadkeep.linting import lint
+
+    config = _excused(tmp_path)
+    assert lint(config).clean, [str(f) for f in lint(config).findings]
+    # Each of the three doors that rewrites a line, on the line the gate just passed. Before
+    # RK401 every one of them raised `ref.missing` for a field this file has no column for.
+    amend(config, "RK1", why="Because of a better reason.")
+    restate(Config.discover(tmp_path), "RK1", "Another symptom")
+    set_status(Config.discover(tmp_path), "RK1", "🛠")
+    assert lint(Config.discover(tmp_path)).clean
+
+
+def test_the_default_project_is_judged_exactly_as_before(tmp_path):
+    # The narrowing is per file and not a relaxation: a project that configured nothing is
+    # still held to the pointer, or the repair would be a hole in the format.
+    config = project(tmp_path)
+    with pytest.raises(SchemaError):
+        amend(config, "RK1", ref="")
+
+
+def test_a_dep_is_read_under_the_files_own_grammar_too(tmp_path):
+    # The same attribute one line up: `read_deps` parsed the amended tokens against the
+    # project default, so a role whose rules move the dep field read them by another file's.
+    config = _excused(tmp_path)
+    amended = amend(config, "RK1", deps=["RK4"])
+    assert "RK4" in amended.rendered

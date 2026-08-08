@@ -604,7 +604,15 @@ def set_status(config: Config, task_id: str, marker: str) -> StatusChange:
     # all it takes for that to be somebody else's.
     claiming.refuse_taken(config, task_id, marker, roadmap.entries)
 
-    updated = sections.checked(config, replace(entry.task, status=marker))
+    # The **file's** schema and not the project's (RK401): `config.schema` is the default
+    # grammar with no `[rules.<role>]` or `[limits.<role>]` applied, so on a project that
+    # configured this file away from the default the gate called a line legal and this door
+    # refused to correct it — leaving the hand edit the guard denies as the only way out.
+    # `roadmap.schema` is what `Config.document` already resolved, which is the seam
+    # `renumber` reaches through and the one `adopt` settled this argument on (RK76).
+    updated = sections.checked(
+        config, replace(entry.task, status=marker), schema=roadmap.schema
+    )
     if updated.status == entry.task.status:
         # Nothing to write: rewriting the same bytes would make a no-op look like an
         # edit to every tool that watches the file.
@@ -702,12 +710,14 @@ def amend(
     wanted = replace(
         entry.task,
         why=entry.task.why if why is None else why,
-        deps=entry.task.deps if deps is None else read_deps(", ".join(deps), config.schema),
+        deps=entry.task.deps
+        if deps is None
+        else read_deps(", ".join(deps), roadmap.schema),
         ref=entry.task.ref if ref is None else ref,
     )
     # Derived on write like every other annotation (RK8): the author names the dep and the
     # tool states whether it shipped.
-    updated = sections.checked(config, derive(backlog, wanted))
+    updated = sections.checked(config, derive(backlog, wanted), schema=roadmap.schema)
     if updated == entry.task:
         return Amendment(document=roadmap, entry=entry, before=entry.task)
     # Asked after the no-op check, so an amend that alters nothing never demands a count for
@@ -829,7 +839,11 @@ def restate(
     if len(twins) > 1:
         raise DuplicateId(task_id, config.relative(config.path("roadmap")), twins)
 
-    updated = sections.checked(config, derive(backlog, replace(entry.task, symptom=symptom)))
+    updated = sections.checked(
+        config,
+        derive(backlog, replace(entry.task, symptom=symptom)),
+        schema=roadmap.schema,
+    )
     if updated == entry.task:
         return Restatement(document=roadmap, entry=entry, before=entry.task, typo=typo)
     # The same count as the door next to this one (RK195): a restatement rewrites the line's
