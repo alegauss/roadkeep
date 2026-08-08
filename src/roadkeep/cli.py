@@ -51,7 +51,7 @@ from roadkeep.adopting import Estimate, adopt, init
 from roadkeep.attesting import attest
 from roadkeep.authoring import StatusChange, add, amend, restate, set_status
 from roadkeep.backlog import Backlog
-from roadkeep.blocking import drop_block, open_block
+from roadkeep.blocking import drop_block, merge_block, open_block
 from roadkeep.briefing import Brief, brief, non_goals
 from roadkeep.budgeting import (
     Body,
@@ -572,6 +572,28 @@ def build_parser() -> argparse.ArgumentParser:
     )
     block_drop.add_argument("--json", action="store_true", help=_JSON_HELP)
     block_drop.set_defaults(handler=_block_drop)
+
+    block_merge = block_actions.add_parser(
+        "merge",
+        help="fold a label's duplicate headings into the first, moving the entries",
+        description=(
+            "The key RK391 named. Two headings under one label is a state the gate reports "
+            "and every write refuses with `merge the two regions by hand` — which the guard "
+            "denies. This is that merge, done by the tool: the first heading stays, every "
+            "later one's entries move under it, and the emptied duplicates go. The ledger is "
+            "included, not skipped, because history stays under a heading of the same label. "
+            "All of the files, or none of them. A nested section is `section move`'s to place "
+            "and refused here; loose prose is dropped only under --prose."
+        ),
+    )
+    block_merge.add_argument("label", help="the block label, e.g. B")
+    block_merge.add_argument(
+        "--prose",
+        action="store_true",
+        help="drop a duplicate heading's loose prose as it is folded — never an entry",
+    )
+    block_merge.add_argument("--json", action="store_true", help=_JSON_HELP)
+    block_merge.set_defaults(handler=_block_merge)
 
     status_parser = subcommands.add_parser(
         "status",
@@ -2392,6 +2414,53 @@ def _block_drop(config: Config, args: argparse.Namespace) -> int:
             print(f"  note     {closed.notes[role]} line(s) of prose taken with the heading")
     for where, reason in closed.skipped:
         print(f"  kept     {where}: {reason}")
+    return EXIT_OK
+
+
+def _block_merge(config: Config, args: argparse.Namespace) -> int:
+    try:
+        merged = merge_block(config, args.label, prose=args.prose)
+        merged.save()
+    except REFUSALS as error:
+        return _refused(error)
+
+    files = {role: config.relative(config.path(role)) for role in merged.documents}
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "label": merged.label,
+                    "merged": [
+                        {
+                            "role": role,
+                            "file": files[role],
+                            # Where the surviving heading is, the ids that moved under it,
+                            # and the headings folded — verbatim, since the file no longer
+                            # holds them and this answer is their only record.
+                            "kept": merged.kept[role],
+                            "moved": list(merged.moved[role]),
+                            "folded": list(merged.folded[role]),
+                            # Null where a folded heading stood over entries alone (RK237).
+                            "note": merged.notes.get(role),
+                        }
+                        for role in merged.documents
+                    ],
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+
+    print(f"{config.schema.block_named(merged.label)} consolidated")
+    width = max((len(files[role]) for role in merged.documents), default=0)
+    for role in merged.documents:
+        moved = ", ".join(merged.moved[role]) or "nothing"
+        print(
+            f"  {files[role]:<{width}}:{merged.kept[role]}  "
+            f"folded {len(merged.folded[role])}, moved {moved}"
+        )
+        if role in merged.notes:
+            print(f"  note     {merged.notes[role]} line(s) of prose dropped with a heading")
     return EXIT_OK
 
 

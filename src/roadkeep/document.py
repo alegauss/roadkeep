@@ -260,8 +260,9 @@ class RepeatedHeading(ValueError):
     Refused rather than defaulted to the first, which is the same act one line earlier: both
     headings are somebody's, the entries under each are already filed, and a tool that picks
     one files the next line where half the readers are not looking. The **line numbers of
-    both** are the whole message, because the fix is an editorial merge of two regions and
-    nothing but the addresses helps with it.
+    both** are named, because the fold keeps the first heading and a reader has to see which
+    that is — and the remedy is `block merge` (RK403), which does exactly that fold: it is
+    the tool's own merge of the two regions, not the hand-edit the guard denies.
 
     `block.repeated` is the other end, and this is not it: the gate reports the state and
     this stops a write from adding to it.
@@ -278,7 +279,7 @@ class RepeatedHeading(ValueError):
         super().__init__(
             f"{len(self.linenos)} headings declare {word} {label} ({lines}): one label is "
             f"one heading, and a write that chose between them would file this line where "
-            f"half the readers are not looking — merge the two regions by hand first"
+            f"half the readers are not looking — `block merge {label}` folds them into the first"
         )
 
 
