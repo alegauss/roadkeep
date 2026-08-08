@@ -60,6 +60,17 @@ def text() -> str:
     return SKILL.read_text(encoding="utf-8")
 
 
+def flowed() -> str:
+    """The same text with every wrap taken out (RK366).
+
+    Every assertion here about *what the skill says* reads this instead of the raw file:
+    where a paragraph's line breaks fall is not a fact about its content, and a phrase that
+    straddles two lines turned a content assertion into a failure about formatting. The
+    assertions about **shape** — the frontmatter, the width — still read the file.
+    """
+    return " ".join(text().split())
+
+
 def frontmatter() -> dict[str, str]:
     """The two flat keys a skill declares, read the way a loader reads them (RK331)."""
     return conftest.frontmatter(SKILL)
@@ -143,7 +154,7 @@ def test_every_command_the_skill_names_is_one_the_cli_accepts():
 def test_the_skill_keeps_the_two_rules_a_schema_cannot_check():
     # They are the reason the skill is prose at all: a `maxLength` cannot see that a symptom
     # was named after its fix, so this is the only place either rule can be stated.
-    body = text()
+    body = flowed()
     assert "states what does not work" in body
     assert "one sentence" in body
 
@@ -165,3 +176,38 @@ def test_the_free_address_is_taught_as_the_command_computes_it(capsys):
         # The claim itself, not a paraphrase: it is true of a project declaring no `[refs]`
         # and false of one that does, so it may not be stated unconditionally.
         assert "one outline spans both" not in body, where
+
+
+def test_the_body_is_wrapped_and_nothing_but_a_re_wrap_holds_it(): 
+    """RK366, and the third of the three answers its own section lists.
+
+    Measured as it shipped: 299 body lines, 24 past 110 characters, the widest 283, and six
+    orphans under 30 mid-paragraph — all from one pattern, text appended to a line instead of
+    the paragraph re-wrapped. Nothing renders differently and nothing costs more tokens, so
+    the cost is **review**: a diff of a 283-character line is a whole-paragraph diff, in the
+    file every adopting project loads.
+
+    The other two answers were argued against in the section itself. A width in
+    `roadkeep.toml` with a `lint` finding puts this tool a step from a Markdown formatter it
+    has no reason to be; a `--fix` repair rewrites somebody's line, which is exactly what RK16
+    confines to the derived. So nothing is held *there* — it is held here, where a test about
+    this file already belongs, and where it costs no adopting project anything.
+
+    The frontmatter is exempt and has to be: `description` is one YAML scalar a loader reads,
+    and wrapping it changes what the harness matches on.
+    """
+    lines = text().split("\n")
+    body, fence = [], False
+    for at, line in enumerate(lines, start=1):
+        if line.lstrip().startswith("```"):
+            fence = not fence
+        elif not fence and at > _frontmatter_ends(lines) and line.strip():
+            body.append((at, line))
+    over = [(at, len(line)) for at, line in body if len(line) > 110]
+    assert not over, f"{len(over)} body line(s) past 110 characters: {over}"
+
+
+def _frontmatter_ends(lines: list[str]) -> int:
+    if not lines or lines[0] != "---":
+        return 0
+    return next(at for at, line in enumerate(lines[1:], start=2) if line == "---")

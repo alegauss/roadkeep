@@ -175,26 +175,3 @@ The repair is a skip with a reason, spelled as its two siblings are, conditioned
 tree providing the plugin rather than on this repository's name.
 
 ## Block F — The plugin
-
-### §RK366 A shipped text whose wrap nothing holds
-
-Measured on the file as it ships: 299 non-blank body lines, 223 of them (74%) between 85
-and 96 characters, 24 over 110, the widest 283 — and six orphans under 30 mid-paragraph
-(`not on PATH.`, `refusals, with`, `silence). On a`). One pattern produced all of it:
-text appended to a line rather than the paragraph re-wrapped, which leaves the insert's
-tail short and the line it landed on long.
-
-Nothing renders differently and nothing costs more tokens, so the cost is **review**: a
-diff of a 283-character line is a whole-paragraph diff, in the file every adopting
-project loads on the turns that touch a governed file. A change somebody skimmed here is
-a rule every agent reads.
-
-The decision is which of three, and the third is legitimate. A width in `roadkeep.toml`
-with a `lint` finding makes it configuration rather than convention (L6), and puts this
-tool a step from a Markdown formatter it has no reason to be. A `--fix` repair is worse:
-re-wrapping a paragraph is rewriting somebody's line, and only the *derived* is repaired
-(RK16). Or nothing is held, the file is re-wrapped once by hand, and the cost stays with
-the reader who has the diff.
-
-What would decide it is whether an edit here was ever actually mis-reviewed, which `git
-log -p` on this file can answer and this section cannot.

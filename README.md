@@ -121,12 +121,12 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 61 | 1 |
 | D — The gate | 1 | 86 | 0 |
 | E — Adoption | 1 | 72 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 68 | 1 |
-| **Total** | 5 | 414 | 6 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 69 | 1 |
+| **Total** | 4 | 415 | 6 |
 
 **Next ready:**
 
-- 💭 **RK366** (deps: —) **The skill every adopting project loads has 24 body lines past 110 characters against a file otherwise wrapped at 90** — One pattern made them all — text appended to a line instead of the paragraph re-wrapped — so an edit arrives as a whole-paragraph diff and nothing holds the shape. → §RK366
+- 💭 **RK385** (deps: —) **Nothing notices that a new line asks for what a shipped entry already delivered** — RK378 was filed the day after RK340 shipped the same namespace and nothing refused it, so a duplicate costs a claim, a brief and a retirement before anyone reads the ledger. → §RK385
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -531,14 +531,20 @@ def _statement(text: str, phrase: str) -> str:
     one that names a pointer, so a window taking the whole list would pass on a copy that
     named five of six. The bullet the phrase is in, and nothing after it.
     """
-    lines = text.splitlines()
-    start = next(i for i, line in enumerate(lines) if phrase in line)
-    stop = start + 1
-    while stop < len(lines) and lines[stop].strip():
-        if re.match(r"\s*([-*]\s|\d+\.\s|#)", lines[stop]):
-            break
-        stop += 1
-    return " ".join(lines[start:stop])
+    blocks: list[list[str]] = []
+    for line in text.splitlines():
+        starts = not line.strip() or re.match(r"\s*([-*]\s|\d+\.\s|#)", line)
+        if starts or not blocks:
+            blocks.append([])
+        blocks[-1].append(line)
+    # Searched **flowed**, never line by line (RK366): where a paragraph's wrap falls is not
+    # a fact about what it says, and a phrase that straddles two lines used to make this find
+    # nothing and raise — a re-wrap turning a content assertion into a `StopIteration`.
+    for block in blocks:
+        flowed = " ".join(line.strip() for line in block if line.strip())
+        if phrase in flowed:
+            return flowed
+    raise AssertionError(f"no paragraph states {phrase!r}")
 
 
 def _unnamed(statement: str) -> list[str]:
