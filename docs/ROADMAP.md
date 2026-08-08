@@ -31,8 +31,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK435** (deps: —) **The door offered for a queued block that has no lines yet says the block was never declared** — That note fires only where a heading does declare the label, so the reason printed under it argues from the premise the finding it belongs to refutes. → §RK435
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

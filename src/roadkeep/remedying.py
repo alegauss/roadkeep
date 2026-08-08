@@ -27,9 +27,12 @@ because four is what a caller actually does next:
 * ``compose`` — one command, one field that is **prose only the author can write**. L4 is
   not a gap in the table, it is the table being honest: nothing here composes a title, a
   reason or a shorter sentence, so the blank is marked and left.
-* ``decide`` — more than one door, and which one is right is editorial. Both are rendered
-  complete, and :attr:`Remedy.decision` states what distinguishes them, so the choice is
-  made from the report instead of by running one and reading its refusal.
+* ``decide`` — more than one door, and which one is right is editorial. Both are rendered,
+  and :attr:`Remedy.decision` states what distinguishes them, so the choice is made from the
+  report instead of by running one and reading its refusal. `repair` executes none of them,
+  which is what lets one carry L4's blank where the choice is between an editorial write and
+  a write only the author can compose — `deps.unknown` and `priority.block-unstarted`
+  (RK435). "Both are rendered complete" is what this said, and two rows already refuted it.
 
 **The table is keyed by code and nothing else.** A remedy computed at the emission site
 would be 70 remedies to keep in step with 70 messages, and the one that fell behind would
@@ -56,6 +59,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 
 from .config import ROLES, Config
+from .schema import Dep
 
 #: The five kinds, in the order a caller pays for them: nothing, one write, one read then a
 #: judgement, one sentence, one choice. `repair` runs the first two and prints the rest.
@@ -199,8 +203,10 @@ def _decide(decision: str, *doors: tuple[tuple[str, ...], str]) -> _Rule:
 #:
 #: `{id}` is the finding's subject: a task id on most codes, and on the rest whatever the
 #: emission site put in that slot — a block label, a section anchor, a queue token. `{line}`
-#: is the line it was read at, `{first}` the earlier of two positions where the message
-#: carries one, and `{role}` the file's role.
+#: is the line it was read at, and `{label}` is the block **inside** a queue token, for the
+#: one door that takes `--block` rather than the token itself (RK435). Those three and no
+#: others: `{first}` and `{role}` were named here for years and substituted nowhere, so a
+#: door using either would have rendered its own braces — which the suite now refuses.
 _TABLE: Mapping[str, _Rule] = {
     # ------------------------------------------------------------------ the character pass
     # RK126's repair: not a re-render, and the one that reaches a line no parse touches.
@@ -335,9 +341,37 @@ _TABLE: Mapping[str, _Rule] = {
             "the order should not name a block whose lines are all paused",
         ),
     ),
-    "priority.block-unstarted": _run(
-        ("priority", "drop", "{id}"),
-        "the block was never declared, so the token addresses nothing",
+    # This read *the block was never declared, so the token addresses nothing* —
+    # `priority.block`'s condition, printed under the one code that fires only where a
+    # heading **does** declare the label (RK435). Three codes share one shape and their
+    # remedies were written together; the one that drifted was invisible, because a note
+    # still prints and the exit is still 0. A reason contradicting the line above it is
+    # worse than none: it is the half a reader trusts.
+    #
+    # The kind moves with the sentence. A heading before its lines is the order `block add`
+    # prescribes — which is why `_dead_block` makes this a note and not a finding — so the
+    # entry is *early* rather than dead, and `priority drop` is the one move that guarantees
+    # the tier never fires. It is lossy in the bargain: the queue keeps no place to put a
+    # token back into, which is the fact `priority.deferred` is a `decide` for. So the drop
+    # stays as one of two answers and never as the only one, and the other door is the
+    # continuation the prescribed order already started.
+    #
+    # A `read` was the third candidate and is the one this task may not take: `list --block
+    # <label>` does answer here (exit 0, `Block B is empty: …`), but it answers in
+    # `Stage`'s words — so the door would print a second classification of the same block
+    # beside the gate's, which is the reader RK434 has just finished removing.
+    "priority.block-unstarted": _decide(
+        "the heading declares the label and no file files a line under it, which is the "
+        "order `block add` prescribes — so this entry is early rather than dead, and which "
+        "of the two it is only the author knows:",
+        (
+            ("add", "--block", "{label}", "--symptom", BLANK, "--why", BLANK),
+            "the work is still coming: the tier fires on the first line filed under it",
+        ),
+        (
+            ("priority", "drop", "{id}"),
+            "the plan moved: the entry goes, and the place it held in the order with it",
+        ),
     ),
     # ------------------------------------------------------------------------ the headings
     "block.repeated": _run(
@@ -775,8 +809,9 @@ def remedy(finding: object, config: Config | None = None) -> Remedy | None:
         rule = _varied(code, rule, finding, config)
     subject = getattr(finding, "subject", "") or getattr(finding, "id", "")
     lineno = getattr(finding, "lineno", None)
+    label = _label(subject, config)
     doors = tuple(
-        Door(_substitute(argv, subject, lineno), what) for argv, what in rule.doors
+        Door(_substitute(argv, subject, lineno, label), what) for argv, what in rule.doors
     )
     return Remedy(code, rule.kind, doors, rule.decision)
 
@@ -825,14 +860,44 @@ def _role_of(finding: object, config: Config) -> str:
     return ""
 
 
-def _substitute(argv: Sequence[str], subject: str, lineno: int | None) -> tuple[str, ...]:
+def _label(subject: str, config: Config | None) -> str:
+    """The block label inside a queue token, for the door that takes one (RK435).
+
+    Two spellings of one thing, and mixing them is not cosmetic: the queue holds `Block D`
+    and `priority drop` takes exactly that, while `--block` takes `D` and answers `Block D`
+    by looking for a heading named `Block Block D` — exit 2, on the remedy RK420 added so a
+    caller would not have to compose one.
+
+    Asked of :meth:`~roadkeep.schema.Schema.block_of_dep`, which is where a token's label is
+    read everywhere else, including at the emission site this row answers. A second reader
+    of that spelling would be the drift this package exists to stop, and it would be the one
+    that has to remember `heading_word` is per project (L6).
+
+    Empty where there is nothing to ask — a token naming no block, or a `remedy` called with
+    no config, which `explain` is — and the blank then renders for :func:`_substitute`'s own
+    reason: the field is unknown to *this call* rather than withheld from the author, and
+    `add --block …` says which word is missing where `add --block None` does not.
+    """
+    return "" if config is None else (config.schema.block_of_dep(Dep(subject)) or "")
+
+
+def _substitute(
+    argv: Sequence[str], subject: str, lineno: int | None, label: str = ""
+) -> tuple[str, ...]:
     """Fill a template. A field with no value keeps its blank rather than rendering `None`.
 
     That fallback is the module's own rule applied to itself: an argv reading
     ``--line None`` is worse than one reading ``--line …``, because the first looks
     runnable and the second says which word is missing.
+
+    Three fields and no more, which the suite holds: a door naming a fourth renders its own
+    braces, and `add --block {label}` is a command line no shell repairs (RK435).
     """
-    values = {"id": subject, "line": "" if lineno is None else str(lineno)}
+    values = {
+        "id": subject,
+        "line": "" if lineno is None else str(lineno),
+        "label": label,
+    }
     out: list[str] = []
     for word in argv:
         for name, value in values.items():

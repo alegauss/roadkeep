@@ -119,14 +119,14 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 30 | 2 |
 | B — Authoring (insert, never hand-edit) | 2 | 100 | 1 |
 | C — Query (consult without reading the file) | 0 | 64 | 1 |
-| D — The gate | 1 | 89 | 0 |
+| D — The gate | 0 | 90 | 0 |
 | E — Adoption | 0 | 73 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 69 | 1 |
-| **Total** | 4 | 425 | 6 |
+| **Total** | 3 | 426 | 6 |
 
 **Next ready:**
 
-- 📋 **RK435** (deps: —) **The door offered for a queued block that has no lines yet says the block was never declared** — That note fires only where a heading does declare the label, so the reason printed under it argues from the premise the finding it belongs to refutes. → §RK435
+- 📋 **RK436** (deps: —) **The MCP schema publishes a limit that counts code points while the write refuses in UTF-16 units** — A client validating a field against the published maxLength accepts a string this tool then refuses, which is the disagreement RK430 removed everywhere the tool controls both ends. → §RK436
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

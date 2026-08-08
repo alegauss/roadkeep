@@ -26,6 +26,7 @@ from pathlib import Path
 import pytest
 
 from roadkeep import remedying
+from roadkeep.backlog import Backlog
 from roadkeep.cli import build_parser
 from roadkeep.config import Config
 from roadkeep.linting import Finding, Note, lint
@@ -244,6 +245,61 @@ def test_a_paused_block_is_read_by_id_and_dropped_by_token():
     ]
 
 
+def test_the_door_for_a_heading_before_its_lines_names_a_block_the_file_declares(tmp_path):
+    """The remedy read *the block was never declared* under the one code that fires only
+    where a heading does (RK435). Asserted structurally rather than as a substring: the
+    label the door names is one `declared_blocks` carries, which is the same oracle the
+    finding was raised from.
+    """
+    config = _project(tmp_path, roadmap=_UNSTARTED)
+    (note,) = [
+        n for n in lint(config).notes if n.code == "priority.block-unstarted"
+    ]
+    found = remedy(note, config)
+    assert found is not None and found.kind == "decide"
+    assert found.doors[0].argv[:3] == ("add", "--block", "B")
+    assert "B" in Backlog.load(config).declared_blocks()
+    # The two spellings, one line apart: `priority drop` takes the token and `--block` takes
+    # the label inside it, and a door mixing them exits 2 on the remedy RK420 added.
+    assert found.doors[1].argv == ("priority", "drop", "Block B")
+
+
+def test_an_early_heading_is_never_closed_by_dropping_it_unasked():
+    # `priority drop` is the one move that guarantees the tier never fires, and the queue
+    # keeps no place to put a token back into — the fact `priority.deferred` is a `decide`
+    # for. So it is offered second and never alone, and no automated pass can take it.
+    found = remedy(Finding("priority.block-unstarted", "ROADMAP.md", "", 5, subject="Block B"))
+    assert found is not None and not found.runnable
+    assert [door.argv[0] for door in found.doors] == ["add", "priority"]
+
+
+def test_the_explanation_of_an_early_heading_states_its_own_condition():
+    # `explain` prints the cause, so the contradicted sentence was the code's published
+    # definition and not only a line in a report.
+    found = explain("priority.block-unstarted")
+    assert found is not None and found.kind == "decide"
+    assert "never declared" not in str(found)
+
+
+def test_every_template_field_a_door_names_is_one_the_substitution_fills():
+    """`{first}` and `{role}` were documented beside the table and substituted nowhere.
+
+    A fourth unfilled field would arrive exactly that way, and a door rendering its own
+    braces is a command line no shell repairs (RK435). Read off the source rather than the
+    table, because two rules are minted inside `_varied` and never appear in `_TABLE`.
+    """
+    import ast
+
+    source = (SOURCE / "remedying.py").read_text(encoding="utf-8")
+    named = {
+        field
+        for node in ast.walk(ast.parse(source))
+        if isinstance(node, ast.Constant) and isinstance(node.value, str)
+        for field in re.findall(r"\{(\w+)\}", node.value)
+    }
+    assert named <= {"id", "line", "label"}, sorted(named)
+
+
 def test_a_note_gets_a_remedy_on_the_same_lookup():
     found = remedy(Note("block.emptied", "ROADMAP.md", "", 3, "D"))
     assert found is not None and found.kind == "read"
@@ -277,23 +333,28 @@ def test_a_prose_field_is_never_composed_for_the_author():
         ), code
 
 
-#: The one row that asks for two fields, and why that is not the defect this test hunts:
-#: a label the heading word cannot render has no line to read the replacement off, so both
-#: the new label and its title are the author's. Every other `compose` leaves exactly one.
-_TWO_BLANKS = frozenset({"block.format"})
+#: The two rows that ask for two fields, and why neither is the defect this test hunts: a
+#: label the heading word cannot render has no line to read the replacement off, so both the
+#: new label and its title are the author's; and a heading declared before its lines is
+#: closed by filing one, which `add` cannot take with a single blank — `--symptom` and
+#: `--why` are both required and both are L4's (RK435). Every other door leaves exactly one.
+_TWO_BLANKS = frozenset({"block.format", "priority.block-unstarted"})
 
 
-def test_every_compose_door_leaves_exactly_one_field_to_the_author():
+def test_every_door_leaves_exactly_one_field_to_the_author():
     # A door with several blanks is a door the caller composes from scratch, which is the
-    # state this task replaced — so the bound is one, and the exception is named.
+    # state this task replaced — so the bound is one, and the exceptions are named. Every
+    # kind that can carry a blank, not `compose` alone: a `decide` door carries one wherever
+    # the choice is between an editorial write and one only the author can compose, so a
+    # bound checked on `compose` only is a bound a row escapes by changing kind.
     for code in codes():
         found = remedy(Finding(code, "ROADMAP.md", "", 1, "RK1"))
         assert found is not None
-        if found.kind != "compose" or code in _TWO_BLANKS:
+        if found.kind not in ("compose", "decide") or code in _TWO_BLANKS:
             continue
-        door = found.doors[0]
-        blanks = sum(1 for word in door.argv if BLANK in word or word == "-")
-        assert blanks <= 1, f"{code}: {door.argv} asks for {blanks} fields at once"
+        for door in found.doors:
+            blanks = sum(1 for word in door.argv if BLANK in word or word == "-")
+            assert blanks <= 1, f"{code}: {door.argv} asks for {blanks} fields at once"
 
 
 def test_the_mechanical_class_is_lint_fix_and_says_so():
@@ -401,6 +462,22 @@ _INVISIBLE = """# Roadmap
 
 - 📋 **RK1** (deps: —) **A first​symptom** — Because of a reason. → §RK1
 - 📋 **RK2** (deps: —) **A second​symptom** — Because of a reason. → §RK2
+"""
+
+#: A heading `block add` wrote and no line filed under it yet, queued: the one state
+#: `priority.block-unstarted` is about (RK435). It pairs with `_LEDGER`, which files entries
+#: under Block A alone — that is what keeps this `unstarted` rather than `block-empty`.
+_UNSTARTED = """# Roadmap
+
+## Priority
+
+- Block B
+
+## Block A — The model
+
+- 📋 **RK1** (deps: —) **A first symptom** — Because of a reason. → §RK1
+
+## Block B — Declared and not yet filled
 """
 
 _LEDGER = """# Shipped

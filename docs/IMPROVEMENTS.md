@@ -115,23 +115,6 @@ ask for it.
 
 ## Block D — The gate
 
-### §RK435 A remedy that states the other code's condition
-
-Three codes share one shape and their remedies were written together. `priority.block`
-is the label nothing declares; `priority.block-empty` is the one whose every line has
-shipped; `priority.block-unstarted` is the heading written before its lines — the note
-says so itself, `queues Block X, which no line is filed under yet`.
-
-Its remedy reads: *the block was never declared, so the token addresses nothing*. That
-is `priority.block`'s condition, and the finding it is printed under has already
-established the opposite. RK420 made every finding name the command that closes it
-precisely so a reader would not have to work one out; a reason that contradicts the line
-above it is worse than none, because it is the half a reader trusts.
-
-Whether `priority drop` is even the right door here is the second question: a block
-whose lines are coming is a queue entry that will start firing, and dropping it is the
-one move that guarantees it never does.
-
 ## Block E — Adoption
 
 ## Block F — The plugin
