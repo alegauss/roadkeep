@@ -18,7 +18,15 @@ from pathlib import Path
 import pytest
 
 import corpora
-from roadkeep.backlog import Backlog, DepStatus, Readiness, Stage, id_order, number_of
+from roadkeep.backlog import (
+    _SATISFIES,
+    Backlog,
+    DepStatus,
+    Readiness,
+    Stage,
+    id_order,
+    number_of,
+)
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.document import Document
@@ -27,13 +35,19 @@ from roadkeep.schema import DESIGNED, SHIPPED, Dep, DepKind, Schema
 HERE = Path(__file__).resolve().parents[1]
 
 
-def write_project(tmp_path: Path, roadmap: str, changelog: str = "") -> Config:
+def write_project(
+    tmp_path: Path, roadmap: str, changelog: str = "", deferred: str | None = None
+) -> Config:
+    store = 'deferred = "DEFERRED.md"\n' if deferred is not None else ""
     (tmp_path / "roadkeep.toml").write_text(
-        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n',
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
+        + store,
         encoding="utf-8",
     )
     (tmp_path / "ROADMAP.md").write_text(roadmap, encoding="utf-8")
     (tmp_path / "CHANGELOG.md").write_text(changelog, encoding="utf-8")
+    if deferred is not None:
+        (tmp_path / "DEFERRED.md").write_text(deferred, encoding="utf-8")
     return Config.discover(tmp_path)
 
 
@@ -46,6 +60,10 @@ def line(task_id: str, deps: str, block: str = "A") -> str:
 
 def shipped(task_id: str) -> str:
     return f"- {SHIPPED} **{task_id}** **A symptom** — a reason.\n"
+
+
+def paused(task_id: str) -> str:
+    return f"- ⏸ **{task_id}** (deps: —) **A symptom** — set aside: waiting. → §{task_id}\n"
 
 
 # -- classification ----------------------------------------------------------
@@ -189,13 +207,88 @@ def test_a_collective_dep_expands_to_the_open_tasks_it_names(tmp_path):
     assert backlog.expand(Dep("real design partners")) == ()
 
 
-def test_a_declared_block_with_nothing_open_satisfies_the_dep(tmp_path):
+def test_a_heading_written_before_its_first_line_does_not_satisfy_the_dep(tmp_path):
+    """The checkmark beside a blocker nobody had filed (RK432).
+
+    A heading proves the label was declared and nothing more — `block add` writes one into
+    every organised file at declaration time — so "declared and nothing open" was two
+    states, and reading the second as completion offered RK9 as ready against work that
+    does not exist. What lifts it is a first `add` under the label, which is why the
+    dependent is `blocked-outside` and not `blocked`.
+    """
     config = write_project(
         tmp_path, "## Block A — The model\n" + line("RK9", "Block B") + "## Block B — Authoring\n"
     )
     backlog = Backlog.load(config)
     (resolution,) = backlog.resolve(backlog.entry("RK9").task)
-    assert resolution.status is DepStatus.SHIPPED
+    assert resolution.status is DepStatus.UNRESOLVABLE
+    assert not resolution.satisfied
+    assert "is empty" in resolution.detail
+    assert backlog.readiness(backlog.entry("RK9").task) is Readiness.OUTSIDE
+
+
+def test_the_answer_a_block_dep_gets_is_the_stage_the_block_is_in(tmp_path):
+    """One waiter per stage, and the mapping is the whole of what a block dep resolves to.
+
+    The resolver had grown its own copy of the walk :class:`Standing` makes, two settled
+    answers short (RK432). `empty` and `unknown` share a status because the question a
+    status settles is whether waiting is over, and under neither label is there work to
+    wait for; which of the two it is stays on the line, the detail being the standing's own
+    sentence. A sixth status would hand `pick` a new word for a decision it already makes.
+    """
+    config = write_project(
+        tmp_path,
+        "## Block A — The model\n"
+        + line("RK1", "Block A")
+        + line("RK2", "Block B")
+        + line("RK3", "Block C")
+        + line("RK4", "Block D")
+        + line("RK5", "Block Z")
+        + "## Block C — Query\n## Block D — The gate\n",
+        "## Block B — Authoring\n" + shipped("RK8") + "## Block C — Query\n",
+        "## Block C — Query\n" + paused("RK7"),
+    )
+    backlog = Backlog.load(config)
+    resolved = {
+        task_id: backlog.resolve(backlog.entry(task_id).task)[0]
+        for task_id in ("RK1", "RK2", "RK3", "RK4", "RK5")
+    }
+    assert {task_id: r.status for task_id, r in resolved.items()} == {
+        "RK1": DepStatus.OPEN,  # live — the five waiters are themselves under Block A
+        "RK2": DepStatus.SHIPPED,  # finished — the ledger files one under it
+        "RK3": DepStatus.DEFERRED,  # paused — the store holds one and nothing is open
+        "RK4": DepStatus.UNRESOLVABLE,  # empty — a heading and no line anywhere
+        "RK5": DepStatus.UNRESOLVABLE,  # unknown — no heading declares it at all
+    }
+    # The detail is the standing's sentence and not a second spelling of it, which is what
+    # keeps `deps`, `brief` and `list` answering one block in one set of words (RK429).
+    assert resolved["RK4"].detail == backlog.standing("D").sentence
+    assert backlog.readiness(backlog.entry("RK3").task) is Readiness.PAUSED
+
+
+def test_a_block_the_ledger_finished_and_the_store_still_holds_is_paused(tmp_path):
+    # Paused outranks recorded in `Standing.of`, and the resolver inherits that ranking
+    # rather than restating it (RK432): a block that shipped two lines and set a third
+    # aside is not done, and the dependent is `blocked-paused` — a decision away, not a
+    # ship away.
+    config = write_project(
+        tmp_path,
+        "## Block A — The model\n" + line("RK9", "Block B") + "## Block B — Authoring\n",
+        "## Block B — Authoring\n" + shipped("RK1") + shipped("RK2"),
+        "## Block B — Authoring\n" + paused("RK3"),
+    )
+    backlog = Backlog.load(config)
+    (resolution,) = backlog.resolve(backlog.entry("RK9").task)
+    assert resolution.status is DepStatus.DEFERRED
+    assert "1 set aside" in resolution.detail
+    assert backlog.readiness(backlog.entry("RK9").task) is Readiness.PAUSED
+
+
+def test_every_settled_stage_has_an_answer(tmp_path):
+    # A stage nobody mapped must fail a test rather than raise a `KeyError` out of a
+    # resolver every query calls, which is the only thing that makes "a table a reader can
+    # check for totality" true of a machine too.
+    assert set(_SATISFIES) | {Stage.LIVE} == set(Stage)
 
 
 def test_a_block_declared_only_by_the_ledger_still_resolves(tmp_path):
@@ -405,7 +498,10 @@ def test_a_block_no_heading_declares_is_unresolvable_not_satisfied(tmp_path):
     assert resolution.kind is DepKind.BLOCK
     assert resolution.status is DepStatus.UNRESOLVABLE
     assert not resolution.satisfied
-    assert "nothing declares" in resolution.detail
+    # The standing's one spelling (RK429, RK432). The old trailing clause — "a block
+    # nothing declares is not a block with nothing open" — argued for a rule that no
+    # longer exists: a block with nothing open is not satisfied either.
+    assert resolution.detail == "no heading declares Block Z"
 
 
 def test_an_undeclared_block_never_reads_as_ready(tmp_path):
@@ -502,21 +598,22 @@ def test_the_command_reports_each_dep_and_the_verdict(tmp_path, capsys):
 
 
 def test_json_carries_the_kind_and_the_status(tmp_path, capsys):
+    # Against a *finished* Block B — the ledger files an entry under it — because that is
+    # now what makes a block dep satisfied (RK432), and this test is about the payload
+    # carrying the kind beside the status rather than about which state that is.
     write_project(
         tmp_path,
         "## Block A — The model\n" + line("RK9", "Block B") + "## Block B — Authoring\n",
+        "## Block B — Authoring\n" + shipped("RK5"),
     )
     assert main(["-C", str(tmp_path), "deps", "RK9", "--json"]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
-    assert payload["readiness"] == "ready"  # Block B is declared and has nothing open
-    assert payload["deps"] == [
-        {
-            "dep": "Block B",
-            "kind": "block",
-            "status": "shipped",
-            "detail": "Block B has nothing open",
-        }
-    ]
+    assert payload["readiness"] == "ready"
+    (dep,) = payload["deps"]
+    assert (dep["dep"], dep["kind"], dep["status"]) == ("Block B", "block", "shipped")
+    # The sentence itself is spelled verbatim in one test (RK429); every other reads its
+    # lead, so a reword is one edit.
+    assert dep["detail"].startswith("Block B is finished")
 
 
 def test_asking_about_a_shipped_task_says_where_it_went(tmp_path, capsys):

@@ -19,10 +19,13 @@ and Turing has `(deps: real design partners)`: real work does wait on a whole bl
 and on things that are not tracked work at all. So:
 
 * a **task** dep resolves against the roadmap and the ledger;
-* a **block** dep resolves against that block's own emptiness — a block with open
-  tasks is not done, and a block with none left is — but only once a heading
-  declares the block, because blocks are discovered and never registered, so a
-  block nothing declares is empty for a reason that is not completion (RK37);
+* a **block** dep resolves against that block's :class:`Stage` and against nothing else
+  (RK432). "Nothing open" was two states and only one of them means waiting is over: a
+  heading `block add` wrote before its first line resolved as done, so a task waiting on
+  work nobody had filed was offered as ready. What makes a block finished is the ledger
+  filing something under the label, never the heading — which every organised file gets at
+  declaration time. `empty` and `unknown` are one answer about the *dep* and two facts
+  about the *label*, and :attr:`Standing.sentence` is what says which;
 * an **external** dep is :attr:`DepStatus.UNRESOLVABLE` forever, and a task carrying
   one is never *ready*, it is blocked outside the backlog. Naming that is the
   difference between an answer and a guess.
@@ -264,7 +267,12 @@ class DepStatus(StrEnum):
     #: An id of this project that exists in neither file. A lint error (RK8), not a
     #: rendering choice: nothing downstream can tell whether it is done.
     UNKNOWN = "unknown"
-    #: Outside the backlog by construction. Never becomes shipped by waiting.
+    #: Nothing the roadmap now holds open will satisfy it (RK432). Three things are that:
+    #: an external dep, by construction; a retired task, by decision; and a label with
+    #: nothing filed under it, because there is no line to ship. Widened from "outside the
+    #: backlog" when the third joined — a heading with no lines is declared *inside* the
+    #: backlog, and what lifts the dependent is a first `add` under the label rather than
+    #: a `ship` of anything now open.
     UNRESOLVABLE = "unresolvable"
 
 
@@ -273,8 +281,10 @@ class Readiness(StrEnum):
 
     READY = "ready"
     BLOCKED = "blocked"
-    #: Blocked by something the backlog does not track, so no amount of shipping
-    #: tasks unblocks it. `pick` (RK11) must not offer these as next work.
+    #: Blocked by something that is not an open line, so no `ship` of anything the roadmap
+    #: now holds lifts it — what does is a `retire`, an `amend --dep`, or a first `add`
+    #: under a label declared before its lines (RK432). `pick` (RK11) must not offer these
+    #: as next work.
     OUTSIDE = "blocked-outside"
     #: Blocked on work somebody set aside (RK92). Not offered either — nobody is working
     #: the blocker — but unlike :attr:`OUTSIDE` the block lifts on a `resume`, so what has
@@ -285,6 +295,23 @@ class Readiness(StrEnum):
     #: A fifth state rather than a reading of `ready`: every other value here says work
     #: remains, so a shipped id described with one of them is an invitation to redo it.
     SHIPPED = "shipped"
+
+
+#: Which :class:`DepStatus` each *settled* :class:`Stage` is (RK432) — the whole of what a
+#: block dep resolves to. A table and not four branches, because the resolver had grown its
+#: own copy of the walk :meth:`Standing.of` already makes, and a mapping is what a test can
+#: check for totality. :attr:`Stage.LIVE` is absent on purpose: it is the one stage whose
+#: detail is not the standing's sentence, so :meth:`Backlog._resolve_block` answers it.
+#:
+#: `empty` and `unknown` share an answer because the question a status settles is whether
+#: waiting is over, and under neither label is there work to wait for. Which of the two it
+#: is stays on the printed line, :attr:`Standing.sentence` being the detail.
+_SATISFIES = {
+    Stage.FINISHED: DepStatus.SHIPPED,
+    Stage.PAUSED: DepStatus.DEFERRED,
+    Stage.EMPTY: DepStatus.UNRESOLVABLE,
+    Stage.UNKNOWN: DepStatus.UNRESOLVABLE,
+}
 
 
 @dataclass(frozen=True, slots=True)
@@ -465,30 +492,38 @@ class Backlog:
         return Resolution(dep, kind, DepStatus.SHIPPED, "nothing open in the range")
 
     def _resolve_block(self, dep: Dep, kind: DepKind) -> Resolution:
-        schema = self.config.schema
-        label = schema.block_of_dep(dep)
-        if label not in self.declared_blocks():
-            # Not UNKNOWN: an undeclared block is not a gap in a file, it is a dep
-            # this backlog cannot answer at all — the same answer an external dep
-            # gets, so that neither is ever counted as done by being empty.
-            return Resolution(
-                dep,
-                kind,
-                DepStatus.UNRESOLVABLE,
-                f"no heading declares {schema.block_named(label)}: a block nothing declares is "
-                f"not a block with nothing open",
-            )
-        still_open = self.open_in_block(label)
-        if still_open:
+        """What the label's own :class:`Stage` says, in this module's other vocabulary.
+
+        This asked two questions of its own — is there a heading, is anything open — which
+        is :meth:`Standing.of`'s walk with two of its settled answers missing, and the
+        missing pair were the interesting ones (RK432). A heading `block add` wrote before
+        a single line was filed under it resolved as `shipped`, so `pick` offered the
+        dependent, `brief` printed a checkmark beside a blocker that did not exist yet, and
+        the annotation cached that checkmark into the file — RK28's failure one level up
+        from the id it was written about.
+
+        `paused` is :attr:`DepStatus.DEFERRED` for RK92's three clauses, each of which
+        holds of a label with nothing open and a line in the store: recorded, so not
+        unknown; revivable, so not unresolvable; not in the roadmap, so not open. It
+        outranks the ledger in :meth:`Standing.of`, so a block that shipped nine lines and
+        set the tenth aside resolves deferred and not shipped — the pause is the fact a
+        dependent's own line cannot show.
+
+        `live` is the one stage :data:`_SATISFIES` does not carry, because its detail is
+        not the standing's: the sentence is a header and names no ids, and the ids are the
+        actionable half of an open dep. That is the one deliberate second read of the block
+        — :class:`Standing` counted those lines and kept only the count.
+        """
+        label = self.config.schema.block_of_dep(dep)
+        standing = self.standing(label)
+        if standing.stage is Stage.LIVE:
             return Resolution(
                 dep,
                 kind,
                 DepStatus.OPEN,
-                f"{schema.block_named(label)}: {_open_detail(still_open)}",
+                f"{standing.named}: {_open_detail(self.open_in_block(label))}",
             )
-        return Resolution(
-            dep, kind, DepStatus.SHIPPED, f"{schema.block_named(label)} has nothing open"
-        )
+        return Resolution(dep, kind, _SATISFIES[standing.stage], standing.sentence)
 
     def _resolve_task(self, dep: Dep, kind: DepKind) -> Resolution:
         # A **partial** is read before the ledger (RK396). `ship --part` writes an entry and
@@ -580,9 +615,9 @@ class Backlog:
 
         Ordered by how permanent the answer is, so a line with two kinds of blocker
         reports the one nothing on this backlog's own path resolves: unresolvable outranks
-        paused, because shipping never satisfies it and a resume would still leave it; and
-        paused outranks blocked, because an open blocker is somebody's next task while a
-        deferred one is a decision nobody has revisited.
+        paused, because no line the roadmap now holds satisfies it while a paused one
+        resumes; and paused outranks blocked, because an open blocker is somebody's next
+        task while a deferred one is a decision nobody has revisited.
         """
         resolutions = self.resolve(task)
         if any(r.status is DepStatus.UNRESOLVABLE for r in resolutions):

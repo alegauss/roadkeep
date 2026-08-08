@@ -34,15 +34,21 @@ def line(task_id: str, deps: str = "—", block: str = "A") -> str:
     )
 
 
-def project(tmp_path: Path, roadmap: str, changelog: str = "") -> Config:
+def project(
+    tmp_path: Path, roadmap: str, changelog: str = "", deferred: str | None = None
+) -> Config:
+    store = 'deferred = "DEFERRED.md"\n' if deferred is not None else ""
     (tmp_path / "roadkeep.toml").write_text(
-        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n',
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
+        + store,
         encoding="utf-8",
     )
     (tmp_path / "ROADMAP.md").write_text(roadmap, encoding="utf-8")
     (tmp_path / "CHANGELOG.md").write_text(
         changelog or "# Shipped\n\n## Block A — The model\n", encoding="utf-8"
     )
+    if deferred is not None:
+        (tmp_path / "DEFERRED.md").write_text(deferred, encoding="utf-8")
     return Config.discover(tmp_path)
 
 
@@ -50,8 +56,10 @@ A = "## Block A — The model\n"
 B = "\n## Block B — Authoring\n"
 
 
-def graph(tmp_path: Path, roadmap: str, changelog: str = "") -> Graph:
-    return Graph.load(project(tmp_path, roadmap, changelog))
+def graph(
+    tmp_path: Path, roadmap: str, changelog: str = "", deferred: str | None = None
+) -> Graph:
+    return Graph.load(project(tmp_path, roadmap, changelog, deferred))
 
 
 # -- forward: what has to happen first ---------------------------------------
@@ -111,6 +119,32 @@ def test_a_block_no_heading_declares_is_a_terminal_hop(tmp_path):
     g = graph(tmp_path, A + line("RK9", "Block Z"))
     (chain,) = g.chains("RK9")
     assert chain.end is DepStatus.UNRESOLVABLE and chain.root == "Block Z"
+
+
+def test_a_block_declared_before_its_first_line_is_a_terminal_hop(tmp_path):
+    # Walked to exactly as an undeclared block is, and never as an open task (RK432) —
+    # and the chain says which of the two it is, because the resolution's own sentence
+    # travels with the hop. A status alone would print "outside the backlog: shipping
+    # cannot satisfy it" about a label an `add` under it is exactly what satisfies.
+    g = graph(tmp_path, A + line("RK9", "Block B") + B)
+    (chain,) = g.chains("RK9")
+    assert chain.end is DepStatus.UNRESOLVABLE and chain.root == "Block B"
+    assert chain.detail == "Block B is empty: the heading is declared and no task line is filed under it"
+
+
+def test_a_block_with_nothing_open_and_work_in_the_store_is_a_terminal_hop(tmp_path):
+    # Without the edge the dependent had no chain at all beside its `blocked-paused`
+    # verdict: the block expands to no open member, so there was nothing to walk into and
+    # the terminal fired only for the undeclared block (RK432).
+    g = graph(
+        tmp_path,
+        A + line("RK9", "Block B") + B,
+        deferred="## Block B — Authoring\n"
+        "- ⏸ **RK6** (deps: —) **A symptom** — set aside: waiting. → §RK6\n",
+    )
+    (chain,) = g.chains("RK9")
+    assert chain.end is DepStatus.DEFERRED and chain.root == "Block B"
+    assert "1 set aside" in chain.detail
 
 
 def test_a_range_dep_is_expanded_too(tmp_path):

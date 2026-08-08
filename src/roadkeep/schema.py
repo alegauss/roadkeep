@@ -361,6 +361,18 @@ class DepKind(StrEnum):
     RANGE = "range"
     EXTERNAL = "external"
 
+    @property
+    def collective(self) -> bool:
+        """Whether one token names many lines — the two kinds `Backlog.expand` expands.
+
+        A property rather than a tuple spelled at each call site (RK432). Three rules turn
+        on it — the graph expands one into member hops, the gate reports what one hides,
+        and the annotation refuses to put a single marker on one — and a classification
+        three modules each keep their own copy of is one three modules can come to
+        disagree about.
+        """
+        return self in (DepKind.BLOCK, DepKind.RANGE)
+
 
 class SchemaError(ValueError):
     """Raised by :meth:`Schema.check`, carrying every violation, not the first.

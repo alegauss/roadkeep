@@ -452,7 +452,8 @@ _TABLE: Mapping[str, _Rule] = {
     ),
     "deps.block": _read(
         ("deps", "{id}"),
-        "read what the block dep expands to before the line is picked",
+        "read what the block dep resolves to — its members, or the standing that says "
+        "nothing is filed under the label — before the line is picked",
     ),
     "deps.cycle": _compose(
         ("amend", "{id}", "--dep", BLANK),

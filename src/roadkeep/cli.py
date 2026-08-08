@@ -1791,9 +1791,10 @@ def build_parser() -> argparse.ArgumentParser:
         "deps",
         help="resolve one task's deps, naming the ones nothing can resolve",
         description=(
-            "Resolve each dep against the roadmap and the changelog. A dep on work "
-            "outside the backlog is reported as unresolvable rather than open, "
-            "because waiting will never satisfy it."
+            "Resolve each dep against the roadmap and the changelog. A dep nothing now "
+            "open will satisfy is reported as unresolvable rather than open — work "
+            "outside the backlog, a task that retired, and a block label with nothing "
+            "filed under it."
         ),
     )
     deps_parser.add_argument("id", help="the task to resolve, e.g. RK5")

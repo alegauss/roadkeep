@@ -20,6 +20,7 @@ from roadkeep.schema import Dep, SchemaError, Task, width
 
 ROADMAP = "docs/ROADMAP.md"
 CHANGELOG = "docs/CHANGELOG.md"
+STORE = "docs/DEFERRED.md"
 
 OPEN = "- 📋 **RK1** (deps: —) **A first symptom** — Because of a reason. → §RK1"
 IDEA = "- 💭 **RK2** (deps: —) **A second symptom** — Because of another reason. → §RK2"
@@ -42,12 +43,23 @@ LEDGER = """# Shipped
 """
 
 
-def project(tmp_path: Path, *, roadmap: str = BACKLOG, changelog: str = LEDGER) -> Config:
+def project(
+    tmp_path: Path,
+    *,
+    roadmap: str = BACKLOG,
+    changelog: str = LEDGER,
+    deferred: str | None = None,
+) -> Config:
+    store = f'deferred = "{STORE}"\n' if deferred is not None else ""
     (tmp_path / "roadkeep.toml").write_text(
-        f'prefix = "RK"\n[files]\nroadmap = "{ROADMAP}"\nchangelog = "{CHANGELOG}"\n',
+        f'prefix = "RK"\n[files]\nroadmap = "{ROADMAP}"\nchangelog = "{CHANGELOG}"\n'
+        + store,
         encoding="utf-8",
     )
-    for name, body in {ROADMAP: roadmap, CHANGELOG: changelog}.items():
+    files = {ROADMAP: roadmap, CHANGELOG: changelog}
+    if deferred is not None:
+        files[STORE] = deferred
+    for name, body in files.items():
         path = tmp_path / name
         path.parent.mkdir(parents=True, exist_ok=True)
         with path.open("w", encoding="utf-8", newline="") as handle:
@@ -55,9 +67,17 @@ def project(tmp_path: Path, *, roadmap: str = BACKLOG, changelog: str = LEDGER) 
     return Config.discover(tmp_path)
 
 
-def annotated(tmp_path: Path, *deps: str | Dep, roadmap: str = BACKLOG) -> list[str | None]:
+def annotated(
+    tmp_path: Path,
+    *deps: str | Dep,
+    roadmap: str = BACKLOG,
+    changelog: str = LEDGER,
+    deferred: str | None = None,
+) -> list[str | None]:
     """The markers derivation produces for these deps, in order."""
-    backlog = Backlog.load(project(tmp_path, roadmap=roadmap))
+    backlog = Backlog.load(
+        project(tmp_path, roadmap=roadmap, changelog=changelog, deferred=deferred)
+    )
     task = Task(
         id="RK9",
         status="📋",
@@ -76,12 +96,45 @@ def test_a_shipped_task_gains_the_shipped_marker(tmp_path):
     assert annotated(tmp_path, "RK4") == ["✅"]
 
 
-def test_a_block_with_nothing_open_is_the_same_answer(tmp_path):
-    # Three kinds, one meaning: waiting on this is over.
-    assert annotated(tmp_path, "Block B", "RK1–RK2", roadmap="## Block B — Authoring\n") == [
-        "✅",
-        "✅",
-    ]
+def test_a_finished_block_and_an_empty_range_are_the_same_answer(tmp_path):
+    # Three kinds, one meaning: waiting on this is over. What makes the block one of them
+    # is the ledger filing an entry under the label and never the heading (RK432).
+    assert annotated(
+        tmp_path,
+        "Block B",
+        "RK1–RK2",
+        roadmap="## Block B — Authoring\n",
+        changelog=LEDGER + "\n## Block B — Authoring\n\n- ✅ **RK5** **A symptom** — Done.\n",
+    ) == ["✅", "✅"]
+
+
+def test_a_block_declared_before_its_first_line_is_not_annotated_shipped(tmp_path):
+    # The checkmark §RK432 is about: the heading was written, nothing was ever filed under
+    # it, and the annotation said waiting was over. Neither invented onto the bare token
+    # nor left standing where an author typed one — a collective marker is derived by
+    # construction, so there is no reading of one line for the preserve rule to protect.
+    assert annotated(
+        tmp_path, "Block B", Dep("Block B", "✅"), roadmap="## Block B — Authoring\n"
+    ) == [None, None]
+
+
+def test_a_block_with_nothing_open_and_work_in_the_store_is_annotated_paused(tmp_path):
+    # RK92's marker at the level `Standing` says the block is at (RK432): not "every line
+    # was set aside" but "nothing open, and something a `resume` brings back" — the one
+    # state a dependent's own line cannot show.
+    assert annotated(
+        tmp_path,
+        "Block B",
+        roadmap="## Block B — Authoring\n",
+        deferred="## Block B — Authoring\n"
+        "- ⏸ **RK6** (deps: —) **A symptom** — set aside: waiting. → §RK6\n",
+    ) == ["⏸"]
+
+
+def test_a_marker_on_a_block_nothing_declares_is_not_the_authors_to_keep(tmp_path):
+    # The other half of the branch `test_work_outside_the_backlog_is_left_exactly_as_written`
+    # pins: the preserve rule is about a dep naming one line, and `Block Z` names many.
+    assert annotated(tmp_path, Dep("Block Z", "✅")) == [None]
 
 
 def test_a_block_that_still_has_work_is_not_annotated(tmp_path):

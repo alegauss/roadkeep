@@ -118,15 +118,15 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 30 | 2 |
 | B — Authoring (insert, never hand-edit) | 2 | 100 | 1 |
-| C — Query (consult without reading the file) | 2 | 62 | 1 |
+| C — Query (consult without reading the file) | 1 | 63 | 1 |
 | D — The gate | 2 | 88 | 0 |
 | E — Adoption | 0 | 73 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 69 | 1 |
-| **Total** | 7 | 422 | 6 |
+| **Total** | 6 | 423 | 6 |
 
 **Next ready:**
 
-- 📋 **RK432** (deps: —) **A dep on a block nobody has filed anything under resolves as satisfied** — The resolver reads a declared heading with no open line as done, so a task waiting on a block that has never held work is offered as ready. → §RK432
+- 📋 **RK433** (deps: —) **delivered answers a block letter nothing declares as one that has shipped nothing** — The verb filters the ledger without resolving the label, so the read a proposal is supposed to make against a block is made against a typo instead. → §RK433
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -113,22 +113,6 @@ ask for it.
 
 ## Block C — Query
 
-### §RK432 A heading opened early satisfies the deps waiting on it
-
-`_resolve_block` answers a block dep in three steps: undeclared is unresolvable, any
-open line is open, and everything else is `DepStatus.SHIPPED` with the detail `Block B
-has nothing open`. The third step is two states, and RK429 named them: a block whose
-work shipped, and a heading `block add` wrote before a single line was filed under it.
-
-For the *detail* that is a wording defect. For the *status* it is not. A dep on a block
-nobody has started resolves as satisfied, so `pick` offers the dependent line and
-`brief` prints a checkmark beside a blocker that does not exist yet — the exact failure
-RK28 exists to prevent, one level up from the id it was written about.
-
-The backlog now has one reader of the four states. What this line is about is that the
-resolver has not been pointed at it, and that pointing it there changes an answer rather
-than a sentence: `empty` is not `shipped`, and `paused` is neither.
-
 ### §RK433 The read before a proposal cannot say it read nothing
 
 `delivered <block>` is the read the skill asks for before an `add`: what this block has

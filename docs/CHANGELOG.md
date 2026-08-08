@@ -212,6 +212,7 @@
 - ✅ **RK410** **The free address is the last line of a listing of spent ones** — anchors --next prints the free address alone in both surfaces, so the read an add --ref makes every time is one line instead of the last of twenty-eight.
 - ✅ **RK416** **A line proposing what a revert already undid reads as new work** — reversals reads the forward pointer back with the reversing entry's sentence, so what was tried and undone is a read an author makes before spending an id rather than after.
 - ✅ **RK429** **A query against a finished block answers the same as one against a block that never existed** — brief, pick and list name which of finished, paused, empty or unknown a block with nothing open is, and --json carries that word beside the sentence, so a loop branches on the state and not English.
+- ✅ **RK432** **A dep on a block nobody has filed anything under resolves as satisfied** — A block dep resolves against the block's own stage, so a heading opened before its first line no longer reads as shipped and pick stops offering the task waiting on it.
 
 ## Block D — The gate
 

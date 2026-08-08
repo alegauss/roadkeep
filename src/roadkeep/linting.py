@@ -967,9 +967,11 @@ def _collective(config: Config, documents: dict[str, Document]) -> list[Note]:
     """What a `Block X` or a range actually names, said out loud (RK35).
 
     Only when it expands to **two or more** open tasks, which is precisely the case the
-    line hides: at one there is no surprise to report, and at zero the annotation already
-    reads ✅ because the dep is satisfied (RK8). A note per token below that threshold
-    would be output nobody reads, which is the failure mode RK16 exists to avoid.
+    line hides: at one there is no surprise to report, and at zero there is nothing to
+    name — whether waiting is over there is the standing's answer and not this note's, a
+    label with no open member being finished, paused or a heading opened before its lines,
+    and only the first of those annotating ✅ (RK8, RK432). A note per token below that
+    threshold would be output nobody reads, which is the failure mode RK16 exists to avoid.
     """
     roadmap = documents.get("roadmap")
     if roadmap is None:
@@ -984,7 +986,7 @@ def _collective(config: Config, documents: dict[str, Document]) -> list[Note]:
     out: list[Note] = []
     for entry in roadmap.entries:
         for dep in entry.task.deps:
-            if config.schema.classify_dep(dep) not in (DepKind.BLOCK, DepKind.RANGE):
+            if not config.schema.classify_dep(dep).collective:
                 continue
             members = backlog.expand(dep)
             if len(members) < 2:

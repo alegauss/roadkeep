@@ -31,7 +31,7 @@ from dataclasses import dataclass
 
 from roadkeep.backlog import Backlog, DepStatus, Readiness
 from roadkeep.config import Config
-from roadkeep.schema import DepKind, Task
+from roadkeep.schema import Task
 
 #: How many chains and dependents an answer carries. Bounded because the value of a query
 #: is that its output fits in a tool result; the counts stay exact either way.
@@ -47,6 +47,14 @@ class Hop:
     #: The token as written — `RK5`, `Block B`, `T451–T457`, `real design partners`.
     via: str
     status: DepStatus
+    #: What the resolver already said about this edge, carried where a status alone would
+    #: make the chain print something false (RK432). :func:`_terminal_detail` writes three
+    #: sentences from the status, and one of them — "outside the backlog: shipping cannot
+    #: satisfy it" — is wrong about a label the roadmap declares and nobody has filed under,
+    #: which shipping a first line under it is exactly what satisfies. Passing the
+    #: resolution's own words through removes a speller rather than adding a carrier; empty
+    #: everywhere the status is the whole of the answer.
+    detail: str = ""
 
     @property
     def walkable(self) -> bool:
@@ -152,7 +160,9 @@ class Graph:
             return
         for hop in outgoing:
             if not hop.walkable:
-                found.append(Chain((*hops, hop), hop.status, _terminal_detail(hop)))
+                found.append(
+                    Chain((*hops, hop), hop.status, hop.detail or _terminal_detail(hop))
+                )
                 continue
             if hop.target in path or hop.target == current:
                 found.append(
@@ -228,23 +238,42 @@ def _hops(backlog: Backlog, task: Task) -> tuple[Hop, ...]:
     for dep in task.deps:
         resolution = backlog.resolve_dep(dep)
         if resolution.satisfied:
-            continue  # a shipped dep, an empty block, a range with nothing open
+            continue  # a shipped dep, a finished block, a range with nothing open
         kind = schema.classify_dep(dep)
-        if kind in (DepKind.BLOCK, DepKind.RANGE):
+        if kind.collective:
+            members = backlog.expand(dep)
             out.extend(
-                Hop(target=member, via=dep.id, status=DepStatus.OPEN)
-                for member in backlog.expand(dep)
+                Hop(target=member, via=dep.id, status=DepStatus.OPEN) for member in members
             )
-            if resolution.status is DepStatus.UNRESOLVABLE:
-                # A block no heading declares: nothing to expand, and waiting on it is
-                # not waiting on tasks (RK37).
-                out.append(Hop(target=dep.id, via=dep.id, status=DepStatus.UNRESOLVABLE))
+            if not members:
+                # An unsatisfied collective dep with nothing to expand into is still an
+                # edge, and this fired only for the block no heading declares (RK37). A
+                # heading written before its first line expands to nothing too, and so does
+                # one whose every line is in the store (RK432) — and dropping the edge left
+                # the dependent with a verdict and no chain under it at all. The token is
+                # the terminal, carrying the status and the sentence that say why the walk
+                # ends there.
+                out.append(
+                    Hop(
+                        target=dep.id,
+                        via=dep.id,
+                        status=resolution.status,
+                        detail=resolution.detail,
+                    )
+                )
             continue
         out.append(Hop(target=dep.id, via=dep.id, status=resolution.status))
     return tuple(out)
 
 
 def _terminal_detail(hop: Hop) -> str:
+    """The sentence a status alone implies, for the hops that carry none of their own.
+
+    Kept beside :attr:`Hop.detail` rather than replaced by it: a task dep's terminal hop is
+    one id and the status is the whole answer, so composing a second sentence per edge would
+    be words nobody reads. A collective token is where that stops holding, and there the
+    resolution's own words travel with the hop (RK432).
+    """
     if hop.status is DepStatus.UNKNOWN:
         return "in neither the roadmap nor the changelog"
     if hop.status is DepStatus.DEFERRED:

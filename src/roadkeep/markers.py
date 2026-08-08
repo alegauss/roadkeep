@@ -8,8 +8,9 @@ ready task reads as blocked, so `pick` (RK11) skips it and the backlog quietly s
 So the annotation is derived on every write, from the resolver that already answers the
 question (RK28). Three rules, and the second is what keeps derivation from becoming churn:
 
-* **Shipped is always annotated ✅** — a task in the ledger, a block with nothing open, a
-  range with no open member: one answer, because all three mean "waiting on this is over".
+* **Shipped is always annotated ✅** — a task in the ledger, a block the ledger has
+  finished, a range with no open member: one answer, because all three mean "waiting on
+  this is over". Nothing open was two states and only one of them is this one (RK432).
   This is the annotation a reader acts on and the only one that goes stale by itself.
 * **An annotation that exists is kept true; one that was never written is not invented.**
   Shio annotates `⏳` and `📋` deps and those follow their target's marker, while this
@@ -17,7 +18,11 @@ question (RK28). Three rules, and the second is what keeps derivation from becom
   onto every open dep would rewrite half a backlog to say what `deps <id>` answers better.
 * **Unresolvable or unknown → left exactly as written.** Derivation never invents a status
   it cannot read, and never deletes one it did not write; an unknown id is a lint error
-  (RK14), not a rendering choice.
+  (RK14), not a rendering choice. The rule is about a dep naming **one** line, whose marker
+  could be the author's reading of it. A `Block X` or a range names many, so its marker was
+  derived by construction and is dropped wherever the collection is not settled (RK432) —
+  including a label no heading declares, where a ✅ is the false claim the resolver refuses
+  and this rule used to keep in the file.
 
 :func:`refresh` applies this to a whole document, and it is deliberately *whole-file*: any
 write is an opportunity to make every annotation true, and a tool that refreshed only the
@@ -35,7 +40,7 @@ from dataclasses import dataclass, replace
 
 from roadkeep.backlog import Backlog, DepStatus
 from roadkeep.document import Document, Entry
-from roadkeep.schema import Dep, DepKind, SchemaError, Task
+from roadkeep.schema import Dep, SchemaError, Task
 
 
 @dataclass(frozen=True, slots=True)
@@ -114,12 +119,24 @@ def _annotate(backlog: Backlog, dep: Dep) -> Dep:
         # Written whether or not one was typed, which is ✅'s rule and not the open set's
         # (RK92): a paused blocker is the one state the dependent's own line cannot show,
         # and an unannotated dep on it reads as ordinary open work somebody is doing.
+        #
+        # On a **block** it claims what `Stage.PAUSED` claims and not what a ⏸ on a line
+        # does (RK432): not that every member was set aside, but that the label is at the
+        # stage with nothing open and something waiting on a `resume`. That is the reading
+        # the resolution's own sentence spells on the row above it, so the marker
+        # summarises rather than overstates — which is the test the rule below applies.
         return replace(dep, marker=backlog.config.schema.deferred_marker)
+    if resolution.kind.collective:
+        # A block or a range is many lines with many markers, so a marker on one is dropped
+        # rather than replaced: any single one would claim too much. Reached now for every
+        # state the collection is not settled in, and not only for `open` (RK432) — a
+        # heading declared before its first line used to derive ✅ here, and leaving it to
+        # the preserve rule below would freeze in the file the exact false statement this
+        # resolver stopped making. Nothing of the author's is lost: a collective annotation
+        # is derived by construction, there being no single line it could have been typed
+        # about, which is why the rule below is about a dep naming one.
+        return dep if dep.marker is None else replace(dep, marker=None)
     if resolution.status is DepStatus.OPEN:
-        if resolution.kind is not DepKind.TASK:
-            # A block or a range is many lines with many markers, so a stale ✅ on one
-            # is dropped rather than replaced: any single marker would claim too much.
-            return dep if dep.marker is None else replace(dep, marker=None)
         if dep.marker is None and not backlog.partial(dep.id):
             return dep  # unannotated open work stays unannotated
         # Written whether or not one was typed where the blocker shipped in halves (RK396),

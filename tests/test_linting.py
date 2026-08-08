@@ -468,6 +468,41 @@ def test_a_dep_on_a_block_no_heading_declares_is_a_finding(tmp_path):
     assert "deps.block" in codes(report)
 
 
+def test_a_dep_on_a_block_declared_before_its_first_line_is_a_finding(tmp_path):
+    # The gate and the queue answer this state differently on purpose (RK432): a tier that
+    # fires on nothing is harmless and is a Note, while a *dep* on an unstarted block gates
+    # a line on work that nobody has filed, which is what `deps.block` is for.
+    report = lint(
+        project(
+            tmp_path,
+            roadmap=CLEAN.replace("(deps: RK1)", "(deps: Block B)") + "\n## Block B — Authoring\n",
+        )
+    )
+    (found,) = [f for f in report.findings if f.code == "deps.block"]
+    assert found.id == "RK2" and "is empty" in found.message
+
+
+def test_a_dep_on_a_block_with_work_in_the_store_is_not_a_finding(tmp_path):
+    # A deferred dep is recorded, findable and revivable, so it falls through here as a
+    # task-level one does (RK92) — and the ⏸ the annotation now derives is not yet in the
+    # file, which is `deps.stale`'s job and `--fix`'s door.
+    config = CONFIG + 'deferred = "DEFERRED.md"\n'
+    (tmp_path / "DEFERRED.md").write_text(
+        "## Block B — Authoring\n"
+        "- ⏸ **RK6** (deps: —) **A symptom** — set aside: waiting. → §RK6\n",
+        encoding="utf-8",
+    )
+    report = lint(
+        project(
+            tmp_path,
+            roadmap=CLEAN.replace("(deps: RK1)", "(deps: Block B)") + "\n## Block B — Authoring\n",
+            config=config,
+        )
+    )
+    assert "deps.block" not in codes(report)
+    assert "deps.stale" in codes(report)
+
+
 def test_a_dep_outside_the_backlog_is_not_a_finding(tmp_path):
     # Turing writes `(deps: real design partners)` and means it: failing every file that
     # states an honest external dep would make the gate unadoptable.
