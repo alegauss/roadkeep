@@ -98,7 +98,7 @@ from roadkeep.history import (
     origin_of,
 )
 from roadkeep.ids import highest, next_id
-from roadkeep.installing import engines, install, plan, removal, uninstall
+from roadkeep.installing import UNPINNABLE, engines, install, plan, removal, uninstall
 from roadkeep.linting import Finding, Report, lint
 from roadkeep.locking import LockBusy, exclusive
 from roadkeep.merging import (
@@ -7081,6 +7081,10 @@ def _engines(config: Config, args: argparse.Namespace) -> int:
                         {"file": where, "ref": ref} for where, ref in found.gates
                     ],
                     "agree": found.agree,
+                    # Which of the three, because the boolean above cannot carry the state
+                    # RK418 added: a checkout with uncommitted work is at no commit the
+                    # plugin could match, and `agreed` there was the defect being fixed.
+                    "verdict": found.verdict,
                 },
                 indent=2,
             )
@@ -7099,10 +7103,21 @@ def _engines(config: Config, args: argparse.Namespace) -> int:
         print(f"gate     {ref:<10}{where}")
     if not found.gates:
         print("gate     —         no workflow here calls the action")
+    if found.verdict == UNPINNABLE:
+        # The state that used to read as agreement, and the one a machine developing this
+        # tool is in every day (RK418): the numbers match, the checkout has uncommitted
+        # work, and the files the two copies hold are not the same files.
+        print(
+            f"differ   both state {running.version} and this checkout is modified at "
+            f"{running.revision}, so the two cannot be compared: commit, or read a hook's "
+            f"refusal as that copy's rule rather than this one's"
+        )
+        return EXIT_GATE
     if not found.agree:
         print(
-            f"differ   the pen is {running.version} and the judge is "
-            f"{plugin.version if plugin else '—'}: `/plugin update` moves the judge, and "
+            f"differ   the pen is {running.version} at {running.revision} and the judge is "
+            f"{plugin.version if plugin else '—'} at "
+            f"{plugin.revision if plugin else '—'}: `/plugin update` moves the judge, and "
             f"until then a hook's refusal is that copy's rule and not this one's"
         )
         return EXIT_GATE

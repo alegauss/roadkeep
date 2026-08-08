@@ -31,9 +31,11 @@ nothing else, keeps the CI workflow, and needs no checkout to read, so it still 
 that tree is gone. Every guarantee below holds either way. Three copies of this tool can
 be in play at once — the plugin your hook and this file come from, the action CI gates on,
 and whatever `roadkeep` you are calling — and they are allowed to differ. **`engines`
-reads all three** and exits 1 where the two that state a version state different ones;
-reach for it when a hook denies a write the command you just ran would have made, because
-then the refusal is that copy's rule and not this one's.
+reads all three** and answers `agreed`, `behind` or `unpinnable` — the last being one
+version and a modified checkout, which is no commit the plugin could match and so is not
+agreement; it exits 1 on either of the two that are not. Reach for it when a hook denies a
+write the command you just ran would have made, because then the refusal is that copy's
+rule and not this one's.
 
 `roadkeep <add|status|amend|restate|ship|retire|record|non-goal|section> --help` has the
 flags. What they guarantee, so it costs you no thought: the id, the `→ §<id>` pointer, the

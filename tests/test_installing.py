@@ -38,6 +38,9 @@ from roadkeep.adopting import BlockedParent
 from roadkeep.cli import EXIT_GATE, EXIT_OK, build_parser, main, registration_report
 from roadkeep.merging import Attributes, Driver, Registration, Wiring
 from roadkeep.installing import (
+    AGREED,
+    BEHIND,
+    UNPINNABLE,
     CARRIED,
     LAUNCHER,
     PLUGIN_HOOKS,
@@ -809,3 +812,79 @@ def test_the_verb_prints_the_three_and_the_exit_code_is_the_verdict(project, tmp
     assert "differ   " in printed.out
     # A read, so the verdict closes with nothing (RK271): the lines above already said it.
     assert "capture it before the session ends" not in printed.err
+
+
+# -- three states, because two were not enough (RK418) ------------------------
+
+
+def _pair(version="0.1.1", plugin_version="0.1.1", commit="abc1234",
+          plugin_commit="abc1234", modified=False):
+    from roadkeep.installing import Engines
+    from roadkeep.provenance import Engine, Installed
+
+    return Engines(
+        running=Engine(
+            version=version, home=Path("/tree/src/roadkeep"), commit=commit, modified=modified
+        ),
+        plugin=Installed(
+            version=plugin_version, home=Path("/cache"), commit=plugin_commit, scope="user"
+        ),
+    )
+
+
+def test_one_version_and_one_commit_is_agreement():
+    assert _pair().verdict == AGREED
+    assert _pair().agree
+
+
+def test_a_different_version_is_behind():
+    assert _pair(plugin_version="0.1.0").verdict == BEHIND
+    assert not _pair(plugin_version="0.1.0").agree
+
+
+def test_one_version_and_two_commits_is_behind():
+    """The fact the release string could not carry: two `src/roadkeep/` trees fourteen files
+    apart answered the same number, which is why the running engine carries its commit."""
+    assert _pair(plugin_commit="def5678").verdict == BEHIND
+
+
+def test_a_modified_checkout_is_unpinnable_and_never_agreement():
+    """The case a machine developing this tool is in every day: a checkout at the plugin's
+    own version with uncommitted work writes, the plugin judges, the numbers match — and the
+    files do not. `behind` would assert a direction nothing measured."""
+    found = _pair(modified=True)
+    assert found.verdict == UNPINNABLE
+    assert not found.agree
+
+
+def test_a_missing_commit_leaves_the_version_deciding():
+    # A marketplace row that recorded no sha is not evidence of a difference, so the best
+    # fact available still decides rather than the answer collapsing to "cannot tell".
+    assert _pair(plugin_commit=None).verdict == AGREED
+    assert _pair(commit=None).verdict == AGREED
+    assert _pair(commit=None, plugin_version="0.1.0").verdict == BEHIND
+
+
+def test_no_plugin_is_agreement_and_not_a_defect():
+    from roadkeep.installing import Engines
+    from roadkeep.provenance import Engine
+
+    alone = Engines(
+        running=Engine(version="0.1.1", home=Path("/tree"), commit="abc1234")
+    )
+    assert alone.verdict == AGREED and alone.agree
+
+
+def test_the_unpinnable_state_exits_one_and_says_which_it_is(tmp_path, capsys, monkeypatch):
+    from roadkeep import cli
+    from roadkeep.cli import EXIT_GATE, main
+
+    # Patched where the command *reads* it: `cli` imports the name directly, so setting it
+    # on `installing` would leave the handler holding the original — the shape of a test
+    # that passes by measuring nothing.
+    monkeypatch.setattr(cli, "engines", lambda root=".": _pair(modified=True))
+    (tmp_path / "roadkeep.toml").write_text('prefix = "DX"\n', encoding="utf-8")
+    assert main(["-C", str(tmp_path), "engines"]) == EXIT_GATE
+    out = capsys.readouterr().out
+    assert "cannot be compared" in out
+    assert "modified" in out

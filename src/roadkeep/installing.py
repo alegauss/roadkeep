@@ -460,6 +460,14 @@ def stale(root: str | Path = ".") -> tuple[str, ...]:
     )
 
 
+#: What :attr:`Engines.verdict` answers (RK418). Three and not two, because a checkout with
+#: uncommitted work is at no commit the plugin could match — so `agreed` would be the defect
+#: and `behind` a direction nothing measured.
+AGREED = "agreed"
+BEHIND = "behind"
+UNPINNABLE = "unpinnable"
+
+
 @dataclass(frozen=True, slots=True)
 class Engines:
     """The three copies of this tool one project runs, read back together (RK415).
@@ -486,14 +494,56 @@ class Engines:
     gates: tuple[tuple[str, str], ...] = ()
 
     @property
+    def verdict(self) -> str:
+        """`agreed`, `behind` or `unpinnable` — three states, because two are not enough (RK418).
+
+        The comparison used to be the release string alone, which is the one fact an earlier
+        task proved insufficient: two `src/roadkeep/` trees fourteen files apart answered the
+        same number, and that is why the running engine carries its directory and its commit
+        at all. Both copies have a revision — the running one from git, the installed one from
+        the marketplace row that records the sha it was built at — and both were read, both
+        printed, and neither compared.
+
+        The case that got through is the one a machine developing this tool is in every day: a
+        checkout at the plugin's own version, with uncommitted work, writing; the plugin
+        judging; the numbers matching and the verb saying they agree. The files do not.
+
+        So the third state is its own, and collapsing it would be wrong either way. A checkout
+        whose files are **modified** is at no commit the plugin could match — calling that
+        `behind` asserts a direction nothing measured, and calling it `agreed` is the defect
+        this fixes. `unpinnable` says the only true thing: these two cannot be compared, and
+        the reason is on the running engine's own `revision`.
+
+        Where a commit is missing on either side the version is still the best fact available,
+        so it decides — a marketplace row that recorded no sha is not evidence of a difference.
+        """
+        if self.plugin is None:
+            return AGREED
+        if self.plugin.version != self.running.version:
+            return BEHIND
+        if self.running.modified:
+            return UNPINNABLE
+        if self.plugin.commit and self.running.commit:
+            # Both known and both at one version: the sha is what tells the trees apart, and
+            # it is compared on the prefix because the marketplace records a short one.
+            short = min(len(self.plugin.commit), len(self.running.commit), 7)
+            if self.plugin.commit[:short] != self.running.commit[:short]:
+                return BEHIND
+        return AGREED
+
+    @property
     def agree(self) -> bool:
-        """Whether the two engines that state a *version* state the same one.
+        """Whether the two engines that state a version are the same copy of this tool.
 
         The gate is deliberately not in this: `main` and `v0.2.1` and `./` are refs, and a
         ref is not a number to compare — what CI runs is decided when CI runs. It is reported
         beside the two because a reader comparing them needs to know a third exists.
+
+        `unpinnable` is **not** agreement (RK418): a boolean has to fall one way, and the
+        state this exists to stop being silent about is exactly the one where the numbers
+        match and the files do not.
         """
-        return self.plugin is None or self.plugin.version == self.running.version
+        return self.verdict == AGREED
 
 
 def engines(root: str | Path = ".") -> Engines:

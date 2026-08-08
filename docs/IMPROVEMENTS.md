@@ -124,27 +124,6 @@ instead is a `section amend`, and a judgement; noticing is not.
 
 ## Block D — The gate
 
-### §RK418 The number that could not answer this question before
-
-The verb that reads the three copies back compares the two that state a version, and it
-compares the **release string**. That is the exact fact an earlier task proved
-insufficient: two `src/roadkeep/` trees, fourteen files apart, both answering the same
-number — which is why the running engine carries its directory and its commit at all.
-
-So the reader is one step short of its own evidence. Both copies carry a revision: the
-running one from git, the installed one from the marketplace row that records the sha it
-was built at. Both are read, both are printed, and neither is compared.
-
-The case that gets through is the one a machine developing this tool is in every day. A
-checkout at the plugin's own version, with uncommitted work, writes; the plugin judges;
-the numbers match and the verb says they agree. The files do not.
-
-What is *not* obvious is what agreement should mean once the commit is in it. A checkout
-whose files are modified is not at any commit the plugin could match, so the honest
-answer may be three states rather than two — agreed, behind, and unpinnable — and a
-boolean that collapses the third into either of the others will be wrong for one of
-them. That choice is the task; the numbers to make it with are already on the screen.
-
 ## Block E — Adoption
 
 ### §RK402 The tree that ships the plugin is told to wire the guard a second time
