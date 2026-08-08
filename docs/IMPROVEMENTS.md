@@ -120,25 +120,6 @@ The fix is one line in the ship's answer, alongside the citation one: *"§X now 
 subsections — its prose introduces work that shipped"*. Deciding what it should say
 instead is a `section amend`, and a judgement; noticing is not.
 
-### §RK407 The refusal that names the field but not the shell
-
-Every field this tool refuses is prose an agent composed in a shell, and one shell
-rewrites it on the way in: PowerShell reads a backtick as its escape character, so a
-`why` quoting `renderItem` or `\n` arrives carrying a carriage return, a bell or a form
-feed that the author never wrote and cannot see in the answer.
-
-What comes back is `why.newline: a task is one line: no newlines`. That is accurate
-about the value and wrong about the cause, and the cause is the part a caller has to fix
-— the sentence has no newline in it, so the message sends them to re-read prose that is
-already correct instead of to their quoting. A markdown-shaped backlog makes this the
-common case rather than the rare one, because the format wants backticks around every
-identifier a line names.
-
-A control character other than a plain newline is never authorial. So the refusal can
-say so — name the codepoint, name the field, and name the escape that produces it —
-which costs one branch on a path that already has the value in hand, and turns a
-two-retry diagnosis into a read.
-
 ### §RK426 One refusal per call, not one per field
 
 `add` refuses the fields at input, which is the right design and the reason nothing

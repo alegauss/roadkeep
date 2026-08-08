@@ -41,6 +41,27 @@ from enum import StrEnum
 # Status markers, as bare codepoints — no variation selectors, because the
 # governed files carry none and a round-trip compares bytes.
 DESIGNED = "\N{CLIPBOARD}"  # 📋
+#: The three C0 characters this module names rather than writes as an escape, so the source
+#: says which one it means (RK407). `"\n"` in a predicate reads as punctuation at a glance.
+LINE_FEED = "\N{LINE FEED}"
+CARRIAGE_RETURN = "\N{CARRIAGE RETURN}"
+TAB = "\N{CHARACTER TABULATION}"
+
+#: What PowerShell's backtick expands to, by the codepoint it produces (RK407). Unicode gives
+#: a C0 control no `name`, so `unicodedata` answers "" for every one of these — and a refusal
+#: reading `U+0007` alone names the value without naming anything a caller recognises.
+#: The escape beside it is the point: `` `a `` is what somebody typed, and seeing it is the
+#: whole diagnosis.
+_C0_NAMES: Mapping[str, tuple[str, str]] = {
+    "\x00": ("NUL", "`0"),
+    "\x07": ("BELL", "`a"),
+    "\x08": ("BACKSPACE", "`b"),
+    "\x0b": ("VERTICAL TAB", "`v"),
+    "\x0c": ("FORM FEED", "`f"),
+    "\x0d": ("CARRIAGE RETURN", "`r"),
+    "\x1b": ("ESCAPE", "`e"),
+}
+
 IDEA = "\N{THOUGHT BALLOON}"  # 💭
 PARTIAL = "\N{HOURGLASS WITH FLOWING SAND}"  # ⏳
 IN_PROGRESS = "\N{HAMMER AND WRENCH}"  # 🛠
@@ -1343,9 +1364,34 @@ class Schema:
         if not value.strip():
             out.append(Violation(f"{field}.empty", field, "must not be empty"))
             return out
-        if "\n" in value or "\r" in value:
+        # A control character that is **not** a plain line break is never authorial (RK407).
+        # Every field this tool refuses is prose composed in a shell, and one shell rewrites
+        # it on the way in: PowerShell reads a backtick as its escape character, so a `why`
+        # quoting `renderItem` arrives carrying a carriage return the author never typed and
+        # cannot see in the answer. Reported as `newline` that was accurate about the value
+        # and wrong about the cause — and the cause is the half a caller has to fix, so the
+        # message sent them to re-read a sentence that was already correct.
+        stray = _control(value)
+        if stray:
+            where, char = stray[0]
             out.append(
-                Violation(f"{field}.newline", field, "a task is one line: no newlines")
+                Violation(
+                    f"{field}.control",
+                    field,
+                    f"{_named_codepoint(char)} at position {where + 1}, which nothing types "
+                    f"on purpose: in a PowerShell double-quoted string a backtick is the "
+                    f"escape character, so prose quoting an identifier becomes this — pass "
+                    f"the field on stdin with `-` and no shell rewrites it",
+                )
+            )
+        elif "\n" in value or "\r" in value:
+            out.append(
+                Violation(
+                    f"{field}.newline",
+                    field,
+                    "a task is one line: no newlines — and if you typed none, a PowerShell "
+                    "double-quoted string expands `` `n ``; `-` reads the field from stdin",
+                )
             )
         if value != value.strip():
             out.append(
@@ -1377,3 +1423,43 @@ def _sentence_count(text: str) -> int:
             continue  # "e.g. ", "A. Oliveira" — a period, not a boundary
         count += 1
     return count
+
+
+def _control(value: str) -> list[tuple[int, str]]:
+    """Every control character in a prose field that is not part of a line break (RK407).
+
+    A line feed is excluded, and so is the carriage return **of a CRLF pair**: a pasted
+    paragraph produces both honestly, and `{field}.newline` is already the right answer
+    there. A *lone* carriage return is not that — it is what PowerShell writes for `` `r ``,
+    which is what a `why` quoting an identifier like `renderItem` becomes — so it belongs
+    here with the bell, the form feed, the escape and the NUL: characters that arrive from a
+    shell or from nowhere, and never from an author.
+
+    A tab is excluded for a different reason: this format normalizes one rather than refusing
+    it (`char.tab` is `--fix`'s), so reporting it as unauthorial here would refuse at the
+    door what the gate one file over repairs.
+
+    The **first** one only, because the report is read to act on: a `why` mangled by one
+    stray backtick carries one, and a sentence carrying six is six symptoms of a single
+    quoting mistake that the first already sends the reader to.
+    """
+    out: list[tuple[int, str]] = []
+    for at, char in enumerate(value):
+        if char in (LINE_FEED, TAB):
+            continue
+        if char == CARRIAGE_RETURN and value[at + 1 : at + 2] == LINE_FEED:
+            continue
+        if ord(char) < 0x20 or ord(char) == 0x7F:
+            out.append((at, char))
+    return out
+
+
+def _named_codepoint(char: str) -> str:
+    """`U+000D CARRIAGE RETURN (`` `r ``)`, naming the escape that most likely wrote it."""
+    named, escape = _C0_NAMES.get(char, ("", ""))
+    if not named:
+        import unicodedata  # noqa: PLC0415 - one refusal path, never a successful write
+
+        named = unicodedata.name(char, "")
+    spelled = f"U+{ord(char):04X}" + (f" {named}" if named else "")
+    return spelled + (f" (`` {escape} ``)" if escape else "")

@@ -511,6 +511,20 @@ _TABLE: Mapping[str, _Rule] = {
         "than trimming: nothing here silently rewrites text it did not author",
         "the field is trimmed where it already sits, and no other byte moves",
     ),
+    # The character the author did not type (RK407). `compose` and not `fix`: the codepoint
+    # is inside prose, so removing it is a rewrite of somebody's sentence — and the shell
+    # that wrote it will write it again unless the *quoting* changes, which is why the door
+    # is the field's own and the dash is what the remedy actually turns on.
+    "why.control": _compose(
+        ("amend", "{id}", "--why", "-"),
+        "a control character a shell's escape wrote: re-send the field on stdin, where "
+        "nothing expands a backtick",
+    ),
+    "symptom.control": _compose(
+        ("restate", "{id}", "--symptom", "-"),
+        "a control character a shell's escape wrote: re-send the field on stdin, where "
+        "nothing expands a backtick",
+    ),
     "why.no-terminator": _compose(
         ("amend", "{id}", "--why", BLANK),
         "the why ends in a stop; nothing here adds one, because where it goes is the "

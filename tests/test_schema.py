@@ -721,3 +721,81 @@ def test_an_ordinary_entry_carries_no_qualifier_and_is_not_asked_for_one():
     entry = Task(id="RK9", status=SHIPPED, block="A", symptom="A symptom", why="Landed.")
     assert entry.part is None
     assert LEDGER.validate(entry) == ()
+
+
+# -- the character the author did not type (RK407) ----------------------------
+
+
+def test_a_lone_carriage_return_names_the_shell_that_wrote_it():
+    """PowerShell reads a backtick as its escape character, so a `why` quoting an identifier
+    like `renderItem` arrives carrying a CR nobody typed. Reported as `newline` the answer was
+    accurate about the value and wrong about the cause — and the cause is the half to fix."""
+    found = _codes(why="Because \rof a reason.")
+    assert "why.control" in found
+    assert "why.newline" not in found
+    message = _message("why.control", why="Because \rof a reason.")
+    assert "U+000D CARRIAGE RETURN" in message
+    assert "`r" in message and "PowerShell" in message
+
+
+def test_the_codepoint_is_named_and_not_only_numbered():
+    # Unicode gives a C0 control no `name`, so `unicodedata` answers "" for every one of
+    # them — and `U+0007` alone names the value without naming anything a caller recognises.
+    for char, named, escape in (
+        ("\a", "BELL", "`a"),
+        ("\f", "FORM FEED", "`f"),
+        ("\x1b", "ESCAPE", "`e"),
+        ("\0", "NUL", "`0"),
+    ):
+        message = _message("why.control", why=f"Because {char}of a reason.")
+        assert named in message and escape in message, char
+
+
+def test_a_real_newline_is_still_a_newline():
+    # A pasted paragraph produces one honestly, so the code stays and only the sentence
+    # grows the clause about the shell — the two causes are both real and only one is a slip.
+    for value in ("Because\nof a reason.", "Because\r\nof a reason."):
+        found = _codes(why=value)
+        assert "why.newline" in found, value
+        assert "why.control" not in found, value
+
+
+def test_a_tab_is_left_to_the_fixer_that_normalizes_it():
+    # `char.tab` is `--fix`'s (RK126): refusing at the door what the gate one file over
+    # repairs would be two rules about one character, disagreeing.
+    assert "why.control" not in _codes(why="Because \tof a reason.")
+
+
+def test_the_symptom_is_answered_the_same_way():
+    assert "symptom.control" in _codes(symptom="A \asymptom")
+
+
+def test_only_the_first_is_reported():
+    # A sentence carrying six is six symptoms of one quoting mistake, and the first already
+    # sends the reader to it.
+    mangled = "Because \aof \aa \areason."
+    assert sum(1 for code in _codes(why=mangled) if code == "why.control") == 1
+
+
+def _task(**fields):
+    from roadkeep.schema import Task
+
+    base = {
+        "id": "RK1",
+        "status": "📋",
+        "block": "A",
+        "symptom": "A symptom",
+        "why": "Because of a reason.",
+        "ref": "RK1",
+    }
+    return Task(**{**base, **fields})
+
+
+def _codes(**fields):
+    return [v.code for v in SCHEMA.validate(_task(**fields))]
+
+
+def _message(code, **fields):
+    return next(
+        v.message for v in SCHEMA.validate(_task(**fields)) if v.code == code
+    )
