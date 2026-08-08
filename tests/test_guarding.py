@@ -567,6 +567,32 @@ def test_a_refusal_reads_as_an_answer_and_says_reading_is_free():
     assert f"{invocation()} brief <id>" in reason
 
 
+def test_the_denial_names_the_repair_route_before_the_fourteen_commands():
+    """RK424: the barrier is keyed by role and can no longer be the only thing speaking.
+
+    It never reads what the agent was about to write — deliberately — so it cannot narrow
+    fourteen commands to one. Since RK420 the *gate* can: a finding carries the command that
+    closes it, and this refusal is the one place an agent repairing a reported line will
+    certainly look, because it is what stopped the `Edit`. So that route goes first.
+    """
+    reason = str(Refusal(tool="Edit", path=ROADMAP, role="roadmap"))
+    assert f"{invocation()} repair" in reason
+    assert f"{invocation()} explain <code>" in reason
+    # First, and before the table it is meant to shortcut — a shortcut printed after the
+    # long way round is a shortcut nobody takes.
+    assert reason.index(f"{invocation()} repair") < reason.index("Call instead")
+    # And the fourteen stay, for the write that is not a repair.
+    assert f"{invocation()} add --block" in reason or "mcp__roadkeep__add" in reason
+
+
+def test_the_denial_still_runs_no_linter_to_say_it():
+    # The budget RK261 bought: a fresh process per hook call, so naming the command has to
+    # cost a string and not an import of the gate. `DENIAL_REACHES` is the real assertion
+    # (above); this states the intent that number holds.
+    assert "roadkeep.linting" not in DENIAL_REACHES
+    assert "roadkeep.remedying" not in DENIAL_REACHES
+
+
 def test_an_unknown_role_offers_nothing_rather_than_guessing():
     """A role no table covers is a role added without its commands — silence over a wrong
     command, and the deny still stands."""

@@ -420,24 +420,3 @@ the reader who has the diff.
 
 What would decide it is whether an edit here was ever actually mis-reviewed, which `git
 log -p` on this file can answer and this section cannot.
-
-### §RK424 A denial that knows the report exists
-
-The barrier answers by role: deny a write to the roadmap and fourteen commands come
-back, one of which is the caller's. That was right while the guard was the only thing
-speaking — it cannot read what the agent was about to write, deliberately, and a table
-keyed by intent would be a table keyed by a guess.
-
-But the guard is no longer the only thing speaking. Once a finding carries its remedy,
-the agent repairing a *reported* line has a cheaper route than reading the table, and
-the denial is the one place it will certainly look. So the refusal gains a first line
-for that case: where the write is a repair, `lint` names the one command, and here is
-the verb that prints it. The fourteen stay beneath it, for the write that is not a
-repair.
-
-What this refuses to do is run `lint` inside the hook. `PreToolUse` is a fresh process
-the harness waits on before every `Edit`, `Write` and `Bash`, held at 44.6 ms and five
-modules by RK261, and loading the linter there would spend that budget on every write in
-the repository to answer a question about a few. Naming the command costs one line of a
-string that is already being composed, and the caller who needs the answer is one call
-away from it.

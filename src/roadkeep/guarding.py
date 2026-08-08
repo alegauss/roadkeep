@@ -296,6 +296,42 @@ class Refusal:
             f"roadkeep owns its writes."
         )
 
+    @property
+    def _repairing(self) -> list[str]:
+        """The shorter route, for the write that is a repair (RK424).
+
+        This table is keyed by **role**, deliberately: the hook never reads what the agent
+        was about to write — the module's last paragraph is about exactly that — so it
+        cannot narrow fourteen commands to one, and a table keyed by intent would be a table
+        keyed by a guess.
+
+        But since RK420 the guard is no longer the only thing that speaks. A finding carries
+        the command that closes it, so an agent repairing a *reported* line has a route that
+        is one call rather than a read of this list — and this refusal is the one place it
+        will certainly look, because it is what stopped the `Edit`. So the route is named
+        first and the fourteen stay beneath it, for the write that is not a repair.
+
+        What this deliberately does **not** do is run `lint` here. `PreToolUse` is a fresh
+        process the harness waits on before every `Edit`, `Write` and `Bash`, held at 44.6 ms
+        and five modules by RK261, and loading the linter would spend that budget on every
+        write in the repository to answer a question about a few of them. Naming the command
+        costs three lines of a string already being composed, and the caller who needs the
+        answer is one call away from it.
+        """
+        reached = invocation()
+        offered = (
+            ("repair", "every finding whose remedy is one command, applied in one call"),
+            ("repair --dry-run", "the same list, printed and not run"),
+            ("explain <code>", "what one code means, and which doors close it"),
+        )
+        width = max(len(command) for command, _ in offered)
+        return [
+            "If this edit was repairing something `lint` reported, it already named the "
+            "command that closes each finding — so none of them has to be inferred:",
+            *(f"  {reached} {command:<{width}}  {purpose}" for command, purpose in offered),
+            "",
+        ]
+
     def __str__(self) -> str:
         """The reason, as the agent reads it: what was refused, why, and what to run."""
         lines = [
@@ -307,6 +343,7 @@ class Refusal:
             "deletion instead of a refusal.",
             "",
         ]
+        lines += self._repairing
         if self.tools:
             width = max(len(name) for name, _ in self.tools)
             lines.append("Call instead — this session's tools, where the fields are a schema:")
