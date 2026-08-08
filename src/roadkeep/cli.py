@@ -3419,6 +3419,7 @@ def _ship(config: Config, args: argparse.Namespace) -> int:
                         },
                         "nested": list(shipment.nested),
                         "cited": list(shipment.cited),
+                        "emptied": shipment.emptied,
                         "kept": shipment.kept,
                         # What the deleted design was overtaken by (RK310), beside the
                         # anchor it was written under: the two are one fact, and a caller
@@ -3446,6 +3447,7 @@ def _ship(config: Config, args: argparse.Namespace) -> int:
                 f"  nested   {', '.join(f'§{a}' for a in shipment.nested)} went with it"
             )
         _print_cited(shipment.cited)
+        _print_emptied(shipment.emptied)
     else:
         print(f"  kept     nothing dropped: {shipment.kept}")
     # Beside the drop rather than inside it (RK310): the deletion is what makes the clause
@@ -3638,6 +3640,26 @@ def _carried_json(config: Config, carried: Carried | None) -> dict[str, str | No
     }
 
 
+def _print_emptied(parent: str | None) -> None:
+    """The parent this drop left introducing children that have all shipped (RK400).
+
+    Beside the citation line and for the same reason: this is the only moment it can be
+    said. `ship` deletes the task's own section and names what cited it; under an outline it
+    leaves the **parent** standing, and that paragraph was written as an introduction to the
+    children — it states the problem they solve, in the present tense, and it is the first
+    thing anyone reads about that family.
+
+    Noticing is the tool's; what the introduction should say instead is a `section amend` and
+    a judgement (L4). So the sentence names the anchor and the door, and writes nothing.
+    """
+    if parent is None:
+        return
+    print(
+        f"  emptied  §{parent} now has no subsections — its prose introduces work that has "
+        f"shipped; `section amend {parent} --body -` is the edit, in this commit"
+    )
+
+
 def _print_cited(cited: Sequence[str]) -> None:
     """Who is left pointing at prose this command deleted (RK206).
 
@@ -3798,6 +3820,7 @@ def _closed(
                         else {"anchor": closure.dropped.anchor, "title": closure.dropped.title},
                         "nested": list(closure.nested),
                         "cited": list(closure.cited),
+                        "emptied": closure.emptied,
                         "kept": closure.kept,
                     },
                     "refreshed": list(closure.refreshed),
@@ -3820,6 +3843,7 @@ def _closed(
         if closure.nested:
             print(f"  nested   {', '.join(f'§{a}' for a in closure.nested)} went with it")
         _print_cited(closure.cited)
+        _print_emptied(closure.emptied)
     if closure.refreshed:
         print(f"  derived  {', '.join(closure.refreshed)} (dep annotations re-derived)")
     _print_dequeued(closure.dequeued)

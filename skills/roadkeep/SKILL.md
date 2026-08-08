@@ -63,7 +63,10 @@ so. **`ship <id> --why "<what now works>"` makes its three edits** (ledger entry
 line gone, `§<id>` deleted) plus the dependents' annotations, or none. It **names any
 section whose prose cited what it deleted**: the ship is right and that citation is your
 next edit, in *this* commit, because a shipped entry keeps no pointer and from the next
-command on the reference reads exactly like a typo. **You read that design and the code
+command on the reference reads exactly like a typo. Under an outline it names one thing
+more: the **parent** left with no subsections, whose prose was written as an introduction
+to children that have now all shipped — `section amend <parent> --body -` is that edit, and
+what it should say instead is yours. **You read that design and the code
 may have moved under it**: `--superseded-design "<what it was wrong about>"` is the trace,
 parenthesised into the ledger's own sentence with the anchor, because the deletion
 otherwise leaves the one reader who could ever know it was stale — you — with nowhere to

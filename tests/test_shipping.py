@@ -1714,3 +1714,83 @@ def test_the_json_answers_the_clause_as_a_field(tmp_path, capsys):
     )
     payload = json.loads(capsys.readouterr().out)
     assert payload["improvements"]["superseded"] == "the lookup it proposed already existed"
+
+
+# -- the parent a ship just emptied (RK400) -----------------------------------
+
+
+def _outlined(tmp_path, prose=None):
+    """A project numbering its prose by outline, with one family and one child."""
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "DX"\nref_scheme = "outline"\n[files]\nroadmap = "ROADMAP.md"\n'
+        'changelog = "CHANGELOG.md"\nimprovements = "IMPROVEMENTS.md"\n',
+        encoding="utf-8",
+    )
+    files = {
+        "ROADMAP.md": "# Roadmap\n\n## Block A — The model\n\n"
+        "- 📋 **DX1** (deps: —) **A first symptom** — Because of a reason. → §I.1\n",
+        "CHANGELOG.md": "# Shipped\n\n## Block A — The model\n",
+        "IMPROVEMENTS.md": prose
+        or "# Improvements\n\n## I A family of designs\n\n"
+        "The problem this family solves, in the present tense.\n\n"
+        "### §I.1 DX1 The first design\n\nThe reasoning.\n",
+    }
+    for name, body in files.items():
+        with (tmp_path / name).open("w", encoding="utf-8", newline="") as handle:
+            handle.write(body)
+    return Config.discover(tmp_path)
+
+
+def test_the_parent_left_with_no_children_is_named(tmp_path):
+    """`ship` deletes the task's own section and names what cited it. Under an outline it
+    leaves the **parent** standing — an introduction to children that have all shipped, in
+    the present tense, and the first thing anyone reads about that family."""
+    config = _outlined(tmp_path)
+    shipped = ship(config, "DX1", why="It works now.")
+    assert shipped.emptied == "I"
+
+
+def test_a_parent_that_still_holds_a_child_is_not_named(tmp_path):
+    # The ordinary case, and not worth a line: the introduction still introduces something.
+    config = _outlined(
+        tmp_path,
+        prose="# Improvements\n\n## I A family of designs\n\nThe problem.\n\n"
+        "### §I.1 DX1 The first design\n\nThe reasoning.\n\n"
+        "### §I.2 A second design\n\nThe reasoning.\n",
+    )
+    assert ship(config, "DX1", why="It works now.").emptied is None
+
+
+def test_nothing_is_named_where_an_anchor_has_no_parent(tmp_path):
+    # Under `ref_scheme = "id"` the anchor is the id and there is no parent to empty, so the
+    # question is not asked rather than answered "none".
+    config = project(tmp_path)
+    assert ship(config, "RK1", why="It works now.").emptied is None
+
+
+def test_the_introduction_is_never_rewritten(tmp_path):
+    # Noticing is the tool's; what it should say instead is a judgement (L4). The paragraph
+    # is exactly where it was, and the answer names the door.
+    config = _outlined(tmp_path)
+    ship(config, "DX1", why="It works now.")
+    prose = (tmp_path / "IMPROVEMENTS.md").read_text(encoding="utf-8")
+    assert "The problem this family solves, in the present tense." in prose
+    assert "## I A family of designs" in prose
+
+
+def test_the_answer_names_the_anchor_and_the_door(tmp_path, capsys):
+    config = _outlined(tmp_path)
+    assert main(["-C", str(config.root), "ship", "DX1", "--why", "It works."]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "emptied  §I now has no subsections" in out
+    assert "section amend I --body -" in out
+
+
+def test_the_payload_carries_it(tmp_path, capsys):
+    config = _outlined(tmp_path)
+    assert main(
+        ["-C", str(config.root), "ship", "DX1", "--why", "It works.", "--json"]
+    ) == EXIT_OK
+    # Under the prose file's object and not at the top level: it is a fact about the drop,
+    # and the caller reading `cited` beside it is the caller this answers.
+    assert json.loads(capsys.readouterr().out)["improvements"]["emptied"] == "I"

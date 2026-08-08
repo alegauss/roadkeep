@@ -627,6 +627,10 @@ class Departure:
     #: Sections whose prose cited what this drop deleted (RK206). Named and never refused:
     #: the ship is right and the citing prose is the author's next edit, in this commit.
     cited: tuple[str, ...] = ()
+    #: The parent anchor this drop left with no subsections (RK400), or None. The one thing
+    #: a ship leaves standing that nothing named: an introduction to children that have all
+    #: shipped, in the present tense, and the first thing anyone reads about that family.
+    emptied: str | None = None
     #: Open lines whose `(deps: …)` this write made true again (RK8).
     refreshed: tuple[str, ...] = ()
     #: The marker the ledger line carries: ✅ shipped, 🗑 retired.
@@ -770,6 +774,8 @@ class Closure:
     nested: tuple[str, ...] = ()
     #: Sections left citing what the drop deleted, as :class:`Departure` reports them (RK206).
     cited: tuple[str, ...] = ()
+    #: The parent this drop left with no subsections, as :class:`Departure` reports it (RK400).
+    emptied: str | None = None
     refreshed: tuple[str, ...] = ()
     dependents: tuple[str, ...] = ()
     #: The priority entry this closure took out (RK327). Here for the reason every other
@@ -1600,7 +1606,7 @@ def _depart(
     # One more change to a document already in hand (RK327): the queue names work, this line
     # is the work, and no state exists where the line has left and the order still names it.
     remaining, dequeued = queueing.without(remaining, config, task_id)
-    prose, dropped, kept, taken, cited = _drop_section(
+    prose, dropped, kept, taken, cited, emptied = _drop_section(
         config, entry.task.ref, leaving=task_id
     )
     # Resolved against the state this write *creates* — the id is in the ledger and gone
@@ -1620,6 +1626,7 @@ def _depart(
         kept=kept,
         nested=taken,
         cited=cited,
+        emptied=emptied,
         refreshed=derived.changed,
         marker=marker,
         superseded=superseded,
@@ -1736,7 +1743,7 @@ def _close(config: Config, task_id: str, recorded: Entry) -> Closure:
     entry = roadmap.by_id()[task_id]
     remaining = remove_entry(roadmap, entry)
     remaining, dequeued = queueing.without(remaining, config, task_id)
-    prose, dropped, kept, taken, cited = _drop_section(
+    prose, dropped, kept, taken, cited, emptied = _drop_section(
         config, entry.task.ref, leaving=task_id
     )
     derived = refresh(
@@ -1752,6 +1759,7 @@ def _close(config: Config, task_id: str, recorded: Entry) -> Closure:
         kept=kept,
         nested=taken,
         cited=cited,
+        emptied=emptied,
         refreshed=derived.changed,
         dependents=tuple(
             e.task.id for e in derived.document.entries if task_id in e.task.dep_ids
@@ -1784,7 +1792,14 @@ def _as_recorded(task: Task, marker: str, why: str | None) -> Task:
 
 def _drop_section(
     config: Config, anchor: str | None, *, leaving: str = ""
-) -> tuple[Document | None, Section | None, str | None, tuple[str, ...], tuple[str, ...]]:
+) -> tuple[
+    Document | None,
+    Section | None,
+    str | None,
+    tuple[str, ...],
+    tuple[str, ...],
+    str | None,
+]:
     """Delete the rationale section the departing line pointed at, if it is only that line's.
 
     Absence is reported, never refused: a task can ship without a section, and a command
@@ -1833,13 +1848,27 @@ def _drop_section(
     is the claim RK61 already reads.
     """
     if anchor is None:
-        return None, None, "the line carried no pointer", (), ()
+        return None, None, "the line carried no pointer", (), (), None
     roles = tuple(role for role in PROSE_ROLES if config.has(role))
     if not roles:
-        return None, None, f"this project declares no {' or '.join(PROSE_ROLES)} file", (), ()
+        return (
+            None,
+            None,
+            f"this project declares no {' or '.join(PROSE_ROLES)} file",
+            (),
+            (),
+            None,
+        )
     others = _others_pointing(config, anchor, leaving)
     if others:
-        return None, None, f"§{anchor} is also pointed at by {', '.join(others)}", (), ()
+        return (
+            None,
+            None,
+            f"§{anchor} is also pointed at by {', '.join(others)}",
+            (),
+            (),
+            None,
+        )
 
     named = " or ".join(config.relative(config.path(role)) for role in roles)
     # One resolver, called and not repeated (RK229): three verbs ask which file declares an
@@ -1854,9 +1883,10 @@ def _drop_section(
             f"that deleted one of two would be choosing which the line meant",
             (),
             (),
+            None,
         )
     if not holders:
-        return None, None, f"no §{anchor} section in {named}", (), ()
+        return None, None, f"no §{anchor} section in {named}", (), (), None
 
     role = holders[0]
     # The grammar of a section lives in one place (RK9), so shipping calls it rather than
@@ -1866,7 +1896,7 @@ def _drop_section(
     if held is not None:
         claim = owners(held, config.schema.id_pattern())
         if leaving and leaving not in claim:
-            return None, None, _unowned(anchor, claim), (), ()
+            return None, None, _unowned(anchor, claim), (), (), None
     taken = tuple(child.anchor for child in nested(prose, anchor))
     document, section, cited = drop_section(
         prose,
@@ -1876,7 +1906,31 @@ def _drop_section(
     )
     # `cited` is `drop`'s own answer (RK209): the deletion knows what it breaks, and a
     # second reading of the same file here would be a second thing to keep true.
-    return document, section, None, taken, cited
+    return document, section, None, taken, cited, _emptied(config, document, anchor)
+
+
+def _emptied(config: Config, document: Document, anchor: str) -> str | None:
+    """The parent this drop left with no subsections under it (RK400).
+
+    A `ship` deletes the task's own `§<id>` and names any section whose prose cited it. Under
+    an outline it leaves one thing standing that nothing named: the **parent** the deleted
+    children hung under. That paragraph was written as an introduction to them — it states
+    the problem they solve, in the present tense — so shipping the last of `§X.1`–`§X.4`
+    leaves `§X` telling a reader the work is open, and it is the first thing anyone reads
+    about that family.
+
+    Named and never rewritten. What the introduction should say instead is a `section amend`
+    and a judgement (L4); noticing is not, and the tool is the only party that can.
+
+    Silent under `ref_scheme = "id"`, where an anchor has no parent — and silent for a parent
+    that still holds children, which is the ordinary case and not worth a line.
+    """
+    parent, dot, _ = anchor.rpartition(".")
+    if not dot or config.schema.ref_scheme != "outline":
+        return None
+    if find(document, parent) is None or nested(document, parent):
+        return None
+    return parent
 
 
 def _unowned(anchor: str, claim: tuple[str, ...]) -> str:
