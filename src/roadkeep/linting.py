@@ -1547,8 +1547,8 @@ def _repeated(config: Config, role: str, document: Document) -> list[Finding]:
     same block headings, and `section add` resolves a block there the same way.
 
     Reported once per label, at the **second** heading and naming the first. The second is
-    the one that was added, and the message needs both addresses because the fix is an
-    editorial merge of two regions that nothing but their line numbers locates.
+    the one that was added, and the message needs the first's address because the fix is
+    `block merge` (RK403), which keeps that first heading and folds the rest into it.
     """
     where = config.relative(config.path(role))
     word = config.schema.heading_word
@@ -1564,7 +1564,8 @@ def _repeated(config: Config, role: str, document: Document) -> list[Finding]:
                     "block.repeated",
                     where,
                     f"{word} {label} is already declared on line {first.lineno}: one label "
-                    f"is one heading, and a write files under this one by position alone",
+                    f"is one heading, and a write files under this one by position alone — "
+                    f"`block merge {label}` folds it into the first",
                     later.lineno,
                 )
             )

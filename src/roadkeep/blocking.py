@@ -60,6 +60,7 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 
+from roadkeep.authoring import _after_preamble, remove_entry
 from roadkeep.config import Config
 from roadkeep.document import Document, Heading, blank, save_all
 from roadkeep.schema import Schema
@@ -68,12 +69,16 @@ __all__ = [
     "BlockExists",
     "BlockOccupied",
     "Closed",
+    "Merged",
     "NoSuchBlock",
     "NoSuchNeighbour",
     "NotALabel",
+    "NotRepeated",
     "NothingToDrop",
     "Opened",
+    "RegionOccupied",
     "drop_block",
+    "merge_block",
     "open_block",
 ]
 
@@ -224,6 +229,101 @@ class NothingToDrop(ValueError):
             f"{word} {label} is declared only in {', '.join(self.where)}, whose heading "
             f"holds the history filed under it: there is nothing to remove"
         )
+
+
+class NotRepeated(ValueError):
+    """A label no file declares more than once — there is nothing to consolidate (RK403).
+
+    The door `merge` exists to close is a **doubled** heading, so a label that is declared
+    once (or not at all) is refused rather than exited 0 over, for the reason
+    :class:`BlockExists` is: a command that writes nothing and reports success teaches that
+    it wrote something. The linenos it does declare are named, because the commonest cause
+    is a label spelled differently from the file's — the same help :class:`NoSuchBlock` gives.
+    """
+
+    def __init__(self, label: str, where: Sequence[str], word: str = "Block") -> None:
+        self.label = label
+        self.where = tuple(where)
+        listed = ", ".join(self.where) if self.where else "no governed file"
+        super().__init__(
+            f"{word} {label} is declared once, in {listed}: one heading is not two, and "
+            f"there is nothing to merge"
+        )
+
+
+class RegionOccupied(ValueError):
+    """A duplicate heading standing over something a mechanical fold may not move (RK403).
+
+    `merge` relocates **entries** — a task line or a ledger entry is keyed by its id and
+    filed under a label, so moving it under the surviving heading of the same label changes
+    no field and round-trips by construction (L3, L4). Two kinds are not that, and each is
+    refused by name rather than folded:
+
+    * A **nested heading** — a rationale section, a sub-block — is a subtree whose placement
+      is editorial, and `section move` is its door. Folding it would guess an order the tool
+      has no opinion about (L4), which is the same reason :func:`open_block` refuses to invent
+      a heading at all.
+    * **Loose prose** is carried only under ``--prose``, the flag :class:`BlockOccupied`
+      already names (RK237): a paragraph under one of two duplicate headings is a note the
+      merge drops, and dropping it silently is the misfiling RK144 refused over.
+
+    Named and not counted, for :class:`BlockOccupied`'s reason: an author who reached this
+    door needs to see *what* is in the way, not how much.
+    """
+
+    def __init__(
+        self,
+        label: str,
+        where: str,
+        named: Sequence[str],
+        word: str = "Block",
+        *,
+        nested: bool,
+    ) -> None:
+        self.label = label
+        self.where = where
+        self.named = tuple(named)
+        holds = ", ".join(self.named)
+        if nested:
+            super().__init__(
+                f"{where} nests {holds} under a second {word} {label}: a section is not an "
+                f"entry, and `section move` places it — `merge` folds entries alone"
+            )
+            return
+        super().__init__(
+            f"{where} files loose prose ({holds}) under a second {word} {label}: pass "
+            f"--prose to drop the note as the duplicate heading is folded, or move it first"
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class Merged:
+    """What consolidating one label's duplicate headings changes, before it is written (RK403).
+
+    The inverse shape of neither :class:`Opened` nor :class:`Closed`: a merge keeps a heading
+    **and** removes one or more, and moves the entries the removed ones stood over into the
+    one that stays. So it carries the surviving heading's line, every folded heading's line
+    verbatim — the file will not hold them to read afterwards — and the ids that moved, per
+    role, because the whole answer is *what went where*.
+    """
+
+    label: str
+    #: The files this write changes, by role. Written together or not at all.
+    documents: Mapping[str, Document] = field(default_factory=dict)
+    #: Where the surviving heading is, by role — 1-based, as an editor counts.
+    kept: Mapping[str, int] = field(default_factory=dict)
+    #: The folded headings, verbatim and by role: the answer's only record of the titles this
+    #: removed, since the file no longer holds them.
+    folded: Mapping[str, tuple[str, ...]] = field(default_factory=dict)
+    #: The ids relocated into the surviving region, by role and in the order they moved.
+    moved: Mapping[str, tuple[str, ...]] = field(default_factory=dict)
+    #: Lines of loose prose dropped with a folded heading, by role (RK237). Absent where a
+    #: heading stood over entries alone, so the report tells "folded" from "folded the note too".
+    notes: Mapping[str, int] = field(default_factory=dict)
+
+    def save(self) -> None:
+        """Write every file, having asked all of them first (RK116, RK6)."""
+        save_all(*self.documents.values())
 
 
 @dataclass(frozen=True, slots=True)
@@ -626,3 +726,156 @@ def _lineno(document: Document, raw: str) -> int:
     """Where the heading this write just rendered ended up, read back off the parse."""
     text = raw.partition(" ")[2]
     return next(h.lineno for h in document.headings if h.text == text)
+
+
+def merge_block(config: Config, label: str, *, prose: bool = False) -> Merged:
+    """Fold every duplicate heading for one label into the first, moving the entries (RK403).
+
+    The key RK391 named and RK141/RK144's pair never cut. Two headings under one label is a
+    state the gate reports (`block.repeated`) and every write refuses
+    (:class:`~roadkeep.document.RepeatedHeading`), and the only remedy it could offer was
+    *merge the two regions by hand* — which the guard (RK22) denies and the gate (RK14)
+    refuses. `drop_block` cannot help: it **skips the ledger**, whose headings hold history
+    for ever, so an empty duplicate ledger heading is :class:`NothingToDrop` rather than
+    removable; `--fix` (RK16) repairs only derived data. So a doubled changelog heading — the
+    shape a textual git merge, an `adopt`, or a hand edit leaves — was the one deadlock with
+    no door.
+
+    This is that door, and it is mechanical, not editorial. The surviving heading is the
+    **first** one — the same choice `block.repeated` reports and `add` files under by position
+    — and every later duplicate's entries move under it. Because both regions share the label,
+    an entry's every field is byte-identical before and after, so the relocation round-trips
+    by construction (L3) and writes no prose (L4); the move is `record move`'s (RK143) without
+    the block changing.
+
+    **The ledger is included, not skipped**, which is the difference from `drop_block` and the
+    reason this exists: consolidating two headings of *one* label keeps history under a heading
+    of that label, so nothing is orphaned — the danger that made `drop_block` skip the ledger
+    does not arise here.
+
+    Validates everything before touching anything, as :func:`open_block` and :func:`drop_block`
+    do — all of the files, or none of them. A later duplicate standing over a **nested heading**
+    (a rationale section, a sub-block) is :class:`RegionOccupied`, because placing a subtree is
+    `section move`'s editorial call and not a fold's; **loose prose** is dropped only under
+    ``prose`` and refused by name otherwise (RK237). A label declared once or nowhere is
+    :class:`NotRepeated`.
+    """
+    word = config.schema.heading_word
+    declaring = _declaring(config, label)
+    if not declaring:
+        raise NoSuchBlock(label, _labels(config), word=word)
+
+    doubled = [(role, where, document) for role, where, document, _ in declaring
+               if len(document.declaring(label)) > 1]
+    if not doubled:
+        raise NotRepeated(label, [where for _, where, _, _ in declaring], word=word)
+
+    # Every refusal before any write (RK6): a nested heading or an un-flagged note under a
+    # duplicate leaves the whole tree untouched, including the files whose fold was clean.
+    for role, where, document in doubled:
+        for later in document.declaring(label)[1:]:
+            held = _held(document, later)
+            if held.headings:
+                raise RegionOccupied(label, where, held.headings, word=word, nested=True)
+            if held.prose and not prose:
+                raise RegionOccupied(
+                    label, where, [f"line {n}" for n in held.prose], word=word, nested=False
+                )
+
+    changed: dict[str, Document] = {}
+    kept: dict[str, int] = {}
+    folded: dict[str, tuple[str, ...]] = {}
+    moved: dict[str, tuple[str, ...]] = {}
+    notes: dict[str, int] = {}
+    for role, _, document in doubled:
+        result, moved_ids, folded_headings, dropped = _fold(document, label)
+        changed[role] = result
+        kept[role] = result.declaring(label)[0].lineno
+        moved[role] = moved_ids
+        folded[role] = folded_headings
+        if dropped:
+            notes[role] = dropped
+    return Merged(
+        label=label,
+        documents=changed,
+        kept=kept,
+        folded=folded,
+        moved=moved,
+        notes=notes,
+    )
+
+
+def _fold(document: Document, label: str) -> tuple[Document, tuple[str, ...], tuple[str, ...], int]:
+    """Fold every later heading for ``label`` into the first, entry by entry.
+
+    Re-reads the parse each step (RK54): moving one entry re-numbers every line below it, and
+    a heading held across the edit is a heading at a line that has moved. So the loop asks
+    :meth:`~roadkeep.document.Document.declaring` again each time and acts on the first
+    remaining duplicate — moving its next entry under the survivor, or, once it holds none,
+    excising the emptied heading. It ends when one heading is left, which the entry moves and
+    the excises both drive toward.
+    """
+    result = document
+    moved: list[str] = []
+    folded: list[str] = []
+    notes = 0
+    while len(result.declaring(label)) > 1:
+        keep, later = result.declaring(label)[:2]
+        entries = [
+            entry
+            for entry in result.entries
+            if later.lineno < entry.lineno <= result.subtree_end(later)
+        ]
+        if entries:
+            entry = entries[0]
+            # The whole entry, continuation lines included (RK157): a wrapped ledger entry's
+            # tail is prose no task holds, so a fold that re-rendered alone would take the
+            # paragraph out of the file in the name of moving the bullet.
+            carrying = tuple(
+                line.rstrip("\r\n") for line in result.lines[entry.lineno : entry.stop]
+            )
+            moved.append(entry.task.id)
+            result = remove_entry(result, entry)
+            result = _append_under(result, result.declaring(label)[0], entry.raw, carrying)
+        else:
+            # Emptied: the heading now stands over blanks alone (a note went with `--prose`
+            # to `_held` above, which is why the count is read before the excise removes it).
+            held = _held(result, later)
+            notes += len(held.prose)
+            folded.append(result.lines[later.lineno - 1].rstrip("\r\n"))
+            result = _excise(result, later)
+    return result, tuple(moved), tuple(folded), notes
+
+
+def _append_under(
+    document: Document, heading: Heading, raw: str, carrying: tuple[str, ...]
+) -> Document:
+    """Place one entry (and its continuation) at the end of ``heading``'s region.
+
+    After the region's last entry when it has one, which needs no blank reasoning: the line
+    that followed it — the block's trailing blank, or the next heading — still follows the
+    line now appended. An **empty** surviving region is `place`'s empty-block case (RK108):
+    the entry lands after the heading's own prose, with the blanks a first line needs on
+    either side, so the introduction stays above the backlog and nothing is glued to a heading.
+    """
+    region = [
+        entry
+        for entry in document.entries
+        if heading.lineno < entry.lineno <= document.subtree_end(heading)
+    ]
+    lines = document.lines
+    if region:
+        index, payload = region[-1].stop, [raw, *carrying]
+    else:
+        index = _after_preamble(document, heading)
+        before: list[str] = []
+        if index < len(lines) and blank(lines[index]):
+            index += 1
+        else:
+            before = [""]
+        after = [] if index >= len(lines) or blank(lines[index]) else [""]
+        payload = [*before, raw, *carrying, *after]
+    result = document
+    for offset, line in enumerate(payload):
+        result = result.insert_line(index + offset, line)
+    return result

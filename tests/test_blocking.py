@@ -683,3 +683,212 @@ def test_the_drop_json_says_which_heading_left_which_file(tmp_path, capsys):
         "improvements",
     ]
     assert payload["removed"][0]["rendered"] == "## Block C — Query"
+
+
+# -- the key the pair never cut: a doubled heading folded into the first (RK403) ----------
+
+
+def _entry(task_id: str, symptom: str, why: str) -> str:
+    return f"- ✅ **{task_id}** **{symptom}** — {why}."
+
+
+#: A ledger a textual git merge left: Block B declared twice, an entry under each, with an
+#: unrelated block between them so the fold cannot be a matter of removing an adjacent heading.
+DOUBLED = (
+    "# Shipped\n\n## Block A — The model\n\n"
+    + _entry("RK5", "A first thing fails", "because the first held")
+    + "\n\n## Block B — Authoring\n\n"
+    + _entry("RK6", "A second thing fails", "because the second held")
+    + "\n\n## Block A — The model\n\n"  # the duplicate, of a different label, is left alone
+    + _entry("RK4", "A fourth thing fails", "because the fourth held")
+    + "\n"
+)
+
+
+def _doubled_on(label: str) -> str:
+    """A ledger with two ``label`` headings and one entry under each, one block apart."""
+    other = "A" if label != "A" else "B"
+    return (
+        "# Shipped\n\n"
+        f"## Block {label} — First\n\n"
+        + _entry("RK6", "A second thing fails", "because the second held")
+        + f"\n\n## Block {other} — Between\n\n"
+        + _entry("RK5", "A fifth thing fails", "because the fifth held")
+        + f"\n\n## Block {label} — First\n\n"
+        + _entry("RK4", "A fourth thing fails", "because the fourth held")
+        + "\n"
+    )
+
+
+def test_a_doubled_changelog_heading_is_folded_into_the_first(tmp_path):
+    from roadkeep.blocking import merge_block
+
+    config = project(tmp_path, changelog=_doubled_on("B"))
+    # The state the gate reports and every write refuses, before the fold.
+    assert any(f.code == "block.repeated" for f in lint(config).findings)
+
+    merge_block(config, "B").save()
+    config = Config.discover(tmp_path)
+    ledger = read(config, CHANGELOG)
+    # One Block B heading now, and both entries under it in the order they were folded.
+    assert ledger.count("## Block B — First") == 1
+    assert ledger.index("RK6") < ledger.index("RK4")
+    # The block between them is untouched, and the file passes its own gate.
+    assert "## Block A — Between" in ledger
+    assert not lint(config).findings
+
+
+def test_the_fold_is_the_merge_the_write_path_refuses_by_hand(tmp_path):
+    # End to end: the write path refuses a doubled heading (RepeatedHeading), the fold is the
+    # tool's own answer to it, and after it a write the guard is the only other route to lands.
+    from roadkeep.blocking import merge_block
+    from roadkeep.document import RepeatedHeading
+    from roadkeep.shipping import record
+
+    config = project(tmp_path, changelog=_doubled_on("B"))
+    with pytest.raises(RepeatedHeading):
+        record(config, block="B", symptom="A new thing fails", why="because a new reason held.")
+
+    merge_block(config, "B").save()
+    config = Config.discover(tmp_path)
+    written = record(
+        config, block="B", symptom="A new thing fails", why="because a new reason held."
+    )
+    written.ledger.save()
+    assert not lint(Config.discover(tmp_path)).findings
+
+
+def test_a_label_declared_once_is_refused_rather_than_reported_clean(tmp_path):
+    from roadkeep.blocking import NotRepeated, merge_block
+
+    config = project(tmp_path)  # every file declares Block B exactly once
+    with pytest.raises(NotRepeated):
+        merge_block(config, "B")
+
+
+def test_a_label_no_file_declares_is_the_other_refusal(tmp_path):
+    from roadkeep.blocking import NoSuchBlock, merge_block
+
+    config = project(tmp_path)
+    with pytest.raises(NoSuchBlock):
+        merge_block(config, "Z")
+
+
+def test_a_nested_section_under_a_duplicate_is_section_moves_to_place(tmp_path):
+    # A rationale file with Block B declared twice, a section nested under the second: folding
+    # a subtree is `section move`'s editorial call, so `merge` refuses by name and writes nothing.
+    from roadkeep.blocking import RegionOccupied, merge_block
+
+    rationale = (
+        "# Improvements\n\n## Block A — The model\n\n### §RK1 A first design\n\n"
+        "The reasoning.\n\n## Block B — Authoring\n\n### §RK2 A second design\n\n"
+        "The other reasoning.\n\n## Block B — Authoring\n\n### §RK9 A stray design\n\n"
+        "A design under the duplicate.\n"
+    )
+    config = project(tmp_path, improvements=rationale)
+    before = read(config, IMPROVEMENTS)
+    with pytest.raises(RegionOccupied) as caught:
+        merge_block(config, "B")
+    assert "section move" in str(caught.value)
+    assert read(Config.discover(tmp_path), IMPROVEMENTS) == before
+
+
+def test_loose_prose_under_a_duplicate_needs_the_flag(tmp_path):
+    from roadkeep.blocking import RegionOccupied, merge_block
+
+    ledger = (
+        "# Shipped\n\n## Block A — The model\n\n## Block B — Authoring\n\n"
+        + _entry("RK6", "A second thing fails", "because the second held")
+        + "\n\n## Block B — Authoring\n\nA stray note under the duplicate.\n\n"
+        + _entry("RK4", "A fourth thing fails", "because the fourth held")
+        + "\n"
+    )
+    config = project(tmp_path, changelog=ledger)
+    with pytest.raises(RegionOccupied) as caught:
+        merge_block(config, "B")
+    assert "--prose" in str(caught.value)
+    # The flag drops the note as the heading folds, and the file is clean after.
+    merge_block(config, "B", prose=True).save()
+    config = Config.discover(tmp_path)
+    after = read(config, CHANGELOG)
+    assert "stray note" not in after
+    assert after.count("## Block B — Authoring") == 1
+    assert not lint(config).findings
+
+
+def test_three_headings_for_one_label_fold_into_one(tmp_path):
+    from roadkeep.blocking import merge_block
+
+    ledger = (
+        "# Shipped\n\n## Block A — The model\n\n## Block B — Authoring\n\n"
+        + _entry("RK6", "A sixth thing fails", "because the sixth held")
+        + "\n\n## Block B — Authoring\n\n"
+        + _entry("RK5", "A fifth thing fails", "because the fifth held")
+        + "\n\n## Block B — Authoring\n\n"
+        + _entry("RK4", "A fourth thing fails", "because the fourth held")
+        + "\n"
+    )
+    config = project(tmp_path, changelog=ledger)
+    merged = merge_block(config, "B")
+    merged.save()
+    config = Config.discover(tmp_path)
+    after = read(config, CHANGELOG)
+    assert after.count("## Block B — Authoring") == 1
+    assert merged.moved["changelog"] == ("RK5", "RK4")
+    assert len(merged.folded["changelog"]) == 2
+    assert not lint(config).findings
+
+
+def test_the_first_region_empty_still_receives_the_folded_entries(tmp_path):
+    # The surviving heading has no entry of its own; the fold still lands under it, blanks intact.
+    from roadkeep.blocking import merge_block
+
+    ledger = (
+        "# Shipped\n\n## Block A — The model\n\n## Block B — Authoring\n\n"
+        "## Block A — The model\n\n"
+        + _entry("RK4", "A fourth thing fails", "because the fourth held")
+        + "\n"
+    )
+    config = project(tmp_path, changelog=ledger)
+    merge_block(config, "A").save()
+    config = Config.discover(tmp_path)
+    after = read(config, CHANGELOG)
+    assert after.count("## Block A — The model") == 1
+    assert "RK4" in after
+    assert not lint(config).findings
+
+
+def test_nothing_is_written_when_a_second_file_refuses(tmp_path):
+    # All of the files or none: a clean changelog fold is not written when the rationale file's
+    # own duplicate holds a section the fold may not place.
+    from roadkeep.blocking import RegionOccupied, merge_block
+
+    rationale = (
+        "# Improvements\n\n## Block A — The model\n\n### §RK1 A first design\n\n"
+        "The reasoning.\n\n## Block B — Authoring\n\n### §RK2 A second design\n\n"
+        "The other reasoning.\n\n## Block B — Authoring\n\n### §RK9 A stray design\n\n"
+        "A design under the duplicate.\n"
+    )
+    config = project(tmp_path, changelog=_doubled_on("B"), improvements=rationale)
+    ledger_before = read(config, CHANGELOG)
+    with pytest.raises(RegionOccupied):
+        merge_block(config, "B")
+    assert read(Config.discover(tmp_path), CHANGELOG) == ledger_before
+
+
+def test_the_merge_command_reports_what_moved(tmp_path, capsys):
+    project(tmp_path, changelog=_doubled_on("B"))
+    assert main(["-C", str(tmp_path), "block", "merge", "B"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "consolidated" in printed
+    assert "RK4" in printed
+
+
+def test_the_merge_json_says_which_ids_moved_where(tmp_path, capsys):
+    project(tmp_path, changelog=_doubled_on("B"))
+    assert main(["-C", str(tmp_path), "block", "merge", "B", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["label"] == "B"
+    changelog = next(r for r in payload["merged"] if r["role"] == "changelog")
+    assert changelog["moved"] == ["RK4"]
+    assert changelog["folded"] == ["## Block B — First"]
