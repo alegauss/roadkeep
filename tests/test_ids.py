@@ -14,7 +14,7 @@ import pytest
 
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
-from roadkeep.ids import highest, id_scanner, next_id, scan
+from roadkeep.ids import derivation, highest, id_scanner, next_id, scan
 from roadkeep.schema import Schema
 
 HERE = Path(__file__).resolve().parents[1]
@@ -278,3 +278,100 @@ def test_a_single_family_scanner_is_the_pattern_it_always_was():
 def test_the_scanner_is_the_schemas_own_join_and_not_a_second_copy():
     for schema in (Schema(), Schema(prefixes=("D",), id_pad=2), Schema(id_suffix=True)):
         assert id_scanner(schema).pattern == rf"\b{schema.id_groups}\b"
+
+
+# -- the id a sentence spent (RK431) -----------------------------------------
+
+
+def carrying(tmp_path: Path, ledger: str, prose: str = "") -> Config:
+    """A project whose ledger carries lines and whose `agents.md` only mentions ids."""
+    return project(
+        tmp_path,
+        {ROADMAP: "## Block A — The model\n", "docs/CHANGELOG.md": ledger, "agents.md": prose},
+        roles={"roadmap": ROADMAP, "changelog": "docs/CHANGELOG.md"},
+        extras=["agents.md"],
+    )
+
+
+ENTRY = "- ✅ **RK7** **A symptom** — Because it was done.\n"
+
+
+def test_an_id_only_a_sentence_names_is_reported_when_the_next_one_steps_over_it(tmp_path):
+    """SH614, reproduced. The ledger entry promised an id and `add` handed out the next.
+
+    Nothing malfunctions: the entry was written into a file the scan reads, so the highest
+    id in the corpus was the one the sentence promised to a task that did not exist yet.
+    The deriver cannot tell a declared id from a mentioned one, and every id starts as a
+    mention — so the derivation says which this was instead of being silent about it.
+    """
+    config = carrying(tmp_path, "## Block A — The model\n\n" + ENTRY, "Filed as RK8.\n")
+    answer = derivation(config)
+    assert answer.id == "RK9"
+    assert answer.promise is not None
+    assert (answer.promise.id, answer.promise.derived) == ("RK8", "RK9")
+    assert answer.promise.where == "agents.md:1"
+    assert "no line carries it" in answer.promise.sentence
+
+
+def test_a_highest_id_some_line_carries_is_no_promise_at_all(tmp_path):
+    # The overwhelming majority of derivations, and they must stay silent: RK7 is an
+    # entry, so RK8 steps over nothing and there is nothing to say about it.
+    config = carrying(tmp_path, "## Block A — The model\n\n" + ENTRY)
+    answer = derivation(config)
+    assert answer.id == "RK8" and answer.promise is None
+
+
+def test_a_paused_line_carries_its_id_as_much_as_a_shipped_one_does(tmp_path):
+    # The deferred store holds real lines (RK92): an id set aside is occupied, and
+    # reporting it as a promise would send the author to correct a sentence nobody wrote.
+    config = project(
+        tmp_path,
+        {
+            ROADMAP: "## Block A — The model\n",
+            "docs/CHANGELOG.md": "# Shipped\n",
+            "docs/DEFERRED.md": "## Block A — The model\n\n"
+            "- ⏸ **RK7** (deps: —) **A symptom** — set aside: waiting. → §RK7\n",
+        },
+        roles={
+            "roadmap": ROADMAP,
+            "changelog": "docs/CHANGELOG.md",
+            "deferred": "docs/DEFERRED.md",
+        },
+    )
+    assert derivation(config).promise is None
+
+
+def test_the_answer_carries_the_promise_and_the_bare_form_keeps_its_one_line(tmp_path, capsys):
+    config = carrying(tmp_path, "## Block A — The model\n\n" + ENTRY, "Filed as RK8.\n")
+    assert main(["-C", str(config.root), "next-id"]) == EXIT_OK
+    out = capsys.readouterr()
+    # stdout stays exactly the id: this command is captured in a shell, and a second line
+    # in that capture is a broken id.
+    assert out.out == "RK9\n"
+    assert "RK8 is named at agents.md:1" in out.err
+
+    assert main(["-C", str(config.root), "next-id", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["next"] == "RK9"
+    # Beside `highest`, which says which occurrence set the maximum, and never folded
+    # into it: this says the occurrence was a sentence rather than a line.
+    assert payload["highest"]["id"] == "RK8"
+    assert payload["promise"]["id"] == "RK8" and payload["promise"]["derived"] == "RK9"
+
+
+def test_nothing_is_refused_and_nothing_is_reserved(tmp_path, capsys):
+    """Which of the two ids the author wanted is a judgement about a sentence (L4).
+
+    So the `add` succeeds, the derived id is the derived id, and what is reported is that
+    a sentence somewhere else has stopped being true.
+    """
+    config = carrying(tmp_path, "## Block A — The model\n\n" + ENTRY, "Filed as RK8.\n")
+    argv = ["-C", str(config.root), "add", "--block", "A",
+            "--symptom", "A symptom that does not work", "--why", "Because of a reason."]
+    assert main(argv) == EXIT_OK
+    out = capsys.readouterr().out
+    assert out.startswith("- 📋 **RK9**")
+    assert "promise  RK8 is named at agents.md:1" in out
+    # And the same derivation twice does not report it twice differently: RK9 is now a
+    # line, so the next one steps over nothing.
+    assert derivation(Config.discover(config.root)).promise is None

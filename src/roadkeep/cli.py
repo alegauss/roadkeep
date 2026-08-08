@@ -97,7 +97,7 @@ from roadkeep.history import (
     next_family,
     origin_of,
 )
-from roadkeep.ids import highest, next_id
+from roadkeep.ids import Promise, derivation, highest
 from roadkeep.installing import UNPINNABLE, engines, install, plan, removal, uninstall
 from roadkeep.linting import Finding, Report, lint
 from roadkeep.locking import LockBusy, exclusive
@@ -2367,12 +2367,17 @@ def _may_offer(
 
 def _next_id(config: Config, args: argparse.Namespace) -> int:
     try:
-        identifier = next_id(config, args.family)
+        derived = derivation(config, args.family)
     except ValueError as error:
         return _refused(error)
+    identifier = derived.id
     family = args.family or config.schema.prefix
     if not args.json:
         print(identifier)
+        # On stderr, because stdout here is the id and nothing else: this command exists
+        # to be captured in a shell, and a second line in that capture is a broken id.
+        if derived.promise is not None:
+            print(f"roadkeep: {derived.promise.sentence}", file=sys.stderr)
         return EXIT_OK
     top = highest(config, family)
     print(
@@ -2388,6 +2393,10 @@ def _next_id(config: Config, args: argparse.Namespace) -> int:
                     "file": config.relative(top.path),
                     "line": top.lineno,
                 },
+                # Beside `highest` and not folded into it (RK431): that field says which
+                # occurrence set the maximum, and this says the occurrence was a sentence
+                # rather than a line — which is the whole difference nothing recorded.
+                "promise": _promise_json(derived.promise),
                 "sources": [
                     config.relative(path) for path in config.id_sources() if path.is_file()
                 ],
@@ -2396,6 +2405,18 @@ def _next_id(config: Config, args: argparse.Namespace) -> int:
         )
     )
     return EXIT_OK
+
+
+def _promise_json(promise: Promise | None) -> dict[str, object] | None:
+    """The id a sentence named and the derivation stepped over (RK431), or nothing."""
+    if promise is None:
+        return None
+    return {
+        "id": promise.id,
+        "where": promise.where,
+        "derived": promise.derived,
+        "sentence": promise.sentence,
+    }
 
 
 def _add(config: Config, args: argparse.Namespace) -> int:
@@ -2469,6 +2490,9 @@ def _add(config: Config, args: argparse.Namespace) -> int:
                     "needs": None
                     if insertion.needs is None
                     else _follow_up(insertion.needs, insertion.needs_role),
+                    # Null on almost every add, and the whole point when it is not (RK431):
+                    # the id below the one just written was a sentence, not a line.
+                    "promise": _promise_json(insertion.promise),
                     "event": event,
                 },
                 indent=2,
@@ -2483,6 +2507,10 @@ def _add(config: Config, args: argparse.Namespace) -> int:
             f"needs    {_follow_up(insertion.needs, insertion.needs_role)}  "
             f"(the pointer above resolves to nothing until then)"
         )
+    if insertion.promise is not None:
+        # Beside the line and not instead of it: the `add` succeeded, and what this reports
+        # is a sentence somewhere else that has just stopped being true (RK431).
+        print(f"promise  {insertion.promise.sentence}")
     _print_event(event)
     return EXIT_OK
 

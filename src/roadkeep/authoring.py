@@ -63,7 +63,7 @@ from roadkeep.document import (
     blank,
     read_deps,
 )
-from roadkeep.ids import next_id, scan
+from roadkeep.ids import Promise, derivation, scan
 from roadkeep.markers import derive, refresh
 from roadkeep.schema import SchemaError, Task
 from roadkeep.sections import Section
@@ -177,6 +177,10 @@ class Insertion:
     #: more than one place a section could go, so the command offered names the one it means
     #: — otherwise the author is handed `section add`'s default and a file that refuses it.
     needs_role: str | None = None
+    #: The id a sentence promised that deriving this one stepped over (RK431). Set only
+    #: where the id was *derived* — a caller that named its own spent nothing — and only
+    #: where the number below it is a mention no line ever took.
+    promise: Promise | None = None
 
     @property
     def rendered(self) -> str:
@@ -410,8 +414,13 @@ def add(
     correct three words in a different argument. So the prose is not fetched until the line
     it belongs to has passed.
     """
+    promise: Promise | None = None
     if task_id is None:
-        task_id = next_id(config, family)
+        # Read before the write and not after it: this `add` is about to put the derived id
+        # into a file the scan reads, and from that moment the corpus no longer says which
+        # of the two numbers was a line and which was a sentence (RK431).
+        derived = derivation(config, family)
+        task_id, promise = derived.id, derived.promise
     else:
         refuse_reuse(config, task_id)
     task = compose(
@@ -435,11 +444,14 @@ def add(
     # the line still has to pass before the paragraph is fetched. A `str` costs nothing to
     # look at twice, which is the whole distinction and the reason it is drawn on the type.
     _refuse_together(config, task, section)
-    insertion = place(
-        config.document("roadmap"),
-        derive(Backlog.load(config), task),
-        role="roadmap",
-        config=config,
+    insertion = replace(
+        place(
+            config.document("roadmap"),
+            derive(Backlog.load(config), task),
+            role="roadmap",
+            config=config,
+        ),
+        promise=promise,
     )
     # After the roadmap's own refusal and before the prose is read (RK380, RK381): a label
     # neither file declares is one mistake, and hearing it named against the file the line

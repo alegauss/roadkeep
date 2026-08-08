@@ -145,6 +145,7 @@
 - ✅ **RK426** **A call breaching two limits is refused twice, the second time for a limit the first refusal already measured** — add validates the line and a re-readable section body together and raises once, so a call breaching both is corrected in one resubmission instead of two.
 - ✅ **RK400** **Shipping a family's last child leaves its parent describing deleted work** — the ship names the parent its drop left with no subsections, beside the citation it already named, so an introduction to work that shipped is an edit in the same commit.
 - ✅ **RK385** **Nothing notices that a new line asks for what a shipped entry already delivered** — delivered <block> states every claim a block already made good on, named in the guard's table beside non-goal list, because a duplicate is a read and never a refusal.
+- ✅ **RK431** **An id mentioned in prose is consumed by the next add, so the sentence that named it is now wrong** — next-id and add report the id below the derived one when only prose names it, so a sentence that promised a number learns it was spent at the moment of spending rather than never.
 
 ## Block C — Query
 

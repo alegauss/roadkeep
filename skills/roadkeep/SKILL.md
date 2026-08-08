@@ -369,7 +369,10 @@ percentiles summarise being `--records` and 95% of the payload. It ranks nothing
 on no line — the size field is a non-goal. **`roadkeep brief [<id>]` starts a task in one
 call** — the line, its rationale, deps resolved, the blocker chain, what it unblocks and
 the non-goals, bounded to a tool result; with no id, `pick`'s own choice. Narrower:
-`next-id` never fills a gap; `list|stats|audit [--block <x>]` counts and lists, naming
+`next-id` never fills a gap, and where the number below the one it derives is named only
+in prose — a "filed as <id>" a ledger entry promised before the task existed — both it and
+`add` say so, because from the write on nothing records which of the two was a line;
+`list|stats|audit [--block <x>]` counts and lists, naming
 every marker line neither could read; `claims` is the registry read against the files —
 held, expired or stale, oldest first, where each id went and where the registry lives, and
 `--prune` drops the rows that are not claims; `writes` is the same read for the other

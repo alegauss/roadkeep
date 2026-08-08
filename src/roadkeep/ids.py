@@ -101,6 +101,96 @@ def highest(config: Config, family: str | None = None) -> IdRef | None:
     return max(refs, key=lambda ref: ref.number)
 
 
+#: The roles whose files carry an id as a **line** — a task, an entry, a paused line. Every
+#: other occurrence of an id anywhere is a mention in a sentence, and the scan cannot tell
+#: the two apart because every id starts as one (RK431).
+CARRIERS = ("roadmap", "changelog", "deferred")
+
+
+def carried(config: Config) -> frozenset[str]:
+    """Every id some governed file holds as a line rather than names in a sentence.
+
+    Read off the parsed documents and not off the scan: the scan is deliberately textual
+    (that is what makes `agents.md` count), and what is wanted here is the complement —
+    the ids that are *occupied*, which only a parse can say.
+    """
+    out: set[str] = set()
+    for role in CARRIERS:
+        if not config.has(role) or not config.path(role).is_file():
+            continue
+        out.update(config.document(role).by_id())
+    return frozenset(out)
+
+
+@dataclass(frozen=True, slots=True)
+class Promise:
+    """An id a sentence named and no line ever took (RK431)."""
+
+    #: The id the prose promised — one below :attr:`derived`, and the number the author
+    #: probably meant this task to have.
+    id: str
+    #: Where the sentence is, relative to the project root, as `file:line`.
+    where: str
+    #: The id handed out instead, because the mention had already raised the maximum.
+    derived: str
+
+    @property
+    def sentence(self) -> str:
+        """The one spelling, so `add` and `next-id` say it in the same words."""
+        return (
+            f"{self.id} is named at {self.where} and no line carries it, so {self.derived} "
+            f"was derived past it: if that sentence promised this task, it now names an id "
+            f"nothing will occupy"
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class Derivation:
+    """The next id, and the promise deriving it stepped over (RK431)."""
+
+    id: str
+    #: None on the overwhelming majority of derivations, where the highest id is a line.
+    promise: Promise | None = None
+
+
+def derivation(config: Config, family: str | None = None) -> Derivation:
+    """The next id, and whether the number below it was a promise nobody kept (RK431).
+
+    Shipping SH207 meant recording a defect it had uncovered, and the ledger entry said
+    *"filed as SH614"* — the id `next-id` had just reported. `add` then handed the new task
+    **SH615**, because the entry had by then been written into a file the scan reads, so
+    the highest id in the corpus was the one the sentence had promised. Nothing
+    malfunctioned: the deriver cannot tell an id that was *declared* from one merely
+    *mentioned*, and every id starts as a mention.
+
+    The cost is quiet — the `add` succeeds, the number looks unremarkable, and the only
+    signal is a prose reference to an id nothing will occupy, in a file the guard forbids
+    hand-editing. It is also a gap `gaps` cannot cover: that verb explains an id in neither
+    file, and this one *is* in one.
+
+    So the derivation says so, and does nothing else. It does not reserve the number
+    (a second source of truth, which is the counter file this module exists without) and
+    it does not refuse: which of the two ids the author wanted is a judgement about the
+    meaning of a sentence, and this tool has no model of one (L4).
+    """
+    chosen = family or config.schema.prefix
+    if chosen not in config.schema.prefixes:
+        raise UnknownFamily(chosen, config.schema.prefixes)
+    top = highest(config, chosen)
+    number = top.number + 1 if top else 1
+    identifier = config.schema.spell_id(chosen, number)
+    if top is None or top.id in carried(config):
+        return Derivation(identifier)
+    return Derivation(
+        identifier,
+        Promise(
+            id=top.id,
+            where=f"{config.relative(top.path)}:{top.lineno}",
+            derived=identifier,
+        ),
+    )
+
+
 def next_id(config: Config, family: str | None = None) -> str:
     """One past the highest id *in this family*, never the first unused number.
 
@@ -111,13 +201,12 @@ def next_id(config: Config, family: str | None = None) -> str:
 
     Spelled by :meth:`Schema.spell_id`, so a project that declared a width gets `D10` and
     not the `D1` its own gate would refuse a moment later (RK106).
+
+    The id alone, for the callers that only need one. :func:`derivation` is the same answer
+    with the promise it may have stepped over (RK431), and is what the two doors that
+    *report* a derived id call.
     """
-    chosen = family or config.schema.prefix
-    if chosen not in config.schema.prefixes:
-        raise UnknownFamily(chosen, config.schema.prefixes)
-    top = highest(config, chosen)
-    number = top.number + 1 if top else 1
-    return config.schema.spell_id(chosen, number)
+    return derivation(config, family).id
 
 
 class UnknownFamily(ValueError):

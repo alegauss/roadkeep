@@ -117,16 +117,12 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 30 | 2 |
-| B — Authoring (insert, never hand-edit) | 1 | 99 | 1 |
+| B — Authoring (insert, never hand-edit) | 0 | 100 | 1 |
 | C — Query (consult without reading the file) | 0 | 62 | 1 |
 | D — The gate | 0 | 88 | 0 |
 | E — Adoption | 0 | 73 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 69 | 1 |
-| **Total** | 1 | 421 | 6 |
-
-**Next ready:**
-
-- 📋 **RK431** (deps: —) **An id mentioned in prose is consumed by the next add, so the sentence that named it is now wrong** — Writing 'filed as SH614' in a ledger entry made SH614 exist for the deriver, so the task it promised got SH615 and the promise became a dangling reference. → §RK431
+| **Total** | 0 | 422 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
