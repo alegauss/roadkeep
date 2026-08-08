@@ -119,10 +119,10 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 30 | 2 |
 | B — Authoring (insert, never hand-edit) | 8 | 91 | 1 |
 | C — Query (consult without reading the file) | 4 | 57 | 1 |
-| D — The gate | 4 | 82 | 0 |
+| D — The gate | 3 | 83 | 0 |
 | E — Adoption | 1 | 72 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 2 | 67 | 1 |
-| **Total** | 19 | 399 | 6 |
+| **Total** | 18 | 400 | 6 |
 
 **Next ready:**
 
@@ -291,6 +291,14 @@ repos:
 an invisible codepoint, whitespace around a field, a queue entry whose task has left — and
 leaves every editorial finding to a human, which is what keeps a first run on a real backlog
 down to a report somebody reads.
+
+Every finding **names the command that closes it**, and `roadkeep repair` runs the ones that
+need no decision — the mechanical pass, then each complete argv, re-reading the report between
+writes because a repair moves the line numbers after it. That matters most for the caller this
+ships for: the guard denies an agent the hand edit, so a report whose remedy lived in English
+cost a turn per finding to act on. What still needs a sentence you have to write, or a choice
+between two doors, is printed with both and never guessed at — the tool does not write prose.
+`repair --dry-run` prints the commands and runs none of them.
 
 Two things it reports **without** failing, because refusing them would fail an honest file
 and a gate that gets bypassed is worth nothing: what a `Block X` dep expands to (one token

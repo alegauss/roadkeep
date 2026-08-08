@@ -283,6 +283,7 @@
 - ✅ **RK417** **The finding for one label under two headings names no verb, and one of the two is often removable** — the finding names block drop where that verb would remove the empty heading, and says it is a hand merge where it would not.
 - ✅ **RK420** **25 of the gate's 37 codes report a defect and name no verb for it** — every finding carries the command that closes it — a complete argv where one exists, the doors and what separates them where a decision does, and the blank where L4 forbids the tool the sentence.
 - ✅ **RK421** **Nothing holds the tool to having a door for every defect it reports** — the codes are scraped from the modules that emit them and every one must resolve to a door, so a check added without stating its repair is a red here instead of a dead end on someone's backlog.
+- ✅ **RK422** **Nothing turns a report into the commands that clear it** — repair runs the mechanical pass and then every finding whose remedy is a complete command, re-reading the report between writes, and prints what needs a sentence or a choice.
 
 ## Block E — Adoption
 

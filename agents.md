@@ -45,8 +45,8 @@ src/roadkeep/   the package (src layout, importable via pytest pythonpath). Each
   scoping queueing  RK69-70/325  the non-goal, the list read before an add, the queue
   backlog counting picking showing graph  RK10-13/28-29/31/37/39-40/83/92/247  the query surface,
   briefing budgeting exporting history weighing      plus what git alone can answer
-  linting fixing remedying  RK14-17/420  the gate, the derived-only fixer, and the door
-                                     every finding names instead of leaving to be guessed
+  linting fixing remedying repairing  RK14-17/420-422  the gate, the derived-only fixer,
+                  the door every finding names, and the verb that runs the whole report back
   adopting installing  RK18/100/415  `init` scaffolds, `adopt` estimates, `install` wires it
                           in, `engines` says which three copies write, judge and gate
   guarding screening attesting serving provenance  RK22/24/79/175-176/200  the hook, what it
@@ -73,7 +73,7 @@ differently. Never construct a task line with an f-string; before writing a comm
 
 `roadkeep lint` **must pass on `docs/`** — the format is proven by the artefact, not asserted
 in a README. A limit that cannot express these lines is the wrong limit rather than a set of
-wrong lines, so a schema change validates here first, under this repo's own `roadkeep.toml`.
+wrong lines, so a schema change validates here first, under this repo's `roadkeep.toml`.
 Don't hand-check it: `… lint` **exits 1** on any violation, line that stopped round-tripping,
 dep nothing satisfies, pointer resolving to nothing, section nothing points at, over-budget
 every-turn file, queue entry naming work that left, or invisible codepoint — as

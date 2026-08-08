@@ -18,8 +18,12 @@ So the remedy is a field, and this module is the one table it comes from. Four k
 because four is what a caller actually does next:
 
 * ``fix`` — `lint --fix` takes it. No decision, no prose, nothing to read.
-* ``run`` — one command, complete, with the id and the line already substituted. A
-  placeholder here would be the guess this whole module exists to remove.
+* ``run`` — one command that **writes**, complete, with the id and the line already
+  substituted. A placeholder here would be the guess this module exists to remove.
+* ``read`` — one command answers the question and closes nothing: which of two sections is
+  history, what a block dep expands to, which file claims an anchor. Split out from ``run``
+  because `repair` executes that one, and a read it executed would spend a step, change no
+  byte and report the finding still standing — a repair that repairs nothing.
 * ``compose`` — one command, one field that is **prose only the author can write**. L4 is
   not a gap in the table, it is the table being honest: nothing here composes a title, a
   reason or a shorter sentence, so the blank is marked and left.
@@ -53,9 +57,9 @@ from dataclasses import dataclass, field
 
 from .config import ROLES, Config
 
-#: The four kinds, in the order a caller pays for them: nothing, one command, one sentence,
-#: one judgement. `repair` runs the first two and prints the last two.
-KINDS = ("fix", "run", "compose", "decide")
+#: The five kinds, in the order a caller pays for them: nothing, one write, one read then a
+#: judgement, one sentence, one choice. `repair` runs the first two and prints the rest.
+KINDS = ("fix", "run", "read", "compose", "decide")
 
 #: Marks the one field of a ``compose`` argv that the tool may not write (L4). Kept as a
 #: distinct token rather than an empty string so a caller can find it without parsing prose.
@@ -115,7 +119,12 @@ class Remedy:
 
     @property
     def runnable(self) -> bool:
-        """Whether `repair` may execute this without asking anybody anything (RK422)."""
+        """Whether `repair` may execute this without asking anybody anything (RK422).
+
+        ``read`` is deliberately not runnable. Its command is safe to run and useless to
+        run *here*: it answers a question for the caller, and executing it inside a repair
+        loop would leave the finding exactly where it was.
+        """
         return self.kind in ("fix", "run") and all(d.complete for d in self.doors)
 
     def payload(self) -> dict[str, object]:
@@ -154,6 +163,11 @@ def _fix(what: str) -> _Rule:
 
 def _run(argv: tuple[str, ...], what: str) -> _Rule:
     return _Rule("run", ((argv, what),))
+
+
+def _read(argv: tuple[str, ...], what: str) -> _Rule:
+    """One command that answers the finding and writes nothing. See :data:`KINDS`."""
+    return _Rule("read", ((argv, what),))
 
 
 def _compose(argv: tuple[str, ...], what: str) -> _Rule:
@@ -222,7 +236,7 @@ _TABLE: Mapping[str, _Rule] = {
         "the bullet addresses no work: drop it by hand-free re-add — `priority add <id>` "
         "or `priority add 'Block X'`",
     ),
-    "priority.config": _run(
+    "priority.config": _read(
         ("priority", "list"),
         "the section wins over the config: read the queue that is live, then take the "
         "`priority = [...]` line out of roadkeep.toml",
@@ -265,12 +279,12 @@ _TABLE: Mapping[str, _Rule] = {
         "the label is not one this project's heading word can render; re-declare it and "
         "move the lines",
     ),
-    "block.emptied": _run(
+    "block.emptied": _read(
         ("stats",),
         "the block held open lines and holds none: read the counts before a projection "
         "that names active blocks is republished",
     ),
-    "block.reopened": _run(
+    "block.reopened": _read(
         ("stats",),
         "the same row, in the other direction",
     ),
@@ -306,7 +320,7 @@ _TABLE: Mapping[str, _Rule] = {
         ("section", "add", "{id}", "--title", BLANK),
         "the line points at a section that does not exist; the prose arrives on stdin",
     ),
-    "ref.ambiguous": _run(
+    "ref.ambiguous": _read(
         ("anchors",),
         "one anchor is declared in two places: read which files claim it, then move one "
         "with `section move`",
@@ -336,16 +350,16 @@ _TABLE: Mapping[str, _Rule] = {
         ("section", "move", "{id}"),
         "one anchor is at two places in one file; move the later under an address of its own",
     ),
-    "section.ambiguous": _run(
+    "section.ambiguous": _read(
         ("anchors",),
         "two files declare the anchor: read both, then give one file a `[refs]` namespace",
     ),
-    "section.unreachable": _run(
+    "section.unreachable": _read(
         ("show", "{id}"),
         "the task is alive and its design is somewhere else: read both before one becomes "
         "history",
     ),
-    "section.unpaired": _run(
+    "section.unpaired": _read(
         ("show", "{id}"),
         "the section was edited and its line was not — `pick` reads only the line, so read "
         "what moved and put it there with `restate` or `amend`",
@@ -366,7 +380,7 @@ _TABLE: Mapping[str, _Rule] = {
         "the dep left without shipping, so the line waits on nothing; restate the deps "
         "it actually has",
     ),
-    "deps.block": _run(
+    "deps.block": _read(
         ("deps", "{id}"),
         "read what the block dep expands to before the line is picked",
     ),
@@ -374,7 +388,7 @@ _TABLE: Mapping[str, _Rule] = {
         ("amend", "{id}", "--dep", BLANK),
         "the deps close a loop, so no order starts it; one of them is the edge to cut",
     ),
-    "deps.collective": _run(
+    "deps.collective": _read(
         ("deps", "{id}"),
         "one token names many open tasks: read the expansion, which is the whole finding",
     ),
@@ -484,7 +498,7 @@ _TABLE: Mapping[str, _Rule] = {
         ("export", "--readme"),
         "the target carries no roadkeep markers, so nothing there is governed yet",
     ),
-    "engine.disagreement": _run(
+    "engine.disagreement": _read(
         ("engines",),
         "three copies of this tool can be in play and they may differ; this reads all "
         "three and names which one refused",

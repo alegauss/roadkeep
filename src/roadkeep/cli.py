@@ -128,6 +128,7 @@ from roadkeep.picking import Choice, Claim, pick, take
 from roadkeep.provenance import engine, invocation
 from roadkeep.remedying import Remedy, codes as remedy_codes, remedy
 from roadkeep.renumbering import renumber
+from roadkeep.repairing import MAX_PASSES, Repaired, repair
 from roadkeep.schema import SchemaError
 from roadkeep.queueing import add as add_priority
 from roadkeep.queueing import declared as declared_queue
@@ -1319,6 +1320,26 @@ def build_parser() -> argparse.ArgumentParser:
     # one command into a locked half and an unlocked half is a second mechanism for the rarer
     # case. What the flag buys is that the *report* never waits on a write at all.
     lint_parser.set_defaults(handler=_lint, reads_only=True, writes_when="fix")
+
+    repair_parser = subcommands.add_parser(
+        "repair",
+        help="run the report back: apply every finding whose remedy is one command",
+        description=(
+            "The gate says what is wrong and, since RK420, what closes it. This spends "
+            "that: the mechanical pass, then every finding whose remedy is a complete "
+            "command, one at a time with the report re-read between them. What needs a "
+            "sentence or a choice is printed instead — that half is yours, and the tool "
+            "writing it would be the generator this project refuses. Exits 1 while "
+            "anything is left, which is the gate's own contract and not a second one."
+        ),
+    )
+    repair_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="print the commands and run none of them",
+    )
+    repair_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    repair_parser.set_defaults(handler=_repair, reads_only=False)
 
     brief_parser = subcommands.add_parser(
         "brief",
@@ -4531,6 +4552,108 @@ def _lint(config: Config, args: argparse.Namespace) -> int:
     else:
         _print_report(config, report, applied, root, quiet=args.quiet)
     return EXIT_OK if passed else EXIT_GATE
+
+
+def _repair(config: Config, args: argparse.Namespace) -> int:
+    """Apply what the gate already knows how to close, and print what it does not (RK422).
+
+    The runner handed down is this module's own dispatcher, re-entered per step: the write
+    lock is re-entrant by depth (RK117), so a step runs under the lock this command already
+    holds rather than releasing it between repairs — which is what keeps a concurrent session
+    from writing into the middle of one run.
+
+    Stdout of each step is deliberately *not* suppressed. A repair that renumbered a line
+    printed where it went, and a caller reading this run's output is the same caller who
+    would have read that one — hiding it to make this report tidy would cost exactly the
+    context the verb was written to save.
+    """
+    try:
+        outcome = repair(config, _step(config), dry_run=args.dry_run)
+    except (KeyError, OSError) as error:
+        return _refused(error)
+
+    root = config.root.as_posix()
+    if args.json:
+        print(json.dumps(_repair_json(outcome, root), indent=2))
+    else:
+        _print_repair(outcome, root)
+    # Clean means clean, and `--dry-run` is never that: a run that wrote nothing has not
+    # closed anything, so reporting 0 would tell a CI job the tree passes when it does not.
+    if outcome.dry_run:
+        return EXIT_OK if outcome.clean else EXIT_GATE
+    return EXIT_OK if outcome.clean and not outcome.failed else EXIT_GATE
+
+
+def _step(config: Config) -> Callable[[Sequence[str]], int]:
+    """One repair step, parsed and dispatched the way any other invocation would be.
+
+    Through the parser rather than by calling the handler: a remedy's argv is a command line
+    and nothing else, so anything this accepts is something a caller could have typed — and
+    a step that argparse would reject is a defect in the table (RK421 asserts the verb, this
+    proves the flags) rather than a shortcut that only works from in here.
+    """
+
+    def run(argv: Sequence[str]) -> int:
+        parser = build_parser()
+        try:
+            args = parser.parse_args([*argv])
+        except SystemExit:
+            # argparse exits on a bad argv. A remedy that does not parse is this tool's
+            # defect and not the caller's, so it is reported as a failed step rather than
+            # taking the whole process down mid-repair.
+            return EXIT_USAGE
+        return dispatch(config, args)
+
+    return run
+
+
+def _print_repair(outcome: Repaired, root: str) -> None:
+    _print_fix(outcome.applied)
+    _print_refusals(outcome.applied)
+    for step in outcome.steps:
+        print(str(step))
+    for left in outcome.left:
+        print(str(left))
+    if outcome.exhausted:
+        print(
+            f"roadkeep: stopped after {MAX_PASSES} repairs with work still reported: a "
+            f"rule and its own remedy disagree, which is a defect in this tool",
+            file=sys.stderr,
+        )
+    verb = "would run" if outcome.dry_run else "ran"
+    print(
+        f"{len(outcome.steps)} repair(s) {verb}, {len(outcome.left)} left for you"
+        f"{_tree(root)}"
+    )
+
+
+def _repair_json(outcome: Repaired, root: str) -> dict[str, object]:
+    return {
+        "root": root,
+        "clean": outcome.clean,
+        "dry_run": outcome.dry_run,
+        "passes": outcome.passes,
+        "exhausted": outcome.exhausted,
+        "steps": [
+            {
+                "code": step.code,
+                "where": step.where,
+                "argv": list(step.argv),
+                "what": step.what,
+                "exit": step.exit,
+            }
+            for step in outcome.steps
+        ],
+        "left": [
+            {
+                "code": left.finding.code,
+                "where": left.finding.where,
+                "message": left.finding.message,
+                **({} if left.remedy is None else {"remedy": left.remedy.payload()}),
+            }
+            for left in outcome.left
+        ],
+    }
 
 
 def _print_report(

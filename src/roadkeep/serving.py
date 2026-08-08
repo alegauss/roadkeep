@@ -50,6 +50,15 @@ governed, and `guard` and `mcp` are the harness's own entry points. `lint` expos
 and deliberately not `--fix` — that one writes, and RK16 belongs where a human is standing (the
 pre-commit hook), which is what keeps this tool honestly read-only.
 
+`repair` (RK422) is not that decision reversed, and the distinction is worth stating because it
+looks like one. Withholding `--fix` is a claim about **`lint`**: a tool a caller reaches for to
+*read* a report must not write while answering. It was never a claim that the agent may not
+repair — the agent already writes through twenty tools here, and what `repair` runs is those
+same verbs, chosen from a table (RK420) instead of from a caller's reading of an English
+message. So it grants no capability this surface did not have; it removes the turn spent
+composing each command, which is the entire cost RK420 measured. Declared a writer, so the
+read-only hint stays true of both, and `dry_run` is the read.
+
 A nested subcommand is one tool: `section add` is `section_add` to the protocol, which has no
 space in a name, and two argv words here. One :class:`Tool` holds both spellings rather than a
 table mapping between them.
@@ -409,6 +418,13 @@ TOOLS: tuple[Tool, ...] = (
     # project with standing debt — "did what I just wrote add anything" rather than a count
     # of 317 the caller cannot attribute — and it reads a revision without writing one.
     Tool("lint", ("baseline",)),
+    # The verb this whole surface exists for (RK422). `lint` says what drifted and now says
+    # what closes each one; this spends that in a single call, which is the difference
+    # between a caller that fixes a file and a caller that spends a turn per finding
+    # composing the command from a sentence. `dry_run` is the flag that makes it readable
+    # before it is trusted — the same argument `install --check` and `adopt` are built on,
+    # and the one flag here that changes whether anything is written at all.
+    Tool("repair", ("dry_run",)),
     # Which copies of this tool write, judge and gate the project (RK415). Exposed because
     # the agent is the one it happens to: its writes go through whatever `roadkeep` the
     # session reaches and its hand edits are denied by whatever the harness installed, and

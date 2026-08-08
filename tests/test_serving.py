@@ -225,6 +225,10 @@ def test_the_tools_are_what_a_task_needs_end_to_end():
         "list",
         "deps",
         "lint",
+        # And the verb that spends what `lint` now reports (RK422): one call closes every
+        # finding whose remedy is a command, which is the turn-per-finding this surface's
+        # caller was otherwise paying — the write half of the pair above it.
+        "repair",
         # The read the agent is the subject of (RK415): its writes go through whatever
         # `roadkeep` the session reaches and its hand edits are denied by whatever the
         # harness installed, and those are allowed to be two versions of this tool.
@@ -710,10 +714,13 @@ def test_the_read_only_hint_says_which_tools_write(tmp_path):
         for name, tool in listed(project(tmp_path)).items()
     }
     # `lint` is read-only *because* `--fix` is not exposed: RK16 belongs where a human is
-    # standing (the pre-commit hook), so the tool cannot repair anything.
+    # standing (the pre-commit hook), so *that* tool cannot repair anything. `repair` is a
+    # separate tool that says it writes (RK422) — which is the same shape as `brief` staying
+    # read-only while `claim` writes, and not the decision above reversed.
     writes = {name for name, only_reads in hints.items() if not only_reads}
     assert writes == {
         "add",
+        "repair",
         "block_add",
         "block_drop",
         "block_merge",

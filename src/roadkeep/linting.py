@@ -1656,6 +1656,9 @@ def _repeated(config: Config, files: dict[str, Document]) -> list[Finding]:
                         f"label is one heading, and a write files under this one by "
                         f"position alone — {remedy}",
                         later.lineno,
+                        # The label rather than a task id: this finding is about a heading,
+                        # and it is what `block merge` takes (RK420).
+                        subject=label,
                     )
                 )
     return out
@@ -1733,6 +1736,7 @@ def _undeclared_blocks(
                 f"the first ship in this block refuses — "
                 f'`block add {heading.label} --title "<its title>"`',
                 heading.lineno,
+                subject=heading.label,
             )
         )
     return out
@@ -1766,6 +1770,7 @@ def _unorganised(config: Config, roadmap: Document, word: str) -> list[Finding]:
             f"{len(waiting)} of them: every ship here refuses until one exists — "
             f'`block add {label} --title "<its title>" --organise changelog`',
             None,
+            subject=label,
         )
     ]
 

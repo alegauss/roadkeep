@@ -339,27 +339,6 @@ answer may be three states rather than two — agreed, behind, and unpinnable �
 boolean that collapses the third into either of the others will be wrong for one of
 them. That choice is the task; the numbers to make it with are already on the screen.
 
-### §RK422 The verb that reads its own report back
-
-A remedy per finding is the fact; running it is still the caller's loop. Eight findings
-are eight command lines to compose, eight tool calls, and eight chances to mistype a
-flag — which is the cost RK420 measures and does not spend. So the verb that reads its
-own report back is the other half.
-
-`repair` runs the gate, applies every mechanical remedy (which is `--fix`, unchanged and
-reused rather than reimplemented), then executes the argv of every finding whose remedy
-is runnable, in the order the report gives, re-linting between passes because one repair
-can resolve or reveal another. What it will not touch is the editorial class: those are
-printed as the doors and the decision, which is where the caller's judgement was always
-required and where L4 says the tool stops.
-
-`--dry-run` prints the commands without running them, because a verb that rewrites four
-governed files unasked is the opposite of a barrier — and because the printed list is
-itself the answer for a caller who wants to read before it acts. The exit code stays the
-gate's: 0 when the tree is clean afterwards, 1 when a decision is still outstanding.
-That last part is what keeps this from becoming a way around the gate rather than a way
-through it.
-
 ### §RK425 The named repair that makes it worse
 
 `block.repeated` names its repair — *both regions hold work, so the repair is a merge by

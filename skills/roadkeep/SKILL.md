@@ -251,6 +251,17 @@ silence). On a
 project that arrived with drift, an absolute count answers nothing: `--baseline <rev>`
 (`HEAD` after a write) reports **what you added** and forgives the standing debt by name.
 
+**A finding names the command that closes it, so never infer one.** Every code the gate can
+report resolves to a door, and the report prints it under the line: a complete argv where one
+exists, with the id and the line number already substituted; the two doors and what separates
+them where the choice is yours; and a marked blank where the field is prose only you can write
+(a title, a shorter symptom, a reason) — the tool does not compose those, by law. `repair`
+spends that in **one call**: it runs the mechanical pass, then every finding whose remedy is a
+complete command, re-reading the report between writes because a repair moves the line numbers
+after it. What it cannot close it prints, and it exits 1 while anything is left, so a clean exit
+means clean. Reach for it the moment `lint` reports anything — composing the commands yourself
+is a turn per finding, and `repair --dry-run` is the read if you want to see them first.
+
 ## Ask, don't count
 
 Every query takes `--json`. **`budget` is the pre-`add` read that saves a retry**: what a

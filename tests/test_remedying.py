@@ -65,6 +65,44 @@ def test_every_code_the_package_can_emit_has_a_door():
     )
 
 
+def test_every_site_supplies_the_subject_its_own_remedy_substitutes():
+    """The half of totality a lookup cannot check, and the one that failed first.
+
+    `codes()` proves a row exists; it says nothing about whether the *emission site* passes
+    the value that row interpolates. Three did not — `block.repeated`, `block.unrecorded`
+    and `block.unorganised` all name a heading and none of them put the label anywhere the
+    remedy could read — so `block merge …` came back with a blank where the label goes,
+    which is the guess RK420 exists to remove, reintroduced one layer down.
+
+    Every unit test missed it for the same reason: a fixture constructs `Finding(code, …,
+    "RK1")` and hands over an id the real call never passes. So this reads the **source**,
+    the way `test_provenance` reads it for a literal invocation: a call whose code has `{id}`
+    in its template must pass an id or a subject, positionally or by name.
+    """
+    import ast
+
+    needs = {
+        code
+        for code, rule in remedying._TABLE.items()  # noqa: SLF001 - the table is the subject
+        for argv, _ in rule.doors
+        if any("{id}" in word for word in argv)
+    }
+    tree = ast.parse((SOURCE / "linting.py").read_text(encoding="utf-8"))
+    blank = [
+        f"linting.py:{node.lineno} emits {node.args[0].value} with no id and no subject"
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id in ("Finding", "Note")
+        and node.args
+        and isinstance(node.args[0], ast.Constant)
+        and node.args[0].value in needs
+        # `id` is the fifth positional; `subject` only ever arrives by name.
+        and not (len(node.args) >= 5 or any(k.arg in ("id", "subject") for k in node.keywords))
+    ]
+    assert not blank, blank
+
+
 def test_the_table_answers_no_code_that_cannot_be_reported():
     # The other direction, which is the one that rots quietly: a row for a code deleted
     # from the gate is a row nothing ever reaches, and `explain` would list it as
@@ -73,10 +111,21 @@ def test_the_table_answers_no_code_that_cannot_be_reported():
     assert not stale, f"remedy rows for codes nothing emits: {stale}"
 
 
-def test_every_kind_is_one_of_the_four():
+def test_every_kind_is_one_of_the_five():
     for code in codes():
         found = remedy(Finding(code, "ROADMAP.md", "", 1, "RK1"))
         assert found is not None and found.kind in KINDS, code
+
+
+def test_a_read_is_never_something_repair_would_execute():
+    # RK422's finding: a read costs a step, writes nothing and leaves the finding standing,
+    # so it is a kind of its own rather than a `run` that happens not to help.
+    for code in codes():
+        found = remedy(Finding(code, "ROADMAP.md", "", 1, "RK1"))
+        assert found is not None
+        if found.kind == "read":
+            assert not found.runnable, code
+            assert len(found.doors) == 1, code
 
 
 def test_a_decision_is_stated_exactly_where_there_is_one():
@@ -144,7 +193,7 @@ def test_a_queue_finding_substitutes_its_token_and_not_its_id():
 
 def test_a_note_gets_a_remedy_on_the_same_lookup():
     found = remedy(Note("block.emptied", "ROADMAP.md", "", 3, "D"))
-    assert found is not None and found.kind == "run"
+    assert found is not None and found.kind == "read"
 
 
 def test_an_unknown_code_gets_none_rather_than_a_guess():
