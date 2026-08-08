@@ -77,10 +77,126 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK437 The width RK430 could not reach
+
+`[limits] prose` is the column a written paragraph is filled to, and it is the one
+character figure RK430 left counting code points. The reason is mechanical:
+`textwrap.fill` measures in code points and has no other mode, so agreeing would mean
+writing a wrapper and re-flowing every paragraph this tool has already written.
+
+The exposure is small and real. Nothing lints a wrapped width, so no build reddens; what
+happens instead is that `adopt` reports a paragraph as within the width while a
+line-length check on the consumer's side reports it over — measured here, one paragraph
+of this repository's own improvements file is 87 code points and 90 units against a
+declared 88.
+
+Two honest answers. Either wrap in units, which is a small wrapper and a one-off re-flow
+of files that then stop moving; or declare `prose` as a code-point width in
+`roadkeep.toml`'s own vocabulary, so the table stops implying one unit for all of it.
+
+### §RK438 Two meanings of empty, one of them offering a drop
+
+Every write prints `event <id> Block <x> open|empty`, and `empty` there means the
+roadmap holds no line under the label — the single moment a heading becomes droppable,
+which is why RK408 attached the `block drop` offer to it.
+
+RK429 then gave `empty` a second meaning: a block nothing has *ever* filed anything
+under, as opposed to `finished`. The two now disagree out loud. Shipping the last line
+of Block C in this repository printed `Block C empty` beside an offer to withdraw the
+heading, while `pick --block C` answered `Block C is finished: the ledger records 12
+filed under it` — and the heading is one of the six this project's plan is made of.
+
+The offer is not wrong, but the word is. What a reader needs is which of the two facts
+they have: this file has no line left under the heading, and the block itself is
+finished, paused, or was never filled. The state is already computed; the event does not
+ask for it.
+
 ## Block C — Query
 
+### §RK432 A heading opened early satisfies the deps waiting on it
+
+`_resolve_block` answers a block dep in three steps: undeclared is unresolvable, any
+open line is open, and everything else is `DepStatus.SHIPPED` with the detail `Block B
+has nothing open`. The third step is two states, and RK429 named them: a block whose
+work shipped, and a heading `block add` wrote before a single line was filed under it.
+
+For the *detail* that is a wording defect. For the *status* it is not. A dep on a block
+nobody has started resolves as satisfied, so `pick` offers the dependent line and
+`brief` prints a checkmark beside a blocker that does not exist yet — the exact failure
+RK28 exists to prevent, one level up from the id it was written about.
+
+The backlog now has one reader of the four states. What this line is about is that the
+resolver has not been pointed at it, and that pointing it there changes an answer rather
+than a sentence: `empty` is not `shipped`, and `paused` is neither.
+
+### §RK433 The read before a proposal cannot say it read nothing
+
+`delivered <block>` is the read the skill asks for before an `add`: what this block has
+already shipped, as claims, so a duplicate is caught before an id is spent. It filters
+the ledger by label and prints `Block Z has delivered nothing yet` at exit 0 — for a
+block that genuinely delivered nothing, for one whose heading only the roadmap carries,
+and for a letter the project has never used.
+
+That is RK429's collapse on the one surface RK429 did not reach, and it is worse here
+than on `brief`: the answer is consumed as evidence. A caller who typed the wrong letter
+is told the block is clear and files the duplicate the command exists to prevent.
+
+It also spells `Block` from a literal rather than from `heading_word`, so a project
+whose headings all say `Track` reads a report naming nothing it wrote (RK75). The label
+oracle and the four-state answer both already exist; this verb calls neither.
+
 ## Block D — The gate
+
+### §RK434 One rule, two readers, and the second one predates the first
+
+`_dead_block` was where this project first worked out that a block with nothing open is
+three different facts: `priority.block` for a label nothing declares,
+`priority.block-empty` for one the ledger files entries under, and
+`priority.block-unstarted` for a heading written before its lines. RK429 then wrote that
+same walk as `Backlog.standing`, because `brief`, `pick` and `list` needed it too.
+
+Both are correct today, which is exactly the state that does not last. They already
+disagree in one place: RK429 added a fourth state for a block whose lines were all
+deferred, and the gate has no such answer — a queue entry naming a paused block is
+reported as one nothing has been added to yet.
+
+The gate keeps its own codes and its own remedies; what should move is the
+classification under them. This project's whole discipline is that one rule has one
+reader, and a rule spelled twice is the drift it exists to refuse.
+
+### §RK435 A remedy that states the other code's condition
+
+Three codes share one shape and their remedies were written together. `priority.block`
+is the label nothing declares; `priority.block-empty` is the one whose every line has
+shipped; `priority.block-unstarted` is the heading written before its lines — the note
+says so itself, `queues Block X, which no line is filed under yet`.
+
+Its remedy reads: *the block was never declared, so the token addresses nothing*. That
+is `priority.block`'s condition, and the finding it is printed under has already
+established the opposite. RK420 made every finding name the command that closes it
+precisely so a reader would not have to work one out; a reason that contradicts the line
+above it is worse than none, because it is the half a reader trusts.
+
+Whether `priority drop` is even the right door here is the second question: a block
+whose lines are coming is a queue entry that will start firing, and dropping it is the
+one move that guarantees it never does.
 
 ## Block E — Adoption
 
 ## Block F — The plugin
+
+### §RK436 The one counter this tool publishes and does not own
+
+RK430 made every character limit a count of UTF-16 code units and said so on every
+surface this tool prints. One surface it does not print: `serving` publishes `symptom`
+and `why` as JSON Schema `maxLength`, and that keyword is defined over the string's
+**characters** — code points. So the number is right and its unit is not.
+
+The gap only opens on a field carrying an astral character, which a symptom rarely does
+and a pasted emoji does immediately. Then a client validates locally, passes, calls the
+tool and is refused by a number it was told it had met — the same shape as the Shio
+ratchet, moved from a build to a round trip.
+
+Three answers exist and none is obviously right: publish the stricter figure and lose
+room on every ASCII field, describe the unit in the field's `description` and rely on it
+being read, or leave it and name the residual where a client author would look.

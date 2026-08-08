@@ -24,13 +24,24 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK437** (deps: —) **Prose is filled to a width counted in code points while every limit that refuses counts UTF-16 units** — One key of the same table is measured the other way because textwrap has no UTF-16 mode, so the config declares two units and says neither. → §RK437
+- 📋 **RK438** (deps: —) **A write's event line calls a block empty that every query in the same tool calls finished** — The event asks the roadmap alone whether anything is filed under the label and the four-state answer asks the ledger too, so one word carries two meanings. → §RK438
+
 ## Block C — Query (consult without reading the file)
 
+- 📋 **RK432** (deps: —) **A dep on a block nobody has filed anything under resolves as satisfied** — The resolver reads a declared heading with no open line as done, so a task waiting on a block that has never held work is offered as ready. → §RK432
+- 📋 **RK433** (deps: —) **delivered answers a block letter nothing declares as one that has shipped nothing** — The verb filters the ledger without resolving the label, so the read a proposal is supposed to make against a block is made against a typo instead. → §RK433
+
 ## Block D — The gate
+
+- 📋 **RK434** (deps: —) **The gate decides whether a block is finished, empty or undeclared with its own copy of the rule** — Resolving a queue token walks the same three states the backlog now answers in one reader, so a correction to either is a correction to one of two. → §RK434
+- 📋 **RK435** (deps: —) **The door offered for a queued block that has no lines yet says the block was never declared** — That note fires only where a heading does declare the label, so the reason printed under it argues from the premise the finding it belongs to refutes. → §RK435
 
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
+
+- 📋 **RK436** (deps: —) **The MCP schema publishes a limit that counts code points while the write refuses in UTF-16 units** — A client validating a field against the published maxLength accepts a string this tool then refuses, which is the disagreement RK430 removed everywhere the tool controls both ends. → §RK436
 
 ## Non-goals
 
