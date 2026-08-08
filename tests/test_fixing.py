@@ -200,14 +200,15 @@ def test_a_line_the_grammar_rejected_is_never_guessed_at(tmp_path):
 def test_a_fix_that_would_break_the_line_is_kept_and_reported(tmp_path):
     # The derived ✅ makes the line two characters longer, so a line at the cap cannot
     # take it. Forcing the field and breaking the limit is the wrong half to prefer.
-    # 74 is exactly RK2's line with a bare dep; the derived ✅ takes it to 76.
-    tight = CONFIG + "\n[limits]\nline = 74\n"
+    # 75 is exactly RK2's line with a bare dep, counted the way the gate counts it
+    # (RK430: the 📋 is one code point and two UTF-16 units); the ✅ takes it to 77.
+    tight = CONFIG + "\n[limits]\nline = 75\n"
     config = project(tmp_path, roadmap=CLEAN.replace("(deps: RK1 ✅)", "(deps: RK1)"), config=tight)
     applied = fix(config)
     assert applied.repairs == () and len(applied.skipped) == 1
     # The line's own limit, reported on the field that would have to absorb it (RK183).
     assert "why.too-long" in applied.skipped[0].reason
-    assert "limit of 74" in applied.skipped[0].reason
+    assert "limit of 75" in applied.skipped[0].reason
     assert "(deps: RK1)" in roadmap_of(config)
 
 

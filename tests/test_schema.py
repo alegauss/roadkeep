@@ -29,7 +29,7 @@ from roadkeep import (
     SchemaError,
     Task,
 )
-from roadkeep.schema import over_by, words, words_over
+from roadkeep.schema import over_by, width, words, words_over
 
 ROADMAP = Path(__file__).resolve().parents[1] / "docs" / "ROADMAP.md"
 CHANGELOG = Path(__file__).resolve().parents[1] / "docs" / "CHANGELOG.md"
@@ -197,6 +197,46 @@ def test_a_refusal_already_counted_in_words_gets_no_second_copy_of_itself():
     assert "about" not in over_by(253, 250, unit="word")
 
 
+# -- one limit, and the counter the consumer uses (RK430) --------------------
+
+
+def test_a_character_outside_the_basic_plane_costs_what_the_consumer_charges():
+    # Java's `String.length`, C#'s and JavaScript's `.length` all count UTF-16 code
+    # units. Four of this project's five default markers are astral and three are not,
+    # which is why the exposure is invisible until a line lands on the limit exactly.
+    assert (width("📋"), len("📋")) == (2, 1)
+    assert (width("💭"), width("🛠"), width("🗑")) == (2, 2, 2)
+    # The three that cost the same in both, and the reason the ledger never met this:
+    # every shipped entry carries ✅, which is inside the Basic Multilingual Plane.
+    assert (width("✅"), width("⏳"), width("⏸")) == (1, 1, 1)
+    assert width("plain ascii") == len("plain ascii")
+
+
+def test_a_line_at_the_limit_in_code_points_is_over_it_here():
+    """Shio's ratchet, reproduced: `stats` said 320 of 320 and the Java gate said 321.
+
+    Neither was wrong, and the character between them was the marker roadkeep itself
+    wrote — so the tool certified a line its consumer rejects, and the failure landed on
+    the next person to run the suite, in a build they did not break.
+    """
+    padded = task(why="x" * 40 + ".")
+    at_limit = replace(SCHEMA, line_max=len(SCHEMA.render(padded)))
+    assert at_limit.validate(padded) != ()
+    # And exactly one unit over, which is the whole defect: one marker, one surrogate pair.
+    assert width(SCHEMA.render(padded)) == len(SCHEMA.render(padded)) + 1
+
+
+def test_the_refusal_names_both_numbers_only_where_they_disagree():
+    # The cost of the defect was that both figures look right and the difference is one,
+    # so the refusal says which it counted — and only then, because a parenthesis about
+    # UTF-16 on every ASCII overrun is noise on the overwhelming majority of them.
+    astral = "📋" + "x" * 130
+    message = over_by(width(astral), 120, measured=astral)
+    assert "132 characters (UTF-16 code units, 131 code points" in message
+    assert "the gates that read this file use it" in message
+    assert "(UTF-16" not in over_by(width("x" * 130), 120, measured="x" * 130)
+
+
 def test_symptom_at_the_limit_is_accepted():
     assert SCHEMA.validate(task(symptom="x" * 120)) == ()
 
@@ -225,7 +265,11 @@ def test_the_prose_budget_is_the_line_minus_what_it_renders_around_it():
     # Measured by rendering, never by a second copy of the format: the structure is the
     # dash, the marker, the bold id, the deps group, the em dash and the pointer.
     bare = task(symptom="", why="")
-    assert SCHEMA.prose_budget(bare) == SCHEMA.line_max - len(SCHEMA.render(bare))
+    assert SCHEMA.prose_budget(bare) == SCHEMA.line_max - width(SCHEMA.render(bare))
+    # And `width`, not `len` (RK430): the structure carries the 📋 this tool wrote, which
+    # is one code point and two UTF-16 units — so a budget measured in code points hands
+    # the author a character the consumer's gate then refuses.
+    assert width(SCHEMA.render(bare)) == len(SCHEMA.render(bare)) + 1
     # A dep costs the line, so it costs the prose: the budget is this line's, not the
     # project's, which is the whole reason a static number could not be right.
     assert SCHEMA.prose_budget(task(deps=(Dep("RK9"),))) < SCHEMA.prose_budget(task())

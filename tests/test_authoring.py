@@ -35,7 +35,7 @@ from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.backlog import NotOpen
 from roadkeep.document import RoundTripError, Wrapped
-from roadkeep.schema import SchemaError
+from roadkeep.schema import SchemaError, width
 
 ROADMAP = "docs/ROADMAP.md"
 IMPROVEMENTS = "docs/IMPROVEMENTS.md"
@@ -469,7 +469,10 @@ def test_json_says_where_the_line_landed(tmp_path, capsys):
     assert payload["id"] == "RK2"
     assert payload["file"] == ROADMAP
     assert payload["line"] == 6
-    assert payload["length"] == len(payload["rendered"]) <= 320
+    # `width` and not `len` (RK430): the number published beside the line is the one the
+    # gate refuses by, and the 📋 in it is one code point and two UTF-16 units.
+    assert payload["length"] == width(payload["rendered"]) <= 320
+    assert payload["length"] == len(payload["rendered"]) + 1
 
 
 def test_a_refusal_exits_two_and_names_every_violation(tmp_path, capsys):

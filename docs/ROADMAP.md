@@ -30,8 +30,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK430** (deps: —) **The line-length limit counts code points and the gate that enforces it counts UTF-16 units** — A line roadkeep validates at exactly the limit fails the build, and the character responsible is the status marker roadkeep itself wrote. → §RK430
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

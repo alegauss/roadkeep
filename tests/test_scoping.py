@@ -296,7 +296,10 @@ def test_the_gate_reports_a_field_over_the_limit_where_the_bullet_is(tmp_path):
     long_why = "Because it is. " * 20
     config = project(tmp_path, roadmap=ROADMAP + f"- **No dates** {long_why}\n")
     finding = next(f for f in lint(config).findings if f.code == "non-goal.why")
-    assert finding.lineno == 14 and "limit 200" in finding.message
+    # Through `over_by` now (RK430), which is the one composer of a length refusal — so
+    # the surplus and the word aim arrive here as they do on every other field.
+    assert finding.lineno == 14 and "limit is 200" in finding.message
+    assert "delete 99 characters" in finding.message
 
 
 # -- this repository is the fixture ------------------------------------------

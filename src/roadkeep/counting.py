@@ -33,7 +33,7 @@ from dataclasses import dataclass, replace
 
 from roadkeep.config import Config
 from roadkeep.document import Document, Entry, Reject, declares, shading
-from roadkeep.schema import DEFAULT_HEADING_WORD, Schema
+from roadkeep.schema import DEFAULT_HEADING_WORD, Schema, width
 
 
 @dataclass(frozen=True, slots=True)
@@ -205,4 +205,4 @@ class Census:
 
     def longest(self) -> Entry | None:
         """The line closest to the limit — the measurement this repo did by hand."""
-        return max(self.counted, key=lambda e: len(e.raw), default=None)
+        return max(self.counted, key=lambda e: width(e.raw), default=None)

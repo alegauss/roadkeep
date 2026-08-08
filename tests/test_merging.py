@@ -718,5 +718,7 @@ def test_a_merged_line_the_schema_refuses_names_the_id_and_the_file(tmp_path):
     (violation,) = raised.value.violations
     assert violation.code == "why.too-long"
     # Appended, never substituted: the limit is still what a repair needs to know.
-    assert violation.message.startswith("80 characters, limit is 52")
+    # 51 and not 52 since RK430: the structure this line renders carries a 📋, which is
+    # two UTF-16 units and one code point, so the `why` has one fewer to spend.
+    assert violation.message.startswith("80 characters, limit is 51")
     assert f"on RK3's line, merging {ROADMAP}" in violation.message

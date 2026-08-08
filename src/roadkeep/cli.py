@@ -130,7 +130,7 @@ from roadkeep.remedying import Remedy, codes as remedy_codes, explain, remedy
 from roadkeep.renumbering import renumber
 from roadkeep.reverting import reversals
 from roadkeep.repairing import MAX_PASSES, Repaired, repair
-from roadkeep.schema import SchemaError
+from roadkeep.schema import SchemaError, width as measured_width
 from roadkeep.queueing import add as add_priority
 from roadkeep.queueing import declared as declared_queue
 from roadkeep.queueing import drop as drop_priority
@@ -166,6 +166,12 @@ EXIT_USAGE = 2
 REFUSALS = (RoundTripError, StaleFile, KeyError, ValueError, OSError)
 
 _JSON_HELP = "machine-readable form"
+
+#: What every character figure this tool publishes is counted in (RK430). Declared in the
+#: payload rather than assumed, because the defect was two counters both being right: a
+#: consumer's gate reading UTF-16 and a `len` reading code points differ by one on the
+#: status marker this tool writes, and neither number carried the unit that settles it.
+CHARACTER_UNIT = "utf-16-code-units"
 #: Appended to every prose argument that reads the pipe (RK329), so the convention is one
 #: sentence in nine help strings rather than nine sentences that drift.
 _PIPE = "; '-' reads stdin, which is how an apostrophe or a backtick survives a shell"
@@ -2456,7 +2462,7 @@ def _add(config: Config, args: argparse.Namespace) -> int:
                     "file": config.relative(config.path("roadmap")),
                     "line": insertion.lineno,
                     "rendered": insertion.rendered,
-                    "length": len(insertion.rendered),
+                    "length": measured_width(insertion.rendered),
                     "section": None if written is None else _section_json(written, prose),
                     # The follow-up as data: null when the pointer already resolves, so a
                     # caller acts on a field instead of matching a sentence (RK93).
@@ -4527,8 +4533,9 @@ def _stats(config: Config, args: argparse.Namespace) -> int:
                     if longest is None
                     else {
                         "id": longest.task.id,
-                        "length": len(longest.raw),
+                        "length": measured_width(longest.raw),
                         "limit": census.schema.line_max,
+                        "unit": CHARACTER_UNIT,
                     },
                     "standing": _standing_json(standing),
                 },
@@ -4554,7 +4561,7 @@ def _stats(config: Config, args: argparse.Namespace) -> int:
     print(f"  {'uncounted':<{width}}  {census.uncounted:>4}")
     if longest is not None:
         print(
-            f"  {'longest':<{width}}  {longest.task.id} at {len(longest.raw)} "
+            f"  {'longest':<{width}}  {longest.task.id} at {measured_width(longest.raw)} "
             f"of {census.schema.line_max}"
         )
     if not census.total:
@@ -5301,7 +5308,7 @@ def _row_json(entry: Entry) -> dict[str, object]:
         "deps": [dep.render() for dep in task.deps],
         "ref": task.ref,
         "line": entry.lineno,
-        "length": len(entry.raw),
+        "length": measured_width(entry.raw),
     }
 
 
@@ -5774,6 +5781,10 @@ def _share_json(share: Share) -> dict[str, object]:
         # Beside `left` and not instead of it (RK245): the characters are still what
         # refuses, and this is the same remainder in the unit an author can count.
         "room": share.room,
+        # Declared, as the section budget declares `words` (RK430). A number published
+        # without its unit is what let a consumer counting UTF-16 and a tool counting code
+        # points both be right about one line and disagree by one.
+        "unit": CHARACTER_UNIT,
         "bound_by_line": share.bound_by_line,
     }
 

@@ -71,7 +71,7 @@ from roadkeep.authoring import compose, prose_role
 from roadkeep.config import Budget as ConfigBudget
 from roadkeep.config import Config, spent
 from roadkeep.ids import next_id
-from roadkeep.schema import CHARS_PER_WORD, Task, body_aim, words
+from roadkeep.schema import CHARS_PER_WORD, Task, body_aim, width, words
 from roadkeep.scoping import NoSuchNonGoal, NotGoverned, address, leads, read
 from roadkeep.sections import declaring, find
 
@@ -254,9 +254,14 @@ def budget_of(
     shares: list[Share] = []
     if schema.symptom_field:
         shares.append(
-            Share("symptom", schema.symptom_max, min(schema.symptom_max, prose), len(task.symptom))
+            Share(
+                "symptom",
+                schema.symptom_max,
+                min(schema.symptom_max, prose),
+                width(task.symptom),
+            )
         )
-    shares.append(Share("why", schema.why_max, schema.why_budget(task), len(task.why)))
+    shares.append(Share("why", schema.why_max, schema.why_budget(task), width(task.why)))
     section, absence = _section_of(config, task.ref or task.id)
     return Budget(
         task=task,
@@ -414,7 +419,10 @@ def non_goal_budget(config: Config, lead: str | None = None) -> tuple[Share, ...
             raise NoSuchNonGoal(
                 lead, config.relative(config.path("roadmap")), leads(document)
             )
-        taken = {"lead": len(found.lead.strip()), "why": len(" ".join(found.why.split()))}
+        taken = {
+            "lead": width(found.lead.strip()),
+            "why": width(" ".join(found.why.split())),
+        }
     return tuple(
         Share(field, limit, limit, taken[field])
         for field, limit in (("lead", scope.lead), ("why", scope.why))

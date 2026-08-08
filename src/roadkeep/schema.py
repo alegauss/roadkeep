@@ -205,6 +205,45 @@ CHARS_PER_WORD = 6.5
 BODY_HEADROOM = 0.07
 
 
+def width(text: str) -> int:
+    """How long a string is, counted the way the gates that read this file count (RK430).
+
+    Python's `len` counts **code points**. Java's `String.length`, C#'s, and JavaScript's
+    `.length` count **UTF-16 code units**, and a character outside the Basic Multilingual
+    Plane is one of the first and two of the second. Shio's ratchet test measured 321 on a
+    line `stats` had just reported at 320 of 320; neither number was wrong, and the single
+    character between them was `📋` — the status marker **this tool writes**. So the tool
+    emitted the character that made its own measurement disagree with its consumer's, then
+    certified a line that consumer rejects.
+
+    UTF-16 and not code points, because it is the stricter of the two: a line that passes
+    here is portable to a code-point counter and the reverse is not. It is also not
+    configuration (L6) — a project declares how long its lines may be, and a project
+    allowed to declare the *looser* unit is a project allowed to re-open this defect. The
+    markers `[markers]` declares are overwhelmingly astral (📋 💭 🛠 🗑; ✅ ⏳ ⏸ are not), so
+    every backlog this governs has the exposure whether or not it has met it yet.
+
+    Encoded rather than summed per character: it is the same arithmetic at C speed, and
+    `surrogatepass` is what keeps a lone surrogate — which `surrogateescape` decoding can
+    put in a `str` — from raising in a function whose whole job is to answer a length.
+
+    **The one measurement deliberately left in code points is `prose_width`**, which is a
+    `textwrap.fill` argument and not a gate: nothing refuses a wrapped paragraph, and
+    `textwrap` has no UTF-16 mode, so making it agree would mean re-wrapping every prose
+    file this tool has written to fix a number no gate reads.
+    """
+    return len(text.encode("utf-16-le", "surrogatepass")) // 2
+
+
+def points(text: str) -> int:
+    """The same string as the counter an author's editor shows (RK430).
+
+    Only ever reported beside :func:`width`, and only where the two disagree: the whole
+    cost of the defect was that both numbers look right and the difference is one.
+    """
+    return len(text)
+
+
 def words(chars: int) -> int:
     """A character budget as the word count it is safe to aim at.
 
@@ -241,6 +280,7 @@ def over_by(
     limit: int,
     unit: str = "character",
     because: str = "",
+    measured: str = "",
     *,
     prose: bool = True,
 ) -> str:
@@ -279,7 +319,26 @@ def over_by(
     if prose and unit == "character":
         aim = words_over(surplus)
         deletion += f" {EM_DASH} about {aim} {_plural(aim, 'word')}"
-    return f"{actual} {_plural(actual, unit)}, limit is {limit}{because}: {deletion}"
+    return (
+        f"{actual} {_plural(actual, unit)}{_counted(actual, measured)}, "
+        f"limit is {limit}{because}: {deletion}"
+    )
+
+
+def _counted(actual: int, measured: str) -> str:
+    """The unit, named only where naming it settles an argument (RK430).
+
+    Silent on the overwhelming majority of refusals, where the two counters agree and a
+    parenthesis about UTF-16 would be noise on every one of them. It appears exactly when
+    an author's editor shows a different number from the one being refused — which is the
+    whole cost of the defect, both figures looking right and the difference being one.
+    """
+    if not measured or points(measured) == actual:
+        return ""
+    return (
+        f" (UTF-16 code units, {points(measured)} code points: the limit is the stricter "
+        f"count, because the gates that read this file use it)"
+    )
 
 
 def _plural(count: int, unit: str) -> str:
@@ -969,7 +1028,7 @@ class Schema:
         marker, the deps and the pointer, so the budget is a fact about the line the author
         is *about* to write rather than a verdict on one they already wrote.
         """
-        return self.line_max - len(self.render(replace(task, symptom="", why="")))
+        return self.line_max - width(self.render(replace(task, symptom="", why="")))
 
     def why_budget(self, task: Task) -> int:
         """The smaller of the `why`'s own limit and what this line has left for it (RK183).
@@ -986,7 +1045,7 @@ class Schema:
         `why`: deriving a remainder from an illegal field would refuse one sentence for
         another field's overrun, and the author would fix twice what was wrong once.
         """
-        taken = len(task.symptom) if self.symptom_field else 0
+        taken = width(task.symptom) if self.symptom_field else 0
         if taken > self.symptom_max:
             return self.why_max
         return min(self.why_max, max(0, self.prose_budget(task) - taken))
@@ -1007,7 +1066,7 @@ class Schema:
         # field explains — a line whose *structure* does not fit, which no prose edit fixes.
         # Which is why this one asks for no word figure (RK243): the hint is aimed at a
         # sentence, and the clause after it says a sentence is not what is over.
-        if len(rendered) > self.line_max and not any(
+        if width(rendered) > self.line_max and not any(
             violation.code in _LENGTH_CODES for violation in out
         ):
             out.append(
@@ -1015,7 +1074,7 @@ class Schema:
                     "line.too-long",
                     "line",
                     f"the rendered line is "
-                    f"{over_by(len(rendered), self.line_max, prose=False)}; "
+                    f"{over_by(width(rendered), self.line_max, measured=rendered, prose=False)}; "
                     f"no field is over the budget this line left it, so what does "
                     f"not fit is the structure around them",
                 )
@@ -1104,12 +1163,13 @@ class Schema:
                     "part.blank", "id", f"the qualifier is not a phrase: {task.part!r}"
                 )
             ]
-        if len(task.part) > self.part_max:
+        if width(task.part) > self.part_max:
             return [
                 Violation(
                     "part.too-long",
                     "id",
-                    f"the qualifier is {over_by(len(task.part), self.part_max)}; "
+                    f"the qualifier is "
+                    f"{over_by(width(task.part), self.part_max, measured=task.part)}; "
                     f"it names which half, it is not the why",
                 )
             ]
@@ -1282,7 +1342,7 @@ class Schema:
             # Said only where the two differ, and then it is the whole explanation: the
             # number the author was given is not the number that refused them, and which
             # line they are writing is why (RK183).
-            taken = len(task.symptom) if self.symptom_field else 0
+            taken = width(task.symptom) if self.symptom_field else 0
             because = (
                 f" (the line's own limit of {self.line_max} leaves "
                 f"{self.prose_budget(task)} for prose, and the symptom takes {taken})"
@@ -1402,12 +1462,13 @@ class Schema:
                     "does not silently rewrite text it did not author)",
                 )
             )
-        if len(value) > limit:
+        if width(value) > limit:
             out.append(
                 Violation(
                     f"{field}.too-long",
                     field,
-                    f"{over_by(len(value), limit, because=because)}; the remainder "
+                    f"{over_by(width(value), limit, because=because, measured=value)}; "
+                    f"the remainder "
                     f"belongs in the improvements section rather than compressed away",
                 )
             )

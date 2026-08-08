@@ -270,6 +270,27 @@ def test_audit_exits_zero_because_reporting_is_not_the_gate(tmp_path):
     assert main(["-C", str(tmp_path), "audit"]) == EXIT_OK
 
 
+def test_the_longest_line_is_the_longest_the_gate_will_measure(tmp_path, capsys):
+    """`stats` is the number a project ratchets against, so it counts what refuses (RK430).
+
+    It reported code points while the consumer's gate counted UTF-16 units, which is how
+    a line certified at "320 of 320" failed a build — and the ratchet is exactly the
+    reader that has no way to notice a systematic difference of one.
+    """
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "stats", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)["longest"]
+    raw = next(
+        line
+        for line in CLEAN.splitlines()
+        if line.startswith("- ") and payload["id"] in line
+    )
+    assert payload["length"] == len(raw) + 1  # the marker is one surrogate pair
+    # And the unit is published beside it, because a bare number is what let two readers
+    # both be right and disagree.
+    assert payload["unit"] == "utf-16-code-units"
+
+
 def test_an_undeclared_block_exits_two_naming_what_is_declared(tmp_path, capsys):
     project(tmp_path)
     assert main(["-C", str(tmp_path), "list", "--block", "Z"]) == EXIT_USAGE

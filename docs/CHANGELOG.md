@@ -301,6 +301,7 @@
 - ✅ **RK427** **The queue defect lint reports in roadkeep.toml is refused by the only verb that repairs a queue** — priority migrate moves the config's order into the roadmap, and both write verbs refuse by naming it, so the queue defect the gate reports has a door that opens.
 - ✅ **RK425** **The repair block.repeated names sends the caller into a worse state than the one it reported** — the finding names block merge instead of an edit the guard denies, and says how many lines under the later heading it moves, counted to the next heading of any level.
 - ✅ **RK418** **Two copies at one version number are called agreed, on the one fact known not to tell trees apart** — engines compares the commit as well as the version and answers agreed, behind or unpinnable, the last being one version and a modified checkout, which is no commit to match.
+- ✅ **RK430** **The line-length limit counts code points and the gate that enforces it counts UTF-16 units** — every character limit is measured in UTF-16 code units, the unit each payload declares and each refusal names where it differs from an editor's count, so this gate agrees with the one a project runs.
 
 ## Block E — Adoption
 

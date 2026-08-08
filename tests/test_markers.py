@@ -16,7 +16,7 @@ import pytest
 from roadkeep.backlog import Backlog
 from roadkeep.config import Config
 from roadkeep.markers import derive, refresh
-from roadkeep.schema import Dep, SchemaError, Task
+from roadkeep.schema import Dep, SchemaError, Task, width
 
 ROADMAP = "docs/ROADMAP.md"
 CHANGELOG = "docs/CHANGELOG.md"
@@ -155,7 +155,7 @@ def test_a_line_the_annotation_would_push_over_the_cap_is_refused(tmp_path):
     # The cap is this line exactly, so a derived ✅ has nowhere to go.
     (tmp_path / "roadkeep.toml").write_text(
         f'prefix = "RK"\n[files]\nroadmap = "{ROADMAP}"\nchangelog = "{CHANGELOG}"\n'
-        f"[limits]\nline = {len(long)}\n",
+        f"[limits]\nline = {width(long)}\n",
         encoding="utf-8",
     )
     config = Config.discover(tmp_path)
@@ -166,7 +166,7 @@ def test_a_line_the_annotation_would_push_over_the_cap_is_refused(tmp_path):
     # (RK183). Either way the refusal is the point — the file is not written.
     (violation,) = raised.value.violations
     assert violation.code == "why.too-long"
-    assert f"limit of {len(long)}" in violation.message
+    assert f"limit of {width(long)}" in violation.message
     assert config.document("roadmap").render().endswith(f"{long}\n")
 
 
@@ -182,7 +182,7 @@ def test_the_refusal_names_the_dependent_line_and_not_a_bare_count(tmp_path):
     project(tmp_path, roadmap=f"## Block A — The model\n\n{long}\n")
     (tmp_path / "roadkeep.toml").write_text(
         f'prefix = "RK"\n[files]\nroadmap = "{ROADMAP}"\nchangelog = "{CHANGELOG}"\n'
-        f"[limits]\nline = {len(long)}\n",
+        f"[limits]\nline = {width(long)}\n",
         encoding="utf-8",
     )
     with pytest.raises(SchemaError) as raised:

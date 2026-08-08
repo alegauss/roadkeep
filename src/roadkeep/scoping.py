@@ -37,7 +37,7 @@ from dataclasses import dataclass, replace
 
 from roadkeep.config import Config, Scope
 from roadkeep.document import Document, blank
-from roadkeep.schema import SchemaError, Violation
+from roadkeep.schema import SchemaError, Violation, over_by, width
 
 __all__ = [
     "HEADING",
@@ -340,19 +340,19 @@ def validate(config: Config, lead: str, why: str) -> tuple[Violation, ...]:
                 "the lead is bolded by the renderer, so it may not carry '*' itself",
             )
         )
-    if len(head) > scope.lead:
+    if width(head) > scope.lead:
         out.append(
             Violation(
                 LEAD,
                 "lead",
-                f"{len(head)} characters, limit {scope.lead}",
+                over_by(width(head), scope.lead, measured=head),
             )
         )
     if not reason:
         out.append(Violation(WHY, "why", "a constraint nobody argued is a rule"))
-    if len(reason) > scope.why:
+    if width(reason) > scope.why:
         out.append(
-            Violation(WHY, "why", f"{len(reason)} characters, limit {scope.why}")
+            Violation(WHY, "why", over_by(width(reason), scope.why, measured=reason))
         )
     return tuple(out)
 

@@ -69,7 +69,7 @@ from roadkeep.config import (
     Scope,
 )
 from roadkeep.document import LEDGER_SHAPES, Document, checkbox
-from roadkeep.schema import DEFAULT_HEADING_WORD, OUTLINE_ANCHOR_RE, Schema
+from roadkeep.schema import DEFAULT_HEADING_WORD, OUTLINE_ANCHOR_RE, Schema, width
 from roadkeep.sections import anchored, structural, unanchored, words as sections_words
 
 #: The roles `init` scaffolds. `strategy` is absent and not empty: Turing has one and this
@@ -1191,7 +1191,7 @@ def _measures(document: Document, schema: Schema) -> tuple[Measure, ...]:
     for field, attribute in _MEASURED:
         limit = getattr(schema, attribute)
         lengths = [
-            len(schema.render(entry.task) if field == "line" else getattr(entry.task, field))
+            width(schema.render(entry.task) if field == "line" else getattr(entry.task, field))
             for entry in document.entries
         ]
         out.append(
