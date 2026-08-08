@@ -220,6 +220,40 @@ Declarations are merged, so what another tool wrote in either file survives; the
 written once and tuned by you thereafter. The fifth surface is named and not written: the line
 in `CONTRIBUTING.md` is prose about your project, and this tool writes none (L4).
 
+### On Claude Code on the web, the plugin is not there
+
+[Claude Code on the web](https://code.claude.com/docs/en/claude-code-on-the-web) has no
+`/plugin` command and never installs a marketplace plugin — a cloud session reads only what the
+repository commits (`.claude/settings.json`, `.mcp.json`, `.claude/skills/`) and a setup script.
+So the two commands at the top of this section wire **nothing** there: the hook, the server and
+the skill all ride with a plugin the environment does not install, and an agent with no guard
+falls back to hand-editing the governed files — the one drift this tool exists to refuse, now
+in the one place it cannot see itself doing it (*"No roadkeep plugin/hooks → I'll track via git
+log"* is the tell).
+
+The fix is the checkout path made portable: commit a small launcher and point the hook and the
+server at it instead of at `${CLAUDE_PLUGIN_ROOT}`. It resolves an engine at run time —
+`$ROADKEEP_HOME`, an installed plugin, a sibling `../roadkeep`, a cached clone, or a fresh
+`git clone` — and runs the same `guard` and `mcp` entry points the plugin would, so **one
+wiring holds on a laptop and in the cloud**:
+
+```jsonc
+// .claude/settings.json — the guard on its three events, launcher instead of the plugin root
+"hooks": { "PreToolUse": [{ "matcher": "Edit|MultiEdit|NotebookEdit|Write|Bash",
+  "hooks": [{ "type": "command",
+    "command": "python \"${CLAUDE_PROJECT_DIR}/.claude/hooks/roadkeep-launch.py\" guard" }] }] }
+// .mcp.json — the same launcher, `mcp` mode, gives `mcp__roadkeep__*` where the plugin cannot
+"mcpServers": { "roadkeep": { "command": "python",
+  "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/roadkeep-launch.py", "mcp"] } }
+```
+
+Two rules keep the committed launcher from ever making a machine worse than the plugin did: it
+**defers to the plugin** when one is installed, so nothing double-fires on the laptop that
+already has it, and it **no-ops on exit 0** when no engine is found or cloned, so a repository
+without roadkeep is never blocked by a hook that cannot answer.
+[Viglet Shio](https://github.com/openviglet/shio) carries the reference copy at
+[`.claude/hooks/roadkeep-launch.py`](https://github.com/openviglet/shio/blob/main/.claude/hooks/roadkeep-launch.py).
+
 ### Or just the CLI
 
 ```sh
