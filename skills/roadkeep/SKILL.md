@@ -16,7 +16,7 @@ not on PATH.
 When this session's roadkeep tools are available, **prefer them** — named `mcp__roadkeep__*`
 where a project's own `.mcp.json` declares the server and `mcp__plugin_<plugin>_roadkeep__*`
 where a plugin provides it, so read the prefix off the tool list rather than typing it: the whole write path and
-the reads a task needs are there — `add`, `block_add`, `block_drop`, `claim`, `scope`, `status`, `amend`, `restate`, `ship`, `retire`, `defer`, `resume`,
+the reads a task needs are there — `add`, `block_add`, `block_drop`, `block_merge`, `claim`, `scope`, `status`, `amend`, `restate`, `ship`, `retire`, `defer`, `resume`,
 `record_add`,
 `record_amend`, `record_move`, `record_drop`, `record_renumber`, `non_goal_add`, `non_goal_amend`, `non_goal_drop`, `section_add`, `section_amend`, `section_move`, `section_drop`, `budget`, `brief`, `pick`, `list`, `deps`, `lint`, `engines`, `merge_check` — same engine and same
 refusals, with
@@ -169,7 +169,14 @@ the heading and declares no such neighbour is refused rather than appended.
 `block drop <x>` withdraws a label opened by mistake: the heading goes only from the files where
 its whole subtree is blank, and anything filed under it — an open line, a paused one, a
 rationale section — is named in a refusal that writes nothing, because a heading over work is
-not an empty heading. The ledger keeps its heading either way, history being filed under it. `non-goal add --lead "…" --why "…"` writes the one bullet that is not a task line,
+not an empty heading. The ledger keeps its heading either way, history being filed under it.
+**`block merge <x>` is the key to the doubled heading** — the state a textual git merge, an
+`adopt` or a hand edit leaves, that the gate reports `block.repeated` and every write refuses
+with "merge the two regions by hand". It keeps the first heading and folds every later
+duplicate's entries into it, all files or none; the ledger is included, not skipped, because
+history stays under a heading of the same label. A nested section is `section move`'s to place
+and refused here, and loose prose is dropped only under `--prose`. Reach for it the moment
+`lint` reports `block.repeated` or a write refuses with `RepeatedHeading`. `non-goal add --lead "…" --why "…"` writes the one bullet that is not a task line,
 where `[non_goals]` declares the list governed: addressed by its lead, which is unique and
 checked, and carrying no marker, dep or pointer, because a constraint has no status to state.
 `non-goal amend <lead> --why "…"` corrects the reason **where the bullet already sits**,

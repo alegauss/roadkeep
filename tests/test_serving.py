@@ -165,6 +165,9 @@ def test_the_tools_are_what_a_task_needs_end_to_end():
         # And the key that could not close the door (RK144): the caller that opened a label by
         # mistake is the one the guard denies the hand-edit to, which is RK141's own argument.
         "block_drop",
+        # The key RK141/RK144's pair never cut (RK403): a doubled heading is the state every
+        # write refuses with `merge by hand`, and over MCP there is no hand-edit at all.
+        "block_merge",
         # `brief --claim` under the name of the act (RK149, RK150): the write a session makes
         # first, split off so the two reads below keep the hint that makes them free to ask.
         "claim",
@@ -713,6 +716,7 @@ def test_the_read_only_hint_says_which_tools_write(tmp_path):
         "add",
         "block_add",
         "block_drop",
+        "block_merge",
         "status",
         "amend",
         "restate",

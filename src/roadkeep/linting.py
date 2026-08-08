@@ -1596,9 +1596,12 @@ def _repeated(config: Config, files: dict[str, Document]) -> list[Finding]:
     the diagnosis left the author to research it. The clause is conditional, because that
     removal is all-or-nothing across the governed set: a file where nothing is removable
     refuses the whole run, so the condition is asked of every file that declares the label
-    and :func:`~roadkeep.blocking.removable` is the one expression both sides read. Where
-    both regions hold work there is no command to name, and saying so is still the useful
-    half — it tells the reader which of the two cases they are in.
+    and :func:`~roadkeep.blocking.removable` is the one expression both sides read. If the
+    repair is `block merge` (RK403), the message references the first heading because the
+    merge keeps that first heading and folds the later region into it. Where both regions
+    hold work there is no command to name, and saying so is still the useful half — it
+    tells the reader which of the two cases they are in.
+
     """
     word = config.schema.heading_word
     out: list[Finding] = []
@@ -1615,6 +1618,7 @@ def _repeated(config: Config, files: dict[str, Document]) -> list[Finding]:
                 # Named as an edit and not as a command, because there is none: two regions
                 # holding work is a merge somebody has to make.
                 else "both regions hold work, so the repair is a merge by hand"
+
             )
             for later in rest:
                 out.append(
