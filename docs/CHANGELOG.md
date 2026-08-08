@@ -281,6 +281,7 @@
 - ✅ **RK412** **The seam every line write passes is told which file it is writing into twice** — place takes the role and derives the path and the organise remedy from it, so defer names its own file too.
 - ✅ **RK415** **Three engines write and judge one project and none names the others** — engines reads the running copy, the plugin the harness wired and every workflow ref, and lint notes a pen and judge apart.
 - ✅ **RK417** **The finding for one label under two headings names no verb, and one of the two is often removable** — the finding names block drop where that verb would remove the empty heading, and says it is a hand merge where it would not.
+- ✅ **RK420** **25 of the gate's 37 codes report a defect and name no verb for it** — every finding carries the command that closes it — a complete argv where one exists, the doors and what separates them where a decision does, and the blank where L4 forbids the tool the sentence.
 
 ## Block E — Adoption
 

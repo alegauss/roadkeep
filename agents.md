@@ -45,7 +45,8 @@ src/roadkeep/   the package (src layout, importable via pytest pythonpath). Each
   scoping queueing  RK69-70/325  the non-goal, the list read before an add, the queue
   backlog counting picking showing graph  RK10-13/28-29/31/37/39-40/83/92/247  the query surface,
   briefing budgeting exporting history weighing      plus what git alone can answer
-  linting fixing                            RK14-17  the gate, and the derived-only fixer
+  linting fixing remedying  RK14-17/420  the gate, the derived-only fixer, and the door
+                                     every finding names instead of leaving to be guessed
   adopting installing  RK18/100/415  `init` scaffolds, `adopt` estimates, `install` wires it
                           in, `engines` says which three copies write, judge and gate
   guarding screening attesting serving provenance  RK22/24/79/175-176/200  the hook, what it
@@ -76,7 +77,7 @@ wrong lines, so a schema change validates here first, under this repo's own `roa
 Don't hand-check it: `… lint` **exits 1** on any violation, line that stopped round-tripping,
 dep nothing satisfies, pointer resolving to nothing, section nothing points at, over-budget
 every-turn file, queue entry naming work that left, or invisible codepoint — as
-`file:line:column`, never as a consequence, nothing else judged there (RK14/15/30/34/326). CI
+`file:line:column`, each carrying **the command that closes it** (RK14/15/30/34/326/420). CI
 runs it through the action this repo ships (RK17). `--fix` repairs only the **derived**
 (annotation, pointer, dep order, marker codepoint, whitespace, dead queue entry) (RK16).
 
@@ -91,19 +92,19 @@ so read every command in it as `PYTHONPATH=src python -m roadkeep.cli <…>` fro
 
 ## Build and test
 
-- **Python ≥3.11** (`tomllib` is stdlib there; 3.13.14 is installed here) and **zero runtime
-  dependencies**: `argparse` + `tomllib`, never `click` + `pydantic` — a tool meant to run as
-  `uvx roadkeep` in someone else's CI pays for every dependency it takes.
+- **Python ≥3.11** (`tomllib` is stdlib there; 3.13.14 here) and **zero runtime deps**:
+  `argparse` + `tomllib`, never `click` + `pydantic` — a tool meant to run as `uvx roadkeep`
+  in someone else's CI pays for every dependency it takes.
 - `uv` is **not** installed here — `python -m pytest` from the repo root (`pythonpath =
-  ["src"]` is set, so no install step). Only dev dependency: `pip install --user pytest`.
+  ["src"]` is set). Only dev dependency: `pip install --user pytest`.
 - Round-trip (L3) is a **property test over real files**: `docs/`, plus Shio's and Turing's
   at the revision `tests/corpora.py` pins — absent or unpinnable, they skip (CI).
 
 ## Committing
 
 **One task → one commit, the instant it is validated.** What `ship` wrote goes in the *same*
-commit as the code, so the docs never describe a state that did not ship, and a batch of ≥2
-tasks is **not** permission to batch: `/loop`, one task per iteration. Use `run-commit.cmd -m
+commit as the code, so the docs never describe a state that did not ship; a batch of ≥2 tasks
+is **not** permission to batch. Use `run-commit.cmd -m
 "<conventional-commits title>"` from the repo root, **`-m` always** and ASCII — without it a
 docs commit's prose about shipped work is misread as `feat: implement <feature>`. It stages
 everything, which is why a claim carries a **scope**: `claim <id> --path …` says what this
@@ -121,4 +122,4 @@ suggestion keeps violating: **no model, no prompts** (L4) — a generator reintr
 
 What loads every turn is only what a turn touching no governed file needs. Its budget is
 `[budgets]` in `roadkeep.toml`, held by `lint` and not by this sentence (RK30); the Layout index
-is a fifth of it, held by a test, and the prose here is what to compress first (RK203).
+is a fifth of it, held by a test, and the prose here is what to compress (RK203).

@@ -1,0 +1,288 @@
+"""The remedy table, and the one property that makes it worth having (RK420, RK421).
+
+A remedy per finding is a convenience; a remedy per *code the package can emit* is a
+guarantee, and only the second one saves a turn reliably. The difference is what this file
+holds:
+
+* **Runnable means runnable.** A `run` or `fix` remedy carries no placeholder, and the
+  first word of its argv is a subcommand this CLI actually parses. An argv that looks
+  complete and is not is worse than no remedy at all, because a caller spends the turn
+  before finding out.
+* **L4 is honoured and stated.** Every remedy that would have to write prose is `compose`
+  or `decide` and carries the blank, rather than inventing a title, a reason or a shorter
+  sentence.
+"""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+import pytest
+
+from roadkeep import remedying
+from roadkeep.cli import build_parser
+from roadkeep.config import Config
+from roadkeep.linting import Finding, Note, lint
+from roadkeep.provenance import invocation
+from roadkeep.remedying import BLANK, KINDS, VARIES, Remedy, codes, remedy
+
+SOURCE = Path(remedying.__file__).resolve().parent
+
+def test_every_kind_is_one_of_the_four():
+    for code in codes():
+        found = remedy(Finding(code, "ROADMAP.md", "", 1, "RK1"))
+        assert found is not None and found.kind in KINDS, code
+
+
+def test_a_decision_is_stated_exactly_where_there_is_one():
+    for code in codes():
+        found = remedy(Finding(code, "ROADMAP.md", "", 1, "RK1"))
+        assert found is not None
+        if found.kind == "decide":
+            # Two doors and a sentence separating them, or the caller picks by running one
+            # and reading its refusal — which is the loop this whole task removes.
+            assert len(found.doors) > 1, code
+            assert found.decision, code
+        else:
+            assert len(found.doors) == 1, code
+            assert not found.decision, code
+
+
+# -- the shape of a remedy -------------------------------------------------
+
+
+def test_a_runnable_remedy_carries_no_blank():
+    for code in codes():
+        found = remedy(Finding(code, "ROADMAP.md", "", 12, "RK1"))
+        assert found is not None
+        if found.kind in ("fix", "run"):
+            assert found.runnable, f"{code}: {found.doors}"
+            for door in found.doors:
+                assert BLANK not in " ".join(door.argv), code
+
+
+def test_every_door_names_a_subcommand_this_cli_parses():
+    parser = build_parser()
+    known = set()
+    for action in parser._subparsers._group_actions:  # noqa: SLF001 - argparse has no public read
+        known |= set(action.choices)
+    for code in codes():
+        found = remedy(Finding(code, "ROADMAP.md", "", 1, "RK1"))
+        assert found is not None
+        for door in found.doors:
+            assert door.argv[0] in known, f"{code}: {door.argv[0]} is not a subcommand"
+
+
+def test_a_template_field_with_no_value_keeps_its_blank():
+    # `--line None` looks runnable and is not; `--line …` says which word is missing.
+    found = remedy(Finding("id.duplicate", "CHANGELOG.md", "", None, "RK1"))
+    assert found is not None
+    rendered = [" ".join(d.argv) for d in found.doors]
+    assert all("None" not in line for line in rendered), rendered
+    assert any(BLANK in line for line in rendered), rendered
+
+
+def test_the_id_and_the_line_are_substituted():
+    found = remedy(Finding("id.duplicate", "CHANGELOG.md", "", 275, "RK403"))
+    assert found is not None
+    assert ("record", "drop", "RK403", "--line", "275") in {d.argv for d in found.doors}
+    assert ("record", "renumber", "RK403", "--line", "275") in {d.argv for d in found.doors}
+
+
+def test_a_queue_finding_substitutes_its_token_and_not_its_id():
+    # The queue codes carry no id — the message opens `queues RK12, …` and a prefix would
+    # print `RK12: queues RK12` — so the subject is the field the remedy reads (RK420).
+    found = remedy(Finding("priority.duplicate", "ROADMAP.md", "", 9, subject="Block D"))
+    assert found is not None
+    assert found.doors[0].argv == ("priority", "drop", "Block D")
+
+
+def test_a_note_gets_a_remedy_on_the_same_lookup():
+    found = remedy(Note("block.emptied", "ROADMAP.md", "", 3, "D"))
+    assert found is not None and found.kind == "run"
+
+
+def test_an_unknown_code_gets_none_rather_than_a_guess():
+    assert remedy(Finding("nothing.here", "ROADMAP.md", "", 1)) is None
+
+
+# -- L4: what the tool may not write -----------------------------------------
+
+
+def test_a_prose_field_is_never_composed_for_the_author():
+    # The five fields the tool refuses to write. Each one's remedy names the door and
+    # leaves the field: a generator here reintroduces exactly the drift this exists to stop.
+    for code in (
+        "why.too-long",
+        "why.sentences",
+        "symptom.too-long",
+        "block.unrecorded",
+        "section.too-long",
+    ):
+        found = remedy(Finding(code, "ROADMAP.md", "", 1, "RK1"))
+        assert found is not None
+        assert found.kind in ("compose", "decide"), code
+        assert not found.runnable, code
+        # Two shapes of the same blank: a marked placeholder, or the dash every door that
+        # takes a paragraph reads standard input from. Both say the field is the author's.
+        assert any(
+            BLANK in d.argv or "-" in d.argv for d in found.doors
+        ), code
+
+
+#: The one row that asks for two fields, and why that is not the defect this test hunts:
+#: a label the heading word cannot render has no line to read the replacement off, so both
+#: the new label and its title are the author's. Every other `compose` leaves exactly one.
+_TWO_BLANKS = frozenset({"block.format"})
+
+
+def test_every_compose_door_leaves_exactly_one_field_to_the_author():
+    # A door with several blanks is a door the caller composes from scratch, which is the
+    # state this task replaced — so the bound is one, and the exception is named.
+    for code in codes():
+        found = remedy(Finding(code, "ROADMAP.md", "", 1, "RK1"))
+        assert found is not None
+        if found.kind != "compose" or code in _TWO_BLANKS:
+            continue
+        door = found.doors[0]
+        blanks = sum(1 for word in door.argv if BLANK in word or word == "-")
+        assert blanks <= 1, f"{code}: {door.argv} asks for {blanks} fields at once"
+
+
+def test_the_mechanical_class_is_lint_fix_and_says_so():
+    for code in ("char.bom", "char.invisible", "deps.stale", "line.non-canonical"):
+        found = remedy(Finding(code, "ROADMAP.md", "", 1, "RK1"))
+        assert found is not None and found.kind == "fix"
+        assert found.doors[0].argv == ("lint", "--fix"), code
+
+
+# -- what the project decides, not the table (L6) -----------------------------
+
+
+def test_the_two_varying_rows_are_derived_from_the_table():
+    assert VARIES == {"ref.mismatch": "ref_scheme", "id.duplicate": "role"}
+
+
+def test_a_duplicate_id_in_the_roadmap_is_renumber_and_not_record_renumber(tmp_path):
+    config = _project(tmp_path)
+    roadmap = config.relative(config.path("roadmap"))
+    found = remedy(Finding("id.duplicate", roadmap, "", 7, "RK1"), config)
+    assert found is not None
+    assert found.doors[0].argv == ("renumber", "RK1")
+    ledger = config.relative(config.path("changelog"))
+    other = remedy(Finding("id.duplicate", ledger, "", 7, "RK1"), config)
+    assert other is not None
+    assert other.doors[0].argv[:2] == ("record", "drop")
+
+
+def test_an_outline_anchor_is_the_authors_and_not_the_fixers(tmp_path):
+    config = _project(tmp_path, ref_scheme="outline")
+    found = remedy(Finding("ref.mismatch", "ROADMAP.md", "", 5, "RK1"), config)
+    assert found is not None and found.kind == "compose"
+    derived = _project(tmp_path / "other", ref_scheme="id")
+    assert remedy(Finding("ref.mismatch", "ROADMAP.md", "", 5, "RK1"), derived).kind == "fix"
+
+
+# -- the report carries it (RK420) -------------------------------------------
+
+
+def test_the_json_report_carries_a_runnable_remedy(tmp_path, capsys):
+    from roadkeep.cli import EXIT_GATE, main
+
+    config = _project(tmp_path, roadmap=_DUPLICATE)
+    assert main(["-C", str(tmp_path), "lint", "--json"]) == EXIT_GATE
+    import json
+
+    payload = json.loads(capsys.readouterr().out)
+    duplicates = [f for f in payload["findings"] if f["code"] == "id.duplicate"]
+    assert duplicates, payload["codes"]
+    found = duplicates[0]["remedy"]
+    assert found["kind"] == "decide"
+    assert found["doors"][0]["argv"][0] == "renumber"
+    assert all(door["complete"] for door in found["doors"])
+
+
+def test_the_text_report_prints_the_command_under_the_finding(tmp_path, capsys):
+    from roadkeep.cli import EXIT_GATE, main
+
+    _project(tmp_path, roadmap=_DUPLICATE)
+    assert main(["-C", str(tmp_path), "lint"]) == EXIT_GATE
+    out = capsys.readouterr().out
+    # The invocation is derived per machine (RK254), so the assertion is about the argv and
+    # not about the word in front of it — which is the whole reason that word is derived.
+    assert f"{invocation()} renumber RK1" in out
+
+
+def test_the_mechanical_class_is_counted_once_and_not_printed_per_line(tmp_path, capsys):
+    from roadkeep.cli import EXIT_GATE, main
+
+    _project(tmp_path, roadmap=_INVISIBLE)
+    assert main(["-C", str(tmp_path), "lint"]) == EXIT_GATE
+    out = capsys.readouterr().out
+    # Said once in the summary, never under each finding: the mechanical remedy is
+    # identical on every finding it answers, so repeating it spends the report's length
+    # on the findings that cost the reader nothing.
+    assert out.count(f"{invocation()} lint --fix") == 1
+    assert "need no decision" in out
+
+
+# -- fixtures ----------------------------------------------------------------
+
+_CLEAN = """# Roadmap
+
+## Block A — The model
+
+- 📋 **RK1** (deps: —) **A first symptom** — Because of a reason. → §RK1
+"""
+
+_DUPLICATE = _CLEAN + (
+    "- 📋 **RK1** (deps: —) **A second symptom under one id** — Because of another"
+    " reason. → §RK1\n"
+)
+
+#: A zero-width space inside the symptom: invisible in an editor, and the character pass's.
+_INVISIBLE = """# Roadmap
+
+## Block A — The model
+
+- 📋 **RK1** (deps: —) **A first​symptom** — Because of a reason. → §RK1
+- 📋 **RK2** (deps: —) **A second​symptom** — Because of a reason. → §RK2
+"""
+
+_LEDGER = """# Shipped
+
+## Block A — The model
+
+- ✅ **RK5** **An earlier symptom** — Because it was done.
+"""
+
+_PROSE = """# Design rationale
+
+## Block A — The model
+
+### §RK1 The first design
+
+The reasoning the first line has no room for.
+
+### §RK2 The second design
+
+The reasoning the second line has no room for.
+"""
+
+
+def _project(tmp_path: Path, roadmap: str = _CLEAN, ref_scheme: str = "id") -> Config:
+    tmp_path.mkdir(parents=True, exist_ok=True)
+    (tmp_path / "roadkeep.toml").write_text(
+        f'prefix = "RK"\nref_scheme = "{ref_scheme}"\n[files]\n'
+        'roadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
+        'improvements = "IMPROVEMENTS.md"\n',
+        encoding="utf-8",
+    )
+    for name, body in (
+        ("ROADMAP.md", roadmap),
+        ("CHANGELOG.md", _LEDGER),
+        ("IMPROVEMENTS.md", _PROSE),
+    ):
+        with (tmp_path / name).open("w", encoding="utf-8", newline="") as handle:
+            handle.write(body)
+    return Config.discover(tmp_path)

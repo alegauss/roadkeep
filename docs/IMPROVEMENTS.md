@@ -216,6 +216,28 @@ which they are doing, so the field is a flag. What it buys is a truthful ledger 
 a line's claim actually changed — the thing `restate` exists to make greppable — and a
 `restate` whose every occurrence still means what its documentation says.
 
+### §RK426 One refusal per call, not one per field
+
+`add` refuses the fields at input, which is the right design and the reason nothing
+half-written reaches the file. It refuses them **one at a time**. A call whose `why` is
+245 characters and whose `--section-body` is 302 words is refused twice: once for
+`why.too-long`, and then — after the sentence has been rewritten and the whole call
+resubmitted — for `body.too-long`, a limit the first refusal already knew was breached.
+
+Measured filing four tasks across two projects in one session: seven refusals, of which
+two were the second limit of a call whose first had just been fixed. Each costs a full
+resubmission, and `--section-body-file` exists precisely because resubmitting the prose
+is the expensive part — so the tool has already conceded that a refusal's cost is the
+re-passing, and then makes the caller pay it for a field it never looked at.
+
+The remedy is to validate every field and report every breach in one refusal, in the
+order the schema declares them. The message shape is already right — each finding names
+its code, its measurement and its delta — so this is a change to how many findings
+print, not to what one says.
+
+`--json` gains the same: a caller correcting programmatically wants the list, not the
+first entry of it.
+
 ## Block C — Query
 
 ### §RK409 The one branch a loop reads is the one --json does not cover
@@ -317,28 +339,6 @@ answer may be three states rather than two — agreed, behind, and unpinnable �
 boolean that collapses the third into either of the others will be wrong for one of
 them. That choice is the task; the numbers to make it with are already on the screen.
 
-### §RK420 The remedy is a field, not a sentence
-
-`lint` and the guard are two halves of one contract, and one keeps it. The barrier
-states the rule outright: a refusal that names no alternative is a refusal an agent
-works around, so `_INSTEAD` carries the command *and its flags* for every governed role.
-The gate makes the same promise in `Finding`'s docstring — "``message`` names the fix" —
-and does not hold it. Counted over the emission sites: 25 of 37 codes name no verb, and
-the twelve that do name it inside a sentence, as prose to re-type.
-
-That gap is paid in turns rather than characters, which is why it went unmeasured. A
-report arrives, the caller infers a door per code, and the guard denies the `Edit` that
-would have been the shortcut — so the loop is *retry a verb until one is not refused*,
-against a file whose repair was one command the whole time. `id.duplicate` is the case
-that proves it: `record drop` and `record renumber` both exist, the refusal on each
-names the other, and the finding names neither.
-
-So the remedy becomes a field. Either an **argv** — runnable, with the id and line
-already substituted, because a placeholder is the guess this removes — or a
-**decision**: the doors that could take it and what has to be chosen between them, which
-is the honest answer where L4 forbids the tool from choosing. `--json` carries it, so a
-caller never parses English to find a command.
-
 ### §RK421 Every code has a door, and a test says so
 
 RK420 gives a finding somewhere to carry its remedy; nothing yet says every finding has
@@ -380,6 +380,55 @@ itself the answer for a caller who wants to read before it acts. The exit code s
 gate's: 0 when the tree is clean afterwards, 1 when a decision is still outstanding.
 That last part is what keeps this from becoming a way around the gate rather than a way
 through it.
+
+### §RK425 The named repair that makes it worse
+
+`block.repeated` names its repair — *both regions hold work, so the repair is a merge by
+hand* — and that sentence is correct and insufficient. Two facts decide whether the
+merge succeeds, the gate knows both, and neither is said:
+
+- **A rename is not a merge.** The obvious reading of "one label is one heading" is to take the
+  label out of the second heading. That detaches every entry beneath it: the region ends and the
+  lint becomes `block.missing` for each. Measured, renaming five headings produced 83 findings and
+  had to be reverted.
+- **A region ends at the next heading of *any* level.** A `###` cannot group entries inside a
+  block, so the grouping title has to stop being a heading — a bold paragraph works. That is why
+  the second attempt fails after the first is undone.
+
+The cost is not reading time. `ship` refuses a repeated label outright, so the caller
+holds an unrelated diff and a task they cannot land, and each wrong repair is a
+write-and-revert of a file the guard otherwise forbids them to touch. Three of twelve
+blocks were unshippable here.
+
+The fix is in the message: say what the entries must do — move into the one region,
+keeping the file's existing order — and what the title must become, with both as
+`--json` fields. The tool knows both regions' line ranges, so printing them is the whole
+of what a caller works out by hand.
+
+### §RK427 The finding in one file, the door on another
+
+RK325 moved the queue out of `roadkeep.toml` and into a `## Priority` section of the
+roadmap, for a good reason: every token in it names work, and work leaves, so the config
+was the one file nothing governed. A project that has not migrated still declares it in
+the config — and `lint` still reads it there, which is right.
+
+The two halves disagree about where the queue is. `lint` reports `priority.shipped` and
+names **`roadkeep.toml`** as the location. `priority drop <id>` — the verb whose whole
+job is that repair — refuses with *no priority heading in docs/ROADMAP.md*, having never
+looked at the file the finding named. So the gate reports a defect in a file the door
+will not open, and the only way out is the hand-edit the tool exists to replace.
+
+Measured: shipping a task whose id led the queue produced the finding, and the drop that
+answers it could not run.
+
+Three ways to close it, in increasing order of what they cost. `priority drop` and `add`
+operate on whichever declaration `lint` read, since it already resolves that. Or the
+refusal names the migration as the fix and prints the tokens to move. Or `lint` declines
+to report a finding no verb can repair — which is the worst of the three, because the
+drift is real.
+
+The first is the one that matches how the codes are supposed to work: a finding names a
+door, and that door opens.
 
 ## Block E — Adoption
 

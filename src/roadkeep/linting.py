@@ -168,6 +168,18 @@ class Finding:
     #: 1-based column, for a finding about one character (RK34). An invisible codepoint
     #: cannot be found by eye, so the offset is half of what makes the report usable.
     column: int | None = None
+    #: What the remedy is *about*, where that is not the id and not printable as a prefix
+    #: (RK420). `id` already doubles as the subject on most codes — a block label, a section
+    #: anchor — because it is printed in front of the message and reads correctly there. A
+    #: queue token does not: the message opens `queues RK12, …`, so putting it in `id` would
+    #: render `RK12: queues RK12`. Last field, so every positional call site still means what
+    #: it did.
+    subject: str = ""
+
+    @property
+    def token(self) -> str:
+        """What a remedy substitutes: the explicit subject, or the id it usually is."""
+        return self.subject or self.id
 
     @property
     def where(self) -> str:
@@ -199,6 +211,13 @@ class Note:
     message: str
     lineno: int | None = None
     id: str = ""
+    #: The same field :class:`Finding` grew for the same reason (RK420): a note carries a
+    #: remedy too, and the thing it is about is not always printable in front of a message.
+    subject: str = ""
+
+    @property
+    def token(self) -> str:
+        return self.subject or self.id
 
     def __str__(self) -> str:
         where = self.file if self.lineno is None else f"{self.file}:{self.lineno}"
@@ -1359,6 +1378,7 @@ def _queue(
                     f"{token} is already queued{first}: an entry is an address, so a "
                     f"second one is two answers about where the same work sits",
                     lineno,
+                    subject=token,
                     column=column,
                 )
             )
@@ -1400,6 +1420,7 @@ def _dead(
             f"cannot be first, and the queue is the one list its departure did not reach",
             lineno,
             column=column,
+            subject=token,
         )
     if resolution.status is DepStatus.DEFERRED:
         return Finding(
@@ -1409,6 +1430,7 @@ def _dead(
             f"line, so the order is over work nothing can start",
             lineno,
             column=column,
+            subject=token,
         )
     if resolution.status is DepStatus.UNKNOWN:
         return Finding(
@@ -1418,6 +1440,7 @@ def _dead(
             f"of an id no file carries",
             lineno,
             column=column,
+            subject=token,
         )
     if resolution.status is DepStatus.UNRESOLVABLE:
         return Finding(
@@ -1426,6 +1449,7 @@ def _dead(
             f"queues {token}, which is {resolution.detail}",
             lineno,
             column=column,
+            subject=token,
         )
     # OPEN, which includes blocked: a queue naming work that is waiting is a queue doing
     # its job, and the tier fires the moment the blocker ships.
@@ -1457,6 +1481,7 @@ def _dead_block(
             f"queues {token} and {detail}",
             lineno,
             column=column,
+            subject=token,
         )
     if backlog.open_in_block(label):
         return None
@@ -1469,6 +1494,7 @@ def _dead_block(
             f"nothing is an order the author believes is in force",
             lineno,
             column=column,
+            subject=token,
         )
     return Note(
         "priority.block-unstarted",
@@ -1476,6 +1502,7 @@ def _dead_block(
         f"queues {token}, which no line is filed under yet: the tier fires on nothing "
         f"until one is",
         lineno,
+        subject=token,
     )
 
 

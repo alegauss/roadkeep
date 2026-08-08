@@ -126,6 +126,7 @@ from roadkeep.merging import (
 from roadkeep.claiming import Followed, Held
 from roadkeep.picking import Choice, Claim, pick, take
 from roadkeep.provenance import engine, invocation
+from roadkeep.remedying import Remedy, codes as remedy_codes, remedy
 from roadkeep.renumbering import renumber
 from roadkeep.schema import SchemaError
 from roadkeep.queueing import add as add_priority
@@ -4526,13 +4527,15 @@ def _lint(config: Config, args: argparse.Namespace) -> int:
     # attribute the report to wherever it was misread from.
     root = config.root.as_posix()
     if args.json:
-        print(json.dumps(_lint_json(report, applied, root), indent=2))
+        print(json.dumps(_lint_json(config, report, applied, root), indent=2))
     else:
-        _print_report(report, applied, root, quiet=args.quiet)
+        _print_report(config, report, applied, root, quiet=args.quiet)
     return EXIT_OK if passed else EXIT_GATE
 
 
-def _print_report(report: Report, applied: Fix, root: str, quiet: bool) -> None:
+def _print_report(
+    config: Config, report: Report, applied: Fix, root: str, quiet: bool
+) -> None:
     if not quiet:
         _print_fix(applied)
         # Notes before the findings and the summary: a note is what the gate says about a
@@ -4548,14 +4551,40 @@ def _print_report(report: Report, applied: Fix, root: str, quiet: bool) -> None:
             f"{_standing(report)}{_tree(root)}"
         )
         return
+    mechanical = 0
     if not quiet:
         for finding in report.findings:
             print(str(finding))
+            mechanical += _print_remedy(finding, config)
     added = "new " if report.baseline is not None else ""
     print(
         f"{report.problems} {added}problem(s) in {_scope(report)} across "
         f"{len(report.checked)} file(s): {_codes(report)}{_standing(report)}{_tree(root)}"
     )
+    if mechanical:
+        # Said once and never per line (RK420): the mechanical class is the one remedy that
+        # is identical on every finding it answers, so repeating it under each of them would
+        # spend the report's length on the findings that cost the reader nothing.
+        print(f"{mechanical} of them need no decision: {invocation()} lint --fix")
+
+
+def _print_remedy(finding: Finding, config: Config) -> int:
+    """Print what closes this finding, and return 1 where that was `--fix`'s (RK420).
+
+    Printed by default rather than behind a flag. The defect being answered is a caller
+    spending a *turn* to learn the command, so a report that carries it only on request has
+    the cost exactly where it was: the second call is the thing being removed.
+
+    The mechanical class is counted instead of printed, and every other kind gets its line —
+    including `decide`, whose whole content is the two doors and what separates them, since
+    a decision printed as one word is a decision made by running one and reading its refusal.
+    """
+    found = remedy(finding, config)
+    if found is None or found.kind == "fix":
+        return 1 if found is not None else 0
+    for line in str(found).splitlines():
+        print(f"    {line}" if not line.startswith("    ") else line)
+    return 0
 
 
 def _tree(root: str) -> str:
@@ -4598,7 +4627,7 @@ def _print_refusals(applied: Fix) -> None:
         print(f"roadkeep: refused, nothing written: {message}", file=sys.stderr)
 
 
-def _lint_json(report: Report, applied: Fix, root: str) -> dict[str, object]:
+def _lint_json(config: Config, report: Report, applied: Fix, root: str) -> dict[str, object]:
     baseline = report.baseline
     return {
         # First, because every path below is relative to it and a payload a second tool files
@@ -4615,8 +4644,8 @@ def _lint_json(report: Report, applied: Fix, root: str) -> dict[str, object]:
                 "baseline": {
                     "rev": baseline.rev,
                     "standing": baseline.standing,
-                    "forgiven": [_finding_json(f) for f in baseline.forgiven],
-                    "resolved": [_finding_json(f) for f in baseline.resolved],
+                    "forgiven": [_finding_json(f, config) for f in baseline.forgiven],
+                    "resolved": [_finding_json(f, config) for f in baseline.resolved],
                 }
             }
         ),
@@ -4646,7 +4675,7 @@ def _lint_json(report: Report, applied: Fix, root: str) -> dict[str, object]:
         "budgets": report.budgets,
         "problems": report.problems,
         "codes": report.codes(),
-        "findings": [_finding_json(f) for f in report.findings],
+        "findings": [_finding_json(f, config) for f in report.findings],
         "notes": [
             {
                 "code": note.code,
@@ -4654,6 +4683,7 @@ def _lint_json(report: Report, applied: Fix, root: str) -> dict[str, object]:
                 "line": note.lineno,
                 "id": note.id or None,
                 "message": note.message,
+                **_remedy_json(note, config),
             }
             for note in report.notes
         ],
@@ -4686,7 +4716,7 @@ def _codes(report: Report) -> str:
     return "  ".join(f"{code} {count}" for code, count in report.codes().items())
 
 
-def _finding_json(finding: Finding) -> dict[str, object]:
+def _finding_json(finding: Finding, config: Config) -> dict[str, object]:
     return {
         "code": finding.code,
         "file": finding.file,
@@ -4696,7 +4726,19 @@ def _finding_json(finding: Finding) -> dict[str, object]:
         "column": finding.column,
         "id": finding.id or None,
         "message": finding.message,
+        **_remedy_json(finding, config),
     }
+
+
+def _remedy_json(finding: object, config: Config) -> dict[str, object]:
+    """The remedy, as a key that is absent rather than null when the table has none (RK420).
+
+    Absent and not `"remedy": null`, because a consumer that reads the key at all is one
+    about to run what is in it, and a null is a shape it has to branch on before it can
+    tell "no command exists" from "this build predates the field".
+    """
+    found = remedy(finding, config)
+    return {} if found is None else {"remedy": found.payload()}
 
 
 def _markers(markers: Mapping[str, int]) -> str:

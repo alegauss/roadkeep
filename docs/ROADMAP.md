@@ -31,20 +31,22 @@
 - 📋 **RK407** (deps: —) **A refusal blames the author for a character its own shell wrote** — PowerShell expands a backtick, so prose quoting an identifier arrives carrying a carriage return and the answer is why.newline, which names a newline nobody typed. → §RK407
 - 📋 **RK408** (deps: —) **The ship that empties a block reports it and names no verb for it** — It already prints `Block <x> empty`, so a caller whose project drops a heading with its last line has to know `block drop` from somewhere other than the answer telling them to run it. → §RK408
 - 📋 **RK414** (deps: —) **A slip of the pen in a symptom has to borrow the verb for a false premise** — amend refuses the field by design and restate is documented as the correction for a claim that turned out wrong, so a typo is repaired by a door that means something else. → §RK414
+- 📋 **RK426** (deps: —) **A call breaching two limits is refused twice, the second time for a limit the first refusal already measured** — add validates one field at a time, so a why and a body both long cost two full resubmissions - and re-passing the prose is the cost --section-body-file exists to avoid. → §RK426
 
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK409** (deps: —) **The machine-readable brief answers a finished block in prose** — It exits 2 with an empty stdout and an English sentence on stderr, so a caller who asked for JSON to detect "nothing is open" is the one caller that gets none. → §RK409
 - 📋 **RK410** (deps: —) **The free address is the last line of a listing of spent ones** — Asking `anchors` which child to write next prints every anchor the family ever had, so under a 27-anchor family the one number wanted is 28 rows down. → §RK410
 - 📋 **RK416** (deps: —) **A line proposing what a revert already undid reads as new work** — The ledger files a reversal as a delivery, so the entry that says a change was wrong looks like any other shipped one and nothing connects a fresh proposal to it. → §RK416
-- 📋 **RK423** (deps: RK420) **A code is the only stable name a defect has and nothing will say what it means** — Each finding states one occurrence, so a caller meeting a code first greps the package to learn the class it names, what produces it and which doors close it. → §RK423
+- 📋 **RK423** (deps: RK420 ✅) **A code is the only stable name a defect has and nothing will say what it means** — Each finding states one occurrence, so a caller meeting a code first greps the package to learn the class it names, what produces it and which doors close it. → §RK423
 
 ## Block D — The gate
 
 - 📋 **RK418** (deps: —) **Two copies at one version number are called agreed, on the one fact known not to tell trees apart** — The comparison is the release string, which a modified checkout and a released plugin can share while their files differ, and the commit each carries is read and dropped. → §RK418
-- 📋 **RK420** (deps: —) **25 of the gate's 37 codes report a defect and name no verb for it** — The remedy lives in the message's English where it exists at all, so a caller holding a report infers the door per code — and the file it may not hand-edit is the one it is reading. → §RK420
-- 📋 **RK421** (deps: RK420) **Nothing holds the tool to having a door for every defect it reports** — A code is added to the gate without anything asking which verb closes it, so the report can grow a class whose only repair is the hand-edit the guard denies. → §RK421
-- 📋 **RK422** (deps: RK420) **Nothing turns a report into the commands that clear it** — --fix applies the mechanical repairs and leaves the rest as prose, so a caller holding eight findings composes eight command lines by hand and pays a turn for each. → §RK422
+- 📋 **RK421** (deps: RK420 ✅) **Nothing holds the tool to having a door for every defect it reports** — A code is added to the gate without anything asking which verb closes it, so the report can grow a class whose only repair is the hand-edit the guard denies. → §RK421
+- 📋 **RK422** (deps: RK420 ✅) **Nothing turns a report into the commands that clear it** — --fix applies the mechanical repairs and leaves the rest as prose, so a caller holding eight findings composes eight command lines by hand and pays a turn for each. → §RK422
+- 📋 **RK425** (deps: —) **The repair block.repeated names sends the caller into a worse state than the one it reported** — Merge by hand is right and omits the two facts that decide it - a rename detaches the region it renamed, and a region ends at the next heading of any level. → §RK425
+- 📋 **RK427** (deps: —) **The queue defect lint reports in roadkeep.toml is refused by the only verb that repairs a queue** — priority drop reads the roadmap section RK325 introduced and never the config lint named, so a project that has not migrated is told about a drift it has no door for. → §RK427
 
 ## Block E — Adoption
 
@@ -53,7 +55,7 @@
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - 💭 **RK366** (deps: —) **The skill every adopting project loads has 24 body lines past 110 characters against a file otherwise wrapped at 90** — One pattern made them all — text appended to a line instead of the paragraph re-wrapped — so an edit arrives as a whole-paragraph diff and nothing holds the shape. → §RK366
-- 📋 **RK424** (deps: RK420) **A denied write answers with every verb its file has, not the one the defect needs** — The table is keyed by role, so an agent repairing one reported line reads fourteen commands and picks by guessing, which is the retry loop the refusal was written to end. → §RK424
+- 📋 **RK424** (deps: RK420 ✅) **A denied write answers with every verb its file has, not the one the defect needs** — The table is keyed by role, so an agent repairing one reported line reads fourteen commands and picks by guessing, which is the retry loop the refusal was written to end. → §RK424
 
 ## Non-goals
 
