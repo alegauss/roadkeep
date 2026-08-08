@@ -118,15 +118,15 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 30 | 2 |
 | B — Authoring (insert, never hand-edit) | 2 | 100 | 1 |
-| C — Query (consult without reading the file) | 1 | 63 | 1 |
+| C — Query (consult without reading the file) | 0 | 64 | 1 |
 | D — The gate | 2 | 88 | 0 |
 | E — Adoption | 0 | 73 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 69 | 1 |
-| **Total** | 6 | 423 | 6 |
+| **Total** | 5 | 424 | 6 |
 
 **Next ready:**
 
-- 📋 **RK433** (deps: —) **delivered answers a block letter nothing declares as one that has shipped nothing** — The verb filters the ledger without resolving the label, so the read a proposal is supposed to make against a block is made against a typo instead. → §RK433
+- 📋 **RK434** (deps: —) **The gate decides whether a block is finished, empty or undeclared with its own copy of the rule** — Resolving a queue token walks the same three states the backlog now answers in one reader, so a correction to either is a correction to one of two. → §RK434
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

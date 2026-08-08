@@ -707,14 +707,70 @@ def test_a_retired_claim_is_in_it_and_says_which_it_is(tmp_path, capsys):
     assert "🗑 DX3" in out
 
 
-def test_a_block_that_delivered_nothing_says_so(tmp_path, capsys):
+def test_a_letter_nothing_declares_is_refused_rather_than_answered(tmp_path, capsys):
+    # This answered exit 0 with `Block Z has delivered nothing yet` (RK433), and the answer
+    # is consumed as evidence: a caller who mistyped the letter is told the block is clear
+    # and files the duplicate this verb exists to prevent. Nothing reaches stdout at all.
+    from roadkeep.cli import EXIT_USAGE, main
+
+    root = _shipped(tmp_path)
+    assert main(["-C", str(root), "delivered", "Z"]) == EXIT_USAGE
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert "no heading declares Block Z" in captured.err
+    assert "not a block that delivered nothing" in captured.err
+
+
+def test_a_declared_block_with_nothing_in_the_ledger_says_which_state_it_is_in(
+    tmp_path, capsys
+):
     # Never an empty stdout: "this block has delivered nothing" and "this command found
-    # nothing to read" look the same to a caller, and only one of them is an answer.
+    # nothing to read" look the same to a caller, and only one of them is an answer. Which
+    # of the four states produced the empty count is the other half of it — a block being
+    # worked and a heading opened before its lines are the same silence otherwise.
     from roadkeep.cli import EXIT_OK, main
 
     root = _shipped(tmp_path)
-    assert main(["-C", str(root), "delivered", "Z"]) == EXIT_OK
-    assert "has delivered nothing yet" in capsys.readouterr().out
+    assert main(["-C", str(root), "delivered", "B"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "Block B has delivered nothing yet" in out and "Block B has 1 open" in out
+
+    assert main(["-C", str(root), "delivered", "C"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "has delivered nothing yet" in out and "Block C is empty" in out
+
+
+def test_the_state_of_the_block_rides_with_a_listing_too(tmp_path, capsys):
+    # On the answered branch as well, unlike `_print_standing`: nothing filtered this count,
+    # so the state of the label is the whole reason it is what it is — and reading three
+    # entries under a finished block is a different decision from three under a live one.
+    from roadkeep.cli import EXIT_OK, main
+
+    root = _shipped(tmp_path)
+    assert main(["-C", str(root), "delivered", "A"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "Block A, 3 delivered" in out
+    assert "Block A is finished" in out and "records 3 filed under it" in out
+
+
+def test_the_word_the_project_files_work_under_is_the_one_printed(tmp_path, capsys):
+    # RK75: the header spelled `Block` from a literal, so a project whose headings all say
+    # `Track` read a report naming nothing it wrote.
+    from roadkeep.cli import EXIT_OK, main
+
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
+        '[headings]\nword = "Track"\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "ROADMAP.md").write_text("## Track A — The model\n", encoding="utf-8")
+    (tmp_path / "CHANGELOG.md").write_text(
+        "## Track A — The model\n- ✅ **RK1** **A first symptom** — it was done.\n",
+        encoding="utf-8",
+    )
+    assert main(["-C", str(tmp_path), "delivered", "A"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "Track A, 1 delivered" in out and "Block A" not in out
 
 
 def test_the_payload_carries_the_claim_and_the_marker(tmp_path, capsys):
@@ -724,10 +780,23 @@ def test_the_payload_carries_the_claim_and_the_marker(tmp_path, capsys):
 
     root = _shipped(tmp_path)
     assert main(["-C", str(root), "delivered", "A", "--json"]) == EXIT_OK
-    rows = json.loads(capsys.readouterr().out)["delivered"]
+    payload = json.loads(capsys.readouterr().out)
+    rows = payload["delivered"]
     assert [row["id"] for row in rows] == ["DX1", "DX2", "DX3"]
     assert all("symptom" in row and "marker" in row for row in rows)
     assert "why" not in rows[0]
+    # The count is the evidence for the word, as it is at `pick` (RK429, RK433).
+    assert (payload["standing"]["state"], payload["standing"]["recorded"]) == ("finished", 3)
+
+
+def test_the_payload_is_a_refusal_where_the_label_is_not_one(tmp_path, capsys):
+    # A name nothing declares is a refusal on every surface, which is the line `brief --json`
+    # already draws (RK409): no payload, and no `"delivered": []` a caller reads as clear.
+    from roadkeep.cli import EXIT_USAGE, main
+
+    root = _shipped(tmp_path)
+    assert main(["-C", str(root), "delivered", "Z", "--json"]) == EXIT_USAGE
+    assert capsys.readouterr().out == ""
 
 
 def test_the_guard_names_it_beside_the_other_read():
@@ -746,7 +815,16 @@ def _shipped(tmp_path):
         encoding="utf-8",
     )
     for name, body in (
-        ("ROADMAP.md", "# Roadmap\n\n## Block A — The model\n"),
+        # Four labels, one per state the verb has to tell apart (RK433): A finished, B live
+        # with a line nothing has shipped under it, C a heading before its lines, and Z a
+        # letter nothing declares at all.
+        (
+            "ROADMAP.md",
+            "# Roadmap\n\n## Block A — The model\n"
+            "\n## Block B — Authoring\n\n"
+            "- 📋 **DX4** (deps: —) **A fourth symptom** — Because of a reason. → §DX4\n"
+            "\n## Block C — Query\n",
+        ),
         (
             "CHANGELOG.md",
             "# Shipped\n\n## Block A — The model\n\n"

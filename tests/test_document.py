@@ -823,10 +823,12 @@ def test_the_two_readers_of_it_are_the_only_two():
     callers.pop("document.py")
     spellings = {name for name, text in callers.items() if ".block(" in text}
     # Every remaining caller wants the entries themselves: `backlog.py` expands a `Block X`
-    # dep into member ids, `authoring.py` finds where to insert, and `linting.py` counts how
+    # dep into member ids, `authoring.py` finds where to insert, `linting.py` counts how
     # many lines a block *held* for the note's own sentence — which the event line never
-    # computes, so it is a second fact rather than a second answer to the first one.
-    assert spellings == {"backlog.py", "authoring.py", "linting.py"}
+    # computes, so it is a second fact rather than a second answer to the first one — and
+    # `cli.py` lists what a block delivered (RK433), which is the same call `Standing.of`
+    # makes and is why that listing and `standing.recorded` are one number.
+    assert spellings == {"backlog.py", "authoring.py", "linting.py", "cli.py"}
     assert {name for name, text in callers.items() if ".holds(" in text} == {
         "cli.py",
         "linting.py",

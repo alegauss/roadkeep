@@ -138,11 +138,12 @@ def shading(label: str, declared: Sequence[str]) -> str:
     heading already there under a letter the caller never typed. Measured in Claude Code
     Tray, on a `ship` whose task was in AJ.
 
-    One function and not one sentence per raiser, because three places compose this refusal —
-    this module's write refusal, `Census.select` and `pick` — and their *other* clauses
-    legitimately differ: a write may not invent a heading, while a read is simply asking
-    about a block that is not there. The confusion is the same in all three, so it is written
-    once and the tails stay their own.
+    One function and not one sentence per raiser, because four places compose this refusal —
+    this module's write refusal, `Census.select`, `pick` and `delivered` — and their *other*
+    clauses legitimately differ: a write may not invent a heading, a read is simply asking
+    about a block that is not there, and `delivered` has to say the ledger went unread
+    because its empty answer is consumed as evidence (RK433). The confusion is the same in
+    all four, so it is written once and the tails stay their own.
 
     Both directions, `A` against a declared `AJ` and `AJ` against a declared `A` being one
     mistake seen from two ends.

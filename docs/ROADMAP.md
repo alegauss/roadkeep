@@ -29,8 +29,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK433** (deps: —) **delivered answers a block letter nothing declares as one that has shipped nothing** — The verb filters the ledger without resolving the label, so the read a proposal is supposed to make against a block is made against a typo instead. → §RK433
-
 ## Block D — The gate
 
 - 📋 **RK434** (deps: —) **The gate decides whether a block is finished, empty or undeclared with its own copy of the rule** — Resolving a queue token walks the same three states the backlog now answers in one reader, so a correction to either is a correction to one of two. → §RK434

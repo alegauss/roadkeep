@@ -72,6 +72,8 @@ from roadkeep.document import (
     Reject,
     RoundTripError,
     StaleFile,
+    declares,
+    shading,
     write_all,
     write_atomically,
 )
@@ -1428,7 +1430,10 @@ def build_parser() -> argparse.ArgumentParser:
             "positive — because two people describing one problem use disjoint words, and "
             "recognising that takes meaning this tool has none of (L4). So it states what "
             "the block delivered and you read it. Symptoms alone: the claim is what a "
-            "duplicate collides with, and the outcome sentence doubles the length."
+            "duplicate collides with, and the outcome sentence doubles the length. A letter "
+            "no heading declares is refused rather than answered as empty — that answer is "
+            "read as evidence — and where the label is declared the reply says which of "
+            "live, paused, finished or empty the block is."
         ),
     )
     delivered_parser.add_argument("block", help="the block label, e.g. B")
@@ -4970,6 +4975,42 @@ def _delivered(config: Config, args: argparse.Namespace) -> int:
     Retired lines are in it. A claim that was abandoned is still a claim somebody made and
     argued about, and a proposal restating one wants the argument more than the outcome —
     the marker says which, so nothing is hidden and nothing is conflated.
+
+    **The label is resolved before the ledger is filtered (RK433).** This answer is consumed
+    as *evidence* — it is the read that decides whether an `add` is a duplicate — so the one
+    thing it may not do is come back empty for a question it never asked. Filtering the
+    entries by a literal made `Block Z has delivered nothing yet` the answer to four
+    different states: a block still being worked, whose lines are open and none of them
+    shipped; one whose work is all set aside; a heading opened before its lines; and a letter
+    the project has never used. Only the fourth is a mistake, and it is the one that files
+    the duplicate this verb exists to prevent. So :meth:`~roadkeep.backlog.Backlog.standing`
+    runs first and its sentence rides with every answer, empty or not: the count is a fact
+    about the ledger, the state is the fact about the label, and they say the same thing in
+    one of the four states only.
+
+    That sentence goes to **stdout** and on every state, which is where this parts company
+    with `_print_standing` (RK429) and for two reasons that are this verb's own. Stdout,
+    because there is no raw-file pipe to keep clean here — the header and the rows are
+    already derived, reformatted text rather than the file's own lines. Unconditionally,
+    because `Standing.settled` answers *which states an empty answer needs explaining by*,
+    and nothing filtered this one: the state of the label is the whole reason the count is
+    what it is, and three entries under a finished block is a different read from three under
+    a live one. `standing.recorded` and the length of the listing are the same number by
+    construction — both are `Document.block(label)` — so the figure printed twice is one
+    fact stated twice on purpose.
+
+    `unknown` exits **2**, never 0 or 1. Two, because `pick --block <x>`, `brief --block <x>`
+    and `list --block <x>` already answer a label nothing declares that way, and one meaning
+    per code is what a loop can branch on. Not one: in this tool 1 is a verdict about the
+    repository's own contents, and `_may_offer` reads a read-only 1 as exactly that (RK86) —
+    it would drop the capture offer a mistyped argv should keep. `--json` gets the refusal
+    and no payload, which is the line RK409 drew: a finished block is an answer and deserves
+    a shape, a name nothing declares is a refusal on every surface.
+
+    The header and the state row take `Standing.named` rather than an f-string (RK75):
+    `heading_word` is per project, and a report saying `Block G` to a project whose headings
+    all say `Track` names nothing its author wrote. That is fixed for this verb and not for
+    the file — the other reports here still spell it from a literal.
     """
     try:
         backlog = Backlog.load(config)
@@ -4985,7 +5026,24 @@ def _delivered(config: Config, args: argparse.Namespace) -> int:
         )
         return EXIT_USAGE
     label = args.block.strip()
-    entries = [e for e in ledger.entries if e.task.block == label]
+    standing = backlog.standing(label)
+    if standing.stage is Stage.UNKNOWN:
+        declared = sorted(backlog.declared_blocks())
+        # Printed here rather than raised through `_refused`: this refusal is composed and
+        # never raised, and `provenance.witness` on an exception carrying no traceback
+        # records `()` — which is not `None`, so `_answered` would take it as evidence and
+        # suppress the inventory RK267 reserves for exactly this case. The sibling refusal
+        # above, for a project that declares no changelog, already exits this way.
+        print(
+            f"roadkeep: {standing.sentence}{declares(declared)}: the ledger was not read, "
+            f"so this is not a block that delivered nothing{shading(label, declared)}",
+            file=sys.stderr,
+        )
+        return EXIT_USAGE
+    # `Document.block` and not a filter written here: it is the same call `Standing.of`
+    # makes, which is what makes this count and `standing.recorded` one number rather than
+    # two that agree.
+    entries = ledger.block(label)
     where = config.relative(config.path("changelog"))
     if args.json:
         print(
@@ -4993,6 +5051,10 @@ def _delivered(config: Config, args: argparse.Namespace) -> int:
                 {
                     "file": where,
                     "block": label,
+                    # Beside the list and not instead of it (RK429): an empty `delivered` is
+                    # the answer to what was asked, and this is what the label it was asked
+                    # about turned out to be.
+                    "standing": _standing_json(standing),
                     "delivered": [
                         {
                             "id": e.task.id,
@@ -5011,9 +5073,10 @@ def _delivered(config: Config, args: argparse.Namespace) -> int:
     if not entries:
         # Said, never an empty stdout: "this block has delivered nothing" and "this command
         # found nothing to read" look the same to a caller, and only one of them is an answer.
-        print(f"{where}  Block {label} has delivered nothing yet")
-        return EXIT_OK
-    print(f"{where}  Block {label}, {len(entries)} delivered")
+        print(f"{where}  {standing.named} has delivered nothing yet")
+    else:
+        print(f"{where}  {standing.named}, {len(entries)} delivered")
+    print(f"  block    {standing.sentence}")
     for entry in entries:
         print(f"  {entry.task.status} {entry.task.id:<8} {entry.task.symptom}")
     return EXIT_OK

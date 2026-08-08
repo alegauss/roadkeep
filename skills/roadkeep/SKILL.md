@@ -128,8 +128,10 @@ claims — a duplicate is never refused and could not be, since two people descr
 problem use disjoint words and recognising that takes meaning this tool has none of;
 measured on this ledger a lexical match ranks the true duplicate 33rd, below the typical
 false positive. So you read the list, and the alternative is discovering the collision
-after a claim, a brief and a retirement. **`reversals` is how you find them before
-spending an id** — a revert is filed as a delivery, so a duplicate check answers "yes,
+after a claim, a brief and a retirement. A letter nothing declares is **refused** rather
+than answered `nothing`, that answer being read as evidence, and where the block exists
+the reply says which of live, paused, finished or empty it is. **`reversals` is how you
+find them before spending an id** — a revert is filed as a delivery, so a check answers "yes,
 shipped" about the entry saying the work did not hold; this reads that forward pointer
 back with the reversing entry's sentence, which is the argument a fresh proposal is
 against. `reversals --id <id>` exits 1 where that decision was reversed. It refuses

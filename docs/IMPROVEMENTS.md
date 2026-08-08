@@ -113,22 +113,6 @@ ask for it.
 
 ## Block C — Query
 
-### §RK433 The read before a proposal cannot say it read nothing
-
-`delivered <block>` is the read the skill asks for before an `add`: what this block has
-already shipped, as claims, so a duplicate is caught before an id is spent. It filters
-the ledger by label and prints `Block Z has delivered nothing yet` at exit 0 — for a
-block that genuinely delivered nothing, for one whose heading only the roadmap carries,
-and for a letter the project has never used.
-
-That is RK429's collapse on the one surface RK429 did not reach, and it is worse here
-than on `brief`: the answer is consumed as evidence. A caller who typed the wrong letter
-is told the block is clear and files the duplicate the command exists to prevent.
-
-It also spells `Block` from a literal rather than from `heading_word`, so a project
-whose headings all say `Track` reads a report naming nothing it wrote (RK75). The label
-oracle and the four-state answer both already exist; this verb calls neither.
-
 ## Block D — The gate
 
 ### §RK434 One rule, two readers, and the second one predates the first
