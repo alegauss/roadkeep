@@ -273,6 +273,27 @@ entry naming prior ids as wrong — and a query that surfaces those before an `a
 verb to mark an entry as reverting the ids it names, turns re-litigating a settled
 decision into a refusal.
 
+### §RK423 The vocabulary, as a command
+
+A finding is about one line; a code is about a class. The gate prints the first and
+names the second, and there has never been anywhere to look the second up — so a caller
+meeting `section.unpaired` for the first time greps the package, reads a docstring
+written for the implementer, and reconstructs from it what one sentence would have said.
+
+`explain <code>` is that sentence, as a command rather than a document, which is L5: the
+question costs nothing on the turns nobody asks it. It answers three things and no more
+— what the class is, what produces it, and which doors close it — the third read from
+the same table RK420 fills, so the explanation and the finding cannot drift apart the
+way a README and a checker do.
+
+With no argument it lists every code the gate can emit, which is the vocabulary this
+tool never published. That listing is also the cheapest form of the coverage RK421
+tests: a code whose row is empty is visible to a reader, not only to the suite.
+
+What it is not is a tutorial. Three fields, one screen, no worked example — the worked
+example is the argv the finding already carries, and a page long enough to need
+scrolling is a page an agent pays for in context to learn what it could have run.
+
 ## Block D — The gate
 
 ### §RK418 The number that could not answer this question before
@@ -295,6 +316,70 @@ whose files are modified is not at any commit the plugin could match, so the hon
 answer may be three states rather than two — agreed, behind, and unpinnable — and a
 boolean that collapses the third into either of the others will be wrong for one of
 them. That choice is the task; the numbers to make it with are already on the screen.
+
+### §RK420 The remedy is a field, not a sentence
+
+`lint` and the guard are two halves of one contract, and one keeps it. The barrier
+states the rule outright: a refusal that names no alternative is a refusal an agent
+works around, so `_INSTEAD` carries the command *and its flags* for every governed role.
+The gate makes the same promise in `Finding`'s docstring — "``message`` names the fix" —
+and does not hold it. Counted over the emission sites: 25 of 37 codes name no verb, and
+the twelve that do name it inside a sentence, as prose to re-type.
+
+That gap is paid in turns rather than characters, which is why it went unmeasured. A
+report arrives, the caller infers a door per code, and the guard denies the `Edit` that
+would have been the shortcut — so the loop is *retry a verb until one is not refused*,
+against a file whose repair was one command the whole time. `id.duplicate` is the case
+that proves it: `record drop` and `record renumber` both exist, the refusal on each
+names the other, and the finding names neither.
+
+So the remedy becomes a field. Either an **argv** — runnable, with the id and line
+already substituted, because a placeholder is the guess this removes — or a
+**decision**: the doors that could take it and what has to be chosen between them, which
+is the honest answer where L4 forbids the tool from choosing. `--json` carries it, so a
+caller never parses English to find a command.
+
+### §RK421 Every code has a door, and a test says so
+
+RK420 gives a finding somewhere to carry its remedy; nothing yet says every finding has
+one. That distinction is the whole task. A table filled in once is a table that decays
+at the next code added, and the decay is invisible in exactly the way this tool exists
+to stop: the report still prints, the exit code is still 1, and the only thing missing
+is the sentence that would have saved the turn.
+
+So the coverage is a test over the source rather than a promise in a docstring. Every
+code string the gate can emit is collected from the emission sites, and each must
+resolve to one of three answers: `--fix` takes it, a verb takes it, or it is editorial
+and the doors are named with what has to be decided between them. A code in none of the
+three fails the suite, which makes adding a check to `lint` and leaving its repair
+unstated a red rather than a discovery six months later on somebody else's backlog.
+
+The third answer is the one worth defending. L4 forbids the tool from writing prose, so
+a finding about an over-long `why` cannot be handed an argv — there is no shorter
+sentence the tool may compose. Naming that as *editorial* is not a gap in the table; it
+is the table being honest, and it is still an answer a caller can act on in one turn
+instead of discovering by refusal.
+
+### §RK422 The verb that reads its own report back
+
+A remedy per finding is the fact; running it is still the caller's loop. Eight findings
+are eight command lines to compose, eight tool calls, and eight chances to mistype a
+flag — which is the cost RK420 measures and does not spend. So the verb that reads its
+own report back is the other half.
+
+`repair` runs the gate, applies every mechanical remedy (which is `--fix`, unchanged and
+reused rather than reimplemented), then executes the argv of every finding whose remedy
+is runnable, in the order the report gives, re-linting between passes because one repair
+can resolve or reveal another. What it will not touch is the editorial class: those are
+printed as the doors and the decision, which is where the caller's judgement was always
+required and where L4 says the tool stops.
+
+`--dry-run` prints the commands without running them, because a verb that rewrites four
+governed files unasked is the opposite of a barrier — and because the printed list is
+itself the answer for a caller who wants to read before it acts. The exit code stays the
+gate's: 0 when the tree is clean afterwards, 1 when a decision is still outstanding.
+That last part is what keeps this from becoming a way around the gate rather than a way
+through it.
 
 ## Block E — Adoption
 
@@ -349,3 +434,24 @@ the reader who has the diff.
 
 What would decide it is whether an edit here was ever actually mis-reviewed, which `git
 log -p` on this file can answer and this section cannot.
+
+### §RK424 A denial that knows the report exists
+
+The barrier answers by role: deny a write to the roadmap and fourteen commands come
+back, one of which is the caller's. That was right while the guard was the only thing
+speaking — it cannot read what the agent was about to write, deliberately, and a table
+keyed by intent would be a table keyed by a guess.
+
+But the guard is no longer the only thing speaking. Once a finding carries its remedy,
+the agent repairing a *reported* line has a cheaper route than reading the table, and
+the denial is the one place it will certainly look. So the refusal gains a first line
+for that case: where the write is a repair, `lint` names the one command, and here is
+the verb that prints it. The fourteen stay beneath it, for the write that is not a
+repair.
+
+What this refuses to do is run `lint` inside the hook. `PreToolUse` is a fresh process
+the harness waits on before every `Edit`, `Write` and `Bash`, held at 44.6 ms and five
+modules by RK261, and loading the linter there would spend that budget on every write in
+the repository to answer a question about a few. Naming the command costs one line of a
+string that is already being composed, and the caller who needs the answer is one call
+away from it.
