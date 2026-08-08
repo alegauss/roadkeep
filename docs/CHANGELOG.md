@@ -138,6 +138,7 @@
 - ✅ **RK395** **A shipped entry that gets reverted stays in the ledger saying it shipped** — record add --supersedes writes the revert entry and appends the forward pointer to the entry it replaces, so the ledger's two records of one decision name each other.
 - ✅ **RK403** **A block heading the changelog declares twice has no verb to fold into one, leaving only the hand-edit the guard denies** — block merge folds a label's duplicate headings into the first, moving the entries and including the ledger, so the doubled heading only a hand-edit could repair has a verb at last.
 - ✅ **RK399** **One field is spelled --status on add and --marker on resume** — add, budget, list and resume each accept --marker and --status for the one declared field, so the name learned on any verb is the name the others answer to.
+- ✅ **RK408** **The ship that empties a block reports it and names no verb for it** — the empty event names block drop for the label it just finished, so the state the answer computes and the command it makes available arrive together.
 
 ## Block C — Query
 

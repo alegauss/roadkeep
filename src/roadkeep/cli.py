@@ -2826,8 +2826,31 @@ def _event(task_id: str, block: str, roadmap: Document) -> dict[str, object]:
 
 
 def _print_event(event: dict[str, object], indent: str = "") -> None:
+    """The event, and on `empty` the one command that state makes available (RK408).
+
+    `empty` is the single moment a heading becomes droppable: the block just lost its last
+    open line, and a project whose roadmap reads as a list of what is left has every reason
+    to withdraw it. Until this, the answer computed that state and stopped one word short of
+    the verb — so the caller was told a block is finished and left to remember `block drop`
+    from somewhere other than the sentence telling them it applies.
+
+    The same commitment `add` already makes: an `add` without `--section` answers with the
+    `section add` that closes the pointer it just created, rather than leaving the gate to
+    report the dangling reference a turn later. This is that situation one verb earlier.
+
+    A **suggestion and never an action**. Whether an emptied block is dropped or kept for
+    work still to be filed under it is the project's call, `block drop` refuses anyway where
+    the subtree is not blank in every file, and a ship that withdrew a heading nobody asked
+    it to would be the tool deciding the shape of the plan.
+    """
     state = "empty" if event["block_empty"] else "open"
     print(f"{indent}event    {event['id']}  Block {event['block']}  {state}")
+    if event["block_empty"]:
+        print(
+            f"{indent}         its last open line just left — "
+            f"`{invocation()} block drop {event['block']}` withdraws the heading, "
+            f"where this project drops one"
+        )
 
 
 def _refused(error: Exception) -> int:

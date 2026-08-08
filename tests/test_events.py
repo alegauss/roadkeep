@@ -18,6 +18,7 @@ from pathlib import Path
 
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
+from roadkeep.provenance import invocation
 
 ROADMAP = "docs/ROADMAP.md"
 CHANGELOG = "docs/CHANGELOG.md"
@@ -90,7 +91,11 @@ def test_status_emits_the_event(tmp_path, capsys):
 def test_ship_emits_the_event(tmp_path, capsys):
     project(tmp_path)
     assert main(["-C", str(tmp_path), "ship", "RK1", "--why", "It works now."]) == EXIT_OK
-    assert capsys.readouterr().out.splitlines()[-1] == "  event    RK1  Block A  empty"
+    out = capsys.readouterr().out.splitlines()
+    assert out[-2] == "  event    RK1  Block A  empty"
+    # And the verb that state makes available (RK408): `empty` is the one moment a heading
+    # becomes droppable, and the answer used to stop one word short of saying so.
+    assert f"{invocation()} block drop A" in out[-1]
 
 
 # -- the fact that is worth emitting -----------------------------------------
@@ -104,7 +109,7 @@ def test_the_block_reads_empty_only_when_its_last_line_goes(tmp_path, capsys):
     assert main(["-C", str(tmp_path), "ship", "RK2", "--why", "It works now."]) == EXIT_OK
     assert capsys.readouterr().out.splitlines()[-1] == "  event    RK2  Block B  open"
     assert main(["-C", str(tmp_path), "ship", "RK4", "--why", "It works now."]) == EXIT_OK
-    assert capsys.readouterr().out.splitlines()[-1] == "  event    RK4  Block B  empty"
+    assert capsys.readouterr().out.splitlines()[-2] == "  event    RK4  Block B  empty"
 
 
 def test_a_status_write_never_empties_a_block(tmp_path, capsys):
@@ -164,3 +169,24 @@ def test_json_carries_the_event_from_every_mutator(tmp_path, capsys):
         "block": "B",
         "block_empty": True,
     }
+
+
+def test_an_open_block_is_offered_no_verb_it_would_be_refused(tmp_path, capsys):
+    # The suggestion is bounded to the state that makes it available (RK408): a block still
+    # holding a line is one `block drop` refuses by name, and offering it there would teach
+    # a command that answers with a refusal — which is how a guardrail becomes a detour.
+    project(tmp_path, roadmap=BACKLOG + f"{SECOND.replace('RK2', 'RK4')}\n")
+    assert main(["-C", str(tmp_path), "ship", "RK2", "--why", "It works now."]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert out.splitlines()[-1] == "  event    RK2  Block B  open"
+    assert "block drop" not in out
+
+
+def test_the_payload_is_unchanged_by_the_sentence(tmp_path, capsys):
+    # `--json` carries `block_empty` and nothing else new: the suggestion is a sentence for
+    # a reader, and a consumer that already derives the next command from the boolean would
+    # be handed a second spelling of the same fact (RK38's three facts and no more).
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "ship", "--json", "RK1", "--why", "Works."]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["event"] == {"id": "RK1", "block": "A", "block_empty": True}
