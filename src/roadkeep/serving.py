@@ -425,6 +425,11 @@ TOOLS: tuple[Tool, ...] = (
     # before it is trusted — the same argument `install --check` and `adopt` are built on,
     # and the one flag here that changes whether anything is written at all.
     Tool("repair", ("dry_run",)),
+    # And the read beside the pair (RK423). A code is the only stable name a defect has, and
+    # a caller meeting one first had nowhere to look it up — so the alternative to this tool
+    # is grepping the package, which is the context cost L5 exists to remove. `code` is
+    # optional here for the reason it is on the CLI: with none, the answer is the vocabulary.
+    Tool("explain", ("code",)),
     # Which copies of this tool write, judge and gate the project (RK415). Exposed because
     # the agent is the one it happens to: its writes go through whatever `roadkeep` the
     # session reaches and its hand edits are denied by whatever the harness installed, and

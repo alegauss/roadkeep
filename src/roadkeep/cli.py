@@ -126,7 +126,7 @@ from roadkeep.merging import (
 from roadkeep.claiming import Followed, Held
 from roadkeep.picking import Choice, Claim, pick, take
 from roadkeep.provenance import engine, invocation
-from roadkeep.remedying import Remedy, codes as remedy_codes, remedy
+from roadkeep.remedying import Remedy, codes as remedy_codes, explain, remedy
 from roadkeep.renumbering import renumber
 from roadkeep.repairing import MAX_PASSES, Repaired, repair
 from roadkeep.schema import SchemaError
@@ -1340,6 +1340,24 @@ def build_parser() -> argparse.ArgumentParser:
     )
     repair_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     repair_parser.set_defaults(handler=_repair, reads_only=False)
+
+    explain_parser = subcommands.add_parser(
+        "explain",
+        help="what one gate code means, what produces it, and which doors close it",
+        description=(
+            "A finding is about one line; a code is about a class, and there has never "
+            "been anywhere to look the second one up. Three fields and no more — the "
+            "worked example is the argv the finding already carries. With no code, lists "
+            "every one this gate can report, which is the vocabulary it never published."
+        ),
+    )
+    explain_parser.add_argument(
+        "code",
+        nargs="?",
+        help="a code as `lint` prints it, e.g. id.duplicate; omitted, lists them all",
+    )
+    explain_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    explain_parser.set_defaults(handler=_explain, reads_only=True)
 
     brief_parser = subcommands.add_parser(
         "brief",
@@ -4605,6 +4623,39 @@ def _step(config: Config) -> Callable[[Sequence[str]], int]:
         return dispatch(config, args)
 
     return run
+
+
+def _explain(config: Config, args: argparse.Namespace) -> int:
+    """The vocabulary, as a command (RK423) — which is L5 applied to the gate's own codes.
+
+    Read-only and config-aware at once: the two rows L6 makes per-project (RK420) answer
+    differently here than in the abstract, so the explanation a caller reads is the one that
+    holds for *this* project rather than the one the table would give any project.
+    """
+    if args.code is None:
+        listing = [explain(code, config) for code in remedy_codes()]
+        if args.json:
+            print(json.dumps([one.payload() for one in listing if one], indent=2))
+        else:
+            for one in listing:
+                if one is not None:
+                    # One line each: the listing is a menu, and a caller that wants the
+                    # three fields asks for the code it found here.
+                    print(f"{one.code:26} {one.kind:8} {one.remedy.doors[0].command}")
+            print(f"{len(listing)} code(s) this gate can report")
+        return EXIT_OK
+
+    found = explain(args.code, config)
+    if found is None:
+        near = [code for code in remedy_codes() if code.startswith(args.code.split(".")[0])]
+        print(
+            f"roadkeep: {args.code} is not a code this gate reports"
+            + (f"; did you mean {', '.join(near)}?" if near else ""),
+            file=sys.stderr,
+        )
+        return EXIT_USAGE
+    print(json.dumps(found.payload(), indent=2) if args.json else str(found))
+    return EXIT_OK
 
 
 def _print_repair(outcome: Repaired, root: str) -> None:

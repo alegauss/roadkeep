@@ -260,7 +260,9 @@ spends that in **one call**: it runs the mechanical pass, then every finding who
 complete command, re-reading the report between writes because a repair moves the line numbers
 after it. What it cannot close it prints, and it exits 1 while anything is left, so a clean exit
 means clean. Reach for it the moment `lint` reports anything — composing the commands yourself
-is a turn per finding, and `repair --dry-run` is the read if you want to see them first.
+is a turn per finding, and `repair --dry-run` is the read if you want to see them first. `explain <code>` is the third:
+what the class is, what produces it and which doors close it, in three lines — reach for it
+when a code is one you have not met, and never grep the package for it.
 
 ## Ask, don't count
 

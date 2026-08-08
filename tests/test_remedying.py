@@ -30,7 +30,7 @@ from roadkeep.cli import build_parser
 from roadkeep.config import Config
 from roadkeep.linting import Finding, Note, lint
 from roadkeep.provenance import invocation
-from roadkeep.remedying import BLANK, KINDS, VARIES, Remedy, codes, remedy
+from roadkeep.remedying import BLANK, KINDS, VARIES, Remedy, codes, explain, remedy
 
 SOURCE = Path(remedying.__file__).resolve().parent
 
@@ -380,3 +380,67 @@ def _project(tmp_path: Path, roadmap: str = _CLEAN, ref_scheme: str = "id") -> C
         with (tmp_path / name).open("w", encoding="utf-8", newline="") as handle:
             handle.write(body)
     return Config.discover(tmp_path)
+
+
+# -- the vocabulary, as a command (RK423) ------------------------------------
+
+
+def test_every_code_explains_itself():
+    for code in codes():
+        found = explain(code)
+        assert found is not None, code
+        assert found.cause, code
+        assert found.kind in KINDS, code
+
+
+def test_a_fix_row_states_its_cause_and_no_other_row_repeats_one():
+    """The rule that keeps one sentence in one place, asserted in both directions.
+
+    A `fix` door describes the *repair* — "the mark is deleted" says nothing about what put
+    it there — so those rows carry a `cause` of their own. Every other kind already had to
+    state the defect in order to say what choosing a door means, so a second sentence beside
+    it would be the drift this package exists to stop, one layer down.
+    """
+    for code in codes():
+        rule = remedying._TABLE[code]  # noqa: SLF001 - the table is the subject
+        if rule.kind == "fix":
+            assert rule.cause, f"{code}: a fix row's door describes the repair, not the cause"
+        else:
+            assert not rule.cause, f"{code}: the doors already say this"
+
+
+def test_the_cause_of_a_single_door_row_is_that_door_and_never_a_second_sentence():
+    found = explain("section.stale")
+    assert found is not None
+    assert found.cause == found.remedy.doors[0].what
+    # And it is printed once, not twice.
+    assert str(found).count(found.cause) == 1
+
+
+def test_a_decision_keeps_what_separates_its_doors():
+    # The one place the `what` is not a restatement of the cause: it is what distinguishes
+    # this door from the other, which is the entire content of a decision.
+    found = explain("id.duplicate")
+    assert found is not None
+    rendered = str(found)
+    for door in found.remedy.doors:
+        assert door.what in rendered, door.argv
+
+
+def test_a_code_this_gate_cannot_report_is_refused_with_the_near_ones(capsys):
+    from roadkeep.cli import EXIT_USAGE, main
+
+    assert main(["explain", "why.enormous"]) == EXIT_USAGE
+    err = capsys.readouterr().err
+    assert "not a code this gate reports" in err
+    assert "why.too-long" in err
+
+
+def test_the_listing_is_one_line_per_code(capsys):
+    from roadkeep.cli import EXIT_OK, main
+
+    assert main(["explain"]) == EXIT_OK
+    out = capsys.readouterr().out.splitlines()
+    # One per code, plus the count.
+    assert len(out) == len(codes()) + 1
+    assert out[-1] == f"{len(codes())} code(s) this gate can report"

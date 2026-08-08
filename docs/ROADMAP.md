@@ -38,7 +38,6 @@
 - 📋 **RK409** (deps: —) **The machine-readable brief answers a finished block in prose** — It exits 2 with an empty stdout and an English sentence on stderr, so a caller who asked for JSON to detect "nothing is open" is the one caller that gets none. → §RK409
 - 📋 **RK410** (deps: —) **The free address is the last line of a listing of spent ones** — Asking `anchors` which child to write next prints every anchor the family ever had, so under a 27-anchor family the one number wanted is 28 rows down. → §RK410
 - 📋 **RK416** (deps: —) **A line proposing what a revert already undid reads as new work** — The ledger files a reversal as a delivery, so the entry that says a change was wrong looks like any other shipped one and nothing connects a fresh proposal to it. → §RK416
-- 📋 **RK423** (deps: RK420 ✅) **A code is the only stable name a defect has and nothing will say what it means** — Each finding states one occurrence, so a caller meeting a code first greps the package to learn the class it names, what produces it and which doors close it. → §RK423
 
 ## Block D — The gate
 

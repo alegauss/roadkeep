@@ -155,10 +155,17 @@ class _Rule:
     #: A rule that reads the config instead of the table — the two cases L6 makes
     #: per-project. Named, so the totality test can see it is deliberate.
     varies: str = ""
+    #: What *produces* the defect, for `explain` (RK423). Required on a ``fix`` row and
+    #: absent everywhere else, which is not an oversight but the rule: a `run`, `compose`
+    #: or `decide` door already states the defect in order to say what choosing it means,
+    #: and a second sentence saying the same thing is the drift this package exists to
+    #: stop. A ``fix`` door cannot — its `what` describes the *repair* — so the cause is
+    #: written there and only there. `tests/test_remedying.py` holds both directions.
+    cause: str = ""
 
 
-def _fix(what: str) -> _Rule:
-    return _Rule("fix", ((("lint", "--fix"), what),))
+def _fix(cause: str, what: str) -> _Rule:
+    return _Rule("fix", ((("lint", "--fix"), what),), cause=cause)
 
 
 def _run(argv: tuple[str, ...], what: str) -> _Rule:
@@ -189,10 +196,26 @@ def _decide(decision: str, *doors: tuple[tuple[str, ...], str]) -> _Rule:
 _TABLE: Mapping[str, _Rule] = {
     # ------------------------------------------------------------------ the character pass
     # RK126's repair: not a re-render, and the one that reaches a line no parse touches.
-    "char.bom": _fix("the byte-order mark is deleted, and no other byte moves"),
-    "char.tab": _fix("the tab past the indentation becomes the space this format writes"),
-    "char.space": _fix("the codepoint that renders as a space is replaced by one"),
-    "char.invisible": _fix("the codepoint that is not text under any reading is deleted"),
+    "char.bom": _fix(
+        "a byte-order mark at the start of the file: not text, and a byte the round-trip "
+        "compares, so the file stops matching what the schema renders",
+        "the mark is deleted, and no other byte moves",
+    ),
+    "char.tab": _fix(
+        "a tab past the indentation, where this format separates fields with a space — so "
+        "the grammar reads the separator as part of the field beside it",
+        "the tab becomes the one space this format writes",
+    ),
+    "char.space": _fix(
+        "a codepoint that renders as a space and is not one, so the grammar reads a word "
+        "where a separator was meant and the line parses as something else",
+        "the codepoint is replaced by an ordinary space",
+    ),
+    "char.invisible": _fix(
+        "a codepoint invisible in an editor — a zero-width space, a variation selector, a "
+        "control character — so every other diagnosis of the line names a consequence",
+        "the codepoint is deleted wherever it sits, inside a line no parse reaches",
+    ),
     # Not the character pass's: it works on the body and puts the ending back exactly as it
     # was read, deliberately, so a fixer for this would be the pass that joins the file.
     "char.mixed-endings": _compose(
@@ -201,20 +224,46 @@ _TABLE: Mapping[str, _Rule] = {
         "then re-run the gate",
     ),
     # ------------------------------------------------------------------------ derived data
-    "deps.stale": _fix("the annotation is recomputed from the files it caches"),
-    "deps.duplicate": _fix("the repeated dep is dropped, and the order is derived"),
-    "deps.marker": _fix("the annotation is derived, so the marker it caches is rewritten"),
+    "deps.stale": _fix(
+        "the `(deps: … ✅)` annotation caches another line's status and that line moved: "
+        "derived data written once and read as current",
+        "the annotation is recomputed from the files it caches",
+    ),
+    "deps.duplicate": _fix(
+        "one dep stated twice in a field where an entry is an address, usually a merge "
+        "that resolved into both sides' tokens",
+        "the repeated dep is dropped and the order is re-derived",
+    ),
+    "deps.marker": _fix(
+        "a dep carrying a marker the annotation does not derive, so the line states a "
+        "status the files do not agree with",
+        "the annotation is derived, so the marker it caches is rewritten",
+    ),
     "ref.mismatch": _Rule(
         "fix",
         ((("lint", "--fix"), "the pointer is derived from the id, so it is recomputed"),),
         varies="ref_scheme",
+        cause=(
+            "the pointer names an anchor other than the one the scheme derives, so the "
+            "line addresses a section chosen by hand"
+        ),
     ),
     "line.non-canonical": _fix(
-        "the line is re-rendered from the task the parser read out of it"
+        "the line parses, and rendering the task back produces different bytes: a field "
+        "spelled by hand where the schema has one spelling for it",
+        "the line is re-rendered from the task the parser read out of it",
     ),
     # --------------------------------------------------------------------- the three lists
-    "priority.shipped": _fix("the queue entry naming work that has left is dropped"),
-    "priority.retired": _fix("the queue entry naming work that has left is dropped"),
+    "priority.shipped": _fix(
+        "the queue names work that has shipped: every token in an order names work, and "
+        "work leaves — the one list a departure does not reach",
+        "the entry is dropped, named in the report and never in silence",
+    ),
+    "priority.retired": _fix(
+        "the queue names work that was retired, which is the same departure by the other "
+        "door and leaves the same dead entry",
+        "the entry is dropped, named in the report and never in silence",
+    ),
     "priority.deferred": _decide(
         "a paused line's place in the order is the one thing the store could not keep, "
         "so restoring it and dropping it are both real answers:",
@@ -333,7 +382,11 @@ _TABLE: Mapping[str, _Rule] = {
         ("amend", "{id}", "--ref", BLANK),
         "the anchor is not an address this project's scheme reads",
     ),
-    "ref.sigil": _fix("the pointer's sigil is derived, so it is re-rendered"),
+    "ref.sigil": _fix(
+        "the pointer carries a sigil the renderer writes, so the field holds a character "
+        "the schema would add again",
+        "the sigil is derived, so the pointer is re-rendered without it",
+    ),
     # ------------------------------------------------------------------------- the sections
     "section.stale": _run(
         ("section", "drop", "{id}"),
@@ -472,7 +525,9 @@ _TABLE: Mapping[str, _Rule] = {
         "moves the line",
     ),
     "status.unrepresentable": _fix(
-        "a codepoint stuck to the marker is deleted, which is what made it unreadable"
+        "the marker carries a codepoint that is not part of it — a variation selector an "
+        "editor added — so the status matches nothing this project declares",
+        "the codepoint is deleted, which is the whole of what made it unreadable",
     ),
     # ---------------------------------------------------------------------------- the files
     "file.missing": _compose(
@@ -515,6 +570,13 @@ _TABLE: Mapping[str, _Rule] = {
     ),
 }
 
+#: What each varying row reads, spelled for a reader rather than as a field name: one is a
+#: key in `roadkeep.toml` and the other is not a setting at all (RK423).
+_VARIES_READS = {
+    "ref_scheme": "with `ref_scheme` in roadkeep.toml",
+    "role": "with which governed file it is reported about",
+}
+
 #: The codes whose row is decided per project rather than per code (L6), and what each
 #: reads. **Derived** from the table rather than restated beside it: a second list of the
 #: same two names is the drift this package exists to stop, one layer down.
@@ -526,6 +588,91 @@ VARIES: Mapping[str, str] = {
 def codes() -> tuple[str, ...]:
     """Every code this table answers, sorted — the vocabulary `explain` lists (RK423)."""
     return tuple(sorted(_TABLE))
+
+
+@dataclass(frozen=True, slots=True)
+class Explained:
+    """One code as a class rather than as an occurrence (RK423).
+
+    A finding is about one line; a code is about a kind of defect, and until this there was
+    nowhere to look the second one up — so a caller meeting `section.unpaired` for the first
+    time grepped the package and reconstructed from an implementer's docstring what one
+    screen would have said.
+
+    Three fields and no more. The worked example is the argv the finding already carries,
+    and a page long enough to scroll is a page an agent pays for in context to learn what it
+    could have run.
+    """
+
+    code: str
+    kind: str
+    #: What produces this defect. Read off the ``fix`` row where it is written and off the
+    #: doors otherwise, so the explanation and the remedy cannot drift the way a README and
+    #: a checker do — there is only ever one sentence, in one place.
+    cause: str
+    remedy: Remedy
+    #: What changes the answer on this row, where anything does (L6). Empty otherwise.
+    varies: str = ""
+
+    def __str__(self) -> str:
+        lines = [f"{self.code}  [{self.kind}]", f"  cause    {self.cause}"]
+        for door in self.remedy.doors:
+            # The command, and its `what` only where that is not the cause already printed:
+            # on a single-door row the two are the same sentence by :func:`_cause`, and
+            # repeating it spends two thirds of the one screen this answers on restatement.
+            # Never suppressed on a `decide`, where the `what` is not a description of the
+            # defect at all — it is what distinguishes this door from the other one, which
+            # is the entire content of the decision.
+            lines.append(f"  remedy   {door.command if door.what == self.cause else door}")
+        if self.varies:
+            lines.append(f"  varies   {_VARIES_READS[self.varies]}")
+        return "\n".join(lines)
+
+    def payload(self) -> dict[str, object]:
+        return {
+            "code": self.code,
+            "kind": self.kind,
+            "cause": self.cause,
+            "varies": self.varies or None,
+            **self.remedy.payload(),
+        }
+
+
+def explain(code: str, config: Config | None = None) -> Explained | None:
+    """The class behind one code. ``None`` for a code this tool cannot report."""
+    rule = _TABLE.get(code)
+    if rule is None:
+        return None
+    # A finding with no line and no subject: the templates render their blanks, which is
+    # right here — an explanation is about the class, and a substituted id would be one
+    # occurrence's, presented as if it were the rule's.
+    found = remedy(_Class(code), config)
+    assert found is not None  # `rule` is not None, so neither is this
+    return Explained(code, found.kind, _cause(rule, found), found, rule.varies)
+
+
+def _cause(rule: _Rule, found: Remedy) -> str:
+    """Where the cause is written for this kind. One sentence, never two.
+
+    A ``fix`` row states it outright, because its door describes the repair. Every other
+    kind already had to say what the defect is in order to say what choosing a door means —
+    so that sentence is the cause, and writing a second one beside it is the drift this
+    package exists to stop, one layer down.
+    """
+    if rule.cause:
+        return rule.cause
+    return found.decision or found.doors[0].what
+
+
+@dataclass(frozen=True, slots=True)
+class _Class:
+    """A finding about no line: what an explanation of the class is derived from."""
+
+    code: str
+    file: str = ""
+    id: str = ""
+    subject: str = ""
+    lineno: int | None = None
 
 
 def remedy(finding: object, config: Config | None = None) -> Remedy | None:

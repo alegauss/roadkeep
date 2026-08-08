@@ -295,27 +295,6 @@ entry naming prior ids as wrong — and a query that surfaces those before an `a
 verb to mark an entry as reverting the ids it names, turns re-litigating a settled
 decision into a refusal.
 
-### §RK423 The vocabulary, as a command
-
-A finding is about one line; a code is about a class. The gate prints the first and
-names the second, and there has never been anywhere to look the second up — so a caller
-meeting `section.unpaired` for the first time greps the package, reads a docstring
-written for the implementer, and reconstructs from it what one sentence would have said.
-
-`explain <code>` is that sentence, as a command rather than a document, which is L5: the
-question costs nothing on the turns nobody asks it. It answers three things and no more
-— what the class is, what produces it, and which doors close it — the third read from
-the same table RK420 fills, so the explanation and the finding cannot drift apart the
-way a README and a checker do.
-
-With no argument it lists every code the gate can emit, which is the vocabulary this
-tool never published. That listing is also the cheapest form of the coverage RK421
-tests: a code whose row is empty is visible to a reader, not only to the suite.
-
-What it is not is a tutorial. Three fields, one screen, no worked example — the worked
-example is the argv the finding already carries, and a page long enough to need
-scrolling is a page an agent pays for in context to learn what it could have run.
-
 ## Block D — The gate
 
 ### §RK418 The number that could not answer this question before

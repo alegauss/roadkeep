@@ -118,11 +118,11 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 30 | 2 |
 | B — Authoring (insert, never hand-edit) | 8 | 91 | 1 |
-| C — Query (consult without reading the file) | 4 | 57 | 1 |
+| C — Query (consult without reading the file) | 3 | 58 | 1 |
 | D — The gate | 3 | 83 | 0 |
 | E — Adoption | 1 | 72 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 2 | 67 | 1 |
-| **Total** | 18 | 400 | 6 |
+| **Total** | 17 | 401 | 6 |
 
 **Next ready:**
 
@@ -298,7 +298,10 @@ writes because a repair moves the line numbers after it. That matters most for t
 ships for: the guard denies an agent the hand edit, so a report whose remedy lived in English
 cost a turn per finding to act on. What still needs a sentence you have to write, or a choice
 between two doors, is printed with both and never guessed at — the tool does not write prose.
-`repair --dry-run` prints the commands and runs none of them.
+`repair --dry-run` prints the commands and runs none of them, and `roadkeep explain <code>`
+answers what a code *means* — the class, what produces it, and its doors — which is the one
+question the report could never answer, since a finding is about a line and a code is about a
+kind. With no argument it lists all 72, which is a vocabulary this tool had never published.
 
 Two things it reports **without** failing, because refusing them would fail an honest file
 and a gate that gets bypassed is worth nothing: what a `Block X` dep expands to (one token
