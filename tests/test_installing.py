@@ -210,11 +210,13 @@ def test_the_plugin_s_own_root_is_wired_and_never_copied_into(capsys):
     contributor is at. A check nobody can act on is a check switched off (RK140's lesson).
     """
     intent = plan(HERE, source=HERE)
-    assert [s.path.relative_to(HERE).as_posix() for s in intent.surfaces] == [
-        PROJECT_MCP,
-        PROJECT_SETTINGS.replace("\\", "/"),
-    ]
+    # The settings surface left this list with RK402: this tree declares the guard as a
+    # plugin, so writing the same hooks here would run it twice on every turn — the third
+    # member of the set the two below were already in, and the one that kept `--check`
+    # reporting `1 surface(s) differ` at this root permanently.
+    assert [s.path.relative_to(HERE).as_posix() for s in intent.surfaces] == [PROJECT_MCP]
     named = dict(intent.skipped)
+    assert "run it twice" in named[PROJECT_SETTINGS]
     assert "ships skills/roadkeep/SKILL.md" in named[PROJECT_SKILL]
     assert "*is* the action" in named[PROJECT_WORKFLOW]
     assert not (HERE / PROJECT_SKILL).exists(), "and nothing was written here"
@@ -888,3 +890,77 @@ def test_the_unpinnable_state_exits_one_and_says_which_it_is(tmp_path, capsys, m
     out = capsys.readouterr().out
     assert "cannot be compared" in out
     assert "modified" in out
+
+
+# -- the tree that ships the plugin is not asked to wire it twice (RK402) -----
+
+
+def test_a_tree_that_declares_the_plugin_is_not_asked_to_wire_the_hooks(tmp_path):
+    """`install --check` reported `1 surface(s) differ` here permanently, because the guard's
+    hooks are not in `.claude/settings.json` — and they are not in it because this tree ships
+    them as a plugin. A check that can never report clean is one nobody reads."""
+    root = _plugin_tree(tmp_path)
+    made = plan(root, source=root)
+    written = {surface.path.name for surface in made.surfaces}
+    assert "settings.json" not in written
+    reason = next(text for name, text in made.skipped if name == PROJECT_SETTINGS)
+    assert "run it twice" in reason
+    assert PLUGIN_MANIFEST in reason and PLUGIN_HOOKS in reason
+
+
+def test_the_mcp_declaration_is_still_written(tmp_path):
+    # Only the hooks would fire twice: a plugin's server and a project's are two entries the
+    # harness reads separately, so the narrowing is to one surface and not to the pair.
+    root = _plugin_tree(tmp_path)
+    made = plan(root, source=root)
+    assert any(surface.path.name == ".mcp.json" for surface in made.surfaces)
+
+
+def test_half_a_declaration_is_not_one(tmp_path):
+    """Either file alone is a different state: a manifest with no hooks file declares nothing
+    that runs, and a hooks file no manifest names is one the harness never loads — and in
+    both, `.claude/settings.json` is still the only place the guard could live.
+
+    Asked of the predicate rather than through `plan`, and that is the honest level: both
+    files are in `CARRIED`, so a *source* tree missing either is refused as not carrying the
+    plugin at all — a different answer, and the right one. What this pins is the question the
+    skip asks of the tree being **wired**.
+    """
+    from roadkeep.installing import _provides_plugin
+
+    whole = _plugin_tree(tmp_path / "whole")
+    assert _provides_plugin(whole)
+    for missing in (PLUGIN_MANIFEST, PLUGIN_HOOKS):
+        half = _plugin_tree(tmp_path / missing.replace("/", "_"))
+        (half / missing).unlink()
+        assert not _provides_plugin(half), missing
+    assert not _provides_plugin(tmp_path / "nothing-here")
+
+
+def test_an_adopting_project_is_unaffected(tmp_path):
+    # The narrowing is about a tree that provides the plugin, and an adopter provides none —
+    # so the surface it has always been offered is the surface it is still offered.
+    root = tmp_path / "adopter"
+    root.mkdir(parents=True)
+    (root / "roadkeep.toml").write_text('prefix = "DX"\n', encoding="utf-8")
+    made = plan(root, source=_plugin_tree(tmp_path / "origin"))
+    assert any(s.path.name == "settings.json" for s in made.surfaces)
+
+
+def _plugin_tree(root: Path) -> Path:
+    """A checkout that declares the guard as a plugin, which is what the skip is asked of.
+
+    Everything `install` requires of a source tree, plus the two files that make the claim:
+    the manifest and the hooks it names.
+    """
+    for part in COPIED:
+        target = root / part
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(HERE / part, target)
+    (root / "roadkeep.toml").write_text('prefix = "DX"\n', encoding="utf-8")
+    for name in (PLUGIN_MANIFEST, PLUGIN_HOOKS):
+        path = root / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        if not path.is_file():
+            path.write_text("{}\n", encoding="utf-8")
+    return root

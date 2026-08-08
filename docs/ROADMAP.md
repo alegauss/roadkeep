@@ -33,8 +33,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK402** (deps: —) **The tree that ships the plugin is told to wire the guard a second time** — install --check names two surfaces this checkout provides as a plugin and skips them, and asks to write the same hooks into .claude/settings.json, so the read never reports clean here. → §RK402
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Non-goals

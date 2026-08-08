@@ -126,31 +126,4 @@ instead is a `section amend`, and a judgement; noticing is not.
 
 ## Block E — Adoption
 
-### §RK402 The tree that ships the plugin is told to wire the guard a second time
-
-`install --check` is what holds this checkout's own wiring in step. Run here it reports
-`1 surface(s) differ`, permanently: `.claude/settings.json` `would update`, because the
-guard's hooks are not in it.
-
-They are not in it because this tree ships them as a **plugin** — `hooks/hooks.json`,
-referenced by `.claude-plugin/plugin.json`. Writing them into the project settings too
-would run the guard twice on every turn, which is precisely the reason the same command
-already skips two other surfaces by name:
-
-```
-not written  .github/workflows/roadkeep.yml: this tree *is* the action, and its own
-             workflow already calls the gate — a second one would run the same lint twice
-not written  .claude/skills/roadkeep/SKILL.md: this tree ships skills/roadkeep/SKILL.md,
-             so a copy of it here would be the drift `install` exists to remove
-```
-
-The hooks are the third member of that set and the only one missing from it.
-
-The cost is the signal, not the file. A check that can never report clean is one nobody
-reads, so the drift it exists to catch — a `.mcp.json` that fell behind, a launcher path
-that moved — arrives inside a report that already said "1 differs" yesterday.
-
-The repair is a skip with a reason, spelled as its two siblings are, conditioned on the
-tree providing the plugin rather than on this repository's name.
-
 ## Block F — The plugin

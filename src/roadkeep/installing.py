@@ -163,6 +163,16 @@ _OWN_SKILL = (
     f"this tree ships {PLUGIN_SKILL}, so a copy of it here would be the drift `install` "
     f"exists to remove — a session in this checkout reads the original"
 )
+#: The third member of that set, and the one that was missing from it (RK402). A tree that
+#: ships the guard as a **plugin** — `hooks/hooks.json`, declared by `.claude-plugin/plugin.json`
+#: — already runs it, so writing the same hooks into `.claude/settings.json` would run the
+#: guard twice on every turn. `install --check` reported `1 surface(s) differ` here
+#: permanently, and a check that can never report clean is one nobody reads: the drift it
+#: exists to catch arrives inside a report that already said the same thing yesterday.
+_OWN_HOOKS = (
+    f"this tree declares the guard as a plugin in {PLUGIN_MANIFEST} ({PLUGIN_HOOKS}), so "
+    f"writing the same hooks here would run it twice on every turn"
+)
 _OWN_WORKFLOW = (
     "this tree *is* the action, and its own workflow already calls the gate — a second one "
     "would run the same lint twice"
@@ -344,9 +354,21 @@ def plan(
     own = base == origin
     surfaces = [
         _declaration(base / PROJECT_MCP, lambda current: _merged_mcp(current, server)),
-        _declaration(base / PROJECT_SETTINGS, lambda current: _merged_settings(current, hooks)),
     ]
+    # Conditioned on the tree *providing* the plugin and never on which repository this is
+    # (RK402): a fork, a vendored copy and this checkout are the same situation, and a name
+    # test would answer for one of them. The `.mcp.json` declaration stays either way — a
+    # plugin's server and a project's are two entries the harness reads separately, and only
+    # the hooks would fire twice.
     skipped: list[tuple[str, str]] = [(CONTRIBUTING.split(":")[0], CONTRIBUTING)]
+    if _provides_plugin(base):
+        skipped.insert(0, (PROJECT_SETTINGS, f"{PROJECT_SETTINGS}: {_OWN_HOOKS}"))
+    else:
+        surfaces.append(
+            _declaration(
+                base / PROJECT_SETTINGS, lambda current: _merged_settings(current, hooks)
+            )
+        )
     driver = blocking(base / ATTRIBUTES)
     if not registering:
         described = (
@@ -560,6 +582,20 @@ _GATE_RE = re.compile(
     r"^\s*-?\s*uses:\s*(?P<action>\./|[^\s#]*?/roadkeep)(?:@(?P<ref>[^\s#]+))?\s*(?:#.*)?$",
     re.MULTILINE,
 )
+
+
+def _provides_plugin(base: Path) -> bool:
+    """Whether this tree already runs the guard as a plugin of its own (RK402).
+
+    Asked of the two files that make it true rather than of the root's name: the manifest
+    that declares the plugin, and the hooks file it points at. A fork, a vendored copy and
+    this checkout are the same situation, and a name test would answer for exactly one.
+
+    Both, because either alone is a different state: a manifest with no hooks file declares
+    nothing that runs, and a hooks file no manifest names is a file the harness never loads —
+    and in both of those the project settings are still the only place the guard could live.
+    """
+    return (base / PLUGIN_MANIFEST).is_file() and (base / PLUGIN_HOOKS).is_file()
 
 
 def gated_at(root: str | Path = ".") -> tuple[tuple[str, str], ...]:
