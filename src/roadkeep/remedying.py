@@ -477,6 +477,40 @@ _TABLE: Mapping[str, _Rule] = {
         ("amend", "{id}", "--why", BLANK),
         "the why is one sentence — the second belongs in the section the line points at",
     ),
+    # The six the schema composes from a field name, invisible to the totality read until
+    # RK428 taught it to look. Each is one door away and always was — the reason none had a
+    # row is that nothing ever asked.
+    "why.empty": _compose(
+        ("amend", "{id}", "--why", BLANK),
+        "the field is blank; a line with no why states a problem and no reason for it",
+    ),
+    "symptom.empty": _compose(
+        ("restate", "{id}", "--symptom", BLANK),
+        "the field is blank; the symptom is the falsifiable claim the line *is*",
+    ),
+    # `-` and not a blank: a newline in a one-line field is almost always what a shell put
+    # there, and stdin is the route where nothing expands anything (RK407 is the other half).
+    "why.newline": _compose(
+        ("amend", "{id}", "--why", "-"),
+        "a task is one line; re-send the field on stdin, which no shell rewrites",
+    ),
+    "symptom.newline": _compose(
+        ("restate", "{id}", "--symptom", "-"),
+        "a task is one line; re-send the field on stdin, which no shell rewrites",
+    ),
+    # Mechanical, and the one pair here that is: the trim is refused at the *door* on
+    # purpose — the tool does not silently rewrite text it did not author — but on a line
+    # already in the file `--fix` normalizes it, which is derived data by any other name.
+    "why.whitespace": _fix(
+        "leading or trailing whitespace around the field, which the door refuses rather "
+        "than trimming: nothing here silently rewrites text it did not author",
+        "the field is trimmed where it already sits, and no other byte moves",
+    ),
+    "symptom.whitespace": _fix(
+        "leading or trailing whitespace around the field, which the door refuses rather "
+        "than trimming: nothing here silently rewrites text it did not author",
+        "the field is trimmed where it already sits, and no other byte moves",
+    ),
     "why.no-terminator": _compose(
         ("amend", "{id}", "--why", BLANK),
         "the why ends in a stop; nothing here adds one, because where it goes is the "

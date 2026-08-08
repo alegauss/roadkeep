@@ -45,12 +45,47 @@ def emitted() -> set[str]:
     The scrape is the point: a hand-written list here would go stale in exactly the
     direction that matters, since the code nobody remembered to add is the code whose
     remedy nobody wrote either.
+
+    **Two ways of writing a code, so two reads** (RK428). A literal is found by pattern; a
+    code the schema *composes* is not, and half of them are — `_check_text` validates both
+    prose fields through one function and names its violations `f"{field}.newline"`, so
+    twelve codes existed at runtime with no remedy and a green suite, because the test could
+    not ask about a string nothing writes down. :func:`composed` is the second read, and it
+    is an AST read rather than a wider regex for the reason the narrow one works at all: a
+    pattern loose enough to catch `f"{field}.x"` catches every `f"{name}.{ext}"` in the
+    package too, and an assertion over that domain is noise.
     """
     found: set[str] = set()
     for name in ("linting.py", "schema.py"):
         text = (SOURCE / name).read_text(encoding="utf-8")
         found |= set(re.findall(r'"([a-z]+\.[a-z][a-z-]*)"', text))
-    return found - _NOT_CODES
+    return (found | composed()) - _NOT_CODES
+
+
+def composed() -> set[str]:
+    """The codes `schema.py` builds from a field name, crossed with the fields it validates.
+
+    Both halves are read from the source. The suffixes come from the `f"{field}.<suffix>"`
+    literals, and the fields from what :meth:`Schema._check_text` is actually *called* with
+    — so a third prose field added tomorrow widens this domain without anybody remembering
+    to, which is the whole reason the fields are not a list sitting here.
+    """
+    import ast
+
+    text = (SOURCE / "schema.py").read_text(encoding="utf-8")
+    suffixes = set(re.findall(r'f"\{field\}\.([a-z][a-z-]*)"', text))
+    fields = {
+        node.args[0].value
+        for node in ast.walk(ast.parse(text))
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and node.func.attr == "_check_text"
+        and node.args
+        and isinstance(node.args[0], ast.Constant)
+        and isinstance(node.args[0].value, str)
+    }
+    assert suffixes and fields, "the composed-code read stopped finding anything"
+    return {f"{field}.{suffix}" for field in fields for suffix in suffixes}
 
 
 # -- totality (RK421) --------------------------------------------------------
@@ -444,3 +479,31 @@ def test_the_listing_is_one_line_per_code(capsys):
     # One per code, plus the count.
     assert len(out) == len(codes()) + 1
     assert out[-1] == f"{len(codes())} code(s) this gate can report"
+
+
+def test_the_composed_read_finds_what_the_literal_one_cannot():
+    """RK428: half the schema's codes are built from the field name, and a pattern over
+    literals is blind to every one of them — silently, since the suite cannot ask about a
+    string nothing writes down."""
+    found = composed()
+    # Both halves are read from the source, so this is what the schema actually validates.
+    assert {"why.newline", "symptom.newline", "why.empty", "symptom.empty"} <= found
+    literal: set[str] = set()
+    for name in ("linting.py", "schema.py"):
+        literal |= set(
+            re.findall(r'"([a-z]+\.[a-z][a-z-]*)"', (SOURCE / name).read_text(encoding="utf-8"))
+        )
+    # The measurement: these existed at runtime and no literal read could reach them.
+    assert found - literal, "the composed read found nothing the literal one missed"
+
+
+def test_the_fields_come_from_the_calls_and_not_from_a_list_here():
+    # A third prose field added tomorrow widens the domain without anybody remembering to,
+    # which is why the fields are scraped from `_check_text`'s call sites rather than typed.
+    assert {code.split(".")[0] for code in composed()} == {"symptom", "why"}
+
+
+def test_the_composed_read_fails_loudly_if_the_source_stops_matching():
+    # The one way a scrape stops asserting anything is by finding nothing and passing. Both
+    # halves are asserted non-empty inside `composed`, so a rename is a red here.
+    assert composed()

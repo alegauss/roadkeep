@@ -291,6 +291,7 @@
 - ✅ **RK420** **25 of the gate's 37 codes report a defect and name no verb for it** — every finding carries the command that closes it — a complete argv where one exists, the doors and what separates them where a decision does, and the blank where L4 forbids the tool the sentence.
 - ✅ **RK421** **Nothing holds the tool to having a door for every defect it reports** — the codes are scraped from the modules that emit them and every one must resolve to a door, so a check added without stating its repair is a red here instead of a dead end on someone's backlog.
 - ✅ **RK422** **Nothing turns a report into the commands that clear it** — repair runs the mechanical pass and then every finding whose remedy is a complete command, re-reading the report between writes, and prints what needs a sentence or a choice.
+- ✅ **RK428** **The totality check cannot see a code the gate builds by f-string** — the totality read crosses the suffixes the schema composes with the fields it validates, both scraped from the source, and the six codes that were invisible now have doors.
 
 ## Block E — Adoption
 
