@@ -205,24 +205,6 @@ first entry of it.
 
 ## Block C — Query
 
-### §RK409 The one branch a loop reads is the one --json does not cover
-
-`brief --block <x>` is how a worker asks what to do next, and the skill says the answer
-"nothing is open in Block <x>" is the only thing that means the block is finished. So a
-loop driving a block to completion polls exactly that sentence.
-
-Asked for `--json`, it does not get it. On the finished branch, `brief --block <x>
---json` exits 2 with an empty stdout and the prose on stderr — the flag is honoured on
-every path except the one whose whole purpose is being read by a program. The caller is
-left matching an English string, which is the coupling `--json` exists to remove, and
-matching it against stderr, where a real failure also lands.
-
-Both halves are small. The refusal already knows it is the empty-backlog case rather
-than a fault, so it can say so in the requested shape; and a distinct exit code would
-let a shell loop branch without reading either stream. What it should not do is succeed:
-an empty answer is still nothing to brief, and a `0` there would make a typo'd block
-name look like a finished one.
-
 ### §RK410 The anchor read that is made most often is the narrowest one
 
 `anchors [--family <x>]` answers two questions at once: which addresses a heading

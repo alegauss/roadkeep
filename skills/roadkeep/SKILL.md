@@ -333,7 +333,9 @@ spans two and leaves the choice with you. And **never restate a count in prose**
 
 `roadkeep brief [--block <x>]` picks and briefs in one call, printing why: in-progress first,
 then `priority` in `roadkeep.toml`, then the lowest ready id, never one blocked outside.
-**Scope it to finish a block**: only "nothing is open in Block <x>" means finished — unscoped,
+**Scope it to finish a block**: only "nothing is open in Block <x>" means finished — and with
+`--json` that branch answers `{"empty": true, "reason": …}` on stdout rather than a sentence on
+stderr, so a loop reads the payload and never matches English. Unscoped,
 the answer may be another block's, and the block order is the headings' own (`list`).
 **Ready is not implementable**: the tiers rank by id, so add `--designed` when you asked to
 *execute* and not to plan — it sets aside the markers `[markers] undesigned` names, and says

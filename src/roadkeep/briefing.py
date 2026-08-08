@@ -73,6 +73,11 @@ class NothingToBrief(KeyError):
 
     def __init__(self, reason: str, held: tuple[Held, ...] = ()) -> None:
         self.held = held
+        #: The bare sentence, before this class wraps it (RK409). Kept as a field because
+        #: `brief --json` answers this branch too now, and recovering it from `str(self)`
+        #: means stripping a prefix and `KeyError`'s own quoting — two spellings of the
+        #: reason, one of which goes wrong the first time either half is reworded.
+        self.reason = reason
         named = ", ".join(f"{one.id} ({one.since} ago)" for one in held)
         super().__init__(f"nothing to brief: {reason}" + (f" — held: {named}" if named else ""))
 

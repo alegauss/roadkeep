@@ -52,7 +52,7 @@ from roadkeep.attesting import attest
 from roadkeep.authoring import StatusChange, add, amend, restate, set_status
 from roadkeep.backlog import Backlog
 from roadkeep.blocking import drop_block, merge_block, open_block
-from roadkeep.briefing import Brief, brief, non_goals
+from roadkeep.briefing import Brief, NothingToBrief, brief, non_goals
 from roadkeep.budgeting import (
     Body,
     Budget,
@@ -5002,6 +5002,22 @@ def _brief(config: Config, args: argparse.Namespace) -> int:
         return EXIT_USAGE
     try:
         gathered = brief(config, args.id, args.block, args.designed, args.claim)
+    except NothingToBrief as nothing:
+        # The one branch a loop actually reads, and the one `--json` did not cover (RK409).
+        # `brief --block <x>` is how a worker asks what to do next, and "nothing is open in
+        # Block <x>" is the only answer that means the block is finished — so a loop driving
+        # one to completion polls exactly this, and asked for JSON got an empty stdout and
+        # the sentence on stderr, where a real failure also lands.
+        #
+        # Still **not** exit 0, and still not a fourth exit code. An empty answer is nothing
+        # to brief, so succeeding would make a typo'd block name look like a finished one;
+        # and what the caller could not do at exit 2 was tell those two apart, which the
+        # payload now answers directly — `empty` is true for the finished block and the
+        # refusal for a name nothing declares never reaches here at all.
+        if args.json:
+            print(json.dumps(_nothing_json(nothing, args), indent=2))
+            return EXIT_USAGE
+        return _refused(nothing)
     except REFUSALS as error:
         # The whole tuple, because `--claim` makes this a write (RK149): every refusal that
         # guards a marker reaches here, plus the one this door has of its own — a named line
@@ -5064,6 +5080,28 @@ def _brief(config: Config, args: argparse.Namespace) -> int:
     else:
         print(f"  section  none — {view.section_absence}")
     return EXIT_OK
+
+
+def _nothing_json(nothing: NothingToBrief, args: argparse.Namespace) -> dict[str, object]:
+    """The finished-block answer, in the shape it was asked for (RK409).
+
+    `reason` is the sentence `pick` composed, carried verbatim rather than re-derived: the
+    two answers about why nothing is ready would otherwise be two, and this is the one place
+    a caller reads it without a task beside it.
+
+    `held` is the field the prose already carried (RK154). "Every ready task is claimed by a
+    worker who has not finished it" is the one absence a caller cannot act on without the
+    ids — its own claim being the one it would otherwise ask about again next turn — so a
+    payload that dropped them would make the machine-readable form the poorer answer.
+    """
+    return {
+        "brief": None,
+        "empty": True,
+        "block": args.block,
+        "designed": args.designed,
+        "reason": nothing.reason,
+        "held": [{"id": one.id, "since": one.since} for one in nothing.held],
+    }
 
 
 def _brief_json(gathered: Brief) -> dict[str, object]:

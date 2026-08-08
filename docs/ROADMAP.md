@@ -33,7 +33,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK409** (deps: —) **The machine-readable brief answers a finished block in prose** — It exits 2 with an empty stdout and an English sentence on stderr, so a caller who asked for JSON to detect "nothing is open" is the one caller that gets none. → §RK409
 - 📋 **RK410** (deps: —) **The free address is the last line of a listing of spent ones** — Asking `anchors` which child to write next prints every anchor the family ever had, so under a 27-anchor family the one number wanted is 28 rows down. → §RK410
 - 📋 **RK416** (deps: —) **A line proposing what a revert already undid reads as new work** — The ledger files a reversal as a delivery, so the entry that says a change was wrong looks like any other shipped one and nothing connects a fresh proposal to it. → §RK416
 

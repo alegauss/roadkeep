@@ -377,3 +377,64 @@ def test_an_unknown_id_exits_two(tmp_path, capsys):
     project(tmp_path)
     assert main(["-C", str(tmp_path), "brief", "RK99"]) == EXIT_USAGE
     assert "no task RK99" in capsys.readouterr().err
+
+
+# -- the finished block, in the shape it was asked for (RK409) ---------------
+
+#: Block A declared and holding nothing: the state a loop drives a block *to*, and the one
+#: whose answer is the only thing that means finished.
+EMPTIED = """# Roadmap
+
+## Block A — The model
+
+## Non-goals
+
+- **No web UI and no server.** Files and a CLI.
+"""
+
+
+def test_a_finished_block_answers_in_json_when_json_was_asked_for(tmp_path, capsys):
+    """The one branch a loop reads, and the one `--json` did not cover.
+
+    `brief --block <x>` is how a worker asks what to do next, and "nothing is open in Block
+    <x>" is the only answer that means the block is finished — so a loop driving one to
+    completion polls exactly this. Asked for JSON it got an empty stdout and the sentence on
+    stderr, where a real failure also lands, which is the coupling `--json` exists to remove.
+    """
+    project(tmp_path, roadmap=EMPTIED)
+    assert main(["-C", str(tmp_path), "brief", "--block", "A", "--json"]) == EXIT_USAGE
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["brief"] is None
+    assert payload["empty"] is True
+    assert payload["block"] == "A"
+    assert payload["reason"] == "nothing is open in Block A"
+
+
+def test_the_empty_answer_is_never_a_success(tmp_path, capsys):
+    # Nothing to brief is still nothing to brief: at exit 0 a typo'd block name would look
+    # exactly like a finished one, and the payload is what tells those apart instead.
+    project(tmp_path, roadmap=EMPTIED)
+    assert main(["-C", str(tmp_path), "brief", "--block", "A", "--json"]) == EXIT_USAGE
+    capsys.readouterr()
+    # A block nothing declares never reaches that branch at all — it is a different refusal,
+    # and it stays prose on stderr with no payload to mistake for an empty one.
+    assert main(["-C", str(tmp_path), "brief", "--block", "Z", "--json"]) == EXIT_USAGE
+    out = capsys.readouterr()
+    assert out.out == ""
+    assert "no heading declares Block Z" in out.err
+
+
+def test_without_json_the_finished_block_still_answers_in_prose(tmp_path, capsys):
+    project(tmp_path, roadmap=EMPTIED)
+    assert main(["-C", str(tmp_path), "brief", "--block", "A"]) == EXIT_USAGE
+    out = capsys.readouterr()
+    assert out.out == ""
+    assert "nothing is open in Block A" in out.err
+
+
+def test_the_reason_is_carried_and_never_reconstructed_from_the_message():
+    # Two spellings of one sentence is one that goes wrong the first time either is
+    # reworded — and `KeyError` quotes its own `str`, which is the half that would.
+    nothing = NothingToBrief("nothing is open in Block A")
+    assert nothing.reason == "nothing is open in Block A"
+    assert nothing.reason not in ("", str(nothing))

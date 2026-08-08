@@ -201,6 +201,7 @@
 - ✅ **RK389** **A dep naming two real ids is accepted as one thing outside the backlog** — a dep that names this project's ids inside free text is refused at the write, naming them, instead of resolving as work nothing can satisfy.
 - ✅ **RK396** **A dep on a partially shipped task is annotated as satisfied** — a dep on a task shipped in halves is annotated with the line's own marker and resolves as open, naming which half the ledger holds.
 - ✅ **RK423** **A code is the only stable name a defect has and nothing will say what it means** — explain <code> answers the class, what produces it and which doors close it in three lines, and with no argument lists every code the gate can report.
+- ✅ **RK409** **The machine-readable brief answers a finished block in prose** — the finished branch answers on stdout in the shape it was asked for, carrying empty, the block and the reason, so a loop reads a payload instead of matching English on stderr.
 
 ## Block D — The gate
 
