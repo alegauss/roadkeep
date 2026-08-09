@@ -121,12 +121,12 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 64 | 1 |
 | D — The gate | 1 | 90 | 0 |
 | E — Adoption | 0 | 73 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 2 | 69 | 1 |
-| **Total** | 5 | 426 | 6 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 70 | 1 |
+| **Total** | 4 | 427 | 6 |
 
 **Next ready:**
 
-- 📋 **RK436** (deps: —) **The MCP schema publishes a limit that counts code points while the write refuses in UTF-16 units** — A client validating a field against the published maxLength accepts a string this tool then refuses, which is the disagreement RK430 removed everywhere the tool controls both ends. → §RK436
+- 📋 **RK437** (deps: —) **Prose is filled to a width counted in code points while every limit that refuses counts UTF-16 units** — One key of the same table is measured the other way because textwrap has no UTF-16 mode, so the config declares two units and says neither. → §RK437
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

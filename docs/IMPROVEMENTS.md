@@ -144,22 +144,6 @@ it sits in, which is a genuine second address and should stay refused.
 
 ## Block F — The plugin
 
-### §RK436 The one counter this tool publishes and does not own
-
-RK430 made every character limit a count of UTF-16 code units and said so on every
-surface this tool prints. One surface it does not print: `serving` publishes `symptom`
-and `why` as JSON Schema `maxLength`, and that keyword is defined over the string's
-**characters** — code points. So the number is right and its unit is not.
-
-The gap only opens on a field carrying an astral character, which a symptom rarely does
-and a pasted emoji does immediately. Then a client validates locally, passes, calls the
-tool and is refused by a number it was told it had met — the same shape as the Shio
-ratchet, moved from a build to a round trip.
-
-Three answers exist and none is obviously right: publish the stricter figure and lose
-room on every ASCII field, describe the unit in the field's `description` and rely on it
-being read, or leave it and name the residual where a client author would look.
-
 ### §RK440 The re-run that never reached the rule
 
 Two of the three captures Shio filed record an output that has nothing to do with the

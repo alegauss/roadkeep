@@ -37,7 +37,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK436** (deps: —) **The MCP schema publishes a limit that counts code points while the write refuses in UTF-16 units** — A client validating a field against the published maxLength accepts a string this tool then refuses, which is the disagreement RK430 removed everywhere the tool controls both ends. → §RK436
 - 📋 **RK440** (deps: —) **A capture whose re-run stopped at a usage refusal is filed as reproducing the symptom above it** — Two of Shio's three field reports record ship refusing a missing --why and an already-shipped id, so the evidence disproves the claim and nothing in the capture says so. → §RK440
 
 ## Non-goals

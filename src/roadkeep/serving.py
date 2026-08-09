@@ -625,8 +625,34 @@ _DIVERGENT: Mapping[str, Mapping[str, Any]] = {
 
 
 def _aimed(limit: int) -> str:
-    """The character ceiling restated as the word count a model can count towards (RK185)."""
-    return f"Aim for {words(limit)} words; {limit} characters is what refuses."
+    """The character ceiling restated as the word count a model can count towards (RK185).
+
+    **And in the unit it is counted in** (RK436). `maxLength` is the one figure this tool
+    publishes and does not own: the keyword is defined over the string's *characters* —
+    code points — and RK430 made every gate here count UTF-16 code units, which is the
+    stricter of the two. So the number is right and its unit is the client's, and a field
+    carrying an astral character validates locally, passes, and is refused by a bound it
+    was told it had met.
+
+    Three answers existed and this is the one the surface already ruled the other two out
+    of. Publishing the stricter figure is what the `why` bound refuses to do for the line
+    limit and what `body` refuses to do for the word one: a lower `maxLength` refuses on
+    the client prose this server accepts, which is a bound on the client (RK183) — and it
+    would cost that room on every ASCII field to buy it on the rare astral one. Leaving it
+    unsaid is the state the defect describes. What is left is naming the residual in the
+    one place a client author reading the field is already looking, beside the aim.
+
+    Said on every field rather than only where the counters disagree, which is where
+    :func:`~roadkeep.schema._counted` says it: a refusal has the string in hand and can
+    compare, and a schema is composed before any string exists.
+    """
+    return (
+        f"Aim for {words(limit)} words; {limit} characters is what refuses, counted in "
+        f"UTF-16 code units. The `maxLength` beside this sentence is that same number "
+        f"under JSON Schema's own count, which is code points — the looser of the two, so "
+        f"a field carrying an emoji or other astral character can validate on the client "
+        f"and still be refused here."
+    )
 
 
 def _roles(config: Config, universe: Sequence[str]) -> dict[str, Any]:

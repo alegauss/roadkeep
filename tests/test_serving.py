@@ -352,6 +352,34 @@ def test_the_limits_in_the_schema_are_the_projects_own(tmp_path):
     assert add["why"]["maxLength"] == 90
 
 
+def test_every_published_ceiling_names_the_unit_it_is_counted_in(tmp_path):
+    # RK436: `maxLength` is the one counter this tool publishes and does not own — the
+    # keyword is defined over code points and every gate here counts UTF-16 code units
+    # (RK430). Publishing the stricter figure is what RK183 already refuses (a bound on the
+    # client, paid on every ASCII field), so the residual is named where a client author
+    # reading the field is already looking: beside the aim.
+    tree = project(tmp_path, config=PROSE + "[limits]\nsymptom = 60\n")
+    described = listed(tree)
+    published = [
+        prop
+        for tool in described.values()
+        for prop in tool["inputSchema"]["properties"].values()
+        if "maxLength" in prop
+    ]
+    assert published
+    for prop in published:
+        assert "UTF-16 code units" in prop["description"]
+        assert "code points" in prop["description"]
+    # And the residual it names is real, not a caution: 60 code points carrying one astral
+    # character is 61 units, so the client validates against the published number, passes,
+    # and the server refuses by the bound the call was told it had met.
+    symptom = "📋" + "x" * 59
+    assert len(symptom) == described["add"]["inputSchema"]["properties"]["symptom"]["maxLength"]
+    refused = called(tree, "add", block="A", symptom=symptom, why="Because of a reason.")
+    assert refused["isError"]
+    assert "61" in text_of(refused)
+
+
 def test_the_why_says_which_limit_actually_binds(tmp_path):
     # RK183: `maxLength` is the field's ceiling, and the line is what refuses. A lower
     # number here would refuse on the client a line the server accepts, so the ceiling
