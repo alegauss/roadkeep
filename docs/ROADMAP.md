@@ -31,11 +31,14 @@
 
 ## Block D — The gate
 
+- 📋 **RK439** (deps: —) **A sub-heading nested under a block's own heading is read as a second declaration of that block** — Shio's ledger files 91 entries under eight '### Block K follow-ups' sub-headings, and block.repeated refuses every write over a nesting whose only other shape strands them. → §RK439
+
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - 📋 **RK436** (deps: —) **The MCP schema publishes a limit that counts code points while the write refuses in UTF-16 units** — A client validating a field against the published maxLength accepts a string this tool then refuses, which is the disagreement RK430 removed everywhere the tool controls both ends. → §RK436
+- 📋 **RK440** (deps: —) **A capture whose re-run stopped at a usage refusal is filed as reproducing the symptom above it** — Two of Shio's three field reports record ship refusing a missing --why and an already-shipped id, so the evidence disproves the claim and nothing in the capture says so. → §RK440
 
 ## Non-goals
 
