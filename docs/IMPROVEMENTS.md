@@ -113,6 +113,46 @@ ask for it.
 
 ## Block C — Query
 
+### §RK441 The duplicate check's figure is unreproducible, and the fact under it is stronger
+
+Three copies state it — the `delivered` help, the guard's denial table and the shipped
+skill — and each argues the same right decision from it, that a duplicate cannot be
+refused. The decision holds; the number does not. Re-measured on this ledger, BM25 over
+the 426 shipped symptoms ranks the true partner of all four `superseded by` pairs at #1,
+#2, #1 and #1 inside its own block, and #1 to #3 across the whole file.
+
+What actually fails is the score, not the rank. Two of the four true pairs score below
+the 13th percentile of the top-1 score a proposal with no duplicate produces, so a
+threshold catching all four flags 419 of 426. That is the fact the refusal rests on, and
+it is the stronger one, because it holds however good the ranking gets: relative order
+inside one query carries signal, the absolute score carries none, and a gate is
+therefore impossible rather than merely unreliable.
+
+A figure nobody can reproduce is worse than no figure where three copies publish it and
+one of them ships to every adopting project. Whether the original was measured against a
+different query, a different pool or a different field is unknown and now unrecoverable
+— which is the second half of the defect, a number stated without its method.
+
+### §RK442 The pre-add read is the last query that answers by printing the file
+
+`delivered` is one of the two reads before an `add`, and the one query left that answers
+by printing the file: `delivered B` is 103 lines and 9,773 bytes spent to decide one
+question, which is L5 unapplied to its own verb. `--near` ranks that block's entries by
+the sentence about to be proposed and prints the few nearest. Measured on the four
+`superseded by` pairs this ledger records, the true partner lands at #1, #2, #1 and #1
+inside its block — five lines instead of a hundred, at the same recall.
+
+Three constraints are the design. It never refuses and never warns: RK441 measures that
+the score separates nothing, so the absence of a threshold is a known result rather than
+caution, and the ordering is printed for a reader to use. It stores no index — BM25
+rebuilt per call costs 0.23 ms over these 426 entries and 0.73 ms over Turing's 892, so
+a second store would buy nothing and cost L2. And it takes no dependency: the ranking is
+some fifty lines of stdlib, where Lucene is a JVM and every Python index is a wheel.
+
+The no-model non-goal is not reached. Nothing here writes prose or judges meaning; it
+orders lines that already exist by word overlap, and the answer is unchanged in kind —
+the author still reads it and still decides.
+
 ## Block D — The gate
 
 ### §RK439 The heading inside the region is not a second address for it
@@ -143,3 +183,25 @@ it sits in, which is a genuine second address and should stay refused.
 ## Block E — Adoption
 
 ## Block F — The plugin
+
+### §RK443 The verdict that agrees with a run nobody made
+
+RK440 gave the capture the annotation: a re-run that exited 2 never reached the verb, so
+the output under it is evidence about the command and not about the symptom. The capture
+says so in the report and on the reporting session's own stderr.
+
+`replay` is the other end and does not. Its verdict is the recorded exit code turning up
+again, and a usage refusal satisfies that by construction — the same argv earns the same
+refusal every time. So the command a maintainer runs to decide whether a field report is
+still live answers `still reproduces` about a run that proved nothing, and the corpus
+gate agrees. The annotation reaches the reader who took the capture and not the one who
+triages it.
+
+Nothing here is a new fact to record. Every capture already carries `exit`, so the shape
+is derivable at replay time from what the reports already on disk hold — including the
+two Shio filed before RK440 existed, which is the whole population this is about.
+
+Open is where the answer belongs. `Replay` already holds two reasons not to trust a
+verdict — `unstaged` and `drifted` — both stated beside the sentence rather than folded
+into `reproduces`, because a boolean meaning three things is one nobody can gate on.
+Whether the corpus gate should refuse such an entry is a separate judgement.
