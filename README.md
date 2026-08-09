@@ -117,16 +117,16 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 30 | 2 |
-| B — Authoring (insert, never hand-edit) | 1 | 101 | 1 |
+| B — Authoring (insert, never hand-edit) | 0 | 102 | 1 |
 | C — Query (consult without reading the file) | 2 | 64 | 1 |
 | D — The gate | 1 | 90 | 0 |
 | E — Adoption | 0 | 73 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 71 | 1 |
-| **Total** | 5 | 429 | 6 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 2 | 71 | 1 |
+| **Total** | 5 | 430 | 6 |
 
 **Next ready:**
 
-- 📋 **RK438** (deps: —) **A write's event line calls a block empty that every query in the same tool calls finished** — The event asks the roadmap alone whether anything is filed under the label and the four-state answer asks the ledger too, so one word carries two meanings. → §RK438
+- 📋 **RK439** (deps: —) **A sub-heading nested under a block's own heading is read as a second declaration of that block** — Shio's ledger files 91 entries under eight '### Block K follow-ups' sub-headings, and block.repeated refuses every write over a nesting whose only other shape strands them. → §RK439
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

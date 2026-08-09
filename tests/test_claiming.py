@@ -834,7 +834,7 @@ def test_the_command_claims_and_says_what_it_moved(tmp_path, capsys):
     assert out.splitlines()[0].startswith(f"RK2  Block A  {IN_PROGRESS}")
     assert f"claimed  {DESIGNED} → {IN_PROGRESS}" in out
     # Every write prints the event line (RK38), and this one writes.
-    assert "event    RK2  Block A  open" in out
+    assert "event    RK2  Block A  live" in out
 
 
 def test_the_command_names_the_claim_it_was_not_offered(tmp_path, capsys):
@@ -948,7 +948,7 @@ def test_the_brief_command_claims_and_says_what_it_moved(tmp_path, capsys):
     out = capsys.readouterr().out
     assert out.splitlines()[0].startswith(f"RK2  Block A  {IN_PROGRESS}")
     assert f"claimed  {DESIGNED} → {IN_PROGRESS}" in out
-    assert "event    RK2  Block A  open" in out
+    assert "event    RK2  Block A  live" in out
 
 
 def test_the_brief_json_carries_the_claim(tmp_path, capsys):

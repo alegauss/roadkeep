@@ -708,12 +708,19 @@ class Document:
         """Whether any line in **this** file is filed under ``label`` (RK300).
 
         The one reader of "is that block still occupied", and it exists because there were
-        two: `ship` prints `event <id> Block <x> empty` and `lint --since` notes the same
-        transition (RK269), and until this they were one expression written twice in modules
-        that never call each other. That is the shape this project removes everywhere else —
-        one `GUARDED_TOOLS`, one `Schema.validate`, `_only_reads` reading the parser's own
-        declaration — and a test holding two outputs level is weaker than one caller, because
-        it does not stop a third reader from spelling it a fourth way.
+        two: `ship`'s event line and the transition `lint --since` notes (RK269) were one
+        expression written twice in modules that never call each other. That is the shape
+        this project removes everywhere else — one `GUARDED_TOOLS`, one `Schema.validate`,
+        `_only_reads` reading the parser's own declaration — and a test holding two outputs
+        level is weaker than one caller, because it does not stop a third reader from
+        spelling it a fourth way.
+
+        The event has since moved **up** rather than away (RK438): a boolean about this file
+        could not tell a finished block from a paused one, so the write path asks
+        :meth:`~roadkeep.backlog.Standing.of` for the four-state answer instead. That reader
+        is this one plus the ledger and the store, so the question is unchanged and only its
+        scope grew. `lint --since` still asks *this* file, because a transition inside one
+        document is what it reports.
 
         Deliberately **not** named for openness. "Open" is not a property of a label, it is a
         property of the file being asked: the roadmap is the active backlog, so

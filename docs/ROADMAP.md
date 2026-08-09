@@ -24,8 +24,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK438** (deps: —) **A write's event line calls a block empty that every query in the same tool calls finished** — The event asks the roadmap alone whether anything is filed under the label and the four-state answer asks the ledger too, so one word carries two meanings. → §RK438
-
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK441** (deps: —) **Three copies price a lexical duplicate match at 33rd, and re-measuring this ledger does not reproduce it** — BM25 over the 426 shipped symptoms ranks all four superseded-by pairs at #1 to #3, so the figure the refusal argues from is wrong even where the refusal is right. → §RK441
@@ -40,6 +38,7 @@
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - 📋 **RK443** (deps: —) **A stored capture that never reached the verb replays as reproducing the symptom it was filed under** — The verdict is the recorded exit code turning up again, which a usage refusal always does, so the triage command says `still reproduces` about evidence the capture calls unreached. → §RK443
+- 📋 **RK444** (deps: —) **An agent that never hand-edits is never told the tools exist, the deny being the only place that names them** — The SessionStart notice is the only message every adopting session gets, and it names the shell alone, so the list the deny orders correctly waits behind a refused edit. → §RK444
 
 ## Non-goals
 

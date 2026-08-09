@@ -77,23 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK438 Two meanings of empty, one of them offering a drop
-
-Every write prints `event <id> Block <x> open|empty`, and `empty` there means the
-roadmap holds no line under the label — the single moment a heading becomes droppable,
-which is why RK408 attached the `block drop` offer to it.
-
-RK429 then gave `empty` a second meaning: a block nothing has *ever* filed anything
-under, as opposed to `finished`. The two now disagree out loud. Shipping the last line
-of Block C in this repository printed `Block C empty` beside an offer to withdraw the
-heading, while `pick --block C` answered `Block C is finished: the ledger records 12
-filed under it` — and the heading is one of the six this project's plan is made of.
-
-The offer is not wrong, but the word is. What a reader needs is which of the two facts
-they have: this file has no line left under the heading, and the block itself is
-finished, paused, or was never filled. The state is already computed; the event does not
-ask for it.
-
 ## Block C — Query
 
 ### §RK441 The duplicate check's figure is unreproducible, and the fact under it is stronger
@@ -188,3 +171,24 @@ Open is where the answer belongs. `Replay` already holds two reasons not to trus
 verdict — `unstaged` and `drifted` — both stated beside the sentence rather than folded
 into `reproduces`, because a boolean meaning three things is one nobody can gate on.
 Whether the corpus gate should refuse such an entry is a separate judgement.
+
+### §RK444 The only unconditional message points at the wrong engine
+
+RK82 gave the session its resident line and decided on purpose that it would not repeat
+the write path, a rule in two places being two places that can disagree. That holds.
+What it did not separate is the rule from the route: the notice already publishes one —
+`invocation()` — for the read verbs it names, on projects where `install` wired
+`.mcp.json` and pre-approved the server. So the only message every adopting session
+receives points at the shell on exactly the projects that have the tools.
+
+The consequence is the shape of the door. The deny is already right, listing this
+session's tools first and the shell second, under the prefix RK333 taught it to read —
+but it fires only on a hand-edit. The agent that behaves, never touching the file and
+reaching for a command instead, is the one that never sees the list. The skill carries
+the same instruction and loads on a trigger, one sentence among two hundred and fifty.
+
+What changes is one clause: where the tools are served the route named is the served
+prefix, and where they are not it stays the invocation. `served` is already a field here
+and already carries the `mcp__plugin_<plugin>_roadkeep__` form, so nothing new is read.
+The write path stays the skill's — this states which engine answers, which is the same
+kind of fact as which files are governed.

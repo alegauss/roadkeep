@@ -195,12 +195,16 @@ def test_json_carries_the_note(tmp_path, capsys):
 
 
 def test_the_note_and_the_ship_event_answer_the_same_question(tmp_path, capsys):
-    """The one thing that must not drift: `ship` prints `Block A empty` from
-    `not roadmap.block(label)`, and this reads the same expression. Two answers to whether a
-    block is empty is the defect RK269 names, with the arrow reversed.
+    """The one thing that must not drift: `ship` says Block A stopped holding work and this
+    reads the same file for the same transition. Two answers to whether a block emptied is
+    the defect RK269 names, with the arrow reversed.
+
+    The two words differ since RK438 and the question does not: the event names the stage
+    the label reached — `finished`, because the ledger now records the line — and the note
+    reports the transition inside the roadmap, which is what `--since` is about.
     """
     repo(tmp_path)
     assert main(["-C", str(tmp_path), "ship", "RK1", "--why", "The first outcome."]) == EXIT_OK
-    assert "event    RK1  Block A  empty" in capsys.readouterr().out
+    assert "event    RK1  Block A  finished" in capsys.readouterr().out
     assert main(["-C", str(tmp_path), "lint", "--since", "HEAD"]) == EXIT_OK
     assert "block.emptied" in capsys.readouterr().out

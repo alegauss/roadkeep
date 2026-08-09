@@ -2479,7 +2479,7 @@ def _add(config: Config, args: argparse.Namespace) -> int:
         return _refused(error)  # a SchemaError arrives here as the ValueError it is
 
     event = _event(
-        insertion.entry.task.id, insertion.entry.task.block, insertion.document
+        insertion.entry.task.id, insertion.entry.task.block, insertion.document, config
     )
     written = insertion.section
     # The file the write actually chose (RK230), read off the document `_with_section` left
@@ -2890,7 +2890,7 @@ def _status(config: Config, args: argparse.Namespace) -> int:
         return _refused(error)
 
     where = f"{config.relative(config.path('roadmap'))}:{change.lineno}"
-    event = _event(args.id, change.entry.task.block, change.document)
+    event = _event(args.id, change.entry.task.block, change.document, config)
     if args.json:
         print(
             json.dumps(
@@ -2938,28 +2938,53 @@ def _print_followed(change: StatusChange, config: Config) -> None:
         print("  dropped  the claim on this line is released")
 
 
-def _event(task_id: str, block: str, roadmap: Document) -> dict[str, object]:
-    """What changed, where, and whether that place is finished (RK38).
+def _event(task_id: str, block: str, roadmap: Document, config: Config) -> dict[str, object]:
+    """What changed, where, and what became of that place (RK38).
 
-    Three facts and no more. "This block is done" stays a *derived* fact about the file
+    Three facts and no more. "This block is done" stays a *derived* fact about the files
     every mutator just wrote, so it cannot go stale the way a queued message can, and the
     tool never learns what happens next.
 
-    Derived through `Document.holds`, which is the one reader of it (RK300): the gate says the
-    same thing about the same file (RK269), and two spellings of one question is what a test
-    can hold level but not keep from happening a third time.
+    The third of them is :class:`~roadkeep.backlog.Stage` and no longer a boolean (RK438).
+    It was `not roadmap.holds(block)`, printed as `empty` — the roadmap holds no line under
+    the label, which is the single moment a heading becomes droppable and is why RK408 hung
+    the offer on it. RK429 then gave that word a second meaning, a block nothing has *ever*
+    filed under as opposed to one that is `finished`, and the two disagreed out loud:
+    shipping the last line of Block C here printed `Block C empty` beside an offer to
+    withdraw the heading while `pick --block C` answered `Block C is finished: the ledger
+    records 12 filed under it`. Both were right about their own question and one word was
+    carrying them.
+
+    So the event asks for the state the tool already computes, through the reader every
+    query uses — `Backlog.during`, so the roadmap is the one this transaction just wrote and
+    the ledger and the store are read (RK92). What the offer below hangs on is now *which*
+    state, which is the thing it always needed: a paused block has nothing open and is not
+    droppable, and under the old boolean it was told to run a command that refuses.
     """
-    return {"id": task_id, "block": block, "block_empty": not roadmap.holds(block)}
+    standing = Backlog.during(config, roadmap=roadmap).standing(block)
+    return {"id": task_id, "block": block, "stage": str(standing.stage)}
+
+
+#: The two stages a heading is droppable in, and the clause that says which one it is
+#: (RK438). `finished` and `empty` are the states where `block drop` can work: nothing open,
+#: and nothing paused holding the label. `live` needs no offer and `paused` must not have
+#: one — the store files lines under that heading, so the command refuses, and naming an
+#: edit that cannot work is worse than naming no edit at all (RK16). The word beside the
+#: event is what tells a paused caller why the offer is absent.
+_DROPPABLE = {
+    Stage.FINISHED: "its last open line just left",
+    Stage.EMPTY: "no file files a task line under it",
+}
 
 
 def _print_event(event: dict[str, object], indent: str = "") -> None:
-    """The event, and on `empty` the one command that state makes available (RK408).
+    """The event, and where the stage allows it the one command that state makes available.
 
-    `empty` is the single moment a heading becomes droppable: the block just lost its last
-    open line, and a project whose roadmap reads as a list of what is left has every reason
-    to withdraw it. Until this, the answer computed that state and stopped one word short of
-    the verb — so the caller was told a block is finished and left to remember `block drop`
-    from somewhere other than the sentence telling them it applies.
+    A heading becomes droppable the moment its block stops holding work, and a project whose
+    roadmap reads as a list of what is left has every reason to withdraw it. Until RK408 the
+    answer computed that state and stopped one word short of the verb — so the caller was
+    told a block is finished and left to remember `block drop` from somewhere other than the
+    sentence telling them it applies.
 
     The same commitment `add` already makes: an `add` without `--section` answers with the
     `section add` that closes the pointer it just created, rather than leaving the gate to
@@ -2970,11 +2995,12 @@ def _print_event(event: dict[str, object], indent: str = "") -> None:
     the subtree is not blank in every file, and a ship that withdrew a heading nobody asked
     it to would be the tool deciding the shape of the plan.
     """
-    state = "empty" if event["block_empty"] else "open"
-    print(f"{indent}event    {event['id']}  Block {event['block']}  {state}")
-    if event["block_empty"]:
+    stage = event["stage"]
+    print(f"{indent}event    {event['id']}  Block {event['block']}  {stage}")
+    because = _DROPPABLE.get(Stage(stage))
+    if because:
         print(
-            f"{indent}         its last open line just left — "
+            f"{indent}         {because} — "
             f"`{invocation()} block drop {event['block']}` withdraws the heading, "
             f"where this project drops one"
         )
@@ -3125,6 +3151,7 @@ def _renumber(config: Config, args: argparse.Namespace) -> int:
         moved.to,
         moved.entry.task.block,
         moved.documents.get("roadmap") or config.document("roadmap"),
+        config,
     )
     if args.json:
         print(
@@ -3463,7 +3490,7 @@ def _ship(config: Config, args: argparse.Namespace) -> int:
     roadmap = config.relative(config.path("roadmap"))
     ledger = config.relative(config.path("changelog"))
     block = shipment.ledger.entry.task.block
-    event = _event(shipment.task_id, block, shipment.roadmap)
+    event = _event(shipment.task_id, block, shipment.roadmap, config)
     if args.json:
         print(
             json.dumps(
@@ -3823,7 +3850,7 @@ def _partly(config: Config, partial: Partial, args: argparse.Namespace) -> int:
     roadmap = config.relative(config.path("roadmap"))
     ledger = config.relative(config.path("changelog"))
     block = partial.ledger.entry.task.block
-    event = _event(partial.task_id, block, partial.roadmap)
+    event = _event(partial.task_id, block, partial.roadmap, config)
     if args.json:
         print(
             json.dumps(
@@ -3870,7 +3897,7 @@ def _closed(
     """A roadmap line closed against an entry the ledger already had (RK62)."""
     roadmap = config.relative(config.path("roadmap"))
     ledger = config.relative(config.path("changelog"))
-    event = _event(closure.task_id, closure.recorded.task.block, closure.roadmap)
+    event = _event(closure.task_id, closure.recorded.task.block, closure.roadmap, config)
     if args.json:
         print(
             json.dumps(
@@ -3941,7 +3968,7 @@ def _record(config: Config, args: argparse.Namespace) -> int:
     block = entry.ledger.entry.task.block  # as the file reads it back, not as it was typed
     # The event's block state is the *roadmap's*, as it is for every other mutator: a hook
     # asking "is Block B finished" is asking about open work, and a record adds none.
-    event = _event(entry.task_id, block, entry.roadmap)
+    event = _event(entry.task_id, block, entry.roadmap, config)
     if args.json:
         print(
             json.dumps(
@@ -4342,7 +4369,7 @@ def _record_move(config: Config, args: argparse.Namespace) -> int:
     where = config.relative(config.path("changelog"))
     # The roadmap is read and never written (RK67's rule, for the same reason): a block is
     # where an entry is filed, so re-filing one leaves every open line exactly as it was.
-    event = _event(refiled.task_id, refiled.to_block, config.document("roadmap"))
+    event = _event(refiled.task_id, refiled.to_block, config.document("roadmap"), config)
     if args.json:
         print(
             json.dumps(
@@ -4425,7 +4452,7 @@ def _record_drop(config: Config, args: argparse.Namespace) -> int:
     ledger = config.relative(config.path("changelog"))
     # The roadmap is read, never written (RK67): the event's block state is the *roadmap's*
     # for every mutator, and a duplicate entry removed leaves open work exactly as it was.
-    event = _event(dropped.task_id, dropped.block, config.document("roadmap"))
+    event = _event(dropped.task_id, dropped.block, config.document("roadmap"), config)
     if args.json:
         print(
             json.dumps(
@@ -5462,9 +5489,9 @@ def _brief(config: Config, args: argparse.Namespace) -> int:
 
     view, task = gathered.view, gathered.task
     claim = gathered.claim
-    event = _claim_event(claim)
+    event = _claim_event(claim, config)
     if args.json:
-        print(json.dumps(_brief_json(gathered), indent=2))
+        print(json.dumps(_brief_json(gathered, config), indent=2))
         return EXIT_OK
 
     print(f"{task.id}  Block {task.block}  {task.status}  {gathered.readiness}  "
@@ -5545,7 +5572,7 @@ def _nothing_json(nothing: NothingToBrief, args: argparse.Namespace) -> dict[str
     }
 
 
-def _brief_json(gathered: Brief) -> dict[str, object]:
+def _brief_json(gathered: Brief, config: Config) -> dict[str, object]:
     return {
         **_view_json(gathered.view, no_body=False),
         "readiness": str(gathered.readiness),
@@ -5586,7 +5613,7 @@ def _brief_json(gathered: Brief) -> dict[str, object]:
             "from": gathered.claim.change.before,
             "to": gathered.claim.change.after,
         },
-        "event": _claim_event(gathered.claim),
+        "event": _claim_event(gathered.claim, config),
     }
 
 
@@ -5933,7 +5960,7 @@ def _pick(config: Config, args: argparse.Namespace) -> int:
         # marker, so every refusal that guards a marker — a stale file, a sibling stating
         # status — reaches here, and a traceback is what the caller would otherwise read.
         return _refused(error)
-    event = _claim_event(claim)
+    event = _claim_event(claim, config)
     if args.json:
         print(json.dumps(_pick_json(config, choice, claim, event), indent=2))
         return EXIT_OK
@@ -6043,12 +6070,12 @@ def _held_json(held: Held | None) -> dict[str, object] | None:
     return {"age": round(held.age), "since": held.since}
 
 
-def _claim_event(claim: Claim | None) -> dict[str, object] | None:
+def _claim_event(claim: Claim | None, config: Config) -> dict[str, object] | None:
     """RK38's event line for a claim, or nothing where no line was taken."""
     if claim is None or claim.change is None:
         return None
     entry = claim.change.entry
-    return _event(entry.task.id, entry.task.block, claim.change.document)
+    return _event(entry.task.id, entry.task.block, claim.change.document, config)
 
 
 def _print_claim(claim: Claim | None, config: Config) -> bool:
@@ -6119,7 +6146,7 @@ def _retire(config: Config, args: argparse.Namespace) -> int:
     ledger = config.relative(config.path("changelog"))
     roadmap = config.relative(config.path("roadmap"))
     block = departure.ledger.entry.task.block
-    event = _event(departure.task_id, block, departure.roadmap)
+    event = _event(departure.task_id, block, departure.roadmap, config)
     if args.json:
         print(
             json.dumps(
@@ -6182,7 +6209,7 @@ def _defer(config: Config, args: argparse.Namespace) -> int:
     roadmap = config.relative(config.path("roadmap"))
     store = config.relative(config.path("deferred"))
     block = pause.store.entry.task.block
-    event = _event(pause.task_id, block, pause.roadmap)
+    event = _event(pause.task_id, block, pause.roadmap, config)
     if args.json:
         print(
             json.dumps(
@@ -6233,7 +6260,7 @@ def _resume(config: Config, args: argparse.Namespace) -> int:
     roadmap = config.relative(config.path("roadmap"))
     store = config.relative(config.path("deferred"))
     block = resumption.roadmap.entry.task.block
-    event = _event(resumption.task_id, block, resumption.roadmap.document)
+    event = _event(resumption.task_id, block, resumption.roadmap.document, config)
     if args.json:
         print(
             json.dumps(

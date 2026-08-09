@@ -446,7 +446,7 @@ def test_the_command_prints_the_line_it_wrote(tmp_path, capsys):
     assert printed in source(config)
     # A block that just gained a line is never empty, and the event says so anyway: one
     # shape from every mutator is what makes it parseable at all (RK38).
-    assert event == "event    RK2  Block B  open"
+    assert event == "event    RK2  Block B  live"
 
 
 def test_json_says_where_the_line_landed(tmp_path, capsys):
@@ -1130,7 +1130,7 @@ def test_the_command_writes_both_files_and_reports_both(tmp_path, capsys):
     assert reported.startswith(f"design   §RK2 → {IMPROVEMENTS}:")
     assert reported.endswith("5 words")
     assert "Because the gate said so." in design(config)
-    assert event == "event    RK2  Block B  open"
+    assert event == "event    RK2  Block B  live"
 
 
 def test_the_command_names_the_follow_up_it_leaves_behind(tmp_path, capsys):
@@ -1153,7 +1153,7 @@ def test_the_command_names_the_follow_up_it_leaves_behind(tmp_path, capsys):
     )
     _, follow, event = capsys.readouterr().out.splitlines()
     assert follow.startswith("needs    section add RK2 --title")
-    assert event == "event    RK2  Block B  open"
+    assert event == "event    RK2  Block B  live"
 
 
 def test_json_carries_the_section_and_the_follow_up_as_fields(tmp_path, capsys):

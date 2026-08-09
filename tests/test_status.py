@@ -247,7 +247,7 @@ def test_the_command_prints_the_transition(tmp_path, capsys):
         # a claim and says so (RK158): a claim moved without being named is the silence
         # RK119 argued against for the answer itself.
         "  claimed  held for 60m unless a marker moves it sooner",
-        "  event    RK1  Block A  open",
+        "  event    RK1  Block A  live",
     ]
 
 
@@ -257,7 +257,7 @@ def test_the_command_says_when_there_was_nothing_to_do(tmp_path, capsys):
     # Still an event: a hook cannot tell 'nothing to do' from 'never ran' otherwise.
     assert capsys.readouterr().out.splitlines() == [
         f"RK1 is already 📋  {ROADMAP}:5",
-        "  event    RK1  Block A  open",
+        "  event    RK1  Block A  live",
     ]
 
 

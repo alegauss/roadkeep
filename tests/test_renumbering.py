@@ -314,7 +314,7 @@ def test_the_command_names_every_dep_it_moved(tmp_path, capsys):
     # Named, because which of two collided ids a dep meant is the one thing this
     # transaction cannot read — and a silent rewrite is one the author cannot check.
     assert printed[3].startswith("  deps     RK91 now name RK98")
-    assert printed[-1] == "  event    RK98  Block A  open"
+    assert printed[-1] == "  event    RK98  Block A  live"
     assert "**RK98**" in source(config, "roadmap")
 
 
@@ -333,4 +333,4 @@ def test_json_says_which_files_the_transaction_touched(tmp_path, capsys):
     assert payload["moved"] == ["RK91"]
     assert payload["section"]["anchor"] == "RK92"
     assert payload["files"] == sorted([ROADMAP, IMPROVEMENTS])
-    assert payload["event"] == {"id": "RK92", "block": "A", "block_empty": False}
+    assert payload["event"] == {"id": "RK92", "block": "A", "stage": "live"}

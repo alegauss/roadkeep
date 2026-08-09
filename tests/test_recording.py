@@ -201,8 +201,9 @@ def test_the_command_names_the_absent_planning_step_and_the_event(tmp_path, caps
     # A reader has to be able to tell "nothing was planned" from "the roadmap edit was
     # forgotten", and only the command can say which one this was.
     assert "planned  never" in out
-    # Block B holds no open line, and that is what the hook is told (RK38).
-    assert out.splitlines()[-2] == "  event    RK3  Block B  empty"
+    # Block B holds no open line and the ledger now records one, which is what the hook is
+    # told (RK38) — `finished` and not `empty` since RK438, those being two questions.
+    assert out.splitlines()[-2] == "  event    RK3  Block B  finished"
 
 
 def test_the_json_says_the_roadmap_was_not_touched(tmp_path, capsys):
@@ -221,7 +222,7 @@ def test_the_json_says_the_roadmap_was_not_touched(tmp_path, capsys):
     payload = json.loads(capsys.readouterr().out)
     assert payload["id"] == "RK3" and payload["marker"] == SHIPPED
     assert payload["roadmap"] == {"touched": False} and payload["refreshed"] == []
-    assert payload["event"] == {"id": "RK3", "block": "A", "block_empty": False}
+    assert payload["event"] == {"id": "RK3", "block": "A", "stage": "live"}
 
 
 def test_a_refused_record_writes_nothing_and_exits_two(tmp_path, capsys):
@@ -381,7 +382,7 @@ def test_the_drop_command_names_both_lines_and_the_event(tmp_path, capsys):
     out = capsys.readouterr().out
     assert out.startswith(f"RK1 {SHIPPED} CHANGELOG.md:10 removed, duplicate of CHANGELOG.md:5")
     assert "roadmap  untouched" in out
-    assert out.splitlines()[-2] == "  event    RK1  Block A  empty"
+    assert out.splitlines()[-2] == "  event    RK1  Block A  finished"
 
 
 def test_the_drop_json_says_which_line_answers_now(tmp_path, capsys):
@@ -812,7 +813,7 @@ def test_the_move_command_names_both_positions(tmp_path, capsys):
     out = capsys.readouterr().out
     assert out.startswith("RK1 moved  Block A → Block B  CHANGELOG.md:5 → :9")
     assert "roadmap  untouched" in out
-    assert out.splitlines()[-2] == "  event    RK1  Block B  empty"
+    assert out.splitlines()[-2] == "  event    RK1  Block B  finished"
 
 
 def test_the_move_json_carries_the_block_it_left(tmp_path, capsys):

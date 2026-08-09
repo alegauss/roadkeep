@@ -1007,7 +1007,7 @@ def _collective(config: Config, documents: dict[str, Document]) -> list[Note]:
 def _turned(config: Config, documents: dict[str, Document], since: str) -> list[Note]:
     """A block that emptied or reopened in this change (RK269).
 
-    `ship` is the only verb that computes it — `event T282 Block AI empty` — and says it once,
+    `ship` is the only verb that computes it — `event T282 Block AI finished` — and says it once,
     to a console. Nothing records it, no later verb can ask, and `lint` reports a clean tree
     either way, which is the gate an author actually trusts. Measured in a repository keeping a
     per-block index beside its ledger, one `(active — see ROADMAP)` per row: two ships emptied a

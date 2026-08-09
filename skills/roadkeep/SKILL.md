@@ -245,9 +245,13 @@ You never take an entry out by hand: **every door a line leaves by removes it** 
 `retire` and `defer` each drop it inside their own transaction and say so, a paused line
 being one `pick` can never offer either. Only `resume` leaves it to you, where in the
 order it sat being the one thing the store could not keep. Every write prints one `event
-<id> Block <x> open|empty` line, the whole payload a hook gets — a non-goal excepted,
-having neither an id nor a block. There is no second route: `Edit` on a governed file is
-denied, naming the command, and `lint` gates the turn's end.
+<id> Block <x> <stage>` line, the whole payload a hook gets — a non-goal excepted, having
+neither an id nor a block. The stage is the **same four-state answer** every query gives
+(`live`, `finished`, `paused`, `empty`), so a loop branching on the event and one branching
+on `--json` read one vocabulary; the `block drop` offer rides on the two of them a heading
+is droppable in, and a paused block is never sent at a command that refuses it. There is no
+second route: `Edit` on a governed file is denied, naming the command, and `lint` gates the
+turn's end.
 
 **An id is an address, and a merge can spend one twice.** `renumber <id> [--to <new>]`
 moves the line, the `§<id>` section its pointer resolves to and every dep naming it, in
