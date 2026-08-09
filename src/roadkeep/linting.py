@@ -1689,8 +1689,8 @@ def _repeated(config: Config, files: dict[str, Document]) -> list[Finding]:
                         "block.repeated",
                         where,
                         f"{word} {label} is already declared on line {first.lineno}: one "
-                        f"label is one heading, and a write files under this one by "
-                        f"position alone — {remedy}"
+                        f"label is one region, neither of these is inside the other, and a "
+                        f"write files under the first by position alone — {remedy}"
                         + _moving(document, later, files, label),
                         later.lineno,
                         # The label rather than a task id: this finding is about a heading,

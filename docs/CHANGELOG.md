@@ -309,6 +309,7 @@
 - ✅ **RK430** **The line-length limit counts code points and the gate that enforces it counts UTF-16 units** — every character limit is measured in UTF-16 code units, the unit each payload declares and each refusal names where it differs from an editor's count, so this gate agrees with the one a project runs.
 - ✅ **RK434** **The gate decides whether a block is finished, empty or undeclared with its own copy of the rule** — A queued block's state comes from the backlog's one reader, so a block with nothing open is reported as paused wherever the store holds a line under it rather than as finished or unstarted.
 - ✅ **RK435** **The door offered for a queued block that has no lines yet says the block was never declared** — A queued block whose heading precedes its lines offers filing the first line beside dropping the entry, instead of one door arguing the block was never declared.
+- ✅ **RK439** **A sub-heading nested under a block's own heading is read as a second declaration of that block** — A heading inside another's subtree is read as the region's own, so a block grouped by sub-headings takes writes again and only two headings neither inside the other are refused.
 
 ## Block E — Adoption
 

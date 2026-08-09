@@ -1069,6 +1069,77 @@ def test_the_merge_json_says_which_ids_moved_where(tmp_path, capsys):
     assert changelog["folded"] == ["## Block B — First"]
 
 
+# -- the heading inside the region (RK439) ------------------------------------
+
+
+#: Shio's ledger, in miniature: `## Block B` with its entries grouped under `###` sub-headings
+#: of the same label. 91 entries there, two field captures, and every write into the block
+#: refused — the shape RK391 was never about.
+NESTED = (
+    "# Shipped\n\n## Block A — The model\n\n"
+    + _entry("RK5", "A first thing fails", "because the first held")
+    + "\n\n## Block B — Authoring\n\n"
+    "### Block B follow-ups\n\n"
+    + _entry("RK6", "A sixth thing fails", "because the sixth held")
+    + "\n\n### Block B follow-ups\n\n"
+    + _entry("RK4", "A fourth thing fails", "because the fourth held")
+    + "\n"
+)
+
+
+def test_a_sub_heading_under_its_own_block_is_not_a_second_declaration(tmp_path):
+    """RK391 refuses two headings that are two *addresses* for one label — the state where a
+    write cannot know which region it files under. A heading inside another's subtree is not
+    that state: its position already says which region owns it."""
+    config = project(tmp_path, changelog=NESTED)
+    assert not [f for f in lint(config).findings if f.code == "block.repeated"]
+    document = config.document("changelog")
+    declared = document.declaring("B")
+    assert len(declared) == 1 and declared[0].level == 2
+
+
+def test_the_write_the_nesting_used_to_refuse_lands_under_the_parent(tmp_path):
+    """End to end, and the reason this is not a lint-only rule: `ship` could not file into
+    that block at all. The entry goes after everything the region holds, which is what
+    `subtree_end` has always meant."""
+    from roadkeep.shipping import record
+
+    config = project(tmp_path, changelog=NESTED)
+    written = record(
+        config, block="B", symptom="A new thing fails", why="because a new reason held."
+    )
+    written.save()
+    ledger = read(Config.discover(tmp_path), CHANGELOG)
+    assert ledger.count("## Block B — Authoring") == 1
+    assert ledger.index("RK4") < ledger.index("A new thing fails")
+    assert not lint(Config.discover(tmp_path)).findings
+
+
+def test_two_headings_neither_inside_the_other_are_still_two_addresses(tmp_path):
+    """The rule this narrows and does not remove: a nested heading is suppressed because its
+    parent already owns the region, and two `##` under one label own two."""
+    config = project(tmp_path, changelog=_doubled_on("B"))
+    assert any(f.code == "block.repeated" for f in lint(config).findings)
+    assert len(config.document("changelog").declaring("B")) == 2
+
+
+def test_a_nested_heading_naming_another_label_still_declares_it(tmp_path):
+    """The question §RK439 left open, answered by leaving it refused: a heading naming a
+    label its parent does not is one declaration wherever it sits, and a second one anywhere
+    else is a genuine second address."""
+    changelog = (
+        "# Shipped\n\n## Block A — The model\n\n"
+        "### Block B — Nested under A\n\n"
+        + _entry("RK6", "A sixth thing fails", "because the sixth held")
+        + "\n\n## Block B — Authoring\n\n"
+        + _entry("RK4", "A fourth thing fails", "because the fourth held")
+        + "\n"
+    )
+    config = project(tmp_path, changelog=changelog)
+    assert len(config.document("changelog").declaring("B")) == 2
+    assert any(f.code == "block.repeated" for f in lint(config).findings)
+
+
 # -- the named repair, and what it moves (RK425) ------------------------------
 
 

@@ -119,14 +119,14 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 30 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 102 | 1 |
 | C — Query (consult without reading the file) | 2 | 64 | 1 |
-| D — The gate | 1 | 90 | 0 |
+| D — The gate | 0 | 91 | 0 |
 | E — Adoption | 0 | 73 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 2 | 71 | 1 |
-| **Total** | 5 | 430 | 6 |
+| **Total** | 4 | 431 | 6 |
 
 **Next ready:**
 
-- 📋 **RK439** (deps: —) **A sub-heading nested under a block's own heading is read as a second declaration of that block** — Shio's ledger files 91 entries under eight '### Block K follow-ups' sub-headings, and block.repeated refuses every write over a nesting whose only other shape strands them. → §RK439
+- 📋 **RK441** (deps: —) **Three copies price a lexical duplicate match at 33rd, and re-measuring this ledger does not reproduce it** — BM25 over the 426 shipped symptoms ranks all four superseded-by pairs at #1 to #3, so the figure the refusal argues from is wrong even where the refusal is right. → §RK441
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

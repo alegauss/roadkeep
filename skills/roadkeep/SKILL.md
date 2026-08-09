@@ -217,7 +217,11 @@ hand". It keeps the first heading and folds every later duplicate's entries into
 files or none; the ledger is included, not skipped, because history stays under a heading
 of the same label. A nested section is `section move`'s to place and refused here, and
 loose prose is dropped only under `--prose`. Reach for it the moment `lint` reports
-`block.repeated` or a write refuses with `RepeatedHeading`. `non-goal add --lead "…" --why
+`block.repeated` or a write refuses with `RepeatedHeading`. **A sub-heading grouping
+entries inside its own block is not that state** and needs no repair: one label is one
+*region*, a heading inside another's subtree is already owned by it, and the write appends
+after everything the region holds. Two headings neither of which is inside the other are
+two addresses, wherever they sit and at whatever level. `non-goal add --lead "…" --why
 "…"` writes the one bullet that is not a task line, where `[non_goals]` declares the list
 governed: addressed by its lead, which is unique and checked, and carrying no marker, dep
 or pointer, because a constraint has no status to state. `non-goal amend <lead> --why "…"`

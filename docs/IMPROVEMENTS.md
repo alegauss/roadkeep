@@ -121,31 +121,6 @@ the author still reads it and still decides.
 
 ## Block D — The gate
 
-### §RK439 The heading inside the region is not a second address for it
-
-Shio's ledger nests eight `### Block K follow-ups` sub-headings under their own `##
-Block K` parent, and `declaring` counts every heading whose label matches whatever its
-level, so each one is read as a second declaration of K. `lint` fires `block.repeated`
-at all eight, every write through `place` refuses, and `ship` cannot file into the block
-at all — two field captures from that project are this one refusal, hit twice.
-
-Neither remedy the finding names fits the shape. `block drop` wants a region holding
-nothing and these hold entries; `block merge` folds the sub-headings away, deleting an
-organisation the author chose. The third road, renaming so only the `##` declares the
-label, was measured there: 91 entries moved to `block.missing` and the rename was
-reverted.
-
-That measurement is the argument the rule is missing. RK391 refuses two headings that
-are two addresses for one label — the state where a write cannot know which region it
-files under. A heading *inside* another heading's subtree is not that state: its
-position already says which region owns it, so the entries beneath it are the parent's
-and the ambiguity never arises. The distinction is one `subtree_end` already draws, and
-`declaring` is where both ends read it, so it is one expression and not a special case
-per caller.
-
-Open: whether a nested heading may name a *different* label than the one whose subtree
-it sits in, which is a genuine second address and should stay refused.
-
 ## Block E — Adoption
 
 ## Block F — The plugin

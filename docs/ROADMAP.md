@@ -31,8 +31,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK439** (deps: —) **A sub-heading nested under a block's own heading is read as a second declaration of that block** — Shio's ledger files 91 entries under eight '### Block K follow-ups' sub-headings, and block.repeated refuses every write over a nesting whose only other shape strands them. → §RK439
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

@@ -744,14 +744,44 @@ class Document:
         return next((h for h in self.headings if h.label == label), None)
 
     def declaring(self, label: str) -> tuple[Heading, ...]:
-        """Every heading naming ``label`` — one, in a file any verb can address (RK391).
+        """Every heading **declaring** ``label`` — one, in a file any verb can address (RK391).
 
         The distinction :meth:`heading` cannot make, and the reason it is a method rather
         than a comprehension at the one call site: two headings under one label is a state
         the gate reports and the write path refuses, and both ends have to be reading the
         same thing. A file with none is :class:`UnknownBlock`'s case and returns empty here.
+
+        **A heading inside another's region is not a second address for it** (RK439). Shio's
+        ledger nests eight `### Block K follow-ups` under their own `## Block K`, and reading
+        every matching heading whatever its level made each one a second declaration: `lint`
+        fired `block.repeated` at all eight and every write through `place` refused, so
+        nothing could be shipped into the block at all. Neither remedy the finding names fits
+        that shape — `block drop` wants a region holding nothing and these hold 91 entries,
+        `block merge` deletes an organisation the author chose, and renaming so only the `##`
+        declares the label was measured there: 91 entries moved to `block.missing` and it was
+        reverted.
+
+        What RK391 refuses is two headings that are two *addresses* for one label — the state
+        where a write cannot know which region it files under. A heading inside another's
+        subtree is not that state: its position already says which region owns it. So the
+        test is :meth:`subtree_end`, which is where that ownership is already drawn, and it
+        is read here rather than per caller, which is what keeps the gate and the write path
+        one expression.
+
+        A nested heading naming a *different* label still declares it, and is still refused
+        where something else declares that label too: one label under two headings that are
+        not one inside the other is a genuine second address wherever it is written.
         """
-        return tuple(heading for heading in self.headings if heading.label == label)
+        kept: list[Heading] = []
+        for heading in self.headings:
+            if heading.label != label:
+                continue
+            # `lineno` is 1-based and `subtree_end` is a 0-based index one past the last line
+            # the region owns, so a heading at line L is inside it exactly while L <= that.
+            if kept and heading.lineno <= self.subtree_end(kept[-1]):
+                continue
+            kept.append(heading)
+        return tuple(kept)
 
     def subtree_end(self, heading: Heading) -> int:
         """Where a heading's whole region ends: the next heading of the **same or higher**
