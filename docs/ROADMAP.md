@@ -33,6 +33,8 @@
 
 ## Block E — Adoption
 
+- 📋 **RK445** (deps: —) **adopt lists a block once per heading, so a ledger grouped by sub-headings reports the same label three times** — The estimate reads every heading naming a label, which RK439 stopped being a declaration of one, so the first line an adopter reads counts regions that are not there. → §RK445
+
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - 📋 **RK443** (deps: —) **A stored capture that never reached the verb replays as reproducing the symptom it was filed under** — The verdict is the recorded exit code turning up again, which a usage refusal always does, so the triage command says `still reproduces` about evidence the capture calls unreached. → §RK443
