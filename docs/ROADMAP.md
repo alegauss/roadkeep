@@ -37,8 +37,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK440** (deps: —) **A capture whose re-run stopped at a usage refusal is filed as reproducing the symptom above it** — Two of Shio's three field reports record ship refusing a missing --why and an already-shipped id, so the evidence disproves the claim and nothing in the capture says so. → §RK440
-
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:

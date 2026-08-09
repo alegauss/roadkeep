@@ -84,6 +84,39 @@ HOME = Schema()
 #: this exists only to make :meth:`Schema.validate` judge a whole line.
 _PLACEHOLDER = "RK1"
 
+#: The exit code that means *the call was wrong*, which is this CLI's own contract — 0, 1 for
+#: the gate, 2 for usage. Spelled here rather than imported, because `cli` imports this module
+#: and the reverse is a cycle; a test holds the two numbers together (RK440).
+_USAGE = 2
+
+#: What a capture says about itself when its re-run never reached the rule being reported
+#: (RK440). Two of Shio's three field reports carried a refusal that fires *before* the verb
+#: does any work — a missing `--why`, an id the ledger already held — and were filed with
+#: `reproduces: true` above output that has nothing to do with the claim.
+#:
+#: An annotation and never a refusal, for two reasons that both come out of this block. RK86
+#: exists to make the capture the cheapest move a losing session has, and a report refused at
+#: the end of that session is the session lost; and a precondition refusal is sometimes exactly
+#: the defect — "it refuses a call that is legal" is a report this tool has no way to tell from
+#: a mistyped argv, having no model to judge the claim against the evidence (L4). So the shape
+#: is stated and the verdict is left to the reader, which is the one division of labour a
+#: capture is built on.
+_STOPPED = (
+    "usage — the re-run was refused before the verb ran, so nothing below is evidence "
+    "about the symptom unless that refusal is itself the defect"
+)
+
+#: The same fact said to the one reader who can still act on it (RK440). The capture carries
+#: the annotation for the maintainer who reads it later; this is for the session that just took
+#: it, which is the only place a mistyped argv can be corrected while the defect is still in
+#: reach. It names the move, as every finding this tool prints does (RK420) — and it is a
+#: notice and not a non-zero exit, because `report` reporting on its own capture is exactly the
+#: second step RK86 measured nobody taking.
+STOPPED_NOTICE = (
+    "the re-run exited 2 (usage) and never reached the verb — if that refusal is not the "
+    "defect, correct the command after `--` and take the capture again"
+)
+
 
 @dataclass(frozen=True, slots=True)
 class Failure:
@@ -105,6 +138,19 @@ class Failure:
         """The first `file:line:column` the output named, or ``None``."""
         found = _WHERE.search(self.output)
         return found.group(0) if found else None
+
+    @property
+    def stopped(self) -> bool:
+        """Whether the re-run was refused before the verb did any work (RK440).
+
+        Read off the **exit code** and never off the message. This CLI's contract is 0, 1 for
+        a gate finding and 2 for usage, so the one number already separates "the tool applied
+        its rule and I disagree" from "the tool never got that far" — where a list of refusal
+        sentences to match would be a second declaration of that contract, drifting one
+        reworded message at a time, and would miss precisely the two Shio filed: neither came
+        from argparse, and both exited 2.
+        """
+        return self.exit_code == _USAGE
 
 
 #: The parts of a capture that carry the *reporting* project rather than the defect, each
@@ -348,6 +394,10 @@ class Capture:
         fields = [
             ("command", self.failure.command if self.shows("command") else None),
             ("exit", str(self.failure.exit_code)),
+            # Beside the exit code it is derived from, and above the evidence it qualifies
+            # (RK440): a reader who meets this after the output has already read the output
+            # as the thing the symptom claims.
+            ("stopped", _STOPPED if self.failure.stopped else None),
             ("engine", str(self.engine) if self.shows("engine") else None),
             ("where", self.failure.where if self.shows("where") else None),
             ("config", self.config_path if self.shows("config") else None),
@@ -427,6 +477,12 @@ class Capture:
             "exit": self.failure.exit_code,
             "reproduces": True,
         }
+        # Written only when it is true (RK440), so every capture already on disk reads back
+        # unchanged. It sits beside `reproduces` and does not touch it: the argv *does*
+        # reproduce — the same command earns the same refusal, which is what `replay` asserts
+        # — and what is in doubt is whether that refusal is the symptom above it.
+        if self.failure.stopped:
+            data["stopped"] = "usage"
         # One row per key, so the two rules — the part is shown, and there is something to
         # store — are stated once instead of at every field. `document` is two rows because it
         # is two keys and one decision: a path without the file it names is not evidence.

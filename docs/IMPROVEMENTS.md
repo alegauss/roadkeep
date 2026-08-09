@@ -143,28 +143,3 @@ it sits in, which is a genuine second address and should stay refused.
 ## Block E — Adoption
 
 ## Block F — The plugin
-
-### §RK440 The re-run that never reached the rule
-
-Two of the three captures Shio filed record an output that has nothing to do with the
-symptom above them. One says a block split by sub-headings cannot be shipped into and
-carries `ship: SH594 needs the outcome it shipped … pass --why`. The other says a
-sub-heading is read as a second declaration and carries `no open task SH598: it is
-already in the changelog`. Both exit 2, both say `reproduces: true`, and neither run
-reached the rule being reported.
-
-`report` re-runs the argv and records what came back. It cannot judge prose, which is
-why the symptom is an argument. But it can see the shape of the refusal it just
-produced: a missing option, an id already shipped, a path that is not there — the
-refusals that fire before the verb does any work. A capture stopped there proves the
-caller mistyped the re-run, not that the tool is wrong, and it is filed with the field
-saying otherwise set to true.
-
-The cost lands on the reader, later and elsewhere: a capture is triage input, and one
-whose evidence contradicts its own claim is worse than none, because it has to be
-reproduced by hand before it can be dismissed. `replay` would catch it, and neither
-capture was replayable — the files are opt-in, so the check that exists is the one least
-often run.
-
-Open: whether this refuses the capture or annotates it, and which precondition refusals
-belong in the set.

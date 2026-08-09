@@ -49,8 +49,10 @@ from roadkeep.capturing import (
     PARTS,
     REPORTS,
     TEXT_VARIABLES,
+    STOPPED_NOTICE,
     Capture,
     Failure,
+    _USAGE,
     _tail,
     body,
     capture,
@@ -169,6 +171,79 @@ def test_an_address_the_output_never_printed_leaves_no_line(tmp_path):
     root = project(tmp_path)
     found = capture(SYMPTOM, WHY, "F", ["-C", str(root), "lint"], root)
     assert found.failure.where is None and found.source is None
+
+
+# -- a re-run that never reached the rule (RK440) ----------------------------
+
+
+def test_a_re_run_refused_before_the_verb_ran_says_so(tmp_path):
+    """RK440: two of Shio's three field reports carry a refusal that fires before the verb
+    does any work — a missing `--why`, an id the ledger already held — filed under a symptom
+    the output has nothing to do with. The capture is triage input, and one whose evidence
+    contradicts its own claim costs more than none: it has to be reproduced by hand before
+    it can be dismissed."""
+    root = project(tmp_path)
+    found = capture(SYMPTOM, WHY, "F", ["-C", str(root), "add", "--block", "A"], root)
+    assert found.failure.exit_code == EXIT_USAGE and found.failure.stopped
+    assert "stopped" in str(found)
+    assert found.as_dict()["stopped"] == "usage"
+
+
+def test_the_set_it_recognises_is_this_clis_own_exit_code(tmp_path):
+    """Off the number and never off the message: the two Shio filed came from the handlers
+    and not from argparse, so a list of refusal sentences would have matched neither — and
+    would be a second declaration of a contract `cli` already states."""
+    assert _USAGE == EXIT_USAGE
+    root = project(tmp_path)
+    found = capture(
+        SYMPTOM, WHY, "F", ["-C", str(root), "ship", "RK1"], root
+    )
+    assert found.failure.exit_code == EXIT_USAGE and found.failure.stopped
+    assert "--why" in found.failure.output
+
+
+def test_a_gate_finding_is_evidence_and_carries_no_annotation(tmp_path):
+    root = project(tmp_path, roadmap=BROKEN)
+    found = capture(SYMPTOM, WHY, "F", ["-C", str(root), "lint"], root)
+    assert found.failure.exit_code == 1 and not found.failure.stopped
+    assert "stopped" not in str(found) and "stopped" not in found.as_dict()
+
+
+def test_the_annotation_is_never_a_verdict_on_whether_it_reproduces(tmp_path):
+    """The argv *does* reproduce — the same command earns the same refusal, which is what
+    `replay` asserts. What is in doubt is whether that refusal is the symptom above it, and
+    that is a judgement about meaning this tool has no model to make (L4)."""
+    root = project(tmp_path)
+    found = capture(SYMPTOM, WHY, "F", ["-C", str(root), "add", "--block", "A"], root)
+    assert found.as_dict()["reproduces"] is True
+
+
+def test_the_annotation_is_never_a_refusal_of_the_capture(tmp_path, capsys):
+    """RK86 exists to make the capture the cheapest move a losing session has, and a report
+    refused at the end of that session is the session lost. So the shape is stated to the one
+    reader who can still correct the argv, and the capture is still taken and still kept."""
+    root = project(tmp_path)
+    code, out, err = run(
+        capsys,
+        [
+            "-C", str(root), "report", "--symptom", SYMPTOM, "--why", WHY,
+            "--", "-C", str(root), "add", "--block", "A",
+        ],
+    )
+    assert code == EXIT_OK
+    assert "roadkeep capture" in out
+    assert STOPPED_NOTICE in err
+    assert list((root / REPORTS).iterdir())
+
+
+def test_a_capture_that_reached_the_verb_is_told_nothing(tmp_path, capsys):
+    root = project(tmp_path, roadmap=BROKEN)
+    _, _, err = run(
+        capsys,
+        ["-C", str(root), "report", "--symptom", SYMPTOM, "--why", WHY,
+         "--", "-C", str(root), "lint"],
+    )
+    assert STOPPED_NOTICE not in err
 
 
 def test_a_crash_is_kept_because_it_is_the_most_identifying_fact_there_is(monkeypatch):

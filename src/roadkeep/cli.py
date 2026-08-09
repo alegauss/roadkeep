@@ -63,7 +63,17 @@ from roadkeep.budgeting import (
     file_budget,
     non_goal_budget,
 )
-from roadkeep.capturing import PARTS, body, capture, check, handoff, keep, offer, replay
+from roadkeep.capturing import (
+    PARTS,
+    STOPPED_NOTICE,
+    body,
+    capture,
+    check,
+    handoff,
+    keep,
+    offer,
+    replay,
+)
 from roadkeep.config import PROSE_ROLES, Config, ConfigError
 from roadkeep.counting import Census
 from roadkeep.document import (
@@ -7642,6 +7652,11 @@ def _report(config: Config, args: argparse.Namespace) -> int:
     print(f"kept  {kept.path}", file=sys.stderr)
     if kept.complaint:
         print(f"roadkeep: {kept.complaint}", file=sys.stderr)
+    # RK440: the capture carries the annotation for whoever triages it, and this is the same
+    # fact said to the session that can still act on it. On stderr with the rest of the
+    # narration, so `--json` and `--issue` stay pipeable.
+    if found.failure.stopped:
+        print(f"roadkeep: {STOPPED_NOTICE}", file=sys.stderr)
     if args.json:
         print(json.dumps(found.as_dict(), indent=2, ensure_ascii=False))
         return EXIT_OK
