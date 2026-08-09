@@ -2,9 +2,11 @@
 
 One shape from three commands, because a payload a hook has to special-case per command
 is a payload nobody parses. The fact worth emitting is the one nothing else can derive
-after the write: **whether that block still holds an open line** — which is how "Block B
-is finished" reaches a `PostToolUse` hook (RK22) or the Action (RK17) without the tool
-learning what to do next.
+after the write: **what became of that block** — which is how "Block B is finished"
+reaches a `PostToolUse` hook (RK22) or the Action (RK17) without the tool learning what to
+do next. A boolean about the roadmap alone since RK438: `finished`, `paused` and `empty`
+are three different answers to "nothing is open here", and the one word they shared sent a
+paused block at a `block drop` that refuses it.
 
 What is deliberately absent is a listener. A `[hooks]` table that ran commands after a
 write would make `uvx roadkeep` in someone else's CI an executor of whatever their repo
