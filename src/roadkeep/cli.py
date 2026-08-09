@@ -142,7 +142,7 @@ from roadkeep.remedying import Remedy, codes as remedy_codes, explain, remedy
 from roadkeep.renumbering import renumber
 from roadkeep.reverting import reversals
 from roadkeep.repairing import MAX_PASSES, Repaired, repair
-from roadkeep.schema import SchemaError, width as measured_width
+from roadkeep.schema import UTF16_UNITS, SchemaError, width as measured_width
 from roadkeep.queueing import add as add_priority
 from roadkeep.queueing import declared as declared_queue
 from roadkeep.queueing import drop as drop_priority
@@ -183,7 +183,9 @@ _JSON_HELP = "machine-readable form"
 #: payload rather than assumed, because the defect was two counters both being right: a
 #: consumer's gate reading UTF-16 and a `len` reading code points differ by one on the
 #: status marker this tool writes, and neither number carried the unit that settles it.
-CHARACTER_UNIT = "utf-16-code-units"
+#: The same string `[limits]`' own vocabulary spells it with (RK437), so the unit a payload
+#: declares and the unit a report names are one fact and cannot drift into two spellings.
+CHARACTER_UNIT = UTF16_UNITS
 #: Appended to every prose argument that reads the pipe (RK329), so the convention is one
 #: sentence in nine help strings rather than nine sentences that drift.
 _PIPE = "; '-' reads stdin, which is how an apostrophe or a backtick survives a shell"
@@ -7123,8 +7125,8 @@ def _print_estimate(estimate: Estimate) -> None:
         # *longest*, which is what a limit gets set from, and a measure that appears only
         # once it is exceeded is one nobody can declare a limit from (RK99).
         print(
-            f"  {measure.field:<8} longest {measure.longest} of {measure.limit}, "
-            f"{measure.over} over"
+            f"  {measure.field:<8} longest {measure.longest} of {measure.limit} "
+            f"{measure.unit}, {measure.over} over"
         )
     if estimate.non_goals is not None:
         _print_scoped(estimate.non_goals)
@@ -7253,8 +7255,8 @@ def _print_scoped(scoped) -> None:
     )
     for measure in scoped.measures:
         print(
-            f"    {measure.field:<8} longest {measure.longest} of {measure.limit}, "
-            f"{measure.over} over"
+            f"    {measure.field:<8} longest {measure.longest} of {measure.limit} "
+            f"{measure.unit}, {measure.over} over"
         )
 
 
@@ -7277,6 +7279,10 @@ def _estimate_json(estimate: Estimate) -> dict[str, object]:
                 "limit": m.limit,
                 "longest": m.longest,
                 "over": m.over,
+                # RK437: which counter the two figures beside it are in. `[limits]` is one
+                # table in three units, and a payload that named none left a caller to assume
+                # the wrong one on exactly the row where assuming is wrong.
+                "unit": m.unit,
             }
             for m in estimate.measures
         ],
@@ -7295,7 +7301,13 @@ def _estimate_json(estimate: Estimate) -> dict[str, object]:
             "governed": estimate.non_goals.governed,
             "changing": estimate.non_goals.changing,
             "measures": [
-                {"field": m.field, "limit": m.limit, "longest": m.longest, "over": m.over}
+                {
+                    "field": m.field,
+                    "limit": m.limit,
+                    "longest": m.longest,
+                    "over": m.over,
+                    "unit": m.unit,
+                }
                 for m in estimate.non_goals.measures
             ],
         },

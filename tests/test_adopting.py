@@ -41,7 +41,7 @@ from roadkeep.adopting import (
 )
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config, Scope
-from roadkeep.schema import Schema
+from roadkeep.schema import CODE_POINTS, UTF16_UNITS, WORDS, Schema
 from roadkeep.document import Document, ledger_slots
 from roadkeep.linting import lint
 from roadkeep.sections import unanchored, words
@@ -1306,12 +1306,50 @@ def test_the_longest_prints_even_when_nothing_is_over(tmp_path: Path, capsys) ->
     assert main(argv) == EXIT_OK
     out = capsys.readouterr().out
     assert "2 section(s), 2 conform, 0 would change" in out
-    assert f"section  longest {FIRST_ARGUMENT} of 250, 0 over" in out
+    assert f"section  longest {FIRST_ARGUMENT} of 250 words, 0 over" in out
     assert "prefix" not in out
 
     assert main([*argv, "--json"]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
     assert (payload["unit"], payload["ref_scheme"]) == ("section", "id")
+
+
+def test_every_measure_names_the_unit_its_two_figures_are_in(tmp_path: Path, capsys) -> None:
+    """RK437: `[limits]` is one table in three units — UTF-16 code units for the five figures
+    that refuse, words for `section`, code points for `prose`, which is a fill width and not a
+    gate. An adopter reads this report to decide what to declare, and unnamed every row read
+    as the same kind of number."""
+    target = tmp_path / "IMPROVEMENTS.md"
+    target.write_text(RATIONALE, encoding="utf-8")
+    argv = ["-C", str(tmp_path), "adopt", str(target), "--sections"]
+    assert main(argv) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "section  longest" in out and f"of 250 {WORDS}" in out
+    assert "prose    longest" in out and f"of 88 {CODE_POINTS}" in out
+
+    assert main([*argv, "--json"]) == EXIT_OK
+    units = {m["field"]: m["unit"] for m in json.loads(capsys.readouterr().out)["measures"]}
+    assert units == {"section": WORDS, "prose": CODE_POINTS}
+
+
+def test_the_lines_and_the_bullets_are_measured_in_the_unit_they_are_refused_in(
+    tmp_path: Path, capsys
+) -> None:
+    """The five that refuse are counted the way the gate counts (RK430), and say so. The two
+    `[non_goals]` rows were the ones still on `len`, which is the report telling an adopter a
+    bullet fits that `scoping` then refuses — one astral character is the whole difference."""
+    target = tmp_path / "ROADMAP.md"
+    target.write_text(
+        FOREIGN + "\n## Non-goals\n\n- **📋 A lead**  Because of a reason.\n",
+        encoding="utf-8",
+    )
+    assert main(["-C", str(tmp_path), "adopt", str(target), "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert {m["unit"] for m in payload["measures"]} == {UTF16_UNITS}
+    goals = {m["field"]: m for m in payload["non_goals"]["measures"]}
+    assert {m["unit"] for m in goals.values()} == {UTF16_UNITS}
+    # `📋 A lead` is 8 code points and 9 UTF-16 units, which is the figure the gate reads.
+    assert goals["lead"]["longest"] == 9
 
 
 def test_adopt_writes_nothing(tmp_path: Path) -> None:

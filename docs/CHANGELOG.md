@@ -146,6 +146,7 @@
 - ✅ **RK400** **Shipping a family's last child leaves its parent describing deleted work** — the ship names the parent its drop left with no subsections, beside the citation it already named, so an introduction to work that shipped is an edit in the same commit.
 - ✅ **RK385** **Nothing notices that a new line asks for what a shipped entry already delivered** — delivered <block> states every claim a block already made good on, named in the guard's table beside non-goal list, because a duplicate is a read and never a refusal.
 - ✅ **RK431** **An id mentioned in prose is consumed by the next add, so the sentence that named it is now wrong** — next-id and add report the id below the derived one when only prose names it, so a sentence that promised a number learns it was spent at the moment of spending rather than never.
+- ✅ **RK437** **Prose is filled to a width counted in code points while every limit that refuses counts UTF-16 units** — Every measure adopt reports names the unit its two figures are in, so a table of three units stops implying one — and the non-goal rows are counted the way the gate counts them.
 
 ## Block C — Query
 

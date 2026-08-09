@@ -117,16 +117,16 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 30 | 2 |
-| B — Authoring (insert, never hand-edit) | 2 | 100 | 1 |
+| B — Authoring (insert, never hand-edit) | 1 | 101 | 1 |
 | C — Query (consult without reading the file) | 2 | 64 | 1 |
 | D — The gate | 1 | 90 | 0 |
 | E — Adoption | 0 | 73 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 71 | 1 |
-| **Total** | 6 | 428 | 6 |
+| **Total** | 5 | 429 | 6 |
 
 **Next ready:**
 
-- 📋 **RK437** (deps: —) **Prose is filled to a width counted in code points while every limit that refuses counts UTF-16 units** — One key of the same table is measured the other way because textwrap has no UTF-16 mode, so the config declares two units and says neither. → §RK437
+- 📋 **RK438** (deps: —) **A write's event line calls a block empty that every query in the same tool calls finished** — The event asks the roadmap alone whether anything is filed under the label and the four-state answer asks the ledger too, so one word carries two meanings. → §RK438
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

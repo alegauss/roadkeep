@@ -235,6 +235,22 @@ def width(text: str) -> int:
     return len(text.encode("utf-16-le", "surrogatepass")) // 2
 
 
+#: The three units `[limits]` is declared in, named so a table that mixes them stops
+#: implying one (RK437). RK430 settled *which* counter each figure uses and left the
+#: config saying none of them: `symptom`, `why`, `line`, and the two `[non_goals]` keys
+#: refuse in UTF-16 code units; `section` is a word budget; and `prose` is the column a
+#: paragraph is filled to, which is the one figure still measured in code points.
+#:
+#: That last one is not an oversight left standing. `prose` is a `textwrap.fill` argument
+#: and not a gate — nothing refuses a wrapped paragraph — and `textwrap` measures with
+#: `len` and has no other mode, so agreeing would mean writing a wrapper and re-flowing
+#: every paragraph this tool has written to move a number nothing reads. What was missing
+#: was never the agreement; it was saying so where the figure is declared and reported.
+UTF16_UNITS = "utf-16-code-units"
+CODE_POINTS = "code-points"
+WORDS = "words"
+
+
 def points(text: str) -> int:
     """The same string as the counter an author's editor shows (RK430).
 
@@ -588,8 +604,10 @@ class Schema:
     #: default clears the longest section in this repository (181 words) and no more:
     #: the file that motivated the tool reached 539 KB one honest paragraph at a time.
     section_max: int = 250
-    #: The width prose is filled to when a section is written. A table or a list is left
-    #: exactly as the author wrote it; only plain paragraphs are re-flowed.
+    #: The width prose is filled to when a section is written, in **code points** — the one
+    #: figure here counted that way, and :data:`CODE_POINTS` is where the reason lives. A
+    #: table or a list is left exactly as the author wrote it; only plain paragraphs are
+    #: re-flowed.
     prose_width: int = 88
     #: Whether a line must point at a rationale section. True by default and switchable per
     #: role (`[rules.<role>]`, RK66), because it is a project's convention and not a fact

@@ -69,7 +69,15 @@ from roadkeep.config import (
     Scope,
 )
 from roadkeep.document import LEDGER_SHAPES, Document, checkbox
-from roadkeep.schema import DEFAULT_HEADING_WORD, OUTLINE_ANCHOR_RE, Schema, width
+from roadkeep.schema import (
+    CODE_POINTS,
+    DEFAULT_HEADING_WORD,
+    OUTLINE_ANCHOR_RE,
+    UTF16_UNITS,
+    WORDS,
+    Schema,
+    width,
+)
 from roadkeep.sections import anchored, structural, unanchored, words as sections_words
 
 #: The roles `init` scaffolds. `strategy` is absent and not empty: Turing has one and this
@@ -346,12 +354,23 @@ class Measure:
 
     ``longest`` is reported beside ``over`` because the two answer different questions: how
     many lines have to change, and whether the limit is off by a word or by a paragraph.
+
+    And beside both, **the unit** (RK437). An adopter reads this report to decide what to
+    declare, and `[limits]` is one table in three units — UTF-16 code units for the five
+    figures that refuse, words for `section`, code points for `prose`, which is a fill width
+    and not a gate. Unnamed, every row here read as the same kind of number, and the one that
+    is not is the one a consumer's own line-length check disagrees with: measured on this
+    repository, a paragraph of 87 code points is 90 units against a declared 88.
     """
 
     field: str
     limit: int
     longest: int
     over: int
+    #: One of :data:`~roadkeep.schema.UTF16_UNITS`, :data:`~roadkeep.schema.WORDS` or
+    #: :data:`~roadkeep.schema.CODE_POINTS`. Defaulted to the one five of the seven measures
+    #: use, so the two that differ are the two that say so at construction.
+    unit: str = UTF16_UNITS
 
 
 @dataclass(frozen=True, slots=True)
@@ -682,12 +701,17 @@ def render_config(schema: Schema, paths: Mapping[str, str]) -> str:
     lines += [
         "",
         "[limits]",
-        "# characters",
+        # RK437: the unit, in the file the numbers are declared in. This table is three of
+        # them, and a scaffold that wrote "characters" over the first group left the reader
+        # to assume the same word covered the two below it.
+        "# characters, counted in UTF-16 code units — the stricter of the two counts, so a",
+        "# line these accept is one a gate written in Java, C# or JavaScript accepts too",
         f"symptom = {schema.symptom_max}",
         f"why = {schema.why_max}",
         f"line = {schema.line_max}",
         "",
-        "# a section is prose, so its budget is words; prose is the width one is filled to",
+        "# a section is prose, so its budget is words; prose is the width one is filled to,",
+        "# counted in code points — it is a wrapping column and nothing refuses it",
         f"section = {schema.section_max}",
         f"prose = {schema.prose_width}",
         "",
@@ -1110,12 +1134,17 @@ def _prose(
                 # measures every paragraph and not only an anchored one's.
                 longest=max([*words, *loose_words], default=0),
                 over=sum(1 for count in (*words, *loose_words) if count > schema.section_max),
+                unit=WORDS,
             ),
             Measure(
                 field="prose",
                 limit=schema.prose_width,
                 longest=max(widths, default=0),
                 over=sum(1 for width in widths if width > schema.prose_width),
+                # Code points, because that is what `textwrap.fill` measures and this row is
+                # about the column the tool fills to (RK437). Measuring it the other way would
+                # report this repository's own paragraphs over a width it wrote them at.
+                unit=CODE_POINTS,
             ),
         ),
         blocks=tuple(h.label for h in document.headings if h.label),
@@ -1156,13 +1185,18 @@ def _scoped(config: Config, document: Document) -> Scoped:
     # reader two other callers share. An unshaped bullet is one edit, counted by `unparsed`,
     # and charging its sentence-lead against `lead` as well would count that edit twice.
     found = tuple(goal for goal in scoping.read(document) if goal.shaped)
+    # `width` and not `len` (RK437). These two rows are held against the counter `scoping`
+    # refuses with, which RK430 made UTF-16 — so a row labelled in units and measured in code
+    # points would be the report telling an adopter a bullet fits that the gate then refuses.
+    # The task lines above have counted this way since RK430; the roadmap's other bullet did
+    # not, and naming the unit is what makes that visible.
     over = sum(
         1
         for goal in found
-        if len(goal.lead) > scope.lead or len(goal.why) > scope.why
+        if width(goal.lead) > scope.lead or width(goal.why) > scope.why
     )
-    leads = [len(goal.lead) for goal in found]
-    whys = [len(goal.why) for goal in found]
+    leads = [width(goal.lead) for goal in found]
+    whys = [width(goal.why) for goal in found]
     return Scoped(
         parsed=len(found),
         unparsed=len(scoping.rejects(document)),

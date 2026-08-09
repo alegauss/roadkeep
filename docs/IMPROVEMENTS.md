@@ -77,23 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK437 The width RK430 could not reach
-
-`[limits] prose` is the column a written paragraph is filled to, and it is the one
-character figure RK430 left counting code points. The reason is mechanical:
-`textwrap.fill` measures in code points and has no other mode, so agreeing would mean
-writing a wrapper and re-flowing every paragraph this tool has already written.
-
-The exposure is small and real. Nothing lints a wrapped width, so no build reddens; what
-happens instead is that `adopt` reports a paragraph as within the width while a
-line-length check on the consumer's side reports it over — measured here, one paragraph
-of this repository's own improvements file is 87 code points and 90 units against a
-declared 88.
-
-Two honest answers. Either wrap in units, which is a small wrapper and a one-off re-flow
-of files that then stop moving; or declare `prose` as a code-point width in
-`roadkeep.toml`'s own vocabulary, so the table stops implying one unit for all of it.
-
 ### §RK438 Two meanings of empty, one of them offering a drop
 
 Every write prints `event <id> Block <x> open|empty`, and `empty` there means the

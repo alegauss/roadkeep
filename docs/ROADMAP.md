@@ -24,7 +24,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK437** (deps: —) **Prose is filled to a width counted in code points while every limit that refuses counts UTF-16 units** — One key of the same table is measured the other way because textwrap has no UTF-16 mode, so the config declares two units and says neither. → §RK437
 - 📋 **RK438** (deps: —) **A write's event line calls a block empty that every query in the same tool calls finished** — The event asks the roadmap alone whether anything is filed under the label and the four-state answer asks the ledger too, so one word carries two meanings. → §RK438
 
 ## Block C — Query (consult without reading the file)
