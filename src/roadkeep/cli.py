@@ -5026,6 +5026,13 @@ def _delivered(config: Config, args: argparse.Namespace) -> int:
     truncated one is the failure mode this exists for — the entry that got elided is exactly
     the one nobody read.
 
+    `--near` is the one bound, and it is not a truncation of this listing (RK442): it is the
+    same read asked a **narrower question**, so what bounds it is the sentence the caller
+    passed rather than a number this verb chose. That is the whole difference — an elision
+    picks entries to drop and this picks the entries that answer — and it is why the header
+    says how many of how many, why the plain listing is named beside it, and why the order
+    is published with no score under it (RK441).
+
     Retired lines are in it. A claim that was abandoned is still a claim somebody made and
     argued about, and a proposal restating one wants the argument more than the outcome —
     the marker says which, so nothing is hidden and nothing is conflated.
