@@ -1001,9 +1001,35 @@ def stage(target: Path, text: str) -> Path:
     The target's **own directory**, or the rename that follows would be a copy across
     filesystems and no longer one step. Nothing about the target is touched here, which is
     what lets a transaction stage every file it writes before it commits any of them.
+
+    **And the bytes are on the disk before this returns** (RK450). `write_text` returns once
+    they are in the page cache, and :func:`commit` renames immediately after — so the
+    filesystem journals the rename's *metadata*, the directory entry lands, and the data
+    blocks behind it were never written. A crash there leaves the target at its **new size
+    and entirely NUL**, which is the one state RK118 says a reader cannot catch: it is not a
+    whole file, and it is not the old one either. Measured on this repository, from a hard
+    reboot mid-session: `ROADMAP.md`, `CHANGELOG.md`, `IMPROVEMENTS.md` and `README.md` at
+    2,980, 121,337, 4,333 and 24,068 bytes, every byte NUL, recoverable only because git had
+    them. `os.replace` is atomic with respect to two versions of a file and says nothing
+    about the durability of either.
+
+    So the handle is flushed out of Python's buffer and :func:`os.fsync` puts it on the
+    device. One syscall per governed file per write, which is what every editor and every
+    database does between these two steps.
+
+    **The directory entry is deliberately not synced**, which is the question §RK450 left
+    open. On POSIX a rename is durable only once the *directory* is synced too, and losing
+    that sync loses the rename — leaving the previous whole file, which is a state this tool
+    already knows how to read and a reader can act on. That is a lost write, not a corrupt
+    one, and the two are worth different prices: Windows exposes no handle to sync a
+    directory with, so buying it would mean a platform-conditional path for the failure mode
+    that is already safe.
     """
     scratch = target.with_name(f".{target.name}.roadkeep-{os.getpid()}.tmp")
-    scratch.write_text(text, encoding="utf-8", newline="")
+    with scratch.open("w", encoding="utf-8", newline="") as handle:
+        handle.write(text)
+        handle.flush()
+        os.fsync(handle.fileno())
     return scratch
 
 

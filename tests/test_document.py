@@ -846,17 +846,80 @@ def test_the_target_is_replaced_and_never_truncated_in_place(tmp_path):
     target = tmp_path / "ROADMAP.md"
     target.write_text("## Block A — The model\n" + LINE + "\n", encoding="utf-8")
     opened: list[str] = []
-    real = Path.write_text
+    real = Path.open
 
-    def watched(self, *args, **kwargs):
-        opened.append(self.name)
-        return real(self, *args, **kwargs)
+    def watched(self, mode="r", *args, **kwargs):
+        # Only the writing opens: `Document.load` reads the target, and this is a claim
+        # about what is opened *for writing* (RK450 moved the write off `write_text`).
+        if "r" not in mode:
+            opened.append(self.name)
+        return real(self, mode, *args, **kwargs)
 
     with pytest.MonkeyPatch.context() as patch:
-        patch.setattr(Path, "write_text", watched)
+        patch.setattr(Path, "open", watched)
         write_atomically(target, "## Block B — Authoring\n")
     assert opened == [f".{target.name}.roadkeep-{os.getpid()}.tmp"]
     assert target.read_text(encoding="utf-8") == "## Block B — Authoring\n"
+
+
+def test_the_staged_bytes_are_on_the_device_before_the_rename(tmp_path):
+    """RK450, and the one test here written from a data loss rather than from a design.
+
+    `write_text` returns once the bytes are in the page cache and `commit` renames straight
+    after, so a crash between them leaves the target at its **new size and entirely NUL** —
+    not a whole file, and not the old one either, which is the single state RK118 claims a
+    reader cannot catch. Measured on this repository from a hard reboot mid-session: four
+    governed files at 2,980, 121,337, 4,333 and 24,068 bytes, every byte NUL.
+
+    Asserted as an ordering, because that is the whole of it: a rename that reaches the disk
+    before the bytes it renames is what produces the corrupt file, and the fsync is what
+    makes that impossible.
+    """
+    target = tmp_path / "ROADMAP.md"
+    target.write_text("before\n", encoding="utf-8")
+    order: list[str] = []
+    real_fsync, real_replace = os.fsync, os.replace
+
+    def watched_fsync(fd):
+        order.append("fsync")
+        return real_fsync(fd)
+
+    def watched_replace(src, dst, **kwargs):
+        order.append("replace")
+        return real_replace(src, dst, **kwargs)
+
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(os, "fsync", watched_fsync)
+        patch.setattr(os, "replace", watched_replace)
+        write_atomically(target, "after\n")
+    assert order == ["fsync", "replace"]
+    assert target.read_text(encoding="utf-8") == "after\n"
+
+
+def test_every_file_of_a_transaction_is_synced_before_any_of_them_is_placed(tmp_path):
+    """The same ordering across the three files a `ship` writes: `write_all` stages them all
+    and then commits them all, so the sync belongs to the staging half or the last file
+    renamed is the one that can be NUL."""
+    from roadkeep.document import Write, write_all
+
+    writes = []
+    for name in ("ROADMAP.md", "CHANGELOG.md", "IMPROVEMENTS.md"):
+        path = tmp_path / name
+        path.write_text("before\n", encoding="utf-8")
+        writes.append(Write(target=path, text="after\n", assert_current=lambda: None))
+    order: list[str] = []
+    real_fsync, real_replace = os.fsync, os.replace
+
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(os, "fsync", lambda fd: (order.append("fsync"), real_fsync(fd))[1])
+        patch.setattr(
+            os,
+            "replace",
+            lambda src, dst, **kw: (order.append("replace"), real_replace(src, dst, **kw))[1],
+        )
+        write_all(*writes)
+    assert order == ["fsync"] * 3 + ["replace"] * 3
+    assert all(one.target.read_text(encoding="utf-8") == "after\n" for one in writes)
 
 
 def test_the_scratch_file_is_in_the_targets_own_directory_and_does_not_survive(tmp_path):

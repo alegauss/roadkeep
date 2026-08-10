@@ -75,31 +75,6 @@ already written, not authorship.
 
 ## Block A — The model
 
-### §RK450 What an atomic rename does not buy
-
-RK118 writes the new content beside its target and puts it in place with `os.replace`,
-so no reader ever sees half a file. The docstring's claim is that every state a reader
-can catch is a *whole* file. This machine produced one that is not.
-
-A hard reboot mid-session left `ROADMAP.md`, `CHANGELOG.md`, `IMPROVEMENTS.md` and
-`README.md` at 2,980, 121,337, 4,333 and 24,068 bytes — every byte NUL. The lengths are
-the ones the writes intended. Nothing else in the tree was touched, and the source files
-written by the same session in the same minutes were intact.
-
-That is the known shape of a rename without a flush. `stage` calls `write_text`, which
-returns once the bytes are in the page cache, and `commit` renames immediately. NTFS
-journals the rename's *metadata* and the directory entry lands; the data blocks behind
-it had not been written, so after the reboot the file has its committed size and no
-committed content. `os.replace` is atomic with respect to two versions of a file and
-says nothing about the durability of either.
-
-The fix is one `flush` and one `os.fsync` on the staged handle before it is closed,
-which is what every editor and every database does between the two steps. It costs a
-syscall per governed file per write.
-
-Open: whether the directory entry needs its own fsync — POSIX says yes for the rename to
-be durable, Windows has no handle to open one with, and this tool runs on both.
-
 ## Block B — Authoring
 
 ## Block C — Query

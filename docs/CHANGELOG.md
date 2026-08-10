@@ -42,6 +42,7 @@
 - ✅ **RK330** **Each feature needing state outside the documents invents its own file format and its own reader** — Claim dates, declared scopes and write digests share one TOML store beside the lock, so a fourth feature extends a grammar whose round-trip is a property test instead of writing a fourth.
 - ✅ **RK340** **outline anchors are one namespace across prose roles, and every outline starts at I** — A prose file declares its own namespace in [refs], so its addresses are written §<prefix>:<x.y> and two outlines that each start at I are two sets of addresses rather than one read twice.
 - 🗑 **RK378** **Two prose files must share one outline, with no way to give either its own** — superseded by RK340: RK340 shipped this namespace a day before the line was filed: [refs] <role> = "<prefix>" already puts strategy in its own space, covered end to end by tests/test_namespaces.py.
+- ✅ **RK450** **A staged file is renamed into place without its bytes being flushed, so a crash leaves the new size and no content** — A staged file is flushed and fsynced before the rename that places it, so a crash between the two leaves the previous whole file instead of the new size filled with NUL.
 
 ## Block B — Authoring
 
