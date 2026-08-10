@@ -35,7 +35,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 🛠 **RK487** (deps: —) **A pipe in a title or a symptom breaks the readme table, where the site form escapes the same string** — `export --readme` writes prose into Markdown cells raw, so one bar makes a six-cell row in a three-column table and the counts fall off the end. → §RK487
 - 📋 **RK488** (deps: —) **Every module that offers a command composes the sentence itself, so a new surface is reached one emitter at a time** — The engine and the tool prefix are answered centrally; the sentence around a command is not, so each module composes its own and six commits moved one printer each. → §RK488
 
 ## Non-goals

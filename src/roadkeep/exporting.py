@@ -447,7 +447,26 @@ def _count(ledger: Census | None, label: str, marker: str) -> int:
 
 
 def _row(cells: list[str]) -> str:
-    return "| " + " | ".join(cells) + " |"
+    return "| " + " | ".join(_cell(text) for text in cells) + " |"
+
+
+def _cell(text: str) -> str:
+    """One cell, escaped as :func:`html.escape` escapes the other shape's (RK487).
+
+    A block title is the heading's own words, and a bar in one is the separator this row is
+    built from — so the cell splits, every count after it shifts a column, and the totals row
+    below stays right, which is a projection contradicting itself about work nobody changed.
+
+    Here rather than in :meth:`Projection._cells` for the reason :data:`DEFAULTS` is one
+    mapping: the linter re-derives this block and compares bytes (RK104), so a second place
+    deciding what a cell looks like is a second answer to have wrong. Head, separator, data
+    and totals all arrive through this door.
+
+    The backslash goes first, because `\\|` is what GFM reads as a literal bar — escaping the
+    bar alone would turn a title that already carried a backslash into one whose escape the
+    author never wrote.
+    """
+    return text.replace("\\", "\\\\").replace("|", "\\|")
 
 
 def _task_json(entry: Entry) -> dict[str, object]:

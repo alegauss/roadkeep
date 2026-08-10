@@ -508,3 +508,4 @@
 - ✅ **RK484** **The merge driver's capture line offers an argv naming three files git has already deleted** — Where the argv names git's temporaries the offer asks for the two revisions instead, and a hand-run merge keeps the line it can take.
 - ✅ **RK485** **adopt says the prefix was inferred from the ids on a file where it read no id at all** — A prefix nothing declared and no id produced is reported as the default it is, in the printed line and in the payload.
 - ✅ **RK486** **The sweep holding the spelling class renders each message once, and two of the four have a shape it never sees** — The sweep takes one entry per rendering, and a field that never leaves its default in any of them fails rather than leaving quietly.
+- ✅ **RK487** **A pipe in a block title breaks the readme table, where the site form escapes the same string** — a bar in a block title stays inside its own cell, so the readme table keeps its columns.

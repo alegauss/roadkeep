@@ -97,6 +97,26 @@ def test_a_block_title_comes_from_the_heading_that_declares_it(tmp_path):
     assert projection.rows[0].title == "A — The model (a task is data first)"
 
 
+def test_a_bar_in_a_block_title_stays_inside_its_own_cell(tmp_path):
+    # RK487: the title is the heading's own words and the bar is what separates cells, so
+    # unescaped it splits one and every count after it shifts a column — while the totals
+    # row below, holding no prose, stays right. The site form escaped from the start.
+    roadmap = ROADMAP.replace("## Block A — The model (a task is data first)", "## Block A — a | b")
+    projection = project(project_files(tmp_path, roadmap=roadmap))
+    row = next(line for line in projection.markdown().split("\n") if "a \\| b" in line)
+    assert row == "| A — a \\| b | 2 | 1 |"
+    assert row.count("|") - row.count("\\|") == 4  # three columns, four separators
+    assert "a | b" in projection.html()  # nothing to escape there, and nothing added
+
+
+def test_a_backslash_in_a_block_title_is_escaped_before_the_bar(tmp_path):
+    # Escaping the bar alone would render `\|` from a title that carried the backslash for
+    # its own sake, which is an escape the author never wrote.
+    roadmap = ROADMAP.replace("## Block A — The model (a task is data first)", "## Block A — a \\ b")
+    projection = project(project_files(tmp_path, roadmap=roadmap))
+    assert "| A — a \\\\ b | 2 | 1 |" in projection.markdown()
+
+
 def test_the_next_ready_line_is_the_file_s_own_bytes(tmp_path):
     config = project_files(tmp_path)
     projection = project(config)
