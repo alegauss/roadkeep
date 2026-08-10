@@ -118,11 +118,15 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 31 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 103 | 1 |
-| C — Query (consult without reading the file) | 0 | 70 | 1 |
+| C — Query (consult without reading the file) | 1 | 70 | 1 |
 | D — The gate | 0 | 100 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 77 | 1 |
-| **Total** | 0 | 455 | 6 |
+| **Total** | 1 | 455 | 6 |
+
+**Next ready:**
+
+- 📋 **RK465** (deps: —) **A flag that narrows one budget subject is silently ignored beside three of the others** — budget --role improvements exits 2 alone and exit 0 beside --tools, --file or --non-goal, changing nothing — so the caller reads an answer it believes it narrowed. → §RK465
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -79,6 +79,34 @@ already written, not authorship.
 
 ## Block C — Query
 
+### §RK465 The refusal that fires on one branch
+
+`budget` has five subjects and two flags that narrow one of them: `--role` says which
+prose file `--anchor` is measured against, and `--lead` names the non-goal `--non-goal`
+reports on. Passed alone, `--role` is refused and says what it narrows — the refusal
+exists and is right. Measured across the subjects:
+
+    budget --role improvements                 exit 2   refused, correctly
+    budget --anchor RK1 --role improvements    exit 0   honoured
+    budget --file --role improvements          exit 0   ignored
+    budget --non-goal --role improvements      exit 0   ignored
+    budget --tools --role improvements         exit 0   ignored
+
+The dispatch returns on the first subject it matches and the refusal sits after all of
+them, so it fires only where nothing else answered. A caller who passed the flag reads a
+number it believes it narrowed, and nothing anywhere says otherwise — which is worse
+than the refusal by exactly the argument RK16 makes about naming an edit that cannot
+work.
+
+The shape is that a narrowing flag belongs to its subject and is checked against the
+subject that answered, not against the absence of one. `_one_pipe` and `_one_body` are
+the same rule already written twice for prose arguments (RK381), and this is that rule
+for a filter.
+
+Open: whether `--role` beside `--file` should be refused or *honoured* — a project
+declaring two prose files has two `[budgets]` rows, and narrowing to one is a question
+with an answer.
+
 ## Block D — The gate
 
 ## Block E — Adoption
