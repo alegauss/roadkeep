@@ -635,6 +635,89 @@ def test_a_drifted_file_blocks_and_names_the_line(tmp_path):
     assert f"{invocation()} lint --fix" in reason
 
 
+def test_the_gate_names_the_door_each_finding_carries(tmp_path):
+    """RK478. RK420 gave every finding the command that closes it, and RK14's own gate was
+    the surface withholding it: address, sentence, then *everything left is editorial and
+    wants a command* — which says one exists and not which, so a turn stopped here called
+    `lint` again for a report already composed. Measured on a copy of Shio as three
+    `path.missing` with three doors from `remedy()` and none of them shown."""
+    root = project(
+        tmp_path,
+        roadmap=CLEAN + "- 📋 **RK2** (deps: RK99) **A second symptom** — Because. → §RK2\n",
+    )
+    found = review(stop(root), root)
+    assert found is not None
+    reason = str(found)
+    # The door for `dep.unsatisfied`, whatever the table spells it — what is asserted is
+    # that the finding is followed by one, not which verb this code happens to name.
+    from roadkeep.remedying import remedy
+
+    door = remedy(found.report.findings[0], found.config)
+    assert door is not None and door.kind != "fix"
+    assert str(door).splitlines()[0].strip() in reason
+
+
+def test_a_mechanical_finding_is_still_counted_and_not_repeated(tmp_path):
+    """RK420's own rule, kept: the `lint --fix` sentence below is that remedy said once for
+    all of them, so a door per row would print the same command under every one."""
+    root = project(
+        tmp_path,
+        roadmap=CLEAN
+        + "- 📋 **RK2** (deps: RK1, RK1) **A second symptom** — Because. → §RK2\n"
+        + "- 📋 **RK3** (deps: RK1, RK1) **A third symptom** — Because. → §RK3\n",
+    )
+    found = review(stop(root), root)
+    assert found is not None
+    from roadkeep.remedying import remedy
+
+    kinds = {remedy(one, found.config).kind for one in found.report.findings}
+    assert "fix" in kinds, kinds  # the fixture has to actually produce one
+    reason = str(found)
+    assert reason.count(f"{invocation()} lint --fix") == 1
+
+
+def test_the_door_the_gate_prints_is_in_the_spelling_this_session_has(tmp_path):
+    """RK449 gave `Door.call()` the served spelling and RK448 the line above it; a door
+    printed here in the shell form would undo both one message later."""
+    root = project(
+        tmp_path,
+        roadmap=CLEAN + "- 📋 **RK2** (deps: RK99) **A second symptom** — Because. → §RK2\n",
+    )
+    found = review(stop(root), root)
+    assert found is not None
+    from dataclasses import replace as _replace
+
+    said = str(_replace(found, served="mcp__roadkeep__"))
+    # A `decide` leads with the sentence separating its doors, so what is asserted is the
+    # absence of the shell spelling under a finding rather than a prefix on every line.
+    under = [one for one in said.splitlines() if one.startswith("    ")]
+    assert under and any("mcp__roadkeep__" in one for one in under), under
+    assert not [one for one in under if invocation() in one], under
+    # `--fix` is the exception that stays a shell command, and it says why itself.
+    assert f"{invocation()} lint --fix" in said
+
+
+def test_the_cap_counts_groups_because_a_group_is_what_costs_lines(tmp_path):
+    """Measured on Turing: 35 findings reach 11 groups and every one is shown, where the
+    same cap counting findings prints 12 and hides 23. A run of one code repeating is what a
+    hand-edited file produces, so counting rows would spend the ceiling on one defect."""
+    from roadkeep.guarding import _MOST_FINDINGS
+
+    extra = "".join(
+        f"- 📋 **RK{n}** (deps: RK99) **A symptom number {n}** — Because. → §RK{n}\n"
+        for n in range(2, _MOST_FINDINGS + 6)
+    )
+    root = project(tmp_path, roadmap=CLEAN + extra)
+    found = review(stop(root), root)
+    assert found is not None
+    assert len(found.report.findings) > _MOST_FINDINGS
+    said = str(found)
+    # Nothing declared a shared fact, so every finding is its own group and the cap bites —
+    # which is the case the truncation line exists for, and it states the number it hid.
+    hidden = len(found.report.findings) - _MOST_FINDINGS
+    assert f"… and {hidden} more" in said
+
+
 def test_the_gate_names_the_engine_that_answers_it(tmp_path):
     """RK448. This fires at the end of every turn that changed a governed file, so it is the
     most-read of the four places this module names a command — and it was the last still

@@ -95,7 +95,7 @@ from roadkeep.serving import TOOLS
 
 if TYPE_CHECKING:  # annotations only, and already strings — see the docstring's sixth decision
     from roadkeep.attesting import Unattested
-    from roadkeep.linting import Report
+    from roadkeep.linting import Finding, Report
 
 #: The tools that put bytes in a file. Listed by what reaches the disk and not by what the
 #: harness happens to call it this month: a writing tool that is missing here is the hole
@@ -463,6 +463,11 @@ class Review:
     #: pre-approved. A field rather than a call, because one hook process serves every
     #: repository the session touches and the answer is a fact about this one.
     served: str = ""
+    #: This project, for the doors below (RK478). Optional because `Review` is constructed
+    #: in tests from a report alone, and a rule the table does not vary by needs none — but
+    #: `remedy` reads `ref_scheme`, `role` and the queue for the five that do, so the gate
+    #: gets it wherever a caller has one.
+    config: Config | None = None
 
     def __str__(self) -> str:
         findings = self.report.findings
@@ -480,11 +485,7 @@ class Review:
             f"other than roadkeep, and the format is what the next reader trusts.",
             "",
         ]
-        lines += [f"  {finding}" for finding in findings[:_MOST_FINDINGS]]
-        if len(findings) > _MOST_FINDINGS:
-            lines.append(
-                f"  … and {len(findings) - _MOST_FINDINGS} more — `{lint_}` prints all of them"
-            )
+        lines += self._findings(findings, lint_)
         lines += [
             "",
             # Six repairs, held against `fixing.REPAIRS` by a test and not imported (RK355):
@@ -505,6 +506,64 @@ class Review:
             ),
         ]
         return "\n".join(lines)
+
+    def _findings(self, findings: tuple[Finding, ...], lint_: str) -> list[str]:
+        """Each finding, and under it the door RK420 gave it (RK478).
+
+        The gate was the one surface that withheld it: it printed the address and the
+        sentence and closed on *everything left is editorial and wants a command*, which
+        says one exists and not which — so a turn stopped here called `lint` again to read a
+        report already composed. Measured on a copy of Shio, three `path.missing` with three
+        doors and none of them shown.
+
+        Grouped exactly as `cli._print_findings` groups (RK469), by `(code, file, shared)`
+        and printed at the first member, and the **cap counts groups** — it exists for
+        length, and a group is what costs lines. That is what makes the doors affordable:
+        on Turing, 35 findings reach 11 groups and all of them are shown, where the same cap
+        ungrouped prints 12 and hides 23. Shio's three fold to nothing because they declare
+        no shared fact, which is the emitter's answer and the right one.
+
+        The mechanical class stays counted and not printed: the `lint --fix` sentence below
+        is already that remedy, said once for all of them, which is RK420's own rule.
+        """
+        # RK260: this module's imports are per event, and a door is only ever printed here.
+        from roadkeep.remedying import remedy  # noqa: PLC0415
+
+        runs: dict[tuple[str, str, str], list[Finding]] = {}
+        for finding in findings:
+            if finding.shared:
+                runs.setdefault((finding.code, finding.file, finding.shared), []).append(finding)
+        lines: list[str] = []
+        seen: set[tuple[str, str, str]] = set()
+        shown = covered = 0
+        for finding in findings:
+            key = (finding.code, finding.file, finding.shared)
+            run = runs.get(key, []) if finding.shared else []
+            if len(run) > 1 and key in seen:
+                continue
+            if shown == _MOST_FINDINGS:
+                break
+            seen.add(key)
+            shown += 1
+            covered += max(len(run), 1)
+            lines += self._group(finding, run)
+            found = remedy(finding, self.config)
+            if found is not None and found.kind != "fix":
+                lines += [f"    {one.lstrip()}" for one in found.spoken(self.served).splitlines()]
+        if covered < len(findings):
+            left = len(findings) - covered
+            lines.append(f"  … and {left} more — `{lint_}` prints all of them")
+        return lines
+
+    @staticmethod
+    def _group(finding: Finding, run: list[Finding]) -> list[str]:
+        """One row, or the pair a run of two or more folds to — `cli._print_findings`' shape."""
+        if len(run) < 2:
+            return [f"  {finding}"]
+        return [
+            f"  {finding.file}  {finding.code}  {len(run)} addresses {finding.shared}",
+            f"    {'  '.join(f'{one.token}:{one.lineno}' for one in run)}",
+        ]
 
 
 @dataclass(frozen=True, slots=True)
@@ -696,7 +755,7 @@ def review(payload: Mapping[str, object], root: str | Path = ".") -> Review | No
     narrowed = _this_turn(config, report)
     if not narrowed.findings:
         return None
-    return Review(report=narrowed, served=serving(config.root) or "")
+    return Review(report=narrowed, served=serving(config.root) or "", config=config)
 
 
 def attested(payload: Mapping[str, object], root: str | Path = ".") -> Unattested | None:

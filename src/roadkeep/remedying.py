@@ -153,6 +153,22 @@ class Door:
                 return None if fields is None else (tool.name, fields)
         return None
 
+    def spoken(self, served: str = "") -> str:
+        """This door in the spelling ``served`` has, falling back to the shell one (RK478).
+
+        The sentence form of :meth:`call`, for the surfaces that print a door instead of
+        publishing it: `payload` hands a consumer both and lets it pick, and a message an
+        agent reads has room for exactly one. Nothing new is decided here — a door with no
+        call, which is `lint --fix` and every foreign one, is a shell command wherever it is
+        shown, because that is what it is.
+        """
+        call = self.call() if served else None
+        if call is None:
+            return str(self)
+        name, fields = call
+        named = "  ".join(f"{key}: {value}" for key, value in fields.items())
+        return f"{served}{name}" + (f" with {named}" if named else "") + f"  — {self.what}"
+
     def __str__(self) -> str:
         return f"{self.command}  — {self.what}"
 
@@ -207,10 +223,16 @@ class Remedy:
             doors.append(row)
         return {"kind": self.kind, "decision": self.decision, "doors": doors}
 
-    def __str__(self) -> str:
+    def spoken(self, served: str = "") -> str:
+        """The same text :meth:`__str__` renders, in the spelling this session has (RK478)."""
         if self.kind == "decide":
-            return f"{self.decision}\n" + "\n".join(f"    {d}" for d in self.doors)
-        return str(self.doors[0])
+            return f"{self.decision}\n" + "\n".join(
+                f"    {door.spoken(served)}" for door in self.doors
+            )
+        return self.doors[0].spoken(served)
+
+    def __str__(self) -> str:
+        return self.spoken()
 
 
 @dataclass(frozen=True, slots=True)
