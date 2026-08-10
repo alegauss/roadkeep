@@ -125,6 +125,30 @@ so the table states only what is genuinely per-code. Then the agreement between 
 and the finding it closes is one property over the whole table, instead of a defect
 discovered one row at a time.
 
+### §RK491 The invariants this package holds, declared as a set
+
+RK421 asserts the remedy table is total over the codes `linting` and `schema` emit.
+RK467 sweeps every boolean pair a read takes, for the flag that answers as neither half.
+RK474 checks that every complete door is an argv the CLI accepts. Three tests, in three
+files, written weeks apart, each performing the same act: a rule about the *whole*
+surface, held by enumeration rather than by example.
+
+Nothing records that they are one family, so the question that matters cannot be asked —
+which rules does this package state, and which does a property reach? They are stated in
+quantity: in module docstrings, in the six laws, in this file's prose. Three are
+reached. The distance between those two sets is where the defects of the last fifty
+commits lived, and it is unreadable today, which is why each was found by being tripped
+over.
+
+The deliverable is that set declared in one place: each row naming the invariant, the
+surface it quantifies over, and the property that holds it. A rule nobody holds is then
+a row with an empty holder rather than an absence nobody can see, and a new invariant
+costs a row and a property instead of a test somebody has to think of first.
+
+It is this tool's own argument one level up. `lint` is the backstop for prose; these are
+the backstop for the package — and a backstop nobody enumerated has its gaps found the
+way this repository has been finding them.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
