@@ -28,6 +28,9 @@
 
 ## Block D — The gate
 
+- 📋 **RK470** (deps: —) **A remedy naming a section omits which prose file it is in, so on a project with two it opens the wrong one** — section drop for a finding at docs/STRATEGY.md ran against docs/IMPROVEMENTS.md and answered no such section, and --role is a flag the command already takes. → §RK470
+- 📋 **RK471** (deps: —) **The count repair closes with says three ran where one ran and two are printed FAILED above it** — The summary counts attempts, so the number a reader acts on contradicts the two lines directly above it, and the exit code is the only thing that still tells them apart. → §RK471
+
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
