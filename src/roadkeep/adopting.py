@@ -458,6 +458,13 @@ class Estimate:
     prefix: str
     #: True when the prefix was read off the file's own ids because nothing declared one.
     #: Reported, never silent: a count taken under a guessed prefix is a different count.
+    #:
+    #: **Three states and not two** (RK485): declared, read off the ids, and *neither* —
+    #: the last being a file where no id parsed at all, which fell through to the schema
+    #: default. That one was reported as the second, so an ungoverned Shio changelog whose
+    #: every id is `SH` said *prefix RK (inferred from the ids)*, and a one-line file with
+    #: no id said it too. It is the state worth saying loudest, because the count under it
+    #: was taken against a prefix the file never mentions.
     inferred: bool
     parsed: int
     conforming: int
@@ -465,6 +472,10 @@ class Estimate:
     #: sections (RK99) — one command and not two, because the corpus an adopting project
     #: has to measure is both files, and a second command would be a second set of numbers
     #: to keep in step with these.
+    #: True where nothing declared a prefix **and** nothing was read: the schema's default
+    #: stands in, and the estimate below it is measured against a guess. Defaulted to False
+    #: because a rationale run reports no prefix at all — there is no third state there.
+    defaulted: bool = False
     unit: str = "line"
     #: The scheme the pointers and anchors were read under (RK44). Reported because it
     #: decides what was read at all: under the wrong one a file of 151 sections yields 0.
@@ -975,7 +986,8 @@ def adopt(
     declared = _families(prefix) if prefix else None
     if declared is None and config.source is not None:
         declared = config.schema.prefixes
-    inferred = declared is None
+    inferred = declared is None and bool(spelled)
+    defaulted = declared is None and not spelled
     # Inference stays at *one* family even now that the schema carries several (RK74).
     # Which of two spellings is a second track and which is a paste from another backlog
     # is a judgement about meaning, and this tool has no model (L4) — so a project that
@@ -1016,6 +1028,7 @@ def adopt(
         prefix=chosen[0],
         families=chosen,
         inferred=inferred,
+        defaulted=defaulted,
         parsed=len(document.entries),
         conforming=conforming,
         ref_scheme=schema.ref_scheme,

@@ -352,6 +352,50 @@ def test_the_prefix_is_inferred_only_when_nothing_declares_one(tmp_path: Path) -
     assert dict(declared.codes)["id.format"] == 2
 
 
+def test_a_prefix_nothing_declared_and_nothing_produced_is_neither_of_those(tmp_path: Path) -> None:
+    """RK485. `inferred` was `declared is None`, so a file where *no id parsed at all* fell
+    through to the schema default and reported it as a reading.
+
+    Measured on an ungoverned copy of Shio's docs: the roadmap infers `SH` correctly, and the
+    changelog — whose every id is also `SH`, in a shape no grammar here reads — answered
+    *prefix RK (inferred from the ids)*. A one-line file with no id said the same.
+
+    Three states, and the third is the one worth saying loudest: the counts under it were
+    taken against a prefix the file never mentions, which is the reading `adopt`'s own
+    docstring calls useless."""
+    target = tmp_path / "NOTHING.md"
+    target.write_text("# Nothing here\n", encoding="utf-8")
+
+    estimate = adopt(Config.default(tmp_path), target)
+
+    assert estimate.prefix == "RK"
+    assert estimate.inferred is False and estimate.defaulted is True
+    # And the two that were already right stay right: read off the ids, and declared.
+    other = tmp_path / "ROADMAP.md"
+    other.write_text(FOREIGN, encoding="utf-8")
+    read = adopt(Config.default(tmp_path), other)
+    assert (read.inferred, read.defaulted) == (True, False)
+    told = adopt(Config.default(tmp_path), other, prefix="RK")
+    assert (told.inferred, told.defaulted) == (False, False)
+
+
+def test_the_line_and_the_payload_agree_about_which_of_the_three_it_was(tmp_path, capsys) -> None:
+    """The `--json` half had the same two-words-for-three: a consumer meeting `inferred:
+    false` on a defaulted prefix reads it as *declared*, which is the state it is furthest
+    from."""
+    target = tmp_path / "NOTHING.md"
+    target.write_text("# Nothing here\n", encoding="utf-8")
+
+    assert main(["-C", str(tmp_path), "adopt", str(target)]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "inferred from the ids" not in said
+    assert "no id here was read" in said
+
+    assert main(["-C", str(tmp_path), "adopt", str(target), "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["inferred"] is False and payload["defaulted"] is True
+
+
 def test_a_configured_project_never_guesses(tmp_path: Path) -> None:
     config = scaffolded(tmp_path)
     target = tmp_path / "OTHER.md"

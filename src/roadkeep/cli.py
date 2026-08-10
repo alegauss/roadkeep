@@ -7428,7 +7428,13 @@ _ID_SPELLS = {
 
 def _print_estimate(estimate: Estimate) -> None:
     where = estimate.path.as_posix()
-    source = " (inferred from the ids)" if estimate.inferred else ""
+    # Which of the three (RK485): a prefix nothing declared and nothing produced is the
+    # schema's default, and calling that a reading is the estimate claiming a measurement.
+    source = ""
+    if estimate.inferred:
+        source = " (inferred from the ids)"
+    elif estimate.defaulted:
+        source = " (the default — no id here was read, so the counts below assume it)"
     # No prefix on a rationale file: a section is addressed by its §, not by a family, so
     # naming one would be a claim the run never made (RK99).
     under = f"prefix {'/'.join(estimate.families)}{source}, " if estimate.families else ""
@@ -7674,6 +7680,10 @@ def _estimate_json(estimate: Estimate) -> dict[str, object]:
         "prefix": estimate.prefix,
         "families": list(estimate.families),
         "inferred": estimate.inferred,
+        # The third state, published rather than left to be read off a false `false` (RK485):
+        # a consumer that saw `inferred: false` on a defaulted prefix read it as *declared*,
+        # which is the same two-words-for-three the printed line had.
+        "defaulted": estimate.defaulted,
         "unit": estimate.unit,
         "ref_scheme": estimate.ref_scheme,
         "parsed": estimate.parsed,
