@@ -338,6 +338,7 @@
 - ✅ **RK473** **Nothing runs repair over a real corpus, so a remedy that cannot close its finding is found by hand** — The pinned corpora hold that every remedy repair dispatches runs and that a second pass finds nothing, which caught a fold refused on Shio's ledger on its first run.
 - ✅ **RK474** **The doors repair never dispatches are checked against nothing, so a printed one may refuse too** — Every complete door is parsed by the CLI it names, which caught section move offered without the --to it requires — a code neither corpus carries and repair would have dispatched.
 - ✅ **RK489** **Each subparser checks its own subjects and narrowing flags, so a swallowed flag is found one verb at a time** — A verb declares its subjects and narrowing flags at add_parser and one dispatcher refuses two answers, so the sweep now checks a table and found claim --porcelain --json.
+- ✅ **RK490** **A remedy row repeats what its finding already carries, so a row naming the wrong file or verb is found by example** — A finding answers one declared set of fields and a row names them, so what a door says about its finding is a property over the table instead of a defect per row.
 
 ## Block E — Adoption
 

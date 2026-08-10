@@ -298,7 +298,8 @@ def test_every_template_field_a_door_names_is_one_the_substitution_fills():
     table, because two rules are minted inside `_varied` and never appear in `_TABLE`.
 
     `file` is the fourth and arrived with RK451, the one remedy that is about a file rather
-    than about a line in one.
+    than about a line in one; `role` is the fifth and arrived with RK490, which is also where
+    the set stopped being written out here — `FIELDS` is the declaration and this reads it.
     """
     import ast
 
@@ -309,7 +310,7 @@ def test_every_template_field_a_door_names_is_one_the_substitution_fills():
         if isinstance(node, ast.Constant) and isinstance(node.value, str)
         for field in re.findall(r"\{(\w+)\}", node.value)
     }
-    assert named <= {"id", "line", "label", "file"}, sorted(named)
+    assert named <= set(remedying.FIELDS), sorted(named - set(remedying.FIELDS))
 
 
 def test_a_note_gets_a_remedy_on_the_same_lookup():
@@ -847,7 +848,8 @@ def test_every_section_verb_is_scoped_and_nothing_else_is(tmp_path):
         ("anchors",),
         ("lint", "--fix"),
     ):
-        assert remedying._scoped(argv, Finding("x", "STRATEGY.md", "", 5, "RK1"), config) == argv
+        values = remedying._values(Finding("x", "STRATEGY.md", "", 5, "RK1"), config)
+        assert remedying._scoped(argv, values, config) == argv
 
 
 def test_the_scoped_argv_is_one_the_cli_accepts(tmp_path):
@@ -1103,3 +1105,79 @@ def _literals(source: str) -> list[tuple[int, str]]:
         and isinstance(node.value, str)
         and id(node) not in documented
     ]
+
+
+# -- a row derives what its finding already knows (RK490) ---------------------
+
+
+def test_the_declared_fields_are_exactly_the_ones_a_finding_answers(tmp_path):
+    """Both directions of `FIELDS`, which is what makes it a declaration rather than a note.
+
+    A name in the table that `_values` does not answer renders its own braces — the state
+    `{first}` and `{role}` were in for years. A name `_values` answers that the declaration
+    omits is the inverse and just as silent: the test above bounds the source by this set, so
+    a field left out of it would make a legal row read as a defect."""
+    config = _project(tmp_path)
+    finding = Finding("id.duplicate", config.relative(config.path("roadmap")), "", 5, "RK1")
+    assert set(remedying.FIELDS) == set(remedying._values(finding, config))
+    # And with no project at all, which is what `explain` composes a class from: every name
+    # still answers, because a door that cannot be told a value renders the blank rather
+    # than the brace.
+    assert set(remedying.FIELDS) == set(remedying._values(finding, None))
+
+
+def test_no_door_the_gate_can_report_renders_a_brace(tmp_path):
+    """The property the three per-row defects were instances of (RK490). RK468 named one verb
+    and dispatched another, RK470 omitted the file the finding was in, RK472 dispatched a door
+    the verb refuses — each found by example, each a row stating what the finding already
+    knew. What a sweep can hold is that nothing is left unsaid: a brace surviving into an argv
+    is a field the row named and the finding was never asked for."""
+    for role in ("id", "outline"):
+        config = _project(tmp_path / f"braces-{role}", ref_scheme=role)
+        for code, where, door in _every_door(config):
+            rendered = " ".join(door.argv)
+            assert "{" not in rendered and "}" not in rendered, f"{code} on {where}: {rendered}"
+
+
+def test_a_door_carries_the_finding_s_own_subject_and_never_another(tmp_path):
+    """`{id}` is the finding's :attr:`Finding.token` — the explicit subject, or the id it
+    usually is — read off the finding rather than recomposed here (RK490), which is the
+    smallest instance of this task's rule and the one that was written twice.
+
+    Asked with the subject set and unset, because the fallback is where the two spellings of
+    it could differ: a queue finding carries `Block D` in `subject` and an id in `id`, and a
+    row that read the wrong one would name a line the caller never asked about."""
+    config = _project(tmp_path)
+    where = config.relative(config.path("roadmap"))
+    for code in codes():
+        if not _names_the_subject(code):
+            continue
+        for subject in ("", "Block D"):
+            finding = Finding(code, where, "", 5, "RK7", subject=subject)
+            found = remedy(finding, config)
+            assert found is not None
+            assert any(
+                finding.token in word for door in found.doors for word in door.argv
+            ), f"{code} with subject={subject!r}: no door names {finding.token!r}"
+
+
+def _names_the_subject(code: str) -> bool:
+    """Whether this row writes `{id}` at all — read off the table, never listed here."""
+    rule = remedying._TABLE[code]
+    return any("{id}" in word for argv, _ in rule.doors for word in argv)
+
+
+def test_a_section_door_names_the_role_the_finding_was_reported_about(tmp_path):
+    """RK470 as a property over the table rather than as one row's repair (RK490). Every
+    `section` verb takes `--role`, and on a project declaring two prose files a door that
+    omits it opens the other file — so what this holds is that wherever the flag is there at
+    all, its value is the finding's own file and never a default that happens to match."""
+    config = _two_prose(tmp_path)
+    for where, role in (("STRATEGY.md", "strategy"), ("IMPROVEMENTS.md", "improvements")):
+        for code in codes():
+            found = remedy(Finding(code, where, "", 5, "RK1"), config)
+            assert found is not None
+            for door in found.doors:
+                if "--role" not in door.argv or door.argv[:1] != ("section",):
+                    continue
+                assert door.argv[door.argv.index("--role") + 1] == role, (code, door.argv)

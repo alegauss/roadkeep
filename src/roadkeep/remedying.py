@@ -67,6 +67,15 @@ the same total-domain assertion the table above gets, about spellings instead of
 The prefix still arrives as a **field** and is not read here: which engine answers is a fact
 about the project, and this module reads no project. What changed is that it is now handed to
 a renderer instead of interpolated at forty call sites.
+
+**A row states what is per-code and derives the rest** (RK490). Totality over the codes says
+every finding has a door; it says nothing about whether the door is about that finding. Three
+rows failed on exactly that and each was found by example — RK468 named one verb and
+dispatched another, RK470 omitted which prose file the finding was in, RK472 dispatched a door
+the verb refuses — and what bound them is that a row *repeated* the finding's subject, file or
+verb instead of reading it. :func:`_values` is the one place any of them is derived and
+:data:`FIELDS` is the declared domain of what a row may name, so the agreement is a property
+over the whole table rather than a defect discovered one row at a time.
 """
 
 from __future__ import annotations
@@ -1044,6 +1053,50 @@ class _Class:
     lineno: int | None = None
 
 
+#: Every name a row may write between braces, and the whole of what a door can be told about
+#: the finding it closes (RK490). **Declared**, rather than being whatever :func:`_values`
+#: happens to compute: `{first}` and `{role}` sat named in this table for years and
+#: substituted nowhere, so those doors rendered their own braces — a command line no shell
+#: repairs (RK435) — and nothing anywhere could say so. `tests/test_remedying.py` holds both
+#: directions: every `{name}` the source writes is one of these, and every one of these is a
+#: key :func:`_values` answers.
+FIELDS = ("id", "line", "label", "file", "role")
+
+
+def _values(finding: object, config: Config | None) -> dict[str, str]:
+    """What this finding tells a door about itself, by the names a row uses (RK490).
+
+    The one place any of them is derived. Three rows' worth of defects — RK468, RK470, RK472
+    — were each a row repeating what the finding already knew instead of reading it, and each
+    was found by example because there was nowhere for the agreement to be checked. Computed
+    here, per finding and once, the table states only what is genuinely per-code and the
+    agreement is a property over the whole of it.
+
+    Read by ``getattr`` on purpose: this takes a :class:`~roadkeep.linting.Finding`, a
+    :class:`~roadkeep.linting.Note`, a :class:`~roadkeep.schema.Violation` wrapped in one, or
+    the :class:`_Class` an explanation is composed from — the caller repairing a line does
+    not care which of the four reported it, and neither does a door.
+
+    ``id`` is the finding's **own** :attr:`~roadkeep.linting.Finding.token`, which already
+    means *what a remedy substitutes*: the explicit subject, or the id it usually is. Reading
+    it here rather than recomposing the `subject or id` fallback is the smallest instance of
+    this task's whole rule, and it is the one that was written twice.
+    """
+    lineno = getattr(finding, "lineno", None)
+    subject = getattr(finding, "token", "") or getattr(finding, "subject", "") or getattr(
+        finding, "id", ""
+    )
+    return {
+        "id": subject,
+        "line": "" if lineno is None else str(lineno),
+        "label": _label(subject, config),
+        "file": getattr(finding, "file", ""),
+        # Which governed file this finding is about, which is a fact the *report* already
+        # printed and a door had to be told separately until RK470 derived it by hand.
+        "role": "" if config is None else _role_of(finding, config),
+    }
+
+
 def remedy(finding: object, config: Config | None = None) -> Remedy | None:
     """What closes ``finding``. ``None`` only for a code the table does not carry.
 
@@ -1056,27 +1109,19 @@ def remedy(finding: object, config: Config | None = None) -> Remedy | None:
     rule = _TABLE.get(code)
     if rule is None:
         return None
+    values = _values(finding, config)
     if rule.varies and config is not None:
-        rule = _varied(code, rule, finding, config)
-    subject = getattr(finding, "subject", "") or getattr(finding, "id", "")
-    lineno = getattr(finding, "lineno", None)
-    label = _label(subject, config)
+        rule = _varied(code, rule, finding, values, config)
     doors = tuple(
-        Door(
-            _scoped(
-                _substitute(argv, subject, lineno, label, getattr(finding, "file", "")),
-                finding,
-                config,
-            ),
-            what,
-            foreign=rule.foreign,
-        )
+        Door(_scoped(_substitute(argv, values), values, config), what, foreign=rule.foreign)
         for argv, what in rule.doors
     )
     return Remedy(code, rule.kind, doors, rule.decision)
 
 
-def _varied(code: str, rule: _Rule, finding: object, config: Config) -> _Rule:
+def _varied(
+    code: str, rule: _Rule, finding: object, values: Mapping[str, str], config: Config
+) -> _Rule:
     """The two rows a project's own configuration decides (L6)."""
     if code == "ref.mismatch" and config.schema.ref_scheme != "id":
         # An outline anchor is not derivable, so there is nothing mechanical to recompute:
@@ -1126,7 +1171,7 @@ def _varied(code: str, rule: _Rule, finding: object, config: Config) -> _Rule:
             ("block", "drop", "{id}"),
             "the later heading stands over nothing, so it is taken out rather than folded",
         )
-    if code == "id.duplicate" and _role_of(finding, config) == "roadmap":
+    if code == "id.duplicate" and values["role"] == "roadmap":
         # `record renumber` opens the ledger and this is the other file: two *open* lines
         # sharing an id are two tasks, and one of them takes a free address.
         return _decide(
@@ -1234,7 +1279,9 @@ def _claimed_below(finding: object, config: Config) -> tuple[tuple[str, tuple[st
     )
 
 
-def _scoped(argv: tuple[str, ...], finding: object, config: Config | None) -> tuple[str, ...]:
+def _scoped(
+    argv: tuple[str, ...], values: Mapping[str, str], config: Config | None
+) -> tuple[str, ...]:
     """Name which prose file a `section` verb is about, where the project has two (RK470).
 
     RK420 promises a complete argv, and on a project declaring one prose file it was: every
@@ -1257,7 +1304,7 @@ def _scoped(argv: tuple[str, ...], finding: object, config: Config | None) -> tu
     if config is None or argv[:1] != ("section",) or "--role" in argv:
         return argv
     declared = [role for role in PROSE_ROLES if config.has(role)]
-    role = _role_of(finding, config)
+    role = values["role"]
     if len(declared) < 2 or role not in declared:
         return argv
     return (*argv, "--role", role)
@@ -1293,30 +1340,17 @@ def _label(subject: str, config: Config | None) -> str:
     return "" if config is None else (config.schema.block_of_dep(Dep(subject)) or "")
 
 
-def _substitute(
-    argv: Sequence[str],
-    subject: str,
-    lineno: int | None,
-    label: str = "",
-    file: str = "",
-) -> tuple[str, ...]:
-    """Fill a template. A field with no value keeps its blank rather than rendering `None`.
+def _substitute(argv: Sequence[str], values: Mapping[str, str]) -> tuple[str, ...]:
+    """Fill a template from :func:`_values`. A field with no value keeps its blank.
 
-    That fallback is the module's own rule applied to itself: an argv reading
-    ``--line None`` is worse than one reading ``--line …``, because the first looks
-    runnable and the second says which word is missing.
+    That fallback is the module's own rule applied to itself: an argv reading ``--line None``
+    is worse than one reading ``--line …``, because the first looks runnable and the second
+    says which word is missing.
 
-    Four fields and no more, which the suite holds: a door naming a fifth renders its own
-    braces, and `add --block {label}` is a command line no shell repairs (RK435). The fourth
-    is the **path** (RK451), and it arrived with the one remedy that is about a file rather
-    than about a line in one: `git checkout -- <path>` has nothing else to be about.
+    The domain is :data:`FIELDS` and this reads it whole, so a row naming a fifth field is a
+    row this fills rather than one that renders its own braces (RK490) — and the suite holds
+    the other end, that no row names something :func:`_values` does not answer.
     """
-    values = {
-        "id": subject,
-        "line": "" if lineno is None else str(lineno),
-        "label": label,
-        "file": file,
-    }
     out: list[str] = []
     for word in argv:
         for name, value in values.items():

@@ -30,7 +30,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK490** (deps: RK488 ✅) **A remedy row repeats what its finding already carries, so a row naming the wrong file or verb is found by example** — The table is total over codes but nothing holds a row against the finding it closes, so its argv and its two sentences agree only by an author's attention. → §RK490
 - 📋 **RK491** (deps: —) **Three tests hold three surface-wide rules under no common name, so a rule nothing holds reads as one that is held** — Totality over codes, the flag-pair sweep and the argv check are one act discovered three times, and nothing enumerates which stated rules a property reaches. → §RK491
 
 ## Block E — Adoption

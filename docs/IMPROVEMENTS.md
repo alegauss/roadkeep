@@ -105,29 +105,6 @@ so the answer stays measured rather than asserted.
 
 ## Block D — The gate
 
-### §RK490 A remedy row derives what its finding already knows
-
-`_TABLE` is total over the codes the package can emit and the suite asserts it (RK421),
-so no finding reaches a caller without a door. What each row *states* is held to
-nothing: the argv, the sentence describing the defect and the sentence describing the
-repair are three strings an author wrote beside each other.
-
-So the failures are per-row, and each is found by example. RK468: a row whose sentence
-named one verb and whose remedy named another. RK470: a section remedy that omitted
-which prose file the finding was in, visible only on a project declaring two. RK472: a
-door `block drop` refuses, dispatched by `repair` anyway, because runnability was a
-property of the row's kind instead of the finding's state.
-
-Three different rows, and none of them the last one. What binds them is that a row
-repeats what the finding already knows — its subject, its file, its verb — rather than
-deriving it. Substitution reaches `{id}`, `{line}` and `{label}` and stops, which is why
-`{first}` and `{role}` sat named and unsubstituted for years.
-
-The repair is to make a finding carry the fields its door needs and the row name them,
-so the table states only what is genuinely per-code. Then the agreement between a row
-and the finding it closes is one property over the whole table, instead of a defect
-discovered one row at a time.
-
 ### §RK491 The invariants this package holds, declared as a set
 
 RK421 asserts the remedy table is total over the codes `linting` and `schema` emit.
