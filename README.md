@@ -117,12 +117,16 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 31 | 2 |
-| B — Authoring (insert, never hand-edit) | 0 | 105 | 1 |
+| B — Authoring (insert, never hand-edit) | 2 | 105 | 1 |
 | C — Query (consult without reading the file) | 0 | 73 | 1 |
-| D — The gate | 0 | 115 | 0 |
+| D — The gate | 2 | 115 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 91 | 1 |
-| **Total** | 0 | 489 | 6 |
+| **Total** | 4 | 489 | 6 |
+
+**Next ready:**
+
+- 📋 **RK499** (deps: —) **Every prose door accepts a tab, a zero-width codepoint and a space that is not one, and the gate refuses all three** — The same field refuses a leading or trailing space at the write, so one whitespace rule is held there and the neighbouring one is not. → §RK499
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

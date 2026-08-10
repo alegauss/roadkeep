@@ -77,9 +77,102 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK499 Three codepoints the grammar reads as a separator, admitted by the door
+
+Measured by RK498's register: of the 84 codes the gate emits, these are three of the
+five a write accepts. Reproduced on `add --why`, `amend --why`, `restate --symptom` and
+`record add --why` — every door that takes prose — with `char.tab`, `char.invisible` and
+`char.space` reported afterwards.
+
+The inconsistency is inside one field. `why.whitespace` refuses a leading or trailing
+space at the write and says so, while a tab three characters in is written and left for
+the gate. A caller cannot learn a rule that holds at one end of the string and not the
+other.
+
+Why it matters more than it looks: the format separates fields with a space, so a tab or
+a no-break space is a separator the grammar reads as part of a field — the line still
+round-trips and still parses, and what it parses to is not what was meant. That is the
+class L3 exists for, arriving through the one door that was supposed to keep it out.
+
+`lint --fix` repairs all three, which is the argument for refusing rather than
+rewriting: a fixer that silently edits prose is what L4 forbids at the write, and a
+refusal costs the caller one retry with the character removed.
+
+What proves it: the four doors refuse each of the three, the register's rows for them
+move from `open` to `refused`, and a field with no such codepoint is written exactly as
+before.
+
+### §RK500 Two deps a write states about a backlog it is holding open
+
+The other two of RK498's five. `add --dep RK999` is written and the gate reports
+`deps.unknown`; `add --block A --dep "Block A"` is written and the gate reports
+`deps.cycle`, the line being inside the set it waits on.
+
+The first is worse than it reads, because the write already treated the token as an id:
+the next derived number stepped over RK999, so the id was spent by a line that names
+nothing. A dep the write cannot resolve is therefore not ignored — it costs an address.
+
+Both are answerable from what the verb has in hand. `Backlog` is loaded to place the
+line and to derive the id, and it is the same reader the gate asks; nothing here needs
+git, a second file or a listing.
+
+The boundary is `deps.retired` and `deps.stale`, which stay the gate's: those become
+true when a *later* write moves the line the dep names, and the write that stated it was
+correct when it ran. What is claimed here is only the pair a write can decide about the
+tree in front of it.
+
+What proves it: both are refused naming the dep, `gaps` is still what a caller reaches
+for when an id really did leave, the derived id no longer steps over a token nothing
+carries, and the register's two rows move to `refused`.
+
 ## Block C — Query
 
 ## Block D — The gate
+
+### §RK1000 L6 is reachable and unreached, and the other two are not
+
+The register's three empty holders are in three different states, and only one of them
+is a task. L2 is satisfied by an *absence*: a property would quantify over the services
+this package does not open and the schemas it does not migrate, which is not a set. L5
+needs a declared inventory of the reads before a property has anything to sweep, and
+that inventory is its own line. L6 is neither, and its row says so in as many words —
+*reachable and unreached*. A source scan for a literal limit, prefix, marker or path
+outside `config` is decidable, and nobody has written it.
+
+What makes it the one to spend first is the consequence and not the ease. L6 is the law
+an adopting project rests on: prefix, paths, markers and limits are that project's, read
+from that project's own `roadkeep.toml`. A literal that slipped into the package does
+not fail here, where this repository's own numbers happen to match what was hardcoded —
+it fails in Shio, in Turing, or in a fork whose prefix is three letters, as behaviour
+nobody can derive from the config they wrote.
+
+The surface is this package's modules, which RK496 finally gave an address. What the
+scan must not do is flag the defaults themselves: `config` is where a default is written
+down, so a scan that cannot tell a default from a leak is a red nobody keeps.
+
+### §RK1001 A recurrence is a hole in a holder, and it is declarable
+
+Twelve of the fifteen rows carry a holder, and that number is what makes this question
+askable for the first time. A defect in a class one of those twelve claims to cover is
+not new work: it is a hole in the holder, which enumerates less than its row says. The
+fix belongs in the test, and the code it would otherwise patch is a symptom.
+
+Nothing tells the two apart today: they are one shape in `stats`, in the ledger and in
+the log. The only reason RK497 was recognised as a family is that somebody probed three
+more codes by hand afterwards and filed §RK498 — an act of attention, performed once,
+that nothing schedules.
+
+It cannot be inferred: matching a symptom to a class takes meaning, and L4 forbids the
+model. It can be **declared** — a design names the row it instantiates, in the shape
+RK492 established for a machine-readable claim inside a rationale section. A second task
+naming a row that has a holder is then a recurrence by count and not by judgement, and
+the count points at the property.
+
+A row with no holder is the other answer, and it stays silent: an instance of L2, L5 or
+L6 is a rung, correctly, because nothing ever claimed to hold it.
+
+What proves it: a design naming a row that does not exist is red, and each held row can
+say how many instances it has taken since it was written.
 
 ## Block E — Adoption
 
