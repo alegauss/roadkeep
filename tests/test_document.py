@@ -26,6 +26,7 @@ from pathlib import Path
 import pytest
 
 import corpora
+from surface import modules
 from roadkeep import DESIGNED, IDEA, PARTIAL, SHIPPED, Dep, Schema, Task
 from roadkeep.document import (
     Document,
@@ -816,16 +817,12 @@ def test_the_two_readers_of_it_are_the_only_two():
     Source, not behaviour, because behaviour is what a third spelling would agree with right
     up until it did not — which is the argument `_only_reads` and `GUARDED_TOOLS` are built on.
     """
-    package = Path(__file__).resolve().parents[1] / "src" / "roadkeep"
     # `document.py` is where both are defined and where each one's docstring names the other,
-    # so it is the one module that is not a caller.
-    # Addressed by path and not by filename (RK494): `verbs/` holds a module per verb family
-    # named after the domain module it calls, so a bare `m.name` lets `verbs/shipping.py`
-    # answer under `shipping.py` — a survey that silently counts one file as another.
-    callers = {
-        m.relative_to(package).as_posix(): m.read_text(encoding="utf-8")
-        for m in package.rglob("*.py")
-    }
+    # so it is the one module that is not a caller. The set is `surface.modules` and not a
+    # glob of this file's own (RK496), addressed by path: `verbs/` holds a module per verb
+    # family named after the domain module it calls, so a bare filename lets
+    # `verbs/shipping.py` answer under `shipping.py` — one file counted as another.
+    callers = {module.where: module.text for module in modules()}
     callers.pop("document.py")
     spellings = {name for name, text in callers.items() if ".block(" in text}
     # Every remaining caller wants the entries themselves: `backlog.py` expands a `Block X`

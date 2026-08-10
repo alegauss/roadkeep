@@ -344,6 +344,7 @@
 - ✅ **RK491** **Three tests hold three surface-wide rules under no common name, so a rule nothing holds reads as one that is held** — The rules this package states are one declared set naming each surface and holder, closed against the six laws, and it found L4 held by five listed codes.
 - ✅ **RK493** **Every command's output rendering shares one file with the parser and 82 handlers, 8,489 lines** — Every printer and payload builder is in `rendering.py`, so `cli.py` is the parser and its handlers alone — 8,489 lines to 7,186.
 - ✅ **RK494** **82 handlers sit in the file that registers them, so no verb family has a module or a docstring of its own** — Each verb family is a module under `verbs/` its own docstring is the authority on, and `cli.py` is the parser and dispatch alone — 8,489 lines to 2,551.
+- ✅ **RK496** **A test surveying the package's source keeps passing once a directory of modules stops being covered by its glob** — Seven surveys quantify over one declared set, `tests/surface.py`, and a test refuses any that derives a second — so a module in a new directory is covered or red, never quietly missed.
 
 ## Block E — Adoption
 

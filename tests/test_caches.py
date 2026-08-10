@@ -22,6 +22,7 @@ import sys
 from pathlib import Path
 
 from conftest import VOLATILE
+from surface import modules
 
 HERE = Path(__file__).resolve().parents[1]
 PACKAGE = HERE / "src" / "roadkeep"
@@ -58,8 +59,8 @@ def cached() -> set[tuple[str, str]]:
     """Read from the source and never from a registry: a cache is a decorator, and importing the
     package to look for one finds only what happens to have been imported."""
     found = set()
-    for module in sorted(PACKAGE.rglob("*.py")):
-        tree = ast.parse(module.read_text(encoding="utf-8"))
+    for module in modules():
+        tree = ast.parse(module.text)
         for node in ast.walk(tree):
             if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 continue
@@ -67,7 +68,7 @@ def cached() -> set[tuple[str, str]]:
                 call = decorator.func if isinstance(decorator, ast.Call) else decorator
                 name = call.attr if isinstance(call, ast.Attribute) else getattr(call, "id", "")
                 if name in ("lru_cache", "cache"):
-                    found.add((module.name, node.name))
+                    found.add((module.where, node.name))
     return found
 
 

@@ -25,6 +25,7 @@ import pytest
 
 import corpora
 from conftest import GOVERNED
+from surface import names
 from roadkeep import linting
 from roadkeep.cli import EXIT_GATE, EXIT_OK, main
 from roadkeep.config import Config
@@ -212,16 +213,11 @@ def test_every_module_is_named_in_the_layout_index():
     `__init__` docstring is the authority on what is in it, which is this file's rule for
     every other module too. What is held is that the directory appears.
     """
-    package = HERE / "src" / "roadkeep"
     index = _layout_index()
-    modules = sorted(
-        {path.stem for path in package.glob("*.py") if path.stem != "__init__"}
-        | {path.name for path in package.iterdir() if (path / "__init__.py").exists()}
-    )
-    assert modules
+    assert names()
     unnamed = [
         module
-        for module in modules
+        for module in names()
         # Word boundaries that exclude `-` too: `blocking` must not answer for `locking`,
         # which is the false negative that hid one of the two missing entries.
         if not re.search(rf"(?<![\w-]){re.escape(module)}(?![\w-])", index)

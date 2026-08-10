@@ -119,14 +119,10 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 31 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 104 | 1 |
 | C — Query (consult without reading the file) | 0 | 73 | 1 |
-| D — The gate | 1 | 113 | 0 |
+| D — The gate | 0 | 114 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 91 | 1 |
-| **Total** | 1 | 486 | 6 |
-
-**Next ready:**
-
-- 🛠 **RK496** (deps: —) **A test surveying the package's source keeps passing once a directory of modules stops being covered by its glob** — What a survey reaches is decided by the layout it was written against, and nothing reports one whose reach stopped matching the package. → §RK496
+| **Total** | 0 | 487 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

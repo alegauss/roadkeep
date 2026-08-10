@@ -29,6 +29,7 @@ import pytest
 
 import roadkeep
 from conftest import git_commit, git_init, since_import
+from surface import modules
 from roadkeep.provenance import (
     MODIFIED,
     UNTRACKED,
@@ -260,8 +261,8 @@ def _spelled_literally() -> set[tuple[str, str]]:
     verbs = sorted({path.split()[0] for path in _parsers()})
     pattern = re.compile(r"roadkeep (" + "|".join(re.escape(verb) for verb in verbs) + r")\b")
     found: set[tuple[str, str]] = set()
-    for module in sorted((HERE / "src" / "roadkeep").rglob("*.py")):
-        tree = ast.parse(module.read_text(encoding="utf-8"))
+    for module in modules():
+        tree = ast.parse(module.text)
         docstrings = {
             id(node.body[0].value)
             for node in ast.walk(tree)
@@ -273,7 +274,7 @@ def _spelled_literally() -> set[tuple[str, str]]:
                 continue
             if id(node) in docstrings:
                 continue
-            found |= {(module.name, match.group(0)) for match in pattern.finditer(node.value)}
+            found |= {(module.where, match.group(0)) for match in pattern.finditer(node.value)}
     return found
 
 

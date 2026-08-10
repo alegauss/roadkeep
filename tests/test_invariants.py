@@ -33,6 +33,8 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
+from surface import PACKAGE, modules
+
 HERE = Path(__file__).resolve().parents[1]
 
 #: Where the six laws are stated authoritatively. `agents.md` carries a compressed copy and
@@ -178,10 +180,19 @@ INVARIANTS: tuple[Invariant, ...] = (
             "no module outside the renderer turns the served prefix into text, so a new "
             "surface is one change rather than forty"
         ),
-        # `every module of this package`, which the holder globs and nothing exports —
-        # RK478's case again, and the second of the two surfaces with no address.
-        over="",
+        # `every module of this package`, which had no address until RK496 gave it one: the
+        # holder globbed its own, and after RK494 it was answering about 43 of 51 files.
+        over="surface.modules",
         held_by="test_remedying::test_no_module_outside_the_renderer_spells_a_served_command",
+    ),
+    Invariant(
+        stated="RK496",
+        rule=(
+            "every survey over this package's source quantifies over all of it, and no test "
+            "derives a second view of which files that is"
+        ),
+        over="surface.modules",
+        held_by="test_invariants::test_no_survey_derives_its_own_view_of_the_package",
     ),
     Invariant(
         stated="RK490",
@@ -292,3 +303,52 @@ def test_a_holder_reaches_the_surface_its_row_names():
             isinstance(node, ast.Name) and node.id == named for node in ast.walk(body)
         ) or f"{named}" in ast.get_source_segment(source, body).replace(name, "")
         assert reached, f"{one.stated}: {one.held_by} never names {one.over}"
+
+
+# -- the surface the surveys share (RK496) ------------------------------------
+
+
+#: The two modules allowed to ask the filesystem for a set of `.py` files, and why: `surface`
+#: **is** the declaration, and this one reads `tests/` rather than the package — the single
+#: read that cannot come from the declaration it exists to check. Spelled as a list for
+#: `_MAY_SPELL`'s reason: an exemption nobody can see reads exactly like a rule being kept.
+_MAY_GLOB = frozenset({"surface.py", "test_invariants.py"})
+
+
+def test_no_survey_derives_its_own_view_of_the_package():
+    """RK496. Seven tests sweep every module of `roadkeep`, and each used to glob for them
+    inline — against whatever layout existed the day it was written. RK494 added
+    `src/roadkeep/verbs/` and its eight modules: two of the seven failed loudly, and **three
+    kept passing while covering nothing new**, which is a claim rather than a message.
+
+    Held at the source, for the reason the rows above are: a second file set agrees with this
+    one right up until the layout moves, which is the single moment either of them matters.
+    `surface.py` is the one module allowed to ask the filesystem what the package holds, so a
+    survey written tomorrow either imports the set or fails here.
+    """
+    asking = {}
+    for module in sorted(Path(__file__).parent.glob("*.py")):
+        for node in ast.walk(ast.parse(module.read_text(encoding="utf-8"))):
+            if not isinstance(node, ast.Call) or not isinstance(node.func, ast.Attribute):
+                continue
+            if node.func.attr not in ("glob", "rglob") or not node.args:
+                continue
+            first = node.args[0]
+            # A glob of the caller's own tmp_path or of some other file type is nobody's
+            # business here: what is held is the set of *this package's modules*.
+            if isinstance(first, ast.Constant) and str(first.value).endswith(".py"):
+                asking.setdefault(module.name, []).append(node.lineno)
+    assert set(asking) == _MAY_GLOB, asking
+    assert asking["surface.py"], "surface.py stopped reading the package at all"
+
+
+def test_the_declared_surface_reaches_the_directories_under_the_package():
+    """The half the gate above cannot hold. Every survey asking one set is worth nothing if
+    that set is the top level, and `glob` for `rglob` is a one-character regression that no
+    count would show. Decidable because a subpackage exists: `verbs/` is eight modules, and a
+    surface that stopped recursing answers about none of them while still answering.
+    """
+    inside = [one.name for one in PACKAGE.iterdir() if (one / "__init__.py").exists()]
+    assert inside, "the package holds no subpackage: this property stopped being decidable"
+    for one in inside:
+        assert any(module.where.startswith(f"{one}/") for module in modules()), one

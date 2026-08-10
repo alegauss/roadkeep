@@ -26,6 +26,7 @@ from pathlib import Path
 import pytest
 
 from roadkeep import remedying
+from surface import modules
 from roadkeep.backlog import Backlog
 from roadkeep.cli import build_parser
 from roadkeep.config import ROLES, Config
@@ -989,13 +990,12 @@ def test_no_module_outside_the_renderer_spells_a_served_command():
     spells it, so the seventh surface is one change here rather than forty out there.
     """
     composed = {}
-    for module in sorted(SOURCE.rglob("*.py")):
-        where = module.relative_to(SOURCE).as_posix()
-        if where in _MAY_SPELL:
+    for module in modules():
+        if module.where in _MAY_SPELL:
             continue
-        found = _spelling(module.read_text(encoding="utf-8"))
+        found = _spelling(module.text)
         if found:
-            composed[where] = found
+            composed[module.where] = found
     assert not composed, composed
 
 
@@ -1078,12 +1078,11 @@ def test_a_command_written_out_as_a_literal_is_one_of_four_and_each_says_why():
     verbs = _verbs()
     spelled = re.compile(r"\broadkeep ([a-z][a-z-]*)\b")
     found: dict[str, set[str]] = {}
-    for module in sorted(SOURCE.rglob("*.py")):
-        where = module.relative_to(SOURCE).as_posix()
-        for lineno, text in _literals(module.read_text(encoding="utf-8")):
+    for module in modules():
+        for lineno, text in _literals(module.text):
             for verb in spelled.findall(text):
                 if verb in verbs:
-                    found.setdefault(where, set()).add(f"{lineno}: roadkeep {verb}")
+                    found.setdefault(module.where, set()).add(f"{lineno}: roadkeep {verb}")
     assert set(found) == set(_MAY_WRITE_LITERALLY), found
     assert sum(len(where) for where in found.values()) == 4, found
 

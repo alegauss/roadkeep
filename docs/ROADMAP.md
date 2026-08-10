@@ -28,8 +28,6 @@
 
 ## Block D — The gate
 
-- 🛠 **RK496** (deps: —) **A test surveying the package's source keeps passing once a directory of modules stops being covered by its glob** — What a survey reaches is decided by the layout it was written against, and nothing reports one whose reach stopped matching the package. → §RK496
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

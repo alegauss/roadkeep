@@ -31,6 +31,7 @@ from pathlib import Path
 import pytest
 
 from conftest import git, git_commit, git_init
+from surface import modules
 
 import roadkeep
 from roadkeep.history import git_available
@@ -347,10 +348,8 @@ def test_every_supported_interpreter_is_claimed() -> None:
 def test_every_module_is_inside_a_package_find_would_collect() -> None:
     """A module in a directory with no `__init__.py` imports here and is absent there."""
     assert metadata()["tool"]["setuptools"]["packages"]["find"]["where"] == ["src"]
-    for module in PACKAGE.rglob("*.py"):
-        if "__pycache__" in module.parts:
-            continue
-        assert (module.parent / "__init__.py").is_file(), module
+    for module in modules():
+        assert (module.path.parent / "__init__.py").is_file(), module.where
 
 
 def test_the_console_script_resolves_to_something_callable() -> None:
