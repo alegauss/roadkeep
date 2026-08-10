@@ -659,6 +659,19 @@ class Replay:
     #: and `None` where it recorded none to compare. Not a verdict of its own: it is the reason
     #: a verdict may be about a different machine than the one the defect was on.
     drifted: tuple[str, ...] | None = None
+    #: Whether the capture's own re-run was refused before the verb ran (RK440), read back
+    #: here so the reader who *triages* gets the annotation and not only the one who took it
+    #: (RK443). The third reason not to trust a verdict, and the third to be stated beside
+    #: the sentence rather than folded into :attr:`reproduces`: this one reproduces by
+    #: construction — the same argv earns the same refusal every time — so the boolean is
+    #: right and what it is about is the refusal rather than the symptom above it.
+    #:
+    #: Derived from the recorded `exit` and never from a stored field, which is what makes it
+    #: reach the two captures Shio filed before RK440 existed — the whole population this is
+    #: about. The corpus gate is deliberately **not** wired to it: refusing such an entry
+    #: would fail this repository's own suite on captures that are honest records of a
+    #: mistyped argv, and which of the two a capture is takes meaning this tool has none of.
+    stopped: bool = False
 
     @property
     def ran(self) -> bool:
@@ -677,6 +690,16 @@ class Replay:
             )
         verdict = "still reproduces" if self.reproduces else "no longer reproduces"
         said = f"{verdict}: recorded exit {self.recorded_exit}, now {self.exit_code}"
+        # First of the three, and the only one that qualifies what the verdict is *about*
+        # rather than what it was reached under (RK443). Said on both verdicts, because a
+        # capture that stopped at a usage refusal is one whose evidence never reached the
+        # rule either way — and said first, since a reader who meets it after the caveat
+        # about environments has already read the sentence as being about the symptom.
+        if self.stopped:
+            return (
+                f"{said} — the capture's own re-run was refused before the verb ran, so "
+                f"this repeats that refusal and not the symptom it was filed under"
+            )
         # A *negative* verdict is an inference from an absence, and an unstaged environment is
         # another absence — so the two are said together or the first reads as a fix (RK341).
         # A positive one needs no caveat: the run just demonstrated it.
@@ -717,10 +740,16 @@ def replay(recorded: Mapping[str, object], workdir: str | Path) -> Replay:
     recorded_exit = int(recorded.get("exit", 0) or 0)
     stored = recorded.get("environment")
     drifted = _drifted(stored) if stored is not None else None
+    # From the recorded exit code and never from a stored field (RK443), which is what makes
+    # this reach the reports filed before RK440 wrote one: every capture ever taken carries
+    # `exit`, and 2 is this CLI's own word for "the call was wrong".
+    stopped = recorded_exit == _USAGE
     if missing:
-        # Keyword arguments from here down: three optional fields in one constructor is where a
+        # Keyword arguments from here down: four optional fields in one constructor is where a
         # positional call starts assigning one reason to another's slot.
-        return Replay(False, recorded_exit, 0, "", missing=missing, drifted=drifted)
+        return Replay(
+            False, recorded_exit, 0, "", missing=missing, drifted=drifted, stopped=stopped
+        )
 
     root = Path(workdir)
     (root / "roadkeep.toml").write_text(str(recorded["config"]), encoding="utf-8")
@@ -738,7 +767,9 @@ def replay(recorded: Mapping[str, object], workdir: str | Path) -> Replay:
     # nothing is claimed.
     unstaged = _unstaged(root)
     if unstaged:
-        return Replay(False, recorded_exit, 0, "", drifted=drifted, unstaged=unstaged)
+        return Replay(
+            False, recorded_exit, 0, "", drifted=drifted, unstaged=unstaged, stopped=stopped
+        )
 
     failure = observe(_repointed([str(part) for part in recorded["argv"]], root))
     where = recorded.get("where")
@@ -746,7 +777,12 @@ def replay(recorded: Mapping[str, object], workdir: str | Path) -> Replay:
         where is None or str(where) in failure.output
     )
     return Replay(
-        reproduces, recorded_exit, failure.exit_code, failure.output, drifted=drifted
+        reproduces,
+        recorded_exit,
+        failure.exit_code,
+        failure.output,
+        drifted=drifted,
+        stopped=stopped,
     )
 
 

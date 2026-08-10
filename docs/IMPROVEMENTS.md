@@ -108,28 +108,6 @@ nests is one where a reader looking for a heading per block will not find them.
 
 ## Block F — The plugin
 
-### §RK443 The verdict that agrees with a run nobody made
-
-RK440 gave the capture the annotation: a re-run that exited 2 never reached the verb, so
-the output under it is evidence about the command and not about the symptom. The capture
-says so in the report and on the reporting session's own stderr.
-
-`replay` is the other end and does not. Its verdict is the recorded exit code turning up
-again, and a usage refusal satisfies that by construction — the same argv earns the same
-refusal every time. So the command a maintainer runs to decide whether a field report is
-still live answers `still reproduces` about a run that proved nothing, and the corpus
-gate agrees. The annotation reaches the reader who took the capture and not the one who
-triages it.
-
-Nothing here is a new fact to record. Every capture already carries `exit`, so the shape
-is derivable at replay time from what the reports already on disk hold — including the
-two Shio filed before RK440 existed, which is the whole population this is about.
-
-Open is where the answer belongs. `Replay` already holds two reasons not to trust a
-verdict — `unstaged` and `drifted` — both stated beside the sentence rather than folded
-into `reproduces`, because a boolean meaning three things is one nobody can gate on.
-Whether the corpus gate should refuse such an entry is a separate judgement.
-
 ### §RK444 The only unconditional message points at the wrong engine
 
 RK82 gave the session its resident line and decided on purpose that it would not repeat

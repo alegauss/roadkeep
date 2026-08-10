@@ -474,3 +474,57 @@ def test_a_capture_written_before_the_format_changed_still_replays(tmp_path):
     recorded["document"], recorded["document_path"] = text, name  # how RK344 found them
     outcome = replay(recorded, staging(tmp_path))
     assert outcome.ran and outcome.reproduces, str(outcome)
+
+
+# -- the annotation the triaging reader was missing (RK443) --------------------
+
+
+def stopped_capture(tmp_path: Path) -> dict:
+    """A capture whose own re-run was refused before the verb ran — the shape two of Shio's
+    three field reports have, and the one whose evidence contradicts its claim."""
+    root = project(tmp_path)
+    found = capture(
+        SYMPTOM, WHY, "F", ["-C", str(root), "add", "--block", "A"], root, embed=True
+    )
+    return found.as_dict()
+
+
+def test_a_verdict_about_a_run_that_never_reached_the_verb_says_so(tmp_path):
+    """RK440 annotated the capture for whoever took it; the command a maintainer runs to
+    decide whether a field report is still live said `still reproduces` about a run that
+    proved nothing. It reproduces by construction — the same argv earns the same refusal —
+    so the boolean is right and what it is about is the refusal."""
+    outcome = replay(stopped_capture(tmp_path / "theirs"), staging(tmp_path))
+    assert outcome.ran and outcome.reproduces and outcome.stopped
+    assert "refused before the verb ran" in str(outcome)
+    assert "not the symptom it was filed under" in str(outcome)
+
+
+def test_a_capture_that_reached_the_verb_carries_no_such_caveat(tmp_path):
+    outcome = replay(recorded_from(tmp_path / "theirs"), staging(tmp_path))
+    assert outcome.ran and outcome.reproduces and not outcome.stopped
+    assert "refused before the verb ran" not in str(outcome)
+
+
+def test_the_caveat_is_derived_from_the_exit_the_capture_already_carried(tmp_path):
+    """Never from a stored field, which is what makes it reach the two reports Shio filed
+    before RK440 wrote one: every capture ever taken carries `exit`."""
+    recorded = stopped_capture(tmp_path / "theirs")
+    recorded.pop("stopped")  # how a capture taken before RK440 arrives
+    assert replay(recorded, staging(tmp_path)).stopped
+
+
+def test_the_caveat_never_moves_the_verdict_or_the_gate(tmp_path, capsys):
+    """The corpus gate is deliberately not wired to it: refusing such an entry would fail
+    this repository's own suite on captures that are honest records of a mistyped argv, and
+    which of the two a capture is takes meaning this tool has none of (L4)."""
+    recorded = stopped_capture(tmp_path / "theirs")
+    path = tmp_path / "stopped.json"
+    path.write_text(json.dumps(recorded), encoding="utf-8")
+    assert main(["replay", str(path)]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "still reproduces" in printed and "refused before the verb ran" in printed
+
+    assert main(["replay", str(path), "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["stopped"] is True and payload["reproduces"] is True

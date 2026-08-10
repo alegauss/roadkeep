@@ -7820,6 +7820,11 @@ def _replay(config: Config, args: argparse.Namespace) -> int:
                     # "nothing drifted" and "nothing to compare" are different answers, and a
                     # reader that cannot tell them apart is the defect this closes.
                     "drifted": None if outcome.drifted is None else list(outcome.drifted),
+                    # The third reason not to trust the verdict (RK443), beside the other two
+                    # and never folded into `reproduces` — this one reproduces by
+                    # construction, and what it is about is the refusal rather than the
+                    # symptom the capture was filed under.
+                    "stopped": outcome.stopped,
                 },
                 indent=2,
             )

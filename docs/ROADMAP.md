@@ -34,7 +34,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK443** (deps: —) **A stored capture that never reached the verb replays as reproducing the symptom it was filed under** — The verdict is the recorded exit code turning up again, which a usage refusal always does, so the triage command says `still reproduces` about evidence the capture calls unreached. → §RK443
 - 📋 **RK444** (deps: —) **An agent that never hand-edits is never told the tools exist, the deny being the only place that names them** — The SessionStart notice is the only message every adopting session gets, and it names the shell alone, so the list the deny orders correctly waits behind a refused edit. → §RK444
 
 ## Non-goals

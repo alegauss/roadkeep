@@ -121,12 +121,12 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 67 | 1 |
 | D — The gate | 0 | 91 | 0 |
 | E — Adoption | 1 | 73 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 2 | 71 | 1 |
-| **Total** | 3 | 434 | 6 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 72 | 1 |
+| **Total** | 2 | 435 | 6 |
 
 **Next ready:**
 
-- 📋 **RK443** (deps: —) **A stored capture that never reached the verb replays as reproducing the symptom it was filed under** — The verdict is the recorded exit code turning up again, which a usage refusal always does, so the triage command says `still reproduces` about evidence the capture calls unreached. → §RK443
+- 📋 **RK444** (deps: —) **An agent that never hand-edits is never told the tools exist, the deny being the only place that names them** — The SessionStart notice is the only message every adopting session gets, and it names the shell alone, so the list the deny orders correctly waits behind a refused edit. → §RK444
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
