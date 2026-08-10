@@ -58,7 +58,7 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 
-from .config import ROLES, Config
+from .config import PROSE_ROLES, ROLES, Config
 from .schema import Dep
 
 #: The six kinds, in the order a caller pays for them: nothing, one write, one read then a
@@ -910,7 +910,11 @@ def remedy(finding: object, config: Config | None = None) -> Remedy | None:
     label = _label(subject, config)
     doors = tuple(
         Door(
-            _substitute(argv, subject, lineno, label, getattr(finding, "file", "")),
+            _scoped(
+                _substitute(argv, subject, lineno, label, getattr(finding, "file", "")),
+                finding,
+                config,
+            ),
             what,
             foreign=rule.foreign,
         )
@@ -993,6 +997,35 @@ def _empty_region(finding: object, config: Config) -> bool:
         return False
     later = next((one for one in document.headings if one.lineno == lineno), None)
     return later is not None and closes_by_drop(document, later, files, label)
+
+
+def _scoped(argv: tuple[str, ...], finding: object, config: Config | None) -> tuple[str, ...]:
+    """Name which prose file a `section` verb is about, where the project has two (RK470).
+
+    RK420 promises a complete argv, and on a project declaring one prose file it was: every
+    `section` verb defaults to that file. On one declaring two it was not. Measured by
+    running `repair` over a copy of Turing:
+
+        docs/STRATEGY.md:683  section.stale  XIV.2 …
+        FAILED  section drop XIV.2
+        roadkeep: no §XIV.2 section in docs/IMPROVEMENTS.md
+
+    The finding names one file and the remedy opened the other. `--role` is a flag all four
+    verbs already take, and the finding already says which file it is about — so nothing new
+    is read, and the completion is derived here rather than written into five rows that would
+    each carry a word most projects do not need.
+
+    **Only where the project declares more than one**, which is the question §RK470 left open:
+    on a single-file project the flag names the default and is a word that changes nothing,
+    and these argvs are read by people as well as run by `repair`.
+    """
+    if config is None or argv[:1] != ("section",) or "--role" in argv:
+        return argv
+    declared = [role for role in PROSE_ROLES if config.has(role)]
+    role = _role_of(finding, config)
+    if len(declared) < 2 or role not in declared:
+        return argv
+    return (*argv, "--role", role)
 
 
 def _role_of(finding: object, config: Config) -> str:

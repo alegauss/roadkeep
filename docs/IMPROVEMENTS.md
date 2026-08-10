@@ -81,34 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK470 The remedy that is complete on one file
-
-RK420 promises a complete argv where one exists, with the id and the line already
-substituted. On a project declaring two prose files it is not complete. Measured by
-running `repair` over a copy of Turing:
-
-    docs/STRATEGY.md:683  section.stale  XIV.2: T630 is in the changelog …
-    FAILED  section drop XIV.2
-    roadkeep: no §XIV.2 section in docs/IMPROVEMENTS.md
-
-The finding names `docs/STRATEGY.md` and the remedy looked in the improvements file,
-because `section drop` defaults to the role a project with one prose file has and the
-table's argv never says which. `--role` is a flag the command already takes; the row
-does not pass it.
-
-Three rows are affected — `section.stale`, `section.unreachable` and `section.drop`'s
-neighbours — and they are exactly the codes reported *about a prose file*, which is
-where `_role_of` already answers: `id.duplicate` varies on it (RK420's own `varies`), so
-the reader exists and the mechanism does too.
-
-It is invisible on every project that declares one prose file, which is this repository
-and most adopters, and certain on the ones that declare two — the same corpus RK340 and
-RK346 were written for.
-
-Open: whether the role belongs in every remedy that names an anchor, or only where the
-project declares more than one file, since a `--role` on a single-file project is a word
-that changes nothing.
-
 ### §RK471 The count that counts attempts
 
 `repair` runs every finding whose remedy is a complete command and prints what it cannot

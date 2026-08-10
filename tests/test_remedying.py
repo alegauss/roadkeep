@@ -778,3 +778,77 @@ def test_the_row_declares_what_it_varies_with(tmp_path):
     described = explain("block.repeated", Config.default())
     assert described is not None and described.varies == "region"
     assert "later region holds anything" in str(described)
+
+
+# -- which prose file the remedy is about (RK470) -----------------------------
+
+
+def _two_prose(tmp_path: Path) -> Config:
+    """A project declaring both prose files, which is what makes `--role` load-bearing."""
+    config = _project(tmp_path)
+    (tmp_path / "roadkeep.toml").write_text(
+        (tmp_path / "roadkeep.toml").read_text(encoding="utf-8")
+        + 'strategy = "STRATEGY.md"\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "STRATEGY.md").write_text(
+        "# Strategy\n\n## Block A — The model\n\n### §RK1 A design\n\nProse.\n",
+        encoding="utf-8",
+    )
+    return Config.discover(tmp_path)
+
+
+def test_a_section_remedy_names_the_file_the_finding_is_about(tmp_path):
+    """RK420 promises a complete argv, and on a project with one prose file it was: every
+    `section` verb defaults to that file. Measured on Turing, which declares two: a
+    `section.stale` at `docs/STRATEGY.md` produced `section drop XIV.2`, which opened
+    `docs/IMPROVEMENTS.md` and answered `no §XIV.2 section` — a remedy that cannot close its
+    own finding."""
+    config = _two_prose(tmp_path)
+    on_strategy = Finding("section.stale", "STRATEGY.md", "", 5, "RK1")
+    assert remedy(on_strategy, config).doors[0].argv == (
+        "section", "drop", "RK1", "--role", "strategy",
+    )
+    on_improvements = Finding("section.stale", "IMPROVEMENTS.md", "", 5, "RK1")
+    assert remedy(on_improvements, config).doors[0].argv == (
+        "section", "drop", "RK1", "--role", "improvements",
+    )
+
+
+def test_a_project_with_one_prose_file_is_given_no_such_word(tmp_path):
+    """The question §RK470 left open: on a single-file project the flag names the default and
+    changes nothing, and these argvs are read by people as well as run by `repair`."""
+    config = _project(tmp_path)
+    found = remedy(Finding("section.stale", "IMPROVEMENTS.md", "", 5, "RK1"), config)
+    assert found.doors[0].argv == ("section", "drop", "RK1")
+
+
+def test_every_section_verb_is_scoped_and_nothing_else_is(tmp_path):
+    """Derived here rather than written into five rows: `section add`, `amend`, `drop` and
+    `move` all take `--role`, and a remedy that names a *task* is about an id rather than a
+    file — `show RK1` finds its own section."""
+    config = _two_prose(tmp_path)
+    for code in codes():
+        found = remedy(Finding(code, "STRATEGY.md", "", 5, "RK1"), config)
+        assert found is not None, code
+        for door in found.doors:
+            if door.argv[:1] == ("section",):
+                assert door.argv[-2:] == ("--role", "strategy"), f"{code}: {door.argv}"
+    # And it touches nothing else. `priority.block-paused` answers `list --role deferred`,
+    # whose role the *table* wrote and which names the store rather than a prose file — so
+    # the claim is that this appends to `section` argvs, not that nothing else carries one.
+    for argv in (
+        ("list", "--role", "deferred"),
+        ("show", "RK1"),
+        ("anchors",),
+        ("lint", "--fix"),
+    ):
+        assert remedying._scoped(argv, Finding("x", "STRATEGY.md", "", 5, "RK1"), config) == argv
+
+
+def test_the_scoped_argv_is_one_the_cli_accepts(tmp_path):
+    """The same rule every door is held to: a flag appended here that the verb does not take
+    would be a remedy that exits 2."""
+    config = _two_prose(tmp_path)
+    found = remedy(Finding("section.stale", "STRATEGY.md", "", 5, "RK1"), config)
+    build_parser().parse_args(list(found.doors[0].argv))
