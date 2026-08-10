@@ -109,6 +109,32 @@ map rather than the exceptions is still reading the wide answer.
 
 ## Block D — The gate
 
+### §RK460 The run that got faster and the one that got slower
+
+RK457 made `-n auto` the default and the full run went 5m07s to 41 s. Measured on the
+same machine, 28 cores, straight after:
+
+    one file (13 tests)   -n auto  43.2 s      -n0  1.3 s
+    one test              -n auto   5.9 s      -n0  0.8 s
+
+So the loop an agent actually runs — edit one module, run its file, edit again — went
+thirty-three times slower, and the run that got faster is the one made least often.
+
+The multiplier is this suite's own setup and not xdist's. A worker imports `conftest`
+before it runs anything, and that import fingerprints the checkout and copies the
+governed files (RK263, RK315). One test spread over 28 workers pays that 28 times to run
+13 assertions, which is why the single *test* costs 5.9 s while the single file costs
+43.
+
+Three shapes answer it and they are not equivalent. A smaller `auto` — `-n logical` is
+the same number here — moves the constant without removing it. Making the per-worker
+setup lazy, so a worker that runs no test needing the checkout never fingerprints one,
+removes it where it is paid for nothing. And distributing by file would keep a one-file
+run on one worker, which is the case measured worst.
+
+Open: whether the default should depend on what was collected at all, since pytest knows
+the count before it distributes and 13 tests never wanted 28 workers.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
