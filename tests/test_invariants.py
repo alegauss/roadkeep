@@ -218,6 +218,15 @@ INVARIANTS: tuple[Invariant, ...] = (
         held_by="test_backstop::test_every_code_a_write_refuses_has_a_row",
     ),
     Invariant(
+        stated="RK1005",
+        rule=(
+            "every key a `--json` payload promises a reader outside this process is still "
+            "in it, one level into the rows a client walks"
+        ),
+        over="test_payloads.PROMISED",
+        held_by="test_payloads::test_the_top_level_keys_a_client_is_promised_are_there",
+    ),
+    Invariant(
         stated="RK490",
         rule=(
             "every field a remedy row may name between braces is one the finding answers, "

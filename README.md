@@ -122,12 +122,12 @@ called unbuilt were already in the ledger.
 | D — The gate | 1 | 120 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 91 | 1 |
-| G — The editor surface (the backlog where the file is open) | 7 | 0 | 0 |
-| **Total** | 8 | 496 | 6 |
+| G — The editor surface (the backlog where the file is open) | 6 | 1 | 0 |
+| **Total** | 7 | 497 | 6 |
 
 **Next ready:**
 
-- 🛠 **RK1005** (deps: —) **No test reads a `--json` payload as an outside client would, so a renamed key breaks one and nothing here fails** — An editor view is a second reader of these payloads, in another language and on its own clock, so the shape stops being an implementation detail once one exists. → §RK1005
+- 📋 **RK1011** (deps: —) **No package this repository builds is one an editor can load, so nothing it answers is reachable without a shell** — A list, a diagnostic and a write door each need a host that activates on a governed workspace and holds a place in the sidebar, and there is no host. → §RK1011
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

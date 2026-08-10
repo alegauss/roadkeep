@@ -530,3 +530,4 @@
 
 ## Block G — The editor surface (the backlog where the file is open)
 
+- ✅ **RK1005** **No test reads a `--json` payload as an outside client would, so a renamed key breaks one and nothing here fails** — A test reads the four payloads by key over this repository's own docs, so a promised key that is renamed goes red here before a client outside the process meets it.

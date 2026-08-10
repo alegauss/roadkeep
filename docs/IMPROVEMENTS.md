@@ -110,21 +110,6 @@ code, and prose under an unreadable address is still clean.
 
 ## Block G — The editor surface (the backlog where the file is open)
 
-### §RK1005 A payload with no declared shape
-
-Every query already prints `--json`, and inside this package that is enough: the tests
-reading a payload are the tests that wrote it, so a renamed key moves both ends in one
-commit. A reader outside the process breaks that arrangement. It is another language, it
-ships on its own clock, and it reads `list`, `deps`, `lint` and `pick` as data — so the
-first rename here lands as a broken view there and a green suite here.
-
-The answer is not a schema file, which is a second declaration to drift from the first.
-It is a test that reads the payloads the way a client does: by key, over this
-repository's own `docs/` as the fixture, asserting the keys a client is promised rather
-than the whole shape. A payload that gains a field is compatible and must stay green;
-one that loses a promised key must not. That test is also where the promise is written
-down — what it reads is the contract, and every key it does not read stays free to move.
-
 ### §RK1006 The list, where the file is open
 
 A person with `ROADMAP.md` open sees 320-character lines under six headings. The order
