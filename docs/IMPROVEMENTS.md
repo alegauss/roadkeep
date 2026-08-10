@@ -77,6 +77,32 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK497 The one ledger finding the write path does not hold
+
+Measured here, at the cost the law predicts. RK495's `ship --why` cited a path from its
+own reproduction; the ship reported success, the entry landed, the commit was made, and
+the finding was read off an unrelated test run afterwards — `path.missing`, exit 1, in
+the file the ship had just written. Repairing it took a second commit describing nothing
+shipped.
+
+A refusal at `ship` costs a retry with a corrected sentence. A finding after the write
+costs a commit, a `record amend`, and a reader seeing two commits where one decision was
+made.
+
+Every other ledger rule is held at the write — length, terminator, marker, block
+heading. This one is not, because it is the only check whose subject is outside the
+governed files: it asks git what the repository holds. The gate pays that read every run
+and RK223 made it one listing rather than one per entry, so what it costs the three
+verbs writing an entry is that listing.
+
+RK295 is the precedent and the boundary: a *scope* naming an absent path is reported and
+never refused, a path declared before the file exists being ordinary. A shipped entry is
+the opposite claim — the work is done — which is the gate's own argument for reading the
+ledger alone.
+
+What proves it: the RK495 sentence is refused at `ship`, a roadmap `why` naming it still
+passes, and a path the repository declares it will never track is not a refusal.
+
 ## Block C — Query
 
 ## Block D — The gate

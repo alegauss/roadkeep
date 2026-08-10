@@ -24,6 +24,8 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK497** (deps: —) **A ship writes a why naming a path the repository lacks, and the gate then refuses the file the ship just wrote** — L1 puts the schema where the text is created, and this is the one thing the gate reports about a ledger entry that no write refuses before the prose exists. → §RK497
+
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate

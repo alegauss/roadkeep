@@ -117,12 +117,16 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 31 | 2 |
-| B — Authoring (insert, never hand-edit) | 0 | 104 | 1 |
+| B — Authoring (insert, never hand-edit) | 1 | 104 | 1 |
 | C — Query (consult without reading the file) | 0 | 73 | 1 |
 | D — The gate | 0 | 114 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 91 | 1 |
-| **Total** | 0 | 487 | 6 |
+| **Total** | 1 | 487 | 6 |
+
+**Next ready:**
+
+- 📋 **RK497** (deps: —) **A ship writes a why naming a path the repository lacks, and the gate then refuses the file the ship just wrote** — L1 puts the schema where the text is created, and this is the one thing the gate reports about a ledger entry that no write refuses before the prose exists. → §RK497
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
