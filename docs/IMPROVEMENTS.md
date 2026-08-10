@@ -81,6 +81,32 @@ already written, not authorship.
 
 ## Block D — The gate
 
+### §RK473 The property the corpora could already prove
+
+Three defects in a row were the same shape: a remedy the report names that cannot close
+the finding it is under. `block.repeated` named `block drop` and dispatched `block
+merge` (RK468); `section drop` opened the wrong prose file on a project declaring two
+(RK470); and a drop blocked by a claimed nested section was dispatched and refused on
+every run, forever (RK472). Each was found by running `repair` over a copy of Turing by
+hand, one per sitting.
+
+`tests/test_corpora.py` already pins both live trees and already runs the gate over
+them, asserting only that it does not raise — which is the right floor and stops short
+of the property these three broke. The trees are there, the fixture is there, and what
+is missing is the assertion.
+
+The property is exact and needs no new reader. Copy the corpus, run `repair`, and hold
+two things: every step it dispatched either exits 0 **or** is a refusal the remedy
+should not have offered, and running it twice closes nothing the first run left. The
+second half is what RK472 was — a repair that never succeeds walks past `MAX_PASSES`,
+because nothing changed and nothing looped.
+
+It costs a copy of two trees and one `repair` each, which is the same order as the
+round-trip property already run over them.
+
+Open: whether a corpus whose remedies are all blocked should fail or skip, since a tree
+that legitimately needs a human for everything proves nothing about this.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
