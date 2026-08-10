@@ -136,6 +136,7 @@ from __future__ import annotations
 
 import atexit
 import shutil
+import os
 import subprocess
 import tempfile
 import time
@@ -459,3 +460,61 @@ def _volatile_caches():
             f"{home}: `engine` is process-constant and cleared for nothing, so patching what "
             f"it reads means adding it to VOLATILE in tests/conftest.py"
         )
+
+
+# -- one repository, one author (RK456) ---------------------------------------
+
+#: What identity and configuration a test repository gets, without spending a process on
+#: either. Four of the seven `git` calls a fixture used to make bought nothing that this
+#: environment does not: identity is what `user.email` and `user.name` were for, and the two
+#: `GIT_CONFIG_*` paths make the fixture independent of whatever this machine declares — a
+#: global `commit.gpgsign` or `init.defaultBranch` is a fact these tests used to inherit, so
+#: this is hermeticity first and 214 ms → 161 ms per repository second.
+GIT_ENVIRONMENT = {
+    "GIT_AUTHOR_NAME": "Test",
+    "GIT_AUTHOR_EMAIL": "test@example.invalid",
+    "GIT_COMMITTER_NAME": "Test",
+    "GIT_COMMITTER_EMAIL": "test@example.invalid",
+    # A path git can read and will find nothing in, on both platforms this runs on.
+    "GIT_CONFIG_GLOBAL": os.devnull,
+    "GIT_CONFIG_SYSTEM": os.devnull,
+    # Set here rather than passed per call, so a repository built by one helper and read by
+    # another agrees with itself about what its first branch is called.
+    "GIT_CONFIG_COUNT": "0",
+}
+
+
+def git(root: Path, *args: str) -> str:
+    """Run one git command in ``root`` and return its stdout.
+
+    The suite's one runner (RK456). Eleven files each held a copy — `test_history` clones and
+    moves files, `test_weighing` only ships — so a change to how a test repository is built
+    was a change eleven files had to agree to make, which is the divergence `Schema.render`
+    is the only writer of a line to avoid, one layer out.
+    """
+    result = subprocess.run(
+        ["git", "-C", str(root), *args],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=True,
+        env={**os.environ, **GIT_ENVIRONMENT},
+    )
+    return result.stdout
+
+
+def git_init(root: Path) -> None:
+    """One process, where a fixture used to spend four (RK456)."""
+    root.mkdir(parents=True, exist_ok=True)
+    git(root, "init", "--quiet")
+
+
+def git_commit(root: Path, message: str) -> str:
+    """Stage everything and commit it, returning the sha.
+
+    `-c commit.gpgsign=false` on the one call that commits, rather than a `config` process
+    per repository: signing is a property of this call and of nothing else the fixture does.
+    """
+    git(root, "add", "-A")
+    git(root, "-c", "commit.gpgsign=false", "commit", "--quiet", "-m", message)
+    return git(root, "rev-parse", "HEAD").strip()

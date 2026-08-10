@@ -19,6 +19,8 @@ from pathlib import Path
 
 import pytest
 
+from conftest import git, git_init
+
 from roadkeep.cli import EXIT_OK, main
 from roadkeep.config import Config
 from roadkeep.history import git_available
@@ -55,21 +57,10 @@ CONFIG = (
 )
 
 
-def git(root: Path, *args: str) -> str:
-    return subprocess.run(
-        ["git", "-C", str(root), *args],
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        check=True,
-    ).stdout
 
 
 def repo(tmp_path: Path, committed: bool = True) -> Config:
-    git(tmp_path, "init", "--quiet")
-    git(tmp_path, "config", "user.email", "test@example.invalid")
-    git(tmp_path, "config", "user.name", "Test")
-    git(tmp_path, "config", "commit.gpgsign", "false")
+    git_init(tmp_path)
     write(tmp_path, "roadkeep.toml", CONFIG)
     write(tmp_path, "ROADMAP.md", ROADMAP)
     write(tmp_path, "CHANGELOG.md", LEDGER)

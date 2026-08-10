@@ -14,6 +14,8 @@ from pathlib import Path
 
 import pytest
 
+from conftest import git, git_init, git_commit
+
 from roadkeep import claiming
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
@@ -44,37 +46,21 @@ HERE = Path(__file__).resolve().parents[1]
 pytestmark = pytest.mark.skipif(not git_available(), reason="git is not on PATH")
 
 
-def git(root: Path, *args: str) -> str:
-    result = subprocess.run(
-        ["git", "-C", str(root), *args],
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        check=True,
-    )
-    return result.stdout
 
 
 def repo(tmp_path: Path) -> Config:
     """A real git repository with a roadmap, a ledger and a config."""
-    git(tmp_path, "init", "--quiet")
-    git(tmp_path, "config", "user.email", "test@example.invalid")
-    git(tmp_path, "config", "user.name", "Test")
-    git(tmp_path, "config", "commit.gpgsign", "false")
+    git_init(tmp_path)
     (tmp_path / "roadkeep.toml").write_text(
         'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n',
         encoding="utf-8",
     )
     (tmp_path / "ROADMAP.md").write_text("## Block A — The model\n", encoding="utf-8")
     (tmp_path / "CHANGELOG.md").write_text("## Block A — The model\n", encoding="utf-8")
-    commit(tmp_path, "chore: bootstrap")
+    git_commit(tmp_path, "chore: bootstrap")
     return Config.discover(tmp_path)
 
 
-def commit(root: Path, message: str) -> str:
-    git(root, "add", "-A")
-    git(root, "commit", "--quiet", "-m", message)
-    return git(root, "rev-parse", "HEAD").strip()
 
 
 def append(path: Path, text: str) -> None:
@@ -87,7 +73,7 @@ def propose(config: Config, task_id: str, message: str) -> str:
         config.path("roadmap"),
         f"- {DESIGNED} **{task_id}** (deps: —) **A symptom** — a reason. → §{task_id}\n",
     )
-    return commit(config.root, message)
+    return git_commit(config.root, message)
 
 
 def ship(config: Config, task_id: str, message: str) -> str:
@@ -102,7 +88,7 @@ def ship(config: Config, task_id: str, message: str) -> str:
         config.path("changelog"),
         f"- {SHIPPED} **{task_id}** **A symptom** — a reason.\n",
     )
-    return commit(config.root, message)
+    return git_commit(config.root, message)
 
 
 # -- resolving ---------------------------------------------------------------
@@ -160,7 +146,7 @@ def test_the_first_commit_wins_when_a_line_is_edited_later(tmp_path):
         roadmap.read_text(encoding="utf-8").replace("a reason.", "a better reason."),
         encoding="utf-8",
     )
-    commit(config.root, "docs: reword RK1")
+    git_commit(config.root, "docs: reword RK1")
     # Where the task entered, not where it was last touched.
     assert origin_of(config, "RK1").proposed_in.sha == proposed
 
@@ -189,7 +175,7 @@ def test_a_squash_keeps_the_reasoning_reachable_and_loses_only_the_proposal(tmp_
     base = git(config.root, "rev-list", "--max-parents=0", "HEAD").strip()
 
     git(config.root, "reset", "--soft", base)
-    squashed = commit(config.root, "feat: everything at once (RK1)")
+    squashed = git_commit(config.root, "feat: everything at once (RK1)")
 
     origin = origin_of(config, "RK1")
     # The squash left the roadmap exactly as it found it, so there is no diff in which
@@ -280,7 +266,7 @@ def drop(config: Config, task_id: str, message: str) -> str:
         ),
         encoding="utf-8",
     )
-    return commit(config.root, message)
+    return git_commit(config.root, message)
 
 
 def test_a_number_nothing_ever_carried_is_never_carried_and_not_unresolvable(tmp_path):
@@ -350,7 +336,7 @@ def prose(config: Config, name: str = "IMPROVEMENTS.md") -> Path:
 
 def design(config: Config, heading: str, message: str) -> str:
     append(config.path("improvements"), f"\n{heading}\n\nThe reasoning.\n")
-    return commit(config.root, message)
+    return git_commit(config.root, message)
 
 
 def unwrite(config: Config, heading: str, message: str) -> str:
@@ -361,7 +347,7 @@ def unwrite(config: Config, heading: str, message: str) -> str:
         if line.rstrip("\n") != heading
     ]
     path.write_text("".join(kept), encoding="utf-8")
-    return commit(config.root, message)
+    return git_commit(config.root, message)
 
 
 def test_a_citation_of_a_shipped_design_resolves_to_the_commit_that_took_it(tmp_path, capsys):
@@ -511,7 +497,7 @@ def test_an_address_removed_before_it_was_ever_added_here_is_still_spent(tmp_pat
         path.read_text(encoding="utf-8") + "\n### XL.7 An older design\n\nProse.\n",
         encoding="utf-8",
     )
-    commit(config.root, "docs: import the outline")
+    git_commit(config.root, "docs: import the outline")
     unwrite(config, "### XL.7 An older design", "feat: it shipped")
 
     assert [one.anchor for one in anchors(config, "improvements", "XL")] == ["XL.7"]
@@ -642,7 +628,7 @@ def test_a_ship_names_what_the_tree_holds_that_its_claim_does_not(tmp_path, caps
         config.path("roadmap"),
         f"- {IN_PROGRESS} **RK2** (deps: —) **A symptom** — a reason.\n",
     )
-    commit(tmp_path, "chore: a line under way")
+    git_commit(tmp_path, "chore: a line under way")
     try:
         claiming.follow(tmp_path, "RK2", IN_PROGRESS, config.document("roadmap").entries)
         claiming.scope(config, "RK2", ["mine.py"])
@@ -668,7 +654,7 @@ def test_the_command_marks_a_declared_path_that_would_stage_nothing(tmp_path, ca
         config.path("roadmap"),
         f"- {IN_PROGRESS} **RK2** (deps: —) **A symptom** — a reason.\n",
     )
-    commit(tmp_path, "chore: a line under way")
+    git_commit(tmp_path, "chore: a line under way")
     try:
         claiming.follow(tmp_path, "RK2", IN_PROGRESS, config.document("roadmap").entries)
         (tmp_path / "mine.py").write_text("x = 1\n", encoding="utf-8")
@@ -694,7 +680,7 @@ def test_the_verb_that_answered_that_before_the_ship_no_longer_does(tmp_path, ca
         config.path("roadmap"),
         f"- {IN_PROGRESS} **RK2** (deps: —) **A symptom** — a reason.\n",
     )
-    commit(tmp_path, "chore: a line under way")
+    git_commit(tmp_path, "chore: a line under way")
     try:
         claiming.follow(tmp_path, "RK2", IN_PROGRESS, config.document("roadmap").entries)
         claiming.scope(config, "RK2", ["mine.py"])
@@ -714,7 +700,7 @@ def test_a_path_holding_a_space_survives_the_staging_line(tmp_path, capsys):
         config.path("roadmap"),
         f"- {IN_PROGRESS} **RK2** (deps: —) **A symptom** — a reason.\n",
     )
-    commit(tmp_path, "chore: a line under way")
+    git_commit(tmp_path, "chore: a line under way")
     try:
         claiming.follow(tmp_path, "RK2", IN_PROGRESS, config.document("roadmap").entries)
         claiming.scope(config, "RK2", ["a file.py", "plain.py"])
@@ -732,7 +718,7 @@ def test_a_ship_in_a_project_no_claim_spoke_for_reports_nothing(tmp_path, capsys
         config.path("roadmap"),
         "- \U0001f4cb **RK2** (deps: —) **A symptom** — a reason.\n",
     )
-    commit(tmp_path, "chore: a line")
+    git_commit(tmp_path, "chore: a line")
     (tmp_path / "stray.py").write_text("y = 2\n", encoding="utf-8")
     assert main(["-C", str(tmp_path), "ship", "RK2", "--why", "it works now."]) == EXIT_OK
     assert "loose" not in capsys.readouterr().out
@@ -749,7 +735,7 @@ def test_the_staging_line_holds_the_governed_files_the_ship_itself_wrote(tmp_pat
         config.path("roadmap"),
         f"- {IN_PROGRESS} **RK2** (deps: —) **A symptom** — a reason.\n",
     )
-    commit(tmp_path, "chore: a line under way")
+    git_commit(tmp_path, "chore: a line under way")
     try:
         claiming.follow(tmp_path, "RK2", IN_PROGRESS, config.document("roadmap").entries)
         claiming.scope(config, "RK2", ["mine.py"])  # the code, and nothing the tool writes
@@ -775,7 +761,7 @@ def test_the_declaration_and_the_record_stay_two_fields(tmp_path, capsys):
         config.path("roadmap"),
         f"- {IN_PROGRESS} **RK2** (deps: —) **A symptom** — a reason.\n",
     )
-    commit(tmp_path, "chore: a line under way")
+    git_commit(tmp_path, "chore: a line under way")
     try:
         claiming.follow(tmp_path, "RK2", IN_PROGRESS, config.document("roadmap").entries)
         claiming.scope(config, "RK2", ["mine.py"])
@@ -800,7 +786,7 @@ def test_a_retirement_answers_for_its_own_writes_as_a_ship_does(tmp_path, capsys
         config.path("roadmap"),
         f"- {IN_PROGRESS} **RK2** (deps: —) **A symptom** — a reason.\n",
     )
-    commit(tmp_path, "chore: a line under way")
+    git_commit(tmp_path, "chore: a line under way")
     try:
         claiming.follow(tmp_path, "RK2", IN_PROGRESS, config.document("roadmap").entries)
         claiming.scope(config, "RK2", ["mine.py"])
@@ -823,7 +809,7 @@ def test_a_ship_no_claim_spoke_for_stays_silent_about_what_it_wrote(tmp_path, ca
         config.path("roadmap"),
         f"- {DESIGNED} **RK2** (deps: —) **A symptom** — a reason.\n",
     )
-    commit(tmp_path, "chore: a line")
+    git_commit(tmp_path, "chore: a line")
     assert main(["-C", str(tmp_path), "ship", "RK2", "--why", "it works now."]) == EXIT_OK
     assert "stage" not in capsys.readouterr().out
 
@@ -953,13 +939,13 @@ def two_files(tmp_path: Path) -> Config:
     )
     with (config.root / "roadkeep.toml").open("a", encoding="utf-8") as handle:
         handle.write('strategy = "STRATEGY.md"\n')
-    commit(config.root, "docs: declare the plan")
+    git_commit(config.root, "docs: declare the plan")
     return Config.discover(tmp_path)
 
 
 def plan(config: Config, heading: str, message: str) -> str:
     append(config.path("strategy"), f"\n{heading}\n\nThe reasoning.\n")
-    return commit(config.root, message)
+    return git_commit(config.root, message)
 
 
 def test_the_addresses_are_the_projects_and_not_the_first_files(tmp_path):
@@ -1068,7 +1054,7 @@ def unwrite_in(config: Config, role: str, heading: str, message: str) -> str:
         if line.rstrip("\n") != heading
     ]
     path.write_text("".join(kept), encoding="utf-8")
-    return commit(config.root, message)
+    return git_commit(config.root, message)
 
 
 # -- the family a block's prose lives under (RK312) ---------------------------
@@ -1256,7 +1242,7 @@ def excused_the_pointer(tmp_path: Path) -> Config:
         config.path("roadmap"),
         f"\n## Block Q — Serving\n\n- {DESIGNED} **RK9** (deps: —) **A symptom** — a reason.\n",
     )
-    commit(tmp_path, "chore: a line with no pointer")
+    git_commit(tmp_path, "chore: a line with no pointer")
     return Config.discover(tmp_path)
 
 
@@ -1286,7 +1272,7 @@ def test_the_return_from_the_store_answers_the_same_way(tmp_path, capsys):
         "## Block Q — Serving\n\n- ⏸ **RK9** (deps: —) **A symptom** — a reason (paused: waiting).\n",
         encoding="utf-8",
     )
-    commit(tmp_path, "chore: a paused line with no pointer")
+    git_commit(tmp_path, "chore: a paused line with no pointer")
     config = Config.discover(tmp_path)
     assert main(["-C", str(config.root), "resume", "RK9"]) == EXIT_USAGE
 
@@ -1380,7 +1366,7 @@ def test_the_free_top_level_is_read_per_namespace(tmp_path, capsys):
     # Unprefixed in the file: the namespace rides on the pointer, and the heading keeps the
     # number this file wrote — which is what makes `S:IV` and `XVII` two numberings and not one.
     append(config.path("strategy"), "\n### IV.1 A plan\n\nThe reasoning.\n")
-    commit(tmp_path, "docs: a second outline of its own")
+    git_commit(tmp_path, "docs: a second outline of its own")
 
     # A leading segment naming no family, so this is the top-level branch and not RK363's.
     assert (
@@ -1411,7 +1397,7 @@ def imported_without_a_pointer(tmp_path: Path) -> Config:
         config.path("roadmap"),
         f"- {DESIGNED} **RK9** (deps: —) **A symptom** — a reason.\n",
     )
-    commit(tmp_path, "chore: an imported line with no pointer")
+    git_commit(tmp_path, "chore: an imported line with no pointer")
     return Config.discover(tmp_path)
 
 
@@ -1471,7 +1457,7 @@ def test_a_paused_line_that_moves_is_still_judged_by_the_stores_own_grammar(tmp_
         "## Block Q — Serving\n\n- ⏸ **RK9** (deps: —) **A symptom** — a reason (paused: waiting).\n",
         encoding="utf-8",
     )
-    commit(tmp_path, "chore: a paused line with no pointer")
+    git_commit(tmp_path, "chore: a paused line with no pointer")
     assert main(["-C", str(tmp_path), "renumber", "RK9", "--to", "RK12"]) == EXIT_OK
     assert "RK12" in (config.root / "DEFERRED.md").read_text(encoding="utf-8")
 
@@ -1486,7 +1472,7 @@ def claimed(tmp_path: Path) -> Config:
         config.path("roadmap"),
         f"- {DESIGNED} **RK2** (deps: —) **A symptom** — a reason. → §RK2\n",
     )
-    commit(tmp_path, "chore: a line to take")
+    git_commit(tmp_path, "chore: a line to take")
     config = Config.discover(tmp_path)
     # The write a claim makes: the marker moves, which is the diff the read-back has to read.
     assert main(["-C", str(tmp_path), "status", "RK2", IN_PROGRESS]) == EXIT_OK
@@ -1568,7 +1554,7 @@ def test_a_near_id_does_not_answer_for_this_one(tmp_path):
         config.path("roadmap"),
         f"- {DESIGNED} **RK25** (deps: —) **A symptom** — a reason.\n",
     )
-    commit(tmp_path, "chore: a neighbour")
+    git_commit(tmp_path, "chore: a neighbour")
     append(config.path("roadmap"), f"- {DESIGNED} **RK251** (deps: —) **Another** — a reason.\n")
 
     assert carrying(config, "RK251", ["ROADMAP.md"]) == ("ROADMAP.md",)
@@ -1583,7 +1569,7 @@ def test_a_removed_line_counts_because_that_is_what_a_departure_leaves(tmp_path)
         config.path("roadmap"),
         f"- {DESIGNED} **RK2** (deps: —) **A symptom** — a reason.\n",
     )
-    commit(tmp_path, "chore: a line to remove")
+    git_commit(tmp_path, "chore: a line to remove")
     kept = [
         one
         for one in config.path("roadmap").read_text(encoding="utf-8").splitlines(keepends=True)

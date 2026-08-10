@@ -28,6 +28,8 @@ from pathlib import Path
 
 import pytest
 
+from conftest import git, git_init
+
 from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.history import HistoryUnavailable, git_available
@@ -72,15 +74,6 @@ The reasoning the first line has no room for.
 """
 
 
-def git(root: Path, *args: str) -> str:
-    result = subprocess.run(
-        ["git", "-C", str(root), *args],
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        check=True,
-    )
-    return result.stdout
 
 
 def write(root: Path, name: str, body: str) -> None:
@@ -93,10 +86,7 @@ def repo(
     tmp_path: Path, config: str = CONFIG, files: dict[str, str] | None = None
 ) -> Config:
     """A committed project carrying one standing problem, plus whatever a test adds."""
-    git(tmp_path, "init", "--quiet")
-    git(tmp_path, "config", "user.email", "test@example.invalid")
-    git(tmp_path, "config", "user.name", "Test")
-    git(tmp_path, "config", "commit.gpgsign", "false")
+    git_init(tmp_path)
     write(tmp_path, "roadkeep.toml", config)
     write(tmp_path, "ROADMAP.md", ROADMAP)
     write(tmp_path, "CHANGELOG.md", LEDGER)

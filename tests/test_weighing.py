@@ -18,6 +18,8 @@ from pathlib import Path
 
 import pytest
 
+from conftest import git, git_init, git_commit
+
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.history import added_ids, costs_of, git_available
@@ -30,22 +32,10 @@ HERE = Path(__file__).resolve().parents[1]
 pytestmark = pytest.mark.skipif(not git_available(), reason="git is not on PATH")
 
 
-def git(root: Path, *args: str) -> str:
-    result = subprocess.run(
-        ["git", "-C", str(root), *args],
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        check=True,
-    )
-    return result.stdout
 
 
 def repo(tmp_path: Path) -> Config:
-    git(tmp_path, "init", "--quiet")
-    git(tmp_path, "config", "user.email", "test@example.invalid")
-    git(tmp_path, "config", "user.name", "Test")
-    git(tmp_path, "config", "commit.gpgsign", "false")
+    git_init(tmp_path)
     (tmp_path / "roadkeep.toml").write_text(
         'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n',
         encoding="utf-8",
@@ -54,14 +44,10 @@ def repo(tmp_path: Path) -> Config:
     (tmp_path / "CHANGELOG.md").write_text(
         "## Block A — The model\n\n## Block B — Authoring\n", encoding="utf-8"
     )
-    commit(tmp_path, "chore: bootstrap")
+    git_commit(tmp_path, "chore: bootstrap")
     return Config.discover(tmp_path)
 
 
-def commit(root: Path, message: str) -> str:
-    git(root, "add", "-A")
-    git(root, "commit", "--quiet", "-m", message)
-    return git(root, "rev-parse", "HEAD").strip()
 
 
 def ship(config: Config, task_id: str, block: str = "A", weight: int = 3) -> str:
@@ -77,7 +63,7 @@ def ship(config: Config, task_id: str, block: str = "A", weight: int = 3) -> str
     (config.root / f"{task_id}.py").write_text(
         "".join(f"line {n}\n" for n in range(weight)), encoding="utf-8"
     )
-    return commit(config.root, f"feat: {task_id}")
+    return git_commit(config.root, f"feat: {task_id}")
 
 
 # -- the derivation -----------------------------------------------------------
@@ -144,7 +130,7 @@ def ship_together(config: Config, ids: tuple[str, ...], block: str = "A", weight
     (config.root / f"{'_'.join(ids)}.py").write_text(
         "".join(f"line {n}\n" for n in range(weight)), encoding="utf-8"
     )
-    return commit(config.root, f"feat: {', '.join(ids)}")
+    return git_commit(config.root, f"feat: {', '.join(ids)}")
 
 
 # -- one commit, many entries, one number (RK94) ------------------------------

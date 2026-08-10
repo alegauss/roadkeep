@@ -109,29 +109,6 @@ map rather than the exceptions is still reading the wide answer.
 
 ## Block D — The gate
 
-### §RK456 One repository, eleven ways to build it
-
-Eleven test files build a git repository per test, each from its own copy of the helper:
-`init --quiet`, then three `config` calls, then `add`, `commit`, `rev-parse`. Seven
-processes, measured at 214 ms per repository here — 47 ms for `init` and 20 ms for each
-`config`, which is what a process costs on this platform.
-
-Four of the seven are avoidable without moving a single assertion. Identity belongs in
-the environment (`GIT_AUTHOR_*`, `GIT_COMMITTER_*`), signing in a `-c
-commit.gpgsign=false` on the one call that commits, and `GIT_CONFIG_GLOBAL` and
-`GIT_CONFIG_SYSTEM` pointed at nothing make the fixture independent of whatever this
-machine's user configuration says — which is hermeticity and not only speed, since a
-global `commit.gpgsign` or `init.defaultBranch` is a fact these tests currently inherit.
-Measured that way: 161 ms per repository, a quarter off, over the three hundred-odd
-tests that build one.
-
-The copies are the other half, and the one this project already has a rule about.
-`Schema.render` is the only writer of a line for the same reason a fixture should have
-one author: the divergence is already there — `test_history` clones and moves files,
-`test_weighing` only ships — so a change to how a test repository is built is a change
-eleven files have to agree to make, and the suite's shared facts already live in
-`tests/conftest.py`.
-
 ### §RK457 The run is what stands between an edit and knowing
 
 A full run is 2865 tests in 5m07s here, paid before an edit is known to hold — and paid

@@ -37,6 +37,8 @@ from pathlib import Path
 
 import pytest
 
+from conftest import git_commit, git_init
+
 from roadkeep.cli import EXIT_OK, build_parser, main
 from roadkeep.guarding import (
     _INSTEAD,
@@ -81,18 +83,8 @@ def committed(tmp_path: Path, *, roadmap: str = CLEAN) -> Path:
     lines it changed since. A repository with no commits is the other branch, asserted below.
     """
     project(tmp_path, roadmap=roadmap)
-    for args in (
-        ["init", "-q"],
-        ["config", "user.email", "t@example.com"],
-        ["config", "user.name", "T"],
-        ["config", "commit.gpgsign", "false"],
-        ["add", "-A"],
-        ["commit", "-qm", "adopted with drift in it"],
-    ):
-        done = subprocess.run(
-            ["git", "-C", str(tmp_path), *args], capture_output=True, text=True, check=False
-        )
-        assert done.returncode == 0, done.stderr
+    git_init(tmp_path)
+    git_commit(tmp_path, "adopted with drift in it")
     return tmp_path
 
 

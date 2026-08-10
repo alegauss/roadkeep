@@ -30,7 +30,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK456** (deps: —) **Eleven test files each build a git repository per test, with seven processes and a private copy of the helper** — One fixture written eleven times is eleven grammars for one act, and four of those seven spawns buy nothing: 214 ms per repository where 161 ms reads the same. → §RK456
 - 📋 **RK457** (deps: RK455 ✅) **The suite runs only in series, so a full run is five minutes before any change is known to hold** — Nothing declares the run parallel, and the cost is spawns rather than one hot spot: sixteen workers finish the same 2865 tests in under a minute here. → §RK457
 - 📋 **RK458** (deps: RK457) **A test passes alone and fails when another file's test has run before it in the same worker** — The serial order is the only one this suite has ever run, so a coupling nothing declares is held in place by it and surfaces once in five parallel runs. → §RK458
 

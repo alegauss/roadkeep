@@ -18,6 +18,8 @@ from pathlib import Path
 
 import pytest
 
+from conftest import git, git_init
+
 from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.history import HistoryUnavailable
@@ -343,16 +345,12 @@ def test_the_command_prints_what_it_wrote_and_what_it_did_not_run(tmp_path, caps
 def repository(tmp_path: Path) -> Config:
     """A project that is also a git repository, because `.git/config` is what is being read."""
     config = project(tmp_path)
-    subprocess.run(["git", "-C", str(tmp_path), "init", "-q"], check=True, capture_output=True)
+    git_init(tmp_path)
     return config
 
 
 def set_driver(tmp_path: Path, value: str) -> None:
-    subprocess.run(
-        ["git", "-C", str(tmp_path), "config", "--local", DRIVER_KEY, value],
-        check=True,
-        capture_output=True,
-    )
+    git(tmp_path, "config", "--local", DRIVER_KEY, value)
 
 
 def test_a_checkout_with_no_driver_says_so_rather_than_nothing(tmp_path):

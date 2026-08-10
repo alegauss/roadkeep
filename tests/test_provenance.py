@@ -28,7 +28,7 @@ from pathlib import Path
 import pytest
 
 import roadkeep
-from conftest import since_import
+from conftest import git_commit, git_init, since_import
 from roadkeep.provenance import (
     MODIFIED,
     UNTRACKED,
@@ -42,10 +42,6 @@ from roadkeep.provenance import (
 )
 
 HERE = Path(__file__).resolve().parents[1]
-
-
-def git(root: Path, *args: str) -> None:
-    subprocess.run(["git", "-C", str(root), *args], check=True, capture_output=True)
 
 
 # -- what it reports here ----------------------------------------------------
@@ -335,10 +331,9 @@ def test_a_copy_under_someone_elses_repository_borrows_no_commit_from_it(tmp_pat
     Real: a wheel unpacked into a virtualenv inside a project checkout. `rev-parse` alone
     answers happily there, and the answer describes the project rather than the engine.
     """
-    git(tmp_path, "init", "--quiet")
+    git_init(tmp_path)
     (tmp_path / "unrelated.txt").write_text("someone else's work\n", encoding="utf-8")
-    git(tmp_path, "add", ".")
-    git(tmp_path, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "theirs")
+    git_commit(tmp_path, "theirs")
 
     # The whole package, as a wheel would land it: nothing about this copy is special
     # except that the repository around it has never heard of it.

@@ -119,14 +119,14 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 31 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 103 | 1 |
 | C — Query (consult without reading the file) | 1 | 68 | 1 |
-| D — The gate | 3 | 95 | 0 |
+| D — The gate | 2 | 96 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 75 | 1 |
-| **Total** | 4 | 446 | 6 |
+| **Total** | 3 | 447 | 6 |
 
 **Next ready:**
 
-- 📋 **RK456** (deps: —) **Eleven test files each build a git repository per test, with seven processes and a private copy of the helper** — One fixture written eleven times is eleven grammars for one act, and four of those seven spawns buy nothing: 214 ms per repository where 161 ms reads the same. → §RK456
+- 📋 **RK457** (deps: RK455 ✅) **The suite runs only in series, so a full run is five minutes before any change is known to hold** — Nothing declares the run parallel, and the cost is spawns rather than one hot spot: sixteen workers finish the same 2865 tests in under a minute here. → §RK457
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

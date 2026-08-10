@@ -29,6 +29,8 @@ from pathlib import Path
 
 import pytest
 
+from conftest import git, git_commit, git_init
+
 import roadkeep
 from roadkeep.history import git_available
 
@@ -95,9 +97,6 @@ def clone_of_the_hook(root: Path) -> None:
     import shutil
     import subprocess
 
-    def git(*args: str) -> None:
-        subprocess.run(["git", "-C", str(root), *args], check=True, capture_output=True)
-
     for relative in ("scripts/bump_version.py", "src/roadkeep/__init__.py", ".claude-plugin/plugin.json"):
         target = root / relative
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -105,13 +104,10 @@ def clone_of_the_hook(root: Path) -> None:
     (root / ".githooks").mkdir()
     shutil.copy2(HERE / ".githooks" / "pre-commit", root / ".githooks" / "pre-commit")
 
-    git("init", "--quiet")
-    git("config", "user.email", "test@example.invalid")
-    git("config", "user.name", "Test")
-    git("config", "commit.gpgsign", "false")
-    git("config", "core.hooksPath", ".githooks")
-    git("add", "-A")
-    git("commit", "--quiet", "-m", "chore: bootstrap")
+    git_init(root)
+    # The one setting this fixture is actually about: the hook path is what it asserts on.
+    git(root, "config", "core.hooksPath", ".githooks")
+    git_commit(root, "chore: bootstrap")
 
 
 @pytest.mark.skipif(not git_available(), reason="git is not on PATH")
