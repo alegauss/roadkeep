@@ -64,6 +64,9 @@ CONFIG = (
 #: real one uses: what is under test is the *branch*, not the harness's naming scheme.
 SERVED = "mcp__roadkeep__"
 
+#: A vendored surface `install` refreshes — what makes `Notice` grow its second clause.
+VENDORED = ".claude/skills/roadkeep/SKILL.md"
+
 #: Verbs a message may offer in a shell and not as a call, each with the reason it is not an
 #: oversight. Stated here rather than filtered in silence, so a third one is a decision:
 #:
@@ -73,6 +76,16 @@ SERVED = "mcp__roadkeep__"
 _SHELL_ONLY = {
     "lint --fix": "`--fix` writes, so the tool surface withholds it by derivation (RK16)",
     "<command> --help": "argparse's screen; no tool serves a help page",
+}
+
+#: Verbs **no tool serves at all**, each with why the surface has none — kept apart from
+#: `_SHELL_ONLY` because the two are different facts (RK486): that one is a flag a served
+#: command withholds, and these are commands the surface never had. Folding them together
+#: would let a served read fall into the list on the strength of the wrong reason, which is
+#: the RK463 defect. Asserted against `TOOLS` below, so an entry cannot go stale.
+_UNSERVED = {
+    "init": "scaffolds a project that has no config yet, so there is no server to call",
+    "install": "wires the harness itself, which is what a session would be calling through",
 }
 
 
@@ -90,32 +103,45 @@ def project(tmp_path: Path) -> Path:
     return tmp_path
 
 
-def messages(root: Path) -> dict[str, tuple[object, object]]:
-    """Every message this package blocks or opens a turn with, in both spellings.
+def shapes(root: Path) -> dict[str, tuple[object, object]]:
+    """Every **rendering** these messages reach, in both spellings, one entry per shape.
+
+    Per shape and not per message (RK486). RK480 built one of each and called that coverage;
+    driving `install` end to end showed the gap — drift a vendored `SKILL.md` and the
+    `SessionStart` notice grows a clause naming `install`, and the plain `Notice` this
+    fixture built names no route at all. `Refusal` is the same: `exists` renders two files.
 
     Constructed rather than driven through the hooks: what is under test is the rendering,
-    and a fixture that has to *provoke* four different events would exercise the triggers
+    and a fixture that had to *provoke* four different events would exercise the triggers
     instead. That each is wired to read `serving(root)` is asserted where it is wired —
     `tests/test_attesting.py` holds the one that was not (RK479).
     """
     config = Config.discover(root)
     report = lint(config)
+
+    def both(build) -> tuple[object, object]:
+        return build(SERVED), build("")
+
     return {
-        "Refusal": (
-            Refusal(tool="Edit", path=ROADMAP, role="roadmap", served=SERVED),
-            Refusal(tool="Edit", path=ROADMAP, role="roadmap", served=""),
+        "Refusal": both(
+            lambda served: Refusal(tool="Edit", path=ROADMAP, role="roadmap", served=served)
         ),
-        "Review": (
-            Review(report=report, served=SERVED, config=config),
-            Review(report=report, served="", config=config),
+        "Refusal.absent": both(
+            lambda served: Refusal(
+                tool="Edit", path=ROADMAP, role="roadmap", served=served, exists=False
+            )
         ),
-        "Notice": (
-            Notice(files=(ROADMAP, CHANGELOG), served=SERVED),
-            Notice(files=(ROADMAP, CHANGELOG), served=""),
+        "Review": both(
+            lambda served: Review(report=report, served=served, config=config)
         ),
-        "Unattested": (
-            Unattested(files=(("roadmap", ROADMAP),), served=SERVED),
-            Unattested(files=(("roadmap", ROADMAP),), served=""),
+        "Notice": both(lambda served: Notice(files=(ROADMAP, CHANGELOG), served=served)),
+        "Notice.drifted": both(
+            lambda served: Notice(
+                files=(ROADMAP, CHANGELOG), served=served, stale=(VENDORED,)
+            )
+        ),
+        "Unattested": both(
+            lambda served: Unattested(files=(("roadmap", ROADMAP),), served=served)
         ),
     }
 
@@ -170,12 +196,15 @@ def spelled(text: str) -> set[str]:
     return {tool.command for tool in TOOLS if tool.name in named}
 
 
-@pytest.mark.parametrize("name", ["Refusal", "Review", "Notice", "Unattested"])
+@pytest.mark.parametrize(
+    "name",
+    ["Refusal", "Refusal.absent", "Review", "Notice", "Notice.drifted", "Unattested"],
+)
 def test_every_verb_a_message_offers_in_a_shell_it_offers_as_a_call(tmp_path, name):
     """The defect six tasks closed by hand, stated as the shape it leaves: a session with
     tools reads a route only its shell half names, on a machine RK57 may have left without
     one. The two exceptions are named in `_SHELL_ONLY` and asserted to be the whole list."""
-    served, shell = messages(project(tmp_path))[name]
+    served, shell = shapes(project(tmp_path))[name]
     # The exception is taken **per line and not per verb**: `lint --fix` is excused and
     # `lint` is not, so excusing the head would have excused the one RK448 moved. Measured —
     # reverting RK448 with the verb-wide form left this sweep green.
@@ -184,7 +213,7 @@ def test_every_verb_a_message_offers_in_a_shell_it_offers_as_a_call(tmp_path, na
         for line in str(shell).splitlines()
         if not any(one in line for one in _SHELL_ONLY)
     )
-    withheld = offered(kept) - spelled(str(served))
+    withheld = offered(kept) - spelled(str(served)) - set(_UNSERVED)
     assert not withheld, (
         f"{name} offers {sorted(withheld)} in a shell and names no tool for them: either the "
         f"served rendering has to spell them, or the reason belongs in _SHELL_ONLY"
@@ -208,7 +237,40 @@ def test_the_sweep_reaches_every_message_that_blocks_a_turn(tmp_path):
         and any(one.name == "served" for one in dataclasses.fields(obj))
     }
     assert len(carrying) == 4, sorted(carrying)
-    assert {one.rsplit(".", 1)[1] for one in carrying} == set(messages(project(tmp_path)))
+    built = shapes(project(tmp_path))
+    reached = {one.split(".")[0] for one in built}
+    assert {one.rsplit(".", 1)[1] for one in carrying} == reached
+
+
+def test_every_field_that_changes_what_a_message_says_has_a_shape(tmp_path):
+    """RK486's own mechanism: a message is not one rendering, and counting it as one is how
+    `Notice`'s drift clause — which names `install` — stayed outside a sweep whose whole
+    claim is coverage.
+
+    So the optional fields are the inventory. One that never takes a non-default value in
+    any shape is a rendering nobody sweeps, and it leaves silently unless this fails."""
+    import dataclasses
+
+    from roadkeep import attesting, guarding
+
+    built = shapes(project(tmp_path))
+    for module in (guarding, attesting):
+        for name, obj in vars(module).items():
+            if not (dataclasses.is_dataclass(obj) and isinstance(obj, type)):
+                continue
+            if obj.__module__ != module.__name__:
+                continue
+            if not any(one.name == "served" for one in dataclasses.fields(obj)):
+                continue
+            mine = [one for key, one in built.items() if key.split(".")[0] == name]
+            for field in dataclasses.fields(obj):
+                if field.name == "served" or field.default is dataclasses.MISSING:
+                    continue
+                moved = any(getattr(shape, field.name) != field.default for shape, _ in mine)
+                assert moved, (
+                    f"{name}.{field.name} never leaves its default in any shape: add one to "
+                    f"`shapes`, or this field's rendering is outside the sweep"
+                )
 
 
 def test_what_the_sweep_lets_through_says_why(tmp_path):
@@ -217,8 +279,13 @@ def test_what_the_sweep_lets_through_says_why(tmp_path):
     from roadkeep.serving import TOOLS
 
     assert all(reason for reason in _SHELL_ONLY.values())
+    assert all(reason for reason in _UNSERVED.values())
+    # And they really are unserved: an entry that became a tool is an exception hiding a
+    # route the sweep exists to find.
+    served_now = {tool.command for tool in TOOLS}
+    assert served_now.isdisjoint(_UNSERVED), sorted(served_now & set(_UNSERVED))
     lint_ = next(tool for tool in TOOLS if tool.command == "lint")
     assert "fix" not in lint_.exposes, "the surface exposes --fix; the exception is stale"
     # And the sweep sees them: both appear in the shell rendering it compares against.
-    shell = str(messages(project(tmp_path))["Refusal"][1])
+    shell = str(shapes(project(tmp_path))["Refusal"][1])
     assert all(one in shell for one in _SHELL_ONLY)
