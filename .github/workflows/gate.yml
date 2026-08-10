@@ -143,3 +143,47 @@ jobs:
           else
             echo "::warning::$reader refuses a payload the pinned reader accepts — raise CLAUDE_VERSION in the payload job and fix what it names, before a session that loads this plugin meets it"
           fi
+
+  # The sixth surface, and the one written in a language nothing else here speaks (RK1010).
+  #
+  # The argument for keeping the client in this tree is the one that decided the stdio server:
+  # what has to be avoided is a *second implementation of the rules*, and the only thing that
+  # keeps a reader honest is a test running it against the command that answers it. Across two
+  # repositories that test belongs to neither, and a client grows a Markdown parser the first
+  # time a round trip feels slow.
+  #
+  # So it is gated the same way everything else here is — against this repository's own
+  # `docs/` — and the Python side gains no dependency and no build step. The manifest, the
+  # archive and the scan that holds the client to carrying no rule are all read by pytest,
+  # which needs nothing. What needs node is the harness: the editor stubbed, the tool real.
+  #
+  # **A skip is a green**, which the payload job above already had to learn. `tests/test_editor.py`
+  # skips its harness cases when node is absent, so this job pins one and asserts it answered
+  # *before* running them — without that step, a runner image that dropped node would report
+  # this surface as proven while testing none of it.
+  client:
+    name: the editor host
+    runs-on: ubuntu-latest
+    env:
+      # A version and not a channel, for `CLAUDE_VERSION`'s reason: what gates a merge has to
+      # be a fact somebody can read off this file months later. Raised deliberately — the
+      # client uses no API newer than this, and the manifest says which editor it targets.
+      NODE_VERSION: "20"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - run: pip install ".[dev]"
+      # The assertion that the harness ran at all, and that it ran on the version this job
+      # named — the same two facts the payload job asks of its own reader.
+      - name: node answers, and it is the version this job named
+        run: node --version | grep -F "v$NODE_VERSION."
+      - run: python -m pytest -q tests/test_editor.py tests/test_payloads.py
+      # What an installing reader actually takes. Built from the files in the tree, with no
+      # toolchain — so a break here is this repository's own and not a vendor's.
+      - name: the archive an editor installs
+        run: python scripts/build_vsix.py

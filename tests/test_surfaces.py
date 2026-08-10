@@ -110,7 +110,7 @@ def test_the_surfaces_are_valid_yaml():
     hooks = yaml.safe_load(HOOKS.read_text(encoding="utf-8"))
     assert [hook["id"] for hook in hooks] == ["roadkeep-lint", "roadkeep-lint-fix"]
     workflow = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))
-    assert set(workflow["jobs"]) == {"lint", "tests", "payload", "drift"}
+    assert set(workflow["jobs"]) == {"lint", "tests", "payload", "drift", "client"}
 
 
 def test_the_job_that_may_not_skip_fails_where_its_reader_is_missing():
@@ -190,3 +190,40 @@ def test_the_channel_is_asked_where_its_answer_cannot_gate_a_merge():
     # Named in the advice and never expanded: telling a reader which number to raise is the
     # useful half, and reading it here would be the number living in two jobs.
     assert "$CLAUDE_VERSION" not in script and "CLAUDE_VERSION" not in job.get("env", {})
+
+
+def test_the_client_job_asserts_its_reader_ran_before_it_reports():
+    """RK1010, and `payload`'s lesson one surface over: **a skip is a green**.
+
+    The editor host is the sixth surface and the only one written in a language nothing else
+    here speaks. Most of what proves it needs nothing — the manifest, the archive and the scan
+    holding it to carrying no rule are read by pytest — but the harness that runs the client
+    against the real command needs node, and `tests/test_editor.py` skips those cases without
+    it. So the job pins a version and asserts node answered *before* the tests run: without
+    that step a runner image that dropped node would report this surface as proven while
+    testing none of it, which is exactly what `claude --version` is doing two jobs up.
+
+    And the archive is built here rather than only read: what an installing reader takes is
+    written from the files in this tree with no toolchain, so a break in it is this
+    repository's own and there is no vendor to wait for.
+    """
+    yaml = pytest.importorskip("yaml", reason="pyyaml is not installed")
+    job = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))["jobs"]["client"]
+    pinned = job["env"]["NODE_VERSION"]
+    assert re.fullmatch(r"\d+", str(pinned)), pinned
+    steps = "\n".join(step.get("run", "") for step in job["steps"])
+    assert 'node --version | grep -F "v$NODE_VERSION."' in steps
+    assert "pytest -q tests/test_editor.py" in steps
+    assert "scripts/build_vsix.py" in steps
+    # No dependency and no build step on the Python side, which is the half of RK1010 that is
+    # about this repository rather than about the client.
+    assert "npm" not in steps and "npx" not in steps
+
+
+def test_the_client_is_gated_against_this_repository_s_own_docs():
+    """The same fixture everything else here is gated on. A client tested against a fixture of
+    its own is a client that agrees with a file nobody ships."""
+    yaml = pytest.importorskip("yaml", reason="pyyaml is not installed")
+    job = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))["jobs"]["client"]
+    assert any(step.get("uses", "").startswith("actions/checkout") for step in job["steps"])
+    assert any(step.get("uses", "").startswith("actions/setup-node") for step in job["steps"])

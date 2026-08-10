@@ -122,12 +122,12 @@ called unbuilt were already in the ledger.
 | D — The gate | 3 | 120 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 91 | 1 |
-| G — The editor surface (the backlog where the file is open) | 2 | 7 | 0 |
-| **Total** | 6 | 503 | 6 |
+| G — The editor surface (the backlog where the file is open) | 1 | 8 | 0 |
+| **Total** | 5 | 504 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1010** (deps: RK1011 ✅) **A surface written in another language has no gate in this tree, so CI proves the Python and nothing proves the client** — Five surfaces already ship from here with no build step, and the sixth brings a toolchain, a marketplace and a version bumped every commit. → §RK1010
+- 📋 **RK1012** (deps: —) **A pointer can resolve to a heading with no prose, or to one with no title, and the gate reports neither** — Both are refused at the door and RK1004 measured them as the two states of forty-three that a file can hold with nothing saying so. → §RK1012
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

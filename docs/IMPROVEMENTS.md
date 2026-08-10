@@ -179,27 +179,6 @@ named, and the file is still inside the budget it declares.
 
 ## Block G — The editor surface (the backlog where the file is open)
 
-### §RK1010 Where the client lives, and what proves it
-
-The action, the pre-commit hook, the plugin, the skill and the stdio server all ship
-from this tree, and each is declarative: a YAML file or a Markdown file, no build, no
-dependency tree. A packaged editor extension is not that. It is a compiled language, a
-lockfile, and a publisher account, in a repository whose stated cost is zero runtime
-dependencies.
-
-The argument for keeping it here anyway is the one that decided the stdio server: the
-failure to avoid is a second implementation of the rules, and the only thing that keeps
-a client honest is a test that runs the client against the command that answers it.
-Across two repositories that test belongs to neither, and the client grows a Markdown
-parser the first time a round trip feels slow.
-
-So: a subdirectory with its own manifest and its own job, gated on this repository's own
-`docs/`, and a Python side that gains no dependency and no build step. The split stays
-cheap on purpose — a client that never parses the file is a few hundred lines with
-nothing to port — so if the publishing cadence turns out to fight a version this
-repository bumps every commit, moving it out is a decision made later with evidence
-rather than now without.
-
 ### §RK1017 The read that is about the tool and not about the backlog
 
 Counted from what the view does: every save re-runs `list`, `engines`, `lint` and one

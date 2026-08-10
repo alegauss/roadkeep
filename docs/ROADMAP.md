@@ -42,7 +42,6 @@
 
 ## Block G — The editor surface (the backlog where the file is open)
 
-- 📋 **RK1010** (deps: RK1011 ✅) **A surface written in another language has no gate in this tree, so CI proves the Python and nothing proves the client** — Five surfaces already ship from here with no build step, and the sixth brings a toolchain, a marketplace and a version bumped every commit. → §RK1010
 - 📋 **RK1017** (deps: —) **Every save re-asks which copy of the tool answered, so a keystroke costs a subprocess and a git call** — That question is about the installation and not about the file, and the package itself asks it once per process and never on a path that writes. → §RK1017
 
 ## Non-goals
