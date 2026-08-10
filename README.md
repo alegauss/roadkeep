@@ -121,8 +121,8 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 72 | 1 |
 | D — The gate | 0 | 108 | 0 |
 | E — Adoption | 0 | 74 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 86 | 1 |
-| **Total** | 0 | 474 | 6 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 87 | 1 |
+| **Total** | 0 | 475 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

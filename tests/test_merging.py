@@ -18,7 +18,7 @@ from pathlib import Path
 
 import pytest
 
-from conftest import git, git_init
+from conftest import git, git_commit, git_init
 
 from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
@@ -800,6 +800,42 @@ def test_following_the_repair_the_check_names_ends_the_check(tmp_path, capsys):
     subprocess.run(shlex.split(config_command()), cwd=tmp_path, check=True, capture_output=True)
     assert main(["-C", str(tmp_path), "merge", "--check"]) == EXIT_OK
     assert "fix" not in capsys.readouterr().out
+
+
+def test_git_itself_reaches_the_driver_and_reads_back_a_line_it_can_act_on(tmp_path):
+    """The whole wiring, driven by git rather than called directly (RK484).
+
+    Everything above hands `merge` three paths itself, which is the one way the driver is
+    never actually used. Run through `git merge`, the arguments are `%O %A %B` — temporary
+    files git deletes on return — so the capture line RK86 appends named three files that
+    were gone before it finished printing, on the verb where the offer is worth most.
+
+    Asserted here and not only over `offer`, because what makes it wrong is the caller: the
+    argv is git's, and nothing in this package composes it.
+    """
+    repository(tmp_path)
+    # The changelog needs the heading too, because `add` refuses to file under a block one
+    # governed file declares and another does not.
+    (tmp_path / CHANGELOG).write_text("# Shipped\n\n## Block A — The model\n", encoding="utf-8")
+    assert main(["-C", str(tmp_path), "merge", "--register"]) == EXIT_OK
+    subprocess.run(shlex.split(config_command()), cwd=tmp_path, check=True, capture_output=True)
+    git_commit(tmp_path, "base")
+    # Whatever this git calls its first branch — the name is a version's default and not a
+    # fact this test is about.
+    start = git(tmp_path, "rev-parse", "--abbrev-ref", "HEAD").strip()
+    for branch, symptom in (("theirs", "theirs appended here"), ("ours", "ours appended here")):
+        git(tmp_path, "checkout", "-q", "-B", branch, start)
+        assert main(["-C", str(tmp_path), "add", "--block", "A", "--symptom",
+                     f"A line {symptom} under one heading", "--why", "Because."]) == EXIT_OK
+        git(tmp_path, "add", "-A")
+        git_commit(tmp_path, f"{branch} adds")
+    done = subprocess.run(
+        ["git", "merge", "theirs"], cwd=tmp_path, capture_output=True, text=True, check=False
+    )
+    said = done.stdout + done.stderr
+    assert "both branches created" in said, said
+    assert ".merge_file_" not in said, said
+    assert "git rev-parse HEAD MERGE_HEAD" in said, said
 
 
 def test_the_repair_named_is_the_one_the_registration_prints(tmp_path):

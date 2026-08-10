@@ -381,6 +381,36 @@ def test_the_offer_composes_no_part_of_the_claim():
     assert '--symptom "…"' in said and '--why "…"' in said
 
 
+def test_the_offer_names_no_argv_where_git_has_already_deleted_it():
+    """RK484. Seen end to end: a real `git merge` of two branches that both appended under
+    one block reaches the driver, which refuses correctly and closes with `report … -- merge
+    .merge_file_tbx68e .merge_file_Vbi0WP .merge_file_0jMb5m` — three `%O %A %B` temporaries
+    git removes when the driver returns, gone before the line finishes printing.
+
+    The verb where RK86's offer is worth most is the one where it was never takeable: a merge
+    refusal is met by somebody already stopped, who cannot commit until they resolve it. What
+    is durable is the merge itself, so that is what is asked for."""
+    said = offer(["merge", ".merge_file_tbx68e", ".merge_file_Vbi0WP", ".merge_file_0jMb5m",
+                  "--path", "docs/ROADMAP.md"])
+    assert ".merge_file_" not in said
+    assert "report --symptom" not in said
+    assert "git rev-parse HEAD MERGE_HEAD" in said
+    # Still conditional, and still the same opening: what changed is the second line only.
+    assert said.startswith(
+        "If roadkeep itself is what is wrong here, capture it before the session ends:"
+    )
+
+
+def test_a_merge_run_by_hand_keeps_the_offer_it_can_take():
+    """Matched on the paths and not on the verb: `merge` with three real files is runnable,
+    and refusing to say so would trade one wrong line for another."""
+    said = offer(["merge", "base.md", "ours.md", "theirs.md", "--path", "docs/ROADMAP.md"])
+    assert said.endswith(
+        f'{invocation()} report --symptom "…" --why "…" -- '
+        f"merge base.md ours.md theirs.md --path docs/ROADMAP.md"
+    )
+
+
 def test_the_offer_never_says_the_refusal_was_wrong():
     """Conditional, because nothing here can know. `lint` was right in every case but the
     one this exists for, and a tool that apologised for its own gate would teach the wrong

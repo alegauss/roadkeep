@@ -530,12 +530,39 @@ def offer(argv: Sequence[str]) -> str:
     read was asked for is not one (RK271), and the caller is the only place that knows whether
     the exit code it is holding is an answer or a fall.
     """
+    if _transient(argv):
+        return "\n".join([_OFFER, f"  {_MERGE_OFFER}"])
     return "\n".join(
         [
             _OFFER,
             f'  {invocation()} report --symptom "…" --why "…" -- {shlex.join(argv)}',
         ]
     )
+
+
+#: git's own name for the files it hands a merge driver. Matched rather than assumed from the
+#: verb, because `merge` run by hand takes three real paths and the offer is good there.
+_TEMPORARY = ".merge_file_"
+
+#: What the offer says where the argv cannot be re-run (RK484). Not a command, because there
+#: is none: the three inputs are gone, and printing one that fails is the defect being fixed.
+#: What is durable is the merge — git holds both commits — so that is what is asked for.
+_MERGE_OFFER = (
+    "the three inputs were git's own temporary files and are already deleted, so there is "
+    "no argv to re-run: file it with the two revisions instead — `git rev-parse HEAD "
+    "MERGE_HEAD` names them, and both are in this repository"
+)
+
+
+def _transient(argv: Sequence[str]) -> bool:
+    """Whether this argv names files that will not exist by the time anybody reads it.
+
+    Measured end to end: a real `git merge` reaching the driver closed with `report … --
+    merge .merge_file_tbx68e …`, and the three files were gone before the line finished
+    printing. The one verb where RK86's offer is worth most is the one where it was never
+    takeable.
+    """
+    return argv[:1] == ["merge"] and any(one.startswith(_TEMPORARY) for one in argv)
 
 
 def body(found: Capture) -> str:
