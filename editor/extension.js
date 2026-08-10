@@ -24,6 +24,14 @@
 // door the tool marked incomplete becomes no action at all, because the blank in it is prose
 // only the author can write.
 //
+// The write door is the same argument again. A view that only reads sends its user to a
+// terminal to write, and the terminal is where the format is typed from memory — the whole
+// failure this project is about, moved one window across. So the prompt carries the schema:
+// `budget` answers, before the first word, what each field has left on *this* line, and the
+// input counts it down. It is **not a second validator** — `add` still decides, and its
+// refusal is what the editor reports — and nothing here writes the file, ever: the command
+// writes and the watcher shows the result, which keeps one writer (L3).
+//
 // And it **never parses Markdown**. Readiness is not derived from the dep list a row carries
 // — that would be this client re-implementing the resolver, which is the second
 // implementation this project exists to remove and the easy thing to write. It comes from
@@ -215,6 +223,95 @@ class Gate {
 }
 
 /**
+ * Ask for one field with its budget counting down beside it.
+ *
+ * `createInputBox` and not `showInputBox`, because the latter's only live hook is
+ * `validateInput` — which *blocks* the accept button, and blocking is the second validator
+ * this must not become. The number is shown; `add` decides.
+ */
+function ask(title, prompt, field) {
+  return new Promise((resolve) => {
+    const box = vscode.window.createInputBox();
+    box.title = title;
+    box.prompt = prompt;
+    const left = () =>
+      `${prompt} — ${field.left - box.value.length} of ${field.limit} left (${field.unit}), aim ${field.aim} words`;
+    box.prompt = left();
+    box.onDidChangeValue(() => {
+      box.prompt = left();
+    });
+    box.onDidAccept(() => {
+      const said = box.value;
+      box.hide();
+      resolve(said);
+    });
+    box.onDidHide(() => {
+      box.dispose();
+      resolve(undefined);
+    });
+    box.show();
+  });
+}
+
+/**
+ * The write door: a block, two fields with their budgets, and `add` deciding.
+ *
+ * Every number on screen came from `budget --block <x>`, which is derived from the id, the
+ * marker, the deps and the pointer — all known before a word exists. The refusal, where
+ * there is one, is printed verbatim: it names every field it looked at in one message, and
+ * rewording it here would be this reader inventing a second vocabulary for one rule.
+ */
+async function compose(root) {
+  const blocks = await payload(root, ["stats"]);
+  if (blocks.error) {
+    vscode.window.showErrorMessage(blocks.error);
+    return false;
+  }
+  const block = await vscode.window.showQuickPick(
+    blocks.value.blocks.map((one) => ({ label: one.block, description: `${one.counted}` })),
+    { title: "roadkeep: which block" }
+  );
+  if (!block) {
+    return false;
+  }
+  const budget = await payload(root, ["budget", "--block", block.label]);
+  if (budget.error) {
+    vscode.window.showErrorMessage(budget.error);
+    return false;
+  }
+  const fields = new Map(budget.value.fields.map((one) => [one.field, one]));
+  const symptom = await ask(
+    `roadkeep: ${budget.value.id} in Block ${block.label}`,
+    "what does not work — never the name of a fix",
+    fields.get("symptom")
+  );
+  if (symptom === undefined) {
+    return false;
+  }
+  const why = await ask(
+    `roadkeep: ${budget.value.id} in Block ${block.label}`,
+    "why it matters, in one sentence",
+    fields.get("why")
+  );
+  if (why === undefined) {
+    return false;
+  }
+  const said = await command(root, [
+    "add",
+    "--block",
+    block.label,
+    "--symptom",
+    symptom,
+    "--why",
+    why,
+  ]);
+  // The refusal verbatim, because it already names every field it looked at in one message
+  // — and the answer verbatim too, since it carries the id the tool derived.
+  vscode.window.showInformationMessage(said.error || said.output || "written");
+  return !said.error;
+}
+
+/**
  * The backlog as a tree: blocks at the top, their lines under them, ready before blocked.
  *
  * The fields walked are the ones RK1005 wrote down as promised, which is the whole of what
@@ -366,6 +463,11 @@ function activate(context) {
       vscode.window.showInformationMessage(said.output || said.error || "done");
       await both();
     }),
+    vscode.commands.registerCommand("roadkeep.add", async () => {
+      if (await compose(root)) {
+        await both();
+      }
+    }),
     vscode.commands.registerCommand("roadkeep.explain", async (code) => {
       const said = await command(root, ["explain", code]);
       vscode.window.showInformationMessage(said.output || said.error);
@@ -381,4 +483,4 @@ function deactivate() {}
 // worth proving about this surface — grouped by block, blocked separated and named, a
 // finding anchored at its column, an incomplete door offered to nobody — is not renderable
 // and breaks silently.
-module.exports = { activate, deactivate, Backlog, Gate };
+module.exports = { activate, deactivate, Backlog, Gate, compose };

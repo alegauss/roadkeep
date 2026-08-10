@@ -41,7 +41,6 @@
 
 ## Block G — The editor surface (the backlog where the file is open)
 
-- 📋 **RK1008** (deps: RK1006 ✅) **Adding a task from the editor means retyping the fields in a terminal, so a limit is met after the sentence exists** — The limits are a schema `budget` states before a word exists, and a prompt that does not read them is the reviewer this project exists to replace. → §RK1008
 - 📋 **RK1009** (deps: RK1011 ✅) **Nothing says which roadkeep an editor calls, so a view answers from a copy the project does not write with** — `engines` reads the three copies that write, judge and gate, and a fourth resolved from PATH, a venv or `uvx` is a reader whose disagreement nothing reports. → §RK1009
 - 📋 **RK1010** (deps: RK1011 ✅) **A surface written in another language has no gate in this tree, so CI proves the Python and nothing proves the client** — Five surfaces already ship from here with no build step, and the sixth brings a toolchain, a marketplace and a version bumped every commit. → §RK1010
 

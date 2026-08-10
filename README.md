@@ -122,12 +122,12 @@ called unbuilt were already in the ledger.
 | D — The gate | 2 | 120 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 91 | 1 |
-| G — The editor surface (the backlog where the file is open) | 3 | 5 | 0 |
-| **Total** | 6 | 501 | 6 |
+| G — The editor surface (the backlog where the file is open) | 2 | 6 | 0 |
+| **Total** | 5 | 502 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1008** (deps: RK1006 ✅) **Adding a task from the editor means retyping the fields in a terminal, so a limit is met after the sentence exists** — The limits are a schema `budget` states before a word exists, and a prompt that does not read them is the reviewer this project exists to replace. → §RK1008
+- 📋 **RK1009** (deps: RK1011 ✅) **Nothing says which roadkeep an editor calls, so a view answers from a copy the project does not write with** — `engines` reads the three copies that write, judge and gate, and a fourth resolved from PATH, a venv or `uvx` is a reader whose disagreement nothing reports. → §RK1009
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

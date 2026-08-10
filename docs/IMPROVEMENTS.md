@@ -157,25 +157,6 @@ and a remedy holding both kinds is still one decision with two doors.
 
 ## Block G — The editor surface (the backlog where the file is open)
 
-### §RK1008 The door, not a text box
-
-A view that only reads sends its user to a terminal to write, and the terminal is where
-the format is typed from memory. That is the whole failure this project is about, moved
-one window across.
-
-The write is worth having only if it carries the schema with it. `budget --block <x>
---dep <id>` answers, before the first word, what the symptom and the why each have left
-on this particular line — derived from the id, the marker, the deps and the pointer, all
-known in advance. An input that shows that number counting down is L1 at the place a
-person is actually composing, and it costs no analysis: the remaining characters are on
-screen instead of being discovered by a refusal.
-
-What it must not become is a second validator. The prompt shows the budget; `add` still
-decides, and its refusal — which names every field it looked at, in one message — is
-what the editor reports. Nothing is written to the file by the extension itself, ever:
-the command writes, and the file watcher shows the result. That keeps one writer, which
-is the property the round-trip law rests on.
-
 ### §RK1009 The fourth copy
 
 Three copies of this tool can already be in play at once — the plugin the hook and the

@@ -88,8 +88,42 @@ function stub() {
     },
     window: {
       registerTreeDataProvider() {},
-      showInformationMessage() {},
-      showErrorMessage() {},
+      // Every message is kept rather than shown: what the write door is judged on is the
+      // refusal it reports, and a stub that swallowed it would prove nothing.
+      said: [],
+      showInformationMessage(text) {
+        this.said.push(text);
+      },
+      showErrorMessage(text) {
+        this.said.push(text);
+      },
+      showQuickPick: (items) => Promise.resolve(items[Number(process.env.ROADKEEP_PICK || 0)]),
+      // The prompts are recorded as they change, because the budget counting down beside
+      // the words is the whole of RK1008 and it exists only in that string.
+      prompts: [],
+      createInputBox() {
+        const window = this;
+        const typed = JSON.parse(process.env.ROADKEEP_TYPED || "[]");
+        const value = typed[window.prompts.length] || "";
+        return {
+          value: "",
+          onDidChangeValue(listener) {
+            this.changed = listener;
+          },
+          onDidAccept(listener) {
+            this.accepted = listener;
+          },
+          onDidHide() {},
+          hide() {},
+          dispose() {},
+          show() {
+            this.value = value;
+            this.changed();
+            window.prompts.push(this.prompt);
+            this.accepted();
+          },
+        };
+      },
     },
     commands: { registerCommand: () => ({ dispose() {} }) },
   };
@@ -103,7 +137,7 @@ Module._load = function (request, parent, isMain) {
 
 async function main() {
   const root = process.argv[2];
-  const { activate, Backlog, Gate } = require("./extension.js");
+  const { activate, Backlog, Gate, compose } = require("./extension.js");
   // `activate` is exercised for what it wires — a stub with no window records the calls and
   // hands nothing back, so the provider under test is built directly.
   editor.workspace.workspaceFolders = [{ uri: editor.Uri.file(root) }];
@@ -148,6 +182,12 @@ async function main() {
         actions.map((one) => ({ code: said.code, title: one.title, argv: one.command.arguments }))
       );
     }
+  }
+
+  if (process.env.ROADKEEP_TYPED) {
+    out.wrote = await compose(root);
+    out.prompts = editor.window.prompts;
+    out.said = editor.window.said;
   }
 
   process.stdout.write(JSON.stringify(out));

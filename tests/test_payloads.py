@@ -41,6 +41,10 @@ PROMISED = {
     "deps": ("id", "deps", "blockers", "unblocks", "readiness"),
     "pick": ("pick", "reason", "tier", "ready", "blocked"),
     "lint": ("root", "clean", "problems", "findings", "codes"),
+    # The two the write door reads (RK1008): which blocks a task may be filed under, and
+    # what each field has left on the line `add` is about to derive.
+    "stats": ("file", "blocks", "total"),
+    "budget": ("id", "fields", "line_max", "prose"),
 }
 
 #: The keys inside the one object each of those carries a list of. Held apart from the top
@@ -51,6 +55,10 @@ INSIDE = {
     # diagnostic is anchored by the first and a quick fix is composed from the second, so
     # both are keys a reader outside this process now depends on.
     "lint": ("findings", ("code", "file", "line", "column", "message", "remedy")),
+    "stats": ("blocks", ("block", "counted")),
+    # `left`, `limit`, `aim` and `unit` are what a prompt counts down beside the words
+    # somebody is typing — the whole of L1 arriving before the sentence exists.
+    "budget": ("fields", ("field", "limit", "left", "aim", "unit")),
 }
 
 
@@ -86,6 +94,11 @@ def _argv(verb: str) -> tuple[str, ...]:
     Derived for the reason every id in this project is (RK4): a test naming a line spells an
     id that ships, and a skip that fires for ever is a test that stopped testing.
     """
+    if verb == "budget":
+        # A block that exists, read off the backlog for `deps`' reason: a letter typed here
+        # is a letter that stops being declared.
+        blocks = payload("stats")["blocks"]
+        return ("budget", "--block", blocks[0]["block"])
     if verb != "deps":
         return (verb,)
     tasks = payload("list")["tasks"]

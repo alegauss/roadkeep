@@ -2,7 +2,7 @@
   "name": "roadkeep",
   "displayName": "roadkeep",
   "description": "The backlog this workspace governs, read by the command that owns it.",
-  "version": "0.1.580",
+  "version": "0.1.581",
   "publisher": "alegauss",
   "license": "MIT",
   "engines": {
@@ -35,6 +35,11 @@
     },
     "commands": [
       {
+        "command": "roadkeep.add",
+        "title": "roadkeep: Add a task",
+        "icon": "$(add)"
+      },
+      {
         "command": "roadkeep.refresh",
         "title": "roadkeep: Refresh the backlog",
         "icon": "$(refresh)"
@@ -54,6 +59,11 @@
     ],
     "menus": {
       "view/title": [
+        {
+          "command": "roadkeep.add",
+          "when": "view == roadkeep.backlog",
+          "group": "navigation"
+        },
         {
           "command": "roadkeep.refresh",
           "when": "view == roadkeep.backlog",

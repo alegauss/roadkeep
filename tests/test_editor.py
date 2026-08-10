@@ -33,7 +33,7 @@ from pathlib import Path
 import pytest
 
 import roadkeep
-from roadkeep.cli import build_parser
+from roadkeep.cli import EXIT_OK, build_parser, main
 from roadkeep.schema import DEFERRED, DESIGNED, IDEA, IN_PROGRESS, PARTIAL, RETIRED, SHIPPED
 
 HERE = Path(__file__).resolve().parents[1]
@@ -151,9 +151,18 @@ def test_the_host_reads_only_keys_a_payload_promises():
         | set(PROMISED["deps"])
         | set(PROMISED["lint"])
         | set(INSIDE["lint"][1])
+        | set(PROMISED["budget"])
+        | set(PROMISED["stats"])
+        | set(INSIDE["budget"][1])
+        | set(INSIDE["stats"][1])
         | {"notice", "group"}
     )
-    read = set(re.findall(r"\.value\.(\w+)|\brow\.(\w+)", source))
+    # The receivers a payload is bound to, named rather than matched by `.value.` alone: an
+    # input box also has a `value`, and `box.value.length` is a string's length, not a key.
+    holders = ("answer", "budget", "blocks")
+    for holder in holders:
+        assert f"{holder}.value" in source, f"{holder} stopped holding a payload"
+    read = set(re.findall(rf"(?:{'|'.join(holders)})\.value\.(\w+)|\brow\.(\w+)", source))
     walked = {name for pair in read for name in pair if name}
     assert walked, "the host stopped reading a payload at all"
     assert walked <= promised, f"reads {sorted(walked - promised)}, which nothing promises"
@@ -171,6 +180,7 @@ def test_the_extension_exports_the_two_hooks_and_names_what_else_it_exports():
         "deactivate",
         "Backlog",
         "Gate",
+        "compose",
     ]
     assert "function activate(" in source and "function deactivate(" in source
 
@@ -178,14 +188,21 @@ def test_the_extension_exports_the_two_hooks_and_names_what_else_it_exports():
 NODE = shutil.which("node")
 
 
-def _harness(root) -> dict:
-    """Run the stubbed host against a real roadkeep in ``root`` and read its report back."""
+def _harness(root, typed: list[str] | None = None) -> dict:
+    """Run the stubbed host against a real roadkeep in ``root`` and read its report back.
+
+    ``typed`` is what somebody writes into the two prompts, in order — passed as JSON because
+    an environment variable is a string and a separator inside prose is a bug waiting.
+    """
+    env = {**os.environ, "ROADKEEP_COMMAND": "python -m roadkeep.cli", "PYTHONPATH": "src"}
+    if typed is not None:
+        env["ROADKEEP_TYPED"] = json.dumps(typed)
     said = subprocess.run(
         [NODE, str(EDITOR / "harness.js"), str(root)],
         capture_output=True,
         text=True,
         encoding="utf-8",
-        env={**os.environ, "ROADKEEP_COMMAND": "python -m roadkeep.cli", "PYTHONPATH": "src"},
+        env=env,
         cwd=str(HERE),
     )
     assert said.stdout, said.stderr
@@ -354,3 +371,47 @@ def test_only_a_door_the_tool_called_complete_becomes_an_action(tmp_path):
     # And every code gets the explanation, which is the door for a code nobody has met.
     for code, found in titles.items():
         assert f"roadkeep explain {code}" in found
+
+
+def test_nothing_in_the_host_writes_a_file():
+    """The property the round-trip law rests on (L3): one writer. The extension composes an
+    argv and the command writes — a `fs.write` here would be a second writer of a governed
+    file, which is the state every refusal in this project exists to prevent."""
+    source = _code()
+    assert "writeFile" not in source and "writeFileSync" not in source
+    assert "require(\"fs\")" not in source and "require('fs')" not in source
+
+
+@pytest.mark.skipif(not NODE, reason="node is not on PATH")
+def test_the_prompt_carries_the_budget_and_the_command_is_what_writes(tmp_path):
+    """RK1008. `budget` answers, before the first word, what each field has left on the line
+    `add` is about to derive — so the number is on screen instead of being discovered by a
+    refusal. Every figure in the prompt came from that payload, and the line that lands is
+    written by `add` and read back off the file."""
+    root = tmp_path / "project"
+    root.mkdir()
+    assert main(["-C", str(root), "init"]) == EXIT_OK
+    typed = ["A thing does not work at all here", "Because nothing holds it."]
+    said = _harness(root, typed=typed)
+    assert said["wrote"] is True, said.get("said")
+    # 120 is `[limits] symptom` and 33 is what was typed: the countdown is the payload's
+    # number minus the words on screen, and neither figure is written into the client.
+    assert "87 of 120 left" in said["prompts"][0] and "aim 18 words" in said["prompts"][0]
+    assert "175 of 200 left" in said["prompts"][1]
+    written = (root / "docs" / "ROADMAP.md").read_text(encoding="utf-8")
+    assert typed[0] in written and typed[1] in written
+
+
+@pytest.mark.skipif(not NODE, reason="node is not on PATH")
+def test_a_refusal_reaches_the_editor_in_the_tool_s_own_words(tmp_path):
+    """The half that makes it a door and not a validator: the prompt shows the budget and
+    `add` decides, so what the editor reports is the refusal verbatim — which already names
+    every field it looked at, in one message (RK426)."""
+    root = tmp_path / "project"
+    root.mkdir()
+    assert main(["-C", str(root), "init"]) == EXIT_OK
+    said = _harness(root, typed=["A thing does not work at all here", ""])
+    assert said["wrote"] is False
+    (reported,) = said["said"]
+    assert "refused, nothing written" in reported and "why.empty" in reported
+    assert not (root / "docs" / "ROADMAP.md").read_text(encoding="utf-8").count("A thing does not")
