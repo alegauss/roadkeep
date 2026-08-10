@@ -28,6 +28,9 @@
 
 ## Block D — The gate
 
+- 📋 **RK1003** (deps: —) **A design naming an id no line carries is refused at the door and reported by nothing once a file already holds one** — RK1002 put the rule where the prose is composed and left no backstop, so a hand edit, an import or a merge carries it in silently. → §RK1003
+- 📋 **RK1004** (deps: —) **The register reads gate to write and nothing reads it back, so a rule only the door holds is found by writing one** — Ten of the thirty-five codes a write refuses have no gate code of that name, and whether each is covered under another is the judgement nothing records. → §RK1004
+
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
