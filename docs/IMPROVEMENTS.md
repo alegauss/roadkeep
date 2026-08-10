@@ -107,24 +107,3 @@ Open: whether the estimate should also say a label was grouped, since a corpus t
 nests is one where a reader looking for a heading per block will not find them.
 
 ## Block F — The plugin
-
-### §RK444 The only unconditional message points at the wrong engine
-
-RK82 gave the session its resident line and decided on purpose that it would not repeat
-the write path, a rule in two places being two places that can disagree. That holds.
-What it did not separate is the rule from the route: the notice already publishes one —
-`invocation()` — for the read verbs it names, on projects where `install` wired
-`.mcp.json` and pre-approved the server. So the only message every adopting session
-receives points at the shell on exactly the projects that have the tools.
-
-The consequence is the shape of the door. The deny is already right, listing this
-session's tools first and the shell second, under the prefix RK333 taught it to read —
-but it fires only on a hand-edit. The agent that behaves, never touching the file and
-reaching for a command instead, is the one that never sees the list. The skill carries
-the same instruction and loads on a trigger, one sentence among two hundred and fifty.
-
-What changes is one clause: where the tools are served the route named is the served
-prefix, and where they are not it stays the invocation. `served` is already a field here
-and already carries the `mcp__plugin_<plugin>_roadkeep__` form, so nothing new is read.
-The write path stays the skill's — this states which engine answers, which is the same
-kind of fact as which files are governed.

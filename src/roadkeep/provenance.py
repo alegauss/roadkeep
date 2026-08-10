@@ -334,6 +334,28 @@ def served_as(root: Path) -> str:
     return f"mcp__{SERVER}__" if plugin is None else f"mcp__plugin_{plugin}_{SERVER}__"
 
 
+def serving(root: Path) -> str | None:
+    """The prefix this session's roadkeep tools arrive under, or ``None`` where there are none.
+
+    :func:`served_as` answers the same question **totally**, because its caller is a refusal
+    that has to recommend something and the bare name is the right guess wherever nothing
+    says otherwise. This one is allowed to say no, and that is the whole difference (RK444):
+    the `SessionStart` notice is the only message every adopting session receives, and it
+    named the shell unconditionally — so on exactly the projects that have the tools, the one
+    line an agent is guaranteed to read pointed at the slower route. The list the deny orders
+    correctly is right and fires only on a hand-edit, which the agent that behaves never
+    makes.
+
+    The two scopes are the same two: a project `.mcp.json` naming this server, or a plugin
+    tree the engine is running out of. Neither is a project reaching the CLI, and there the
+    invocation is not a demotion but the only route there is.
+    """
+    if _declared_by(root):
+        return f"mcp__{SERVER}__"
+    plugin = _plugin_name()
+    return None if plugin is None else f"mcp__plugin_{plugin}_{SERVER}__"
+
+
 @lru_cache(maxsize=8)
 def _declared_by(root: Path) -> bool:
     """Does this project declare the server itself? Cached per root, read once per process.

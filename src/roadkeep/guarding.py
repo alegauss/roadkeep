@@ -90,7 +90,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from roadkeep.config import Config, ConfigError, find_config
-from roadkeep.provenance import SERVER, invocation, served_as
+from roadkeep.provenance import SERVER, invocation, served_as, serving
 from roadkeep.serving import TOOLS
 
 if TYPE_CHECKING:  # annotations only, and already strings — see the docstring's sixth decision
@@ -448,16 +448,38 @@ class Notice:
     #: this line and nowhere else because this is the one moment it is both cheap to ask and
     #: early enough to act on — the copy the session is about to trust is the skill.
     stale: tuple[str, ...] = ()
+    #: The prefix this session's roadkeep tools arrive under, or `""` where there are none
+    #: (RK444). The route this line names, and the reason it is a field rather than a call
+    #: inside `__str__`: which engine answers is a fact about the project, decided where the
+    #: project is read, and a `Notice` built by a test says which case it is testing.
+    served: str = ""
 
     def __str__(self) -> str:
         # And the first message of the session is the first place the invocation has to be one
         # this machine has (RK254) — it is the line teaching that reading is a command.
+        #
+        # Where the tools are served, that is the route (RK444). This is the only message
+        # every adopting session gets, and it named the shell on exactly the projects whose
+        # tools are pre-approved: the deny lists them correctly and fires only on a hand-edit,
+        # which the agent that behaves never makes, and the skill's copy waits on a trigger,
+        # one sentence among two hundred and fifty. What is stated is which engine answers —
+        # the same kind of fact as which files are governed — and never the write path, which
+        # stays the skill's, a rule in two places being two places that can disagree.
         reached = invocation()
+        if self.served:
+            asks = (
+                f"`{self.served}brief` starts a task, `{self.served}show` and "
+                f"`{self.served}list` answer the rest"
+            )
+        else:
+            asks = f"`{reached} brief` starts a task, `show <id>` and `list --block <x>` answer the rest"
         said = (
             f"roadkeep governs {', '.join(self.files)} — ask, never read them whole: "
-            f"`{reached} brief` starts a task, `show <id>` and `list --block <x>` answer "
-            f"the rest, and a hand-edit is refused."
+            f"{asks}, and a hand-edit is refused."
         )
+        # The invocation stays here whatever the clause above chose (RK444): `install` runs
+        # once per project and is deliberately not on the served surface, so a route named
+        # from `self.served` would be a tool this session cannot call.
         if self.stale:
             said += (
                 f" This project's copy of {', '.join(self.stale)} has drifted from the "
@@ -488,7 +510,11 @@ def announce(payload: Mapping[str, object], root: str | Path = ".") -> Notice | 
     # session trusts is the skill it loads, and by the first write it has been read (RK234).
     from roadkeep.installing import stale  # noqa: PLC0415 - RK260 the SessionStart path only
 
-    return Notice(files=files, stale=stale(config.root))
+    # `serving` and not `served_as` (RK444): a refusal has to recommend something and the
+    # bare prefix is the right guess wherever nothing says otherwise, but this line is read
+    # by every adopting session including the ones with no tools at all, and there naming a
+    # prefix nobody can call is worse than naming the shell.
+    return Notice(files=files, stale=stale(config.root), served=serving(config.root) or "")
 
 
 def guard(payload: Mapping[str, object], root: str | Path = ".") -> Refusal | None:

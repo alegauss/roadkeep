@@ -777,6 +777,48 @@ def test_a_project_the_plugin_serves_is_asked_nothing_about_a_copy(tmp_path):
     assert "drifted" not in str(announce(start(root), root))
 
 
+def test_where_the_tools_are_served_the_notice_names_them_and_not_the_shell(tmp_path):
+    """RK444. This is the only message every adopting session receives, and it named the
+    shell unconditionally — on exactly the projects whose tools `install` wired and
+    pre-approved. The deny lists them correctly and fires only on a hand-edit, which the
+    agent that behaves never makes; the skill's copy waits on a trigger, one sentence among
+    two hundred and fifty. So the one guaranteed line points at the engine that answers."""
+    served = str(Notice(files=(ROADMAP,), served="mcp__roadkeep__"))
+    assert "mcp__roadkeep__brief" in served
+    assert "mcp__roadkeep__show" in served and "mcp__roadkeep__list" in served
+    assert invocation() not in served
+
+
+def test_a_project_with_no_tools_is_still_pointed_at_the_route_it_has(tmp_path):
+    """`serving` is allowed to answer no, which is the whole difference from `served_as`: a
+    refusal has to recommend something and the bare prefix is the right guess, while here
+    naming a prefix nobody can call is worse than naming the shell."""
+    said = str(Notice(files=(ROADMAP,)))
+    assert f"`{invocation()} brief`" in said
+    assert "mcp__" not in said
+
+
+def test_the_install_it_may_name_is_never_the_served_route(tmp_path):
+    """`install` runs once per project and is deliberately off the served surface, so the
+    drift clause keeps the invocation whatever the sentence above it chose."""
+    said = str(Notice(files=(ROADMAP,), served="mcp__roadkeep__", stale=("skills/x.md",)))
+    assert f"`{invocation()} install` refreshes it" in said
+    assert "mcp__roadkeep__install" not in said
+
+
+def test_the_served_notice_still_fits_the_budget():
+    assert len(str(Notice(files=(ROADMAP, CHANGELOG), served="mcp__plugin_roadkeep_roadkeep__"))) <= _NOTICE_BUDGET
+
+
+def test_the_route_is_read_where_the_project_is(tmp_path):
+    """A field and not a call inside `__str__`: which engine answers is a fact about the
+    project, decided where the project is read."""
+    from roadkeep.provenance import serving
+
+    root = project(tmp_path)
+    assert announce(start(root), root).served == (serving(root) or "")
+
+
 def test_a_session_outside_a_roadkeep_project_is_told_nothing(tmp_path):
     """Silence is the same decision the barrier makes about `allow`: a hook that speaks in
     every repository is one every repository pays for."""

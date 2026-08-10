@@ -34,8 +34,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK444** (deps: —) **An agent that never hand-edits is never told the tools exist, the deny being the only place that names them** — The SessionStart notice is the only message every adopting session gets, and it names the shell alone, so the list the deny orders correctly waits behind a refused edit. → §RK444
-
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:
