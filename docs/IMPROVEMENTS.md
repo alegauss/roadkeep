@@ -110,26 +110,6 @@ code, and prose under an unreadable address is still clean.
 
 ## Block G — The editor surface (the backlog where the file is open)
 
-### §RK1006 The list, where the file is open
-
-A person with `ROADMAP.md` open sees 320-character lines under six headings. The order
-that matters is not the order on the page — ready before blocked, in-progress first, a
-dep chain that names the task to start — and every one of those is an answer some verb
-already gives. What is missing is a place to show them at the moment somebody is looking
-at the file.
-
-So: a tree, grouped by block, each line carrying its marker, its id and its symptom,
-with ready and blocked separated and the blocker named on the ones that are not.
-Selecting a row reveals that line in the open document, which is the only navigation a
-flat file needs.
-
-One law governs the whole surface and is worth more than the view: **it never parses
-Markdown.** Every row comes from `list --json`, `deps --json` and `pick --json`, run as
-a child process against the workspace. A client with its own parser is the second
-implementation this project exists to remove, and it would be the easy thing to write.
-Refreshing is a file watcher plus a re-run, because the store is the repository and
-there is nothing else to observe.
-
 ### §RK1007 The gate, at the column
 
 The gate's report was built for a reader who is not looking at the file:

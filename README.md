@@ -122,12 +122,12 @@ called unbuilt were already in the ledger.
 | D — The gate | 1 | 120 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 91 | 1 |
-| G — The editor surface (the backlog where the file is open) | 6 | 2 | 0 |
-| **Total** | 7 | 498 | 6 |
+| G — The editor surface (the backlog where the file is open) | 5 | 3 | 0 |
+| **Total** | 6 | 499 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1006** (deps: RK1005 ✅, RK1011 ✅) **The backlog is legible only in a terminal, so the editor holding the file offers the raw text and a hand edit** — Block, marker, ready, blocked and what a line unblocks are each already a query, and none of them is visible where the file is actually open. → §RK1006
+- 📋 **RK1007** (deps: RK1005 ✅, RK1011 ✅) **A violation is a line of terminal output, so the editor showing that file marks nothing at the column that failed** — The report already carries file, line, column and the command that closes each finding, which is a diagnostic and a code action nothing reads. → §RK1007
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

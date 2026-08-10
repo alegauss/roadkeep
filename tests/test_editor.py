@@ -24,7 +24,10 @@ comments. So the decisions it encodes live here, beside the assertions that hold
 from __future__ import annotations
 
 import json
+import os
 import re
+import shutil
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -127,21 +130,74 @@ def test_the_host_reads_only_keys_a_payload_promises():
     from test_payloads import INSIDE, PROMISED
 
     source = _code()
-    # `notice` is the host's own row — the message it shows instead of an empty tree when the
-    # read failed — and is the one field here that no payload ever carried.
-    promised = set(PROMISED["list"]) | set(INSIDE["list"][1]) | {"notice"}
+    # The host's **own** two rows, which no payload ever carried: `notice` is the message it
+    # shows instead of an empty tree when the read failed, and `group` is a block heading it
+    # made by grouping what `list` returned. Named here so the set below is payload keys.
+    promised = (
+        set(PROMISED["list"])
+        | set(INSIDE["list"][1])
+        | set(PROMISED["deps"])
+        | {"notice", "group"}
+    )
     read = set(re.findall(r"\.value\.(\w+)|\brow\.(\w+)", source))
     walked = {name for pair in read for name in pair if name}
     assert walked, "the host stopped reading a payload at all"
     assert walked <= promised, f"reads {sorted(walked - promised)}, which nothing promises"
 
 
-def test_the_extension_is_syntactically_one_file_and_exports_the_two_hooks():
-    """Node is not on this machine's critical path, so what is asserted is what a reader can
-    check without it: the two names an editor loads, and that nothing else is exported."""
+def test_the_extension_exports_the_two_hooks_and_names_what_else_it_exports():
+    """The two an editor loads, and the one it does not: `Backlog` is exported for the
+    harness, because the properties worth proving about this surface are not renderable and
+    a tree that groups wrong still draws. Anything a fourth name appears for is a decision."""
     source = EXTENSION.read_text(encoding="utf-8")
-    assert re.search(r"module\.exports\s*=\s*\{\s*activate,\s*deactivate\s*\}", source)
+    exported = re.search(r"module\.exports\s*=\s*\{([^}]*)\}", source)
+    assert exported, "the file stopped exporting anything an editor could load"
+    assert [one.strip() for one in exported.group(1).split(",") if one.strip()] == [
+        "activate",
+        "deactivate",
+        "Backlog",
+    ]
     assert "function activate(" in source and "function deactivate(" in source
+
+
+NODE = shutil.which("node")
+
+
+@pytest.mark.skipif(not NODE, reason="node is not on PATH")
+def test_the_tree_groups_by_block_and_separates_what_is_blocked():
+    """The two properties RK1006 is about, neither of which a source read can see: rows are
+    grouped by the block **the payload gave**, and a line that cannot be started is last and
+    carries its blocker. Run against this repository's own `docs/` and the real verbs — the
+    editor is stubbed and the tool is not, because what is under test is the client's reading
+    of two payloads and nothing else.
+
+    Skipped rather than required: node is a reader's toolchain and not this tree's, which is
+    the whole of RK1010's open question — so this is the corpora rule (RK105) applied to a
+    language, testing what is here and staying quiet where it is not.
+    """
+    said = subprocess.run(
+        [NODE, str(EDITOR / "harness.js"), str(HERE)],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        env={**os.environ, "ROADKEEP_COMMAND": "python -m roadkeep.cli", "PYTHONPATH": "src"},
+        cwd=str(HERE),
+    )
+    tree = json.loads(said.stdout)
+    assert "notice" not in tree, tree.get("notice")
+    assert tree["blocks"], "the harness read no block at all"
+    for block in tree["blocks"]:
+        assert block["label"] == block["group"]
+        ids = [row["id"] for row in block["rows"]]
+        assert len(set(ids)) == len(ids), f"block {block['group']} repeats a line"
+        blocked = [index for index, row in enumerate(block["rows"]) if row["blockers"]]
+        ready = [index for index, row in enumerate(block["rows"]) if not row["blockers"]]
+        assert not (blocked and ready) or min(blocked) > max(ready), block["group"]
+    # And the separation is not vacuous: some line in this backlog is blocked, and it names
+    # what it waits on rather than saying only that it cannot start.
+    waiting = [row for block in tree["blocks"] for row in block["rows"] if row["blockers"]]
+    if waiting:
+        assert all(row["blockers"] for row in waiting)
 
 
 def test_the_manifest_is_the_only_json_in_this_surface():

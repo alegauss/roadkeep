@@ -532,3 +532,4 @@
 
 - ✅ **RK1005** **No test reads a `--json` payload as an outside client would, so a renamed key breaks one and nothing here fails** — A test reads the four payloads by key over this repository's own docs, so a promised key that is renamed goes red here before a client outside the process meets it.
 - ✅ **RK1011** **No package this repository builds is one an editor can load, so nothing it answers is reachable without a shell** — A manifest and one plain JavaScript file, activating on the config file and carrying no rule: every fact it shows was read from a payload a verb printed.
+- ✅ **RK1006** **The backlog is legible only in a terminal, so the editor holding the file offers the raw text and a hand edit** — A tree grouped by the block the payload gave, ready before blocked and the blocker named, with every row read from a verb and no Markdown parsed.
