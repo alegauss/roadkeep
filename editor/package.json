@@ -2,7 +2,7 @@
   "name": "roadkeep",
   "displayName": "roadkeep",
   "description": "The backlog this workspace governs, read by the command that owns it.",
-  "version": "0.1.582",
+  "version": "0.1.583",
   "publisher": "alegauss",
   "license": "MIT",
   "engines": {
@@ -87,7 +87,7 @@
         "roadkeep.command": {
           "type": "string",
           "default": "",
-          "description": "The roadkeep to run. Empty resolves it from PATH, then `python -m roadkeep.cli` from a checkout."
+          "description": "The roadkeep this workspace writes with — required. The view refuses to answer rather than resolve one from PATH, a virtualenv or a cache, because a panel answering from a copy your commits do not use fails quietly."
         }
       }
     }

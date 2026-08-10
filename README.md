@@ -122,12 +122,12 @@ called unbuilt were already in the ledger.
 | D — The gate | 3 | 120 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 91 | 1 |
-| G — The editor surface (the backlog where the file is open) | 2 | 6 | 0 |
-| **Total** | 6 | 502 | 6 |
+| G — The editor surface (the backlog where the file is open) | 1 | 7 | 0 |
+| **Total** | 5 | 503 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1009** (deps: RK1011 ✅) **Nothing says which roadkeep an editor calls, so a view answers from a copy the project does not write with** — `engines` reads the three copies that write, judge and gate, and a fourth resolved from PATH, a venv or `uvx` is a reader whose disagreement nothing reports. → §RK1009
+- 📋 **RK1010** (deps: RK1011 ✅) **A surface written in another language has no gate in this tree, so CI proves the Python and nothing proves the client** — Five surfaces already ship from here with no build step, and the sixth brings a toolchain, a marketplace and a version bumped every commit. → §RK1010
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

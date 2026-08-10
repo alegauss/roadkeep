@@ -49,23 +49,31 @@ const vscode = require("vscode");
 const TIMEOUT_MS = 15000;
 
 /**
- * The argv that runs roadkeep here, in the order a workspace is most likely to answer.
+ * The one roadkeep this view may call: the workspace's declaration, or nothing (RK1009).
  *
- * Configuration first, because a project that declared one has said which copy writes its
- * files and a reader disagreeing with it is the defect `engines` exists to name. Then the
- * console script, then the checkout — which is how this repository itself runs the tool, and
- * it has no installed entry point at all.
+ * **A declared setting and never a search.** Three copies of this tool can already be in
+ * play — the plugin the hook and the skill come from, the action CI gates on, and whatever
+ * the caller runs — and `engines` exists because they are allowed to differ. An editor adds
+ * a fourth and it is the one most likely to be wrong: resolved from a PATH the shell
+ * configured, a virtualenv the workspace happened to activate, a `uvx` cache nobody pinned.
+ *
+ * The failure is quiet, which is what decides it. A panel showing findings a commit will not
+ * produce — or missing ones it will — is worse than a panel that says which setting to fill
+ * in, because the first is discovered when a hook denies a write the panel said was fine.
+ *
+ * The cost is real and taken deliberately: this does not work out of the box for somebody
+ * who has `roadkeep` on PATH. What they get instead is one sentence naming the setting, and
+ * an answer they can trust from the moment it appears.
  */
-function candidates() {
-  const declared = vscode.workspace.getConfiguration("roadkeep").get("command");
-  const found = [];
-  if (declared) {
-    found.push(declared.split(" "));
-  }
-  found.push(["roadkeep"]);
-  found.push(["python", "-m", "roadkeep.cli"]);
-  return found;
+function declared() {
+  const said = vscode.workspace.getConfiguration("roadkeep").get("command");
+  return said ? said.trim().split(/\s+/) : null;
 }
+
+/** The sentence a reader gets instead of a guess. Names the setting and nothing else. */
+const UNDECLARED =
+  "roadkeep.command is not set: name the roadkeep this workspace writes with, so the view " +
+  "answers from the copy your commits do and not from whatever PATH resolves";
 
 /**
  * Run one command in the workspace and hand back its stdout, its stderr and its code.
@@ -100,24 +108,23 @@ function run(argv, cwd) {
  * to the next candidate would report the second engine's opinion about the first one's file.
  */
 async function payload(cwd, argv) {
-  const tried = [];
-  for (const command of candidates()) {
-    const said = await run([...command, ...argv, "--json"], cwd);
-    tried.push(command.join(" "));
-    if (said.missing) {
-      continue;
-    }
-    const spelled = tried[tried.length - 1];
-    if (!said.stdout.trim()) {
-      return { error: said.stderr.trim() || `\`${spelled}\` printed nothing` };
-    }
-    try {
-      return { value: JSON.parse(said.stdout) };
-    } catch (_) {
-      return { error: `\`${spelled}\` did not answer JSON` };
-    }
+  const command = declared();
+  if (!command) {
+    return { error: UNDECLARED };
   }
-  return { error: `no roadkeep here — tried ${tried.join(", ")}` };
+  const spelled = command.join(" ");
+  const said = await run([...command, ...argv, "--json"], cwd);
+  if (said.missing) {
+    return { error: `\`${spelled}\` is not runnable here` };
+  }
+  if (!said.stdout.trim()) {
+    return { error: said.stderr.trim() || `\`${spelled}\` printed nothing` };
+  }
+  try {
+    return { value: JSON.parse(said.stdout) };
+  } catch (_) {
+    return { error: `\`${spelled}\` did not answer JSON` };
+  }
 }
 
 /**
@@ -127,14 +134,15 @@ async function payload(cwd, argv) {
  * reported to the person who pressed something, and its exit code is the tool's own verdict.
  */
 async function command(cwd, argv) {
-  for (const found of candidates()) {
-    const said = await run([...found, ...argv], cwd);
-    if (said.missing) {
-      continue;
-    }
-    return { output: said.stdout.trim(), error: said.stderr.trim() };
+  const found = declared();
+  if (!found) {
+    return { error: UNDECLARED };
   }
-  return { error: "no roadkeep here" };
+  const said = await run([...found, ...argv], cwd);
+  if (said.missing) {
+    return { error: `\`${found.join(" ")}\` is not runnable here` };
+  }
+  return { output: said.stdout.trim(), error: said.stderr.trim() };
 }
 
 /**
@@ -340,6 +348,13 @@ class Backlog {
       item.iconPath = new vscode.ThemeIcon("warning");
       return item;
     }
+    if (row.engine) {
+      const item = new vscode.TreeItem(row.engine);
+      item.description = row.detail;
+      item.iconPath = new vscode.ThemeIcon("versions");
+      item.contextValue = "engine";
+      return item;
+    }
     if (row.group) {
       const item = new vscode.TreeItem(
         row.group,
@@ -385,6 +400,17 @@ class Backlog {
       // empty, which is the one thing a failed read cannot know.
       return [{ notice: answer.error }];
     }
+    // Which copy answered, above the rows it answered with (RK1009). `engines` already reads
+    // the three that write, judge and gate and returns one of three verdicts; the reader is
+    // the fourth, and `writing` in *this* payload is it — asked through the same declared
+    // command, so the row is a fact about the process that produced the list below it.
+    const engines = await payload(this.root, ["engines"]);
+    const said = engines.error
+      ? { notice: engines.error }
+      : {
+          engine: `${engines.value.writing.version}  ${engines.value.verdict}`,
+          detail: engines.value.writing.home,
+        };
     this.file = answer.value.file;
     const grouped = new Map();
     for (const task of answer.value.tasks) {
@@ -393,7 +419,7 @@ class Backlog {
       }
       grouped.get(task.block).push(task);
     }
-    return [...grouped].map(([block, tasks]) => ({ group: block, tasks }));
+    return [said, ...[...grouped].map(([block, tasks]) => ({ group: block, tasks }))];
   }
 
   /** One block's lines, each carrying what `deps` says about it, ready first.

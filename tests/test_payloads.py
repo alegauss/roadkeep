@@ -45,6 +45,8 @@ PROMISED = {
     # what each field has left on the line `add` is about to derive.
     "stats": ("file", "blocks", "total"),
     "budget": ("id", "fields", "line_max", "prose"),
+    # Which copy answered, which an editor shows above the rows it answered with (RK1009).
+    "engines": ("writing", "verdict", "agree"),
 }
 
 #: The keys inside the one object each of those carries a list of. Held apart from the top
@@ -94,6 +96,8 @@ def _argv(verb: str) -> tuple[str, ...]:
     Derived for the reason every id in this project is (RK4): a test naming a line spells an
     id that ships, and a skip that fires for ever is a test that stopped testing.
     """
+    if verb == "engines":
+        return ("engines",)
     if verb == "budget":
         # A block that exists, read off the backlog for `deps`' reason: a letter typed here
         # is a letter that stops being declared.

@@ -179,24 +179,6 @@ named, and the file is still inside the budget it declares.
 
 ## Block G — The editor surface (the backlog where the file is open)
 
-### §RK1009 The fourth copy
-
-Three copies of this tool can already be in play at once — the plugin the hook and the
-skill come from, the action CI gates on, and whatever the caller runs — and they are
-allowed to differ, which is why there is a verb that reads all three and answers
-`agreed`, `behind` or `unpinnable`.
-
-An editor adds a fourth, and it is the one most likely to be wrong: resolved from a PATH
-the shell configured, a virtualenv the workspace happens to have activated, or a `uvx`
-cache nobody pinned. The failure is quiet. A panel shows findings a commit will not
-produce, or misses ones it will, and the reader has no way to tell which copy they are
-looking at.
-
-So the resolution is a declared setting, not a search: a workspace names the command,
-and the view refuses to answer rather than guess. Whatever it resolves is then a fourth
-row in the existing report, with the same three verdicts, and disagreement is stated in
-the view rather than discovered when a hook denies a write the panel said was fine.
-
 ### §RK1010 Where the client lives, and what proves it
 
 The action, the pre-commit hook, the plugin, the skill and the stdio server all ship

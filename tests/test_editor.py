@@ -155,11 +155,12 @@ def test_the_host_reads_only_keys_a_payload_promises():
         | set(PROMISED["stats"])
         | set(INSIDE["budget"][1])
         | set(INSIDE["stats"][1])
-        | {"notice", "group"}
+        | set(PROMISED["engines"])
+        | {"notice", "group", "engine", "detail"}
     )
     # The receivers a payload is bound to, named rather than matched by `.value.` alone: an
     # input box also has a `value`, and `box.value.length` is a string's length, not a key.
-    holders = ("answer", "budget", "blocks")
+    holders = ("answer", "budget", "blocks", "engines")
     for holder in holders:
         assert f"{holder}.value" in source, f"{holder} stopped holding a payload"
     read = set(re.findall(rf"(?:{'|'.join(holders)})\.value\.(\w+)|\brow\.(\w+)", source))
@@ -188,13 +189,17 @@ def test_the_extension_exports_the_two_hooks_and_names_what_else_it_exports():
 NODE = shutil.which("node")
 
 
-def _harness(root, typed: list[str] | None = None) -> dict:
+def _harness(root, typed: list[str] | None = None, declared: str | None = None) -> dict:
     """Run the stubbed host against a real roadkeep in ``root`` and read its report back.
 
     ``typed`` is what somebody writes into the two prompts, in order — passed as JSON because
     an environment variable is a string and a separator inside prose is a bug waiting.
     """
-    env = {**os.environ, "ROADKEEP_COMMAND": "python -m roadkeep.cli", "PYTHONPATH": "src"}
+    env = {
+        **os.environ,
+        "ROADKEEP_COMMAND": "python -m roadkeep.cli" if declared is None else declared,
+        "PYTHONPATH": "src",
+    }
     if typed is not None:
         env["ROADKEEP_TYPED"] = json.dumps(typed)
     said = subprocess.run(
@@ -415,3 +420,30 @@ def test_a_refusal_reaches_the_editor_in_the_tool_s_own_words(tmp_path):
     (reported,) = said["said"]
     assert "refused, nothing written" in reported and "why.empty" in reported
     assert not (root / "docs" / "ROADMAP.md").read_text(encoding="utf-8").count("A thing does not")
+
+
+@pytest.mark.skipif(not NODE, reason="node is not on PATH")
+def test_the_view_refuses_to_guess_which_roadkeep_it_calls(tmp_path):
+    """RK1009's whole decision. Three copies can already differ and `engines` exists because
+    of it; an editor adds a fourth resolved from a PATH, a virtualenv or a `uvx` cache, and
+    the failure is quiet — a panel showing findings a commit will not produce is discovered
+    when a hook denies a write the panel said was fine. So the setting is required, and what
+    a reader gets instead of a guess is the name of the setting."""
+    root = tmp_path / "project"
+    root.mkdir()
+    assert main(["-C", str(root), "init"]) == EXIT_OK
+    said = _harness(root, declared="")
+    assert "roadkeep.command is not set" in said["notice"]
+    assert said["blocks"] == [] and "engine" not in said
+
+
+@pytest.mark.skipif(not NODE, reason="node is not on PATH")
+def test_the_view_says_which_copy_answered_and_what_it_agrees_with():
+    """The fourth row, above the rows it produced: whatever the setting resolves is a copy
+    with a version and a verdict, and `engines` already answers both — so nothing here judges
+    anything, it shows the answer of the process that produced the list underneath."""
+    said = _harness(HERE)
+    assert said["engine"]["label"].endswith(("agreed", "behind", "unpinnable")), said["engine"]
+    assert roadkeep.__version__ in said["engine"]["label"]
+    # And the home, because two copies at one version is exactly the state RK79 was about.
+    assert said["engine"]["detail"].endswith("src/roadkeep")
