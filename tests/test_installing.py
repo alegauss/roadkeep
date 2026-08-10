@@ -35,7 +35,8 @@ from pathlib import Path
 import pytest
 
 from roadkeep.adopting import BlockedParent
-from roadkeep.cli import EXIT_GATE, EXIT_OK, build_parser, main, registration_report
+from roadkeep.cli import EXIT_GATE, EXIT_OK, build_parser, main
+from roadkeep.rendering import registration_report
 from roadkeep.merging import Attributes, Driver, Registration, Wiring
 from roadkeep.installing import (
     AGREED,
@@ -878,13 +879,13 @@ def test_no_plugin_is_agreement_and_not_a_defect():
 
 
 def test_the_unpinnable_state_exits_one_and_says_which_it_is(tmp_path, capsys, monkeypatch):
-    from roadkeep import cli
     from roadkeep.cli import EXIT_GATE, main
+    from roadkeep.verbs import adopting
 
-    # Patched where the command *reads* it: `cli` imports the name directly, so setting it
-    # on `installing` would leave the handler holding the original — the shape of a test
+    # Patched where the command *reads* it: the handler imports the name directly, so setting
+    # it on `installing` would leave that handler holding the original — the shape of a test
     # that passes by measuring nothing.
-    monkeypatch.setattr(cli, "engines", lambda root=".": _pair(modified=True))
+    monkeypatch.setattr(adopting, "engines", lambda root=".": _pair(modified=True))
     (tmp_path / "roadkeep.toml").write_text('prefix = "DX"\n', encoding="utf-8")
     assert main(["-C", str(tmp_path), "engines"]) == EXIT_GATE
     out = capsys.readouterr().out

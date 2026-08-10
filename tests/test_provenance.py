@@ -260,7 +260,7 @@ def _spelled_literally() -> set[tuple[str, str]]:
     verbs = sorted({path.split()[0] for path in _parsers()})
     pattern = re.compile(r"roadkeep (" + "|".join(re.escape(verb) for verb in verbs) + r")\b")
     found: set[tuple[str, str]] = set()
-    for module in sorted((HERE / "src" / "roadkeep").glob("*.py")):
+    for module in sorted((HERE / "src" / "roadkeep").rglob("*.py")):
         tree = ast.parse(module.read_text(encoding="utf-8"))
         docstrings = {
             id(node.body[0].value)

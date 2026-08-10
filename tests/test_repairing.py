@@ -245,7 +245,7 @@ def _read(path: Path) -> str:
 
 def _printed(capsys, outcome) -> str:
     """The report for an outcome the test drove itself, since `main` runs its own dispatch."""
-    from roadkeep.cli import _print_repair
+    from roadkeep.rendering import _print_repair
 
     _print_repair(outcome, ".")
     return capsys.readouterr().out

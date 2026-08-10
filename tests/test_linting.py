@@ -205,11 +205,18 @@ def test_every_module_is_named_in_the_layout_index():
 
     One direction only. That a module is named is decidable; that a name has outlived its
     module would mean reading the entry's English, and this repository does not do that (L4).
+
+    A **subpackage is named as one entry** and not module by module (RK494): `verbs/` holds a
+    module per verb family, each named after the domain module it calls, so naming them here
+    would spend the index's room re-stating names it already carries — and the package's own
+    `__init__` docstring is the authority on what is in it, which is this file's rule for
+    every other module too. What is held is that the directory appears.
     """
+    package = HERE / "src" / "roadkeep"
     index = _layout_index()
     modules = sorted(
-        path.stem for path in (HERE / "src" / "roadkeep").glob("*.py")
-        if path.stem != "__init__"
+        {path.stem for path in package.glob("*.py") if path.stem != "__init__"}
+        | {path.name for path in package.iterdir() if (path / "__init__.py").exists()}
     )
     assert modules
     unnamed = [

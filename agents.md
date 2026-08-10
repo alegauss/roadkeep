@@ -52,7 +52,7 @@ src/roadkeep/   the package (src layout, importable via pytest pythonpath). Each
   guarding screening attesting serving provenance  RK22/24/79/175-176/200  the hook, what it
                     loads for, what no verb wrote, the stdio tools, and which tree answered
   capturing                        RK85-89  a defect in this tool, as facts a replay re-runs
-  cli.py rendering  one subparser per task, exit 0/1 gate/2 usage, and every answer rendered
+  cli.py verbs/ rendering  the parser and dispatch, a module per verb family, every answer
 action.yml, .pre-commit-hooks.yaml, .github/   the gate's three surfaces (RK17)
 hooks/, skills/, commands/, .claude-plugin/, .mcp.json   the plugin's five, and how it is
                 installed (RK22-26); reasoned in tests/test_{plugin,skill,serving,commands}.py

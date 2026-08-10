@@ -704,7 +704,7 @@ def test_a_second_writer_exits_one_and_says_to_re_run(tmp_path, capsys, monkeypa
             handle.write(SHIPPED_RK1.replace("RK1", "RK8") + "\n")
         return shipment
 
-    monkeypatch.setattr("roadkeep.cli.ship", racing)
+    monkeypatch.setattr("roadkeep.verbs.shipping.ship", racing)
     assert main(["-C", str(tmp_path), "ship", "RK1", "--why", "Because of a reason."]) == EXIT_GATE
     assert "re-run the command" in capsys.readouterr().err
     # Nothing of this transaction landed, and the other writer's line is untouched.

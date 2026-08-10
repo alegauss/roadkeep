@@ -342,6 +342,7 @@
 - ✅ **RK490** **A remedy row repeats what its finding already carries, so a row naming the wrong file or verb is found by example** — A finding answers one declared set of fields and a row names them, so what a door says about its finding is a property over the table instead of a defect per row.
 - ✅ **RK491** **Three tests hold three surface-wide rules under no common name, so a rule nothing holds reads as one that is held** — The rules this package states are one declared set naming each surface and holder, closed against the six laws, and it found L4 held by five listed codes.
 - ✅ **RK493** **Every command's output rendering shares one file with the parser and 82 handlers, 8,489 lines** — Every printer and payload builder is in `rendering.py`, so `cli.py` is the parser and its handlers alone — 8,489 lines to 7,186.
+- ✅ **RK494** **82 handlers sit in the file that registers them, so no verb family has a module or a docstring of its own** — Each verb family is a module under `verbs/` its own docstring is the authority on, and `cli.py` is the parser and dispatch alone — 8,489 lines to 2,551.
 
 ## Block E — Adoption
 

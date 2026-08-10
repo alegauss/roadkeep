@@ -43,7 +43,8 @@ from pathlib import Path
 
 import pytest
 
-from roadkeep.cli import EXIT_OK, EXIT_USAGE, _force_utf8
+from roadkeep.cli import EXIT_OK, EXIT_USAGE
+from roadkeep.verbs.reading import _force_utf8
 
 PACKAGE = Path(__file__).resolve().parents[1] / "src"
 
@@ -224,7 +225,7 @@ def test_a_lone_surrogate_on_stdout_is_escaped_and_not_fatal():
         [
             sys.executable,
             "-c",
-            f"import sys; from roadkeep.cli import _force_utf8; _force_utf8(sys.stdout); {write}",
+            f"import sys; from roadkeep.verbs.reading import _force_utf8; _force_utf8(sys.stdout); {write}",
         ],
         capture_output=True,
         check=False,
@@ -326,12 +327,12 @@ def test_a_prose_read_is_refused_and_never_assumes_the_strictness(tmp_path, monk
 
 def test_a_stream_that_takes_the_hardening_is_unchanged(tmp_path, monkeypatch):
     """The ordinary process, where nothing is lost and nothing is said."""
-    from roadkeep import cli
+    from roadkeep.verbs import reading
 
     monkeypatch.setattr(sys, "stdin", io.TextIOWrapper(io.BytesIO(b"a body\n")))
     assert _force_utf8(sys.stdin, errors="strict") is True
-    monkeypatch.setattr(cli, "_STDIN_HARDENED", True)
-    assert cli._unhardened() is None
+    monkeypatch.setattr(reading, "_STDIN_HARDENED", True)
+    assert reading._unhardened() is None
 
 
 def test_a_stream_that_decodes_nothing_needs_no_hardening(monkeypatch):

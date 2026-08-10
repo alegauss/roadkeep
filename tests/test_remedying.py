@@ -924,6 +924,8 @@ def test_an_incomplete_door_is_incomplete_for_a_reason(tmp_path):
 #: which prefix this session has. Every other module states the **door** and lets `Door.named`
 #: choose the spelling — which is the property below, and the reason a seventh surface costs
 #: one change instead of forty.
+#: Addressed under the package and not by filename since RK494, `verbs/` holding a module
+#: per verb family named after the domain module it calls.
 _MAY_SPELL = frozenset({"remedying.py", "provenance.py"})
 
 
@@ -987,12 +989,13 @@ def test_no_module_outside_the_renderer_spells_a_served_command():
     spells it, so the seventh surface is one change here rather than forty out there.
     """
     composed = {}
-    for module in sorted(SOURCE.glob("*.py")):
-        if module.name in _MAY_SPELL:
+    for module in sorted(SOURCE.rglob("*.py")):
+        where = module.relative_to(SOURCE).as_posix()
+        if where in _MAY_SPELL:
             continue
         found = _spelling(module.read_text(encoding="utf-8"))
         if found:
-            composed[module.name] = found
+            composed[where] = found
     assert not composed, composed
 
 
@@ -1075,11 +1078,12 @@ def test_a_command_written_out_as_a_literal_is_one_of_four_and_each_says_why():
     verbs = _verbs()
     spelled = re.compile(r"\broadkeep ([a-z][a-z-]*)\b")
     found: dict[str, set[str]] = {}
-    for module in sorted(SOURCE.glob("*.py")):
+    for module in sorted(SOURCE.rglob("*.py")):
+        where = module.relative_to(SOURCE).as_posix()
         for lineno, text in _literals(module.read_text(encoding="utf-8")):
             for verb in spelled.findall(text):
                 if verb in verbs:
-                    found.setdefault(module.name, set()).add(f"{lineno}: roadkeep {verb}")
+                    found.setdefault(where, set()).add(f"{lineno}: roadkeep {verb}")
     assert set(found) == set(_MAY_WRITE_LITERALLY), found
     assert sum(len(where) for where in found.values()) == 4, found
 

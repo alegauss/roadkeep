@@ -139,10 +139,14 @@ class Engine:
         reloading but *saying*, which costs one `stat` per module and cannot be wrong.
         """
         changed = []
-        for module in sorted(self.home.glob("*.py")):
+        # Recursive since RK494, and named by the path under the package rather than by the
+        # filename: `verbs/` holds a module per verb family named after the domain module it
+        # calls, so a `glob` would miss every handler in the tree and a bare `.name` would
+        # report `shipping.py` for either of two files.
+        for module in sorted(self.home.rglob("*.py")):
             try:
                 if module.stat().st_mtime > _LOADED_AT + _GRACE:
-                    changed.append(module.name)
+                    changed.append(module.relative_to(self.home).as_posix())
             except OSError:
                 # A module that cannot be stat'd is not evidence of anything. Every other
                 # failure in this package allows; a provenance note is the last place to

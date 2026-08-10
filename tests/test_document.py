@@ -819,16 +819,22 @@ def test_the_two_readers_of_it_are_the_only_two():
     package = Path(__file__).resolve().parents[1] / "src" / "roadkeep"
     # `document.py` is where both are defined and where each one's docstring names the other,
     # so it is the one module that is not a caller.
-    callers = {m.name: m.read_text(encoding="utf-8") for m in package.rglob("*.py")}
+    # Addressed by path and not by filename (RK494): `verbs/` holds a module per verb family
+    # named after the domain module it calls, so a bare `m.name` lets `verbs/shipping.py`
+    # answer under `shipping.py` — a survey that silently counts one file as another.
+    callers = {
+        m.relative_to(package).as_posix(): m.read_text(encoding="utf-8")
+        for m in package.rglob("*.py")
+    }
     callers.pop("document.py")
     spellings = {name for name, text in callers.items() if ".block(" in text}
     # Every remaining caller wants the entries themselves: `backlog.py` expands a `Block X`
     # dep into member ids, `authoring.py` finds where to insert, `linting.py` counts how
     # many lines a block *held* for the note's own sentence — which the event line never
     # computes, so it is a second fact rather than a second answer to the first one — and
-    # `cli.py` lists what a block delivered (RK433), which is the same call `Standing.of`
-    # makes and is why that listing and `standing.recorded` are one number.
-    assert spellings == {"backlog.py", "authoring.py", "linting.py", "cli.py"}
+    # `verbs/shipping.py` lists what a block delivered (RK433), which is the same call
+    # `Standing.of` makes and is why that listing and `standing.recorded` are one number.
+    assert spellings == {"backlog.py", "authoring.py", "linting.py", "verbs/shipping.py"}
     # `rendering.py` is the third name and not a third spelling (RK493): the event line moved
     # there with every other printer, and what it carries is the *word* — `Backlog.during`,
     # not this call. Its `.holds(` is the docstring saying which one it stopped being.

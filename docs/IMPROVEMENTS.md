@@ -81,31 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK494 The handlers take the names the domain modules already have
-
-After RK493 the file is 2,300 lines of parser and 5,200 of handlers, and the handlers
-are the part with no name: each of the 82 is reached through `set_defaults(handler=…)`
-and grouped by nothing. Every other module here is one gerund whose docstring is the
-authority on it; this is the one file where 82 concepts share a docstring.
-
-So the grouping is the domain modules' own names — authoring, sections, shipping,
-linting, querying, adopting — and where a handler lives is derived from what the verb
-does. The import direction is `build_parser` importing them, which is why RK493 is a
-dep: a handler still reaching a printer left in `cli.py` would import the module that
-imports it.
-
-What must not move, and why this is a split and not a rewrite. `build_parser` stays one
-function: `serving.py` derives every MCP tool, its description and its stdin declaration
-from that object, and two tests read the same one. `dispatch` stays one, because RK489's
-rule is that one place refuses two answers.
-
-The cost is a census: `tests/test_document.py` asserts which modules call `.block(` and
-`.holds(`, naming `cli.py` for handlers that are moving. Updating it is the test doing
-its job — it counts callers, and afterwards the callers are different.
-
-Proven as RK493 is: exit codes unchanged, the served tool list unchanged, `lint` clean
-on `docs/`.
-
 ## Block E — Adoption
 
 ## Block F — The plugin

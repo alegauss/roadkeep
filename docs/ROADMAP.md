@@ -28,8 +28,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK494** (deps: RK493 ✅) **82 handlers sit in the file that registers them, so no verb family has a module or a docstring of its own** — Every other module in the package is one concept its own docstring is the authority on, so this is the one file a reader cannot be pointed at. → §RK494
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

@@ -12,7 +12,12 @@ computed, and the sentence stating it is read once.
 Two kinds live here and they answer the same question in the two registers RK4 declared:
 `_print_*` writes the plain stdout a shell composes with, and `*_json` builds the payload
 `--json` carries. Neither reads a file or takes a lock: what arrives is already the result
-of a transaction, and what leaves is text. Refusals stay in `cli`, being an exit code.
+of a transaction, and what leaves is text. Refusals are a code and left where they were.
+
+A third kind arrived with RK494 and belongs by the same rule: the line-makers two verb
+families both spell — a section's word count, a governed file's name, the wiring report
+`install` and `merge --check` each print. They are not `_print_*` only because they return
+their sentence instead of writing it; the alternative was a shared module holding text.
 
 The consequence to expect (RK79): :mod:`roadkeep.provenance` reads module names off a
 traceback, so a refusal decided inside a printer now names this file. That is the truth
@@ -33,7 +38,7 @@ from roadkeep.briefing import Brief, NothingToBrief
 from roadkeep.budgeting import Body, Budget, Load, Share
 from roadkeep.capturing import body
 from roadkeep.claiming import Followed, Held
-from roadkeep.config import Config
+from roadkeep.config import Config, PROSE_ROLES
 from roadkeep.deferring import Carried
 from roadkeep.document import Document, Entry, Reject
 from roadkeep.fixing import Fix
@@ -41,15 +46,28 @@ from roadkeep.graph import Leverage
 from roadkeep.history import Commit, Origin
 from roadkeep.ids import Promise
 from roadkeep.linting import Finding, Report
+from roadkeep.merging import (
+    ABSENT,
+    Attributes,
+    CURRENT,
+    DRIVER,
+    DRIVER_KEY,
+    Driver,
+    MOVED,
+    Registration,
+    UNKNOWN,
+    UNRUNNABLE,
+    Wiring,
+)
 from roadkeep.picking import Choice, Claim
 from roadkeep.provenance import invocation, served_by
-from roadkeep.remaining import count
+from roadkeep.remaining import count, declared
 from roadkeep.remedying import remedy
 from roadkeep.repairing import MAX_PASSES, Repaired, repair
-from roadkeep.schema import UTF16_UNITS
-from roadkeep.schema import width as measured_width
+from roadkeep.schema import UTF16_UNITS, width as measured_width
 from roadkeep.sections import Section
 from roadkeep.showing import View
+from roadkeep.verbs.refusing import EXIT_GATE, EXIT_OK
 from roadkeep.weighing import Spread, Weights
 
 
@@ -1418,3 +1436,132 @@ def _estimate_json(estimate: Estimate) -> dict[str, object]:
         "lines": estimate.lines,
         "recognised": estimate.recognised,
     }
+
+
+def _counted(section: Section, limit: int) -> str:
+    """One phrasing of a section's size, shared by every verb that prints it (RK287).
+
+    Both figures where they differ, and the limit beside them either way. A bare `310 words`
+    on a section whose own prose is 48 invites cutting prose that was never over — and the
+    limit is what makes the number act on something, which is the whole of RK283 one door
+    over. Which of the two the gate charges depends on whether a line points at the anchor
+    (RK215), so neither is spelled as the verdict and the refusal states its own.
+    """
+    if not section.nests:
+        return f"{section.words} words (limit {limit})"
+    return f"{section.own_words} words, {section.words} with subsections (limit {limit})"
+
+
+def registration_report(registration: Registration, where: str, label: int) -> list[str]:
+    """Everything one registration has to say, rendered once for both its surfaces (RK276).
+
+    `merge --register` and `install --register-merge` are the same write — RK148 said so, and
+    the install branch carried a comment claiming the two printed the same lines. RK274 then
+    added a third line and it reached one of them, so the comment asserting the invariant
+    became the record of it breaking. Two renderings of one dataclass drift the moment the
+    dataclass grows a field, and the only fix that holds is that there is one rendering.
+
+    `label` is the column the install report pads its own verbs to and the merge report does
+    not — the difference that pushed the two apart, reduced to the one parameter it is.
+
+    What it says about the config half is `Wiring`'s (RK278): the `then` line is advice, and
+    advice to wire a driver no governed file routes to is what `--check` had already stopped
+    giving. The state line is printed either way, because narrowing a demand is not licence to
+    stop reporting.
+    """
+    prefix = f"  {'registered':<{label}} " if label else ""
+    lines = [f"{prefix}{where}  + {line}" for line in registration.added]
+    lines += [f"{prefix}{where}    {line} (already there)" for line in registration.present]
+    # RK274: named where the writes are named, because "what this command did" has to include
+    # the file it deliberately did not touch — a skip nobody is told about is indistinguishable
+    # from a skip nobody intended.
+    lines += [
+        f"{prefix}{where}    {path} → {value} (another driver, left alone)"
+        for path, value in registration.left_alone
+    ]
+    pad = label or 8
+    if registration.wiring is None or registration.wiring.demands_driver:
+        # Printed and not run: a driver command names a path into this checkout, and setting
+        # somebody's git config is a write outside the files this tool was given (L2).
+        lines.append(f"  {'then':<{pad}} {registration.command}")
+        # What the stored value cannot promise, said where it is stored (RK255): git executes
+        # it long after this process, and a driver that stopped resolving is silent till a merge.
+        lines.append(f"  {'re-run':<{pad}} after {registration.invalidated_by}")
+    if registration.wiring is not None:
+        # Read after the attribute lines were written (RK266). This is the line that carries a
+        # re-run: three attributes "already there" is the answer where the config is the half
+        # that moved, and without this the output that says nothing changed would be all of it.
+        lines.append(f"  {'config':<{pad}} {_wiring_line(registration.wiring)}")
+    return lines
+
+
+def _wiring_line(wired: Wiring) -> str:
+    """The config half's state, with the qualifier only both halves together can add (RK278).
+
+    One function, so the check and the verb cannot say it two ways — which is what happened the
+    commit RK277 shipped, where `--check` knew nothing routed here and `--register` did not.
+    """
+    tail = "" if wired.attributes.routes_here else " — and no governed file routes here"
+    return f"{_driver_line(wired.driver)}{tail}"
+
+
+#: What each state of the stored driver says, and what a `--check` exits with (RK266). Only two
+#: are failures: git has no driver it can run. `MOVED` is a driver that works and is not what
+#: this machine would write, and exiting 1 on it would make the check unusable on any repository
+#: two people registered from — which is every repository the driver is for.
+_DRIVER_STATES = {
+    ABSENT: (EXIT_GATE, "not set, so a conflict falls back to git's own markers"),
+    # Not "the command above": `--check` prints no command, and a state line that only reads
+    # right under the other surface is one of the two that must stand on its own.
+    CURRENT: (EXIT_OK, "set to the command this machine would write"),
+    MOVED: (EXIT_OK, "set to a command that runs, and is not this machine's"),
+    UNRUNNABLE: (EXIT_GATE, "set to a command this machine no longer has"),
+    UNKNOWN: (EXIT_OK, "could not be read: no git, or no repository here"),
+}
+
+
+def _driver_line(driver: Driver) -> str:
+    """One line for the state, quoting the stored value only where it is the evidence."""
+    _, said = _DRIVER_STATES[driver.state]
+    line = f"{DRIVER_KEY} {said}"
+    if driver.state in (MOVED, UNRUNNABLE):
+        return f"{line}: {driver.stored}"
+    return line
+
+
+def _attributes_line(attributes: Attributes) -> str:
+    """What git sends to the driver, counted — and named where some of it is not.
+
+    "git sends" and no longer "`.gitattributes` sends" (RK273): the answer is `check-attr`'s,
+    so it holds for a rule set in a subdirectory or in `.git/info/attributes`, and naming one
+    file as the authority would be naming the one this tool happens to write.
+    """
+    if attributes.state == UNKNOWN:
+        return "could not be read: no git, or no repository here"
+    counted = f"{len(attributes.sent)} of {len(attributes.resolved)} governed files"
+    line = f"git sends {counted} to the {DRIVER} driver"
+    if attributes.state != CURRENT:
+        line = f"git sends {counted}: {', '.join(attributes.unsent)} would merge textually"
+    if attributes.claimed:
+        # Said in every state, including the passing one (RK274): a claimed file is settled, so
+        # it does not hold the answer open — but dropping it from the line would leave a count
+        # short of its total with nothing explaining the gap, which reads as the failure it
+        # is not. Said, never corrected: it is somebody's decision and this tool can see it.
+        named = ", ".join(f"{path} → {value}" for path, value in attributes.claimed)
+        return f"{line} ({named}, left alone)"
+    return line
+
+
+def _prose_file(config: Config, prose: Document | None) -> str:
+    """The prose file a drop actually rewrote, as the project spells it (RK196).
+
+    Read off the document rather than off `config.path("improvements")`, because which role
+    declared the anchor is what the drop resolved and a caller restating it would be
+    guessing — the guess that reported "no §X.1 section in IMPROVEMENTS.md" about a section
+    sitting in `STRATEGY.md`. Nothing dropped means no document, and then the answer is the
+    first declared prose role, which is where a design would have been.
+    """
+    if prose is not None and prose.path is not None:
+        return config.relative(prose.path)
+    declared = tuple(role for role in PROSE_ROLES if config.has(role))
+    return config.relative(config.path(declared[0])) if declared else ""
