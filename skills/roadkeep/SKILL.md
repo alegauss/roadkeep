@@ -125,11 +125,14 @@ do not name each other. Both entries stay: the ledger is history and both happen
 reads come before a proposal, not after it.** `non-goal list` says what may not be
 proposed at all, and **`delivered <block>`** says what that block already shipped, as
 claims — a duplicate is never refused and could not be, since two people describing one
-problem use disjoint words and recognising that takes meaning this tool has none of;
-measured on this ledger a lexical match ranks the true duplicate 33rd, below the typical
-false positive. So you read the list, and the alternative is discovering the collision
-after a claim, a brief and a retirement. A letter nothing declares is **refused** rather
-than answered `nothing`, that answer being read as evidence, and where the block exists
+problem use disjoint words and recognising that takes meaning this tool has none of. The
+ranking is not the obstacle: measured on this ledger a lexical match ranks the true
+duplicate in the top three and still scores below what an entry with **no** duplicate
+scores against its own nearest neighbour, so no threshold separates them and the gate is
+impossible rather than unreliable. So you read the list, and the alternative is
+discovering the collision after a claim, a brief and a retirement. A letter nothing
+declares is **refused** rather than answered `nothing`, that answer being read as
+evidence, and where the block exists
 the reply says which of live, paused, finished or empty it is. **`reversals` is how you
 find them before spending an id** — a revert is filed as a delivery, so a check answers "yes,
 shipped" about the entry saying the work did not hold; this reads that forward pointer

@@ -26,8 +26,7 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK441** (deps: —) **Three copies price a lexical duplicate match at 33rd, and re-measuring this ledger does not reproduce it** — BM25 over the 426 shipped symptoms ranks all four superseded-by pairs at #1 to #3, so the figure the refusal argues from is wrong even where the refusal is right. → §RK441
-- 📋 **RK442** (deps: RK441) **delivered prints a whole block's ledger to answer whether one proposal collides with it** — The read before an add costs 103 lines and 9773 bytes on Block B, where the five nearest entries by word overlap held every duplicate this ledger records. → §RK442
+- 📋 **RK442** (deps: RK441 ✅) **delivered prints a whole block's ledger to answer whether one proposal collides with it** — The read before an add costs 103 lines and 9773 bytes on Block B, where the five nearest entries by word overlap held every duplicate this ledger records. → §RK442
 
 ## Block D — The gate
 

@@ -79,26 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK441 The duplicate check's figure is unreproducible, and the fact under it is stronger
-
-Three copies state it — the `delivered` help, the guard's denial table and the shipped
-skill — and each argues the same right decision from it, that a duplicate cannot be
-refused. The decision holds; the number does not. Re-measured on this ledger, BM25 over
-the 426 shipped symptoms ranks the true partner of all four `superseded by` pairs at #1,
-#2, #1 and #1 inside its own block, and #1 to #3 across the whole file.
-
-What actually fails is the score, not the rank. Two of the four true pairs score below
-the 13th percentile of the top-1 score a proposal with no duplicate produces, so a
-threshold catching all four flags 419 of 426. That is the fact the refusal rests on, and
-it is the stronger one, because it holds however good the ranking gets: relative order
-inside one query carries signal, the absolute score carries none, and a gate is
-therefore impossible rather than merely unreliable.
-
-A figure nobody can reproduce is worse than no figure where three copies publish it and
-one of them ships to every adopting project. Whether the original was measured against a
-different query, a different pool or a different field is unknown and now unrecoverable
-— which is the second half of the defect, a number stated without its method.
-
 ### §RK442 The pre-add read is the last query that answers by printing the file
 
 `delivered` is one of the two reads before an `add`, and the one query left that answers

@@ -207,6 +207,47 @@ def test_the_body_is_wrapped_and_nothing_but_a_re_wrap_holds_it():
     assert not over, f"{len(over)} body line(s) past 110 characters: {over}"
 
 
+def test_no_copy_of_the_duplicate_claim_prices_it_at_a_rank_nobody_can_reproduce():
+    """RK441. Three copies argue the same right decision — a duplicate cannot be refused —
+    and all three argued it from a rank of 33rd that re-measuring this ledger does not
+    produce: BM25 over the 426 shipped symptoms ranks the true partner of all four
+    `superseded by` pairs at #1 to #3.
+
+    What actually fails is the **score**. Two of those four sit below the 13th percentile of
+    the top-1 score a proposal with no duplicate produces, so a threshold catching all four
+    flags 419 of the 426 — relative order inside one query carries signal and the absolute
+    score carries none, which makes a gate impossible rather than merely unreliable. That
+    fact holds however good the ranking gets, which is why it is the one to publish.
+
+    Held here because a number nobody can reproduce is worse than no number *where three
+    copies publish it*, and one of them ships to every adopting project. The assertion is
+    the rank's absence and not the new sentence's wording: what must not come back is a
+    figure the ledger contradicts.
+    """
+    copies = {
+        "skill": flowed(),
+        "guard": (HERE / "src" / "roadkeep" / "guarding.py").read_text(encoding="utf-8"),
+        "delivered": _subparser("delivered").description or "",
+    }
+    for name, body in copies.items():
+        assert "delivered" in body or name == "guard", name
+        assert "33rd" not in body, name
+    # And the one that is not a rank at all is the one every copy may keep: the ranking is
+    # fine, and the sentence has to say so or the reader repairs the wrong half.
+    assert "top three" in copies["skill"] and "top three" in copies["delivered"]
+    assert "419 of the 426" in copies["guard"]
+
+
+def _subparser(command: str):
+    """The parser for one subcommand, for the description the CLI publishes as its own."""
+    actions = [
+        action
+        for action in build_parser()._actions  # noqa: SLF001
+        if isinstance(action, argparse._SubParsersAction)  # noqa: SLF001
+    ]
+    return actions[0].choices[command]
+
+
 def _frontmatter_ends(lines: list[str]) -> int:
     if not lines or lines[0] != "---":
         return 0

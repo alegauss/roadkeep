@@ -163,10 +163,18 @@ _INSTEAD: Mapping[str, tuple[tuple[str, str], ...]] = {
         # called at all: a denial that teaches the write and not the check teaches half.
         ("non-goal list", "what may not be proposed at all — before `add`, not after"),
         # The second read before a proposal (RK385), and beside the first for the same
-        # reason: a duplicate is not refusable — measured over this ledger a lexical match
-        # ranks the true pair 33rd, below the typical false positive, because two people
-        # describing one problem use disjoint words. So the block states what it delivered
-        # and the author reads it, which costs one call against a claim and a retirement.
+        # reason: a duplicate is not refusable, and the measurement that says so is the
+        # *score* and not the rank (RK441). BM25 over the 426 shipped symptoms this ledger
+        # held when it was taken ranks the true partner of all four `superseded by` pairs at
+        # #1 to #3 across the file — the ranking is fine. Two of those four score below the
+        # 13th percentile of the top-1 score a proposal with **no** duplicate produces, so a
+        # threshold catching all four flags 419 of the 426. Relative order inside one query
+        # carries signal and the absolute score carries none, which makes a gate impossible
+        # rather than merely unreliable — and it holds however good the ranking gets, where
+        # the rank this replaced argued the same right decision from a figure the ledger
+        # contradicts. Two people describing one problem use disjoint words. So the block
+        # states what it delivered and the author reads it, which costs one call against a
+        # claim and a retirement.
         ("delivered <x>", "what this block already shipped, as claims — also before `add`"),
         # The other list this file holds that is not task lines (RK325), and the reason it
         # arrived: the queue used to live in the config, which nothing governs — right for

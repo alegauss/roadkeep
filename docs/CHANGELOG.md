@@ -216,6 +216,7 @@
 - ✅ **RK429** **A query against a finished block answers the same as one against a block that never existed** — brief, pick and list name which of finished, paused, empty or unknown a block with nothing open is, and --json carries that word beside the sentence, so a loop branches on the state and not English.
 - ✅ **RK432** **A dep on a block nobody has filed anything under resolves as satisfied** — A block dep resolves against the block's own stage, so a heading opened before its first line no longer reads as shipped and pick stops offering the task waiting on it.
 - ✅ **RK433** **delivered answers a block letter nothing declares as one that has shipped nothing** — delivered resolves the block label before it filters the ledger: a letter nothing declares is refused at exit 2, and every answer names which of the four states the block is in.
+- ✅ **RK441** **Three copies price a lexical duplicate match at 33rd, and re-measuring this ledger does not reproduce it** — All three copies argue from the score instead of a rank the ledger contradicts, and a test holds them there: the ranking is fine and the absolute score is not comparable.
 
 ## Block D — The gate
 
