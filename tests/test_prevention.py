@@ -20,7 +20,9 @@ found **five** — the whole `char.*` family a caller's prose can carry (a tab, 
 codepoint, a space that is not one), a dep on an id nothing carries, and a `Block X` dep on
 the block the line is being filed into, which writes a line that can never start. That is
 the argument for the register: the estimate was low by more than half, in the direction that
-costs commits, and the two it named were the two somebody happened to trip.
+costs commits, and the two it named were the two somebody happened to trip. RK499 then
+closed the three `char.*` rows, which is what a row moving from `open` to `refused` looks
+like: the same probe, the other outcome, and a re-opened door turns it red.
 
 A `refused` row claims the write refuses **the input that would create the finding**, not
 that it refuses under that code's name — the door is a schema violation with its own
@@ -103,10 +105,12 @@ PREVENTION: tuple[Prevented, ...] = (
     Prevented("deps.range", "refused", _add("--dep", "RK1..RK5", "--symptom", SYMPTOM, "--why", WHY)),
     Prevented("deps.marker", "refused", _add("--dep", "RK1(x)", "--symptom", SYMPTOM, "--why", WHY)),
     Prevented("deps.self", "refused", ("amend", "RK1", "--dep", "RK1")),
+    # Closed by RK499, which is why the rows are here rather than under `open`: the same
+    # probes now measure a refusal, and a re-opened door turns one of them red.
+    Prevented("char.tab", "refused", _add("--symptom", SYMPTOM, "--why", "Because\tof it.")),
+    Prevented("char.invisible", "refused", _add("--symptom", SYMPTOM, "--why", "Because​of it.")),
+    Prevented("char.space", "refused", _add("--symptom", SYMPTOM, "--why", "Because of it.")),
     # -- open: the write accepts it and the gate then refuses the file --------
-    Prevented("char.tab", "open", _add("--symptom", SYMPTOM, "--why", "Because\tof it.")),
-    Prevented("char.invisible", "open", _add("--symptom", SYMPTOM, "--why", "Because​of it.")),
-    Prevented("char.space", "open", _add("--symptom", SYMPTOM, "--why", "Because of it.")),
     Prevented("deps.unknown", "open", _add("--dep", "RK999", "--symptom", SYMPTOM, "--why", WHY)),
     Prevented("deps.cycle", "open", _add("--dep", "Block A", "--symptom", SYMPTOM, "--why", WHY)),
     # -- the file itself ------------------------------------------------------
@@ -172,7 +176,7 @@ PREVENTION: tuple[Prevented, ...] = (
 #: The codes a write could refuse and does not. Asserted against the rows in both
 #: directions, so closing one is a decision somebody writes down rather than a row quietly
 #: changing state — RK491's rule for :data:`UNHELD`, applied to the other half of L1.
-OPEN = frozenset({"char.tab", "char.invisible", "char.space", "deps.unknown", "deps.cycle"})
+OPEN = frozenset({"deps.unknown", "deps.cycle"})
 
 CONFIG = """prefix = "RK"
 [files]

@@ -120,7 +120,18 @@ from roadkeep.history import (
     tracked_now,
 )
 from roadkeep.markers import derive
-from roadkeep.schema import PARTIAL, Dep, DepKind, Task, over_by
+from roadkeep.schema import (
+    CODEPOINT_KINDS,
+    PARTIAL,
+    TAB,
+    Dep,
+    DepKind,
+    Task,
+    codepoint_kind,
+    indentation,
+    over_by,
+    suspect,
+)
 from roadkeep.sections import Section, anchored, find
 from roadkeep.sections import owners as section_owners
 from roadkeep.showing import known_directories, on_disk, paths_in
@@ -141,11 +152,11 @@ LINE_ROLES = ("roadmap", "changelog", "deferred")
 #: delete the section in the transaction that writes the entry.
 LIVE_ROLES = ("roadmap", "deferred")
 
-#: Variation selectors, which are `Mn` and not a format category: invisible all the same,
-#: and the class the parser already had to defend against (`_looks_like_marker`, RK2).
-_VARIATION_SELECTORS = frozenset(
-    chr(point) for point in (*range(0xFE00, 0xFE10), *range(0xE0100, 0xE01F0))
-)
+#: The codes both surfaces raise, where this file's own scan is the better half (RK499). The
+#: schema refuses these at the door, naming a position inside the argument the caller retypes;
+#: `_characters` finds them anywhere in the file, naming the line and the column. One defect,
+#: two readings, and the gate prints the one addressed to a reader of the file.
+_SCANNED = frozenset({"char.tab", "char.space", "char.invisible"})
 
 _ENDING_NAMES = {"\r\n": "CRLF", "\n": "LF", "\r": "CR"}
 
@@ -792,81 +803,6 @@ def _characters(config: Config, role: str, document: Document) -> list[Finding]:
     return out
 
 
-def suspect(char: str, *, indent: bool = False) -> bool:
-    """Is this codepoint invisible, or a space that is not the space?
-
-    Defined by Unicode category rather than a hand-kept list, so a control or format
-    character nobody has met yet is caught too: `Cc` and `Cf` are not text, `Zl` and `Zp`
-    are line breaks inside a line, and a `Zs` other than U+0020 renders as a space while
-    comparing unequal to one. Variation selectors are `Mn` and named explicitly — U+FE0F
-    on a marker is the case the parser already had to defend against (RK2).
-
-    `indent` is where the one control character that **renders** stops being suspect at all
-    (RK146). A tab is `Cc`, so this reported it as "invisible in an editor", which of a tab
-    is untrue — and RK126 rightly withheld it from `--fix`, because the indentation of a
-    nested line is read off the file and written back verbatim (RK49). Two correct decisions
-    left a project that indents with tabs holding a finding no command could ever clear,
-    which is what teaches a reader to stop reading the report. In the indentation a tab is
-    text; past it, it is a separator where this format writes a space, and :func:`_named`
-    says so instead.
-    """
-    if char in _VARIATION_SELECTORS:
-        return True
-    if char == TAB:
-        return not indent
-    # **U+0000 is not a character an author produced** (RK454). It is `Cc` and would be
-    # caught below, but RK118 wrote every byte of a governed file and none was ever one — so
-    # a NUL is a lost write, `within` states it once about the file, and reporting it here
-    # too was the same loss counted a second time per byte, under a code whose `--fix`
-    # claims it and changes nothing.
-    if char == "\x00":
-        return False
-    category = unicodedata.category(char)
-    return category in ("Cc", "Cf", "Zl", "Zp") or (category == "Zs" and char != " ")
-
-
-#: The one control character with a rendering, and the one the model keeps (RK49).
-TAB = "\t"
-#: What a line may be indented with, and the span :func:`suspect` reads a tab as text in.
-_INDENT = " \t"
-
-
-def indentation(body: str) -> int:
-    """How many leading characters of this line are its indentation, tabs included.
-
-    One reading, shared by the gate and the fixer, because a tab is text in this span and a
-    separator past it — and two functions deciding where the span ends is one pair that
-    would disagree about a line somebody nested (RK146).
-    """
-    return len(body) - len(body.lstrip(_INDENT))
-
-
-def repaired(char: str, *, indent: bool = False) -> str | None:
-    """What `--fix` writes in place of a suspect codepoint, or None to leave it (RK126).
-
-    :func:`suspect` is what the gate reports; this is what a normalizer may act on, and the
-    split is RK16's own: a control or format character is **not text under any reading**, so
-    removing it is not a decision about anybody's prose — while a `Zs` that is not U+0020
-    *renders* as a space, and turning one into a space is a change to text that the author
-    is the one to make.
-
-    A tab is the case that needs the position (RK146): inside the indentation it is left
-    alone, because deleting it re-parents somebody's task, and past it the repair is a
-    **space** rather than a deletion — the format writes one there, and removing the
-    separator would glue two fields into a line that no longer parses.
-
-    Here rather than in :mod:`roadkeep.fixing` because it is the same law as the report one
-    function up, and a second list of codepoints is the one that would drift.
-    """
-    if char == TAB:
-        return None if indent else " "
-    if char in _VARIATION_SELECTORS:
-        return ""
-    if unicodedata.category(char) in ("Cc", "Cf", "Zl", "Zp"):
-        return ""
-    return None
-
-
 def _named(file: str, lineno: int, column: int, char: str, task_id: str) -> Finding:
     point = f"U+{ord(char):04X}"
     name = unicodedata.name(char, "unnamed control character").lower()
@@ -882,38 +818,14 @@ def _named(file: str, lineno: int, column: int, char: str, task_id: str) -> Find
             task_id,
             column,
         )
-    if char == TAB:
-        # Past the indentation, which is the only place `suspect` still reports one: the
-        # defect is not that it cannot be seen but that it is a separator this format does
-        # not write, and `--fix` turns it into the space that was meant (RK146).
-        return Finding(
-            "char.tab",
-            file,
-            f"{point} tab at column {column}: the format separates fields with a space, "
-            f"so a tab here is a separator the grammar reads as part of a field",
-            lineno,
-            task_id,
-            column,
-        )
-    if unicodedata.category(char) == "Zs":
-        return Finding(
-            "char.space",
-            file,
-            f"{point} {name} at column {column}: renders as a space and is not one, so "
-            f"the grammar reads a word where a separator was meant",
-            lineno,
-            task_id,
-            column,
-        )
-    return Finding(
-        "char.invisible",
-        file,
-        f"{point} {name} at column {column}: invisible in an editor, so every other "
-        f"diagnosis of this line names the consequence instead",
-        lineno,
-        task_id,
-        column,
-    )
+    # The code and the clause are the schema's (RK499), which is where the door raises the
+    # same three about a *field*: a tab past the indentation is a separator this format does
+    # not write, a `Zs` renders as a space and is not one, and everything else cannot be seen.
+    # What is this function's own is the place — a line and a column, which is what a report
+    # is read for and what an argument has none of.
+    code, because = CODEPOINT_KINDS[codepoint_kind(char)]
+    named = "tab" if char == TAB else name
+    return Finding(code, file, f"{point} {named} at column {column}: {because}", lineno, task_id, column)
 
 
 def _endings(document: Document, file: str) -> list[Finding]:
@@ -1269,6 +1181,13 @@ def within(config: Config, role: str, document: Document) -> list[Finding]:
     for entry in document.entries:
         task = entry.task
         for violation in document.schema.validate(task):
+            if violation.code in _SCANNED:
+                # RK499 put the codepoint rule at the door too, and `_characters` already
+                # walks every line of this file for it — so surfacing both would report one
+                # tab twice under one code, at two different numbers: a position inside a
+                # field, and the column of the line. The scan's is what a report is read
+                # for, and the schema's is what a *refusal* is read for.
+                continue
             out.append(
                 Finding(violation.code, file, violation.message, entry.lineno, task.id)
             )

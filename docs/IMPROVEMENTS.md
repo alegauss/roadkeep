@@ -77,31 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK499 Three codepoints the grammar reads as a separator, admitted by the door
-
-Measured by RK498's register: of the 84 codes the gate emits, these are three of the
-five a write accepts. Reproduced on `add --why`, `amend --why`, `restate --symptom` and
-`record add --why` — every door that takes prose — with `char.tab`, `char.invisible` and
-`char.space` reported afterwards.
-
-The inconsistency is inside one field. `why.whitespace` refuses a leading or trailing
-space at the write and says so, while a tab three characters in is written and left for
-the gate. A caller cannot learn a rule that holds at one end of the string and not the
-other.
-
-Why it matters more than it looks: the format separates fields with a space, so a tab or
-a no-break space is a separator the grammar reads as part of a field — the line still
-round-trips and still parses, and what it parses to is not what was meant. That is the
-class L3 exists for, arriving through the one door that was supposed to keep it out.
-
-`lint --fix` repairs all three, which is the argument for refusing rather than
-rewriting: a fixer that silently edits prose is what L4 forbids at the write, and a
-refusal costs the caller one retry with the character removed.
-
-What proves it: the four doors refuse each of the three, the register's rows for them
-move from `open` to `refused`, and a field with no such codepoint is written exactly as
-before.
-
 ### §RK500 Two deps a write states about a backlog it is holding open
 
 The other two of RK498's five. `add --dep RK999` is written and the gate reports

@@ -63,7 +63,8 @@ from roadkeep import queueing
 from roadkeep.backlog import Backlog, id_order
 from roadkeep.config import Config
 from roadkeep.document import Document, StaleFile, ending, write_atomically
-from roadkeep.linting import LINE_ROLES, indentation, repaired
+from roadkeep.linting import LINE_ROLES
+from roadkeep.schema import indentation, repaired
 from roadkeep.markers import derive
 from roadkeep.schema import Dep, DepKind, Schema, Task
 
