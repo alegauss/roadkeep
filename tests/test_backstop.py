@@ -25,7 +25,8 @@ not a state a governed file can be in at all — a heading is one line, so `titl
 about an argument and never about text; an address the scheme cannot read is not parsed as a
 section, so the heading is prose and prose is allowed. The rest are the finding: measured,
 **two** of the forty-three are states a file can hold with a pointer resolving to them and
-nothing saying so.
+nothing saying so — and RK1012 closed both, so the set is empty and the next row to join it
+is one somebody has to notice.
 """
 
 from __future__ import annotations
@@ -147,22 +148,18 @@ BACKSTOP: tuple[Backstopped, ...] = (
         section="### §RK1 A first design\n\nA paragraph.\n\n### §not-an-id Another\n\nMore.\n",
     ),
     Backstopped("anchor.sigil", because=PROSE),
-    Backstopped(
-        "body.empty",
-        because="a pointer resolves to a heading with no prose and the gate says nothing",
-        section="### §RK1 A first design\n",
-    ),
-    Backstopped(
-        "title.empty",
-        because="a section addressed and unnamed reads as prose under its own anchor",
-        section="### §RK1\n\nA paragraph about it.\n",
-    ),
+    # Closed by RK1012, which is what a row leaving :data:`UNBACKSTOPPED` looks like: the same
+    # probe, the other outcome, and a gate that stopped reporting turns it red.
+    Backstopped("body.empty", gate="body.empty", section="### §RK1 A first design\n"),
+    Backstopped("title.empty", gate="title.empty", section="### §RK1\n\nA paragraph.\n"),
 )
 
 #: The codes a file can carry that nothing reports — the register's finding, asserted in both
 #: directions so closing one is a decision somebody writes down (RK491's rule for `UNHELD`).
-#: The five beside them are rows whose `because` is a reason no file can be in the state.
-UNBACKSTOPPED = frozenset({"body.empty", "title.empty"})
+#: **Empty since RK1012**, which is a state and not an achievement: the five rows beside them
+#: report nothing because no file can be in the state, and the next row to join this set is
+#: one somebody has to notice writing a refusal without a backstop.
+UNBACKSTOPPED = frozenset()
 
 ROADMAP = (
     "# Roadmap\n\n## Block A — The model\n\n"

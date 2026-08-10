@@ -2762,3 +2762,39 @@ def test_the_gate_is_silent_where_every_id_a_design_names_is_a_line(tmp_path):
         ),
     )
     assert not [one for one in lint(config).findings if one.code == "body.promise"]
+
+
+def test_the_gate_reports_a_pointer_that_resolves_to_nothing(tmp_path):
+    """RK1012, and the two rows RK1004's register measured as reported by nothing. Neither is
+    cosmetic and the pointer is why: the gate holds that `→ §<id>` resolves, so a heading with
+    nothing under it satisfies that check while giving the reader none of what it promised."""
+    from roadkeep.linting import lint
+
+    # The subsection goes too: §RK1's argument is its subtree, so a parent left with a child
+    # is not hollow — the same reading `_budget` makes, and the reason `§0` here stays silent.
+    # What is under test is a pointer resolving to nothing at all.
+    hollow = RATIONALE[: RATIONALE.index("### §RK1 A first design")] + "### §RK1 A first design\n"
+    config = project(tmp_path, improvements=hollow)
+    found = [one for one in lint(config).findings if one.code == "body.empty"]
+    assert found and found[0].id == "RK1"
+    assert "promised a rationale" in found[0].message
+
+
+def test_the_gate_reports_a_section_addressed_and_unnamed(tmp_path):
+    from roadkeep.linting import lint
+
+    config = project(
+        tmp_path, improvements=RATIONALE.replace("### §RK1 A first design", "### §RK1")
+    )
+    found = [one for one in lint(config).findings if one.code == "title.empty"]
+    assert found and found[0].id == "RK1"
+
+
+def test_a_container_with_no_prose_of_its_own_is_not_hollow(tmp_path):
+    """The boundary, and the reason the reading is the subtree: this repository's own `§0` is
+    a heading whose children are the rationale. A parent left with none is `ship`'s to report
+    (RK377), and reporting it here too would be one state named twice."""
+    from roadkeep.linting import lint
+
+    config = project(tmp_path)
+    assert not [one for one in lint(config).findings if one.code in ("body.empty", "title.empty")]

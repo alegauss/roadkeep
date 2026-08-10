@@ -105,29 +105,6 @@ project that never calls it still has no section.
 
 ## Block D — The gate
 
-### §RK1012 The two the backstop register found
-
-RK1004's rows are three answers, and these are the only two of the third kind. `section
-add` refuses a body with no prose and a heading with no title; a file carrying either
-lints clean, measured on a fixture whose line points straight at the heading.
-
-Neither is cosmetic, and the pointer is why. A line renders `→ §<id>` and the gate holds
-that the address resolves — so a heading with nothing under it satisfies that check
-while giving the reader none of what the pointer promised. `show` prints the section and
-`brief` hands it to whoever starts the task: both answer with a title and a blank.
-
-The five rows beside them are a different answer and stay silent: a heading is one line,
-so a newline in a title is about an argument, and an address this scheme cannot read is
-not parsed as a section at all, so the heading is prose. Those are not holes, and a code
-for them would be a red nobody keeps.
-
-The gate already walks every section for its budget and its query, so this is that walk
-asking two more questions of what it holds — and both are the door's own rules, which is
-what keeps the wording one sentence rather than a second judgement.
-
-What proves it: a file carrying either exits 1, the register's two rows move to a gate
-code, and prose under an unreadable address is still clean.
-
 ### §RK1015 The half of a door a caller outside this process cannot read
 
 Met building the problems panel. A remedy carries `kind` and a list of doors, and

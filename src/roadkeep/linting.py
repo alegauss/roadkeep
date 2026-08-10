@@ -2117,6 +2117,7 @@ def _orphans(
         seen.setdefault(anchor, section.first)
         out.extend(_budget(prose, section, pointed=anchor in pointed, file=file))
         out.extend(_query(section, file))
+        out.extend(_hollow(prose, section, file, pointed=anchor in pointed))
         out.extend(_promise(config, section, file))
         owners = section_owners(section, ids)
         # Prose that belongs to no task is nobody's orphan — `§0.1` under the id scheme, and
@@ -2267,6 +2268,62 @@ def _promise(config: Config, section: Section, file: str) -> list[Finding]:
         Finding("body.promise", file, f"§{section.anchor} {one.message}", section.first, section.anchor)
         for one in promised(config.schema_for("roadmap"), section.body, known(config, section.anchor, None))
     ]
+
+
+def _hollow(prose: Document, section: Section, file: str, *, pointed: bool) -> list[Finding]:
+    """A section a pointer resolves to that gives the reader nothing (RK1012).
+
+    The two states RK1004's register measured as reachable and reported by nothing: a heading
+    with no prose under it, and one addressed with no title. `section add` refuses both — the
+    door's own words are *a section with no prose is a heading* and *a section is named by its
+    heading* — and a file carrying either lints clean.
+
+    Neither is cosmetic, and the pointer is why. A line renders `→ §<id>` and the gate holds
+    that the address resolves, so a heading with nothing under it satisfies that check while
+    giving the reader none of what the pointer promised: `show` prints it and `brief` hands it
+    to whoever starts the task, both answering with a title and a blank.
+
+    The five rows beside them in that register stay silent and are a different answer: a
+    heading is one line, so a newline in a title is about an argument, and an address this
+    scheme cannot read is not parsed as a section at all — the heading is prose, and prose in
+    a prose file is allowed.
+
+    Not repairable, which is why both are `compose`: what the paragraph should say and what
+    the heading should be called are the author's, and the tool writes neither (L4).
+
+    **Only a section a line points at**, which is the symptom's own wording and the thing that
+    makes it decidable. A heading nothing addresses is prose under a heading — this file's own
+    `§0` is one, a container whose children are the rationale — and `section.orphan` is what
+    names one of those. The subtree is read for the same reason `_budget` reads it: the walk
+    hands over a section's own paragraph, and a parent's argument is its children.
+    """
+    if not pointed:
+        return []
+    whole = find(prose, section.anchor) or section
+    out: list[Finding] = []
+    if not section.title.strip():
+        out.append(
+            Finding(
+                "title.empty",
+                file,
+                f"§{section.anchor} is addressed and unnamed: a section is named by its "
+                f"heading, and a pointer resolving here reaches an address and no subject",
+                section.first,
+                section.anchor,
+            )
+        )
+    if not whole.body.strip():
+        out.append(
+            Finding(
+                "body.empty",
+                file,
+                f"§{section.anchor} has a heading and no prose: the line pointing here "
+                f"promised a rationale, and `show` answers with a title and a blank",
+                section.first,
+                section.anchor,
+            )
+        )
+    return out
 
 
 def _budget(

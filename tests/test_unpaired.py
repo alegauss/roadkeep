@@ -53,6 +53,10 @@ The reasoning the first line has no room for.
 ### §RK2 The second design
 
 The reasoning the second line has no room for.
+
+And a second paragraph, so the deletion below leaves a section with prose still in it: a
+pointer resolving to a heading with nothing under it is its own finding, and a different
+one from what these tests are about.
 """
 
 

@@ -119,15 +119,15 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 31 | 2 |
 | B — Authoring (insert, never hand-edit) | 1 | 107 | 1 |
 | C — Query (consult without reading the file) | 0 | 73 | 1 |
-| D — The gate | 3 | 120 | 0 |
+| D — The gate | 2 | 121 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 91 | 1 |
 | G — The editor surface (the backlog where the file is open) | 1 | 8 | 0 |
-| **Total** | 5 | 504 | 6 |
+| **Total** | 4 | 505 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1012** (deps: —) **A pointer can resolve to a heading with no prose, or to one with no title, and the gate reports neither** — Both are refused at the door and RK1004 measured them as the two states of forty-three that a file can hold with nothing saying so. → §RK1012
+- 📋 **RK1014** (deps: —) **A project with no queue is told to write the heading by hand, and the verb that would move one says the first writes it** — Each of the two queue doors names the other, so the one edit the guard denies is the only route to a section every other heading has a verb for. → §RK1014
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

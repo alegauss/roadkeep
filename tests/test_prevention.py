@@ -107,6 +107,18 @@ PREVENTION: tuple[Prevented, ...] = (
     Prevented("deps.range", "refused", _add("--dep", "RK1..RK5", "--symptom", SYMPTOM, "--why", WHY)),
     Prevented("deps.marker", "refused", _add("--dep", "RK1(x)", "--symptom", SYMPTOM, "--why", WHY)),
     Prevented("deps.self", "refused", ("amend", "RK1", "--dep", "RK1")),
+    # The two RK1012 gave the gate, refused at the door since `section add` existed: a
+    # section with no prose is a heading, and a section is named by its heading.
+    Prevented(
+        "body.empty",
+        "refused",
+        _add("--symptom", SYMPTOM, "--why", WHY, "--section", "A design", "--section-body", "  "),
+    ),
+    Prevented(
+        "title.empty",
+        "refused",
+        _add("--symptom", SYMPTOM, "--why", WHY, "--section", " ", "--section-body", "A paragraph."),
+    ),
     Prevented(
         "body.promise",
         "refused",
