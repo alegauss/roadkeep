@@ -119,14 +119,10 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 31 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 105 | 1 |
 | C — Query (consult without reading the file) | 0 | 73 | 1 |
-| D — The gate | 1 | 114 | 0 |
+| D — The gate | 0 | 115 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 91 | 1 |
-| **Total** | 1 | 488 | 6 |
-
-**Next ready:**
-
-- 📋 **RK498** (deps: —) **Nothing says which of the gate's findings a write can refuse, so a rule the write path drops is found by tripping it** — RK497 was found by a bad commit and probing three more codes found two more open, so what is missing is the enumeration and not the patches. → §RK498
+| **Total** | 0 | 489 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

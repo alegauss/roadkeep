@@ -195,6 +195,15 @@ INVARIANTS: tuple[Invariant, ...] = (
         held_by="test_invariants::test_no_survey_derives_its_own_view_of_the_package",
     ),
     Invariant(
+        stated="RK498",
+        rule=(
+            "every code the gate can emit says whether the write path refuses it, and the "
+            "rows claiming it does are measured by a probe rather than asserted"
+        ),
+        over="roadkeep.remedying.codes",
+        held_by="test_prevention::test_every_code_the_gate_can_emit_has_a_row",
+    ),
+    Invariant(
         stated="RK490",
         rule=(
             "every field a remedy row may name between braces is one the finding answers, "
