@@ -73,7 +73,12 @@ otherwise leaves the one reader who could ever know it was stale — you — wit
 say so; refused on a line that pointed at no design and on a `--part`, whose section
 stays. And `--why` is **required**, because the roadmap's sentence states a problem and
 the ledger's states an outcome, so inheriting it files a defect report under a heading
-meaning "done" (`record amend <id> --why` is the repair where one already did), and
+meaning "done" (`record amend <id> --why` is the repair where one already did). **A path
+ledger prose names has to resolve**: `ship`, `retire` and both `record` verbs refuse a
+sentence citing a file this repository does not have, because an entry there claims the
+work is done — the gate's own `path.missing`, asked before the prose exists rather than
+after it lands, and never asked of a roadmap line, which is free to name the artefact its
+task exists to write. And
 `retire <id> [--superseded-by <id>] --reason "…"` is the same transaction, two more doors
 — **open on every project, including one that declares `[ledger] marker = false`**: there
 the retirement is the one line in that file to carry a marker, a departure being the one

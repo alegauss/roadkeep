@@ -269,6 +269,40 @@ class SecondPartial(ValueError):
 AlreadyShipped = AlreadyRecorded
 
 
+class NoSuchPath(ValueError):
+    """Ledger prose naming a path this repository does not have (RK497).
+
+    The gate's `path.missing`, asked where the sentence is composed instead of after it lands
+    — which is L1, and the one ledger rule that was not held here. Measured at the cost the
+    law predicts: a `ship --why` citing a path from its own reproduction reported success,
+    the entry landed, the commit was made, and the finding came off an unrelated run
+    afterwards; repairing it took a second commit describing nothing shipped.
+
+    Refused rather than reported, and the split is the same one RK295 drew: a *scope* naming
+    an absent path is reported, because declaring one before the file exists is the ordinary
+    case, while a ledger entry is the opposite claim — the work is done, so the artefact is
+    there or the sentence is wrong.
+
+    Only the prose **this call** brought. What a ship inherits from the roadmap line it is
+    closing is somebody's earlier sentence, and `restate` is that door: refusing a ship over
+    it would price a correction as a shipment, and the gate still names it either way.
+
+    No fix is offered, because there is none to compute (L4): the token is either a typo, a
+    file that moved, or a name that should not have been in backticks — and which of the
+    three it is, is the thing only the author knows.
+    """
+
+    def __init__(self, named: str, missing: Sequence[str], file: str) -> None:
+        self.named = named
+        self.missing = tuple(missing)
+        spelled = ", ".join(self.missing)
+        super().__init__(
+            f"{named} names {spelled}, which {'are' if len(self.missing) > 1 else 'is'} not "
+            f"in the repository: {file} records work that is done, so a path it names has to "
+            f"resolve — the gate reports this as `path.missing` once the entry is written"
+        )
+
+
 class NoRestatement(ValueError):
     """A flag that writes the ledger's sentence, where the ledger is not written (RK62).
 
@@ -926,6 +960,7 @@ def amend(
     text the parse never held — and a write that silently removes prose is the one thing
     this door was narrow enough to be incapable of.
     """
+    _refuse_absent(config, **{"--why": why, "--part": part})
     ledger = config.document("changelog")
     where = config.relative(config.path("changelog"))
     twins = tuple(entry for entry in ledger.entries if entry.task.id == task_id)
@@ -1231,6 +1266,31 @@ def _wrapped_onto(document: Document, entry: Entry) -> tuple[str, ...]:
     )
 
 
+def _refuse_absent(config: Config, **prose: str | None) -> None:
+    """Refuse ledger prose that names a path this repository lacks (RK497, L1).
+
+    Called with the arguments **this** verb was given, keyed by the flag that carries each,
+    so the refusal names the one the caller has to correct rather than the sentence it landed
+    in. Every one of them is asked, and the refusal names every token, for the reason a
+    schema refusal states every violation at once: one problem per run turns a single fix
+    into a conversation.
+
+    Cheap on the sentences anybody means to write: :func:`~roadkeep.linting.unresolved` asks
+    the filesystem per token and asks git only for one that fails (RK222).
+    """
+    # Deferred, and it is the gate: `linting` reads the files this module writes, so the
+    # top-level edge would run the wrong way (RK260).
+    from roadkeep.linting import unresolved  # noqa: PLC0415 - RK497
+
+    file = config.relative(config.path("changelog"))
+    for named, text in prose.items():
+        if not text:
+            continue
+        missing = unresolved(config, text)
+        if missing:
+            raise NoSuchPath(named, missing, file)
+
+
 def ship(
     config: Config,
     task_id: str,
@@ -1275,6 +1335,7 @@ def ship(
     the two doors where it would be untrue — a line that pointed at no design, and a partial,
     whose section stays because the rest of the work still reads it.
     """
+    _refuse_absent(config, **{"--why": why, "--part": part, "--superseded-design": superseded})
     if part is not None:
         if lines is not None:
             raise NoCompletion(task_id, config.relative(config.path("changelog")))
@@ -1308,6 +1369,7 @@ def retire(
     other field the tool fills in (RK8): "superseded by RK41" is a fact this command holds
     and the reason is prose it will not write (L4).
     """
+    _refuse_absent(config, **{"--reason": reason})
     holder: str | None = None
     if superseded_by is not None:
         if superseded_by == task_id:
@@ -1387,6 +1449,7 @@ def record(
     else:
         refuse_reuse(config, task_id)
 
+    _refuse_absent(config, **{"--symptom": symptom, "--why": why})
     ledger = config.document("changelog")
     marker = config.schema.shipped_marker
     if supersedes is not None:

@@ -2423,27 +2423,15 @@ def _paths(config: Config, documents: dict[str, Document], tree: Tree) -> list[F
         return []
     file = config.relative(config.path("changelog"))
     near = config.path("changelog").parent
-    # Which directories the repository knows, at whichever tree this run is judging (RK217):
-    # a claim is about the repository, so the disk's current shape is not what decides it.
-    # The bound method and not its answer (RK222): it caches, so passing it makes the
-    # listing lazy for free — a ledger whose every path resolves asks git nothing.
-    known = tree.directories
     # One pass, keeping what it found (RK223). The candidates have to be gathered before
     # `.gitignore` is asked, because one call for all of them is what keeps that question
     # cheap (RK213) — and gathering them with a comprehension of its own made the findings
     # comprehension repeat the whole scan: 1602 entries into `paths_in` for 801 entries,
     # and 2.9 s of a `lint` that a pre-commit hook waits for (RK17).
     unresolved = [
-        (entry, referenced.path)
+        (entry, token)
         for entry in document.entries
-        for referenced in paths_in(
-            entry.raw,
-            config.root,
-            near=near,
-            known=known,
-            has=lambda token: tree.holds(token, near),
-        )
-        if not referenced.exists and not tree.anywhere(referenced.path)
+        for token in _candidates(tree, entry.raw, near)
     ]
     untracked = tree.declared_untracked([(token, near) for _, token in unresolved])
     return [
@@ -2460,6 +2448,51 @@ def _paths(config: Config, documents: dict[str, Document], tree: Tree) -> list[F
         # a gate that read the filesystem alone answered by machine.
         if token not in untracked
     ]
+
+
+def _candidates(tree: Tree, text: str, near: Path) -> tuple[str, ...]:
+    """Every path one sentence names that this tree does not have, before `.gitignore`.
+
+    The half :func:`_paths` and :func:`unresolved` share, so the gate and the write path
+    cannot come to disagree about what counts as missing — which they would, being written
+    weeks apart against the same six rules (RK55, RK173, RK213, RK217, RK218).
+
+    ``known`` is the bound method and not its answer (RK222): it caches, so passing it makes
+    the listing lazy for free, and a sentence whose every path resolves asks git nothing.
+    """
+    return tuple(
+        referenced.path
+        for referenced in paths_in(
+            text,
+            tree.config.root,
+            near=near,
+            known=tree.directories,
+            has=lambda token: tree.holds(token, near),
+        )
+        if not referenced.exists and not tree.anywhere(referenced.path)
+    )
+
+
+def unresolved(config: Config, text: str) -> tuple[str, ...]:
+    """The paths a sentence about *shipped* work names that this repository lacks (RK497).
+
+    The gate's own `path.missing` rule, asked before the prose exists rather than after it
+    lands — which is L1, and the reason this is here rather than a second reading in
+    :mod:`roadkeep.shipping`: one definition of missing, called from both ends.
+
+    Measured cost, and why a write can afford it: `paths_in` asks the filesystem per token
+    and asks git only for a token that fails (RK222), and `check-ignore` runs only for what
+    survives that (RK213). A sentence whose paths resolve — every sentence anybody means to
+    write — costs one `stat` each and no subprocess at all.
+
+    Resolved against the **working tree**, never a revision: the caller is writing the entry
+    now, so "now" is the only tree the question can be about.
+    """
+    near = config.path("changelog").parent
+    tree = Tree(config)
+    found = _candidates(tree, text, near)
+    untracked = tree.declared_untracked([(token, near) for token in found])
+    return tuple(token for token in found if token not in untracked)
 
 
 def _declared_untracked(

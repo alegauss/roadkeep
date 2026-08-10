@@ -29,7 +29,7 @@ from roadkeep.config import Config
 from roadkeep.document import Document, RoundTripError, StaleFile
 from roadkeep.linting import lint
 from roadkeep.schema import IN_PROGRESS, PARTIAL, Dep, Schema, SchemaError
-from roadkeep.shipping import SecondPartial
+from roadkeep.shipping import NoSuchPath, SecondPartial
 from roadkeep.sections import SectionOccupied
 from roadkeep.shipping import (
     Divergent,
@@ -43,6 +43,7 @@ from roadkeep.shipping import (
     NoRestatement,
     NotOpen,
     Wrapped,
+    record,
     retire,
     ship,
 )
@@ -1794,3 +1795,81 @@ def test_the_payload_carries_it(tmp_path, capsys):
     # Under the prose file's object and not at the top level: it is a fact about the drop,
     # and the caller reading `cited` beside it is the caller this answers.
     assert json.loads(capsys.readouterr().out)["improvements"]["emptied"] == "I"
+
+
+# -- the gate's own path rule, held where the sentence is composed (RK497) -----
+
+
+def _with_source(tmp_path: Path) -> Config:
+    """The fixture plus a `src/` the repository knows, which is what makes `src/gone.py` a
+    claim at all: a token whose directory nothing has heard of is not a path (RK55, RK217) —
+    60 of Shio's 61 findings were a MIME type or a method name sharing a slash."""
+    config = project(tmp_path)
+    (tmp_path / "src").mkdir()
+    (tmp_path / "src" / "kept.py").write_text("x = 1\n", encoding="utf-8")
+    return config
+
+
+def test_a_why_naming_a_path_the_repository_lacks_is_refused_and_writes_nothing(tmp_path):
+    """RK497. L1 puts the schema where the text is created, and this was the one ledger rule
+    the gate held alone: a `ship --why` citing a path from its own reproduction reported
+    success, the entry landed, the commit was made, and `path.missing` came off an unrelated
+    run afterwards — repaired by a second commit describing nothing shipped."""
+    config = _with_source(tmp_path)
+    files = (ROADMAP, CHANGELOG, IMPROVEMENTS)
+    before = {name: (tmp_path / name).read_text(encoding="utf-8") for name in files}
+    with pytest.raises(NoSuchPath) as refused:
+        ship(config, "RK1", why="It works now, in `src/gone.py`.")
+    assert refused.value.missing == ("src/gone.py",)
+    assert refused.value.named == "--why"
+    # The flag and not the sentence, because the flag is what the caller retypes — and the
+    # file, because "records work that is done" is the argument for refusing at all.
+    assert "--why names src/gone.py" in str(refused.value)
+    assert "docs/CHANGELOG.md records work that is done" in str(refused.value)
+    assert {name: (tmp_path / name).read_text(encoding="utf-8") for name in files} == before
+
+
+def test_the_path_that_resolves_ships_exactly_as_before(tmp_path):
+    # The other half of a refusal worth having: the sentence anybody means to write costs a
+    # stat per token and no subprocess at all (RK222).
+    config = _with_source(tmp_path)
+    ship(config, "RK1", why="It works now, in `src/kept.py`.").save()
+    assert "in `src/kept.py`" in (tmp_path / CHANGELOG).read_text(encoding="utf-8")
+
+
+def test_an_open_line_may_still_name_the_file_its_task_will_write(tmp_path):
+    """The boundary, and the reason `_paths` reads the ledger alone: a roadmap line describes
+    work that has *not* happened, so the paths in it are disproportionately the artefacts its
+    task exists to create. Shio had eight such findings and all eight were false."""
+    config = _with_source(tmp_path)
+    from roadkeep.authoring import add
+
+    add(
+        config,
+        block="A",
+        symptom="A fourth symptom nothing answers yet",
+        why="Because `src/not-yet.py` does not exist.",
+    )
+    assert "src/not-yet.py" in (tmp_path / ROADMAP).read_text(encoding="utf-8")
+    assert [f for f in lint(config).findings if f.code == "path.missing"] == []
+
+
+def test_every_verb_that_writes_ledger_prose_holds_the_rule(tmp_path):
+    """One helper on four doors, asserted as the four rather than as the helper: a verb added
+    tomorrow that writes an entry and skips it is the defect this task was filed about."""
+    config = _with_source(tmp_path)
+    absent = "Because `src/gone.py` says so."
+    with pytest.raises(NoSuchPath):
+        retire(config, "RK3", reason=absent)
+    with pytest.raises(NoSuchPath):
+        record(config, block="A", symptom="A symptom nobody planned for", why=absent)
+    with pytest.raises(NoSuchPath):
+        record(
+            config,
+            block="A",
+            symptom="A symptom naming `src/gone.py` nobody planned for",
+            why="Because it was done.",
+        )
+    ship(config, "RK1", why="It works now.")
+    with pytest.raises(NoSuchPath):
+        amend_record(config, "RK1", why=absent)
