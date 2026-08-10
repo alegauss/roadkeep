@@ -150,7 +150,7 @@
 - ✅ **RK437** **Prose is filled to a width counted in code points while every limit that refuses counts UTF-16 units** — Every measure adopt reports names the unit its two figures are in, so a table of three units stops implying one — and the non-goal rows are counted the way the gate counts them.
 - ✅ **RK438** **A write's event line calls a block empty that every query in the same tool calls finished** — Every write's event names the block's stage from the four-state reader every query uses, so finished and empty stop sharing a word and a paused block is offered no drop.
 - ✅ **RK452** **Which of two writes came first decides whether an outline section ever belongs to a task** — A line whose --ref names an outline section binding nobody renders the binding into that heading in the same transaction, so both write orders reach the same file.
-- ✅ **RK495** **A scope declaring a directory stages every file under it and reports each one as claimed by nothing** — Every list a scope splits the tree into asks one predicate, so a declared `src/` speaks for `src/a.py` in the loose list and in another session's as it already did in the staging line.
+- ✅ **RK495** **A scope declaring a directory stages every file under it and reports each one as claimed by nothing** — Every list a scope splits the tree into asks one predicate, so a declared directory speaks for the files under it in the loose list and in another session's as it already did in the staging line.
 
 ## Block C — Query
 
