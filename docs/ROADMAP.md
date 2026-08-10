@@ -32,6 +32,8 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
+- 📋 **RK447** (deps: —) **The deny lists tools this session has no server for, ahead of the shell commands it does have** — RK444 gave the notice a route that can answer no and left the refusal on the total one, so the surface an agent meets under a denial still leads with a prefix it cannot call. → §RK447
+
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:
