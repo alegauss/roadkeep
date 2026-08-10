@@ -22,11 +22,15 @@
 
 ## Block A — The model (a task is data before it is a line)
 
+- 📋 **RK450** (deps: —) **A staged file is renamed into place without its bytes being flushed, so a crash leaves the new size and no content** — Measured here: a hard reboot mid-session left all four governed files entirely NUL at their new lengths, 152 KB recoverable only because git held them. → §RK450
+
 ## Block B — Authoring (insert, never hand-edit)
 
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
+
+- 📋 **RK451** (deps: —) **A governed file that is not text at all is reported one finding per byte, and never as a file to restore** — The 3,301-byte roadmap a crash left NUL produced 3,301 char.invisible findings, each naming a --fix that would empty the file rather than say it has no content. → §RK451
 
 ## Block E — Adoption
 
