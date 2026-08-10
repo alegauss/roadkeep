@@ -84,26 +84,3 @@ already written, not authorship.
 ## Block E — Adoption
 
 ## Block F — The plugin
-
-### §RK447 The guess that is right everywhere except where nothing was installed
-
-RK333 made the deny name this session's tools first and the shell second, deciding the
-prefix from what the two scopes put on disk: a project `.mcp.json` gives
-`mcp__roadkeep__`, a plugin tree gives `mcp__plugin_<plugin>_roadkeep__`. Where neither
-says anything it answers the bare name, on the argument that this is what every project
-that ran `install` has and that naming a plugin nobody installed would be the same
-defect with the scopes swapped. That argument is sound and it is about a *choice between
-two prefixes*.
-
-The third state was not in it. A project that pip-installed roadkeep and never ran
-`install` has no `.mcp.json` and is not running out of a plugin tree, so it has no tools
-at all — and the refusal it meets leads with `mcp__roadkeep__add`, which that session
-cannot call, above the shell command it can. The agent reaches for the first, is told no
-such tool, and finds the second on the next turn. It is the shape RK444 just removed
-from the notice, on the surface where a wrong first line costs a turn rather than a
-read.
-
-`serving` is already the reader that can answer no, written for exactly this distinction
-and used by one caller. What is open is whether the refusal should then demote the tool
-list entirely or keep it as *what `install` would give you*, since the reader is on a
-project one command away from having them, and a denial is a bad place to advertise.

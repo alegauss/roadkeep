@@ -121,12 +121,8 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 67 | 1 |
 | D — The gate | 0 | 91 | 0 |
 | E — Adoption | 0 | 74 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 73 | 1 |
-| **Total** | 1 | 437 | 6 |
-
-**Next ready:**
-
-- 📋 **RK447** (deps: —) **The deny lists tools this session has no server for, ahead of the shell commands it does have** — RK444 gave the notice a route that can answer no and left the refusal on the total one, so the surface an agent meets under a denial still leads with a prefix it cannot call. → §RK447
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 74 | 1 |
+| **Total** | 0 | 438 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

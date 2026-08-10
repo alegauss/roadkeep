@@ -306,16 +306,16 @@ _MANIFEST = (".claude-plugin", "plugin.json")
 _PROJECT_MCP = ".mcp.json"
 
 
-def served_as(root: Path) -> str:
-    """The prefix this session's roadkeep tools arrive under (RK333).
+def serving(root: Path) -> str | None:
+    """The prefix this session's roadkeep tools arrive under, or ``None`` where there are none.
 
-    One engine, two names, each right in one scope: a **project** `.mcp.json` produces
-    `mcp__roadkeep__add` — this checkout, and any project `install` wired — while a server a
-    **plugin** provides arrives as `mcp__plugin_roadkeep_roadkeep__add`, measured against the
-    published payload with `claude --plugin-dir <tree> -p …` from a project that is not this
-    one. `Refusal` stated the first unconditionally, so in the plugin's own audience the route
-    it names first is one that session cannot call — worse than the shell form it demotes,
-    because that one at least fails loudly.
+    One engine, two names, each right in one scope (RK333): a **project** `.mcp.json`
+    produces `mcp__roadkeep__add` — this checkout, and any project `install` wired — while a
+    server a **plugin** provides arrives as `mcp__plugin_roadkeep_roadkeep__add`, measured
+    against the published payload with `claude --plugin-dir <tree> -p …` from a project that
+    is not this one. `Refusal` stated the first unconditionally, so in the plugin's own
+    audience the route it named first was one that session cannot call — worse than the shell
+    form it demotes, because that one at least fails loudly.
 
     **Decided by what the two scopes actually put on disk**, in the same spirit as
     :func:`invocation`: an adopting project has no `.mcp.json` and gets its tools from the
@@ -324,31 +324,14 @@ def served_as(root: Path) -> str:
     command line rather than exported, which `tests/test_plugin.py` measured from the other
     end — and the hook payload says which tool was denied, never which server offered it.
 
-    The bare name is the answer wherever nothing says otherwise: it is what every project
-    that ran `install` has, and naming a plugin nobody installed would be the same defect
-    with the scopes swapped.
-    """
-    if _declared_by(root):
-        return f"mcp__{SERVER}__"
-    plugin = _plugin_name()
-    return f"mcp__{SERVER}__" if plugin is None else f"mcp__plugin_{plugin}_{SERVER}__"
-
-
-def serving(root: Path) -> str | None:
-    """The prefix this session's roadkeep tools arrive under, or ``None`` where there are none.
-
-    :func:`served_as` answers the same question **totally**, because its caller is a refusal
-    that has to recommend something and the bare name is the right guess wherever nothing
-    says otherwise. This one is allowed to say no, and that is the whole difference (RK444):
-    the `SessionStart` notice is the only message every adopting session receives, and it
-    named the shell unconditionally — so on exactly the projects that have the tools, the one
-    line an agent is guaranteed to read pointed at the slower route. The list the deny orders
-    correctly is right and fires only on a hand-edit, which the agent that behaves never
-    makes.
-
-    The two scopes are the same two: a project `.mcp.json` naming this server, or a plugin
-    tree the engine is running out of. Neither is a project reaching the CLI, and there the
-    invocation is not a demotion but the only route there is.
+    **And there is a third state, which used to be answered with a guess** (RK444, RK447).
+    RK333 chose the bare name wherever neither scope spoke, on the argument that it is what
+    every project that ran `install` has and that naming a plugin nobody installed would be
+    the same defect with the scopes swapped. That argument is sound and it is about a choice
+    *between two prefixes*. A project that pip-installed roadkeep and never ran `install` has
+    neither — no tools at all — and both surfaces that name a route were handing it one it
+    cannot call: the notice that every session reads, and the denial that stops an edit. So
+    the answer here is allowed to be ``None``, and each caller says what it does with that.
     """
     if _declared_by(root):
         return f"mcp__{SERVER}__"

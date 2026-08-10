@@ -717,6 +717,48 @@ def test_the_command_survives_the_config_error_every_other_command_exits_on(
 # -- what a session is told before it reads anything (RK82) -------------------
 
 
+def test_a_session_with_no_server_is_offered_no_tool_it_cannot_call(tmp_path):
+    """RK447. RK333 chose the prefix between two scopes and the third was answered with a
+    guess: a project that pip-installed roadkeep and never ran `install` has no `.mcp.json`
+    and no plugin tree, so the refusal led with `mcp__roadkeep__add` — a turn spent being
+    told the tool does not exist, above the command that works."""
+    refusal = Refusal(tool="Edit", path=ROADMAP, role="roadmap", served="")
+    assert refusal.tools == ()
+    said = str(refusal)
+    assert "mcp__" not in said
+    assert "Call instead, from the project root:" in said
+    # And the denial owes exactly one thing, which it still says.
+    assert f"{invocation()} add" in said
+
+
+def test_a_session_that_has_the_tools_is_still_led_to_them(tmp_path):
+    """The route RK58 named first, and why: since RK57 the plugin installs with no `pip
+    install` and no PATH entry, so there the shell form is the `command not found`."""
+    said = str(Refusal(tool="Edit", path=ROADMAP, role="roadmap", served="mcp__roadkeep__"))
+    assert "mcp__roadkeep__add" in said
+    assert said.index("mcp__roadkeep__add") < said.index("Or the same engine in a shell")
+
+
+def test_the_denial_never_advertises_the_install_that_would_serve_them(tmp_path):
+    """Which engine answers is the notice's fact to state (RK444), said once at the start of
+    every session. A refusal is the surface an agent meets when it is already stopped, and
+    what it owes there is the command that closes it."""
+    said = str(Refusal(tool="Edit", path=ROADMAP, role="roadmap", served=""))
+    assert "install" not in said
+
+
+def test_the_route_the_refusal_names_is_the_one_the_project_has(tmp_path):
+    """A field and not a call: one hook process serves every repository the session touches,
+    so the prefix is a fact about the project being refused."""
+    from roadkeep.provenance import serving
+
+    root = project(tmp_path)
+    refused = guard(
+        {"tool_name": "Edit", "tool_input": {"file_path": str(root / ROADMAP)}}, root
+    )
+    assert refused.served == (serving(root) or "")
+
+
 def start(cwd: Path) -> dict[str, object]:
     return {"hook_event_name": "SessionStart", "cwd": str(cwd)}
 

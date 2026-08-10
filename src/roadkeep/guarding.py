@@ -90,7 +90,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from roadkeep.config import Config, ConfigError, find_config
-from roadkeep.provenance import SERVER, invocation, served_as, serving
+from roadkeep.provenance import SERVER, invocation, serving
 from roadkeep.serving import TOOLS
 
 if TYPE_CHECKING:  # annotations only, and already strings — see the docstring's sixth decision
@@ -257,6 +257,10 @@ class Refusal:
     #: where a project declares the server, and `mcp__plugin_<plugin>_roadkeep__` where a
     #: plugin provides it. A field and not a call, because it is a fact about the *project*
     #: being refused and one hook process serves every repository the session touches.
+    #:
+    #: `""` is the third state and not a missing value (RK447): this session has no server
+    #: for them, so there is no tool table to print. The default is the bare prefix because
+    #: that is what every wired project has and what a `Refusal` built by hand means.
     served: str = f"mcp__{SERVER}__"
 
     @property
@@ -282,7 +286,19 @@ class Refusal:
         Named first, because since RK57 the plugin installs with no `pip install` and no
         PATH entry: on that machine the tool is the route that is certainly there and
         `roadkeep add` is a `command not found` waiting to teach that the advice is wrong.
+
+        **Empty where this session has no server for them** (RK447), which is the same
+        argument read backwards. A project that pip-installed roadkeep and never ran
+        `install` has neither scope, and led with a prefix it cannot call the agent spends a
+        turn being told the tool does not exist before it reaches the command that works —
+        naming an edit that cannot be made, which is worse than naming none (RK16). The
+        `else` branch below is then the whole answer, and it was already there: this is a
+        denial, and the one thing it owes is the command that closes it. That `install`
+        would give this project the tools is true and is the notice's to say (RK444); a
+        refusal is a bad place to advertise.
         """
+        if not self.served:
+            return ()
         found = []
         for command, purpose in self.commands:
             name = _tool_for(command)
@@ -540,7 +556,7 @@ def guard(payload: Mapping[str, object], root: str | Path = ".") -> Refusal | No
             path=config.relative(path),
             role=role,
             exists=path.is_file(),
-            served=served_as(config.root),
+            served=serving(config.root) or "",
         )
     return None
 
@@ -579,7 +595,7 @@ def _mentioned(raw: object, base: Path, tool: str) -> Refusal | None:
                 path=relative,
                 role=role,
                 exists=declared.is_file(),
-                served=served_as(config.root),
+                served=serving(config.root) or "",
             )
     return None
 
