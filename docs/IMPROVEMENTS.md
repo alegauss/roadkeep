@@ -81,31 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK462 Narrow is a count, not a kind
-
-RK460 made `-n auto` resolve to none where the invocation named a file or a node id, and
-the file it was measured on went from 43.2 s to 0.93 s. The predicate is `any` — one
-file argument decides — which is right for the case it was written for and wrong just
-past it. Measured here, six files on one command line:
-
-    six files   0 workers  15.5 s
-
-Nobody asked for a serial run; they asked for six files. RK460's reasoning holds — "a
-caller who named a file wants that file, and nobody who names one wants twenty-eight
-processes started for it" — and it is about *one*. What decides is how much there is to
-distribute against what a worker costs, which is a count and not a kind of argument.
-
-The cost per worker is this suite's own, and RK460 measured it: a worker imports
-`conftest`, which fingerprints the checkout and copies the governed files. So the
-break-even sits near where a run's own time exceeds that import, and what fits is a
-worker count derived from how many things were named rather than a boolean.
-
-What it must not become is a guess at the test count: that is knowable after collection
-and this hook is asked before it, which is the constraint §RK460 recorded.
-
-Open: whether a directory argument other than the testpath counts as one thing or as
-what it holds.
-
 ## Block E — Adoption
 
 ## Block F — The plugin

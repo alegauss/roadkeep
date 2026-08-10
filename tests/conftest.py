@@ -549,10 +549,26 @@ def pytest_xdist_auto_num_workers(config: pytest.Config) -> int:
     picking none for a single file is a pick — where one worker would spend a spawn to
     distribute one thing among itself. An explicit `-n 4` is untouched; this hook is only
     ever asked what `auto` resolves to.
+
+    **And a count rather than a kind** (RK462). One file is narrow where six are a pool, and
+    where the break-even sits is a thing to measure rather than to reason about — a worker
+    costs this suite's own conftest import, so the answer is not obvious in either direction.
+    Measured here, serial against one worker per file:
+
+        1 file    0.93 s   1.79 s
+        2 files   1.5-2.0  1.9-2.3
+        3 files   4.2 s    3.0 s
+        6 files   7.9 s    4.8 s
+        16 files  68.0 s   11.3 s
+
+    So one thing is spawned for nobody, two is a wash, and past that the pool wins by more
+    the more there is. One worker per thing named, capped at the cores there are, which is
+    the same rule the no-argument run gets — it names one tree and asks for every core.
     """
-    if any(_narrow(one) for one in config.args):
-        return 0
-    return os.cpu_count() or 1
+    named = [one for one in config.args if _narrow(one)]
+    if not named:
+        return os.cpu_count() or 1
+    return 0 if len(named) < 2 else min(len(named), os.cpu_count() or 1)
 
 
 def _narrow(argument: str) -> bool:

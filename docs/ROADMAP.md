@@ -28,8 +28,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK462** (deps: —) **A run naming several files gets no workers at all, so six files take fifteen seconds in series** — RK460 reads any file argument as a narrow run, and one file is narrow where six are a pool: the flag says which files, not how many processes they want. → §RK462
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

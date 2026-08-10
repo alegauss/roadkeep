@@ -491,6 +491,20 @@ def test_a_run_that_named_one_thing_is_not_spread_over_every_core() -> None:
     assert pytest_xdist_auto_num_workers(_Asked("tests", "tests/test_ranking.py")) == 0
 
 
+def test_several_things_named_are_a_pool_and_not_a_serial_run() -> None:
+    """RK462: one file is narrow where six are a pool, and where the break-even sits is a
+    thing to measure. Serial against one worker per file: 1 file 0.93 s / 1.79 s, 2 files a
+    wash, 3 files 4.2 s / 3.0 s, 6 files 7.9 s / 4.8 s, 16 files 68 s / 11.3 s. So two is
+    where it stops costing and past that the pool wins by more the more there is."""
+    from conftest import pytest_xdist_auto_num_workers
+
+    assert pytest_xdist_auto_num_workers(_Asked("a.py", "b.py")) == 2
+    assert pytest_xdist_auto_num_workers(_Asked("a.py", "b.py", "c.py::t")) == 3
+    # Capped at the cores there are, which is the same ceiling the whole-tree run gets.
+    many = [f"f{n}.py" for n in range((os.cpu_count() or 1) + 5)]
+    assert pytest_xdist_auto_num_workers(_Asked(*many)) == os.cpu_count()
+
+
 def test_a_whole_tree_still_gets_every_core() -> None:
     """`testpaths` makes `tests` the default argument, so this is the no-argument run — the
     one RK457 is about, and the one that has 2891 tests to distribute."""
