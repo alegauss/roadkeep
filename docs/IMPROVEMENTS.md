@@ -81,30 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK1001 A recurrence is a hole in a holder, and it is declarable
-
-Twelve of the fifteen rows carry a holder, and that number is what makes this question
-askable for the first time. A defect in a class one of those twelve claims to cover is
-not new work: it is a hole in the holder, which enumerates less than its row says. The
-fix belongs in the test, and the code it would otherwise patch is a symptom.
-
-Nothing tells the two apart today: they are one shape in `stats`, in the ledger and in
-the log. The only reason RK497 was recognised as a family is that somebody probed three
-more codes by hand afterwards and filed §RK498 — an act of attention, performed once,
-that nothing schedules.
-
-It cannot be inferred: matching a symptom to a class takes meaning, and L4 forbids the
-model. It can be **declared** — a design names the row it instantiates, in the shape
-RK492 established for a machine-readable claim inside a rationale section. A second task
-naming a row that has a holder is then a recurrence by count and not by judgement, and
-the count points at the property.
-
-A row with no holder is the other answer, and it stays silent: an instance of L2, L5 or
-L6 is a rung, correctly, because nothing ever claimed to hold it.
-
-What proves it: a design naming a row that does not exist is red, and each held row can
-say how many instances it has taken since it was written.
-
 ### §RK1002 The id rule is enforced at derivation, not where prose is written
 
 RK431 made deriving an id read prose, and that is right: a ledger entry promising *filed

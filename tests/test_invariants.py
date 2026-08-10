@@ -62,6 +62,11 @@ class Invariant:
     #: The test that holds it, `<module>::<test>`. **`""` is a real answer**: the rule is
     #: stated and nothing checks it, which is the fact this whole file exists to surface.
     held_by: str = ""
+    #: Every task that turned out to be an *instance* of this rule (RK1001) — a defect in a
+    #: class this row already claims to cover, which is a hole in the holder rather than new
+    #: work. The durable half of a declaration a rationale section makes and a `ship` deletes,
+    #: so two entries here are a number pointing at the property and not at the code.
+    instances: tuple[str, ...] = ()
 
 
 #: Every rule this package states that anybody has thought to write down, and its holder.
@@ -362,3 +367,128 @@ def test_the_declared_surface_reaches_the_directories_under_the_package():
     assert inside, "the package holds no subpackage: this property stopped being decidable"
     for one in inside:
         assert any(module.where.startswith(f"{one}/") for module in modules()), one
+
+
+# -- a recurrence is a hole in a holder, and it is declarable (RK1001) ---------
+#
+# **The count is zero today, and that is the first honest reading rather than a mechanism
+# that does nothing.** Twelve rows carry a holder, and no open design is an instance of one:
+# RK1000's three literals were instances of L6, which had no holder until that task wrote
+# one — a rung, correctly. The declaration is what makes the first real recurrence countable
+# instead of arriving as new work, and nothing here invents one to look busy: matching a
+# symptom to a class takes meaning, and L4 forbids the model.
+
+
+#: The info string a rationale section carries to say which rule it is an instance of.
+#: Hyphenated for :data:`roadkeep.remaining.FENCE`'s reason: a colon in an info string is how
+#: several renderers spell a language attribute, and this has to survive being read on a forge.
+INSTANCE_FENCE = "roadkeep-instance"
+
+
+def declared_instances(body: str | None = None) -> dict[str, tuple[str, ...]]:
+    """Which rule each open design says it instantiates, by task id.
+
+    Read off `docs/IMPROVEMENTS.md` rather than off a list here, because the person who can
+    say what a task is an instance of is the person writing its design — and that is where
+    the claim is made, in the shape RK492 established for a machine-readable one.
+
+    A section is **deleted on ship**, so this answers about the backlog and never about
+    history. :attr:`Invariant.instances` is the durable half, and the two are held in step
+    below: a design declaring a row must also appear in that row, which is what lets the
+    count outlive the paragraph that made the claim.
+    """
+    if body is None:
+        body = (HERE / "docs" / "IMPROVEMENTS.md").read_text(encoding="utf-8")
+    out: dict[str, tuple[str, ...]] = {}
+    task = ""
+    inside = False
+    rows: list[str] = []
+    for line in body.splitlines():
+        heading = re.match(r"^#+\s+§(\S+)", line)
+        if heading:
+            task, inside, rows = heading.group(1), False, []
+        elif line.strip() == f"```{INSTANCE_FENCE}":
+            inside = True
+        elif inside and line.strip().startswith("```"):
+            inside = False
+            if task and rows:
+                out[task] = tuple(rows)
+        elif inside and line.strip():
+            rows.append(line.strip())
+    return out
+
+
+def test_every_declared_instance_names_a_rule_that_exists():
+    """A design naming a row nothing declares is a claim about a rule this project does not
+    state — the one half of RK1001 that is decidable without meaning (L4)."""
+    stated = {one.stated for one in INVARIANTS}
+    for task, rows in declared_instances().items():
+        unknown = [row for row in rows if row not in stated]
+        assert not unknown, f"§{task} names {unknown}, which no row declares"
+
+
+def test_an_instance_only_names_a_rule_something_holds():
+    """A row with no holder is the other answer, and it stays silent: an instance of L2 or L5
+    is a **rung** and not a recurrence, correctly, because nothing ever claimed to cover it.
+    Declaring one would file new work under a heading meaning "this should have been caught"."""
+    held = {one.stated for one in INVARIANTS if one.held_by}
+    for task, rows in declared_instances().items():
+        loose = [row for row in rows if row not in held]
+        assert not loose, f"§{task} names {loose}, which nothing holds: that is a rung"
+
+
+def test_the_durable_half_carries_every_open_declaration():
+    """What keeps the count from dying with the paragraph. `ship` deletes the section, so a
+    declaration that lived only in prose would leave the row it was an instance of unable to
+    say it had taken one — and the number is the whole point: two instances of a rule twelve
+    rows claim to hold is a hole in the holder, and the fix belongs in the test."""
+    instances = {one.stated: one.instances for one in INVARIANTS}
+    for task, rows in declared_instances().items():
+        for row in rows:
+            assert task in instances.get(row, ()), (
+                f"§{task} declares {row}; add {task!r} to that row's `instances` so the "
+                f"count survives the ship that deletes this section"
+            )
+
+
+def test_every_recorded_instance_is_a_task_this_project_carries():
+    """The other direction: a row naming an id no file carries is a count of nothing."""
+    carried = set()
+    for name in ("ROADMAP.md", "CHANGELOG.md"):
+        carried |= set(re.findall(r"\*\*([A-Z]+\d+[a-z]?)", (HERE / "docs" / name).read_text(encoding="utf-8")))
+    for one in INVARIANTS:
+        missing = [task for task in one.instances if task not in carried]
+        assert not missing, f"{one.stated}: {missing} is in neither governed file"
+
+
+def test_the_reader_finds_a_declaration_and_stops_at_the_section_that_made_it():
+    """Held over a fixture and not over `docs/`, because the backlog may honestly declare
+    none: a mechanism whose only evidence is an empty answer is one nobody can tell from a
+    reader that is broken."""
+    body = "\n".join(
+        [
+            "### §RK9 A design",
+            "",
+            "A paragraph.",
+            "",
+            f"```{INSTANCE_FENCE}",
+            "RK421",
+            "RK467",
+            "```",
+            "",
+            "### §RK10 Another design",
+            "",
+            f"A paragraph naming ```{INSTANCE_FENCE}``` in prose and declaring nothing.",
+            "",
+            "### §RK11 A third",
+            "",
+            "```roadkeep-remaining",
+            "src/**.py :: pattern",
+            "```",
+            "",
+        ]
+    )
+    # One section, one declaration: the fence a *second* section opens is another block, and
+    # a sentence quoting the info string is prose — the same two mistakes RK492's reader has
+    # to survive in a file whose subject is the format itself.
+    assert declared_instances(body) == {"RK9": ("RK421", "RK467")}
