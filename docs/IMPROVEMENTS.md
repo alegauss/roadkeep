@@ -79,6 +79,33 @@ already written, not authorship.
 
 ## Block C — Query
 
+### §RK466 The first branch that returns
+
+RK465 checked a narrowing flag against the subject that answered, because the refusal
+sat after every dispatch and so fired only where nothing else had. The shape is a
+`return` per branch and a check that never runs, and `budget` was not the only place
+with it. Measured:
+
+    anchors --claims --next     prints the free address; --claims is dropped
+    export --readme --json      splices the README; --json is dropped
+    export --site --readme      writes the site; --readme is dropped
+
+Each is two answers asked for and one given, with nothing said about the other. That is
+the same cost RK465 named: a caller believes it asked for something and reads a report
+that is about a different question, and no exit code separates it from the answer it
+wanted.
+
+What makes this a class rather than three fixes is that the two commands disagree about
+what the flags *are*. `anchors --next` and `--claims` are two subjects, as `budget`'s
+five are, and one per answer is the rule already written. `export --readme` and `--site`
+are two **destinations** and could honestly be both — a caller asking for each is asking
+for two writes, not for one of them — while `--json` beside either is a third subject.
+
+So the answer is not one refusal repeated: it is deciding, per command, which flags are
+subjects and which compose, and refusing only the pairs that cannot.
+
+Open: whether `export --readme --site` should write both rather than be refused.
+
 ## Block D — The gate
 
 ## Block E — Adoption

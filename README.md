@@ -118,11 +118,15 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 31 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 103 | 1 |
-| C — Query (consult without reading the file) | 0 | 71 | 1 |
+| C — Query (consult without reading the file) | 1 | 71 | 1 |
 | D — The gate | 0 | 100 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 77 | 1 |
-| **Total** | 0 | 456 | 6 |
+| **Total** | 1 | 456 | 6 |
+
+**Next ready:**
+
+- 📋 **RK466** (deps: —) **Three more commands take two answers and print one, saying nothing about the flag that lost** — RK465 fixed budget's five subjects and left the same dispatch in anchors and export, where --claims, --json and --readme each lose to whichever branch returns first. → §RK466
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
