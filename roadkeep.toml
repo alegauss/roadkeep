@@ -10,13 +10,10 @@ ref_scheme = "id"
 # agents.md carries task ids too, and an id the scan misses is an id that gets reused.
 id_sources = ["agents.md"]
 
-# what jumps the queue, in order — an id or a `Block X`, e.g. priority = ["Block D"].
-# Declared and empty here: this project's order is its dependency order, and `pick` (RK11)
-# says which tier answered, so a queue nobody declared is never implied.
-# Still read, and now the *fallback* (RK325): a `## Priority` section of the roadmap wins
-# where both exist, because every token in a queue names work and work leaves — which is the
-# one thing in this file that stops being true by itself, and the one nothing governed.
-priority = ["RK1013"]
+# The queue moved into `## Priority` in docs/ROADMAP.md, where every queue verb reaches it
+# (RK325) — the one tier of `pick` a project declares rather than derives. It is not declared
+# here any more: the section wins wherever both exist, so a line left in this file would be an
+# order read by nothing, which the gate reports as `priority.config`.
 
 # where a defect in this tool is filed, for the `--issue` handoff (RK87). Configuration and
 # not a constant, so a fork reports to itself — and nothing is ever sent from here: this

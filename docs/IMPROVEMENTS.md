@@ -186,28 +186,3 @@ cheap on purpose — a client that never parses the file is a few hundred lines 
 nothing to port — so if the publishing cadence turns out to fight a version this
 repository bumps every commit, moving it out is a decision made later with evidence
 rather than now without.
-
-### §RK1013 The artefact an editor installs, and the toolchain it costs
-
-Raised by the first person to try installing it. A folder under the editor's extensions
-directory works and is how the host was developed, but it is a copy somebody makes by
-hand — the two supported routes, a marketplace and `code --install-extension`, both take
-one archive.
-
-What that archive costs is the whole question. It is a zip with a manifest, and the only
-maintained writer of it is `@vscode/vsce` — node, a lockfile and a step in CI, in a tree
-whose build rule is zero runtime dependencies and whose five other surfaces ship as
-files. So the shape of the answer matters more than the fact of it: writing the archive
-from the files already here is a script this repository can own, and taking the
-dependency is a decision about every adopting CI.
-
-It is not RK1010, which is the *gate* — that one asks what proves the client, and this
-asks what a reader installs. They share a toolchain question and answer it for different
-reasons, so a single line would hide whichever one somebody did not do.
-
-The version is already carried: the pre-commit hook writes the manifest's number beside
-the module's, so an archive built from this tree is stamped without a second source.
-
-What proves it: a built archive installs and activates on a governed workspace, its
-contents are the files this tree holds and nothing generated, and the route is stated
-where a reader looks for it.

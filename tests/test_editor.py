@@ -53,6 +53,18 @@ def _code() -> str:
     )
 
 
+def _builder(*names: str) -> tuple:
+    """`scripts/` is not a package and never has been — it holds the two entry points a
+    developer runs, not modules anything imports (RK18). Loaded by path here for that reason,
+    which is also how `conftest` reaches nothing else: there is nothing else to reach."""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("build_vsix", HERE / "scripts" / "build_vsix.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return tuple(getattr(module, name) for name in names)
+
+
 @pytest.fixture(scope="module")
 def manifest() -> dict:
     return json.loads(MANIFEST.read_text(encoding="utf-8"))
@@ -204,3 +216,59 @@ def test_the_manifest_is_the_only_json_in_this_surface():
     """A second manifest is a second declaration of the same thing, which is the state
     `hooks.json` taught this project to check rather than to remember."""
     assert sorted(one.name for one in EDITOR.glob("*.json")) == ["package.json"]
+
+
+# -- the archive an editor installs (RK1013) ----------------------------------
+
+
+def test_the_archive_carries_the_files_this_tree_holds_and_nothing_generated(tmp_path):
+    """A `.vsix` is an OPC package, and `zipfile` is the standard library — so the format is
+    this repository's to own, for the reason it owns `argparse` over `click`: the alternative
+    is node, a lockfile and a step in every adopting CI."""
+    import zipfile
+
+    SHIPPED, build = _builder("SHIPPED", "build")
+
+    archive = build(tmp_path)
+    assert archive.parent == tmp_path and archive.suffix == ".vsix"
+    with zipfile.ZipFile(archive) as opened:
+        held = set(opened.namelist())
+    assert {"[Content_Types].xml", "extension.vsixmanifest"} <= held
+    assert {f"extension/{name}" for name in SHIPPED} <= held
+    # `harness.js` is a test's fixture, so it belongs in the repository and not in what
+    # somebody installs — which is why the list is a list and never a glob.
+    assert "extension/harness.js" not in held
+
+
+def test_the_archive_is_named_and_stamped_by_the_manifest_it_carries(manifest, tmp_path):
+    """One source for the version, which the pre-commit hook already writes: an archive whose
+    filename, whose manifest and whose module disagree is one nobody can diagnose."""
+    import zipfile
+
+    (build,) = _builder("build")
+
+    archive = build(tmp_path)
+    assert archive.name == f"{manifest['publisher']}.{manifest['name']}-{manifest['version']}.vsix"
+    with zipfile.ZipFile(archive) as opened:
+        declared = opened.read("extension.vsixmanifest").decode("utf-8")
+        carried = json.loads(opened.read("extension/package.json"))
+    assert f'Version="{manifest["version"]}"' in declared
+    assert f'Id="{manifest["name"]}"' in declared and f'Publisher="{manifest["publisher"]}"' in declared
+    assert carried == manifest, "the archive carries a manifest other than this tree's"
+
+
+def test_every_part_the_archive_carries_has_a_declared_content_type(tmp_path):
+    """The half an installer reads before anything else: a part whose extension the types
+    document omits is a part it skips, which is an extension that installs and does nothing."""
+    import zipfile
+
+    CONTENT_TYPES, build = _builder("CONTENT_TYPES", "build")
+
+    with zipfile.ZipFile(build(tmp_path)) as opened:
+        parts = [name for name in opened.namelist() if "." in name.rsplit("/", 1)[-1]]
+    declared = set(re.findall(r'Extension="([^"]+)"', CONTENT_TYPES))
+    for part in parts:
+        suffix = part.rsplit(".", 1)[-1]
+        if part == "[Content_Types].xml":
+            continue
+        assert suffix in declared, f"{part} has no content type"

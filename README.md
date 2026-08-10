@@ -122,12 +122,12 @@ called unbuilt were already in the ledger.
 | D — The gate | 1 | 120 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 91 | 1 |
-| G — The editor surface (the backlog where the file is open) | 5 | 3 | 0 |
-| **Total** | 6 | 499 | 6 |
+| G — The editor surface (the backlog where the file is open) | 4 | 4 | 0 |
+| **Total** | 5 | 500 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1013** (deps: —) **The host is a folder, so installing it means copying a directory and nothing here produces the file an editor takes** — A marketplace and `code --install-extension` both read one archive, and the only tool that writes it is a toolchain this tree deliberately does not have. → §RK1013
+- 📋 **RK1007** (deps: RK1005 ✅, RK1011 ✅) **A violation is a line of terminal output, so the editor showing that file marks nothing at the column that failed** — The report already carries file, line, column and the command that closes each finding, which is a diagnostic and a code action nothing reads. → §RK1007
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
