@@ -518,3 +518,48 @@ def git_commit(root: Path, message: str) -> str:
     git(root, "add", "-A")
     git(root, "-c", "commit.gpgsign=false", "commit", "--quiet", "-m", message)
     return git(root, "rev-parse", "HEAD").strip()
+
+
+# -- how many workers the run asked for (RK460) -------------------------------
+
+
+def pytest_xdist_auto_num_workers(config: pytest.Config) -> int:
+    """What `-n auto` resolves to here, decided by what the invocation asked for.
+
+    RK457 made the parallel run the default and the full run went 5m07s to 41 s. It charged
+    the narrow one, measured straight after on 28 cores:
+
+        one file (13 tests)   -n auto  43.2 s      -n0  1.3 s
+        one test              -n auto   5.9 s      -n0  0.8 s
+
+    The multiplier is this suite's own setup rather than xdist's. A worker imports this file
+    before it runs anything, and that import fingerprints the checkout and copies the
+    governed files (RK263, RK315) — so 28 workers pay it 28 times to run 13 assertions, and
+    the loop an agent actually runs (edit a module, run its file, edit again) got thirty-three
+    times slower while the run made least often got faster.
+
+    **Decided from the arguments and not from the collection**, which is the question §RK460
+    left open: pytest knows the count before it distributes, but xdist asks this before either,
+    so a hook that wanted the count could not have it. What is knowable here is what was
+    *asked for*, and it answers the same question — a caller who named a file or a node id
+    wants that file, and nobody who names one wants twenty-eight processes started for it.
+
+    Zero and not one, which is a measurement rather than a preference: on that file, one
+    worker is 1.79 s and none is 0.99 s, the serial time. `auto` means *pick the number*, and
+    picking none for a single file is a pick — where one worker would spend a spawn to
+    distribute one thing among itself. An explicit `-n 4` is untouched; this hook is only
+    ever asked what `auto` resolves to.
+    """
+    if any(_narrow(one) for one in config.args):
+        return 0
+    return os.cpu_count() or 1
+
+
+def _narrow(argument: str) -> bool:
+    """Whether this argument names something smaller than a test tree.
+
+    A node id (`::`) or a file, which is every way a caller says "this one". A directory is
+    not narrow: `pytest tests/` is the whole suite spelled out, and `testpaths` makes that
+    the default argument anyway.
+    """
+    return "::" in argument or argument.split("::")[0].endswith(".py")

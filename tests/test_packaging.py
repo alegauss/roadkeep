@@ -22,6 +22,7 @@ would be a second reading that can disagree with the builder's.
 
 from __future__ import annotations
 
+import os
 import re
 import tomllib
 from importlib import import_module
@@ -465,3 +466,35 @@ def test_importing_the_package_does_not_import_the_schema():
         check=False,
     )
     assert done.stdout.strip() == "False", done.stderr
+
+
+# -- what `-n auto` resolves to (RK460) ---------------------------------------
+
+
+class _Asked:
+    """A stand-in for the config xdist hands the hook: what the invocation named."""
+
+    def __init__(self, *args: str) -> None:
+        self.args = list(args)
+
+
+def test_a_run_that_named_one_thing_is_not_spread_over_every_core() -> None:
+    """RK457 bought the full run five minutes and charged the narrow one: 28 workers each
+    import `conftest`, and that import fingerprints the checkout and copies the governed
+    files (RK263, RK315) — so one file went from 1.3 s to 43.2 s, which is the loop an agent
+    actually runs. Measured after: 0.93 s for the file and 0.68 s for a single test."""
+    from conftest import pytest_xdist_auto_num_workers
+
+    assert pytest_xdist_auto_num_workers(_Asked("tests/test_ranking.py")) == 0
+    assert pytest_xdist_auto_num_workers(_Asked("tests/test_ranking.py::test_a_tie")) == 0
+    # One narrow argument decides it: a caller naming a file alongside a tree still named one.
+    assert pytest_xdist_auto_num_workers(_Asked("tests", "tests/test_ranking.py")) == 0
+
+
+def test_a_whole_tree_still_gets_every_core() -> None:
+    """`testpaths` makes `tests` the default argument, so this is the no-argument run — the
+    one RK457 is about, and the one that has 2891 tests to distribute."""
+    from conftest import pytest_xdist_auto_num_workers
+
+    assert pytest_xdist_auto_num_workers(_Asked("tests")) == os.cpu_count()
+    assert pytest_xdist_auto_num_workers(_Asked("tests/", "tests/captures")) == os.cpu_count()

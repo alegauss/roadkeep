@@ -119,14 +119,10 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 31 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 103 | 1 |
 | C — Query (consult without reading the file) | 0 | 69 | 1 |
-| D — The gate | 1 | 98 | 0 |
+| D — The gate | 0 | 99 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 75 | 1 |
-| **Total** | 1 | 450 | 6 |
-
-**Next ready:**
-
-- 📋 **RK460** (deps: —) **Running one test file is 33 times slower than before, because -n auto spawns a worker per core for it** — RK457 bought the full run five minutes and charged the narrow one: each of 28 workers pays this conftest's fingerprint and copy before it runs a test. → §RK460
+| **Total** | 0 | 451 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

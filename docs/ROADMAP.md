@@ -28,8 +28,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK460** (deps: —) **Running one test file is 33 times slower than before, because -n auto spawns a worker per core for it** — RK457 bought the full run five minutes and charged the narrow one: each of 28 workers pays this conftest's fingerprint and copy before it runs a test. → §RK460
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
