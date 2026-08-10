@@ -329,6 +329,7 @@
 - ✅ **RK458** **A test passes alone and fails when another file's test has run before it in the same worker** — The coupling was the wall clock and not an order: eleven assertions spelled an elapsed duration, and matching its shape instead took ten parallel runs from four failures to none.
 - ✅ **RK460** **Running one test file is 33 times slower than before, because -n auto spawns a worker per core for it** — A run that named one file or one test is not spread over every core, so the narrow run is back to 0.93s from 43.2s and the full one keeps its 41s.
 - ✅ **RK462** **A run naming several files gets no workers at all, so six files take fifteen seconds in series** — The worker count is one per thing named and capped at the cores, so six files take 4.8s instead of 12.7s and one file still spawns nobody.
+- ✅ **RK467** **Nothing checks whether a flag pair answers as one of its halves, so each swallowed flag is found by hand** — Every boolean pair a read takes is swept for the byte-identical answer a swallowed flag leaves, which found two more and left the exception table empty.
 
 ## Block E — Adoption
 

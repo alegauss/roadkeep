@@ -28,8 +28,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK467** (deps: —) **Nothing checks whether a flag pair answers as one of its halves, so each swallowed flag is found by hand** — RK465 and RK466 each found one by probing a command, and the read-only surface has 27 boolean pairs — the two that were wrong were the two somebody happened to try. → §RK467
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

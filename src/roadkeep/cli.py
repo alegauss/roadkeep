@@ -4612,6 +4612,12 @@ def _print_standing(standing: Standing | None) -> None:
 
 
 def _list(config: Config, args: argparse.Namespace) -> int:
+    if args.ids and args.json:
+        # RK467's sweep found this one: `--ids` shapes the printed listing and `--json` is a
+        # different form of the same read, so the payload came back whole with nothing said
+        # about the flag that shaped nothing.
+        print(_one_form("--ids", "prints the listing as bare ids", "--json"), file=sys.stderr)
+        return EXIT_USAGE
     try:
         census, standing = _census(config, args)
     except (KeyError, OSError) as error:
@@ -4973,6 +4979,10 @@ def _lint(config: Config, args: argparse.Namespace) -> int:
     except (KeyError, OSError) as error:
         return _refused(error)
 
+    if args.quiet and args.json:
+        print(_one_form("--quiet", "shortens the report to its summary line", "--json"),
+              file=sys.stderr)
+        return EXIT_USAGE
     passed = report.clean and not applied.refused
     # Absolute, and never relative to the working directory (RK299): the defect this answers
     # *is* a wrong working directory, so a spelling relative to one would print `.` and
@@ -4983,6 +4993,19 @@ def _lint(config: Config, args: argparse.Namespace) -> int:
     else:
         _print_report(config, report, applied, root, quiet=args.quiet)
     return EXIT_OK if passed else EXIT_GATE
+
+
+def _one_form(shaped: str, shapes: str, other: str) -> str:
+    """Why a flag shaping one answer may not ride with another (RK465's rule, RK467's find).
+
+    Two output *forms* of one read are two answers, exactly as `budget`'s subjects are: a
+    caller passing a flag that narrows the terminal report beside the payload reads the
+    payload unnarrowed and is told nothing. Found by the sweep rather than by a probe, which
+    is what the sweep is for.
+    """
+    return (
+        f"roadkeep: {shaped} {shapes}, which {other} does not print: one answer per call"
+    )
 
 
 def _repair(config: Config, args: argparse.Namespace) -> int:

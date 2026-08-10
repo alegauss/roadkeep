@@ -81,31 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK467 The signature a swallowed flag leaves
-
-RK465 found `budget --tools --role` by probing refusal paths; RK466 found `anchors
---claims --next` and `export --readme --json` the same way, and one of the three it
-first claimed turned out to be the transaction working. Three probes, two defects, one
-false positive — which is what finding a class by hand looks like.
-
-The read-only surface has 27 pairs of boolean flags across its subcommands. Nothing says
-which of them are two subjects, which compose, and which quietly answer as one half.
-
-The signature is mechanical and exact. A swallowed flag leaves output **byte-identical
-to one half alone** and different from the other: `anchors --claims --next` printed what
-`--next` prints, to the character. A pair that composes differs from both, and a pair
-that is refused exits 2. So a test can enumerate the pairs and assert that each is one
-of those three, with the fourth — identical to a half, exit 0 — being the defect and
-nothing else.
-
-That is this project's own answer to a class: `VOLATILE` names the caches an autouse
-fixture clears and states why the rest are cleared for nothing (RK268), and
-`remedying`'s table is asserted total over every code the gate can emit (RK421). An
-inventory, not a call site.
-
-Open: whether the pairs that are legitimately two subjects should be listed, so adding
-one that is not is a red rather than an entry somebody adds to the list.
-
 ## Block E — Adoption
 
 ## Block F — The plugin
