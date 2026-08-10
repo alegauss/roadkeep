@@ -119,14 +119,10 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 31 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 103 | 1 |
 | C — Query (consult without reading the file) | 0 | 72 | 1 |
-| D — The gate | 1 | 107 | 0 |
+| D — The gate | 0 | 108 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 77 | 1 |
-| **Total** | 1 | 464 | 6 |
-
-**Next ready:**
-
-- 📋 **RK474** (deps: —) **The doors repair never dispatches are checked against nothing, so a printed one may refuse too** — RK473 holds every remedy this tool offers to run, and read, compose and decide are the three kinds it prints instead — which is most of the table and the half a person acts on. → §RK474
+| **Total** | 0 | 465 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

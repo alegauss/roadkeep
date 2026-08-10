@@ -856,3 +856,61 @@ def test_the_scoped_argv_is_one_the_cli_accepts(tmp_path):
     config = _two_prose(tmp_path)
     found = remedy(Finding("section.stale", "STRATEGY.md", "", 5, "RK1"), config)
     build_parser().parse_args(list(found.doors[0].argv))
+
+
+# -- every door, not only the ones repair runs (RK474) ------------------------
+
+
+def _every_door(config: Config):
+    """Each code's doors under one project, with the finding each row varies on.
+
+    `varies` decides four rows off the config and the finding, so a sweep that asked with one
+    shape would check the branch this project happens to take and none of the others. The
+    file is what `_role_of` reads and the line is what `block.repeated` needs, so both are
+    passed rather than defaulted.
+    """
+    for code in codes():
+        for role in ("roadmap", "improvements"):
+            if not config.has(role):
+                continue
+            where = config.relative(config.path(role))
+            found = remedy(Finding(code, where, "", 5, "RK1"), config)
+            assert found is not None, code
+            for door in found.doors:
+                yield code, where, door
+
+
+def test_every_complete_door_is_an_argv_the_cli_accepts(tmp_path):
+    """RK473 holds the remedies `repair` dispatches, which is the third of the table it runs.
+    `read`, `compose` and `decide` are printed instead — most of the seventy codes, and the
+    half a person acts on — and nothing checked them past their first word.
+
+    The whole argv and not the subcommand: a flag the verb does not take, or a positional it
+    requires and the row omits, is a door that exits 2 in the reader's hands. Decidable here
+    and needing no corpus, which is the question §RK474 left open.
+
+    **Complete doors only.** An incomplete one carries `…` where the author's word goes, and
+    a blank in a typed field cannot parse by construction — `record drop … --line …` is the
+    row that proves it, and `complete` is what already says so.
+    """
+    for role in ("id", "outline"):
+        config = _project(tmp_path / role, ref_scheme=role)
+        for code, where, door in _every_door(config):
+            if door.foreign or not door.complete:
+                continue
+            try:
+                build_parser().parse_args(list(door.argv))
+            except SystemExit:
+                raise AssertionError(
+                    f"{code} on {where} under ref_scheme={role}: "
+                    f"`{' '.join(door.argv)}` is not an argv this CLI accepts"
+                ) from None
+
+
+def test_an_incomplete_door_is_incomplete_for_a_reason(tmp_path):
+    """The exemption above, held so it cannot widen: a door this sweep skips has to be one
+    whose blank L4 left to the author, not one that failed to substitute."""
+    config = _project(tmp_path)
+    for code, _, door in _every_door(config):
+        if not door.complete:
+            assert BLANK in " ".join(door.argv), f"{code}: {door.argv} is incomplete without a blank"

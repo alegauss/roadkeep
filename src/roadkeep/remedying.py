@@ -571,9 +571,15 @@ _TABLE: Mapping[str, _Rule] = {
         (("section", "drop", "{id}"), "the work is gone and the rationale went with it"),
         (("show", "{id}"), "read it first — a lost line is re-filed with `add`, not deleted"),
     ),
-    "section.duplicate": _run(
-        ("section", "move", "{id}"),
-        "one anchor is at two places in one file; move the later under an address of its own",
+    # `--to` is **required** on `section move`, and this row omitted it — so the door was a
+    # complete argv the CLI refuses, and `repair` would have dispatched it (RK474). Neither
+    # corpus carries this code, which is why RK473's sweep could not see it and the parser
+    # check could. A `compose` and not a `run`: the free address is the author's to pick, and
+    # naming which one would be this tool choosing where somebody's design lives.
+    "section.duplicate": _compose(
+        ("section", "move", "{id}", "--to", BLANK),
+        "one anchor is at two places in one file; move the later under an address of its "
+        "own, which `anchors --next` names",
     ),
     "section.ambiguous": _read(
         ("anchors",),

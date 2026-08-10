@@ -336,6 +336,7 @@
 - ✅ **RK471** **The count repair closes with says three ran where one ran and two are printed FAILED above it** — The summary counts what ran and names what was refused, so the number a reader acts on agrees with the FAILED lines above it and the exit code is untouched.
 - ✅ **RK472** **A remedy that refuses every time is re-attempted on every run, and nothing marks it as stuck** — A drop blocked by a claimed nested section is a decision naming the blocker instead of a command repair dispatches, so nothing is attempted and refused run after run.
 - ✅ **RK473** **Nothing runs repair over a real corpus, so a remedy that cannot close its finding is found by hand** — The pinned corpora hold that every remedy repair dispatches runs and that a second pass finds nothing, which caught a fold refused on Shio's ledger on its first run.
+- ✅ **RK474** **The doors repair never dispatches are checked against nothing, so a printed one may refuse too** — Every complete door is parsed by the CLI it names, which caught section move offered without the --to it requires — a code neither corpus carries and repair would have dispatched.
 
 ## Block E — Adoption
 

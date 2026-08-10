@@ -81,30 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK474 The half the sweep does not run
-
-RK473 holds a narrow claim and holds it well: a remedy `repair` *dispatches* has to run.
-It caught a fold refused on Shio's pinned ledger on its first run, and reverting that
-fix turns both of its assertions red.
-
-What it cannot hold is the rest of the table. `read`, `compose` and `decide` are printed
-and never dispatched — deliberately, because a read closes nothing, a blank is prose
-only the author writes, and a choice is editorial. That is most of the seventy codes,
-and the half a *person* acts on: RK420's argument is that a finding names the command
-that closes it, so a printed door that refuses costs the turn the field exists to save.
-
-The instances found so far were all on the dispatched half, where a loop made them loud.
-A `decide` door that refuses is silent: nobody runs it in a suite, and in a session it
-is one refusal a reader shrugs at.
-
-What makes this harder than RK473 is that running them proves less. A `read` is safe to
-run and its refusal is meaningful; a `compose` door carries a blank and cannot be run at
-all; and a `decide`'s doors are alternatives, so one refusing may be the answer —
-`section move` under `ref_scheme = "id"` is refused by name, and rightly.
-
-Open: whether the check runs the runnable ones or asserts each door's *argv shape*
-against the verb's own parser, which is decidable without a corpus.
-
 ## Block E — Adoption
 
 ## Block F — The plugin
