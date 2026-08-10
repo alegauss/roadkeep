@@ -38,7 +38,7 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK488** (deps: —) **Every module that offers a command composes the sentence itself, so a new surface is reached one emitter at a time** — The engine and the tool prefix are answered centrally; the sentence around a command is not, so each module composes its own and six commits moved one printer each. → §RK488
+- 📋 **RK488** (deps: —) **Every module that offers a command composes the sentence itself, so a new surface is reached one emitter at a time** — The engine is one fact with one reader; which surface can call it is threaded by hand four ways, so a module that never learned to ask prints the shell form. → §RK488
 
 ## Non-goals
 

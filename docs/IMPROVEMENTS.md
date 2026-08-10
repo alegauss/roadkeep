@@ -179,24 +179,27 @@ that list binds proposals, and nothing checks one against it.
 
 ### §RK488 One renderer for a message that offers a call
 
-`provenance.invocation` answers how a shell reaches this engine and `provenance.serving`
-answers which prefix this session's tools arrive under. Both are central, and neither is
-what an emitter needs: what a module prints is a sentence *around* a command — a route,
-a demotion, an offer, a refusal — and that composition lives at each site. So a fact
-that changes shape, as the tool surface did, is applied by visiting every printer.
+`provenance.invocation` answers how a shell reaches this engine, and forty call sites
+across twelve modules interpolate that answer into a sentence each composes itself. This
+is the half that works: the engine is one fact with one reader, which is what RK254
+built.
 
-The count today: guarding spells a command thirteen times, provenance ten, serving nine,
-capturing six, linting five, installing five. RK444, RK447, RK448, RK475, RK477 and
-RK479 each moved one site, and nothing ever said how many were left — a literal command
-inside an f-string is not something the suite can enumerate.
+The other half has no such reader. `provenance.serving` says which prefix this session's
+tools arrive under, and it reaches a message by being threaded by hand — a `served`
+field on `guarding.Refusal`, another on `attesting.Unattested`, a `served` argument to
+`remedying.Remedy.payload`, a `cli._served` helper called beside four print sites. Four
+mechanisms for one fact, and a module that never learned to ask prints the shell form
+regardless. RK444, RK447, RK448, RK475, RK477 and RK479 each taught one more site to
+ask, and nothing ever said how many were left.
 
-`remedying.Door` is the shape that already works: argv plus what it does, rendered as a
-shell line or as a tool call by whoever prints it, with `foreign` for the door another
-tool owns. What is missing is that every other emitter goes through it, and a property
-that no module outside the renderer spells a command at all — the same total-domain
-assertion RK421 makes about codes, which is what turned the remedy table from a
-convention into a schema.
+Five spellings never reach `invocation` at all — one in `capturing`, one in `exporting`,
+three in `installing` — and read as `roadkeep <verb>` on a machine where that answers
+`command not found`.
 
-Then a seventh surface costs one change, and the tool's own L1 holds where it currently
-does not: enforced where the text is created, rather than found afterwards one message
-at a time.
+`remedying.Door` is the shape that works: argv and what it does, rendered as a shell
+line or as a tool call by whoever prints it, with `foreign` for the door another tool
+owns. What is missing is the other emitters going through it, and a property that no
+module outside the renderer composes a command at all — the total-domain assertion RK421
+makes about codes.
+
+Then a seventh surface costs one change instead of forty.
