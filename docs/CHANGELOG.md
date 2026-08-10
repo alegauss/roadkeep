@@ -334,6 +334,7 @@
 - ✅ **RK469** **Twenty-six findings state one fact about two files, and one config line closes all of them** — A run of findings sharing one fact is printed as the pair once with its addresses under it, taking Turing's report from 15,894 characters to 4,044 with the payload untouched.
 - ✅ **RK470** **A remedy naming a section omits which prose file it is in, so on a project with two it opens the wrong one** — A section remedy carries the role of the file its finding is about where the project declares two, so on Turing one that opened the wrong file now closes its own finding.
 - ✅ **RK471** **The count repair closes with says three ran where one ran and two are printed FAILED above it** — The summary counts what ran and names what was refused, so the number a reader acts on agrees with the FAILED lines above it and the exit code is untouched.
+- ✅ **RK472** **A remedy that refuses every time is re-attempted on every run, and nothing marks it as stuck** — A drop blocked by a claimed nested section is a decision naming the blocker instead of a command repair dispatches, so nothing is attempted and refused run after run.
 
 ## Block E — Adoption
 

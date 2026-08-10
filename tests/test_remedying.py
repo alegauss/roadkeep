@@ -391,6 +391,10 @@ def test_the_varying_rows_are_derived_from_the_table():
         "priority.shipped": "queue",
         "priority.retired": "queue",
         "block.repeated": "region",
+        # And the fifth, also per finding (RK472): the drop this names refuses while an open
+        # line claims a section nested under the one being dropped, so `runnable` — which is
+        # a question about the argv's shape — dispatched it and was refused, run after run.
+        "section.stale": "nested",
     }
 
 

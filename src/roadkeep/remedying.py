@@ -554,10 +554,16 @@ _TABLE: Mapping[str, _Rule] = {
         "the sigil is derived, so the pointer is re-rendered without it",
     ),
     # ------------------------------------------------------------------------- the sections
-    "section.stale": _run(
-        ("section", "drop", "{id}"),
-        "the task is in the ledger and `ship` deletes the section, so this survived a "
-        "hand edit",
+    # Varies with the file for `block.repeated`'s reason, one code over (RK472): the drop
+    # this names refuses while a **nested** section is claimed by an open line, so on Turing
+    # it was dispatched and refused on every `repair`, forever. `runnable` asks whether the
+    # argv's fields are filled and never whether the command would run.
+    "section.stale": _Rule(
+        "run",
+        ((("section", "drop", "{id}"),
+          "the task is in the ledger and `ship` deletes the section, so this survived a "
+          "hand edit"),),
+        varies="nested",
     ),
     "section.orphan": _decide(
         "nothing points at this section, which is either a design that outlived its line "
@@ -791,6 +797,7 @@ _VARIES_READS = {
     "ref_scheme": "with `ref_scheme` in roadkeep.toml",
     "role": "with which governed file it is reported about",
     "region": "with whether the label's later region holds anything",
+    "nested": "with whether an open line claims a section nested under this one",
 }
 
 #: The codes whose row is decided per project rather than per code (L6), and what each
@@ -936,6 +943,21 @@ def _varied(code: str, rule: _Rule, finding: object, config: Config) -> _Rule:
         # The order lives where no verb writes, so the mechanical pass cannot reach it and
         # the honest remedy is the one door between the two declarations.
         return _TABLE["priority.unmigrated"]
+    if rule.varies == "nested":
+        blockers = _claimed_below(finding, config)
+        if blockers:
+            # Not a door this tool can open: the drop is right and cannot happen until the
+            # nested design moves or the line claiming it ships, and neither is a mechanical
+            # write. Naming an edit that cannot work is worse than naming none (RK16), so
+            # what is named is the blocker and the two ways it goes.
+            named = ", ".join(f"§{anchor} ({', '.join(who)})" for anchor, who in blockers)
+            return _decide(
+                f"the drop is blocked: {named} nests under this one and an open line points "
+                f"there, so it goes when that design moves or that task ships:",
+                (("show", "{id}"), "read what still claims the prose under this section"),
+                (("section", "move", BLANK), "move the nested design out, then drop this one"),
+            )
+        return rule
     if rule.varies == "region" and _empty_region(finding, config):
         # The verb the finding's own sentence names on this branch (RK425): a region holding
         # nothing is removed rather than folded, and `block drop` is what removes it.
@@ -997,6 +1019,32 @@ def _empty_region(finding: object, config: Config) -> bool:
         return False
     later = next((one for one in document.headings if one.lineno == lineno), None)
     return later is not None and closes_by_drop(document, later, files, label)
+
+
+def _claimed_below(finding: object, config: Config) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    """The sections nested under this one that an open line still points at (RK472).
+
+    The same question `section drop` refuses on, asked of the readers it uses — `pointers`
+    for the claims and `nested` for the containment — so the remedy and the verb answer one
+    thing rather than two that agree until they do not. Empty where the drop would run.
+
+    Imported inside the branch for :func:`_queue_in_config`'s reason, and asked on one code.
+    """
+    from .sections import find, nested, pointers  # noqa: PLC0415 - one branch
+
+    anchor = getattr(finding, "subject", "") or getattr(finding, "id", "")
+    role = _role_of(finding, config)
+    if not anchor or role not in PROSE_ROLES or not config.has(role):
+        return ()
+    document = config.document(role)
+    if find(document, anchor) is None:
+        return ()
+    claimed = pointers(config)
+    return tuple(
+        (child.anchor, claimed[child.anchor])
+        for child in nested(document, anchor)
+        if child.anchor in claimed
+    )
 
 
 def _scoped(argv: tuple[str, ...], finding: object, config: Config | None) -> tuple[str, ...]:

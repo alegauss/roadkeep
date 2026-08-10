@@ -119,14 +119,10 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 31 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 103 | 1 |
 | C — Query (consult without reading the file) | 0 | 72 | 1 |
-| D — The gate | 1 | 105 | 0 |
+| D — The gate | 0 | 106 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 77 | 1 |
-| **Total** | 1 | 462 | 6 |
-
-**Next ready:**
-
-- 📋 **RK472** (deps: —) **A remedy that refuses every time is re-attempted on every run, and nothing marks it as stuck** — runnable is asserted from the argv's shape and never against the state, so section drop on a section nesting a claimed one is dispatched and refused on every repair, forever. → §RK472
+| **Total** | 0 | 463 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

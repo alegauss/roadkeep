@@ -290,3 +290,73 @@ def test_the_exit_code_is_untouched_by_a_refusal(tmp_path, capsys):
     # It closes here, so the code is the gate's own — which is the contract a refusal must
     # not change either: `repair` reports what it could not close and exits on the tree.
     assert main(["-C", str(tmp_path), "repair"]) == EXIT_OK
+
+
+# -- runnable in shape, refused in fact (RK472) -------------------------------
+
+#: An **outline** project, because that is the only scheme where a section nests one (RK472):
+#: under `ref_scheme = "id"` the anchor is the id and there is nothing to nest — which is why
+#: the state was found on Turing and never here.
+_OUTLINE_CONFIG = (
+    'prefix = "DX"\nref_scheme = "outline"\n[files]\nroadmap = "docs/ROADMAP.md"\n'
+    'changelog = "docs/CHANGELOG.md"\nimprovements = "docs/IMPROVEMENTS.md"\n'
+)
+
+#: The shipped task's rationale with a **live** design nested under it: `section drop` will
+#: not remove §I while §I.1 is there and DX1 points at it, which is the state `repair`
+#: dispatched and was refused on, run after run.
+_STALE_OVER_A_CLAIM = """# Design rationale
+
+## Block A — The first block
+
+### I A design its ship should have deleted (DX3)
+
+The rationale of work that is already in the ledger.
+
+#### I.1 A design that is still somebody's (DX1)
+
+The reasoning a live line still points at.
+"""
+
+_CLAIMS_THE_NESTED = """# Roadmap
+
+## Block A — The first block
+
+- 📋 **DX1** (deps: —) **A first symptom** — Because of a reason. → §I.1
+"""
+
+
+def test_a_blocked_drop_is_not_dispatched_and_names_what_blocks_it(tmp_path, capsys):
+    """`Remedy.runnable` asks whether the argv's fields are filled — a question about the
+    shape — so `repair` dispatched a `section drop` the file refuses and printed FAILED. Run
+    it again and it refused again: measured on Turing, forever. RK16's rule is that naming an
+    edit that cannot work is worse than naming none."""
+    config = _project(
+        tmp_path,
+        roadmap=_CLAIMS_THE_NESTED,
+        improvements=_STALE_OVER_A_CLAIM,
+        config=_OUTLINE_CONFIG,
+    )
+    found = next(f for f in lint(config).findings if f.code == "section.stale")
+    answer = remedy(found, config)
+    assert answer.kind == "decide" and not answer.runnable
+    assert "§I.1 (DX1)" in answer.decision
+    outcome = repair(config, _dispatcher(tmp_path))
+    assert not [step for step in outcome.steps if step.argv[:2] == ("section", "drop")]
+    assert any(left.finding.code == "section.stale" for left in outcome.left)
+
+
+def test_a_drop_nothing_blocks_still_runs(tmp_path):
+    """The rule narrows nothing that worked: a stale section with no live design under it is
+    the ordinary case and closes in one call."""
+    config = _project(tmp_path, improvements=_STALE_SECTION)
+    found = next(f for f in lint(config).findings if f.code == "section.stale")
+    answer = remedy(found, config)
+    assert answer.kind == "run" and answer.doors[0].argv[:3] == ("section", "drop", "DX3")
+    assert repair(config, _dispatcher(tmp_path)).clean
+
+
+def test_the_row_declares_what_it_varies_with():
+    from roadkeep.remedying import VARIES
+
+    assert VARIES["section.stale"] == "nested"

@@ -28,8 +28,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK472** (deps: —) **A remedy that refuses every time is re-attempted on every run, and nothing marks it as stuck** — runnable is asserted from the argv's shape and never against the state, so section drop on a section nesting a claimed one is dispatched and refused on every repair, forever. → §RK472
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
