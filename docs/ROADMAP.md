@@ -32,6 +32,8 @@
 
 ## Block D — The gate
 
+- 📋 **RK454** (deps: —) **A governed file with NUL bytes among its text is 400 findings whose named --fix changes nothing** — RK451 caught the file that is all NUL and left the partial one, where the pass claims every finding, writes no byte, and returns the same report on the next run. → §RK454
+
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
