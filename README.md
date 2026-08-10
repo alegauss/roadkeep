@@ -121,8 +121,12 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 67 | 1 |
 | D — The gate | 0 | 91 | 0 |
 | E — Adoption | 0 | 74 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 74 | 1 |
-| **Total** | 0 | 438 | 6 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 74 | 1 |
+| **Total** | 1 | 438 | 6 |
+
+**Next ready:**
+
+- 📋 **RK448** (deps: —) **Two of the guard's four routes still name the shell where this session has the tool that answers** — RK444 and RK447 moved the notice and the deny's own table, leaving the repair route inside that same deny and the Stop gate's spelling the invocation on a wired project. → §RK448
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

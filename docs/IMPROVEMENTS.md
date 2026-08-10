@@ -84,3 +84,27 @@ already written, not authorship.
 ## Block E — Adoption
 
 ## Block F — The plugin
+
+### §RK448 The two routes the pair did not reach
+
+RK444 gave the `SessionStart` notice the engine that answers and RK447 gave the deny's
+tool table the same treatment from the other end. Both read `serving`, the one reader of
+whether this session has the tools at all. Neither touched the other two places this
+module names a command.
+
+The first is inside the refusal RK447 just corrected. `Refusal._repairing` leads the
+denial with `repair`, `repair --dry-run` and `explain` — the RK420 route that closes a
+reported finding in one call — and spells all three with `invocation()`. So on a wired
+project the paragraph above the tool table recommends the shell for exactly the verbs
+the table below would have served, and it is read first because RK424 put it there.
+
+The second is `Review`, the `Stop` gate. It fires at the end of every turn that changed
+a governed file, names `lint` and `lint --fix`, and is the message an agent acts on to
+unblock itself.
+
+`lint`, `repair` and `explain` are all in `TOOLS`, so the substitution is the one RK447
+already makes and the work is finding the seams rather than deciding anything. Two
+things are not mechanical: `lint --fix` is deliberately withheld from the served
+surface, so that sentence keeps the invocation and has to say why; and a finding's own
+remedy is a complete argv composed in `remedying`, a different module and a wider change
+than this line claims.
