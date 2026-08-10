@@ -84,3 +84,30 @@ already written, not authorship.
 ## Block E — Adoption
 
 ## Block F — The plugin
+
+### §RK464 The context nothing counts
+
+RK30 put `[budgets]` on the files a session loads every turn, because resident prose has
+no natural ceiling — the 186 KB `agents.md` in §0.1 is the measurement the whole project
+starts from. `lint` refuses `agents.md` over 8,400 bytes, and this repository sits at
+8,286 with 114 to spare.
+
+The schema this server publishes is not counted anywhere. Measured on a three-file
+project after RK463:
+
+    tools/list   51 tools   52,892 chars   ~13,200 tokens
+
+Six times the budget the resident file is held to, paid once per session that connects
+the server rather than once per turn — which is why it went unnoticed and not why it is
+small. The eight reads RK463 added are 12% of it; the largest single tool is `add` at
+2,854 chars, which is a third of the whole `agents.md` allowance for one schema.
+
+None of that says the list is too long. It says the number is not stated, and RK30's own
+argument is that a limit nobody counts is a limit that moves: every task that adds a
+tool or a sentence to a description spends this, and each spend looks free at the point
+of writing — which is the shape L1 exists to refuse.
+
+So the first thing to build is the read. `budget --file` already answers this question
+about a path, and what a caller cannot ask is what the surface costs.
+
+Open: whether a ceiling follows the read, and whether it is per tool or per list.
