@@ -164,6 +164,43 @@ def test_a_line_both_sides_rewrote_is_kept_apart_from_a_spent_id(tmp_path):
     assert merged.contested == ("RK1",) and merged.doubled == ()
 
 
+def test_a_line_one_side_removed_and_the_other_edited_is_neither_of_those(tmp_path):
+    """RK482. `_decide`'s last branch is an `else` written for two rewordings, and it also
+    caught the case where one of the three lines is **absent** — so a `ship` on one branch
+    against an `amend` on the other answered *both branches rewrote RK1: one line, two
+    sentences — the wording is the reviewer's*. Reproduced both ways on a scaffolded project.
+
+    Nobody rewrote anything on the shipping side: the line left, and `ship` is the ordinary
+    way a line leaves. So the message was wrong about what happened and named the wrong
+    decision — a sentence, where the question is whether the removal stands."""
+    config = project(tmp_path)
+    gone = "".join(one for one in BASE.splitlines(keepends=True) if "**RK1**" not in one)
+    edited = BASE.replace("Because it was there.", "Because it was corrected.")
+
+    merged = merge(config, "roadmap", BASE, gone, edited)
+
+    assert not merged.clean
+    assert merged.withdrawn == ("RK1",)
+    assert merged.contested == () and merged.doubled == ()
+    assert "removed RK1" in merged.reason and "rewrote" not in merged.reason
+    # Symmetric: which side shipped is not a fact about what the reviewer has to decide.
+    other = merge(config, "roadmap", BASE, edited, gone)
+    assert other.withdrawn == ("RK1",) and other.reason == merged.reason
+
+
+def test_it_still_refuses_rather_than_taking_the_removal(tmp_path):
+    """Taking it is defensible — `ship` is a decision somebody made — and it would delete the
+    edit silently, which is the ground RK97 refuses to pick on for a doubled id. So what RK482
+    changed is the sentence and never the verdict."""
+    config = project(tmp_path)
+    gone = "".join(one for one in BASE.splitlines(keepends=True) if "**RK1**" not in one)
+    edited = BASE.replace("Because it was there.", "Because it was corrected.")
+
+    merged = merge(config, "roadmap", BASE, gone, edited)
+
+    assert merged.text is None and merged.reason
+
+
 def test_a_line_the_other_side_removed_goes(tmp_path):
     config = project(tmp_path)
     theirs = "".join(l for l in BASE.splitlines(keepends=True) if "**RK2**" not in l)

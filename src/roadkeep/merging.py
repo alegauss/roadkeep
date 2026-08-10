@@ -121,6 +121,11 @@ class Merge:
     #: Ids both branches edited differently. A content conflict, kept apart from the above
     #: because the remedy is a sentence and not an address.
     contested: tuple[str, ...] = ()
+    #: Ids one branch **removed** — shipped, retired, deferred out — while the other edited
+    #: the line (RK482). The third remedy, and the reason it is not `contested`: nobody wrote
+    #: a second sentence, so asking a reviewer to choose one describes a merge that did not
+    #: happen. What is decided is whether the removal stands, and where the edit goes.
+    withdrawn: tuple[str, ...] = ()
     #: Why it was refused, empty when it was not. Printed, because a driver that exits 1
     #: with no reason is one the reviewer resolves without knowing what it saw.
     reason: str = ""
@@ -404,9 +409,16 @@ def merge(config: Config, role: str, base: str, ours: str, theirs: str) -> Merge
             return Merge(role, None, reason=_unreadable(name, named))
     ancestor, mine, yours = versions["the ancestor"], versions[OURS], versions[THEIRS]
 
-    decided, doubled, contested = _decide(ancestor, mine, yours)
-    if doubled or contested:
-        return Merge(role, None, doubled=doubled, contested=contested, reason=_spent(doubled, contested))
+    decided, doubled, contested, withdrawn = _decide(ancestor, mine, yours)
+    if doubled or contested or withdrawn:
+        return Merge(
+            role,
+            None,
+            doubled=doubled,
+            contested=contested,
+            withdrawn=withdrawn,
+            reason=_spent(doubled, contested, withdrawn),
+        )
 
     frame, source = _frame(ancestor, mine, yours)
     if frame is None:
@@ -610,7 +622,7 @@ def _resolves(command: str) -> bool:
 
 def _decide(
     ancestor: Document, mine: Document, yours: Document
-) -> tuple[dict[str, Entry | None], tuple[str, ...], tuple[str, ...]]:
+) -> tuple[dict[str, Entry | None], tuple[str, ...], tuple[str, ...], tuple[str, ...]]:
     """One answer per id: the line it ends up with, None for gone, or a conflict.
 
     Read off the raw lines and not off the parsed fields, because "did this side change it"
@@ -620,6 +632,7 @@ def _decide(
     decided: dict[str, Entry | None] = {}
     doubled: list[str] = []
     contested: list[str] = []
+    withdrawn: list[str] = []
     was, here, there = ancestor.by_id(), mine.by_id(), yours.by_id()
     for task_id in dict.fromkeys((*was, *here, *there)):
         before, ours, theirs = was.get(task_id), here.get(task_id), there.get(task_id)
@@ -631,9 +644,15 @@ def _decide(
             decided[task_id] = ours
         elif before is None:
             doubled.append(task_id)
+        elif ours is None or theirs is None:
+            # One side's line is *gone* (RK482) — shipped, retired, deferred out — and the
+            # other edited it. Kept apart from `contested` for RK120's reason: that clause
+            # asks a reviewer to choose a sentence, and nobody wrote a second one here. The
+            # decision is whether the removal stands and where the edit goes.
+            withdrawn.append(task_id)
         else:
             contested.append(task_id)
-    return decided, tuple(doubled), tuple(contested)
+    return decided, tuple(doubled), tuple(contested), tuple(withdrawn)
 
 
 def _frame(
@@ -749,7 +768,9 @@ def _unreadable(version: str, named: str) -> str:
     )
 
 
-def _spent(doubled: tuple[str, ...], contested: tuple[str, ...]) -> str:
+def _spent(
+    doubled: tuple[str, ...], contested: tuple[str, ...], withdrawn: tuple[str, ...] = ()
+) -> str:
     out = []
     if doubled:
         out.append(
@@ -760,6 +781,15 @@ def _spent(doubled: tuple[str, ...], contested: tuple[str, ...]) -> str:
         out.append(
             f"both branches rewrote {', '.join(contested)}: one line, two sentences — "
             f"the wording is the reviewer's and this driver does not pick one"
+        )
+    if withdrawn:
+        # Not "rewrote" (RK482): one side's line is gone and the other edited it, so what is
+        # asked for is not a sentence. Taking the removal would delete the edit silently,
+        # which is the ground RK97 refuses to pick on for `doubled`.
+        out.append(
+            f"one branch removed {', '.join(withdrawn)} and the other edited it: a line that "
+            f"shipped, retired or deferred against an edit to the same line — decide whether "
+            f"the removal stands, then where that edit goes"
         )
     return "; ".join(out)
 
