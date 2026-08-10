@@ -348,17 +348,39 @@ class Refusal:
         costs three lines of a string already being composed, and the caller who needs the
         answer is one call away from it.
         """
-        reached = invocation()
         offered = (
             ("repair", "every finding whose remedy is one command, applied in one call"),
             ("repair --dry-run", "the same list, printed and not run"),
             ("explain <code>", "what one code means, and which doors close it"),
         )
-        width = max(len(command) for command, _ in offered)
+        # RK448: this paragraph is read *first* — RK424 put it above the tool table — and it
+        # spelled all three with the invocation whatever the session had. So on a wired
+        # project the line an agent acts on recommended the shell for exactly the verbs the
+        # table under it would have served, which is RK58's own argument arriving one
+        # paragraph too late. Where the tools are here, this is where they are named.
+        #
+        # A flag is not a word over that transport: `repair --dry-run` is the `repair` tool
+        # carrying `dry_run`, and `explain <code>` is `explain` carrying `code`. So the
+        # served spelling is the tool name and the argument moves into the sentence beside
+        # it, rather than a prefix glued to an argv nothing would parse.
+        if self.served:
+            served = (
+                (f"{self.served}repair", offered[0][1]),
+                (f"{self.served}repair", f"{offered[1][1]} — pass dry_run"),
+                (f"{self.served}explain", f"{offered[2][1]} — pass the code"),
+            )
+            width = max(len(name) for name, _ in served)
+            rows = [f"  {name:<{width}}  {purpose}" for name, purpose in served]
+        else:
+            reached = invocation()
+            width = max(len(command) for command, _ in offered)
+            rows = [
+                f"  {reached} {command:<{width}}  {purpose}" for command, purpose in offered
+            ]
         return [
             "If this edit was repairing something `lint` reported, it already named the "
             "command that closes each finding — so none of them has to be inferred:",
-            *(f"  {reached} {command:<{width}}  {purpose}" for command, purpose in offered),
+            *rows,
             "",
         ]
 
@@ -413,14 +435,25 @@ class Review:
     """
 
     report: Report
+    #: The prefix this session's tools arrive under, or `""` where it has none (RK448). The
+    #: same field :class:`Refusal` carries and for the same reason: this message is what an
+    #: agent acts on to unblock itself, and it named the shell on projects whose `lint` is
+    #: pre-approved. A field rather than a call, because one hook process serves every
+    #: repository the session touches and the answer is a fact about this one.
+    served: str = ""
 
     def __str__(self) -> str:
         findings = self.report.findings
         # The invocation this machine has, for `Denial`'s reason (RK254): a gate that names a
         # repair the reader cannot run blocks the turn and withholds the way out of it.
         reached = invocation()
+        # And where the session has the tool, that is the route (RK448). This fires at the
+        # end of every turn that changed a governed file, so it is the most-read of the four
+        # places this module names a command and was the last still naming one route for
+        # every session.
+        lint_ = f"{self.served}lint" if self.served else f"{reached} lint"
         lines = [
-            f"{reached} lint refuses {len(findings)} line(s) this turn changed in "
+            f"{lint_} refuses {len(findings)} line(s) this turn changed in "
             f"{', '.join(self.report.checked)}: a governed file was changed by something "
             f"other than roadkeep, and the format is what the next reader trusts.",
             "",
@@ -428,16 +461,26 @@ class Review:
         lines += [f"  {finding}" for finding in findings[:_MOST_FINDINGS]]
         if len(findings) > _MOST_FINDINGS:
             lines.append(
-                f"  … and {len(findings) - _MOST_FINDINGS} more — `{reached} lint` prints "
-                f"all of them"
+                f"  … and {len(findings) - _MOST_FINDINGS} more — `{lint_}` prints all of them"
             )
         lines += [
             "",
             # Six repairs, held against `fixing.REPAIRS` by a test and not imported (RK355):
             # this module stays out of that import path, which is what RK260 bought.
+            #
+            # The one route here that keeps the invocation on every project (RK448), and it
+            # says so: `--fix` writes, and RK16 puts it where a human is standing — so the
+            # served surface withholds it deliberately (`lint` is exposed there without it),
+            # and a prefix glued to this line would name a tool that does not exist.
             f"`{reached} lint --fix` repairs what is derived (annotation, pointer, dep "
             f"order, marker codepoint, whitespace, dead queue entry); everything left is "
-            f"editorial and wants a command, not an edit.",
+            f"editorial and wants a command, not an edit."
+            + (
+                " That one is the shell whatever this session serves: `--fix` writes, so "
+                "the tool surface withholds it."
+                if self.served
+                else ""
+            ),
         ]
         return "\n".join(lines)
 
@@ -629,7 +672,9 @@ def review(payload: Mapping[str, object], root: str | Path = ".") -> Review | No
     if report.clean:
         return None
     narrowed = _this_turn(config, report)
-    return Review(report=narrowed) if narrowed.findings else None
+    if not narrowed.findings:
+        return None
+    return Review(report=narrowed, served=serving(config.root) or "")
 
 
 def attested(payload: Mapping[str, object], root: str | Path = ".") -> Unattested | None:

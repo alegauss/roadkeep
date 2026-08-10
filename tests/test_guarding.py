@@ -305,7 +305,8 @@ def test_a_role_with_no_tool_behind_it_names_only_the_commands():
     # `init` is not a tool and must not be invented as one: a governed file that is not on
     # disk yet needs scaffolding, which runs once and from a shell.
     reason = str(Refusal(tool="Write", path="docs/ROADMAP.md", role="roadmap", exists=False))
-    assert "mcp__roadkeep__" not in reason
+    assert "mcp__roadkeep__init" not in reason
+    assert "Call instead, from the project root:" in reason
     assert f"{invocation()} init" in reason
 
 
@@ -575,14 +576,28 @@ def test_the_denial_names_the_repair_route_before_the_fourteen_commands():
     closes it, and this refusal is the one place an agent repairing a reported line will
     certainly look, because it is what stopped the `Edit`. So that route goes first.
     """
-    reason = str(Refusal(tool="Edit", path=ROADMAP, role="roadmap"))
+    reason = str(Refusal(tool="Edit", path=ROADMAP, role="roadmap", served=""))
     assert f"{invocation()} repair" in reason
     assert f"{invocation()} explain <code>" in reason
     # First, and before the table it is meant to shortcut — a shortcut printed after the
     # long way round is a shortcut nobody takes.
     assert reason.index(f"{invocation()} repair") < reason.index("Call instead")
     # And the fourteen stay, for the write that is not a repair.
-    assert f"{invocation()} add --block" in reason or "mcp__roadkeep__add" in reason
+    assert f"{invocation()} add --block" in reason
+
+
+def test_the_repair_route_is_the_engine_that_answers_it():
+    """RK448. This paragraph is read first — RK424 put it above the tool table — and it
+    spelled all three with the invocation whatever the session had, so on a wired project
+    the line an agent acts on recommended the shell for exactly the verbs the table under it
+    would have served. A flag is not a word over that transport, so the served spelling is
+    the tool name and the argument moves into the sentence beside it."""
+    reason = str(Refusal(tool="Edit", path=ROADMAP, role="roadmap", served="mcp__roadkeep__"))
+    assert "mcp__roadkeep__repair" in reason and "pass dry_run" in reason
+    assert "mcp__roadkeep__explain" in reason and "pass the code" in reason
+    assert f"{invocation()} repair" not in reason
+    # Still first, which is the claim RK424 made and this does not move.
+    assert reason.index("mcp__roadkeep__repair") < reason.index("Call instead")
 
 
 def test_the_denial_still_runs_no_linter_to_say_it():
@@ -624,6 +639,41 @@ def test_a_drifted_file_blocks_and_names_the_line(tmp_path):
     assert f"{ROADMAP}:" in reason
     assert "RK99" in reason
     assert f"{invocation()} lint --fix" in reason
+
+
+def test_the_gate_names_the_engine_that_answers_it(tmp_path):
+    """RK448. This fires at the end of every turn that changed a governed file, so it is the
+    most-read of the four places this module names a command — and it was the last still
+    naming one route for every session."""
+    from roadkeep.config import Config
+    from roadkeep.guarding import Review
+    from roadkeep.linting import lint
+
+    root = project(
+        tmp_path,
+        roadmap=CLEAN + "- 📋 **RK2** (deps: RK99) **A second symptom** — Because. → §RK2\n",
+    )
+    served = str(Review(report=lint(Config.discover(root)), served="mcp__roadkeep__"))
+    assert served.startswith("mcp__roadkeep__lint refuses")
+    # And the one route here that keeps the invocation on every project, saying why: `--fix`
+    # writes, and RK16 puts that where a human is standing, so the tool surface withholds it.
+    assert f"{invocation()} lint --fix" in served
+    assert "mcp__roadkeep__lint --fix" not in served
+    assert "the tool surface withholds it" in served
+
+
+def test_a_gate_with_no_tools_behind_it_still_names_the_shell(tmp_path):
+    root = project(
+        tmp_path,
+        roadmap=CLEAN + "- 📋 **RK2** (deps: RK99) **A second symptom** — Because. → §RK2\n",
+    )
+    from roadkeep.config import Config
+    from roadkeep.guarding import Review
+    from roadkeep.linting import lint
+
+    said = str(Review(report=lint(Config.discover(root))))
+    assert said.startswith(f"{invocation()} lint refuses")
+    assert "mcp__" not in said
 
 
 def test_blocking_twice_is_a_loop_and_never_happens(tmp_path):

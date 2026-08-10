@@ -32,8 +32,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK448** (deps: —) **Two of the guard's four routes still name the shell where this session has the tool that answers** — RK444 and RK447 moved the notice and the deny's own table, leaving the repair route inside that same deny and the Stop gate's spelling the invocation on a wired project. → §RK448
-
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:
