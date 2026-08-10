@@ -556,8 +556,10 @@ def test_a_refusal_reads_as_an_answer_and_says_reading_is_free():
     assert reason.startswith(f"Edit refused: {ROADMAP} is this project's roadmap")
     assert f"{invocation()} <command> --help" in reason
     # L5: the reason an agent reaches for `Edit` is often to *read* around a line, and a
-    # refusal that does not say the query surface exists sends it to open the file.
-    assert f"{invocation()} brief <id>" in reason
+    # refusal that does not say the query surface exists sends it to open the file. Which
+    # spelling names them is per session since RK477, so what is asserted here is the verbs.
+    tail = reason[reason.index("Reading is never refused") :]
+    assert all(read in tail for read in ("brief", "show", "list"))
 
 
 def test_the_denial_names_the_repair_route_before_the_fourteen_commands():
@@ -779,6 +781,34 @@ def test_a_session_that_has_the_tools_is_still_led_to_them(tmp_path):
     said = str(Refusal(tool="Edit", path=ROADMAP, role="roadmap", served="mcp__roadkeep__"))
     assert "mcp__roadkeep__add" in said
     assert said.index("mcp__roadkeep__add") < said.index("Or the same engine in a shell")
+
+
+def test_the_reads_a_denial_closes_on_are_named_in_the_spelling_this_session_has(tmp_path):
+    """RK477. RK254 gave that sentence `invocation()` for the console script RK57 removed,
+    and RK24 then split the *writes* into a tools table beside the shell one — leaving the
+    closing line below both, composed once. Measured on a scaffolded project, one `Edit` on
+    the roadmap: 15 writes rendered twice, 3 reads rendered once, and the single rendering is
+    the one that answers `command not found`. All three are served — `brief` since RK24,
+    `show` and `list` since RK463, whose argument was that a read this surface withholds is
+    one that machine cannot make at all."""
+    said = str(Refusal(tool="Edit", path=ROADMAP, role="roadmap", served="mcp__roadkeep__"))
+    for read in ("brief", "show", "list"):
+        assert f"mcp__roadkeep__{read}" in said, read
+    tail = said[said.index("Reading is never refused") :]
+    assert invocation() not in tail
+    # Fields and not an argv, which is RK476's finding in prose: a caller here passes
+    # arguments, so `<id>` and `--block <x>` would be a spelling it cannot use.
+    assert "<id>" not in tail and "--block" not in tail
+    assert "the id" in tail and "a block" in tail
+
+
+def test_the_same_reads_at_a_terminal_stay_the_line_a_shell_runs(tmp_path):
+    """Per table, like the repair route above it: a session with no tools is the one the
+    shell form was always right for, and RK477 may not cost it that."""
+    said = str(Refusal(tool="Edit", path=ROADMAP, role="roadmap", served=""))
+    tail = said[said.index("Reading is never refused") :]
+    assert f"{invocation()} brief <id>" in tail
+    assert "mcp__" not in tail
 
 
 def test_the_denial_never_advertises_the_install_that_would_serve_them(tmp_path):

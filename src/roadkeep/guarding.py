@@ -416,14 +416,36 @@ class Refusal:
         lines += [
             f"  {reached} {helped:<{width}}  every flag, so none is guessed",
             "",
-            # The same invocation as the table above it (RK254): this sentence spelled the
-            # console script literally too, so on the machine that has none it named three reads
-            # the reader cannot make either.
-            f"Reading is never refused: `{reached} brief <id>` starts a task in one call, "
-            f"`show <id>` joins the line to its rationale, `list --block <x>` prints them "
-            f"verbatim.",
+            self._reading,
         ]
         return "\n".join(lines)
+
+    @property
+    def _reading(self) -> str:
+        """The three reads, in the spelling the session that will make them has (RK477).
+
+        RK254 gave this sentence `invocation()` for the console script RK57 removed, which is
+        right for a shell and was all it got: RK24 split the *writes* into a tools table and a
+        shell table, and the closing line stayed below both, composed once. So the message
+        offered fifteen writes as tools and then said reading is never refused in a shell the
+        reader may not have — measured on a scaffolded project as 15 rendered twice, 3 once.
+
+        Per table, like `_repairing` above it, and a sentence rather than a fourth table: what
+        makes these three read as *not* the refused act is that they are not in one. And the
+        served form names fields, because `<id>` is an argv and a caller here passes arguments.
+        """
+        if self.served:
+            return (
+                f"Reading is never refused: `{self.served}brief` starts a task in one call and "
+                f"`{self.served}show` joins the line to its rationale, both taking the id; "
+                f"`{self.served}list` prints them verbatim, and takes a block."
+            )
+        reached = invocation()
+        return (
+            f"Reading is never refused: `{reached} brief <id>` starts a task in one call, "
+            f"`show <id>` joins the line to its rationale, `list --block <x>` prints them "
+            f"verbatim."
+        )
 
 
 @dataclass(frozen=True, slots=True)
