@@ -1240,3 +1240,45 @@ def test_no_row_writes_a_word_only_the_author_could_have(tmp_path):
                     f"a flag, a blank, a value the finding gave, nor a choice the parser "
                     f"declares — so it is a word this tool composed (L4)"
                 )
+
+
+# -- what a door does, per door (RK1015) --------------------------------------
+
+
+def _finding(code: str) -> Finding:
+    return Finding(code, "ROADMAP.md", "", 1, "RK1")
+
+
+def test_one_decide_can_hold_a_read_and_a_write():
+    """The measurement RK1015 was filed on. `deps.unknown` is a single `decide` whose doors
+    are `gaps`, which answers a question and changes nothing, and `amend <id> --dep …`, which
+    writes — so a caller reading the remedy's `kind` learns `decide` about both."""
+    found = remedy(_finding("deps.unknown"))
+    doors = {door.argv[0]: door.writes for door in found.doors}
+    assert doors == {"gaps": False, "amend": True}
+    assert found.kind == "decide", "the kind is the remedy's, which is the whole point"
+
+
+def test_a_read_only_verb_with_the_flag_that_makes_it_a_write_writes():
+    """The case a set of verb names gets backwards, and the reason the mapping carries flags:
+    `lint` is read-only — that is what keeps it out of the write lock — and `lint --fix` is
+    not. Both facts are the parser's, which is where they were already declared."""
+    fixes = remedy(_finding("char.tab"))
+    (door,) = fixes.doors
+    assert door.argv[:2] == ("lint", "--fix") and door.writes is True
+    reads = remedy(_finding("engine.disagreement"))
+    assert [door.writes for door in reads.doors] == [False]
+
+
+def test_a_foreign_door_writes_and_this_tool_has_no_opinion_about_it():
+    """`git checkout` is somebody else's command (RK451): it writes, it says so in its own
+    name, and nothing here derives that from a parser that never heard of it."""
+    (door,) = remedy(_finding("file.not-text")).doors
+    assert door.foreign is True and door.writes is True
+
+
+def test_the_payload_carries_it_because_the_caller_outside_this_process_asked():
+    """The reader RK1015 was about. An editor building a quick fix has to know whether the
+    thing it is about to run changes the files, and the remedy's kind cannot tell it."""
+    payload = remedy(_finding("deps.unknown")).payload()
+    assert [door["writes"] for door in payload["doors"]] == [True, False]

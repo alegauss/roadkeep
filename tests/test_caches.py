@@ -46,6 +46,11 @@ INVENTORY = {
         "reads the machine: the manifest of the tree this engine runs out of, which a test that "
         "patches `engine` moves"
     ),
+    ("remedying.py", "_reading"): (
+        "pure: which verbs the CLI declares read-only and the flags that make each a write, "
+        "both read off `build_parser()`, which is a function of the code and holds no config "
+        "— the same argument `serving._root` makes about the same object (RK1015)"
+    ),
     ("serving.py", "_root"): "pure: the parser is a function of the code and holds no config",
 }
 

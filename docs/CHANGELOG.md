@@ -356,6 +356,7 @@
 - ✅ **RK1003** **A design naming an id no line carries is refused at the door and reported by nothing once a file already holds one** — The gate reports a design naming an id no line carries, under the code the door raises, so an imported or hand-edited file is no longer silent about it.
 - ✅ **RK1004** **The register reads gate to write and nothing reads it back, so a rule only the door holds is found by writing one** — Every code a write refuses says what the gate reports about a file already in that state, and two of the forty-three turn out to be reported by nothing.
 - ✅ **RK1012** **A pointer can resolve to a heading with no prose, or to one with no title, and the gate reports neither** — The gate reports a pointer resolving to a heading with no prose or no title, under the two codes the door already refuses, and a container is still silent.
+- ✅ **RK1015** **A door says nothing about whether running it writes, and the kind beside it describes the remedy and not the door** — A door says whether running it writes, derived from the verb the CLI already declares read-only and the flag that makes one a write, and the payload carries it.
 
 ## Block E — Adoption
 

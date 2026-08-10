@@ -82,6 +82,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
+from functools import lru_cache
 
 from .config import PROSE_ROLES, ROLES, Config
 from .schema import Dep
@@ -94,6 +95,41 @@ KINDS = ("fix", "run", "read", "compose", "decide", "restore")
 #: Marks the one field of a ``compose`` argv that the tool may not write (L4). Kept as a
 #: distinct token rather than an empty string so a caller can find it without parsing prose.
 BLANK = "…"
+
+
+@lru_cache(maxsize=1)
+def _reading() -> Mapping[str, frozenset[str]]:
+    """Every verb this CLI declares read-only, and the flags that turn each into a write.
+
+    Both halves come from the parser that declares them, because both are already there:
+    `reads_only` is what keeps a command out of the write lock (RK117) and `writes_when`
+    names the flag that makes one a write anyway (RK167) — `lint` is read-only and `lint
+    --fix` is not, which is the case this mapping exists for and the one a set alone gets
+    backwards.
+
+    Deferred and cached: `cli` imports this module to build a report, so the edge back runs
+    at call time (RK260), and the parser is built once — a remedy is rendered per finding
+    and a report can carry hundreds.
+    """
+    from roadkeep.cli import build_parser, writes_when  # noqa: PLC0415 - RK1015
+
+    verbs = next(
+        action
+        for action in build_parser()._actions
+        if getattr(action, "choices", None) and action.dest == "command"
+    )
+    out: dict[str, frozenset[str]] = {}
+    for verb, parser in verbs.choices.items():
+        if not parser.get_default("reads_only"):
+            continue
+        turns = set(writes_when(parser))
+        out[verb] = frozenset(
+            option
+            for action in parser._actions
+            if action.dest in turns
+            for option in action.option_strings
+        )
+    return out
 
 
 @dataclass(frozen=True, slots=True)
@@ -112,6 +148,29 @@ class Door:
     #: brings it back, and the store is the repository (L2) — so the command is git's, and
     #: prefixing it with this engine would name a subcommand roadkeep does not have.
     foreign: bool = False
+
+    @property
+    def writes(self) -> bool:
+        """Does running this door change the files (RK1015)?
+
+        **Per door and not per remedy**, which is the whole of it: `deps.unknown` is one
+        `decide` holding `gaps`, which answers a question and changes nothing, and `amend
+        <id> --dep …`, which writes. The kind is the remedy's, so it says `decide` about
+        both, and a caller that has to know which it just pressed — a quick-fix menu, a
+        repair loop — could not ask.
+
+        Derived from the verb and never declared twice: the CLI already states which
+        commands only read, because that is what keeps one out of the write lock (RK117), and
+        a second list here would be the drift this package exists to stop. A foreign door is
+        somebody else's command and this tool has no opinion about it — `git checkout` writes
+        and says so in its own name.
+        """
+        reading = _reading()
+        if self.foreign or self.argv[0] not in reading:
+            return True
+        # A read-only verb with the flag that makes it a write: `lint --fix` is the case,
+        # and the parser is where both facts are already declared.
+        return any(flag in self.argv for flag in reading[self.argv[0]])
 
     @property
     def command(self) -> str:
@@ -323,6 +382,14 @@ class Remedy:
         ``read`` is deliberately not runnable. Its command is safe to run and useless to
         run *here*: it answers a question for the caller, and executing it inside a repair
         loop would leave the finding exactly where it was.
+
+        **Still the kind, and RK1015 measured why.** That task proposed reading
+        :attr:`Door.writes` instead — the door now carries it, which is what a caller outside
+        this process needed — and the substitution does not hold: `section.too-long` closes
+        with `section amend <id> --body -`, a door that writes, is complete and is one, and a
+        repair loop running it would read a paragraph off a stdin it does not have. What the
+        kind carries and no door field does is *who supplies the prose*, so `compose` is a
+        word about the author and not about the command.
         """
         return self.kind in ("fix", "run") and all(d.complete for d in self.doors)
 
@@ -342,6 +409,9 @@ class Remedy:
                 "argv": list(door.argv),
                 "what": door.what,
                 "complete": door.complete,
+                # Whether pressing it changes the files (RK1015): the kind is the remedy's,
+                # and one `decide` holds a read and a write.
+                "writes": door.writes,
             }
             call = door.call() if served else None
             if call is not None:

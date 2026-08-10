@@ -30,7 +30,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1015** (deps: —) **A door says nothing about whether running it writes, and the kind beside it describes the remedy and not the door** — One `decide` holds a read and a write, so a caller that has to know which it pressed cannot, and the safe reading is to treat every door as both. → §RK1015
 - 📋 **RK1016** (deps: —) **The Layout index names a sixth surface nowhere, and what holds it reads package modules only** — RK203 gated the modules and left the surfaces to a reader, so an editor host and the script that packages it are in the tree and in no index. → §RK1016
 
 ## Block E — Adoption
