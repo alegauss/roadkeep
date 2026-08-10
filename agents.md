@@ -95,8 +95,8 @@ so read every command in it as `PYTHONPATH=src python -m roadkeep.cli <…>` fro
 - **Python ≥3.11** (`tomllib` is stdlib there; 3.13.14 here) and **zero runtime deps**:
   `argparse` + `tomllib`, never `click` + `pydantic` — a tool meant to run as `uvx roadkeep`
   in someone else's CI pays for every dependency it takes.
-- `uv` is **not** installed here — `python -m pytest` from the repo root (`pythonpath =
-  ["src"]` is set). Only dev dependency: `pip install --user pytest`.
+- `uv` is **not** here — `python -m pytest` from repo root (`pythonpath = ["src"]`). Deps:
+  `pip install --user pytest pytest-xdist`; `-n auto` is on, `-n0` undoes it.
 - Round-trip (L3) is a **property test over real files**: `docs/`, plus Shio's and Turing's
   at the revision `tests/corpora.py` pins — absent or unpinnable, they skip (CI).
 

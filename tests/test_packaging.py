@@ -292,6 +292,20 @@ def test_the_only_extra_is_the_one_ci_installs() -> None:
     assert set(extras) == {"dev"}
 
 
+def test_every_plugin_addopts_names_is_one_the_dev_extra_installs() -> None:
+    """RK457. `addopts = ["-n", "auto"]` makes the parallel run the default — 36-58 s here
+    against 5m07s — and a flag in the config is a contract this file has to keep: a tree that
+    installs `[dev]` and then cannot start pytest would be worse than the serial run it
+    replaced. The runtime dependency count is untouched, which is the law that matters.
+    """
+    data = metadata()
+    installed = " ".join(data["project"]["optional-dependencies"]["dev"])
+    options = data["tool"]["pytest"]["ini_options"]["addopts"]
+    if "-n" in options or any(one.startswith("-n") for one in options):
+        assert "pytest-xdist" in installed
+    assert data["project"]["dependencies"] == []
+
+
 def test_the_floor_is_where_tomllib_became_stdlib() -> None:
     """3.11 is not a preference: below it `tomllib` is a dependency, and there are none."""
     assert metadata()["project"]["requires-python"] == ">=3.11"

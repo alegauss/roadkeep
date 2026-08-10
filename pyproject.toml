@@ -56,7 +56,11 @@ Issues = "https://github.com/alegauss/roadkeep/issues"
 Changelog = "https://github.com/alegauss/roadkeep/blob/main/docs/CHANGELOG.md"
 
 [project.optional-dependencies]
-dev = ["pytest>=8"]
+# `pytest-xdist` because `addopts` names `-n auto` (RK457): the flag is in the config, so a
+# tree that installs the extra and cannot run the suite would be a contract this file states
+# and does not keep. The runtime dependency count is still zero, which is the law — this is
+# what the *suite* installs, not what `uvx roadkeep` imports.
+dev = ["pytest>=8", "pytest-xdist>=3"]
 
 [project.scripts]
 roadkeep = "roadkeep.cli:main"
@@ -71,3 +75,16 @@ where = ["src"]
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
+# RK457. A full run was 2865 tests in 5m07s, paid before an edit is known to hold and paid
+# again by an agent that edits, runs and edits. The time is not one hot spot — 272 s of 300
+# is `call`, spread over a long tail of process spawns and filesystem work — which is what
+# parallelism answers and a faster assertion does not. Measured here: 36-58 s over five
+# consecutive green runs, against 60 s for the conservative `--dist loadfile`, so the
+# default distribution stays the default.
+#
+# `auto` and not a number: this machine has 28 cores and CI has two, and a count written
+# here would be wrong on one of them. `-n0` is the way back to a serial run, which is what
+# a bisected flake wants. The zero-dependency law is about *runtime* (L2's neighbour): a
+# tool run as `uvx roadkeep` in someone else's CI pays for what it imports, not for what
+# its own suite installs — `pytest-xdist` is declared beside `pytest` in agents.md.
+addopts = ["-n", "auto"]

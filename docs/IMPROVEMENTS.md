@@ -109,30 +109,6 @@ map rather than the exceptions is still reading the wide answer.
 
 ## Block D — The gate
 
-### §RK457 The run is what stands between an edit and knowing
-
-A full run is 2865 tests in 5m07s here, paid before an edit is known to hold — and paid
-again by an agent that edits, runs and edits.
-
-The time is not one hot spot. Of the 300 s the durations report, 272 s is `call` and 28
-s is `setup`, spread over a long tail: `test_history` 50 s, `test_baseline` 29 s,
-`test_sections` 20 s, `test_weighing` 20 s. What that tail is made of is process spawns
-and filesystem work — git, nested pytest runs, tmp trees — which is what parallelism
-answers and what a faster assertion does not.
-
-Measured on this machine, 28 cores, with RK455 fixed: `-n 16` finishes green in 48-70 s,
-and `-n 8 --dist loadfile` in 1m47s. Five to six times, and three even under the
-conservative distribution.
-
-`pytest-xdist` is a dev dependency, and the zero-dependency law is about runtime: a tool
-run as `uvx roadkeep` in someone else's CI pays for what it imports, not for what its
-own suite installs. The fixtures already survive it — `checkout` fingerprints and
-`governed` copies at each worker's conftest import, so every worker asserts about one
-coherent revision, which is what RK263 and RK315 asked for.
-
-What is left to decide is the default distribution, and RK458 is why that is a decision
-rather than a flag.
-
 ### §RK458 An order nobody chose is holding a test up
 
 Under `-n 16` with xdist's default distribution,
