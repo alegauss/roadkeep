@@ -26,7 +26,11 @@
 
 ## Block C — Query (consult without reading the file)
 
+- 📋 **RK461** (deps: —) **Every row the ownership audit prints on this project is a standing memo, which is never a thing to act on** — The listing separates a heading from its claimants and not the two states apart: unbound and unclaimed is the memo RK236 protects, and it is all five rows here. → §RK461
+
 ## Block D — The gate
+
+- 📋 **RK462** (deps: —) **A run naming several files gets no workers at all, so six files take fifteen seconds in series** — RK460 reads any file argument as a narrow run, and one file is narrow where six are a pool: the flag says which files, not how many processes they want. → §RK462
 
 ## Block E — Adoption
 

@@ -79,7 +79,61 @@ already written, not authorship.
 
 ## Block C — Query
 
+### §RK461 The third state the audit lumps in
+
+RK459 made the audit one call by printing only the addresses `_ownership` has something
+to say about. Run on this repository it reports five, and all five are `§0`, `§0.1` to
+`§0.4` — the design preamble, which belongs to no task and never will:
+
+    5 of 469 address(es) say something about ownership
+      0    binds nobody, unclaimed
+      0.1  binds nobody, unclaimed
+
+RK236 is why that is right and not a defect: a heading naming no task is prose belonging
+to none, which a standing memo genuinely is, and Turing's GEO memo is the case it was
+decided for. What is wrong is that the audit does not tell it apart from the two states
+it exists for. `binds nobody, **claimed by** RK91` is RK452's write left undone on an
+older corpus and one `section amend` closes it; `binds RK92, which no open line claims`
+is prose whose task has shipped. `binds nobody, unclaimed` is neither — nothing to do,
+ever.
+
+So a reader running this on an adopting corpus reads a list whose majority is noise,
+which is what teaches somebody to stop reading a report (RK146's argument, one surface
+over).
+
+The shape is that the third state is not an exception at all. `Anchor.orphaned` has the
+same flaw one layer down — it is `live and not claimed`, so it is true of a memo — and
+both readings want the same split.
+
+Open: whether a memo should be countable rather than invisible, since "469 addresses, 5
+of them memos, 0 needing anything" is a different answer from silence.
+
 ## Block D — The gate
+
+### §RK462 Narrow is a count, not a kind
+
+RK460 made `-n auto` resolve to none where the invocation named a file or a node id, and
+the file it was measured on went from 43.2 s to 0.93 s. The predicate is `any` — one
+file argument decides — which is right for the case it was written for and wrong just
+past it. Measured here, six files on one command line:
+
+    six files   0 workers  15.5 s
+
+Nobody asked for a serial run; they asked for six files. RK460's reasoning holds — "a
+caller who named a file wants that file, and nobody who names one wants twenty-eight
+processes started for it" — and it is about *one*. What decides is how much there is to
+distribute against what a worker costs, which is a count and not a kind of argument.
+
+The cost per worker is this suite's own, and RK460 measured it: a worker imports
+`conftest`, which fingerprints the checkout and copies the governed files. So the
+break-even sits near where a run's own time exceeds that import, and what fits is a
+worker count derived from how many things were named rather than a boolean.
+
+What it must not become is a guess at the test count: that is knowable after collection
+and this hook is asked before it, which is the constraint §RK460 recorded.
+
+Open: whether a directory argument other than the testpath counts as one thing or as
+what it holds.
 
 ## Block E — Adoption
 
