@@ -119,10 +119,14 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 31 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 103 | 1 |
 | C — Query (consult without reading the file) | 0 | 72 | 1 |
-| D — The gate | 0 | 101 | 0 |
+| D — The gate | 1 | 101 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 77 | 1 |
-| **Total** | 0 | 458 | 6 |
+| **Total** | 1 | 458 | 6 |
+
+**Next ready:**
+
+- 📋 **RK468** (deps: —) **One finding names two different commands, and repair runs the one its own message does not** — block.repeated composes its sentence from whether the later region is empty and reads its remedy from a table that cannot ask, so on Turing's ledger the two disagree. → §RK468
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
