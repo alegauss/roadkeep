@@ -81,29 +81,122 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK1004 The other direction of the same register
-
-RK498 enumerated every code the gate emits and said whether a write refuses it, and it
-paid: the estimate of two open was five. Nothing enumerates the converse — which
-refusals a *door* makes that the gate can also report — and the first hole in it was
-opened by RK1002 within the hour, not found in old code.
-
-Measured before proposing: the write path raises 35 codes and 25 are also codes the gate
-emits, name for name. The remaining ten are not ten holes. Most are a section's own
-shape, and the gate reports those under its own vocabulary — a body past its budget is
-`section.too-long`, an anchor the scheme cannot read is `ref.format` — so the register's
-rows are a *mapping* and not a boolean, and building it is exactly the judgement RK498's
-`gate` rows are: stated, not measured.
-
-What makes it worth its own line rather than a wider RK498. That register's probe drives
-a write and asks what the gate then says; this one has to start from a **file already in
-the state**, which is a different fixture and a different question — one is about a door
-and one is about text this tool did not write.
-
-What proves it: every write-side code has a row naming the gate code that covers it or
-saying nothing does, the ten above are classified, and a code raised tomorrow with no
-row is red.
-
 ## Block E — Adoption
 
 ## Block F — The plugin
+
+## Block G — The editor surface (the backlog where the file is open)
+
+### §RK1005 A payload with no declared shape
+
+Every query already prints `--json`, and inside this package that is enough: the tests
+reading a payload are the tests that wrote it, so a renamed key moves both ends in one
+commit. A reader outside the process breaks that arrangement. It is another language, it
+ships on its own clock, and it reads `list`, `deps`, `lint` and `pick` as data — so the
+first rename here lands as a broken view there and a green suite here.
+
+The answer is not a schema file, which is a second declaration to drift from the first.
+It is a test that reads the payloads the way a client does: by key, over this
+repository's own `docs/` as the fixture, asserting the keys a client is promised rather
+than the whole shape. A payload that gains a field is compatible and must stay green;
+one that loses a promised key must not. That test is also where the promise is written
+down — what it reads is the contract, and every key it does not read stays free to
+move.</section_body>
+
+### §RK1006 The list, where the file is open
+
+A person with `ROADMAP.md` open sees 320-character lines under six headings. The order
+that matters is not the order on the page — ready before blocked, in-progress first, a
+dep chain that names the task to start — and every one of those is an answer some verb
+already gives. What is missing is a place to show them at the moment somebody is looking
+at the file.
+
+So: a tree, grouped by block, each line carrying its marker, its id and its symptom,
+with ready and blocked separated and the blocker named on the ones that are not.
+Selecting a row reveals that line in the open document, which is the only navigation a
+flat file needs.
+
+One law governs the whole surface and is worth more than the view: **it never parses
+Markdown.** Every row comes from `list --json`, `deps --json` and `pick --json`, run as
+a child process against the workspace. A client with its own parser is the second
+implementation this project exists to remove, and it would be the easy thing to write.
+Refreshing is a file watcher plus a re-run, because the store is the repository and
+there is nothing else to observe.</section_body>
+
+### §RK1007 The gate, at the column
+
+The gate's report was built for a reader who is not looking at the file:
+`file:line:column`, a code, and — since every finding names the command that closes it —
+a complete argv with the id and the line number already substituted. That is, without
+anything being added to it, the exact payload an editor's problems panel and its
+quick-fix menu take.
+
+So the mapping is a translation and not a feature. A finding becomes a diagnostic
+anchored at its column, its code becomes the diagnostic's code, and `explain <code>` is
+what the reader follows when the code is one they have not met. A finding whose remedy
+is a complete command becomes a code action that runs it; a finding whose remedy is a
+marked blank — a title, a shorter symptom, a reason — becomes no action at all, because
+the tool does not compose prose and an editor is not the place to start.
+
+Running it is the same child process as the list, on save and on demand. `repair` is the
+one action that belongs to the file rather than to a line, and it exits non-zero while
+anything is left, so a clean panel means clean.</section_body>
+
+### §RK1008 The door, not a text box
+
+A view that only reads sends its user to a terminal to write, and the terminal is where
+the format is typed from memory. That is the whole failure this project is about, moved
+one window across.
+
+The write is worth having only if it carries the schema with it. `budget --block <x>
+--dep <id>` answers, before the first word, what the symptom and the why each have left
+on this particular line — derived from the id, the marker, the deps and the pointer, all
+known in advance. An input that shows that number counting down is L1 at the place a
+person is actually composing, and it costs no analysis: the remaining characters are on
+screen instead of being discovered by a refusal.
+
+What it must not become is a second validator. The prompt shows the budget; `add` still
+decides, and its refusal — which names every field it looked at, in one message — is
+what the editor reports. Nothing is written to the file by the extension itself, ever:
+the command writes, and the file watcher shows the result. That keeps one writer, which
+is the property the round-trip law rests on.</section_body>
+
+### §RK1009 The fourth copy
+
+Three copies of this tool can already be in play at once — the plugin the hook and the
+skill come from, the action CI gates on, and whatever the caller runs — and they are
+allowed to differ, which is why there is a verb that reads all three and answers
+`agreed`, `behind` or `unpinnable`.
+
+An editor adds a fourth, and it is the one most likely to be wrong: resolved from a PATH
+the shell configured, a virtualenv the workspace happens to have activated, or a `uvx`
+cache nobody pinned. The failure is quiet. A panel shows findings a commit will not
+produce, or misses ones it will, and the reader has no way to tell which copy they are
+looking at.
+
+So the resolution is a declared setting, not a search: a workspace names the command,
+and the view refuses to answer rather than guess. Whatever it resolves is then a fourth
+row in the existing report, with the same three verdicts, and disagreement is stated in
+the view rather than discovered when a hook denies a write the panel said was
+fine.</section_body>
+
+### §RK1010 Where the client lives, and what proves it
+
+The action, the pre-commit hook, the plugin, the skill and the stdio server all ship
+from this tree, and each is declarative: a YAML file or a Markdown file, no build, no
+dependency tree. A packaged editor extension is not that. It is a compiled language, a
+lockfile, and a publisher account, in a repository whose stated cost is zero runtime
+dependencies.
+
+The argument for keeping it here anyway is the one that decided the stdio server: the
+failure to avoid is a second implementation of the rules, and the only thing that keeps
+a client honest is a test that runs the client against the command that answers it.
+Across two repositories that test belongs to neither, and the client grows a Markdown
+parser the first time a round trip feels slow.
+
+So: a subdirectory with its own manifest and its own job, gated on this repository's own
+`docs/`, and a Python side that gains no dependency and no build step. The split stays
+cheap on purpose — a client that never parses the file is a few hundred lines with
+nothing to port — so if the publishing cadence turns out to fight a version this
+repository bumps every commit, moving it out is a decision made later with evidence
+rather than now without.</section_body>

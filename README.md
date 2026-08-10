@@ -119,14 +119,15 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 31 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 107 | 1 |
 | C — Query (consult without reading the file) | 0 | 73 | 1 |
-| D — The gate | 1 | 119 | 0 |
+| D — The gate | 0 | 120 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 91 | 1 |
-| **Total** | 1 | 495 | 6 |
+| G — The editor surface (the backlog where the file is open) | 6 | 0 | 0 |
+| **Total** | 6 | 496 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1004** (deps: —) **The register reads gate to write and nothing reads it back, so a rule only the door holds is found by writing one** — Ten of the thirty-five codes a write refuses have no gate code of that name, and whether each is covered under another is the judgement nothing records. → §RK1004
+- 💭 **RK1005** (deps: —) **No test reads a `--json` payload as an outside client would, so a renamed key breaks one and nothing here fails** — An editor view is a second reader of these payloads, in another language and on its own clock, so the shape stops being an implementation detail once one exists. → §RK1005
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

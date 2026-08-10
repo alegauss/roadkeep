@@ -28,11 +28,18 @@
 
 ## Block D — The gate
 
-- 📋 **RK1004** (deps: —) **The register reads gate to write and nothing reads it back, so a rule only the door holds is found by writing one** — Ten of the thirty-five codes a write refuses have no gate code of that name, and whether each is covered under another is the judgement nothing records. → §RK1004
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
+
+## Block G — The editor surface (the backlog where the file is open)
+
+- 💭 **RK1005** (deps: —) **No test reads a `--json` payload as an outside client would, so a renamed key breaks one and nothing here fails** — An editor view is a second reader of these payloads, in another language and on its own clock, so the shape stops being an implementation detail once one exists. → §RK1005
+- 💭 **RK1006** (deps: RK1005) **The backlog is legible only in a terminal, so the editor holding the file offers the raw text and a hand edit** — Block, marker, ready, blocked and what a line unblocks are each already a query, and none of them is visible where the file is actually open. → §RK1006
+- 💭 **RK1007** (deps: RK1005) **A violation is a line of terminal output, so the editor showing that file marks nothing at the column that failed** — The report already carries file, line, column and the command that closes each finding, which is a diagnostic and a code action nothing is wired to. → §RK1007
+- 💭 **RK1008** (deps: RK1006) **Adding a task from the editor means retyping the fields in a terminal, so a limit is met after the sentence exists** — The limits are a schema `budget` states before a word exists, and a prompt that does not read them is the reviewer this project exists to replace. → §RK1008
+- 💭 **RK1009** (deps: RK1005) **Nothing says which roadkeep an editor calls, so a view answers from a copy the project does not write with** — `engines` reads the three copies that write, judge and gate, and a fourth resolved from PATH, a venv or `uvx` is a reader whose disagreement nothing reports. → §RK1009
+- 💭 **RK1010** (deps: RK1006) **A surface written in another language has no gate in this tree, so CI proves the Python and nothing proves the client** — Five surfaces already ship from here with no build step, and the sixth brings a toolchain, a marketplace and a version this repository bumps every commit. → §RK1010
 
 ## Non-goals
 

@@ -209,6 +209,15 @@ INVARIANTS: tuple[Invariant, ...] = (
         held_by="test_prevention::test_every_code_the_gate_can_emit_has_a_row",
     ),
     Invariant(
+        stated="RK1004",
+        rule=(
+            "every code a write refuses says what the gate reports about a file already in "
+            "that state — the same code, another one, or nothing and why"
+        ),
+        over="test_backstop.BACKSTOP",
+        held_by="test_backstop::test_every_code_a_write_refuses_has_a_row",
+    ),
+    Invariant(
         stated="RK490",
         rule=(
             "every field a remedy row may name between braces is one the finding answers, "

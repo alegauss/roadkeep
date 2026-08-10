@@ -353,6 +353,7 @@
 - ✅ **RK1001** **A second defect in a class an invariant already holds reads like new work, so a gap in a holder is filed as a fix** — A design declares the rule it instantiates in a fenced block, and the row it names carries the id — so a recurrence is a count and the holder is where the fix goes.
 - ✅ **RK1002** **An id named only as an example in prose is read as spent, and nothing refuses it where the prose is composed** — A design naming an id no line carries is refused where the prose is composed, naming the two ways out, so an illustration no longer spends an address.
 - ✅ **RK1003** **A design naming an id no line carries is refused at the door and reported by nothing once a file already holds one** — The gate reports a design naming an id no line carries, under the code the door raises, so an imported or hand-edited file is no longer silent about it.
+- ✅ **RK1004** **The register reads gate to write and nothing reads it back, so a rule only the door holds is found by writing one** — Every code a write refuses says what the gate reports about a file already in that state, and two of the forty-three turn out to be reported by nothing.
 
 ## Block E — Adoption
 
@@ -526,3 +527,6 @@
 - ✅ **RK486** **The sweep holding the spelling class renders each message once, and two of the four have a shape it never sees** — The sweep takes one entry per rendering, and a field that never leaves its default in any of them fails rather than leaving quietly.
 - ✅ **RK487** **A pipe in a block title breaks the readme table, where the site form escapes the same string** — a bar in a block title stays inside its own cell, so the readme table keeps its columns.
 - ✅ **RK488** **Every module that offers a command composes the sentence itself, so a new surface is reached one emitter at a time** — Every message that offers a call states a Door and one renderer spells it, held by a property no module outside it composes one, so a new surface is one change.
+
+## Block G — The editor surface (the backlog where the file is open)
+
