@@ -81,34 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK471 The count that counts attempts
-
-`repair` runs every finding whose remedy is a complete command and prints what it cannot
-close. Run over a copy of Turing:
-
-    ran     block merge AH
-    FAILED  section drop XIV
-    FAILED  section drop XIV.2
-    3 repair(s) ran, 34 left for you
-
-One ran. Two are printed `FAILED` three lines up, and the summary counts them as run.
-
-The exit code is right — 1 while anything is left, which is RK422's contract and the
-thing a script branches on — so what this costs is the reader, not the loop. But the
-number is the line a person acts on, and it disagrees with the lines above it in the
-same output: a caller who reads `3 ran` against `34 left` concludes the tree moved three
-findings closer and it moved one.
-
-The fix is arithmetic and the shape is already there — `FAILED` is printed per step, so
-the counts are separable at the point they are decided.
-
-What it must not become is a second exit code. Two failures are not a failure of
-`repair`: the whole design of RK422 is that what it cannot close it *prints*, and a run
-that closed one of three did exactly what it says it does.
-
-Open: whether `left` should count the two that failed apart from the thirty-two nobody
-tried, since one of those groups has been attempted and refused and the other has not.
-
 ## Block E — Adoption
 
 ## Block F — The plugin

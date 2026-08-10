@@ -119,14 +119,10 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 31 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 103 | 1 |
 | C — Query (consult without reading the file) | 0 | 72 | 1 |
-| D — The gate | 1 | 104 | 0 |
+| D — The gate | 0 | 105 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 77 | 1 |
-| **Total** | 1 | 461 | 6 |
-
-**Next ready:**
-
-- 📋 **RK471** (deps: —) **The count repair closes with says three ran where one ran and two are printed FAILED above it** — The summary counts attempts, so the number a reader acts on contradicts the two lines directly above it, and the exit code is the only thing that still tells them apart. → §RK471
+| **Total** | 0 | 462 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

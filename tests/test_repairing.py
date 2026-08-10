@@ -238,3 +238,55 @@ def _refuse(argv):
 
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
+
+
+# -- runs and attempts are two numbers (RK471) --------------------------------
+
+
+def _printed(capsys, outcome) -> str:
+    """The report for an outcome the test drove itself, since `main` runs its own dispatch."""
+    from roadkeep.cli import _print_repair
+
+    _print_repair(outcome, ".")
+    return capsys.readouterr().out
+
+
+def test_the_summary_counts_what_ran_and_names_what_was_refused(tmp_path, capsys):
+    """Measured over a copy of Turing: one repair ran, two were printed `FAILED`, and the
+    summary said `3 repair(s) ran` three lines under them. The count is the line a person
+    acts on, so a caller read `3 ran` against `34 left` and concluded the tree moved three
+    findings closer when it moved one."""
+    config = _project(tmp_path, improvements=_STALE_SECTION)
+
+    def refusing(argv):
+        # What a `section drop` over a section another line nests does: a real refusal, and
+        # the state this summary described as a run.
+        return 2
+
+    outcome = repair(config, refusing)
+    assert outcome.steps and not any(step.ok for step in outcome.steps)
+    printed = _printed(capsys, outcome)
+    line = next(one for one in printed.splitlines() if "repair(s)" in one)
+    assert printed.count("FAILED") == len(outcome.steps)
+    # The two numbers agree with the lines above them, which is the whole claim.
+    assert f"0 repair(s) ran, {len(outcome.steps)} refused" in line
+
+
+def test_a_run_with_nothing_refused_says_nothing_about_refusals(tmp_path, capsys):
+    """The clause is silent where there is nothing to say: a summary that always carried
+    `0 refused` would spend the line on the runs that cost the reader nothing."""
+    _project(tmp_path, improvements=_STALE_SECTION)
+    assert main(["-C", str(tmp_path), "repair", "--dry-run"]) == EXIT_GATE
+    line = next(
+        one for one in capsys.readouterr().out.splitlines() if "repair(s)" in one
+    )
+    assert "refused" not in line and "would run" in line
+
+
+def test_the_exit_code_is_untouched_by_a_refusal(tmp_path, capsys):
+    """Two refusals are not a failure of `repair`: its whole design is that what it cannot
+    close it prints, and 1 while anything is left is RK422's contract."""
+    _project(tmp_path, improvements=_STALE_SECTION)
+    # It closes here, so the code is the gate's own — which is the contract a refusal must
+    # not change either: `repair` reports what it could not close and exits on the tree.
+    assert main(["-C", str(tmp_path), "repair"]) == EXIT_OK

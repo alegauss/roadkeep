@@ -5330,9 +5330,20 @@ def _print_repair(outcome: Repaired, root: str) -> None:
             file=sys.stderr,
         )
     verb = "would run" if outcome.dry_run else "ran"
+    # Runs and attempts are two numbers (RK471). This counted the steps, so a run that
+    # dispatched three and had two refused closed with `3 repair(s) ran` three lines under
+    # two the same output had already marked `FAILED` — and the count is the line a person
+    # acts on, so a caller read `3 ran` against `34 left` and concluded the tree moved three
+    # findings closer when it moved one. `Step.ok` already separates them at the point they
+    # are decided; only the sum did not ask.
+    #
+    # The exit code is untouched and stays 1 while anything is left (RK422): two refusals are
+    # not a failure of `repair`, whose whole design is that what it cannot close it prints.
+    failed = [step for step in outcome.steps if not step.ok]
+    ran = len(outcome.steps) - len(failed)
+    refused = f", {len(failed)} refused" if failed else ""
     print(
-        f"{len(outcome.steps)} repair(s) {verb}, {len(outcome.left)} left for you"
-        f"{_tree(root)}"
+        f"{ran} repair(s) {verb}{refused}, {len(outcome.left)} left for you{_tree(root)}"
     )
 
 
