@@ -105,30 +105,6 @@ so the answer stays measured rather than asserted.
 
 ## Block D — The gate
 
-### §RK491 The invariants this package holds, declared as a set
-
-RK421 asserts the remedy table is total over the codes `linting` and `schema` emit.
-RK467 sweeps every boolean pair a read takes, for the flag answering as neither half.
-RK474 checks that every complete door is an argv the CLI accepts. Three tests, three
-files, weeks apart, each the same act: a rule about the *whole* surface, held by
-enumeration and not by example.
-
-Nothing records that they are one family, so the question that matters cannot be asked —
-which rules does this package state, and which does a property reach? They are stated in
-quantity: in module docstrings, in the six laws, in this file's prose. Three are
-reached, and the distance between the two sets is where the last fifty commits' defects
-lived.
-
-The deliverable is that set declared in one place: each row naming the invariant, the
-surface it quantifies over, and the property that holds it. A rule nobody holds is then
-a row with an empty holder rather than an absence nobody can see, and a new invariant
-costs a row instead of a test somebody has to think of first.
-
-It is this tool's argument one level up, and it holds only where the set is **closed**:
-a rule stated in prose and missing from it has to be a finding, or the set is one more
-docstring. That closure is the deliverable, not the rows. A non-goal cannot reach it:
-that list binds proposals, and nothing checks one against it.
-
 ## Block E — Adoption
 
 ## Block F — The plugin

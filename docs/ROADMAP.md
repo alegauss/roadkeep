@@ -26,11 +26,9 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK492** (deps: RK491) **Nothing counts the sites an invariant has yet to reach, so a migration's remaining work is found by tripping over it** — `weight` derives what a comparable task cost from the commits that shipped it; nothing derives what one has left, so a migration reads as a run of defects. → §RK492
+- 📋 **RK492** (deps: RK491 ✅) **Nothing counts the sites an invariant has yet to reach, so a migration's remaining work is found by tripping over it** — `weight` derives what a comparable task cost from the commits that shipped it; nothing derives what one has left, so a migration reads as a run of defects. → §RK492
 
 ## Block D — The gate
-
-- 📋 **RK491** (deps: —) **Three tests hold three surface-wide rules under no common name, so a rule nothing holds reads as one that is held** — Totality over codes, the flag-pair sweep and the argv check are one act discovered three times, and nothing enumerates which stated rules a property reaches. → §RK491
 
 ## Block E — Adoption
 

@@ -28,7 +28,7 @@ import pytest
 from roadkeep import remedying
 from roadkeep.backlog import Backlog
 from roadkeep.cli import build_parser
-from roadkeep.config import Config
+from roadkeep.config import ROLES, Config
 from roadkeep.linting import Finding, Note, lint
 from roadkeep.provenance import invocation
 from roadkeep.remedying import BLANK, KINDS, VARIES, Remedy, codes, explain, remedy
@@ -1181,3 +1181,59 @@ def test_a_section_door_names_the_role_the_finding_was_reported_about(tmp_path):
                 if "--role" not in door.argv or door.argv[:1] != ("section",):
                     continue
                 assert door.argv[door.argv.index("--role") + 1] == role, (code, door.argv)
+
+
+def test_no_row_writes_a_word_only_the_author_could_have(tmp_path):
+    """L4 over the whole table, which is what §RK491 found this law was missing (RK491).
+
+    `test_a_prose_field_is_never_composed_for_the_author` holds it over five codes somebody
+    listed — which is the state RK421 replaced for the table's *domain* and nobody had
+    replaced for its *content*. A generator reintroduces exactly the drift this package
+    exists to stop, and a row quietly filling in a title would look like a helpful default.
+
+    Every word a row writes is one of four things, and none of them is prose: a subcommand
+    this CLI parses, a flag, the blank (or the dash that reads standard input), or a value
+    the finding itself supplied. The fifth is a **name for a governed file** — `--organise
+    changelog`, `--role deferred` — which is a role this project declares (L6) rather than a
+    word anybody composed, and is read off `ROLES` instead of being listed here; the sixth is
+    a choice the parser itself enumerates. Both are derived, so a row inventing a value fails
+    the same way a row inventing a sentence does.
+    """
+    from roadkeep.serving import _parsers
+
+    config = _project(tmp_path)
+    where = config.relative(config.path("roadmap"))
+    # Every word any subcommand path is spelled with, nested ones included: `priority drop`
+    # is two verbs and neither is a word this table composed.
+    index = _parsers()
+    subcommands = {word for path in index for word in path.split()}
+    for code in codes():
+        finding = Finding(code, where, "", 5, "RK1")
+        given = set(remedying._values(finding, config).values()) | {BLANK, "-", ""}
+        found = remedy(finding, config)
+        assert found is not None
+        for door in found.doors:
+            if door.foreign:
+                continue  # somebody else's argv; this table names none of its words (RK451)
+            words = list(door.argv)
+            # Two words before one, for `serves`' reason: `block add` is a parser and
+            # `block` is the group that holds it, so the flags live on the nested one.
+            nested = " ".join(words[:2])
+            parser = index[nested if nested in index else words[0]]
+            for before, word in zip(["", *words], words, strict=False):
+                if word.startswith("-") or word in given or word in subcommands:
+                    continue
+                declared = next(
+                    (
+                        one
+                        for one in parser._actions  # noqa: SLF001
+                        if before in one.option_strings
+                    ),
+                    None,
+                )
+                enumerated = declared is not None and word in (declared.choices or ())
+                assert enumerated or word in ROLES, (
+                    f"{code}: `{' '.join(words)}` writes {word!r}, which is neither a verb, "
+                    f"a flag, a blank, a value the finding gave, nor a choice the parser "
+                    f"declares — so it is a word this tool composed (L4)"
+                )
