@@ -119,14 +119,10 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 31 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 103 | 1 |
 | C — Query (consult without reading the file) | 0 | 72 | 1 |
-| D — The gate | 1 | 102 | 0 |
+| D — The gate | 0 | 103 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 77 | 1 |
-| **Total** | 1 | 459 | 6 |
-
-**Next ready:**
-
-- 📋 **RK469** (deps: —) **Twenty-six findings state one fact about two files, and one config line closes all of them** — section.ambiguous is reported per address, so on Turing the pair of files that share a namespace fills 80 percent of the report with one sentence and one remedy repeated. → §RK469
+| **Total** | 0 | 460 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

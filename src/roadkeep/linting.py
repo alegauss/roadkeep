@@ -175,6 +175,17 @@ class Finding:
     #: render `RK12: queues RK12`. Last field, so every positional call site still means what
     #: it did.
     subject: str = ""
+    #: What this finding has in common with its siblings, where a whole group of them is one
+    #: fact and one edit (RK469). Empty on every code but the one that needed it: a report
+    #: whose bulk is one sentence repeated is one a reader learns to skip (RK146), and it
+    #: buries the findings that are each about a different line.
+    #:
+    #: Declared by the **emitter**, which is the only place that knows what is shared —
+    #: string surgery on the message would be a second reading of a sentence this file
+    #: composes. Read only by the terminal report: `--json` keeps one entry per address,
+    #: because a consumer acting per address needs the line, and the count that follows the
+    #: findings is about addresses either way.
+    shared: str = ""
 
     @property
     def token(self) -> str:
@@ -2175,6 +2186,13 @@ def _orphans(
                     f"refuses{_namespace_remedy(config)}",
                     section.first,
                     anchor,
+                    # The fact these findings **share** (RK469): the pair of files, not the
+                    # address. Measured on Turing, 27 of them filled 80% of the report with
+                    # one sentence and one remedy repeated, and a single `[refs]` line closes
+                    # every one — so the reader is told the pair once and the addresses under
+                    # it. The findings stay one per address, because the addresses are the
+                    # evidence an author picking which file takes the namespace reads.
+                    shared=f"declared in {elsewhere} as well",
                 )
             )
         seen.setdefault(anchor, section.first)

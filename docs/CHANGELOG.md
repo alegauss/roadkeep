@@ -331,6 +331,7 @@
 - ✅ **RK462** **A run naming several files gets no workers at all, so six files take fifteen seconds in series** — The worker count is one per thing named and capped at the cores, so six files take 4.8s instead of 12.7s and one file still spawns nobody.
 - ✅ **RK467** **Nothing checks whether a flag pair answers as one of its halves, so each swallowed flag is found by hand** — Every boolean pair a read takes is swept for the byte-identical answer a swallowed flag leaves, which found two more and left the exception table empty.
 - ✅ **RK468** **One finding names two different commands, and repair runs the one its own message does not** — The message and the remedy ask one reader whether dropping closes this finding, so repair runs the verb the sentence names and the verb it names closes the finding.
+- ✅ **RK469** **Twenty-six findings state one fact about two files, and one config line closes all of them** — A run of findings sharing one fact is printed as the pair once with its addresses under it, taking Turing's report from 15,894 characters to 4,044 with the payload untouched.
 
 ## Block E — Adoption
 

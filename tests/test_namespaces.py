@@ -27,7 +27,7 @@ import json
 import pytest
 
 from roadkeep.adopting import adopt
-from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
+from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config, ConfigError
 from roadkeep.linting import lint
 from roadkeep.schema import split_ref
@@ -520,3 +520,58 @@ def test_the_usage_exit_is_the_one_a_bad_declaration_gets(tmp_path, capsys):
         encoding="utf-8",
     )
     assert main(["-C", str(tmp_path), "lint"]) == EXIT_USAGE
+
+
+# -- one fact, one edit, said once (RK469) ------------------------------------
+
+
+def test_the_pair_is_named_once_and_the_addresses_listed_under_it(tmp_path, capsys):
+    """Measured on Turing's live tree: 27 `section.ambiguous` findings and their 26 remedies
+    were 80% of a 15,894-character report, two distinct messages once the anchor was taken
+    off, and one `[refs]` line closes every one. A report whose bulk is one sentence repeated
+    is one a reader learns to skip (RK146), and it buries the findings that are each about a
+    different line."""
+    config = project(tmp_path, refs="")
+    ambiguous = [f for f in lint(config).findings if f.code == "section.ambiguous"]
+    assert len(ambiguous) >= 2, "this fixture has to share more than one anchor"
+
+    assert main(["-C", str(tmp_path), "lint"]) == EXIT_GATE
+    printed = capsys.readouterr().out
+    # One group per *file*, because the sentence names the other one: two files each
+    # reporting their own addresses is two facts, and folding them would say neither.
+    per_file: dict[str, int] = {}
+    for one in ambiguous:
+        per_file[one.file] = per_file.get(one.file, 0) + 1
+    for where, count in per_file.items():
+        assert f"{where}  section.ambiguous  {count} addresses declared in" in printed
+    for one in ambiguous:
+        assert f"{one.token}:{one.lineno}" in printed
+    # And the sentence and its remedy once per group, not once per address.
+    assert printed.count("one anchor names one section") <= len(per_file)
+    assert printed.count("read both, then give one file") == len(per_file)
+
+
+def test_the_findings_stay_one_per_address_in_the_payload(tmp_path, capsys):
+    """The addresses are the evidence an author picking which file takes the namespace reads,
+    and a consumer acting per address needs the line — so the grouping is the terminal's and
+    the payload is untouched."""
+    config = project(tmp_path, refs="")
+    ambiguous = [f for f in lint(config).findings if f.code == "section.ambiguous"]
+    assert main(["-C", str(tmp_path), "lint", "--json"]) == EXIT_GATE
+    payload = json.loads(capsys.readouterr().out)
+    rows = [f for f in payload["findings"] if f["code"] == "section.ambiguous"]
+    assert len(rows) == len(ambiguous)
+    assert all(row["line"] for row in rows)
+
+
+def test_a_group_of_one_is_its_own_sentence(tmp_path, capsys):
+    """A heading over nothing is worse than the line it replaced, so the grouping starts at
+    two — which is also what keeps every other code printing exactly as it did."""
+    config = project(tmp_path, refs="")
+    findings = lint(config).findings
+    lone = [f for f in findings if not f.shared]
+    assert lone, "the fixture has to carry a finding that shares nothing"
+    assert main(["-C", str(tmp_path), "lint"]) == EXIT_GATE
+    printed = capsys.readouterr().out
+    for one in lone:
+        assert f"{one.file}:{one.lineno}" in printed

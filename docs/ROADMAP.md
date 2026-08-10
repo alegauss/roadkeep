@@ -28,8 +28,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK469** (deps: —) **Twenty-six findings state one fact about two files, and one config line closes all of them** — section.ambiguous is reported per address, so on Turing the pair of files that share a namespace fills 80 percent of the report with one sentence and one remedy repeated. → §RK469
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

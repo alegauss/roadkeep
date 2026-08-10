@@ -5385,9 +5385,7 @@ def _print_report(
         return
     mechanical = 0
     if not quiet:
-        for finding in report.findings:
-            print(str(finding))
-            mechanical += _print_remedy(finding, config)
+        mechanical = _print_findings(config, report)
     added = "new " if report.baseline is not None else ""
     print(
         f"{report.problems} {added}problem(s) in {_scope(report)} across "
@@ -5398,6 +5396,54 @@ def _print_report(
         # is identical on every finding it answers, so repeating it under each of them would
         # spend the report's length on the findings that cost the reader nothing.
         print(f"{mechanical} of them need no decision: {invocation()} lint --fix")
+
+
+def _print_findings(config: Config, report: Report) -> int:
+    """Every finding, with a group that is one fact said once (RK469).
+
+    A finding is per line and stays per line — the addresses are the evidence. What is said
+    once is the *sentence and the remedy* where a whole run of them shares both: measured on
+    Turing, 27 `section.ambiguous` findings and their 26 remedies were 80% of a 15,894-char
+    report, two distinct messages once the anchor was taken off, and one `[refs]` line in
+    `roadkeep.toml` closes every one.
+
+    The same argument RK420 already makes one line down, where the mechanical remedy is
+    counted rather than repeated under each finding, and the same one RK451 made about a file
+    a crash left NUL: one finding because the loss is one. A report whose bulk is one sentence
+    repeated is one a reader learns to skip (RK146), and it buries the four findings here that
+    are each about a different line.
+
+    Grouped by what the **emitter** declared they share, and only for runs of two or more: a
+    single member is its own sentence, and a group of one printed as a group would be a
+    heading over nothing.
+    """
+    mechanical = 0
+    # By the key and not by adjacency: a report interleaves files, so the members of one
+    # group are rarely consecutive — and a grouping that only folded runs would fold Turing's
+    # and leave a fixture's alone, which is the shape that passes a test and misses the case.
+    # Printed at the first member's place, so the report's order is otherwise the one it had.
+    groups: dict[tuple[str, str, str], list[Finding]] = {}
+    for finding in report.findings:
+        if finding.shared:
+            groups.setdefault((finding.code, finding.file, finding.shared), []).append(finding)
+    printed: set[tuple[str, str, str]] = set()
+    for finding in report.findings:
+        key = (finding.code, finding.file, finding.shared)
+        run = groups.get(key, []) if finding.shared else []
+        if len(run) < 2:
+            print(str(finding))
+            mechanical += _print_remedy(finding, config)
+            continue
+        if key in printed:
+            continue
+        printed.add(key)
+        first = finding
+        # The pair once, the addresses under it: `file:line` each, which is what an editor
+        # opens and what an author choosing which file takes the namespace counts.
+        print(f"{first.file}  {first.code}  {len(run)} addresses {first.shared}")
+        print(f"    {'  '.join(f'{one.token}:{one.lineno}' for one in run)}")
+        mechanical += _print_remedy(first, config)
+    return mechanical
 
 
 def _print_remedy(finding: Finding, config: Config) -> int:
