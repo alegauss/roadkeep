@@ -667,7 +667,11 @@ def test_the_one_remedy_that_must_stay_a_shell_command_does_so_by_derivation():
 
 
 def test_a_verb_this_surface_does_not_serve_has_no_call():
-    assert remedying.Door(argv=("gaps",), what="…").call() is None
+    """`init` runs once, before the project is governed, so nothing serves it — where `gaps`
+    stood here until RK463 put the eight reads the skill names on the surface, which is the
+    same change read from this end: that door now publishes a call."""
+    assert remedying.Door(argv=("init",), what="…").call() is None
+    assert remedying.Door(argv=("gaps",), what="…").call() == ("gaps", {})
 
 
 def test_a_session_with_no_tools_is_published_the_argv_alone():

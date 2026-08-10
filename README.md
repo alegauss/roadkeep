@@ -121,12 +121,8 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 70 | 1 |
 | D — The gate | 0 | 100 | 0 |
 | E — Adoption | 0 | 74 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 75 | 1 |
-| **Total** | 1 | 453 | 6 |
-
-**Next ready:**
-
-- 📋 **RK463** (deps: —) **Eight reads the shipped skill tells an agent to call have no tool, on the install with no console script** — anchors is named five times there and claims four, and add --ref on an outline project cannot derive an address without one — which is the argument RK24 already lost once. → §RK463
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 76 | 1 |
+| **Total** | 0 | 454 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

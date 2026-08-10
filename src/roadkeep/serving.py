@@ -446,6 +446,32 @@ TOOLS: tuple[Tool, ...] = (
     # a tool result is the cost L5 is about — so withholding it here would leave the one
     # surface that most needs the narrow answer asking for the file.
     Tool("delivered", ("block", "near")),
+    # The eight reads the shipped skill names and this surface withheld (RK463). `serving`'s
+    # own opening records that argument being had and settled once: RK24 exposed four tools
+    # because one roadmap line named four, on the ground that the reads were "one `Bash` call
+    # away" — and RK57 then made a plugin install with no console script at all, so on that
+    # machine there is no shell command to fall back to. Counted by the spelling the skill
+    # uses for a command: `anchors` five times, `origin` and `reversals` twice, the rest once.
+    #
+    # `anchors` is the sharpest of them. Under `ref_scheme = "outline"` the pointer is the
+    # caller's to name, and the skill says `--next` "is the read an `add --ref` makes every
+    # time" — so on a plugin-installed outline project an agent was told to derive an address
+    # by a command it had no way to run, while the tool that refuses a wrong one was served.
+    #
+    # None of the eight writes, so each keeps the read-only hint that makes asking free (L5).
+    # What is *not* added is every remaining read: `guard` and `mcp` are the harness's own
+    # entry points, `report` and `replay` are the capture pair a person runs (RK87), and a
+    # tool list is context an agent pays for on every turn — so the line is the skill, which
+    # is the same authority that decides which command to call in the first place.
+    Tool("anchors", ("family", "block", "role", "only_next", "claims")),
+    Tool("origin", ("id", "why")),
+    Tool("reversals", ("task_id",)),
+    # `--prune` writes the registry, so it is withheld exactly as `lint --fix` is (RK16).
+    Tool("claims", ()),
+    Tool("gaps", ()),
+    Tool("next-id", ("family",)),
+    Tool("show", ("id", "no_body")),
+    Tool("writes", ()),
     # Which copies of this tool write, judge and gate the project (RK415). Exposed because
     # the agent is the one it happens to: its writes go through whatever `roadkeep` the
     # session reaches and its hand edits are denied by whatever the harness installed, and

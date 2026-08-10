@@ -235,6 +235,23 @@ def test_the_tools_are_what_a_task_needs_end_to_end():
         "explain",
         # The read before a proposal, beside `non_goal_list` (RK385).
         "delivered",
+        # The eight the shipped skill names and this surface withheld (RK463), counted by the
+        # spelling it uses for a command: `anchors` five times, `origin` and `reversals`
+        # twice, the rest once. RK24's argument that a read is "one `Bash` call away" is the
+        # one RK57 refuted — a plugin installs with no console script — and it was answered
+        # for `brief` and left standing for these.
+        #
+        # `anchors` is the sharpest: under an outline the pointer is the caller's, the skill
+        # calls `--next` "the read an `add --ref` makes every time", and the tool that
+        # refuses a wrong anchor was served while the read preventing it was not.
+        "anchors",
+        "origin",
+        "reversals",
+        "claims",
+        "gaps",
+        "next_id",
+        "show",
+        "writes",
         # The read the agent is the subject of (RK415): its writes go through whatever
         # `roadkeep` the session reaches and its hand edits are denied by whatever the
         # harness installed, and those are allowed to be two versions of this tool.
@@ -252,6 +269,10 @@ def test_what_stays_out_stays_out():
     first is not a capability."""
     named = {tool.argv_head[0] for tool in TOOLS}
     assert named.isdisjoint({"init", "adopt", "guard", "mcp"})
+    # And the capture pair, which RK87 puts in a person's hands: `report` composes what
+    # leaves a repository and `replay` re-runs it, so neither is a read an agent makes for
+    # itself (RK463 added the eight that are and stopped there).
+    assert named.isdisjoint({"report", "replay"})
 
 
 def test_a_nested_command_is_one_tool_name_and_two_argv_words():

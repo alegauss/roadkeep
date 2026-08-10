@@ -252,3 +252,38 @@ def _frontmatter_ends(lines: list[str]) -> int:
     if not lines or lines[0] != "---":
         return 0
     return next(at for at, line in enumerate(lines[1:], start=2) if line == "---")
+
+
+def test_every_read_this_skill_names_is_one_the_tool_surface_serves():
+    """RK463. This file ships in the plugin and is the authority on which command to call —
+    and since RK57 a plugin installs with no console script and no PATH entry, so a read it
+    names and the surface withholds is a read that machine cannot make at all. RK24 exposed
+    four tools on the ground that the reads were "one `Bash` call away"; that ground is the
+    one RK57 removed, and it was answered for `brief` and left standing for eight more.
+
+    Counted by the **spelling this file uses for a command** — a name inside backticks —
+    because `writes`, `claims` and `report` are ordinary English words and a bare word count
+    said `writes` was named eleven times when the command is named once.
+
+    Four verbs stay off the surface and are asserted so rather than left to a reader: `guard`
+    and `mcp` are the harness's own entry points, and `report` and `replay` are the capture
+    pair RK87 puts in a person's hands.
+    """
+    from roadkeep.serving import TOOLS
+
+    served = {tool.command for tool in TOOLS}
+    harness = {"guard", "mcp", "report", "replay", "init", "adopt", "install", "uninstall"}
+    spans = re.findall(r"`([^`]+)`", " ".join(text().split()))
+    parser = build_parser()
+    subcommands = [
+        one for one in parser._actions if getattr(one, "choices", None)  # noqa: SLF001
+    ][0].choices
+    missing = {
+        name
+        for name, sub in subcommands.items()
+        if sub.get_default("reads_only")
+        and name not in served
+        and name not in harness
+        and any(re.match(rf"^{re.escape(name)}\b", one) for one in spans)
+    }
+    assert not missing, f"the skill names these reads and nothing serves them: {sorted(missing)}"
