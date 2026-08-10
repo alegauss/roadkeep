@@ -119,10 +119,14 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 30 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 102 | 1 |
 | C — Query (consult without reading the file) | 0 | 67 | 1 |
-| D — The gate | 0 | 91 | 0 |
+| D — The gate | 1 | 91 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 75 | 1 |
-| **Total** | 0 | 439 | 6 |
+| **Total** | 1 | 439 | 6 |
+
+**Next ready:**
+
+- 📋 **RK449** (deps: —) **A finding's remedy is an argv, so the gate that now names a tool prints shell commands under it** — RK448 moved the four routes this module composes and left the one it only prints, so a wired session reads a single message in two vocabularies, mixed at the actionable half. → §RK449
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

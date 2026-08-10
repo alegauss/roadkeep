@@ -81,6 +81,34 @@ already written, not authorship.
 
 ## Block D — The gate
 
+### §RK449 The remedy that is an argv and not a call
+
+RK420 gave every finding the command that closes it, substituted and complete, so none
+has to be inferred. RK448 then gave the four routes `guarding` composes the engine that
+answers — and the finding lines it prints between them are still argv:
+
+    mcp__roadkeep__lint refuses 1 line(s) this turn changed in docs/ROADMAP.md: …
+      docs/ROADMAP.md:5  deps.unknown  RK1: waits on RK99 …
+        python …/roadkeep.py amend RK1 --dep …
+
+One message, two vocabularies, and the mixed half is the one an agent acts on. `amend`,
+`gaps`, `explain` and the rest are all served, so the routes exist; what does not is a
+translation.
+
+That is the whole difficulty, and it is why this is a line rather than a mechanical
+pass. A remedy is an argv with its values already in it. A tool call is a name and a
+JSON object, so `amend RK1 --dep …` becomes `mcp__roadkeep__amend` carrying `{id, deps}`
+— which means the table would have to hold the *arguments* rather than a rendered
+string, and every remedy's blank (a title, a reason, a shorter symptom) becomes a field
+left out instead of an ellipsis in a line.
+
+`repair` (RK422) is the constraint that decides the shape. It reads this same table and
+dispatches the argv, so whatever is stored has to still produce one — a table of tool
+calls that the shell path then reassembles is the second grammar this project refuses
+everywhere else. The likely answer is that the argv stays the fact and the served
+spelling is derived from it, as `Refusal.tools` already derives one from a command
+string.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
