@@ -829,9 +829,13 @@ def test_the_two_readers_of_it_are_the_only_two():
     # `cli.py` lists what a block delivered (RK433), which is the same call `Standing.of`
     # makes and is why that listing and `standing.recorded` are one number.
     assert spellings == {"backlog.py", "authoring.py", "linting.py", "cli.py"}
+    # `rendering.py` is the third name and not a third spelling (RK493): the event line moved
+    # there with every other printer, and what it carries is the *word* — `Backlog.during`,
+    # not this call. Its `.holds(` is the docstring saying which one it stopped being.
     assert {name for name, text in callers.items() if ".holds(" in text} == {
         "cli.py",
         "linting.py",
+        "rendering.py",
     }
 
 

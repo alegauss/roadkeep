@@ -28,8 +28,7 @@
 
 ## Block D — The gate
 
-- 📋 **RK493** (deps: —) **Every command's output rendering shares one file with the parser and 82 handlers, 8,489 lines** — An edit to one verb's printed sentence is made in the file the whole surface is in, and that file's growth rule appends to it every task. → §RK493
-- 📋 **RK494** (deps: RK493) **82 handlers sit in the file that registers them, so no verb family has a module or a docstring of its own** — Every other module in the package is one concept its own docstring is the authority on, so this is the one file a reader cannot be pointed at. → §RK494
+- 📋 **RK494** (deps: RK493 ✅) **82 handlers sit in the file that registers them, so no verb family has a module or a docstring of its own** — Every other module in the package is one concept its own docstring is the authority on, so this is the one file a reader cannot be pointed at. → §RK494
 
 ## Block E — Adoption
 

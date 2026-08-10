@@ -81,28 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK493 Output rendering leaves the command surface
-
-Measured: `cli.py` is 8,489 lines, 21% of the package. The composition is 2,100 lines of
-`build_parser` and its vocabulary, ~5,200 of 82 handlers, 554 of `_print_*` and 631 of
-`*_json`. Its growth rule is `agents.md`'s own — one subparser per task — so it is where
-every task appends: the §0.3 drift in code rather than in prose.
-
-The printers go first because theirs is the cut with no import cycle: not one `_print_*`
-or `*_json` helper calls a handler or the parser, so the move is one direction of
-imports. It also lifts out the half a verb's edit reads least — a handler changes what
-is computed, and the sentence printing it is read once.
-
-Two costs it does have, priced here. `agents.md` is at 125/125 lines and 8,296/8,400
-bytes and a test holds the Layout index against every module, so the new module is an
-index entry with 104 bytes of room and the compression belongs in this commit. And
-`provenance.py` reads module names off a traceback, so a refusal decided inside a
-printer starts naming the new file, which is the truth and not a regression.
-
-What proves it: a pure move passes 130 test files, `serving.py`'s inventory is derived
-from the parser it does not touch, and `lint` still passes on `docs/`. No supported
-Python API means the rename breaks nobody.
-
 ### §RK494 The handlers take the names the domain modules already have
 
 After RK493 the file is 2,300 lines of parser and 5,200 of handlers, and the handlers
