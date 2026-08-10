@@ -390,6 +390,7 @@
 - ✅ **RK393** **The gate names a command that cannot run, on a tree the wiring half wrote and refuses to finish** — The wiring refuses a directory a file is standing in before it writes, and the gate reports that apart from a difference it can close.
 - ✅ **RK394** **The wiring writes four surfaces and leaves the flag unhonoured when the driver's file cannot be written** — The driver's own file is checked with the surfaces and a target that is a directory is in its own way, so the flag refuses instead of landing four.
 - ✅ **RK402** **The tree that ships the plugin is told to wire the guard a second time** — a tree declaring the guard in its own plugin manifest is skipped for the settings surface with a reason, as its two siblings already were, so the check reports clean here.
+- ✅ **RK445** **adopt lists a block once per heading, so a ledger grouped by sub-headings reports the same label three times** — The estimate lists a block once per region through the reader RK439 narrowed, so a ledger grouped by sub-headings reports one label and two genuine regions still report two.
 
 ## Block F — The Claude Code plugin
 

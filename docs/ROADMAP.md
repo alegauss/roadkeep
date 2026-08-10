@@ -30,8 +30,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK445** (deps: —) **adopt lists a block once per heading, so a ledger grouped by sub-headings reports the same label three times** — The estimate reads every heading naming a label, which RK439 stopped being a declaration of one, so the first line an adopter reads counts regions that are not there. → §RK445
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Non-goals

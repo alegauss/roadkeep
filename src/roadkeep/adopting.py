@@ -1029,7 +1029,7 @@ def adopt(
         ledger_shape=_ledger_shape(document, schema),
         unopened=_unread(config, target),
         declared=_declared(config, target),
-        blocks=tuple(h.label for h in document.headings if h.label),
+        blocks=_labels(document),
         non_canonical=len(document.non_canonical),
         # Only where the file is being read as a backlog: a ledger has no such list, and a
         # heading matching there would be an answer about the wrong file (RK139).
@@ -1147,8 +1147,34 @@ def _prose(
                 unit=CODE_POINTS,
             ),
         ),
-        blocks=tuple(h.label for h in document.headings if h.label),
+        blocks=_labels(document),
     )
+
+
+def _labels(document: Document) -> tuple[str, ...]:
+    """Every block this file **declares**, in file order, one entry per region (RK445).
+
+    Through :meth:`Document.declaring`, which is where the rule lives (RK439): a heading
+    inside another's subtree is owned by that region rather than being a second address for
+    it, so Shio's eight `### Block K follow-ups` are one Block K. Reading `headings` directly
+    reported `B, B, B` on a three-heading ledger and would report Block K nine times there —
+    on the first line an adopting project reads about its own corpus, which is what a
+    `[files]` declaration and a first `lint` are decided from.
+
+    Repeats that survive are kept, and have to be: two headings neither of which is inside
+    the other are two regions, that is the `block.repeated` state, and an adopter counting
+    labels is exactly the reader who needs to see it before committing.
+
+    File order, because that is what the list is read as — the shape of the plan. Hence the
+    line numbers rather than a set of labels: `declaring` answers about a label already
+    named, and asking it per label would reorder the answer by first mention.
+    """
+    kept = {
+        heading.lineno
+        for label in dict.fromkeys(h.label for h in document.headings if h.label)
+        for heading in document.declaring(label)
+    }
+    return tuple(h.label for h in document.headings if h.label and h.lineno in kept)
 
 
 def _filled(document: Document) -> list[str]:

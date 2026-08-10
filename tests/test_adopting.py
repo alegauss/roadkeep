@@ -1500,6 +1500,69 @@ def test_a_heading_the_format_cannot_read_as_structure_is_not_read(tmp_path: Pat
     assert adopt(Config.discover(tmp_path), target).blocks == ()
 
 
+#: A ledger grouping its entries under sub-headings of the block's own label — Shio's shape,
+#: where eight of them sit under one `## Block K` and 91 entries hang off them.
+NESTED_LEDGER = """# Shipped
+
+## Block B — Authoring
+
+### Block B follow-ups
+
+- ✅ **RK6** **A sixth thing fails** — because it held.
+
+### Block B follow-ups
+
+- ✅ **RK4** **A fourth thing fails** — because it held.
+"""
+
+#: The state RK439 keeps refusing: two regions neither of which is inside the other.
+DOUBLED_LEDGER = """# Shipped
+
+## Block B — Authoring
+
+- ✅ **RK6** **A sixth thing fails** — because it held.
+
+## Block B — Authoring, again
+
+- ✅ **RK4** **A fourth thing fails** — because it held.
+"""
+
+
+def _ledger(tmp_path: Path, body: str) -> Path:
+    target = tmp_path / "CHANGELOG.md"
+    target.write_text(body, encoding="utf-8")
+    return target
+
+
+def test_a_block_grouped_by_sub_headings_is_counted_once(tmp_path: Path, capsys) -> None:
+    """RK445: the estimate read every heading naming a label, which RK439 stopped being a
+    declaration of one. Shio's ledger nests eight `### Block K follow-ups` under their own
+    `## Block K`, so the first line an adopting project reads about its own corpus reported
+    Block K nine times — and that line is what a `[files]` declaration and a first `lint`
+    are decided from."""
+    target = _ledger(tmp_path, NESTED_LEDGER)
+    assert adopt(Config.discover(tmp_path), target, ledger=True).blocks == ("B",)
+    assert main(["-C", str(tmp_path), "adopt", str(target), "--ledger"]) == EXIT_OK
+    assert "blocks   B\n" in capsys.readouterr().out
+
+
+def test_two_regions_neither_inside_the_other_are_still_counted_twice(tmp_path: Path) -> None:
+    """The repeat that survives, and has to: that is `block.repeated`, and an adopter
+    counting labels is exactly the reader who needs to see it before committing."""
+    target = _ledger(tmp_path, DOUBLED_LEDGER)
+    assert adopt(Config.discover(tmp_path), target, ledger=True).blocks == ("B", "B")
+
+
+def test_the_list_keeps_the_files_own_order(tmp_path: Path) -> None:
+    """It is read as the shape of the plan, so it is not reordered by first mention."""
+    target = _ledger(
+        tmp_path,
+        "# Shipped\n\n## Block C — Query\n\n### Block C notes\n\n"
+        "## Block A — The model\n\n## Block B — Authoring\n",
+    )
+    assert adopt(Config.discover(tmp_path), target, ledger=True).blocks == ("C", "A", "B")
+
+
 def test_the_command_says_which_zero_this_is(tmp_path: Path, capsys) -> None:
     target = tmp_path / "README.md"
     target.write_text(NOT_A_BACKLOG, encoding="utf-8")

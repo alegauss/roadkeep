@@ -120,13 +120,9 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 0 | 102 | 1 |
 | C — Query (consult without reading the file) | 0 | 67 | 1 |
 | D — The gate | 0 | 91 | 0 |
-| E — Adoption | 1 | 73 | 1 |
+| E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 73 | 1 |
-| **Total** | 1 | 436 | 6 |
-
-**Next ready:**
-
-- 📋 **RK445** (deps: —) **adopt lists a block once per heading, so a ledger grouped by sub-headings reports the same label three times** — The estimate reads every heading naming a label, which RK439 stopped being a declaration of one, so the first line an adopter reads counts regions that are not there. → §RK445
+| **Total** | 0 | 437 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

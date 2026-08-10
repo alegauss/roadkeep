@@ -83,27 +83,4 @@ already written, not authorship.
 
 ## Block E — Adoption
 
-### §RK445 The count that outlived the rule under it
-
-RK439 narrowed what declares a block: a heading inside another's subtree is owned by
-that region rather than being a second address for it, so Shio's eight `### Block K
-follow-ups` are one Block K and the writes they used to refuse now land.
-`Document.declaring` is where that rule lives and every gate and every write path reads
-it.
-
-`adopt` does not. Its estimate builds the block list straight off `document.headings`,
-filtering on nothing but whether a heading carries a label, so the nested shape comes
-back `B, B, B` — measured on a three-heading ledger, and Shio's own would report Block K
-nine times. That line is the first thing an adopting project reads about its own corpus,
-and it is the number a `[files]` declaration and a first `lint` are decided from.
-
-It is the same defect RK439 fixed, one reader over: two expressions of "which blocks
-does this file declare", one of which was narrowed. The repair is to read the one that
-was — but the estimate wants the labels in file order and `declaring` answers about a
-label already named, so what closes it is a walk that asks that question per label
-rather than a second filter written here.
-
-Open: whether the estimate should also say a label was grouped, since a corpus that
-nests is one where a reader looking for a heading per block will not find them.
-
 ## Block F — The plugin
