@@ -28,8 +28,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1002** (deps: —) **An id named only as an example in prose is read as spent, and nothing refuses it where the prose is composed** — `section add` validated the body and said nothing; the cost surfaced two sessions later in a non-blocking warning, and the gate carries no code for it. → §RK1002
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

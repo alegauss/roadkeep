@@ -81,33 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK1002 The id rule is enforced at derivation, not where prose is written
-
-RK431 made deriving an id read prose, and that is right: a ledger entry promising *filed
-as RK499* before the line exists has to reserve that number, or two things carry one id.
-Nothing here changes it.
-
-What deriving cannot do is tell a promise from an illustration, and it says so — the
-warning hedges, *if that sentence promised this task*. Refusing to guess is correct,
-because deciding would take the model L4 forbids.
-
-The defect is where the rule is enforced. §RK498 was composed with `add --dep RK999` as
-an example, `section add` validated the body, and nothing was said. The consequence
-arrived two sessions later, inside another command's output, as a warning nobody has to
-act on — and the gate has no code for it: `id.duplicate`, `id.format` and `id.two-files`
-are the three, and the tree was clean throughout.
-
-Measured: structure on a task line went from 41 characters to 43, so every line written
-from now on has two fewer for prose. A digit costs two because the id is written twice,
-once as the address and once in the pointer, and a careless five-digit token would have
-cost four.
-
-This is L1 read backwards, and the second case of that shape in three days — RK497
-closed the same gap where ledger prose is composed.
-
-What closes it: the write path refuses an id-shaped token no line carries, naming both
-ways out — a token outside this project's prefix, or the id actually claimed.
-
 ## Block E — Adoption
 
 ## Block F — The plugin

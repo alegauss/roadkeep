@@ -880,6 +880,7 @@ def add(
             body,
             task,
             elsewhere=_elsewhere(config, document.schema, anchor, task),
+            known=known(config, anchor, task),
         )
     except SectionError as error:
         # The third door onto the same gap (RK349). `anchor.format` fires on the caller who
@@ -1059,6 +1060,7 @@ def amend(
         wanted_body,
         owner,
         elsewhere=_elsewhere(config, document.schema, anchor, owner),
+        known=known(config, anchor, owner),
     )
     updated = _rewrite(
         document,
@@ -1710,6 +1712,7 @@ def _check(
     task: Task | None,
     *,
     elsewhere: Whereabouts | None = None,
+    known: frozenset[str] | None = None,
 ) -> None:
     """Every rule a section is refused by, under **this file's** schema (RK147).
 
@@ -1750,6 +1753,7 @@ def _check(
         out.append(
             Violation("title.markup", "title", "the level is a field, not part of the text")
         )
+    out += _promised(schema, body, known)
     if not body.strip():
         out.append(Violation("body.empty", "body", "a section with no prose is a heading"))
     elif words(body) > schema.section_max:
@@ -1769,6 +1773,66 @@ def _check(
         raise SectionError(tuple(out))
 
 
+def known(config: Config, anchor: str, task: Task | None) -> frozenset[str]:
+    """The ids a design may name: every one some file carries, plus this task's own.
+
+    The task's own is added because `add --section` writes the line and the prose in one
+    transaction and the prose is checked first — so at this moment the id it explains is not
+    yet carried by anything, and refusing a design for naming the task it is the design of
+    would be the refusal reading the transaction backwards.
+    """
+    # Deferred: `ids` reads the documents this module writes into (RK260).
+    from roadkeep.ids import carried  # noqa: PLC0415 - RK1002
+
+    own = {anchor} if task is None else {task.id, anchor}
+    return carried(config) | frozenset(own)
+
+
+def _promised(schema: Schema, body: str, known: frozenset[str] | None) -> list[Violation]:
+    """An id-shaped token in a design that no line carries (RK1002).
+
+    RK431 made deriving an id read prose, and that is right: a ledger entry promising *filed
+    as RK499* before the line exists has to reserve the number, or two things carry one id.
+    What deriving cannot do is tell a promise from an illustration — deciding would take the
+    model L4 forbids — so it warns, hedged, in another command's output, two sessions later.
+
+    This is where the same rule is enforceable without judgement. **A design does not promise
+    an id**: it explains a task that already has one, so an id-shaped token in a rationale
+    body either names a line this backlog carries or it is an example, and an example that is
+    spelled in this project's own prefix spends an address. §RK498 was composed with `add
+    --dep RK999` in it, `section add` said nothing, and the next task filed was RK1000.
+
+    The ledger is deliberately not held to this — that is where RK431's promise is legitimate,
+    and refusing it there would refuse the one sentence the mechanism exists for.
+
+    ``known`` is the ids some file carries as a line, plus the one this transaction is about
+    to write. ``None`` means the caller had no project to ask, and the check is skipped rather
+    than guessed at.
+    """
+    if known is None:
+        return []
+    # Deferred beside :func:`known`, and the same one-way edge (RK260).
+    from roadkeep.ids import id_scanner  # noqa: PLC0415 - RK1002
+
+    loose = [
+        match.group(0)
+        for match in id_scanner(schema).finditer(body)
+        if match.group(0) not in known
+    ]
+    if not loose:
+        return []
+    named = ", ".join(dict.fromkeys(loose))
+    return [
+        Violation(
+            "body.promise",
+            "body",
+            f"names {named}, which no line carries: an id in this project's own prefix is "
+            f"read as spent, so the next `add` derives past it (RK431) — spell the example "
+            f"outside {'/'.join(schema.prefixes)}, or name the id actually meant",
+        )
+    ]
+
+
 def violations(
     schema: Schema,
     anchor: str,
@@ -1777,6 +1841,7 @@ def violations(
     task: Task | None = None,
     *,
     elsewhere: Whereabouts | None = None,
+    known: frozenset[str] | None = None,
 ) -> tuple[Violation, ...]:
     """The same rules, collected rather than raised (RK426).
 
@@ -1793,7 +1858,7 @@ def violations(
     to avoid one layer up.
     """
     try:
-        _check(schema, anchor, title, body, task, elsewhere=elsewhere)
+        _check(schema, anchor, title, body, task, elsewhere=elsewhere, known=known)
     except SectionError as error:
         return tuple(error.violations)
     return ()

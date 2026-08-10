@@ -685,7 +685,12 @@ def _refuse_together(
     if role is None:
         return
     found = tuple(config.schema_for("roadmap").validate(task)) + sections.violations(
-        config.schema_for(role), task.ref, title, body, task
+        config.schema_for(role),
+        task.ref,
+        title,
+        body,
+        task,
+        known=sections.known(config, task.ref, task),
     )
     if found:
         raise SchemaError(found)

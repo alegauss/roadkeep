@@ -119,14 +119,10 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 31 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 107 | 1 |
 | C — Query (consult without reading the file) | 0 | 73 | 1 |
-| D — The gate | 1 | 117 | 0 |
+| D — The gate | 0 | 118 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 91 | 1 |
-| **Total** | 1 | 493 | 6 |
-
-**Next ready:**
-
-- 📋 **RK1002** (deps: —) **An id named only as an example in prose is read as spent, and nothing refuses it where the prose is composed** — `section add` validated the body and said nothing; the cost surfaced two sessions later in a non-blocking warning, and the gate carries no code for it. → §RK1002
+| **Total** | 0 | 494 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

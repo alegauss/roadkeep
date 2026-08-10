@@ -78,8 +78,8 @@ ledger prose names has to resolve**: `ship`, `retire` and both `record` verbs re
 sentence citing a file this repository does not have, because an entry there claims the
 work is done — the gate's own `path.missing`, asked before the prose exists rather than
 after it lands, and never asked of a roadmap line, which is free to name the artefact its
-task exists to write. And
-`retire <id> [--superseded-by <id>] --reason "…"` is the same transaction, two more doors
+task exists to write. And `retire <id> [--superseded-by <id>] --reason "…"` is the same
+transaction, two more doors
 — **open on every project, including one that declares `[ledger] marker = false`**: there
 the retirement is the one line in that file to carry a marker, a departure being the one
 status a ledger of shipped work does not state about itself. `ship` is not the way round
@@ -173,6 +173,10 @@ declared in the line files gets its first design at all; a *nested* one is writt
 level under the section it extends, so it stays inside the subtree its anchor names
 whatever depth that file nests at, and a nested anchor whose parent is missing is still
 refused, that being a typo in an address. A table or list is inserted exactly as written.
+**An id-shaped token in a body has to name a line some file carries**: a design explains a
+task rather than promising one, so an unclaimed id in this project's own prefix is read as
+spent and the next `add` derives past it — spell an example outside the prefix, or name the
+id you meant.
 **At a terminal, `-` reads stdin on every prose argument** — `--section-body` and
 `--body`, and `--why` and `--reason` on every verb that take one. Reach for it on the
 sentence, not only the paragraph: a `why` names types, files and prior ids, so it carries

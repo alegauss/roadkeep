@@ -2677,3 +2677,56 @@ def test_the_estimate_measures_the_width_the_writer_would_fill(tmp_path):
     from roadkeep.sections import _shape
 
     assert _shape("- a bullet") and not _shape("**not a bullet**")
+
+
+# -- an id in a design is a citation, never a promise (RK1002) ----------------
+
+
+def test_a_design_naming_an_id_no_line_carries_is_refused(tmp_path):
+    """RK1002. §RK498 was composed with an unclaimed id in it as an example, `section add`
+    validated the body and said nothing, and the next task filed was RK1000 — the cost
+    arriving two sessions later inside another command's output, as a warning nobody has to
+    act on and which the gate has no code for."""
+    config = project(tmp_path)
+    with pytest.raises(SectionError) as refused:
+        add(
+            config,
+            "improvements",
+            "RK3",
+            "A design",
+            "A paragraph naming RK999 as an example of the shape.",
+        )
+    (violation,) = [one for one in refused.value.violations if one.code == "body.promise"]
+    assert "names RK999" in violation.message
+    # Both ways out, because which one is meant is the author's to know (L4).
+    assert "spell the example outside RK" in violation.message
+    assert "name the id actually meant" in violation.message
+
+
+def test_an_example_outside_this_project_s_prefix_is_prose_and_not_an_address(tmp_path):
+    # The door the refusal names: an id-shaped token nothing here numbers cannot be spent,
+    # so it costs no address and reads as the illustration it is.
+    config = project(tmp_path)
+    _, section = add(
+        config,
+        "improvements",
+        "RK3",
+        "A design",
+        "A paragraph naming XX999 as an example of the shape.",
+    )
+    assert "XX999" in section.body
+
+
+def test_a_design_may_name_any_task_a_file_carries_as_a_line(tmp_path):
+    """A rationale cites the work it builds on, and `carried` reads every role that holds an
+    id as a line rather than the roadmap alone — so a shipped dep, a paused one and the task
+    across the block are all citations and none of them is a promise."""
+    config = project(tmp_path)
+    _, section = add(
+        config,
+        "improvements",
+        "RK3",
+        "A design",
+        "A paragraph about RK3 itself, building on RK1 and beside RK2.",
+    )
+    assert "RK1" in section.body and "RK2" in section.body
