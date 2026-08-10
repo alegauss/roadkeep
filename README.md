@@ -117,12 +117,16 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 31 | 2 |
-| B — Authoring (insert, never hand-edit) | 0 | 103 | 1 |
+| B — Authoring (insert, never hand-edit) | 1 | 103 | 1 |
 | C — Query (consult without reading the file) | 0 | 73 | 1 |
-| D — The gate | 0 | 113 | 0 |
+| D — The gate | 1 | 113 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 91 | 1 |
-| **Total** | 0 | 485 | 6 |
+| **Total** | 2 | 485 | 6 |
+
+**Next ready:**
+
+- 📋 **RK495** (deps: —) **A scope declaring a directory stages every file under it and reports each one as claimed by nothing** — The staging line and the loose list are one command's two halves, and only one of them reads a directory as covering what is under it. → §RK495
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

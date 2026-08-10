@@ -77,9 +77,54 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK495 A directory is one path to the staging line and none to the loose list
+
+Reproduced on a scratch project: a claim declaring `src/` printed `stage git add -- src/
+…` and, three lines down, `loose src/a.py (no claim names it)`. One command, one file,
+two answers — and the second is the one a caller acts on, because it is the analysis
+`git add -A` cannot make and the reason a scope is declared at all (RK280).
+
+The split is in `claiming.scope`. `loose` is a subtraction over names — `one for one in
+changed if one not in named` — while `idle` beside it calls `_stages`, which already
+reads a declared directory as covering what is under it, RK295 having found that
+comparing one by name reads as a typo wherever a project scopes by folder. The fact is
+known one attribute from where it is missing.
+
+What it costs is the whole read: a caller declaring `src/` and `tests/` sees their own
+work listed as somebody else's to decide about, and the honest answer to that report is
+to declare every file by hand — the scope this verb exists to spare them. Worse on
+`ship`, which makes the same read at the moment of committing (RK294) with no claim left
+to correct it against.
+
+What proves it: the same declaration answers `loose` empty, a file outside every
+declared path still lands there, and `theirs` reads a directory the same way — a second
+session's `src/` covering `src/a.py` is one question from the other side.
+
 ## Block C — Query
 
 ## Block D — The gate
+
+### §RK496 A survey that covers less says nothing, and a green suite says it is fine
+
+Measured on RK494, which added `src/roadkeep/verbs/` and its eight modules. Five
+suite-wide surveys had to be found by hand. Two failed loudly and were the cheap ones: a
+census keyed by `m.name` let `verbs/shipping.py` answer under `shipping.py`, counting
+one file as another. **Three kept passing while covering nothing new** —
+`test_remedying`'s two sweeps for a spelled command and `test_provenance`'s for a
+hard-coded verb, each a `glob("*.py")` written when the package was flat.
+
+The third state is the one that matters, because a red test is a message and a green one
+that stopped looking is a claim. RK488 built those two sweeps precisely to say how many
+spellings were left; after RK494 they answered about 43 of 51 files and said so nowhere.
+
+So the surface is the package's own source, and what is missing is any statement of it:
+each survey re-derives its file set inline, so there is no name to import and
+`tests/test_invariants.py` has nowhere to record a row (RK491). A survey is a property
+over a set, and this set is the one nothing declares.
+
+What proves it: adding a module in a new directory turns a survey that would have missed
+it red, the count each one covered is stated rather than implied, and `INVARIANTS`
+carries the row.
 
 ## Block E — Adoption
 

@@ -24,9 +24,13 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK495** (deps: —) **A scope declaring a directory stages every file under it and reports each one as claimed by nothing** — The staging line and the loose list are one command's two halves, and only one of them reads a directory as covering what is under it. → §RK495
+
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
+
+- 📋 **RK496** (deps: —) **A test surveying the package's source keeps passing once a directory of modules stops being covered by its glob** — What a survey reaches is decided by the layout it was written against, and nothing reports one whose reach stopped matching the package. → §RK496
 
 ## Block E — Adoption
 
