@@ -224,6 +224,7 @@
 - ✅ **RK453** **No read says which outline sections a backlog still owns, so prose a departure left is found by grepping** — anchors says per address which task its heading binds and which live lines claim it, so an unbound heading and prose whose task has left are both one call away.
 - ✅ **RK459** **The ownership an address states is reachable one family at a time, so an audit costs a call per family** — anchors --claims lists only the addresses whose ownership is not the ordinary one, over every family at once, so the audit is one call on a corpus of any size.
 - ✅ **RK461** **Every row the ownership audit prints on this project is a standing memo, which is never a thing to act on** — A heading naming no task that no line claims is counted as a standing memo instead of listed, so the audit's rows are only the two states a command closes.
+- ✅ **RK465** **A flag that narrows one budget subject is silently ignored beside three of the others** — A narrowing flag is checked against the subject that answered rather than the absence of one, so passing it beside another is refused naming both instead of changing nothing.
 
 ## Block D — The gate
 

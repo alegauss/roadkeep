@@ -26,8 +26,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK465** (deps: —) **A flag that narrows one budget subject is silently ignored beside three of the others** — budget --role improvements exits 2 alone and exit 0 beside --tools, --file or --non-goal, changing nothing — so the caller reads an answer it believes it narrowed. → §RK465
-
 ## Block D — The gate
 
 ## Block E — Adoption

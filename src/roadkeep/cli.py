@@ -5824,6 +5824,23 @@ def _budget(config: Config, args: argparse.Namespace) -> int:
             file=sys.stderr,
         )
         return EXIT_USAGE
+    # Checked against the subject that **answered**, and not against the absence of one
+    # (RK465). The refusal below existed and was right, and it sat after every dispatch — so
+    # it fired only where nothing else had, and `--role` beside `--file`, `--non-goal` or
+    # `--tools` changed nothing and said nothing. A caller reading a number it believes it
+    # narrowed is worse off than one refused, by the argument RK16 makes about naming an
+    # edit that cannot work.
+    asked = named[0] if named else ""
+    for flag, narrows, given in (
+        ("--role", "--anchor", bool(args.role)),
+        ("--lead", "--non-goal", bool(args.lead)),
+    ):
+        if given and asked != narrows:
+            # Both halves, because the two states are different mistakes: a subject was
+            # named and it is not this flag's, or none was and the flag cannot stand alone.
+            beside = f"and {asked} is a different subject" if asked else "so pass it too"
+            print(f"roadkeep: {flag} narrows {narrows}, {beside}", file=sys.stderr)
+            return EXIT_USAGE
     if args.anchor:
         return _body_budget(config, args)
     if args.non_goal:
@@ -5832,11 +5849,6 @@ def _budget(config: Config, args: argparse.Namespace) -> int:
         return _file_budget(config, args)
     if args.tools:
         return _tools_budget(config, args)
-    if args.lead or args.role:
-        named = "--lead" if args.lead else "--role"
-        subject = "--non-goal" if args.lead else "--anchor"
-        print(f"roadkeep: {named} narrows {subject}; pass it too", file=sys.stderr)
-        return EXIT_USAGE
     try:
         answer = budget(
             config,

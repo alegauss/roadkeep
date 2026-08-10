@@ -900,3 +900,39 @@ def test_a_project_declaring_no_budgets_is_still_told_what_the_surface_costs(tmp
     budgeted(tmp_path, declared=False)
     assert main(["-C", str(tmp_path), "budget", "--tools"]) == EXIT_OK
     assert "tool(s)" in capsys.readouterr().out
+
+
+# -- a narrowing flag belongs to its subject (RK465) --------------------------
+
+
+def test_a_narrowing_flag_is_refused_beside_a_subject_it_does_not_narrow(tmp_path, capsys):
+    """The refusal existed and was right, and it sat after every dispatch — so it fired only
+    where nothing else had. Measured: `--role improvements` exits 2 alone and exit 0 beside
+    `--tools`, `--file` or `--non-goal`, changing nothing. A caller reading a number it
+    believes it narrowed is worse off than one refused (RK16's argument)."""
+    budgeted(tmp_path)
+    for subject in (["--tools"], ["--file"], ["--non-goal"]):
+        assert main(["-C", str(tmp_path), "budget", *subject, "--role", "improvements"]) == EXIT_USAGE
+        said = capsys.readouterr().err
+        assert "--role narrows --anchor" in said and f"{subject[0]} is a different subject" in said
+
+
+def test_the_flag_that_cannot_stand_alone_still_says_so(tmp_path, capsys):
+    """Two states and two mistakes: a subject was named and it is not this flag's, or none
+    was and the flag has nothing to narrow."""
+    budgeted(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "--role", "improvements"]) == EXIT_USAGE
+    assert "--role narrows --anchor, so pass it too" in capsys.readouterr().err
+    assert main(["-C", str(tmp_path), "budget", "--lead", "x"]) == EXIT_USAGE
+    assert "--lead narrows --non-goal, so pass it too" in capsys.readouterr().err
+
+
+def test_each_flag_beside_the_subject_it_narrows_is_never_refused_for_it(tmp_path, capsys):
+    """The rule narrows nothing that worked: `--role` is `--anchor`'s and `--lead` is
+    `--non-goal`'s. Asserted on the refusal and not on the answer, because what each subject
+    then says about an unknown anchor or an absent lead is that subject's own business."""
+    budgeted(tmp_path)
+    main(["-C", str(tmp_path), "budget", "--anchor", "RK1", "--role", "improvements"])
+    assert "--role narrows" not in capsys.readouterr().err
+    main(["-C", str(tmp_path), "budget", "--non-goal", "--lead", "a lead"])
+    assert "--lead narrows" not in capsys.readouterr().err
