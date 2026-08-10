@@ -35,6 +35,7 @@ from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.backlog import NotOpen
 from roadkeep.document import RoundTripError, Wrapped
+from roadkeep.provenance import invocation
 from roadkeep.schema import SchemaError, width
 
 ROADMAP = "docs/ROADMAP.md"
@@ -949,7 +950,12 @@ def test_the_command_offers_a_follow_up_that_runs(tmp_path, capsys):
         "--symptom", "A second symptom", "--why", "Because of another.", "--ref", "X.9",
     ]
     assert main(argv) == EXIT_OK
-    assert "needs    section add X.9 --title … --role strategy" in capsys.readouterr().out
+    # Backticked and carrying the invocation since RK476, which is what every other route
+    # this file composes carries — and the shape the tool surface can respell (RK475).
+    assert (
+        f"needs    `{invocation()} section add X.9 --title … --role strategy`"
+        in capsys.readouterr().out
+    )
 
 
 def test_the_json_carries_the_same_follow_up(tmp_path, capsys):
@@ -1157,7 +1163,7 @@ def test_the_command_names_the_follow_up_it_leaves_behind(tmp_path, capsys):
         == EXIT_OK
     )
     _, follow, event = capsys.readouterr().out.splitlines()
-    assert follow.startswith("needs    section add RK2 --title")
+    assert follow.startswith(f"needs    `{invocation()} section add RK2 --title")
     assert event == "event    RK2  Block B  live"
 
 

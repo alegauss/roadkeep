@@ -1333,11 +1333,14 @@ def _rerouted(text: str, root: Path) -> str:
     the CLI wrote it, because a rewrite that guessed would be this transport editing prose it
     did not compose (L4).
     """
-    reached = invocation()
-    if reached not in text:
-        return text
     prefix = serving(root)
     if prefix is None:
+        return text
+    text = re.sub(
+        r'("needs": )("(?:[^"\\]|\\.)*")', lambda found: _as_field(found, prefix), text
+    )
+    reached = invocation()
+    if reached not in text:
         return text
     return re.sub(
         r"`" + re.escape(reached) + r" ([^`]*)`",
@@ -1346,7 +1349,26 @@ def _rerouted(text: str, root: Path) -> str:
     )
 
 
-def _as_call(argv: str, prefix: str) -> str:
+def _as_field(found: re.Match[str], prefix: str) -> str:
+    """`add`'s `needs` as the call that closes it, or the argv the CLI wrote (RK476).
+
+    The **one** JSON value this pass touches, and named rather than matched by shape: `needs`
+    is documented as a command, so it is the field that is known argv and not prose. A pass
+    over every string would meet a `why` that opens with a verb, and rewriting that would be
+    this transport editing text it did not compose — the line `_rerouted` already holds.
+
+    Backtick-free, because a field is read by a caller and not printed to one. Left exactly as
+    it is wherever `_as_call` declines, which includes `null`: the regex reaches quoted values
+    only, so a pointer that already resolves is never seen here.
+
+    The value is **decoded before it is read and re-encoded after** — `json.dumps` escapes the
+    ellipsis `--title …` ends on, and matching the raw span cost this its first measurement.
+    """
+    call = _as_call(json.loads(found.group(2)), prefix, plain=True)
+    return found.group(1) + json.dumps(call) if call else found.group(0)
+
+
+def _as_call(argv: str, prefix: str, *, plain: bool = False) -> str:
     """One backticked command as the call that serves it, or `""` to leave it alone.
 
     A flag is not a word over this transport (RK449's finding, RK475's case): rewriting the
@@ -1367,6 +1389,8 @@ def _as_call(argv: str, prefix: str) -> str:
             if fields is None:
                 return ""
             named = "  ".join(f"{name}: {value}" for name, value in fields.items())
+            if plain:  # a field, not a sentence printed to somebody (RK476)
+                return f"{prefix}{tool.name}" + (f" with {named}" if named else "")
             return f"`{prefix}{tool.name}`" + (f" with {named}" if named else "")
     return ""
 

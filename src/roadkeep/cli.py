@@ -2570,8 +2570,11 @@ def _add(config: Config, args: argparse.Namespace) -> int:
     if written is not None:
         print(f"design   §{written.anchor} → {prose}:{written.first}  {written.words} words")
     elif insertion.needs is not None:
+        # Backticked and carrying the invocation, like every other route this file composes
+        # (RK476): the bare argv above is the *field*, and a line printed for a reader is the
+        # form `serving._rerouted` already spells as a tool where there is no shell.
         print(
-            f"needs    {_follow_up(insertion.needs, insertion.needs_role)}  "
+            f"needs    `{invocation()} {_follow_up(insertion.needs, insertion.needs_role)}`  "
             f"(the pointer above resolves to nothing until then)"
         )
     elif insertion.bound is not None:

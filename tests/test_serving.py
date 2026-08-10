@@ -607,8 +607,9 @@ def test_the_anchor_reaches_the_roadmap_over_the_protocol(tmp_path):
     )
     assert written["rendered"].endswith("→ §4.2")
     assert "→ §4.2" in (tree / ROADMAP).read_text(encoding="utf-8")
-    # And the prose the anchor names is still the caller's next call, not this one's silence.
-    assert written["needs"].startswith("section add 4.2")
+    # And the prose the anchor names is still the caller's next call, not this one's silence
+    # — spelled as the tool that serves it since RK476, because this caller has no shell.
+    assert written["needs"].endswith("section_add with anchor: 4.2  title: …")
 
 
 def test_a_closed_field_is_refused_by_the_table_that_would_open_it(tmp_path):
@@ -875,7 +876,9 @@ def test_an_add_with_no_rationale_reports_the_follow_up_the_gate_would_find(tmp_
     payload = json.loads(
         text_of(called(tmp_path, "add", block="A", symptom="A second", why="A reason."))
     )
-    assert payload["needs"].startswith("section add RK2 --title")
+    # The call and not the argv since RK476: what the field names is a tool this surface
+    # serves, because the caller reading it has no shell to run the other spelling in.
+    assert payload["needs"].endswith("section_add with anchor: RK2  title: …")
     assert called(tmp_path, "lint")["isError"] is True
 
 
@@ -2043,3 +2046,51 @@ def test_a_command_this_surface_withholds_keeps_its_shell_spelling(tmp_path):
     assert _as_call("section drop RK1", "mcp__roadkeep__") == (
         "`mcp__roadkeep__section_drop` with anchor: RK1"
     )
+
+
+def test_the_follow_up_an_add_leaves_is_the_call_that_closes_it(tmp_path):
+    """RK476. RK449 and RK475 both turned on one test — does the text carry an
+    `invocation()` — and `_follow_up` never did: it composes `section add <anchor> --title …`
+    bare, so the rewrite saw nothing and the field passed through unchanged.
+
+    Measured over the surface against a copy of Turing: `"needs": "section add LXXII --title
+    …"`, handed to a caller that RK93 gave a *field* precisely so it would not have to parse
+    a sentence — and one written for a shell RK57 says it may not have."""
+    tree = project(tmp_path, config=OUTLINED, improvements=DESIGN)
+    answer = called(
+        tree, "add", block="A", symptom="A widget stalls on a cold cache",
+        why="Nothing warms it before the first read.", ref="IX.1",
+    )
+    assert not answer["isError"], text_of(answer)
+    needs = json.loads(text_of(answer))["needs"]
+    assert needs.endswith("section_add with anchor: IX.1  title: …"), needs
+    # A field and not a sentence printed to somebody, so no backticks came with the rewrite.
+    assert "`" not in needs and "--title" not in needs
+
+
+def test_the_same_follow_up_at_a_terminal_is_a_line_a_shell_runs(tmp_path, capsys):
+    """The other half of the one composer: the printed line now carries the invocation and
+    the backticks every other route in `cli.py` carries, which is both what a shell reader
+    needs and the shape `_rerouted` was already able to spell as a tool."""
+    tree = project(tmp_path, config=OUTLINED, improvements=DESIGN)
+    assert main(["-C", str(tree), "add", "--block", "A", "--symptom",
+                 "A widget stalls on a cold cache", "--why", "Nothing warms it.",
+                 "--ref", "IX.1"]) == EXIT_OK
+    line = next(one for one in capsys.readouterr().out.splitlines() if one.startswith("needs"))
+    assert f"`{invocation()} section add IX.1 --title …`" in line
+    assert "mcp__" not in line
+
+
+def test_no_other_field_of_that_answer_is_read_as_a_command(tmp_path):
+    """The one JSON value this pass touches is named rather than matched by shape. A sweep
+    over every string would meet a `why` that opens with a verb — and rewriting that would be
+    this transport editing prose it did not compose, which is the line `_rerouted` holds."""
+    tree = project(tmp_path, config=OUTLINED, improvements=DESIGN)
+    answer = called(
+        tree, "add", block="A", symptom="A widget stalls on a cold cache",
+        why="list --json is what a caller reads here.", ref="IX.1",
+    )
+    assert not answer["isError"], text_of(answer)
+    written = json.loads(text_of(answer))
+    assert "list --json is what a caller reads here." in written["rendered"]
+    assert "mcp__" not in written["rendered"]
