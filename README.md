@@ -127,7 +127,7 @@ called unbuilt were already in the ledger.
 
 **Next ready:**
 
-- 📋 **RK1005** (deps: —) **No test reads a `--json` payload as an outside client would, so a renamed key breaks one and nothing here fails** — An editor view is a second reader of these payloads, in another language and on its own clock, so the shape stops being an implementation detail once one exists. → §RK1005
+- 🛠 **RK1005** (deps: —) **No test reads a `--json` payload as an outside client would, so a renamed key breaks one and nothing here fails** — An editor view is a second reader of these payloads, in another language and on its own clock, so the shape stops being an implementation detail once one exists. → §RK1005
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

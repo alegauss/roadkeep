@@ -123,8 +123,7 @@ It is a test that reads the payloads the way a client does: by key, over this
 repository's own `docs/` as the fixture, asserting the keys a client is promised rather
 than the whole shape. A payload that gains a field is compatible and must stay green;
 one that loses a promised key must not. That test is also where the promise is written
-down — what it reads is the contract, and every key it does not read stays free to
-move.</section_body>
+down — what it reads is the contract, and every key it does not read stays free to move.
 
 ### §RK1006 The list, where the file is open
 
@@ -144,7 +143,7 @@ Markdown.** Every row comes from `list --json`, `deps --json` and `pick --json`,
 a child process against the workspace. A client with its own parser is the second
 implementation this project exists to remove, and it would be the easy thing to write.
 Refreshing is a file watcher plus a re-run, because the store is the repository and
-there is nothing else to observe.</section_body>
+there is nothing else to observe.
 
 ### §RK1007 The gate, at the column
 
@@ -163,7 +162,7 @@ the tool does not compose prose and an editor is not the place to start.
 
 Running it is the same child process as the list, on save and on demand. `repair` is the
 one action that belongs to the file rather than to a line, and it exits non-zero while
-anything is left, so a clean panel means clean.</section_body>
+anything is left, so a clean panel means clean.
 
 ### §RK1008 The door, not a text box
 
@@ -182,7 +181,7 @@ What it must not become is a second validator. The prompt shows the budget; `add
 decides, and its refusal — which names every field it looked at, in one message — is
 what the editor reports. Nothing is written to the file by the extension itself, ever:
 the command writes, and the file watcher shows the result. That keeps one writer, which
-is the property the round-trip law rests on.</section_body>
+is the property the round-trip law rests on.
 
 ### §RK1009 The fourth copy
 
@@ -200,8 +199,7 @@ looking at.
 So the resolution is a declared setting, not a search: a workspace names the command,
 and the view refuses to answer rather than guess. Whatever it resolves is then a fourth
 row in the existing report, with the same three verdicts, and disagreement is stated in
-the view rather than discovered when a hook denies a write the panel said was
-fine.</section_body>
+the view rather than discovered when a hook denies a write the panel said was fine.
 
 ### §RK1010 Where the client lives, and what proves it
 
@@ -222,7 +220,7 @@ So: a subdirectory with its own manifest and its own job, gated on this reposito
 cheap on purpose — a client that never parses the file is a few hundred lines with
 nothing to port — so if the publishing cadence turns out to fight a version this
 repository bumps every commit, moving it out is a decision made later with evidence
-rather than now without.</section_body>
+rather than now without.
 
 ### §RK1011 The host, which ships none of the rules
 
@@ -242,5 +240,4 @@ came from the configuration by way of a command, never from a constant compiled 
 
 What it owns is the boring half: finding the command, running it in the workspace,
 decoding one payload, and reporting the two failures a child process has — not
-installed, and refused — as a message a reader can act on rather than an empty
-tree.</section_body>
+installed, and refused — as a message a reader can act on rather than an empty tree.
