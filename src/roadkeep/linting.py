@@ -2117,6 +2117,7 @@ def _orphans(
         seen.setdefault(anchor, section.first)
         out.extend(_budget(prose, section, pointed=anchor in pointed, file=file))
         out.extend(_query(section, file))
+        out.extend(_promise(config, section, file))
         owners = section_owners(section, ids)
         # Prose that belongs to no task is nobody's orphan — `§0.1` under the id scheme, and
         # any outline heading that names no id — the same rule `section add` applies (RK9).
@@ -2238,6 +2239,34 @@ def _query(section: Section, file: str) -> list[Finding]:
             )
         ]
     return []
+
+
+def _promise(config: Config, section: Section, file: str) -> list[Finding]:
+    """A design naming an id no line carries, once a file already holds one (RK1003).
+
+    The backstop half of L1 for the rule RK1002 put at the door, and :func:`_query`'s shape
+    exactly: `section add` refuses the body, and this reads what is already on disk. The
+    three ways one gets there without passing a door are the three the backstop exists for —
+    an adopted backlog, a hand edit and a textual merge.
+
+    Reproduced the hour RK1002 shipped: a design edited to name an unclaimed id left `lint`
+    clean while `next-id` warned about it inside another command's output, hedged, with
+    nothing that had to act on the warning.
+
+    **Not repairable, and it says so through its remedy rather than through `--fix`**: which
+    of two ids an author meant is a judgement about a sentence, and the tool has no model of
+    one (L4). The finding names the same two ways out the refusal does.
+
+    Under the same code the door raises, which is what :class:`Finding` promises about every
+    rule the two surfaces share: a caller filtering on `body.promise` filters one rule.
+    """
+    # Deferred beside `_query`'s, and one-way for the same reason (RK260).
+    from roadkeep.sections import known, promised  # noqa: PLC0415 - RK1003
+
+    return [
+        Finding("body.promise", file, f"§{section.anchor} {one.message}", section.first, section.anchor)
+        for one in promised(config.schema_for("roadmap"), section.body, known(config, section.anchor, None))
+    ]
 
 
 def _budget(

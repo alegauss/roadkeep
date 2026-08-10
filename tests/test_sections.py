@@ -2730,3 +2730,35 @@ def test_a_design_may_name_any_task_a_file_carries_as_a_line(tmp_path):
         "A paragraph about RK3 itself, building on RK1 and beside RK2.",
     )
     assert "RK1" in section.body and "RK2" in section.body
+
+
+def test_the_gate_reports_a_design_a_hand_edit_gave_an_unclaimed_id(tmp_path):
+    """RK1003, and :func:`~roadkeep.linting._query`'s shape: `section add` refuses the body
+    and this reads what is already on disk. The three ways one gets there without passing a
+    door are the three a backstop exists for — an adopted backlog, a hand edit, a merge."""
+    from roadkeep.linting import lint
+
+    config = project(
+        tmp_path,
+        improvements=RATIONALE.replace(
+            "The reasoning the line has no room for.",
+            "The reasoning the line has no room for, filed as RK999.",
+        ),
+    )
+    finding = next(one for one in lint(config).findings if one.code == "body.promise")
+    assert finding.id == "RK1" and "names RK999" in finding.message
+    # The same two ways out the refusal names, because neither surface may repair prose (L4).
+    assert "spell the example outside RK" in finding.message
+
+
+def test_the_gate_is_silent_where_every_id_a_design_names_is_a_line(tmp_path):
+    from roadkeep.linting import lint
+
+    config = project(
+        tmp_path,
+        improvements=RATIONALE.replace(
+            "The reasoning the line has no room for.",
+            "The reasoning the line has no room for, beside RK2 and XX999.",
+        ),
+    )
+    assert not [one for one in lint(config).findings if one.code == "body.promise"]

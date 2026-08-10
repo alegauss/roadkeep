@@ -107,6 +107,16 @@ PREVENTION: tuple[Prevented, ...] = (
     Prevented("deps.range", "refused", _add("--dep", "RK1..RK5", "--symptom", SYMPTOM, "--why", WHY)),
     Prevented("deps.marker", "refused", _add("--dep", "RK1(x)", "--symptom", SYMPTOM, "--why", WHY)),
     Prevented("deps.self", "refused", ("amend", "RK1", "--dep", "RK1")),
+    Prevented(
+        "body.promise",
+        "refused",
+        _add(
+            "--symptom", SYMPTOM,
+            "--why", WHY,
+            "--section", "A design",
+            "--section-body", "A paragraph naming RK999 as an example of the shape.",
+        ),
+    ),
     # Closed by RK499, which is why the rows are here rather than under `open`: the same
     # probes now measure a refusal, and a re-opened door turns one of them red.
     Prevented("char.tab", "refused", _add("--symptom", SYMPTOM, "--why", "Because\tof it.")),

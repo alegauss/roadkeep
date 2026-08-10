@@ -119,14 +119,14 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 31 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 107 | 1 |
 | C — Query (consult without reading the file) | 0 | 73 | 1 |
-| D — The gate | 2 | 118 | 0 |
+| D — The gate | 1 | 119 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 91 | 1 |
-| **Total** | 2 | 494 | 6 |
+| **Total** | 1 | 495 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1003** (deps: —) **A design naming an id no line carries is refused at the door and reported by nothing once a file already holds one** — RK1002 put the rule where the prose is composed and left no backstop, so a hand edit, an import or a merge carries it in silently. → §RK1003
+- 📋 **RK1004** (deps: —) **The register reads gate to write and nothing reads it back, so a rule only the door holds is found by writing one** — Ten of the thirty-five codes a write refuses have no gate code of that name, and whether each is covered under another is the judgement nothing records. → §RK1004
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

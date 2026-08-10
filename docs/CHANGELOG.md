@@ -352,6 +352,7 @@
 - ✅ **RK1000** **A limit, prefix or marker written into the package instead of read from config is found by an adopting project** — A scan over the package refuses a marker, an id or a governed filename written outside the two modules that declare a default, and L6's row now names it.
 - ✅ **RK1001** **A second defect in a class an invariant already holds reads like new work, so a gap in a holder is filed as a fix** — A design declares the rule it instantiates in a fenced block, and the row it names carries the id — so a recurrence is a count and the holder is where the fix goes.
 - ✅ **RK1002** **An id named only as an example in prose is read as spent, and nothing refuses it where the prose is composed** — A design naming an id no line carries is refused where the prose is composed, naming the two ways out, so an illustration no longer spends an address.
+- ✅ **RK1003** **A design naming an id no line carries is refused at the door and reported by nothing once a file already holds one** — The gate reports a design naming an id no line carries, under the code the door raises, so an imported or hand-edited file is no longer silent about it.
 
 ## Block E — Adoption
 

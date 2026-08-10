@@ -81,30 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK1003 The refusal RK1002 wrote has no code on the other side
-
-Reproduced immediately after RK1002 shipped: a design edited by hand to name an
-unclaimed id leaves `lint` clean, while `next-id` warns about it inside another
-command's output, hedged, and nothing has to act on the warning.
-
-That is RK497 read backwards. Every task in that family closed a gap where the gate held
-a rule and the door did not; this is the first where the door holds one and the gate
-does not, and it was opened by the fix rather than found in the old code.
-
-Why it is worth a code rather than left to the door. L1 says the write is where a rule
-is enforced and `lint` is only the backstop — *only*, not *never*. The backstop covers
-text this tool did not write, which is precisely an adopted backlog, a hand edit and a
-textual merge: the three ways a design gets an id in it without passing a door.
-
-The finding is decidable from what the gate already reads — the ids each governed file
-carries as a line, and the same scanner the deriver uses. It is not a repair, which of
-two ids an author meant being the judgement L4 forbids, so it names the same two ways
-out the refusal does.
-
-What proves it: a hand-edited design naming an unclaimed id exits 1, the same file with
-the example spelled outside the prefix is clean, and the remedy table carries a row for
-the code.
-
 ### §RK1004 The other direction of the same register
 
 RK498 enumerated every code the gate emits and said whether a write refuses it, and it

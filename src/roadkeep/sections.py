@@ -1753,7 +1753,7 @@ def _check(
         out.append(
             Violation("title.markup", "title", "the level is a field, not part of the text")
         )
-    out += _promised(schema, body, known)
+    out += promised(schema, body, known)
     if not body.strip():
         out.append(Violation("body.empty", "body", "a section with no prose is a heading"))
     elif words(body) > schema.section_max:
@@ -1788,7 +1788,7 @@ def known(config: Config, anchor: str, task: Task | None) -> frozenset[str]:
     return carried(config) | frozenset(own)
 
 
-def _promised(schema: Schema, body: str, known: frozenset[str] | None) -> list[Violation]:
+def promised(schema: Schema, body: str, known: frozenset[str] | None) -> list[Violation]:
     """An id-shaped token in a design that no line carries (RK1002).
 
     RK431 made deriving an id read prose, and that is right: a ledger entry promising *filed

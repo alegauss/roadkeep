@@ -751,6 +751,17 @@ _TABLE: Mapping[str, _Rule] = {
     # RK492. `compose` and not `run`: the pathspec and the pattern are the author's claim
     # about what this migration is, and a fixer guessing either would be composing the one
     # thing L4 forbids — a statement about the work rather than a rendering of one.
+    "body.promise": _decide(
+        "the design names an id no line carries, which the deriver reads as spent and the "
+        "next `add` steps past (RK431) — and whether it was an illustration or the id this "
+        "task should have had is the sentence's meaning, not the tool's:",
+        (
+            ("section", "amend", "{id}", "--body", "-"),
+            "it was an example; spell it outside this project's prefix, where nothing "
+            "numbers it",
+        ),
+        (("gaps",), "read where the id went before deciding it was never a line"),
+    ),
     "remaining.format": _compose(
         ("section", "amend", "{id}", "--body", "-"),
         "the declared query is not `<pathspec> :: <regex>` per line; the corrected block "
