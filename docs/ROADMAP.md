@@ -28,6 +28,8 @@
 
 ## Block D — The gate
 
+- 📋 **RK474** (deps: —) **The doors repair never dispatches are checked against nothing, so a printed one may refuse too** — RK473 holds every remedy this tool offers to run, and read, compose and decide are the three kinds it prints instead — which is most of the table and the half a person acts on. → §RK474
+
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
