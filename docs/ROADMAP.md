@@ -24,7 +24,7 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK499** (deps: —) **Every prose door accepts a tab, a zero-width codepoint and a space that is not one, and the gate refuses all three** — The same field refuses a leading or trailing space at the write, so one whitespace rule is held there and the neighbouring one is not. → §RK499
+- 🛠 **RK499** (deps: —) **Every prose door accepts a tab, a zero-width codepoint and a space that is not one, and the gate refuses all three** — The same field refuses a leading or trailing space at the write, so one whitespace rule is held there and the neighbouring one is not. → §RK499
 - 📋 **RK500** (deps: —) **A dep flag naming an id nothing carries is written, and so is one on the block the line is being filed into** — Both are decidable against the backlog the write has already loaded, and the second files a line that no amount of shipping anything else can start. → §RK500
 
 ## Block C — Query (consult without reading the file)
@@ -33,6 +33,7 @@
 
 - 📋 **RK1000** (deps: —) **A limit, prefix or marker written into the package instead of read from config is found by an adopting project** — L6's row carries an empty holder because nobody wrote the scan, not because no set exists: it is the one of the three a source scan decides. → §RK1000
 - 📋 **RK1001** (deps: —) **A second defect in a class an invariant already holds reads like new work, so a gap in a holder is filed as a fix** — Twelve of the fifteen rows carry a holder and nothing says which of them a task instantiates, so a recurrence and a rung nobody had climbed are one shape. → §RK1001
+- 📋 **RK1002** (deps: —) **An id named only as an example in prose is read as spent, and nothing refuses it where the prose is composed** — `section add` validated the body and said nothing; the cost surfaced two sessions later in a non-blocking warning, and the gate carries no code for it. → §RK1002
 
 ## Block E — Adoption
 
