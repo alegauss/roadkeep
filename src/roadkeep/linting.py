@@ -2197,6 +2197,7 @@ def _orphans(
             )
         seen.setdefault(anchor, section.first)
         out.extend(_budget(prose, section, pointed=anchor in pointed, file=file))
+        out.extend(_query(section, file))
         owners = section_owners(section, ids)
         # Prose that belongs to no task is nobody's orphan — `§0.1` under the id scheme, and
         # any outline heading that names no id — the same rule `section add` applies (RK9).
@@ -2287,6 +2288,37 @@ def _reached(anchor: str, claimed: dict[str, list[str]]) -> bool:
     return any(
         ".".join(segments[:depth]) in claimed for depth in range(1, len(segments) + 1)
     )
+
+
+def _query(section: Section, file: str) -> list[Finding]:
+    """The `roadkeep-remaining` block a design may declare, held to its grammar (RK492).
+
+    The backstop half of L1 for a fence: `remaining` refuses one it cannot read, but that verb
+    is asked by whoever is continuing the migration, and a query nobody has run since it was
+    typed is exactly the one that is wrong. So the gate reads it on every run, which costs one
+    string scan per section and answers the only question the fence can be wrong about.
+
+    A section declaring none is silent, which is every section here: this reports a block that
+    exists and does not parse, never the absence of one. The count itself is `remaining`'s and
+    never a finding — sites left are work, and work is not a defect in a file.
+    """
+    from roadkeep.remaining import FENCE, QueryError, declared  # noqa: PLC0415 - RK260
+
+    if FENCE not in section.body:
+        return []
+    try:
+        declared(section.body)
+    except QueryError as error:
+        return [
+            Finding(
+                "remaining.format",
+                file,
+                f"§{section.anchor} declares a query this grammar cannot read: {error}",
+                section.first,
+                section.anchor,
+            )
+        ]
+    return []
 
 
 def _budget(

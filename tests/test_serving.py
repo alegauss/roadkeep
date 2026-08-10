@@ -221,6 +221,10 @@ def test_the_tools_are_what_a_task_needs_end_to_end():
         "non_goal_list",
         "priority_list",
         "weight",
+        # That one's mirror (RK492): what a task has left, run from the query its own design
+        # declares. Beside it, because the two answer one question from opposite ends and a
+        # session continuing a migration asks this one at exactly the moment RK71 is asked.
+        "remaining",
         # And the third (RK190): what the line being proposed leaves its prose, which
         # `maxLength` cannot publish because it moves with the deps and the symptom.
         "budget",

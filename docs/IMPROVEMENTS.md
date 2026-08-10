@@ -79,30 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK492 The mirror of weight: what a task has left, derived
-
-§RK72's non-goal refuses a *stored* size: nothing can verify a letter, and `weight` is
-what replaced it — the same question, derived from the commits that shipped comparable
-work, landing on no line and rotting never. What this task raises is that question's
-mirror, and it takes the same answer.
-
-RK488, RK489, RK490 and RK491 are each one invariant with sites: emitters spelling a
-command themselves, subparsers validating their own flags, rows repeating what their
-finding already carries, rules no property reaches. Each is enumerable by a query the
-task could declare — a grep, a scrape of a table, a set difference. What none of them
-has is a way to ask how many are left, so a migration reads in every governed file
-exactly like a run of unrelated defects. That is how the last fifty commits read, and
-the reading was wrong.
-
-Derived and never stored, for RK72's reason and for L5's: a count written onto a line is
-a number somebody maintains, and therefore one the first commit that closes a site makes
-false. A count computed on demand cannot go stale, costs nothing on the turns nobody
-asks, and is checkable by running the query it names.
-
-The non-goal is not in the way and must not be moved. What it refuses is a field; this
-is a read. The task is which query a line may declare, and where that declaration lives
-so the answer stays measured rather than asserted.
-
 ## Block D — The gate
 
 ## Block E — Adoption

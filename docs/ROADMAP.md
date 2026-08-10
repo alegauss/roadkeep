@@ -26,8 +26,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK492** (deps: RK491 ✅) **Nothing counts the sites an invariant has yet to reach, so a migration's remaining work is found by tripping over it** — `weight` derives what a comparable task cost from the commits that shipped it; nothing derives what one has left, so a migration reads as a run of defects. → §RK492
-
 ## Block D — The gate
 
 ## Block E — Adoption

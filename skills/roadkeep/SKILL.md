@@ -389,7 +389,18 @@ or two is a question with an answer. An entry whose commit wrote several is name
 `batched` and left out of the percentiles, so a squashed adoption import skews nothing.
 What comes back is the distribution and what was elided from it, the sample those
 percentiles summarise being `--records` and 95% of the payload. It ranks nothing and lands
-on no line — the size field is a non-goal. **`roadkeep brief [<id>]` starts a task in one
+on no line — the size field is a non-goal. **`remaining <id>` is that read's mirror**: what
+a task has *left*, run from a query its own design declares — a fenced `roadkeep-remaining`
+block in the rationale section, one `<pathspec> :: <regex>` per line. Derived for the same
+reason and stored for none: the first commit that closes a site changes the answer, which a
+number on the line could not, and a `ship` deletes the query with the section that made the
+claim. Reach for it before continuing a migration, which otherwise reads in every file
+exactly like a run of unrelated defects. It is a count and never a verdict — the pattern is
+the author's, so `0` says the pattern stopped matching and whether that is the work being
+done is yours; a glob that names no file is reported apart from a pattern that matches none,
+those being opposite facts that both count zero. A design declaring none is *answered* and
+not refused, and the gate reports only a block it cannot read (`remaining.format`), never
+sites left, work not being a defect in a file. **`roadkeep brief [<id>]` starts a task in one
 call** — the line, its rationale, deps resolved, the blocker chain, what it unblocks and
 the non-goals, bounded to a tool result; with no id, `pick`'s own choice. Narrower:
 `next-id` never fills a gap, and where the number below the one it derives is named only

@@ -43,8 +43,8 @@ src/roadkeep/   the package (src layout, importable via pytest pythonpath). Each
                                                  and the merge git cannot make
   locking claiming storing  RK117/119/330  scan-to-save is one span, who holds a line, one grammar
   scoping queueing reverting  RK69-70/325/385/416  the non-goal, the queue, the undone
-  backlog counting picking showing graph RK10-13/28-29/31/37/39-40/83/92/247/442 the query surface,
-  briefing budgeting exporting history weighing ranking plus what only git answers
+  backlog counting picking showing graph RK10-13/28-29/31/37/39-40/83/92/247/442/492 the query
+  briefing budgeting exporting history weighing ranking remaining  surface, plus what git answers
   linting fixing remedying repairing  RK14-17/420-422  the gate, the derived-only fixer,
                   the door every finding names, and the verb that runs the whole report back
   adopting installing  RK18/100/415  `init` scaffolds, `adopt` estimates, `install` wires it

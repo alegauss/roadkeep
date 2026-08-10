@@ -394,6 +394,10 @@ TOOLS: tuple[Tool, ...] = (
     # percentiles are the answer and the sample was 95% of the payload, so the evidence is
     # a flag an agent disputing the figure can still pass rather than a read it cannot make.
     Tool("weight", ("block", "records")),
+    # That read's mirror (RK492), and served for the same reason it is: an agent about to
+    # continue a migration asks how many sites are left, and the alternative to a command is
+    # a grep whose pattern it composed itself and whose misses are silent (L5).
+    Tool("remaining", ("id",)),
     # The other pre-`add` read, and the one this transport needs most (RK190): `maxLength`
     # publishes the field's own ceiling and cannot publish the line's, so without this the
     # binding number reaches the author only as a refusal — a linter, one layer in.

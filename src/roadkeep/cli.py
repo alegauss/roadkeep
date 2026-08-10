@@ -167,6 +167,7 @@ from roadkeep.shipping import Closure, Partial, record, retire, ship
 from roadkeep.shipping import amend as amend_record
 from roadkeep.shipping import move as move_record
 from roadkeep.shipping import readdress as readdress_record
+from roadkeep.remaining import QueryError, count, declared
 from roadkeep.weighing import Spread, Weights, weigh
 from roadkeep.shipping import drop as drop_record
 from roadkeep.showing import View, show
@@ -1953,6 +1954,25 @@ def build_parser() -> argparse.ArgumentParser:
     )
     weight_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     weight_parser.set_defaults(handler=_weight, reads_only=True)
+
+    remaining_parser = subcommands.add_parser(
+        "remaining",
+        help="how many sites a task's own declared query still matches",
+        description=(
+            "The mirror of `weight`, and derived the same way (RK492): that one says what a "
+            "comparable task cost, from the commits that shipped it, and this says what one "
+            "has left, from the repository as it is now. A migration declares the query in "
+            "its rationale section — a fenced `roadkeep-remaining` block, one `<pathspec> :: "
+            "<regex>` per line — and this runs it. Nothing is stored, so nothing goes stale: "
+            "the first commit that closes a site changes the answer, which a number written "
+            "onto a line could not. It is a count and never a verdict — the pattern is the "
+            "author's, so a query answering 0 says the pattern stopped matching, and whether "
+            "that is the work being done is a judgement this tool does not make."
+        ),
+    )
+    remaining_parser.add_argument("id", help="the task whose design declares the query, e.g. RK12")
+    remaining_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    remaining_parser.set_defaults(handler=_remaining, reads_only=True)
 
     report_parser = subcommands.add_parser(
         "report",
@@ -7376,6 +7396,44 @@ def _weight(config: Config, args: argparse.Namespace) -> int:
         # Named and never silent (RK10): a listing that looked complete is the whole symptom
         # one command over, and an elision the answer does not state is the same defect here.
         print(f"  records  {len(weights.weighed)} not shown — `--records` prints them")
+    return EXIT_OK
+
+
+def _remaining(config: Config, args: argparse.Namespace) -> int:
+    """Run the query a task's own design declares, against this tree, now (RK492).
+
+    A read in the strict sense: nothing is written, nothing is cached, and the exit code says
+    the call was answered rather than what the answer was. A migration with sites left is not
+    a failing gate — `lint` is what refuses — and a `remaining` that exited 1 while work was
+    outstanding would be a verb nobody could put in a loop.
+    """
+    try:
+        view = show(config, args.id)
+    except (KeyError, OSError) as error:
+        return _refused(error)
+    if view.section is None:
+        # The pointer's own failure, in the words `show` already composed for it: a task with
+        # no design has no query, and which of the four absences it is matters to the repair.
+        print(f"roadkeep: {args.id} has no section: {view.section_absence}", file=sys.stderr)
+        return EXIT_USAGE
+    try:
+        clauses = declared(view.section.body)
+    except QueryError as error:
+        return _refused(error)
+    if not clauses:
+        # An answer and not a refusal: *this design declares no query* is a fact about the
+        # task, and a read that refused it would be read as evidence the id was wrong. The
+        # grammar is named, because the next thing a caller wants is to write one.
+        if args.json:
+            print(json.dumps({"id": args.id, "query": [], "total": None}, indent=2))
+        else:
+            print(
+                f"{args.id} declares no query: a `roadkeep-remaining` fenced block in "
+                f"§{view.entry.task.ref or args.id}, one `<pathspec> :: <regex>` per line"
+            )
+        return EXIT_OK
+    found = count(config.root, args.id, clauses)
+    print(json.dumps(found.payload(), indent=2) if args.json else str(found))
     return EXIT_OK
 
 

@@ -748,6 +748,14 @@ _TABLE: Mapping[str, _Rule] = {
         ("section", "amend", "{id}", "--body", "-"),
         "past the word budget; the shorter prose is yours and arrives on stdin",
     ),
+    # RK492. `compose` and not `run`: the pathspec and the pattern are the author's claim
+    # about what this migration is, and a fixer guessing either would be composing the one
+    # thing L4 forbids — a statement about the work rather than a rendering of one.
+    "remaining.format": _compose(
+        ("section", "amend", "{id}", "--body", "-"),
+        "the declared query is not `<pathspec> :: <regex>` per line; the corrected block "
+        "is yours and arrives on stdin",
+    ),
     # ---------------------------------------------------------------------------- the deps
     "deps.unknown": _decide(
         "the dep is in neither file, so nothing can say whether it is done — and a token "

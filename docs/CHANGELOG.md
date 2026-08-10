@@ -226,6 +226,7 @@
 - ✅ **RK461** **Every row the ownership audit prints on this project is a standing memo, which is never a thing to act on** — A heading naming no task that no line claims is counted as a standing memo instead of listed, so the audit's rows are only the two states a command closes.
 - ✅ **RK465** **A flag that narrows one budget subject is silently ignored beside three of the others** — A narrowing flag is checked against the subject that answered rather than the absence of one, so passing it beside another is refused naming both instead of changing nothing.
 - ✅ **RK466** **Two commands take two answers and print one, saying nothing about the flag that lost** — The two pairs that are two subjects are refused naming both, and the two destinations that compose still write together, so no flag is dropped in silence.
+- ✅ **RK492** **Nothing counts the sites an invariant has yet to reach, so a migration's remaining work is found by tripping over it** — A design declares its own query in a fenced block and `remaining` runs it, so what a migration has left is a read taken now rather than a number somebody maintains.
 
 ## Block D — The gate
 
