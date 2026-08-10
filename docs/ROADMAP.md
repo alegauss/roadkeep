@@ -32,6 +32,8 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
+- 📋 **RK463** (deps: —) **Eight reads the shipped skill tells an agent to call have no tool, on the install with no console script** — anchors is named five times there and claims four, and add --ref on an outline project cannot derive an address without one — which is the argument RK24 already lost once. → §RK463
+
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:
