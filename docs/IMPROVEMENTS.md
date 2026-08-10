@@ -81,6 +81,29 @@ already written, not authorship.
 
 ## Block D — The gate
 
+### §RK1012 The two the backstop register found
+
+RK1004's rows are three answers, and these are the only two of the third kind. `section
+add` refuses a body with no prose and a heading with no title; a file carrying either
+lints clean, measured on a fixture whose line points straight at the heading.
+
+Neither is cosmetic, and the pointer is why. A line renders `→ §<id>` and the gate holds
+that the address resolves — so a heading with nothing under it satisfies that check
+while giving the reader none of what the pointer promised. `show` prints the section and
+`brief` hands it to whoever starts the task: both answer with a title and a blank.
+
+The five rows beside them are a different answer and stay silent: a heading is one line,
+so a newline in a title is about an argument, and an address this scheme cannot read is
+not parsed as a section at all, so the heading is prose. Those are not holes, and a code
+for them would be a red nobody keeps.
+
+The gate already walks every section for its budget and its query, so this is that walk
+asking two more questions of what it holds — and both are the door's own rules, which is
+what keeps the wording one sentence rather than a second judgement.
+
+What proves it: a file carrying either exits 1, the register's two rows move to a gate
+code, and prose under an unreadable address is still clean.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
@@ -200,3 +223,24 @@ cheap on purpose — a client that never parses the file is a few hundred lines 
 nothing to port — so if the publishing cadence turns out to fight a version this
 repository bumps every commit, moving it out is a decision made later with evidence
 rather than now without.</section_body>
+
+### §RK1011 The host, which ships none of the rules
+
+Everything else this block proposes is a panel, a marker or a prompt inside something
+that has to exist first: a manifest an editor recognises, an activation, a container in
+the sidebar, and one place that runs the command and turns a non-zero exit into a
+message. None of that is in this tree.
+
+Two properties decide whether the host is right, and neither is about the view. It
+**activates on a governed workspace** — the presence of the project's configuration
+file, not on startup and not on every Markdown file — for the reason the write path is a
+trigger-loaded skill rather than a preamble: a surface that costs something on every
+session that touches none of these files is paying for the sessions it does nothing in.
+And it **carries no rule.** No limit, no marker set, no id shape, no parser. Every fact
+it shows was read from a payload some verb printed, and the field limits it displays
+came from the configuration by way of a command, never from a constant compiled into it.
+
+What it owns is the boring half: finding the command, running it in the workspace,
+decoding one payload, and reporting the two failures a child process has — not
+installed, and refused — as a message a reader can act on rather than an empty
+tree.</section_body>
