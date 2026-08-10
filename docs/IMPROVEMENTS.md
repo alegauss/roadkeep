@@ -79,30 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK453 Which lines claim an address, beside whether it is spent
-
-RK452 stops the state being created; it does not reach the corpora already holding it. A
-heading written before its line binds nobody for the rest of its life, and no command
-lists one — the fixture's §I.1 was found by reading `ship`'s `kept` field as it scrolled
-past, and Shio's were found the same way.
-
-`anchors` is the only verb that lists sections, and its `live` answers a different
-question: RK247 built it about address reuse, so `live` means a heading declares the
-address *now*, and §I.1 — written for a task that has since shipped, claimed by nothing
-open — is counted among `3 live` beside two that are working.
-
-`lint` cannot be the reader, and RK236 already said why. Under an outline a heading
-naming no task is prose belonging to none, which Turing's standing GEO memo genuinely
-is, so a finding would refuse a legitimate memo with nothing that closes it. The state
-is a fact and not a violation, and L5 is that a fact costs a command rather than a file
-read.
-
-So the claim goes where the sections are already listed: per address, which live lines
-point at it and whether its heading binds one. An adopting project sees its unbound
-headings in one call, RK452's write is auditable instead of asserted, and an address
-whose only claimants are in the ledger is named — the thing `ship` reported once and no
-reader has held since.
-
 ## Block D — The gate
 
 ### §RK454 The repair that is claimed and never made
@@ -129,6 +105,103 @@ say which lines the loss reached rather than which columns.
 Open: whether the finding replaces the character pass for that file, as RK451 does, or
 sits beside it. Some of those lines are readable and their other defects are real, and a
 report that hides them has answered a different question than the one asked.
+
+### §RK455 A stream this tool did not open
+
+`main` hardens the three standard streams before argparse sees a token, and
+`provenance.STARTUP_CODECS` records what they were (RK341): stdin strict, stdout and
+stderr backslashreplace. A text stream that has already been read refuses `reconfigure`,
+and the refusal is a raise — `io.UnsupportedOperation` out of `_force_utf8`, with the
+verb never reached.
+
+Measured: `pytest -n 8` over this suite fails between nine and sixteen tests, every one
+of them out of that line and none of them about what it asserts. An xdist worker is
+bootstrapped over its own stdin, so fd 0 arrives read, and every in-process `main(...)`
+scheduled there dies before parsing. That is a test runner finding a product defect
+rather than owning one: a stream this tool did not open is a stream it cannot assume it
+may re-encode, and the same shape reaches any host that embeds the CLI.
+
+What the repair must not become is a bare pass. `errors="strict"` on the way in is what
+keeps input that is not UTF-8 refused rather than repaired, because a substituted
+character round-trips into a governed file and stays (L3) — a stdin that silently keeps
+cp1252 is that defect with no report. So the answer states which stream could not be
+hardened and what the caller loses by it, and never assumes the strictness it failed to
+apply.
+
+The suite's own half is separate and smaller: a fixture handing each test a stdin
+nothing has read makes the fact local to the test instead of to the runner.
+
+### §RK456 One repository, eleven ways to build it
+
+Eleven test files build a git repository per test, each from its own copy of the helper:
+`init --quiet`, then three `config` calls, then `add`, `commit`, `rev-parse`. Seven
+processes, measured at 214 ms per repository here — 47 ms for `init` and 20 ms for each
+`config`, which is what a process costs on this platform.
+
+Four of the seven are avoidable without moving a single assertion. Identity belongs in
+the environment (`GIT_AUTHOR_*`, `GIT_COMMITTER_*`), signing in a `-c
+commit.gpgsign=false` on the one call that commits, and `GIT_CONFIG_GLOBAL` and
+`GIT_CONFIG_SYSTEM` pointed at nothing make the fixture independent of whatever this
+machine's user configuration says — which is hermeticity and not only speed, since a
+global `commit.gpgsign` or `init.defaultBranch` is a fact these tests currently inherit.
+Measured that way: 161 ms per repository, a quarter off, over the three hundred-odd
+tests that build one.
+
+The copies are the other half, and the one this project already has a rule about.
+`Schema.render` is the only writer of a line for the same reason a fixture should have
+one author: the divergence is already there — `test_history` clones and moves files,
+`test_weighing` only ships — so a change to how a test repository is built is a change
+eleven files have to agree to make, and the suite's shared facts already live in
+`tests/conftest.py`.
+
+### §RK457 The run is what stands between an edit and knowing
+
+A full run is 2865 tests in 5m07s here, paid before an edit is known to hold — and paid
+again by an agent that edits, runs and edits.
+
+The time is not one hot spot. Of the 300 s the durations report, 272 s is `call` and 28
+s is `setup`, spread over a long tail: `test_history` 50 s, `test_baseline` 29 s,
+`test_sections` 20 s, `test_weighing` 20 s. What that tail is made of is process spawns
+and filesystem work — git, nested pytest runs, tmp trees — which is what parallelism
+answers and what a faster assertion does not.
+
+Measured on this machine, 28 cores, with RK455 fixed: `-n 16` finishes green in 48-70 s,
+and `-n 8 --dist loadfile` in 1m47s. Five to six times, and three even under the
+conservative distribution.
+
+`pytest-xdist` is a dev dependency, and the zero-dependency law is about runtime: a tool
+run as `uvx roadkeep` in someone else's CI pays for what it imports, not for what its
+own suite installs. The fixtures already survive it — `checkout` fingerprints and
+`governed` copies at each worker's conftest import, so every worker asserts about one
+coherent revision, which is what RK263 and RK315 asked for.
+
+What is left to decide is the default distribution, and RK458 is why that is a decision
+rather than a flag.
+
+### §RK458 An order nobody chose is holding a test up
+
+Under `-n 16` with xdist's default distribution,
+`test_a_pointer_another_prose_role_answers_asks_for_nothing` failed once in five runs.
+It passes alone, passes with its own file, and passes under `--dist loadfile` — which is
+the shape of a test reading state that another file's test left behind, since only the
+default distribution interleaves tests from two files inside one worker.
+
+It is worth an id rather than a workaround, because the coupling is there whether or not
+anything runs in parallel. The serial suite passes for a reason nobody has stated, so
+the day a file is renamed, a test is inserted, or a run is randomised, the same red
+arrives with nothing to blame it on — and the report will name a test whose own
+assertion is about none of it, which is the failure mode RK263, RK315 and RK351 each
+answered once already.
+
+This project's answer to that class is an inventory rather than a call site: `VOLATILE`
+names the caches an autouse fixture clears and states why the others are cleared for
+nothing (RK268), and the staleness baseline is pinned per test (RK351). So the finding
+is a seventh cache, a module-level constant, or a global nothing in that set covers —
+and whichever it is, the inventory is where it belongs, not a `sort` on the worker's
+queue.
+
+Until then `--dist loadfile` is the honest default. Closing this is what makes `load`
+the default and the run under a minute.
 
 ## Block E — Adoption
 

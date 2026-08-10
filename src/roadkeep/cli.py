@@ -6640,7 +6640,10 @@ def _anchors(config: Config, args: argparse.Namespace) -> int:
             # The file, wherever the project has more than one: two rows spelling the same
             # address are the doubling, and unlabelled they read as one row printed twice.
             named = f"  in {one.role}" if len(read) > 1 else ""
-            print(f"  {'live' if one.live else 'retired':<8} {one.anchor}{named}{written}")
+            print(
+                f"  {'live' if one.live else 'retired':<8} {one.anchor}{named}{written}"
+                f"{_ownership(one)}"
+            )
         print(f"  next     §{next_child(whole, args.family)} — nothing ever used it")
         _doubled(whole)
         return EXIT_OK
@@ -6724,6 +6727,28 @@ def _next_anchor(args: argparse.Namespace, whole, spread) -> int:
     return EXIT_OK
 
 
+def _ownership(one: Anchor) -> str:
+    """Who binds this address and who points at it, where either is worth saying (RK453).
+
+    Silent on the ordinary row — a heading bound to the one line that claims it is the state
+    every write produces, and repeating it on every address would bury the two that are not.
+    What it names is exactly the two ways they come apart, and each is a different act: an
+    unbound heading a line claims is `section amend --title` away from bound, and a bound
+    heading nothing claims is prose whose task has left, which is the reader's to keep or
+    delete. Retired addresses say nothing: there is no heading to have an opinion about.
+    """
+    if not one.live:
+        return ""
+    if one.binds and one.claimed == (one.binds,):
+        return ""
+    if not one.binds:
+        claimed = ", ".join(one.claimed)
+        return f"  binds nobody, claimed by {claimed}" if claimed else "  binds nobody, unclaimed"
+    if not one.claimed:
+        return f"  binds {one.binds}, which no open line claims"
+    return f"  binds {one.binds}, claimed by {', '.join(one.claimed)}"
+
+
 def _anchor_row(one: Anchor) -> dict[str, object]:
     return {
         "anchor": one.anchor,
@@ -6732,6 +6757,13 @@ def _anchor_row(one: Anchor) -> dict[str, object]:
         "role": one.role,
         "live": one.live,
         "written_in": one.written_in or None,
+        # The two facts RK453 adds, and they are two because they come apart in both
+        # directions: a heading binding nobody that a line claims is RK452's write left
+        # undone on an older corpus, and one binding a task no live line claims is prose
+        # whose task has shipped. Null and `[]` on a retired address, which has no heading.
+        "binds": one.binds or None,
+        "claimed": list(one.claimed),
+        "orphaned": one.orphaned,
     }
 
 

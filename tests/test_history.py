@@ -1592,3 +1592,90 @@ def test_a_removed_line_counts_because_that_is_what_a_departure_leaves(tmp_path)
     config.path("roadmap").write_text("".join(kept), encoding="utf-8")
 
     assert carrying(config, "RK2", ["ROADMAP.md"]) == ("ROADMAP.md",)
+
+
+# -- which lines claim an address, beside whether it is spent (RK453) ---------
+
+
+def claimants(config: Config, *pointers: str) -> None:
+    """Give the roadmap one open line per pointer, so an address has claimants to name."""
+    path = config.path("roadmap")
+    lines = path.read_text(encoding="utf-8").splitlines(keepends=True)
+    for at, ref in enumerate(pointers, start=1):
+        lines.append(
+            f"- 📋 **RK{90 + at}** (deps: —) **A symptom number {at}** — Because. → §{ref}\n"
+        )
+    with path.open("w", encoding="utf-8", newline="") as handle:
+        handle.write("".join(lines))
+
+
+def test_a_live_heading_says_which_task_it_binds(tmp_path):
+    """Under an outline the id in the heading is the ownership (RK262), and until this read
+    it was visible only as `ship`'s `kept` field scrolling past."""
+    config = outlined(tmp_path)
+    design(config, "### XXXVII.1 A bound design (RK91)", "docs: file it")
+    claimants(config, "XXXVII.1")
+    found = anchors(config, "improvements", "XXXVII")
+    assert [(one.anchor, one.binds, one.claimed) for one in found] == [
+        ("XXXVII.1", "RK91", ("RK91",))
+    ]
+    assert not found[0].orphaned
+
+
+def test_a_heading_written_before_its_line_binds_nobody_and_says_so(tmp_path):
+    """RK452 stops this being created and does not reach a corpus already holding it. The
+    fixture's §I.1 was found by reading a field as it scrolled past, and Shio's the same."""
+    config = outlined(tmp_path)
+    design(config, "### XXXVII.1 An unbound design", "docs: file it")
+    claimants(config, "XXXVII.1")
+    found = anchors(config, "improvements", "XXXVII")
+    assert found[0].binds == "" and found[0].claimed == ("RK91",)
+    assert not found[0].orphaned  # a line claims it; what is missing is the binding
+
+
+def test_a_heading_no_open_line_claims_is_named(tmp_path):
+    """`live` answered a different question — RK247 built it about address reuse — so a
+    section written for a task that has since shipped was counted among the working ones."""
+    config = outlined(tmp_path)
+    design(config, "### XXXVII.1 A design whose task has gone (RK91)", "docs: file it")
+    found = anchors(config, "improvements", "XXXVII")
+    assert found[0].binds == "RK91" and found[0].claimed == ()
+    assert found[0].orphaned
+
+
+def test_a_retired_address_is_asked_nothing_about_ownership(tmp_path):
+    """There is no heading left to read an id off, and a live line pointing at an address
+    nothing declares is `ref.unresolved` — reading it here would be a second gate."""
+    config = outlined(tmp_path)
+    design(config, "### XXXVII.1 A design", "docs: file it")
+    unwrite(config, "### XXXVII.1 A design", "feat: it shipped (RK91)")
+    found = anchors(config, "improvements", "XXXVII")
+    assert found[0].live is False
+    assert found[0].binds == "" and found[0].claimed == () and not found[0].orphaned
+
+
+def test_the_listing_says_nothing_about_the_ordinary_row(tmp_path, capsys):
+    """A heading bound to the one line that claims it is what every write produces, and
+    repeating it on every address would bury the two that are not."""
+    config = outlined(tmp_path)
+    design(config, "### XXXVII.1 A bound design (RK91)", "docs: file it")
+    claimants(config, "XXXVII.1")
+    assert main(["-C", str(tmp_path), "anchors", "--family", "XXXVII"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "binds" not in out and "claimed" not in out
+
+
+def test_the_listing_names_each_way_they_come_apart(tmp_path, capsys):
+    config = outlined(tmp_path)
+    design(config, "### XXXVII.1 An unbound design", "docs: file it")
+    design(config, "### XXXVII.2 A design whose task has gone (RK92)", "docs: file it")
+    claimants(config, "XXXVII.1")
+    assert main(["-C", str(tmp_path), "anchors", "--family", "XXXVII"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "binds nobody, claimed by RK91" in out
+    assert "binds RK92, which no open line claims" in out
+
+    assert main(["-C", str(tmp_path), "anchors", "--family", "XXXVII", "--json"]) == EXIT_OK
+    rows = {row["anchor"]: row for row in json.loads(capsys.readouterr().out)["anchors"]}
+    assert rows["XXXVII.1"]["binds"] is None and rows["XXXVII.1"]["claimed"] == ["RK91"]
+    assert rows["XXXVII.2"]["binds"] == "RK92" and rows["XXXVII.2"]["orphaned"] is True

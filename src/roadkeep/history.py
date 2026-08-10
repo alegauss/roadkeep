@@ -25,12 +25,12 @@ import re
 import shutil
 import subprocess
 from collections.abc import Iterator, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 from roadkeep.config import PROSE_ROLES, Config
 from roadkeep.schema import REF_SEPARATOR, Schema, split_ref
-from roadkeep.sections import find
+from roadkeep.sections import find, owners
 
 _UNIT = "\x1f"  # between fields
 _RECORD = "\x1e"  # between commits — a body may hold newlines, so lines will not do
@@ -725,6 +725,24 @@ class Anchor:
     #: The first commit that wrote the heading, where history reaches it — a file older than
     #: the clone has live anchors nothing here can date, and that is not a state to hide.
     written_in: str = ""
+    #: The task the **heading** names, or `""` where it names none (RK453). Under an outline
+    #: that id is the ownership (RK262), and until this read it was visible only as `ship`'s
+    #: `kept` field scrolling past. Empty on a retired anchor, which has no heading left.
+    binds: str = ""
+    #: Every **live line** pointing at this address, roadmap and deferred store, in the order
+    #: those files hold them. Two facts and not one, because they come apart in both
+    #: directions and each way is a different thing to do: a heading binding nobody that a
+    #: line claims is RK452's write left undone on a corpus that predates it, and one binding
+    #: a task no live line claims is prose whose task has shipped — what `ship` reports once
+    #: and no reader has held since.
+    claimed: tuple[str, ...] = ()
+
+    @property
+    def orphaned(self) -> bool:
+        """A live heading no open line points at. Not a violation — RK236 settled that a
+        heading naming no task is prose belonging to none, which a standing memo genuinely
+        is — so it is a fact this read states and the gate stays out of."""
+        return self.live and not self.claimed
 
 
 def anchors(config: Config, role: str = "", family: str = "") -> tuple[Anchor, ...]:
@@ -775,10 +793,46 @@ def anchors(config: Config, role: str = "", family: str = "") -> tuple[Anchor, .
     # The namespace is not part of the numbering (RK340): `S:IX` spells nine in Roman, and a
     # set read with the prefix on it would answer "no numerals here" and sort as text.
     numbered = bool(found) and all(numeral(_family_of(one.anchor)) for one in found)
-    wanted = [one for one in found if _within(one.anchor, family)]
+    wanted = [_claimed(config, one) for one in found if _within(one.anchor, family)]
     # The role breaks the tie, so an address two files declare comes out as two adjacent
     # rows in `[files]` order — which is the doubling, reported rather than collapsed.
     return tuple(sorted(wanted, key=lambda one: (_ordinal(one, numbered), one.role)))
+
+
+def _claimed(config: Config, anchor: Anchor) -> Anchor:
+    """Fill in who binds this address and who points at it (RK453).
+
+    RK452 stops the unbound heading being created and does not reach the corpora already
+    holding one — and no command listed them, so the fixture's §I.1 was found by reading
+    `ship`'s `kept` field as it scrolled past, and Shio's the same way. `anchors` was the
+    only verb that lists sections and its `live` answers a different question: RK247 built it
+    about address *reuse*, so `live` means a heading declares the address now, and one
+    written for a task that has since shipped is counted among the working ones.
+
+    Both files a line can be open in, for :func:`families_of_block`'s reason: a design whose
+    task is paused is claimed, and answering "nobody" about it would name prose to delete.
+
+    Retired anchors are left alone. There is no heading to read an id off, and a claimant
+    would be a live line pointing at an address nothing declares, which `lint` already
+    refuses as `ref.unresolved` — a second reading of it here would be a second gate.
+    """
+    if not anchor.live:
+        return anchor
+    section = None
+    if config.has(anchor.role):
+        section = find(config.document(anchor.role), anchor.anchor)
+    binds = ""
+    if section is not None:
+        named = owners(section, config.schema.id_pattern())
+        binds = named[0] if named else ""
+    claimed = tuple(
+        entry.task.id
+        for role in ("roadmap", "deferred")
+        if config.has(role)
+        for entry in config.document(role).entries
+        if entry.task.ref == anchor.anchor
+    )
+    return replace(anchor, binds=binds, claimed=claimed)
 
 
 def families_of_block(config: Config, block: str) -> tuple[str, ...]:

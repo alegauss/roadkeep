@@ -221,6 +221,7 @@
 - ✅ **RK441** **Three copies price a lexical duplicate match at 33rd, and re-measuring this ledger does not reproduce it** — All three copies argue from the score instead of a rank the ledger contradicts, and a test holds them there: the ranking is fine and the absolute score is not comparable.
 - ✅ **RK442** **delivered prints a whole block's ledger to answer whether one proposal collides with it** — delivered --near ranks the block against the sentence being proposed and prints the five nearest, which held every pair this ledger knows the answer to, with no score and no index.
 - ✅ **RK446** **An empty --near is answered with the whole block instead of being refused** — The flag fell through to the unbounded listing, so a read asked for five entries came back with 103 and nothing in the answer or the exit code said which question it answered.
+- ✅ **RK453** **No read says which outline sections a backlog still owns, so prose a departure left is found by grepping** — anchors says per address which task its heading binds and which live lines claim it, so an unbound heading and prose whose task has left are both one call away.
 
 ## Block D — The gate
 

@@ -118,15 +118,15 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 31 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 103 | 1 |
-| C — Query (consult without reading the file) | 1 | 67 | 1 |
-| D — The gate | 1 | 93 | 0 |
+| C — Query (consult without reading the file) | 0 | 68 | 1 |
+| D — The gate | 5 | 93 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 75 | 1 |
-| **Total** | 2 | 443 | 6 |
+| **Total** | 5 | 444 | 6 |
 
 **Next ready:**
 
-- 📋 **RK453** (deps: RK452 ✅) **No read says which outline sections a backlog still owns, so prose a departure left is found by grepping** — Ownership under an outline is the id in the heading, and anchors reports only whether an address is spent, so a heading binding nobody reads like one whose task is open. → §RK453
+- 📋 **RK454** (deps: —) **A governed file with NUL bytes among its text is 400 findings whose named --fix changes nothing** — RK451 caught the file that is all NUL and left the partial one, where the pass claims every finding, writes no byte, and returns the same report on the next run. → §RK454
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
