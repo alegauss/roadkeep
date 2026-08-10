@@ -26,8 +26,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK459** (deps: —) **The ownership an address states is reachable one family at a time, so an audit costs a call per family** — RK453 put binds and claimed on every row and the unnarrowed listing prints families, so a corpus of forty numerals answers in forty reads the question it was added for. → §RK459
-
 ## Block D — The gate
 
 - 📋 **RK460** (deps: —) **Running one test file is 33 times slower than before, because -n auto spawns a worker per core for it** — RK457 bought the full run five minutes and charged the narrow one: each of 28 workers pays this conftest's fingerprint and copy before it runs a test. → §RK460

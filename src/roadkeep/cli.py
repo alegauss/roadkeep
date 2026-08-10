@@ -1818,6 +1818,15 @@ def build_parser() -> argparse.ArgumentParser:
             "anchors, and the read an `add --ref` makes every time"
         ),
     )
+    anchors_parser.add_argument(
+        "--claims",
+        action="store_true",
+        help=(
+            "only the addresses whose ownership is not the ordinary one: a heading binding "
+            "nobody, and one binding a task no open line claims — the audit, over every "
+            "family at once, since the rows it leaves out are the ones nobody reads"
+        ),
+    )
     anchors_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     anchors_parser.set_defaults(handler=_anchors, reads_only=True)
 
@@ -6608,7 +6617,14 @@ def _anchors(config: Config, args: argparse.Namespace) -> int:
                     # The rows are the answer where a family was named, and the families are
                     # the answer where none was (RK264's rule, applied before it was asked):
                     # 287 retired addresses is not a listing anybody reads.
-                    "anchors": [_anchor_row(one) for one in found] if args.family else [],
+                    # Under `--claims` the rows *are* the answer whatever the family, which
+                    # is the whole of RK459: the listing RK264 withholds is the one nobody
+                    # reads, and this one is only ever the exceptions.
+                    "anchors": [
+                        _anchor_row(one)
+                        for one in found
+                        if args.family or (args.claims and _ownership(one))
+                    ],
                     "families": [] if args.family else _families(outline),
                     "id_anchors": spent,
                     # Both free addresses are the **project's** even where the listing was
@@ -6646,6 +6662,18 @@ def _anchors(config: Config, args: argparse.Namespace) -> int:
         return _next_anchor(args, whole, spread)
 
     where = ", ".join(config.relative(config.path(one)) for one in read)
+    if args.claims:
+        # Its own header and not a second one under the totals (RK459): this listing is the
+        # exceptions, so the number a reader wants first is how many there are of them.
+        rows = [one for one in found if _ownership(one)]
+        print(
+            f"{len(rows)} of {len(found)} address(es) say something about ownership  ({where})"
+        )
+        for one in rows:
+            named = f"  in {one.role}" if len(read) > 1 else ""
+            print(f"  {one.anchor}{named}{_ownership(one)}")
+        _doubled(whole)
+        return EXIT_OK
     print(f"{len(found)} anchor(s), {len(retired)} retired  ({where})")
     if block:
         # Said whichever way it went (RK312): one family is the narrowing the rest of this

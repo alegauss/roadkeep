@@ -1054,9 +1054,13 @@ def test_the_brief_command_and_the_pick_report_a_hold_the_same_way(tmp_path, cap
     briefed = json.loads(capsys.readouterr().out)
     assert main(["-C", str(tmp_path), "pick", "--json"]) == EXIT_OK
     picked = json.loads(capsys.readouterr().out)
-    # One fact spelled two ways is two facts.
-    assert briefed["held"] == picked["held"]
+    # One fact spelled two ways is two facts — and the fact is the *shape*, not the second
+    # the two calls happened in (RK458). Comparing the payloads whole put the elapsed time
+    # between them into the assertion, so a worker that took a second between the two reads
+    # failed a test about neither timing nor load.
+    assert [row["id"] for row in briefed["held"]] == [row["id"] for row in picked["held"]]
     assert len(picked["held"]) == 1 and fresh(picked["held"][0], "RK2")
+    assert fresh(briefed["held"][0], "RK2")
     assert main(["-C", str(tmp_path), "brief"]) == EXIT_OK
     assert held_line(capsys.readouterr().out, "held     RK2 was claimed {} ago and is not offered")
 

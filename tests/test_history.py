@@ -1665,3 +1665,51 @@ def test_the_listing_names_each_way_they_come_apart(tmp_path, capsys):
     rows = {row["anchor"]: row for row in json.loads(capsys.readouterr().out)["anchors"]}
     assert rows["XXXVII.1"]["binds"] is None and rows["XXXVII.1"]["claimed"] == ["RK91"]
     assert rows["XXXVII.2"]["binds"] == "RK92" and rows["XXXVII.2"]["orphaned"] is True
+
+
+def test_the_audit_needs_no_family_and_leaves_out_what_nobody_reads(tmp_path, capsys):
+    """RK459. RK453 put `binds` and `claimed` on every row, and RK264 prints rows only under
+    `--family` — rightly, since unnarrowed this repository lists 287 retired addresses. So
+    the two facts it added were reachable one numeral at a time, and the corpus they were
+    written for spans dozens of them: the audit cost a call per family, on the adopting
+    project that most needs it.
+
+    What is filtered out is exactly what `_ownership` already stays silent about, which is
+    why the listing is small on any corpus and needs no family at all.
+    """
+    config = outlined(tmp_path)
+    design(config, "### XXXVII.1 An unbound design", "docs: file it")
+    design(config, "### XXXVIII.1 A design whose task has gone (RK99)", "docs: file it")
+    design(config, "### XXXIX.1 An ordinary design (RK92)", "docs: file it")
+    # RK91 claims the first pointer and RK92 the second, so the third row is the ordinary
+    # one: a heading bound to the single line that claims it.
+    claimants(config, "XXXVII.1", "XXXIX.1")
+    assert main(["-C", str(tmp_path), "anchors", "--claims"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "2 of 3 address(es) say something about ownership" in out
+    assert "XXXVII.1  binds nobody, claimed by RK91" in out
+    assert "XXXVIII.1  binds RK99, which no open line claims" in out
+    # The ordinary row is what every write produces, and printing it would bury the two.
+    assert "XXXIX.1" not in out
+
+
+def test_the_audit_carries_the_rows_in_the_payload_too(tmp_path, capsys):
+    config = outlined(tmp_path)
+    design(config, "### XXXVII.1 An unbound design", "docs: file it")
+    design(config, "### XXXIX.1 An ordinary design (RK92)", "docs: file it")
+    claimants(config, "XXXVII.1", "XXXIX.1")
+    assert main(["-C", str(tmp_path), "anchors", "--claims", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert [row["anchor"] for row in payload["anchors"]] == ["XXXVII.1"]
+    assert payload["anchors"][0]["binds"] is None
+
+
+def test_a_retired_address_is_never_in_the_audit(tmp_path, capsys):
+    """It has no heading to have an opinion about, which is the same reason `_ownership`
+    says nothing about one."""
+    config = outlined(tmp_path)
+    design(config, "### XXXVII.1 A design", "docs: file it")
+    unwrite(config, "### XXXVII.1 A design", "feat: it shipped (RK91)")
+    assert main(["-C", str(tmp_path), "anchors", "--claims"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "0 of 1 address(es)" in out and "XXXVII.1" not in out
