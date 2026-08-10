@@ -81,6 +81,74 @@ already written, not authorship.
 
 ## Block D — The gate
 
+### §RK489 Subjects and narrowing flags, declared once
+
+`_budget` names its four subjects in a list, refuses two of them together, then checks
+each narrowing flag against the subject that actually answered. That code is right, and
+it is twenty-five hand-written lines of it, for one verb out of eighty.
+
+Every other multi-subject verb either repeats the shape or does not have it. RK465 found
+`--role` swallowed beside three subjects; RK466 found two commands taking two answers
+and printing one; RK467 added a sweep over boolean pairs, which is a backstop and says
+so — it finds the next one after it has been written, never before.
+
+The facts are declarable at `add_parser` time: which flags are subjects of a verb, which
+flag narrows which subject, and what the refusal says when two arrive or when a
+narrowing flag stands alone. Declared there, one dispatcher enforces them for every
+verb, argparse's own mutually-exclusive group covers the pair it can express, and the
+sweep becomes a property that cannot fail rather than a search that has to keep running.
+
+This is the tool's own thesis turned on itself: the saving is the analysis, not the
+characters. A sweep reports after a flag has been added that nothing reads; a
+declaration refuses before a subparser exists that can swallow one.
+
+### §RK490 A remedy row derives what its finding already knows
+
+`_TABLE` is total over the codes the package can emit and the suite asserts it (RK421),
+so no finding reaches a caller without a door. What each row *states* is held to
+nothing: the argv, the sentence describing the defect and the sentence describing the
+repair are three strings an author wrote beside each other.
+
+So the failures are per-row, and each is found by example. RK468: a row whose sentence
+named one verb and whose remedy named another. RK470: a section remedy that omitted
+which prose file the finding was in, visible only on a project declaring two. RK472: a
+door `block drop` refuses, dispatched by `repair` anyway, because runnability was a
+property of the row's kind instead of the finding's state.
+
+Three different rows, and none of them the last one. What binds them is that a row
+repeats what the finding already knows — its subject, its file, its verb — rather than
+deriving it. Substitution reaches `{id}`, `{line}` and `{label}` and stops, which is why
+`{first}` and `{role}` sat named and unsubstituted for years.
+
+The repair is to make a finding carry the fields its door needs and the row name them,
+so the table states only what is genuinely per-code. Then the agreement between a row
+and the finding it closes is one property over the whole table, instead of a defect
+discovered one row at a time.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
+
+### §RK488 One renderer for a message that offers a call
+
+`provenance.invocation` answers how a shell reaches this engine and `provenance.serving`
+answers which prefix this session's tools arrive under. Both are central, and neither is
+what an emitter needs: what a module prints is a sentence *around* a command — a route,
+a demotion, an offer, a refusal — and that composition lives at each site. So a fact
+that changes shape, as the tool surface did, is applied by visiting every printer.
+
+The count today: guarding spells a command thirteen times, provenance ten, serving nine,
+capturing six, linting five, installing five. RK444, RK447, RK448, RK475, RK477 and
+RK479 each moved one site, and nothing ever said how many were left — a literal command
+inside an f-string is not something the suite can enumerate.
+
+`remedying.Door` is the shape that already works: argv plus what it does, rendered as a
+shell line or as a tool call by whoever prints it, with `foreign` for the door another
+tool owns. What is missing is that every other emitter goes through it, and a property
+that no module outside the renderer spells a command at all — the same total-domain
+assertion RK421 makes about codes, which is what turned the remedy table from a
+convention into a schema.
+
+Then a seventh surface costs one change, and the tool's own L1 holds where it currently
+does not: enforced where the text is created, rather than found afterwards one message
+at a time.
