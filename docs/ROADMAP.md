@@ -24,8 +24,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK495** (deps: —) **A scope declaring a directory stages every file under it and reports each one as claimed by nothing** — The staging line and the loose list are one command's two halves, and only one of them reads a directory as covering what is under it. → §RK495
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate

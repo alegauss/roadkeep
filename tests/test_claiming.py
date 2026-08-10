@@ -1361,6 +1361,36 @@ def test_a_declared_directory_stages_what_is_under_it(tmp_path):
     assert split.idle == ()
 
 
+def test_a_declared_directory_speaks_for_the_files_under_it(tmp_path):
+    """RK495. The staging line and the loose list are one command's two halves, and a scope
+    of `src/` used to print `git add -- src/` and then report `src/a.py` as named by nobody —
+    which is the analysis a caller acts on, telling them their own work is somebody else's."""
+    config = project(tmp_path, BLOCKS + line("RK2"))
+    take(config)
+    claiming.scope(config, "RK2", ["src/"])
+    entries = config.document("roadmap").entries
+    split = claiming.split(config, "RK2", entries, ["src/a.py", "src/deep/b.py"])
+    assert split.loose == ()
+    # And it still finds the path the declaration really does not reach — including the
+    # directory whose name only begins the same way, which is a different directory.
+    split = claiming.split(config, "RK2", entries, ["src/a.py", "srcfoo/c.py", "README.md"])
+    assert split.loose == ("README.md", "srcfoo/c.py")
+
+
+def test_another_session_s_directory_is_read_the_same_way(tmp_path):
+    # The same question from the other side (RK495): a holder who scoped by folder was
+    # reported as holding nothing, and every file under it fell to `loose`.
+    config = project(tmp_path, BLOCKS + line("RK2") + line("RK9"))
+    take(config)
+    hold(config, "RK9")
+    claiming.scope(config, "RK2", ["src/a.py"])
+    claiming.scope(config, "RK9", ["docs"])
+    entries = config.document("roadmap").entries
+    split = claiming.split(config, "RK2", entries, ["src/a.py", "docs/ROADMAP.md"])
+    assert split.theirs == (("docs/ROADMAP.md", "RK9"),)
+    assert split.loose == ()
+
+
 def test_a_tracked_path_with_no_change_yet_is_not_a_typo(tmp_path):
     # The reading is *this path stages nothing right now*, and a file the index carries is a
     # real file whose name was not mistyped.

@@ -499,9 +499,11 @@ class Scope:
 
     #: What the claim being committed says its commit owns, in the order it was declared.
     mine: tuple[str, ...] = ()
-    #: `(path, holder)` for every changed path some *other* live claim declared.
+    #: `(path, holder)` for every changed path some *other* live claim covers. The **changed**
+    #: path and never the declaration it fell under (RK495): what a caller leaves alone is a
+    #: file, and a holder who scoped `src/` would otherwise be reported as holding nothing.
     theirs: tuple[tuple[str, str], ...] = ()
-    #: Changed paths no live claim names at all.
+    #: Changed paths no live claim covers at all — by name or by the directory above them.
     loose: tuple[str, ...] = ()
     #: Declared paths that would stage nothing right now (RK295) — in neither the dirty set
     #: nor the index. A subset of :attr:`mine`, in the order it was declared, because this is
@@ -539,42 +541,62 @@ def split(
     file whose name was not mistyped. A caller that omits it gets no idle reading at all
     rather than one made against half the evidence — the empty default is the honest failure,
     since every path would otherwise read as staging nothing.
+
+    All three lists ask :func:`_covers`, which is the whole of RK495: they used to, between
+    them, read a declared directory two ways — `idle` as the `git add --` it becomes, and the
+    other two as a filename — so a claim on `src/` printed the staging line that takes
+    `src/a.py` and, three lines below it, reported `src/a.py` as named by nobody.
     """
     entries = tuple(entries)
     rows = live(config, entries)
     mine = next((one.paths for one in rows if one.id == task_id), ())
     others = elsewhere(config, task_id, entries)
-    spoken = {one for other in others for one in other.paths}
     changed = frozenset(changed)
     known = changed | frozenset(tracked)
     theirs = tuple(
         (one, other.id)
+        for one in sorted(changed)
         for other in others
-        for one in sorted(other.paths)
-        if one in changed
+        if any(_covers(declared, one) for declared in other.paths)
     )
-    named = set(mine) | spoken
+    named = (*mine, *(one for other in others for one in other.paths))
     return Scope(
         mine=mine,
         theirs=theirs,
-        loose=tuple(sorted(one for one in changed if one not in named)),
+        loose=tuple(
+            one
+            for one in sorted(changed)
+            if not any(_covers(declared, one) for declared in named)
+        ),
         idle=() if not known else tuple(one for one in mine if not _stages(one, known)),
     )
+
+
+def _covers(declared: str, path: str) -> bool:
+    """Does a scope that declared ``declared`` speak for ``path`` (RK495)?
+
+    One reading, asked by every list :func:`split` returns, because a scope is a `git add --`
+    argument and that command answers this question the same way whichever list is about to
+    quote it. A **directory** is a legitimate scope — git lists neither `status` nor
+    `ls-files` by one, so a declared `docs/` compared as a filename matches nothing at all —
+    and the trailing slash is the author's spelling rather than a fact, so it comes off before
+    the prefix is built and `src` covers what `src/` does.
+
+    Prefix and not `startswith` alone: `src/` must not answer for `srcfoo/a.py`, which is a
+    different directory whose name begins the same way.
+    """
+    return path == declared or path.startswith(declared.rstrip("/") + "/")
 
 
 def _stages(one: str, known: frozenset[str]) -> bool:
     """Would `git add -- <one>` put anything in the next commit (RK295)?
 
-    A **directory** is a legitimate scope and git lists neither `status` nor `ls-files` by
-    one, so a declared `docs/` compared as a name would read as a typo for every project that
-    declares its scope by folder — the false positive this reading exists to avoid being
-    worth a column rather than a refusal. So a prefix counts, which is exactly what the `git
-    add` this answers for would do with it.
+    The same question :func:`_covers` answers, asked over the whole tree instead of about one
+    path: a declaration stages something exactly where it covers a path git already knows —
+    dirty or in the index. Kept as its own name because what it reports is about the
+    *declaration* (a scope that would stage nothing is a typo) and not about the file.
     """
-    if one in known:
-        return True
-    prefix = one.rstrip("/") + "/"
-    return any(other.startswith(prefix) for other in known)
+    return any(_covers(one, other) for other in known)
 
 
 def writable(config: Config) -> tuple[str, ...]:

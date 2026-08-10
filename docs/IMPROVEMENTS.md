@@ -77,29 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK495 A directory is one path to the staging line and none to the loose list
-
-Reproduced on a scratch project: a claim declaring `src/` printed `stage git add -- src/
-…` and, three lines down, `loose src/a.py (no claim names it)`. One command, one file,
-two answers — and the second is the one a caller acts on, because it is the analysis
-`git add -A` cannot make and the reason a scope is declared at all (RK280).
-
-The split is in `claiming.scope`. `loose` is a subtraction over names — `one for one in
-changed if one not in named` — while `idle` beside it calls `_stages`, which already
-reads a declared directory as covering what is under it, RK295 having found that
-comparing one by name reads as a typo wherever a project scopes by folder. The fact is
-known one attribute from where it is missing.
-
-What it costs is the whole read: a caller declaring `src/` and `tests/` sees their own
-work listed as somebody else's to decide about, and the honest answer to that report is
-to declare every file by hand — the scope this verb exists to spare them. Worse on
-`ship`, which makes the same read at the moment of committing (RK294) with no claim left
-to correct it against.
-
-What proves it: the same declaration answers `loose` empty, a file outside every
-declared path still lands there, and `theirs` reads a directory the same way — a second
-session's `src/` covering `src/a.py` is one question from the other side.
-
 ## Block C — Query
 
 ## Block D — The gate
