@@ -48,7 +48,7 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 
 from roadkeep.authoring import place, remove_entry
-from roadkeep.config import Config
+from roadkeep.config import PROSE_ROLES, Config
 from roadkeep.document import Document, Entry
 from roadkeep.linting import within
 from roadkeep.provenance import invocation, persisted
@@ -408,6 +408,8 @@ def merge(config: Config, role: str, base: str, ours: str, theirs: str) -> Merge
             named = ", ".join(e.task.id for e in document.non_canonical)
             return Merge(role, None, reason=_unreadable(name, named))
     ancestor, mine, yours = versions["the ancestor"], versions[OURS], versions[THEIRS]
+    if role in PROSE_ROLES:
+        return _merge_prose(config, role, ancestor, mine, yours)
 
     decided, doubled, contested, withdrawn = _decide(ancestor, mine, yours)
     if doubled or contested or withdrawn:
@@ -653,6 +655,225 @@ def _decide(
         else:
             contested.append(task_id)
     return decided, tuple(doubled), tuple(contested), tuple(withdrawn)
+
+
+def _merge_prose(
+    config: Config, role: str, ancestor: Document, mine: Document, yours: Document
+) -> Merge:
+    """The same merge, over §sections instead of task lines (RK483).
+
+    A rationale file has no task lines at all, so `_skeleton` was the whole file and `_frame`
+    compared three whole files: any two differing sides refused. `ship` drops a section and
+    one task is one commit, so two branches that shipped anything landed there — measured on
+    a scaffold as two disjoint drops answering *both branches changed the prose*.
+
+    The address is what makes it decidable, and this file has one: a §section is keyed by the
+    anchor `section drop` already takes, so *which section changed* is a question about
+    anchors and never about line numbers. Every rule above is reused with that key.
+
+    **L4 is not weakened.** Taking a whole section from one side is the decision the roadmap
+    makes; merging *inside* one is prose, so a body differing on both sides is `contested`
+    and stays the reviewer's. What is outside the sections is the frame, and both sides
+    moving that still refuses.
+    """
+    decided, doubled, contested, withdrawn = _decide_sections(ancestor, mine, yours)
+    if doubled or contested or withdrawn:
+        return Merge(
+            role,
+            None,
+            doubled=doubled,
+            contested=contested,
+            withdrawn=withdrawn,
+            reason=_spent(doubled, contested, withdrawn),
+        )
+    frame, source, other = _prose_frame(ancestor, mine, yours)
+    if frame is None:
+        return Merge(role, None, reason=_both_sides_moved_the_prose())
+    held = _sections_of(frame)
+    took = tuple(
+        anchor for anchor, lines in decided.items() if lines is not None and held.get(anchor) != lines
+    )
+    removed = tuple(anchor for anchor, lines in decided.items() if lines is None and anchor in held)
+    result = Document.parse(_written(frame, other, decided), config.schema_for(role))
+    findings = within(config, role, result)
+    if findings:
+        return Merge(role, None, took=took, removed=removed, reason=_refused(findings))
+    return Merge(
+        role,
+        result.render(),
+        took=took,
+        removed=removed,
+        reason="" if source is None else f"prose taken from {source}",
+    )
+
+
+def _sections_of(document: Document) -> dict[str, tuple[str, ...]]:
+    """Every §section's raw lines, keyed by anchor — the unit a prose merge decides.
+
+    **Trailing blanks are off the comparison.** `Section.last` runs to whatever follows, so
+    dropping the section *below* one extends its region to the end of the file — and the
+    first run of this read reported the section nobody touched as `withdrawn`. The blank is
+    a separator between sections and not a fact about either, so it is normalised the way
+    `_skeleton` normalises line endings, and for the same reason: refusing over it refuses
+    every merge.
+    """
+    from roadkeep.sections import anchored  # noqa: PLC0415 - RK260, the prose path only
+
+    found = {}
+    for section in anchored(document):
+        lines = list(document.lines[section.first - 1 : section.last])
+        while lines and not lines[-1].strip():
+            lines.pop()
+        found[section.anchor] = tuple(lines)
+    return found
+
+
+def _decide_sections(
+    ancestor: Document, mine: Document, yours: Document
+) -> tuple[dict[str, tuple[str, ...] | None], tuple[str, ...], tuple[str, ...], tuple[str, ...]]:
+    """`_decide`'s four-way rule with the anchor as the key and the region as the text."""
+    decided: dict[str, tuple[str, ...] | None] = {}
+    doubled: list[str] = []
+    contested: list[str] = []
+    withdrawn: list[str] = []
+    was, here, there = _sections_of(ancestor), _sections_of(mine), _sections_of(yours)
+    for anchor in dict.fromkeys((*was, *here, *there)):
+        before, ours, theirs = was.get(anchor), here.get(anchor), there.get(anchor)
+        if ours == theirs:
+            decided[anchor] = ours
+        elif ours == before:
+            decided[anchor] = theirs
+        elif theirs == before:
+            decided[anchor] = ours
+        elif before is None:
+            doubled.append(anchor)
+        elif ours is None or theirs is None:
+            withdrawn.append(anchor)
+        else:
+            contested.append(anchor)
+    return decided, tuple(doubled), tuple(contested), tuple(withdrawn)
+
+
+def _prose_skeleton(document: Document) -> tuple[str, ...]:
+    """The file with its §sections taken out — what `_skeleton` is for a roadmap."""
+    from roadkeep.sections import anchored  # noqa: PLC0415 - RK260, the prose path only
+
+    inside: set[int] = set()
+    for section in anchored(document):
+        inside |= set(range(section.first, section.last + 1))
+    return tuple(
+        line.rstrip("\r\n")
+        for number, line in enumerate(document.lines, start=1)
+        if number not in inside
+    )
+
+
+def _prose_frame(
+    ancestor: Document, mine: Document, yours: Document
+) -> tuple[Document | None, str | None, Document | None]:
+    """Whose frame the merged file keeps, and the other side, whose new sections still land."""
+    was, here, there = (
+        _prose_skeleton(ancestor),
+        _prose_skeleton(mine),
+        _prose_skeleton(yours),
+    )
+    if there == was or here == there:
+        return mine, None, yours
+    if here == was:
+        return yours, THEIRS, mine
+    return None, None, None
+
+
+def _written(
+    frame: Document, other: Document | None, decided: dict[str, tuple[str, ...] | None]
+) -> str:
+    """The frame with every decided section written into it, and the other side's new ones.
+
+    A walk and not a head/tail split, because a `## Block` heading sits *between* sections in
+    every file organised by blocks, and slicing around the first and last would swallow it.
+
+    A section the frame never had is placed after the anchor that preceded it on its own
+    side, so the order that side chose survives. The ones nothing of the frame's precedes go
+    after the last section rather than at the end of the file — and the ones that follow
+    nothing go before the first. Written down because the first cut of this dropped the
+    trailing case on the floor while reporting it as `took`, which is the silent loss this
+    whole driver exists to refuse.
+    """
+    from roadkeep.sections import anchored  # noqa: PLC0415 - RK260, the prose path only
+
+    held = _sections_of(frame)
+    leading, before, trailing = _arriving(frame, other, decided)
+    spans = sorted((one.first, one.last, one.anchor) for one in anchored(frame))
+    blank = frame.newline
+    # How many blank lines the frame kept after each section, so an unchanged file comes
+    # back byte-identical (L3). `_sections_of` takes them off to compare, and assuming one
+    # back added a line at EOF on every corpus this was run against.
+    pad = {
+        anchor: last - (first - 1) - len(held.get(anchor, ()))
+        for first, last, anchor in spans
+    }
+    out: list[str] = []
+    at = 0
+    for index, (first, last, anchor) in enumerate(spans):
+        out.extend(frame.lines[at : first - 1])
+        if index == 0:
+            out.extend(_spaced(leading, blank))
+        out.extend(_spaced(before.get(anchor, []), blank))
+        lines = decided.get(anchor, held.get(anchor))
+        if lines is not None:
+            out.extend(lines)
+            out.extend([blank] * pad.get(anchor, 1))
+        if index == len(spans) - 1:
+            out.extend(_spaced(trailing, blank))
+        at = last
+    if not spans:  # a frame with no section at all: everything arriving goes after the prose
+        out.extend(frame.lines)
+        out.extend(_spaced([*leading, *before.values(), *trailing], blank))
+        return "".join(out)
+    out.extend(frame.lines[at:])
+    return "".join(out)
+
+
+def _spaced(blocks: list[list[str]], blank: str) -> list[str]:
+    """Section blocks with one blank line after each — the separator `_sections_of` took off."""
+    out: list[str] = []
+    for block in blocks:
+        out.extend(block)
+        out.append(blank)
+    return out
+
+
+def _arriving(
+    frame: Document, other: Document | None, decided: dict[str, tuple[str, ...] | None]
+) -> tuple[list[list[str]], dict[str, list[list[str]]], list[list[str]]]:
+    """New sections as (before the first, before a named anchor, after the last).
+
+    Three buckets rather than one, because a new section can precede every anchor the frame
+    has, follow every one, or sit between two — and a single map keyed by "what comes after"
+    has no key for the last case.
+    """
+    from roadkeep.sections import anchored  # noqa: PLC0415 - RK260, the prose path only
+
+    leading: list[list[str]] = []
+    before: dict[str, list[list[str]]] = {}
+    trailing: list[list[str]] = []
+    if other is None:
+        return leading, before, trailing
+    held = _sections_of(frame)
+    order = [one.anchor for one in anchored(other)]
+    for index, anchor in enumerate(order):
+        lines = decided.get(anchor)
+        if anchor in held or lines is None:
+            continue
+        following = next((one for one in order[index + 1 :] if one in held), None)
+        preceding = next((one for one in reversed(order[:index]) if one in held), None)
+        if following is not None:
+            before.setdefault(following, []).append(list(lines))
+        elif preceding is not None:
+            trailing.append(list(lines))
+        else:
+            leading.append(list(lines))
+    return leading, before, trailing
 
 
 def _frame(

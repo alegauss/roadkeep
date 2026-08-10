@@ -201,6 +201,108 @@ def test_it_still_refuses_rather_than_taking_the_removal(tmp_path):
     assert merged.text is None and merged.reason
 
 
+PROSE = """# Improvements
+
+## Block A — The model
+
+### §RK1 The first design
+
+The reasoning the first line has no room for.
+
+### §RK2 The second design
+
+The reasoning the second line has no room for.
+
+### §RK3 The third design
+
+The reasoning the third line has no room for.
+"""
+
+
+def without(text: str, anchor: str) -> str:
+    """The file with one §section taken out — how `ship` leaves a rationale file."""
+    out, dropping = [], False
+    for line in text.splitlines(keepends=True):
+        if line.startswith("### §"):
+            dropping = line.startswith(f"### §{anchor} ")
+        if not dropping:
+            out.append(line)
+    return "".join(out)
+
+
+def test_two_branches_that_each_shipped_merge_the_prose_file(tmp_path):
+    """RK483. `_skeleton` is *every line that is not a task line* and a rationale file has
+    none, so the skeleton was the whole file and `_frame` compared three whole files: any two
+    differing sides refused. `ship` drops a section, so two branches that shipped anything at
+    all landed there — measured on a scaffold as two disjoint drops answering *both branches
+    changed the prose*, in a file the guard denies editing and the gate refuses.
+
+    The address is what makes it decidable and this file has one: a §section is keyed by the
+    anchor `section drop` takes."""
+    config = project(tmp_path)
+    ours, theirs = without(PROSE, "RK1"), without(PROSE, "RK3")
+
+    merged = merge(config, "improvements", PROSE, ours, theirs)
+
+    assert merged.clean, merged.reason
+    assert "§RK1" not in (merged.text or "") and "§RK3" not in (merged.text or "")
+    assert "§RK2 The second design" in (merged.text or "")
+
+
+def test_the_prose_merge_gives_an_untouched_file_back_byte_for_byte(tmp_path):
+    """L3 over the merge: nothing changed, so nothing may move. The first cut of the
+    materializer put one blank line at EOF — every corpus it was run against came back one
+    line longer, which is how the section separator turned out to be the frame's fact and
+    not a constant."""
+    config = project(tmp_path)
+    assert merge(config, "improvements", PROSE, PROSE, PROSE).text == PROSE
+    # And one side unchanged is the other side exactly, which is the ordinary rebase.
+    ours = without(PROSE, "RK2")
+    assert merge(config, "improvements", PROSE, ours, PROSE).text == ours
+    assert merge(config, "improvements", PROSE, PROSE, ours).text == ours
+
+
+def test_a_section_arriving_last_is_not_lost_while_being_reported_as_taken(tmp_path):
+    """The bug the first cut of `_written` had: a new section with no frame anchor after it
+    fell through the placement loop and never reached the file, while `took` said it had.
+    Silent loss is the one thing this driver exists to refuse, so it is asserted at all three
+    positions — before every anchor, between two, and after the last."""
+    config = project(tmp_path)
+    added = PROSE + "\n### §RK4 The fourth design\n\nThe reasoning the fourth has no room for.\n"
+
+    merged = merge(config, "improvements", PROSE, PROSE, added)
+
+    assert merged.clean, merged.reason
+    assert "§RK4 The fourth design" in (merged.text or "")
+    assert merged.took == ("RK4",)
+
+
+def test_a_section_both_sides_rewrote_is_still_the_reviewers(tmp_path):
+    """L4 is not weakened by RK483: taking a whole section from one side is the decision the
+    roadmap already makes, and merging *inside* one is prose."""
+    config = project(tmp_path)
+    ours = PROSE.replace("The reasoning the second line has no room for.", "Ours rewrote it.")
+    theirs = PROSE.replace("The reasoning the second line has no room for.", "Theirs rewrote it.")
+
+    merged = merge(config, "improvements", PROSE, ours, theirs)
+
+    assert not merged.clean
+    assert merged.contested == ("RK2",)
+
+
+def test_a_section_one_side_dropped_and_the_other_rewrote_is_withdrawn(tmp_path):
+    """RK482's third category, one file over: `ship` against a `section amend` is the same
+    pair as `ship` against an `amend`, and it asks the same question."""
+    config = project(tmp_path)
+    ours = without(PROSE, "RK2")
+    theirs = PROSE.replace("The reasoning the second line has no room for.", "Theirs rewrote it.")
+
+    merged = merge(config, "improvements", PROSE, ours, theirs)
+
+    assert not merged.clean
+    assert merged.withdrawn == ("RK2",) and merged.contested == ()
+
+
 def test_a_line_the_other_side_removed_goes(tmp_path):
     config = project(tmp_path)
     theirs = "".join(l for l in BASE.splitlines(keepends=True) if "**RK2**" not in l)

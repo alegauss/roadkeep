@@ -33,6 +33,8 @@ from roadkeep.history import HistoryUnavailable
 from roadkeep.cli import main
 from roadkeep.config import Config
 from roadkeep.linting import lint, within
+from roadkeep.merging import merge
+from roadkeep import sections
 
 #: The roles a corpus is read for. The prose file has no task line to round-trip, so it is
 #: read by the section tests at the pin and not here.
@@ -87,6 +89,52 @@ def test_the_live_tree_still_round_trips(corpus):
                 f"differently from what the schema spells, first at line "
                 f"{document.non_canonical[0].lineno}"
             )
+
+
+@pytest.mark.parametrize("corpus", corpora.BOTH, ids=lambda c: c.name)
+def test_the_prose_merge_moves_nothing_it_was_not_asked_to(corpus):
+    """RK483 over a real rationale file, which is what caught the defect in it.
+
+    Three properties, and each is a way the first cut was wrong: merging a file with itself
+    gave it back **one line longer** on all four files here, because the separator between
+    sections was assumed to be one blank rather than read off the frame; and one side
+    unchanged has to give the other side back exactly, or an ordinary rebase rewrites a file
+    nobody edited. The third is the case the task is about — two branches each dropping their
+    own section, which is what two `ship`s look like.
+
+    Held against a live tree rather than a fixture on purpose: 86 and 143 sections, nested,
+    hand-numbered, with block headings between them, is the shape a scaffold does not have.
+    """
+    corpora.require(corpus)
+    settings = corpora.config(corpus)
+    for role in ("improvements", "strategy"):
+        # Declared and not assumed: Shio has no strategy file, and `live` raises for a role
+        # this project never named rather than answering None.
+        if role not in settings.paths:
+            continue
+        source = corpora.live(corpus, role)
+        if source is None:
+            continue
+        schema = settings.schema_for(role)
+        assert merge(settings, role, source, source, source).text == source, role
+        found = sections.anchored(Document.parse(source, schema=schema))
+        leaves = [
+            one
+            for one in found
+            if not any(o is not one and one.first < o.first <= one.last for o in found)
+        ]
+        if len(leaves) < 4:
+            continue
+        first, last = leaves[1], leaves[-2]
+        lines = list(Document.parse(source, schema=schema).lines)
+        ours = "".join(lines[: first.first - 1] + lines[first.last :])
+        theirs = "".join(lines[: last.first - 1] + lines[last.last :])
+        assert merge(settings, role, source, ours, source).text == ours, role
+        both = merge(settings, role, source, ours, theirs)
+        assert both.clean, f"{role}: {both.reason}"
+        left = {one.anchor for one in sections.anchored(Document.parse(both.text, schema=schema))}
+        assert first.anchor not in left and last.anchor not in left, role
+        assert len(left) == len(found) - 2, role
 
 
 @pytest.mark.parametrize("corpus", corpora.BOTH, ids=lambda c: c.name)
