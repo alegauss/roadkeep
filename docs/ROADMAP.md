@@ -26,6 +26,8 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1014** (deps: —) **A project with no queue is told to write the heading by hand, and the verb that would move one says the first writes it** — Each of the two queue doors names the other, so the one edit the guard denies is the only route to a section every other heading has a verb for. → §RK1014
+
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
