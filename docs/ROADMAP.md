@@ -24,8 +24,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK500** (deps: —) **A dep flag naming an id nothing carries is written, and so is one on the block the line is being filed into** — Both are decidable against the backlog the write has already loaded, and the second files a line that no amount of shipping anything else can start. → §RK500
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate

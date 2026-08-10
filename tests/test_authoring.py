@@ -1585,6 +1585,7 @@ NO_POINTER = """# Roadmap
 ## Block A — The model
 
 - 📋 **RK1** (deps: —) **A first symptom** — Because of a reason.
+- 📋 **RK4** (deps: —) **A fourth symptom** — Because of a fourth reason.
 """
 
 
@@ -1621,6 +1622,8 @@ def test_a_dep_is_read_under_the_files_own_grammar_too(tmp_path):
     # The same attribute one line up: `read_deps` parsed the amended tokens against the
     # project default, so a role whose rules move the dep field read them by another file's.
     config = _excused(tmp_path)
+    # A dep this backlog carries, because a write now refuses one it does not (RK500) and
+    # what is under test here is the *grammar* the token is read under.
     amended = amend(config, "RK1", deps=["RK4"])
     assert "RK4" in amended.rendered
 

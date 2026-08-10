@@ -77,29 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK500 Two deps a write states about a backlog it is holding open
-
-The other two of RK498's five. `add --dep RK999` is written and the gate reports
-`deps.unknown`; `add --block A --dep "Block A"` is written and the gate reports
-`deps.cycle`, the line being inside the set it waits on.
-
-The first is worse than it reads, because the write already treated the token as an id:
-the next derived number stepped over RK999, so the id was spent by a line that names
-nothing. A dep the write cannot resolve is therefore not ignored — it costs an address.
-
-Both are answerable from what the verb has in hand. `Backlog` is loaded to place the
-line and to derive the id, and it is the same reader the gate asks; nothing here needs
-git, a second file or a listing.
-
-The boundary is `deps.retired` and `deps.stale`, which stay the gate's: those become
-true when a *later* write moves the line the dep names, and the write that stated it was
-correct when it ran. What is claimed here is only the pair a write can decide about the
-tree in front of it.
-
-What proves it: both are refused naming the dep, `gaps` is still what a caller reaches
-for when an id really did leave, the derived id no longer steps over a token nothing
-carries, and the register's two rows move to `refused`.
-
 ## Block C — Query
 
 ## Block D — The gate

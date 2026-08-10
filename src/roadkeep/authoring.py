@@ -49,7 +49,7 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass, replace
 
 from roadkeep import claiming, sections
-from roadkeep.backlog import Backlog, NotOpen
+from roadkeep.backlog import Backlog, DepStatus, NotOpen
 from roadkeep.claiming import Followed
 from roadkeep.config import PROSE_ROLES, ROLES, Config
 from roadkeep.document import (
@@ -113,6 +113,64 @@ class DuplicateId(ValueError):
         super().__init__(
             f"{task_id} appears at {where}:{lines}: one line per task, and two lines "
             f"carry two statuses — `lint` reports this, and it is fixed by hand"
+        )
+
+
+class NoSuchDep(ValueError):
+    """A dep naming an id neither governed file carries (RK500).
+
+    The gate's `deps.unknown`, asked where the token is typed. Measured by RK498's register
+    as one of the five findings a write accepted, and the one that costs more than it reads:
+    the write already treats the token as an id, so the next derived number steps **over** it
+    (RK431) — an unresolvable dep is therefore not ignored, it spends an address.
+
+    Decidable from what the verb is already holding. `Backlog` is loaded to place the line
+    and to derive the annotation, and it is the same reader the gate asks; nothing here needs
+    git, a second file or a listing.
+
+    Only `UNKNOWN`, which is the resolver's own answer and not a guess about the token: work
+    outside this backlog and a paused dep both resolve to something else, and refusing either
+    would refuse a line that states a fact honestly (RK92).
+    """
+
+    def __init__(self, task_id: str, deps: Sequence[str], where: str) -> None:
+        self.task_id = task_id
+        self.deps = tuple(deps)
+        named = ", ".join(self.deps)
+        super().__init__(
+            f"{task_id} would wait on {named}, which {'are' if len(self.deps) > 1 else 'is'} "
+            f"in neither {where} nor the changelog: nothing can say whether it is done — "
+            f"state the dep it meant, or `gaps` reads where the id went"
+        )
+
+
+class CyclicDep(ValueError):
+    """A dep that would leave the line waiting on itself (RK500).
+
+    The gate's `deps.cycle`, asked before the line exists. Two shapes reach it and the
+    refusal is one: a dep whose own blockers walk back to this task, and a `Block X` dep
+    naming the block the line is being **filed into** — the block cannot empty until this
+    line ships, so the line waits on itself.
+
+    The second needs saying explicitly, because it is the one the graph cannot see: the line
+    is not in the backlog yet, so expanding `Block X` yields the members it has *now* and
+    this task is not among them. It becomes a member the moment the write lands, which is
+    what makes the answer decidable and not a prediction.
+    """
+
+    def __init__(self, task_id: str, dep: str, *, joins: bool = False) -> None:
+        self.task_id = task_id
+        self.dep = dep
+        super().__init__(
+            f"{task_id} would wait on {dep}, "
+            + (
+                f"which is the block this line is filed under: the block cannot empty "
+                f"until this line ships, so no amount of shipping anything else makes it "
+                f"ready"
+                if joins
+                else f"whose own blockers walk back to {task_id}, so nothing in the group "
+                f"can be started"
+            )
         )
 
 
@@ -369,6 +427,50 @@ def remove_entry(document: Document, entry: Entry) -> Document:
     return updated
 
 
+def refuse_deps(config: Config, backlog: Backlog, task: Task) -> None:
+    """Refuse the two deps a write can decide about the backlog in front of it (RK500).
+
+    L1 for the dep field: the gate reports `deps.unknown` and `deps.cycle` about a line that
+    is already in the file, and both are answerable from the :class:`~roadkeep.backlog.Backlog`
+    this verb loaded to place the line and derive its annotation.
+
+    **What stays the gate's, and why the boundary is not arbitrary.** `deps.retired` and
+    `deps.stale` become true when a *later* write moves the line the dep names — the write
+    that stated it was correct when it ran, so there was nothing to refuse. These two are
+    false the moment they are written.
+
+    The cycle walk uses :func:`~roadkeep.graph._hops` on the task **as it would be**, which
+    is why it is that function and not :meth:`Graph.of`: the line may not be in the backlog
+    yet, and asking the graph about an id it has never seen answers about nothing.
+    """
+    # Deferred: `graph` reads a backlog and this module writes one, so the edge runs one way
+    # at import and the other at call time (RK260).
+    from roadkeep.graph import Graph, _hops  # noqa: PLC0415 - RK500
+
+    where = config.relative(config.path("roadmap"))
+    unknown = [
+        resolution.dep.id
+        for resolution in backlog.resolve(task)
+        # A line naming **itself** is the schema's `deps.self`, decided from the field alone
+        # and with a message of its own. Answering it here first would report a dep in
+        # neither file, which is true and is the less useful of the two things to say.
+        if resolution.status is DepStatus.UNKNOWN and resolution.dep.id != task.id
+    ]
+    if unknown:
+        raise NoSuchDep(task.id, unknown, where)
+    schema = backlog.config.schema
+    for dep in task.deps:
+        # The block this line is filed under, which the expansion below cannot know about.
+        if schema.classify_dep(dep).collective and dep.id == f"Block {task.block}":
+            raise CyclicDep(task.id, dep.id, joins=True)
+    graph = Graph.of(backlog)
+    for hop in _hops(backlog, task):
+        if not hop.walkable:
+            continue
+        if hop.target == task.id or task.id in graph.reach(hop.target):
+            raise CyclicDep(task.id, hop.via)
+
+
 def add(
     config: Config,
     *,
@@ -450,10 +552,15 @@ def add(
     # the line still has to pass before the paragraph is fetched. A `str` costs nothing to
     # look at twice, which is the whole distinction and the reason it is drawn on the type.
     _refuse_together(config, task, section)
+    backlog = Backlog.load(config)
+    # Before `place`, which is where the line stops being a proposal: a dep nothing carries
+    # and one that closes a loop are both facts about this backlog, and both are false now
+    # rather than later (RK500).
+    refuse_deps(config, backlog, task)
     insertion = replace(
         place(
             config.document("roadmap"),
-            derive(Backlog.load(config), task),
+            derive(backlog, task),
             role="roadmap",
             config=config,
         ),
@@ -853,6 +960,8 @@ def amend(
         else read_deps(", ".join(deps), roadmap.schema),
         ref=entry.task.ref if ref is None else ref,
     )
+    if deps is not None:
+        refuse_deps(config, backlog, wanted)
     # Derived on write like every other annotation (RK8): the author names the dep and the
     # tool states whether it shipped.
     updated = sections.checked(config, derive(backlog, wanted), schema=roadmap.schema)

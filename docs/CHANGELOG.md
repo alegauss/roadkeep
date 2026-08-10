@@ -153,6 +153,7 @@
 - ✅ **RK495** **A scope declaring a directory stages every file under it and reports each one as claimed by nothing** — Every list a scope splits the tree into asks one predicate, so a declared directory speaks for the files under it in the loose list and in another session's as it already did in the staging line.
 - ✅ **RK497** **A ship writes a why naming a path the repository lacks, and the gate then refuses the file the ship just wrote** — `ship`, `retire` and both `record` verbs refuse prose naming a file the repository lacks, so the gate's path rule is asked where the sentence is composed.
 - ✅ **RK499** **Every prose door accepts a tab, a zero-width codepoint and a space that is not one, and the gate refuses all three** — Every prose door refuses a tab, an invisible codepoint and a space that is not one, under the code the gate reports and from the one rule both surfaces read.
+- ✅ **RK500** **A dep flag naming an id nothing carries is written, and so is one on the block the line is being filed into** — A write refuses a dep in neither file and one whose blockers walk back to the line, so the id is no longer spent by a token nothing carries.
 
 ## Block C — Query
 
