@@ -199,3 +199,27 @@ cheap on purpose — a client that never parses the file is a few hundred lines 
 nothing to port — so if the publishing cadence turns out to fight a version this
 repository bumps every commit, moving it out is a decision made later with evidence
 rather than now without.
+
+### §RK1017 The read that is about the tool and not about the backlog
+
+Counted from what the view does: every save re-runs `list`, `engines`, `lint` and one
+`deps` per open line. One of those answers a question that did not change. `engines`
+asks git which commit the package's files are at — a fact about the *installation*,
+which moves when somebody upgrades and not when a line is edited — and `provenance` says
+so: it is asked at most once per process and never on a path that writes. A CLI
+invocation is a process, so a view that shells out per save asks it per save.
+
+Readiness is not the same defect: `deps` answers about the file, so re-asking it after a
+write is the point. What is re-asked wrongly is the half about the tool.
+
+The cost is a subprocess and a git call on a keystroke somebody makes without thinking,
+in the one surface whose whole argument is that it costs nothing on the sessions it does
+nothing in.
+
+The shape of the answer is the one this package already uses for the same question:
+cache it for the life of the window and re-ask it when the thing it is about could have
+moved — a refresh somebody asked for, and nothing else.
+
+What proves it: a save runs the reads about the file and not the one about the
+installation, an explicit refresh runs both, and the row still names the copy that
+answered.
