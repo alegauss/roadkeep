@@ -55,16 +55,19 @@ from roadkeep.serving import (
     Tool,
     ToolError,
     _action,
+    _parsers,
     _spent_stdin,
     _subparser,
     argv,
     call,
     descriptor,
     descriptors,
+    dest_of,
     Watch,
     handle,
     prose_of,
     serve,
+    serves,
     tool_named,
 )
 
@@ -737,12 +740,43 @@ def test_claiming_over_the_protocol_moves_the_marker(tmp_path):
     claiming.path(tmp_path).unlink(missing_ok=True)  # it lives outside the checkout
 
 
-def test_the_guard_never_names_the_claiming_tool_for_a_plain_read(tmp_path):
-    # `_tool_for` matches by argv head and two tools now share one (RK150): a suggestion to
-    # run `brief` must not be answered with the tool that also takes the line.
-    from roadkeep.guarding import _tool_for
+def test_the_cheap_reader_of_a_flag_agrees_with_the_parser_on_every_one(tmp_path):
+    """RK488: `serves` answers *which tool* inside a hook the harness waits on, so it reads
+    `TOOLS` and never the parser index a lookup would cost 117 ms to build. That makes
+    `dest_of` a second reader of what a flag sets, and two readers of one fact drift — `--dep`
+    sets `deps`, and `--marker` and `--status` **cross**, so the derivation alone was wrong on
+    six flags and silently cost each of their doors a served spelling.
 
-    assert _tool_for("brief RK1") == "brief"
+    The domain is asserted total, which is RK421's shape one module over: a flag renamed in
+    `cli.py` fails here rather than in a message nobody re-reads."""
+    parsers = _parsers()
+    for tool in TOOLS:
+        parser = _subparser(tool.command, parsers)
+        for action in parser._actions:  # noqa: SLF001 - argparse exposes no public reader
+            for option in action.option_strings:
+                if option.startswith("--"):
+                    assert dest_of(option, tool.command) == action.dest, (tool.command, option)
+
+
+def test_a_tool_is_not_named_for_an_argv_it_may_not_be_given(tmp_path):
+    """The half `guarding._tool_for` never asked (RK488). It matched the subcommand path and
+    stopped, so `lint --fix` was offered as `mcp__roadkeep__lint` — RK16 keeps `--fix` where a
+    human is standing, so the served `lint` withholds it and the denial named a call that
+    session cannot make, on the surface that had just stopped an edit."""
+    assert serves(("lint",)) == "lint"
+    assert serves(("lint", "--fix")) is None
+    assert serves(("repair", "--dry-run")) == "repair"
+    assert serves(("amend", "RK1", "--dep", "RK2")) == "amend"
+    # A verb this surface does not publish at all, and a nested path that is one tool.
+    assert serves(("init",)) is None
+    assert serves(("section", "drop", "RK1")) == "section_drop"
+
+
+def test_the_guard_never_names_the_claiming_tool_for_a_plain_read(tmp_path):
+    # `serves` matches by argv head and two tools now share one (RK150): a suggestion to run
+    # `brief` must not be answered with the tool that also takes the line. The reader moved
+    # out of `guarding` with RK488 and the rule it holds did not.
+    assert serves(("brief", "RK1")) == "brief"
 
 
 def test_the_pick_can_be_narrowed_to_written_designs_over_the_protocol(tmp_path):

@@ -90,8 +90,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from roadkeep.config import Config, ConfigError, find_config
-from roadkeep.provenance import SERVER, invocation, serving
-from roadkeep.serving import TOOLS
+from roadkeep.provenance import WIRED, invocation, served_by
+from roadkeep.remedying import Door, alongside, offered
 
 if TYPE_CHECKING:  # annotations only, and already strings — see the docstring's sixth decision
     from roadkeep.attesting import Unattested
@@ -221,20 +221,20 @@ _INSTEAD: Mapping[str, tuple[tuple[str, str], ...]] = {
     ),
 }
 
-def _tool_for(command: str) -> str | None:
-    """The tool that serves this command line, matching the longest subcommand path first.
+def _doors(rows: tuple[tuple[str, str], ...]) -> tuple[Door, ...]:
+    """One table's rows as doors, which is what a spelling is decided from (RK488).
 
-    Two words before one, because `section add` is a tool and `section` is not — a lookup on
-    the first word alone would name `mcp__roadkeep__section`, which nothing answers (RK59).
+    The tables above stay strings — they are read by people as much as rendered — and the
+    split is `Door`'s own: an argv joined by single spaces renders back to the line it was
+    written as, which is the round-trip L3 asks of a task line, one file over.
+
+    This module composed both spellings itself until RK488, and `_tool_for` was the half that
+    made it look cheap: it matched the subcommand path and never asked whether the tool takes
+    the flags beside it, so `lint --fix` was offered as `mcp__roadkeep__lint` — RK16 keeps
+    `--fix` where a human is standing, so the row named a call the session cannot make. That
+    question is `serving.serves`' now, asked once for every surface.
     """
-    words = command.split()
-    for length in (2, 1):
-        for tool in TOOLS:
-            # A tool that always passes a flag serves a *narrower* command than the one asked
-            # about (RK150), so `claim` is not the answer to "which tool runs `brief`".
-            if not tool.always and tool.argv_head == words[:length]:
-                return tool.name
-    return None
+    return tuple(Door(tuple(command.split()), purpose) for command, purpose in rows)
 
 
 #: What a file that is governed but absent needs, which is not an edit.
@@ -261,7 +261,7 @@ class Refusal:
     #: `""` is the third state and not a missing value (RK447): this session has no server
     #: for them, so there is no tool table to print. The default is the bare prefix because
     #: that is what every wired project has and what a `Refusal` built by hand means.
-    served: str = f"mcp__{SERVER}__"
+    served: str = WIRED
 
     @property
     def decision(self) -> str:
@@ -276,11 +276,11 @@ class Refusal:
         return "ask" if self.tool in ASK_TOOLS else "deny"
 
     @property
-    def commands(self) -> tuple[tuple[str, str], ...]:
-        return _INSTEAD.get(self.role, ()) if self.exists else _SCAFFOLD
+    def commands(self) -> tuple[Door, ...]:
+        return _doors(_INSTEAD.get(self.role, ()) if self.exists else _SCAFFOLD)
 
     @property
-    def tools(self) -> tuple[tuple[str, str], ...]:
+    def tools(self) -> tuple[Door, ...]:
         """The commands above that the same plugin also serves as MCP tools (RK58).
 
         Named first, because since RK57 the plugin installs with no `pip install` and no
@@ -299,12 +299,11 @@ class Refusal:
         """
         if not self.served:
             return ()
-        found = []
-        for command, purpose in self.commands:
-            name = _tool_for(command)
-            if name is not None:
-                found.append((f"{self.served}{name}", purpose))
-        return tuple(found)
+        # A door whose served spelling is its shell one is a command this session does not
+        # serve, which is the renderer's answer rather than a second lookup here (RK488).
+        return tuple(
+            door for door in self.commands if door.named(self.served) != door.command
+        )
 
     @property
     def _opening(self) -> str:
@@ -348,11 +347,6 @@ class Refusal:
         costs three lines of a string already being composed, and the caller who needs the
         answer is one call away from it.
         """
-        offered = (
-            ("repair", "every finding whose remedy is one command, applied in one call"),
-            ("repair --dry-run", "the same list, printed and not run"),
-            ("explain <code>", "what one code means, and which doors close it"),
-        )
         # RK448: this paragraph is read *first* — RK424 put it above the tool table — and it
         # spelled all three with the invocation whatever the session had. So on a wired
         # project the line an agent acts on recommended the shell for exactly the verbs the
@@ -360,27 +354,17 @@ class Refusal:
         # paragraph too late. Where the tools are here, this is where they are named.
         #
         # A flag is not a word over that transport: `repair --dry-run` is the `repair` tool
-        # carrying `dry_run`, and `explain <code>` is `explain` carrying `code`. So the
-        # served spelling is the tool name and the argument moves into the sentence beside
-        # it, rather than a prefix glued to an argv nothing would parse.
-        if self.served:
-            served = (
-                (f"{self.served}repair", offered[0][1]),
-                (f"{self.served}repair", f"{offered[1][1]} — pass dry_run"),
-                (f"{self.served}explain", f"{offered[2][1]} — pass the code"),
-            )
-            width = max(len(name) for name, _ in served)
-            rows = [f"  {name:<{width}}  {purpose}" for name, purpose in served]
-        else:
-            reached = invocation()
-            width = max(len(command) for command, _ in offered)
-            rows = [
-                f"  {reached} {command:<{width}}  {purpose}" for command, purpose in offered
-            ]
+        # carrying `dry_run`. Which spelling, and where a dropped flag is named, is
+        # `remedying.offered`'s since RK488 — this states the three doors and nothing else.
+        doors = (
+            Door(("repair",), "every finding whose remedy is one command, applied in one call"),
+            Door(("repair", "--dry-run"), "the same list, printed and not run"),
+            Door(("explain", "<code>"), "what one code means, and which doors close it"),
+        )
         return [
             "If this edit was repairing something `lint` reported, it already named the "
             "command that closes each finding — so none of them has to be inferred:",
-            *rows,
+            *offered(doors, self.served),
             "",
         ]
 
@@ -397,27 +381,19 @@ class Refusal:
         ]
         lines += self._repairing
         if self.tools:
-            width = max(len(name) for name, _ in self.tools)
             lines.append("Call instead — this session's tools, where the fields are a schema:")
-            lines += [f"  {name:<{width}}  {purpose}" for name, purpose in self.tools]
+            lines += offered(self.tools, self.served)
             lines += ["", "Or the same engine in a shell, from the project root:"]
         else:
             lines.append("Call instead, from the project root:")
-        # The invocation this machine actually has, and not the console script literally (RK254):
-        # since RK57 the plugin installs with no `pip install` and no PATH entry, so `roadkeep add`
-        # was advice that answers `command not found` on the machine most likely to read it.
-        reached = invocation()
-        helped = "<command> --help"
-        # A list and not `max(a, *gen)`: an unknown role offers no commands at all, and the
-        # star form then reduces to `max(17)`, which is a TypeError instead of a width.
-        width = max([len(helped), *(len(command) for command, _ in self.commands)])
-        for command, purpose in self.commands:
-            lines.append(f"  {reached} {command:<{width}}  {purpose}")
-        lines += [
-            f"  {reached} {helped:<{width}}  every flag, so none is guessed",
-            "",
-            self._reading,
-        ]
+        # The shell table, rendered by the same function and therefore with the invocation
+        # this machine actually has (RK254): since RK57 the plugin installs with no `pip
+        # install` and no PATH entry, so `roadkeep add` was advice that answers `command not
+        # found` on the machine most likely to read it. `--help` closes the table rather than
+        # sitting in it — it is not a role's command, it is what makes the rest readable.
+        helped = Door(("<command>", "--help"), "every flag, so none is guessed")
+        lines += offered((*self.commands, helped))
+        lines += ["", self._reading]
         return "\n".join(lines)
 
     @property
@@ -433,17 +409,29 @@ class Refusal:
         Per table, like `_repairing` above it, and a sentence rather than a fourth table: what
         makes these three read as *not* the refused act is that they are not in one. And the
         served form names fields, because `<id>` is an argv and a caller here passes arguments.
+
+        The **spelling** is `remedying.alongside`'s since RK488, and the two sentences stay:
+        a served name drops the arguments a shell line shows, so what each verb takes has to
+        be said in words there and is already visible here. That difference is prose, which
+        is the one thing a renderer may not decide.
         """
+        brief, show, listing = alongside(
+            (
+                Door(("brief", "<id>"), ""),
+                Door(("show", "<id>"), ""),
+                Door(("list", "--block", "<x>"), ""),
+            ),
+            self.served,
+        )
         if self.served:
             return (
-                f"Reading is never refused: `{self.served}brief` starts a task in one call and "
-                f"`{self.served}show` joins the line to its rationale, both taking the id; "
-                f"`{self.served}list` prints them verbatim, and takes a block."
+                f"Reading is never refused: `{brief}` starts a task in one call and "
+                f"`{show}` joins the line to its rationale, both taking the id; "
+                f"`{listing}` prints them verbatim, and takes a block."
             )
-        reached = invocation()
         return (
-            f"Reading is never refused: `{reached} brief <id>` starts a task in one call, "
-            f"`show <id>` joins the line to its rationale, `list --block <x>` prints them "
+            f"Reading is never refused: `{brief}` starts a task in one call, "
+            f"`{show}` joins the line to its rationale, `{listing}` prints them "
             f"verbatim."
         )
 
@@ -471,14 +459,14 @@ class Review:
 
     def __str__(self) -> str:
         findings = self.report.findings
-        # The invocation this machine has, for `Denial`'s reason (RK254): a gate that names a
-        # repair the reader cannot run blocks the turn and withholds the way out of it.
-        reached = invocation()
-        # And where the session has the tool, that is the route (RK448). This fires at the
-        # end of every turn that changed a governed file, so it is the most-read of the four
-        # places this module names a command and was the last still naming one route for
-        # every session.
-        lint_ = f"{self.served}lint" if self.served else f"{reached} lint"
+        # Both spellings from one renderer (RK488). The engine is the one this machine has,
+        # for `Denial`'s reason (RK254) — a gate naming a repair the reader cannot run blocks
+        # the turn and withholds the way out of it — and where the session has the tool, that
+        # is the route (RK448). `lint --fix` answers the shell on every project without being
+        # asked to: `--fix` writes, RK16 keeps it where a human is standing, so the served
+        # `lint` does not expose it and `Door.named` declines the prefix by derivation.
+        lint_ = Door(("lint",), "").named(self.served)
+        fixing = Door(("lint", "--fix"), "").named(self.served)
         lines = [
             f"{lint_} refuses {len(findings)} line(s) this turn changed in "
             f"{', '.join(self.report.checked)}: a governed file was changed by something "
@@ -495,7 +483,7 @@ class Review:
             # says so: `--fix` writes, and RK16 puts it where a human is standing — so the
             # served surface withholds it deliberately (`lint` is exposed there without it),
             # and a prefix glued to this line would name a tool that does not exist.
-            f"`{reached} lint --fix` repairs what is derived (annotation, pointer, dep "
+            f"`{fixing}` repairs what is derived (annotation, pointer, dep "
             f"order, marker codepoint, whitespace, dead queue entry); everything left is "
             f"editorial and wants a command, not an edit."
             + (
@@ -605,25 +593,32 @@ class Notice:
         # one sentence among two hundred and fifty. What is stated is which engine answers —
         # the same kind of fact as which files are governed — and never the write path, which
         # stays the skill's, a rule in two places being two places that can disagree.
-        reached = invocation()
-        if self.served:
-            asks = (
-                f"`{self.served}brief` starts a task, `{self.served}show` and "
-                f"`{self.served}list` answer the rest"
-            )
-        else:
-            asks = f"`{reached} brief` starts a task, `show <id>` and `list --block <x>` answer the rest"
+        #
+        # One renderer for the three spellings since RK488, and `alongside` is the half this
+        # line paid for: a served name is self-contained, and three shell lines each carrying
+        # the invocation is 46 characters of repetition inside a 260-character budget.
+        brief, show, listing = alongside(
+            (
+                Door(("brief",), ""),
+                Door(("show", "<id>"), ""),
+                Door(("list", "--block", "<x>"), ""),
+            ),
+            self.served,
+        )
+        asks = f"`{brief}` starts a task, `{show}` and `{listing}` answer the rest"
         said = (
             f"roadkeep governs {', '.join(self.files)} — ask, never read them whole: "
             f"{asks}, and a hand-edit is refused."
         )
         # The invocation stays here whatever the clause above chose (RK444): `install` runs
-        # once per project and is deliberately not on the served surface, so a route named
-        # from `self.served` would be a tool this session cannot call.
+        # once per project and is deliberately not on the served surface — so it is one more
+        # door through the same renderer, and the shell form is what comes back because
+        # nothing serves the verb, rather than because this line remembered not to ask.
         if self.stale:
+            installing = Door(("install",), "").named(self.served)
             said += (
                 f" This project's copy of {', '.join(self.stale)} has drifted from the "
-                f"checkout answering here: `{reached} install` refreshes it, and until then "
+                f"checkout answering here: `{installing}` refreshes it, and until then "
                 f"the copy is not what this session is running."
             )
         return said
@@ -654,7 +649,7 @@ def announce(payload: Mapping[str, object], root: str | Path = ".") -> Notice | 
     # bare prefix is the right guess wherever nothing says otherwise, but this line is read
     # by every adopting session including the ones with no tools at all, and there naming a
     # prefix nobody can call is worse than naming the shell.
-    return Notice(files=files, stale=stale(config.root), served=serving(config.root) or "")
+    return Notice(files=files, stale=stale(config.root), served=served_by(config.root))
 
 
 def guard(payload: Mapping[str, object], root: str | Path = ".") -> Refusal | None:
@@ -680,7 +675,7 @@ def guard(payload: Mapping[str, object], root: str | Path = ".") -> Refusal | No
             path=config.relative(path),
             role=role,
             exists=path.is_file(),
-            served=serving(config.root) or "",
+            served=served_by(config.root),
         )
     return None
 
@@ -719,7 +714,7 @@ def _mentioned(raw: object, base: Path, tool: str) -> Refusal | None:
                 path=relative,
                 role=role,
                 exists=declared.is_file(),
-                served=serving(config.root) or "",
+                served=served_by(config.root),
             )
     return None
 
@@ -755,7 +750,7 @@ def review(payload: Mapping[str, object], root: str | Path = ".") -> Review | No
     narrowed = _this_turn(config, report)
     if not narrowed.findings:
         return None
-    return Review(report=narrowed, served=serving(config.root) or "", config=config)
+    return Review(report=narrowed, served=served_by(config.root), config=config)
 
 
 def attested(payload: Mapping[str, object], root: str | Path = ".") -> Unattested | None:

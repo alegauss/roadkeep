@@ -139,7 +139,7 @@ from roadkeep.merging import (
 )
 from roadkeep.claiming import Followed, Held
 from roadkeep.picking import Choice, Claim, pick, take
-from roadkeep.provenance import engine, invocation, serving
+from roadkeep.provenance import engine, invocation, served_by, serving
 from roadkeep.remedying import Remedy, codes as remedy_codes, explain, remedy
 from roadkeep.renumbering import renumber
 from roadkeep.reverting import reversals
@@ -5626,11 +5626,11 @@ def _served(config: Config) -> str:
     """The prefix this session's tools arrive under, or `""` where it has none (RK449).
 
     One reader for the four payloads that publish a remedy, because it is one question about
-    one project and four calls to `serving` would be four places to forget it. `or ""` and not
-    the optional itself: below here it is a prefix to concatenate, and the empty string is the
-    "no call to publish" the payload already branches on.
+    one project and four calls to `serving` would be four places to forget it — and since
+    RK488 it is `provenance.served_by`'s answer rather than a fourth spelling of it, the guard
+    and the attestation having each written the same `or ""` for themselves.
     """
-    return serving(config.root) or ""
+    return served_by(config.root)
 
 
 def _remedy_json(finding: object, config: Config) -> dict[str, object]:

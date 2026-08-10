@@ -121,12 +121,12 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 1 | 72 | 1 |
 | D — The gate | 3 | 108 | 0 |
 | E — Adoption | 0 | 74 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 90 | 1 |
-| **Total** | 5 | 478 | 6 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 91 | 1 |
+| **Total** | 4 | 479 | 6 |
 
 **Next ready:**
 
-- 📋 **RK488** (deps: —) **Every module that offers a command composes the sentence itself, so a new surface is reached one emitter at a time** — The engine is one fact with one reader; which surface can call it is threaded by hand four ways, so a module that never learned to ask prints the shell form. → §RK488
+- 📋 **RK489** (deps: —) **Each subparser checks its own subjects and narrowing flags, so a swallowed flag is found one verb at a time** — Twenty-five hand-written lines guard one verb of eighty, and the property that catches the rest is a sweep, which reports after a flag nothing reads has already been added. → §RK489
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

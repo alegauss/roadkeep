@@ -169,11 +169,35 @@ DENIAL_REACHES = {
     # was going and never opens the file, so the model that would is `Config.document`'s own.
     "roadkeep.config",
     "roadkeep.schema",
-    # The tool names the denial offers (RK58), and the shell invocation beside them (RK254).
-    # `locking` is absent for `document`'s reason: a denial dispatches nothing, so the lock is
-    # never taken and `LockBusy` is reached inside `serving.call` (RK261).
-    "roadkeep.serving",
+    # The shell invocation the denial offers (RK254). `locking` is absent for `document`'s
+    # reason: a denial dispatches nothing, so the lock is never taken and `LockBusy` is
+    # reached inside `serving.call` (RK261).
     "roadkeep.provenance",
+    # The renderer that decides which of those two spellings this session gets (RK488) —
+    # measured at 6-21 ms against a 164 ms cold import of this module, and what it buys is the
+    # thing the branch it replaced could not have: one answer to *which spelling*, so a table
+    # cannot offer a tool for an argv that tool may not be given. It reaches `serving` and
+    # `config` lazily and adds no module here beyond itself.
+    "roadkeep.remedying",
+}
+
+#: What a rendered denial reaches beyond the set above, and the reason this test measures the
+#: **import** and not the act (RK488). `invocation()` falls through to `engine()` wherever the
+#: console script is not on PATH, and that asks git through `history` — so the act's module set
+#: is a fact about the machine running the suite, and an exact assertion over it would be red
+#: on a developer's box and green in CI for the same code. Named rather than absorbed: this is
+#: four modules and 29 ms a denial has paid since RK254, on the hook the harness blocks on, and
+#: the reading that would have shown it was one nobody took.
+DENIAL_ALSO_RENDERS = {
+    # The tool names the denial offers (RK58), reached on the line that needs one rather than
+    # at import: `Door.named` asks `serving.serves` per row, so a message with no served
+    # spelling to render never loads it at all.
+    "roadkeep.serving",
+    # And `invocation()`'s own, which is the machine-dependent half.
+    "roadkeep.backlog",
+    "roadkeep.document",
+    "roadkeep.history",
+    "roadkeep.sections",
 }
 
 
@@ -187,6 +211,10 @@ def test_a_denial_loads_only_what_a_denial_needs():
     # on this machine drifts far enough that a five-module tree measured slower than a
     # seven-module one, so a test asserting a duration would fail on load rather than on a
     # regression. The module set is exact, and it is what the duration tracks.
+    #
+    # What it measures is the **import**, and `DENIAL_ALSO_RENDERS` states why: rendering
+    # reaches `history` on a machine with no console script, so the act's set is a fact about
+    # the machine and this one is a fact about the code (RK488).
     loaded = subprocess.run(
         [
             sys.executable,
@@ -281,8 +309,9 @@ def test_every_named_tool_is_one_the_server_serves():
     """The same argument the CLI commands get: a name nothing answers is worse than none."""
     served = {tool.name for tool in TOOLS}
     for role in ("roadmap", "changelog", "improvements", "strategy"):
-        for name, _ in Refusal(tool="Edit", path="x", role=role).tools:
-            assert name.removeprefix("mcp__roadkeep__") in served
+        for door in Refusal(tool="Edit", path="x", role=role).tools:
+            named = door.named("mcp__roadkeep__")
+            assert named.removeprefix("mcp__roadkeep__") in served, named
 
 
 def test_a_nested_command_is_promoted_under_the_name_that_answers():
@@ -329,7 +358,8 @@ def test_a_governed_file_that_is_absent_wants_init_and_not_add(tmp_path):
     root = project(tmp_path)
     (root / ROADMAP).unlink()
     refusal = guard(write(str(root / ROADMAP), tool="Write"), root)
-    assert refusal is not None and refusal.commands == _SCAFFOLD
+    assert refusal is not None
+    assert [(" ".join(d.argv), d.what) for d in refusal.commands] == list(_SCAFFOLD)
     assert f"{invocation()} init" in str(refusal)
 
 
@@ -588,7 +618,11 @@ def test_the_repair_route_is_the_engine_that_answers_it():
     the tool name and the argument moves into the sentence beside it."""
     reason = str(Refusal(tool="Edit", path=ROADMAP, role="roadmap", served="mcp__roadkeep__"))
     assert "mcp__roadkeep__repair" in reason and "pass dry_run" in reason
-    assert "mcp__roadkeep__explain" in reason and "pass the code" in reason
+    # The dropped flag is named and the dropped *positional* is not (RK488): `explain <code>`
+    # reaches its tool as `code` too, but a placeholder is not a dest — `delivered <x>` would
+    # read as *pass x* where the field is `block` — so what cannot be derived is left to the
+    # purpose beside it rather than guessed.
+    assert "mcp__roadkeep__explain" in reason and "pass x" not in reason
     assert f"{invocation()} repair" not in reason
     # Still first, which is the claim RK424 made and this does not move.
     assert reason.index("mcp__roadkeep__repair") < reason.index("Call instead")
@@ -599,7 +633,12 @@ def test_the_denial_still_runs_no_linter_to_say_it():
     # cost a string and not an import of the gate. `DENIAL_REACHES` is the real assertion
     # (above); this states the intent that number holds.
     assert "roadkeep.linting" not in DENIAL_REACHES
-    assert "roadkeep.remedying" not in DENIAL_REACHES
+    # `remedying` **is** here since RK488, and the claim above is unchanged: it is the table a
+    # finding's door is read out of and the renderer that spells one, not the checker that
+    # produces findings. Nothing in it opens a file, runs a check or takes the lock — which is
+    # what "no linter" meant, and is why the linter's own module still fails this line.
+    assert "roadkeep.fixing" not in DENIAL_REACHES
+    assert "roadkeep.linting" not in DENIAL_ALSO_RENDERS
 
 
 def test_an_unknown_role_offers_nothing_rather_than_guessing():

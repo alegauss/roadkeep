@@ -914,3 +914,192 @@ def test_an_incomplete_door_is_incomplete_for_a_reason(tmp_path):
     for code, _, door in _every_door(config):
         if not door.complete:
             assert BLANK in " ".join(door.argv), f"{code}: {door.argv} is incomplete without a blank"
+
+
+# -- the one renderer, held total the way the table is (RK488) -----------------
+
+#: The two modules allowed to spell a served command: the renderer, and the one that decides
+#: which prefix this session has. Every other module states the **door** and lets `Door.named`
+#: choose the spelling — which is the property below, and the reason a seventh surface costs
+#: one change instead of forty.
+_MAY_SPELL = frozenset({"remedying.py", "provenance.py"})
+
+
+def _spelling(source: str) -> list[str]:
+    """Every place this module composes a served command, by line. Docstrings excluded.
+
+    Read from the **AST** and not from the text, so a comment recording what the defect was
+    is not itself a violation of it — this file's own prose names `mcp__roadkeep__lint` while
+    asserting nothing composes one, and a grep could not tell those apart.
+    """
+    import ast
+
+    tree = ast.parse(source)
+    documented = {
+        id(node.body[0].value)
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Module | ast.ClassDef | ast.FunctionDef | ast.AsyncFunctionDef)
+        and node.body
+        and isinstance(node.body[0], ast.Expr)
+        and isinstance(node.body[0].value, ast.Constant)
+        and isinstance(node.body[0].value.value, str)
+    }
+    found: list[str] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Constant) and isinstance(node.value, str):
+            if id(node) not in documented and "mcp__" in node.value:
+                found.append(f"line {node.lineno}: a prefix written out as {node.value!r}")
+        if not isinstance(node, ast.JoinedStr):
+            continue
+        for part in node.values:
+            if not isinstance(part, ast.FormattedValue):
+                continue
+            spelled = part.value
+            name = (
+                spelled.attr
+                if isinstance(spelled, ast.Attribute)
+                else spelled.id
+                if isinstance(spelled, ast.Name)
+                else ""
+            )
+            # `served` and not `prefix`: this package spells an *id* prefix that way in
+            # `schema` and `adopting`, and an indent that way in `capturing`, so the wider
+            # name would be three false reds about a word rather than about a fact.
+            if name == "served":
+                found.append(f"line {node.lineno}: the prefix interpolated as {name}")
+    return found
+
+
+def test_no_module_outside_the_renderer_spells_a_served_command():
+    """RK488. `provenance.serving` says which prefix this session's tools arrive under, and it
+    used to reach a message by being threaded by hand — a `served` field on `guarding.Refusal`,
+    another on `attesting.Unattested`, an argument to `Remedy.payload`, a `cli._served` helper
+    beside four print sites, and `serving._as_call` composing its own. Four mechanisms and a
+    third copy for one fact, so a module that never learned to ask printed the shell form
+    regardless; RK444, RK447, RK448, RK475, RK477 and RK479 each taught one more site, and
+    nothing could say how many were left.
+
+    This is what says how many are left. The prefix still travels as a field — which engine
+    answers is a fact about the project, decided where the project is read — but nothing
+    outside these two modules turns it into text. A module states its `Door` and the renderer
+    spells it, so the seventh surface is one change here rather than forty out there.
+    """
+    composed = {}
+    for module in sorted(SOURCE.glob("*.py")):
+        if module.name in _MAY_SPELL:
+            continue
+        found = _spelling(module.read_text(encoding="utf-8"))
+        if found:
+            composed[module.name] = found
+    assert not composed, composed
+
+
+def test_the_renderer_answers_one_spelling_to_a_table_and_to_a_sentence():
+    """The property that makes the one above worth holding: a door cannot say *tool* in the
+    table and *shell* in the sentence under it, which is what six separate compositions could
+    and did. `lint --fix` is the case that has to answer the shell in both, because RK16 keeps
+    the writing flag where a human is standing and the served `lint` withholds it."""
+    for argv in (("lint",), ("lint", "--fix"), ("repair", "--dry-run"), ("init",)):
+        door = remedying.Door(argv, "what it does")
+        served = door.named("mcp__roadkeep__")
+        assert door.mention("mcp__roadkeep__").startswith(served), argv
+        assert door.spoken("mcp__roadkeep__").startswith(served), argv
+        assert remedying.offered((door,), "mcp__roadkeep__")[0].strip().startswith(served), argv
+        assert remedying.alongside((door,), "mcp__roadkeep__")[0] == served, argv
+    # And the two that must not be served, each for its own reason: `--fix` is withheld, and
+    # `init` runs once per project and is not on this surface at all.
+    for argv in (("lint", "--fix"), ("init",)):
+        door = remedying.Door(argv, "what it does")
+        assert door.named("mcp__roadkeep__") == door.command, argv
+        assert door.passing("mcp__roadkeep__") == "", argv
+
+
+def test_a_sentence_names_the_engine_once_and_a_table_names_it_per_row():
+    """`alongside` against `offered` (RK488). The notice is 260 characters and names three
+    reads: spelling the invocation before each of them is 46 characters of repetition, which
+    is a fifth of the budget spent saying `python -m roadkeep.cli` twice more."""
+    doors = (
+        remedying.Door(("brief",), "starts a task"),
+        remedying.Door(("show", "<id>"), "joins the line to its rationale"),
+    )
+    said = remedying.alongside(doors)
+    assert said[0] == f"{invocation()} brief"
+    assert said[1] == "show <id>"
+    # A table is columns, so every row carries it and they line up under each other.
+    rows = remedying.offered(doors)
+    assert all(invocation() in row for row in rows)
+    assert len({len(row.split("  ")[0]) for row in rows}) == 1
+    # Served, both forms are self-contained: there is no engine to repeat.
+    assert remedying.alongside(doors, "mcp__roadkeep__") == (
+        "mcp__roadkeep__brief",
+        "mcp__roadkeep__show",
+    )
+
+
+#: The modules that may write a command out as a literal, and why each one may. Both write
+#: into a file that leaves this machine, which is what makes the invocation wrong there: a
+#: README carries the note to everyone who reads the repository, and the workflow runs on a
+#: runner where the action this project ships is what puts `roadkeep` on PATH. Named with the
+#: reason rather than skipped, because that is the difference between an exception and a
+#: literal nobody has looked at since it was typed.
+_MAY_WRITE_LITERALLY = {
+    "exporting.py": "the note is committed into a README; an absolute path there is a "
+    "message about one machine, written into the file everyone reads",
+    "installing.py": "the generated workflow runs on a runner where the action this "
+    "project ships is what puts the console script on PATH",
+}
+
+
+def _verbs() -> frozenset[str]:
+    """Every subcommand this CLI parses, off the parser rather than listed here."""
+    import argparse
+
+    parser = build_parser()
+    subs = next(
+        one for one in parser._actions if isinstance(one, argparse._SubParsersAction)  # noqa: SLF001
+    )
+    return frozenset(subs.choices)
+
+
+def test_a_command_written_out_as_a_literal_is_one_of_four_and_each_says_why():
+    """RK488's other count. Five spellings never reached `invocation` at all — and gated on
+    the verbs this CLI actually parses, four of them are commands (`roadkeep export` in the
+    README note, `roadkeep lint` three times in the generated workflow) and the fifth is the
+    capture's own title, which names no verb.
+
+    Held as a register rather than repaired: both survivors write into a file that leaves this
+    machine, where the literal is the right answer and the invocation is the wrong one. What
+    was missing was anywhere saying so, which is how the other thirty-six got written."""
+    verbs = _verbs()
+    spelled = re.compile(r"\broadkeep ([a-z][a-z-]*)\b")
+    found: dict[str, set[str]] = {}
+    for module in sorted(SOURCE.glob("*.py")):
+        for lineno, text in _literals(module.read_text(encoding="utf-8")):
+            for verb in spelled.findall(text):
+                if verb in verbs:
+                    found.setdefault(module.name, set()).add(f"{lineno}: roadkeep {verb}")
+    assert set(found) == set(_MAY_WRITE_LITERALLY), found
+    assert sum(len(where) for where in found.values()) == 4, found
+
+
+def _literals(source: str) -> list[tuple[int, str]]:
+    """Every string constant that is not a docstring, with its line."""
+    import ast
+
+    tree = ast.parse(source)
+    documented = {
+        id(node.body[0].value)
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Module | ast.ClassDef | ast.FunctionDef | ast.AsyncFunctionDef)
+        and node.body
+        and isinstance(node.body[0], ast.Expr)
+        and isinstance(node.body[0].value, ast.Constant)
+        and isinstance(node.body[0].value.value, str)
+    }
+    return [
+        (node.lineno, node.value)
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Constant)
+        and isinstance(node.value, str)
+        and id(node) not in documented
+    ]

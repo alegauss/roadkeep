@@ -51,6 +51,22 @@ lookup.
 What this module does **not** do is run anything. `repair` (RK422) is the verb that reads
 these back and executes them; keeping the table pure is what lets `lint --json`, `explain`
 and the guard's denial all quote the same answer without any of them growing a side effect.
+
+**And it is the one place a command becomes text** (RK488). :class:`Door` was already the
+shape — an argv and what it does, spelled as a shell line or as a tool call by whoever prints
+it — but only findings went through it. Everything else composed its own: the guard's two
+tables and its three sentences, the gate's, the attestation's, and a third copy of the whole
+mechanism inside `serving`, each branching on the served prefix for itself. So a surface that
+never learned to ask printed the shell form to a session holding the tools, and RK444, RK447,
+RK448, RK475, RK477 and RK479 each taught one more site to ask without anything being able to
+say how many were left. :meth:`Door.named`, :meth:`Door.mention`, :func:`offered` and
+:func:`alongside` are the four renderings a message actually wants, and
+`tests/test_remedying.py` holds the property that nothing outside this module spells one —
+the same total-domain assertion the table above gets, about spellings instead of codes.
+
+The prefix still arrives as a **field** and is not read here: which engine answers is a fact
+about the project, and this module reads no project. What changed is that it is now handed to
+a renderer instead of interpolated at forty call sites.
 """
 
 from __future__ import annotations
@@ -139,19 +155,80 @@ class Door:
         """
         if self.foreign:
             return None  # somebody else's command; this surface serves none of it (RK451)
-        from .serving import TOOLS, _subparser  # noqa: PLC0415 - RK260, the printing path only
+        from .serving import TOOLS, _fields_of, _subparser, serves  # noqa: PLC0415 - RK260
 
-        words = list(self.argv)
-        # Two words before one, for `_tool_for`'s reason: `section add` is a tool and
-        # `section` is not. A tool that always passes a flag serves a narrower command than
-        # the argv asks about (RK150), so it is never the answer to "what runs this".
-        for length in (2, 1):
-            for tool in TOOLS:
-                if tool.always or tool.argv_head != words[:length]:
-                    continue
-                fields = _fields(_subparser(tool.command), words[length:], tool.exposes)
-                return None if fields is None else (tool.name, fields)
-        return None
+        # **Which** tool, asked once and in one place (RK488): `serves` reads `TOOLS` alone,
+        # so the guard can afford the same question inside a hook budget a parser build would
+        # spend four times over. What is left here is the tail as *values*, which is the one
+        # half that genuinely needs the parser.
+        name = serves(self.argv)
+        if name is None:
+            return None
+        tool = next(one for one in TOOLS if one.name == name)
+        rest = list(self.argv)[len(tool.argv_head) :]
+        fields = _fields_of(_subparser(tool.command), rest, tool.exposes)
+        return None if fields is None else (name, fields)
+
+    def named(self, served: str = "") -> str:
+        """This door's **command alone**, in the spelling ``served`` has (RK488).
+
+        The third of the three renderings, and the one a *table* prints: :attr:`command` is
+        the shell line unconditionally, :meth:`spoken` is a spelling plus what it does, and
+        this is the column the rows are padded to, with the purpose in a column of its own.
+
+        Cheap by construction — it asks `serving.serves` and never the parser — because the
+        guard composes one of these per row inside a `PreToolUse` the harness waits on. The
+        arguments the served name drops are :meth:`passing`'s to state.
+        """
+        if self.foreign or not served:
+            return self.command
+        from .serving import serves  # noqa: PLC0415 - RK260, the printing path only
+
+        name = serves(self.argv)
+        return self.command if name is None else f"{served}{name}"
+
+    def passing(self, served: str = "") -> str:
+        """The arguments the served spelling moved out of the command, or ``""`` (RK488).
+
+        A flag is not a word over that transport: `repair --dry-run` is the `repair` tool
+        carrying `dry_run`, so :meth:`named` drops the flag and this is where it goes. Spelled
+        as the dests, which is what a caller passes and what the tool's own schema names.
+
+        The flags and not the positionals. `explain <code>` reaches its tool as `code` too,
+        and a placeholder is not a dest — `delivered <x>` would read as *pass x* where the
+        field is `block` — so what cannot be derived is left to the purpose beside it rather
+        than guessed, which is :func:`_substitute`'s rule about a blank one layer up.
+        """
+        if not served or self.foreign:
+            return ""
+        from .serving import TOOLS, dest_of, serves  # noqa: PLC0415 - RK260, printing only
+
+        name = serves(self.argv)
+        if name is None:
+            return ""  # a shell line, where the argv already shows them
+        # The tool's own command, because a dest is declared per subcommand and two of them
+        # cross: `--marker` sets `status` on `add` and `--status` sets `marker` on `resume`.
+        command = next(one for one in TOOLS if one.name == name).command
+        return ", ".join(dest_of(word, command) for word in self.argv if word.startswith("--"))
+
+    def mention(self, served: str = "", *, quote: str = "") -> str:
+        """This door as a **sentence** names it: the spelling, and the fields it carries.
+
+        :meth:`named` with the values filled in, for prose rather than for a table — the form
+        `serving` rewrites a printed backtick into (RK449) and the head of :meth:`spoken`.
+        Falls back to :meth:`named` and never straight to the shell, so one door cannot answer
+        *tool* to a table and *shell* to a sentence in the same message.
+
+        ``quote`` wraps the **command** and not the fields it carries, which is the one thing a
+        caller cannot add afterwards: `` `tool` with anchor: RK1 `` reads as one call and a
+        backtick around the whole of it reads as one command line to paste.
+        """
+        call = self.call() if served else None
+        if call is None:
+            return f"{quote}{self.named(served)}{quote}"
+        name, fields = call
+        named = "  ".join(f"{key}: {value}" for key, value in fields.items())
+        return f"{quote}{served}{name}{quote}" + (f" with {named}" if named else "")
 
     def spoken(self, served: str = "") -> str:
         """This door in the spelling ``served`` has, falling back to the shell one (RK478).
@@ -162,15 +239,56 @@ class Door:
         call, which is `lint --fix` and every foreign one, is a shell command wherever it is
         shown, because that is what it is.
         """
-        call = self.call() if served else None
-        if call is None:
-            return str(self)
-        name, fields = call
-        named = "  ".join(f"{key}: {value}" for key, value in fields.items())
-        return f"{served}{name}" + (f" with {named}" if named else "") + f"  — {self.what}"
+        return f"{self.mention(served)}  — {self.what}"
 
     def __str__(self) -> str:
         return f"{self.command}  — {self.what}"
+
+
+def offered(doors: Sequence[Door], served: str = "", indent: str = "  ") -> list[str]:
+    """A table of doors, each in this session's spelling, padded to the widest (RK488).
+
+    The one renderer for *here are the commands*, and the reason it is a function rather than
+    six copies of a `max(len(...))`: every surface that offers a table used to compose the
+    served branch and the shell branch itself, so a module that never learned to ask printed
+    the shell form to a session holding the tools — which RK444, RK447, RK448, RK475, RK477
+    and RK479 each fixed at one more site, none of them able to say how many were left.
+
+    The **width is per rendering**, not per table: a tool name is longer than a verb, so a
+    column measured on the shell spelling and printed in the served one is a column that does
+    not line up. That is the whole reason a caller cannot pad these itself and hand them over.
+
+    :meth:`Door.passing` is appended where the served name dropped arguments, because a tool
+    row that named neither the flags nor the fields is the shell row's information without its
+    precision. Empty on the shell spelling, where the argv already shows them.
+    """
+    rows = [(door.named(served), door.passing(served), door.what) for door in doors]
+    width = max((len(name) for name, _, _ in rows), default=0)
+    return [
+        f"{indent}{name:<{width}}  {what}" + (f" — pass {fields}" if fields else "")
+        for name, fields, what in rows
+    ]
+
+
+def alongside(doors: Sequence[Door], served: str = "") -> tuple[str, ...]:
+    """Several doors in one **sentence**, with the engine named once (RK488).
+
+    :func:`offered` is the table and this is the prose beside it, holding the one rule both
+    surfaces that write such a sentence had found for themselves: a served name is
+    self-contained, so each carries its prefix, while a shell line repeats the invocation per
+    verb — three times inside a notice whose whole budget is 260 characters. So the engine
+    leads and the rest are the argv alone, which is how a reader writes the second command of
+    a pair anyway.
+
+    What it does **not** decide is the sentence around them. A served spelling drops the
+    arguments a shell spelling shows, so the two say different things about what a verb takes,
+    and that difference is prose the author writes — this owns which spelling, and never which
+    words.
+    """
+    spelled = [door.named(served) for door in doors]
+    if served:
+        return tuple(spelled)
+    return (*spelled[:1], *(" ".join(door.argv) for door in doors[1:]))
 
 
 @dataclass(frozen=True, slots=True)
@@ -1207,44 +1325,3 @@ def _substitute(
                 word = word.replace(token, value or BLANK)
         out.append(word)
     return tuple(out)
-
-
-def _fields(
-    parser: object, rest: Sequence[str], exposes: Sequence[str]
-) -> dict[str, object] | None:
-    """One door's flags as the fields a tool call carries, or ``None`` where it has no call.
-
-    The parser is the subcommand's own, so this is the inverse of the argv the table wrote
-    and not a second reading of it: a flag renamed in `cli.py` moves both directions at once.
-
-    ``None`` on three states, and each is a door that genuinely has no call. An argv the
-    parser refuses is not a command this surface serves; a word it does not recognise is the
-    same answer arriving as a leftover; and a field outside ``exposes`` is one the tool
-    surface **withholds** — `lint --fix` being the case that matters, since RK16 keeps the
-    writing half where a human is standing. A guess there would publish a call the server
-    then refuses, which is the shape RK436 spent a task removing from the other end.
-    """
-    import argparse  # noqa: PLC0415 - RK260, and only the printing path reaches here
-    import contextlib  # noqa: PLC0415
-    import io  # noqa: PLC0415
-
-    if not isinstance(parser, argparse.ArgumentParser):  # pragma: no cover - a typing guard
-        return None
-    with contextlib.redirect_stderr(io.StringIO()):
-        try:
-            parsed, unknown = parser.parse_known_args(list(rest))
-        except SystemExit:
-            return None
-    if unknown:
-        return None
-    fields: dict[str, object] = {}
-    for dest, value in vars(parsed).items():
-        # Against the parser's own default rather than against `None`: `set_defaults` puts
-        # the handler and the read-only flag in the same namespace, and a comparison written
-        # here would be a third place that knows which of those are arguments.
-        if value == parser.get_default(dest) or value is None or value is False:
-            continue
-        if dest not in exposes:
-            return None
-        fields[dest] = value
-    return fields

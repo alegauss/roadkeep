@@ -497,6 +497,72 @@ TOOLS: tuple[Tool, ...] = (
 #: (RK58) resolves the full path itself.
 TOOL_NAMES = frozenset(tool.argv_head[0] for tool in TOOLS)
 
+
+#: The long options this CLI declares a dest for, rather than letting argparse derive one,
+#: **by subcommand**. Not a flat table and it cannot be one: `--marker` sets `status` on `add`
+#: and `--status` sets `marker` on `resume`, so the two spellings cross and a global mapping
+#: would answer one of them backwards.
+#:
+#: Held here so :func:`serves` can answer without building a parser, and asserted **total** in
+#: `tests/test_serving.py` against every option every subcommand declares (RK488): the cheap
+#: reader and the parser are allowed to differ in cost and not in answer, and a flag renamed
+#: in `cli.py` fails there rather than silently costing a door its served spelling.
+_DESTS: Mapping[str, Mapping[str, str]] = {
+    "add": {"--dep": "deps", "--marker": "status", "--id": "task_id", "--prefix": "family"},
+    "amend": {"--dep": "deps"},
+    "anchors": {"--next": "only_next"},
+    "budget": {"--dep": "deps", "--marker": "status", "--prefix": "family"},
+    "list": {"--status": "marker"},
+    "next-id": {"--prefix": "family"},
+    "record add": {"--id": "task_id"},
+    "resume": {"--status": "marker"},
+    "reversals": {"--id": "task_id"},
+}
+
+
+def dest_of(option: str, command: str = "") -> str:
+    """The dest this long option sets on ``command`` — `--to-block` is `to_block` (RK488).
+
+    Argparse's own rule where the CLI leaves the dest to argparse, and :data:`_DESTS` where it
+    does not. Restated here rather than read off the parser because :func:`serves` is asked
+    this inside a hook the harness waits on, and building the parser index costs 117 ms.
+    """
+    return _DESTS.get(command, {}).get(option) or option.lstrip("-").replace("-", "_")
+
+
+def serves(argv: Sequence[str]) -> str | None:
+    """The tool this session offers for ``argv``, or ``None`` where it offers none (RK488).
+
+    The **cheap** half of what :meth:`~roadkeep.remedying.Door.call` answers, and the half
+    the guard can afford: a denial is composed inside a `PreToolUse` the harness waits on,
+    held at 44.6 ms by RK261, and building the CLI's parser index to name one tool costs 117
+    ms of that. So this reads :data:`TOOLS` and nothing else — the subcommand path answers
+    *which* tool, and :attr:`Tool.exposes` answers whether the flags in the argv are ones a
+    caller may pass. The parser is then only ever asked for the field **values**.
+
+    That second question is the one `guarding._tool_for` did not ask, and `lint --fix` is the
+    row that proves it has to be: RK16 keeps the writing flag where a human is standing, so
+    the served `lint` has no `--fix` — and the denial's own table offered it as a tool call,
+    which is naming a route the session cannot take, on the surface that just stopped an edit.
+
+    Conservative on the two edges, because both fall back to a shell line that is right
+    wherever a shell exists: a tool whose :attr:`Tool.always` names a flag serves a narrower
+    command than the argv asks about (RK150) and is never the answer to *what runs this*, and
+    a :attr:`Tool.conditional` argument is read as withheld, since whether a project opens one
+    is a fact about that project (L6) and this reader is given none.
+    """
+    words = list(argv)
+    for length in (2, 1):
+        for tool in TOOLS:
+            if tool.always or tool.argv_head != words[:length]:
+                continue
+            passed = (
+                dest_of(word, tool.command) for word in words[length:] if word.startswith("--")
+            )
+            return tool.name if all(dest in tool.exposes for dest in passed) else None
+    return None
+
+
 def _markers(config: Config) -> dict[str, Any]:
     """The open markers a caller may write, wherever the field means that set (RK314).
 
@@ -1379,20 +1445,21 @@ def _as_call(argv: str, prefix: str, *, plain: bool = False) -> str:
     Empty on anything this surface cannot answer for: a verb it withholds, an argv the parser
     refuses, a field outside the tool's `exposes`. There the shell spelling stays, which is
     what the CLI wrote and what is at least right where a shell exists.
+
+    Composed by :meth:`~roadkeep.remedying.Door.mention` and no longer here (RK488). This was
+    the third module holding its own copy of *a command in the spelling this session has*, and
+    the copy was honest about it — the docstring under :func:`_fields_of` said the two were
+    kept apart on purpose. What that bought is a transport whose rewriting rule can drift from
+    the report's own composition, silently, because both keep printing.
     """
-    words = argv.split()
-    for length in (2, 1):
-        for tool in TOOLS:
-            if tool.always or tool.argv_head != words[:length]:
-                continue
-            fields = _fields_of(_subparser(tool.command), words[length:], tool.exposes)
-            if fields is None:
-                return ""
-            named = "  ".join(f"{name}: {value}" for name, value in fields.items())
-            if plain:  # a field, not a sentence printed to somebody (RK476)
-                return f"{prefix}{tool.name}" + (f" with {named}" if named else "")
-            return f"`{prefix}{tool.name}`" + (f" with {named}" if named else "")
-    return ""
+    from roadkeep.remedying import Door  # noqa: PLC0415 - RK260, the rewriting path only
+
+    door = Door(tuple(argv.split()), "")
+    if door.call() is None:
+        return ""
+    # No backtick where this lands in a *field* rather than in a sentence printed to somebody
+    # (RK476) — which is the only thing this transport still decides about the spelling.
+    return door.mention(prefix, quote="" if plain else "`")
 
 
 def _fields_of(
@@ -1400,9 +1467,16 @@ def _fields_of(
 ) -> dict[str, object] | None:
     """The tail of a command as the fields a call carries, or ``None`` where it has none.
 
-    `remedying._fields`' rule for the other half of this problem, kept here rather than
-    imported: that one reads a *table's* argv and this one reads prose the CLI printed, and a
-    shared helper would tie the report's own composition to this transport.
+    The one reader of a command's **values**, for both halves of the problem (RK488): this
+    read prose the CLI printed and `remedying._fields` read a table's argv, kept apart on the
+    argument that a shared helper would tie the report's composition to this transport — and
+    what it tied instead was two rules about `exposes` that had to stay equal by hand.
+    :meth:`~roadkeep.remedying.Door.call` asks :func:`serves` *which* tool and asks this one
+    what the tail says; nothing else parses a door.
+
+    ``None`` on three states, and each is a command that genuinely has no call: an argv the
+    parser refuses, a word it does not recognise arriving as a leftover, and a field outside
+    ``exposes`` — `lint --fix`, since RK16 keeps the writing half where a human is standing.
     """
     with contextlib.redirect_stderr(io.StringIO()):
         try:
@@ -1542,14 +1616,16 @@ def _now(served: str) -> str:
     argv would have to quote a `--why` sentence to be correct, which is a second grammar for
     stating a call this surface already accepts as JSON.
     """
+    from roadkeep.remedying import Door  # noqa: PLC0415 - RK260, this note's path only
+
     if not served:
         # Nothing to name, so nothing is claimed. Every branch in :func:`call` passes the command
         # — the tool was resolved before dispatch — and this is the guard that keeps a caller
         # composing a note by hand from getting a sentence about a verb it never named.
         return ""
     return (
-        f" Available now, in this session: `{invocation()} {served}` runs the changed files, "
-        f"the CLI importing them per process."
+        f" Available now, in this session: `{Door(tuple(served.split()), '').command}` runs "
+        f"the changed files, the CLI importing them per process."
     )
 
 

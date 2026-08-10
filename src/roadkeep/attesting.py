@@ -57,7 +57,8 @@ from enum import StrEnum
 from pathlib import Path
 
 from roadkeep.config import Config
-from roadkeep.provenance import invocation, serving
+from roadkeep.provenance import served_by
+from roadkeep.remedying import Door
 from roadkeep.storing import Store, path, read, write
 
 #: What this module's rows are called inside the shared store (RK330). One file beside the
@@ -96,12 +97,11 @@ class Unattested:
                 "bytes that are there now are the new baseline.",
                 "",
                 # The second clause names no route on purpose: the refusal it points at has
-                # spelled both since RK24, so this line has one command to get right.
-                f"`{self.served}lint` judges the format; the verbs that write it are in "
-                f"the refusal every governed edit already prints."
-                if self.served
-                else f"`{invocation()} lint` judges the format; the verbs that write it are "
-                f"in the refusal every governed edit already prints.",
+                # spelled both since RK24, so this line has one command to get right — and
+                # since RK488 it does not spell that one either, `Door.named` being the one
+                # reader of which spelling this session has.
+                f"`{Door(('lint',), '').named(self.served)}` judges the format; the verbs "
+                f"that write it are in the refusal every governed edit already prints.",
             ]
         )
 
@@ -134,7 +134,7 @@ def unattested(config: Config) -> Unattested | None:
     if not found:
         return None
     _store(config, current)
-    return Unattested(files=found, served=serving(config.root) or "")
+    return Unattested(files=found, served=served_by(config.root))
 
 
 class State(StrEnum):

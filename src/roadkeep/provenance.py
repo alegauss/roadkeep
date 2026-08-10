@@ -299,6 +299,12 @@ def invocation() -> str:
 #: the two spellings below differ only by what wraps it.
 SERVER = "roadkeep"
 
+#: The prefix a project that declares the server itself gets — the first of :func:`serving`'s
+#: two answers, named because it is also the one a message built by hand means (RK488). Held
+#: here and not spelled at the surface that defaults to it: two literals of one prefix is the
+#: drift this module exists to remove, one scope down.
+WIRED = f"mcp__{SERVER}__"
+
 #: Where a plugin states its own name, relative to the tree that carries it.
 _MANIFEST = (".claude-plugin", "plugin.json")
 
@@ -334,9 +340,25 @@ def serving(root: Path) -> str | None:
     the answer here is allowed to be ``None``, and each caller says what it does with that.
     """
     if _declared_by(root):
-        return f"mcp__{SERVER}__"
+        return WIRED
     plugin = _plugin_name()
     return None if plugin is None else f"mcp__plugin_{plugin}_{SERVER}__"
+
+
+def served_by(root: Path) -> str:
+    """:func:`serving`'s answer as a **prefix to concatenate**, or `""` where none (RK488).
+
+    One reader for the six places that carry it. Each of them wanted the same two things —
+    the optional collapsed, because below there it is a string to put in front of a tool name,
+    and the empty case meaning *there is no call to publish*, which is what every renderer
+    already branches on — and each spelled `serving(root) or ""` for itself, which is four
+    mechanisms for one fact and a fifth waiting to be written slightly differently.
+
+    Not a second answer: the distinction :func:`serving` keeps between ``None`` and a prefix is
+    real and stays there, for the caller that has to tell *this project has no server* from
+    *this project's server is named so*. This is that answer for the callers that do not.
+    """
+    return serving(root) or ""
 
 
 @lru_cache(maxsize=8)
