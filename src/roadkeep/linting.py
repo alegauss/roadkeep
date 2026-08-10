@@ -572,7 +572,12 @@ def _examine(config: Config, since: str | None, tree: Tree) -> Report:
 
     for role, document in documents.items():
         findings.extend(within(config, role, document))
-        findings.extend(_characters(config, role, document))
+        # The character pass is a second walk over the same file, so the rule `within` holds
+        # has to be read here too or the 3,301 findings it exists to replace come back from
+        # the other side (RK451). The same predicate, not a second statement of it: `within`
+        # owns what "not text" means and this asks it.
+        if not _voided(document):
+            findings.extend(_characters(config, role, document))
     findings.extend(_across(config, documents))
     findings.extend(_scope(config, documents.get("roadmap")))
     queued, queue_notes = _queue(config, documents)
@@ -1161,6 +1166,20 @@ def _section_at(sections: tuple[Section, ...], lineno: int) -> str | None:
     )
 
 
+def _voided(document: Document) -> bool:
+    """Whether this file's every byte is NUL — the shape a lost write leaves (RK451).
+
+    Not a heuristic about looking binary, which would be a judgement about files this tool
+    did not write. The decidable question is narrower and is the one the failure produces:
+    RK118 wrote every byte of a governed file, and none of them was ever a NUL, so a file
+    that is nothing but NUL is one whose content did not reach the disk. An empty file is a
+    different state — a scaffold before its first line — and stays the gate's other business.
+    """
+    if not document.lines:
+        return False
+    return all(character == "\x00" for line in document.lines for character in line)
+
+
 def _absent(config: Config, tree: Tree) -> list[Finding]:
     """A declared file that is not on disk (`init` creates it: RK18).
 
@@ -1189,6 +1208,24 @@ def within(config: Config, role: str, document: Document) -> list[Finding]:
     """
     file = config.relative(config.path(role))
     out: list[Finding] = []
+
+    # Before the line reader, and returning instead of continuing (RK451). A governed file a
+    # crash left entirely NUL is one line of control characters, so `char.invisible` fired
+    # once per byte: 3,301 findings for 3,301 bytes, each identical but for a column, each
+    # naming a `--fix` that strips characters which are not text — on this file it would
+    # produce an empty one and report the tree clean, destroying a recoverable state with
+    # the gate's blessing. The rules below all ask what a *line* says, and this file has
+    # none; the single fact worth reporting is that its content is gone.
+    if _voided(document):
+        return [
+            Finding(
+                "file.not-text",
+                file,
+                f"holds {sum(len(line) for line in document.lines)} character(s) and not one "
+                f"of them is text: every byte is NUL, which is what a crash between a write "
+                f"and its rename leaves — the content is gone rather than malformed",
+            )
+        ]
 
     for reject in document.rejects:
         # The line the parser could not read at all. It is reported here and counted

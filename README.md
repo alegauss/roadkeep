@@ -117,16 +117,16 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 31 | 2 |
-| B — Authoring (insert, never hand-edit) | 0 | 102 | 1 |
-| C — Query (consult without reading the file) | 0 | 67 | 1 |
-| D — The gate | 1 | 92 | 0 |
+| B — Authoring (insert, never hand-edit) | 1 | 102 | 1 |
+| C — Query (consult without reading the file) | 1 | 67 | 1 |
+| D — The gate | 0 | 93 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 75 | 1 |
-| **Total** | 1 | 441 | 6 |
+| **Total** | 2 | 442 | 6 |
 
 **Next ready:**
 
-- 📋 **RK451** (deps: —) **A governed file that is not text at all is reported one finding per byte, and never as a file to restore** — The 3,301-byte roadmap a crash left NUL produced 3,301 char.invisible findings, each naming a --fix that would empty the file rather than say it has no content. → §RK451
+- 📋 **RK452** (deps: —) **Which of two writes came first decides whether an outline section ever belongs to a task** — section add binds the id into the heading only when a line already points at the anchor, and the --ref that follows a design written first never returns to bind it. → §RK452
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

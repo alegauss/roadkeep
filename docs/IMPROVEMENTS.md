@@ -77,32 +77,56 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK452 The pointer write binds the heading it starts naming
+
+Under an outline the id in the heading is the binding (RK262), and two writes make it:
+`section add` renders it when a live line already points at the anchor, `add --section`
+because it holds the line. Neither runs when the design is written first. `section add
+I.1 --title "…"` on an anchor nothing points at yet composes a heading naming no task,
+and the `add --ref I.1` that follows creates the pointer and never returns to the
+heading. On a fixture, line first yields `### I.2 Why the cache is cold (XX2)`, section
+first `### I.1 Why the widget stalls`.
+
+The second order costs permanently. `ship` reports `kept … §I.1 names no task in its
+heading, so it is prose belonging to none`, `lint` exits 0, and the rationale for
+shipped work stays in the prose file, which is what RK6 exists to stop. The recovery is
+the `section amend --title "<title> (<id>)"` RK262 already named, derived from a field
+called `kept` a round after the evidence scrolled away.
+
+So the pointer write does from the other end what `section add` does: where `--ref`
+names an outline section binding no task that no other live line claims, the binding is
+rendered with the pointer in one transaction. Not a heuristic about the prose (RK236):
+the anchor is claimed by exactly the line that would have bound it had it been written
+first. Two live claimants is RK64's ambiguity and stays the author's, as at `section
+add`.
+
 ## Block C — Query
 
+### §RK453 Which lines claim an address, beside whether it is spent
+
+RK452 stops the state being created; it does not reach the corpora already holding it. A
+heading written before its line binds nobody for the rest of its life, and no command
+lists one — the fixture's §I.1 was found by reading `ship`'s `kept` field as it scrolled
+past, and Shio's were found the same way.
+
+`anchors` is the only verb that lists sections, and its `live` answers a different
+question: RK247 built it about address reuse, so `live` means a heading declares the
+address *now*, and §I.1 — written for a task that has since shipped, claimed by nothing
+open — is counted among `3 live` beside two that are working.
+
+`lint` cannot be the reader, and RK236 already said why. Under an outline a heading
+naming no task is prose belonging to none, which Turing's standing GEO memo genuinely
+is, so a finding would refuse a legitimate memo with nothing that closes it. The state
+is a fact and not a violation, and L5 is that a fact costs a command rather than a file
+read.
+
+So the claim goes where the sections are already listed: per address, which live lines
+point at it and whether its heading binds one. An adopting project sees its unbound
+headings in one call, RK452's write is auditable instead of asserted, and an address
+whose only claimants are in the ledger is named — the thing `ship` reported once and no
+reader has held since.
+
 ## Block D — The gate
-
-### §RK451 The report that scaled with the damage
-
-A governed file that a crash left entirely NUL is read as one line of control
-characters, so `char.invisible` fires once per byte. Measured on the file this
-repository lost: 3,301 findings for 3,301 bytes, each identical but for a column number,
-each naming `lint --fix`.
-
-Only the first of three problems is cosmetic. The report is unreadable, and truncation
-is the only reason a terminal survives it. The remedy is worse than useless: `--fix`
-strips characters that are not text, so here it would produce an empty file and report
-the tree clean — a recoverable state destroyed with the gate's blessing. And the
-sentence a reader needs is the one nothing says: this file has no content, and `git
-checkout` closes it.
-
-The shape of the answer is a check that runs **before** the line reader. A governed file
-whose bytes are all NUL is not one this format can have opinions about: one finding, its
-own code, and a remedy naming the restore rather than a repair.
-
-Two things it must not become. Not a heuristic about "looks binary" — the decidable
-question is whether this is text the tool could have written, and RK118 wrote every byte
-of it. And not a refusal to run: the other governed files are still worth linting, and a
-report that stops at the first unreadable one hides what is fine.
 
 ## Block E — Adoption
 

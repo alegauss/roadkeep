@@ -1829,3 +1829,73 @@ def test_the_line_ending_is_not_what_makes_every_file_dirty(tmp_path):
         patch.setattr(linting, "suspect", counted)
         lint(config)
     assert "\n" not in asked and "\r" not in asked
+
+
+# -- the file whose content did not reach the disk (RK451) --------------------
+
+
+def voided(tmp_path: Path, size: int = 3301) -> Config:
+    """A governed file a crash left entirely NUL — the shape this repository lost."""
+    config = project(tmp_path)
+    (tmp_path / "ROADMAP.md").write_bytes(b"\x00" * size)
+    return config
+
+
+def test_a_file_that_is_all_nul_is_one_finding_and_not_one_per_byte(tmp_path):
+    """Measured on the file this repository lost: 3,301 findings for 3,301 bytes, each
+    identical but for a column, each naming a `--fix` that strips characters which are not
+    text. The rules below the check all ask what a *line* says, and this file has none."""
+    report = linting.lint(voided(tmp_path))
+    # Scoped to the file itself: the pointers in the *other* files now resolve to nothing,
+    # and those are consequences of the loss rather than a second reading of it.
+    mine = [f for f in report.findings if f.file == "ROADMAP.md"]
+    assert [f.code for f in mine] == ["file.not-text"]
+    assert "every byte is NUL" in mine[0].message
+    # No line and no column: the finding is about the file, which is the whole point.
+    assert mine[0].lineno is None
+
+
+def test_the_remedy_names_the_store_and_never_a_verb_of_this_tools(tmp_path):
+    """No verb here closes it — there is nothing left to render from — and the store is the
+    repository (L2). So the command is git's, and nothing prefixes it with this engine."""
+    from roadkeep.provenance import invocation
+    from roadkeep.remedying import remedy
+
+    report = linting.lint(voided(tmp_path))
+    found = remedy(report.findings[0])
+    assert found is not None and found.kind == "restore"
+    door = found.doors[0]
+    assert door.argv == ("git", "checkout", "--", "ROADMAP.md")
+    assert door.command == "git checkout -- ROADMAP.md"
+    assert not door.command.startswith(invocation())
+    # And `repair` may not execute it: the tool runs its own verbs and nobody else's.
+    assert not found.runnable
+
+
+def test_the_fix_pass_never_empties_the_file_it_cannot_read(tmp_path):
+    """`--fix` strips characters that are not text, so left to it this file would become an
+    empty one and the tree would report clean — a recoverable state destroyed with the
+    gate's blessing."""
+    from roadkeep.fixing import fix
+
+    config = voided(tmp_path)
+    fix(config)
+    assert (tmp_path / "ROADMAP.md").read_bytes() == b"\x00" * 3301
+
+
+def test_the_other_governed_files_are_still_judged(tmp_path):
+    """Not a refusal to run: a report that stopped at the first unreadable file would hide
+    what is fine about the rest."""
+    config = project(tmp_path)
+    (tmp_path / "ROADMAP.md").write_bytes(b"\x00" * 40)
+    report = linting.lint(config)
+    assert "file.not-text" in codes(report)
+    assert {f.file for f in report.findings} > {"ROADMAP.md"}
+
+
+def test_an_empty_file_is_a_different_state(tmp_path):
+    """A scaffold before its first line is not a lost write, and stays the gate's other
+    business: the check asks whether every byte is NUL, not whether there are few of them."""
+    config = project(tmp_path)
+    (tmp_path / "ROADMAP.md").write_bytes(b"")
+    assert "file.not-text" not in codes(linting.lint(config))

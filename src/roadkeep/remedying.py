@@ -61,9 +61,10 @@ from dataclasses import dataclass, field
 from .config import ROLES, Config
 from .schema import Dep
 
-#: The five kinds, in the order a caller pays for them: nothing, one write, one read then a
-#: judgement, one sentence, one choice. `repair` runs the first two and prints the rest.
-KINDS = ("fix", "run", "read", "compose", "decide")
+#: The six kinds, in the order a caller pays for them: nothing, one write, one read then a
+#: judgement, one sentence, one choice, and one command that is not this tool's at all.
+#: `repair` runs the first two and prints the rest.
+KINDS = ("fix", "run", "read", "compose", "decide", "restore")
 
 #: Marks the one field of a ``compose`` argv that the tool may not write (L4). Kept as a
 #: distinct token rather than an empty string so a caller can find it without parsing prose.
@@ -81,6 +82,11 @@ class Door:
 
     argv: tuple[str, ...]
     what: str
+    #: Whether this argv is somebody else's command (RK451). False for every door but the
+    #: ``restore`` kind's: there the content of a governed file is gone, no verb of this tool
+    #: brings it back, and the store is the repository (L2) — so the command is git's, and
+    #: prefixing it with this engine would name a subcommand roadkeep does not have.
+    foreign: bool = False
 
     @property
     def command(self) -> str:
@@ -91,7 +97,12 @@ class Door:
         this repository — a remedy spelling it names a command that answers `command not
         found`. A remedy a caller cannot run is the defect this task was about, one step
         further along.
+
+        A :attr:`foreign` door is already whole: it names another tool, so there is no
+        invocation of this one to put in front of it.
         """
+        if self.foreign:
+            return " ".join(self.argv)
         from .provenance import invocation
 
         return " ".join((invocation(), *self.argv))
@@ -126,6 +137,8 @@ class Door:
         there: L4 left that one to the author, and a call with the marker in it is a call to
         finish rather than one to make.
         """
+        if self.foreign:
+            return None  # somebody else's command; this surface serves none of it (RK451)
         from .serving import TOOLS, _subparser  # noqa: PLC0415 - RK260, the printing path only
 
         words = list(self.argv)
@@ -218,6 +231,10 @@ class _Rule:
     #: stop. A ``fix`` door cannot — its `what` describes the *repair* — so the cause is
     #: written there and only there. `tests/test_remedying.py` holds both directions.
     cause: str = ""
+    #: Whether this row's doors name another tool's command (RK451). On the row and not on
+    #: each door, because it is a property of the *kind*: `restore` is the one that leaves
+    #: this tool's vocabulary, and a door-by-door flag would let a row be half foreign.
+    foreign: bool = False
 
 
 def _fix(cause: str, what: str) -> _Rule:
@@ -226,6 +243,18 @@ def _fix(cause: str, what: str) -> _Rule:
 
 def _run(argv: tuple[str, ...], what: str) -> _Rule:
     return _Rule("run", ((argv, what),))
+
+
+def _restore(argv: tuple[str, ...], what: str) -> _Rule:
+    """One command **another tool** owns, for a finding no verb here can close (RK451).
+
+    The one kind whose door is not a roadkeep argv. A governed file whose content a crash
+    took is not malformed and cannot be repaired: there is nothing left to render from. What
+    closes it is the store, and the store is the repository (L2) — so the command is git's,
+    marked :attr:`Door.foreign` so nothing prefixes it with this engine, offers it as a tool
+    call or hands it to `repair`.
+    """
+    return _Rule("restore", ((argv, what),), foreign=True)
 
 
 def _read(argv: tuple[str, ...], what: str) -> _Rule:
@@ -426,6 +455,14 @@ _TABLE: Mapping[str, _Rule] = {
         ),
     ),
     # ------------------------------------------------------------------------ the headings
+    # RK451: no verb here closes it — the content is gone rather than malformed, and there
+    # is nothing left to render from. `--` before the path, because a file named like a flag
+    # is a path git would otherwise read as one.
+    "file.not-text": _restore(
+        ("git", "checkout", "--", "{file}"),
+        "the file's content did not reach the disk; the store is the repository, and this "
+        "puts back what it last committed",
+    ),
     "block.repeated": _run(
         ("block", "merge", "{id}"),
         "the label's later headings fold into the first, entries and all",
@@ -863,7 +900,12 @@ def remedy(finding: object, config: Config | None = None) -> Remedy | None:
     lineno = getattr(finding, "lineno", None)
     label = _label(subject, config)
     doors = tuple(
-        Door(_substitute(argv, subject, lineno, label), what) for argv, what in rule.doors
+        Door(
+            _substitute(argv, subject, lineno, label, getattr(finding, "file", "")),
+            what,
+            foreign=rule.foreign,
+        )
+        for argv, what in rule.doors
     )
     return Remedy(code, rule.kind, doors, rule.decision)
 
@@ -934,7 +976,11 @@ def _label(subject: str, config: Config | None) -> str:
 
 
 def _substitute(
-    argv: Sequence[str], subject: str, lineno: int | None, label: str = ""
+    argv: Sequence[str],
+    subject: str,
+    lineno: int | None,
+    label: str = "",
+    file: str = "",
 ) -> tuple[str, ...]:
     """Fill a template. A field with no value keeps its blank rather than rendering `None`.
 
@@ -942,13 +988,16 @@ def _substitute(
     ``--line None`` is worse than one reading ``--line …``, because the first looks
     runnable and the second says which word is missing.
 
-    Three fields and no more, which the suite holds: a door naming a fourth renders its own
-    braces, and `add --block {label}` is a command line no shell repairs (RK435).
+    Four fields and no more, which the suite holds: a door naming a fifth renders its own
+    braces, and `add --block {label}` is a command line no shell repairs (RK435). The fourth
+    is the **path** (RK451), and it arrived with the one remedy that is about a file rather
+    than about a line in one: `git checkout -- <path>` has nothing else to be about.
     """
     values = {
         "id": subject,
         "line": "" if lineno is None else str(lineno),
         "label": label,
+        "file": file,
     }
     out: list[str] = []
     for word in argv:

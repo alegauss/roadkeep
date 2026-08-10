@@ -206,6 +206,15 @@ def test_every_door_names_a_subcommand_this_cli_parses():
         found = remedy(Finding(code, "ROADMAP.md", "", 1, "RK1"))
         assert found is not None
         for door in found.doors:
+            if door.foreign:
+                # The one kind whose door is not this tool's (RK451): a governed file whose
+                # content a crash took cannot be repaired, so what closes it is the store's
+                # own verb — and nothing here prefixes it with this engine or offers it to
+                # `repair`. Asserted the other way round, which is the claim that matters.
+                assert door.argv[0] not in known, f"{code}: {door.argv[0]} is a subcommand"
+                assert not door.command.startswith(invocation())
+                assert door.call() is None
+                continue
             assert door.argv[0] in known, f"{code}: {door.argv[0]} is not a subcommand"
 
 
@@ -284,9 +293,12 @@ def test_the_explanation_of_an_early_heading_states_its_own_condition():
 def test_every_template_field_a_door_names_is_one_the_substitution_fills():
     """`{first}` and `{role}` were documented beside the table and substituted nowhere.
 
-    A fourth unfilled field would arrive exactly that way, and a door rendering its own
+    A fifth unfilled field would arrive exactly that way, and a door rendering its own
     braces is a command line no shell repairs (RK435). Read off the source rather than the
     table, because two rules are minted inside `_varied` and never appear in `_TABLE`.
+
+    `file` is the fourth and arrived with RK451, the one remedy that is about a file rather
+    than about a line in one.
     """
     import ast
 
@@ -297,7 +309,7 @@ def test_every_template_field_a_door_names_is_one_the_substitution_fills():
         if isinstance(node, ast.Constant) and isinstance(node.value, str)
         for field in re.findall(r"\{(\w+)\}", node.value)
     }
-    assert named <= {"id", "line", "label"}, sorted(named)
+    assert named <= {"id", "line", "label", "file"}, sorted(named)
 
 
 def test_a_note_gets_a_remedy_on_the_same_lookup():

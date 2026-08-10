@@ -24,11 +24,13 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK452** (deps: —) **Which of two writes came first decides whether an outline section ever belongs to a task** — section add binds the id into the heading only when a line already points at the anchor, and the --ref that follows a design written first never returns to bind it. → §RK452
+
 ## Block C — Query (consult without reading the file)
 
-## Block D — The gate
+- 📋 **RK453** (deps: RK452) **No read says which outline sections a backlog still owns, so prose a departure left is found by grepping** — Ownership under an outline is the id in the heading, and anchors reports only whether an address is spent, so a heading binding nobody reads like one whose task is open. → §RK453
 
-- 📋 **RK451** (deps: —) **A governed file that is not text at all is reported one finding per byte, and never as a file to restore** — The 3,301-byte roadmap a crash left NUL produced 3,301 char.invisible findings, each naming a --fix that would empty the file rather than say it has no content. → §RK451
+## Block D — The gate
 
 ## Block E — Adoption
 

@@ -315,6 +315,7 @@
 - ✅ **RK435** **The door offered for a queued block that has no lines yet says the block was never declared** — A queued block whose heading precedes its lines offers filing the first line beside dropping the entry, instead of one door arguing the block was never declared.
 - ✅ **RK439** **A sub-heading nested under a block's own heading is read as a second declaration of that block** — A heading inside another's subtree is read as the region's own, so a block grouped by sub-headings takes writes again and only two headings neither inside the other are refused.
 - ✅ **RK449** **A remedy reaches the tool surface as a shell argv, so the caller least able to run one is handed it** — Every door is published as a call beside its argv where the session serves it, derived from the subcommand's own parser, so lint --fix stays a shell command by rule.
+- ✅ **RK451** **A governed file that is not text at all is reported one finding per byte, and never as a file to restore** — A governed file whose every byte is NUL is one finding naming the restore, checked before the line reader, so 3,301 findings and a --fix that would empty it are both gone.
 
 ## Block E — Adoption
 
