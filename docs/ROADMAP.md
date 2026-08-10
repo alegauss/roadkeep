@@ -32,6 +32,8 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
+- 🛠 **RK487** (deps: —) **A pipe in a title or a symptom breaks the readme table, where the site form escapes the same string** — `export --readme` writes prose into Markdown cells raw, so one bar makes a six-cell row in a three-column table and the counts fall off the end. → §RK487
+
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:

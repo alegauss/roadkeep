@@ -121,8 +121,12 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 72 | 1 |
 | D — The gate | 0 | 108 | 0 |
 | E — Adoption | 0 | 74 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 89 | 1 |
-| **Total** | 0 | 477 | 6 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 89 | 1 |
+| **Total** | 1 | 477 | 6 |
+
+**Next ready:**
+
+- 🛠 **RK487** (deps: —) **A pipe in a title or a symptom breaks the readme table, where the site form escapes the same string** — `export --readme` writes prose into Markdown cells raw, so one bar makes a six-cell row in a three-column table and the counts fall off the end. → §RK487
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
