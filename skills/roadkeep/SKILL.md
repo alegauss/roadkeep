@@ -255,7 +255,9 @@ this tool having no model (L4). **The roadmap's third list is the queue**: `prio
 <token> [--first|--after <t>]` and `priority drop <token>` write the `## Priority`
 section, whose entries are bare tokens — an id or `Block X`, no reason field, because why
 something jumps the order is the commit that moved it. A heading declares the list, as a
-block heading declares a block, and the section **wins over `priority` in
+block heading declares a block — and **`priority add` writes that heading** where a project
+has none, above the blocks, saying so in its answer, so no queue ever needs a hand edit. The
+section **wins over `priority` in
 `roadkeep.toml`** where both exist; `priority list` says which one answered. Where the
 config still holds it and the roadmap has no section, **both write verbs refuse and name
 `priority migrate`**, which moves the order into the roadmap in one call — the gate reads

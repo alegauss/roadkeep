@@ -115,8 +115,8 @@ class NoQueue(KeyError):
             )
             return
         super().__init__(
-            f"no priority heading in {where}: the heading declares the queue, exactly as a "
-            f"block heading declares a block (RK37) — add `## Priority` above the blocks"
+            f"no priority heading in {where}, so there is no order to take a token out of: "
+            f"`priority add <token>` opens the section and writes the first entry (RK1014)"
         )
 
 
@@ -203,6 +203,10 @@ class Written:
     position: int = 1
     #: How long the queue is now, so "3rd of 5" is one answer rather than two calls.
     length: int = 1
+    #: Whether this write also opened the section (RK1014). Reported, because a caller who
+    #: asked to queue one token has just had a heading written into a governed file, and a
+    #: write nobody sees is the thing the event line exists to stop (RK38).
+    opened: bool = False
 
     @property
     def lineno(self) -> int:
@@ -323,8 +327,17 @@ def add(
     where = config.relative(config.path("roadmap"))
     document = config.document("roadmap")
     heading = _heading_index(document)
+    opened = False
     if heading is None:
-        raise NoQueue(where, _in_config(config))
+        # A queue still in the config is `migrate`'s (RK427): moving it is one act, and
+        # opening a second section beside it would be two orders in two files.
+        if _in_config(config):
+            raise NoQueue(where, _in_config(config))
+        # And a project with neither gets the heading written here (RK1014), the way
+        # `block add` opens a block heading — the two doors used to name each other and
+        # neither wrote it, leaving the hand edit this tool exists to replace.
+        document, heading = open_queue(document)
+        opened = True
     entry = token.strip()
     if not typed(config, entry):
         raise NotAnEntry(entry, where)
@@ -352,6 +365,7 @@ def add(
         entry=Entry(token=entry, lineno=at + 1, raw=render(entry)),
         position=position,
         length=len(twin) + 1,
+        opened=opened,
     )
 
 
@@ -489,11 +503,9 @@ def migrate(config: Config) -> Migrated:
         if not typed(config, token):
             raise NotAnEntry(token, _configured(config))
 
-    at = _first_block_index(document)
-    lines = [SECTION, ""] + [render(token) for token in tokens] + [""]
-    updated = document
-    for offset, line in enumerate(lines):
-        updated = updated.insert_line(at + offset, line)
+    updated, at = open_queue(document)
+    for offset, token in enumerate([render(one) for one in tokens] + [""]):
+        updated = updated.insert_line(at + 2 + offset, token)
     return Migrated(document=updated, tokens=tokens, lineno=at + 1)
 
 
@@ -533,6 +545,22 @@ def _first_block_index(document: Document) -> int:
         if line.lstrip().startswith("## "):
             return at
     return len(document.lines)
+
+
+def open_queue(document: Document) -> tuple[Document, int]:
+    """Write the heading that declares the queue, above the blocks (RK1014).
+
+    The one writer of :data:`SECTION`, called by `add` when a project has no queue at all and
+    by `migrate` when it has one in the config. Before the first block, which is where the
+    refusal used to tell a caller to put it by hand — the order is what a reader takes for the
+    shape of the plan, and a queue underneath the blocks reads as a seventh block.
+
+    A heading and the blank under it, and nothing else: what goes in the section is the
+    caller's, and a section opened with an entry nobody asked for would be this tool writing
+    an order (L4).
+    """
+    at = _first_block_index(document)
+    return document.insert_line(at, SECTION).insert_line(at + 1, ""), at
 
 
 def _heading_index(document: Document) -> int | None:

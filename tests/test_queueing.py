@@ -173,13 +173,42 @@ def test_after_a_token_nothing_carries_is_refused_before_anything_is_written(tmp
     assert text(tmp_path) == ROADMAP
 
 
-def test_a_project_with_no_heading_is_told_the_heading_declares_the_list(tmp_path):
-    # A heading is the only thing that declares one, exactly as a block heading declares a
-    # block (RK37) — so this is a refusal and never an invented section.
+def test_a_project_with_no_heading_has_one_written_by_the_verb_that_needs_it(tmp_path):
+    """RK1014. This was a refusal, on the argument that a heading is the only thing that
+    declares a queue — which is true and was never the question. `block add` writes a block
+    heading for exactly this reason, and here the two queue doors named each other: `add`
+    said to write `## Priority` by hand and `migrate` said `add` writes the first entry. What
+    that left was the one edit the guard denies."""
+    config = project(tmp_path, roadmap=NONE)
+    written = add(config, "RK1")
+    written.save()
+    assert written.opened is True
+    # Above the blocks, which is where the old refusal told a caller to put it: the order is
+    # what a reader takes for the shape of the plan, and a queue under them reads as a block.
+    body = text(tmp_path)
+    assert body.index("## Priority") < body.index("## Block A")
+    assert "## Priority\n\n- RK1\n" in body
+
+
+def test_a_project_that_never_asks_for_a_queue_still_has_no_section(tmp_path):
+    # The boundary: a tier declared and empty is not the same as a tier nobody asked for, so
+    # nothing here opens the section on a read or on a drop.
     config = project(tmp_path, roadmap=NONE)
     with pytest.raises(NoQueue) as caught:
+        drop(config, "RK1")
+    assert "no priority heading" in str(caught.value)
+    assert "## Priority" not in text(tmp_path)
+
+
+def test_a_queue_still_in_the_config_is_migrated_and_never_doubled(tmp_path):
+    """The one case `add` still refuses (RK427): a project whose order is in `roadkeep.toml`
+    has a real queue, and opening a second section beside it would be two orders in two
+    files. Moving it is one act, and the refusal names that verb."""
+    config = project(tmp_path, roadmap=NONE, config=DECLARED)
+    with pytest.raises(NoQueue) as caught:
         add(config, "RK1")
-    assert "the heading declares the queue" in str(caught.value)
+    assert "priority migrate" in str(caught.value)
+    assert "## Priority" not in text(tmp_path)
 
 
 def test_dropping_takes_the_entry_out_and_leaves_no_doubled_blank(tmp_path):

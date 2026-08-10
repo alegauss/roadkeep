@@ -529,6 +529,9 @@ def _priority_add(config: Config, args: argparse.Namespace) -> int:
                     "position": written.position,
                     "length": written.length,
                     "rendered": written.entry.raw,
+                    # Whether this call also opened the section (RK1014): a caller who asked
+                    # to queue a token has had a heading written into a governed file.
+                    "opened": written.opened,
                 },
                 indent=2,
             )
@@ -536,6 +539,10 @@ def _priority_add(config: Config, args: argparse.Namespace) -> int:
         return EXIT_OK
 
     print(f"{where}:{written.lineno}  queued {written.entry.token}")
+    if written.opened:
+        # Said, because the caller asked for an entry and got a heading too (RK1014) — the
+        # same reason every write here prints what it changed rather than only that it did.
+        print(f"  opened   the priority section, above the blocks — the queue is declared now")
     print(f"  order    {written.position} of {written.length}")
     # No event line (RK38): the payload a hook reads is an id and its block's open state, and
     # an entry states neither — the token names work whose line is somewhere else.

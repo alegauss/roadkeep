@@ -77,30 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1014 The heading the two queue verbs each leave to the other
-
-Reproduced on a fresh `init`, and again here while putting a task at the front of the
-order. `priority add` answers *no priority heading — add `## Priority` above the
-blocks*, and `priority migrate` answers *nothing is waiting to move: `priority add`
-writes the first entry*. Each names the other and neither writes the heading.
-
-What that leaves is a hand edit of a governed file, which is the single act this tool
-exists to own and the guard denies by name. The workaround taken here was three steps
-and a fourth file: declare the queue in the config, migrate it into the roadmap, then
-delete the config line the gate then reports as `priority.config`.
-
-The shape of the answer is already in the tree. `block add <x> --title` opens a block
-heading in every governed file organised by one, written for exactly this — the moment a
-write refuses with *no heading declares*. A queue heading is the same act with no title
-to choose.
-
-What must not change is which file wins: the section beats the config wherever both
-exist, and a project that never wanted a queue must still get no heading.
-
-What proves it: `priority add` on a project with neither writes the heading and the
-entry in one transaction, the refusal that sent a caller to an editor is gone, and a
-project that never calls it still has no section.
-
 ## Block C — Query
 
 ## Block D — The gate

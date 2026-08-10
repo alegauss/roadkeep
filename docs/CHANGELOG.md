@@ -154,6 +154,7 @@
 - ✅ **RK497** **A ship writes a why naming a path the repository lacks, and the gate then refuses the file the ship just wrote** — `ship`, `retire` and both `record` verbs refuse prose naming a file the repository lacks, so the gate's path rule is asked where the sentence is composed.
 - ✅ **RK499** **Every prose door accepts a tab, a zero-width codepoint and a space that is not one, and the gate refuses all three** — Every prose door refuses a tab, an invisible codepoint and a space that is not one, under the code the gate reports and from the one rule both surfaces read.
 - ✅ **RK500** **A dep flag naming an id nothing carries is written, and so is one on the block the line is being filed into** — A write refuses a dep in neither file and one whose blockers walk back to the line, so the id is no longer spent by a token nothing carries.
+- ✅ **RK1014** **A project with no queue is told to write the heading by hand, and the verb that would move one says the first writes it** — `priority add` opens the section above the blocks where a project has none and says so, so no queue needs the hand edit the guard denies.
 
 ## Block C — Query
 
