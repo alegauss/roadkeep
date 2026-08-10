@@ -838,3 +838,65 @@ def test_the_json_says_why_the_section_is_null_rather_than_only_that_it_is(tmp_p
     payload = json.loads(capsys.readouterr().out)
     assert payload["section"] is None and payload["section_absence"]
     assert payload["fields"], "the line's own fields are unaffected by the anchor"
+
+
+# -- the fifth subject: what the surface costs (RK464) ------------------------
+
+
+def test_the_tool_list_states_what_it_costs_a_session(tmp_path, capsys):
+    """RK30 put `[budgets]` on the files a session loads every turn, because resident prose
+    has no natural ceiling, and `lint` refuses one over. The schema this server publishes was
+    counted nowhere: measured on a three-file project, 51 tools and 52,892 characters, six
+    times the budget the resident file is held to.
+
+    Not a claim the list is too long — a claim that the number was not stated, and RK30's own
+    argument is that a limit nobody counts is a limit that moves."""
+    from roadkeep.serving import TOOLS
+
+    budgeted(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "--tools"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert f"tool list  {len(TOOLS)} tool(s)" in printed
+    assert "utf-16-code-units" in printed
+    # The largest few, because a reader deciding what to cut wants where the size went.
+    assert "add " in printed and "… and" in printed
+
+
+def test_the_payload_carries_every_tool_and_the_terminal_the_largest(tmp_path, capsys):
+    from roadkeep.serving import TOOLS
+
+    budgeted(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "--tools", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["tools"] == len(TOOLS) == len(payload["by_tool"])
+    assert payload["characters"] == sum(row["characters"] for row in payload["by_tool"])
+    # Largest first, which is the order the terminal truncates from.
+    sizes = [row["characters"] for row in payload["by_tool"]]
+    assert sizes == sorted(sizes, reverse=True)
+
+
+def test_the_figure_moves_with_what_the_surface_actually_publishes(tmp_path, capsys):
+    """Derived from `descriptors` and not a second estimate: a description reworded in
+    `cli.py` moves this number, which is the whole reason it is worth reading."""
+    from roadkeep.serving import descriptors
+
+    config = budgeted(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "--tools", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    described = {one["name"] for one in descriptors(config)}
+    assert {row["name"] for row in payload["by_tool"]} == described
+
+
+def test_the_fifth_subject_is_named_and_never_combined(tmp_path, capsys):
+    budgeted(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "--tools", "--file"]) == EXIT_USAGE
+    assert "one subject per answer" in capsys.readouterr().err
+
+
+def test_a_project_declaring_no_budgets_is_still_told_what_the_surface_costs(tmp_path, capsys):
+    """The one subject here that is not about a declaration: the surface costs what it costs
+    whether or not `[budgets]` exists, and a project that declared none is exactly the one
+    that has never been told."""
+    budgeted(tmp_path, declared=False)
+    assert main(["-C", str(tmp_path), "budget", "--tools"]) == EXIT_OK
+    assert "tool(s)" in capsys.readouterr().out

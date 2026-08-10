@@ -408,10 +408,14 @@ TOOLS: tuple[Tool, ...] = (
     # `file` is the fourth subject (RK345) and the one this transport cannot answer any other
     # way: an agent editing an every-turn file has no `wc` here, so the room it is composing
     # against would otherwise arrive as a gate at the end of the turn.
+    # `tools` is the fifth (RK464), and the one subject on this list that is about *this
+    # list*: what the schema published here costs a session, which is the read RK30 makes
+    # about an every-turn file and nobody had made about the surface. Exposed for `file`'s
+    # reason read back — the caller paying it is the one connected to this server.
     Tool(
         "budget",
         ("id", "block", "deps", "status", "symptom", "anchor", "role", "non_goal", "lead",
-         "file"),
+         "file", "tools"),
         conditional=("ref",),
     ),
     # `designed` is exposed on both for the reason it exists (RK83): the caller that asks

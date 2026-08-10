@@ -32,8 +32,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK464** (deps: —) **The tool list is 13,000 tokens a session and nothing budgets it, where an 8 KB resident file is gated** — RK30 gates every-turn files at 8,400 bytes and lint refuses one over; the schema this server publishes is six times that, measured, and no reader states the number. → §RK464
-
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:

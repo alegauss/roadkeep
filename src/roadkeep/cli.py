@@ -161,7 +161,7 @@ from roadkeep.sections import find as find_section
 from roadkeep.sections import move as move_section
 from roadkeep.sections import nested as nested_sections
 from roadkeep.sections import pointers
-from roadkeep.serving import Prose, serve, spelled
+from roadkeep.serving import Prose, descriptors, serve, spelled
 from roadkeep.shipping import Closure, Partial, record, retire, ship
 from roadkeep.shipping import amend as amend_record
 from roadkeep.shipping import move as move_record
@@ -1585,6 +1585,19 @@ def build_parser() -> argparse.ArgumentParser:
         dest="non_goal",
         action="store_true",
         help="the two limits `non-goal add` enforces, which are the list's own",
+    )
+    # The fifth subject, and the one context nothing counted (RK464). Every other budget here
+    # is about prose a *write* is measured against; this one is about what the surface itself
+    # costs a session, which is the same argument RK30 makes about a resident file and had
+    # never been made about the schema this server publishes.
+    budget_parser.add_argument(
+        "--tools",
+        action="store_true",
+        help=(
+            "what this project's tool list costs a session that connects the server: the "
+            "count, the characters, and which tools they are — the read RK30 makes about "
+            "an every-turn file, about the surface"
+        ),
     )
     budget_parser.add_argument(
         "--lead",
@@ -5801,6 +5814,7 @@ def _budget(config: Config, args: argparse.Namespace) -> int:
             ("--anchor", bool(args.anchor)),
             ("--non-goal", args.non_goal),
             ("--file", args.file is not None),
+            ("--tools", args.tools),
         )
         if given
     ]
@@ -5816,6 +5830,8 @@ def _budget(config: Config, args: argparse.Namespace) -> int:
         return _non_goal_budget(config, args)
     if args.file is not None:
         return _file_budget(config, args)
+    if args.tools:
+        return _tools_budget(config, args)
     if args.lead or args.role:
         named = "--lead" if args.lead else "--role"
         subject = "--non-goal" if args.lead else "--anchor"
@@ -5995,6 +6011,62 @@ def _aim(share: Share) -> str:
     aim for what is left, and `--json` keeps both.
     """
     return f"aim {share.room} more words" if share.taken else f"aim {share.aim} words"
+
+
+#: How many tools the listing names before it stops naming them one by one. The largest few
+#: are where the size went, and a caller reading a report to decide what to cut wants those;
+#: the rest is the total, which is the number this read exists to state (RK464).
+_LARGEST_TOOLS = 5
+
+
+def _tools_budget(config: Config, args: argparse.Namespace) -> int:
+    """What this project's tool list costs a session, stated because nothing stated it (RK464).
+
+    RK30 put `[budgets]` on the files a session loads every turn, because resident prose has
+    no natural ceiling — the 186 KB `agents.md` in §0.1 is the measurement this project starts
+    from — and `lint` refuses one over. The schema this server publishes was counted nowhere:
+    measured on a three-file project, 51 tools and 52,892 characters, six times the budget the
+    resident file is held to, paid once per session that connects the server.
+
+    That is not a claim the list is too long. It is that the number was not stated, and RK30's
+    own argument is that a limit nobody counts is a limit that moves: every task adding a tool
+    or a sentence to a description spends this, and each spend looks free where it is written.
+
+    **A read and no ceiling**, which is where §RK464 left it. What a budget would be per —
+    the list or one tool — is a decision this does not make, and a gate built before the
+    number was ever printed would be a limit chosen without looking at one.
+
+    Derived from :func:`~roadkeep.serving.descriptors`, so it is the payload a client is
+    actually sent rather than a second estimate of it: a description reworded in `cli.py`
+    moves this figure, which is the whole reason the number is worth reading.
+    """
+    described = descriptors(config)
+    sizes = {
+        one["name"]: measured_width(json.dumps(one, ensure_ascii=False)) for one in described
+    }
+    total = sum(sizes.values())
+    ranked = sorted(sizes.items(), key=lambda row: (-row[1], row[0]))
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "tools": len(described),
+                    "characters": total,
+                    "unit": CHARACTER_UNIT,
+                    # Every tool and not the largest few: a caller reading this to decide what
+                    # to cut is reading a payload, where the terminal is reading a report.
+                    "by_tool": [{"name": name, "characters": size} for name, size in ranked],
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+    print(f"tool list  {len(described)} tool(s), {total} {CHARACTER_UNIT}")
+    for name, size in ranked[:_LARGEST_TOOLS]:
+        print(f"  {name:<16} {size}")
+    if len(ranked) > _LARGEST_TOOLS:
+        print(f"  … and {len(ranked) - _LARGEST_TOOLS} more — `--json` lists every one")
+    return EXIT_OK
 
 
 def _budget_json(answer: Budget) -> dict[str, object]:

@@ -121,12 +121,8 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 70 | 1 |
 | D — The gate | 0 | 100 | 0 |
 | E — Adoption | 0 | 74 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 76 | 1 |
-| **Total** | 1 | 454 | 6 |
-
-**Next ready:**
-
-- 📋 **RK464** (deps: —) **The tool list is 13,000 tokens a session and nothing budgets it, where an 8 KB resident file is gated** — RK30 gates every-turn files at 8,400 bytes and lint refuses one over; the schema this server publishes is six times that, measured, and no reader states the number. → §RK464
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 77 | 1 |
+| **Total** | 0 | 455 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

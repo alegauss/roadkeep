@@ -361,7 +361,12 @@ cut can reach. `budget --non-goal [--lead "…"]` is the roadmap's other bullet,
 limits are the list's own and not the task line's. **`budget --file <p>` is the fourth
 subject**, and the one that is not about prose at all: what an every-turn file `[budgets]`
 declares costs in lines and bytes and what is left — bare, every declared budget. Read it
-*before* editing one, never `wc` and a subtraction; `lint` is still what refuses. Every
+*before* editing one, never `wc` and a subtraction; `lint` is still what refuses.
+**`budget --tools` is the fifth**, and the only one about this surface rather than about
+prose: what the tool list costs a session that connects the server, in characters and by
+tool, largest first. Nothing refuses it — the number is stated so that adding a tool or a
+sentence to a description stops looking free, which is the argument `[budgets]` makes about
+a file that loads every turn. Every
 verb that prints a section's size states **two** figures where they differ — `48 words,
 310 with subsections (limit 300)` — because the argument is what an `amend` can shorten
 and the subtree is what a reader pays; cutting to the second number cuts prose that was
