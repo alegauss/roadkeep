@@ -8072,6 +8072,19 @@ def _report(config: Config, args: argparse.Namespace) -> int:
     print(f"kept  {kept.path}", file=sys.stderr)
     if kept.complaint:
         print(f"roadkeep: {kept.complaint}", file=sys.stderr)
+    # Which of the two forms this is, said here because this is the only moment anybody can
+    # choose (RK481). `replay` refuses a capture that carries no governed files, and by the
+    # time it does the reporting session is over — so the flag is named to the one caller who
+    # could still pass it. Not the default, and that stays: `--embed` is this project's text
+    # leaving it, and a tool that published a private repository's roadmap by being helpful
+    # is the worse failure. The silence is what was wrong.
+    print(
+        "replay  runs it anywhere: the governed files ride along"
+        if args.embed
+        else "replay  refuses it: no governed files ride along — `--embed` writes the "
+        "capture that runs, and sends this project's text with it",
+        file=sys.stderr,
+    )
     # RK440: the capture carries the annotation for whoever triages it, and this is the same
     # fact said to the session that can still act on it. On stderr with the rest of the
     # narration, so `--json` and `--issue` stay pipeable.

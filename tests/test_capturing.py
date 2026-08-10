@@ -696,6 +696,46 @@ def test_the_command_says_where_it_kept_it_on_stderr(tmp_path, capsys):
     assert "kept  " in err and str(REPORTS) in err
 
 
+def test_the_command_says_which_of_the_two_captures_it_wrote(tmp_path, capsys):
+    """RK481. Probed on a copy of Shio: `report` keeps a file, prints `kept <path>`, and
+    `replay` on it answers *not replayable — the config declares three files the capture does
+    not carry*. That refusal is correct and read too late: by then the reporting session is
+    over, and the only caller who could have passed `--embed` was the one running `report`,
+    which named the flag in no line it printed.
+
+    Not-embedding stays the default — `--embed` is this project's text leaving it, and a tool
+    that published a private repository's roadmap by being helpful is the worse failure. The
+    silence was the defect, which is RK420's rule one module over."""
+    root = project(tmp_path)
+    main(["-C", str(root), "report", "--symptom", SYMPTOM, "--why", WHY, "--", "lint"])
+    plain = capsys.readouterr().err
+    assert "`--embed`" in plain and "replay  refuses it" in plain
+    main(["-C", str(root), "report", "--embed", "--symptom", SYMPTOM, "--why", WHY, "--", "lint"])
+    embedded = capsys.readouterr().err
+    assert "replay  runs it anywhere" in embedded
+    # And the flag is not advertised where it was already taken, which is the note nobody
+    # reads by the third time (RK242's rule for the refusal's own note).
+    assert "--embed" not in embedded
+
+
+def test_the_replay_refusal_names_what_that_reader_can_actually_do(tmp_path):
+    """The other voice (RK481): a reader holding a finished capture cannot pass `--embed` —
+    the session is gone — but asking for one that was is a thing they can do. RK313's rule,
+    which is that a message closes on something the reader can perform."""
+    from roadkeep.capturing import Replay
+
+    said = str(
+        Replay(
+            unstaged=("docs/ROADMAP.md",),
+            recorded_exit=1,
+            exit_code=1,
+            reproduces=True,
+            output="",
+        )
+    )
+    assert "not replayable" in said and "ask for one taken with `--embed`" in said
+
+
 def test_there_is_no_flag_for_not_keeping_it(tmp_path):
     """Unconditional. A capture nobody pruned costs kilobytes; a capture nobody kept costs
     the only session that could have identified the defect."""

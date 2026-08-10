@@ -684,9 +684,14 @@ class Replay:
             # Said differently from the above on purpose: the capture is not incomplete, the
             # *staging* is — and what to do about it is to take the capture again, not to stop
             # redacting it.
+            # Naming the flag to a reader who cannot pass it (RK481): they hold a finished
+            # capture and the session that took it is gone, so the door is *asking* rather
+            # than running — which is a thing this reader can actually do, and the reason
+            # RK313 gives for closing on something rather than on the fact alone. The
+            # instruction lives where it can be followed: `report` says it as it writes.
             return (
                 f"not replayable: the config declares {', '.join(self.unstaged)}, "
-                f"which the capture does not carry"
+                f"which the capture does not carry — ask for one taken with `--embed`"
             )
         verdict = "still reproduces" if self.reproduces else "no longer reproduces"
         said = f"{verdict}: recorded exit {self.recorded_exit}, now {self.exit_code}"
