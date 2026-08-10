@@ -45,6 +45,7 @@ import tempfile
 import tomllib
 import traceback
 from collections.abc import Callable, Mapping, Sequence
+from dataclasses import dataclass
 from pathlib import Path
 from typing import NoReturn
 
@@ -1233,6 +1234,10 @@ def build_parser() -> argparse.ArgumentParser:
         "--ids", action="store_true", help="print ids alone, one per line"
     )
     list_parser.set_defaults(handler=_list, reads_only=True)
+    # Two output *forms* of one read are two answers, exactly as `budget`'s subjects are
+    # (RK465's rule, RK467's find): the payload came back whole with nothing said about the
+    # flag that shaped nothing.
+    answers(list_parser, ("ids", "the listing as bare ids"), ("json", "the payload"))
 
     stats_parser = subcommands.add_parser(
         "stats",
@@ -1334,6 +1339,16 @@ def build_parser() -> argparse.ArgumentParser:
             "listing is `claims`, which needs no id"
         ),
     )
+    # The sixth pair, and the first one the *declaration* found rather than a sweep (RK489):
+    # `--porcelain` returned before `--json` was read, so a caller asking for the payload got
+    # the paths, byte for byte. RK467's sweep could never see it — it runs against a fixture
+    # with no live claim, where every `claim` pair exits 2 for want of one — which is the
+    # limit of finding a class by probing, one probe away from the class being declarable.
+    answers(
+        claim_parser,
+        ("porcelain", "the paths alone, for `git add --`"),
+        ("json", "the payload"),
+    )
 
     writes_parser = subcommands.add_parser(
         "writes",
@@ -1395,6 +1410,11 @@ def build_parser() -> argparse.ArgumentParser:
     # one command into a locked half and an unlocked half is a second mechanism for the rarer
     # case. What the flag buys is that the *report* never waits on a write at all.
     lint_parser.set_defaults(handler=_lint, reads_only=True, writes_when="fix")
+    # `list`'s pair, one verb over: `--quiet` shortens the printed report and `--json` is a
+    # different form of the same read (RK467).
+    answers(
+        lint_parser, ("quiet", "the report as its summary line"), ("json", "the payload")
+    )
 
     repair_parser = subcommands.add_parser(
         "repair",
@@ -1617,6 +1637,19 @@ def build_parser() -> argparse.ArgumentParser:
     )
     budget_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     budget_parser.set_defaults(handler=_budget, reads_only=True)
+    # Four subjects and one verb (RK283/RK345), declared rather than checked by hand (RK489).
+    # Named rather than inferred from the positional: under the id scheme `RK12` is both a
+    # line and an anchor, and a command that guessed which one was meant would be a budget
+    # the caller has to check before trusting.
+    answers(
+        budget_parser,
+        ("anchor", "one section's prose"),
+        ("non_goal", "the roadmap's other bullet"),
+        ("file", "an every-turn file"),
+        ("tools", "what this tool surface costs a session"),
+    )
+    narrows(budget_parser, "role", "anchor")
+    narrows(budget_parser, "lead", "non_goal")
 
     show_parser = subcommands.add_parser(
         "show",
@@ -1772,6 +1805,15 @@ def build_parser() -> argparse.ArgumentParser:
         "--json", action="store_true", help="the payload a site build reads"
     )
     export_parser.set_defaults(handler=_export)
+    # `--json` is a subject and a destination is a write, so asking for both asks two
+    # questions (RK466). `--readme` and `--site` are not that shape — they are two
+    # destinations of one projection and compose, which RK39 asked for, so they are one
+    # group: the whole reason :class:`Answer` holds a group rather than a flag.
+    answers(
+        export_parser,
+        ("json", "the projection printed"),
+        (("readme", "site"), "the projection written into a file"),
+    )
 
     gaps_parser = subcommands.add_parser(
         "gaps",
@@ -1842,6 +1884,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     anchors_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     anchors_parser.set_defaults(handler=_anchors, reads_only=True)
+    # Two subjects, as `budget`'s four are (RK466): `--next` returned before the `--claims`
+    # branch was reached, so a caller asking for the audit and the free address read the
+    # address alone with nothing said about the other.
+    answers(
+        anchors_parser, ("only_next", "the free address"), ("claims", "the ownership audit")
+    )
 
     deps_parser = subcommands.add_parser(
         "deps",
@@ -2323,6 +2371,11 @@ def dispatch(config: Config, args: argparse.Namespace) -> int:
     own writer still keeps is a re-entrant lock of its own, because indivisibility is a promise
     to *every* caller and not only to this dispatcher (RK117).
     """
+    # One question per call, before either branch (RK489): a verb asked two answers one of
+    # them for, and the write lock is the wrong place to discover it.
+    refused = _one_answer(args)
+    if refused is not None:
+        return refused
     if _only_reads(args):
         return args.handler(config, args)
     with exclusive(config.root):
@@ -2389,6 +2442,130 @@ def writes_when(source: argparse.Namespace | argparse.ArgumentParser) -> tuple[s
     if not declared:
         return ()
     return (declared,) if isinstance(declared, str) else tuple(declared)
+
+
+@dataclass(frozen=True, slots=True)
+class Answer:
+    """One question a verb can be asked, as its own parser declares it (RK489).
+
+    A **group** of flags rather than one, because two of them can be one question: `export
+    --readme --site` writes the same projection to two destinations and composes, which is
+    what RK39 asked for, while either of them beside `--json` is two answers. One flag is the
+    ordinary case and reads as a group of one.
+    """
+
+    #: `(dest, option string, the parser's own default)` per flag, resolved at declaration
+    #: time so nothing here has to derive an option from a dest or a dest from an option.
+    flags: tuple[tuple[str, str, object], ...]
+    #: What this question answers, as a **noun phrase**: it is rendered inside `<what>
+    #: (--flag)`, so a verb here would have to agree with a list whose length is the caller's.
+    what: str
+
+    def given(self, args: argparse.Namespace) -> tuple[str, ...]:
+        """The option strings of this group the caller actually passed."""
+        return tuple(
+            option
+            for dest, option, default in self.flags
+            if getattr(args, dest, default) != default
+        )
+
+    def holds(self, dest: str) -> bool:
+        return any(one == dest for one, _, _ in self.flags)
+
+    def asked(self, args: argparse.Namespace) -> str:
+        return f"{self.what} ({', '.join(self.given(args))})"
+
+
+def _declared(parser: argparse.ArgumentParser, dest: str) -> tuple[str, str, object]:
+    """One argument this parser declares, or a `KeyError` naming the verb (RK489).
+
+    Raised at **build time**, which is the whole point: a declaration naming a flag the
+    subparser does not have is a mistake that fails when the parser is constructed — before
+    any argv reaches it — rather than a refusal that silently never fires. That is the same
+    trade `writes_when` makes one function up, and the reason this takes dests: an option
+    string is spelled per flag and a dest is what every other declaration here is keyed by.
+    """
+    for action in parser._actions:  # noqa: SLF001 - argparse exposes no public reader
+        if action.dest == dest and action.option_strings:
+            return dest, action.option_strings[0], action.default
+    raise KeyError(f"{parser.prog} declares no --{dest.replace('_', '-')}")
+
+
+def answers(parser: argparse.ArgumentParser, *groups: tuple[str | tuple[str, ...], str]) -> None:
+    """Declare which of a verb's flags are **answers**, so two of them are refused (RK489).
+
+    `budget` wrote this by hand for its four subjects — a list of flags, a refusal when two
+    arrive, and a check of each narrowing flag against the one that answered — and it was
+    twenty-five lines for one verb out of eighty. Every other multi-subject verb either
+    repeated the shape or did not have it: RK465 found `--role` swallowed beside three
+    subjects, RK466 found two commands taking two answers and printing one, and RK467 added a
+    sweep that finds the next one *after* it has been written.
+
+    Declared here, :func:`_one_answer` enforces it for every verb before the handler runs, on
+    both surfaces, because `dispatch` is the door the MCP server comes through too. Which is
+    this tool's own thesis turned on itself: the saving is the analysis, not the characters —
+    a sweep reports after a flag nothing reads has been added, and a declaration refuses
+    before a subparser exists that can swallow one.
+    """
+    parser.set_defaults(
+        subjects=tuple(
+            Answer(
+                tuple(
+                    _declared(parser, one)
+                    for one in ((dests,) if isinstance(dests, str) else dests)
+                ),
+                what,
+            )
+            for dests, what in groups
+        )
+    )
+
+
+def narrows(parser: argparse.ArgumentParser, flag: str, subject: str) -> None:
+    """Declare that ``flag`` shapes ``subject`` and may not arrive without it (RK489).
+
+    Checked against the subject that **answered** and not against the absence of one, which
+    is RK465's finding: the refusal `budget` wrote sat after every dispatch, so it fired only
+    where nothing else had, and `--role` beside `--file` changed nothing and said nothing. A
+    caller reading a number it believes it narrowed is worse off than one refused.
+    """
+    declared = parser.get_default("narrowing") or ()
+    parser.set_defaults(
+        narrowing=(*declared, (_declared(parser, flag), _declared(parser, subject)))
+    )
+
+
+def _one_answer(args: argparse.Namespace) -> int | None:
+    """Refuse a call that asked two questions, out of what its parser declared (RK489).
+
+    ``None`` where the call is one question, which is every call to a verb that declares
+    nothing. Run from :func:`dispatch`, so the refusal is the same on both surfaces and no
+    handler carries a copy of it.
+    """
+    subjects: tuple[Answer, ...] = getattr(args, "subjects", ())
+    given = [one for one in subjects if one.given(args)]
+    if len(given) > 1:
+        print(
+            f"roadkeep: one answer per call: {given[0].asked(args)} or "
+            f"{given[1].asked(args)}, not both",
+            file=sys.stderr,
+        )
+        return EXIT_USAGE
+    asked = given[0] if given else None
+    for (flag, option, default), (subject, names, _) in getattr(args, "narrowing", ()):
+        if getattr(args, flag, default) == default:
+            continue
+        if asked is None or not asked.holds(subject):
+            # Both halves, because the two states are different mistakes: a subject was named
+            # and it is not this flag's, or none was and the flag cannot stand alone.
+            beside = (
+                f"and {asked.given(args)[0]} is a different subject"
+                if asked is not None
+                else "so pass it too"
+            )
+            print(f"roadkeep: {option} narrows {names}, {beside}", file=sys.stderr)
+            return EXIT_USAGE
+    return None
 
 
 def _may_offer(
@@ -4615,12 +4792,6 @@ def _print_standing(standing: Standing | None) -> None:
 
 
 def _list(config: Config, args: argparse.Namespace) -> int:
-    if args.ids and args.json:
-        # RK467's sweep found this one: `--ids` shapes the printed listing and `--json` is a
-        # different form of the same read, so the payload came back whole with nothing said
-        # about the flag that shaped nothing.
-        print(_one_form("--ids", "prints the listing as bare ids", "--json"), file=sys.stderr)
-        return EXIT_USAGE
     try:
         census, standing = _census(config, args)
     except (KeyError, OSError) as error:
@@ -4982,10 +5153,6 @@ def _lint(config: Config, args: argparse.Namespace) -> int:
     except (KeyError, OSError) as error:
         return _refused(error)
 
-    if args.quiet and args.json:
-        print(_one_form("--quiet", "shortens the report to its summary line", "--json"),
-              file=sys.stderr)
-        return EXIT_USAGE
     passed = report.clean and not applied.refused
     # Absolute, and never relative to the working directory (RK299): the defect this answers
     # *is* a wrong working directory, so a spelling relative to one would print `.` and
@@ -4996,19 +5163,6 @@ def _lint(config: Config, args: argparse.Namespace) -> int:
     else:
         _print_report(config, report, applied, root, quiet=args.quiet)
     return EXIT_OK if passed else EXIT_GATE
-
-
-def _one_form(shaped: str, shapes: str, other: str) -> str:
-    """Why a flag shaping one answer may not ride with another (RK465's rule, RK467's find).
-
-    Two output *forms* of one read are two answers, exactly as `budget`'s subjects are: a
-    caller passing a flag that narrows the terminal report beside the payload reads the
-    payload unnarrowed and is told nothing. Found by the sweep rather than by a probe, which
-    is what the sweep is for.
-    """
-    return (
-        f"roadkeep: {shaped} {shapes}, which {other} does not print: one answer per call"
-    )
 
 
 def _repair(config: Config, args: argparse.Namespace) -> int:
@@ -5887,43 +6041,9 @@ def _show(config: Config, args: argparse.Namespace) -> int:
 
 
 def _budget(config: Config, args: argparse.Namespace) -> int:
-    # Four subjects and one verb (RK283/RK345). Named rather than inferred from the
-    # positional: under the id scheme `RK12` is both a line and an anchor, and a command
-    # that guessed which one was meant would be a budget the caller has to check before
-    # trusting.
-    named = [
-        flag
-        for flag, given in (
-            ("--anchor", bool(args.anchor)),
-            ("--non-goal", args.non_goal),
-            ("--file", args.file is not None),
-            ("--tools", args.tools),
-        )
-        if given
-    ]
-    if len(named) > 1:
-        print(
-            f"roadkeep: one subject per answer: {' or '.join(named)}, not both",
-            file=sys.stderr,
-        )
-        return EXIT_USAGE
-    # Checked against the subject that **answered**, and not against the absence of one
-    # (RK465). The refusal below existed and was right, and it sat after every dispatch — so
-    # it fired only where nothing else had, and `--role` beside `--file`, `--non-goal` or
-    # `--tools` changed nothing and said nothing. A caller reading a number it believes it
-    # narrowed is worse off than one refused, by the argument RK16 makes about naming an
-    # edit that cannot work.
-    asked = named[0] if named else ""
-    for flag, narrows, given in (
-        ("--role", "--anchor", bool(args.role)),
-        ("--lead", "--non-goal", bool(args.lead)),
-    ):
-        if given and asked != narrows:
-            # Both halves, because the two states are different mistakes: a subject was
-            # named and it is not this flag's, or none was and the flag cannot stand alone.
-            beside = f"and {asked} is a different subject" if asked else "so pass it too"
-            print(f"roadkeep: {flag} narrows {narrows}, {beside}", file=sys.stderr)
-            return EXIT_USAGE
+    # Which of the four subjects was asked for, and whether `--role` or `--lead` came with
+    # the one it narrows, are `answers` and `narrows` at this verb's own `add_parser` and
+    # `dispatch`'s to refuse (RK489). What is left here is the dispatch itself.
     if args.anchor:
         return _body_budget(config, args)
     if args.non_goal:
@@ -6625,20 +6745,6 @@ def _export(config: Config, args: argparse.Namespace) -> int:
         for flag, name in (("readme", args.readme), ("site", args.site))
         if name is not None
     ]
-    # `--json` is a *subject* and a destination is a write, so asking for both asks two
-    # questions (RK466): the projection printed and the files spliced are two answers, and
-    # this branch returned the write while saying nothing about the read. `--readme` and
-    # `--site` are not that shape — they are two destinations and compose, which `chosen`
-    # above already does and RK39 asked for.
-    if chosen and args.json:
-        named = ", ".join("--" + flag for flag, _ in chosen)
-        print(
-            f"roadkeep: --json prints the projection and {named} "
-            f"{'write' if len(chosen) > 1 else 'writes'} it into a file: "
-            f"one answer per call",
-            file=sys.stderr,
-        )
-        return EXIT_USAGE
     try:
         projection = project(config)
         if not chosen:
@@ -6759,16 +6865,6 @@ def _anchors(config: Config, args: argparse.Namespace) -> int:
     # the listing was narrowed to one file (RK297).
     spread = [one for one in whole if not ids.match(one.anchor.split(".")[0])]
     spent = len(found) - len(outline)
-    # Two subjects, as `budget`'s five are, and one answer per call (RK466): `--next` used to
-    # return before the `--claims` branch was reached, so a caller asking for the audit and
-    # the free address read the address alone with nothing said about the other.
-    if args.only_next and args.claims:
-        print(
-            "roadkeep: --next is the free address and --claims is the ownership audit: "
-            "one answer per call",
-            file=sys.stderr,
-        )
-        return EXIT_USAGE
     if args.only_next and args.json:
         # The narrow read, in the narrow shape (RK410). `family` and `namespace` are kept
         # because the answer is meaningless without saying which numbering it continues —

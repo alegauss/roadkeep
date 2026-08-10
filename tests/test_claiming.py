@@ -1289,6 +1289,25 @@ def test_the_command_answers_the_paths_alone_when_a_script_is_reading(tmp_path, 
     assert capsys.readouterr().out == "src/a.py\ntests/test_a.py\n"
 
 
+def test_the_paths_alone_and_the_payload_are_two_answers(tmp_path, capsys):
+    """RK489, and the first defect the declaration found rather than a sweep. `--porcelain`
+    returned before `--json` was read, so a caller asking for the payload got the paths byte
+    for byte — RK467's sweep runs against a fixture with no live claim, where every `claim`
+    pair exits 2 for want of one, so it could never see this."""
+    project(tmp_path, BLOCKS + line("RK2"))
+    config = Config.discover(tmp_path)
+    take(config)
+    at = ["-C", str(tmp_path), "claim", "RK2"]
+    assert main([*at, "--path", "src/a.py"]) == EXIT_OK
+    capsys.readouterr()
+    assert main([*at, "--porcelain", "--json"]) == EXIT_USAGE
+    said = capsys.readouterr()
+    assert said.out == ""
+    assert "one answer per call" in said.err
+    assert "the paths alone, for `git add --` (--porcelain)" in said.err
+    assert "the payload (--json)" in said.err
+
+
 def test_the_command_refuses_a_line_no_claim_holds_rather_than_answering_empty(
     tmp_path, capsys
 ):

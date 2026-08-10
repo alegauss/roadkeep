@@ -119,14 +119,14 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 31 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 103 | 1 |
 | C — Query (consult without reading the file) | 1 | 72 | 1 |
-| D — The gate | 3 | 108 | 0 |
+| D — The gate | 2 | 109 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 91 | 1 |
-| **Total** | 4 | 479 | 6 |
+| **Total** | 3 | 480 | 6 |
 
 **Next ready:**
 
-- 📋 **RK489** (deps: —) **Each subparser checks its own subjects and narrowing flags, so a swallowed flag is found one verb at a time** — Twenty-five hand-written lines guard one verb of eighty, and the property that catches the rest is a sweep, which reports after a flag nothing reads has already been added. → §RK489
+- 📋 **RK490** (deps: RK488 ✅) **A remedy row repeats what its finding already carries, so a row naming the wrong file or verb is found by example** — The table is total over codes but nothing holds a row against the finding it closes, so its argv and its two sentences agree only by an author's attention. → §RK490
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

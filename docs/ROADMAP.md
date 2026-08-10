@@ -30,7 +30,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK489** (deps: —) **Each subparser checks its own subjects and narrowing flags, so a swallowed flag is found one verb at a time** — Twenty-five hand-written lines guard one verb of eighty, and the property that catches the rest is a sweep, which reports after a flag nothing reads has already been added. → §RK489
 - 📋 **RK490** (deps: RK488 ✅) **A remedy row repeats what its finding already carries, so a row naming the wrong file or verb is found by example** — The table is total over codes but nothing holds a row against the finding it closes, so its argv and its two sentences agree only by an author's attention. → §RK490
 - 📋 **RK491** (deps: —) **Three tests hold three surface-wide rules under no common name, so a rule nothing holds reads as one that is held** — Totality over codes, the flag-pair sweep and the argv check are one act discovered three times, and nothing enumerates which stated rules a property reaches. → §RK491
 

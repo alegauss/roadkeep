@@ -1770,7 +1770,9 @@ def test_the_free_address_and_the_audit_are_two_answers(tmp_path, capsys):
     claimants(config, "XXXVII.1")
     assert main(["-C", str(tmp_path), "anchors", "--claims", "--next"]) == EXIT_USAGE
     said = capsys.readouterr().err
-    assert "--next is the free address and --claims is the ownership audit" in said
+    assert "the free address (--next)" in said
+    assert "the ownership audit (--claims)" in said
+    assert "one answer per call" in said
     # And each alone still answers, which is what makes the refusal about the pair.
     assert main(["-C", str(tmp_path), "anchors", "--next"]) == EXIT_OK
     assert capsys.readouterr().out.startswith("§")

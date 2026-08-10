@@ -762,7 +762,11 @@ def test_the_command_answers_in_the_units_the_loader_pays(tmp_path, capsys):
 def test_the_fourth_subject_is_named_and_never_combined(tmp_path, capsys):
     budgeted(tmp_path)
     assert main(["-C", str(tmp_path), "budget", "--file", "--non-goal"]) == EXIT_USAGE
-    assert "one subject per answer" in capsys.readouterr().err
+    # One grammar for every verb that takes more than one answer (RK489): what each subject
+    # answers is a noun phrase its own `add_parser` declares, and the refusal is composed.
+    said = capsys.readouterr().err
+    assert "one answer per call" in said
+    assert "an every-turn file (--file)" in said and "(--non-goal)" in said
 
 
 # -- one anchor, two files, and no first match (RK303) -------------------------
@@ -890,7 +894,9 @@ def test_the_figure_moves_with_what_the_surface_actually_publishes(tmp_path, cap
 def test_the_fifth_subject_is_named_and_never_combined(tmp_path, capsys):
     budgeted(tmp_path)
     assert main(["-C", str(tmp_path), "budget", "--tools", "--file"]) == EXIT_USAGE
-    assert "one subject per answer" in capsys.readouterr().err
+    said = capsys.readouterr().err
+    assert "one answer per call" in said
+    assert "(--tools)" in said and "(--file)" in said
 
 
 def test_a_project_declaring_no_budgets_is_still_told_what_the_surface_costs(tmp_path, capsys):

@@ -550,7 +550,9 @@ def test_the_projection_and_a_destination_are_two_answers(tmp_path, capsys):
     project_files(tmp_path)
     assert main(["-C", str(tmp_path), "export", "--readme", "--json"]) == EXIT_USAGE
     said = capsys.readouterr().err
-    assert "--json prints the projection and --readme writes it into a file" in said
+    assert "the projection printed (--json)" in said
+    assert "the projection written into a file (--readme)" in said
+    assert "one answer per call" in said
     assert "one answer per call" in said
 
 

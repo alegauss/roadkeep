@@ -105,27 +105,6 @@ so the answer stays measured rather than asserted.
 
 ## Block D — The gate
 
-### §RK489 Subjects and narrowing flags, declared once
-
-`_budget` names its four subjects in a list, refuses two of them together, then checks
-each narrowing flag against the subject that actually answered. That code is right, and
-it is twenty-five hand-written lines of it, for one verb out of eighty.
-
-Every other multi-subject verb either repeats the shape or does not have it. RK465 found
-`--role` swallowed beside three subjects; RK466 found two commands taking two answers
-and printing one; RK467 added a sweep over boolean pairs, which is a backstop and says
-so — it finds the next one after it has been written, never before.
-
-The facts are declarable at `add_parser` time: which flags are subjects of a verb, which
-flag narrows which subject, and what the refusal says when two arrive or when a
-narrowing flag stands alone. Declared there, one dispatcher enforces them for every
-verb, argparse's own mutually-exclusive group covers the pair it can express, and the
-sweep becomes a property that cannot fail rather than a search that has to keep running.
-
-This is the tool's own thesis turned on itself: the saving is the analysis, not the
-characters. A sweep reports after a flag has been added that nothing reads; a
-declaration refuses before a subparser exists that can swallow one.
-
 ### §RK490 A remedy row derives what its finding already knows
 
 `_TABLE` is total over the codes the package can emit and the suite asserts it (RK421),
