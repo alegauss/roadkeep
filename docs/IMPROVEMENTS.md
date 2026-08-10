@@ -84,3 +84,31 @@ already written, not authorship.
 ## Block E — Adoption
 
 ## Block F — The plugin
+
+### §RK475 The route a refusal names
+
+RK444, RK447 and RK448 moved the four routes `guarding` composes to the engine that
+answers. The write path raises its own refusals, and those were not in that count.
+Exercised over MCP against a copy of Turing, which is an outline project:
+
+    add {"block": "A", "symptom": …, "why": …}
+    → ref: every task points at its rationale section —
+      `python D:/…/scripts/roadkeep.py anchors --block A` says which family …
+
+The refusal is right and the sentence is the useful half: `--ref` is required there and
+`anchors` is what names a free address. The route is wrong. The caller is on the surface
+where `anchors` has been a tool since RK463, and it is handed a shell command — on a
+machine that, since RK57, may have no console script at all.
+
+Measured across the package, 29 sites compose an `invocation()` outside the three
+modules already moved; `sections.py` holds seven and `cli.py` twelve. Not all are
+refusals and not all reach this surface, so the count is the search space rather than
+the defect.
+
+What makes this different from the four already fixed is where the answer lives.
+`guarding` holds one `Notice` and one `Refusal` and reads `serving` for the prefix; a
+`SchemaError` raised in `sections` knows nothing about the transport it will be printed
+on, and putting the prefix there would be the write path importing the surface.
+
+Open: whether the substitution belongs at the raise or at the print, since
+`serving.call` is the one place that knows both the message and the transport.
