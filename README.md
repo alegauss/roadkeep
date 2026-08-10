@@ -118,15 +118,15 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 30 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 102 | 1 |
-| C — Query (consult without reading the file) | 1 | 65 | 1 |
+| C — Query (consult without reading the file) | 0 | 66 | 1 |
 | D — The gate | 0 | 91 | 0 |
 | E — Adoption | 1 | 73 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 2 | 71 | 1 |
-| **Total** | 4 | 432 | 6 |
+| **Total** | 3 | 433 | 6 |
 
 **Next ready:**
 
-- 📋 **RK442** (deps: RK441 ✅) **delivered prints a whole block's ledger to answer whether one proposal collides with it** — The read before an add costs 103 lines and 9773 bytes on Block B, where the five nearest entries by word overlap held every duplicate this ledger records. → §RK442
+- 📋 **RK443** (deps: —) **A stored capture that never reached the verb replays as reproducing the symptom it was filed under** — The verdict is the recorded exit code turning up again, which a usage refusal always does, so the triage command says `still reproduces` about evidence the capture calls unreached. → §RK443
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

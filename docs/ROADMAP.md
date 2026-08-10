@@ -26,8 +26,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK442** (deps: RK441 ✅) **delivered prints a whole block's ledger to answer whether one proposal collides with it** — The read before an add costs 103 lines and 9773 bytes on Block B, where the five nearest entries by word overlap held every duplicate this ledger records. → §RK442
-
 ## Block D — The gate
 
 ## Block E — Adoption

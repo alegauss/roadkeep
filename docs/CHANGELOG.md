@@ -217,6 +217,7 @@
 - ✅ **RK432** **A dep on a block nobody has filed anything under resolves as satisfied** — A block dep resolves against the block's own stage, so a heading opened before its first line no longer reads as shipped and pick stops offering the task waiting on it.
 - ✅ **RK433** **delivered answers a block letter nothing declares as one that has shipped nothing** — delivered resolves the block label before it filters the ledger: a letter nothing declares is refused at exit 2, and every answer names which of the four states the block is in.
 - ✅ **RK441** **Three copies price a lexical duplicate match at 33rd, and re-measuring this ledger does not reproduce it** — All three copies argue from the score instead of a rank the ledger contradicts, and a test holds them there: the ranking is fine and the absolute score is not comparable.
+- ✅ **RK442** **delivered prints a whole block's ledger to answer whether one proposal collides with it** — delivered --near ranks the block against the sentence being proposed and prints the five nearest, which held every pair this ledger knows the answer to, with no score and no index.
 
 ## Block D — The gate
 

@@ -130,7 +130,12 @@ ranking is not the obstacle: measured on this ledger a lexical match ranks the t
 duplicate in the top three and still scores below what an entry with **no** duplicate
 scores against its own nearest neighbour, so no threshold separates them and the gate is
 impossible rather than unreliable. So you read the list, and the alternative is
-discovering the collision after a claim, a brief and a retirement. A letter nothing
+discovering the collision after a claim, a brief and a retirement. **`delivered <block>
+--near "<the symptom you are about to propose>"` is that read bounded by the question**
+— the five entries nearest it, ranked by word overlap, instead of a whole block's ledger
+(103 lines and 9,773 bytes here). Reach for it by default: measured on the four pairs
+this ledger knows the answer to, the true partner is inside those five every time. The
+order is the answer and no score is printed, for the reason above. A letter nothing
 declares is **refused** rather than answered `nothing`, that answer being read as
 evidence, and where the block exists
 the reply says which of live, paused, finished or empty it is. **`reversals` is how you

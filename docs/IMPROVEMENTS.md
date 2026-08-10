@@ -79,26 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK442 The pre-add read is the last query that answers by printing the file
-
-`delivered` is one of the two reads before an `add`, and the one query left that answers
-by printing the file: `delivered B` is 103 lines and 9,773 bytes spent to decide one
-question, which is L5 unapplied to its own verb. `--near` ranks that block's entries by
-the sentence about to be proposed and prints the few nearest. Measured on the four
-`superseded by` pairs this ledger records, the true partner lands at #1, #2, #1 and #1
-inside its block — five lines instead of a hundred, at the same recall.
-
-Three constraints are the design. It never refuses and never warns: RK441 measures that
-the score separates nothing, so the absence of a threshold is a known result rather than
-caution, and the ordering is printed for a reader to use. It stores no index — BM25
-rebuilt per call costs 0.23 ms over these 426 entries and 0.73 ms over Turing's 892, so
-a second store would buy nothing and cost L2. And it takes no dependency: the ranking is
-some fifty lines of stdlib, where Lucene is a JVM and every Python index is a wheel.
-
-The no-model non-goal is not reached. Nothing here writes prose or judges meaning; it
-orders lines that already exist by word overlap, and the answer is unchanged in kind —
-the author still reads it and still decides.
-
 ## Block D — The gate
 
 ## Block E — Adoption

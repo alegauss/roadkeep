@@ -143,6 +143,7 @@ from roadkeep.renumbering import renumber
 from roadkeep.reverting import reversals
 from roadkeep.repairing import MAX_PASSES, Repaired, repair
 from roadkeep.schema import UTF16_UNITS, SchemaError, width as measured_width
+from roadkeep.ranking import NEAREST, nearest
 from roadkeep.queueing import add as add_priority
 from roadkeep.queueing import declared as declared_queue
 from roadkeep.queueing import drop as drop_priority
@@ -1447,10 +1448,22 @@ def build_parser() -> argparse.ArgumentParser:
             "duplicate collides with, and the outcome sentence doubles the length. A letter "
             "no heading declares is refused rather than answered as empty — that answer is "
             "read as evidence — and where the label is declared the reply says which of "
-            "live, paused, finished or empty the block is."
+            "live, paused, finished or empty the block is. `--near` is the same read "
+            f"bounded by the question (RK442): the {NEAREST} entries nearest the sentence "
+            "you are about to propose, in order, instead of the whole block. The order is "
+            "the answer and there is no score — RK441 measured that the absolute one "
+            "separates nothing, so publishing it would invite a threshold that cannot exist."
         ),
     )
     delivered_parser.add_argument("block", help="the block label, e.g. B")
+    delivered_parser.add_argument(
+        "--near",
+        metavar="SYMPTOM",
+        help=(
+            f"the symptom about to be proposed: print the {NEAREST} entries nearest it "
+            "rather than the block, ranked by word overlap and never refused or warned about"
+        ),
+    )
     delivered_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     delivered_parser.set_defaults(handler=_delivered, reads_only=True)
 
@@ -5085,6 +5098,17 @@ def _delivered(config: Config, args: argparse.Namespace) -> int:
     # makes, which is what makes this count and `standing.recorded` one number rather than
     # two that agree.
     entries = ledger.block(label)
+    # RK442: the whole block is what this verb answered with, and the question is whether one
+    # sentence collides with it. Ranked here rather than inside the reader, because the
+    # ordering is a property of the *query* and the block is the fact — and the unranked
+    # tuple stays exactly what it was, so `--near` narrows one answer and does not make a
+    # second one. `recorded` below is still the block's count, never the shown count.
+    recorded = len(entries)
+    if args.near:
+        entries = tuple(
+            entries[index]
+            for index in nearest(args.near, [e.task.symptom for e in entries], NEAREST)
+        )
     where = config.relative(config.path("changelog"))
     if args.json:
         print(
@@ -5096,14 +5120,23 @@ def _delivered(config: Config, args: argparse.Namespace) -> int:
                     # the answer to what was asked, and this is what the label it was asked
                     # about turned out to be.
                     "standing": _standing_json(standing),
+                    # What the block holds, beside what this call chose to print (RK442):
+                    # a consumer handed five rows and no total reads a five-entry block.
+                    "recorded": recorded,
+                    "near": args.near,
                     "delivered": [
                         {
                             "id": e.task.id,
                             "marker": e.task.status,
                             "symptom": e.task.symptom,
                             "line": e.lineno,
+                            # The order and never a score (RK441): the absolute figure
+                            # separates nothing, so a payload carrying it is one turn from
+                            # the threshold that measurement rules out. Absent without
+                            # `--near`, where the order is the ledger's and not an answer.
+                            **({"rank": at} if args.near else {}),
                         }
-                        for e in entries
+                        for at, e in enumerate(entries, start=1)
                     ],
                 },
                 indent=2,
@@ -5115,9 +5148,23 @@ def _delivered(config: Config, args: argparse.Namespace) -> int:
         # Said, never an empty stdout: "this block has delivered nothing" and "this command
         # found nothing to read" look the same to a caller, and only one of them is an answer.
         print(f"{where}  {standing.named} has delivered nothing yet")
+    elif args.near:
+        # The count of what is *shown* against the count of what is there (RK442). This
+        # verb's own docstring is why: it was deliberately unbounded, because the entry that
+        # got elided is exactly the one nobody read — so a bounded answer has to say it is
+        # bounded, in the header, or it inherits the guarantee it just gave up.
+        print(f"{where}  {standing.named}, {len(entries)} nearest of {recorded} delivered")
     else:
-        print(f"{where}  {standing.named}, {len(entries)} delivered")
+        print(f"{where}  {standing.named}, {recorded} delivered")
     print(f"  block    {standing.sentence}")
+    if args.near:
+        # Said once, above the rows: the ordering is the whole answer and there is no
+        # threshold under it, which is the sentence that keeps a reader from taking #1 as a
+        # verdict (RK441). The rest of the block is one command away and named here.
+        print(
+            f"  near     ranked by word overlap, nearest first — an order and not a "
+            f"verdict; `{invocation()} delivered {label}` is all {recorded}"
+        )
     for entry in entries:
         print(f"  {entry.task.status} {entry.task.id:<8} {entry.task.symptom}")
     return EXIT_OK
