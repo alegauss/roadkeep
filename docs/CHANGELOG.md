@@ -335,6 +335,7 @@
 - ✅ **RK470** **A remedy naming a section omits which prose file it is in, so on a project with two it opens the wrong one** — A section remedy carries the role of the file its finding is about where the project declares two, so on Turing one that opened the wrong file now closes its own finding.
 - ✅ **RK471** **The count repair closes with says three ran where one ran and two are printed FAILED above it** — The summary counts what ran and names what was refused, so the number a reader acts on agrees with the FAILED lines above it and the exit code is untouched.
 - ✅ **RK472** **A remedy that refuses every time is re-attempted on every run, and nothing marks it as stuck** — A drop blocked by a claimed nested section is a decision naming the blocker instead of a command repair dispatches, so nothing is attempted and refused run after run.
+- ✅ **RK473** **Nothing runs repair over a real corpus, so a remedy that cannot close its finding is found by hand** — The pinned corpora hold that every remedy repair dispatches runs and that a second pass finds nothing, which caught a fold refused on Shio's ledger on its first run.
 
 ## Block E — Adoption
 

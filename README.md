@@ -119,14 +119,10 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 31 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 103 | 1 |
 | C — Query (consult without reading the file) | 0 | 72 | 1 |
-| D — The gate | 1 | 106 | 0 |
+| D — The gate | 0 | 107 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 77 | 1 |
-| **Total** | 1 | 463 | 6 |
-
-**Next ready:**
-
-- 📋 **RK473** (deps: —) **Nothing runs repair over a real corpus, so a remedy that cannot close its finding is found by hand** — RK468, RK470 and RK472 were each one dispatch that failed on Turing, found one per sitting, and the corpora the suite already pins would have shown all three at once. → §RK473
+| **Total** | 0 | 464 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

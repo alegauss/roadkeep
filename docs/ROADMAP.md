@@ -28,8 +28,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK473** (deps: —) **Nothing runs repair over a real corpus, so a remedy that cannot close its finding is found by hand** — RK468, RK470 and RK472 were each one dispatch that failed on Turing, found one per sitting, and the corpora the suite already pins would have shown all three at once. → §RK473
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

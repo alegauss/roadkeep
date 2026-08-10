@@ -958,6 +958,21 @@ def _varied(code: str, rule: _Rule, finding: object, config: Config) -> _Rule:
                 (("section", "move", BLANK), "move the nested design out, then drop this one"),
             )
         return rule
+    if rule.varies == "region":
+        loose = _loose_below(finding, config)
+        if loose:
+            # `block merge` refuses while the later heading stands over a note, and `--prose`
+            # is what drops it — a decision RK237 put at the door on purpose, because the
+            # note is somebody's prose and this tool does not delete prose to close a finding
+            # (L4). Found by RK473's own sweep on Shio's pinned ledger, where two merges were
+            # dispatched and refused on every run.
+            where = ", ".join(f"line {one}" for one in loose)
+            return _decide(
+                f"the fold is blocked: the later heading stands over a note ({where}), which "
+                f"the merge would take with it:",
+                (("block", "merge", "{id}", "--prose"), "fold, dropping that note with it"),
+                (("show", "{id}"), "read the note first — moving it is the other answer"),
+            )
     if rule.varies == "region" and _empty_region(finding, config):
         # The verb the finding's own sentence names on this branch (RK425): a region holding
         # nothing is removed rather than folded, and `block drop` is what removes it.
@@ -985,6 +1000,32 @@ def _queue_in_config(config: Config) -> bool:
     from .queueing import declared  # noqa: PLC0415 - one branch, and never on a clean run
 
     return declared(config).declared_in == "config"
+
+
+def _loose_below(finding: object, config: Config) -> tuple[int, ...]:
+    """The lines of prose the later heading stands over, which the fold would take (RK473).
+
+    Asked of `blocking._held`, which is the reader `block merge` refuses from, so the remedy
+    and the verb answer one question. Empty where the fold would run.
+    """
+    from .blocking import _held  # noqa: PLC0415 - one branch, never on a clean run
+
+    label = getattr(finding, "subject", "") or getattr(finding, "id", "")
+    where, lineno = getattr(finding, "file", ""), getattr(finding, "lineno", None)
+    if not label or not where or lineno is None:
+        return ()
+    document = next(
+        (
+            config.document(role)
+            for role in ROLES
+            if config.has(role) and config.relative(config.path(role)) == where
+        ),
+        None,
+    )
+    if document is None:
+        return ()
+    later = next((one for one in document.headings if one.lineno == lineno), None)
+    return () if later is None else _held(document, later).prose
 
 
 def _empty_region(finding: object, config: Config) -> bool:

@@ -30,6 +30,8 @@ import corpora
 from pathlib import Path
 from roadkeep.document import Document
 from roadkeep.history import HistoryUnavailable
+from roadkeep.cli import main
+from roadkeep.config import Config
 from roadkeep.linting import lint, within
 
 #: The roles a corpus is read for. The prose file has no task line to round-trip, so it is
@@ -227,3 +229,67 @@ def test_the_live_root_is_still_reachable_and_still_named(corpus):
     assert settings.root == corpus.where
     for role in ROLES:
         assert settings.path(role).is_relative_to(corpus.where)
+
+
+# -- what `repair` does to a corpus it did not write (RK473) ------------------
+
+
+def _repairable(corpus, tmp_path: Path):
+    """A **fresh** copy of the pinned tree, because this one is written into.
+
+    `corpora.config` roots a project at a copy shared per revision, which every other test
+    here reads; a `repair` over that would leave the corpus somebody else asserts about in a
+    state its pin does not describe. So the copy is copied, under `tmp_path`, and thrown away
+    with it — the same rule `materialise` states about the checkout, one layer in.
+    """
+    import shutil
+
+    from roadkeep.config import Config
+
+    corpora.require(corpus)
+    into = tmp_path / corpus.name
+    shutil.copytree(corpora.config(corpus).root, into)
+    return Config.discover(into)
+
+
+@pytest.mark.parametrize("corpus", corpora.BOTH, ids=lambda c: c.name)
+def test_every_repair_this_corpus_dispatches_closes_or_is_never_offered(corpus, tmp_path):
+    """The property three defects in a row broke, on the trees that already prove the others.
+
+    RK468 named `block drop` and dispatched `block merge`; RK470 opened the wrong prose file
+    on a project declaring two; RK472 dispatched a drop the file refuses and did it again on
+    every run. Each was found by running `repair` over a copy of Turing by hand, one per
+    sitting, and this holds all three at once.
+
+    The claim is narrow and exact: a remedy this tool *offers to run* has to run. What it
+    cannot close it prints (RK422), and that is the other branch — printed, never dispatched.
+    """
+    from roadkeep.repairing import repair
+
+    config = _repairable(corpus, tmp_path)
+    outcome = repair(config, lambda argv: main(["-C", str(config.root), *argv]))
+    refused = [step for step in outcome.steps if not step.ok]
+    assert not refused, (
+        f"{corpus.name}: {len(refused)} remedy(ies) were dispatched and refused — "
+        f"{[' '.join(step.argv) for step in refused]}"
+    )
+
+
+@pytest.mark.parametrize("corpus", corpora.BOTH, ids=lambda c: c.name)
+def test_a_second_repair_over_this_corpus_finds_nothing_it_left(corpus, tmp_path):
+    """`MAX_PASSES` catches a repair that *succeeds* while its finding survives, and says so
+    in the right words: a rule and its own remedy disagree. A repair that never succeeds
+    walks past that guard, because nothing changed and nothing looped — which is what RK472
+    was, and what this holds from the other end."""
+    from roadkeep.repairing import repair
+
+    config = _repairable(corpus, tmp_path)
+    run = lambda argv: main(["-C", str(config.root), *argv])  # noqa: E731 - one expression
+    first = repair(config, run)
+    if not first.steps:
+        pytest.skip(f"{corpus.name} at {corpus.rev} offers no runnable remedy to repeat")
+    again = repair(Config.discover(config.root), run)
+    assert not again.steps, (
+        f"{corpus.name}: a second run dispatched "
+        f"{[' '.join(step.argv) for step in again.steps]}, so the first closed nothing by them"
+    )
