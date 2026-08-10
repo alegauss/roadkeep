@@ -16,7 +16,7 @@ id_sources = ["agents.md"]
 # Still read, and now the *fallback* (RK325): a `## Priority` section of the roadmap wins
 # where both exist, because every token in a queue names work and work leaves — which is the
 # one thing in this file that stops being true by itself, and the one nothing governed.
-priority = []
+priority = ["RK1013"]
 
 # where a defect in this tool is filed, for the `--issue` handoff (RK87). Configuration and
 # not a constant, so a fork reports to itself — and nothing is ever sent from here: this
