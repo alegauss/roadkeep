@@ -82,7 +82,7 @@ from typing import Any, TextIO
 from roadkeep import __version__
 from roadkeep.config import PROSE_ROLES, ROLES, Config, ConfigError, Scope
 from roadkeep import provenance
-from roadkeep.provenance import engine, invocation
+from roadkeep.provenance import engine, invocation, serving
 # `words` from where it is *defined* and not from `budgeting`, which re-exports it (RK260):
 # `config` already loads `schema`, and reaching the name through `budgeting` cost the guard
 # 30 ms and eight modules — `authoring`, `sections`, `claiming`, `ids`, `markers` and the
@@ -1312,6 +1312,91 @@ def _spent_stdin() -> Iterator[None]:
         sys.stdin = saved
 
 
+def _rerouted(text: str, root: Path) -> str:
+    """Spell any command this answer names as the tool that serves it (RK475).
+
+    RK444, RK447 and RK448 moved the four routes `guarding` composes. The **write path**
+    raises its own refusals, and those were not in that count: an `add` on an outline project
+    answers `ref.missing` and names `<invocation> anchors --block A`, handed to a caller on
+    the surface where `anchors` has been a tool since RK463 — and to a machine that, since
+    RK57, may have no console script at all.
+
+    **At the print and not at the raise**, which is the question §RK475 left open. A
+    `SchemaError` raised in `sections` knows nothing about the transport it will be shown on,
+    and giving it one would be the write path importing the surface; this function is the one
+    place that holds the message and the transport at once, so the substitution is made once
+    here rather than at the twenty-nine sites that compose an invocation.
+
+    Narrow on purpose: only `<invocation> <verb>` where the verb is one this surface serves,
+    and only the two-word nested spelling where that is the tool. Everything else — a verb
+    withheld here, a flag, a sentence that happens to contain the word — is left exactly as
+    the CLI wrote it, because a rewrite that guessed would be this transport editing prose it
+    did not compose (L4).
+    """
+    reached = invocation()
+    if reached not in text:
+        return text
+    prefix = serving(root)
+    if prefix is None:
+        return text
+    return re.sub(
+        r"`" + re.escape(reached) + r" ([^`]*)`",
+        lambda found: _as_call(found.group(1), prefix) or found.group(0),
+        text,
+    )
+
+
+def _as_call(argv: str, prefix: str) -> str:
+    """One backticked command as the call that serves it, or `""` to leave it alone.
+
+    A flag is not a word over this transport (RK449's finding, RK475's case): rewriting the
+    head and keeping `--block A` would name the right tool and an argument nobody can pass.
+    So the tail goes through the **subcommand's own parser** — the same reader `_property`
+    uses to publish the schema — and comes back as the fields a call carries.
+
+    Empty on anything this surface cannot answer for: a verb it withholds, an argv the parser
+    refuses, a field outside the tool's `exposes`. There the shell spelling stays, which is
+    what the CLI wrote and what is at least right where a shell exists.
+    """
+    words = argv.split()
+    for length in (2, 1):
+        for tool in TOOLS:
+            if tool.always or tool.argv_head != words[:length]:
+                continue
+            fields = _fields_of(_subparser(tool.command), words[length:], tool.exposes)
+            if fields is None:
+                return ""
+            named = "  ".join(f"{name}: {value}" for name, value in fields.items())
+            return f"`{prefix}{tool.name}`" + (f" with {named}" if named else "")
+    return ""
+
+
+def _fields_of(
+    parser: argparse.ArgumentParser, rest: Sequence[str], exposes: Sequence[str]
+) -> dict[str, object] | None:
+    """The tail of a command as the fields a call carries, or ``None`` where it has none.
+
+    `remedying._fields`' rule for the other half of this problem, kept here rather than
+    imported: that one reads a *table's* argv and this one reads prose the CLI printed, and a
+    shared helper would tie the report's own composition to this transport.
+    """
+    with contextlib.redirect_stderr(io.StringIO()):
+        try:
+            parsed, unknown = parser.parse_known_args(list(rest))
+        except SystemExit:
+            return None
+    if unknown:
+        return None
+    fields: dict[str, object] = {}
+    for dest, value in vars(parsed).items():
+        if value == parser.get_default(dest) or value is None or value is False:
+            continue
+        if dest not in exposes:
+            return None
+        fields[dest] = value
+    return fields
+
+
 def _answered(text: str, root: Path, *, is_error: bool, served: str = "") -> Answer:
     """One tool's answer, plus the note a **refusal** needs when the code answering moved.
 
@@ -1378,6 +1463,7 @@ def _answered(text: str, root: Path, *, is_error: bool, served: str = "") -> Ans
     of real use. ``served`` is what makes the alternative nameable: the command this call would
     have run, so :func:`_now` says it.
     """
+    text = _rerouted(text, root)
     if not is_error:
         return Answer(text, is_error=False)
     changed = engine().stale

@@ -121,12 +121,8 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 72 | 1 |
 | D — The gate | 0 | 108 | 0 |
 | E — Adoption | 0 | 74 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 77 | 1 |
-| **Total** | 1 | 465 | 6 |
-
-**Next ready:**
-
-- 📋 **RK475** (deps: —) **A refusal reaching an agent over the tool surface names the shell, on the write it just refused** — RK444 through RK448 moved every route the guard composes and left the ones the write path raises, and add on an outline project answers ref.missing by naming a shell anchors. → §RK475
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 78 | 1 |
+| **Total** | 0 | 466 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

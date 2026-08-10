@@ -32,8 +32,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK475** (deps: —) **A refusal reaching an agent over the tool surface names the shell, on the write it just refused** — RK444 through RK448 moved every route the guard composes and left the ones the write path raises, and add on an outline project answers ref.missing by naming a shell anchors. → §RK475
-
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:

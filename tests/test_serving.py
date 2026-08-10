@@ -1992,3 +1992,54 @@ def test_every_verb_that_takes_prose_declares_the_pipe(tmp_path):
         ("defer", "reason"),
     ):
         assert dest in {one.dest for one in prose_of(command)}, command
+
+
+# -- the route a refusal names (RK475) ----------------------------------------
+
+
+def test_a_refusal_the_write_path_raised_names_the_tool_that_serves_it(tmp_path):
+    """RK444, RK447 and RK448 moved the four routes `guarding` composes. The write path
+    raises its own, and those were not in that count: exercised over MCP against a copy of
+    Turing, `add` on an outline project answered `ref.missing` naming a shell `anchors` — to
+    a caller on the surface where `anchors` has been a tool since RK463, and to a machine
+    that since RK57 may have no console script at all."""
+    tree = project(tmp_path, config=OUTLINED, improvements=DESIGN)
+    answer = called(
+        tree, "add", block="A", symptom="A widget stalls on a cold cache",
+        why="Nothing warms it before the first read.",
+    )
+    said = text_of(answer)
+    assert answer["isError"] and "ref.missing" in said
+    assert "anchors" in said and invocation() not in said
+    # The tail through the parser and not left as flags (RK449's finding): naming the right
+    # tool beside `--block A` would be an argument nobody on this transport can pass.
+    assert "--block" not in said and "block: A" in said
+
+
+def test_the_same_refusal_at_a_terminal_is_the_one_the_cli_wrote(tmp_path, capsys):
+    """The substitution is this transport's and never the write path's: a `SchemaError`
+    raised in `sections` knows nothing about where it will be shown, and a shell reader is
+    still handed the command a shell runs."""
+    tree = project(tmp_path, config=OUTLINED, improvements=DESIGN)
+    assert main(["-C", str(tree), "add", "--block", "A", "--symptom",
+                 "A widget stalls on a cold cache", "--why", "Nothing warms it."]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    assert invocation() in said and "mcp__" not in said
+
+
+def test_a_command_this_surface_withholds_keeps_its_shell_spelling(tmp_path):
+    """Empty on anything the surface cannot answer for — a verb it does not serve, an argv
+    the parser refuses, a field outside `exposes` — because there the shell spelling is what
+    the CLI wrote and is right wherever a shell exists."""
+    from roadkeep.serving import _as_call
+
+    assert _as_call("init", "mcp__roadkeep__") == ""
+    assert _as_call("lint --fix", "mcp__roadkeep__") == ""
+    assert _as_call("anchors --nonesuch", "mcp__roadkeep__") == ""
+    # `section add` is refused for the same reason and it is worth naming: the verb takes a
+    # required `--title`, so a bare one is an argv the parser will not accept either.
+    assert _as_call("section add RK1", "mcp__roadkeep__") == ""
+    # And the two-word nested spelling is one tool, not a head with a stranded tail.
+    assert _as_call("section drop RK1", "mcp__roadkeep__") == (
+        "`mcp__roadkeep__section_drop` with anchor: RK1"
+    )
