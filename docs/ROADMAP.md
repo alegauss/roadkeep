@@ -30,7 +30,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK454** (deps: —) **A governed file with NUL bytes among its text is 400 findings whose named --fix changes nothing** — RK451 caught the file that is all NUL and left the partial one, where the pass claims every finding, writes no byte, and returns the same report on the next run. → §RK454
 - 📋 **RK455** (deps: —) **A CLI call whose stdin was already read dies while forcing UTF-8 instead of running the verb** — `main` reconfigures the three streams unconditionally, so a host handing over a used stdin gets a traceback where every verb would have worked. → §RK455
 - 📋 **RK456** (deps: —) **Eleven test files each build a git repository per test, with seven processes and a private copy of the helper** — One fixture written eleven times is eleven grammars for one act, and four of those seven spawns buy nothing: 214 ms per repository where 161 ms reads the same. → §RK456
 - 📋 **RK457** (deps: RK455) **The suite runs only in series, so a full run is five minutes before any change is known to hold** — Nothing declares the run parallel, and the cost is spawns rather than one hot spot: sixteen workers finish the same 2865 tests in under a minute here. → §RK457

@@ -1893,6 +1893,57 @@ def test_the_other_governed_files_are_still_judged(tmp_path):
     assert {f.file for f in report.findings} > {"ROADMAP.md"}
 
 
+def test_a_partly_lost_file_is_one_finding_too(tmp_path):
+    """RK454: the all-NUL file is what this repository lost, and a partly-lost one is the
+    likelier shape on a large file where only some blocks were flushed. Measured before
+    this: 400 findings for 400 NULs, and the `--fix` they named claimed all of them, wrote
+    no byte, and returned the identical report on the next run."""
+    config = project(tmp_path)
+    path = tmp_path / "ROADMAP.md"
+    kept = path.read_bytes()
+    path.write_bytes(kept + b"\x00" * 400)
+    mine = [f for f in linting.lint(config).findings if f.file == "ROADMAP.md"]
+    assert [f.code for f in mine] == ["file.not-text"]
+    assert "400 NUL byte(s)" in mine[0].message
+
+
+def test_a_surviving_line_is_still_judged(tmp_path):
+    """The question §RK454 left open, answered *beside* rather than *instead of*: a file that
+    kept some of its lines has defects of its own in them, and hiding those would answer a
+    question nobody asked. Only the all-NUL file has nothing left to read."""
+    drifted = "- 📋 **RK9** (deps: RK99) **A symptom** — Because. → §RK9\n"
+    config = project(tmp_path, roadmap=CLEAN + drifted)
+    path = tmp_path / "ROADMAP.md"
+    path.write_bytes(path.read_bytes() + b"\x00" * 40)
+    codes_found = codes(linting.lint(config))
+    assert "file.not-text" in codes_found and "deps.unknown" in codes_found
+
+
+def test_a_nul_is_never_reported_as_a_character_defect(tmp_path):
+    """RK118 wrote every byte of a governed file and none was ever one, so the diagnosis
+    `char.invisible` gives is wrong in kind — and its `--fix` claims the finding and changes
+    nothing, which is the loop this closes."""
+    config = project(tmp_path)
+    path = tmp_path / "ROADMAP.md"
+    path.write_bytes(path.read_bytes() + b"\x00" * 40)
+    assert "char.invisible" not in codes(linting.lint(config))
+    assert not linting.suspect("\x00")
+
+
+def test_the_fix_pass_claims_nothing_it_cannot_write(tmp_path):
+    """The second half of the defect, and the worse one: nothing exits differently, so a
+    caller that trusts `400 of them need no decision` runs it forever."""
+    from roadkeep.fixing import fix
+
+    config = project(tmp_path)
+    path = tmp_path / "ROADMAP.md"
+    path.write_bytes(path.read_bytes() + b"\x00" * 40)
+    before = path.read_bytes()
+    fix(config)
+    assert path.read_bytes() == before
+    assert codes(linting.lint(config)) == ["file.not-text"]
+
+
 def test_an_empty_file_is_a_different_state(tmp_path):
     """A scaffold before its first line is not a lost write, and stays the gate's other
     business: the check asks whether every byte is NUL, not whether there are few of them."""

@@ -803,6 +803,13 @@ def suspect(char: str, *, indent: bool = False) -> bool:
         return True
     if char == TAB:
         return not indent
+    # **U+0000 is not a character an author produced** (RK454). It is `Cc` and would be
+    # caught below, but RK118 wrote every byte of a governed file and none was ever one — so
+    # a NUL is a lost write, `within` states it once about the file, and reporting it here
+    # too was the same loss counted a second time per byte, under a code whose `--fix`
+    # claims it and changes nothing.
+    if char == "\x00":
+        return False
     category = unicodedata.category(char)
     return category in ("Cc", "Cf", "Zl", "Zp") or (category == "Zs" and char != " ")
 
@@ -1209,23 +1216,38 @@ def within(config: Config, role: str, document: Document) -> list[Finding]:
     file = config.relative(config.path(role))
     out: list[Finding] = []
 
-    # Before the line reader, and returning instead of continuing (RK451). A governed file a
-    # crash left entirely NUL is one line of control characters, so `char.invisible` fired
-    # once per byte: 3,301 findings for 3,301 bytes, each identical but for a column, each
-    # naming a `--fix` that strips characters which are not text — on this file it would
-    # produce an empty one and report the tree clean, destroying a recoverable state with
-    # the gate's blessing. The rules below all ask what a *line* says, and this file has
-    # none; the single fact worth reporting is that its content is gone.
-    if _voided(document):
-        return [
+    # Before the line reader (RK451, RK454). A NUL in a governed file is a **lost write**
+    # and not a character somebody typed: RK118 wrote every byte of this file and none of
+    # them was ever one, so the diagnosis `char.invisible` gives is wrong in kind and the
+    # `--fix` it names is worse — on a file a crash left entirely NUL that pass would strip
+    # every byte and report the tree clean, and on a partly-lost one it claims all 400
+    # findings, writes nothing, and returns the identical report on the next run.
+    #
+    # So the file states it once. Whole-file rather than per-byte because the loss is,
+    # and because a column is a fact about a line that no longer says anything.
+    lost = sum(line.count("\x00") for line in document.lines)
+    if lost:
+        held = sum(len(line) for line in document.lines)
+        out.append(
             Finding(
                 "file.not-text",
                 file,
-                f"holds {sum(len(line) for line in document.lines)} character(s) and not one "
-                f"of them is text: every byte is NUL, which is what a crash between a write "
-                f"and its rename leaves — the content is gone rather than malformed",
+                (
+                    f"holds {held} character(s) and not one of them is text: every byte is "
+                    f"NUL"
+                    if lost == held
+                    else f"holds {lost} NUL byte(s) among its {held} character(s)"
+                )
+                + ", which is what a crash between a write and its rename leaves — the "
+                "content is gone rather than malformed",
             )
-        ]
+        )
+        # Nothing below can read a file with no text in it, and every rule here asks what a
+        # *line* says. A file that kept some of its lines is a different answer (RK454): its
+        # surviving lines have defects of their own, and hiding them would answer a question
+        # nobody asked.
+        if lost == held:
+            return out
 
     for reject in document.rejects:
         # The line the parser could not read at all. It is reported here and counted

@@ -318,6 +318,7 @@
 - ✅ **RK439** **A sub-heading nested under a block's own heading is read as a second declaration of that block** — A heading inside another's subtree is read as the region's own, so a block grouped by sub-headings takes writes again and only two headings neither inside the other are refused.
 - ✅ **RK449** **A remedy reaches the tool surface as a shell argv, so the caller least able to run one is handed it** — Every door is published as a call beside its argv where the session serves it, derived from the subcommand's own parser, so lint --fix stays a shell command by rule.
 - ✅ **RK451** **A governed file that is not text at all is reported one finding per byte, and never as a file to restore** — A governed file whose every byte is NUL is one finding naming the restore, checked before the line reader, so 3,301 findings and a --fix that would empty it are both gone.
+- ✅ **RK454** **A governed file with NUL bytes among its text is 400 findings whose named --fix changes nothing** — A NUL is read as a lost write and not a character, so a partly-lost file is one finding naming the restore instead of 400 whose fix claimed them and wrote nothing.
 
 ## Block E — Adoption
 

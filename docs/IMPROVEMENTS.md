@@ -109,31 +109,6 @@ map rather than the exceptions is still reading the wide answer.
 
 ## Block D — The gate
 
-### §RK454 The repair that is claimed and never made
-
-RK451 reads a governed file whose every byte is NUL as one finding naming the restore. A
-file where *some* blocks reached the disk is the likelier shape on a large one, and it
-falls through to the character pass. Measured on a 505-byte roadmap holding one good
-line and 400 trailing NULs:
-
-    ROADMAP.md:6:400  char.invisible  U+0000 unnamed control character at column 400 …
-    400 problem(s) … 400 of them need no decision: … lint --fix
-
-Two things are wrong and the second is the loop. The diagnosis is wrong in kind: RK118
-wrote every byte of a governed file and none was ever a NUL, so a NUL is a lost write
-rather than a character somebody typed — the same fact RK451 acts on, one file shape
-over. And the remedy is claimed and not made: `--fix` counts all 400 as needing no
-decision, writes nothing, and the next run prints the identical report. A caller that
-trusts the sentence runs it forever.
-
-The `_voided` predicate is the wrong shape to extend, because this file *is* text — most
-of it parses. What the check has to ask is whether the file holds a NUL at all, and then
-say which lines the loss reached rather than which columns.
-
-Open: whether the finding replaces the character pass for that file, as RK451 does, or
-sits beside it. Some of those lines are readable and their other defects are real, and a
-report that hides them has answered a different question than the one asked.
-
 ### §RK455 A stream this tool did not open
 
 `main` hardens the three standard streams before argparse sees a token, and
