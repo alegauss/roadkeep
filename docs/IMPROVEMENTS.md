@@ -128,6 +128,29 @@ what keeps the wording one sentence rather than a second judgement.
 What proves it: a file carrying either exits 1, the register's two rows move to a gate
 code, and prose under an unreadable address is still clean.
 
+### §RK1015 The half of a door a caller outside this process cannot read
+
+Met building the problems panel. A remedy carries `kind` and a list of doors, and
+`deps.unknown` is one `decide` holding two: `gaps`, which answers a question and changes
+nothing, and `amend <id> --dep …`, which writes. The kind is the remedy's, so it says
+`decide` about both.
+
+What a reader outside this process needs is per door: whether pressing it changes the
+files. The client written here could not ask, so it does the only safe thing — shows
+whatever came back and re-reads the gate, which is one extra run of a command on every
+read door and a refusal to promise the caller anything about what they just pressed.
+
+`Remedy.runnable` already draws almost this line for `repair`: a `read` is *not*
+runnable there, because its command is safe and useless inside a repair loop. That
+reasoning is about the kind, and the same sentence one level down is what a door is
+missing — the loop and the panel want the same fact and only one of them can get it.
+
+The shape is a field on the door and not a second table: the argv is already there, and
+what it does is a property of the verb the tool itself parses.
+
+What proves it: every door says which it is, `repair` reads that instead of the kind,
+and a remedy holding both kinds is still one decision with two doors.
+
 ## Block E — Adoption
 
 ## Block F — The plugin

@@ -33,6 +33,7 @@
 ## Block D — The gate
 
 - 📋 **RK1012** (deps: —) **A pointer can resolve to a heading with no prose, or to one with no title, and the gate reports neither** — Both are refused at the door and RK1004 measured them as the two states of forty-three that a file can hold with nothing saying so. → §RK1012
+- 📋 **RK1015** (deps: —) **A door says nothing about whether running it writes, and the kind beside it describes the remedy and not the door** — One `decide` holds a read and a write, so a caller that has to know which it pressed cannot, and the safe reading is to treat every door as both. → §RK1015
 
 ## Block E — Adoption
 
