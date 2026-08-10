@@ -609,3 +609,87 @@ def test_the_composed_read_fails_loudly_if_the_source_stops_matching():
     # The one way a scrape stops asserting anything is by finding nothing and passing. Both
     # halves are asserted non-empty inside `composed`, so a rename is a red here.
     assert composed()
+
+
+# -- the same door, on the surface the caller is already on (RK449) ------------
+
+
+def test_a_door_is_published_as_a_call_where_the_session_serves_it():
+    """RK420 gave every finding the command that closes it. `lint` and `explain` are both
+    served as tools, and what they handed a caller there was the argv — a list of shell
+    words, to the one surface RK57 left with no console script and no PATH entry."""
+    door = remedying.Door(argv=("amend", "RK1", "--dep", BLANK), what="…")
+    assert door.call() == ("amend", {"id": "RK1", "deps": [BLANK]})
+    payload = Remedy(code="deps.unknown", kind="run", doors=(door,)).payload("mcp__roadkeep__")
+    row = payload["doors"][0]
+    # Both spellings, and the argv is still the fact `repair` dispatches.
+    assert row["argv"] == ["amend", "RK1", "--dep", BLANK]
+    assert row["call"] == {
+        "tool": "mcp__roadkeep__amend",
+        "arguments": {"id": "RK1", "deps": [BLANK]},
+    }
+
+
+def test_the_call_is_derived_from_the_argv_and_never_tabled_beside_it():
+    """The subcommand's own parser, which is what `serving` reads to publish the schema — so
+    a renamed flag moves both directions at once and there is no third declaration."""
+    assert remedying.Door(argv=("record", "drop", "RK1"), what="…").call() == (
+        "record_drop",
+        {"id": "RK1"},
+    )
+    assert remedying.Door(argv=("section", "add", "RK1", "--title", BLANK), what="…").call() == (
+        "section_add",
+        {"anchor": "RK1", "title": BLANK},
+    )
+
+
+def test_the_one_remedy_that_must_stay_a_shell_command_does_so_by_derivation():
+    """`--fix` writes, and RK16 keeps that where a human is standing, so `lint` is served
+    without it. A door setting a field the tool surface withholds has no call — which is the
+    rule, not an exception written for this row."""
+    assert remedying.Door(argv=("lint", "--fix"), what="…").call() is None
+    payload = Remedy(
+        code="dep.order", kind="fix", doors=(remedying.Door(argv=("lint", "--fix"), what="x"),)
+    ).payload("mcp__roadkeep__")
+    assert "call" not in payload["doors"][0]
+
+
+def test_a_verb_this_surface_does_not_serve_has_no_call():
+    assert remedying.Door(argv=("gaps",), what="…").call() is None
+
+
+def test_a_session_with_no_tools_is_published_the_argv_alone():
+    """What every consumer written before this already reads: absent, not null, for the
+    reason `_remedy_json` gives about the key itself."""
+    door = remedying.Door(argv=("amend", "RK1", "--dep", BLANK), what="…")
+    payload = Remedy(code="deps.unknown", kind="run", doors=(door,)).payload()
+    assert "call" not in payload["doors"][0]
+    assert payload["doors"][0]["argv"] == ["amend", "RK1", "--dep", BLANK]
+
+
+def test_every_complete_door_this_surface_serves_has_a_call():
+    """The totality claim RK421 makes about the table, asked of the second spelling.
+
+    Scoped to the doors that are **complete**, because an incomplete one has no call for the
+    same reason it has no runnable command: `record drop … --line …` cannot put the marker in
+    a field the parser types as a number, and `section move …` is missing the destination it
+    requires. Both already say so through `complete`, and a call rendered around the marker
+    would look makeable and not be.
+
+    What is left over is `lint --fix` and nothing else — the one field the tool surface
+    withholds, and it falls out of the derivation rather than being listed here.
+    """
+    from roadkeep.serving import TOOLS
+
+    served = {tuple(tool.argv_head) for tool in TOOLS if not tool.always}
+    uncalled = set()
+    for code in codes():
+        found = explain(code, Config.default())
+        assert found is not None, code
+        for door in found.remedy.doors:
+            words = tuple(door.argv)
+            if not door.complete or not (words[:2] in served or words[:1] in served):
+                continue
+            if door.call() is None:
+                uncalled.add(words)
+    assert uncalled == {("lint", "--fix")}

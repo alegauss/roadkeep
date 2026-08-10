@@ -137,7 +137,7 @@ from roadkeep.merging import (
 )
 from roadkeep.claiming import Followed, Held
 from roadkeep.picking import Choice, Claim, pick, take
-from roadkeep.provenance import engine, invocation
+from roadkeep.provenance import engine, invocation, serving
 from roadkeep.remedying import Remedy, codes as remedy_codes, explain, remedy
 from roadkeep.renumbering import renumber
 from roadkeep.reverting import reversals
@@ -4947,7 +4947,7 @@ def _repair(config: Config, args: argparse.Namespace) -> int:
 
     root = config.root.as_posix()
     if args.json:
-        print(json.dumps(_repair_json(outcome, root), indent=2))
+        print(json.dumps(_repair_json(outcome, root, _served(config)), indent=2))
     else:
         _print_repair(outcome, root)
     # Clean means clean, and `--dry-run` is never that: a run that wrote nothing has not
@@ -4990,7 +4990,7 @@ def _explain(config: Config, args: argparse.Namespace) -> int:
     if args.code is None:
         listing = [explain(code, config) for code in remedy_codes()]
         if args.json:
-            print(json.dumps([one.payload() for one in listing if one], indent=2))
+            print(json.dumps([one.payload(_served(config)) for one in listing if one], indent=2))
         else:
             for one in listing:
                 if one is not None:
@@ -5009,7 +5009,7 @@ def _explain(config: Config, args: argparse.Namespace) -> int:
             file=sys.stderr,
         )
         return EXIT_USAGE
-    print(json.dumps(found.payload(), indent=2) if args.json else str(found))
+    print(json.dumps(found.payload(_served(config)), indent=2) if args.json else str(found))
     return EXIT_OK
 
 
@@ -5255,7 +5255,7 @@ def _print_repair(outcome: Repaired, root: str) -> None:
     )
 
 
-def _repair_json(outcome: Repaired, root: str) -> dict[str, object]:
+def _repair_json(outcome: Repaired, root: str, served: str = "") -> dict[str, object]:
     return {
         "root": root,
         "clean": outcome.clean,
@@ -5277,7 +5277,7 @@ def _repair_json(outcome: Repaired, root: str) -> dict[str, object]:
                 "code": left.finding.code,
                 "where": left.finding.where,
                 "message": left.finding.message,
-                **({} if left.remedy is None else {"remedy": left.remedy.payload()}),
+                **({} if left.remedy is None else {"remedy": left.remedy.payload(served)}),
             }
             for left in outcome.left
         ],
@@ -5481,6 +5481,17 @@ def _finding_json(finding: Finding, config: Config) -> dict[str, object]:
     }
 
 
+def _served(config: Config) -> str:
+    """The prefix this session's tools arrive under, or `""` where it has none (RK449).
+
+    One reader for the four payloads that publish a remedy, because it is one question about
+    one project and four calls to `serving` would be four places to forget it. `or ""` and not
+    the optional itself: below here it is a prefix to concatenate, and the empty string is the
+    "no call to publish" the payload already branches on.
+    """
+    return serving(config.root) or ""
+
+
 def _remedy_json(finding: object, config: Config) -> dict[str, object]:
     """The remedy, as a key that is absent rather than null when the table has none (RK420).
 
@@ -5489,7 +5500,7 @@ def _remedy_json(finding: object, config: Config) -> dict[str, object]:
     tell "no command exists" from "this build predates the field".
     """
     found = remedy(finding, config)
-    return {} if found is None else {"remedy": found.payload()}
+    return {} if found is None else {"remedy": found.payload(_served(config))}
 
 
 def _markers(markers: Mapping[str, int]) -> str:

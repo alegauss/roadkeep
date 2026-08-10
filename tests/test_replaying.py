@@ -135,7 +135,11 @@ def test_the_recorded_argv_is_repointed_and_otherwise_untouched(tmp_path):
     recorded["argv"] = ["-C", "/gone", "lint", "--json"]
     outcome = replay(recorded, staging(tmp_path))
     assert outcome.ran
-    assert "deps.unknown" in outcome.output  # `--json` survived; only `-C` moved
+    # `--json` survived; only `-C` moved. Asserted on the *tail* of the payload rather than
+    # on the code near its top: a capture keeps the last 40 lines and says so (`_tail`), and
+    # since RK449 a finding's remedy carries both spellings of every door, so the report for
+    # one finding is longer than the window. What proves the flag survived is the shape.
+    assert '"id": "RK1"' in outcome.output and '"notes": []' in outcome.output
 
 
 def test_a_capture_with_no_c_flag_is_still_pointed_at_the_staging(tmp_path):

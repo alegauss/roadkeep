@@ -101,6 +101,45 @@ class Door:
         """Whether every field is filled — false where L4 left one to the author."""
         return not any(BLANK in word for word in self.argv)
 
+    def call(self) -> tuple[str, dict[str, object]] | None:
+        """The same door as a **tool call**: the name and its fields, or ``None`` (RK449).
+
+        `lint` and `explain` are both served, and what they handed a caller there was this
+        argv — a list of shell words, to the one surface RK57 left with no console script and
+        no PATH entry. So the door is published in both spellings and the caller takes the one
+        its session can make.
+
+        Derived from the argv and never tabled beside it. The mapping is the subcommand's
+        **own parser**, which is what `serving` already reads to publish the schema, so a
+        renamed flag moves both ends at once and there is no third declaration to fall behind.
+        Two things fall out of that rather than being decided:
+
+        * A door setting a field the tool surface withholds has **no call**, and `lint --fix`
+          is exactly that — `--fix` writes, and RK16 keeps it where a human is standing, so
+          `lint` is served without it. The one remedy that must stay a shell command stays one
+          by derivation instead of by exception.
+        * :attr:`argv` remains the fact. `repair` (RK422) dispatches it untouched, and this is
+          computed beside it — which is what keeps the second spelling from becoming a second
+          grammar.
+
+        The :data:`BLANK` survives into the field it lands in, because it means the same thing
+        there: L4 left that one to the author, and a call with the marker in it is a call to
+        finish rather than one to make.
+        """
+        from .serving import TOOLS, _subparser  # noqa: PLC0415 - RK260, the printing path only
+
+        words = list(self.argv)
+        # Two words before one, for `_tool_for`'s reason: `section add` is a tool and
+        # `section` is not. A tool that always passes a flag serves a narrower command than
+        # the argv asks about (RK150), so it is never the answer to "what runs this".
+        for length in (2, 1):
+            for tool in TOOLS:
+                if tool.always or tool.argv_head != words[:length]:
+                    continue
+                fields = _fields(_subparser(tool.command), words[length:], tool.exposes)
+                return None if fields is None else (tool.name, fields)
+        return None
+
     def __str__(self) -> str:
         return f"{self.command}  — {self.what}"
 
@@ -131,16 +170,29 @@ class Remedy:
         """
         return self.kind in ("fix", "run") and all(d.complete for d in self.doors)
 
-    def payload(self) -> dict[str, object]:
-        """The `--json` form: argv as a list, because a consumer runs it rather than reads it."""
-        return {
-            "kind": self.kind,
-            "decision": self.decision,
-            "doors": [
-                {"argv": list(d.argv), "what": d.what, "complete": d.complete}
-                for d in self.doors
-            ],
-        }
+    def payload(self, served: str = "") -> dict[str, object]:
+        """The `--json` form: argv as a list, because a consumer runs it rather than reads it.
+
+        ``served`` is the prefix this session's tools arrive under, and where it is given each
+        door carries its **call** beside its argv (RK449): the same door, named as the surface
+        the caller is already on. Passed in rather than read here for the reason `Notice` and
+        `Refusal` take theirs — which engine answers is a fact about the project, and this
+        module reads no project. Absent, or where nothing serves the door, only the argv is
+        published, which is what every consumer written before this already reads.
+        """
+        doors: list[dict[str, object]] = []
+        for door in self.doors:
+            row: dict[str, object] = {
+                "argv": list(door.argv),
+                "what": door.what,
+                "complete": door.complete,
+            }
+            call = door.call() if served else None
+            if call is not None:
+                name, fields = call
+                row["call"] = {"tool": f"{served}{name}", "arguments": fields}
+            doors.append(row)
+        return {"kind": self.kind, "decision": self.decision, "doors": doors}
 
     def __str__(self) -> str:
         if self.kind == "decide":
@@ -746,13 +798,13 @@ class Explained:
             lines.append(f"  varies   {_VARIES_READS[self.varies]}")
         return "\n".join(lines)
 
-    def payload(self) -> dict[str, object]:
+    def payload(self, served: str = "") -> dict[str, object]:
         return {
             "code": self.code,
             "kind": self.kind,
             "cause": self.cause,
             "varies": self.varies or None,
-            **self.remedy.payload(),
+            **self.remedy.payload(served),
         }
 
 
@@ -906,3 +958,44 @@ def _substitute(
                 word = word.replace(token, value or BLANK)
         out.append(word)
     return tuple(out)
+
+
+def _fields(
+    parser: object, rest: Sequence[str], exposes: Sequence[str]
+) -> dict[str, object] | None:
+    """One door's flags as the fields a tool call carries, or ``None`` where it has no call.
+
+    The parser is the subcommand's own, so this is the inverse of the argv the table wrote
+    and not a second reading of it: a flag renamed in `cli.py` moves both directions at once.
+
+    ``None`` on three states, and each is a door that genuinely has no call. An argv the
+    parser refuses is not a command this surface serves; a word it does not recognise is the
+    same answer arriving as a leftover; and a field outside ``exposes`` is one the tool
+    surface **withholds** — `lint --fix` being the case that matters, since RK16 keeps the
+    writing half where a human is standing. A guess there would publish a call the server
+    then refuses, which is the shape RK436 spent a task removing from the other end.
+    """
+    import argparse  # noqa: PLC0415 - RK260, and only the printing path reaches here
+    import contextlib  # noqa: PLC0415
+    import io  # noqa: PLC0415
+
+    if not isinstance(parser, argparse.ArgumentParser):  # pragma: no cover - a typing guard
+        return None
+    with contextlib.redirect_stderr(io.StringIO()):
+        try:
+            parsed, unknown = parser.parse_known_args(list(rest))
+        except SystemExit:
+            return None
+    if unknown:
+        return None
+    fields: dict[str, object] = {}
+    for dest, value in vars(parsed).items():
+        # Against the parser's own default rather than against `None`: `set_defaults` puts
+        # the handler and the read-only flag in the same namespace, and a comparison written
+        # here would be a third place that knows which of those are arguments.
+        if value == parser.get_default(dest) or value is None or value is False:
+            continue
+        if dest not in exposes:
+            return None
+        fields[dest] = value
+    return fields

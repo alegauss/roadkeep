@@ -313,6 +313,7 @@
 - ✅ **RK434** **The gate decides whether a block is finished, empty or undeclared with its own copy of the rule** — A queued block's state comes from the backlog's one reader, so a block with nothing open is reported as paused wherever the store holds a line under it rather than as finished or unstarted.
 - ✅ **RK435** **The door offered for a queued block that has no lines yet says the block was never declared** — A queued block whose heading precedes its lines offers filing the first line beside dropping the entry, instead of one door arguing the block was never declared.
 - ✅ **RK439** **A sub-heading nested under a block's own heading is read as a second declaration of that block** — A heading inside another's subtree is read as the region's own, so a block grouped by sub-headings takes writes again and only two headings neither inside the other are refused.
+- ✅ **RK449** **A remedy reaches the tool surface as a shell argv, so the caller least able to run one is handed it** — Every door is published as a call beside its argv where the session serves it, derived from the subcommand's own parser, so lint --fix stays a shell command by rule.
 
 ## Block E — Adoption
 

@@ -28,8 +28,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK449** (deps: —) **A finding's remedy is an argv, so the gate that now names a tool prints shell commands under it** — RK448 moved the four routes this module composes and left the one it only prints, so a wired session reads a single message in two vocabularies, mixed at the actionable half. → §RK449
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
