@@ -2518,6 +2518,12 @@ def _add(config: Config, args: argparse.Namespace) -> int:
                     "rendered": insertion.rendered,
                     "length": measured_width(insertion.rendered),
                     "section": None if written is None else _section_json(written, prose),
+                    # Not a section this write *created* (RK452): an existing outline heading
+                    # stopped belonging to nobody, and a caller reading one key for both
+                    # would report a paragraph that was never written.
+                    "bound": None
+                    if insertion.bound is None
+                    else _section_json(insertion.bound, prose),
                     # The follow-up as data: null when the pointer already resolves, so a
                     # caller acts on a field instead of matching a sentence (RK93).
                     "needs": None
@@ -2539,6 +2545,14 @@ def _add(config: Config, args: argparse.Namespace) -> int:
         print(
             f"needs    {_follow_up(insertion.needs, insertion.needs_role)}  "
             f"(the pointer above resolves to nothing until then)"
+        )
+    elif insertion.bound is not None:
+        # Said, because the write touched a second file the caller did not name (RK452) —
+        # and because the heading now carries an id, which is the fact `ship` and the gate
+        # both read as "this design belongs to that task".
+        print(
+            f"bound    §{insertion.bound.anchor} → {prose}:{insertion.bound.first}  "
+            f"the design was written first, so this line's id is now in its heading"
         )
     if insertion.promise is not None:
         # Beside the line and not instead of it: the `add` succeeded, and what this reports

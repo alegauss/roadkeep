@@ -24,11 +24,9 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK452** (deps: —) **Which of two writes came first decides whether an outline section ever belongs to a task** — section add binds the id into the heading only when a line already points at the anchor, and the --ref that follows a design written first never returns to bind it. → §RK452
-
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK453** (deps: RK452) **No read says which outline sections a backlog still owns, so prose a departure left is found by grepping** — Ownership under an outline is the id in the heading, and anchors reports only whether an address is spent, so a heading binding nobody reads like one whose task is open. → §RK453
+- 📋 **RK453** (deps: RK452 ✅) **No read says which outline sections a backlog still owns, so prose a departure left is found by grepping** — Ownership under an outline is the id in the heading, and anchors reports only whether an address is spent, so a heading binding nobody reads like one whose task is open. → §RK453
 
 ## Block D — The gate
 

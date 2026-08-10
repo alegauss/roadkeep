@@ -149,6 +149,7 @@
 - ✅ **RK431** **An id mentioned in prose is consumed by the next add, so the sentence that named it is now wrong** — next-id and add report the id below the derived one when only prose names it, so a sentence that promised a number learns it was spent at the moment of spending rather than never.
 - ✅ **RK437** **Prose is filled to a width counted in code points while every limit that refuses counts UTF-16 units** — Every measure adopt reports names the unit its two figures are in, so a table of three units stops implying one — and the non-goal rows are counted the way the gate counts them.
 - ✅ **RK438** **A write's event line calls a block empty that every query in the same tool calls finished** — Every write's event names the block's stage from the four-state reader every query uses, so finished and empty stop sharing a word and a paused block is offered no drop.
+- ✅ **RK452** **Which of two writes came first decides whether an outline section ever belongs to a task** — A line whose --ref names an outline section binding nobody renders the binding into that heading in the same transaction, so both write orders reach the same file.
 
 ## Block C — Query
 

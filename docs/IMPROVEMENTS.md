@@ -77,29 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK452 The pointer write binds the heading it starts naming
-
-Under an outline the id in the heading is the binding (RK262), and two writes make it:
-`section add` renders it when a live line already points at the anchor, `add --section`
-because it holds the line. Neither runs when the design is written first. `section add
-I.1 --title "…"` on an anchor nothing points at yet composes a heading naming no task,
-and the `add --ref I.1` that follows creates the pointer and never returns to the
-heading. On a fixture, line first yields `### I.2 Why the cache is cold (XX2)`, section
-first `### I.1 Why the widget stalls`.
-
-The second order costs permanently. `ship` reports `kept … §I.1 names no task in its
-heading, so it is prose belonging to none`, `lint` exits 0, and the rationale for
-shipped work stays in the prose file, which is what RK6 exists to stop. The recovery is
-the `section amend --title "<title> (<id>)"` RK262 already named, derived from a field
-called `kept` a round after the evidence scrolled away.
-
-So the pointer write does from the other end what `section add` does: where `--ref`
-names an outline section binding no task that no other live line claims, the binding is
-rendered with the pointer in one transaction. Not a heuristic about the prose (RK236):
-the anchor is claimed by exactly the line that would have bound it had it been written
-first. Two live claimants is RK64's ambiguity and stays the author's, as at `section
-add`.
-
 ## Block C — Query
 
 ### §RK453 Which lines claim an address, beside whether it is spent

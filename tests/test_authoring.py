@@ -910,7 +910,12 @@ def test_a_pointer_another_prose_role_answers_asks_for_nothing(tmp_path):
     added = task(config, ref="X.1")
     assert added.needs is None and added.needs_role is None
     with (tmp_path / STRATEGY).open("r", encoding="utf-8", newline="") as handle:
-        assert handle.read() == PLAN  # named nothing, wrote nothing
+        # It named nothing, and since RK452 it did write: §X.1 belonged to nobody until this
+        # line pointed at it, so the binding is rendered here. The prose is untouched — the
+        # tool still cannot write that (L4) — and so is every other byte of the heading.
+        assert handle.read() == PLAN.replace(
+            "### §X.1 The first design", f"### §X.1 The first design ({added.entry.task.id})"
+        )
 
 
 def test_a_pointer_no_prose_role_answers_names_the_role_it_means(tmp_path):
@@ -1698,3 +1703,92 @@ def test_a_legal_call_is_unaffected(tmp_path):
         section=("A design", "A short body."),
     )
     assert inserted.entry.task.id == "RK1"
+
+
+# -- the binding the pointer write now makes (RK452) --------------------------
+
+
+def test_a_design_written_first_is_bound_by_the_line_that_points_at_it(tmp_path):
+    """Under an outline the id in the heading is the binding (RK262), and two writes made
+    it: `section add` when a live line already points at the anchor, `add --section` because
+    it holds the line. Neither runs when the design is written first, so which of two writes
+    came first decided whether the section ever belonged to anybody."""
+    config = outlined(tmp_path)
+    added = task(config, ref="X.1")
+    assert added.bound is not None and added.bound.anchor == "X.1"
+    assert added.bound.title.endswith(f"({added.entry.task.id})")
+
+
+def test_the_binding_keeps_the_sigil_the_author_wrote(tmp_path):
+    """`bind` appends and does not re-render. RK388 settled that a `--title` amend restyles
+    on purpose — the caller asked for the heading to change — and nobody asked here, so the
+    `§` an author wrote is not the price of a binding (RK44)."""
+    config = outlined(tmp_path)
+    added = task(config, ref="X.1")
+    heading = next(
+        line
+        for line in (tmp_path / STRATEGY).read_text(encoding="utf-8").splitlines()
+        if "X.1" in line
+    )
+    assert heading == f"### §X.1 The first design ({added.entry.task.id})"
+
+
+def test_the_two_write_orders_now_reach_the_same_heading(tmp_path):
+    """The whole claim. Line first, `section add` binds it; section first, this does — and
+    the heading a reader ends up with is the same either way."""
+    from roadkeep.sections import add as add_section
+
+    headings = []
+    for order in ("line-first", "section-first"):
+        root = tmp_path / order
+        root.mkdir()
+        config = outlined(root)
+        if order == "line-first":
+            written = task(config, ref="XI")
+            add_section(config, "strategy", "XI", "A design", "Prose that is here.")[0].save()
+        else:
+            add_section(config, "strategy", "XI", "A design", "Prose that is here.")[0].save()
+            written = task(config, ref="XI")
+        headings.append(
+            [
+                line
+                for line in (root / STRATEGY).read_text(encoding="utf-8").splitlines()
+                if line.startswith("#") and "XI" in line
+            ]
+        )
+        assert written.entry.task.id in headings[-1][0]
+    assert headings[0] == headings[1]
+
+
+def test_a_heading_that_already_names_a_task_is_never_overwritten(tmp_path):
+    config = outlined(tmp_path)
+    first = task(config, ref="X.1")
+    before = (tmp_path / STRATEGY).read_text(encoding="utf-8")
+    second = task(config, ref="X.1", symptom="A third symptom", why="Because a third held.")
+    assert second.bound is None
+    assert (tmp_path / STRATEGY).read_text(encoding="utf-8") == before
+    assert first.entry.task.id in before
+
+
+def test_two_live_claimants_leave_the_binding_to_the_author(tmp_path):
+    """RK64's ambiguity, and it stays the author's as it does at `section add`: a binding
+    chosen here would be this tool deciding whose design it is."""
+    from roadkeep.sections import add as add_section
+
+    config = outlined(tmp_path)
+    add_section(config, "strategy", "XI", "A design", "Prose that is here.")[0].save()
+    first = task(config, ref="XI", symptom="A first claimant", why="Because the first held.")
+    # Take the binding back out, so the heading names nobody and two live lines claim it.
+    path = tmp_path / STRATEGY
+    unbound = path.read_text(encoding="utf-8").replace(f" ({first.entry.task.id})", "")
+    with path.open("w", encoding="utf-8", newline="") as handle:
+        handle.write(unbound)
+    second = task(config, ref="XI", symptom="A second claimant", why="Because a second held.")
+    assert second.bound is None
+    assert "XI A design\n" in path.read_text(encoding="utf-8")
+
+
+def test_a_project_addressing_by_id_binds_nothing(tmp_path):
+    """The anchor is the id already, so there is no heading to bind."""
+    config = project(tmp_path)
+    assert task(config).bound is None

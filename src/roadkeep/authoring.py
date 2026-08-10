@@ -181,6 +181,12 @@ class Insertion:
     #: where the id was *derived* — a caller that named its own spent nothing — and only
     #: where the number below it is a mention no line ever took.
     promise: Promise | None = None
+    #: The outline section this line's pointer just bound itself into (RK452), where the
+    #: design was written before the line. Distinct from :attr:`section`, which is a section
+    #: this write *created*: nothing was gained here, an existing heading stopped belonging
+    #: to nobody, and a caller reporting one as the other would say a paragraph was written
+    #: that was not. Always None under `ref_scheme = "id"`, where the anchor is the id.
+    bound: Section | None = None
 
     @property
     def rendered(self) -> str:
@@ -465,8 +471,66 @@ def add(
         insertion = replace(
             insertion, needs=insertion.entry.task.ref, needs_role=role
         )
+    else:
+        insertion = _binding(config, insertion)
     insertion.save()
     return insertion
+
+
+def _binding(config: Config, insertion: Insertion) -> Insertion:
+    """Bind this line's id into the outline heading it just started naming (RK452).
+
+    Under an outline the id in the heading is the binding (RK262), and two writes made it:
+    `section add` renders it when a live line already points at the anchor, and
+    `add --section` because it holds the line. Neither runs when the **design is written
+    first**. `section add I.1 --title "…"` on an anchor nothing points at yet composes a
+    heading naming no task, and the `add --ref I.1` that follows creates the pointer and
+    never returns to the heading — so which of two writes came first decided whether the
+    section ever belonged to anybody.
+
+    The second order costs permanently and quietly: `ship` reports the section *kept*, as
+    prose belonging to none, `lint` exits 0 on exactly that reading, and the rationale for
+    shipped work stays in the prose file, which is what RK6 exists to stop. The recovery was
+    a `section amend --title "<title> (<id>)"` derived from a field called `kept`, a round
+    after the evidence had scrolled away.
+
+    So the pointer write does from the other end what `section add` does, in the same
+    transaction. Not a heuristic about the prose (RK236): the anchor is claimed by exactly
+    the line that would have bound it had it been written first, and the rendering is
+    :func:`~roadkeep.sections.amend`'s, so one function still writes a heading.
+
+    Three states it leaves alone, and each is somebody else's answer. A heading that already
+    names a task is :func:`~roadkeep.sections.owners`' `yes` and never overwritten. **Two
+    live claimants is RK64's ambiguity and stays the author's**, as it does at `section add`
+    — a binding chosen here would be this tool deciding whose design it is. And under
+    `ref_scheme = "id"` there is no heading to bind, the anchor being the id already.
+    """
+    task = insertion.entry.task
+    if config.schema.ref_scheme != "outline" or not task.ref:
+        return insertion
+    role = prose_role(config, on_disk=True)
+    if role is None:
+        return insertion
+    document = config.document(role)
+    section = sections.find(document, task.ref)
+    if section is None or sections.owners(section, config.schema.id_pattern()):
+        return insertion
+    # Every *other* live line naming this anchor. One is RK64's ambiguity — the design the
+    # author has to place — and the line just written is not one of them, its own claim being
+    # the thing being rendered.
+    claimants = [
+        entry.task.id
+        for entry in insertion.document.entries
+        if entry.task.ref == task.ref and entry.task.id != task.id
+    ]
+    if claimants:
+        return insertion
+    # `bind` and not `section amend --title`: nobody asked for a title here, and a retitle
+    # restyles the heading on purpose (RK388) — so routing through it would take the `§` an
+    # author wrote as the silent price of a binding.
+    prose = sections.bind(config.document(role), section, task.id)
+    bound = sections.find(prose, task.ref)
+    return replace(insertion, prose=prose, bound=bound)
 
 
 @dataclass(frozen=True, slots=True)

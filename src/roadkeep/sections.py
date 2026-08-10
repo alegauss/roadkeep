@@ -500,6 +500,34 @@ def declaring(config: Config, anchor: str) -> tuple[str, ...]:
     )
 
 
+def bind(document: Document, section: Section, task_id: str) -> Document:
+    """Append a task's id to a heading that names none, changing nothing else (RK452).
+
+    The binding written from the **pointer's** end. :func:`_bound` renders it into a title a
+    caller passed; this one is for the write where nobody passed a title at all — `add --ref`
+    on an outline anchor whose design was written first — so what it may touch is the id and
+    not one byte more.
+
+    Which is why it appends to the heading's own line rather than re-rendering it. RK388
+    settled that a `--title` amend restyles on purpose: the caller asked for the heading to
+    change, so the canonical spelling is right there. Nobody asked here, and re-rendering
+    would take the `§` an author wrote and whatever spacing that heading had (RK44) as the
+    silent price of a binding — the exact restyle RK388 removed from the body-only path.
+
+    The caller has already established that the heading names no task: this appends, and
+    deciding whether it should is :func:`owners`'.
+    """
+    heading = next(
+        (one for one in document.headings if anchor_of(one.text, document.schema) == section.anchor),
+        None,
+    )
+    if heading is None:  # pragma: no cover - the caller found this section a moment ago
+        return document
+    line = document.lines[heading.lineno - 1]
+    body = line.rstrip("\r\n")
+    return document.replace_line(heading.lineno - 1, f"{body.rstrip()} ({task_id})")
+
+
 def owners(section: Section, ids: re.Pattern[str]) -> tuple[str, ...]:
     """The tasks this section belongs to, whichever scheme addresses it (RK61).
 
