@@ -82,7 +82,11 @@ HOME = Schema()
 #: A placeholder, so the two prose fields can be judged the way a real line is. The id and
 #: the pointer are derived where the line is actually filed, and both are `add`'s to mint —
 #: this exists only to make :meth:`Schema.validate` judge a whole line.
-_PLACEHOLDER = "RK1"
+#:
+#: Spelled by :attr:`HOME` and not written out (RK1000): `RK1` was a literal standing in for
+#: a value the schema declares, so a default prefix or an `[ids] pad` that moved would leave
+#: this judging a whole line against an id that project's own gate refuses.
+_PLACEHOLDER = HOME.spell_id(HOME.prefixes[0], 1)
 
 #: The exit code that means *the call was wrong*, which is this CLI's own contract — 0, 1 for
 #: the gate, 2 for usage. Spelled here rather than imported, because `cli` imports this module

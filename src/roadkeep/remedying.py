@@ -469,7 +469,7 @@ _TABLE: Mapping[str, _Rule] = {
     ),
     # ------------------------------------------------------------------------ derived data
     "deps.stale": _fix(
-        "the `(deps: … ✅)` annotation caches another line's status and that line moved: "
+        "the `(deps: …)` annotation caches another line's status and that line moved: "
         "derived data written once and read as current",
         "the annotation is recomputed from the files it caches",
     ),

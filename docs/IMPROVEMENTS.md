@@ -81,27 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK1000 L6 is reachable and unreached, and the other two are not
-
-The register's three empty holders are in three different states, and only one of them
-is a task. L2 is satisfied by an *absence*: a property would quantify over the services
-this package does not open and the schemas it does not migrate, which is not a set. L5
-needs a declared inventory of the reads before a property has anything to sweep, and
-that inventory is its own line. L6 is neither, and its row says so in as many words —
-*reachable and unreached*. A source scan for a literal limit, prefix, marker or path
-outside `config` is decidable, and nobody has written it.
-
-What makes it the one to spend first is the consequence and not the ease. L6 is the law
-an adopting project rests on: prefix, paths, markers and limits are that project's, read
-from that project's own `roadkeep.toml`. A literal that slipped into the package does
-not fail here, where this repository's own numbers happen to match what was hardcoded —
-it fails in Shio, in Turing, or in a fork whose prefix is three letters, as behaviour
-nobody can derive from the config they wrote.
-
-The surface is this package's modules, which RK496 finally gave an address. What the
-scan must not do is flag the defaults themselves: `config` is where a default is written
-down, so a scan that cannot tell a default from a leak is a red nobody keeps.
-
 ### §RK1001 A recurrence is a hole in a holder, and it is declarable
 
 Twelve of the fifteen rows carry a holder, and that number is what makes this question

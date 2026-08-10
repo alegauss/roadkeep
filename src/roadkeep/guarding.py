@@ -373,7 +373,7 @@ class Refusal:
         lines = [
             self._opening,
             "",
-            "The id, the pointer and every (deps: … ✅) annotation are derived on render, "
+            "The id, the pointer and every (deps: …) annotation are derived on render, "
             "so a hand-edit is the one path that can leave a line the format rejects — "
             "and a limit discovered after the sentence exists is a limit that costs a "
             "deletion instead of a refusal.",

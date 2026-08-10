@@ -129,11 +129,11 @@ INVARIANTS: tuple[Invariant, ...] = (
             "prefix, paths, markers and limits are read from roadkeep.toml and never "
             "written into the package"
         ),
-        # Reachable and unreached: a source scan for a literal limit or a literal prefix
-        # outside `config` is decidable, and nothing does it. The rows above are unheld
-        # because no set exists; this one is unheld because nobody has written it, and the
-        # difference is the whole reason the field is a sentence rather than a boolean.
-        over="",
+        # Reached by RK1000, which is what the row was for: the two above are unheld because
+        # no set exists, and this one was unheld because nobody had written the scan. What it
+        # sweeps is the package's own source, minus the two modules a default is declared in.
+        over="surface.modules",
+        held_by="test_configured::test_no_module_writes_a_marker_a_project_declares",
     ),
     Invariant(
         stated="RK421",
@@ -216,8 +216,9 @@ INVARIANTS: tuple[Invariant, ...] = (
 
 #: The rules stated here that nothing holds, named so that losing a holder is a decision
 #: somebody writes down rather than a row quietly going empty. Asserted equal to the rows
-#: below, in both directions.
-UNHELD = frozenset({"L2", "L5", "L6"})
+#: below, in both directions. L6 left this set with RK1000, and the two that remain are the
+#: two whose surface is not a set: an absence, and an inventory nobody has written down.
+UNHELD = frozenset({"L2", "L5"})
 
 
 def declared_laws() -> set[str]:

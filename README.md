@@ -119,14 +119,14 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 31 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 107 | 1 |
 | C — Query (consult without reading the file) | 0 | 73 | 1 |
-| D — The gate | 3 | 115 | 0 |
+| D — The gate | 2 | 116 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 91 | 1 |
-| **Total** | 3 | 491 | 6 |
+| **Total** | 2 | 492 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1000** (deps: —) **A limit, prefix or marker written into the package instead of read from config is found by an adopting project** — L6's row carries an empty holder because nobody wrote the scan, not because no set exists: it is the one of the three a source scan decides. → §RK1000
+- 📋 **RK1001** (deps: —) **A second defect in a class an invariant already holds reads like new work, so a gap in a holder is filed as a fix** — Twelve of the fifteen rows carry a holder and nothing says which of them a task instantiates, so a recurrence and a rung nobody had climbed are one shape. → §RK1001
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
