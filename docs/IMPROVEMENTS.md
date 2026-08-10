@@ -79,6 +79,34 @@ already written, not authorship.
 
 ## Block C — Query
 
+### §RK459 The listing that answers per family
+
+RK453 gave every address two facts — which task its heading binds, and which live lines
+claim it — so an unbound heading and prose whose task has left are both stated rather
+than grepped. Its own sentence was that an adopting project sees its unbound headings in
+one call. It does not.
+
+Those facts ride on the **rows**, and the rows are printed only under `--family`.
+RK264's rule is why, and it is right: unnarrowed, this repository lists 287 retired
+addresses, which is not a listing anybody reads, so the wide answer is one line per
+family. Measured on a three-family fixture, the two interesting addresses are invisible
+without naming each numeral:
+
+    I        1 live, 0 retired  next §I.1
+    II       1 live, 0 retired  next §II.1
+
+The corpus this was written for is Shio's, whose designs span dozens of numerals. So the
+audit RK453 exists for is one call per family, and the adopting project that most needs
+it is the one with the most of them.
+
+The shape that fits is a filter rather than a wider default: the rows nobody reads are
+the retired and the ordinary, and both are exactly what `_ownership` already stays
+silent about. A listing narrowed to the addresses that *have* something to say is small
+on any corpus and needs no family at all.
+
+Open: whether the family rows should also carry a count, since a caller who wants the
+map rather than the exceptions is still reading the wide answer.
+
 ## Block D — The gate
 
 ### §RK454 The repair that is claimed and never made

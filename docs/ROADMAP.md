@@ -26,6 +26,8 @@
 
 ## Block C — Query (consult without reading the file)
 
+- 📋 **RK459** (deps: —) **The ownership an address states is reachable one family at a time, so an audit costs a call per family** — RK453 put binds and claimed on every row and the unnarrowed listing prints families, so a corpus of forty numerals answers in forty reads the question it was added for. → §RK459
+
 ## Block D — The gate
 
 - 📋 **RK454** (deps: —) **A governed file with NUL bytes among its text is 400 findings whose named --fix changes nothing** — RK451 caught the file that is all NUL and left the partial one, where the pass claims every finding, writes no byte, and returns the same report on the next run. → §RK454
