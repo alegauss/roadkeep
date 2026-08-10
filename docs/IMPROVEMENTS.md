@@ -81,6 +81,33 @@ already written, not authorship.
 
 ## Block D — The gate
 
+### §RK472 Runnable in shape, refused in fact
+
+`Remedy.runnable` asks whether the kind is `fix` or `run` and every field is filled.
+That is a question about the **argv**, and `repair` dispatches on it. Measured on a copy
+of Turing, after RK470 made the remedy name the right file:
+
+    FAILED  section drop XIV --role improvements
+    0 repair(s) ran, 1 refused, 33 left for you
+
+Run it again and it refuses again. `section drop` will not remove §XIV while §XIV.8.7
+nests under it and an open line points there, so the command the finding names cannot
+run until somebody moves the design or ships the task — and RK16's rule is that naming
+an edit that cannot work is worse than naming none.
+
+The tool has a name for the neighbouring state and not for this one. `MAX_PASSES` stops
+a loop where a repair *succeeds* and the finding survives, and says so in the right
+words: a rule and its own remedy disagree. A repair that never succeeds walks past that
+guard, because nothing changed and nothing looped.
+
+Two shapes fit. The remedy could ask what `section drop` asks — the refusal is computed
+from the file and RK468 already put one such reader behind `varies`. Or `repair` could
+remember a refusal within its own run and report it as blocked rather than as
+attemptable, which costs no new reader and states less.
+
+Open: whether a blocked remedy should still be printed as the door, since it is the
+right command once its blocker moves.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
