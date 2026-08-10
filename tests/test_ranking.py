@@ -186,6 +186,19 @@ def test_the_rank_is_absent_where_the_order_is_the_ledgers(tmp_path, capsys):
     assert not any("rank" in row for row in payload["delivered"])
 
 
+def test_an_empty_near_is_refused_and_never_answered_with_the_whole_block(tmp_path, capsys):
+    """The flag arriving empty used to fall through to the unbounded listing — a different
+    question, answered as if it were this one, and indistinguishable from the narrow answer
+    until the caller counts the rows. A read is where that costs most: nothing exits
+    non-zero, so a wrong answer is the only signal there is."""
+    root = project(tmp_path)
+    for empty in ("", "   "):
+        assert main(["-C", str(root), "delivered", "A", "--near", empty]) == EXIT_USAGE
+        captured = capsys.readouterr()
+        assert captured.out == ""
+        assert "--near is the symptom" in captured.err
+
+
 def test_a_label_nothing_declares_is_still_refused_before_anything_is_ranked(tmp_path, capsys):
     root = project(tmp_path)
     assert main(["-C", str(root), "delivered", "Z", "--near", "anything"]) == EXIT_USAGE

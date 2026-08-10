@@ -5111,6 +5111,18 @@ def _delivered(config: Config, args: argparse.Namespace) -> int:
     # tuple stays exactly what it was, so `--near` narrows one answer and does not make a
     # second one. `recorded` below is still the block's count, never the shown count.
     recorded = len(entries)
+    if args.near is not None and not args.near.strip():
+        # An empty `--near` used to fall through to the unbounded listing, which answers a
+        # *different question* than the one asked and looks like the narrow answer until the
+        # caller counts the rows: 103 lines where five were asked for. Every prose argument
+        # in this tool refuses the empty slot, and a read is where it costs the most —
+        # nothing exits non-zero, so a wrong answer is the only signal there is.
+        print(
+            "roadkeep: --near is the symptom you are about to propose, and it arrived "
+            "empty: pass the sentence, or drop the flag for the whole block",
+            file=sys.stderr,
+        )
+        return EXIT_USAGE
     if args.near:
         entries = tuple(
             entries[index]
