@@ -276,3 +276,81 @@ def test_importing_the_package_hardens_nothing():
         env={**os.environ, "PYTHONPATH": str(PACKAGE), "PYTHONIOENCODING": "ascii"},
     )
     assert done.stdout.strip() == b"ascii"
+
+
+# -- a stream this process did not open (RK455) -------------------------------
+
+
+def used_stdin(monkeypatch, text: str = "a body\n", encoding: str = "cp1252") -> None:
+    """The stdin an embedding host hands over: a text stream already read from.
+
+    Which is what an xdist worker has — it is bootstrapped over its own stdin, so fd 0
+    arrives read — and `reconfigure` on such a stream raises. Measured with `pytest -n 8`
+    before this: nine to sixteen failures out of one line, none about what they assert.
+    """
+    stream = io.TextIOWrapper(io.BytesIO(text.encode(encoding)), encoding=encoding)
+    stream.read(1)
+    monkeypatch.setattr(sys, "stdin", stream)
+
+
+def test_a_verb_that_reads_no_prose_runs_over_a_used_stdin(tmp_path, monkeypatch):
+    """The whole defect: `main` hardened the three streams before argparse saw a token, so
+    a host handing over a used stdin got a traceback where every verb would have worked."""
+    from roadkeep.cli import main
+
+    root = project(tmp_path)
+    used_stdin(monkeypatch)
+    # A read, because the claim is that the *verb* is reached: this fixture is the encoding
+    # suite's and carries drift on purpose, so `lint`'s own exit would be the gate's answer
+    # rather than an answer about the stream.
+    assert main(["-C", str(root), "list", "--block", "A"]) == EXIT_OK
+
+
+def test_a_prose_read_is_refused_and_never_assumes_the_strictness(tmp_path, monkeypatch, capsys):
+    """Not a bare pass. `errors="strict"` on the way in is what keeps input that is not
+    UTF-8 refused rather than repaired — a substituted character round-trips into a governed
+    file and stays (L3) — so the read says which stream could not be hardened."""
+    from roadkeep.cli import main
+
+    root = project(tmp_path)
+    used_stdin(monkeypatch)
+    code = main(
+        ["-C", str(root), "add", "--block", "A", "--symptom", "A symptom", "--why", "-"]
+    )
+    assert code == EXIT_USAGE
+    said = capsys.readouterr().err
+    assert "stdin was already read" in said and "strict UTF-8" in said
+    # And it names what to do instead, which is the half a refusal owes (RK16).
+    assert "--body-file" in said
+
+
+def test_a_stream_that_takes_the_hardening_is_unchanged(tmp_path, monkeypatch):
+    """The ordinary process, where nothing is lost and nothing is said."""
+    from roadkeep import cli
+
+    monkeypatch.setattr(sys, "stdin", io.TextIOWrapper(io.BytesIO(b"a body\n")))
+    assert _force_utf8(sys.stdin, errors="strict") is True
+    monkeypatch.setattr(cli, "_STDIN_HARDENED", True)
+    assert cli._unhardened() is None
+
+
+def test_a_stream_that_decodes_nothing_needs_no_hardening(monkeypatch):
+    """The narrowing that keeps the refusal about the defect. What `errors="strict"` buys is
+    that bytes which are not UTF-8 are refused rather than substituted — and a `StringIO` a
+    caller handed over is already `str`, so there is no codec that could be quietly keeping
+    cp1252. Without this the guard refused every test and every host that supplies one."""
+    assert _force_utf8(io.StringIO("prose")) is True
+
+
+def test_a_used_stream_already_in_utf8_is_the_same_answer(monkeypatch):
+    """It arrives the other way and means the same thing: the reconfigure fails, and there
+    was nothing to change."""
+    stream = io.TextIOWrapper(io.BytesIO("prose".encode()), encoding="utf-8")
+    stream.read(1)
+    assert _force_utf8(stream, errors="strict") is True
+
+
+def test_a_used_stream_keeping_another_codec_is_the_one_that_is_refused(monkeypatch):
+    stream = io.TextIOWrapper(io.BytesIO("prose".encode("cp1252")), encoding="cp1252")
+    stream.read(1)
+    assert _force_utf8(stream, errors="strict") is False

@@ -109,31 +109,6 @@ map rather than the exceptions is still reading the wide answer.
 
 ## Block D — The gate
 
-### §RK455 A stream this tool did not open
-
-`main` hardens the three standard streams before argparse sees a token, and
-`provenance.STARTUP_CODECS` records what they were (RK341): stdin strict, stdout and
-stderr backslashreplace. A text stream that has already been read refuses `reconfigure`,
-and the refusal is a raise — `io.UnsupportedOperation` out of `_force_utf8`, with the
-verb never reached.
-
-Measured: `pytest -n 8` over this suite fails between nine and sixteen tests, every one
-of them out of that line and none of them about what it asserts. An xdist worker is
-bootstrapped over its own stdin, so fd 0 arrives read, and every in-process `main(...)`
-scheduled there dies before parsing. That is a test runner finding a product defect
-rather than owning one: a stream this tool did not open is a stream it cannot assume it
-may re-encode, and the same shape reaches any host that embeds the CLI.
-
-What the repair must not become is a bare pass. `errors="strict"` on the way in is what
-keeps input that is not UTF-8 refused rather than repaired, because a substituted
-character round-trips into a governed file and stays (L3) — a stdin that silently keeps
-cp1252 is that defect with no report. So the answer states which stream could not be
-hardened and what the caller loses by it, and never assumes the strictness it failed to
-apply.
-
-The suite's own half is separate and smaller: a fixture handing each test a stdin
-nothing has read makes the fact local to the test instead of to the runner.
-
 ### §RK456 One repository, eleven ways to build it
 
 Eleven test files build a git repository per test, each from its own copy of the helper:

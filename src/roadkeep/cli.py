@@ -36,6 +36,8 @@ pays for every dependency, and the whole command surface is argument parsing.
 from __future__ import annotations
 
 import argparse
+import codecs
+import io
 import json
 import re
 import sys
@@ -2225,7 +2227,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     # a substituted character round-trips out of the file it lands in (L3).
     # What these three were before this line is `provenance.STARTUP_CODECS`, recorded at import
     # because after the next three statements the fact is gone (RK341).
-    _force_utf8(sys.stdin, errors="strict")
+    # Recorded rather than assumed (RK455): a stream this tool did not open is one it
+    # cannot insist on re-encoding, and the verb runs either way. What the caller loses is
+    # said by the readers that would have relied on it.
+    global _STDIN_HARDENED  # noqa: PLW0603 - one process, one answer, decided here
+    _STDIN_HARDENED = _force_utf8(sys.stdin, errors="strict")
     _force_utf8(sys.stdout)
     _force_utf8(sys.stderr)
     argv = list(sys.argv[1:] if argv is None else argv)
@@ -3640,6 +3646,7 @@ def _piped(value: str | None) -> str | None:
     """
     if value != STDIN:
         return value
+    _refuse_unhardened()
     return _TRAILING_NEWLINES.sub("", sys.stdin.read())
 
 
@@ -3665,7 +3672,22 @@ def _body_reader(literal: str | None, path: str | None) -> Callable[[], str]:
         return Rereadable(lambda: Path(path).read_text(encoding="utf-8"))
     if literal is not None and literal != STDIN:
         return Rereadable(lambda: literal)
+    _refuse_unhardened()
     return sys.stdin.read
+
+
+def _refuse_unhardened() -> None:
+    """Stop a prose read this process cannot make strictly (RK455).
+
+    A `ValueError`, so it lands in :data:`REFUSALS` and exits 2 with every other bad input —
+    the caller passed an argv this process cannot honour, which is exactly what a usage
+    refusal is. Raised at the point of *reading* and never at startup: the overwhelming
+    majority of calls never touch stdin, and refusing them would be the crash this replaced
+    with an exit code stapled on.
+    """
+    said = _unhardened()
+    if said is not None:
+        raise ValueError(said.removeprefix("roadkeep: "))
 
 
 def _one_body(named: str, literal: str | None, path: str | None) -> str | None:
@@ -7981,10 +8003,75 @@ def _payload() -> Mapping[str, object]:
     return data if isinstance(data, Mapping) else {}
 
 
-def _force_utf8(stream: object, errors: str = "backslashreplace") -> None:
+def _force_utf8(stream: object, errors: str = "backslashreplace") -> bool:
+    """Harden one stream, and say whether it took (RK455).
+
+    A text stream that has **already been read** refuses `reconfigure`, and the refusal is a
+    raise — so `main` died out of this line with the verb never reached, on a stream this
+    tool did not open and cannot assume it may re-encode. Measured with `pytest -n 8`, where
+    an xdist worker is bootstrapped over its own stdin so fd 0 arrives read: nine to sixteen
+    tests failed here, none of them about what they assert. The same shape reaches any host
+    that embeds this CLI and hands over a used stdin.
+
+    **Not a bare `pass`.** `errors="strict"` on the way in is what keeps input that is not
+    UTF-8 refused rather than repaired, because a substituted character round-trips into a
+    governed file and stays (L3) — a stdin that silently keeps cp1252 is that defect with no
+    report. So the failure is returned rather than swallowed, and :func:`_unhardened` is
+    where a verb that actually reads the stream says what it could not apply.
+    """
     reconfigure = getattr(stream, "reconfigure", None)
     if reconfigure is not None:
-        reconfigure(encoding="utf-8", errors=errors)
+        try:
+            reconfigure(encoding="utf-8", errors=errors)
+        except (io.UnsupportedOperation, ValueError, OSError):
+            # Every way a stream says no: already read, or detached.
+            return _already_utf8(stream)
+        return True
+    return _already_utf8(stream)
+
+
+def _already_utf8(stream: object) -> bool:
+    """Whether this stream needs no hardening, having no decoding to get wrong (RK455).
+
+    The narrowing that keeps the refusal about the defect. What `errors="strict"` buys is
+    that bytes which are not UTF-8 are **refused rather than substituted**, and a stream with
+    no `encoding` is decoding nothing — a `StringIO` a caller handed over is already `str`,
+    so there is no codec that could be silently keeping cp1252. One that names UTF-8 is the
+    same answer arriving the other way.
+
+    Read after the reconfigure rather than instead of it: hardening also sets `errors`, which
+    a stream already in UTF-8 may still have as `replace`. That is a residual this states
+    rather than hides — the substitution it would make is of *undecodable* bytes, which by
+    then are not a codec question, and refusing every such caller would take the pipe away
+    from the hosts this exists to keep working.
+    """
+    named = getattr(stream, "encoding", None)
+    if named is None:
+        return True
+    return codecs.lookup(str(named)).name == "utf-8"
+
+
+#: Whether stdin arrived as a stream this process could make strict UTF-8 (RK455). Module
+#: state because `main` decides it once per process and the reader that needs it is four
+#: frames down a handler — and because it is a fact about the *process*, not about a call.
+_STDIN_HARDENED = True
+
+
+def _unhardened() -> str | None:
+    """Why this process may not read prose off stdin, or None where it may (RK455).
+
+    The refusal a verb makes instead of assuming a strictness it failed to apply. Only the
+    commands that actually read the stream are refused: a `lint` in a worker whose stdin was
+    consumed has nothing to lose by it, and refusing there would be the crash this replaced
+    wearing an exit code.
+    """
+    if _STDIN_HARDENED:
+        return None
+    return (
+        "roadkeep: stdin was already read by this process's host, so it could not be made "
+        "strict UTF-8 — and prose decoded by whatever codec it kept would round-trip into a "
+        "governed file (L3). Pass the text as an argument, or `--body-file <path>`."
+    )
 
 
 if __name__ == "__main__":  # pragma: no cover - exercised via the console script

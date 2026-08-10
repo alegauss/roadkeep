@@ -119,14 +119,14 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 31 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 103 | 1 |
 | C — Query (consult without reading the file) | 1 | 68 | 1 |
-| D — The gate | 4 | 94 | 0 |
+| D — The gate | 3 | 95 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 75 | 1 |
-| **Total** | 5 | 445 | 6 |
+| **Total** | 4 | 446 | 6 |
 
 **Next ready:**
 
-- 📋 **RK455** (deps: —) **A CLI call whose stdin was already read dies while forcing UTF-8 instead of running the verb** — `main` reconfigures the three streams unconditionally, so a host handing over a used stdin gets a traceback where every verb would have worked. → §RK455
+- 📋 **RK456** (deps: —) **Eleven test files each build a git repository per test, with seven processes and a private copy of the helper** — One fixture written eleven times is eleven grammars for one act, and four of those seven spawns buy nothing: 214 ms per repository where 161 ms reads the same. → §RK456
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
