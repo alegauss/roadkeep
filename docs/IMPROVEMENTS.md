@@ -81,6 +81,31 @@ already written, not authorship.
 
 ## Block D — The gate
 
+### §RK498 Which half of the gate the write path is supposed to hold
+
+Measured by tripping it. RK497 was a bad commit: a `ship --why` naming a path the
+repository lacks, refused by the gate after the entry landed. It is the third of this
+family — RK147 closed a prose file's limits, RK412 the seam every line write passes —
+and each was found by somebody meeting it.
+
+So three more codes were probed after RK497 shipped, and two are open. `add --dep RK999`
+is written and the gate reports `deps.unknown`; the write even *spends* RK999 deriving
+the next id, so it read the token as an id and never asked whether anything carries it.
+A tab inside `--why` is written and the gate reports `char.tab`, while a trailing space
+in that field is refused at the write.
+
+Two in three is a rate at which the missing thing is the enumeration, not the two
+patches. `remedying.codes` is 84 codes and `tests/test_invariants.py` is where a rule
+with no holder is a row rather than an absence (RK491); nothing says which of them a
+write could prevent.
+
+What must not be assumed: some are the gate's by nature — a budget, a projection that
+drifted, a file that stopped being text — and their row says so. A register reading as a
+to-do list of 84 would be a worse claim than none.
+
+What proves it: every code has a row, the two above are named open, and a code added
+tomorrow with no row is red.
+
 ## Block E — Adoption
 
 ## Block F — The plugin

@@ -28,6 +28,8 @@
 
 ## Block D — The gate
 
+- 📋 **RK498** (deps: —) **Nothing says which of the gate's findings a write can refuse, so a rule the write path drops is found by tripping it** — RK497 was found by a bad commit and probing three more codes found two more open, so what is missing is the enumeration and not the patches. → §RK498
+
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
