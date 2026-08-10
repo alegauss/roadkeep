@@ -30,14 +30,14 @@
 
 root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
 
-versioned="src/roadkeep/__init__.py .claude-plugin/plugin.json"
+versioned="src/roadkeep/__init__.py .claude-plugin/plugin.json editor/package.json"
 
 for interpreter in python python3 py; do
 	if command -v "$interpreter" >/dev/null 2>&1; then
 		"$interpreter" "$root/scripts/bump_version.py" --level patch --for-commit
 		case $? in
 			0)
-				# Deliberately unquoted: the list above is two paths, not one.
+				# Deliberately unquoted: the list above is three paths, not one.
 				git -C "$root" add -- $versioned || true
 				;;
 			3)

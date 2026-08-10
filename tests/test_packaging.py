@@ -94,12 +94,22 @@ def test_a_commit_bumps_the_patch_version() -> None:
 
 
 def clone_of_the_hook(root: Path) -> None:
-    """The smallest checkout the hook runs in: the two files that state the number, the
-    bumper they are written by, and the hook itself on `core.hooksPath`."""
+    """The smallest checkout the hook runs in: the three files that state the number, the
+    bumper they are written by, and the hook itself on `core.hooksPath`.
+
+    Three since RK1011: `bump_version` compares each against the index and treats a file it
+    cannot find as "nothing to compare against", so a clone missing one silently stops
+    staging the bump — which is this fixture reporting that the hook broke when it did not.
+    """
     import shutil
     import subprocess
 
-    for relative in ("scripts/bump_version.py", "src/roadkeep/__init__.py", ".claude-plugin/plugin.json"):
+    for relative in (
+        "scripts/bump_version.py",
+        "src/roadkeep/__init__.py",
+        ".claude-plugin/plugin.json",
+        "editor/package.json",
+    ):
         target = root / relative
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(HERE / relative, target)

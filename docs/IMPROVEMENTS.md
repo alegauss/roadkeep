@@ -206,23 +206,3 @@ cheap on purpose — a client that never parses the file is a few hundred lines 
 nothing to port — so if the publishing cadence turns out to fight a version this
 repository bumps every commit, moving it out is a decision made later with evidence
 rather than now without.
-
-### §RK1011 The host, which ships none of the rules
-
-Everything else this block proposes is a panel, a marker or a prompt inside something
-that has to exist first: a manifest an editor recognises, an activation, a container in
-the sidebar, and one place that runs the command and turns a non-zero exit into a
-message. None of that is in this tree.
-
-Two properties decide whether the host is right, and neither is about the view. It
-**activates on a governed workspace** — the presence of the project's configuration
-file, not on startup and not on every Markdown file — for the reason the write path is a
-trigger-loaded skill rather than a preamble: a surface that costs something on every
-session that touches none of these files is paying for the sessions it does nothing in.
-And it **carries no rule.** No limit, no marker set, no id shape, no parser. Every fact
-it shows was read from a payload some verb printed, and the field limits it displays
-came from the configuration by way of a command, never from a constant compiled into it.
-
-What it owns is the boring half: finding the command, running it in the workspace,
-decoding one payload, and reporting the two failures a child process has — not
-installed, and refused — as a message a reader can act on rather than an empty tree.

@@ -122,12 +122,12 @@ called unbuilt were already in the ledger.
 | D — The gate | 1 | 120 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 91 | 1 |
-| G — The editor surface (the backlog where the file is open) | 6 | 1 | 0 |
-| **Total** | 7 | 497 | 6 |
+| G — The editor surface (the backlog where the file is open) | 5 | 2 | 0 |
+| **Total** | 6 | 498 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1011** (deps: —) **No package this repository builds is one an editor can load, so nothing it answers is reachable without a shell** — A list, a diagnostic and a write door each need a host that activates on a governed workspace and holds a place in the sidebar, and there is no host. → §RK1011
+- 📋 **RK1006** (deps: RK1005 ✅, RK1011 ✅) **The backlog is legible only in a terminal, so the editor holding the file offers the raw text and a hand edit** — Block, marker, ready, blocked and what a line unblocks are each already a query, and none of them is visible where the file is actually open. → §RK1006
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

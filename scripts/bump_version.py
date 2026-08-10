@@ -55,9 +55,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 MODULE = ROOT / "src" / "roadkeep" / "__init__.py"
 MANIFEST = ROOT / ".claude-plugin" / "plugin.json"
+#: The editor host's manifest (RK1011), which carries the number for `plugin.json`'s reason:
+#: a reader reporting a version this package never released is one nobody can diagnose.
+EDITOR = ROOT / "editor" / "package.json"
 
-#: What the two files are called from the repository root, for `git show :<path>`.
-TRACKED = ("src/roadkeep/__init__.py", ".claude-plugin/plugin.json")
+#: What the three files are called from the repository root, for `git show :<path>`.
+TRACKED = ("src/roadkeep/__init__.py", ".claude-plugin/plugin.json", "editor/package.json")
 
 #: The exit code that says the number was written and may **not** be staged (RK398). Not 1,
 #: which the hook reads as "nothing was written" and reports as a failure to bump.
@@ -149,10 +152,14 @@ def _for_commit(level: str) -> tuple[str, bool]:
         # still moves, because RK153 is about the plugin the running session loads.
         return bump(read_version(MODULE.read_text(encoding="utf-8")), level), False
 
-    module_blob, manifest_blob = blobs
+    module_blob, manifest_blob, editor_blob = blobs
     ours = all(
         masked(path.read_text(encoding="utf-8")) == masked(blob)
-        for path, blob in ((MODULE, module_blob), (MANIFEST, manifest_blob))
+        for path, blob in (
+            (MODULE, module_blob),
+            (MANIFEST, manifest_blob),
+            (EDITOR, editor_blob),
+        )
     )
     if not ours:
         return bump(read_version(MODULE.read_text(encoding="utf-8")), level), False
@@ -182,6 +189,7 @@ def main() -> int:
 
     module_text = MODULE.read_text(encoding="utf-8")
     manifest_text = MANIFEST.read_text(encoding="utf-8")
+    editor_text = EDITOR.read_text(encoding="utf-8")
 
     current = read_version(module_text)
     stageable = True
@@ -202,6 +210,13 @@ def main() -> int:
     if count == 0:
         raise SystemExit(f'Could not find a `"version": "…"` entry in {MANIFEST}.')
     write(MANIFEST, manifest_new)
+
+    # The same substitution, because both are `"version": "…"` in JSON and a second regex
+    # would be a second grammar for one field.
+    editor_new, count = _MANIFEST_RE.subn(rf"\g<lead>{written}\g<tail>", editor_text, count=1)
+    if count == 0:
+        raise SystemExit(f'Could not find a `"version": "…"` entry in {EDITOR}.')
+    write(EDITOR, editor_new)
 
     output = os.environ.get("GITHUB_OUTPUT")
     if output:

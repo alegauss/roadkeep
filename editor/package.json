@@ -1,0 +1,63 @@
+{
+  "name": "roadkeep",
+  "displayName": "roadkeep",
+  "description": "The backlog this workspace governs, read by the command that owns it.",
+  "version": "0.1.573",
+  "publisher": "alegauss",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./extension.js",
+  "activationEvents": [
+    "workspaceContains:roadkeep.toml"
+  ],
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "roadkeep",
+          "title": "roadkeep",
+          "icon": "icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "roadkeep": [
+        {
+          "id": "roadkeep.backlog",
+          "name": "Backlog"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "roadkeep.refresh",
+        "title": "roadkeep: Refresh the backlog",
+        "icon": "$(refresh)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "roadkeep.refresh",
+          "when": "view == roadkeep.backlog",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "roadkeep",
+      "properties": {
+        "roadkeep.command": {
+          "type": "string",
+          "default": "",
+          "description": "The roadkeep to run. Empty resolves it from PATH, then `python -m roadkeep.cli` from a checkout."
+        }
+      }
+    }
+  }
+}
