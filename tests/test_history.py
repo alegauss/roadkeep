@@ -1713,3 +1713,49 @@ def test_a_retired_address_is_never_in_the_audit(tmp_path, capsys):
     assert main(["-C", str(tmp_path), "anchors", "--claims"]) == EXIT_OK
     out = capsys.readouterr().out
     assert "0 of 1 address(es)" in out and "XXXVII.1" not in out
+
+
+def test_a_standing_memo_is_not_a_thing_to_act_on(tmp_path, capsys):
+    """RK461. Run on this repository the audit reported five addresses and all five were
+    `§0` to `§0.4`, the design preamble — prose belonging to no task and never will. RK236 is
+    why that is right and not a defect; what was wrong is that the listing did not tell it
+    apart from the two states it exists for, so its majority was noise."""
+    config = outlined(tmp_path)
+    design(config, "### XXXVII.1 A standing memo", "docs: file it")
+    found = anchors(config, "improvements", "XXXVII")[0]
+    assert found.memo and not found.orphaned
+    assert main(["-C", str(tmp_path), "anchors", "--claims"]) == EXIT_OK
+    out = capsys.readouterr().out
+    # Counted and not listed: "none needing anything" is a different answer from silence.
+    assert "0 of 1 address(es) say something about ownership, 1 standing memo(s)" in out
+    assert "XXXVII.1" not in out
+
+
+def test_prose_whose_task_has_left_is_not_a_memo(tmp_path):
+    """`orphaned` was `live and not claimed`, so it was true of a memo too — which was never
+    anybody's and therefore cannot have been left."""
+    config = outlined(tmp_path)
+    design(config, "### XXXVII.1 A design whose task has gone (RK99)", "docs: file it")
+    found = anchors(config, "improvements", "XXXVII")[0]
+    assert found.orphaned and not found.memo
+
+
+def test_an_unbound_heading_a_line_claims_is_neither(tmp_path):
+    """RK452's write left undone on an older corpus: one `section amend` closes it, which is
+    what makes it a finding rather than a memo."""
+    config = outlined(tmp_path)
+    design(config, "### XXXVII.1 An unbound design", "docs: file it")
+    claimants(config, "XXXVII.1")
+    found = anchors(config, "improvements", "XXXVII")[0]
+    assert not found.memo and not found.orphaned and found.claimed == ("RK91",)
+
+
+def test_the_payload_tells_the_third_state_apart(tmp_path, capsys):
+    config = outlined(tmp_path)
+    design(config, "### XXXVII.1 A standing memo", "docs: file it")
+    design(config, "### XXXVIII.1 A design whose task has gone (RK99)", "docs: file it")
+    assert main(["-C", str(tmp_path), "anchors", "--claims", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert [row["anchor"] for row in payload["anchors"]] == ["XXXVIII.1"]
+    assert payload["anchors"][0]["orphaned"] is True
+    assert payload["anchors"][0]["memo"] is False

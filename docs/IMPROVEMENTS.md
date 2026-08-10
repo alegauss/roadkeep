@@ -79,35 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK461 The third state the audit lumps in
-
-RK459 made the audit one call by printing only the addresses `_ownership` has something
-to say about. Run on this repository it reports five, and all five are `§0`, `§0.1` to
-`§0.4` — the design preamble, which belongs to no task and never will:
-
-    5 of 469 address(es) say something about ownership
-      0    binds nobody, unclaimed
-      0.1  binds nobody, unclaimed
-
-RK236 is why that is right and not a defect: a heading naming no task is prose belonging
-to none, which a standing memo genuinely is, and Turing's GEO memo is the case it was
-decided for. What is wrong is that the audit does not tell it apart from the two states
-it exists for. `binds nobody, **claimed by** RK91` is RK452's write left undone on an
-older corpus and one `section amend` closes it; `binds RK92, which no open line claims`
-is prose whose task has shipped. `binds nobody, unclaimed` is neither — nothing to do,
-ever.
-
-So a reader running this on an adopting corpus reads a list whose majority is noise,
-which is what teaches somebody to stop reading a report (RK146's argument, one surface
-over).
-
-The shape is that the third state is not an exception at all. `Anchor.orphaned` has the
-same flaw one layer down — it is `live and not claimed`, so it is true of a memo — and
-both readings want the same split.
-
-Open: whether a memo should be countable rather than invisible, since "469 addresses, 5
-of them memos, 0 needing anything" is a different answer from silence.
-
 ## Block D — The gate
 
 ### §RK462 Narrow is a count, not a kind

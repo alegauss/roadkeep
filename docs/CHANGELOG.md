@@ -223,6 +223,7 @@
 - ✅ **RK446** **An empty --near is answered with the whole block instead of being refused** — The flag fell through to the unbounded listing, so a read asked for five entries came back with 103 and nothing in the answer or the exit code said which question it answered.
 - ✅ **RK453** **No read says which outline sections a backlog still owns, so prose a departure left is found by grepping** — anchors says per address which task its heading binds and which live lines claim it, so an unbound heading and prose whose task has left are both one call away.
 - ✅ **RK459** **The ownership an address states is reachable one family at a time, so an audit costs a call per family** — anchors --claims lists only the addresses whose ownership is not the ordinary one, over every family at once, so the audit is one call on a corpus of any size.
+- ✅ **RK461** **Every row the ownership audit prints on this project is a standing memo, which is never a thing to act on** — A heading naming no task that no line claims is counted as a standing memo instead of listed, so the audit's rows are only the two states a command closes.
 
 ## Block D — The gate
 

@@ -6666,8 +6666,14 @@ def _anchors(config: Config, args: argparse.Namespace) -> int:
         # Its own header and not a second one under the totals (RK459): this listing is the
         # exceptions, so the number a reader wants first is how many there are of them.
         rows = [one for one in found if _ownership(one)]
+        # The memos are counted and not listed (RK461): "five of them and none needing
+        # anything" is a different answer from silence, and it is the answer an adopting
+        # corpus most often has.
+        memos = sum(1 for one in found if one.memo)
+        counted = f", {memos} standing memo(s)" if memos else ""
         print(
-            f"{len(rows)} of {len(found)} address(es) say something about ownership  ({where})"
+            f"{len(rows)} of {len(found)} address(es) say something about ownership"
+            f"{counted}  ({where})"
         )
         for one in rows:
             named = f"  in {one.role}" if len(read) > 1 else ""
@@ -6787,13 +6793,18 @@ def _ownership(one: Anchor) -> str:
     heading nothing claims is prose whose task has left, which is the reader's to keep or
     delete. Retired addresses say nothing: there is no heading to have an opinion about.
     """
-    if not one.live:
+    # Three silences and not one (RK461). A retired address has no heading to have an
+    # opinion about; the bound-and-claimed row is what every write produces; and a **memo**
+    # — naming no task and claimed by none — is the state RK236 protects and nothing ever
+    # closes. Reported beside the two that are actionable, that third one was five of the
+    # five rows this project's audit printed, and a list whose majority is noise is what
+    # teaches somebody to stop reading a report.
+    if not one.live or one.memo:
         return ""
     if one.binds and one.claimed == (one.binds,):
         return ""
     if not one.binds:
-        claimed = ", ".join(one.claimed)
-        return f"  binds nobody, claimed by {claimed}" if claimed else "  binds nobody, unclaimed"
+        return f"  binds nobody, claimed by {', '.join(one.claimed)}"
     if not one.claimed:
         return f"  binds {one.binds}, which no open line claims"
     return f"  binds {one.binds}, claimed by {', '.join(one.claimed)}"
@@ -6814,6 +6825,10 @@ def _anchor_row(one: Anchor) -> dict[str, object]:
         "binds": one.binds or None,
         "claimed": list(one.claimed),
         "orphaned": one.orphaned,
+        # The third state, told apart from the two that are (RK461): a memo is prose that was
+        # never anybody's, so it is neither bound nor left behind, and a client filtering on
+        # `orphaned` alone used to catch it.
+        "memo": one.memo,
     }
 
 

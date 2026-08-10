@@ -118,15 +118,15 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 31 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 103 | 1 |
-| C — Query (consult without reading the file) | 1 | 69 | 1 |
+| C — Query (consult without reading the file) | 0 | 70 | 1 |
 | D — The gate | 1 | 99 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 75 | 1 |
-| **Total** | 2 | 451 | 6 |
+| **Total** | 1 | 452 | 6 |
 
 **Next ready:**
 
-- 📋 **RK461** (deps: —) **Every row the ownership audit prints on this project is a standing memo, which is never a thing to act on** — The listing separates a heading from its claimants and not the two states apart: unbound and unclaimed is the memo RK236 protects, and it is all five rows here. → §RK461
+- 📋 **RK462** (deps: —) **A run naming several files gets no workers at all, so six files take fifteen seconds in series** — RK460 reads any file argument as a narrow run, and one file is narrow where six are a pool: the flag says which files, not how many processes they want. → §RK462
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

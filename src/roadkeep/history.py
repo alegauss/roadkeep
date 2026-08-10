@@ -738,11 +738,29 @@ class Anchor:
     claimed: tuple[str, ...] = ()
 
     @property
-    def orphaned(self) -> bool:
-        """A live heading no open line points at. Not a violation — RK236 settled that a
+    def memo(self) -> bool:
+        """A live heading that names no task and that no open line claims (RK461).
+
+        The third state, and the one that is never a thing to do. RK236 settled that a
         heading naming no task is prose belonging to none, which a standing memo genuinely
-        is — so it is a fact this read states and the gate stays out of."""
-        return self.live and not self.claimed
+        is — Turing's GEO memo is the case it was decided for, and this repository's own `§0`
+        to `§0.4` are five more. Nothing closes it, because nothing is open.
+
+        Named so the two states that *are* actionable can be told from it: reported beside
+        them, it was five of the five rows this project's audit printed, and a list whose
+        majority is noise is what teaches somebody to stop reading a report.
+        """
+        return self.live and not self.binds and not self.claimed
+
+    @property
+    def orphaned(self) -> bool:
+        """A live heading bound to a task no open line claims — prose whose task has left.
+
+        `binds` and not only the absence of a claimant (RK461): without it this was true of a
+        memo too, which was never anybody's and so cannot have been left. Still not a
+        violation, for RK236's reason; it is a fact this read states and the gate stays out of.
+        """
+        return self.live and bool(self.binds) and not self.claimed
 
 
 def anchors(config: Config, role: str = "", family: str = "") -> tuple[Anchor, ...]:
