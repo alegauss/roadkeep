@@ -81,34 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK468 The sentence and the table that disagree
-
-RK420 made every finding carry the command that closes it, so none has to be inferred.
-On a `block.repeated` whose later region holds nothing, the finding carries two:
-
-    CHANGELOG.md:7  block.repeated  … — `block drop A` takes the empty one out
-        … block merge A  — the label's later headings fold into the first, entries and all
-
-Found on Turing's live ledger and reproduced on four lines. The **message** branches on
-`_droppable` — RK425 wrote that, because the caller's next question is whether their
-lines survive it — and the **remedy** is `remedying`'s table, which is keyed by code and
-by nothing else (RK421). Keyed that way it cannot ask, so it always answers `block
-merge`.
-
-`repair` is what makes it more than an inconsistency: it dispatches the table, so on
-this finding it runs the verb the sentence above it does not name. Both commands leave a
-legal file, which is why nothing caught it — the caller reads one, the tool runs the
-other, and the tree is clean either way.
-
-Two shapes fit and they differ in what they concede. The table already varies two rows
-off the config (`ref.mismatch`, `id.duplicate`) through `varies`, so a third that varies
-off the *files* is the mechanism extended rather than bent. The other is to stop
-branching the sentence and let both cases say `block merge`, which is true of both and
-gives up what RK425 measured the branch was worth.
-
-Open: whether `_droppable`'s question belongs in `remedying` at all, since it reads
-every governed file and the table is pure by design.
-
 ## Block E — Adoption
 
 ## Block F — The plugin

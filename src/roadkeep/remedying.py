@@ -463,9 +463,17 @@ _TABLE: Mapping[str, _Rule] = {
         "the file's content did not reach the disk; the store is the repository, and this "
         "puts back what it last committed",
     ),
-    "block.repeated": _run(
-        ("block", "merge", "{id}"),
-        "the label's later headings fold into the first, entries and all",
+    # Varies with the **files**, which is the third thing a row is decided by (RK468). The
+    # finding's own sentence has branched on whether the later region is empty since RK425 —
+    # the caller's next question is whether their lines survive it — and this row could not
+    # ask, so on a droppable one the message said `block drop` and the remedy said `block
+    # merge`. `repair` dispatches the remedy, so it ran the verb the sentence above it did
+    # not name; both leave a legal file, which is why nothing caught it.
+    "block.repeated": _Rule(
+        "run",
+        ((("block", "merge", "{id}"), "the label's later headings fold into the first, "
+          "entries and all"),),
+        varies="region",
     ),
     "block.unrecorded": _compose(
         ("block", "add", "{id}", "--title", BLANK),
@@ -782,6 +790,7 @@ _TABLE: Mapping[str, _Rule] = {
 _VARIES_READS = {
     "ref_scheme": "with `ref_scheme` in roadkeep.toml",
     "role": "with which governed file it is reported about",
+    "region": "with whether the label's later region holds anything",
 }
 
 #: The codes whose row is decided per project rather than per code (L6), and what each
@@ -923,6 +932,13 @@ def _varied(code: str, rule: _Rule, finding: object, config: Config) -> _Rule:
         # The order lives where no verb writes, so the mechanical pass cannot reach it and
         # the honest remedy is the one door between the two declarations.
         return _TABLE["priority.unmigrated"]
+    if rule.varies == "region" and _empty_region(finding, config):
+        # The verb the finding's own sentence names on this branch (RK425): a region holding
+        # nothing is removed rather than folded, and `block drop` is what removes it.
+        return _run(
+            ("block", "drop", "{id}"),
+            "the later heading stands over nothing, so it is taken out rather than folded",
+        )
     if code == "id.duplicate" and _role_of(finding, config) == "roadmap":
         # `record renumber` opens the ledger and this is the other file: two *open* lines
         # sharing an id are two tasks, and one of them takes a free address.
@@ -943,6 +959,40 @@ def _queue_in_config(config: Config) -> bool:
     from .queueing import declared  # noqa: PLC0415 - one branch, and never on a clean run
 
     return declared(config).declared_in == "config"
+
+
+def _empty_region(finding: object, config: Config) -> bool:
+    """Whether `block drop` would remove this label's heading rather than refuse (RK468).
+
+    Asked of `linting.closes_by_drop`, which is the reader the finding's own sentence uses,
+    so the message and the remedy answer one question rather than two that agree until they
+    do not. Imported inside the branch for :func:`_queue_in_config`'s reason: this module is
+    on the report's own import path and the question is asked on one code out of seventy.
+
+    Two things off the finding and not one. The subject is the **label** — every other row
+    here is keyed by a task id, and this is the one whose id is a heading — and the line is
+    which repeat it is about, because `block drop` closes this finding only where *this*
+    region is the empty one and not merely where the verb would run somewhere.
+    """
+    from .linting import closes_by_drop  # noqa: PLC0415 - one branch, never on a clean run
+
+    label = getattr(finding, "subject", "") or getattr(finding, "id", "")
+    where, lineno = getattr(finding, "file", ""), getattr(finding, "lineno", None)
+    if not label or not where or lineno is None:
+        return False
+    files = {
+        role: config.document(role)
+        for role in ROLES
+        if config.has(role) and config.path(role).is_file()
+    }
+    document = next(
+        (one for role, one in files.items() if config.relative(config.path(role)) == where),
+        None,
+    )
+    if document is None:
+        return False
+    later = next((one for one in document.headings if one.lineno == lineno), None)
+    return later is not None and closes_by_drop(document, later, files, label)
 
 
 def _role_of(finding: object, config: Config) -> str:

@@ -380,13 +380,17 @@ def test_the_mechanical_class_is_lint_fix_and_says_so():
 
 
 def test_the_varying_rows_are_derived_from_the_table():
-    # Each is a per-project answer L6 makes and the table cannot: which scheme derives the
-    # pointer, which file a finding is about, and which declaration holds the queue (RK427).
+    # Each is an answer the table cannot give from a code alone: three are per-project (L6) —
+    # which scheme derives the pointer, which file a finding is about, which declaration
+    # holds the queue (RK427) — and the fourth is per *finding*, because `block.repeated`'s
+    # own sentence branches on whether the later region is empty and the remedy has to say
+    # the same verb (RK468).
     assert VARIES == {
         "ref.mismatch": "ref_scheme",
         "id.duplicate": "role",
         "priority.shipped": "queue",
         "priority.retired": "queue",
+        "block.repeated": "region",
     }
 
 
@@ -709,3 +713,68 @@ def test_every_complete_door_this_surface_serves_has_a_call():
             if door.call() is None:
                 uncalled.add(words)
     assert uncalled == {("lint", "--fix")}
+
+
+# -- the sentence and the remedy answer one question (RK468) ------------------
+
+
+def repeated(tmp_path, later: str = "") -> Config:
+    """A ledger declaring one label twice, with the later region empty or holding an entry.
+
+    Found on Turing's live ledger and reduced to this: the state RK425 branches its sentence
+    on, and the one the remedy table could not ask about.
+    """
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "ROADMAP.md").write_text("# Roadmap\n\n## Block A\n", encoding="utf-8")
+    (tmp_path / "CHANGELOG.md").write_text(
+        "# Shipped\n\n## Block A — First\n\n- ✅ **RK1** **A symptom** — It works.\n\n"
+        "## Block A — Again\n" + later,
+        encoding="utf-8",
+    )
+    return Config.discover(tmp_path)
+
+
+def test_the_remedy_is_the_verb_the_finding_s_own_sentence_names(tmp_path):
+    """RK420 made every finding carry the command that closes it. On a `block.repeated`
+    whose later region is empty the message said `block drop` and the remedy said `block
+    merge` — two commands on one finding, and `repair` dispatched the one the sentence above
+    it did not name. Both leave a legal file, which is why nothing caught it."""
+    config = repeated(tmp_path)
+    found = next(f for f in lint(config).findings if f.code == "block.repeated")
+    assert "`block drop A` takes the empty one out" in found.message
+    door = remedy(found, config).doors[0]
+    assert door.argv == ("block", "drop", "A")
+
+
+def test_a_region_that_holds_work_is_folded_and_says_so(tmp_path):
+    config = repeated(tmp_path, later="\n- ✅ **RK2** **Another** — It works.\n")
+    found = next(f for f in lint(config).findings if f.code == "block.repeated")
+    assert "block merge A" in found.message
+    assert remedy(found, config).doors[0].argv == ("block", "merge", "A")
+
+
+def test_the_verb_offered_is_the_one_that_closes_the_finding(tmp_path):
+    """The deeper half, and the reason `_droppable` alone was the wrong reader: it asks
+    whether the verb would *refuse*, not which heading comes out. A repeat in the ledger
+    beside an empty `## Block A` in the roadmap answered droppable, and `block drop` then
+    withdrew the roadmap's heading and left this finding standing."""
+    from roadkeep.blocking import drop_block, merge_block
+
+    for later, verb in ((None, drop_block), ("\n- ✅ **RK2** **Another** — It works.\n", merge_block)):
+        root = tmp_path / ("empty" if later is None else "held")
+        root.mkdir()
+        config = repeated(root, later=later or "")
+        verb(config, "A").save()
+        assert not [f for f in lint(Config.discover(root)).findings if f.code == "block.repeated"]
+
+
+def test_the_row_declares_what_it_varies_with(tmp_path):
+    """The third thing a row is decided by, beside the config's two (L6): a reader asking
+    `explain` what this code means is told the answer moves."""
+    assert VARIES["block.repeated"] == "region"
+    described = explain("block.repeated", Config.default())
+    assert described is not None and described.varies == "region"
+    assert "later region holds anything" in str(described)

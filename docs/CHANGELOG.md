@@ -330,6 +330,7 @@
 - ✅ **RK460** **Running one test file is 33 times slower than before, because -n auto spawns a worker per core for it** — A run that named one file or one test is not spread over every core, so the narrow run is back to 0.93s from 43.2s and the full one keeps its 41s.
 - ✅ **RK462** **A run naming several files gets no workers at all, so six files take fifteen seconds in series** — The worker count is one per thing named and capped at the cores, so six files take 4.8s instead of 12.7s and one file still spawns nobody.
 - ✅ **RK467** **Nothing checks whether a flag pair answers as one of its halves, so each swallowed flag is found by hand** — Every boolean pair a read takes is swept for the byte-identical answer a swallowed flag leaves, which found two more and left the exception table empty.
+- ✅ **RK468** **One finding names two different commands, and repair runs the one its own message does not** — The message and the remedy ask one reader whether dropping closes this finding, so repair runs the verb the sentence names and the verb it names closes the finding.
 
 ## Block E — Adoption
 

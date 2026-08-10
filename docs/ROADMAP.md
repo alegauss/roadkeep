@@ -28,8 +28,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK468** (deps: —) **One finding names two different commands, and repair runs the one its own message does not** — block.repeated composes its sentence from whether the later region is empty and reads its remedy from a table that cannot ask, so on Turing's ledger the two disagree. → §RK468
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

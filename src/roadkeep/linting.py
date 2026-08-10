@@ -1732,7 +1732,7 @@ def _repeated(config: Config, files: dict[str, Document]) -> list[Finding]:
             first, *rest = declared
             remedy = (
                 f"`block drop {label}` takes the empty one out"
-                if _droppable(files, label)
+                if closes_by_drop(document, rest[0], files, label)
                 # `block merge` is that command, and this clause read "a merge by hand"
                 # until RK425 — prose left behind when RK403 shipped the verb. It named an
                 # edit the guard denies, and the obvious reading of it is a *rename*, which
@@ -1768,7 +1768,7 @@ def _moving(
     Said only on the branch that names `block merge`: the drop branch removes a region that
     holds nothing, so a count of zero beside it is a sentence about the absence of a fact.
     """
-    if _droppable(files, label):
+    if closes_by_drop(document, later, files, label):
         return ""
     held = _under(document, later)
     return f", moving the {held} line(s) under it and keeping the file's order"
@@ -1789,6 +1789,29 @@ def _under(document: Document, heading: Heading) -> int:
     after = [one.lineno for one in document.headings if one.lineno > heading.lineno]
     end = min(after) if after else len(document.lines) + 1
     return sum(1 for e in document.entries if heading.lineno < e.lineno < end)
+
+
+def closes_by_drop(
+    document: Document, later: Heading, files: dict[str, Document], label: str
+) -> bool:
+    """Whether `block drop` would **close this finding** rather than merely run (RK468).
+
+    Two questions and the conjunction, where `_droppable` alone was read as both. That one
+    asks whether the verb will refuse — it is all-or-nothing across files, so a label with
+    work under it anywhere stops the run — and it says nothing about *which* heading comes
+    out. Measured: a repeat in the ledger beside an empty `## Block A` in the roadmap
+    answered droppable, and `block drop` then withdrew the roadmap's heading and left the
+    finding standing, correctly reporting `block merge` on the next run.
+
+    So the region this finding is about has to be the empty one too. `_under` is that
+    question, per heading and per file, and it is the same count `_moving` prints — which is
+    what keeps the sentence, the remedy and the number one answer instead of three.
+
+    Public because `remedying` asks it (RK468): the finding's message branched here and its
+    remedy came from a table that could not, so on a droppable one the two named different
+    commands and `repair` ran the one the sentence did not.
+    """
+    return _under(document, later) == 0 and _droppable(files, label)
 
 
 def _droppable(files: dict[str, Document], label: str) -> bool:
