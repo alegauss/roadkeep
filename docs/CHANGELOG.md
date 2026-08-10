@@ -500,3 +500,4 @@
 - ✅ **RK476** **The follow-up an add leaves is a shell argv, in the payload a tool-surface caller acts on** — The printed line carries the invocation like every other route, and the payload's needs field names the tool that serves it.
 - ✅ **RK477** **The deny offers both spellings for every write and only the shell one for the reads it closes on** — The closing sentence is composed per table, so a session with tools is offered the three reads as tools and one without keeps the shell line.
 - ✅ **RK478** **The gate that blocks a turn lists its findings without the door RK420 gave each one** — Each finding is followed by the door remedy() answers, grouped as the report groups and spelled as the session that will run it.
+- ✅ **RK479** **The attestation half of the Stop names a shell lint, where the half beside it spells the session's own** — Unattested carries the served prefix the hook reads, so the message shown once names a route the session can take.

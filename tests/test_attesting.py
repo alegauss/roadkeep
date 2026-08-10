@@ -31,6 +31,7 @@ from roadkeep.attesting import State, attest, record_path, survey, unattested
 from roadkeep.cli import EXIT_OK, main
 from roadkeep.config import Config
 from roadkeep.guarding import attested, review
+from roadkeep.provenance import invocation
 
 ROADMAP = "docs/ROADMAP.md"
 CHANGELOG = "docs/CHANGELOG.md"
@@ -145,6 +146,35 @@ def test_the_stop_answer_states_the_fact_without_asking_the_bytes_back(tmp_path)
     assert found is not None
     assert "roadkeep verb" in str(found)
     assert "the approval stands" in str(found)
+
+
+def test_the_stop_answer_names_the_engine_this_session_can_reach(tmp_path):
+    """RK479. RK444, RK447, RK448, RK477 and RK478 moved every route `guarding` composes;
+    this module was in none of those counts, and `Unattested` was the last of the four
+    messages that block a turn still naming one route for every session.
+
+    It matters most here: reporting re-baselines, so this text is shown **once** and can
+    never be asked for again — RK200 built `survey` because the fact had one moment. A route
+    the reader cannot take is worst on the message they get one shot at."""
+    from dataclasses import replace as _replace
+
+    root = project(tmp_path)
+    config = Config.discover(root)
+    attest(config)
+    edit(root, "Because of a reason.", "Because of another reason.")
+    found = attested({"hook_event_name": "Stop", "cwd": str(root)}, root)
+    assert found is not None
+    # The wiring and not only the rendering: a `served` the hook never fills is a field that
+    # reads correct in a unit test and names the shell in every session.
+    from roadkeep.provenance import serving
+
+    assert found.served == (serving(root) or "")
+    served = str(_replace(found, served="mcp__roadkeep__"))
+    assert "`mcp__roadkeep__lint` judges the format" in served
+    assert invocation() not in served
+    # And the shell form is untouched where a session has no tools, which is the case it was
+    # always right for — the split `Review` has kept since RK448.
+    assert f"`{invocation()} lint` judges the format" in str(_replace(found, served=""))
 
 
 def test_a_second_pass_never_blocks(tmp_path):

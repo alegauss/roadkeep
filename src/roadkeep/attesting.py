@@ -57,7 +57,7 @@ from enum import StrEnum
 from pathlib import Path
 
 from roadkeep.config import Config
-from roadkeep.provenance import invocation
+from roadkeep.provenance import invocation, serving
 from roadkeep.storing import Store, path, read, write
 
 #: What this module's rows are called inside the shared store (RK330). One file beside the
@@ -73,6 +73,12 @@ class Unattested:
     #: Role and path, as this project spells it — a report quoting an absolute path is a
     #: report about one machine.
     files: tuple[tuple[str, str], ...]
+    #: The prefix this session's tools arrive under, or `""` where it has none (RK479). The
+    #: same field :class:`~roadkeep.guarding.Review` carries, and this was the last of the
+    #: four messages that block a turn still naming one route for every session — on the one
+    #: that is shown *once*, because reporting re-baselines. A field and not a call: one hook
+    #: process serves every repository a session touches, so it is a fact about this project.
+    served: str = ""
 
     def __str__(self) -> str:
         named = ", ".join(path for _, path in self.files)
@@ -89,8 +95,13 @@ class Unattested:
                 "command changed the file and end the turn again — this blocks once, and the "
                 "bytes that are there now are the new baseline.",
                 "",
-                f"`{invocation()} lint` judges the format; the verbs that write it are in "
-                f"the refusal every governed edit already prints.",
+                # The second clause names no route on purpose: the refusal it points at has
+                # spelled both since RK24, so this line has one command to get right.
+                f"`{self.served}lint` judges the format; the verbs that write it are in "
+                f"the refusal every governed edit already prints."
+                if self.served
+                else f"`{invocation()} lint` judges the format; the verbs that write it are "
+                f"in the refusal every governed edit already prints.",
             ]
         )
 
@@ -123,7 +134,7 @@ def unattested(config: Config) -> Unattested | None:
     if not found:
         return None
     _store(config, current)
-    return Unattested(files=found)
+    return Unattested(files=found, served=serving(config.root) or "")
 
 
 class State(StrEnum):
