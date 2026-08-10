@@ -2,7 +2,7 @@
   "name": "roadkeep",
   "displayName": "roadkeep",
   "description": "The backlog this workspace governs, read by the command that owns it.",
-  "version": "0.1.578",
+  "version": "0.1.579",
   "publisher": "alegauss",
   "license": "MIT",
   "engines": {
@@ -38,6 +38,18 @@
         "command": "roadkeep.refresh",
         "title": "roadkeep: Refresh the backlog",
         "icon": "$(refresh)"
+      },
+      {
+        "command": "roadkeep.repair",
+        "title": "roadkeep: Repair what the gate can close"
+      },
+      {
+        "command": "roadkeep.run",
+        "title": "roadkeep: Run a door the gate named"
+      },
+      {
+        "command": "roadkeep.explain",
+        "title": "roadkeep: Explain a gate code"
       }
     ],
     "menus": {
@@ -46,6 +58,16 @@
           "command": "roadkeep.refresh",
           "when": "view == roadkeep.backlog",
           "group": "navigation"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "roadkeep.run",
+          "when": "false"
+        },
+        {
+          "command": "roadkeep.explain",
+          "when": "false"
         }
       ]
     },

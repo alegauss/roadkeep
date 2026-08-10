@@ -134,25 +134,6 @@ code, and prose under an unreadable address is still clean.
 
 ## Block G — The editor surface (the backlog where the file is open)
 
-### §RK1007 The gate, at the column
-
-The gate's report was built for a reader who is not looking at the file:
-`file:line:column`, a code, and — since every finding names the command that closes it —
-a complete argv with the id and the line number already substituted. That is, without
-anything being added to it, the exact payload an editor's problems panel and its
-quick-fix menu take.
-
-So the mapping is a translation and not a feature. A finding becomes a diagnostic
-anchored at its column, its code becomes the diagnostic's code, and `explain <code>` is
-what the reader follows when the code is one they have not met. A finding whose remedy
-is a complete command becomes a code action that runs it; a finding whose remedy is a
-marked blank — a title, a shorter symptom, a reason — becomes no action at all, because
-the tool does not compose prose and an editor is not the place to start.
-
-Running it is the same child process as the list, on save and on demand. `repair` is the
-one action that belongs to the file rather than to a line, and it exits non-zero while
-anything is left, so a clean panel means clean.
-
 ### §RK1008 The door, not a text box
 
 A view that only reads sends its user to a terminal to write, and the terminal is where

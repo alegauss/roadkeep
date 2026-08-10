@@ -47,7 +47,10 @@ PROMISED = {
 #: level because a client walks into these, and a rename here is exactly as breaking.
 INSIDE = {
     "list": ("tasks", ("id", "block", "status", "symptom", "why", "deps", "line")),
-    "lint": ("findings", ("code", "file", "line", "message")),
+    # `column` and `remedy` joined when the gate became a problems panel (RK1007): a
+    # diagnostic is anchored by the first and a quick fix is composed from the second, so
+    # both are keys a reader outside this process now depends on.
+    "lint": ("findings", ("code", "file", "line", "column", "message", "remedy")),
 }
 
 
@@ -125,6 +128,26 @@ def test_a_payload_is_the_whole_of_stdout_and_parses_as_one_object():
         with contextlib.redirect_stdout(out):
             main(["-C", str(HERE), *_argv(verb), "--json"])
         assert isinstance(json.loads(out.getvalue()), dict), verb
+
+
+#: What a remedy carries, one level further in than any other promise here — because a code
+#: action is built from it: the doors, whether each is runnable as it stands, and its argv.
+REMEDY = ("kind", "doors")
+DOOR = ("argv", "what", "complete")
+
+
+def test_a_remedy_carries_the_doors_a_quick_fix_is_built_from(dirty):
+    """Two levels down, and the only place this contract goes that deep. `complete` is the
+    key that decides whether an editor may offer the action at all: a door with a marked
+    blank is prose only the author can write, and an action that ran one would be the tool
+    composing it (L4)."""
+    findings = payload("lint", root=dirty, expected=EXIT_GATE)["findings"]
+    remedies = [one["remedy"] for one in findings if one.get("remedy")]
+    assert remedies, "the fixture produced no remedy to read"
+    for remedy in remedies:
+        assert not [key for key in REMEDY if key not in remedy], remedy
+        for door in remedy["doors"]:
+            assert not [key for key in DOOR if key not in door], door
 
 
 def test_the_gate_exits_one_and_still_prints_a_payload(dirty):

@@ -41,8 +41,9 @@ function stub() {
       }
     },
     Range: class {
-      constructor(line) {
-        this.line = line;
+      constructor(startLine, startColumn, endLine, endColumn) {
+        this.start = { line: startLine, character: startColumn };
+        this.end = { line: endLine, character: endColumn };
       }
     },
     Uri: {
@@ -58,9 +59,39 @@ function stub() {
       workspaceFolders: undefined,
       getConfiguration: () => ({ get: () => process.env.ROADKEEP_COMMAND || "" }),
       createFileSystemWatcher: () => ({ onDidChange() {}, dispose() {} }),
+      onDidSaveTextDocument: () => ({ dispose() {} }),
     },
-    window: { registerTreeDataProvider() {} },
-    commands: { registerCommand() {} },
+    Diagnostic: class {
+      constructor(range, message, severity) {
+        Object.assign(this, { range, message, severity });
+      }
+    },
+    DiagnosticSeverity: { Error: 0 },
+    CodeAction: class {
+      constructor(title, kind) {
+        Object.assign(this, { title, kind });
+      }
+    },
+    CodeActionKind: { QuickFix: "quickfix" },
+    languages: {
+      createDiagnosticCollection: () => ({
+        entries: new Map(),
+        clear() {
+          this.entries.clear();
+        },
+        set(uri, found) {
+          this.entries.set(uri.fsPath, found);
+        },
+        dispose() {},
+      }),
+      registerCodeActionsProvider: () => ({ dispose() {} }),
+    },
+    window: {
+      registerTreeDataProvider() {},
+      showInformationMessage() {},
+      showErrorMessage() {},
+    },
+    commands: { registerCommand: () => ({ dispose() {} }) },
   };
 }
 
@@ -72,7 +103,7 @@ Module._load = function (request, parent, isMain) {
 
 async function main() {
   const root = process.argv[2];
-  const { activate, Backlog } = require("./extension.js");
+  const { activate, Backlog, Gate } = require("./extension.js");
   // `activate` is exercised for what it wires — a stub with no window records the calls and
   // hands nothing back, so the provider under test is built directly.
   editor.workspace.workspaceFolders = [{ uri: editor.Uri.file(root) }];
@@ -92,6 +123,33 @@ async function main() {
       label: backlog.getTreeItem(block).label,
     });
   }
+  // The gate half: findings become diagnostics anchored where the report points, and a
+  // door the tool marked incomplete is offered to nobody.
+  const collection = editor.languages.createDiagnosticCollection();
+  const gate = new Gate(root, collection);
+  out.gate = { notice: await gate.check(), files: [] };
+  for (const [file, found] of collection.entries) {
+    out.gate.files.push({
+      file: path.relative(root, file).split(path.sep).join("/"),
+      found: found.map((one) => ({
+        code: one.code,
+        line: one.range.start.line,
+        column: one.range.start.character,
+        source: one.source,
+      })),
+    });
+    for (const said of found) {
+      const actions = gate.provideCodeActions(
+        { uri: { fsPath: file } },
+        said.range,
+        { diagnostics: [said] }
+      );
+      out.gate.actions = (out.gate.actions || []).concat(
+        actions.map((one) => ({ code: said.code, title: one.title, argv: one.command.arguments }))
+      );
+    }
+  }
+
   process.stdout.write(JSON.stringify(out));
 }
 

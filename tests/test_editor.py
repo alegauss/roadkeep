@@ -149,6 +149,8 @@ def test_the_host_reads_only_keys_a_payload_promises():
         set(PROMISED["list"])
         | set(INSIDE["list"][1])
         | set(PROMISED["deps"])
+        | set(PROMISED["lint"])
+        | set(INSIDE["lint"][1])
         | {"notice", "group"}
     )
     read = set(re.findall(r"\.value\.(\w+)|\brow\.(\w+)", source))
@@ -168,11 +170,26 @@ def test_the_extension_exports_the_two_hooks_and_names_what_else_it_exports():
         "activate",
         "deactivate",
         "Backlog",
+        "Gate",
     ]
     assert "function activate(" in source and "function deactivate(" in source
 
 
 NODE = shutil.which("node")
+
+
+def _harness(root) -> dict:
+    """Run the stubbed host against a real roadkeep in ``root`` and read its report back."""
+    said = subprocess.run(
+        [NODE, str(EDITOR / "harness.js"), str(root)],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        env={**os.environ, "ROADKEEP_COMMAND": "python -m roadkeep.cli", "PYTHONPATH": "src"},
+        cwd=str(HERE),
+    )
+    assert said.stdout, said.stderr
+    return json.loads(said.stdout)
 
 
 @pytest.mark.skipif(not NODE, reason="node is not on PATH")
@@ -187,15 +204,7 @@ def test_the_tree_groups_by_block_and_separates_what_is_blocked():
     the whole of RK1010's open question — so this is the corpora rule (RK105) applied to a
     language, testing what is here and staying quiet where it is not.
     """
-    said = subprocess.run(
-        [NODE, str(EDITOR / "harness.js"), str(HERE)],
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        env={**os.environ, "ROADKEEP_COMMAND": "python -m roadkeep.cli", "PYTHONPATH": "src"},
-        cwd=str(HERE),
-    )
-    tree = json.loads(said.stdout)
+    tree = _harness(HERE)
     assert "notice" not in tree, tree.get("notice")
     assert tree["blocks"], "the harness read no block at all"
     for block in tree["blocks"]:
@@ -272,3 +281,76 @@ def test_every_part_the_archive_carries_has_a_declared_content_type(tmp_path):
         if part == "[Content_Types].xml":
             continue
         assert suffix in declared, f"{part} has no content type"
+
+
+@pytest.mark.skipif(not NODE, reason="node is not on PATH")
+def test_a_finding_becomes_a_diagnostic_where_the_report_already_points(tmp_path):
+    """RK1007's whole claim: the mapping is a translation and not a feature. A finding
+    carries `file:line:column` and a code, and what the panel shows is those — anchored at
+    the column where there is one, and at the line where there is not."""
+    root = tmp_path / "project"
+    root.mkdir()
+    (root / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nimprovements = "IMPROVEMENTS.md"\n',
+        encoding="utf-8",
+    )
+    (root / "ROADMAP.md").write_text(
+        "# Roadmap\n\n## Block A — The model\n\n"
+        "- 📋 **RK1** (deps: RK9) **A symptom** — Because of a reason. → §RK1\n"
+        "- 📋 **RK2** (deps: —) **A symptom\twith a tab** — Because of it. → §RK2\n",
+        encoding="utf-8",
+        newline="",
+    )
+    (root / "IMPROVEMENTS.md").write_text(
+        "# Improvements\n\n## Block A — The model\n", encoding="utf-8", newline=""
+    )
+    tree = _harness(root)
+    gate = tree["gate"]
+    assert not gate["notice"], gate["notice"]
+    (file,) = gate["files"]
+    assert file["file"] == "ROADMAP.md"
+    found = {one["code"]: one for one in file["found"]}
+    assert "char.tab" in found and "deps.unknown" in found
+    # Zero-based, because that is what an editor counts in — and the column is the finding's
+    # where it has one, never a guess where it does not.
+    assert found["char.tab"]["column"] == 33 and found["char.tab"]["line"] == 5
+    assert found["deps.unknown"]["column"] == 0
+    assert all(one["source"] == "roadkeep" for one in file["found"])
+
+
+@pytest.mark.skipif(not NODE, reason="node is not on PATH")
+def test_only_a_door_the_tool_called_complete_becomes_an_action(tmp_path):
+    """The half that is a refusal rather than a feature. `char.tab` closes with `lint --fix`
+    and is offered; `deps.unknown`'s doors carry a marked blank, which is prose the tool does
+    not compose (L4) — so the panel offers the explanation and nothing that would write it."""
+    root = tmp_path / "project"
+    root.mkdir()
+    (root / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nimprovements = "IMPROVEMENTS.md"\n',
+        encoding="utf-8",
+    )
+    (root / "ROADMAP.md").write_text(
+        "# Roadmap\n\n## Block A — The model\n\n"
+        "- 📋 **RK1** (deps: RK9) **A symptom** — Because of a reason. → §RK1\n"
+        "- 📋 **RK2** (deps: —) **A symptom\twith a tab** — Because of it. → §RK2\n",
+        encoding="utf-8",
+        newline="",
+    )
+    (root / "IMPROVEMENTS.md").write_text(
+        "# Improvements\n\n## Block A — The model\n", encoding="utf-8", newline=""
+    )
+    actions = _harness(root)["gate"]["actions"]
+    assert actions and all(one["argv"] for one in actions)
+    titles = {code: [one["title"] for one in actions if one["code"] == code] for code in
+              {one["code"] for one in actions}}
+    # `char.tab` closes with a complete command, so it is offered.
+    assert any("lint --fix" in title for title in titles["char.tab"])
+    # `deps.unknown` has two doors: `amend {id} --dep …` carries a marked blank and is offered
+    # to nobody, and `gaps` is a **read**, which the kind says to show rather than to apply.
+    assert titles["deps.unknown"] == [
+        "roadkeep gaps — read where the id went before deciding it is gone",
+        "roadkeep explain deps.unknown",
+    ]
+    # And every code gets the explanation, which is the door for a code nobody has met.
+    for code, found in titles.items():
+        assert f"roadkeep explain {code}" in found
