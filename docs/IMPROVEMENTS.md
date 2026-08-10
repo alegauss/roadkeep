@@ -151,6 +151,28 @@ what it does is a property of the verb the tool itself parses.
 What proves it: every door says which it is, `repair` reads that instead of the kind,
 and a remedy holding both kinds is still one decision with two doors.
 
+### §RK1016 The half of the index nothing holds
+
+RK203 made the Layout index a gate rather than a habit — but only over `src/roadkeep`.
+The lines under it name the other surfaces by hand: the gate's three, the plugin's five.
+Nothing checks those, and the count in the prose is now wrong — `editor/` and
+`scripts/build_vsix.py` shipped this week and the index mentions neither.
+
+The failure is the one RK203 named. An index that silently stops being an index is worse
+than no index, because a turn reads it and concludes the thing is not there — and a
+surface is exactly what a turn looks for before deciding where a change goes.
+
+What makes it more than an edit is the room. `agents.md` is at 125 of 125 lines and 98
+bytes, so naming a sixth surface is a compression decision and not an append, which is
+the shape RK493 already had once and the reason that file's budget exists at all.
+
+The check is decidable the same way the module one is: a top-level entry this repository
+carries that the index does not name, over a declared list of what counts as a surface —
+a directory a manifest or a workflow reads, which is not every folder in the tree.
+
+What proves it: a surface added tomorrow with no entry is red, the two that shipped are
+named, and the file is still inside the budget it declares.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
