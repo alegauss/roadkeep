@@ -6542,6 +6542,20 @@ def _export(config: Config, args: argparse.Namespace) -> int:
         for flag, name in (("readme", args.readme), ("site", args.site))
         if name is not None
     ]
+    # `--json` is a *subject* and a destination is a write, so asking for both asks two
+    # questions (RK466): the projection printed and the files spliced are two answers, and
+    # this branch returned the write while saying nothing about the read. `--readme` and
+    # `--site` are not that shape — they are two destinations and compose, which `chosen`
+    # above already does and RK39 asked for.
+    if chosen and args.json:
+        named = ", ".join("--" + flag for flag, _ in chosen)
+        print(
+            f"roadkeep: --json prints the projection and {named} "
+            f"{'write' if len(chosen) > 1 else 'writes'} it into a file: "
+            f"one answer per call",
+            file=sys.stderr,
+        )
+        return EXIT_USAGE
     try:
         projection = project(config)
         if not chosen:
@@ -6662,6 +6676,16 @@ def _anchors(config: Config, args: argparse.Namespace) -> int:
     # the listing was narrowed to one file (RK297).
     spread = [one for one in whole if not ids.match(one.anchor.split(".")[0])]
     spent = len(found) - len(outline)
+    # Two subjects, as `budget`'s five are, and one answer per call (RK466): `--next` used to
+    # return before the `--claims` branch was reached, so a caller asking for the audit and
+    # the free address read the address alone with nothing said about the other.
+    if args.only_next and args.claims:
+        print(
+            "roadkeep: --next is the free address and --claims is the ownership audit: "
+            "one answer per call",
+            file=sys.stderr,
+        )
+        return EXIT_USAGE
     if args.only_next and args.json:
         # The narrow read, in the narrow shape (RK410). `family` and `namespace` are kept
         # because the answer is meaningless without saying which numbering it continues —

@@ -26,8 +26,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK466** (deps: —) **Three more commands take two answers and print one, saying nothing about the flag that lost** — RK465 fixed budget's five subjects and left the same dispatch in anchors and export, where --claims, --json and --readme each lose to whichever branch returns first. → §RK466
-
 ## Block D — The gate
 
 ## Block E — Adoption

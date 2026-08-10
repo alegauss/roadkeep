@@ -1759,3 +1759,20 @@ def test_the_payload_tells_the_third_state_apart(tmp_path, capsys):
     assert [row["anchor"] for row in payload["anchors"]] == ["XXXVIII.1"]
     assert payload["anchors"][0]["orphaned"] is True
     assert payload["anchors"][0]["memo"] is False
+
+
+def test_the_free_address_and_the_audit_are_two_answers(tmp_path, capsys):
+    """RK466. `--next` returned before the `--claims` branch was reached, so a caller asking
+    for the audit and the free address read the address alone with nothing said about the
+    other — two subjects, as `budget`'s five are, and one answer per call."""
+    config = outlined(tmp_path)
+    design(config, "### XXXVII.1 An unbound design", "docs: file it")
+    claimants(config, "XXXVII.1")
+    assert main(["-C", str(tmp_path), "anchors", "--claims", "--next"]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    assert "--next is the free address and --claims is the ownership audit" in said
+    # And each alone still answers, which is what makes the refusal about the pair.
+    assert main(["-C", str(tmp_path), "anchors", "--next"]) == EXIT_OK
+    assert capsys.readouterr().out.startswith("§")
+    assert main(["-C", str(tmp_path), "anchors", "--claims"]) == EXIT_OK
+    assert "ownership" in capsys.readouterr().out

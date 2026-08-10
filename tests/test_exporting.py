@@ -517,3 +517,40 @@ def test_a_readme_carrying_no_markers_is_not_a_target_of_a_write_either(tmp_path
     before = (tmp_path / "README.md").read_bytes()
     assert main(["-C", str(tmp_path), "ship", "RK1", "--why", "It works now."]) == EXIT_OK
     assert (tmp_path / "README.md").read_bytes() == before
+
+
+# -- one answer per call (RK466) ----------------------------------------------
+
+
+def test_the_projection_and_a_destination_are_two_answers(tmp_path, capsys):
+    """RK465's shape one command over: the branch that spliced returned before the `--json`
+    read was reached, so a caller asking for both got the write and nothing about the read.
+    Two answers asked for and one given, with no exit code separating that from the one it
+    wanted."""
+    project_files(tmp_path)
+    assert main(["-C", str(tmp_path), "export", "--readme", "--json"]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    assert "--json prints the projection and --readme writes it into a file" in said
+    assert "one answer per call" in said
+
+
+def test_two_destinations_are_not_two_answers(tmp_path, capsys):
+    """`--readme` and `--site` compose and always did: `_export` plans a splice per
+    destination and writes them together or not at all (RK187), which is what RK39 asked for
+    — a README and a page restating one backlog refreshed by the same call."""
+    config = project_files(tmp_path)
+    page = tmp_path / "index.html"
+    page.write_text(
+        "<html>\n<!-- roadkeep:begin -->\n<!-- roadkeep:end -->\n</html>\n", encoding="utf-8"
+    )
+    code = main(["-C", str(tmp_path), "export", "--readme", "--site", str(page)])
+    assert code == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "README.md" in printed and "index.html" in printed
+    assert config is not None
+
+
+def test_the_projection_alone_is_still_the_projection(tmp_path, capsys):
+    project_files(tmp_path)
+    assert main(["-C", str(tmp_path), "export", "--json"]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)
