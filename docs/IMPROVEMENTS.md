@@ -109,31 +109,6 @@ map rather than the exceptions is still reading the wide answer.
 
 ## Block D — The gate
 
-### §RK458 An order nobody chose is holding a test up
-
-Under `-n 16` with xdist's default distribution,
-`test_a_pointer_another_prose_role_answers_asks_for_nothing` failed once in five runs.
-It passes alone, passes with its own file, and passes under `--dist loadfile` — which is
-the shape of a test reading state that another file's test left behind, since only the
-default distribution interleaves tests from two files inside one worker.
-
-It is worth an id rather than a workaround, because the coupling is there whether or not
-anything runs in parallel. The serial suite passes for a reason nobody has stated, so
-the day a file is renamed, a test is inserted, or a run is randomised, the same red
-arrives with nothing to blame it on — and the report will name a test whose own
-assertion is about none of it, which is the failure mode RK263, RK315 and RK351 each
-answered once already.
-
-This project's answer to that class is an inventory rather than a call site: `VOLATILE`
-names the caches an autouse fixture clears and states why the others are cleared for
-nothing (RK268), and the staleness baseline is pinned per test (RK351). So the finding
-is a seventh cache, a module-level constant, or a global nothing in that set covers —
-and whichever it is, the inventory is where it belongs, not a `sort` on the worker's
-queue.
-
-Until then `--dist loadfile` is the honest default. Closing this is what makes `load`
-the default and the run under a minute.
-
 ## Block E — Adoption
 
 ## Block F — The plugin

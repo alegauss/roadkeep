@@ -119,14 +119,14 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 31 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 103 | 1 |
 | C — Query (consult without reading the file) | 1 | 68 | 1 |
-| D — The gate | 1 | 97 | 0 |
+| D — The gate | 0 | 98 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 75 | 1 |
-| **Total** | 2 | 448 | 6 |
+| **Total** | 1 | 449 | 6 |
 
 **Next ready:**
 
-- 📋 **RK458** (deps: RK457 ✅) **A test passes alone and fails when another file's test has run before it in the same worker** — The serial order is the only one this suite has ever run, so a coupling nothing declares is held in place by it and surfaces once in five parallel runs. → §RK458
+- 📋 **RK459** (deps: —) **The ownership an address states is reachable one family at a time, so an audit costs a call per family** — RK453 put binds and claimed on every row and the unnarrowed listing prints families, so a corpus of forty numerals answers in forty reads the question it was added for. → §RK459
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

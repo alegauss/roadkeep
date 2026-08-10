@@ -322,6 +322,7 @@
 - ✅ **RK455** **A CLI call whose stdin was already read dies while forcing UTF-8 instead of running the verb** — A stream that refuses hardening is recorded instead of raising, so every verb runs over a used stdin and only a prose read is refused, naming what it could not apply.
 - ✅ **RK456** **Eleven test files each build a git repository per test, with seven processes and a private copy of the helper** — One runner in conftest builds every test repository in three processes and a hermetic environment, so nine private copies are gone and no assertion moved.
 - ✅ **RK457** **The suite runs only in series, so a full run is five minutes before any change is known to hold** — The suite runs parallel by default at 41s against 5m07s, with the worker count derived and the plugin declared beside pytest in the extra CI installs.
+- ✅ **RK458** **A test passes alone and fails when another file's test has run before it in the same worker** — The coupling was the wall clock and not an order: eleven assertions spelled an elapsed duration, and matching its shape instead took ten parallel runs from four failures to none.
 
 ## Block E — Adoption
 

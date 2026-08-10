@@ -21,6 +21,7 @@ durable half of a claim is the marker git carries, and the transient half only d
 from __future__ import annotations
 
 import json
+import re
 import time
 from pathlib import Path
 
@@ -274,7 +275,48 @@ def test_the_command_says_a_stalled_line_is_claimed(tmp_path, capsys):
     hold(config, "RK7")
     assert main(["-C", str(tmp_path), "pick"]) == EXIT_OK
     out = capsys.readouterr().out
-    assert "stalled  RK7 is in progress and claimed 0m ago, waiting on RK5" in out
+    assert held_line(out, "stalled  RK7 is in progress and claimed {} ago, waiting on RK5")
+
+
+
+
+def held_line(text: str, shape: str) -> bool:
+    """Whether ``text`` says what ``shape`` says, with `{}` standing for a duration (RK458).
+
+    Every one of these used to spell `0m`, which is the answer only while under a minute has
+    passed between taking the claim and reading it — true of a serial run and not of a
+    parallel one, where a loaded worker crossed it and the report named a test whose own
+    assertion is about neither timing nor load. The elapsed time is not what any of them is
+    about; that the line names the claim and its age is.
+    """
+    # The literals joined *by* the duration, not alternating with it: `split` returns the
+    # parts and drops the separators, so indexing them would have dropped the tail — which
+    # still matched, and would have been a weaker assertion nobody could see.
+    pattern = r"\d+h?\d*m".join(re.escape(part) for part in re.split(r"\{\}", shape))
+    return re.search(pattern, text) is not None
+
+
+def fresh(row: object, task_id: str) -> bool:
+    """Whether this payload row is a claim taken **just now** (RK458).
+
+    `age` is seconds and the payload rounds it, so `"age": 0` asserted that under half a
+    second passed between taking the claim and reading it back. Serial, that held; under
+    `-n auto` it failed three times in eight runs, and the report named a test whose own
+    assertion is about neither timing nor load. The serial order was not holding the test
+    up — the machine's speed was.
+
+    So the window this checks is the one `since` already states. It is stated here rather
+    than at each of the three call sites, for `VOLATILE`'s reason (RK268): a rule about what
+    a test may assume is worth one place that says what it is.
+    """
+    return (
+        row["id"] == task_id
+        and row["since"] == "0m"
+        # The same minute `since` renders, which is what the caller reads and what a slow
+        # worker cannot cross: this test does one `pick` between the two.
+        and isinstance(row["age"], int)
+        and 0 <= row["age"] < 60
+    )
 
 
 def test_the_json_names_the_two_kinds_of_claim_apart(tmp_path, capsys):
@@ -284,12 +326,10 @@ def test_the_json_names_the_two_kinds_of_claim_apart(tmp_path, capsys):
     take(config)  # RK2, the ready one
     assert main(["-C", str(tmp_path), "pick", "--json"]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
-    assert payload["stalled"][0] == {
-        "id": "RK7",
-        "blockers": ["RK5"],
-        "claimed": {"age": 0, "since": "0m"},
-    }
-    assert payload["held"] == [{"id": "RK2", "age": 0, "since": "0m"}]
+    stalled = payload["stalled"][0]
+    assert stalled["id"] == "RK7" and stalled["blockers"] == ["RK5"]
+    assert fresh({"id": "RK7", **stalled["claimed"]}, "RK7")
+    assert len(payload["held"]) == 1 and fresh(payload["held"][0], "RK2")
 
 
 def test_an_expired_claim_on_a_stalled_line_says_nothing(tmp_path):
@@ -360,7 +400,7 @@ def test_the_renumber_command_says_the_claim_moved(tmp_path, capsys):
     config = project(tmp_path, BLOCKS + line("RK2"))
     hold(config, "RK2")
     assert main(["-C", str(tmp_path), "renumber", "RK2", "--to", "RK20"]) == EXIT_OK
-    assert "claimed  the claim taken 0m ago moved with it" in capsys.readouterr().out
+    assert held_line(capsys.readouterr().out, "claimed  the claim taken {} ago moved with it")
 
 
 def test_shipping_a_claimed_line_leaves_no_entry_behind(tmp_path):
@@ -501,7 +541,7 @@ def test_the_marker_door_refuses_a_line_a_live_claim_holds(tmp_path):
     take(config)
     with pytest.raises(AlreadyHeld) as caught:
         set_status(config, "RK2", IN_PROGRESS)
-    assert "RK2 was claimed 0m ago" in str(caught.value)
+    assert held_line(str(caught.value), "RK2 was claimed {} ago")
     assert main(["-C", str(tmp_path), "status", "RK2", IN_PROGRESS]) == EXIT_USAGE
 
 
@@ -664,7 +704,7 @@ def test_the_command_names_the_window_and_the_registry(tmp_path, capsys):
     assert main(["-C", str(tmp_path), "claims"]) == EXIT_OK
     out = capsys.readouterr().out
     assert out.splitlines()[0] == "1 dated, 1 held  (window 25m)"
-    assert "held     RK2  claimed 0m ago" in out
+    assert held_line(out, "held     RK2  claimed {} ago")
     # The file, because the release is a marker and the *file* is what is deleted when a
     # whole checkout's claims outlived their workers.
     assert str(claiming.path(tmp_path)) in out
@@ -716,7 +756,7 @@ def test_the_prune_names_what_it_dropped_and_says_when_it_dropped_nothing(tmp_pa
     )
     assert main(["-C", str(tmp_path), "claims", "--prune"]) == EXIT_OK
     out = capsys.readouterr().out
-    assert "pruned   RK99  claimed 0m ago  in no file at all" in out
+    assert held_line(out, "pruned   RK99  claimed {} ago  in no file at all")
     # And a second run has nothing to do, which it says rather than printing an empty listing.
     assert main(["-C", str(tmp_path), "claims", "--prune"]) == EXIT_OK
     assert "pruned   nothing: every row is a claim" in capsys.readouterr().out
@@ -844,7 +884,7 @@ def test_the_command_names_the_claim_it_was_not_offered(tmp_path, capsys):
     assert main(["-C", str(tmp_path), "pick"]) == EXIT_OK
     out = capsys.readouterr().out
     assert out.splitlines()[0].startswith("RK9")
-    assert "held     RK2 was claimed 0m ago and is not offered" in out
+    assert held_line(out, "held     RK2 was claimed {} ago and is not offered")
 
 
 def test_the_json_carries_the_claim_and_the_holds(tmp_path, capsys):
@@ -857,7 +897,7 @@ def test_the_json_carries_the_claim_and_the_holds(tmp_path, capsys):
     assert main(["-C", str(tmp_path), "pick", "--json"]) == EXIT_OK
     second = json.loads(capsys.readouterr().out)
     assert second["claimed"] is None and second["event"] is None
-    assert second["held"] == [{"id": "RK2", "age": 0, "since": "0m"}]
+    assert len(second["held"]) == 1 and fresh(second["held"][0], "RK2")
 
 
 def test_nothing_to_claim_exits_zero_because_it_is_an_answer(tmp_path, capsys):
@@ -915,7 +955,7 @@ def test_claiming_a_line_another_worker_holds_is_refused(tmp_path):
     take(config)
     with pytest.raises(AlreadyHeld) as caught:
         brief(config, "RK2", claim=True)
-    assert "RK2 was claimed 0m ago" in str(caught.value)
+    assert held_line(str(caught.value), "RK2 was claimed {} ago")
     # It says what to do, because a claim names nobody and this one may be the caller's own.
     assert "without --claim" in str(caught.value)
 
@@ -1000,7 +1040,7 @@ def test_the_absence_of_an_answer_names_the_claims_that_emptied_it(tmp_path):
     with pytest.raises(NothingToBrief) as caught:
         brief(config)
     assert [h.id for h in caught.value.held] == ["RK2"]
-    assert "held: RK2 (0m ago)" in str(caught.value)
+    assert held_line(str(caught.value), "held: RK2 ({} ago)")
     # And on the claiming path too, where nothing was written either.
     with pytest.raises(NothingToBrief):
         brief(config, claim=True)
@@ -1015,9 +1055,10 @@ def test_the_brief_command_and_the_pick_report_a_hold_the_same_way(tmp_path, cap
     assert main(["-C", str(tmp_path), "pick", "--json"]) == EXIT_OK
     picked = json.loads(capsys.readouterr().out)
     # One fact spelled two ways is two facts.
-    assert briefed["held"] == picked["held"] == [{"id": "RK2", "age": 0, "since": "0m"}]
+    assert briefed["held"] == picked["held"]
+    assert len(picked["held"]) == 1 and fresh(picked["held"][0], "RK2")
     assert main(["-C", str(tmp_path), "brief"]) == EXIT_OK
-    assert "held     RK2 was claimed 0m ago and is not offered" in capsys.readouterr().out
+    assert held_line(capsys.readouterr().out, "held     RK2 was claimed {} ago and is not offered")
 
 
 def test_claiming_a_brief_composes_with_the_flags_that_narrow_the_pick(tmp_path, capsys):
