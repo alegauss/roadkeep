@@ -81,6 +81,33 @@ already written, not authorship.
 
 ## Block D — The gate
 
+### §RK469 The pair reported once per address
+
+`section.ambiguous` fires where two prose files declare one anchor, and it is right: no
+pointer resolves and every verb that reads one refuses. It is reported per **address**.
+Measured on Turing's live tree:
+
+    report 15,894 chars in 71 lines
+    section.ambiguous: 27 findings + 26 remedies = 12,790 chars (80%)
+    distinct messages once the anchor is taken off: 2
+
+One fact — `docs/IMPROVEMENTS.md` and `docs/STRATEGY.md` share a namespace — stated 27
+times, and one `[refs]` line in `roadkeep.toml` closes every one. That is the shape
+RK451 already answered once: a file a crash left NUL was 3,301 findings for 3,301 bytes,
+and it is one finding because the loss is one.
+
+The cost is the same too, and it is the argument RK146 makes: a report whose bulk is one
+sentence repeated is one a reader learns to skip, and this one buries the four findings
+that are each about a different line.
+
+Not a suppression. The addresses are the evidence — an author choosing which file takes
+the namespace wants to know how many each holds — so what changes is where they are
+said: the pair once, with its remedy, and the addresses under it as a list rather than
+as a finding apiece.
+
+Open: whether the exit code and `--json` keep one entry per address, since a consumer
+counting findings is counting work and the work here is one edit.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
