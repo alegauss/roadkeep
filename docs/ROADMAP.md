@@ -24,6 +24,8 @@
 
 ## Block A — The model (a task is data before it is a line)
 
+- 📋 **RK1030** (deps: —) **a roadkeep.toml a Windows editor saved with a BOM answers 'Invalid statement (at line 1, column 1)' and names no byte** — The line it points at is correct, the file is the first one a project writes, and the default PowerShell way to write it adds the mark. → §RK1030
+
 ## Block B — Authoring (insert, never hand-edit)
 
 - 📋 **RK1026** (deps: —) **An unrecognised flag falls through to argparse, so a near-miss gets the verb list and its own value echoed back** — Every refusal this tool authors names the fix, except the one that fires before its own code runs. → §RK1026
@@ -33,6 +35,7 @@
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK1025** (deps: —) **A section address given to show is answered as an unknown task id, though section show is the verb for it** — The refusal says what the argument is not, in a vocabulary the caller was not using, and never names the verb one word away. → §RK1025
+- 📋 **RK1029** (deps: —) **budget answers a whole limit free for a child whose parent has one word left, which is the read an add is composed from** — RK1024 charged the ancestor at the write and said so at anchors, leaving the pre-add read — the one this tool is most about — answering about the child alone. → §RK1029
 
 ## Block D — The gate
 

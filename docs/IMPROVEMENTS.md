@@ -75,6 +75,32 @@ already written, not authorship.
 
 ## Block A — The model
 
+### §RK1030 The statement that was not the problem
+
+A `roadkeep.toml` whose first three bytes are `EF BB BF` makes every verb of this tool
+answer the same line:
+
+> `roadkeep: Invalid statement (at line 1, column 1)`
+
+Line 1 column 1 is `prefix = "RK"`, which is correct, and the message points at it. What
+is wrong is a byte no editor shows, in the file a project writes before it has run
+anything — and on Windows the default route writes it: PowerShell 5.1's `Set-Content
+-Encoding utf8` and `Out-File` both add the mark, which is how this was found.
+
+`config.py` opens the file `rb` and hands the bytes to `tomllib`, which refuses a
+preamble by specification. So the diagnosis belongs here rather than upstream, and it is
+the same argument RK1023 made about the pipe: the author cannot fix it from where they
+are standing, because nothing in their command names the encoding that added the byte.
+
+**Not the same fix.** Stripping it silently is right for a prose field and wrong for a
+config: this file is the project's declaration, and a tool that quietly accepts one
+encoding variant of it teaches nothing. So the answer is the message — name the mark,
+the file, and the one-line command that removes it — with the edit left as the author's.
+
+What proves it: a config carrying the mark answers with the byte and the fix rather than
+with a statement that is correct, every other TOML error is unchanged, and the sentence
+names the file the caller has open.
+
 ## Block B — Authoring
 
 ### §RK1026 The one refusal roadkeep did not write
@@ -170,6 +196,30 @@ The fix is the rule this tool enforces on the backlogs it governs, turned on its
 argument that is not a task id but **is** a well-formed section address resolves to a
 `didYouMean` naming `section show`. The message is the cheap half. The decision is
 whether `show` should simply dispatch, since the two namespaces cannot collide.
+
+### §RK1029 The read RK1024 did not reach
+
+RK1024 charged an ancestor at `add` and said so at `anchors`. The read those two exist
+to save a retry on is the one still answering about the child alone.
+
+Measured in a scratch project whose `§IX` is a live design spending 29 of its own 30
+words: `budget --anchor IX.1` answers `body 30 words, aim 28`. The room is one word, and
+the `add` after it is refused — correctly, and after the prose exists, which is the
+sequence this tool was built to end.
+
+The number is not hard to find: `charged()` already answers what the gate bills an
+ancestor, and `sections.add` already walks every one of them. What is missing is that
+`Body` carries a single limit, so there is nowhere to put the second fact — which
+ancestor binds, and what it leaves.
+
+**The shape to avoid** is a second number replacing the first. A child of a container
+nothing points at is charged its own prose, and an ancestor's figure there would price a
+section against a heading nobody bills. So this is a row and not a substitution: the
+field's own limit, and beside it the address that binds where one does.
+
+What proves it: a child of a full parent is answered with the room it actually has, a
+child of a container is answered as it is now, and the number `budget` states is the
+number the `add` after it accepts.
 
 ## Block D — The gate
 
