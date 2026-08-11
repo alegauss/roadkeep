@@ -973,7 +973,10 @@ def amend(
     if updated == entry.task:
         return Amendment(document=roadmap, entry=entry, before=entry.task)
     # Asked after the no-op check, so an amend that alters nothing never demands a count for
-    # a write it is not going to make.
+    # a write it is not going to make. No `keeps_tail` here or at `restate` (RK1057): on the
+    # roadmap the count authorises a deletion and only that, no multi-line task line being a
+    # non-goal — so a wrapped line is a hand-written note the format is asserting over, and
+    # offering to write it back would be offering the shape this file does not have.
     counted(
         task_id,
         config.relative(config.path("roadmap")),

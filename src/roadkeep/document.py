@@ -355,6 +355,12 @@ class Wrapped(ValueError):
     replaces that entry with a *different sentence* (RK193), and the roadmap's own `amend`
     and `restate` are the same write one file over (RK195) — same rule, different word for
     what the caller called it.
+
+    `keeps_tail` is whether passing the count *also* permits the span to be written back
+    (RK1057), which is true on the ledger and false on the roadmap. Carried rather than
+    derived from `verb`: the word is what the caller called the act and this is what the
+    file allows, and joining them would make a fifth door's message depend on which verb
+    it happened to spell.
     """
 
     def __init__(
@@ -365,15 +371,32 @@ class Wrapped(ValueError):
         *,
         given: int | None,
         verb: str = "correcting it",
+        keeps_tail: bool = False,
     ) -> None:
         self.task_id = task_id
         self.lineno = entry.lineno
         self.owned = entry.stop - entry.index
         self.given = given
+        self.keeps_tail = keeps_tail
         span = (
             f"lines {entry.lineno}-{entry.stop}"
             if self.owned > 1
             else f"line {entry.lineno}"
+        )
+        # The second half of what the count does, said only where it is true (RK1057). On
+        # the ledger `--lines` is two permissions in one flag — the span may be replaced,
+        # and `--why` may carry it back — and a message naming the first alone teaches
+        # exactly the loss it is reporting. On the roadmap it is one permission and the
+        # sentence is already whole: no multi-line task line is a non-goal, so the wrapped
+        # line is a hand-written note the format is asserting over.
+        instead = (
+            (
+                f", or a --why that carries those {self.owned} lines writes them back "
+                f"instead of collapsing them: its first line is the sentence and the rest "
+                f"is the tail, kept verbatim"
+            )
+            if keeps_tail
+            else ""
         )
         said = (
             (
@@ -381,7 +404,7 @@ class Wrapped(ValueError):
                 f"{entry.lineno}, so {verb} replaces all {self.owned} — read them "
                 f"with `show {task_id}`, which prints them, and pass --lines {self.owned}, "
                 f"which is you saying the text below the first line is the rest of the "
-                f"sentence being replaced"
+                f"sentence being replaced{instead}"
             )
             if given is None
             else (
@@ -424,7 +447,13 @@ class Continuation(ValueError):
 
 
 def counted(
-    task_id: str, where: str, entry: Entry, lines: int | None, *, verb: str
+    task_id: str,
+    where: str,
+    entry: Entry,
+    lines: int | None,
+    *,
+    verb: str,
+    keeps_tail: bool = False,
 ) -> None:
     """Refuse a :meth:`Document.rewrite_entry` the caller has not said they read.
 
@@ -447,9 +476,13 @@ def counted(
     """
     if lines is None:
         if entry.wrapped:
-            raise Wrapped(task_id, where, entry, given=None, verb=verb)
+            raise Wrapped(
+                task_id, where, entry, given=None, verb=verb, keeps_tail=keeps_tail
+            )
     elif lines != entry.stop - entry.index:
-        raise Wrapped(task_id, where, entry, given=lines, verb=verb)
+        raise Wrapped(
+            task_id, where, entry, given=lines, verb=verb, keeps_tail=keeps_tail
+        )
 
 
 class StaleFile(RuntimeError):

@@ -77,30 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1057 A refusal that stopped being the whole of what the count does
-
-`Wrapped` is what an author meets first, and on the ledger it now understates its own
-remedy. It says the parse holds only the first line, so the write *replaces all N* —
-read them with `show`, and pass `--lines N`, *which is you saying the text below the
-first line is the rest of the sentence being replaced*.
-
-Every clause is still true and the sentence is no longer the door. Since RK1049 and
-RK1053 the same count also **permits** `--why` to carry those lines back, at `record
-amend` and at the `ship` that completes a partial. An author reading this learns that
-their paragraphs are about to go and nothing about the shape that keeps them — which is
-exactly the state RK1049 was filed from: the workaround found there was joining the
-continuations with `<br>` into a 2,400-character line, discovered only by reading the
-limits.
-
-The split is per file and the message does not know it. On the roadmap the count really
-does authorise a deletion and only that, because no multi-line task line is a non-goal,
-so the wrapped line is a hand-written note the format is asserting over. On the ledger
-it is two permissions in one flag. `counted` already takes the caller's own `verb`, so
-it knows which door raised it, and the role is one argument further.
-
-Worth checking `NoCompletion` in the same pass: it explains where the count is refused
-and inherits the same half-description of what passing it does.
-
 ## Block C — Query
 
 ## Block D — The gate

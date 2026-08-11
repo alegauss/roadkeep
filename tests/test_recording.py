@@ -650,6 +650,9 @@ def test_correcting_a_wrapped_sentence_is_refused_until_the_count_is_given(tmp_p
     message = str(raised.value)
     assert "CHANGELOG.md:5" in message and "lines 5-7" in message
     assert "--lines 3" in message
+    # And the second permission the count carries on a ledger (RK1057): a message naming
+    # only the deletion teaches the loss it is reporting, which is where RK1049 came from.
+    assert "writes them back instead of collapsing them" in message
     assert read(tmp_path, "CHANGELOG.md") == CONTINUED
 
 

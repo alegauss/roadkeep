@@ -1219,6 +1219,8 @@ def test_completing_a_wrapped_partial_is_refused_until_the_count_is_given(tmp_pa
     assert "CHANGELOG.md:5" in message and "lines 5-7" in message
     # The verb is the caller's own, because a completion is not a correction (RK193).
     assert "completing it replaces all 3" in message and "--lines 3" in message
+    # The count's other permission, on the file that has it (RK1057).
+    assert "writes them back instead of collapsing them" in message
     assert files(config)[1] == WRAPPED_PARTIAL
 
 

@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1057** (deps: —) **the wrapped refusal still describes the count as authorising only a deletion** — On a ledger --lines now also permits writing the span back, so the message that teaches it names half the door and sends the author hunting for the workaround. → §RK1057
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate

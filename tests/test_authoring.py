@@ -728,6 +728,10 @@ def test_amending_a_wrapped_line_is_refused_until_the_count_is_given(tmp_path):
     message = str(raised.value)
     assert "ROADMAP.md:5" in message and "lines 5-6" in message
     assert "correcting it replaces all 2" in message and "--lines 2" in message
+    # And *not* the ledger's second permission (RK1057): no multi-line task line is a
+    # non-goal, so here the count authorises a deletion and offering the other shape would
+    # be offering one this file does not have.
+    assert "writes them back" not in message
     assert source(config) == WRAPPED
 
 

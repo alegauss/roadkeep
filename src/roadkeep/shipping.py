@@ -1075,7 +1075,7 @@ def amend(
 
     # Asked after `changed`, so an amend that alters nothing never demands a count for a
     # write it is not going to make.
-    counted(task_id, where, entry, lines, verb="correcting it")
+    counted(task_id, where, entry, lines, verb="correcting it", keeps_tail=True)
 
     document = ledger.rewrite_entry(entry, ledger.schema.check(wanted), below)
     return Corrected(
@@ -1809,7 +1809,9 @@ def _depart(
         # And the same tail, for the same reason (RK1053): the count says the caller read
         # the span, so `--why` may write it back rather than only collapse it. Otherwise
         # finishing the majority-shape partial is what deletes the paragraphs under it.
-        counted(task_id, where, completing, lines, verb="completing it")
+        counted(
+            task_id, where, completing, lines, verb="completing it", keeps_tail=True
+        )
         # Checked here, where `place` checks it on every other path (L1): this branch
         # rewrites an entry instead of placing one and was the one call that reached disk
         # unvalidated — a `why` carrying a newline landed as a two-line entry whose second
