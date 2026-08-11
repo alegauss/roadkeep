@@ -98,22 +98,23 @@ The plugin ships three executable surfaces and two of them spell the launcher:
 RK254 is the argument, in its own words: the console script *exists only after `pip
 install roadkeep` and only if the interpreter's scripts directory is on PATH — so on a
 plugin-installed machine the tool's most-read message named a command that answers
-`command not found`*. A marketplace install copies files; it runs no `pip`. The other
-two surfaces were written that way for exactly this, and `commands/` was not in the
-family RK242, RK246, RK250, RK253 and RK254 each took one instance out of.
+`command not found`*. A marketplace install copies files and runs no `pip`. The other
+two surfaces were written against exactly this, and `commands/` was not in the family
+RK242, RK246, RK250, RK253 and RK254 each took one instance out of.
 
-**Evidence and not a reproduction.** Three surfaces disagree and two of them were
-deliberately written against this assumption; observing the failure needs a
-plugin-installed session, which is not this checkout.
+**One question, and it is not the length.** A permission may scope a long prefix —
+paths, flags and quoted arguments included — so `Bash(python "…/scripts/roadkeep.py"
+lint:*)` is a shape the matcher takes. What decides the design is whether
+`${CLAUDE_PLUGIN_ROOT}` is expanded *before* the pattern is compared: unexpanded in the
+pattern and expanded in the command, the scope matches nothing and grants nothing, which
+is worse than what it replaced (RK25).
 
-**Why it is not a substitution.** A command file is static Markdown and cannot call
-`invocation()`. The pre-execution line can spell the launcher, and then `allowed-tools`
-has to scope to it — and RK25's rule is that the scope names this tool and never bare
-`Bash`, because a permission prompt that teaches nothing is the thing being avoided.
-Whether the matcher honours a longer prefix is what this task has to settle first, since
-a scope that silently grants nothing is worse than the state it replaced.
+**What the answer costs either way.** Expanded, this is four frontmatter lines and four
+pre-execution lines. Not expanded, the choice is between a literal path no plugin can
+know and the MCP tools — which `add` already uses, and which give up the guarantee that
+the output is in the prompt rather than a call the model may not make.
 
-What proves it: the three surfaces agree, the scope still names this tool, and the four
-commands run on a machine with no console script.
+What proves it: the three surfaces agree and the four commands run with no console
+script.
 
 ## Block G — The editor surface (the backlog where the file is open)
