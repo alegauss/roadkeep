@@ -227,6 +227,18 @@ INVARIANTS: tuple[Invariant, ...] = (
         held_by="test_payloads::test_the_top_level_keys_a_client_is_promised_are_there",
     ),
     Invariant(
+        stated="RK1016",
+        rule=(
+            "every top-level entry this repository carries is named in the Layout index, or "
+            "exempted there with a reason"
+        ),
+        # `git ls-files`, which nothing exports — RK478's case, and the third row here whose
+        # surface is real and has no address. Writing one that only approximated it (a glob of
+        # the working tree) would be the row claiming a set the holder does not sweep.
+        over="",
+        held_by="test_linting::test_every_surface_this_repository_carries_is_named_in_the_index",
+    ),
+    Invariant(
         stated="RK490",
         rule=(
             "every field a remedy row may name between braces is one the finding answers, "

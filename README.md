@@ -119,15 +119,15 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 31 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 108 | 1 |
 | C — Query (consult without reading the file) | 0 | 73 | 1 |
-| D — The gate | 1 | 122 | 0 |
+| D — The gate | 0 | 123 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 91 | 1 |
 | G — The editor surface (the backlog where the file is open) | 1 | 8 | 0 |
-| **Total** | 2 | 507 | 6 |
+| **Total** | 1 | 508 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1016** (deps: —) **The Layout index names a sixth surface nowhere, and what holds it reads package modules only** — RK203 gated the modules and left the surfaces to a reader, so an editor host and the script that packages it are in the tree and in no index. → §RK1016
+- 📋 **RK1017** (deps: —) **Every save re-asks which copy of the tool answered, so a keystroke costs a subprocess and a git call** — That question is about the installation and not about the file, and the package itself asks it once per process and never on a path that writes. → §RK1017
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

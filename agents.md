@@ -35,8 +35,7 @@ docs/ROADMAP.md        active backlog, one line per task (RK<n>)
 docs/CHANGELOG.md      shipped ledger, indexed by block
 docs/IMPROVEMENTS.md   design rationale for UNSHIPPED sections only
 agents.md, roadkeep.toml   this file, and this project's own configuration
-src/roadkeep/   the package (src layout, importable via pytest pythonpath). Each module's
-                own docstring is the authority on it — this is only where to look:
+src/roadkeep/   the package; each module's own docstring is the authority — this is the index:
   schema document config ids                RK1-4  the format, the file, the config, the id
   authoring blocking shipping markers sections  RK5-9/32/41/67/93/141/377  the writes, whole
   deferring renumbering merging       RK91/96/97/120  the doors that are not terminal,
@@ -56,7 +55,8 @@ src/roadkeep/   the package (src layout, importable via pytest pythonpath). Each
 action.yml, .pre-commit-hooks.yaml, .github/   the gate's three surfaces (RK17)
 hooks/, skills/, commands/, .claude-plugin/, .mcp.json   the plugin's five, and how it is
                 installed (RK22-26); reasoned in tests/test_{plugin,skill,serving,commands}.py
-tests/          pytest; docs/ROADMAP.md is a fixture, not a mock
+editor/, scripts/, tests/   the editor host and the archive it installs as (RK1011-13), the
+                two commands a developer runs, and pytest — docs/ is a fixture, not a mock
 ```
 
 `Schema.render` is the only writer of the line format, `Schema.validate` the only reader of

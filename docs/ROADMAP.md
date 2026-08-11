@@ -30,8 +30,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1016** (deps: —) **The Layout index names a sixth surface nowhere, and what holds it reads package modules only** — RK203 gated the modules and left the surfaces to a reader, so an editor host and the script that packages it are in the tree and in no index. → §RK1016
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

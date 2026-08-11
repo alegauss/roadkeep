@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
 from collections import Counter
 from pathlib import Path
 
@@ -223,6 +224,78 @@ def test_every_module_is_named_in_the_layout_index():
         if not re.search(rf"(?<![\w-]){re.escape(module)}(?![\w-])", index)
     ]
     assert unnamed == []
+
+
+#: Top-level entries the index does not name, and why each is not a surface (RK1016). A list
+#: rather than a rule, for `_MAY_SPELL`'s reason: an exemption nobody can see reads exactly
+#: like a rule being kept, and the next entry added to this tree is a decision somebody makes
+#: rather than a silence somebody inherits.
+UNINDEXED = {
+    "LICENSE": "a file a repository has, not a surface anything runs",
+    "README.md": "the projection, named in the prose that governs it rather than the index",
+    "pyproject.toml": "how the package is built, which `agents.md` states as a section",
+    ".gitignore": "one line about a directory the tree does not carry",
+    ".githooks": "named where it is wired, in the committing section",
+    ".vscode": "this checkout's own editor settings, which no adopting project gets",
+    ".claude": "the instruction file, whose budget the index is inside",
+}
+
+
+def _named(index: str, entry: str) -> bool:
+    """Is this top-level entry addressed in the index, as the index spells addresses?
+
+    A directory is written with its slash — `editor/`, `src/roadkeep/`, `docs/ROADMAP.md` —
+    and a file by its own name. The slash is what makes this a check and not a word search:
+    the prose beside an entry says *the editor host*, and matching that would let a sentence
+    about a surface stand in for an entry naming it, which is the index quietly stopping.
+    """
+    spelled = f"{entry}/" if (HERE / entry).is_dir() else entry
+    return re.search(rf"(?<![\w./-]){re.escape(spelled)}", index) is not None
+
+
+def test_every_surface_this_repository_carries_is_named_in_the_index():
+    """RK203's gate, over the half it left to a reader (RK1016).
+
+    That task made the index a gate for `src/roadkeep` and stopped there. The lines under it
+    name the other surfaces by hand — the gate's three, the plugin's five — and nothing
+    checked those: `editor/` and `scripts/build_vsix.py` shipped with the index mentioning
+    neither, and the count in the prose beside them was wrong.
+
+    The failure is the one RK203 named, one level out. An index that silently stops being an
+    index is worse than no index, because a turn reads it and concludes the thing is not
+    there — and a *surface* is exactly what a turn looks for before deciding where a change
+    goes.
+
+    Decidable the same way the module check is, and the exemptions are the whole risk: what
+    is not named has to be named **here**, with a reason, which is what keeps the list from
+    growing into a way of not writing an index entry.
+    """
+    index = _layout_index()
+    # What the **repository** carries and never what the disk holds: a cache directory is
+    # somebody's afternoon and an index that had to name one would be an index of this
+    # machine (RK217 draws the same line for a path claim).
+    listed = subprocess.run(
+        ["git", "-C", str(HERE), "ls-files"],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    if listed.returncode != 0:
+        pytest.skip("git cannot list this tree, so there is nothing to compare the index to")
+    carried = {line.split("/", 1)[0] for line in listed.stdout.splitlines() if line}
+    unnamed = [
+        name
+        for name in sorted(carried)
+        if name not in UNINDEXED and not _named(index, name)
+    ]
+    assert unnamed == [], unnamed
+
+
+def test_nothing_is_exempted_from_the_index_that_the_tree_no_longer_carries():
+    """The other direction, for :data:`UNHELD`'s reason: an exemption for a path that left is
+    a sentence nobody can check, and the list is only worth what it still describes."""
+    gone = [name for name in UNINDEXED if not (HERE / name).exists()]
+    assert gone == [], gone
 
 
 def test_the_index_is_a_fifth_of_the_budget_and_the_prose_is_the_rest():
