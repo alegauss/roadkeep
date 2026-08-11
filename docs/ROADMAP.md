@@ -28,8 +28,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1036** (deps: —) **a section budget reports the limit that does not bind, so the aim promises room the write refuses** — Every other field here reports the smaller of its own limit and what is left; this one reports its own and prints the binding figure beside it. → §RK1036
-
 ## Block D — The gate
 
 ## Block E — Adoption

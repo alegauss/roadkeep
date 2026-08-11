@@ -403,13 +403,36 @@ class Body:
         return max(0, self.limit - (self.under_taken - self.taken))
 
     @property
+    def allowed(self) -> int:
+        """The limit that actually binds this body — :attr:`Share.allowed` for a section.
+
+        Every other field in this module reports the smaller of its own declared maximum and
+        what the line leaves it, and until RK1036 this was the one that reported the larger.
+        Measured on a parent whose subtree sat exactly at its limit: `30 words, 10 written,
+        20 left … aim 18 more words`, an eighteen-word body refused, and ten what landed —
+        both figures on the line and the subtraction between them the reader's.
+
+        Two claims on one budget and the tighter wins. **Its own subtree**: a write replaces
+        this section's prose and its subsections stay, so what they spend is gone before a
+        word is composed. **Its binding ancestor** (RK1029): a subsection is charged to the
+        address that owns it. On a leaf with no ancestor both are the declared limit, which
+        is every section in a flat file and why this was invisible for so long.
+
+        The declared limit stays :attr:`limit` and is still what a reader is shown first —
+        RK1029's "a row and not a substitution" — and this is what the aim is derived from.
+        """
+        own = self.limit - (self.subtree - self.taken)
+        ancestor = self.under_left if self.under else self.limit
+        return max(0, min(self.limit, own, ancestor))
+
+    @property
     def left(self) -> int:
-        return max(0, self.limit - self.taken)
+        return max(0, self.allowed - self.taken)
 
     @property
     def aim(self) -> int:
         """What the body may be composed to, which is under what refuses (RK301)."""
-        return body_aim(self.limit)
+        return body_aim(self.allowed)
 
     @property
     def room(self) -> int:

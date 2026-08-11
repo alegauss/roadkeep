@@ -79,34 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1036 The budget that reports the larger number
-
-`Share` has carried the rule since RK183: a field reports **the smaller of its own limit
-and what the line leaves it**, and `allowed` is the one that binds. `Body` is the one
-budget here that reports the larger.
-
-Measured on a parent whose subtree is exactly at its limit:
-
-> `body       30 words, 10 written, 20 left, 30 with subsections  aim 18 more words`
-
-An 18-word body is then refused — *38 words, limit is 30 with its subsections* — and ten
-is what lands. Both figures are on that line and the subtraction is the reader's. RK1035
-named this shape one level over; `left` and `room` are the same arithmetic about this
-section's own children.
-
-The unwritten case has it too, from the other side: `budget --block A --ref IX.5`
-answers `aim 28 words` beside `so 0 is what an add here accepts`. The second number is
-right and the first is the one an author composes to.
-
-**The shape is `Share.allowed`,** which makes this a correction and not a design: one
-field for what the schema declares, one for what binds here, and the aim off the second.
-RK1029's "a row and not a substitution" stays true — the ancestor row still says *which*
-address binds and what it spends. What changes is that the aim stops promising room no
-write will accept.
-
-What proves it: the aim on a full parent is what an amend takes, the ancestor row is
-unchanged, and a section with no subsections and no ancestor answers what it always did.
-
 ## Block D — The gate
 
 ## Block E — Adoption

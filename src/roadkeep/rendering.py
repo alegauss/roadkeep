@@ -777,6 +777,10 @@ def _body_json(answer: Body) -> dict[str, object]:
         # reading `limit` beside a task's characters would otherwise compare the two.
         "unit": "words",
         "limit": answer.limit,
+        # What actually binds, which is `Share.allowed`'s field one door over (RK1036): the
+        # smaller of the declared limit, what this section's own subsections spend, and what
+        # a binding ancestor leaves. Equal to `limit` on a leaf in a flat file.
+        "allowed": answer.allowed,
         # Under the limit, not on it (RK301): the aim is what a body may be composed to.
         "aim": answer.aim,
         "taken": answer.taken,

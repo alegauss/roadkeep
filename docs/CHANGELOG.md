@@ -245,6 +245,7 @@
 - ✅ **RK1025** **A section address given to show is answered as an unknown task id, though section show is the verb for it** — An argument that addresses a section is answered with the verb that prints one, and a declared address replaces the absence rather than arguing with it.
 - ✅ **RK1029** **budget answers a whole limit free for a child whose parent has one word left, which is the read an add is composed from** — The pre-add read carries the ancestor that binds and what it leaves, beside the field own limit rather than instead of it.
 - ✅ **RK1035** **the ancestor row names an add on a section that exists, and neither figure is what an amend may write** — The ancestor row discounts what this section already contributes and names the verb that follows, so the figure is what the next write accepts.
+- ✅ **RK1036** **a section budget reports the limit that does not bind, so the aim promises room the write refuses** — A body budget reports the smaller of its declared limit, what its own subsections spend and what a binding ancestor leaves, and the aim comes off that.
 
 ## Block D — The gate
 

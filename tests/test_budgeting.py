@@ -587,7 +587,11 @@ def test_the_section_budget_charges_the_argument_and_reports_the_subtree(tmp_pat
     config = Config.discover(tmp_path)
     answer = body_budget(config, "RK1")
     assert answer.nests and answer.subtree > answer.taken
-    assert answer.left == answer.limit - answer.taken
+    # `taken` is still what an amend can shorten, and RK1036 is about a different number:
+    # what is *left* is the declared limit less what the subsections already spend, because
+    # a write here replaces this paragraph and leaves them where they are.
+    assert answer.allowed == answer.limit - (answer.subtree - answer.taken)
+    assert answer.left == answer.allowed - answer.taken
     # And the leaf says one number, because there is one.
     assert not body_budget(config, "RK1.1").nests
 
@@ -981,8 +985,10 @@ def test_a_child_of_a_full_parent_is_answered_with_the_room_it_has(tmp_path):
     with one word of room — the pre-`add` read, wrong in the generous direction, on the one
     question this tool is built to answer before the prose exists."""
     answer = body_budget(crowded(tmp_path, spent=29), "IX.1")
-    # A row and not a substitution: the field's own limit is still what the paragraph fits.
-    assert (answer.limit, answer.aim) == (30, body_aim(30))
+    # A row and not a substitution: the declared limit is still the first number a reader is
+    # shown. What RK1036 changed is the aim beside it, which no longer promises room the
+    # write refuses — the ancestor leaves one word, so that is what may be composed.
+    assert (answer.limit, answer.allowed, answer.aim) == (30, 1, body_aim(1))
     assert (answer.under, answer.under_taken, answer.under_left) == ("IX", 29, 1)
 
 
@@ -1060,3 +1066,41 @@ def test_an_unwritten_child_answers_exactly_what_it_answered(tmp_path):
     answer = body_budget(config, "IX.1")
     assert not answer.written
     assert (answer.under_taken, answer.under_left) == (29, 1)
+
+
+def test_the_aim_is_what_the_write_after_it_accepts_on_a_full_parent(tmp_path):
+    """RK1036. `Share.allowed` has reported the binding figure since RK183, and this was the
+    one budget here that reported the larger: `30 words, 10 written, 20 left … aim 18 more
+    words` on a parent whose subtree sat at its limit, an eighteen-word body refused, and
+    ten what landed — both figures on the line and the subtraction the reader's."""
+    config = crowded(tmp_path, spent=10)
+    path = config.root / "IMPROVEMENTS.md"
+    path.write_text(
+        path.read_text(encoding="utf-8") + "\n#### IX.1 A child\n\n" + "word " * 15 + "\n",
+        encoding="utf-8",
+    )
+    answer = body_budget(Config.discover(tmp_path), "IX")
+    # The declared limit is unchanged and still shown; what binds is the subsections' share.
+    assert answer.limit == 30 and answer.subtree > answer.taken
+    assert answer.allowed == answer.limit - (answer.subtree - answer.taken)
+    document, _, _ = amend(
+        Config.discover(tmp_path), "improvements", "IX", body=" ".join(["term"] * answer.allowed)
+    )
+    document.save()
+    with pytest.raises(SectionError):
+        amend(
+            Config.discover(tmp_path),
+            "improvements",
+            "IX",
+            body=" ".join(["term"] * (answer.allowed + 1)),
+        )
+
+
+def test_a_leaf_with_no_ancestor_answers_its_declared_limit(tmp_path):
+    """The half that must not move, and it is every section in a flat file — which is why
+    this was invisible for so long: with no subsections and no binding ancestor, both claims
+    are the declared limit and the answer is the one this door always gave."""
+    config = crowded(tmp_path, spent=10, pointed=False)
+    answer = body_budget(config, "IX")
+    assert (answer.allowed, answer.aim) == (answer.limit, body_aim(answer.limit))
+    assert answer.left == answer.limit - answer.taken
