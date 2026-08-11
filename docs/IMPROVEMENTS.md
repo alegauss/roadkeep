@@ -85,4 +85,35 @@ already written, not authorship.
 
 ## Block F — The plugin
 
+### §RK1043 The surface RK254 did not reach
+
+The plugin ships three executable surfaces and two of them spell the launcher:
+
+| surface | how it reaches the engine |
+| --- | --- |
+| `hooks/hooks.json` | `python "${CLAUDE_PLUGIN_ROOT}/scripts/roadkeep.py" guard` |
+| `.mcp.json` | `python ${CLAUDE_PROJECT_DIR:-.}/scripts/roadkeep.py mcp` |
+| `commands/*.md` | `` !`roadkeep lint` ``, and `Bash(roadkeep lint:*)` |
+
+RK254 is the argument, in its own words: the console script *exists only after `pip
+install roadkeep` and only if the interpreter's scripts directory is on PATH — so on a
+plugin-installed machine the tool's most-read message named a command that answers
+`command not found`*. A marketplace install copies files; it runs no `pip`. The other
+two surfaces were written that way for exactly this, and `commands/` was not in the
+family RK242, RK246, RK250, RK253 and RK254 each took one instance out of.
+
+**Evidence and not a reproduction.** Three surfaces disagree and two of them were
+deliberately written against this assumption; observing the failure needs a
+plugin-installed session, which is not this checkout.
+
+**Why it is not a substitution.** A command file is static Markdown and cannot call
+`invocation()`. The pre-execution line can spell the launcher, and then `allowed-tools`
+has to scope to it — and RK25's rule is that the scope names this tool and never bare
+`Bash`, because a permission prompt that teaches nothing is the thing being avoided.
+Whether the matcher honours a longer prefix is what this task has to settle first, since
+a scope that silently grants nothing is worse than the state it replaced.
+
+What proves it: the three surfaces agree, the scope still names this tool, and the four
+commands run on a machine with no console script.
+
 ## Block G — The editor surface (the backlog where the file is open)

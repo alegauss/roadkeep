@@ -121,9 +121,13 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 81 | 1 |
 | D — The gate | 0 | 126 | 0 |
 | E — Adoption | 0 | 76 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 91 | 1 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 91 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 0 | 534 | 6 |
+| **Total** | 1 | 534 | 6 |
+
+**Next ready:**
+
+- 📋 **RK1043** (deps: —) **the four slash commands spell a console script the plugin's other two surfaces were written not to assume** — RK254 removed this family from the tool's messages and hooks.json and .mcp.json spell the launcher; commands/ still names roadkeep bare. → §RK1043
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
