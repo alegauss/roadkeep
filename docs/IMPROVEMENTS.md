@@ -79,7 +79,53 @@ already written, not authorship.
 
 ## Block C — Query
 
+### §RK1062 A number that can be improved by moving text out of its view
+
+`budget --tools` sums `descriptors(config)` and nothing else. The handshake is the other
+thing a session is handed before its first call: `instructions()`, which carries the
+engine line and — since RK1060 — the counting caveat that used to sit on 13 properties.
+
+So the read has a blind spot exactly where an author will push. RK1060 took 3,159 code
+units off the tool list and put roughly 390 back in a place this does not count, and the
+verb reported the gross figure as though it were the net. The saving was real and most
+of it survives; the point is that the same edit could have saved nothing and measured
+the same, which makes this a number that can be improved by moving text rather than by
+cutting it.
+
+It also leaves `[tools] characters` guarding one half of a session's cost while the
+other half has no ceiling and no reader — which is the state RK464 described about the
+whole surface, now true of a corner of it.
+
+The fix is small and the decision is what to report. A second figure beside the total is
+honest and leaves a caller adding two numbers; one total with the split under it is what
+the per-tool ranking already does, and reads as the one answer the verb exists to give.
+Either way the instructions are per session, not per call, so they are counted once —
+the same footing the tool list is on.
+
 ## Block D — The gate
+
+### §RK1061 A gate that costs more than the thing it guards
+
+RK1059 put a ceiling on what one served tool may cost, and paid for it on the wrong
+path. `_served` calls `descriptors(config)`, which builds every subparser and renders 52
+tool schemas — measured on this repository at **201 ms with the budget declared against
+80 ms without**, so the check is two and a half times the rest of the gate put together.
+
+`lint` is not a command run once. CI runs it, `.pre-commit-hooks.yaml` runs it, and the
+Stop hook runs it on every turn that touched a governed file — which is the surface RK22
+made cheap on purpose. A guard that costs a fifth of a second there is a guard somebody
+turns off.
+
+The guard is already narrow in the right way: a project declaring no `[tools]` pays
+nothing, because the config is read before the import. What it is not is narrow in
+*when*. The schema changes when this package changes and not when a roadmap line does,
+so the answer is probably a cache keyed on something that moves with the source —
+`provenance.engine()` already resolves the commit and whether the tree is dirty.
+
+Worth deciding whether it belongs in `lint` at all. The number it holds is a fact about
+the package, not about the repository being linted, so a check that runs where the
+package is tested would catch every regression this one does and cost an adopting
+project nothing.
 
 ## Block E — Adoption
 

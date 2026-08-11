@@ -118,12 +118,16 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 32 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 124 | 1 |
-| C — Query (consult without reading the file) | 0 | 82 | 1 |
-| D — The gate | 0 | 131 | 0 |
+| C — Query (consult without reading the file) | 1 | 82 | 1 |
+| D — The gate | 1 | 131 | 0 |
 | E — Adoption | 0 | 77 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 95 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 0 | 552 | 6 |
+| **Total** | 2 | 552 | 6 |
+
+**Next ready:**
+
+- 📋 **RK1061** (deps: —) **the tool budget makes every lint build the whole served surface** — Measured here at 201ms against 80ms without it: the gate constructs 52 descriptors, and lint is what CI, the pre-commit hook and the Stop hook each run. → §RK1061
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

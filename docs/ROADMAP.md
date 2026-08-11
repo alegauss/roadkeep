@@ -28,7 +28,11 @@
 
 ## Block C — Query (consult without reading the file)
 
+- 📋 **RK1062** (deps: —) **budget --tools counts the tool list and not the handshake beside it** — RK1060 moved a paragraph from one to the other and the read showed the whole 3159 as a saving, so the measurement rewards a move it cannot see the other half of. → §RK1062
+
 ## Block D — The gate
+
+- 📋 **RK1061** (deps: —) **the tool budget makes every lint build the whole served surface** — Measured here at 201ms against 80ms without it: the gate constructs 52 descriptors, and lint is what CI, the pre-commit hook and the Stop hook each run. → §RK1061
 
 ## Block E — Adoption
 
