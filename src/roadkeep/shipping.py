@@ -1681,15 +1681,16 @@ def _partial(
                 recorded.task.part,
                 suffix=config.schema.id_suffix,
             )
-        # Closable exactly where `_leftover` would take the line (RK1045): a live
-        # partial is refused here and the door does not open for it, so naming one
-        # would hand this caller the command that just failed.
+        # Closable exactly where `_already_recorded` would take the line (RK1045), which
+        # since RK1075 is decided by the **entry's** qualifier and not by the roadmap's
+        # marker: a ⏳ line beside an entry naming no half is the state that had no verb at
+        # all, and the door that closes it is the one this refusal now names.
         raise AlreadyRecorded(
             task_id,
             where,
             recorded.lineno,
             recorded.task.status,
-            closable=entry.task.status != PARTIAL,
+            closable=not recorded.task.part,
         )
 
     if why is None:
@@ -1767,7 +1768,9 @@ def _depart(
             where,
             duplicate.lineno,
             duplicate.task.status,
-            closable=entry.task.status != PARTIAL,
+            # Reached only where the entry carries no qualifier — a duplicate that does is
+            # `PartRecorded` above — so the closure path takes this line (RK1075).
+            closable=not duplicate.task.part,
         )
     if why is None:
         # `retire` always arrives with a derived sentence, so this is the ship path alone.
@@ -1915,10 +1918,24 @@ def _already_recorded(config: Config, task_id: str) -> Entry | None:
       which makes stopping between them *loud and lossless* — `id.two-files` names it — and
       left no way out: `ship` refused the id, this function's roadmap-side condition did not
       match a line still marked 📋, and `record drop` wants a second entry. So an entry for a
-      line that is still open is a leftover **unless the files say it is a live partial**,
-      which is the distinction RK121 made representable: a ⏳ line, or an entry naming a
-      half. Shio's `⏳ SH238` is the first of those and stays :class:`AlreadyRecorded` — the
-      case where widening this cost a real task and a 224-word section.
+      line that is still open is a leftover **unless the entry names a half**, which is the
+      distinction RK121 made representable.
+
+    **The marker alone is not that distinction** (RK1075). This read a ⏳ line as a live
+    partial whatever the ledger said, and the state where the two disagree — a partial
+    marker beside an entry carrying *no* qualifier — is then a line no verb closes: `ship`
+    and `retire` refuse through this function, `defer` refuses because a pause is between
+    open and terminal, and the gate is silent by design (RK121). Shio filed three capture
+    reports on it and closed it with the editor. RK1046 had already made the same reading
+    one door over — a ⏳ line beside an unqualified entry is the two files contradicting
+    each other, the line saying a half landed and the entry saying the whole did — and the
+    entry is the record of what shipped. So the qualifier is what refuses here, and the
+    marker is what it used to be mistaken for.
+
+    RK1046's exit stays and stops being the only one. It is the right door where the entry
+    *should* carry a qualifier and does not; this is the door where the ledger is already
+    right and the line is what is stale, and asking an author to write `--part "…"` to open
+    it was asking them to claim a half nothing delivered.
 
     And a refusal, because widening it opened one more reading. An interrupted transaction
     wrote its entry **from this line**, so the two state the same symptom; two that do not are
@@ -1940,7 +1957,11 @@ def _already_recorded(config: Config, task_id: str) -> Entry | None:
     schema = config.schema
     if open_line.task.status in (schema.shipped_marker, schema.retired_marker):
         return recorded
-    if open_line.task.status == PARTIAL or recorded.task.part:
+    # The qualifier and not the marker (RK1075): an entry naming a half is a live partial and
+    # closing it would drop the half that has not landed, where a ⏳ line beside an entry that
+    # names none is the two files disagreeing about one delivery — and the ledger is the file
+    # that records what shipped.
+    if recorded.task.part:
         return None
     if (
         ledger.schema.symptom_field

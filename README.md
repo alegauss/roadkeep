@@ -117,17 +117,17 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 40 | 2 |
-| B — Authoring (insert, never hand-edit) | 2 | 124 | 1 |
+| B — Authoring (insert, never hand-edit) | 1 | 125 | 1 |
 | C — Query (consult without reading the file) | 0 | 84 | 1 |
 | D — The gate | 1 | 135 | 0 |
 | E — Adoption | 0 | 77 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 95 | 1 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 95 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 3 | 566 | 6 |
+| **Total** | 3 | 567 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1075** (deps: —) **an open line the ledger records as whole has no verb that closes it, and the guard denies the hand edit** — ship, retire and defer all refuse the id, so the only exit writes a --part qualifier claiming a half the ledger never delivered. → §RK1075
+- 📋 **RK1076** (deps: —) **the gate is silent on a partial line whose entry names no half, the one state whose repair is two verbs** — The marker is read as a live partial, so lint reports nothing, repair cannot reach it and pick offers the line forever. → §RK1076
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

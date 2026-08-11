@@ -26,7 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1075** (deps: —) **an open line the ledger records as whole has no verb that closes it, and the guard denies the hand edit** — ship, retire and defer all refuse the id, so the only exit writes a --part qualifier claiming a half the ledger never delivered. → §RK1075
 - 📋 **RK1077** (deps: —) **nothing holds the verb surface complete, so a state no command closes is found by the project that reaches it** — Six doorless states each cost a capture report or a hand edit, and no test pairs a state a governed file can reach with the verb that leaves it. → §RK1077
 
 ## Block C — Query (consult without reading the file)
@@ -38,6 +37,8 @@
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
+
+- 📋 **RK1078** (deps: —) **a capture names the engine that failed and nothing compares it with the engine that reads it** — Three of four field reports described work already shipped, the plugin being 31 patch versions behind the checkout, and triage costs a session to find that out. → §RK1078
 
 ## Block G — The editor surface (the backlog where the file is open)
 

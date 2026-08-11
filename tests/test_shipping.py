@@ -520,16 +520,20 @@ def test_a_restated_why_is_refused_where_the_ledger_is_not_written(tmp_path):
     assert files(config) == before
 
 
-def test_an_open_line_whose_id_the_ledger_mentions_is_not_closed(tmp_path):
-    # The condition that is easy to miss, and cost a real deletion before it was added:
-    # Shio's `⏳ SH238` names the half that has not shipped while the ledger records the half
-    # that did. That is `id.two-files` for `lint` to report — not a line for `ship` to delete.
+def test_a_partial_marker_beside_an_unqualified_entry_is_closed(tmp_path):
+    # Reversed by RK1075, and the reason is the ledger. This read a ⏳ line as a live partial
+    # whatever the entry said, so the one state where the two files *disagree* — a partial
+    # marker beside an entry naming no half — had no verb at all: `ship` and `retire` refused
+    # here, `defer` refused as a pause between open and terminal, and the gate is silent by
+    # design (RK121). Shio filed three capture reports on it and closed it with the editor.
+    #
+    # The entry is the record of what shipped, and it says the whole did. So the line is what
+    # is stale, and closing removes it and writes nothing to the ledger (RK62).
     config = half_shipped(tmp_path, marker="⏳")
-    before = files(config)
-    with pytest.raises(AlreadyShipped) as raised:
-        ship(config, "RK1", why="Because of a reason.")
-    assert "disagree with itself" in str(raised.value)
-    assert files(config) == before
+    ship(config, "RK1").save()
+    assert "**RK1**" not in read(config, ROADMAP)
+    # The ledger is untouched: this call closes a line, it does not record anything.
+    assert read(config, CHANGELOG).count("**RK1**") == 1
 
 
 def test_retiring_a_line_the_ledger_recorded_is_still_refused(tmp_path):
@@ -1445,18 +1449,24 @@ def test_a_retirement_that_stopped_is_finished_the_same_way(tmp_path):
     assert RK1 not in read(config, ROADMAP)
 
 
-def test_a_live_partial_is_still_not_a_leftover(tmp_path):
-    # The case that cost a real task and a 224-word section: an open line whose id the
-    # ledger also mentions is a live task where the marker says the work is in halves.
+def test_an_entry_naming_a_half_is_completed_rather_than_closed(tmp_path):
+    # The case that cost a real task and a 224-word section, narrowed to what actually says
+    # it (RK1075): the **entry's** qualifier. A half is recorded and a half is not, so
+    # closing the line would drop the one that never landed — and that is true whatever
+    # marker the roadmap happens to carry, which is why the marker stopped deciding it.
     config = project(
         tmp_path,
         roadmap=BACKLOG.replace("- 📋 **RK1**", "- ⏳ **RK1**"),
-        changelog=INTERRUPTED,
+        changelog=INTERRUPTED.replace("**RK1**", "**RK1 (local half)**"),
     )
-    with pytest.raises(AlreadyShipped):
-        ship(config, "RK1", why="Because of a reason.")
-    assert "⏳ **RK1**" in read(config, ROADMAP)
-    assert "§RK1 A first design" in read(config, IMPROVEMENTS)
+    # And what it is instead of a closure is a **completion**: the entry is rewritten in
+    # place and loses its qualifier, where a closure removes the line and writes nothing.
+    # Two exits for two states, which is what the marker could not tell apart.
+    ship(config, "RK1", why="All of it landed.").save()
+    ledger = read(config, CHANGELOG)
+    assert "(local half)" not in ledger and "All of it landed." in ledger
+    assert "**RK1**" not in read(config, ROADMAP)
+    assert "§RK1 A first design" not in read(config, IMPROVEMENTS)
 
 
 def test_an_entry_naming_a_half_is_completed_and_never_closed(tmp_path):
@@ -1969,17 +1979,27 @@ def _recorded_beside(tmp_path: Path, marker: str) -> Config:
 
 
 def test_the_door_is_named_only_where_the_closure_path_takes_the_line(tmp_path):
-    """RK1044 added the clause unconditionally and it landed on the one caller it cannot
-    help. A ⏳ line beside a full entry is refused **by `ship` itself** — deliberately, since
-    widening the closure path there cost a task and a 224-word section — so the remedy named
-    was the command that had just failed, which costs a reader two more attempts before the
-    sentence becomes the suspect."""
-    with pytest.raises(AlreadyRecorded) as refused:
-        ship(_recorded_beside(tmp_path, PARTIAL), "RK1")
-    assert not refused.value.closable
-    assert "ship RK1" not in str(refused.value)
-    # The invariant is still stated: what it protects is why it refuses at all.
-    assert "a second entry would make the ledger disagree" in str(refused.value)
+    """RK1044 added the clause unconditionally and RK1045 narrowed it to the state the door
+    is true of. What decides that is the **entry's** qualifier since RK1075, not the
+    roadmap's marker: an entry naming a half is a live partial and `ship` completes it, so
+    naming a closure there would hand the caller the wrong one of two exits.
+
+    The ⏳ line this used to be about is now closable and is covered above — it was the state
+    with no verb at all, which is why the suppression could not be the whole answer.
+    """
+    beside = _recorded_beside(tmp_path, PARTIAL)
+    half = read(beside, CHANGELOG).replace("**RK1**", "**RK1 (local half)**")
+    (beside.root / CHANGELOG).write_text(half, encoding="utf-8")
+    config = Config.discover(beside.root)
+
+    # `retire`, because it reaches the refusal with a derived sentence and needs no `--why`.
+    with pytest.raises(PartRecorded) as refused:
+        retire(config, "RK1", reason="Nobody will do the rest.")
+    # Its own refusal and not this one, and it names `ship RK1` as the **completion** — the
+    # exit that rewrites the entry. What it must never offer is the closure, which removes
+    # the line against an entry recording only a half and drops the one that never landed.
+    assert "writing nothing to the ledger" not in str(refused.value)
+    assert "if the rest landed after all" in str(refused.value)
 
 
 def test_the_door_it_does_name_resolves_the_state(tmp_path):

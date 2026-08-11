@@ -180,6 +180,7 @@
 - ✅ **RK1054** **the ship that completes a partial reached disk without validating the entry it wrote** — That branch rewrote the entry instead of placing one, so it bypassed the only door that checks: a why carrying a newline landed as a two-line entry no field held.
 - ✅ **RK1056** **record add still publishes a --lines flag that exists only to be refused** — The count is withdrawn from the served tool, saving 221 code units on every session, and kept on the CLI so a script that spells it is answered by NoSpan rather than by argparse.
 - ✅ **RK1057** **the wrapped refusal still describes the count as authorising only a deletion** — The ledger's refusal now names both permissions the count carries, and the roadmap's still names the one it has, so neither offers a shape its file does not hold.
+- ✅ **RK1075** **an open line the ledger records as whole has no verb that closes it, and the guard denies the hand edit** — The entry's qualifier decides a live partial and the roadmap's marker no longer does, so a line beside an entry recording the whole is closed by ship and the refusals name it.
 
 ## Block C — Query
 

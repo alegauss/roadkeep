@@ -77,28 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1075 Closing a line the ledger already recorded
-
-Shio filed three capture reports on one state and closed it with a hand edit. A line
-stands at the partial marker while the ledger entry for its id carries no qualifier: the
-line says a half landed, the entry says the whole did. `ship` refuses, the door in its
-message suppressed because the closure path deliberately does not take a partial
-(RK1045); `retire` refuses through the same transaction; `defer` refuses because a pause
-is between open and terminal; and the gate is silent by design (RK121).
-
-RK1046 opened one exit — `record amend <id> --part "…"` is permitted while the roadmap
-still carries a live partial, after which `ship <id>` completes the entry in place. It
-works, and the third report was captured against a build that already had it. That is
-the measurement: an exit no refusal names is an exit nobody finds, and what the author
-reached for instead was the editor.
-
-It is also the wrong shape. The qualifier is a claim about the delivery — which half
-landed — and here nothing landed in halves, so the only repair asks an author to write a
-false sentence into history in order to open a door. This task is the direct one:
-closing a line whose entry already records the work should not pass through the ledger
-at all, and every refusal standing in front of it — shipping.py's on both doors,
-deferring.py's — names it.
-
 ### §RK1077 Every state a file can reach owes a door
 
 The barrier denies every hand edit to a governed file, and that trade is only honest
@@ -148,5 +126,26 @@ the finding is one `repair` spends rather than one an author reads.
 ## Block E — Adoption
 
 ## Block F — The plugin
+
+### §RK1078 Triaging a capture written by an older engine
+
+Four captures arrived from one Shio session, all filed against plugin 0.1.645 while the
+checkout stood at 0.1.676. Three named work that was already done: the id occupancy
+check that refused a cited number (RK1051, 0.1.648), the wrapped-entry correction that
+could only collapse a span (RK1049, 0.1.646) and the clause naming the second permission
+the count carries (RK1057). Only one described a state the running engine still has. The
+reporter was right every time about what they saw; the engine they saw it with was the
+stale copy the marketplace had not refreshed.
+
+Triage found that out by reading the package — four commands, three git archaeologies
+and a version comparison per report — which is a session spent per capture to learn that
+the capture is closed. `replay` is the verb for this and does not reach these: a capture
+from another repository is replayable only where it was taken with `--embed`, which is
+opt-in for RK87's reason and which nothing at capture time asks for.
+
+The cheap fact is the one already in the payload. `engines` reads four small files, asks
+git nothing new and answers `agreed`, `behind` or `unpinnable`; a capture that carried
+that verdict, or a reader that computed it against the version stamped in `engine`,
+would sort a closed report from a live one before an id is spent on it.
 
 ## Block G — The editor surface (the backlog where the file is open)
