@@ -34,8 +34,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK1060** (deps: —) **one paragraph about counting is repeated on thirteen served properties** — The UTF-16 caveat is 322 characters and identical every time, so 4186 of the tool list is one sentence a session reads thirteen times before its first call. → §RK1060
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Non-goals

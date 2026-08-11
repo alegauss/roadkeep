@@ -52,9 +52,9 @@ why = 200
 # RK30's argument about a resident file made about the schema. Per tool and not per list:
 # a total is failed by whichever tool is added last and names nothing, where this is
 # refused by the tool whose description somebody just edited. `budget --tools` ranks them
-# and prints the room; the largest here is `add` at 2,622, and the ceiling is set close
+# and prints the room; the largest here is `ship` at 2,466, and the ceiling is set close
 # enough that a description growing by a paragraph is a finding rather than a rounding.
-characters = 2800
+characters = 2600
 
 [budgets]
 # Files loaded on every turn, and what each may cost (RK30). This budget lived in prose at

@@ -571,6 +571,7 @@
 - ✅ **RK1043** **the four slash commands spell a console script the plugin's other two surfaces were written not to assume** — Every command line the four files spell is the launcher the plugin already used, so none depends on a console script a marketplace install does not make.
 - ✅ **RK1055** **the served why bound refuses on the client a span the server accepts** — ship and record amend publish no why ceiling and state the per-line limit and the span in the note, so the client stops refusing a call this server takes.
 - ✅ **RK1058** **the skill teaches the count as a permission to replace and never names the span** — The skill states the count's second permission once, where the correction is introduced, and the completion says it carries the same pair, so the span is reachable from the text that decides.
+- ✅ **RK1060** **one paragraph about counting is repeated on thirteen served properties** — The counting caveat moved to the handshake, which a client is given once, taking 3159 code units off the tool list while each field keeps the number and the aim that vary.
 
 ## Block G — The editor surface (the backlog where the file is open)
 

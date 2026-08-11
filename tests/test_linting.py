@@ -1633,8 +1633,11 @@ def test_a_served_tool_over_its_budget_fails(tmp_path):
     # cost is composed per session and no path a reader could open holds it.
     assert {f.file for f in over} == {"roadkeep.toml"}
     assert "connects the server" in over[0].message and "budget --tools" in over[0].message
-    # Largest first, because the message sends the reader to that ranking.
-    assert over[0].subject == "add"
+    # Largest first, because the message sends the reader to that ranking and a report in a
+    # different order would be two answers to one question. Read off the sizes the messages
+    # carry rather than against a named tool, which is a figure that moves with every edit.
+    sizes = [int(f.message.split(" is ")[1].split(" ")[0]) for f in over]
+    assert sizes == sorted(sizes, reverse=True)
 
 
 def test_a_project_declaring_no_tool_budget_is_silent(tmp_path):

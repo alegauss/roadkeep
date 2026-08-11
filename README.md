@@ -121,13 +121,9 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 82 | 1 |
 | D — The gate | 0 | 131 | 0 |
 | E — Adoption | 0 | 77 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 94 | 1 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 95 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 1 | 551 | 6 |
-
-**Next ready:**
-
-- 📋 **RK1060** (deps: —) **one paragraph about counting is repeated on thirteen served properties** — The UTF-16 caveat is 322 characters and identical every time, so 4186 of the tool list is one sentence a session reads thirteen times before its first call. → §RK1060
+| **Total** | 0 | 552 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -790,14 +790,47 @@ def _aimed(limit: int) -> str:
     Said on every field rather than only where the counters disagree, which is where
     :func:`~roadkeep.schema._counted` says it: a refusal has the string in hand and can
     compare, and a schema is composed before any string exists.
+
+    **Said once, and not per field** (RK1060). The residual belongs here and the paragraph
+    stating it did not: identical on 13 properties, 322 characters each, 4,186 of the tool
+    list — one sentence in every twelve a session read before its first call. What varies is
+    the number and the aim, and that is what stays; the caveat is a fact about every bound
+    this surface publishes, so it moved to :data:`INSTRUCTIONS`, which a client is given once
+    at the handshake. Not `$ref`: a model is handed the tool list as text, so a definition it
+    has to resolve is worse for the reader than a repeated sentence — the saving has to come
+    from saying it somewhere a reader already is, which the handshake is and a sibling
+    property is not.
     """
     return (
         f"Aim for {words(limit)} words; {limit} characters is what refuses, counted in "
-        f"UTF-16 code units. The `maxLength` beside this sentence is that same number "
-        f"under JSON Schema's own count, which is code points — the looser of the two, so "
-        f"a field carrying an emoji or other astral character can validate on the client "
-        f"and still be refused here."
+        f"UTF-16 code units."
     )
+
+
+#: The residual :func:`_aimed` used to repeat on every prose field, said once (RK1060). A
+#: client is given this at the handshake and the tool list on every session that connects,
+#: so a fact true of *every* published bound belongs in the one of them that is delivered
+#: once. Beside the engine line RK79 put there for the same reason — which tree answered is
+#: also a fact about the whole surface rather than about any tool on it.
+_COUNTING = (
+    "Every `maxLength` here is its field's ceiling under JSON Schema's own count, which "
+    "is code points; this tool counts UTF-16 code units, the stricter of the two. So a "
+    "field carrying an emoji or other astral character can validate on the client and "
+    "still be refused — the published number is the looser one on purpose, a stricter "
+    "bound being one that would refuse prose this server accepts."
+)
+
+
+def instructions() -> str:
+    """What a client is told once, at the handshake (RK79, RK1060).
+
+    Two facts, and both are about the whole surface rather than about any tool on it: which
+    copy of this package answered, and how every bound in the schema is counted. The second
+    was published 13 times over instead, once per prose field, which is 4,186 characters a
+    session read before making a call — the cost RK464 measured and `[tools] characters` now
+    holds one tool of.
+    """
+    return f"{engine()}\n\n{_COUNTING}"
 
 
 def _roles(config: Config, universe: Sequence[str]) -> dict[str, Any]:
@@ -1848,10 +1881,11 @@ def _handshake(params: Mapping[str, Any]) -> dict[str, Any]:
         # never told the list can change is entitled to ignore one that says it did (RK177).
         "capabilities": {"tools": {"listChanged": True}},
         "serverInfo": {"name": "roadkeep", "version": __version__},
-        # The startup line RK79 asks for. `serverInfo.version` stays the release number a
-        # client may have pinned against, so which tree answered goes here — the one field
-        # of the handshake that reaches a session, and the only moment this server has one.
-        "instructions": str(engine()),
+        # The startup line RK79 asks for, and what every published bound is counted in
+        # (RK1060). `serverInfo.version` stays the release number a client may have pinned
+        # against, so which tree answered goes here — the one field of the handshake that
+        # reaches a session, and the only moment this server has one.
+        "instructions": instructions(),
     }
 
 

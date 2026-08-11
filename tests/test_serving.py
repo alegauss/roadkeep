@@ -426,8 +426,9 @@ def test_every_published_ceiling_names_the_unit_it_is_counted_in(tmp_path):
     # RK436: `maxLength` is the one counter this tool publishes and does not own — the
     # keyword is defined over code points and every gate here counts UTF-16 code units
     # (RK430). Publishing the stricter figure is what RK183 already refuses (a bound on the
-    # client, paid on every ASCII field), so the residual is named where a client author
-    # reading the field is already looking: beside the aim.
+    # client, paid on every ASCII field), so the residual is named — once, at the handshake
+    # (RK1060), because it is a fact about every bound here and not about any one field,
+    # and 13 copies of it were 4,186 characters a session read before its first call.
     tree = project(tmp_path, config=PROSE + "[limits]\nsymptom = 60\n")
     described = listed(tree)
     published = [
@@ -438,8 +439,10 @@ def test_every_published_ceiling_names_the_unit_it_is_counted_in(tmp_path):
     ]
     assert published
     for prop in published:
+        # What varies stays on the field: the number, the aim, and the unit that number is in.
         assert "UTF-16 code units" in prop["description"]
-        assert "code points" in prop["description"]
+        assert "code points" not in prop["description"]
+    assert "code points" in serving.instructions()
     # And the residual it names is real, not a caution: 60 code points carrying one astral
     # character is 61 units, so the client validates against the published number, passes,
     # and the server refuses by the bound the call was told it had met.
@@ -1064,7 +1067,11 @@ def test_the_handshake_names_the_tree_that_will_answer_every_call():
 
     response = handle({"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {}})
     assert response["result"]["serverInfo"]["version"] == __version__
-    assert response["result"]["instructions"] == str(engine())
+    said = response["result"]["instructions"]
+    assert said.startswith(str(engine()))
+    # And the other fact about the whole surface rather than about any tool on it (RK1060):
+    # how every bound published below is counted, said in the one message delivered once.
+    assert "code points" in said and "UTF-16 code units" in said
     assert str(engine().home) in response["result"]["instructions"]
 
 
