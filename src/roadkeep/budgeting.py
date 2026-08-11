@@ -579,6 +579,16 @@ class Load:
     def over(self) -> bool:
         return any(cost.over for cost in self.costs)
 
+    @property
+    def bytes(self) -> int:
+        """What a loader pays for this file, or 0 where no byte budget was declared.
+
+        A property and not a sum at the call site (RK1096): `budget --session` re-derived it
+        by walking `costs` for the unit it wanted, which is this record's own arithmetic
+        performed by a reader — the shape RK345 removed from the two that count the file.
+        """
+        return next((cost.taken for cost in self.costs if cost.unit == "bytes"), 0)
+
 
 def file_budget(config: Config, path: str | None = None) -> tuple[Load, ...]:
     """What the always-loaded files have left, before an edit is composed (RK345).

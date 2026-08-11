@@ -87,7 +87,7 @@ from roadkeep.provenance import engine, invocation, serving
 # `config` already loads `schema`, and reaching the name through `budgeting` cost the guard
 # 30 ms and eight modules — `authoring`, `sections`, `claiming`, `ids`, `markers` and the
 # rest of the write path — on every denied edit, for one character-to-word division.
-from roadkeep.kernel.schema import body_aim, words
+from roadkeep.kernel.schema import body_aim, width, words
 
 #: The protocol revision this server answers with when the client asks for one it does not
 #: know. Negotiation is "echo what the client asked for if we understand it": a server that
@@ -819,6 +819,54 @@ _COUNTING = (
     "still be refused — the published number is the looser one on purpose, a stricter "
     "bound being one that would refuse prose this server accepts."
 )
+
+
+@dataclass(frozen=True, slots=True)
+class Surface:
+    """What a session is sent, measured once (RK1096).
+
+    Two reads answer this and each did its own arithmetic: `budget --tools` summed the
+    descriptors and the handshake, and `budget --session` summed the same two under a
+    different heading. They agreed, which is the property a duplicate has right up to the
+    edit that moves one — the shape RK1073 closed for the provenance note and RK1080 for the
+    partial predicate, both found the same way.
+
+    Here rather than in `budgeting`, and that is the import direction rather than a
+    preference: `serving` reaches `cli`, `cli` reaches the verbs, and a verb reaches
+    `budgeting` — so a measurement of the surface placed there would close the cycle. The
+    module that composes the payload is the module that can say what it costs.
+    """
+
+    #: Every tool and what it costs, largest first — the ranking `--tools` prints.
+    tools: tuple[tuple[str, int], ...]
+    #: The handshake, which is sent once beside the list and counted with it (RK1078/RK1062).
+    handshake: int
+
+    @property
+    def listed(self) -> int:
+        """The tool list alone, which is the half `[tools] characters` is a ceiling on."""
+        return sum(cost for _name, cost in self.tools)
+
+    @property
+    def characters(self) -> int:
+        """Everything a client is sent before its first call."""
+        return self.listed + self.handshake
+
+
+def surface(config: Config) -> Surface:
+    """What connecting to this server costs, as both reads of it ask (RK1096).
+
+    Derived from :func:`descriptors` and :func:`instructions` — the payloads themselves and
+    never a second estimate of them — so a description reworded in `cli.py` moves this
+    figure, which is the whole reason the number is worth reading.
+    """
+    sizes = {
+        one["name"]: width(json.dumps(one, ensure_ascii=False)) for one in descriptors(config)
+    }
+    return Surface(
+        tools=tuple(sorted(sizes.items(), key=lambda row: (-row[1], row[0]))),
+        handshake=width(instructions()),
+    )
 
 
 def instructions() -> str:

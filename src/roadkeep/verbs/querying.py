@@ -83,7 +83,7 @@ from roadkeep.rendering import (
 from roadkeep.kernel.schema import body_aim
 from roadkeep.kernel.schema import width as measured_width
 from roadkeep.sections import binding, heading_of
-from roadkeep.serving import descriptors, instructions
+from roadkeep.serving import surface
 from roadkeep.shipping import record
 from roadkeep.showing import show
 from roadkeep.verbs.refusing import EXIT_OK, EXIT_USAGE, REFUSALS, _refused
@@ -870,15 +870,12 @@ def _session_budget(config: Config, args: argparse.Namespace) -> int:
     that write and nothing on the turns that do not, and pricing it as resident would be the
     third figure this read exists to avoid inventing.
     """
-    described = descriptors(config)
-    once = sum(
-        measured_width(json.dumps(one, ensure_ascii=False)) for one in described
-    ) + measured_width(instructions())
-    resident = [
-        (load.path, next((c.taken for c in load.costs if c.unit == "bytes"), 0))
-        for load in (file_budget(config) if config.budgets else ())
-    ]
-    turn = sum(cost for _path, cost in resident)
+    # One measurement, two readers (RK1096) — the rule RK345 already states about the file
+    # half, applied to the surface: `--tools` ranks what this returns and `--session` totals
+    # it, so a change to what the handshake carries moves both or neither.
+    sent = surface(config)
+    resident = [(load.path, load.bytes) for load in (file_budget(config) if config.budgets else ())]
+    once, turn = sent.characters, sum(cost for _path, cost in resident)
     if args.json:
         print(
             json.dumps(
@@ -889,7 +886,7 @@ def _session_budget(config: Config, args: argparse.Namespace) -> int:
                     "once": {
                         "characters": once,
                         "unit": CHARACTER_UNIT,
-                        "of": f"{len(described)} tool(s) and the handshake",
+                        "of": f"{len(sent.tools)} tool(s) and the handshake",
                     },
                     "each_turn": {
                         "bytes": turn,
@@ -907,7 +904,7 @@ def _session_budget(config: Config, args: argparse.Namespace) -> int:
         f"session    {once} {CHARACTER_UNIT} once, {turn} bytes on every turn — "
         f"two cadences, so they are not added"
     )
-    print(f"  once     {once:>6}  {len(described)} tool(s) and the handshake, at connect")
+    print(f"  once     {once:>6}  {len(sent.tools)} tool(s) and the handshake, at connect")
     for path, cost in resident:
         print(f"  turn     {cost:>6}  {path}")
     if not resident:
@@ -948,24 +945,23 @@ def _tools_budget(config: Config, args: argparse.Namespace) -> int:
     actually sent rather than a second estimate of it: a description reworded in `cli.py`
     moves this figure, which is the whole reason the number is worth reading.
     """
-    described = descriptors(config)
-    sizes = {
-        one["name"]: measured_width(json.dumps(one, ensure_ascii=False)) for one in described
-    }
-    listed = sum(sizes.values())
+    # The same measurement `--session` totals (RK1096), so the ranking and the total cannot
+    # come to disagree about what a client is sent.
+    sent = surface(config)
+    listed = sent.listed
     # The other thing a session is handed before its first call (RK1062). Counted here for
     # the reason the tool list is: RK1060 moved a paragraph out of 13 properties and into
     # this message, and a read that saw only one side reported the gross figure as the net
     # — a number improvable by moving text out of its own view rather than by cutting it.
     # Once and not per call, which is the footing the list is already on.
-    handshake = measured_width(instructions())
-    total = listed + handshake
-    ranked = sorted(sizes.items(), key=lambda row: (-row[1], row[0]))
+    handshake = sent.handshake
+    total = sent.characters
+    ranked = list(sent.tools)
     if args.json:
         print(
             json.dumps(
                 {
-                    "tools": len(described),
+                    "tools": len(sent.tools),
                     # The session's whole cost, which is what the verb exists to answer; the
                     # two halves are named beside it rather than left to be added.
                     "characters": total,
@@ -988,7 +984,7 @@ def _tools_budget(config: Config, args: argparse.Namespace) -> int:
             )
         )
         return EXIT_OK
-    print(f"session    {len(described)} tool(s) and the handshake, {total} {CHARACTER_UNIT}")
+    print(f"session    {len(sent.tools)} tool(s) and the handshake, {total} {CHARACTER_UNIT}")
     for name, size in ranked[:_LARGEST_TOOLS]:
         # The room before the gate says no, said beside the figure it is about: a budget
         # reported only as a total leaves the author to subtract per tool (RK345).

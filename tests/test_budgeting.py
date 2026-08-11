@@ -1341,3 +1341,46 @@ def test_the_session_read_is_a_subject_and_not_a_narrowing(tmp_path, capsys):
     _priced(tmp_path)
     assert main(["-C", str(tmp_path), "budget", "--session", "--tools"]) == EXIT_USAGE
     assert "one answer per call" in capsys.readouterr().err
+
+
+def test_the_two_surface_reads_share_one_measurement(tmp_path, capsys):
+    """RK1096. `--tools` summed the descriptors and the handshake, `--session` summed the
+    same two, and neither called the other — one arithmetic written twice, which agrees right
+    up to the edit that moves one. The shape RK1073 closed for the provenance note and RK1080
+    for the partial predicate, both found the same way.
+
+    Asked of the two answers rather than of the function, because agreeing is what the
+    duplicate did: what this holds is that they cannot come apart.
+    """
+    from roadkeep.serving import surface
+
+    _priced(tmp_path)
+    sent = surface(Config.discover(tmp_path))
+
+    main(["-C", str(tmp_path), "budget", "--tools", "--json"])
+    tools = json.loads(capsys.readouterr().out)
+    main(["-C", str(tmp_path), "budget", "--session", "--json"])
+    session = json.loads(capsys.readouterr().out)
+
+    assert tools["characters"] == session["once"]["characters"] == sent.characters
+    assert sum(row["characters"] for row in tools["by_tool"]) == sent.listed
+    assert tools["handshake"] == sent.handshake
+
+
+def test_a_loads_bytes_are_its_own_arithmetic_and_not_a_readers(tmp_path):
+    # `--session` walked `costs` for the unit it wanted, which is this record's arithmetic
+    # performed by a reader — the shape RK345 removed from the two that count the file.
+    (tmp_path / "agents.md").write_text("x" * 300 + "\n", encoding="utf-8")
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[budgets]\n"agents.md" = { bytes = 900 }\n', encoding="utf-8"
+    )
+    (load,) = file_budget(Config.discover(tmp_path))
+    assert load.bytes == next(c.taken for c in load.costs if c.unit == "bytes")
+
+    # And zero rather than a raise where only lines were declared: a file with no byte
+    # budget still costs bytes, and this answers what the *budget* holds.
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[budgets]\n"agents.md" = { lines = 9 }\n', encoding="utf-8"
+    )
+    (lines_only,) = file_budget(Config.discover(tmp_path))
+    assert lines_only.bytes == 0

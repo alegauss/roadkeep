@@ -28,8 +28,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1096** (deps: —) **budget has six subjects and the two that read a session's cost overlap without sharing a measurement** — session sums the descriptors and the handshake itself rather than calling tools, so the two answers are one arithmetic written twice and a third caller would write it again. → §RK1096
-
 ## Block D — The gate
 
 - 📋 **RK1097** (deps: —) **the served surface is fifty thousand characters against eight thousand the gate holds** — budget --session reads 50673 once and 8782 each turn, so the half nothing budgets in total is six times the half two [budgets] entries hold to the byte. → §RK1097

@@ -79,30 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1096 One number, measured in two places
-
-`--tools` sums `descriptors(config)` plus `instructions()`; `--session` sums the same
-two and prints the total under a different heading. Neither calls the other, so what the
-served surface costs is arithmetic this file now performs twice — and RK1092 added a
-third measurement of the resident half in `budgeting._parts`, which `--session` also
-re-derives by summing costs it could have asked for.
-
-RK345 states the rule this breaks: `lint` refuses the file that went over, `budget
---file` reports what is left, and *both count through* `roadkeep.config.spent`. One
-measurement, two readers. The two surface reads were written a task apart and neither
-reached for the other.
-
-What that costs is not speed — the parse is cached and the sums are small. It is that
-the two can disagree. A change to what the handshake carries moves one and not the other
-unless somebody remembers, which is the same shape as `_in_halves` against
-`_already_recorded` (RK1080) and as `raised_in` against `stale` (RK1073), both closed
-for exactly this reason.
-
-The shape is a function returning what a session is sent — the tool list, its per-tool
-breakdown and the handshake — with `--tools` printing the ranking and `--session`
-printing the total beside the resident half. Worth checking whether `Load` should carry
-its bytes as a property so `--session` reads a figure rather than re-summing costs.
-
 ## Block D — The gate
 
 ### §RK1097 The larger half, held per tool and not in total
