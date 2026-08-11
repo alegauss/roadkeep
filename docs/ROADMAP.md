@@ -30,9 +30,13 @@
 
 ## Block D — The gate
 
+- 📋 **RK1059** (deps: —) **the largest every-turn surface is measured and held by nothing** — budget --tools reports what the served schema costs a session and [budgets] takes only file paths, so the one cost RK30 exists to gate is outside the gate. → §RK1059
+
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
+
+- 📋 **RK1060** (deps: —) **one paragraph about counting is repeated on thirteen served properties** — The UTF-16 caveat is 322 characters and identical every time, so 4186 of the tool list is one sentence a session reads thirteen times before its first call. → §RK1060
 
 ## Block G — The editor surface (the backlog where the file is open)
 

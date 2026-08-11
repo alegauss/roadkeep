@@ -81,8 +81,55 @@ already written, not authorship.
 
 ## Block D — The gate
 
+### §RK1059 A budget the gate cannot spell
+
+RK30's argument is that a budget stated in prose is a budget nothing holds, and its
+answer is `[budgets]`, checked by `lint`. RK464 then measured the served tool list for
+the same reason — what the surface costs a session that connects it — and stopped at the
+read. `budget --tools` answers **53,369 UTF-16 code units across 52 tools** here,
+against the 7,695 bytes budgeted for `agents.md`, and nothing refuses either number.
+
+The gap is structural rather than an oversight: `[budgets]` is keyed by path and this
+cost is not a file. It is composed per session from the parser, the config and the
+`TOOLS` table, so what needs bounding is a derivation. That is also why it drifts
+silently — every flag added to a served verb and every sentence added to a `help=`
+raises it, in an edit whose diff shows one argument.
+
+Measured moving twice in one session: withdrawing one flag from `record add` took 221
+code units off, and a note rewritten on two verbs put some back. Neither was visible as
+a cost in the change that made it.
+
+What a budget here means is the decision. A ceiling on the total is one answer and a
+poor one — it fails on whichever tool is added last. A per-tool ceiling names the
+offender, and `budget --tools` already ranks them, which is the shape the read was built
+in.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
+
+### §RK1060 A caveat that costs more than the fields it qualifies
+
+`_aimed` closes every prose bound with the same paragraph: aim for N words, N characters
+refuse, counted in UTF-16 code units, and the `maxLength` beside it counts code points,
+so an astral character can validate on the client and be refused here. It is correct,
+RK436 argued it well, and it is published on **13 properties** — 4,186 of the 53,369
+code units the tool list costs, or one sentence in every twelve a session reads.
+
+The duplication is not the schema's to remove. `$ref` would deduplicate the *document*
+and not the reading: a model is handed the tool list as text, so a shared definition it
+has to resolve is worse than a repeated sentence, and every published bound here exists
+because an unpublished one reaches the author as a refusal.
+
+What is available is where it is said. This server has **instructions**, delivered once
+per session and already carrying the version and the package path, and the caveat is a
+fact about the whole surface rather than about `why` on `add`. Said there, the per-field
+note keeps the number and the aim — which are what differ — and loses the paragraph that
+never does.
+
+Worth measuring rather than assuming: the saving is real only if the instructions are
+not themselves repeated per call, which is a fact about the client and not about this
+tool. The read to make first is whether a session that connects this server is given
+them once.
 
 ## Block G — The editor surface (the backlog where the file is open)
