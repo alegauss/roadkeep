@@ -81,6 +81,31 @@ already written, not authorship.
 
 ## Block D — The gate
 
+### §RK1046 The pair neither decision covers
+
+A `⏳` line beside a ledger entry carrying **no qualifier** has no door and no finding.
+Reproduced: `ship` and `retire` both raise `AlreadyRecorded`, and `lint` reports
+nothing.
+
+Neither silence is a bug on its own. `_in_halves` accepts a `⏳` line *alone* as a live
+partial, and RK121 measured why: Shio had seven such lines and the gate reported one,
+the six others hiding behind a parenthetical the parser could not read. The closure path
+excludes a live partial for its own measured reason, having cost a task and a section.
+
+What neither covers is the pair. `⏳` says a half landed; an entry with no qualifier says
+the whole did. For an adopted corpus that is RK121's case — the qualifier is there and
+unreadable — but for a project writing through this tool the two files contradict, and
+`ship --part` is what would have produced the qualifier that is missing.
+
+**Both obvious fixes collide with a measured decision**, which is why this is a task and
+not an edit. Reporting it at the gate re-opens the six Shio lines RK121 silenced, and
+widening the closure path is the change that already cost a task. The third way is a
+refusal naming `amend`: the qualifier is a field, and correcting it is what makes the
+two files agree.
+
+What proves it: the pair is answerable by some verb, Shio's six stay silent, and the
+closure path is unchanged.
+
 ## Block E — Adoption
 
 ## Block F — The plugin

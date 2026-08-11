@@ -119,11 +119,15 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 32 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 117 | 1 |
 | C — Query (consult without reading the file) | 0 | 81 | 1 |
-| D — The gate | 0 | 128 | 0 |
+| D — The gate | 1 | 128 | 0 |
 | E — Adoption | 0 | 76 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 92 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 0 | 537 | 6 |
+| **Total** | 1 | 537 | 6 |
+
+**Next ready:**
+
+- 📋 **RK1046** (deps: —) **a partial-marker line beside an unqualified entry has no door and no finding** — Two measured decisions cover the halves and neither covers the pair, so the files contradict and every verb refuses. → §RK1046
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

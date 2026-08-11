@@ -30,6 +30,8 @@
 
 ## Block D — The gate
 
+- 📋 **RK1046** (deps: —) **a partial-marker line beside an unqualified entry has no door and no finding** — Two measured decisions cover the halves and neither covers the pair, so the files contradict and every verb refuses. → §RK1046
+
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
