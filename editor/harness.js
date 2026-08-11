@@ -188,6 +188,15 @@ async function main() {
     }
   }
 
+  if (process.env.ROADKEEP_CYCLES) {
+    // A save and then an explicit refresh, so a caller counting the child processes can see
+    // which reads each one makes (RK1017). Nothing is asserted here — the log is the answer.
+    backlog.refresh();
+    await backlog.getChildren();
+    backlog.reread();
+    await backlog.getChildren();
+  }
+
   if (process.env.ROADKEEP_TYPED) {
     out.wrote = await compose(root);
     out.prompts = editor.window.prompts;

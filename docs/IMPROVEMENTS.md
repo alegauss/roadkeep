@@ -87,26 +87,24 @@ already written, not authorship.
 
 ## Block G — The editor surface (the backlog where the file is open)
 
-### §RK1017 The read that is about the tool and not about the backlog
+### §RK1018 A backlog whose size is not a question
 
-Counted from what the view does: every save re-runs `list`, `engines`, `lint` and one
-`deps` per open line. One of those answers a question that did not change. `engines`
-asks git which commit the package's files are at — a fact about the *installation*,
-which moves when somebody upgrades and not when a line is edited — and `provenance` says
-so: it is asked at most once per process and never on a path that writes. A CLI
-invocation is a process, so a view that shells out per save asks it per save.
+The tree's first row says which copy of the tool answered; nothing above the blocks says
+how much work there is. A reader who wants that number leaves the view — opens the file,
+or runs `stats` in a terminal — which is the read this surface exists to make
+unnecessary (L5).
 
-Readiness is not the same defect: `deps` answers about the file, so re-asking it after a
-write is the point. What is re-asked wrongly is the half about the tool.
+The counts are not derived here. `stats --json` already returns `total`, `uncounted` and
+a `markers` map, per block and for the file as a whole; the header renders that payload
+and computes nothing, so the marker set stays `roadkeep.toml`'s (L6) and a project
+declaring a seventh marker gets a seventh number without a change to the extension.
 
-The cost is a subprocess and a git call on a keystroke somebody makes without thinking,
-in the one surface whose whole argument is that it costs nothing on the sessions it does
-nothing in.
+One line, because two would be a panel: the total first, then each declared marker with
+its count in the order the config declares them, so the ordering is a fact about the
+project rather than a sort applied here. `uncounted` appears only when it is not zero —
+a marker-bearing line the grammar refused is the one thing a total must never silently
+absorb.
 
-The shape of the answer is the one this package already uses for the same question:
-cache it for the life of the window and re-ask it when the thing it is about could have
-moved — a refresh somebody asked for, and nothing else.
-
-What proves it: a save runs the reads about the file and not the one about the
-installation, an explicit refresh runs both, and the row still names the copy that
-answered.
+It is one more call per refresh, made where `engines` is already made, and cached on the
+same terms as the readiness map rather than the engine one: the numbers are about the
+file, so a save invalidates them and an upgrade does not.

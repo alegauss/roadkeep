@@ -189,7 +189,9 @@ def test_the_extension_exports_the_two_hooks_and_names_what_else_it_exports():
 NODE = shutil.which("node")
 
 
-def _harness(root, typed: list[str] | None = None, declared: str | None = None) -> dict:
+def _harness(
+    root, typed: list[str] | None = None, declared: str | None = None, cycles: bool = False
+) -> dict:
     """Run the stubbed host against a real roadkeep in ``root`` and read its report back.
 
     ``typed`` is what somebody writes into the two prompts, in order — passed as JSON because
@@ -198,10 +200,14 @@ def _harness(root, typed: list[str] | None = None, declared: str | None = None) 
     env = {
         **os.environ,
         "ROADKEEP_COMMAND": "python -m roadkeep.cli" if declared is None else declared,
-        "PYTHONPATH": "src",
+        # Absolute: the child runs with the *workspace* as its cwd, so a relative entry here
+        # would resolve against a directory that has no package in it.
+        "PYTHONPATH": str(HERE / "src"),
     }
     if typed is not None:
         env["ROADKEEP_TYPED"] = json.dumps(typed)
+    if cycles:
+        env["ROADKEEP_CYCLES"] = "1"
     said = subprocess.run(
         [NODE, str(EDITOR / "harness.js"), str(root)],
         capture_output=True,
@@ -447,3 +453,40 @@ def test_the_view_says_which_copy_answered_and_what_it_agrees_with():
     assert roadkeep.__version__ in said["engine"]["label"]
     # And the home, because two copies at one version is exactly the state RK79 was about.
     assert said["engine"]["detail"].endswith("src/roadkeep")
+
+
+@pytest.mark.skipif(not NODE, reason="node is not on PATH")
+def test_a_save_re_reads_the_backlog_and_not_the_installation(tmp_path):
+    """RK1017. `engines` asks git which commit the package's files are at — a fact about the
+    installation, which moves when somebody upgrades and not when a line is edited. The
+    package says as much about the same question: it is asked at most once per process and
+    never on a path that writes. A CLI invocation *is* a process, so a view that shelled out
+    per save asked it per save, on a keystroke nobody thinks about.
+
+    Counted end to end rather than asserted: the declared command is a wrapper that logs its
+    own argv, so what this reads is the child processes that actually ran.
+    """
+    root = tmp_path / "project"
+    root.mkdir()
+    assert main(["-C", str(root), "init"]) == EXIT_OK
+    log = tmp_path / "ran.log"
+    spy = tmp_path / "spy.py"
+    spy.write_text(
+        "\n".join(
+            [
+                "import pathlib, runpy, sys",
+                f"with pathlib.Path({str(log)!r}).open('a', encoding='utf-8') as handle:",
+                "    handle.write(' '.join(sys.argv[1:]) + chr(10))",
+                "sys.argv[0] = 'roadkeep'",
+                "runpy.run_module('roadkeep.cli', run_name='__main__')",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    _harness(root, declared=f"python {spy}", cycles=True)
+    ran = [line.split()[0] for line in log.read_text(encoding="utf-8").splitlines() if line]
+    # Three tree builds: the first, one after a save, one after an explicit refresh.
+    assert ran.count("list") == 3, ran
+    # And two `engines`: the window's first answer, and the one the button asked for.
+    assert ran.count("engines") == 2, ran

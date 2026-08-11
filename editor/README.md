@@ -38,3 +38,7 @@ and whether the three agree.
 
 When a read fails it says so in the tree rather than showing an empty one, because an empty
 backlog is a claim a failed read cannot make.
+
+Saving a governed file re-reads the backlog and the gate. Which copy answered is asked once
+per window — that is a fact about the installation, not about the file — and the refresh
+button in the view title asks it again, which is what you press after an upgrade.

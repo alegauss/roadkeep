@@ -335,11 +335,24 @@ class Backlog {
     // Cleared on every refresh, because the store is the repository and a cached readiness
     // is an answer about a file that has since been written.
     this.readiness = new Map();
+    // **Not** cleared on a save (RK1017): which copy answered is a fact about the
+    // *installation*, which moves when somebody upgrades and not when a line is edited —
+    // and `provenance` says as much about the same question, asking git at most once per
+    // process and never on a path that writes. A CLI invocation is a process, so a view that
+    // shelled out per save asked it per save, on a keystroke nobody thinks about.
+    this.engine = null;
   }
 
+  /** A save: the reads about the file, and not the one about the tool. */
   refresh() {
     this.readiness.clear();
     this.changed.fire();
+  }
+
+  /** A refresh somebody asked for: everything, because an upgrade is the thing that moved. */
+  reread() {
+    this.engine = null;
+    this.refresh();
   }
 
   getTreeItem(row) {
@@ -400,17 +413,18 @@ class Backlog {
       // empty, which is the one thing a failed read cannot know.
       return [{ notice: answer.error }];
     }
-    // Which copy answered, above the rows it answered with (RK1009). `engines` already reads
-    // the three that write, judge and gate and returns one of three verdicts; the reader is
-    // the fourth, and `writing` in *this* payload is it — asked through the same declared
-    // command, so the row is a fact about the process that produced the list below it.
-    const engines = await payload(this.root, ["engines"]);
-    const said = engines.error
-      ? { notice: engines.error }
-      : {
-          engine: `${engines.value.writing.version}  ${engines.value.verdict}`,
-          detail: engines.value.writing.home,
-        };
+    // Which copy answered, above the rows it answered with (RK1009), asked once per window
+    // rather than once per save (RK1017).
+    if (this.engine === null) {
+      const engines = await payload(this.root, ["engines"]);
+      this.engine = engines.error
+        ? { notice: engines.error }
+        : {
+            engine: `${engines.value.writing.version}  ${engines.value.verdict}`,
+            detail: engines.value.writing.home,
+          };
+    }
+    const said = this.engine;
     this.file = answer.value.file;
     const grouped = new Map();
     for (const task of answer.value.tasks) {
@@ -471,7 +485,12 @@ function activate(context) {
       providedCodeActionKinds: [vscode.CodeActionKind.QuickFix],
     }),
     vscode.workspace.onDidSaveTextDocument(() => both()),
-    vscode.commands.registerCommand("roadkeep.refresh", () => both()),
+    // The button is the explicit ask, so it re-reads the engine too — an upgrade is what
+    // moves that answer, and a person pressing refresh is the one who just did it.
+    vscode.commands.registerCommand("roadkeep.refresh", () => {
+      backlog.reread();
+      return both();
+    }),
     vscode.commands.registerCommand("roadkeep.repair", async () => {
       // The one action that belongs to the file rather than to a line, and it exits
       // non-zero while anything is left — so a clean panel means clean.
