@@ -635,6 +635,8 @@ def _budget(config: Config, args: argparse.Namespace) -> int:
         return _file_budget(config, args)
     if args.tools:
         return _tools_budget(config, args)
+    if args.session:
+        return _session_budget(config, args)
     try:
         answer = budget(
             config,
@@ -849,6 +851,70 @@ def _aim(share: Share) -> str:
 #: are where the size went, and a caller reading a report to decide what to cut wants those;
 #: the rest is the total, which is the number this read exists to state (RK464).
 _LARGEST_TOOLS = 5
+
+
+def _session_budget(config: Config, args: argparse.Namespace) -> int:
+    """Both halves of what a session pays, against the cadence each is paid at (RK1095).
+
+    `--tools` totals the served schema and `--file` totals a resident file, and neither knew
+    the other existed — so an author deciding whether to cut a tool description or a
+    paragraph ran two commands and subtracted by hand. That is the arithmetic RK183 removed
+    from the line budget and RK345 from the file one, still standing one level above both.
+
+    **Two figures and never a sum.** The schema is sent once at the handshake and a resident
+    file is read on every turn, so adding them produces a number that is wrong for every
+    session whose turn count is not one — which is all of them. What is honest is naming each
+    against what it is paid for, and letting the reader multiply the half that repeats.
+
+    The skill is not here, deliberately (RK23): it is trigger-loaded, so it costs the turns
+    that write and nothing on the turns that do not, and pricing it as resident would be the
+    third figure this read exists to avoid inventing.
+    """
+    described = descriptors(config)
+    once = sum(
+        measured_width(json.dumps(one, ensure_ascii=False)) for one in described
+    ) + measured_width(instructions())
+    resident = [
+        (load.path, next((c.taken for c in load.costs if c.unit == "bytes"), 0))
+        for load in (file_budget(config) if config.budgets else ())
+    ]
+    turn = sum(cost for _path, cost in resident)
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    # Named by cadence rather than by subject, because that is the fact a
+                    # caller is deciding against — and a `total` key would be the sum this
+                    # read refuses to compute.
+                    "once": {
+                        "characters": once,
+                        "unit": CHARACTER_UNIT,
+                        "of": f"{len(described)} tool(s) and the handshake",
+                    },
+                    "each_turn": {
+                        "bytes": turn,
+                        "files": [
+                            {"path": path, "bytes": cost} for path, cost in resident
+                        ],
+                    },
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+
+    print(
+        f"session    {once} {CHARACTER_UNIT} once, {turn} bytes on every turn — "
+        f"two cadences, so they are not added"
+    )
+    print(f"  once     {once:>6}  {len(described)} tool(s) and the handshake, at connect")
+    for path, cost in resident:
+        print(f"  turn     {cost:>6}  {path}")
+    if not resident:
+        # The state `--file` raises on, said rather than left as an absent row: a project
+        # with no `[budgets]` pays the schema and nothing else, which is a real answer.
+        print("  turn          0  this project declares no [budgets] file")
+    return EXIT_OK
 
 
 def _tools_budget(config: Config, args: argparse.Namespace) -> int:

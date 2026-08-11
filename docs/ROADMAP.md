@@ -28,8 +28,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1095** (deps: —) **two reads rank what a session pays for and neither can be asked about the other** — budget --tools totals the served schema and budget --file totals a resident file, so what one turn costs is two commands and a sum the caller does by hand. → §RK1095
-
 ## Block D — The gate
 
 ## Block E — Adoption

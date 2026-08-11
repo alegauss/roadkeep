@@ -1629,6 +1629,18 @@ def build_parser() -> argparse.ArgumentParser:
             "lines and bytes and what is left — bare, every declared budget"
         ),
     )
+    # The sixth, and the one neither of the two above could be asked about (RK1095): what a
+    # session pays is the tool list once and every resident file on each turn, and deciding
+    # between cutting a description and cutting a paragraph meant two commands and a
+    # subtraction. Two figures against their cadences rather than one that hides a multiplier.
+    budget_parser.add_argument(
+        "--session",
+        action="store_true",
+        help=(
+            "what one session pays: the served schema once at the handshake and every "
+            "`[budgets]` file on each turn, named against the cadence each is paid at"
+        ),
+    )
     budget_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     budget_parser.set_defaults(handler=_budget, reads_only=True)
     # Four subjects and one verb (RK283/RK345), declared rather than checked by hand (RK489).
@@ -1641,6 +1653,7 @@ def build_parser() -> argparse.ArgumentParser:
         ("non_goal", "the roadmap's other bullet"),
         ("file", "an every-turn file"),
         ("tools", "what this tool surface costs a session"),
+        ("session", "both halves of what a session pays, against their cadences"),
     )
     narrows(budget_parser, "role", "anchor")
     narrows(budget_parser, "lead", "non_goal")

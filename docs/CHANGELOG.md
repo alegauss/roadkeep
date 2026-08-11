@@ -275,6 +275,7 @@
 - ✅ **RK1062** **budget --tools counts the tool list and not the handshake beside it** — The read counts the handshake beside the tool list and names both halves under one session total, so text moved from one to the other no longer measures as a saving.
 - ✅ **RK1071** **budget prices a field against a limit and never says where the limit came from** — budget prints one line under the table naming the table and the line each declared limit sits on, and the payload carries the origin per field so a served read answers why is it 200.
 - ✅ **RK1085** **the pairwise loop reads a role's whole document per pair and lint already holds both** — The pairwise check reads the three carriers off the Backlog the run already loaded, which took it from 0.70ms to 0.18ms and stops a fourth carrier costing a fourth parse.
+- ✅ **RK1095** **two reads rank what a session pays for and neither can be asked about the other** — budget --session names the schema paid once at the handshake and the resident files paid on every turn, and never adds them, because the cadences differ.
 
 ## Block D — The gate
 

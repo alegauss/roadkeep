@@ -1297,3 +1297,47 @@ def test_a_file_that_is_not_there_has_nothing_to_attribute(tmp_path):
     )
     (load,) = file_budget(Config.discover(tmp_path))
     assert not load.present and load.parts == ()
+
+
+# -- both halves of what a session pays (RK1095) -------------------------------
+
+
+def test_the_session_read_names_two_cadences_and_never_adds_them(tmp_path, capsys):
+    """`--tools` totals the served schema and `--file` totals a resident file, and neither
+    knew the other existed — so deciding between cutting a description and cutting a
+    paragraph was two commands and a subtraction by hand.
+
+    Two figures and never a sum: the schema is sent once at the handshake and a file is read
+    on every turn, so adding them is a number wrong for every session with more than one
+    turn, which is all of them.
+    """
+    _priced(tmp_path)
+    (tmp_path / "agents.md").write_text("x" * 300 + "\n", encoding="utf-8")
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
+        '[budgets]\n"agents.md" = { bytes = 900 }\n',
+        encoding="utf-8",
+    )
+    assert main(["-C", str(tmp_path), "budget", "--session", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["once"]["characters"] > 0
+    assert payload["each_turn"]["files"][0]["path"] == "agents.md"
+    # No total: a key holding the sum is the multiplier this read exists not to hide.
+    assert "total" not in payload
+
+
+def test_the_session_read_answers_a_project_with_no_budgeted_file(tmp_path, capsys):
+    # `--file` raises here; this says the real answer, which is that the schema is the whole
+    # of what such a session pays.
+    _priced(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "--session"]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "declares no [budgets] file" in said and "once" in said
+
+
+def test_the_session_read_is_a_subject_and_not_a_narrowing(tmp_path, capsys):
+    # One answer per call (RK489): asked beside another subject it is refused, which is what
+    # makes it a sixth subject rather than a flag on one of the two it reads.
+    _priced(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "--session", "--tools"]) == EXIT_USAGE
+    assert "one answer per call" in capsys.readouterr().err
