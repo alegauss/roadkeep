@@ -103,32 +103,6 @@ names the file the caller has open.
 
 ## Block B — Authoring
 
-### §RK1028 The mark the other reader kept
-
-RK1023 took the byte order mark off the pipe. The other reader kept it: `--body-file`
-and `--section-body-file` open a path as `utf-8`, and every mainstream Windows editor —
-Notepad, VS Code's "UTF-8 with BOM", PowerShell's `Out-File` and `Set-Content -Encoding
-utf8` — writes one.
-
-Reproduced in three commands: a body file whose first three bytes are `EF BB BF`,
-`section add X --body-file body.md`, and the mark is in `IMPROVEMENTS.md`. `lint` then
-reports **clean**.
-
-That is what makes this worse than the pipe was. Stdin was loud — `char.invisible`
-refused the field — so an author knew. Here nothing does: the writer accepts it, the
-gate's invisible scan reads task lines and not section bodies, and L3 preserves the byte
-for as long as the file lives. It is invisible in an editor by definition, so the first
-reader to notice is whoever greps the heading and finds nothing.
-
-**Two halves, and the second is the durable one.** The read is `removeprefix`, as
-`verbs/reading.py` now does for the pipe — one mark, at position 1, the encoder's and
-not the author's. And the gate's invisible scan should reach a section body: the
-argument that closed the pipe is one nothing holds about any other route in.
-
-What proves it: a body file opening with the mark writes prose that does not, the same
-codepoint further in is still the author's, and a file already carrying one is red at
-the gate rather than clean.
-
 ## Block C — Query
 
 ### §RK1029 The read RK1024 did not reach

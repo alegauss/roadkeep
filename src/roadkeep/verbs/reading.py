@@ -115,7 +115,9 @@ def _body_reader(literal: str | None, path: str | None) -> Callable[[], str]:
     # nothing, while the pipe is the one source spent by looking at it. RK381's deferral is
     # unchanged for that one — it is the only case its argument was ever about.
     if path is not None:
-        return Rereadable(lambda: Path(path).read_text(encoding="utf-8"))
+        # The same mark, by the shorter route (RK1028): every mainstream Windows editor
+        # writes one, and a path is the source a caller reaches for when the prose is long.
+        return Rereadable(lambda: _unmarked(Path(path).read_text(encoding="utf-8")))
     if literal is not None and literal != STDIN:
         return Rereadable(lambda: literal)
     _refuse_unhardened()

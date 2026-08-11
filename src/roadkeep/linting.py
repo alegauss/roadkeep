@@ -616,6 +616,8 @@ def _examine(config: Config, since: str | None, tree: Tree) -> Report:
             prose[role] = document
     anchors = {role: anchored(document) for role, document in prose.items()}
     sections = tuple(section for found in anchors.values() for section in found)
+    for role, document in prose.items():
+        findings.extend(_marks(config, role, document))
     if prose:
         findings.extend(_pointers(config, documents, anchors))
         for role, document in prose.items():
@@ -799,6 +801,48 @@ def _characters(config: Config, role: str, document: Document) -> list[Finding]:
             if not suspect(match.group(), indent=column <= head):
                 continue
             out.append(_named(file, number, column, match.group(), ids.get(number, "")))
+    return out
+
+
+#: The one codepoint a prose file is swept for (RK1028). Not the rest of :func:`suspect`'s
+#: domain, and §RK34 is why: a design explaining a lookalike has to **quote** it, so a scan
+#: over prose would report the paragraph that documents the defect as the defect. A mark is
+#: the exception that proves the rule — no design pastes one, they name it `U+FEFF`, and no
+#: keyboard produces it. What does produce it is every mainstream Windows editor, ahead of a
+#: file `--body-file` then reads whole.
+MARK = "﻿"
+
+
+def _marks(config: Config, role: str, document: Document) -> list[Finding]:
+    """A byte-order mark anywhere in a prose file, which is never something anybody wrote.
+
+    The gate half of RK1028. The writer now strips one at position 1 of a stream or a file,
+    where it is the encoder's; this is the file that already carries one — from an editor,
+    from a paste, from the route that was open before the strip — and it is invisible by
+    definition, so the first reader to notice is whoever greps a heading and finds nothing.
+
+    Anywhere and not only at the start, because that is where the hole was: a body read from
+    a path lands **mid-file**, under whatever heading the section was placed at, and a rule
+    about position 1 would have reported nothing. The code is `char.bom` either way — one
+    byte, one meaning, one door.
+    """
+    file = config.relative(config.path(role))
+    out: list[Finding] = []
+    for number, raw in enumerate(document.lines, start=1):
+        column = raw.find(MARK)
+        while column >= 0:
+            out.append(
+                Finding(
+                    "char.bom",
+                    file,
+                    "U+FEFF byte-order mark inside the prose: not text, invisible in an "
+                    "editor, and a byte the round-trip compares",
+                    number,
+                    "",
+                    column + 1,
+                )
+            )
+            column = raw.find(MARK, column + 1)
     return out
 
 

@@ -61,9 +61,9 @@ from pathlib import Path
 
 from roadkeep import queueing
 from roadkeep.backlog import Backlog, id_order
-from roadkeep.config import Config
+from roadkeep.config import PROSE_ROLES, Config
 from roadkeep.document import Document, StaleFile, ending, write_atomically
-from roadkeep.linting import LINE_ROLES
+from roadkeep.linting import LINE_ROLES, MARK
 from roadkeep.schema import indentation, repaired
 from roadkeep.markers import derive
 from roadkeep.schema import Dep, DepKind, Schema, Task
@@ -172,12 +172,61 @@ def fix(config: Config) -> Fix:
         skipped.extend(outcome.skipped)
         written.extend(outcome.files)
         refused.extend(outcome.refused)
+    for role in PROSE_ROLES:
+        if not config.has(role) or not config.path(role).is_file():
+            continue
+        outcome = _unmark_file(config, role)
+        repairs.extend(outcome.repairs)
+        written.extend(outcome.files)
+        refused.extend(outcome.refused)
     return Fix(
         repairs=tuple(repairs),
         skipped=tuple(skipped),
         files=tuple(written),
         refused=tuple(refused),
     )
+
+
+def _unmark_file(config: Config, role: str) -> Fix:
+    """Delete every byte-order mark from one prose file, and nothing else (RK1028).
+
+    The repair for the one finding a prose file can now carry. The character pass above does
+    not run here and must not — §RK34's argument is that a design explaining a lookalike has
+    to quote it — so this is the single codepoint that argument does not cover: no design
+    pastes a mark, and every mainstream Windows editor writes one.
+
+    Derived, so `--fix` may make it (RK16): a mark is not a word of anybody's, and deleting
+    one changes what the file *is* by zero characters of prose. The whole edit, so the offer
+    `lint` prints is one this pass keeps — a gate that names `--fix` and then writes nothing
+    is worse than one that names no door at all.
+    """
+    document = config.document(role)
+    file = config.relative(config.path(role))
+    lines = list(document.lines)
+    repairs: list[Repair] = []
+    for index, raw in enumerate(lines):
+        if MARK not in raw:
+            continue
+        kept = raw.replace(MARK, "")
+        lines[index] = kept
+        repairs.append(
+            Repair(
+                file,
+                index + 1,
+                "",
+                raw.rstrip("\r\n"),
+                kept.rstrip("\r\n"),
+                (f"codepoint removed: U+{ord(MARK):04X}, a byte-order mark",),
+            )
+        )
+    if not repairs:
+        return Fix()
+    try:
+        document.assert_current()
+    except StaleFile as moved:
+        return Fix(refused=(str(moved),))
+    write_atomically(Path(config.path(role)), "".join(lines))
+    return Fix(repairs=tuple(repairs), files=(file,))
 
 
 def _fix_file(config: Config, role: str, backlog: Backlog) -> Fix:

@@ -460,3 +460,68 @@ def test_only_one_mark_comes_off(tmp_path):
     )
     assert done.returncode == EXIT_USAGE
     assert b"char.invisible" in done.stderr
+
+
+def test_a_body_file_carrying_a_mark_writes_prose_that_does_not(tmp_path):
+    """The other reader RK1023 left open. Every mainstream Windows editor writes a mark —
+    Notepad, VS Code's "UTF-8 with BOM", PowerShell's `Out-File` — and a path is the source
+    a caller reaches for when the prose is long, so this was the shorter route in."""
+    root = project(tmp_path)
+    body = root / "body.md"
+    body.write_bytes(PREAMBLE + "A rationale whose first byte came from an editor.".encode())
+    done = cli(
+        root,
+        "add",
+        "--block",
+        "A",
+        "--symptom",
+        "A sixth symptom",
+        "--why",
+        "Because of one more reason.",
+        "--section",
+        "RK2",
+        "--section-body-file",
+        str(body),
+    )
+    assert done.returncode == EXIT_OK, done.stderr
+    written = (root / "IMPROVEMENTS.md").read_bytes()
+    assert b"A rationale whose first byte" in written
+    assert PREAMBLE not in written
+
+
+def test_a_mark_already_in_a_prose_file_is_red_at_the_gate_and_repairable(tmp_path):
+    """The half that is about the file rather than the write. It is invisible by definition,
+    so the first reader to notice one was whoever grepped a heading and found nothing —
+    `lint` reported clean. Anywhere and not only at the start: a body read from a path lands
+    mid-file, which is exactly where a rule about position 1 would have seen nothing."""
+    root = project(tmp_path)
+    prose = root / "IMPROVEMENTS.md"
+    prose.write_bytes(
+        prose.read_bytes() + "\n### §RK1 A design\n\nA rationale.\n".encode()
+    )
+    prose.write_bytes(prose.read_bytes().replace(b"A rationale", b"A " + PREAMBLE + b"rationale"))
+    done = cli(root, "lint")
+    assert done.returncode == 1
+    assert b"char.bom" in done.stdout
+    # The offer the gate prints is one this pass keeps: a `--fix` that names a door and then
+    # writes nothing is worse than a report with no door at all.
+    cli(root, "lint", "--fix")
+    assert PREAMBLE not in prose.read_bytes()
+    assert b"A rationale" in prose.read_bytes()
+    assert b"char.bom" not in cli(root, "lint").stdout
+
+
+def test_the_lookalikes_a_design_has_to_quote_are_still_prose(tmp_path):
+    """The bound, and §RK34's argument kept. A design explaining an invisible codepoint has
+    to quote one, so a scan over prose would report the paragraph that documents the defect
+    as the defect. A mark is the single exception: no design pastes one — they name it."""
+    root = project(tmp_path)
+    prose = root / "IMPROVEMENTS.md"
+    prose.write_bytes(
+        prose.read_bytes()
+        + "\n### §RK1 A design\n\nA rationale quoting \u200b and \ufe0f as examples.\n".encode()
+    )
+    # On the codes and not on the exit: this fixture's line carries no pointer, so `lint`
+    # has a `ref.missing` of its own to report, and the question here is only whether the
+    # character pass reached prose it was argued out of reaching.
+    assert b"char." not in cli(root, "lint").stdout
