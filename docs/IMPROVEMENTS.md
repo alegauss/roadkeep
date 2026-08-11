@@ -77,9 +77,69 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1033 The door the ancestor check did not reach
+
+RK1024 refuses a subsection whose arrival puts an ancestor over, RK1029 prices one
+before it is written, and both read `sections.binding` — the same rule the gate bills.
+Neither reaches the write that is *already* nested.
+
+`section amend <child> --body -` charges what RK215 settled: the child's own subtree,
+and the parent's total only where the parent is what was named. So a two-hundred-word
+rewrite of `§L.3` lands while `§L` goes eighty words over, and `lint` reports it
+afterwards — the sequence the two tasks above closed at `add` and left open at the door
+an author reaches more often.
+
+The asymmetry is not deliberate. RK1024's argument is that a limit reported after the
+prose exists is a limit discovered too late, and an `amend` is exactly where prose
+already exists: the author is holding the paragraph, and the refusal costs them the
+draft rather than the retry.
+
+**What makes this small.** `_refuse_overflow` is the whole check and already takes the
+document a write produced; `amend` builds one the same way. What has to be got right is
+the *delta*: a shorter body that leaves the parent over is a correction in the right
+direction, and refusing it is the deadlock RK215 measured — so what is refused is a
+write that makes the total worse, not one arriving at a file already over.
+
+What proves it: an amend that pushes a parent over is refused, one that shortens an
+already-over parent lands, and the gate agrees with both.
+
 ## Block C — Query
 
 ## Block D — The gate
+
+### §RK1032 The write a prefix reaches
+
+`roadkeep lint --f` writes files. So does `--fi`, `--fix` being the only long option of
+`lint` that starts with `f`, and argparse resolving any unambiguous prefix by default.
+Measured across the four flags this CLI itself declares as the ones that turn a read
+into a write:
+
+| typed | reaches |
+| --- | --- |
+| `lint --f` | `--fix` |
+| `claims --pr` | `--prune` |
+| `brief --cl` | `--claim` |
+| `pick --cla` | `--claim` |
+
+Every one of those is a `writes_when` in `cli.py` — the declaration `dispatch` reads to
+decide whether the write lock is taken (RK117). So the tool already knows exactly which
+flags are the dangerous ones, and hands each of them to a two-letter typo.
+
+The cost is not a refusal, which is what makes it worth a task: an abbreviation that
+misses is `unrecognized`, and RK1026 now answers that well. An abbreviation that *hits*
+is a write nobody typed, on files the guard exists to keep hands off, reported as a
+success.
+
+**The fix is one argument.** `ArgumentParser(allow_abbrev=False)` on every parser this
+CLI builds, which turns each row above into the refusal RK1026 already composes — the
+verb's own surface, and the near-miss named where `difflib` finds one.
+
+The bound worth stating: this removes an affordance nobody documented. No help string,
+no skill sentence and no message in this tree spells a flag short, so what breaks is a
+habit rather than a written interface.
+
+What proves it: each row above is refused and names the flag meant, no full spelling
+changes, and the parser declares it once rather than per subcommand.
 
 ## Block E — Adoption
 

@@ -26,9 +26,13 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1033** (deps: —) **section amend accepts a body that puts its parent over, which is the write RK1024 and RK1029 left open** — A design is amended more often than written, and an amend is where the prose already exists — so the refusal costs a draft rather than a retry. → §RK1033
+
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
+
+- 📋 **RK1032** (deps: —) **an unambiguous prefix reaches --fix, --prune and --claim, so a two-letter typo is a write nobody asked for** — argparse resolves abbreviations by default, and the four flags it hands over this way are exactly the ones this CLI declares as turning a read into a write. → §RK1032
 
 ## Block E — Adoption
 
