@@ -28,8 +28,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1041** (deps: —) **budget on a new task reports the assumed section's occupancy, so words-left describes a section the task will not use** — Asked before writing, it answers with a section belonging to another task - so words-left reads as a ceiling three words away when the real one is 300. → §RK1041
-
 ## Block D — The gate
 
 ## Block E — Adoption

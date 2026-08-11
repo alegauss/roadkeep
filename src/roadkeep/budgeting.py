@@ -62,7 +62,7 @@ constant — one arithmetic in two directions, and not two constants that can di
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Sequence
 
 from pathlib import Path
@@ -262,7 +262,7 @@ def budget_of(
             )
         )
     shares.append(Share("why", schema.why_max, schema.why_budget(task), width(task.why)))
-    section, absence = _section_of(config, task.ref or task.id)
+    section, absence = _section_of(config, task.ref or task.id, assumed=ref_assumed)
     return Budget(
         task=task,
         open_line=open_line,
@@ -280,7 +280,9 @@ def budget_of(
     )
 
 
-def _section_of(config: Config, anchor: str) -> tuple[Body | None, str]:
+def _section_of(
+    config: Config, anchor: str, *, assumed: bool = False
+) -> tuple[Body | None, str]:
     """This anchor's body budget, or None and why there is none.
 
     Swallowing the refusal :func:`body_budget` raises rather than propagating it, because
@@ -289,13 +291,29 @@ def _section_of(config: Config, anchor: str) -> tuple[Body | None, str]:
     every other project uses. The same holds for an anchor two files declare (RK303) — the
     line's own two fields are unaffected by it — but that one is a defect and the other is
     not, so the reason rides back with the absence rather than the two reading identically.
+
+    ``assumed`` says the anchor was **not chosen by anybody** — RK265's stand-in, the widest
+    pointer the roadmap already carries, used so the *structure* of an unwritten line is
+    never under-measured. Its occupancy is another task's, and reporting it answered the
+    question backwards (RK1041): `296 written, 4 left` about a section this task will not
+    write into, where what it gets is a fresh anchor and the whole limit. Measured twice in
+    one session — once an under-written section, once three retries of `add` against a
+    number bearing no relation to the limit enforced.
+
+    So the guess is kept where it is honest and dropped where it is not: the line's own two
+    fields still take the wider structure, and the section reads as the one an `add --section`
+    would create. Naming a `--ref` makes the anchor the caller's and this branch is not taken,
+    which is the read a child address wants (RK1029).
     """
     try:
-        return body_budget(config, anchor), ""
+        answer = body_budget(config, anchor)
     except AmbiguousAnchor as error:
         return None, str(error)
     except KeyError:
         return None, ""
+    if assumed:
+        answer = replace(answer, taken=0, subtree=0, written=False, under="", under_taken=0)
+    return answer, ""
 
 
 def _subject(

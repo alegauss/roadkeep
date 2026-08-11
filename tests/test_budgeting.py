@@ -1104,3 +1104,63 @@ def test_a_leaf_with_no_ancestor_answers_its_declared_limit(tmp_path):
     answer = body_budget(config, "IX")
     assert (answer.allowed, answer.aim) == (answer.limit, body_aim(answer.limit))
     assert answer.left == answer.limit - answer.taken
+
+
+# -- the section a new task will not write into (RK1041) ---------------------
+
+
+def outlined_with_a_full_section(tmp_path: Path, spent: int = 29, limit: int = 30) -> Config:
+    """An outline project whose one live design is the widest pointer its roadmap carries."""
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\nref_scheme = "outline"\n[files]\nroadmap = "ROADMAP.md"\n'
+        f'changelog = "CHANGELOG.md"\nimprovements = "IMPROVEMENTS.md"\n'
+        f"\n[limits]\nsection = {limit}\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "ROADMAP.md").write_text(
+        "# Roadmap\n\n## Block A — The model\n\n"
+        "- 📋 **RK1** (deps: —) **A symptom** — Because of a reason. → §IX\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "CHANGELOG.md").write_text(
+        "# Changelog\n\n## Block A — The model\n", encoding="utf-8"
+    )
+    (tmp_path / "IMPROVEMENTS.md").write_text(
+        "# Improvements\n\n## Block A — The model\n\n### IX A design\n\n"
+        + " ".join(["word"] * spent)
+        + "\n",
+        encoding="utf-8",
+    )
+    return Config.discover(tmp_path)
+
+
+def test_a_new_task_is_budgeted_for_the_section_it_will_create(tmp_path):
+    """The defect. RK265's stand-in for an unnamed pointer is the **widest anchor the roadmap
+    already carries**, so the structure of an unwritten line is never under-measured — and
+    reporting that anchor's *occupancy* answered about a section belonging to another task.
+    A new task gets a fresh anchor and the whole limit."""
+    config = outlined_with_a_full_section(tmp_path)
+    answer = budget(config, block="A")
+    assert answer.ref_assumed and answer.section is not None
+    assert not answer.section.written
+    assert (answer.section.taken, answer.section.allowed) == (0, answer.section.limit)
+    assert answer.section.under == ""
+
+
+def test_the_line_s_own_fields_still_take_the_wider_structure(tmp_path):
+    """The half that must not move: the guess is kept where it is honest. RK265's whole point
+    is that a pointer the caller did not name is assumed *wide*, so the `why` is never offered
+    room the `add` would refuse — and that is about the line, not about the section."""
+    config = outlined_with_a_full_section(tmp_path)
+    assumed = budget(config, block="A")
+    assert assumed.ref == "IX" and assumed.ref_assumed
+
+
+def test_a_named_ref_is_the_caller_s_and_is_answered_as_it_is(tmp_path):
+    """Naming a `--ref` makes the anchor a fact rather than a stand-in, which is the read a
+    child address wants (RK1029): there the ancestor's occupancy is exactly what binds."""
+    config = outlined_with_a_full_section(tmp_path)
+    answer = budget(config, block="A", ref="IX.5")
+    assert not answer.ref_assumed
+    assert answer.section is not None and answer.section.under == "IX"
+    assert answer.section.under_taken == 29

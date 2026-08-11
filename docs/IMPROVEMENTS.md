@@ -79,36 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1041 The budget for a section that is not the one being written
-
-`budget --symptom "…"` with no id is asked *before* writing a task, which is the whole
-point of it — "budget says how many characters the field has before you write" is what
-the refusals themselves advise. For a task that does not exist yet it answers:
-
-```
-T343  📋  deps —  (the line add would write next)
-  pointer  §LXVIII assumed, the widest this roadmap carries — pass --ref for the anchor this line will use
-  section  300 words (improvements), 296 written, 4 left  aim 3 more words
-```
-
-The `pointer` line is honest: it says the anchor is *assumed*. The `section` line then
-reports that assumed section's **occupancy** — 296 words are in §LXVIII, which belongs
-to an already-filed task. The new task will not write there. It gets its own anchor and
-**300 words, none of them written**.
-
-So the figures a caller acts on are wrong in the costliest direction: "4 left" reads as
-a ceiling three words away. Twice in one session here it produced the opposite of the
-intended behaviour — once under-writing a section, once sending an author through three
-retries of `add` against a number that bore no relation to the limit enforced.
-
-**The fix** is that `section` on a task with no id reports the budget for the section
-that task would create: the limit, zero written, the limit left. If the assumed
-pointer's occupancy is worth printing at all it belongs on the `pointer` line, which is
-already the one saying the anchor was a guess.
-
-**Related but not the same** as the parent-total problem: this is `budget` describing
-the wrong section, not `add` failing to validate a nested one.
-
 ## Block D — The gate
 
 ## Block E — Adoption

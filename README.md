@@ -118,16 +118,12 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 32 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 117 | 1 |
-| C — Query (consult without reading the file) | 1 | 79 | 1 |
+| C — Query (consult without reading the file) | 0 | 80 | 1 |
 | D — The gate | 0 | 126 | 0 |
 | E — Adoption | 0 | 76 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 91 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 1 | 532 | 6 |
-
-**Next ready:**
-
-- 📋 **RK1041** (deps: —) **budget on a new task reports the assumed section's occupancy, so words-left describes a section the task will not use** — Asked before writing, it answers with a section belonging to another task - so words-left reads as a ceiling three words away when the real one is 300. → §RK1041
+| **Total** | 0 | 533 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
