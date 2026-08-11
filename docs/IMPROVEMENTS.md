@@ -103,28 +103,6 @@ names the file the caller has open.
 
 ## Block B — Authoring
 
-### §RK1027 A guard that is right about the hazard and wrong about the cause
-
-Writing prose that mentions a sibling task not yet added is refused: *"names SH653,
-which no line carries: an id in this project's own prefix is read as spent, so the next
-`add` derives past it — spell the example outside SH, or name the id actually meant."*
-
-The hazard is real and the guard should stay. Both remedies it offers assume the id was
-an error — an illustration that borrowed the prefix, or a typo. Neither covers what the
-caller was actually doing, which is authoring two tasks that reference each other, in
-the only order a shell allows.
-
-The correct advice is *add the other task first, then write this section*, and it is
-absent. So the caller either learns the ordering by failing once, or edits the prose to
-remove a cross-reference the backlog wanted — the outcome that costs something, and the
-silent one.
-
-It is cheap to tell the difference. An id inside the project's prefix that is **at or
-just past** the derived next id is a forward reference to work in flight; an id far
-below it is a retired or mistaken one, which is the case `gaps` already answers. The two
-deserve different sentences, and the first should name the reordering rather than the
-rename.
-
 ### §RK1028 The mark the other reader kept
 
 RK1023 took the byte order mark off the pipe. The other reader kept it: `--body-file`

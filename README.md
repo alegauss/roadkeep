@@ -117,17 +117,17 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 1 | 31 | 2 |
-| B — Authoring (insert, never hand-edit) | 2 | 112 | 1 |
+| B — Authoring (insert, never hand-edit) | 1 | 113 | 1 |
 | C — Query (consult without reading the file) | 1 | 75 | 1 |
 | D — The gate | 0 | 124 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 91 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 4 | 518 | 6 |
+| **Total** | 3 | 519 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1027** (deps: —) **The forward-reference guard has no advice for the case it most often fires on: an id that is about to exist** — Its two remedies both assume the id was a mistake, so the caller writing two related tasks is told to rename or delete rather than to reorder. → §RK1027
+- 📋 **RK1028** (deps: —) **a body read from a path keeps its editor's BOM, and neither the write nor the gate reports the invisible byte** — RK1023 took the mark off the pipe and left it on the path, so the one route that writes a governed file unread is the one that carries it. → §RK1028
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

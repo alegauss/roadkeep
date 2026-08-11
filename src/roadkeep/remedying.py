@@ -833,8 +833,19 @@ _TABLE: Mapping[str, _Rule] = {
     ),
     "body.promise": _decide(
         "the design names an id no line carries, which the deriver reads as spent and the "
-        "next `add` steps past (RK431) — and whether it was an illustration or the id this "
-        "task should have had is the sentence's meaning, not the tool's:",
+        "next `add` steps past (RK431) — and whether it was an illustration, the id this "
+        "task should have had, or work not filed yet is the sentence's meaning, not the "
+        "tool's:",
+        (
+            ("next-id",),
+            # The door RK1027 found missing. Both rows below assume the id was an error, so
+            # a caller authoring two tasks that cite each other was told to rename or delete
+            # a cross-reference the backlog wanted — the outcome that costs something. The
+            # read and not the `add`, because the ordering is the whole advice: what the
+            # sibling's id will be, filed first, and this section written after.
+            "the id is a sibling not filed yet; this says what it will be — `add` it "
+            "first, and the section then names a line that exists",
+        ),
         (
             ("section", "amend", "{id}", "--body", "-"),
             "it was an example; spell it outside this project's prefix, where nothing "

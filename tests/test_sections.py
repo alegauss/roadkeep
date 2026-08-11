@@ -2867,3 +2867,61 @@ def test_a_container_nothing_points_at_is_not_charged_its_children(tmp_path):
     document, _ = add(config, "improvements", "IX.1", "A child", "Four short words.")
     document.save()
     assert lint(Config.discover(tmp_path)).findings == ()
+
+
+# -- three zones and not two (RK1027) ----------------------------------------
+
+
+def test_an_id_just_past_the_highest_is_a_sibling_not_yet_filed(tmp_path):
+    """The case both remedies missed. A caller authoring two tasks that cite each other has
+    to write one of them first, which is the only order a shell allows — and was told to
+    rename or delete the cross-reference the backlog wanted."""
+    config = project(tmp_path)
+    with pytest.raises(SectionError) as refused:
+        add(
+            config,
+            "improvements",
+            "RK3",
+            "A design",
+            "A paragraph naming RK4, the sibling task this one is filed beside.",
+        )
+    (violation,) = [one for one in refused.value.violations if one.code == "body.promise"]
+    assert "past every id a line carries" in violation.message
+    assert "file that task first and write this section after" in violation.message
+    # The advice the other two rows give is about a mistake, and this is not one.
+    assert "name the id actually meant" not in violation.message
+
+
+def test_an_id_far_past_the_highest_is_still_an_illustration(tmp_path):
+    """The bound, and it is what RK1002 bought: §RK498 named `RK999` against a backlog whose
+    next id was RK1000. Reading that as work in flight would take a refusal that was right
+    and blunt it — nobody is filing eight hundred tasks in the sitting."""
+    config = project(tmp_path)
+    with pytest.raises(SectionError) as refused:
+        add(config, "improvements", "RK3", "A design", "A paragraph naming RK999.")
+    (violation,) = [one for one in refused.value.violations if one.code == "body.promise"]
+    assert "spell the example outside RK" in violation.message
+    assert "past every id a line carries" not in violation.message
+
+
+def test_an_id_below_the_highest_is_a_hole_and_is_sent_to_gaps(tmp_path):
+    """The third zone, unchanged in kind and now named: below the maximum there was
+    something to retire, so where the id went is a question one verb already answers."""
+    config = project(tmp_path, roadmap=BACKLOG.replace(f"{RK1_LINE}\n", ""))
+    with pytest.raises(SectionError) as refused:
+        add(config, "improvements", "RK3", "A design", "A paragraph naming RK1.")
+    (violation,) = [one for one in refused.value.violations if one.code == "body.promise"]
+    assert "read `gaps` for where it went" in violation.message
+    assert "past every id a line carries" not in violation.message
+
+
+def test_a_mixed_body_is_answered_as_the_mistake_it_may_be(tmp_path):
+    """One violation and one sentence, so a body naming both is not two refusals. The
+    conservative reading wins: an author told to check a spelling loses a moment, and one
+    told to go and file a task that was a typo loses the turn."""
+    config = project(tmp_path, roadmap=BACKLOG.replace(f"{RK1_LINE}\n", ""))
+    with pytest.raises(SectionError) as refused:
+        add(config, "improvements", "RK3", "A design", "A paragraph naming RK1 and RK4.")
+    (violation,) = [one for one in refused.value.violations if one.code == "body.promise"]
+    assert "names RK1, RK4" in violation.message
+    assert "past every id a line carries" not in violation.message

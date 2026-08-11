@@ -1896,23 +1896,77 @@ def promised(schema: Schema, body: str, known: frozenset[str] | None) -> list[Vi
     # Deferred beside :func:`known`, and the same one-way edge (RK260).
     from roadkeep.ids import id_scanner  # noqa: PLC0415 - RK1002
 
+    scanner = id_scanner(schema)
     loose = [
-        match.group(0)
-        for match in id_scanner(schema).finditer(body)
-        if match.group(0) not in known
+        match for match in scanner.finditer(body) if match.group(0) not in known
     ]
     if not loose:
         return []
-    named = ", ".join(dict.fromkeys(loose))
+    named = ", ".join(dict.fromkeys(match.group(0) for match in loose))
+    ceiling = _highest_carried(scanner, known)
+    ahead = [
+        match
+        for match in loose
+        if 0
+        < int(match.group("number")) - ceiling.get(match.group("family"), 0)
+        <= _IN_FLIGHT
+    ]
     return [
         Violation(
             "body.promise",
             "body",
             f"names {named}, which no line carries: an id in this project's own prefix is "
-            f"read as spent, so the next `add` derives past it (RK431) — spell the example "
-            f"outside {'/'.join(schema.prefixes)}, or name the id actually meant",
+            f"read as spent, so the next `add` derives past it (RK431) — "
+            + (
+                # The case both old remedies missed (RK1027). An id past everything a line
+                # carries is not a typo and not a retirement: it is work in flight, and the
+                # caller is authoring two tasks that cite each other in the only order a
+                # shell allows. Told first, because the other two ask them to rename or
+                # delete a cross-reference the backlog wanted.
+                f"{named} is past every id a line carries, so file that task first and "
+                f"write this section after — or spell the example outside "
+                f"{'/'.join(schema.prefixes)}"
+                if len(ahead) == len(loose)
+                else f"spell the example outside {'/'.join(schema.prefixes)}, name the id "
+                f"actually meant, or read `gaps` for where it went"
+            ),
         )
     ]
+
+
+#: How far past the highest id a line carries a token may sit and still read as work in
+#: flight (RK1027). Three zones, not two: below the maximum a missing id is a hole `gaps`
+#: answers; **just** past it is the sibling being authored alongside this one; far past it
+#: is an illustration, which is the case RK1002 was filed for — §RK498 named `RK999` against
+#: a backlog whose next id was RK1000, and calling that a forward reference would take the
+#: refusal RK1002 bought and blunt it.
+#:
+#: Not configuration (L6), and the same argument `ranking.NEAREST` makes: a project declares
+#: how long its lines may be, and this is a property of how a sitting authors — measured on
+#: this repository's own two batches of cross-citing tasks, which spanned three ids each.
+_IN_FLIGHT = 8
+
+
+def _highest_carried(
+    scanner: re.Pattern[str], known: frozenset[str]
+) -> dict[str, int]:
+    """The largest number each family holds as a line, read off ``known`` (RK1027).
+
+    The discriminator between a forward reference and a mistake, and it needs no second view
+    of the surface: `known` is already every id some file carries, and the same scanner that
+    found the loose token names the family and the number of each one. A maximum and not
+    `next_id`: this function takes no project, which is what keeps `promised` the one place
+    the *rule* lives — and `next_id` derives past everything a line carries, so the two
+    disagree only about ids that are ahead either way.
+    """
+    ceiling: dict[str, int] = {}
+    for one in known:
+        match = scanner.fullmatch(one)
+        if match is None:
+            continue
+        family = match.group("family")
+        ceiling[family] = max(ceiling.get(family, 0), int(match.group("number")))
+    return ceiling
 
 
 def violations(

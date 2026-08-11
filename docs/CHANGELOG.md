@@ -159,6 +159,7 @@
 - ✅ **RK1023** **the --why - stdin escape hatch is unusable on PowerShell, which prefixes a BOM the char.invisible check rejects** — A field read on stdin loses the one mark its encoder opened with, so the escape hatch works on the shell that most needs it; the same codepoint further in is still refused.
 - ✅ **RK1024** **add accepts a subsection that lint then fails, because the parent section's total is not checked at insert** — A child is charged to the address that owns it before the write, and the listing that offers one says where its parent has no room left.
 - ✅ **RK1026** **An unrecognised flag falls through to argparse, so a near-miss gets the verb list and its own value echoed back** — An unrecognised flag is refused by this tool now: the verb that was reached, the option token alone, and that verb's own surface rather than the whole tool's.
+- ✅ **RK1027** **The forward-reference guard has no advice for the case it most often fires on: an id that is about to exist** — An id just past everything a line carries is named as the sibling not filed yet, with the ordering as the advice; far past it is still an illustration and below it still a hole.
 
 ## Block C — Query
 
