@@ -244,7 +244,7 @@ def _harness(
 
 
 @pytest.mark.skipif(not NODE, reason="node is not on PATH")
-def test_the_tree_groups_by_block_and_separates_what_is_blocked():
+def test_the_tree_groups_by_block_and_separates_what_is_blocked(populated):
     """The two properties RK1006 is about, neither of which a source read can see: rows are
     grouped by the block **the payload gave**, and a line that cannot be started is last and
     carries its blocker. Run against this repository's own `docs/` and the real verbs — the
@@ -254,8 +254,12 @@ def test_the_tree_groups_by_block_and_separates_what_is_blocked():
     Skipped rather than required: node is a reader's toolchain and not this tree's, which is
     the whole of RK1010's open question — so this is the corpora rule (RK105) applied to a
     language, testing what is here and staying quiet where it is not.
+
+    Reading `populated` and not `HERE` (RK1098): this repository's own backlog is the fixture
+    whenever it has an open line in it, and on the day a block ships its last one the grouping
+    is asserted against a stand-in rather than reported as a failure.
     """
-    tree = _harness(HERE)
+    tree = _harness(populated)
     assert "notice" not in tree, tree.get("notice")
     assert tree["blocks"], "the harness read no block at all"
     for block in tree["blocks"]:

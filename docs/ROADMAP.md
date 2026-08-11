@@ -30,8 +30,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1098** (deps: —) **two tests read this repo's docs as a fixture and assume the roadmap has an open line** — shipping a block's last line turned test_editor and test_payloads red on a state the tool announces as normal, so an empty backlog reads as a broken build. → §RK1098
-
 ## Block E — Adoption
 
 - 📋 **RK1100** (deps: —) **adopt estimates what a project gains and never says the tool surface costs it fifty thousand characters** — an adopting project serves the same 52 tools measured here, so the largest number in the transaction is the one the estimate omits. → §RK1100

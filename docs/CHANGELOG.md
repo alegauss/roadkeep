@@ -424,6 +424,7 @@
 - ✅ **RK1092** **agents.md is eight bytes under its budget and the next sentence has nowhere to come from** — budget --file ranks a resident file's sections the way --tools ranks the surface, and the first reading says the Layout index is 37 percent of agents.md rather than the 23 RK203 recorded.
 - ✅ **RK1094** **the standing advice on which half of agents.md to compress rests on a figure that is off by half** — The index drops its task numbers, which origin answers better, and the config records that re-measuring reversed the advice: the index is 36 percent and the cheap cut, not the prose.
 - ✅ **RK1097** **the served surface is fifty thousand characters against eight thousand the gate holds** — [tools] session holds the whole served surface, measured at 52 tools in all three projects and so a fact about the package rather than the project.
+- ✅ **RK1098** **two tests read this repo's docs as a fixture and assume the roadmap has an open line** — the two tests that read this repo's docs take a populated root, which is docs/ while it has an open line and a stand-in when it does not.
 
 ## Block E — Adoption
 

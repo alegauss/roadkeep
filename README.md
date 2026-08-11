@@ -119,15 +119,15 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 40 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 130 | 1 |
 | C — Query (consult without reading the file) | 0 | 87 | 1 |
-| D — The gate | 1 | 144 | 0 |
+| D — The gate | 0 | 145 | 0 |
 | E — Adoption | 1 | 81 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 96 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 3 | 589 | 6 |
+| **Total** | 2 | 590 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1098** (deps: —) **two tests read this repo's docs as a fixture and assume the roadmap has an open line** — shipping a block's last line turned test_editor and test_payloads red on a state the tool announces as normal, so an empty backlog reads as a broken build. → §RK1098
+- 📋 **RK1099** (deps: —) **a flag added to a served verb is CLI-only until somebody lists it, and nothing says which ones are** — RK1095 added budget --session and left it off the tool's exposes for two tasks; only a remedy door naming it made the closure test notice. → §RK1099
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -81,25 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK1098 An empty backlog is a state, not a broken build
-
-Shipping RK1097 emptied Block D, and two tests went red: `test_editor` read no block at
-all and `test_payloads` produced no tasks. Neither is about the code that shipped — both
-read `docs/` as the conformance fixture (which is the arrangement this repo chose on
-purpose) and assume it carries at least one open line.
-
-That assumption is exactly the state `ship` announces as normal: it prints `block drop`
-when a block loses its last line, and a backlog with nothing open is what a finished
-project looks like. So the suite reports "broken" for the one outcome the tool is built
-to reach.
-
-The fix is not to keep a line open. It is for a test that needs an open task to make one
-— the tmp-path `project()` fixture the linting tests use already does — and for the two
-that genuinely read the real docs to assert on what is there rather than on there being
-something. Worth checking whether a third test has the same shape and has simply never
-seen an empty day, and whether the corpora tests would fail the same way against a Shio
-or Turing with nothing open.
-
 ## Block E — Adoption
 
 ### §RK1100 The estimate names every gain and no cost

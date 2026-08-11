@@ -13,9 +13,13 @@ shape. A payload that gains a field is compatible and stays green; one that lose
 key goes red. What this file reads **is** the contract, and every key it does not read stays
 free to move — which is the point of listing them rather than snapshotting the object.
 
-The one fixture that is not `docs/` is a finding: this repository's own gate passes, by law
-(`lint` must be clean here), so a payload carrying a finding has to be produced by a project
-that has one. It is the smallest possible: one line waiting on an id nothing carries.
+Two fixtures are not `docs/`, and both are states this repository cannot be in. A **finding**
+is one: the gate passes here by law (`lint` must be clean), so a payload carrying one has to
+come from a project that has one, and it is the smallest possible — a line waiting on an id
+nothing carries. An **open line** is the other, which sounds backwards until a block ships its
+last one: `conftest.populated` is this repository whenever the backlog has something in it and
+a stand-in when it does not, so an emptied roadmap changes which files are read and never
+whether the contract is asserted (RK1098).
 """
 
 from __future__ import annotations
@@ -92,7 +96,7 @@ def dirty() -> Path:
     shutil.rmtree(root, ignore_errors=True)
 
 
-def _argv(verb: str) -> tuple[str, ...]:
+def _argv(verb: str, root: Path | None = None) -> tuple[str, ...]:
     """The command, with the one subject `deps` needs read off the backlog rather than typed.
 
     Derived for the reason every id in this project is (RK4): a test naming a line spells an
@@ -103,40 +107,45 @@ def _argv(verb: str) -> tuple[str, ...]:
     if verb == "budget":
         # A block that exists, read off the backlog for `deps`' reason: a letter typed here
         # is a letter that stops being declared.
-        blocks = payload("stats")["blocks"]
+        blocks = payload("stats", root=root)["blocks"]
         return ("budget", "--block", blocks[0]["block"])
     if verb != "deps":
         return (verb,)
-    tasks = payload("list")["tasks"]
-    if not tasks:
-        pytest.skip("the backlog is empty: the graph read needs an open line to walk")
+    tasks = payload("list", root=root)["tasks"]
+    # No skip any more (RK1098): `populated` is the root that guarantees a line to walk, so an
+    # emptied backlog changes which files are read and never whether the contract is asserted.
     return ("deps", tasks[0]["id"])
 
 
 @pytest.mark.parametrize("verb", sorted(PROMISED))
-def test_the_top_level_keys_a_client_is_promised_are_there(verb, dirty):
+def test_the_top_level_keys_a_client_is_promised_are_there(verb, dirty, populated):
     """Read by name and never compared whole: a payload that gained a field is compatible,
     and asserting the object would make every addition a breaking change in this suite."""
-    where, code = (dirty, EXIT_GATE) if verb == "lint" else (None, EXIT_OK)
-    got = payload(*_argv(verb), root=where, expected=code)
+    where, code = (dirty, EXIT_GATE) if verb == "lint" else (populated, EXIT_OK)
+    got = payload(*_argv(verb, where), root=where, expected=code)
     missing = [key for key in PROMISED[verb] if key not in got]
     assert not missing, f"{verb} no longer carries {missing}"
 
 
 @pytest.mark.parametrize("verb", sorted(INSIDE))
-def test_the_keys_inside_a_row_are_there_too(verb, dirty):
+def test_the_keys_inside_a_row_are_there_too(verb, dirty, populated):
     """A client walks into `tasks` and `findings`, so a rename one level down breaks it just
     as hard — and one level is where it stops: nothing here reads a remedy's doors, so those
-    stay free to move until something outside says otherwise."""
+    stay free to move until something outside says otherwise.
+
+    The rows have to exist for any of that to be a claim, and `docs/` stopped producing them
+    the day a block shipped its last line (RK1098) — so the root is `populated`, which is this
+    repository whenever it has an open line and a stand-in when it does not.
+    """
     field, keys = INSIDE[verb]
-    where, code = (dirty, EXIT_GATE) if verb == "lint" else (None, EXIT_OK)
-    rows = payload(verb, root=where, expected=code)[field]
+    where, code = (dirty, EXIT_GATE) if verb == "lint" else (populated, EXIT_OK)
+    rows = payload(*_argv(verb, where), root=where, expected=code)[field]
     assert rows, f"{verb}: the fixture produced no {field} to read"
     missing = [key for key in keys if key not in rows[0]]
     assert not missing, f"{verb}.{field} no longer carries {missing}"
 
 
-def test_a_payload_is_the_whole_of_stdout_and_parses_as_one_object():
+def test_a_payload_is_the_whole_of_stdout_and_parses_as_one_object(populated):
     """The property a client depends on before any key: `--json` prints a document and not a
     document with a sentence above it. Held over every verb promised, because a status line
     that leaked onto stdout would break the parse and no key assertion would ever run."""
@@ -145,7 +154,7 @@ def test_a_payload_is_the_whole_of_stdout_and_parses_as_one_object():
             continue
         out = io.StringIO()
         with contextlib.redirect_stdout(out):
-            main(["-C", str(HERE), *_argv(verb), "--json"])
+            main(["-C", str(populated), *_argv(verb, populated), "--json"])
         assert isinstance(json.loads(out.getvalue()), dict), verb
 
 
@@ -174,3 +183,51 @@ def test_the_gate_exits_one_and_still_prints_a_payload(dirty):
     non-zero, so a reader that treats a non-zero exit as no output loses the findings."""
     got = payload("lint", root=dirty, expected=EXIT_GATE)
     assert got["clean"] is False and got["problems"] >= 1
+
+
+def test_the_stand_in_carries_what_an_emptied_backlog_takes_away(tmp_path):
+    """The fallback, exercised on the day it is not needed (RK1098).
+
+    `populated` returns this repository while the backlog has a line in it, so on almost every
+    run the stand-in is dead code — and dead code in a fixture is what the two tests it exists
+    for would discover the hard way, on the one run where it fires. So it is read here
+    directly, and against the properties those tests assert rather than against its text: rows
+    to walk, two blocks so grouping is a claim, and a line waiting on another so blocked
+    against ready is one too.
+    """
+    from conftest import _MINIMAL
+
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\n', encoding="utf-8"
+    )
+    (tmp_path / "ROADMAP.md").write_text(_MINIMAL, encoding="utf-8", newline="")
+
+    tasks = payload("list", root=tmp_path)["tasks"]
+    assert len(tasks) == 3
+    assert len({task["block"] for task in tasks}) == 2, "grouping is only a claim over two"
+    waiting = payload("deps", tasks[0]["id"], root=tmp_path)
+    assert any(payload("deps", task["id"], root=tmp_path)["blockers"] for task in tasks), (
+        "no line waits on another, so blocked-against-ready would be vacuous"
+    )
+    assert waiting["id"] == tasks[0]["id"]
+    # And it is a project this tool would accept, not just one it can parse: a stand-in the
+    # gate refuses is a fixture that tests the wrong thing.
+    assert payload("lint", root=tmp_path)["clean"] is True
+
+
+def test_an_emptied_backlog_is_not_a_failure(tmp_path):
+    """The state that made two tests red, asserted as the ordinary answer it is (RK1098).
+
+    `ship` prints `block drop` when a block loses its last line, so a roadmap with nothing open
+    is what this tool is built to reach. The payloads say so in their own shape — an empty list
+    and a zero — rather than by refusing.
+    """
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\n', encoding="utf-8"
+    )
+    (tmp_path / "ROADMAP.md").write_text(
+        "# Roadmap\n\n## Block A - The model\n", encoding="utf-8", newline=""
+    )
+    listed = payload("list", root=tmp_path)
+    assert listed["tasks"] == [] and listed["total"] == 0
+    assert payload("lint", root=tmp_path)["clean"] is True

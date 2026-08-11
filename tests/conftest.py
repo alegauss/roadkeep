@@ -323,6 +323,51 @@ def governed() -> Path:
     return _GOVERNED_AT_START
 
 
+# -- a backlog with something open in it (RK1098) -----------------------------
+
+#: The smallest roadmap that keeps the two properties a real one is read for non-vacuous: two
+#: blocks, so grouping is a claim, and a line waiting on another, so blocked-versus-ready is
+#: one too. Used only where this repository's own backlog has nothing open in it.
+_MINIMAL = (
+    "# Roadmap\n\n"
+    "## Block A \u2014 The model\n\n"
+    "- \U0001f4cb **RK1** (deps: \u2014) **A symptom plainly long enough to read** \u2014 "
+    "Because there is a reason for it. \u2192 \u00a7RK1\n"
+    "- \U0001f4cb **RK2** (deps: RK1) **A second symptom, waiting on the first** \u2014 "
+    "Because it cannot start before RK1 does. \u2192 \u00a7RK2\n\n"
+    "## Block B \u2014 Authoring\n\n"
+    "- \U0001f4cb **RK3** (deps: \u2014) **A third symptom under a second heading** \u2014 "
+    "Because grouping is only a claim where there are two. \u2192 \u00a7RK3\n"
+)
+
+
+@pytest.fixture(scope="session")
+def populated(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    """A root whose backlog has open lines: this checkout's, or a stand-in (RK1098).
+
+    Two tests read `docs/` for what a *client* sees — the editor's tree and the `--json` row
+    keys — and both asserted that the read produced something. Shipping the last line of a
+    block turned both red, on the state `ship` itself announces as normal: a backlog with
+    nothing open is what a finished project looks like, and the suite called it a broken build.
+
+    A skip would have been the easy answer and the wrong one, because the day it fires is the
+    day the contract goes unchecked. So the fixture supplies what the assertion needs instead:
+    the real files whenever they carry an open line — which keeps this repository the
+    conformance fixture it is — and a three-line stand-in when they do not.
+
+    Session-scoped and read once, like :func:`governed`, so every test asking sees one answer.
+    """
+    roadmap = HERE / "docs" / "ROADMAP.md"
+    if any(line.startswith("- ") for line in roadmap.read_text(encoding="utf-8").splitlines()):
+        return HERE
+    root = tmp_path_factory.mktemp("populated")
+    (root / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\n', encoding="utf-8"
+    )
+    (root / "ROADMAP.md").write_text(_MINIMAL, encoding="utf-8", newline="")
+    return root
+
+
 # -- the answer is about the call, not about the checkout (RK351) -------------
 
 
