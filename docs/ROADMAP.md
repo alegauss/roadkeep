@@ -28,8 +28,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1035** (deps: —) **the ancestor row names an add on a section that exists, and neither figure is what an amend may write** — RK1029 phrased the row for an unwritten address, so on a written one the caller is handed two numbers and the subtraction between them. → §RK1035
-
 ## Block D — The gate
 
 ## Block E — Adoption

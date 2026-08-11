@@ -388,8 +388,19 @@ class Body:
 
     @property
     def under_left(self) -> int:
-        """What the binding ancestor leaves, which is what an `add` here will accept."""
-        return max(0, self.limit - self.under_taken)
+        """What the binding ancestor leaves this body, which is what the next write accepts.
+
+        **Less what this section already contributes** (RK1035). The ancestor's total is
+        billed with everything under it, this section included, so quoting it raw answered a
+        written child with the room an *insert* would have — two figures and the subtraction
+        between them, which is the analysis this door exists to remove rather than move.
+
+        :attr:`taken` and not :attr:`subtree`: a write replaces this section's **own** prose
+        and leaves its subsections where they are, so what comes back is what a replacement
+        body may say and not what deleting the whole subtree would free. On an unwritten
+        anchor both are zero and the answer is what it always was.
+        """
+        return max(0, self.limit - (self.under_taken - self.taken))
 
     @property
     def left(self) -> int:

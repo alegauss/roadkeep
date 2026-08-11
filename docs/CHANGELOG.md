@@ -244,6 +244,7 @@
 - ✅ **RK1021** **Nothing enumerates the questions a maintainer asks a governed file, so the law about answering them holds nothing** — The questions this project wrote down are a declared set, each one an argv the CLI parses and only reads, and every read-only verb answers one or says why it answers none.
 - ✅ **RK1025** **A section address given to show is answered as an unknown task id, though section show is the verb for it** — An argument that addresses a section is answered with the verb that prints one, and a declared address replaces the absence rather than arguing with it.
 - ✅ **RK1029** **budget answers a whole limit free for a child whose parent has one word left, which is the read an add is composed from** — The pre-add read carries the ancestor that binds and what it leaves, beside the field own limit rather than instead of it.
+- ✅ **RK1035** **the ancestor row names an add on a section that exists, and neither figure is what an amend may write** — The ancestor row discounts what this section already contributes and names the verb that follows, so the figure is what the next write accepts.
 
 ## Block D — The gate
 

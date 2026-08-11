@@ -79,34 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1035 The number the row did not state
-
-RK1029 gave `budget` the ancestor row, and phrased it for the read it was filed from —
-an address nobody has written yet. On a **written** anchor it answers a question the
-caller is not asking:
-
-> `body       30 words, 5 written, 25 left  aim 23 more words`
-> `under      §IX spends 19 of 30, so 11 is what an `add` here accepts`
-
-The verb is wrong — there is no `add` here, the section exists and an `amend` is what
-follows — and neither number is the one that binds. `§IX` spends 19 *including* this
-child's 5, so a replacement body may be 16 words: `30 - (19 - 5)`. The reader is handed
-two figures and the subtraction between them.
-
-That subtraction is the whole thing this door exists to remove. *The saving is the
-analysis*, and a budget that states two numbers and leaves the third to arithmetic has
-kept the analysis and moved it.
-
-**What it should say** is the number an `amend` may write, derived the same way the
-refusal derives it: the ancestor's total, less what this section currently contributes
-to it, against the limit. The unwritten case is unchanged — there the contribution is
-zero and the row already reads correctly, which is why this was not visible when it
-landed.
-
-What proves it: a written child is answered with what a replacement body may say, the
-unwritten one answers exactly what it answers now, and the figure matches what `section
-amend` accepts on the next call.
-
 ## Block D — The gate
 
 ## Block E — Adoption

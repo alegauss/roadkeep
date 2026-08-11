@@ -700,9 +700,14 @@ def _body(section: Body, named: bool = True) -> str:
     # The row RK1029 added, and it is a row: the field's own limit stays the first number,
     # because that is what the paragraph has to fit — and this is the one that decides
     # whether the `add` after it lands.
+    # The verb is the one that follows this read (RK1035): a written anchor's next write is
+    # an `amend`, and naming an `add` there priced a section the caller is not about to
+    # insert. The number changed with the sentence — `under_left` is now what a replacement
+    # body may say, this section's own prose already discounted.
+    door = "amend" if section.written else "add"
     binds = (
         f"\n  under      §{section.under} spends {section.under_taken} of {section.limit}"
-        f", so {section.under_left} is what an `add` here accepts"
+        f", so {section.under_left} is what an `{door}` here accepts"
         if section.under
         else ""
     )

@@ -118,16 +118,12 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 32 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 116 | 1 |
-| C — Query (consult without reading the file) | 1 | 76 | 1 |
+| C — Query (consult without reading the file) | 0 | 77 | 1 |
 | D — The gate | 0 | 126 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 91 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 1 | 526 | 6 |
-
-**Next ready:**
-
-- 📋 **RK1035** (deps: —) **the ancestor row names an add on a section that exists, and neither figure is what an amend may write** — RK1029 phrased the row for an unwritten address, so on a written one the caller is handed two numbers and the subtraction between them. → §RK1035
+| **Total** | 0 | 527 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -29,6 +29,7 @@ from roadkeep.budgeting import (
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.linting import lint
 from roadkeep.config import Config
+from roadkeep.sections import SectionError, amend
 from roadkeep.schema import DESIGNED, body_aim
 
 BACKLOG = f"""# Roadmap
@@ -1010,3 +1011,52 @@ def test_the_tightest_ancestor_is_the_one_reported(tmp_path):
     )
     answer = body_budget(Config.discover(tmp_path), "IX.1.1")
     assert answer.under == "IX"
+
+
+def test_a_written_child_is_answered_with_what_a_replacement_body_may_say(tmp_path):
+    """RK1035. The ancestor's total is billed with everything under it, this section
+    included, so quoting it raw answered a written child with the room an *insert* would
+    have — two figures and the subtraction between them, which is the analysis this door
+    exists to remove rather than move."""
+    config = crowded(tmp_path, spent=10)
+    path = config.root / "IMPROVEMENTS.md"
+    path.write_text(
+        path.read_text(encoding="utf-8") + "\n#### IX.1 A child\n\n" + "word " * 5 + "\n",
+        encoding="utf-8",
+    )
+    answer = body_budget(Config.discover(tmp_path), "IX.1")
+    assert answer.written and answer.under == "IX"
+    # The parent's 19 include this child's 5, so a replacement body may be 30 - (19 - 5).
+    assert (answer.under_taken, answer.under_left) == (19, 16)
+
+
+def test_the_figure_is_what_the_write_after_it_accepts(tmp_path):
+    """The property the number is worth anything for: a budget the next call disagrees with
+    is the retry this whole door exists to save."""
+    config = crowded(tmp_path, spent=10)
+    path = config.root / "IMPROVEMENTS.md"
+    path.write_text(
+        path.read_text(encoding="utf-8") + "\n#### IX.1 A child\n\n" + "word " * 5 + "\n",
+        encoding="utf-8",
+    )
+    room = body_budget(Config.discover(tmp_path), "IX.1").under_left
+    document, _, _ = amend(
+        Config.discover(tmp_path), "improvements", "IX.1", body=" ".join(["term"] * room)
+    )
+    document.save()
+    with pytest.raises(SectionError):
+        amend(
+            Config.discover(tmp_path),
+            "improvements",
+            "IX.1",
+            body=" ".join(["term"] * (room + 1)),
+        )
+
+
+def test_an_unwritten_child_answers_exactly_what_it_answered(tmp_path):
+    """The half that must not move: on an unwritten anchor this section contributes nothing,
+    so the discount is zero and the row is the one RK1029 shipped."""
+    config = crowded(tmp_path, spent=29)
+    answer = body_budget(config, "IX.1")
+    assert not answer.written
+    assert (answer.under_taken, answer.under_left) == (29, 1)
