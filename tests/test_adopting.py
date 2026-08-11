@@ -1822,3 +1822,49 @@ def test_the_estimate_is_taken_under_the_numbers_the_gate_applies(tmp_path: Path
         "why.sentences",
         "why.no-terminator",
     }
+
+
+# -- the list init left ungoverned (RK1040) ----------------------------------
+
+
+def test_the_scaffold_governs_the_list_it_wrote_a_heading_for(tmp_path: Path, capsys) -> None:
+    """The defect. `init` wrote `## Non-goals` into the roadmap and no `[non_goals]` into
+    `roadkeep.toml`, so the one verb that fills that heading refused on a project the
+    scaffold had just created — with a reason that is `adopt`'s: prose predating the
+    grammar, which cannot be true of a heading `init` emptied."""
+    where = ["-C", str(tmp_path)]
+    assert main([*where, "init"]) == EXIT_OK
+    capsys.readouterr()
+    assert Config.discover(tmp_path).non_goals is not None
+    assert main([*where, "non-goal", "add", "--lead", "No web UI", "--why", "A second store."]) == EXIT_OK
+    capsys.readouterr()
+    assert main([*where, "non-goal", "list"]) == EXIT_OK
+    assert "No web UI" in capsys.readouterr().out
+    assert main([*where, "lint"]) == EXIT_OK
+
+
+def test_the_table_is_written_empty_so_the_numbers_stay_the_defaults(tmp_path: Path) -> None:
+    """`_scope` documents an empty table as the shortest way to opt in: what a project says
+    by writing it is *that* the list is a schema. Numbers here would read as limits somebody
+    chose, which is the argument `[ids] pad` and the `[ledger]` absences already make."""
+    assert main(["-C", str(tmp_path), "init"]) == EXIT_OK
+    text = (tmp_path / "roadkeep.toml").read_text(encoding="utf-8")
+    # The table is the last thing written, so what follows it is what it declares: nothing.
+    assert text.rstrip().endswith("[non_goals]")
+    assert "lead =" not in text
+    scope = Config.discover(tmp_path).non_goals
+    assert (scope.lead, scope.why) == (Scope().lead, Scope().why)
+
+
+def test_adopt_still_writes_no_config_at_all(tmp_path: Path, capsys) -> None:
+    """The bound, and the reason RK70 made the list opt-in: an adopting project's bullets
+    were written years before this grammar, and a gate reporting fifteen findings on the
+    first run is one that gets bypassed rather than adopted."""
+    (tmp_path / "ROADMAP.md").write_text(
+        "# Roadmap\n\n## Block A — The model\n\n## Non-goals\n\n- **Something long** that "
+        "somebody wrote as prose long before any of this existed.\n",
+        encoding="utf-8",
+    )
+    assert main(["-C", str(tmp_path), "adopt", str(tmp_path / "ROADMAP.md")]) == EXIT_OK
+    assert not (tmp_path / "roadkeep.toml").exists()
+    assert "not governed" in capsys.readouterr().out

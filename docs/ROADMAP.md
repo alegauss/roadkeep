@@ -28,11 +28,11 @@
 
 ## Block C — Query (consult without reading the file)
 
+- 📋 **RK1041** (deps: —) **budget on a new task reports the assumed section's occupancy, so words-left describes a section the task will not use** — Asked before writing, it answers with a section belonging to another task - so words-left reads as a ceiling three words away when the real one is 300. → §RK1041
+
 ## Block D — The gate
 
 ## Block E — Adoption
-
-- 📋 **RK1040** (deps: —) **init writes the Non-goals heading and no [non_goals], so the verb that fills it refuses on a fresh project** — The opt-in exists for prose that predates the grammar, which is adopt's case and cannot be true of a heading init just emptied. → §RK1040
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 

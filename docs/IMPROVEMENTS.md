@@ -79,38 +79,39 @@ already written, not authorship.
 
 ## Block C — Query
 
+### §RK1041 The budget for a section that is not the one being written
+
+`budget --symptom "…"` with no id is asked *before* writing a task, which is the whole
+point of it — "budget says how many characters the field has before you write" is what
+the refusals themselves advise. For a task that does not exist yet it answers:
+
+```
+T343  📋  deps —  (the line add would write next)
+  pointer  §LXVIII assumed, the widest this roadmap carries — pass --ref for the anchor this line will use
+  section  300 words (improvements), 296 written, 4 left  aim 3 more words
+```
+
+The `pointer` line is honest: it says the anchor is *assumed*. The `section` line then
+reports that assumed section's **occupancy** — 296 words are in §LXVIII, which belongs
+to an already-filed task. The new task will not write there. It gets its own anchor and
+**300 words, none of them written**.
+
+So the figures a caller acts on are wrong in the costliest direction: "4 left" reads as
+a ceiling three words away. Twice in one session here it produced the opposite of the
+intended behaviour — once under-writing a section, once sending an author through three
+retries of `add` against a number that bore no relation to the limit enforced.
+
+**The fix** is that `section` on a task with no id reports the budget for the section
+that task would create: the limit, zero written, the limit left. If the assumed
+pointer's occupancy is worth printing at all it belongs on the `pointer` line, which is
+already the one saying the anchor was a guess.
+
+**Related but not the same** as the parent-total problem: this is `budget` describing
+the wrong section, not `add` failing to validate a nested one.
+
 ## Block D — The gate
 
 ## Block E — Adoption
-
-### §RK1040 The list init left ungoverned
-
-`init` writes a roadmap with a `## Non-goals` heading and a `roadkeep.toml` with no
-`[non_goals]`. The verb that fills that heading then refuses:
-
-> `roadkeep.toml declares no [non_goals]: add the table to roadkeep.toml to govern the
-> list, since a schema applied to prose nobody wrote to it reports on adoption`
-
-The reason is right and it is about a file `init` did not write. RK70 made the list
-opt-in because two live corpora wrote theirs as free prose years before this grammar
-existed, and a gate reporting fifteen findings on the first run is one that gets
-bypassed. A project `init` created a minute ago has no such prose — the heading is empty
-because `init` emptied it.
-
-`adopt` is the door that reasoning is for, and it already says so out loud:
-*`[non_goals]` not governed, so measured at the defaults*. Nothing about that changes.
-
-The asymmetry is the tell. The roadmap has two extra lists and `init` scaffolds one of
-them — `priority = []`, empty, with a comment saying what may go in it. `[non_goals]` is
-the other, and it is the one left for the author to add by hand to a file the scaffold
-just wrote.
-
-**The fix** is the same line `priority` gets: an empty `[non_goals]` under a comment,
-which `_scope` already documents as the shortest way to opt in — declared at all means
-governed, and each number may be left default.
-
-What proves it: `non-goal add` works on a project `init` created, `adopt` writes no
-config, and a project that removed the table is refused exactly as it is now.
 
 ## Block F — The plugin
 

@@ -737,6 +737,16 @@ def render_config(schema: Schema, paths: Mapping[str, str]) -> str:
         # that meant seconds is refused rather than given a claim nobody would wait out (RK151).
         "# minutes a claim on a line reads as held, before a later caller steps over it",
         f"held = {CLAIM_HELD}",
+        "",
+        # Empty and declared, which `_scope` documents as the shortest way to opt in: what a
+        # project says by writing the table is *that* the list is a schema, and `lead` and
+        # `why` are what it may then tune (RK1040). Written here and nowhere else — RK70 made
+        # the list opt-in because two corpora wrote theirs as free prose years before this
+        # grammar, and that is `adopt`'s case: a `## Non-goals` this scaffold just emptied has
+        # no prose to report on, and leaving it ungoverned refused the one verb that fills it.
+        "# the roadmap's other list: declared at all means governed, and `lead` and `why`",
+        "# are the two limits a bullet is held to — 80 and 320 characters unless set here",
+        "[non_goals]",
     ]
     shape = [
         # Same rule as the heading word and the `[ledger]` absences: only what differs from
