@@ -196,3 +196,45 @@ def test_no_command_asks_the_model_to_author_a_field():
         body = path.read_text(encoding="utf-8").lower()
         for phrase in banned:
             assert phrase not in body, f"{path.name}: {phrase}"
+
+
+# -- the tools the skill says to prefer (RK1043, in part) --------------------
+
+
+@pytest.mark.parametrize("path", files(), ids=lambda p: p.stem)
+def test_every_verb_a_command_runs_is_reachable_as_a_tool(path):
+    """Half of RK1043, and the half this checkout can settle.
+
+    Three of the four commands declared `Bash(roadkeep …:*)` and nothing else, so on a
+    plugin-installed machine with no `pip install roadkeep` they had **no working path at
+    all**: the console script is not there (RK254), the pre-execution answers `command not
+    found`, and the only permission granted names the same missing script. `add` was already
+    the exception, declaring its tool — which is what the shipped skill tells every session
+    to prefer.
+
+    Both spellings, as `add` writes them: `mcp__roadkeep__<v>` where a project's own
+    `.mcp.json` declares the server and `mcp__plugin_roadkeep_roadkeep__<v>` where the plugin
+    provides it, because which prefix a session sees is a fact about how it was installed.
+
+    What this does **not** fix is the pre-execution line itself, which still spells the
+    console script — that is the open half, and it turns on whether a permission pattern
+    expands `${CLAUDE_PLUGIN_ROOT}` before it is compared.
+    """
+    allowed = frontmatter(path)["allowed-tools"]
+    served = {tool.command: tool.name for tool in TOOLS}
+    for declared in re.findall(r"Bash\(([^)]*)\)", allowed):
+        verb = declared.removeprefix("roadkeep ").removesuffix(":*").strip()
+        name = served.get(verb)
+        if name is None:
+            continue  # a verb this session does not publish as a tool has only the shell
+        for prefix in ("mcp__roadkeep__", "mcp__plugin_roadkeep_roadkeep__"):
+            assert f"{prefix}{name}" in allowed, f"{path.name}: {verb} has no {prefix} spelling"
+
+
+def test_the_tool_names_are_the_served_ones_and_not_the_cli_spelling():
+    """`next-id` is served as `next_id`: a hyphen is not a tool name, and a permission naming
+    one grants nothing. Read off `TOOLS` rather than transformed here, so the two surfaces
+    cannot disagree about a rename."""
+    allowed = " ".join(frontmatter(path)["allowed-tools"] for path in files())
+    for name in re.findall(r"mcp__(?:plugin_roadkeep_)?roadkeep__(\w+)", allowed):
+        assert name in {tool.name for tool in TOOLS}, name

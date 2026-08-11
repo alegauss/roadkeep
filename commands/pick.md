@@ -1,7 +1,7 @@
 ---
 description: What to work on next, and the reason it was chosen
 argument-hint: "[block]"
-allowed-tools: Bash(roadkeep pick:*), Bash(roadkeep brief:*), Bash(roadkeep deps:*)
+allowed-tools: mcp__roadkeep__pick, mcp__plugin_roadkeep_roadkeep__pick, mcp__roadkeep__brief, mcp__plugin_roadkeep_roadkeep__brief, mcp__roadkeep__deps, mcp__plugin_roadkeep_roadkeep__deps, Bash(roadkeep pick:*), Bash(roadkeep brief:*), Bash(roadkeep deps:*)
 ---
 
 Run `roadkeep pick`, scoped to the block in `$1` when that is not empty (`--block $1`) and

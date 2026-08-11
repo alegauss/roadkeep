@@ -1,7 +1,7 @@
 ---
 description: File one task line from words you already typed
 argument-hint: <block> | <symptom> | <why>
-allowed-tools: mcp__roadkeep__add, mcp__plugin_roadkeep_roadkeep__add, Bash(roadkeep add:*), Bash(roadkeep next-id:*)
+allowed-tools: mcp__roadkeep__add, mcp__plugin_roadkeep_roadkeep__add, mcp__roadkeep__next_id, mcp__plugin_roadkeep_roadkeep__next_id, Bash(roadkeep add:*), Bash(roadkeep next-id:*)
 ---
 
 File the task the user described in `$ARGUMENTS`.

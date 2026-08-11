@@ -1,6 +1,6 @@
 ---
 description: Check every governed line, and say where it drifted
-allowed-tools: Bash(roadkeep lint:*), Bash(roadkeep show:*)
+allowed-tools: mcp__roadkeep__lint, mcp__plugin_roadkeep_roadkeep__lint, mcp__roadkeep__show, mcp__plugin_roadkeep_roadkeep__show, Bash(roadkeep lint:*), Bash(roadkeep show:*)
 ---
 
 The gate, on this project's governed files:

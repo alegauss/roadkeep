@@ -34,7 +34,7 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK1043** (deps: —) **the four slash commands spell a console script the plugin's other two surfaces were written not to assume** — RK254 removed this family from the tool's messages and hooks.json and .mcp.json spell the launcher; commands/ still names roadkeep bare. → §RK1043
+- ⏳ **RK1043** (deps: —) **the four slash commands spell a console script the plugin's other two surfaces were written not to assume** — RK254 removed this family from the tool's messages and hooks.json and .mcp.json spell the launcher; commands/ still names roadkeep bare. → §RK1043
 
 ## Block G — The editor surface (the backlog where the file is open)
 

@@ -554,6 +554,7 @@
 - ✅ **RK486** **The sweep holding the spelling class renders each message once, and two of the four have a shape it never sees** — The sweep takes one entry per rendering, and a field that never leaves its default in any of them fails rather than leaving quietly.
 - ✅ **RK487** **A pipe in a block title breaks the readme table, where the site form escapes the same string** — a bar in a block title stays inside its own cell, so the readme table keeps its columns.
 - ✅ **RK488** **Every module that offers a command composes the sentence itself, so a new surface is reached one emitter at a time** — Every message that offers a call states a Door and one renderer spells it, held by a property no module outside it composes one, so a new surface is one change.
+- ✅ **RK1043 (the tools half)** **the four slash commands spell a console script the plugin's other two surfaces were written not to assume** — Every verb the four commands run is reachable as the tool the skill prefers, in both spellings, so none depends on a console script a marketplace install does not make.
 
 ## Block G — The editor surface (the backlog where the file is open)
 

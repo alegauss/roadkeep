@@ -1,7 +1,7 @@
 ---
 description: "Ship one task: ledger entry, line gone, rationale dropped"
 argument-hint: <id>
-allowed-tools: Bash(roadkeep ship:*), Bash(roadkeep show:*), Bash(roadkeep lint:*)
+allowed-tools: mcp__roadkeep__ship, mcp__plugin_roadkeep_roadkeep__ship, mcp__roadkeep__show, mcp__plugin_roadkeep_roadkeep__show, mcp__roadkeep__lint, mcp__plugin_roadkeep_roadkeep__lint, Bash(roadkeep ship:*), Bash(roadkeep show:*), Bash(roadkeep lint:*)
 ---
 
 Shipping `$1`:
