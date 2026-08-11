@@ -28,8 +28,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1039** (deps: —) **export answers a missing target with an errno and an absolute path, where the state next to it names the fix** — The sentence a missing file needs is already written for a file with no markers, and the absence falls through to OSError instead. → §RK1039
-
 ## Block D — The gate
 
 ## Block E — Adoption

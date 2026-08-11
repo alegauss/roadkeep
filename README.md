@@ -118,16 +118,12 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 32 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 117 | 1 |
-| C — Query (consult without reading the file) | 1 | 78 | 1 |
+| C — Query (consult without reading the file) | 0 | 79 | 1 |
 | D — The gate | 0 | 126 | 0 |
 | E — Adoption | 0 | 75 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 91 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 1 | 530 | 6 |
-
-**Next ready:**
-
-- 📋 **RK1039** (deps: —) **export answers a missing target with an errno and an absolute path, where the state next to it names the fix** — The sentence a missing file needs is already written for a file with no markers, and the absence falls through to OSError instead. → §RK1039
+| **Total** | 0 | 531 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

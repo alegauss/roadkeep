@@ -84,6 +84,28 @@ class NoMarkers(ValueError):
         )
 
 
+class NoTarget(ValueError):
+    """The file a named projection would be written into is not there at all (RK1039).
+
+    One state earlier than :class:`NoMarkers`, and until this it was the one state this verb
+    answered with an errno: `export --readme` on a project that has no README yet printed
+    `[Errno 2] No such file or directory` and the **absolute** path, where every other message
+    here prints the path relative to the root and names the command that closes it.
+
+    The sentence was already written for the file next door — a README that exists and carries
+    no markers is told to paste two lines — so this is that answer one step earlier, the file
+    being what the caller creates rather than a flag they pass. A bare `--readme` reaches it
+    too: the flag's `const` is the default path, so naming nothing still names a target, which
+    is why the "not there is not a target" rule below could never cover this door.
+    """
+
+    def __init__(self, where: str) -> None:
+        super().__init__(
+            f"{where} is not there: a projection is written between two markers, so create "
+            f"the file with these two lines where it belongs, then re-run —\n{BEGIN}\n{END}"
+        )
+
+
 @dataclass(frozen=True, slots=True)
 class Row:
     """One block, counted in both files."""
@@ -352,8 +374,14 @@ def splice_into(
     """
     target = config.root / (name if name is not None else DEFAULTS[flag][0])
     where = config.relative(target)
-    if name is None and not target.is_file():
-        return None, f"{where} is not there"
+    if not target.is_file():
+        # Silent where nothing named it — a `ship` refreshes whatever a project happens to
+        # keep, and an adopting one has a README long before it has a block in it. Refused
+        # where the flag did (RK1039), including the bare `--readme` whose `const` names the
+        # default: a caller who asked for a projection is owed a sentence, not an errno.
+        if name is None:
+            return None, f"{where} is not there"
+        raise NoTarget(where)
     with target.open("r", encoding="utf-8", newline="") as handle:
         before = handle.read()
     if name is None and BEGIN not in before:

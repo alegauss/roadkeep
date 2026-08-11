@@ -24,7 +24,7 @@ from roadkeep import cli, document, exporting
 from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.document import Document
-from roadkeep.exporting import BEGIN, END, NoMarkers, project, splice
+from roadkeep.exporting import BEGIN, END, NoMarkers, project, splice, splice_into
 from roadkeep.linting import lint
 from roadkeep.picking import take
 from roadkeep.schema import DESIGNED, IN_PROGRESS, RETIRED, SHIPPED
@@ -576,3 +576,40 @@ def test_the_projection_alone_is_still_the_projection(tmp_path, capsys):
     project_files(tmp_path)
     assert main(["-C", str(tmp_path), "export", "--json"]) == EXIT_OK
     assert json.loads(capsys.readouterr().out)
+
+
+# -- the errno where a sentence was (RK1039) ---------------------------------
+
+
+def test_a_named_target_that_is_not_there_is_refused_with_a_sentence(tmp_path, capsys):
+    """The defect. `export --readme` on a project that has no README yet answered `[Errno 2]
+    No such file or directory` and the **absolute** path — the one message in this verb that
+    named neither the fix nor an address a reader can paste."""
+    config = project_files(tmp_path)
+    (config.root / "README.md").unlink()
+    assert main(["-C", str(tmp_path), "export", "--readme"]) == EXIT_USAGE
+    err = capsys.readouterr().err
+    assert "README.md is not there" in err
+    # The sentence next door, one state earlier: the two lines that make a file a target.
+    assert BEGIN in err and END in err
+    # Scoped to the refusal: RK86's capture offer below it reproduces the argv deliberately,
+    # `-C <root>` included, and that line exists to be pasted rather than read.
+    refusal = err.split("If roadkeep itself")[0]
+    assert "Errno" not in refusal and str(tmp_path) not in refusal
+
+
+def test_the_site_target_answers_the_same_way(tmp_path, capsys):
+    """Both flags reach it, because both name a default path through the same `const`."""
+    project_files(tmp_path)
+    assert main(["-C", str(tmp_path), "export", "--site"]) == EXIT_USAGE
+    assert "docs/index.html is not there" in capsys.readouterr().err
+
+
+def test_a_target_nothing_named_is_still_skipped_in_silence(tmp_path):
+    """The half that must not move. A governed write refreshes whatever a project happens to
+    keep, and an adopting one has a README long before it has a block in it — so a target
+    nobody asked for is not there and is not a refusal (RK188)."""
+    config = project_files(tmp_path)
+    (config.root / "README.md").unlink()
+    write, said = splice_into(config, project(config), "readme")
+    assert write is None and "is not there" in said

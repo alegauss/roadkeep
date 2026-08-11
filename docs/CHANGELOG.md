@@ -247,6 +247,7 @@
 - ✅ **RK1029** **budget answers a whole limit free for a child whose parent has one word left, which is the read an add is composed from** — The pre-add read carries the ancestor that binds and what it leaves, beside the field own limit rather than instead of it.
 - ✅ **RK1035** **the ancestor row names an add on a section that exists, and neither figure is what an amend may write** — The ancestor row discounts what this section already contributes and names the verb that follows, so the figure is what the next write accepts.
 - ✅ **RK1036** **a section budget reports the limit that does not bind, so the aim promises room the write refuses** — A body budget reports the smaller of its declared limit, what its own subsections spend and what a binding ancestor leaves, and the aim comes off that.
+- ✅ **RK1039** **export answers a missing target with an errno and an absolute path, where the state next to it names the fix** — A target the flag named and nothing created is refused with the two lines that make a file one, at the path relative to the root.
 
 ## Block D — The gate
 

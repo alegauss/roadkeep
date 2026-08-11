@@ -79,37 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1039 The errno where a sentence was
-
-`export --readme` on a project whose README does not exist yet answers:
-
-> `roadkeep: [Errno 2] No such file or directory: 'C:\…\life\README.md'`
-
-One condition over, the same verb is exemplary. A README that exists and carries no
-markers gets:
-
-> `README.md has no begin marker: paste these two lines where the projection belongs,
-> then re-run —` followed by the two lines.
-
-So the sentence a missing file needs is already written for the state next to it, and
-the absence falls through to `OSError` instead. `--site` reaches the same hole at
-`docs/index.html`.
-
-Two things are wrong beyond the missing sentence. The address is **absolute**, where
-every other message in this tool prints the path relative to the project root — the one
-form a reader can paste into an editor or a `git add`. And the errno is the whole
-answer, so `export.unmarked`'s door, which the gate already declares and `explain`
-already answers, is unreachable from the state that most needs it: nobody has written
-the file at all.
-
-**What it should say** is what the marker refusal says, one step earlier: the target
-this projection writes into, that nothing is there, and the two lines that make a file
-one — which is a file the caller creates rather than a flag they pass.
-
-What proves it: a missing target names the file relative to the root and the markers
-that make it a target, `--site` and `--readme` answer the same way, and a target that
-exists is untouched.
-
 ## Block D — The gate
 
 ## Block E — Adoption
