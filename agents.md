@@ -1,19 +1,18 @@
 # roadkeep — Development Guide
 
-**What this is.** A CLI that owns writes to a project's `ROADMAP.md`,
-`CHANGELOG.md`, `IMPROVEMENTS.md` and `STRATEGY.md`, so the format is a schema at the
-point of insertion instead of a convention an author is asked to remember. Shipped as
-a Claude Code plugin, because the author to constrain is usually an agent.
+**What this is.** A CLI that owns writes to a project's `ROADMAP.md`, `CHANGELOG.md`,
+`IMPROVEMENTS.md` and `STRATEGY.md`, so the format is a schema at the point of insertion
+rather than a convention an author is asked to remember. Shipped as a Claude Code plugin,
+because the author to constrain is usually an agent.
 
-**The problem it solves, measured.** In Viglet Shio: 92 roadmap lines averaging **142 words**
-against a one-sentence rule; an `agents.md` that reached **186 KB** absorbing the rationale of
-every shipped task. Six of the eight worst lines were written in the session that then diagnosed
-it — the drift is invited by the process ([full measurement](docs/IMPROVEMENTS.md)).
+**The problem, measured.** In Viglet Shio: 92 roadmap lines averaging **142 words** against a
+one-sentence rule; an `agents.md` at **186 KB**. Six of the eight worst lines were written in
+the session that diagnosed it — the drift is invited by the process ([§0](docs/IMPROVEMENTS.md)).
 
 **The insight that decides every design question.** *The saving is the analysis, not the
-characters.* A linter reports after the prose exists, when the tokens are spent and the
-author is asked to delete work; a `maxLength` refuses before a sentence is composed to
-fill it, turning an analytical act ("what would I cut?") into a procedural one ("call `add`").
+characters.* A linter reports after the prose exists and asks the author to delete work; a
+`maxLength` refuses before a sentence is composed to fill it, turning an analytical act
+("what would I cut?") into a procedural one ("call `add`").
 
 ## The six laws
 
@@ -62,23 +61,22 @@ editor/, scripts/, tests/   the editor host and the archive it installs as (RK10
 `Schema.render` is the only writer of the line format, `Schema.validate` the only reader of
 the rules, and `Document` the only reader of a file — it keeps every source line verbatim
 and **every mutator refuses the whole file** when a line it parsed would render back
-differently. Never construct a task line with an f-string; before writing a command:
-
-- Get documents from `Config.document(role)`, never by picking a schema at the call site:
-  the changelog is `schema.as_ledger()` (✅, no deps, no pointer), not a second grammar.
-- A rejected marker line becomes a `Reject` **with a reason** (`audit` prints them); a dep
-  the parser cannot type still parses, so the line stays counted. That split is deliberate.
+differently. Never construct a task line with an f-string. Get documents from
+`Config.document(role)` and never by picking a schema at the call site: the changelog is
+`schema.as_ledger()` (✅, no deps, no pointer), not a second grammar. A rejected marker line
+becomes a `Reject` **with a reason** (`audit` prints them); a dep the parser cannot type
+still parses, so the line stays counted — that split is deliberate.
 
 ## This repo's own docs are the conformance fixture
 
 `roadkeep lint` **must pass on `docs/`** — the format is proven by the artefact, not asserted
 in a README. A limit that cannot express these lines is the wrong limit rather than a set of
-wrong lines, so a schema change validates here first, under this repo's `roadkeep.toml`.
-Don't hand-check it: `… lint` **exits 1** on any violation, line that stopped round-tripping,
-dep nothing satisfies, pointer resolving to nothing, section nothing points at, over-budget
+wrong lines, so a schema change validates here first, under this repo's `roadkeep.toml`. Don't
+hand-check it: `… lint` **exits 1** on any violation, line that stopped round-tripping, dep
+nothing satisfies, pointer resolving to nothing, section nothing points at, over-budget
 every-turn file, queue entry naming work that left, or invisible codepoint — as
 `file:line:column`, each carrying **the command that closes it** (RK14/15/30/34/326/420). CI
-runs it through the action this repo ships (RK17). `--fix` repairs only the **derived**
+runs it through the action this repo ships (RK17); `--fix` repairs only the **derived**
 (annotation, pointer, dep order, marker codepoint, whitespace, dead queue entry) (RK16).
 
 ## The write path is a skill, not a preamble
@@ -87,39 +85,36 @@ runs it through the action this repo ships (RK17). `--fix` repairs only the **de
 what it derives, the two rules a schema cannot check, the query surface and how work is picked —
 loaded when a governed file is in play and costing nothing on the turns that touch none (RK23).
 It ships in the plugin, so it is the same text in every adopting project and **nothing here
-repeats it**. This project's numbers are `roadkeep.toml`, and the package is not installed here,
-so read every command in it as `PYTHONPATH=src python -m roadkeep.cli <…>` from the repo root.
+repeats it**. The package is not installed here, so read every command in it as
+`PYTHONPATH=src python -m roadkeep.cli <…>` from the repo root; the numbers are `roadkeep.toml`.
 
 ## Build and test
 
 - **Python ≥3.11** (`tomllib` is stdlib there; 3.13.14 here) and **zero runtime deps**:
   `argparse` + `tomllib`, never `click` + `pydantic` — a tool meant to run as `uvx roadkeep`
   in someone else's CI pays for every dependency it takes.
-- `uv` is **not** here — `python -m pytest` from repo root (`pythonpath = ["src"]`). Deps:
-  `pip install --user pytest pytest-xdist`; `-n auto` is on, `-n0` undoes it.
-- Round-trip (L3) is a **property test over real files**: `docs/`, plus Shio's and Turing's
-  at the revision `tests/corpora.py` pins — absent or unpinnable, they skip (CI).
+- `uv` is **not** here — `python -m pytest` from repo root (`pythonpath = ["src"]`); deps are
+  `pip install --user pytest pytest-xdist`, `-n auto` is on and `-n0` undoes it. Round-trip
+  (L3) is a **property test over real files**: `docs/`, plus Shio's and Turing's at the
+  revision `tests/corpora.py` pins — absent or unpinnable, they skip (CI).
 
 ## Committing
 
 **One task → one commit, the instant it is validated.** What `ship` wrote goes in the *same*
 commit as the code, so the docs never describe a state that did not ship; a batch of ≥2 tasks
-is **not** permission to batch. Use `run-commit.cmd -m
-"<conventional-commits title>"` from the repo root, **`-m` always** and ASCII — without it a
-docs commit's prose about shipped work is misread as `feat: implement <feature>`. It stages
-everything, which is why a claim carries a **scope**: `claim <id> --path …` says what this
-commit owns, and `claim <id>` reads it back against the tree (RK280). **`ship` prints the `git
-add --` line** for the scope it releases (RK298) — run that, then commit. **Every commit bumps
-the patch version**, Claude Code re-reading an installed plugin per version (RK153) —
-`.githooks/pre-commit` does it and never blocks, wired by `git config core.hooksPath .githooks`.
+is **not** permission to batch. Use `run-commit.cmd -m "<conventional-commits title>"` from the
+repo root, **`-m` always** and ASCII — without it a docs commit's prose about shipped work is
+misread as `feat: implement <feature>`. It stages everything, which is why a claim carries a
+**scope**: `claim <id> --path …` says what this commit owns and `claim <id>` reads it back
+against the tree (RK280), and **`ship` prints the `git add --` line** for what it releases
+(RK298) — run that, then commit. **Every commit bumps the patch version**, Claude Code
+re-reading an installed plugin per version (RK153): `.githooks/pre-commit` does it, never
+blocks, and is wired by `git config core.hooksPath .githooks`.
 
-## Non-goals are binding
+## Non-goals are binding, and this file is scaffolding
 
 [docs/ROADMAP.md](docs/ROADMAP.md) → "Non-goals", which `brief` prints with every task. The one a
 suggestion keeps violating: **no model, no prompts** (L4) — a generator reintroduces this drift.
-
-## This file is scaffolding
-
-What loads every turn is only what a turn touching no governed file needs. Its budget is
-`[budgets]` in `roadkeep.toml`, held by `lint` and not by this sentence (RK30); the Layout index
-is a fifth of it, held by a test, and the prose here is what to compress (RK203).
+What loads every turn is only what a turn touching no governed file needs; the budget is
+`[budgets]` in `roadkeep.toml`, held by `lint` and not by this sentence (RK30), and the Layout
+index is a fifth of it, held by a test, so the prose here is what to compress (RK203).

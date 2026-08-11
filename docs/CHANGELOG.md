@@ -453,6 +453,7 @@
 - ✅ **RK394** **The wiring writes four surfaces and leaves the flag unhonoured when the driver's file cannot be written** — The driver's own file is checked with the surfaces and a target that is a directory is in its own way, so the flag refuses instead of landing four.
 - ✅ **RK402** **The tree that ships the plugin is told to wire the guard a second time** — a tree declaring the guard in its own plugin manifest is skipped for the settings surface with a reason, as its two siblings already were, so the check reports clean here.
 - ✅ **RK445** **adopt lists a block once per heading, so a ledger grouped by sub-headings reports the same label three times** — The estimate lists a block once per region through the reader RK439 narrowed, so a ledger grouped by sub-headings reports one label and two genuine regions still report two.
+- ✅ **RK1037** **agents.md is at 125 of 125 lines, so the next module added to the package makes the gate red** — The prose is compressed to 120 of 125 lines with the Layout index byte-identical, so the next module added has somewhere to be named.
 
 ## Block F — The Claude Code plugin
 

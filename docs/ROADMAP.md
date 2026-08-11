@@ -32,8 +32,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK1037** (deps: —) **agents.md is at 125 of 125 lines, so the next module added to the package makes the gate red** — RK203 decided the room comes out of the prose rather than the index, and the wall is only visible from a command nobody runs on a clean tree. → §RK1037
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Block G — The editor surface (the backlog where the file is open)

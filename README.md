@@ -120,14 +120,10 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 0 | 116 | 1 |
 | C — Query (consult without reading the file) | 0 | 78 | 1 |
 | D — The gate | 0 | 126 | 0 |
-| E — Adoption | 1 | 74 | 1 |
+| E — Adoption | 0 | 75 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 91 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 1 | 528 | 6 |
-
-**Next ready:**
-
-- 📋 **RK1037** (deps: —) **agents.md is at 125 of 125 lines, so the next module added to the package makes the gate red** — RK203 decided the room comes out of the prose rather than the index, and the wall is only visible from a command nobody runs on a clean tree. → §RK1037
+| **Total** | 0 | 529 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
