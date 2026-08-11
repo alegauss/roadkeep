@@ -257,6 +257,30 @@ def test_every_declaration_argues_rather_than_asserts():
         assert len(door.because.split()) >= 8, door.argv
 
 
+def test_the_gate_and_the_verb_read_one_predicate_and_not_two(tmp_path):
+    """RK1080. Both decide *is this a live partial*, and the gate's used to restate the
+    verb's while its docstring said it applied it. They agreed for the whole time they were
+    wrong — a drifting duplicate is loud, and one that stays in step is a rule whose second
+    copy nobody can find — so the question moved onto the record both of them hold.
+
+    Held by reading the source rather than by two behaviours agreeing, because agreeing is
+    exactly what the duplicate did.
+    """
+    from surface import address, modules
+
+    everywhere = {
+        module.where: module.text
+        for module in modules()
+        if module.where in (address("linting"), address("shipping"))
+    }
+    for where, text in everywhere.items():
+        assert "in_halves" in text, where
+    # The gate asks and never reads the field: a `.task.part` here is the restatement coming
+    # back. The verb still reads it — it *writes* the qualifier and puts it in messages —
+    # which is the difference between holding a value and re-deciding a question.
+    assert ".task.part" not in everywhere[address("linting")]
+
+
 def test_the_state_the_table_was_written_from_is_gone_afterwards(tmp_path):
     # RK1075's own state, end to end: the one that cost three capture reports. `lint` is what
     # says it is a state at all, and the door is what makes reporting it worth doing (RK1076).

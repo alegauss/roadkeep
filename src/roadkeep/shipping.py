@@ -1673,7 +1673,7 @@ def _partial(
         # the next step is filed under — which the shared message, written for an id the
         # ledger *closed*, has nowhere to put.
         where = config.relative(config.path("changelog"))
-        if recorded.task.part:
+        if recorded.task.in_halves:
             raise SecondPartial(
                 task_id,
                 where,
@@ -1690,7 +1690,7 @@ def _partial(
             where,
             recorded.lineno,
             recorded.task.status,
-            closable=not recorded.task.part,
+            closable=not recorded.task.in_halves,
         )
 
     if why is None:
@@ -1754,12 +1754,12 @@ def _depart(
     completing = (
         duplicate
         if duplicate is not None
-        and duplicate.task.part
+        and duplicate.task.in_halves
         and marker == config.schema.shipped_marker
         else None
     )
     if duplicate is not None and completing is None:
-        if duplicate.task.part:
+        if duplicate.task.in_halves:
             raise PartRecorded(
                 task_id, where, duplicate.lineno, duplicate.task.part, duplicate.task.status
             )
@@ -1770,7 +1770,7 @@ def _depart(
             duplicate.task.status,
             # Reached only where the entry carries no qualifier — a duplicate that does is
             # `PartRecorded` above — so the closure path takes this line (RK1075).
-            closable=not duplicate.task.part,
+            closable=not duplicate.task.in_halves,
         )
     if why is None:
         # `retire` always arrives with a derived sentence, so this is the ship path alone.
@@ -1960,8 +1960,8 @@ def _already_recorded(config: Config, task_id: str) -> Entry | None:
     # The qualifier and not the marker (RK1075): an entry naming a half is a live partial and
     # closing it would drop the half that has not landed, where a ⏳ line beside an entry that
     # names none is the two files disagreeing about one delivery — and the ledger is the file
-    # that records what shipped.
-    if recorded.task.part:
+    # that records what shipped. Through `Task.in_halves`, which the gate reads too (RK1080).
+    if recorded.task.in_halves:
         return None
     if (
         ledger.schema.symptom_field

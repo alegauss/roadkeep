@@ -117,17 +117,17 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 40 | 2 |
-| B — Authoring (insert, never hand-edit) | 1 | 126 | 1 |
+| B — Authoring (insert, never hand-edit) | 0 | 127 | 1 |
 | C — Query (consult without reading the file) | 0 | 84 | 1 |
 | D — The gate | 1 | 137 | 0 |
 | E — Adoption | 0 | 77 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 96 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 2 | 571 | 6 |
+| **Total** | 1 | 572 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1080** (deps: —) **the gate and the verb decide a live partial in two places that only agree by hand** — _in_halves says it applies the same test as _already_recorded and restates it, so RK1075 and RK1076 were one decision made twice and the next narrowing needs both edits. → §RK1080
+- 📋 **RK1081** (deps: —) **an id the roadmap and the deferred store both carry passes the gate and ship leaves it shipped and paused** — id.two-files compares the roadmap against the changelog and nothing compares either against the store, so the contradiction is silent and a departure only half resolves it. → §RK1081
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

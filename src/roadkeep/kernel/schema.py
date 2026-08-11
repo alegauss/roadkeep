@@ -680,6 +680,27 @@ class Task:
     def dep_ids(self) -> tuple[str, ...]:
         return tuple(d.id for d in self.deps)
 
+    @property
+    def in_halves(self) -> bool:
+        """Does this record declare that only part of the work landed? (RK121, RK1080)
+
+        One question with two readers and, until now, two implementations:
+        `shipping._already_recorded` decides whether a line can be closed against the entry
+        beside it, and `linting._in_halves` decides whether to report the pair — and the
+        second's docstring said it *applied* the first's test while restating it. Narrowing
+        both to the qualifier took two edits in two tasks (RK1075 moved the verb, RK1076
+        moved the gate), one decision arriving twice because nothing made it one. They
+        agreed for the whole time they were wrong, which is the shape a drifting duplicate
+        never has and the reason this is worth folding rather than watching.
+
+        Here rather than beside either caller, and that is measured rather than assumed: the
+        dependency runs `shipping` → `linting` (lazily, RK497), so a predicate in the verb
+        that the gate imported would close a cycle. It belongs here anyway — the qualifier is
+        a field of this record and the question is decidable from the record alone, which is
+        the line RK1066 draws between what a declaration answers and what needs a traversal.
+        """
+        return bool(self.part)
+
 
 @dataclass(frozen=True, slots=True)
 class Id:

@@ -1828,7 +1828,7 @@ def _across(config: Config, documents: dict[str, Document]) -> list[Finding]:
         out.extend(_undeclared_blocks(config, roadmap, ledger, file))
         shipped = ledger.by_id()
         for task_id, entry in roadmap.by_id().items():
-            if task_id in shipped and not _in_halves(entry, shipped[task_id]):
+            if task_id in shipped and not shipped[task_id].task.in_halves:
                 out.append(
                     Finding(
                         "id.two-files",
@@ -2137,35 +2137,6 @@ def _unorganised(config: Config, roadmap: Document, word: str) -> list[Finding]:
             subject=label,
         )
     ]
-
-
-def _in_halves(open_line: Entry, recorded: Entry) -> bool:
-    """Do the two files *say* this id is a live partial, rather than contradict each other?
-
-    `id.two-files` was written for one shape — a line somebody shipped and forgot to delete
-    — and half a delivery is the other one, where open and recorded are both true (RK122).
-    The two are told apart by what the files declare, and the test is the one
-    :func:`~roadkeep.shipping._already_recorded` already applies at the door `ship` refuses
-    at: a ⏳ line, or an entry naming a half. Either alone is enough, because a project that
-    adopted the format writes only the first — Shio's ⏳ SH238 carries a bare id in the
-    ledger, and it was **the only one of seven** in that state the gate reported, the six
-    others being silent behind a parenthetical the parser could not read (RK121). A finding
-    whose only avoidance is a syntax error teaches the syntax error.
-
-    **The marker stopped being enough** (RK1075, RK1076). That argument held while the state
-    had no repair: a ⏳ line beside an entry naming no half was refused by `ship`, `retire`
-    and `defer` alike, so a finding could only have asked for a hand edit — and the gate is
-    silent by design where it cannot name a door. RK1075 made `ship <id>` close exactly that
-    line, against the entry already there and writing nothing to the ledger, which is the
-    remedy `id.two-files` has always carried. So the silence costs more than the noise: `pick`
-    offered the line forever, `repair` cannot reach what `lint` never reports, and the only
-    evidence anything was wrong was a refusal from whichever verb the author happened to try.
-
-    What is left is the qualifier, which is what the two files *declaring* a half actually
-    looks like — and it is the same test `shipping._already_recorded` applies at the door, so
-    the gate and the verb still answer one question rather than two.
-    """
-    return bool(recorded.task.part)
 
 
 def _deps(backlog: Backlog, task: Task, file: str, lineno: int) -> list[Finding]:

@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1080** (deps: —) **the gate and the verb decide a live partial in two places that only agree by hand** — _in_halves says it applies the same test as _already_recorded and restates it, so RK1075 and RK1076 were one decision made twice and the next narrowing needs both edits. → §RK1080
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
