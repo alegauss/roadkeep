@@ -77,7 +77,99 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1026 The one refusal roadkeep did not write
+
+`ship SH625 --note "…"` prints argparse's usage line, the full list of thirty-odd verbs,
+`unrecognized arguments:` followed by the entire rejected value, and then the `report`
+hint. The flag meant was `--why`. Nothing in that output says so.
+
+Every other refusal in this tool is written to be acted on — `body.too-long` gives the
+count, the limit, the delta and a per-paragraph breakdown; a forward reference names the
+hazard and the two ways out. This one is the parsing library's default handler, and it
+fires *before* any of that exists, which is why it reads as coming from a different
+program.
+
+Two things make it worse than a plain unknown-flag error. The verb list is the least
+relevant thing on screen when the verb was right and the flag was wrong. And echoing the
+rejected value — often a paragraph of prose meant for `--why` — buries the one line that
+matters under text the caller just typed.
+
+The fix is an error handler that, for an unrecognised option, names the nearest of that
+subcommand's own options. `--note` against `--why` is not an edit-distance hit, so the
+useful form is *"ship takes: --why, --part, --lines, --superseded-design"* — the verb's
+own surface, which is short, rather than the tool's, which is not. Same law as RK1025,
+at the other end of the CLI.
+
+### §RK1027 A guard that is right about the hazard and wrong about the cause
+
+Writing prose that mentions a sibling task not yet added is refused: *"names SH653,
+which no line carries: an id in this project's own prefix is read as spent, so the next
+`add` derives past it — spell the example outside SH, or name the id actually meant."*
+
+The hazard is real and the guard should stay. Both remedies it offers assume the id was
+an error — an illustration that borrowed the prefix, or a typo. Neither covers what the
+caller was actually doing, which is authoring two tasks that reference each other, in
+the only order a shell allows.
+
+The correct advice is *add the other task first, then write this section*, and it is
+absent. So the caller either learns the ordering by failing once, or edits the prose to
+remove a cross-reference the backlog wanted — the outcome that costs something, and the
+silent one.
+
+It is cheap to tell the difference. An id inside the project's prefix that is **at or
+just past** the derived next id is a forward reference to work in flight; an id far
+below it is a retired or mistaken one, which is the case `gaps` already answers. The two
+deserve different sentences, and the first should name the reordering rather than the
+rename.
+
+### §RK1028 The mark the other reader kept
+
+RK1023 took the byte order mark off the pipe. The other reader kept it: `--body-file`
+and `--section-body-file` open a path as `utf-8`, and every mainstream Windows editor —
+Notepad, VS Code's "UTF-8 with BOM", PowerShell's `Out-File` and `Set-Content -Encoding
+utf8` — writes one.
+
+Reproduced in three commands: a body file whose first three bytes are `EF BB BF`,
+`section add X --body-file body.md`, and the mark is in `IMPROVEMENTS.md`. `lint` then
+reports **clean**.
+
+That is what makes this worse than the pipe was. Stdin was loud — `char.invisible`
+refused the field — so an author knew. Here nothing does: the writer accepts it, the
+gate's invisible scan reads task lines and not section bodies, and L3 preserves the byte
+for as long as the file lives. It is invisible in an editor by definition, so the first
+reader to notice is whoever greps the heading and finds nothing.
+
+**Two halves, and the second is the durable one.** The read is `removeprefix`, as
+`verbs/reading.py` now does for the pipe — one mark, at position 1, the encoder's and
+not the author's. And the gate's invisible scan should reach a section body: the
+argument that closed the pipe is one nothing holds about any other route in.
+
+What proves it: a body file opening with the mark writes prose that does not, the same
+codepoint further in is still the author's, and a file already carrying one is red at
+the gate rather than clean.
+
 ## Block C — Query
+
+### §RK1025 The neighbour a refusal never names
+
+`roadkeep show XX` answers *"no task XX in docs/ROADMAP.md or docs/CHANGELOG.md: an id
+in neither file was never written or was retired (RK32)"*. `XX` is a **section address**
+— the shape this tool prints in every `→ §XX.1` pointer it writes — and `section show
+XX` is the verb that answers it.
+
+The refusal is accurate and it answers a question nobody asked. It says what `XX` is
+not, in a vocabulary the caller was not using, and never mentions the one verb one word
+away. The reader's next move is a `grep` of a file the guard exists to keep them out of,
+which is the outcome the whole design is against.
+
+It was found driving a real block. A `ship` emptied a section and printed advice to
+amend it; the prose had to be read before rewriting it; `show` was the natural reach;
+the answer sent the reader to the file.
+
+The fix is the rule this tool enforces on the backlogs it governs, turned on itself: an
+argument that is not a task id but **is** a well-formed section address resolves to a
+`didYouMean` naming `section show`. The message is the cheap half. The decision is
+whether `show` should simply dispatch, since the two namespaces cannot collide.
 
 ## Block D — The gate
 

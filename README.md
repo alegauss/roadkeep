@@ -117,13 +117,17 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 31 | 2 |
-| B — Authoring (insert, never hand-edit) | 0 | 111 | 1 |
-| C — Query (consult without reading the file) | 0 | 74 | 1 |
+| B — Authoring (insert, never hand-edit) | 3 | 111 | 1 |
+| C — Query (consult without reading the file) | 1 | 74 | 1 |
 | D — The gate | 0 | 124 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 91 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 0 | 516 | 6 |
+| **Total** | 4 | 516 | 6 |
+
+**Next ready:**
+
+- 📋 **RK1025** (deps: —) **A section address given to show is answered as an unknown task id, though section show is the verb for it** — The refusal says what the argument is not, in a vocabulary the caller was not using, and never names the verb one word away. → §RK1025
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

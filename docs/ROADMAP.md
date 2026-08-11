@@ -26,7 +26,13 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1026** (deps: —) **An unrecognised flag falls through to argparse, so a near-miss gets the verb list and its own value echoed back** — Every refusal this tool authors names the fix, except the one that fires before its own code runs. → §RK1026
+- 📋 **RK1027** (deps: —) **The forward-reference guard has no advice for the case it most often fires on: an id that is about to exist** — Its two remedies both assume the id was a mistake, so the caller writing two related tasks is told to rename or delete rather than to reorder. → §RK1027
+- 📋 **RK1028** (deps: —) **a body read from a path keeps its editor's BOM, and neither the write nor the gate reports the invisible byte** — RK1023 took the mark off the pipe and left it on the path, so the one route that writes a governed file unread is the one that carries it. → §RK1028
+
 ## Block C — Query (consult without reading the file)
+
+- 📋 **RK1025** (deps: —) **A section address given to show is answered as an unknown task id, though section show is the verb for it** — The refusal says what the argument is not, in a vocabulary the caller was not using, and never names the verb one word away. → §RK1025
 
 ## Block D — The gate
 
