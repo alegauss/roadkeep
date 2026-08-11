@@ -81,28 +81,32 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK1044 The state with three closed doors
+### §RK1045 A remedy that is the command that failed
 
-Measured in Shio on 2026-08-11. `docs/ROADMAP.md` carries `⏳ **SH238**` and
-`docs/CHANGELOG.md:447` carries a `**SH238**` entry with **no partial qualifier** — a
-full ship beside a live line. Reachable in at least two ways: a `ship` without `--part`
-while a line survives, or a hand-edit predating the guard.
+Measured in Shio on 2026-08-11, on the state RK1044 describes. `ship SH238` is refused
+with:
 
-Every door is shut. `ship SH238` refuses — *"already recorded as ✅ … a second entry
-would make the ledger disagree with itself about how it left"*. `retire --superseded-by`
-refuses on the same invariant, which is the harder one to accept: retiring writes a
-*departure*, not a completion, and it is the verb whose whole job is a line leaving by
-another door. `repair` does not offer it because `lint` never reports it. And the plugin
-hook denies the `Edit`, correctly. So the line is **unremovable**, the two files
-disagree permanently, and `pick` keeps offering a task the ledger says is done.
+> SH238 is already recorded as ✅ in docs/CHANGELOG.md:447: a second entry would make the ledger
+> disagree with itself about how it left — `roadkeep.py ship SH238` closes the open line against the
+> entry that is already there, writing nothing to the ledger
 
-Both halves are the deliverable and the gate is the first. `lint` should report an open
-line whose id the ledger holds — it reads both files already, and this is a one-pass
-join. Then one verb has to accept it: the honest candidate is `retire`, whose refusal is
-over-broad, since "this line duplicates a closed id" is exactly a departure that is not
-a completion. Whichever way it goes, the invariant that refuses must name the state it
-is protecting against, because here it protected the ledger by making the roadmap
-permanently wrong.
+The remedy named is **the invocation that just failed**. Running it verbatim prints the
+same refusal, through the module entry point and through `scripts/roadkeep.py` alike, so
+it is not a path confusion. The sentence describes a behaviour the code does not have.
+
+This is separable from RK1044 and worth its own line, because the two can be fixed
+independently and only one of them is about the guard. RK1044 is *the state cannot be
+repaired*; this is *the tool says it can, and names how*. The second is the more
+expensive failure: a reader who is told a state is unfixable goes looking for another
+door, and a reader handed a command runs it, reads the same refusal, and concludes they
+typed it wrong. It cost two further attempts here — with `--lines`, and through the
+other entry point — before the sentence itself became the suspect.
+
+The general rule it argues for: a remedy string should be **executed by a test**, not
+merely written. This project already holds the position that a message naming a fix is a
+promise (RK420 made the gate print what closes each finding), and a promise nothing runs
+is prose. The narrow fix is whatever this branch should actually say; the durable one is
+the check.
 
 ## Block E — Adoption
 

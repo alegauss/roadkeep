@@ -29,7 +29,7 @@ from roadkeep.config import Config
 from roadkeep.document import Document, RoundTripError, StaleFile
 from roadkeep.linting import lint
 from roadkeep.schema import IN_PROGRESS, PARTIAL, Dep, Schema, SchemaError
-from roadkeep.shipping import NoSuchPath, SecondPartial
+from roadkeep.shipping import AlreadyRecorded, NoSuchPath, SecondPartial
 from roadkeep.sections import SectionOccupied
 from roadkeep.shipping import (
     Divergent,
@@ -1873,3 +1873,44 @@ def test_every_verb_that_writes_ledger_prose_holds_the_rule(tmp_path):
     ship(config, "RK1", why="It works now.")
     with pytest.raises(NoSuchPath):
         amend_record(config, "RK1", why=absent)
+
+
+# -- the refusal that named no door (RK1044) ---------------------------------
+
+
+def test_retire_on_an_already_recorded_id_names_the_verb_that_closes_it(tmp_path, capsys):
+    """Reported as a state where every door was shut, and two of them were not: the gate
+    reports this as `id.two-files`, and `ship <id>` with no `--why` closes the open line
+    against the entry already there. What was missing was the refusal saying so — a caller
+    who reaches it has already tried the verb whose whole job is a line leaving another way."""
+    config = project(tmp_path)
+    ledger = config.root / CHANGELOG
+    ledger.write_text(
+        ledger.read_text(encoding="utf-8").rstrip("\n")
+        + "\n\n- ✅ **RK1** **A first symptom** — It shipped once already.\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(AlreadyRecorded) as raised:
+        retire(Config.discover(tmp_path), "RK1", reason="It duplicates a closed id.")
+    said = str(raised.value)
+    # The invariant is still stated: what it protects is why it refuses at all.
+    assert "a second entry would make the ledger disagree" in said
+    assert "ship RK1" in said and "writing nothing to the ledger" in said
+
+
+def test_the_door_it_names_is_the_one_that_works(tmp_path):
+    """A refusal that hands over an argv hands over one that runs, which is the property
+    `test_hinting` holds over the package — asked here because this sentence is composed."""
+    config = project(tmp_path)
+    ledger = config.root / CHANGELOG
+    ledger.write_text(
+        ledger.read_text(encoding="utf-8").rstrip("\n")
+        + "\n\n- ✅ **RK1** **A first symptom** — It shipped once already.\n",
+        encoding="utf-8",
+    )
+    done = ship(Config.discover(tmp_path), "RK1")
+    # A `Closure` and not a `Departure`: the entry is somebody else's write and is the
+    # evidence here, so the ledger is opened only to be read.
+    assert isinstance(done, Closure) and done.recorded.task.id == "RK1"
+    done.save()
+    assert "**RK1**" not in read(Config.discover(tmp_path), ROADMAP)

@@ -30,7 +30,7 @@
 
 ## Block D — The gate
 
-- 📋 **RK1044** (deps: —) **an open line whose id the ledger already records as shipped can be closed by no verb, and the gate does not report it** — ship and retire both refuse a second entry, repair cannot see it and the hook denies the hand-edit, so the two files disagree with nothing able to fix it. → §RK1044
+- 📋 **RK1045** (deps: —) **a refusal offers as its remedy the exact command that produced it** — ship <id> on a line whose ledger entry exists prints 'ship <id> closes the open line', and running it prints the same refusal, so the reader believes they have a fix. → §RK1045
 
 ## Block E — Adoption
 

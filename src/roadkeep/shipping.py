@@ -212,9 +212,18 @@ class AlreadyRecorded(ValueError):
         self.task_id = task_id
         self.lineno = lineno
         self.marker = marker
+        # The door, and not the invariant alone (RK1044). A caller who reaches this from
+        # `retire` has already tried the verb whose whole job is a line leaving by another
+        # door, and was told only that a second entry would be wrong — while one bare command
+        # closes the line and touches no entry. The gate says the same thing about the same
+        # state (`id.two-files`), and every other refusal here carries the command that
+        # closes it. Reported as a Shio state where every door looked shut; two of them were
+        # not, and what was missing was this clause.
         super().__init__(
             f"{task_id} is already recorded as {marker} in {where}:{lineno}: a second "
-            f"entry would make the ledger disagree with itself about how it left"
+            f"entry would make the ledger disagree with itself about how it left — "
+            f"`{invocation()} ship {task_id}` closes the open line against the entry that "
+            f"is already there, writing nothing to the ledger"
         )
 
 
