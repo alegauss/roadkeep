@@ -24,11 +24,17 @@
 
 ## Block A — The model (a task is data before it is a line)
 
+- 📋 **RK1069** (deps: —) **the kernel is a boundary a test holds and not a place the code lives** — RK1065 named the two modules and the two ways they reach above themselves, and left them beside the rules, so the vocabulary ceiling has nothing to fall towards. → §RK1069
+
 ## Block B — Authoring (insert, never hand-edit)
 
 ## Block C — Query (consult without reading the file)
 
+- 📋 **RK1071** (deps: —) **budget prices a field against a limit and never says where the limit came from** — RK1067 put the citation on the refusal, and the read an author makes before writing prints the same numbers with nothing beside them, which is the earlier of the two moments. → §RK1071
+
 ## Block D — The gate
+
+- 📋 **RK1070** (deps: —) **the grammar fold reads codes out of a list it also rewrites** — _grammatical filters findings by code and file and drops them by identity, so a check added later that reports a whole file the same way is folded or not by accident. → §RK1070
 
 ## Block E — Adoption
 
