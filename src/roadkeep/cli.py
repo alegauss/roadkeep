@@ -194,6 +194,18 @@ class _Verb(argparse.ArgumentParser):
     of tests asserting the defaults are still declared.
     """
 
+    def __init__(self, *args: object, **kwargs: object) -> None:
+        # Declared here and not on forty `add_parser` calls (RK1032): argparse resolves any
+        # unambiguous prefix by default, so `lint --f` **wrote files** — and the four flags
+        # it handed over that way are exactly the ones this CLI declares as `writes_when`,
+        # which is to say the ones `dispatch` takes the write lock for. A miss is the refusal
+        # RK1026 composes; a hit was a write nobody typed, reported as a success.
+        #
+        # What this removes is an affordance nobody documented: no help string, no sentence
+        # of the shipped skill and no message in this tree spells a flag short.
+        kwargs.setdefault("allow_abbrev", False)
+        super().__init__(*args, **kwargs)  # type: ignore[arg-type]
+
     def error(self, message: str) -> NoReturn:
         twin = self.get_default("twin")
         if twin is None or "required" not in message:
@@ -230,6 +242,10 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="roadkeep",
         description="Own the writes to a project's roadmap, changelog and rationale.",
+        # The top level too (RK1032): `-C` and `--version` are the only options here, and
+        # `--vers` reaching the second is the same class as `--f` reaching `--fix` — one
+        # rule for the whole surface, so no parser is the one that kept the affordance.
+        allow_abbrev=False,
     )
     parser.add_argument(
         "--version",
@@ -2229,8 +2245,8 @@ def _verb_reached(parser: argparse.ArgumentParser, argv: Sequence[str]):
     surface that has moved. `-C <path>` is the one option before the verb that consumes what
     follows it, in both spellings, which is `_crossed`'s rule and the same reason for it.
     """
-    reached, path, skipping = parser, [], False
-    for token in argv:
+    reached, path, skipping, opened = parser, [], False, len(argv)
+    for index, token in enumerate(argv):
         if skipping:
             skipping = False
             continue
@@ -2247,8 +2263,9 @@ def _verb_reached(parser: argparse.ArgumentParser, argv: Sequence[str]):
         )
         if not choices or token not in choices:
             break
+        opened = min(opened, index)
         reached, _ = choices[token], path.append(token)
-    return reached, tuple(path)
+    return reached, tuple(path), opened
 
 
 def _options(parser: argparse.ArgumentParser) -> tuple[str, ...]:
@@ -2259,6 +2276,14 @@ def _options(parser: argparse.ArgumentParser) -> tuple[str, ...]:
         for option in action.option_strings
         if option.startswith("--") and option != "--help"
     )
+
+
+def _first(argv: Sequence[str], token: str) -> int | None:
+    """Where a token was typed, or None — `--flag=value` included, which argv splits."""
+    for index, one in enumerate(argv):
+        if one == token or one.startswith(f"{token}="):
+            return index
+    return None
 
 
 def _unrecognised(
@@ -2278,15 +2303,26 @@ def _unrecognised(
 
     A stray positional keeps its own sentence: `show RK1 RK2` is one argument too many, and
     naming the flags of a verb that takes an id would be advice about a mistake nobody made.
+
+    **Which surface answers is decided by where the flag was typed** (RK1032). A flag before
+    the verb is the top level's — `roadkeep --vers lint` is somebody reaching for
+    `--version`, and answering with `lint`'s options would send them to a `--help` that has
+    none of what they wanted.
     """
-    reached, path = _verb_reached(parser, argv)
-    verb = " ".join(path) or "roadkeep"
+    reached, path, opened = _verb_reached(parser, argv)
     flags = [token for token in extra if token.startswith("-")]
+    if flags and (found := _first(argv, flags[0])) is not None and found < opened:
+        reached, path = parser, ()
+    # The name and the command are two things: the top level is called `roadkeep` in a
+    # sentence and reached as no word at all, so one string for both would print
+    # `roadkeep roadkeep --help` — a door that opens nothing.
+    verb = " ".join(path) or "roadkeep"
+    door = f"{invocation()} {' '.join(path)}".rstrip()
     if not flags:
         loose = ", ".join(repr(token) for token in extra)
         return (
             f"roadkeep: `{verb}` takes no further argument, and got {loose}: "
-            f"`{invocation()} {verb} --help` is what it does take"
+            f"`{door} --help` is what it does take"
         )
     declared = _options(reached)
     near = difflib.get_close_matches(flags[0], declared, n=1, cutoff=_A_TYPO)
@@ -2295,7 +2331,7 @@ def _unrecognised(
     return (
         f"roadkeep: `{verb}` declares no {flags[0]}{guess}\n"
         f"  takes    {takes}\n"
-        f"  see      `{invocation()} {verb} --help`"
+        f"  see      `{door} --help`"
     )
 
 

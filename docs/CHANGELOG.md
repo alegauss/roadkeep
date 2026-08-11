@@ -370,6 +370,7 @@
 - ✅ **RK1016** **The Layout index names a sixth surface nowhere, and what holds it reads package modules only** — Every tracked top-level entry is named in the Layout index or exempted there with a reason, and the two surfaces that shipped without one are named.
 - ✅ **RK1020** **Six names across four modules are imported and never spelled, and nothing in this tree reports one** — A survey over the declared source set reddens every import nothing spells, past the `__all__` re-exports and the `__future__` directive; the six it found are gone.
 - ✅ **RK1031** **an id a project reserves for an epic and never writes as a line is reported as spent, on every prose mention, forever** — A project declares reserved_ids: the deriver skips them, the gate stops calling them spent, a typo still fails, and a reservation written as a line is reported.
+- ✅ **RK1032** **an unambiguous prefix reaches --fix, --prune and --claim, so a two-letter typo is a write nobody asked for** — No parser accepts an abbreviation, so every prefix that reached a write is the refusal this tool composes — and which surface answers is where the flag was typed.
 
 ## Block E — Adoption
 

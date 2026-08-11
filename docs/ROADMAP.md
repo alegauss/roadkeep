@@ -32,8 +32,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1032** (deps: —) **an unambiguous prefix reaches --fix, --prune and --claim, so a two-letter typo is a write nobody asked for** — argparse resolves abbreviations by default, and the four flags it hands over this way are exactly the ones this CLI declares as turning a read into a write. → §RK1032
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

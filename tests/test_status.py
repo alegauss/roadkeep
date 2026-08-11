@@ -528,3 +528,51 @@ def test_a_verb_that_is_not_a_verb_is_still_argparse_s(tmp_path):
     with pytest.raises(SystemExit) as caught:
         main(["-C", str(tmp_path), "shipp", "RK1"])
     assert caught.value.code == EXIT_USAGE
+
+
+# -- the write a prefix reached (RK1032) -------------------------------------
+
+
+#: Every flag this CLI declares as turning a read-only verb into a write, with a prefix that
+#: reached it. Read as a table because that is what made this a task and not a preference:
+#: each row was a write nobody typed, reported as a success.
+WROTE = (
+    ("lint", "--f", "--fix"),
+    ("lint", "--fi", "--fix"),
+    ("claims", "--pr", "--prune"),
+    ("brief", "--cl", "--claim"),
+    ("pick", "--cla", "--claim"),
+)
+
+
+@pytest.mark.parametrize(("verb", "typed", "meant"), WROTE)
+def test_a_prefix_no_longer_reaches_the_flag_that_writes(tmp_path, capsys, verb, typed, meant):
+    """`roadkeep lint --f` wrote files. argparse resolves any unambiguous prefix by default,
+    and the four flags it handed over that way are exactly this CLI's own `writes_when` —
+    the declaration `dispatch` reads to decide whether the write lock is taken."""
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), verb, typed]) == EXIT_USAGE
+    err = capsys.readouterr().err
+    assert f"`{verb}` declares no {typed}" in err
+    assert meant in err, "the flag meant is in the list even where difflib finds no hit"
+
+
+@pytest.mark.parametrize(("verb", "typed", "meant"), WROTE)
+def test_the_full_spelling_is_untouched(tmp_path, capsys, verb, typed, meant):
+    """What this removes is an affordance nobody documented — no help string, no sentence of
+    the shipped skill and no message in this tree spells a flag short. Every written
+    spelling still parses, which is the half that must not move."""
+    assert build_parser().parse_args([verb, meant]) is not None
+
+
+def test_a_flag_typed_before_the_verb_is_the_top_level_s(tmp_path, capsys):
+    """Which surface answers is decided by where the flag was typed: `roadkeep --vers lint`
+    is somebody reaching for `--version`, and `lint`'s options would send them to a `--help`
+    with none of what they wanted."""
+    project(tmp_path)
+    assert main(["--vers", "-C", str(tmp_path), "lint"]) == EXIT_USAGE
+    err = capsys.readouterr().err
+    assert "`roadkeep` declares no --vers — did you mean `--version`?" in err
+    # The name and the command are two things: one string for both prints a door that opens
+    # nothing.
+    assert "roadkeep roadkeep" not in err

@@ -107,40 +107,6 @@ already-over parent lands, and the gate agrees with both.
 
 ## Block D — The gate
 
-### §RK1032 The write a prefix reaches
-
-`roadkeep lint --f` writes files. So does `--fi`, `--fix` being the only long option of
-`lint` that starts with `f`, and argparse resolving any unambiguous prefix by default.
-Measured across the four flags this CLI itself declares as the ones that turn a read
-into a write:
-
-| typed | reaches |
-| --- | --- |
-| `lint --f` | `--fix` |
-| `claims --pr` | `--prune` |
-| `brief --cl` | `--claim` |
-| `pick --cla` | `--claim` |
-
-Every one of those is a `writes_when` in `cli.py` — the declaration `dispatch` reads to
-decide whether the write lock is taken (RK117). So the tool already knows exactly which
-flags are the dangerous ones, and hands each of them to a two-letter typo.
-
-The cost is not a refusal, which is what makes it worth a task: an abbreviation that
-misses is `unrecognized`, and RK1026 now answers that well. An abbreviation that *hits*
-is a write nobody typed, on files the guard exists to keep hands off, reported as a
-success.
-
-**The fix is one argument.** `ArgumentParser(allow_abbrev=False)` on every parser this
-CLI builds, which turns each row above into the refusal RK1026 already composes — the
-verb's own surface, and the near-miss named where `difflib` finds one.
-
-The bound worth stating: this removes an affordance nobody documented. No help string,
-no skill sentence and no message in this tree spells a flag short, so what breaks is a
-habit rather than a written interface.
-
-What proves it: each row above is refused and names the flag meant, no full spelling
-changes, and the parser declares it once rather than per subcommand.
-
 ## Block E — Adoption
 
 ## Block F — The plugin

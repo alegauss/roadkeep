@@ -119,15 +119,15 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 32 | 2 |
 | B — Authoring (insert, never hand-edit) | 1 | 114 | 1 |
 | C — Query (consult without reading the file) | 0 | 76 | 1 |
-| D — The gate | 1 | 125 | 0 |
+| D — The gate | 0 | 126 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 91 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 2 | 523 | 6 |
+| **Total** | 1 | 524 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1032** (deps: —) **an unambiguous prefix reaches --fix, --prune and --claim, so a two-letter typo is a write nobody asked for** — argparse resolves abbreviations by default, and the four flags it hands over this way are exactly the ones this CLI declares as turning a read into a write. → §RK1032
+- 📋 **RK1033** (deps: —) **section amend accepts a body that puts its parent over, which is the write RK1024 and RK1029 left open** — A design is amended more often than written, and an amend is where the prose already exists — so the refusal costs a draft rather than a retry. → §RK1033
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
