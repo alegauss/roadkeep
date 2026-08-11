@@ -103,26 +103,6 @@ leave blank by accident.
 
 ## Block D — The gate
 
-### §RK1076 The contradiction the gate reads as a partial
-
-`_in_halves` in src/roadkeep/linting.py answers one question: do the two files *say*
-this id is a live partial, rather than contradict each other? A partial marker on the
-open line is enough on its own, and RK121 made that deliberate — a corpus that adopted
-the format writes the marker and no qualifier, Shio carried seven such ids, and a
-finding whose only avoidance is a syntax error teaches the syntax error.
-
-That argument held while the state had no repair. It stopped holding at RK1046: a
-finding here now names a command instead of asking for a deletion, which is the line a
-report may cross. Silence costs more than the noise would. `pick` offers the line
-forever, `repair` cannot reach what `lint` never reports, and the author's only evidence
-that anything is wrong is a refusal from whichever verb they happened to try — three of
-which refuse in the same words.
-
-What the gate has to separate is the corpus that never used the qualifier from the file
-that contradicts itself, where the entry claims the whole delivery and the line claims a
-half. The second is the one to report, with the door that closes it under the line, so
-the finding is one `repair` spends rather than one an author reads.
-
 ## Block E — Adoption
 
 ## Block F — The plugin

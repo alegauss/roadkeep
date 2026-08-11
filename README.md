@@ -119,15 +119,15 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 40 | 2 |
 | B — Authoring (insert, never hand-edit) | 1 | 125 | 1 |
 | C — Query (consult without reading the file) | 0 | 84 | 1 |
-| D — The gate | 1 | 135 | 0 |
+| D — The gate | 0 | 136 | 0 |
 | E — Adoption | 0 | 77 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 95 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 3 | 567 | 6 |
+| **Total** | 2 | 568 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1076** (deps: —) **the gate is silent on a partial line whose entry names no half, the one state whose repair is two verbs** — The marker is read as a live partial, so lint reports nothing, repair cannot reach it and pick offers the line forever. → §RK1076
+- 📋 **RK1077** (deps: —) **nothing holds the verb surface complete, so a state no command closes is found by the project that reaches it** — Six doorless states each cost a capture report or a hand edit, and no test pairs a state a governed file can reach with the verb that leaves it. → §RK1077
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

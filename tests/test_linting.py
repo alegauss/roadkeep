@@ -503,11 +503,26 @@ def test_an_entry_naming_a_half_is_not_a_contradiction(tmp_path):
     assert "id.two-files" not in codes(report)
 
 
-def test_a_partial_line_the_ledger_names_plainly_is_not_a_contradiction(tmp_path):
-    # The measured case: Shio's ⏳ SH238 carries a bare id in the ledger, which is the
-    # honest way to write a half — and it was the *only one of seven* the gate reported,
-    # the six others being silent behind a parenthetical the parser could not read.
+def test_a_partial_line_beside_an_entry_naming_no_half_is_reported(tmp_path):
+    # Reversed by RK1076, and RK1075 is why. This was silent because the state had no verb:
+    # `ship`, `retire` and `defer` all refused it, so a finding could only have asked for a
+    # hand edit, and the gate does not report what it cannot name a door for (RK121).
+    #
+    # `ship <id>` closes it now — against the entry already there, writing nothing — which
+    # is the remedy `id.two-files` has always carried. So the silence became the expensive
+    # side: `pick` offered the line forever and `repair` cannot reach an unreported finding.
     both = LEDGER + "- ✅ **RK1** **The same task** — Because half of it shipped.\n"
+    halved = CLEAN.replace("- 📋 **RK1**", "- ⏳ **RK1**")
+    report = lint(project(tmp_path, roadmap=halved, changelog=both))
+    found = next(f for f in report.findings if f.code == "id.two-files")
+    assert found.id == "RK1"
+
+
+def test_an_entry_naming_a_half_is_still_the_two_files_agreeing(tmp_path):
+    # What is left of RK121's exception, narrowed to what actually declares a half: the
+    # qualifier. Here the files agree — a half shipped and a half has not — so there is
+    # nothing to report, and `ship` completes the entry rather than closing the line.
+    both = LEDGER + "- ✅ **RK1 (local half)** **The same task** — Because half shipped.\n"
     halved = CLEAN.replace("- 📋 **RK1**", "- ⏳ **RK1**")
     report = lint(project(tmp_path, roadmap=halved, changelog=both))
     assert "id.two-files" not in codes(report)

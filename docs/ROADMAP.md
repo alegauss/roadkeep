@@ -32,8 +32,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1076** (deps: —) **the gate is silent on a partial line whose entry names no half, the one state whose repair is two verbs** — The marker is read as a live partial, so lint reports nothing, repair cannot reach it and pick offers the line forever. → §RK1076
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

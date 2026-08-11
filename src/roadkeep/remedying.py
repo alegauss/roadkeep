@@ -761,8 +761,10 @@ _TABLE: Mapping[str, _Rule] = {
     ),
     "id.two-files": _run(
         ("ship", "{id}"),
-        "a ship stopped between its two writes: re-running closes the line without "
-        "writing a second entry",
+        "the ledger already records this id and the roadmap still carries a line for it — "
+        "a ship stopped between its two writes, or a partial marker left beside an entry "
+        "recording the whole; either way, re-running closes the line and writes no second "
+        "entry",
     ),
     # ------------------------------------------------------------------------- the pointers
     "ref.unresolved": _compose(

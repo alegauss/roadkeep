@@ -122,7 +122,6 @@ from roadkeep.history import (
 from roadkeep.markers import derive
 from roadkeep.kernel.schema import (
     CODEPOINT_KINDS,
-    PARTIAL,
     TAB,
     Dep,
     DepKind,
@@ -2152,8 +2151,21 @@ def _in_halves(open_line: Entry, recorded: Entry) -> bool:
     ledger, and it was **the only one of seven** in that state the gate reported, the six
     others being silent behind a parenthetical the parser could not read (RK121). A finding
     whose only avoidance is a syntax error teaches the syntax error.
+
+    **The marker stopped being enough** (RK1075, RK1076). That argument held while the state
+    had no repair: a ⏳ line beside an entry naming no half was refused by `ship`, `retire`
+    and `defer` alike, so a finding could only have asked for a hand edit — and the gate is
+    silent by design where it cannot name a door. RK1075 made `ship <id>` close exactly that
+    line, against the entry already there and writing nothing to the ledger, which is the
+    remedy `id.two-files` has always carried. So the silence costs more than the noise: `pick`
+    offered the line forever, `repair` cannot reach what `lint` never reports, and the only
+    evidence anything was wrong was a refusal from whichever verb the author happened to try.
+
+    What is left is the qualifier, which is what the two files *declaring* a half actually
+    looks like — and it is the same test `shipping._already_recorded` applies at the door, so
+    the gate and the verb still answer one question rather than two.
     """
-    return open_line.task.status == PARTIAL or bool(recorded.task.part)
+    return bool(recorded.task.part)
 
 
 def _deps(backlog: Backlog, task: Task, file: str, lineno: int) -> list[Finding]:

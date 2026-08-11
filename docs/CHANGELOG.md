@@ -407,6 +407,7 @@
 - ✅ **RK1067** **a refusal names the limit it enforced and not the line of config that set it** — A refused limit prints where it was set, roadkeep.toml:34 [limits].why or a role's own line, and says this tool's default where the project declared none rather than inventing a citation.
 - ✅ **RK1070** **the grammar fold reads codes out of a list it also rewrites** — EXPLAINS declares which code explains which and at what scope, both suppressors read it, and the grammar finding carries the file it covers apart from the one it is filed against.
 - ✅ **RK1073** **a refusal decided under a package subdirectory named no module at all** — One named() spells a module for both halves of the note, and a test asserts they agree against the census, which is the property that was false from RK494 and that nothing read.
+- ✅ **RK1076** **the gate is silent on a partial line whose entry names no half, the one state whose repair is two verbs** — The gate reads a live partial off the entry's qualifier, so a partial marker beside an entry recording the whole is reported as id.two-files and repair closes it in one run.
 
 ## Block E — Adoption
 
