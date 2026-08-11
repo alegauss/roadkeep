@@ -34,7 +34,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1025** (deps: —) **A section address given to show is answered as an unknown task id, though section show is the verb for it** — The refusal says what the argument is not, in a vocabulary the caller was not using, and never names the verb one word away. → §RK1025
 - 📋 **RK1029** (deps: —) **budget answers a whole limit free for a child whose parent has one word left, which is the read an add is composed from** — RK1024 charged the ancestor at the write and said so at anchors, leaving the pre-add read — the one this tool is most about — answering about the child alone. → §RK1029
 
 ## Block D — The gate

@@ -236,6 +236,7 @@
 - ✅ **RK466** **Two commands take two answers and print one, saying nothing about the flag that lost** — The two pairs that are two subjects are refused naming both, and the two destinations that compose still write together, so no flag is dropped in silence.
 - ✅ **RK492** **Nothing counts the sites an invariant has yet to reach, so a migration's remaining work is found by tripping over it** — A design declares its own query in a fenced block and `remaining` runs it, so what a migration has left is a read taken now rather than a number somebody maintains.
 - ✅ **RK1021** **Nothing enumerates the questions a maintainer asks a governed file, so the law about answering them holds nothing** — The questions this project wrote down are a declared set, each one an argv the CLI parses and only reads, and every read-only verb answers one or says why it answers none.
+- ✅ **RK1025** **A section address given to show is answered as an unknown task id, though section show is the verb for it** — An argument that addresses a section is answered with the verb that prints one, and a declared address replaces the absence rather than arguing with it.
 
 ## Block D — The gate
 

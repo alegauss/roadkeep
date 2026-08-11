@@ -35,8 +35,9 @@ from pathlib import Path
 from roadkeep.config import PROSE_ROLES, Config
 from roadkeep.document import Document, Entry
 from roadkeep.history import indexed
+from roadkeep.provenance import invocation
 from roadkeep.schema import Task
-from roadkeep.sections import Section, find
+from roadkeep.sections import Section, addressable, declaring, find
 
 #: A path as prose spells one: inside backticks, or as a Markdown link target. Both are
 #: deliberate acts of quoting, unlike a bare word that happens to contain a dot.
@@ -62,11 +63,19 @@ _SEPARATORS_ONLY = re.compile(r"^[\\/.]+$")
 class NoSuchTask(KeyError):
     """An id that is in neither governed file. Not a lint error — a wrong question."""
 
-    def __init__(self, task_id: str, where: tuple[str, ...]) -> None:
+    #: What an id in neither file means when it is nothing else. Replaced rather than
+    #: appended to where the argument turns out to address a live section (RK1025): "never
+    #: written or was retired" and "it is the section over there" are two different answers,
+    #: and printing both makes the refusal argue with itself.
+    ABSENT = "an id in neither file was never written or was retired (RK32)"
+
+    def __init__(self, task_id: str, where: tuple[str, ...], instead: str = "") -> None:
         self.task_id = task_id
+        #: The verb one word away, where the argument turned out to address a section
+        #: (RK1025). Empty on the ordinary case, which is an id nothing carries.
+        self.instead = instead
         super().__init__(
-            f"no task {task_id} in {' or '.join(where)}: an id in neither file was "
-            f"never written or was retired (RK32)"
+            f"no task {task_id} in {' or '.join(where)}: {instead or self.ABSENT}"
         )
 
 
@@ -155,7 +164,44 @@ def _locate(config: Config, task_id: str) -> tuple[Entry, str, Document]:
             # The document too, and not the entry alone: the lines an entry owns are the
             # file's, and loading it a second time to reach them is a second parse (RK194).
             return found, role, document
-    raise NoSuchTask(task_id, tuple(asked))
+    raise NoSuchTask(task_id, tuple(asked), _instead(config, task_id))
+
+
+def _instead(config: Config, given: str) -> str:
+    """The verb one word away, where the argument addresses a section (RK1025).
+
+    `show XX` used to answer *"no task XX … never written or was retired"*, which is
+    accurate and answers a question nobody asked: `XX` is the shape this tool prints in
+    every `→ §XX.1` it writes, and `section show XX` is the verb for it. The refusal said
+    what the argument was **not**, in a vocabulary the caller was not using, and the next
+    move it left them was a grep of the file the guard exists to keep them out of.
+
+    Two answers and they are not the same claim. A prose file that **declares** the address
+    is a fact — the section is there, and this is a redirect. An address the outline merely
+    *could* number is a reading of the argument's shape, which is worth saying because a
+    caller who typed one is holding a pointer, and is not worth stating as if a section
+    existed. A `§` the caller typed is the third: nobody writes a sigil at a task id.
+
+    **Named and never dispatched.** `show` joins a line, its section and its paths; `section
+    show` prints one section and its word count. A verb that quietly answered the other
+    question would be the second answer to one argument, which is what this repository
+    refuses everywhere else — and the caller who wanted the join would get the section and
+    no way to see that they had.
+    """
+    anchor = given.lstrip("§")
+    if not anchor:
+        return ""
+    verb = f"`{invocation()} section show {anchor}`"
+    where = declaring(config, anchor)
+    if where:
+        files = " and ".join(config.relative(config.path(role)) for role in where)
+        return f"§{anchor} is a section in {files}, which {verb} prints"
+    if given.startswith("§") or addressable(config.schema, anchor):
+        return (
+            f"{NoSuchTask.ABSENT}, and §{anchor} is a section address rather than an id "
+            f"— {verb} reads one"
+        )
+    return ""
 
 
 def _rationale(

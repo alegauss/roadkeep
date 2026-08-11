@@ -455,3 +455,84 @@ def test_a_project_with_no_family_yet_says_so_rather_than_printing_nothing(tmp_p
     out = capsys.readouterr()
     assert out.out == ""
     assert "no outline family exists yet" in out.err
+
+
+# -- the neighbour a refusal never named (RK1025) ----------------------------
+
+
+OUTLINED = """# Improvements
+
+## Block A — The model
+
+### IX A design the outline numbers
+
+The reasoning the line has no room for.
+"""
+
+
+def outlined(tmp_path: Path) -> Config:
+    """A project addressing its prose by an outline, where an anchor is not an id."""
+    config = project(tmp_path, improvements=OUTLINED)
+    path = config.root / "roadkeep.toml"
+    path.write_text(
+        path.read_text(encoding="utf-8").replace(
+            'prefix = "RK"', 'prefix = "RK"\nref_scheme = "outline"'
+        ),
+        encoding="utf-8",
+    )
+    return Config.discover(tmp_path)
+
+
+def test_an_address_a_prose_file_declares_names_the_verb_that_prints_it(tmp_path):
+    """The reproduction. `§IX` is the shape this tool writes in every pointer, and the
+    refusal used to answer that no such **task** was ever written — accurate, in a
+    vocabulary the caller was not using, leaving a grep of the file the guard exists to
+    keep them out of as the next move."""
+    with pytest.raises(NoSuchTask) as caught:
+        show(outlined(tmp_path), "IX")
+    said = caught.value.args[0]
+    assert "§IX is a section in IMPROVEMENTS.md" in said
+    assert "section show IX" in said
+    # The absence is *replaced* and not appended to: "never written" and "it is over there"
+    # are two answers, and a refusal printing both argues with itself.
+    assert NoSuchTask.ABSENT not in said
+
+
+def test_an_address_the_outline_could_number_is_said_as_a_shape_and_not_a_fact(tmp_path):
+    """A pointer the caller holds for a section nobody has written yet is still worth
+    answering — but as a reading of the argument, beside the absence, rather than as a claim
+    that the section is there."""
+    with pytest.raises(NoSuchTask) as caught:
+        show(outlined(tmp_path), "XII.4")
+    said = caught.value.args[0]
+    assert NoSuchTask.ABSENT in said
+    assert "§XII.4 is a section address rather than an id" in said
+
+
+def test_a_sigil_the_caller_typed_is_the_argument_answering_for_itself(tmp_path):
+    """Nobody writes a `§` in front of a task id, so the token names what it names whatever
+    the scheme reads — and the verb is offered with the sigil stripped, because that is how
+    the command takes one."""
+    with pytest.raises(NoSuchTask) as caught:
+        show(outlined(tmp_path), "§IX")
+    assert "section show IX" in caught.value.args[0]
+
+
+def test_an_id_scheme_offers_the_verb_only_where_the_section_is_really_there(tmp_path):
+    """Under `id` an anchor *is* an id, so a token that is not a task is a typo and not an
+    address — offering a section verb for one would be advice about a file the caller never
+    mentioned. The declared section is the case that still answers, because it is a fact."""
+    config = project(tmp_path)
+    with pytest.raises(NoSuchTask) as caught:
+        show(config, "RK99")
+    assert caught.value.instead == ""
+    assert NoSuchTask.ABSENT in caught.value.args[0]
+
+
+def test_the_ordinary_refusal_is_unchanged(tmp_path):
+    """The whole point of the condition: a missing id is the common case, and a sentence
+    printed on every refusal is one nobody reads on the refusal that needed it."""
+    with pytest.raises(NoSuchTask) as caught:
+        show(outlined(tmp_path), "RK99")
+    assert caught.value.instead == ""
+    assert caught.value.args[0].endswith(NoSuchTask.ABSENT)

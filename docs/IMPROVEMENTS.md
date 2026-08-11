@@ -176,27 +176,6 @@ the gate rather than clean.
 
 ## Block C — Query
 
-### §RK1025 The neighbour a refusal never names
-
-`roadkeep show XX` answers *"no task XX in docs/ROADMAP.md or docs/CHANGELOG.md: an id
-in neither file was never written or was retired (RK32)"*. `XX` is a **section address**
-— the shape this tool prints in every `→ §XX.1` pointer it writes — and `section show
-XX` is the verb that answers it.
-
-The refusal is accurate and it answers a question nobody asked. It says what `XX` is
-not, in a vocabulary the caller was not using, and never mentions the one verb one word
-away. The reader's next move is a `grep` of a file the guard exists to keep them out of,
-which is the outcome the whole design is against.
-
-It was found driving a real block. A `ship` emptied a section and printed advice to
-amend it; the prose had to be read before rewriting it; `show` was the natural reach;
-the answer sent the reader to the file.
-
-The fix is the rule this tool enforces on the backlogs it governs, turned on itself: an
-argument that is not a task id but **is** a well-formed section address resolves to a
-`didYouMean` naming `section show`. The message is the cheap half. The decision is
-whether `show` should simply dispatch, since the two namespaces cannot collide.
-
 ### §RK1029 The read RK1024 did not reach
 
 RK1024 charged an ancestor at `add` and said so at `anchors`. The read those two exist

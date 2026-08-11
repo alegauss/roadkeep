@@ -1733,6 +1733,25 @@ def _outline_violation(schema: Schema, anchor: str) -> Violation | None:
     return None
 
 
+def addressable(schema: Schema, anchor: str) -> bool:
+    """Whether this scheme could read the token as a section address at all (RK1025).
+
+    The public half of :func:`_address_violation`, for a reader that has an argument and no
+    section: `show` refuses a token that is not a task id, and whether the token is one this
+    file's outline *numbers* is what decides between "never written" and "you want the other
+    verb". A predicate rather than the violation, because nothing here is being refused —
+    the caller is deciding which sentence to print.
+
+    **Only decidable under an outline**, and it says so by answering `False` everywhere
+    else: under the `id` scheme an anchor is an id, so every token this could be asked about
+    is either already a task or nothing at all, and answering `True` would name a section
+    verb for an argument that is simply a typo.
+    """
+    if schema.ref_scheme != "outline":
+        return False
+    return _address_violation(schema, anchor) is None
+
+
 def _address_violation(schema: Schema, anchor: str) -> Violation | None:
     """What is wrong with this address as an address, whichever scheme reads it (RK377).
 
