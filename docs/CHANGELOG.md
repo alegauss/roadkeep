@@ -264,6 +264,7 @@
 - ✅ **RK1042** **delivered lists a reverted entry as a delivery, unmarked, and it is the read made before every add** — A superseded entry is named as one in the listing, under --near and in the payload, so the duplicate check stops answering yes-shipped about work that did not hold.
 - ✅ **RK1048** **show says an id was never written when a ledger entry delivers it without leading with it** — The refusal asks history where the parse has no answer, so an id a ledger entry delivers without leading with it says which commit wrote it.
 - ✅ **RK1062** **budget --tools counts the tool list and not the handshake beside it** — The read counts the handshake beside the tool list and names both halves under one session total, so text moved from one to the other no longer measures as a saving.
+- ✅ **RK1071** **budget prices a field against a limit and never says where the limit came from** — budget prints one line under the table naming the table and the line each declared limit sits on, and the payload carries the origin per field so a served read answers why is it 200.
 
 ## Block D — The gate
 

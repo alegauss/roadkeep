@@ -126,6 +126,13 @@ class Share:
     #: What *this* line allows it, which is the smaller of the two and the one that binds.
     allowed: int
     taken: int
+    #: Where that maximum was declared, as `Schema.source_of` spells it (RK1067, RK1071).
+    #: The refusal carries this and the read did not, which is the wrong way round: this is
+    #: the earlier of the two moments, and the one the whole tool is built on — the number
+    #: arriving before the prose does. Carried on the share rather than composed by the
+    #: printer, because a per-role limit means the answer differs by which file is asked
+    #: about, and only the reader that resolved the schema knows which one that was.
+    source: str = ""
 
     @property
     def left(self) -> int:
@@ -259,9 +266,18 @@ def budget_of(
                 schema.symptom_max,
                 min(schema.symptom_max, prose),
                 width(task.symptom),
+                schema.source_of("symptom_max"),
             )
         )
-    shares.append(Share("why", schema.why_max, schema.why_budget(task), width(task.why)))
+    shares.append(
+        Share(
+            "why",
+            schema.why_max,
+            schema.why_budget(task),
+            width(task.why),
+            schema.source_of("why_max"),
+        )
+    )
     section, absence = _section_of(config, task.ref or task.id, assumed=ref_assumed)
     return Budget(
         task=task,

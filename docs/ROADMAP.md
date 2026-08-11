@@ -31,8 +31,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1071** (deps: —) **budget prices a field against a limit and never says where the limit came from** — RK1067 put the citation on the refusal, and the read an author makes before writing prints the same numbers with nothing beside them, which is the earlier of the two moments. → §RK1071
-
 ## Block D — The gate
 
 ## Block E — Adoption

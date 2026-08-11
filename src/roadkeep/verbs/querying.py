@@ -674,6 +674,7 @@ def _budget(config: Config, args: argparse.Namespace) -> int:
         )
     # The other half of the same transaction (RK301): `add --section` writes a body too, and
     # the body's limit refused the whole `add` while this read named only the line's fields.
+    _declared(answer.shares)
     if answer.section is not None:
         print(f"  section    {_body(answer.section)}")
     elif answer.section_absence:
@@ -682,6 +683,34 @@ def _budget(config: Config, args: argparse.Namespace) -> int:
         # a caller would otherwise read as "this project keeps no rationale file".
         print(f"  section    none — {answer.section_absence}")
     return EXIT_OK
+
+
+def _declared(shares: Sequence[Share]) -> None:
+    """Where the numbers above came from, once under the table (RK1071).
+
+    One line and not a parenthesis after each figure: the read is a column of small numbers
+    and an address on every row drowns it, where the fact is almost always the same for all
+    of them. Split only where the project declared some and not others, which is exactly
+    when *which of these did I choose* is a live question — and silent where it declared
+    none, because `this tool's default` five times over is the noise this avoids.
+    """
+    chosen = [share for share in shares if not share.source.endswith("default)")]
+    if not chosen:
+        return
+    # Grouped by the table, because that is what a reader opens: one file and one heading,
+    # then the line each field is on. Two roles can differ (RK50), so the grouping is real
+    # rather than cosmetic — a `[limits.changelog]` share sorts under its own key.
+    tables: dict[str, list[str]] = {}
+    for share in chosen:
+        address, _, table = share.source.strip(" ()").partition(" ")
+        file, _, lineno = address.partition(":")
+        tables.setdefault(f"{file} {table.rsplit('.', 1)[0]}", []).append(
+            f"{share.field}:{lineno}" if lineno else share.field
+        )
+    said = "; ".join(f"{table} {', '.join(fields)}" for table, fields in tables.items())
+    fell_back = [share.field for share in shares if share not in chosen]
+    rest = f"; {', '.join(fell_back)} is this tool's default" if fell_back else ""
+    print(f"  declared   {said}{rest}")
 
 
 def _body(section: Body, named: bool = True) -> str:

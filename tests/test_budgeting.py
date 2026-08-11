@@ -849,6 +849,76 @@ def test_the_json_says_why_the_section_is_null_rather_than_only_that_it_is(tmp_p
     assert payload["fields"], "the line's own fields are unaffected by the anchor"
 
 
+# -- where the number came from, on the earlier path (RK1071) ------------------
+
+
+def _priced(tmp_path: Path, limits: str = "") -> Path:
+    """A project whose `[limits]` are its own, which is what makes an origin worth printing."""
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
+        + limits,
+        encoding="utf-8",
+    )
+    (tmp_path / "ROADMAP.md").write_text(BACKLOG, encoding="utf-8")
+    (tmp_path / "CHANGELOG.md").write_text(LEDGER, encoding="utf-8")
+    return tmp_path
+
+
+def _lines_of(tmp_path: Path, *needles: str) -> list[int]:
+    """Which line of the written config each of these is on, 1-based as an editor counts."""
+    body = (tmp_path / "roadkeep.toml").read_text(encoding="utf-8").splitlines()
+    return [next(n for n, line in enumerate(body, 1) if line == needle) for needle in needles]
+
+
+def test_the_read_says_which_of_the_numbers_the_project_chose(tmp_path, capsys):
+    # RK1067 put the citation on the refusal; this is the same author one moment earlier —
+    # the moment the whole tool is built on, the number arriving before the prose does.
+    _priced(tmp_path, "\n[limits]\nsymptom = 100\nwhy = 180\n")
+    assert main(["-C", str(tmp_path), "budget", "--block", "A", "--symptom", "x"]) == EXIT_OK
+    said = next(line for line in capsys.readouterr().out.splitlines() if "declared" in line)
+    # Grouped by the table, because that is what a reader opens: one file and one heading,
+    # then the line each field is on — not an address after every figure in the column.
+    assert "roadkeep.toml [limits]" in said
+    # The line numbers are read back off the file rather than spelled here: a fixture that
+    # grows a line would otherwise make this test assert an address nobody can click.
+    at = _lines_of(tmp_path, "symptom = 100", "why = 180")
+    assert f"symptom:{at[0]}" in said and f"why:{at[1]}" in said
+
+
+def test_a_limit_left_to_the_tool_is_named_beside_the_ones_that_were_chosen(tmp_path, capsys):
+    # The split is the live question: *which of these did I choose* only arises where some
+    # were and some were not, and that is exactly when the answer is worth the line.
+    _priced(tmp_path, "\n[limits]\nwhy = 180\n")
+    main(["-C", str(tmp_path), "budget", "--block", "A", "--symptom", "x"])
+    said = next(line for line in capsys.readouterr().out.splitlines() if "declared" in line)
+    (line,) = _lines_of(tmp_path, "why = 180")
+    assert f"why:{line}" in said and "symptom is this tool's default" in said
+
+
+def test_a_project_that_declared_no_limit_is_told_nothing_rather_than_five_defaults(
+    tmp_path, capsys
+):
+    # `this tool's default` on every row is the noise the one line exists to avoid, and a
+    # project that declared none has no line for anybody to go and look at.
+    _priced(tmp_path)
+    main(["-C", str(tmp_path), "budget", "--block", "A", "--symptom", "x"])
+    assert "declared" not in capsys.readouterr().out
+
+
+def test_the_payload_carries_the_origin_beside_each_number(tmp_path, capsys):
+    # The half that is not a layout question: a surface serving this over MCP can answer
+    # *why is it 200* without a second call, which is the read that otherwise costs a turn.
+    _priced(tmp_path, "\n[limits]\nwhy = 180\n")
+    main(["-C", str(tmp_path), "budget", "--block", "A", "--symptom", "x", "--json"])
+    payload = json.loads(capsys.readouterr().out)
+    sources = {field["field"]: field["source"] for field in payload["fields"]}
+    (line,) = _lines_of(tmp_path, "why = 180")
+    assert sources["why"] == f"roadkeep.toml:{line} [limits].why"
+    # And the default says so rather than being absent, which a consumer cannot tell from
+    # a field this surface forgot to answer about.
+    assert sources["symptom"] == "this tool's default"
+
+
 # -- the fifth subject: what the surface costs (RK464) ------------------------
 
 

@@ -841,6 +841,11 @@ def _share_json(share: Share) -> dict[str, object]:
         # points both be right about one line and disagree by one.
         "unit": CHARACTER_UNIT,
         "bound_by_line": share.bound_by_line,
+        # Where `limit` was set (RK1071), so a surface serving this can answer *why is it
+        # 200* without a second call — the read that otherwise costs a turn. Beside the
+        # number rather than under the payload, because a per-role limit makes it a fact
+        # about this field and not about the answer.
+        "source": share.source.strip(" ()"),
     }
 
 

@@ -118,16 +118,16 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 2 | 37 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 124 | 1 |
-| C — Query (consult without reading the file) | 1 | 83 | 1 |
+| C — Query (consult without reading the file) | 0 | 84 | 1 |
 | D — The gate | 0 | 134 | 0 |
 | E — Adoption | 0 | 77 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 95 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 3 | 561 | 6 |
+| **Total** | 2 | 562 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1071** (deps: —) **budget prices a field against a limit and never says where the limit came from** — RK1067 put the citation on the refusal, and the read an author makes before writing prints the same numbers with nothing beside them, which is the earlier of the two moments. → §RK1071
+- 📋 **RK1072** (deps: —) **the kernel declares sixty-four names the format has no use for** — Ledger shapes, dep checks and block patterns sit in schema.py and document.py, so the boundary a test measures cannot fall and the move it gates cannot honestly be made. → §RK1072
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -127,29 +127,6 @@ what any of them mean.
 
 ## Block C — Query
 
-### §RK1071 The citation reached the refusal and not the read
-
-RK1067's argument is that an author standing over a limit should be one line from where
-it was set, and it delivered that on the refusal: `limit is 150 (roadkeep.toml:10
-[limits].why)`.
-
-`budget` is the same author at the earlier moment. It exists precisely so the number
-arrives *before* the prose does — that is the insight the whole tool is built on, the
-saving being the analysis rather than the characters — and it prints `why 30 of 200
-left` with no hint that 200 is this project's choice or this tool's default. So the fact
-reaches the author on the path they take when they got it wrong and not on the path they
-take when they are about to get it right.
-
-`Schema.source_of` already composes the clause and `budget` already holds the schema, so
-this is a print and not a mechanism. What needs deciding is the terminal's shape: the
-read is a column of small numbers and a parenthesised address after each would drown it,
-where one line under the table naming the file — and the two roles, since
-`[limits.changelog]` differs — probably says it once.
-
-The `--json` half is not a layout question and is simply missing: a payload that carried
-the origin beside each figure would let the surface that serves this over MCP answer
-*why is it 200* without a second call, which is the read that costs a turn.
-
 ## Block D — The gate
 
 ## Block E — Adoption
