@@ -1058,6 +1058,15 @@ _TABLE: Mapping[str, _Rule] = {
     # The read is the door and there is no `--fix` for it (RK1059): what a tool costs is
     # its own `help=` and its exposed arguments, so the shorter description is the author's
     # and the only mechanical part is finding which tool grew.
+    # The one finding whose subject is a rule rather than a record (RK1068), so the door is
+    # the read that shows what the rule produces — and the edit is a config line, which no
+    # verb of this tool writes: `[grammar.<role>]` is the author's declaration (L6).
+    "grammar.unreadable": _compose(
+        ("show", BLANK),
+        "a declared grammar cannot read back what it writes; read any one line, compare it "
+        "with the rendering the report carries, then correct `[grammar.<role>]` — the id is "
+        "the author's because every line in the file is equally evidence",
+    ),
     "budget.tool": _read(
         ("budget", "--tools"),
         "one served tool is past what `[tools] characters` allows; this ranks every tool "

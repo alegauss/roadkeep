@@ -75,29 +75,6 @@ already written, not authorship.
 
 ## Block A — The model
 
-### §RK1068 The one invariant a declaration adds
-
-This is the cost a declared grammar does not remove, and it is worth naming before the
-trade is made. Several hardcoded invariants become one: a grammar given as data can be a
-grammar that cannot read back what it writes, and the failure surfaces at the wrong end.
-The round-trip guard refuses the whole file, correctly and by law — so a separator
-declared one character too loose presents as every line in the corpus being
-non-canonical, and the report blames a hundred lines for the one line of config that
-broke them.
-
-The check is small and belongs to the gate: for every record the corpus holds, rendering
-what was parsed reproduces the source bytes, and parsing that rendering is stable. Which
-is this repository's own conformance rule — the docs are the fixture, and a limit that
-cannot express these lines is the wrong limit rather than a set of wrong lines — moving
-from a development convention to something the tool runs against itself. An adopting
-project gets it against its own files, which is where a hand-written grammar is actually
-dangerous.
-
-It stays code, necessarily: a declaration cannot carry the check of declarations without
-becoming the interpreter that design refused. And it pairs with the finding that cites a
-rule's origin, because with both the report reads as one defect at one config line
-instead of a corpus that stopped conforming. The trade is still good; it is not free.
-
 ## Block B — Authoring
 
 ## Block C — Query

@@ -59,6 +59,10 @@ MEANT = "a write creates it deliberately and names the door for it in the same a
 #: description is `cli.py`'s prose and the `TOOLS` table, so what spends this budget is a
 #: source edit and the door is a read (RK1059).
 SURFACE = "about the served schema: what spends it is a source edit, not a write of a line"
+#: About the **rule** and not about any record it judged (RK1068). No write composes a
+#: grammar either — `[grammar.<role>]` is the author's declaration (L6) — and the finding is
+#: an inference over a whole file, which no single write is in a position to make.
+RULE = "about the declared rule, inferred from every record at once: no write sees the set"
 
 SYMPTOM = "A second symptom that is plainly long enough"
 WHY = "Because of some other reason."
@@ -148,6 +152,7 @@ PREVENTION: tuple[Prevented, ...] = (
     Prevented("file.not-text", "gate", because=FILE),
     Prevented("budget.absent", "gate", because=FILE),
     Prevented("budget.tool", "gate", because=SURFACE),
+    Prevented("grammar.unreadable", "gate", because=RULE),
     Prevented("block.unorganised", "gate", because=FILE),
     Prevented("export.unmarked", "gate", because=FILE),
     Prevented("priority.config", "gate", because=FILE),

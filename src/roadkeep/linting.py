@@ -635,6 +635,11 @@ def _examine(config: Config, since: str | None, tree: Tree) -> Report:
     findings.extend(_projections(config, documents, targets))
     findings.extend(_budgets(config, tree))
 
+    # After every per-line check and before the ordering, because it *reads* those findings:
+    # a whole file's worth of them is evidence about the rule (RK1068), and the fold has to
+    # see the population to make the inference.
+    findings = _grammatical(config, documents, findings)
+
     checked = _checked(config, documents, prose, targets)
     return Report(
         findings=_ordered(_untainted(findings), checked),
@@ -679,6 +684,76 @@ def _checked(
     if config.priority or config.tool_characters is not None:
         checked.append(_configured(config))
     return tuple(checked)
+
+
+#: How many lines a file must hold before *all* of them failing the round-trip reads as the
+#: rule rather than the lines (RK1068). Two, because one line disagreeing with the schema is
+#: an edited line and is exactly what `line.non-canonical` is for — the inference is about a
+#: population, and a population of one is a line.
+_A_POPULATION = 2
+
+
+def _grammatical(
+    config: Config, documents: Mapping[str, Document], findings: list[Finding]
+) -> list[Finding]:
+    """Fold a whole file's worth of non-canonical lines into one defect at the rule (RK1068).
+
+    The cost a declared grammar does not remove, caught at the end it is actually about. A
+    grammar given as data (RK1064) can be one that cannot read back what it writes, and the
+    round-trip guard then refuses the whole file — correctly and by law — so a separator
+    declared one character too loose presents as **every line in the corpus** being
+    non-canonical, and the report blames a hundred lines for the one line of config that
+    broke them.
+
+    **Both ways a line can fail it**, which measuring made the point of: a declaration too
+    *loose* renders what it read differently and the file comes back `line.non-canonical`,
+    and one too *narrow* — a slot dropped that the file has — stops matching at all and the
+    same file comes back `line.unparsed`. The second is what a wrong `drop` actually
+    produces, so a fold that watched only the first would miss the failure it was written
+    for. A bullet counts either way, which is why the population is entries **and** rejects.
+
+    The inference is deliberately narrow: *every* line-shaped bullet in a role's file, and
+    at least :data:`_A_POPULATION` of them. One line differing from its rendering is an
+    edited line and is what `line.non-canonical` already says; a file where not one bullet
+    survives is not a file somebody hand-edited into that state.
+
+    Paired with RK1067, which is what makes the answer actionable rather than merely
+    correct: the finding lands on the declaration's own line, so the report reads as one
+    defect at one config line instead of a corpus that stopped conforming.
+    """
+    out = list(findings)
+    for role, document in documents.items():
+        population = len(document.entries) + len(document.rejects)
+        if population < _A_POPULATION:
+            continue
+        where = config.relative(config.path(role))
+        broken = [
+            finding
+            for finding in out
+            if finding.file == where
+            and finding.code in ("line.non-canonical", "line.unparsed")
+        ]
+        if len(broken) < population:
+            continue
+        declared = config.grammars.get(role)
+        out = [finding for finding in out if finding not in broken]
+        out.append(
+            Finding(
+                "grammar.unreadable",
+                _configured(config) if declared else where,
+                f"the grammar for {role} fails on {population} of {population} bullets: "
+                f"this is the rule and not the lines, and a file where none survives is "
+                f"not one somebody hand-edited"
+                + (
+                    f" — `[grammar.{role}]` is what to look at"
+                    if declared
+                    else " — no [grammar] is declared, so the file was written under "
+                    "another format"
+                ),
+                subject=role,
+            )
+        )
+    return out
 
 
 def _untainted(findings: list[Finding]) -> list[Finding]:

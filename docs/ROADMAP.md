@@ -24,8 +24,6 @@
 
 ## Block A — The model (a task is data before it is a line)
 
-- 📋 **RK1068** (deps: RK1064 ✅) **a template whose separator can occur inside a field parses back differently and nothing refuses it** — The round-trip guard refuses the file, so a bad declaration presents as every line in the corpus being non-canonical and the report blames the lines rather than the rule. → §RK1068
-
 ## Block B — Authoring (insert, never hand-edit)
 
 ## Block C — Query (consult without reading the file)

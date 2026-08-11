@@ -1620,6 +1620,59 @@ def test_a_budget_is_read_from_the_configuration_and_not_from_the_file(tmp_path)
     assert not lint(Config.discover(tmp_path)).clean
 
 
+# -- the one invariant a declaration adds (RK1068) -----------------------------
+
+
+def test_a_grammar_that_cannot_read_back_what_it_writes_is_one_defect(tmp_path):
+    # The cost RK1064 does not remove, caught at the end it is about: a grammar given as
+    # data can be one that cannot reproduce its own file, and the round-trip guard then
+    # refuses every line — a hundred findings for the one config line that broke them.
+    config = project(tmp_path, config=CONFIG + '\n[grammar.roadmap]\ndrop = ["symptom"]\n')
+    report = lint(config)
+    grammar = [f for f in report.findings if f.code == "grammar.unreadable"]
+    assert len(grammar) == 1, [str(f) for f in report.findings]
+    # And the lines it explains are gone: the report is one defect at one rule, which is the
+    # whole difference between blaming the corpus and naming what broke it.
+    # And the lines it explains are gone, whichever way they failed: a declaration too loose
+    # renders them back differently and one too narrow stops matching at all, and a wrong
+    # `drop` produces the second — so the fold has to watch both or it misses its own case.
+    assert not [
+        f for f in report.findings if f.code in ("line.non-canonical", "line.unparsed")
+    ]
+    assert grammar[0].subject == "roadmap" and "not the lines" in grammar[0].message
+    # Filed against the config, because that is where the declaration is and where the edit
+    # goes — the pairing with RK1067 that makes the answer actionable rather than correct.
+    assert grammar[0].file == "roadkeep.toml"
+    assert "[grammar.roadmap]" in grammar[0].message
+
+
+def test_one_edited_line_is_still_about_that_line(tmp_path):
+    # The inference is about a population, and a population of one is a line: `line.non-
+    # canonical` is exactly right for somebody who hand-edited a bullet, and folding it into
+    # a claim about the rule would blame the config for an edit nobody made there.
+    roadmap = CLEAN.replace(
+        "**A second symptom** — Because of another reason.", "and then some prose"
+    )
+    report = lint(project(tmp_path, roadmap=roadmap))
+    # The orphan is the section RK2 no longer points at, which is that line failing
+    # and not a second defect: what matters is that neither is folded into a rule.
+    assert [f.code for f in report.findings] == ["line.unparsed", "section.orphan"]
+    assert not [f for f in report.findings if f.code == "grammar.unreadable"]
+
+
+def test_a_file_written_under_another_format_says_so_rather_than_naming_a_grammar(tmp_path):
+    # The other half of the answer, and the one an adopting project meets first: no
+    # `[grammar]` is declared, so there is no config line to send anybody to and the finding
+    # says which file it is about instead of citing a declaration that does not exist.
+    roadmap = "# Roadmap\n\n## Block A — The model\n\n" + "".join(
+        f"- 📋 **RK{n}** :: a symptom :: a reason\n" for n in (1, 2, 3)
+    )
+    report = lint(project(tmp_path, roadmap=roadmap))
+    grammar = [f for f in report.findings if f.code == "grammar.unreadable"]
+    assert len(grammar) == 1 and grammar[0].file == "ROADMAP.md"
+    assert "no [grammar] is declared" in grammar[0].message
+
+
 # -- the budget whose subject is not a file (RK1059) ---------------------------
 
 
