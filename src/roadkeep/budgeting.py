@@ -539,12 +539,37 @@ class Cost:
 
 
 @dataclass(frozen=True, slots=True)
+class Part:
+    """One `##` section of an every-turn file, and what it costs (RK1092).
+
+    The read `budget --tools` makes about the served surface, made about the resident file:
+    that one ranks tools so an author cutting the schema knows where the size went, and this
+    one had only a total. `agents.md` reached 8,392 of 8,400 bytes and the next compression
+    was a preference — RK203 says compress the prose rather than the Layout index, which was
+    an argument made when the prose had slack and nothing re-measured since.
+
+    Sections and not paragraphs, because a `##` is what the file itself declares and a
+    paragraph is where a reader happened to stop. What this deliberately does not answer is
+    which of them a turn *uses*: that needs a model of the reading, which is L4's own line,
+    and a number invented for it would be worse than the total it replaced.
+    """
+
+    #: The heading, verbatim, or `""` for whatever stands above the first one.
+    heading: str
+    lines: int
+    bytes: int
+
+
+@dataclass(frozen=True, slots=True)
 class Load:
     """What one every-turn file costs against what it declared it may (RK345)."""
 
     #: As the project spells it, which is how `[budgets]` addresses it and how `lint` names it.
     path: str
     costs: tuple[Cost, ...]
+    #: Where the size is, by section, largest first (RK1092). Empty where the file is not on
+    #: disk, which is the one state that has no content to attribute.
+    parts: tuple[Part, ...] = ()
     #: False is the state `lint` reports as `budget.absent`: a budget with nothing under it.
     #: Said rather than answered as a free file, because the whole limit being available is
     #: the one reading that would make a missing file look like room.
@@ -603,7 +628,35 @@ def _load(config: Config, budget: ConfigBudget) -> Load:
             for unit, limit in (("lines", budget.lines), ("bytes", budget.bytes))
             if limit is not None
         ),
+        parts=_parts(raw) if raw is not None else (),
         present=raw is not None,
+    )
+
+
+def _parts(raw: bytes) -> tuple[Part, ...]:
+    """The file's `##` sections, largest first (RK1092).
+
+    Bytes and never text, for the reason the budget itself is counted that way: what a loader
+    pays is what is on disk, and a section measured through newline translation is a different
+    number from the one the limit is about.
+
+    Only `##`, because that is the level `agents.md` organises by — a `###` under one belongs
+    to it, and splitting there would report a heading's own body as a sibling of its parent.
+    """
+    sections: list[tuple[str, list[bytes]]] = [("", [])]
+    for line in raw.splitlines(keepends=True):
+        if line.startswith(b"## "):
+            sections.append((line.decode("utf-8", "replace").rstrip(), []))
+        sections[-1][1].append(line)
+    return tuple(
+        sorted(
+            (
+                Part(heading=name, lines=len(body), bytes=sum(len(one) for one in body))
+                for name, body in sections
+                if body
+            ),
+            key=lambda part: (-part.bytes, part.heading),
+        )
     )
 
 

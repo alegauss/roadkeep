@@ -20,7 +20,15 @@ from collections.abc import Mapping, Sequence
 from roadkeep import attesting, claiming
 from roadkeep.backlog import Backlog, Stage, Standing
 from roadkeep.briefing import NothingToBrief, brief
-from roadkeep.budgeting import Body, Share, body_budget, budget, file_budget, non_goal_budget
+from roadkeep.budgeting import (
+    Body,
+    Load,
+    Share,
+    body_budget,
+    budget,
+    file_budget,
+    non_goal_budget,
+)
 from roadkeep.config import Config, PROSE_ROLES
 from roadkeep.counting import Census
 from roadkeep.kernel.document import StaleFile, write_all
@@ -778,7 +786,31 @@ def _file_budget(config: Config, args: argparse.Namespace) -> int:
             # pays, so a word figure beside it would be a number this project never stated.
             over = f", {cost.over} over" if cost.over else f", {cost.left} left"
             print(f"  {cost.unit:<11}{cost.taken} of {cost.limit}{over}")
+        _print_parts(load)
     return EXIT_OK
+
+
+#: How many sections the terminal names, for `_LARGEST_TOOLS`' reason: the largest few are
+#: where the size went, and a caller reading a report to decide what to cut wants those.
+_LARGEST_PARTS = 4
+
+
+def _print_parts(load: Load) -> None:
+    """Where the size is, so the next compression is aimed (RK1092).
+
+    The read `budget --tools` makes about the served surface, one file over: a total says an
+    edit will be refused and says nothing about what to take out, and `agents.md` reaching
+    eight bytes of room turned *compress the prose* into a preference nothing had re-measured.
+
+    Only where the file is on disk and holds more than one section, because a single-section
+    file's breakdown is the total printed twice.
+    """
+    if len(load.parts) < 2:
+        return
+    for part in load.parts[:_LARGEST_PARTS]:
+        print(f"    {part.bytes:>6}  {part.lines:>3}  {part.heading or '(before the first ##)'}")
+    if len(load.parts) > _LARGEST_PARTS:
+        print(f"    … and {len(load.parts) - _LARGEST_PARTS} more — `--json` lists every one")
 
 
 def _non_goal_budget(config: Config, args: argparse.Namespace) -> int:

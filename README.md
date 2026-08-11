@@ -119,15 +119,15 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 40 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 130 | 1 |
 | C — Query (consult without reading the file) | 0 | 85 | 1 |
-| D — The gate | 1 | 141 | 0 |
+| D — The gate | 0 | 142 | 0 |
 | E — Adoption | 1 | 80 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 96 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 2 | 583 | 6 |
+| **Total** | 1 | 584 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1092** (deps: —) **agents.md is eight bytes under its budget and the next sentence has nowhere to come from** — RK1091 paid for one rule by compressing two paragraphs, and the file is now at 8392 of 8400, so the gate refuses the next edit rather than the next paragraph of drift. → §RK1092
+- 📋 **RK1093** (deps: —) **the estimate's four gains are four hand-written blocks in one function** — Each reads a different declaration and composes its own sentence, so a fifth door is a fifth if-block and the category has no index a test can hold total. → §RK1093
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

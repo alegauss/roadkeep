@@ -764,6 +764,13 @@ def _load_json(load: Load) -> dict[str, object]:
             {"unit": c.unit, "limit": c.limit, "taken": c.taken, "left": c.left, "over": c.over}
             for c in load.costs
         ],
+        # Every section and not the largest few (RK1092), for `by_tool`'s reason: a caller
+        # reading this to decide what to cut is reading a payload, and the terminal is
+        # reading a report. Empty where the file is not on disk.
+        "parts": [
+            {"heading": part.heading, "lines": part.lines, "bytes": part.bytes}
+            for part in load.parts
+        ],
     }
 
 

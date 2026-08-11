@@ -81,29 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK1092 A budget met by having nothing left
-
-`agents.md` stands at 8,392 bytes of 8,400 and 123 lines of 125. RK1091 added one rule
-and paid for it by compressing the conformance paragraph and the skill paragraph, which
-is exactly what RK203 says the budget is for — and the room it bought is gone.
-
-The gate is working and the next edit is what shows the difference between a budget and
-a wall. A wall refuses the next sentence whatever it says; a budget refuses the
-*cheapest* sentence, which is the one whose removal costs least. Eight bytes cannot tell
-those apart.
-
-Three places the file could give. The Layout index is ~20% of the lines and grows only
-when the package does, and RK203 already says to compress the prose instead — an
-argument made when the prose had slack. The six laws are a compressed copy of §0.3,
-which is authoritative, so a row here is a second statement by construction. And the
-opening restates §0 of a file its own first sentence links.
-
-What would settle it is asking what an agent actually reads. This file is loaded every
-turn and nothing measures which paragraphs a turn uses — `budget --file` says what it
-costs and nothing says what it buys. That is the gap `budget --tools` closed for the
-served surface (RK464), one file over, and the read that would make the next compression
-a measurement.
-
 ## Block E — Adoption
 
 ### §RK1093 The category that is a function body

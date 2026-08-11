@@ -1253,3 +1253,47 @@ def test_a_named_ref_is_the_caller_s_and_is_answered_as_it_is(tmp_path):
     assert not answer.ref_assumed
     assert answer.section is not None and answer.section.under == "IX"
     assert answer.section.under_taken == 29
+
+
+# -- where the size is, not only how much of it there is (RK1092) --------------
+
+
+def test_the_file_budget_says_where_the_size_went(tmp_path, capsys):
+    """`budget --tools` ranks tools so an author cutting the schema knows where to cut, and
+    the resident file had only a total — so `agents.md` reaching eight bytes of room turned
+    *compress the prose rather than the index* into a preference nothing had re-measured.
+
+    Sections and not paragraphs: a `##` is what the file declares, and a paragraph is where
+    a reader happened to stop.
+    """
+    (tmp_path / "agents.md").write_text(
+        "intro\n\n## Big\n\n" + "x" * 400 + "\n\n## Small\n\nshort\n", encoding="utf-8"
+    )
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[budgets]\n"agents.md" = { bytes = 900 }\n', encoding="utf-8"
+    )
+    (load,) = file_budget(Config.discover(tmp_path))
+    # Largest first, which is the order a reader deciding what to cut reads in.
+    assert [part.heading for part in load.parts][:2] == ["## Big", "## Small"]
+    assert sum(part.bytes for part in load.parts) == load.costs[0].taken
+    assert load.parts[0].bytes > load.parts[1].bytes
+
+
+def test_the_breakdown_is_silent_where_it_would_be_the_total_twice(tmp_path):
+    # One section is the whole file, so naming it is the number printed again.
+    (tmp_path / "agents.md").write_text("just prose\n", encoding="utf-8")
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[budgets]\n"agents.md" = { bytes = 900 }\n', encoding="utf-8"
+    )
+    (load,) = file_budget(Config.discover(tmp_path))
+    assert len(load.parts) == 1
+
+
+def test_a_file_that_is_not_there_has_nothing_to_attribute(tmp_path):
+    # The state `lint` calls `budget.absent`: no content, so no breakdown — and never zeroes,
+    # which would read as a file whose every section is empty.
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[budgets]\n"gone.md" = { bytes = 900 }\n', encoding="utf-8"
+    )
+    (load,) = file_budget(Config.discover(tmp_path))
+    assert not load.present and load.parts == ()
