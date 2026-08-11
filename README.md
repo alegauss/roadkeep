@@ -121,13 +121,13 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 87 | 1 |
 | D — The gate | 0 | 145 | 0 |
 | E — Adoption | 1 | 81 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 96 | 1 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 97 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 2 | 590 | 6 |
+| **Total** | 1 | 591 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1099** (deps: —) **a flag added to a served verb is CLI-only until somebody lists it, and nothing says which ones are** — RK1095 added budget --session and left it off the tool's exposes for two tasks; only a remedy door naming it made the closure test notice. → §RK1099
+- 📋 **RK1100** (deps: —) **adopt estimates what a project gains and never says the tool surface costs it fifty thousand characters** — an adopting project serves the same 52 tools measured here, so the largest number in the transaction is the one the estimate omits. → §RK1100
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

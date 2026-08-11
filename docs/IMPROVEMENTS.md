@@ -104,24 +104,4 @@ else's surface, and this does not reopen that.
 
 ## Block F — The plugin
 
-### §RK1099 Which arguments a served verb withholds, said out loud
-
-`Tool.exposes` lists the fields a served verb accepts, and everything else on that
-verb's parser is silently unreachable over MCP. Two of those omissions are deliberate
-and argued — `lint --fix` writes, `claims --prune` writes — and the rest are whatever
-nobody added.
-
-Measured: RK1095 added `budget --session` to the parser and not to `exposes`, and it
-stayed CLI-only through RK1096 and half of RK1097. What caught it was not a test about
-the surface; it was `test_remedying`, because the new gate's remedy door happened to
-name the flag and `Door.call` returned None for it. A flag no door names would still be
-missing.
-
-What is missing is a reading, not a rule: which arguments each served verb withholds, so
-an author can see that `--fix` is withheld on purpose and `--session` was not. `writes`
-already answers the adjacent question about which verbs write. Whether the withheld ones
-should then be *declared* — a reason per omission, the way `[budgets]` makes a number a
-declaration — is the decision that reading would inform, and it should not be made
-before it exists.
-
 ## Block G — The editor surface (the backlog where the file is open)

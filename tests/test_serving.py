@@ -25,6 +25,7 @@ since both are processes a session starts once.
 
 from __future__ import annotations
 
+import argparse
 import contextlib
 import io
 import json
@@ -2181,3 +2182,69 @@ def test_no_other_field_of_that_answer_is_read_as_a_command(tmp_path):
     written = json.loads(text_of(answer))
     assert "list --json is what a caller reads here." in written["rendered"]
     assert "mcp__" not in written["rendered"]
+
+
+# -- what the surface withholds, said out loud (RK1099) -----------------------
+
+
+def _withheld_by_parser() -> dict[str, set[str]]:
+    """Every argument a served verb has and does not offer, derived from the parsers.
+
+    The other half of the comparison `WITHHELD` declares. Read through `_subparser`, which is
+    what `descriptors` reads, so the two answers are about one parser and not two.
+    """
+    from roadkeep.serving import STRUCTURAL, _subparser
+
+    out: dict[str, set[str]] = {}
+    for tool in serving.TOOLS:
+        if tool.always:
+            # A flag turned into a tool of its own (RK150): the command it serves is narrower
+            # than the parser's, and what it does not pass it does not withhold either.
+            continue
+        offered = set(tool.exposes) | set(tool.conditional)
+        missing = {
+            action.dest
+            for action in _subparser(tool.command)._actions
+            if action.dest not in offered
+            and action.dest not in {"help", "handler", STRUCTURAL, argparse.SUPPRESS}
+        }
+        if missing:
+            out[tool.command] = missing
+    return out
+
+
+def test_every_argument_the_surface_withholds_says_why():
+    """The reading RK1099 asked for, run rather than written down.
+
+    `exposes` is a whitelist, so withholding is what happens when nobody acts — and RK1095
+    added `budget --session` to the parser, left it off the tool, and it stayed CLI-only
+    through two more tasks. Nothing was watching: what eventually caught it was a remedy door
+    naming the flag, which is a coincidence and not a check.
+
+    So the two sets are held equal. A flag added to a served verb is now a red test with one
+    question in it — expose it, or write the reason here — and a flag exposed while a row for
+    it survives is the same failure from the other side.
+    """
+    declared = {command: set(rows) for command, rows in serving.WITHHELD.items()}
+    assert declared == _withheld_by_parser()
+
+
+def test_no_reason_is_left_as_a_placeholder():
+    # The failure a table of reasons has: a row written to make the test above pass. Each is a
+    # sentence about *this* argument, so the cheapest wrong answer is one that is not.
+    for command, rows in serving.WITHHELD.items():
+        for dest, why in rows.items():
+            assert len(why.split()) >= 8, f"{command}.{dest} has no reason in it"
+            assert not why[0].isupper(), f"{command}.{dest}: a clause, like every other row"
+
+
+def test_the_transport_is_not_a_decision_anybody_records():
+    """`--json` is withheld from every served verb and is in no row, deliberately: the payload
+    is what this transport already is, so a caller could not set it either way."""
+    from roadkeep.serving import STRUCTURAL
+
+    assert not [
+        command for command, rows in serving.WITHHELD.items() if STRUCTURAL in rows
+    ], "the transport is not a field a reason could be about"
+    for tool in serving.TOOLS:
+        assert STRUCTURAL not in tool.exposes, tool.name

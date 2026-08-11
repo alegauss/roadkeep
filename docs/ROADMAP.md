@@ -36,8 +36,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK1099** (deps: —) **a flag added to a served verb is CLI-only until somebody lists it, and nothing says which ones are** — RK1095 added budget --session and left it off the tool's exposes for two tasks; only a remedy door naming it made the closure test notice. → §RK1099
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Non-goals
