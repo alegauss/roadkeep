@@ -108,27 +108,4 @@ nothing looks for it.
 
 ## Block F — The plugin
 
-### §RK1055 A bound that became wrong the moment the field could hold a span
-
-RK1049 and RK1053 gave `--why` a second shape: with `--lines` above one it carries a
-wrapped ledger entry whole, and only its **first line** is measured against
-`limits.changelog.why`. The MCP schema publishes `maxLength: why_max` for that field,
-derived from the same number.
-
-The two no longer describe one rule. A three-line span of ordinary sentences is past 200
-characters while every line of it is inside the limit, so a client validating the
-published schema refuses a call this server would take. That is the failure this module
-names about itself twice: *a lower `maxLength` refuses on the client prose this server
-accepts* (RK183), and *the one way this derivation can be wrong while looking right*.
-
-It is worse than an over-tight bound, because the affordance is invisible from the
-schema. The `note` beside `why` explains the line limit and the aim and says nothing
-about the span, so an agent reading the surface cannot learn the shape exists — it will
-compose the `<br>`-joined line RK1049 was filed to remove.
-
-Two parts, and the second matters more. The bound has to stop being a flat number for
-the two verbs taking `--lines`, and the note has to say what the field means when a
-count is passed. Whether `maxLength` is dropped there or raised to the line ceiling is
-the decision.
-
 ## Block G — The editor surface (the backlog where the file is open)

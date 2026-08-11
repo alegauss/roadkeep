@@ -721,15 +721,44 @@ _SCOPE_BOUNDS = {
 }
 
 
+#: The two verbs whose `why` has a **second shape** (RK1049, RK1053, RK1055). With `--lines`
+#: above one the field carries a wrapped ledger entry whole, and only its first line is measured
+#: against `limits.<role>.why` — so no character ceiling describes both calls, and publishing the
+#: single-line one refuses a span this server takes. That is RK183's rule, and the answer is the
+#: one `body` and `section_body` already give for the same shape: no `maxLength`, and the bound
+#: said in the note. The affordance is said there too, because a schema is the whole of what an
+#: agent has: unsaid, it composes the `<br>`-joined line RK1049 exists to remove.
+_SPAN_BOUNDS = {
+    **_BOUNDS,
+    "why": lambda config: {
+        "note": (
+            f"Aim for {words(config.schema.why_max)} words. **No `maxLength` here, and the "
+            f"limit is per line**: {config.schema.why_max} characters is what refuses a "
+            f"one-line field, counted in UTF-16 code units, and the rendered line "
+            f"({config.schema.line_max}) is what binds — `budget` answers both before a word "
+            f"is written (RK190). Passing `--lines` above one on an entry that wraps, this "
+            f"field is the **whole span**: the first line is the sentence and is measured, "
+            f"and the lines after it are written back under the bullet verbatim, unmeasured "
+            f"because no field holds them. So the total has no ceiling and one published "
+            f"here would refuse a call this tool accepts."
+        )
+    },
+}
+
+
 #: The verbs that mean something of their own by a field name every other verb shares, and the
-#: table that says what (RK316). By first argv word, which is what a `Tool` is keyed on: `non-goal
-#: add` and `non-goal drop` share `[non_goals]`' limits, and no divergence yet is narrower than a
-#: command. Every key is asserted to name a subcommand this CLI accepts, so the one way this can
+#: table that says what (RK316). By the **full command** and then by its first word, which is
+#: the order the divergences now need: `non-goal add` and `non-goal drop` share `[non_goals]`'
+#: limits, while `record amend` takes a span and `record add` — placing a new entry — does not,
+#: so a first-word key would publish the loose bound to the one door that still has the tight
+#: one. Every key is asserted to name a subcommand this CLI accepts, so the one way this can
 #: be wrong — a rename leaving nothing matched and the defaults silently published — is a test
 #: failure and not a client refusing a call the tool would have taken.
 _DIVERGENT: Mapping[str, Mapping[str, Any]] = {
     "non-goal": _SCOPE_BOUNDS,
     "list": _FILE_BOUNDS,
+    "ship": _SPAN_BOUNDS,
+    "record amend": _SPAN_BOUNDS,
 }
 
 
@@ -988,11 +1017,16 @@ def _description(tool: Tool, parser: argparse.ArgumentParser) -> str:
 def _bounds_for(tool: Tool) -> Mapping[str, Any]:
     """Which bounds table describes this tool's fields, by the verb and never by the dest.
 
-    Two commands mean something of their own by a name every other command shares: `non-goal`'s
-    `why` is `[non_goals]`' limit and not `[limits]`' (RK70), and `list`'s `role` is any governed
-    file and its `marker` any marker one can carry (RK304, RK314). Both are properties of the verb
-    rather than of the dest, so both are read off it, here and in one place: a second `if` at the
+    Commands mean something of their own by a name every other command shares: `non-goal`'s
+    `why` is `[non_goals]`' limit and not `[limits]`' (RK70), `list`'s `role` is any governed
+    file and its `marker` any marker one can carry (RK304, RK314), and `ship`'s and `record
+    amend`'s `why` has a shape no ceiling describes (RK1055). All are properties of the verb
+    rather than of the dest, so all are read off it, here and in one place: a second `if` at the
     caller is how two tools over one dest come to publish two answers.
+
+    **The full command first, then its first word** (RK1055). `record amend` takes a span and
+    `record add` does not, so the two doors under one head need different answers — and the
+    fallback is what keeps `non-goal add` and `non-goal drop` one entry rather than two.
 
     Read from :data:`_DIVERGENT` and no longer from an `if` chain (RK316). The chain's failure was
     silent and in the forbidden direction: a command renamed in `cli.py` left every `Tool` correct
@@ -1003,6 +1037,8 @@ def _bounds_for(tool: Tool) -> Mapping[str, Any]:
     Not moved onto :class:`Tool` — the tables are composed from the config below this line, and
     two divergent verbs out of thirty-odd is a fact about those two rather than a field for all.
     """
+    if tool.command in _DIVERGENT:
+        return _DIVERGENT[tool.command]
     return _DIVERGENT.get(tool.argv_head[0], _BOUNDS)
 
 

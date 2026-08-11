@@ -36,8 +36,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK1055** (deps: —) **the served why bound refuses on the client a span the server accepts** — maxLength is the field limit and the span form measures only its first line, so a three-line --why past 200 characters is refused by the schema and never reaches the verb. → §RK1055
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Non-goals

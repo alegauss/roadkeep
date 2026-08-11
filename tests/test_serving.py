@@ -337,7 +337,9 @@ def test_every_divergent_verb_is_one_the_cli_still_spells_that_way():
     # forbidden direction — a command renamed in `cli.py` left every `Tool` correct, no branch
     # matching, and the fields falling back to bounds narrower than the verb accepts, which is a
     # bound on the client. RK167's answer to a declaration that can stop matching, one file over.
-    spelled = {tool.argv_head[0] for tool in TOOLS}
+    # Both key shapes (RK1055): a full command, and a first word standing for every command
+    # under it. Each has to be one this surface serves and one the CLI still dispatches.
+    spelled = {tool.argv_head[0] for tool in TOOLS} | {tool.command for tool in TOOLS}
     for verb in serving._DIVERGENT:
         assert verb in spelled, f"{verb} names no served command"
         # And the CLI's own, not only this surface's: both halves have to agree or the table
@@ -346,14 +348,35 @@ def test_every_divergent_verb_is_one_the_cli_still_spells_that_way():
 
 
 def test_the_verbs_that_diverge_are_named_and_not_counted():
-    # The list is the point: a third is a deliberate addition and not something a copied
-    # override brought along. `non-goal` is `[non_goals]`' two limits (RK70) and `list` is the
-    # one read whose `role` and `marker` mean every governed file (RK304, RK314).
-    assert set(serving._DIVERGENT) == {"non-goal", "list"}
-    # Every other tool gets the common table, which is what makes those two legible as exceptions.
+    # The list is the point: a fifth is a deliberate addition and not something a copied
+    # override brought along. `non-goal` is `[non_goals]`' two limits (RK70), `list` is the
+    # one read whose `role` and `marker` mean every governed file (RK304, RK314), and `ship`
+    # and `record amend` are the two whose `why` can carry a span no ceiling fits (RK1055).
+    assert set(serving._DIVERGENT) == {"non-goal", "list", "ship", "record amend"}
+    # Every other tool gets the common table, which is what makes those legible as exceptions.
     for tool in TOOLS:
-        if tool.argv_head[0] not in serving._DIVERGENT:
+        if tool.command not in serving._DIVERGENT and tool.argv_head[0] not in serving._DIVERGENT:
             assert serving._bounds_for(tool) is serving._BOUNDS
+
+
+def test_the_span_verbs_publish_no_ceiling_and_their_siblings_still_do(tmp_path):
+    # The defect: `maxLength` is the single-line limit, a span is measured per line, and a
+    # three-line --why past 200 characters was refused by the client on a call this server
+    # takes — the one direction this module forbids a derived bound to be wrong in (RK183).
+    config = Config.discover(project(tmp_path))
+    for name in ("ship", "record_amend"):
+        why = _served(name, config)["why"]
+        assert "maxLength" not in why, f"{name} publishes a ceiling a span cannot meet"
+        assert "whole span" in why["description"]
+    # `record add` places a new entry and takes no count, so its ceiling is still the truth —
+    # which is why the table is keyed by the full command and not by `record`.
+    placed = _served("record_add", config)["why"]
+    assert placed["maxLength"] == config.schema.why_max
+
+
+def _served(name: str, config: Config) -> dict:
+    tool = next(one for one in TOOLS if one.name == name)
+    return descriptor(tool, config)["inputSchema"]["properties"]
 
 
 def _minimal(tool: Tool) -> dict[str, str]:

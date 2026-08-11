@@ -566,6 +566,7 @@
 - ✅ **RK487** **A pipe in a block title breaks the readme table, where the site form escapes the same string** — a bar in a block title stays inside its own cell, so the readme table keeps its columns.
 - ✅ **RK488** **Every module that offers a command composes the sentence itself, so a new surface is reached one emitter at a time** — Every message that offers a call states a Door and one renderer spells it, held by a property no module outside it composes one, so a new surface is one change.
 - ✅ **RK1043** **the four slash commands spell a console script the plugin's other two surfaces were written not to assume** — Every command line the four files spell is the launcher the plugin already used, so none depends on a console script a marketplace install does not make.
+- ✅ **RK1055** **the served why bound refuses on the client a span the server accepts** — ship and record amend publish no why ceiling and state the per-line limit and the span in the note, so the client stops refusing a call this server takes.
 
 ## Block G — The editor surface (the backlog where the file is open)
 
