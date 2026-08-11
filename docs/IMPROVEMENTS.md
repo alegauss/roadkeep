@@ -86,28 +86,3 @@ already written, not authorship.
 ## Block F — The plugin
 
 ## Block G — The editor surface (the backlog where the file is open)
-
-### §RK1019 The copy the tests answered from
-
-RK1009 made the view refuse to guess which copy it calls, because a panel answering from
-a copy the commits do not use fails quietly. The suite proving that view has the same
-shape and none of the same care: the harness hands the child a command through the
-environment, the child resolves it however the machine does, and every assertion is
-about whatever answered.
-
-Measured here: `roadkeep` imports from anywhere on this machine, because the checkout is
-installed. So the relative `PYTHONPATH` the fixture passed for months never mattered —
-and on a machine where it resolved to something else, the tests would have proved the
-client against a package this tree does not contain, and passed.
-
-The suite already has the answer. The harness reports the engine row, which carries the
-home `engines` derives, and one assertion reads it — as a suffix, so any tree ending in
-those two segments satisfies it. The fix is that it is this checkout exactly, stated
-where the harness is built rather than in each test that happens to look.
-
-The boundary is the `client` job's, and it is the same one: node is pinned there and
-asserted before the tests run, because a skip is a green. This is that argument about
-the *other* interpreter — the one the child actually runs.
-
-What proves it: a harness pointed at a foreign roadkeep fails rather than reporting on
-it, and the run that answers names the tree it came from.

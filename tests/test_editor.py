@@ -192,10 +192,26 @@ NODE = shutil.which("node")
 def _harness(
     root, typed: list[str] | None = None, declared: str | None = None, cycles: bool = False
 ) -> dict:
-    """Run the stubbed host against a real roadkeep in ``root`` and read its report back.
+    """Run the stubbed host against **this checkout's** roadkeep and read its report back.
 
     ``typed`` is what somebody writes into the two prompts, in order — passed as JSON because
     an environment variable is a string and a separator inside prose is a bug waiting.
+
+    **Which copy answered is asserted here and not left to the machine** (RK1019). RK1009 made
+    the view refuse to guess that, because a panel answering from a copy the commits do not
+    use fails quietly; the suite proving the view had the same shape and none of the care. The
+    child resolves `python -m roadkeep.cli`, and this package imports from anywhere on a
+    machine that installed it — so on a machine that installed a *different* one, every
+    assertion below would have been about a package this tree does not contain, and passed.
+
+    So the engine row is read back and compared to this directory, exactly. `engines` derives
+    that home from the module the child actually imported, which makes it the one fact in the
+    report that is about the process rather than about the files it read.
+
+    Held on every call that produces an engine row, including the ones that declare a command
+    of their own: a wrapper that delegates to this tree still answers from it, and one that
+    did not is exactly what this is for. The undeclared case names no engine at all, which is
+    the point of that case.
     """
     env = {
         **os.environ,
@@ -217,7 +233,14 @@ def _harness(
         cwd=str(HERE),
     )
     assert said.stdout, said.stderr
-    return json.loads(said.stdout)
+    report = json.loads(said.stdout)
+    if "engine" in report:
+        # The home `engines` derived, against this checkout — as a path and not a suffix: two
+        # trees ending in the same two segments is exactly the state RK79 exists to separate.
+        assert report["engine"]["detail"] == (HERE / "src" / "roadkeep").as_posix(), (
+            f"the harness answered from {report['engine']['detail']}, which is not this tree"
+        )
+    return report
 
 
 @pytest.mark.skipif(not NODE, reason="node is not on PATH")
@@ -486,9 +509,15 @@ def test_a_save_re_reads_the_backlog_and_not_the_installation(tmp_path):
     )
     _harness(root, declared=f"python {spy}", cycles=True)
     ran = [line.split()[0] for line in log.read_text(encoding="utf-8").splitlines() if line]
-    # Three tree builds: the first, one after a save, one after an explicit refresh.
+    # Three tree builds: the harness's first, one after a save, one after an explicit
+    # refresh. Activation adds a `lint` and no `list` — nothing is subscribed to the tree in
+    # a stubbed window, so firing the change event asks nothing — and it is counted at all
+    # only because `activate` returns its promise and the harness awaits it. Un-awaited, that
+    # `lint` sometimes landed after the log was read, which is what made this count flaky.
     assert ran.count("list") == 3, ran
-    # And two `engines`: the window's first answer, and the one the button asked for.
+    assert ran.count("lint") == 2, ran
+    # And two `engines` across all four: the window's first answer, and the one the button
+    # asked for — which is the whole of RK1017, counted rather than asserted.
     assert ran.count("engines") == 2, ran
 
 

@@ -558,7 +558,12 @@ function activate(context) {
       vscode.window.showInformationMessage(said.output || said.error);
     })
   );
-  both();
+  // **Returned and not fired and forgotten**: an editor awaits what `activate` hands back, so
+  // the view is populated before anything asks it a question — and a caller counting the
+  // child processes this makes sees them all, rather than some of them landing after it
+  // looked. An un-awaited promise here is a race in every reader of this surface, which is
+  // how `tests/test_editor.py`'s own count first became flaky.
+  return both();
 }
 
 function deactivate() {}

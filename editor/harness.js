@@ -141,7 +141,7 @@ async function main() {
   // `activate` is exercised for what it wires — a stub with no window records the calls and
   // hands nothing back, so the provider under test is built directly.
   editor.workspace.workspaceFolders = [{ uri: editor.Uri.file(root) }];
-  activate({ subscriptions: [] });
+  await activate({ subscriptions: [] });
 
   const backlog = new Backlog(root);
   const out = { blocks: [] };

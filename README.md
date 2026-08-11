@@ -122,12 +122,8 @@ called unbuilt were already in the ledger.
 | D — The gate | 0 | 123 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 91 | 1 |
-| G — The editor surface (the backlog where the file is open) | 1 | 10 | 0 |
-| **Total** | 1 | 510 | 6 |
-
-**Next ready:**
-
-- 📋 **RK1019** (deps: —) **The harness proves the client against whatever roadkeep the machine resolves, and nothing says it was this checkout** — RK1009 made the view refuse to guess which copy it calls, and the suite that proves the view still takes whatever answered. → §RK1019
+| G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
+| **Total** | 0 | 511 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
