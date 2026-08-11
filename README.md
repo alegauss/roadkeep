@@ -117,17 +117,13 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 31 | 2 |
-| B — Authoring (insert, never hand-edit) | 1 | 110 | 1 |
+| B — Authoring (insert, never hand-edit) | 0 | 111 | 1 |
 | C — Query (consult without reading the file) | 0 | 74 | 1 |
 | D — The gate | 0 | 124 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 91 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 1 | 515 | 6 |
-
-**Next ready:**
-
-- 📋 **RK1024** (deps: —) **add accepts a subsection that lint then fails, because the parent section's total is not checked at insert** — add promises nothing is written unless every field passes, and the section it accepted put the parent 277 words over - discovered by lint, after the prose existed. → §RK1024
+| **Total** | 0 | 516 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

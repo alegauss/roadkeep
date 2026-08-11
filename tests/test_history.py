@@ -1778,3 +1778,43 @@ def test_the_free_address_and_the_audit_are_two_answers(tmp_path, capsys):
     assert capsys.readouterr().out.startswith("§")
     assert main(["-C", str(tmp_path), "anchors", "--claims"]) == EXIT_OK
     assert "ownership" in capsys.readouterr().out
+
+
+# -- an address the writer will refuse is not offered silently (RK1024) -------
+
+
+def crowded(tmp_path: Path, spent: int, limit: int = 30) -> Config:
+    """An outline project whose §IX is a live design already spending most of its budget."""
+    config = outlined(tmp_path)
+    append(
+        config.path("roadmap"),
+        f"- {DESIGNED} **RK1** (deps: —) **A symptom** — a reason. → §IX\n",
+    )
+    append(config.root / "roadkeep.toml", f"\n[limits]\nsection = {limit}\n")
+    append(
+        config.path("improvements"),
+        f"\n### IX A design already spending its budget\n\n{' '.join(['word'] * spent)}\n",
+    )
+    git_commit(config.root, "docs: file IX")
+    return Config.discover(tmp_path)
+
+
+def test_the_listing_says_where_a_child_has_no_room_before_it_is_written(tmp_path, capsys):
+    """The address `anchors` offered and `add` then refused. §IX is 29 of its own 30 words,
+    so every child of it — the empty one included — is over the limit before a word of it is
+    composed, and only `lint` used to say so."""
+    config = crowded(tmp_path, spent=29)
+    assert main(["-C", str(tmp_path), "anchors", "--family", "IX"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "next     §IX.1" in out
+    assert "already spends 29 of its 30 words" in out
+
+
+def test_a_family_with_room_is_offered_with_nothing_added(tmp_path, capsys):
+    """Said only where it is true: a parent with room is the normal case, and a sentence
+    printed on every listing is one nobody reads on the listing that needed it."""
+    config = crowded(tmp_path, spent=4)
+    assert main(["-C", str(tmp_path), "anchors", "--family", "IX"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "next     §IX.1 — nothing ever used it\n" in out
+    assert "already spends" not in out

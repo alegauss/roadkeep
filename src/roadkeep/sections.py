@@ -909,7 +909,50 @@ def add(
 
     placed = find(document, anchor)
     assert placed is not None  # rendered by this function a moment ago
+    _refuse_overflow(config, document, anchor)
     return document, placed
+
+
+def _refuse_overflow(config: Config, document: Document, anchor: str) -> None:
+    """Refuse a child whose arrival puts an ancestor over its own limit (RK1024).
+
+    `add` opens its help with the promise that nothing is written unless every field passes,
+    because *a limit reported after the prose exists is a limit discovered too late to save
+    the tokens it was meant to save*. Charged on the child alone, that promise was false for
+    every nested address: measured in one sitting, `anchors --block AJ` offered `§L.1`,
+    `budget` reported 51 words left, `add` **accepted** a 278-word section, and `lint` then
+    failed the parent by 277. `§L` was 299 words of its own 300 — so every child of it,
+    including an empty one, was over before a word of it was composed, and no writer said so.
+
+    Measured against the file this call has already built rather than against a sum, so the
+    number is the one the gate will read: the walk is the same :func:`find`, the limit is the
+    same `section_max`, and the pointer decides the charge exactly as `_pointed_at` says
+    (RK215). An ancestor nothing points at is a container, and counting its children against
+    it here would refuse prose the gate calls clean — which is the disagreement that made
+    this a defect rather than a limit.
+
+    Every ancestor and not only the immediate one: `L.1.2` is inside `L.1` and inside `L`,
+    and a parent with room under a grandparent with none is still a write `lint` fails.
+    """
+    limit = document.schema.section_max
+    parent = _parent(anchor)
+    while parent:
+        whole = find(document, parent)
+        if whole is not None and whole.words > limit and _pointed_at(config, parent):
+            raise SectionError(
+                (
+                    Violation(
+                        "body.too-long",
+                        "body",
+                        f"§{parent} would be "
+                        f"{over_by(whole.words, limit, unit='word', because=' with this section under it')}"
+                        f" — a subsection is charged to the address that owns it, so this "
+                        f"prose belongs at a free top-level anchor "
+                        f"(`anchors --next`) rather than under §{parent}",
+                    ),
+                )
+            )
+        parent = _parent(parent)
 
 
 def unspent(config: Config, role: str, anchor: str, *, document: Document, where: str) -> None:
@@ -1771,6 +1814,26 @@ def _check(
         )
     if out:
         raise SectionError(tuple(out))
+
+
+def charged(config: Config, role: str, anchor: str) -> tuple[int, int] | None:
+    """What the gate charges this address, and the limit it is charged against (RK1024).
+
+    `(words, limit)`, or `None` where the address names no section at all. The words are the
+    same two the gate picks between — the subtree where a line points at the anchor, its own
+    prose where nothing does — so a reader offered a child address can be told what room its
+    parent has left without a second view of the rule.
+
+    A read, so it decides nothing: `anchors` states the number and still prints the address,
+    because an author about to shorten the parent is holding a plan no count can see.
+    """
+    if not config.has(role):
+        return None
+    section = find(config.document(role), anchor)
+    if section is None:
+        return None
+    words_taken = section.words if _pointed_at(config, anchor) else section.own_words
+    return words_taken, config.schema_for(role).section_max
 
 
 def known(config: Config, anchor: str, task: Task | None) -> frozenset[str]:

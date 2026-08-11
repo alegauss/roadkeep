@@ -157,6 +157,7 @@
 - ✅ **RK1014** **A project with no queue is told to write the heading by hand, and the verb that would move one says the first writes it** — `priority add` opens the section above the blocks where a project has none and says so, so no queue needs the hand edit the guard denies.
 - ✅ **RK1022** **add refuses for a missing --ref and the anchors it sends you to names --family, which add has no flag for** — Every command a message spells carries the flags the parser declares (design §RK1022 superseded: `--family` is an `anchors` flag and `--ref` is not; the command beside it was missing).
 - ✅ **RK1023** **the --why - stdin escape hatch is unusable on PowerShell, which prefixes a BOM the char.invisible check rejects** — A field read on stdin loses the one mark its encoder opened with, so the escape hatch works on the shell that most needs it; the same codepoint further in is still refused.
+- ✅ **RK1024** **add accepts a subsection that lint then fails, because the parent section's total is not checked at insert** — A child is charged to the address that owns it before the write, and the listing that offers one says where its parent has no room left.
 
 ## Block C — Query
 

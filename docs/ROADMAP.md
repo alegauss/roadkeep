@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1024** (deps: —) **add accepts a subsection that lint then fails, because the parent section's total is not checked at insert** — add promises nothing is written unless every field passes, and the section it accepted put the parent 277 words over - discovered by lint, after the prose existed. → §RK1024
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate

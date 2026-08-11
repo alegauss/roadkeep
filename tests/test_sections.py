@@ -2798,3 +2798,72 @@ def test_a_container_with_no_prose_of_its_own_is_not_hollow(tmp_path):
 
     config = project(tmp_path)
     assert not [one for one in lint(config).findings if one.code in ("body.empty", "title.empty")]
+
+
+# -- a child is charged to the address that owns it (RK1024) -----------------
+
+
+def _budgeted(tmp_path: Path, parent_words: int, limit: int = 30):
+    """An outline project whose §IX is a live design already near its own limit."""
+    return project(
+        tmp_path,
+        top='ref_scheme = "outline"\n',
+        extra=f"\n[limits]\nsection = {limit}\n",
+        roadmap=f"# Roadmap\n\n## Block A — The model\n\n{RK1_LINE.replace('§RK1', '§IX')}\n",
+        improvements=(
+            "# Improvements\n\n## Block A — The model\n\n"
+            "### IX A design already spending its budget\n\n"
+            + " ".join(["word"] * parent_words)
+            + "\n"
+        ),
+    )
+
+
+def test_a_subsection_that_puts_its_parent_over_is_refused_before_the_write(tmp_path):
+    """The reproduction. `add` promises nothing is written unless every field passes, and a
+    child charged on its own words alone made that promise false for every nested address:
+    the parent was 299 of its own 300, so an empty subsection was already over."""
+    config = _budgeted(tmp_path, parent_words=29)
+    before = read(config)
+    with pytest.raises(SectionError) as raised:
+        add(config, "improvements", "IX.1", "A child", "Six more words than there is room.")
+    message = str(raised.value)
+    assert "§IX" in message and "anchors --next" in message
+    assert read(config) == before
+
+
+def test_the_child_s_own_words_are_still_what_a_top_level_is_charged(tmp_path):
+    """The half that must not move: a top level has no ancestor to overflow, so it is
+    charged its own prose exactly as it was, and prose the gate calls clean is accepted."""
+    config = _budgeted(tmp_path, parent_words=29)
+    document, section = add(config, "improvements", "X", "A sibling", "Four short words.")
+    assert section.anchor == "X"
+    document.save()
+    assert lint(Config.discover(tmp_path)).findings == ()
+
+
+def test_a_parent_with_room_takes_the_child(tmp_path):
+    """The refusal is about the total and not about nesting: where the subtree still fits,
+    the write lands and the gate agrees."""
+    config = _budgeted(tmp_path, parent_words=5)
+    document, _ = add(config, "improvements", "IX.1", "A child", "Four short words.")
+    document.save()
+    assert lint(Config.discover(tmp_path)).findings == ()
+
+
+def test_a_container_nothing_points_at_is_not_charged_its_children(tmp_path):
+    """The gate's own rule, asked the same way (RK215): a parent no line points at is a
+    container, and charging its children here would refuse prose `lint` calls clean."""
+    config = project(
+        tmp_path,
+        top='ref_scheme = "outline"\n',
+        extra="\n[limits]\nsection = 30\n",
+        roadmap="# Roadmap\n\n## Block A — The model\n",
+        improvements=(
+            "# Improvements\n\n## Block A — The model\n\n"
+            "### IX A container nobody addresses\n\n" + " ".join(["word"] * 29) + "\n"
+        ),
+    )
+    document, _ = add(config, "improvements", "IX.1", "A child", "Four short words.")
+    document.save()
+    assert lint(Config.discover(tmp_path)).findings == ()

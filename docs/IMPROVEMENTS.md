@@ -77,33 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1024 The budget the insert did not check
-
-`add` opens its own help with the promise that nothing is written unless every field
-passes, because *a limit reported after the prose exists is a limit discovered too late
-to save the tokens it was meant to save*. It then did exactly that.
-
-The sequence, in one project, in one sitting:
-
-1. `anchors --block AJ` answers `next §L.1 — nothing ever used it`.
-2. `budget` reports `section 300 words (improvements), 249 written, 51 left`.
-3. `add --ref L.1` **accepts** a 278-word section: `design §L.1 → IMPROVEMENTS.md:963  278 words`.
-4. `lint` fails: `L: 577 words, limit is 300: delete 277 words`.
-
-The parent `§L` was already 299 words of its own 300. Nesting counts the child inside
-the parent, so **every** subsection of `§L` is over the limit before a word of it is
-written — including the empty one. The anchor `anchors` recommended cannot be used at
-all, and neither `anchors` nor `budget` nor `add` said so; only `lint` did, after the
-prose existed.
-
-**Two fixes, and the second is the one that matters.** `anchors` should not offer a
-child anchor whose parent has no budget left. And `add` should validate the section
-against the total it will produce, not against the child alone — which is the check it
-already claims to be.
-
-The recovery, for whoever hits this before it is fixed: `git restore` the governed files
-and re-add against a free top-level anchor. Nothing else undoes it.
-
 ## Block C — Query
 
 ## Block D — The gate

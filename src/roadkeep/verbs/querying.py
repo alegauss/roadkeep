@@ -72,8 +72,9 @@ from roadkeep.rendering import (
     _view_json,
     _weight_json,
 )
+from roadkeep.schema import body_aim
 from roadkeep.schema import width as measured_width
-from roadkeep.sections import heading_of
+from roadkeep.sections import charged, heading_of
 from roadkeep.serving import descriptors
 from roadkeep.shipping import record
 from roadkeep.showing import show
@@ -1130,7 +1131,10 @@ def _anchors(config: Config, args: argparse.Namespace) -> int:
                 f"  {'live' if one.live else 'retired':<8} {one.anchor}{named}{written}"
                 f"{_ownership(one)}"
             )
-        print(f"  next     §{next_child(whole, args.family)} — nothing ever used it")
+        print(
+            f"  next     §{next_child(whole, args.family)} — nothing ever used it"
+            f"{_room_left(config, read, args.family)}"
+        )
         _doubled(whole)
         return EXIT_OK
     # Beside the totals and above the rows, because it is the question a reused block asks
@@ -1166,6 +1170,33 @@ def _anchors(config: Config, args: argparse.Namespace) -> int:
             f"  `{invocation()} anchors --family <anchor>` lists the addresses under one"
         )
     return EXIT_OK
+
+
+def _room_left(config: Config, roles: Sequence[str], family: str) -> str:
+    """What the parent of an offered child address has left, where it has too little (RK1024).
+
+    An address `add` will refuse is an address this listing should not hand over silently.
+    Measured: `anchors --block AJ` offered `§L.1`, `§L` was 299 words of its own 300, and
+    every child of it — the empty one included — was over before a word was composed. The
+    listing said nothing, `budget` said 51 words were left, and `lint` was the first reader
+    to mention it, after the prose existed.
+
+    Said and never refused, because `anchors` is a read (L5): the caller may be about to
+    shorten the parent, which is a plan no count can see. The threshold is the aim rather
+    than the limit — an address with a handful of words under it is one nobody can write a
+    rationale at, and stating a number that small is the same service as stating none left.
+    """
+    for role in roles:
+        answer = charged(config, role, family)
+        if answer is None:
+            continue
+        taken, limit = answer
+        if taken >= body_aim(limit):
+            return (
+                f", but §{family} already spends {taken} of its {limit} words, "
+                f"so a child of it is charged over the limit before it is written"
+            )
+    return ""
 
 
 def _doubled(taken: Sequence[Anchor]) -> None:
