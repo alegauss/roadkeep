@@ -39,6 +39,7 @@ from roadkeep.authoring import IdInUse, UnknownBlock
 from roadkeep.backlog import Backlog
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
+from roadkeep.document import Continuation
 from roadkeep.history import gaps
 from roadkeep.linting import lint
 from roadkeep.schema import RETIRED, SHIPPED, SchemaError
@@ -74,9 +75,18 @@ LEDGER = """# Shipped
 """
 
 
-def project(tmp_path: Path, roadmap: str = ROADMAP, ledger: str = LEDGER) -> Config:
+#: The rules a ledger of hand-written history turns off (RK52), and the population RK1049
+#: is about: an entry whose sentence wraps has a first line that ends mid-clause, so a role
+#: enforcing the terminator is a role in which no wrapped entry can be written back at all.
+UNGOVERNED_LEDGER = "[rules.changelog]\none_sentence = false\nterminator = false\n"
+
+
+def project(
+    tmp_path: Path, roadmap: str = ROADMAP, ledger: str = LEDGER, rules: str = ""
+) -> Config:
     (tmp_path / "roadkeep.toml").write_text(
-        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n',
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
+        + rules,
         encoding="utf-8",
     )
     for name, body in {"ROADMAP.md": roadmap, "CHANGELOG.md": ledger}.items():
@@ -608,6 +618,120 @@ def test_the_flag_reaches_the_command_line(tmp_path, capsys):
     )
     assert "RK1 amended  CHANGELOG.md:5  (why)" in capsys.readouterr().out
     assert "on a third one" not in read(tmp_path, "CHANGELOG.md")
+
+
+# -- and the span written back rather than collapsed (RK1049) -----------------
+
+
+def test_the_count_lets_the_sentence_be_written_back_over_the_span(tmp_path):
+    # The defect: the parser accepts a three-line entry, `--lines 3` says the caller read
+    # it, and the only outcome the verb could produce was one line — so correcting a typo
+    # in the first sentence deleted two paragraphs of history.
+    config = project(
+        tmp_path, roadmap=BARE_ROADMAP, ledger=CONTINUED, rules=UNGOVERNED_LEDGER
+    )
+    corrected = amend(
+        config,
+        "RK1",
+        why="Because a sentence starts here,\n  runs on a corrected line, and finishes\n  on a third one.",
+        lines=3,
+    )
+    corrected.save()
+
+    body = read(tmp_path, "CHANGELOG.md").splitlines()
+    assert body[4] == f"- {SHIPPED} **RK1** **A first symptom** — Because a sentence starts here,"
+    assert body[5] == "  runs on a corrected line, and finishes"
+    assert body[6] == "  on a third one."
+    # The neighbour is still one line past the span, which is the whole span arithmetic.
+    assert body[7] == f"- {SHIPPED} **RK2** **A second symptom** — Because of another."
+    assert corrected.below == 2
+
+
+def test_a_tail_alone_is_a_change_even_where_the_sentence_did_not_move(tmp_path):
+    # `changed` is about fields and the tail is not one, so the no-op path cannot be asked
+    # about it: reporting "already reads that way" here would collapse the entry silently.
+    config = project(
+        tmp_path, roadmap=BARE_ROADMAP, ledger=CONTINUED, rules=UNGOVERNED_LEDGER
+    )
+    corrected = amend(
+        config, "RK1", why="Because a sentence starts here,\n  and stops on this one.", lines=3
+    )
+    corrected.save()
+
+    assert corrected.changed == () and corrected.below == 1
+    body = read(tmp_path, "CHANGELOG.md")
+    assert "and stops on this one." in body and "on a third one" not in body
+
+
+def test_a_tail_line_that_would_come_back_as_a_bullet_is_refused(tmp_path):
+    # The one thing L3 cannot catch: `- ✅ **RK9** …` under the bullet round-trips
+    # perfectly and is a second entry, filed under an id no verb wrote.
+    config = project(tmp_path, roadmap=BARE_ROADMAP, ledger=CONTINUED)
+    with pytest.raises(Continuation) as raised:
+        amend(
+            config,
+            "RK1",
+            why=f"It works now.\n- {SHIPPED} **RK9** **A smuggled symptom** — Because of a reason.",
+            lines=3,
+        )
+    assert "1 continuation line(s) were offered and 0 came back" in str(raised.value)
+    assert read(tmp_path, "CHANGELOG.md") == CONTINUED
+
+
+def test_a_blank_tail_line_is_refused_because_it_ends_the_entry(tmp_path):
+    # A blank breaks the run the parser reads a span from, so everything under it becomes
+    # the block's prose — an entry silently cut in half by a command asked to correct it.
+    config = project(tmp_path, roadmap=BARE_ROADMAP, ledger=CONTINUED)
+    with pytest.raises(Continuation) as raised:
+        amend(config, "RK1", why="It works now.\n\n  and this is orphaned.", lines=3)
+    assert "a blank line ends the entry" in str(raised.value)
+    assert read(tmp_path, "CHANGELOG.md") == CONTINUED
+
+
+def test_a_newline_without_the_count_is_still_the_refusal_that_names_the_shell(tmp_path):
+    # The door is `--lines`, deliberately: everywhere else a newline in a one-line field is
+    # PowerShell expanding `` `n ``, and passing it through would grow an entry silently.
+    config = project(tmp_path, roadmap=BARE_ROADMAP, ledger=CONTINUED)
+    with pytest.raises(SchemaError) as raised:
+        amend(config, "RK2", why="It works now.\nand this was never typed.")
+    assert any(v.code == "why.newline" for v in raised.value.violations)
+    assert read(tmp_path, "CHANGELOG.md") == CONTINUED
+
+
+def test_a_span_written_back_from_a_crlf_pipe_carries_no_carriage_return(tmp_path):
+    # The terminator is the pipe's and the endings are the file's, so a stream written on
+    # Windows must not leave `\r` at the end of every continuation line.
+    config = project(tmp_path, roadmap=BARE_ROADMAP, ledger=CONTINUED)
+    corrected = amend(
+        config, "RK1", why="It works now.\r\n  and so does the rest.", lines=3
+    )
+    corrected.save()
+    assert "\r" not in read(tmp_path, "CHANGELOG.md")
+
+
+def test_the_span_reaches_the_command_line_and_the_tail_is_reported(tmp_path, capsys):
+    project(tmp_path, roadmap=BARE_ROADMAP, ledger=CONTINUED)
+    assert (
+        main(
+            [
+                "-C",
+                str(tmp_path),
+                "record",
+                "amend",
+                "RK1",
+                "--why",
+                "It works now.\n  and the history under it survives.",
+                "--lines",
+                "3",
+                "--json",
+            ]
+        )
+        == EXIT_OK
+    )
+    payload = json.loads(capsys.readouterr().out)
+    # `rendered` is the first line, which is why the count is a field and not an inference.
+    assert payload["below"] == 1 and payload["rendered"].endswith("It works now.")
+    assert "and the history under it survives." in read(tmp_path, "CHANGELOG.md")
 
 
 #: Two entries for one id whose parsed fields are identical and whose wrapped tails are

@@ -925,7 +925,13 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     record_amend.add_argument("id", help="the recorded id, e.g. RK41")
-    record_amend.add_argument("--why", help="the corrected sentence, one stop" + _PIPE)
+    record_amend.add_argument(
+        "--why",
+        help=(
+            "the corrected sentence, one stop — or, with --lines above one, the whole span: "
+            "the first line is the sentence and the rest is written back as the tail" + _PIPE
+        ),
+    )
     record_amend.add_argument(
         "--part",
         help="correct a partial's qualifier; refused where the entry carries none",
@@ -935,7 +941,8 @@ def build_parser() -> argparse.ArgumentParser:
         type=int,
         help=(
             "how many lines this correction replaces; required where the entry wraps, "
-            "because there the sentence runs past the line the parse holds"
+            "because there the sentence runs past the line the parse holds — and above "
+            "one it is also what lets --why carry that span back"
         ),
     )
     record_amend.add_argument("--json", action="store_true", help=_JSON_HELP)

@@ -392,6 +392,37 @@ class Wrapped(ValueError):
         super().__init__(f"{where}:{entry.lineno}: {task_id} is written over {span} and {said}")
 
 
+class Continuation(ValueError):
+    """A line offered as an entry's tail that would not come back as one (RK1049).
+
+    The guard on the half of :meth:`Document.rewrite_entry` that writes text this schema
+    never renders. A continuation is defined by what the parser does with it — non-blank,
+    and read as neither a bullet, a heading, a table row nor a fence — so a tail carrying a
+    blank line splits the entry in two, and one starting `- ` files a second task under an
+    id nobody added. Both round-trip, which is exactly why L3 cannot catch either.
+
+    Refused against the **re-parse** rather than against a copy of the parser's rules: the
+    rules are :meth:`Document.parse`'s, and a second statement of them here is the one that
+    goes stale. `offered` is what the caller passed and `held` what came back, so the
+    message can name the line that stopped being a tail instead of the count that changed.
+    """
+
+    def __init__(self, task_id: str, offered: int, held: int, line: str = "") -> None:
+        self.task_id = task_id
+        self.offered = offered
+        self.held = held
+        self.line = line
+        names = (
+            f" — {line.strip()!r} is read as a bullet, a heading, a row or a blank"
+            if line.strip()
+            else " — a blank line ends the entry, so the lines under it belong to the block"
+        )
+        super().__init__(
+            f"{task_id}: {offered} continuation line(s) were offered and {held} came back "
+            f"as this entry's{names}; a tail is prose under the bullet and nothing else"
+        )
+
+
 def counted(
     task_id: str, where: str, entry: Entry, lines: int | None, *, verb: str
 ) -> None:
@@ -875,7 +906,9 @@ class Document:
         """
         return self.replace_line(entry.index, self.schema.render(task))
 
-    def rewrite_entry(self, entry: Entry, task: Task) -> Document:
+    def rewrite_entry(
+        self, entry: Entry, task: Task, below: Sequence[str] = ()
+    ) -> Document:
         """Re-render one entry over its **whole span**, collapsing a wrap to one line.
 
         The other half of :meth:`replace_task`'s split (RK179). That one is right where the
@@ -888,16 +921,38 @@ class Document:
         having said how many lines the write replaces. What goes is text no field of this
         task holds, and the only reader who can call it the old sentence's tail is the one
         who read it.
+
+        `below` is the tail put back (RK1049) — the shape the parser accepts and this method
+        could not produce, so the only writable outcome for a five-line entry was one line.
+        Written **verbatim**, because no field of this task holds it: the schema renders the
+        first line and these are the author's bytes, checked by re-parsing rather than by
+        restating the parser's rules (:class:`Continuation`). Empty is the collapse this
+        method always did, and stays the default.
         """
         self.ensure_writable()
         lines = list(self.lines)
         # One edit and not a replace-then-delete, for `remove_lines`'s reason (RK54): each
         # intermediate state of a loop is validated as if it were the finished file. The
         # ending is the *last* line's, so a file that ends without one still does.
+        # The span's own ending goes on the *last* line written, so a file that ends
+        # without one still does; the lines above it get the file's, which is the only
+        # ending a line that did not exist a moment ago could be given.
+        tail = ending(lines[entry.stop - 1])
+        written = [self.schema.render(task), *below]
         lines[entry.index : entry.stop] = [
-            self.schema.render(task) + ending(lines[entry.stop - 1])
+            raw + (tail if index == len(written) - 1 else self.newline)
+            for index, raw in enumerate(written)
         ]
-        return self._reparse(lines)
+        document = self._reparse(lines)
+        if below:
+            # The one check, and made after the fact on purpose: a tail is whatever the
+            # parser reads as one, so the question "did these come back as this entry's?"
+            # is answerable only by the parse that answers it for every other line.
+            rewritten = document.by_id().get(task.id)
+            held = 0 if rewritten is None else rewritten.stop - rewritten.index - 1
+            if held != len(below):
+                raise Continuation(task.id, len(below), held, below[min(held, len(below) - 1)])
+        return document
 
     def assert_current(self, path: str | Path | None = None) -> None:
         """Refuse if the target is no longer the file this document was read from (RK116).

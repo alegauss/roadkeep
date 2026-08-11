@@ -346,6 +346,10 @@ def _record_amend(config: Config, args: argparse.Namespace) -> int:
                     "line": corrected.lineno,
                     "rendered": corrected.rendered,
                     "changed": list(corrected.changed),
+                    # The lines under the bullet this write put back (RK1049): `rendered`
+                    # is the first line, so a reader diffing the JSON cannot otherwise
+                    # tell a kept tail from a collapsed one.
+                    "below": corrected.below,
                 },
                 indent=2,
             )
@@ -357,9 +361,17 @@ def _record_amend(config: Config, args: argparse.Namespace) -> int:
         return EXIT_OK
     print(
         f"{corrected.task_id} amended  {where}:{corrected.lineno}  "
-        f"({', '.join(corrected.changed)})"
+        f"({', '.join(corrected.changed) or 'tail'})"
     )
     print(f"  {corrected.rendered}")
+    if corrected.below:
+        # Said out loud for the reason the absence is (RK1049): the line printed above is
+        # the whole of what this command can render, and a reader who cannot see that four
+        # paragraphs are still under it has to diff the file to learn whether they survived.
+        print(
+            f"  kept     {corrected.below} continuation line(s) under the bullet, "
+            f"verbatim: no field holds them"
+        )
     return EXIT_OK
 
 

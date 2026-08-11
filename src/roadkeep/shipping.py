@@ -940,6 +940,11 @@ class Corrected:
     #: Which fields moved — empty when the entry already read that way, so a caller can
     #: tell "corrected" from "already correct" without diffing the file.
     changed: tuple[str, ...] = ()
+    #: How many continuation lines the write put back under the bullet (RK1049). Reported
+    #: rather than inferred from the entry, because a caller reading `rendered` sees the
+    #: first line only: a correction that kept four paragraphs and one that deleted them
+    #: print identically, and this is the difference.
+    below: int = 0
 
     @property
     def rendered(self) -> str:
@@ -975,6 +980,16 @@ def amend(
     the correction is written over the whole span, so on a hand-written ledger it deletes
     text the parse never held — and a write that silently removes prose is the one thing
     this door was narrow enough to be incapable of.
+
+    Once `lines` above one says the caller read that span, a `why` carrying newlines writes
+    it back (RK1049). The refusal that stood there is right about a task line and wrong about
+    a ledger entry — the parser accepts a five-line entry and this was the verb offering to
+    correct one it could only collapse, so the only lossless spelling was joining four
+    paragraphs with `<br>` into a 2,400-character line. The first line is the `why` the
+    schema checks, exactly as before; the rest is the tail, written verbatim because no
+    field holds it. `lines` is what makes this legible rather than a mode: it is already the
+    caller saying they read the span, and a multi-line `why` without it is still a shell
+    that expanded something.
     """
     _refuse_absent(config, **{"--why": why, "--part": part})
     ledger = config.document("changelog")
@@ -1005,9 +1020,10 @@ def amend(
         if open_line is None or open_line.task.status != PARTIAL:
             raise NoQualifier(task_id, entry.lineno)
 
+    sentence, below = _unwrapped(why, lines)
     wanted = replace(
         entry.task,
-        why=entry.task.why if why is None else why,
+        why=entry.task.why if sentence is None else sentence,
         part=entry.task.part if part is None else part,
     )
     changed = tuple(
@@ -1018,20 +1034,42 @@ def amend(
         )
         if before != after
     )
-    if not changed:
+    # The tail is not a field, so it is not in `changed` and cannot be compared to one: a
+    # `why` whose first line already reads that way still rewrites the paragraphs under it,
+    # and reporting "unchanged" there would be the collapse this task closed, silently.
+    if not changed and not below:
         return Corrected(task_id=task_id, ledger=ledger, entry=entry)
 
     # Asked after `changed`, so an amend that alters nothing never demands a count for a
     # write it is not going to make.
     counted(task_id, where, entry, lines, verb="correcting it")
 
-    document = ledger.rewrite_entry(entry, ledger.schema.check(wanted))
+    document = ledger.rewrite_entry(entry, ledger.schema.check(wanted), below)
     return Corrected(
         task_id=task_id,
         ledger=document,
         entry=document.by_id()[task_id],
         changed=changed,
+        below=len(below),
     )
+
+
+def _unwrapped(why: str | None, lines: int | None) -> tuple[str | None, tuple[str, ...]]:
+    """Split a `why` the caller wrote as a span into its first line and its tail (RK1049).
+
+    Only where `lines` above one says the caller read a wrapped entry, which is the whole
+    door: everywhere else a newline in a one-line field is a shell that expanded something,
+    and passing it through would turn `why.newline` — the refusal that names the cause and
+    the remedy — into an entry silently grown by four lines.
+
+    `splitlines` and not `split("\\n")`, because the terminator here is the pipe's: a stdin
+    stream written on Windows arrives CRLF, and a tail split on the newline alone carries a
+    stray carriage return into a file whose endings :meth:`Document.rewrite_entry` supplies.
+    """
+    if why is None or lines is None or lines < 2 or not why.splitlines()[1:]:
+        return why, ()
+    first, *tail = why.splitlines()
+    return first, tuple(tail)
 
 
 @dataclass(frozen=True, slots=True)
