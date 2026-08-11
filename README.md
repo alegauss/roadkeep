@@ -117,13 +117,17 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 32 | 2 |
-| B — Authoring (insert, never hand-edit) | 0 | 123 | 1 |
+| B — Authoring (insert, never hand-edit) | 1 | 123 | 1 |
 | C — Query (consult without reading the file) | 0 | 82 | 1 |
 | D — The gate | 0 | 130 | 0 |
 | E — Adoption | 0 | 77 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 93 | 1 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 93 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 0 | 548 | 6 |
+| **Total** | 2 | 548 | 6 |
+
+**Next ready:**
+
+- 📋 **RK1057** (deps: —) **the wrapped refusal still describes the count as authorising only a deletion** — On a ledger --lines now also permits writing the span back, so the message that teaches it names half the door and sends the author hunting for the workaround. → §RK1057
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

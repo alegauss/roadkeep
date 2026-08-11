@@ -77,6 +77,30 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1057 A refusal that stopped being the whole of what the count does
+
+`Wrapped` is what an author meets first, and on the ledger it now understates its own
+remedy. It says the parse holds only the first line, so the write *replaces all N* —
+read them with `show`, and pass `--lines N`, *which is you saying the text below the
+first line is the rest of the sentence being replaced*.
+
+Every clause is still true and the sentence is no longer the door. Since RK1049 and
+RK1053 the same count also **permits** `--why` to carry those lines back, at `record
+amend` and at the `ship` that completes a partial. An author reading this learns that
+their paragraphs are about to go and nothing about the shape that keeps them — which is
+exactly the state RK1049 was filed from: the workaround found there was joining the
+continuations with `<br>` into a 2,400-character line, discovered only by reading the
+limits.
+
+The split is per file and the message does not know it. On the roadmap the count really
+does authorise a deletion and only that, because no multi-line task line is a non-goal,
+so the wrapped line is a hand-written note the format is asserting over. On the ledger
+it is two permissions in one flag. `counted` already takes the caller's own `verb`, so
+it knows which door raised it, and the role is one argument further.
+
+Worth checking `NoCompletion` in the same pass: it explains where the count is refused
+and inherits the same half-description of what passing it does.
+
 ## Block C — Query
 
 ## Block D — The gate
@@ -84,5 +108,28 @@ already written, not authorship.
 ## Block E — Adoption
 
 ## Block F — The plugin
+
+### §RK1058 The affordance the surface that decides has never heard of
+
+`SKILL.md` is loaded whenever a governed file is in play and is the authority on which
+command to call. It describes `--lines <n>` twice — at the `ship` that completes a
+partial and at `record amend` — and both times as the count that unblocks a refusal,
+*how many lines it replaces*. Neither mentions that the same count lets `--why` carry
+those lines back.
+
+So the affordance RK1049 and RK1053 built is unreachable from the text this project
+ships to reach it. An agent following the skill exactly finishes a wrapped partial by
+collapsing three lines into one — the defect both tasks were filed to close, arriving
+through the document meant to prevent it. The plugin ships this file into every adopting
+project, so the gap is not local to this repo.
+
+It is one paragraph and no code, and the test is the one RK1050 used: whether somebody
+who has never read the ledger can pick the right invocation from the skill alone. Worth
+saying once rather than twice — the rule is the same at both verbs, and the skill pays
+for its length on every turn that touches a governed file.
+
+The neighbouring line about `show` is already right: on a wrapped entry it prints every
+line the entry owns, *which is the count `record amend --lines` asks you to have read*.
+The read half is documented and the write half is not.
 
 ## Block G — The editor surface (the backlog where the file is open)
