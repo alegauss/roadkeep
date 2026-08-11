@@ -170,6 +170,7 @@
 - ✅ **RK1052** **record amend walks every entry for the reversal clause and prints none** — The clause is read off the ledger before the write that can remove the mark, and printed with the corrected entry, so the amend and the listing state one fact again.
 - ✅ **RK1053** **two ledger writes still delete the continuation lines RK1049 taught one to keep** — The completion writes the span back when --lines authorises it, and the --supersedes pointer takes the first line alone, so neither deletes a paragraph the parse never held.
 - ✅ **RK1054** **the ship that completes a partial reached disk without validating the entry it wrote** — That branch rewrote the entry instead of placing one, so it bypassed the only door that checks: a why carrying a newline landed as a two-line entry no field held.
+- ✅ **RK1056** **record add still publishes a --lines flag that exists only to be refused** — The count is withdrawn from the served tool, saving 221 code units on every session, and kept on the CLI so a script that spells it is answered by NoSpan rather than by argparse.
 
 ## Block C — Query
 

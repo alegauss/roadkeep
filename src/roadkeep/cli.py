@@ -910,10 +910,14 @@ def build_parser() -> argparse.ArgumentParser:
     record_add.add_argument(
         "--lines",
         type=int,
+        # Declared only so a script that spells it gets `NoSpan` rather than argparse's
+        # `declares no --lines` (RK1056): the count authorised a span rewrite the pointer
+        # stopped making, and the refusal is the one answer that says which of the two
+        # changed. Withdrawn from the served tool, which has no script to keep working.
         help=(
-            "refused: the --supersedes pointer is appended to the sentence on the entry's "
-            "first line and replaces no span, so a wrapped bullet needs no count and keeps "
-            "the lines under it"
+            "refused, and kept only to say so: the --supersedes pointer is appended to the "
+            "sentence on the entry's first line and replaces no span, so a wrapped bullet "
+            "needs no count and keeps the lines under it"
         ),
     )
     record_add.add_argument(

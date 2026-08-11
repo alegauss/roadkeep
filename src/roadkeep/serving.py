@@ -345,7 +345,14 @@ TOOLS: tuple[Tool, ...] = (
     # `supersedes` rides with it because the revert is one transaction (RK395): the entry that
     # says the work did not hold and the pointer on the entry that says it shipped are two
     # edits an agent cannot make separately — the second one is a hand edit the guard denies.
-    Tool("record add", ("block", "symptom", "why", "supersedes", "lines")),
+    #
+    # `lines` rode with it until RK1053 narrowed that pointer to the entry's first line, and
+    # is withdrawn here (RK1056): the write it authorised no longer exists, so every call it
+    # can appear in is refused. The CLI keeps declaring it — a flag somebody's script spells
+    # is answered better by `NoSpan` than by argparse — and this surface is re-derived every
+    # session, so it has no legacy to keep and pays the cost of one: a published property
+    # whose whole description is *refused* is bytes an agent reads before every call it makes.
+    Tool("record add", ("block", "symptom", "why", "supersedes")),
     # The ledger's update (RK124). `part` rides with it because a qualifier that stopped
     # being true is the commonest correction an entry needs, and the agent that wrote it is
     # the one the hook denies a hand-edit to.

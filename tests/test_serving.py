@@ -374,6 +374,25 @@ def test_the_span_verbs_publish_no_ceiling_and_their_siblings_still_do(tmp_path)
     assert placed["maxLength"] == config.schema.why_max
 
 
+def test_the_count_the_pointer_stopped_needing_is_off_the_surface(tmp_path):
+    # RK1056: RK1053 narrowed `--supersedes` to the entry's first line, so every call this
+    # property can appear in is refused — and a published property whose whole description
+    # is *refused* is bytes an agent reads before every call it makes (RK464).
+    config = Config.discover(project(tmp_path))
+    assert "lines" not in _served("record_add", config)
+    # The two tools where a count still authorises a span keep it, which is what makes the
+    # withdrawal legible as being about the write and not about the flag's name.
+    assert "lines" in _served("record_amend", config)
+    assert "lines" in _served("ship", config)
+
+
+def test_the_cli_still_declares_it_so_the_refusal_is_the_one_that_explains():
+    # Kept on the shell surface deliberately: a script that spells it is answered by `NoSpan`,
+    # which names what changed, rather than by argparse saying the flag never existed.
+    action = serving._action(serving._subparser("record add"), "lines")
+    assert "refused" in (action.help or "")
+
+
 def _served(name: str, config: Config) -> dict:
     tool = next(one for one in TOOLS if one.name == name)
     return descriptor(tool, config)["inputSchema"]["properties"]

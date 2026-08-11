@@ -77,29 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1056 A flag kept alive by its own refusal
-
-`record add --lines` was the count authorising `_supersede` to rewrite a wrapped entry
-over its whole span. RK1053 narrowed that write to `replace_task`, which reproduces the
-first line and leaves the tail where its author left it, so there is no span and no
-deletion for a count to be about. The flag now has exactly one behaviour: raise
-`NoSpan`.
-
-Refusing rather than ignoring was the right call at the moment of the change — a flag
-silently dropped is a flag the caller believes took effect, and the refusal names why
-the write got narrower. It is a migration aid, not a resting state.
-
-What it costs is small and paid on every session that connects the server. The MCP tool
-list publishes one property per argparse action, and RK464 made that cost a subject this
-project measures: a property whose entire description is *refused* is bytes an agent
-reads before every call it makes, teaching a flag it must not pass.
-
-The decision is when, not whether. Removing an argument is the one change here that can
-break somebody's script, and this repo's own answer to that is usually a version and a
-line in the ledger. Worth pairing with a sweep for the same shape elsewhere, since a
-flag outliving the write it authorised is a thing that happens once per narrowing and
-nothing looks for it.
-
 ## Block C — Query
 
 ## Block D — The gate

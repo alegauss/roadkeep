@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1056** (deps: —) **record add still publishes a --lines flag that exists only to be refused** — RK1053 made the supersedes pointer a first-line write, so the count it took now names a deletion that cannot happen and costs a schema property on every session. → §RK1056
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate

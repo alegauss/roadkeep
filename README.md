@@ -117,17 +117,13 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 32 | 2 |
-| B — Authoring (insert, never hand-edit) | 1 | 122 | 1 |
+| B — Authoring (insert, never hand-edit) | 0 | 123 | 1 |
 | C — Query (consult without reading the file) | 0 | 82 | 1 |
 | D — The gate | 0 | 130 | 0 |
 | E — Adoption | 0 | 77 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 93 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 1 | 547 | 6 |
-
-**Next ready:**
-
-- 📋 **RK1056** (deps: —) **record add still publishes a --lines flag that exists only to be refused** — RK1053 made the supersedes pointer a first-line write, so the count it took now names a deletion that cannot happen and costs a schema property on every session. → §RK1056
+| **Total** | 0 | 548 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
