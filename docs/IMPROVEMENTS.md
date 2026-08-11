@@ -83,6 +83,32 @@ already written, not authorship.
 
 ## Block E — Adoption
 
+### §RK1037 The wall RK203 said to compress at
+
+`budget --file agents.md` answers `125 of 125, 0 left`. The gate passes and the next
+module added to the package does not: RK203 held the Layout index against
+`src/roadkeep/`, so a module arriving without an entry is red, and an entry has nowhere
+to go.
+
+That is the arrangement working rather than failing. RK203 measured the index at a fifth
+of the lines and refused to derive it, budget it apart or move it out — the room comes
+**out of the prose the budget was written to refuse**, which this file's last section
+says in its own words. What is missing is anybody doing it: the wall is visible only
+from a command nobody runs on a clean tree.
+
+Measured now: 125 lines, of which 28 are the fenced index and 22 are blank — 75 lines of
+prose across nine sections, some of it restating what the shipped skill and
+`roadkeep.toml` already say.
+
+**The bound that makes this safe.** Nothing here is a rule this file alone states: the
+six laws point at §0.3, the limits are `roadkeep.toml`, the write path is the skill, and
+`lint` holds the budget. So compression is a question about *sentences* and never about
+what is enforced — and the Layout index is not touched, which is the one thing RK203
+settled.
+
+What proves it: the file has room for the next entry, every rule it carried is still
+findable from it, and the index is byte-identical.
+
 ## Block F — The plugin
 
 ## Block G — The editor surface (the backlog where the file is open)
