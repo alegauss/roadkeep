@@ -36,7 +36,7 @@ import pytest
 import corpora
 from roadkeep.authoring import IdInUse, refuse_reuse
 from roadkeep.backlog import Where, Whereabouts
-from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
+from roadkeep.cli import EXIT_OK, EXIT_USAGE, build_parser, main
 from roadkeep.config import Config
 from roadkeep.document import Document, UnknownBlock
 from roadkeep.schema import Schema, SchemaError
@@ -2996,3 +2996,31 @@ def test_a_container_nothing_points_at_still_binds_nothing_at_an_amend(tmp_path)
     document, _, _ = amend(config, "improvements", "IX.1", body=" ".join(["word"] * 25))
     document.save()
     assert lint(Config.discover(tmp_path)).findings == ()
+
+
+def test_the_two_doors_say_different_ways_out(tmp_path):
+    """RK1034. The arithmetic is one number and is shared; what changes is the list of ways
+    out, which is what a refusal is for. At an `add` the address has not been chosen, so
+    `anchors --next` is one flag away; at an `amend` the section is already there and that
+    door opens nothing."""
+    config = _nested(tmp_path, parent_words=10, child_words=5)
+    with pytest.raises(SectionError) as amended:
+        amend(config, "improvements", "IX.1", body=" ".join(["word"] * 25))
+    with pytest.raises(SectionError) as added:
+        add(config, "improvements", "IX.2", "A second child", " ".join(["word"] * 25))
+    said, wrote = str(amended.value), str(added.value)
+    # The overage is the same sentence at both, because it is the same number.
+    assert "limit is 30 with this section under it" in said
+    assert "limit is 30 with this section under it" in wrote
+    assert "anchors --next" in wrote and "anchors --next" not in said
+    assert "`section move IX.1 --to <free anchor>`" in said
+    assert "amending §IX's own prose" in said
+
+
+def test_every_way_out_the_refusal_names_is_a_command_this_cli_parses(tmp_path):
+    """The property `tests/test_hinting.py` holds over the package, asked here because both
+    sentences are composed rather than declared: a refusal that hands over an argv hands over
+    one that runs, and `anchors --next` was a real flag spelled at the wrong door."""
+    parser = build_parser()
+    for argv in (["anchors", "--next"], ["section", "move", "IX.1", "--to", "IX.9"]):
+        assert parser.parse_args(argv) is not None

@@ -915,8 +915,35 @@ def add(
     return document, placed
 
 
+#: The second half of the overage refusal, by the door that raised it (RK1034). The
+#: arithmetic above it is one number and is shared; what changes is the list of ways out,
+#: which is what a refusal is *for* — and RK1033 shipped `add`'s list at both doors.
+#:
+#: At an `add` the address has not been chosen, so "put it somewhere else" is one flag away.
+#: At an `amend` the section is already there and the prose being handed over replaces prose
+#: that exists: `anchors --next` opens nothing, and taking the subtree elsewhere is `section
+#: move`, a different act with consequences for every pointer at it. What is left is shorten
+#: this, or shorten the parent — and the second is invisible from here, the overage being the
+#: parent's while the paragraph in front of the caller is the child's.
+_WAYS_OUT = {
+    "add": (
+        "a subsection is charged to the address that owns it, so this prose belongs at a "
+        "free top-level anchor (`anchors --next`) rather than under §{parent}"
+    ),
+    "amend": (
+        "the overage is §{parent}'s and this paragraph is §{anchor}'s, so the ways out are "
+        "shortening this body or amending §{parent}'s own prose — `section move {anchor} "
+        "--to <free anchor>` is what takes the subtree out from under it"
+    ),
+}
+
+
 def _refuse_overflow(
-    config: Config, document: Document, anchor: str, before: Document | None = None
+    config: Config,
+    document: Document,
+    anchor: str,
+    before: Document | None = None,
+    door: str = "add",
 ) -> None:
     """Refuse a write that leaves an ancestor over its own limit and worse than it was.
 
@@ -967,9 +994,7 @@ def _refuse_overflow(
                     "body",
                     f"§{parent} would be "
                     f"{over_by(whole.words, limit, unit='word', because=' with this section under it')}"
-                    f" — a subsection is charged to the address that owns it, so this "
-                    f"prose belongs at a free top-level anchor "
-                    f"(`anchors --next`) rather than under §{parent}",
+                    f" — {_WAYS_OUT[door].format(parent=parent, anchor=anchor)}",
                 ),
             )
         )
@@ -1168,7 +1193,7 @@ def amend(
     # sequence both of those closed at `add`. The delta is what makes it safe here — an
     # amend is where the prose already exists, and refusing a *shortening* is RK215's
     # deadlock in the one direction an author can act in.
-    _refuse_overflow(config, updated, anchor, document)
+    _refuse_overflow(config, updated, anchor, document, door="amend")
     return updated, amended, changed
 
 
