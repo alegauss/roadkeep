@@ -26,11 +26,15 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1088** (deps: —) **the closure names the file it removed from and no caller reads it** — RK1086 added removed_in so the store leftover becomes writable, and the field is a constant every construction leaves at its default, which reads as a rule nothing holds. → §RK1088
+
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
 
 ## Block E — Adoption
+
+- 📋 **RK1089** (deps: —) **the estimate answers what one file costs and says nothing about the doors a project would gain** — The pause line is the first of its kind and it sits among measurements, so a reader cannot tell a count of over-long lines from a feature this project has not declared. → §RK1089
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 

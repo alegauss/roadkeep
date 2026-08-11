@@ -77,11 +77,57 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1088 A field added for the next task and used by none
+
+`Closure.removed_in` says which file the line came out of, and every `Closure` this
+package builds leaves it at `"roadmap"`. It was added because RK1084 found the act it
+exists for — an id the ledger records and the deferred store still carries, where the
+same closure would remove the store's line — and that verb was not written, on the
+measurement that no adopting corpus can reach the state.
+
+So the field is right and unexercised, which is a state worth naming rather than leaving
+to read as an oversight. A default nothing varies is indistinguishable from a constant
+somebody forgot to remove, and the printer does not mention it: `RK1 closed  R.md:5
+removed` names the file by having only one to name.
+
+Two ways to finish it, and they are not the same size. The small one is the printer and
+the payload reading the field, so a closure says which file it wrote whether or not
+there is a second — which costs nothing and makes the next act's output already correct.
+The large one is the act itself, which RK1084 declined for a reason that still holds.
+
+Worth pairing with a check that the field is not a lie: `removed_in` and the document a
+closure carries have to agree, and today the type system says nothing about it because
+there is one document field and one role name beside it. That is the same shape RK1086
+removed from `Resumption` and left here.
+
 ## Block C — Query
 
 ## Block D — The gate
 
 ## Block E — Adoption
+
+### §RK1089 Two kinds of answer under one report
+
+`adopt` reports numbers — lines read, longest symptom, how many would change — and
+RK1087 added a sentence of a different kind: what this project has instead of a pause.
+Both print under the same two-space indent, so `pause` reads as one more measurement
+rather than as the first entry in a category that has more members.
+
+The category is *what declaring the format would give you that you have not got*. A
+store is one. A prose file for the rationale is another — `scope` already says which
+governed files went unread, which is the same fact wearing the measurement's clothes.
+`[non_goals]` is a third: the report says `not governed` and leaves what that costs to
+be inferred. A queue is a fourth.
+
+Each of those is today either a number, a clause inside another sentence, or absent, and
+an adopter reading the report is asking exactly this question. The estimate is the one
+surface where the answer belongs, because it is what somebody runs *before* deciding.
+
+What to decide is whether they group under a heading or stay one line each. A heading is
+honest about the category and costs a line in a report this project keeps short; one
+line each is what `pause` is now, and the risk it has already taken is that the next one
+lands somewhere else. Worth doing before the second, which is the cheapest moment there
+is.
 
 ## Block F — The plugin
 

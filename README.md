@@ -117,13 +117,17 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 40 | 2 |
-| B — Authoring (insert, never hand-edit) | 0 | 129 | 1 |
+| B — Authoring (insert, never hand-edit) | 1 | 129 | 1 |
 | C — Query (consult without reading the file) | 0 | 85 | 1 |
 | D — The gate | 0 | 140 | 0 |
-| E — Adoption | 0 | 78 | 1 |
+| E — Adoption | 1 | 78 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 96 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 0 | 579 | 6 |
+| **Total** | 2 | 579 | 6 |
+
+**Next ready:**
+
+- 📋 **RK1088** (deps: —) **the closure names the file it removed from and no caller reads it** — RK1086 added removed_in so the store leftover becomes writable, and the field is a constant every construction leaves at its default, which reads as a rule nothing holds. → §RK1088
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
