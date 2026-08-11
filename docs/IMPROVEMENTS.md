@@ -85,27 +85,4 @@ already written, not authorship.
 
 ## Block F — The plugin
 
-### §RK1058 The affordance the surface that decides has never heard of
-
-`SKILL.md` is loaded whenever a governed file is in play and is the authority on which
-command to call. It describes `--lines <n>` twice — at the `ship` that completes a
-partial and at `record amend` — and both times as the count that unblocks a refusal,
-*how many lines it replaces*. Neither mentions that the same count lets `--why` carry
-those lines back.
-
-So the affordance RK1049 and RK1053 built is unreachable from the text this project
-ships to reach it. An agent following the skill exactly finishes a wrapped partial by
-collapsing three lines into one — the defect both tasks were filed to close, arriving
-through the document meant to prevent it. The plugin ships this file into every adopting
-project, so the gap is not local to this repo.
-
-It is one paragraph and no code, and the test is the one RK1050 used: whether somebody
-who has never read the ledger can pick the right invocation from the skill alone. Worth
-saying once rather than twice — the rule is the same at both verbs, and the skill pays
-for its length on every turn that touches a governed file.
-
-The neighbouring line about `show` is already right: on a wrapped entry it prints every
-line the entry owns, *which is the count `record amend --lines` asks you to have read*.
-The read half is documented and the write half is not.
-
 ## Block G — The editor surface (the backlog where the file is open)

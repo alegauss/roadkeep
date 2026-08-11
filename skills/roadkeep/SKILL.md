@@ -107,9 +107,10 @@ half)**` and *leaves the line open* at ⏳ with its section intact, and the late
 <id>` completes it — replacing that entry in place and dropping the qualifier, which is
 the only thing that keeps "local half" from outliving the local half. That replacement
 states a *different* sentence, so on a ledger written before the tool, where the partial's
-bullet **wraps**, it takes `--lines <n>` for the same reason `record amend` does and is
-refused without it; the count is a flag on this verb rather than a detour through that one
-because you asked to finish work, and it is refused on every path that replaces no entry.
+bullet **wraps**, it takes `--lines <n>` for the same reason `record amend` does, carries
+the same two permissions, and is refused without it; the count is a flag on this verb
+rather than a detour through that one because you asked to finish work, and it is refused
+on every path that replaces no entry.
 A **second** `--part` is refused and says why: one id carries one partial and then the
 completion, so work arriving in more halves than that files each delivered step as its own
 line, and the refusal spells the id that line takes under this project's `[ids]`. **A
@@ -161,7 +162,12 @@ never drop-and-re-add, which moves the line to the end of its block and shows a 
 deletion where a word changed. On a ledger written before the tool, where a bullet
 **wraps**, that correction is refused until `--lines <n>` says how many lines it replaces:
 the parse holds only as much of the sentence as fits on the first one, so rewriting that
-line alone leaves the tail of the old sentence under the new one. The block is not one of
+line alone leaves the tail of the old sentence under the new one. **The count is two
+permissions, and this is the one worth knowing**: passed with an `n` above one, `--why`
+may be the *whole span* rather than one sentence — its first line is the sentence and
+every line after it is written back under the bullet verbatim, so the paragraphs survive
+instead of collapsing into one line. It is the same at the `ship` that completes a
+wrapped partial, and it is the reason neither needs a `<br>`. The block is not one of
 its fields, because filing an entry elsewhere **is** a move: `record move <id> --to-block
 <x>` is that one, and it says so — the line is re-placed under the named heading, both
 positions are reported, and a heading nothing declares is refused. Reach for it when

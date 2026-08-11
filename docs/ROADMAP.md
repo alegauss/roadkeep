@@ -34,8 +34,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK1058** (deps: —) **the skill teaches the count as a permission to replace and never names the span** — It is the authority on which command to call, so an agent following it collapses a wrapped entry the tool has been able to write back since RK1049. → §RK1058
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Non-goals
