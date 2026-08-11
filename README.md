@@ -117,13 +117,17 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 32 | 2 |
-| B — Authoring (insert, never hand-edit) | 0 | 115 | 1 |
-| C — Query (consult without reading the file) | 0 | 76 | 1 |
+| B — Authoring (insert, never hand-edit) | 1 | 115 | 1 |
+| C — Query (consult without reading the file) | 1 | 76 | 1 |
 | D — The gate | 0 | 126 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 91 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 0 | 525 | 6 |
+| **Total** | 2 | 525 | 6 |
+
+**Next ready:**
+
+- 📋 **RK1034** (deps: —) **the ancestor refusal tells an amend to pick a free top-level anchor, which is a door only an add has** — RK1033 reused the add sentence at a door where the address is already chosen, so the way out it names is not one the caller can take. → §RK1034
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

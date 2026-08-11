@@ -77,7 +77,62 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1034 One overage, two doors
+
+RK1033 gave `section amend` the ancestor check and gave it `add`'s sentence with it:
+
+> `§IX would be 39 words, limit is 30 with this section under it: delete 9 words — a
+> subsection is charged to the address that owns it, so this prose belongs at a free
+> top-level anchor (`anchors --next`) rather than under §IX`
+
+The arithmetic is right and the advice is another door's. At an `add` the address has
+not been chosen yet, so "put it somewhere else" is one flag away. At an `amend` the
+section is already at that address, the prose the caller is holding is a *replacement*
+for prose that is there, and `anchors --next` opens nothing: taking the subtree
+elsewhere is `section move`, which is a different act with different consequences for
+every pointer at it.
+
+What the caller can actually do is two things, and neither is named: shorten this body,
+or shorten the parent's own prose — the second being the one that is invisible from
+here, because the overage is `§IX`'s and the paragraph in front of them is `§IX.1`'s.
+
+**The shape.** One rule, two sentences, chosen by which door raised it — the same split
+`_one_body` and `_one_pipe` already make about which caller is being answered. The
+overage stays identical, because it is the same number; what changes is the list of ways
+out, which is what RK421 calls the remedy and what L1 says a refusal is for.
+
+What proves it: the two doors say different second halves, both name doors that exist,
+and the arithmetic is one function.
+
 ## Block C — Query
+
+### §RK1035 The number the row did not state
+
+RK1029 gave `budget` the ancestor row, and phrased it for the read it was filed from —
+an address nobody has written yet. On a **written** anchor it answers a question the
+caller is not asking:
+
+> `body       30 words, 5 written, 25 left  aim 23 more words`
+> `under      §IX spends 19 of 30, so 11 is what an `add` here accepts`
+
+The verb is wrong — there is no `add` here, the section exists and an `amend` is what
+follows — and neither number is the one that binds. `§IX` spends 19 *including* this
+child's 5, so a replacement body may be 16 words: `30 - (19 - 5)`. The reader is handed
+two figures and the subtraction between them.
+
+That subtraction is the whole thing this door exists to remove. *The saving is the
+analysis*, and a budget that states two numbers and leaves the third to arithmetic has
+kept the analysis and moved it.
+
+**What it should say** is the number an `amend` may write, derived the same way the
+refusal derives it: the ancestor's total, less what this section currently contributes
+to it, against the limit. The unwritten case is unchanged — there the contribution is
+zero and the row already reads correctly, which is why this was not visible when it
+landed.
+
+What proves it: a written child is answered with what a replacement body may say, the
+unwritten one answers exactly what it answers now, and the figure matches what `section
+amend` accepts on the next call.
 
 ## Block D — The gate
 
