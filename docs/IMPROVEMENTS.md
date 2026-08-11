@@ -77,9 +77,55 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1080 One question, answered in two files
+
+`linting._in_halves` answers *do the two files say this id is a live partial*, and its
+own docstring says the test is "the one `shipping._already_recorded` already applies at
+the door `ship` refuses at". It does not apply it — it restates it. Both were
+`open_line.task.status == PARTIAL or bool(recorded.task.part)`, in two modules, and
+narrowing them to the qualifier alone took two edits in two tasks: RK1075 moved the verb
+and RK1076 moved the gate, one decision arriving twice because nothing made it one.
+
+They agreed for the whole time they were wrong, which is the property that makes this
+worth closing rather than watching: a duplicate that drifts is loud, and a duplicate
+that stays in step is a rule nobody can find the second copy of.
+
+The direction is settled by import order. `linting` reads `shipping` already, `shipping`
+does not read `linting`, and the question is the verb's — whether this line can be
+closed — with the gate asking it to decide whether to report. So the predicate belongs
+beside `_already_recorded` and the gate calls it.
+
+What that costs is one function's worth of care about arguments: the gate holds an
+`Entry` pair and the verb holds a `Config` it re-reads both files from, so the shared
+form is the narrow one over two entries and the verb keeps the lookup. Worth checking
+whether `_others_pointing` and `_orphans` are the same shape one relation over.
+
 ## Block C — Query
 
 ## Block D — The gate
+
+### §RK1079 The axis the table names and does not sweep
+
+`tests/test_doors.py` opens by saying the states are a roadmap marker crossed with what
+the ledger holds *crossed with whether a deferred store carries it*, and then sweeps the
+first two. The third is named in the sentence and absent from the table, which is the
+shape RK496 already measured once: a survey that says what it covers and covers less.
+
+What is outside is not small. `resume <id>` is a door no row exercises. A paused id the
+roadmap **also** carries is a two-files contradiction with its own resolution. A project
+that declares `deferred` after lines were already set aside, or removes the declaration
+with a store on disk, is the adoption shape `[files]` makes reachable — and `defer`
+refuses with a message about the missing key, which is a door for the *config* rather
+than for a state.
+
+The reason it stopped where it did is honest: every cell was built by writing two files,
+and the store needs a third plus a `[files]` key, so the fixture is a different shape
+rather than one more parameter. That is a reason to write the fixture, not a reason for
+the closure to quantify over two axes while its own docstring claims three.
+
+Worth deciding whether the third axis is the store or the *role set*: a project with a
+strategy file and no improvements has states the pointer half of this model reaches, and
+the same argument would put those in the table too.
 
 ## Block E — Adoption
 
