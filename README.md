@@ -117,13 +117,17 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 32 | 2 |
-| B — Authoring (insert, never hand-edit) | 0 | 119 | 1 |
+| B — Authoring (insert, never hand-edit) | 2 | 119 | 1 |
 | C — Query (consult without reading the file) | 0 | 82 | 1 |
 | D — The gate | 0 | 130 | 0 |
 | E — Adoption | 0 | 77 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 92 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 0 | 543 | 6 |
+| **Total** | 2 | 543 | 6 |
+
+**Next ready:**
+
+- 📋 **RK1052** (deps: —) **record amend walks every entry for the reversal clause and prints none** — The map RK1042 built so the listing and the correction state one fact is computed on every amend and read by nothing, so an entry that was undone is corrected in silence. → §RK1052
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
