@@ -381,6 +381,7 @@
 - ✅ **RK1032** **an unambiguous prefix reaches --fix, --prune and --claim, so a two-letter typo is a write nobody asked for** — No parser accepts an abbreviation, so every prefix that reached a write is the refusal this tool composes — and which surface answers is where the flag was typed.
 - ✅ **RK1044** **retire refuses an id the ledger already holds without naming ship, the verb that does close the line** — The refusal carries the command that closes the line where the closure path takes it (design superseded: the doors it called shut are open for a 📋 line, shut for a ⏳ one).
 - ✅ **RK1045** **a refusal offers as its remedy the exact command that produced it** — The door is named only where the closure path takes the line, and a test runs the command it names against the state that raised it.
+- ✅ **RK1046** **a partial-marker line beside an unqualified entry has no door and no finding** — record amend writes the qualifier where the roadmap still carries a live partial, so the cycle terminates and the completion path closes the line.
 
 ## Block E — Adoption
 

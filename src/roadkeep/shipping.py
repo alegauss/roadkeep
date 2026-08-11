@@ -989,7 +989,21 @@ def amend(
 
     entry = twins[0]
     if part is not None and entry.task.part is None:
-        raise NoQualifier(task_id, entry.lineno)
+        # Unless the roadmap still carries it as a **live partial**, which is the one state
+        # this refusal's own sentence names and never asked about (RK1046). A ⏳ line beside
+        # an unqualified entry is the two files contradicting each other — the line says a
+        # half landed, the entry says the whole did — and every verb refused it: `ship` and
+        # `retire` both raise `AlreadyRecorded`, the gate is deliberately silent (RK121), and
+        # this door sent the caller to `ship --part`, which sent them back here. A cycle, and
+        # each refusal correct about its own invariant.
+        #
+        # The docstring above is why this is the door that gives: adding a qualifier is wrong
+        # where the line "is gone or closed", and here it is neither. So the write is exactly
+        # the correction that makes the two files agree, after which the completion path a
+        # partial already has — `ship <id>` with no `--part` — closes it.
+        open_line = config.document("roadmap").by_id().get(task_id)
+        if open_line is None or open_line.task.status != PARTIAL:
+            raise NoQualifier(task_id, entry.lineno)
 
     wanted = replace(
         entry.task,

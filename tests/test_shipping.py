@@ -29,7 +29,7 @@ from roadkeep.config import Config
 from roadkeep.document import Document, RoundTripError, StaleFile
 from roadkeep.linting import lint
 from roadkeep.schema import DESIGNED, IN_PROGRESS, PARTIAL, Dep, Schema, SchemaError
-from roadkeep.shipping import AlreadyRecorded, NoSuchPath, SecondPartial
+from roadkeep.shipping import AlreadyRecorded, NoQualifier, NoSuchPath, SecondPartial
 from roadkeep.sections import SectionOccupied
 from roadkeep.shipping import (
     Divergent,
@@ -1963,3 +1963,48 @@ def test_the_door_it_does_name_resolves_the_state(tmp_path):
     assert "**RK1**" not in read(after, ROADMAP)
     assert read(after, CHANGELOG).count("**RK1**") == 1, "the ledger was only read"
     assert not [one for one in lint(after).findings if one.code == "id.two-files"]
+
+
+# -- the pair neither decision covers (RK1046) -------------------------------
+
+
+def test_the_qualifier_may_be_written_where_the_line_is_a_live_partial(tmp_path):
+    """The cycle. A ⏳ line beside an unqualified entry had every verb shut: `ship` and
+    `retire` on one guard, the gate deliberately silent (RK121), and the two doors that
+    remained naming each other — `record amend --part` sends the caller to `ship --part`,
+    which sends them back. Each refusal correct about its own invariant."""
+    config = _recorded_beside(tmp_path, PARTIAL)
+    with pytest.raises(AlreadyRecorded):
+        ship(config, "RK1", part="the first half", why="Half of it works.")
+
+    # `NoQualifier` exists so an entry cannot claim a partial delivery while its line "is
+    # gone or closed", which is the one thing this state is not.
+    amended = amend_record(config, "RK1", part="the first half")
+    amended.save()
+    after = Config.discover(tmp_path)
+    assert "**RK1 (the first half)**" in read(after, CHANGELOG)
+
+    # And then the completion a partial already has closes it — no widening required.
+    done = ship(after, "RK1", why="The rest of it works now.")
+    done.save()
+    closed = Config.discover(tmp_path)
+    assert "**RK1**" not in read(closed, ROADMAP)
+    assert lint(closed).findings == ()
+
+
+def test_an_entry_whose_line_is_gone_still_refuses_the_qualifier(tmp_path):
+    """The bound, and the reason `NoQualifier` was written: with no open line to have been
+    written from, a qualifier added here is an entry claiming a delivery in halves that
+    nothing in the roadmap says are coming."""
+    config = project(tmp_path)
+    ship(config, "RK2", why="It works now.").save()
+    with pytest.raises(NoQualifier):
+        amend_record(Config.discover(tmp_path), "RK2", part="the first half")
+
+
+def test_a_plain_open_line_still_refuses_it_too(tmp_path):
+    """Only a **live partial**, which is what the roadmap's ⏳ says: a 📋 line beside an
+    entry is the leftover `id.two-files` reports and `ship <id>` closes, and writing a
+    qualifier there would invent a half nobody shipped."""
+    with pytest.raises(NoQualifier):
+        amend_record(_recorded_beside(tmp_path, DESIGNED), "RK1", part="the first half")
