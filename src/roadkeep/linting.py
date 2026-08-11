@@ -1247,6 +1247,21 @@ def within(config: Config, role: str, document: Document) -> list[Finding]:
                     task.id,
                 )
             )
+        if task.id in config.reserved:
+            # The check that RK1031 is a fix and not a suppression. A reservation says the
+            # address is spoken for and never written as a line; a line that carries one is
+            # the two statements disagreeing, and the deriver has been handing out numbers
+            # past it on the strength of the declaration.
+            out.append(
+                Finding(
+                    "id.reserved",
+                    file,
+                    "declared in `reserved_ids` and written here as a line: a reservation "
+                    "is an address nothing carries, so one of the two has to go",
+                    entry.lineno,
+                    task.id,
+                )
+            )
         first = seen.get(task.id)
         if first is not None:
             out.append(

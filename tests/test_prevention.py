@@ -155,6 +155,11 @@ PREVENTION: tuple[Prevented, ...] = (
     Prevented("deps.stale", "gate", because=LATER),
     Prevented("export.stale", "gate", because=LATER),
     Prevented("id.two-files", "gate", because=LATER),
+    # RK1031. The write path already refuses `add --id <reserved>` — a reservation is in
+    # `scan`, so `refuse_reuse` sees it like any other occurrence — which means this code is
+    # never what a write creates. What reaches it is the declaration arriving *after* the
+    # line: somebody reserves an address the backlog already carries.
+    Prevented("id.reserved", "gate", because=LATER),
     Prevented("part.unexpected", "gate", because=LATER),
     Prevented("ref.mismatch", "gate", because=LATER),
     Prevented("section.orphan", "gate", because=LATER),

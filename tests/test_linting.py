@@ -2026,3 +2026,45 @@ def test_an_empty_file_is_a_different_state(tmp_path):
     config = project(tmp_path)
     (tmp_path / "ROADMAP.md").write_bytes(b"")
     assert "file.not-text" not in codes(linting.lint(config))
+
+
+def test_a_reserved_id_written_as_a_line_is_the_two_statements_disagreeing(tmp_path):
+    """The check that RK1031 is a fix and not a suppression. A reservation says the address
+    is spoken for and never carried; a line that carries one means the deriver has been
+    handing out numbers past it on the strength of a declaration the file contradicts."""
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "SH"\nreserved_ids = ["SH25"]\n[files]\nroadmap = "ROADMAP.md"\n'
+        'changelog = "CHANGELOG.md"\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "ROADMAP.md").write_text(
+        "# Roadmap\n\n## Block A — The model\n\n"
+        "- 📋 **SH25** (deps: —) **A symptom** — Because of a reason.\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "CHANGELOG.md").write_text(
+        "# Changelog\n\n## Block A — The model\n", encoding="utf-8"
+    )
+    found = [one for one in lint(Config.discover(tmp_path)).findings if one.code == "id.reserved"]
+    assert [one.id for one in found] == ["SH25"]
+    assert "reserved_ids" in found[0].message
+
+
+def test_a_project_reserving_nothing_is_unchanged(tmp_path):
+    """Silent where nothing is declared, which is every project until one is: a code that
+    fired on a backlog with no `reserved_ids` would be a rule invented rather than read."""
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "SH"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "ROADMAP.md").write_text(
+        "# Roadmap\n\n## Block A — The model\n\n"
+        "- 📋 **SH25** (deps: —) **A symptom** — Because of a reason.\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "CHANGELOG.md").write_text(
+        "# Changelog\n\n## Block A — The model\n", encoding="utf-8"
+    )
+    assert not [
+        one for one in lint(Config.discover(tmp_path)).findings if one.code == "id.reserved"
+    ]

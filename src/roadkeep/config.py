@@ -75,6 +75,7 @@ _TOP_KEYS = frozenset(
         "limits",
         "markers",
         "id_sources",
+        "reserved_ids",
         "priority",
         "budgets",
         "ledger",
@@ -255,6 +256,15 @@ class Config:
     #: Files to scan for ids beyond the governed four (RK4). This repository keeps
     #: task ids in `agents.md`, and an id the scan misses is an id that gets reused.
     extra_id_sources: tuple[Path, ...] = ()
+    #: Ids this project has spoken for without writing them as a line (RK1031). Shio reserves
+    #: one per **epic** — `SH25`, `SH62` — each owning a sub-range whose sub-tasks ship under
+    #: their own numbers, so the epic id is never a task and never an entry; it exists so a
+    #: reader can name a body of work in one token.
+    #:
+    #: Declared and not inferred, because a reservation and a typo are the same string: the
+    #: deriver skips these because they **are** taken, the gate stops reporting them as spent,
+    #: and an id that is not on the list still fails exactly as it did.
+    reserved: tuple[str, ...] = ()
     #: What jumps the queue, in order: an id or a `Block X`, and nothing else (RK11).
     #: *Declared*, because the alternative is a "## Priority queue" section written in
     #: prose — which Shio has, and which a tool that reads it would be interpreting
@@ -345,6 +355,9 @@ class Config:
         extras = tuple(
             base / name for name in _string_list(data.get("id_sources"), "id_sources", problems)
         )
+        reserved = tuple(
+            dict.fromkeys(_string_list(data.get("reserved_ids"), "reserved_ids", problems))
+        )
         priority = tuple(_string_list(data.get("priority"), "priority", problems))
         budgets = _budgets(data.get("budgets"), base, problems)
         non_goals = _scope(data.get("non_goals"), problems)
@@ -367,6 +380,7 @@ class Config:
                 problems.append(str(error))
         if schema is not None:
             _check_priority(schema, priority, problems)
+            _check_reserved(schema, reserved, problems)
         if problems:
             raise ConfigError(tuple(problems), source)
 
@@ -376,6 +390,7 @@ class Config:
             schema=schema,
             paths=paths,
             extra_id_sources=extras,
+            reserved=reserved,
             priority=priority,
             budgets=budgets,
             limits=per_role,
@@ -748,6 +763,25 @@ def _check_priority(
             problems.append(
                 f"priority: {token!r} is neither an id nor 'Block X': a queue is an "
                 f"order over work this backlog holds, so nothing else can be first"
+            )
+
+
+def _check_reserved(
+    schema: Schema, reserved: tuple[str, ...], problems: list[str]
+) -> None:
+    """A reserved id is an id of this project, and refused where it is not (RK1031).
+
+    The whole value of the list is that a token on it is *taken* and a token off it is a
+    hazard, and both readings are worthless if the list can hold something the deriver
+    cannot compare against a number. A word that is not an id would sit there looking like a
+    reservation and reserve nothing — which is the silent state this declaration exists to
+    replace, wearing the declaration's own name.
+    """
+    for token in reserved:
+        if not schema.id_pattern().match(token):
+            problems.append(
+                f"reserved_ids: not an id of this project: {token!r} — a reservation is an "
+                f"address the deriver skips, so it has to be one the deriver can read"
             )
 
 

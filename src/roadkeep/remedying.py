@@ -739,6 +739,21 @@ _TABLE: Mapping[str, _Rule] = {
         "things colliding is the only thing the tool cannot read off the file:",
         varies="role",
     ),
+    "id.reserved": _decide(
+        "`reserved_ids` says this address is spoken for and never written as a line, and a "
+        "line carries it — so the declaration and the file disagree, and which of them is "
+        "right is the author's to say:",
+        (
+            ("renumber", "{id}"),
+            "the reservation stands; the line and its dependents move to an address of "
+            "their own",
+        ),
+        (
+            ("next-id",),
+            "the reservation is stale; drop the token from `reserved_ids`, and this says "
+            "what the deriver answers once it is gone",
+        ),
+    ),
     "id.format": _run(
         ("renumber", "{id}"),
         "the id does not match this project's shape; renumber moves the line and its "

@@ -13,8 +13,8 @@ from pathlib import Path
 import pytest
 
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
-from roadkeep.config import Config
-from roadkeep.ids import derivation, highest, id_scanner, next_id, scan
+from roadkeep.config import Config, ConfigError
+from roadkeep.ids import carried, derivation, highest, id_scanner, next_id, scan
 from roadkeep.schema import Schema
 
 HERE = Path(__file__).resolve().parents[1]
@@ -375,3 +375,65 @@ def test_nothing_is_refused_and_nothing_is_reserved(tmp_path, capsys):
     # And the same derivation twice does not report it twice differently: RK9 is now a
     # line, so the next one steps over nothing.
     assert derivation(Config.discover(config.root)).promise is None
+
+
+# -- a reserved id is not a spent id (RK1031) --------------------------------
+
+
+def reserving(tmp_path: Path, *tokens: str) -> Config:
+    """A project that speaks for an address without writing it as a line."""
+    listed = ", ".join(f'"{token}"' for token in tokens)
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "SH"\n'
+        f"reserved_ids = [\n    {listed},\n]\n"
+        '[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
+        'improvements = "IMPROVEMENTS.md"\n',
+        encoding="utf-8",
+    )
+    for name, body in (
+        ("ROADMAP.md", "# Roadmap\n\n## Block A — The model\n"),
+        ("CHANGELOG.md", "# Changelog\n\n## Block A — The model\n"),
+        ("IMPROVEMENTS.md", "# Improvements\n\n## Block A — The model\n"),
+    ):
+        (tmp_path / name).write_text(body, encoding="utf-8")
+    return Config.discover(tmp_path)
+
+
+def test_a_reserved_id_is_taken_and_the_deriver_steps_past_it(tmp_path):
+    """Shio reserves one id per epic — `SH25`, `SH62` — each owning a sub-range whose
+    sub-tasks ship under their own numbers. The epic id is never a line, so a scan over the
+    files alone would hand the next `add` an address the project has spoken for."""
+    config = reserving(tmp_path, "SH25", "SH62")
+    assert next_id(config) == "SH63"
+
+
+def test_a_reservation_names_the_line_of_the_config_that_declares_it(tmp_path):
+    """A refusal names `file:line` and a reader clicks it, so `roadkeep.toml:0` would be the
+    one address in this tool that opens nothing."""
+    config = reserving(tmp_path, "SH25", "SH62")
+    found = {ref.id: ref for ref in scan(config) if ref.id in config.reserved}
+    assert found["SH25"].lineno == 3 and found["SH62"].lineno == 3
+    assert found["SH25"].path.name == "roadkeep.toml"
+
+
+def test_a_design_naming_a_reservation_is_not_a_promise(tmp_path):
+    """The gate that could never be clean: ten findings on Shio, none actionable, and the
+    advice each gave — spell the example outside this project's prefix — refused by the
+    convention it argued with. `carried` holds them because they *are* taken."""
+    config = reserving(tmp_path, "SH25")
+    assert "SH25" in carried(config)
+
+
+def test_an_id_nothing_reserves_still_fails(tmp_path):
+    """The check that this is a declaration and not a suppression: a token off the list is
+    exactly what it was, which is what keeps a typo a typo."""
+    config = reserving(tmp_path, "SH25")
+    assert "SH900" not in carried(config)
+
+
+def test_a_token_that_is_not_an_id_is_refused_at_the_config(tmp_path):
+    """A word that is not an id would sit on the list looking like a reservation and reserve
+    nothing — the silent state this declaration exists to replace, wearing its name."""
+    with pytest.raises(ConfigError) as caught:
+        reserving(tmp_path, "media-library")
+    assert "reserved_ids" in str(caught.value)

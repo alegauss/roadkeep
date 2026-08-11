@@ -69,6 +69,23 @@ def scan(config: Config) -> tuple[IdRef, ...]:
     """
     pattern = id_scanner(config.schema)
     found: list[IdRef] = []
+    # The reservations first, as occurrences of the config itself (RK1031): an epic id owns a
+    # sub-range and is never written as a line, so a scan over the files alone would hand the
+    # next `add` an address the project has already spoken for. `source` is the file that
+    # declares them, which is what makes the provenance a reader can act on.
+    declared_at = _declared_at(config)
+    for token in config.reserved:
+        match = pattern.fullmatch(token)
+        if match is not None:
+            found.append(
+                IdRef(
+                    id=token,
+                    number=int(match.group("number")),
+                    path=config.source or config.root,
+                    lineno=declared_at.get(token, 0),
+                    family=match.group("family"),
+                )
+            )
     for path in config.id_sources():
         if not path.is_file():
             continue
@@ -85,6 +102,28 @@ def scan(config: Config) -> tuple[IdRef, ...]:
                         )
                     )
     return tuple(found)
+
+
+def _declared_at(config: Config) -> dict[str, int]:
+    """Which line of `roadkeep.toml` each reservation is written on (RK1031).
+
+    A refusal names `file:line` and a reader clicks it, so `roadkeep.toml:0` would be the one
+    address in this tool that opens nothing. Read off the text rather than tracked through
+    the parse: `tomllib` keeps no positions, and a config that spells its list across four
+    lines is the shape a project with four epics writes.
+    """
+    if not config.reserved or config.source is None:
+        return {}
+    try:
+        text = config.source.read_text(encoding="utf-8")
+    except OSError:
+        return {}
+    found: dict[str, int] = {}
+    for lineno, line in enumerate(text.splitlines(), start=1):
+        for token in config.reserved:
+            if token not in found and f'"{token}"' in line:
+                found[token] = lineno
+    return found
 
 
 def highest(config: Config, family: str | None = None) -> IdRef | None:
@@ -114,7 +153,10 @@ def carried(config: Config) -> frozenset[str]:
     (that is what makes `agents.md` count), and what is wanted here is the complement —
     the ids that are *occupied*, which only a parse can say.
     """
-    out: set[str] = set()
+    # The reservations are among them (RK1031): a reserved id is *taken*, so a design naming
+    # one names work this project has spoken for rather than promising an address. What it is
+    # not is a line, which is why `lint` still reports one that becomes a line.
+    out: set[str] = set(config.reserved)
     for role in CARRIERS:
         if not config.has(role) or not config.path(role).is_file():
             continue

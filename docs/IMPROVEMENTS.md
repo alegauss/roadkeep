@@ -81,29 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK1031 A reserved id is not a spent id, and lint cannot tell them apart
-
-Shio reserves ids for **epics** — `SH25`, `SH62`, `SH67`, `SH74` — each owning a
-sub-range whose sub-tasks ship under their own numbers. The epic id is never a task line
-and never a ledger entry; it exists so a reader can say "the Media Library work" in one
-token, and Shio's own skill documents the convention.
-
-`body.promise` reads every prose mention of one as an id no line carries, reads that as
-spent, and reports it as a hazard for the deriver. Right about a typo, wrong about a
-reservation, and the two are indistinguishable from the text. The consequence is not
-noise but a **gate that can never be clean**: ten findings today, none actionable, none
-removable — the advice each gives ("spell the example outside this project's prefix") is
-refused by the convention it argues with. A permanently red gate is one nobody reads.
-
-What is missing is a way to say **this id is reserved**. The shape that fits is a
-declaration in `roadkeep.toml` beside `id_sources` — the file that already tells the
-deriver where ids live, told which are spoken for. The deriver then skips them because
-they *are* taken, `lint` stops reporting them, and a genuine typo still fails, because
-it is not on the list.
-
-The check that this is a fix and not a suppression: a reserved id later written as a
-task line is a real conflict, and the tool should say so.
-
 ## Block E — Adoption
 
 ## Block F — The plugin

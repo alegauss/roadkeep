@@ -30,8 +30,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1031** (deps: —) **an id a project reserves for an epic and never writes as a line is reported as spent, on every prose mention, forever** — body.promise cannot tell a reserved id from a typo, so a project with epics can never have a clean lint and stops reading the gate. → §RK1031
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
