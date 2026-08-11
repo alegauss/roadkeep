@@ -30,7 +30,11 @@
 
 ## Block D — The gate
 
+- 📋 **RK1091** (deps: —) **three heredoc edits corrupted a test file's string literals and only the parser noticed** — Writing Python through a shell heredoc turned backslash-n into real newlines four times this session, each caught as a syntax error after the edit rather than refused at it. → §RK1091
+
 ## Block E — Adoption
+
+- 📋 **RK1090** (deps: —) **the queue is the fourth door an estimate could name and the only member left out** — RK1089 built the category from the three absences a config declares and stopped, so a project with no priority order reads the same as one that chose id order deliberately. → §RK1090
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 

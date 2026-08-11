@@ -81,7 +81,53 @@ already written, not authorship.
 
 ## Block D — The gate
 
+### §RK1091 An edit path that rewrites what it is given
+
+Four times in one session, a `python - <<'PY'` block that replaced a string literal
+containing `\n` wrote a real newline instead, leaving an unterminated literal that the
+next `pytest` collection reported as a `SyntaxError`. Each cost a read, an edit and a
+rerun; two of them silently failed to apply their *other* replacement in the same
+script, so a fixture kept its old shape while the test around it changed.
+
+This is not a defect in roadkeep and it is worth a line here anyway, because the tool's
+own argument applies to it exactly: an edit that rewrites text it was handed is the
+failure the governed files exist to prevent, and the only thing catching it was a parser
+downstream.
+
+What would close it is a rule rather than more care. Editing source through a shell
+heredoc has no property worth the risk — the escaping depends on three layers agreeing —
+and the alternatives are ordinary: a file written whole, or a targeted replacement made
+by a tool that takes the old and new text as data rather than as shell input.
+
+Worth writing into `agents.md` beside the commit rule, since that file is where this
+repository states how work is done and the budget still has room. One sentence: source
+edits do not go through a heredoc, and a replacement whose old text contains an escape
+is written as a whole file instead.
+
 ## Block E — Adoption
+
+### §RK1090 The member the category was written knowing about
+
+`_gains` reports three: no store, no prose file, no governed non-goals. RK1089's own
+section named a fourth — a queue — and the implementation did not add it, which is the
+shape that task exists to prevent one iteration later.
+
+The reason it is harder than the other three is worth stating rather than discovering.
+Those are read off `[files]` and `[non_goals]`: declared or not, one call each. A queue
+is a `## Priority` **section** in the roadmap since RK325, so the answer needs the
+document rather than the config, and `adopt` already holds it. What it does not have is
+a way to say the useful thing: a project with no queue is not missing a feature, it is
+picking by the lowest ready id, which is a real answer and often the right one.
+
+So the sentence is the work. `pause` says what happens instead — a line has to be
+retired, which is terminal — and the queue's equivalent is that order is derived from
+ids, which means a task nobody wants next is offered first whenever its number is
+lowest. That is a cost, and it is one an adopter with a hundred lines feels and one with
+ten does not.
+
+Worth checking whether `[priority]` in the config is still reachable while writing it:
+RK325 moved the queue into the section and the config key is reported as
+`priority.config`, so a gain naming the old home would be advice the gate refuses.
 
 ## Block F — The plugin
 
