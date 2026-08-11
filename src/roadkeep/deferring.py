@@ -180,6 +180,11 @@ class Pause:
     #: releases one by moving the marker; this one takes the line out of the file the marker
     #: is read in, which no later read can tell from a claim still held.
     root: Path | None = None
+    #: Whether this call **reconciled** a contradiction rather than returning a line (RK1081):
+    #: the roadmap already carried the id, so the store entry was the stale half and only it
+    #: was removed. Reported rather than inferred — the caller printing "returned to Block A"
+    #: over a line that never moved would be describing a write nobody made.
+    reconciled: bool = False
 
     def save(self) -> None:
         """Write both files. Nothing here can fail on the format — that was decided.
@@ -215,6 +220,11 @@ class Resumption:
     #: What it did is not a field here — the command prints the marker, which is the fact, and
     #: a second copy of it would be a second thing to keep true.
     root: Path | None = None
+    #: Whether this call **reconciled** a contradiction rather than returning a line (RK1081):
+    #: the roadmap already carried the id, so the store entry was the stale half and only it
+    #: was removed. Reported rather than inferred — the caller printing "returned to Block A"
+    #: over a line that never moved would be describing a write nobody made.
+    reconciled: bool = False
 
     def save(self) -> None:
         # The same rule read backwards: the roadmap is the arrival now, so it goes first
@@ -311,7 +321,26 @@ def resume(config: Config, task_id: str, *, marker: str | None = None) -> Resump
     backlog = Backlog.load(config)
     open_line = backlog.roadmap.by_id().get(task_id)
     if open_line is not None:
-        raise SetAside(task_id, config.relative(config.path("roadmap")), open_line.lineno)
+        # The roadmap already says what a resume would write, so the store entry is the
+        # stale half and this call removes it (RK1081). The mirror of RK1075 one file over:
+        # two governed files disagreeing about one id, resolved towards the one that
+        # already states the outcome — here the open line, there the ledger entry.
+        #
+        # Refusing was the earlier answer and it left the state with no verb at all: `defer`
+        # refuses because the store holds it, `ship` and `retire` *succeed* and leave the id
+        # recorded and still paused, and the gate said nothing. What a second line would be
+        # — two answers to when the work comes back — is what this prevents rather than
+        # what it creates, because no line is placed.
+        remaining = remove_entry(store, held)
+        derived = refresh(replace(backlog, store=remaining))
+        return Resumption(
+            task_id=task_id,
+            roadmap=Insertion(document=derived.document, entry=open_line),
+            store=remaining,
+            removed_from=held.lineno,
+            refreshed=tuple(name for name in derived.changed if name != task_id),
+            reconciled=True,
+        )
 
     status = marker or config.schema.markers[0]
     insertion = place(

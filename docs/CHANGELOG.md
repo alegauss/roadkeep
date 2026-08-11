@@ -411,6 +411,7 @@
 - ✅ **RK1073** **a refusal decided under a package subdirectory named no module at all** — One named() spells a module for both halves of the note, and a test asserts they agree against the census, which is the property that was false from RK494 and that nothing read.
 - ✅ **RK1076** **the gate is silent on a partial line whose entry names no half, the one state whose repair is two verbs** — The gate reads a live partial off the entry's qualifier, so a partial marker beside an entry recording the whole is reported as id.two-files and repair closes it in one run.
 - ✅ **RK1079** **the door table crosses two axes and the deferred store is a third nobody enumerated** — The store is the table's third axis: resume closes a paused id, and sweeping it found the first cell with no door, which is an id both files carry.
+- ✅ **RK1081** **an id the roadmap and the deferred store both carry passes the gate and ship leaves it shipped and paused** — The gate reports id.paused-and-open, resume removes the store's stale copy without placing a line, and a departure is refused while the contradiction stands.
 
 ## Block E — Adoption
 

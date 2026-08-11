@@ -81,29 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK1081 The pair the two-files rule never reached
-
-Found by RK1079, sweeping the axis RK1077 had named and not swept. A project whose
-roadmap carries `📋 RK1` and whose deferred store carries `⏸ RK1` is one file saying the
-work is open and another saying it is set aside, and:
-
-* `lint` reports **nothing**. `id.two-files` is written over the roadmap against the
-  changelog, and no rule compares either of them with the store.
-* `resume RK1` refuses, correctly, and its message describes the roadmap line as the one
-  set aside — the wrong file named for the right reason.
-* `ship RK1 --why "…"` **succeeds**: the roadmap line goes, the entry is written, and the
-  store entry stays. The id is then recorded as shipped and still paused, and the gate
-  calls that tree clean.
-
-The last decides the shape. This is not a missing verb — `resume` and `ship` are each
-right about the file they read — it is a rule never widened when RK96 added a third
-governed file that can hold a line. Three files, one id, a pairwise check written for
-two.
-
-What to decide is whether `id.two-files` grows a second subject or the store gets its
-own code. The message differs either way: open-and-gone is not open-and-paused, and the
-door is `resume` on one side and a `defer` that never ran on the other.
-
 ## Block E — Adoption
 
 ## Block F — The plugin

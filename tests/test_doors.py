@@ -20,12 +20,13 @@ ledger holds for that id, and — since RK1079 — whether the deferred store ca
 the roadmap cannot hold at all (a 🗑 line is `line.unparsed`, not a task in a state), and
 :data:`NO_DOOR` is where a reachable cell with no verb goes.
 
-**Sweeping the third axis put the first entry in `NO_DOOR`**, which is what the table is
-for. RK1077 measured marker against ledger, found a door everywhere and said so; RK1079
-added the store and found an id both files can carry where `resume` refuses, `lint` reports
-nothing at all, and `ship` **succeeds** — leaving the work recorded as shipped and still
-paused, with the gate calling the tree clean. Two axes said the surface was complete; the
-third says where it is not, which is the argument for enumerating rather than believing.
+**Sweeping the third axis found a state with no verb, and closing it is why.** RK1077
+measured marker against ledger and found a door everywhere; RK1079 added the store and found
+an id both files can carry, where `resume` refused, `lint` said nothing and `ship`
+*succeeded* — leaving the work recorded as gone and still paused, with the gate calling that
+tree clean. RK1081 gave it `resume`, a code and a refusal. That is the cycle: enumerate,
+find, close, and hold closed. Two axes said the surface was complete; the third said where
+it was not, which is the argument for enumerating rather than believing.
 """
 
 from __future__ import annotations
@@ -144,6 +145,18 @@ DOORS: tuple[Door, ...] = (
         argv=("ship", "RK1", "--why", "It landed."),
     ),
     Door(
+        marker=DESIGNED,
+        recorded=NOTHING,
+        paused=True,
+        because=(
+            "an id both files carry, which RK1079 found by sweeping this axis and RK1081 "
+            "closed: the roadmap already says the work is open, so the store's copy is the "
+            "stale half and a resume removes it without placing a line"
+        ),
+        argv=("resume", "RK1"),
+        leaves="D.md",
+    ),
+    Door(
         marker="",
         recorded=NOTHING,
         paused=True,
@@ -174,16 +187,7 @@ UNREADABLE = {
 #: A cell deliberately left empty, with the reason there is none. Empty today, and kept
 #: because the closure needs somewhere to put a state that is reachable and has no verb —
 #: which is the six-times defect this file was written from, and the shape a seventh takes.
-NO_DOOR: dict[tuple[str, str], str] = {
-    ("paused", "open line"): (
-        "an id the deferred store and the roadmap both carry. Measured for RK1079 and it is "
-        "worse than doorless: `resume` refuses, `lint` reports nothing at all, and `ship` "
-        "**succeeds** — leaving the id recorded as shipped in the ledger and still paused in "
-        "the store, with the gate calling the tree clean. `id.two-files` covers the roadmap "
-        "against the changelog and no rule covers either against the store, so this is a hole "
-        "in the gate before it is a missing verb"
-    ),
-}
+NO_DOOR: dict[tuple[str, str], str] = {}
 
 
 LEDGERS = {
@@ -244,8 +248,11 @@ def test_the_table_and_the_empty_cells_together_cover_the_cross_product():
     # The store is the third axis (RK1079), and it is two cells rather than a cross product:
     # a paused id the roadmap does not carry, which `resume` takes, and one it does — which
     # is the first entry `NO_DOOR` has ever had, and it was found by looking.
-    assert {(door.paused, bool(door.marker)) for door in DOORS} >= {(True, False)}
-    assert ("paused", "open line") in NO_DOOR
+    assert {(door.paused, bool(door.marker)) for door in DOORS} >= {(True, False), (True, True)}
+    # `NO_DOOR` is empty again, and this time it was emptied rather than never filled: RK1079
+    # put the pair in it by measuring and RK1081 gave it a verb, which is the cycle the table
+    # exists to run — a state found by enumeration, closed, and held closed here.
+    assert NO_DOOR == {}
 
 
 def test_every_declaration_argues_rather_than_asserts():

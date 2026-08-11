@@ -759,6 +759,14 @@ _TABLE: Mapping[str, _Rule] = {
         "the id does not match this project's shape; renumber moves the line and its "
         "dependents to one that does",
     ),
+    # The store's own pair (RK1081). `resume` and not `defer`: the roadmap already says the
+    # work is open, which is what a resume produces, so the store entry is the stale half.
+    "id.paused-and-open": _run(
+        ("resume", "{id}"),
+        "the deferred store and the roadmap both carry this id — a pause that stopped "
+        "between its two writes, or a resume that did; either way the open line is what "
+        "the files should say, so this removes the store's copy and places nothing",
+    ),
     "id.two-files": _run(
         ("ship", "{id}"),
         "the ledger already records this id and the roadmap still carries a line for it — "

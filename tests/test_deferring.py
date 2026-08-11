@@ -542,3 +542,51 @@ def test_a_refused_pause_exits_two_and_writes_nothing(tmp_path, capsys):
     assert main(["-C", str(tmp_path), "defer", "RK9", "--reason", "it waits"]) == EXIT_USAGE
     assert "RK9" in capsys.readouterr().err
     assert files(config) == before
+
+
+# -- the contradiction the store and the roadmap can both hold (RK1081) --------
+
+
+def paused_project(tmp_path: Path) -> Config:
+    """A project whose roadmap and store both carry RK1 — the state RK1079 measured."""
+    return project(
+        tmp_path,
+        {
+            "DEFERRED.md": DEFERRED_STORE
+            + f"- {DEFERRED} **RK1** (deps: —) **A first symptom** "
+            f"— Because of a reason. → §RK1\n"
+        },
+    )
+
+
+def test_a_resume_reconciles_an_id_both_files_carry(tmp_path):
+    """Found by RK1079's sweep and closed here. `defer` refused because the store held it,
+    `resume` refused because the roadmap did, and `ship` and `retire` both **succeeded** —
+    recording the work as gone while the store still said it was paused, with the gate
+    calling that tree clean.
+
+    The roadmap already says what a resume would write, so the store's copy is the stale
+    half: this removes it and places nothing, which is the mirror of RK1075 one file over.
+    """
+    config = paused_project(tmp_path)
+    roadmap = read(config, "ROADMAP.md")
+    returned = resume(config, "RK1")
+    returned.save()
+
+    assert returned.reconciled
+    # No line placed: the roadmap is byte for byte what it was.
+    assert read(Config.discover(config.root), "ROADMAP.md") == roadmap
+    assert "**RK1**" not in read(Config.discover(config.root), "DEFERRED.md")
+
+
+def test_a_departure_is_refused_while_the_store_still_carries_it(tmp_path):
+    # Refused rather than made to remove the store entry, which is `ship`'s own choice about
+    # a second ledger entry: a departure writes the files its transaction is about, and
+    # reconciling a contradiction is a decision with its own verb — named in the refusal.
+    from roadkeep.shipping import AlsoPaused, ship
+
+    config = paused_project(tmp_path)
+    with pytest.raises(AlsoPaused) as refused:
+        ship(config, "RK1", why="It landed.")
+    assert "resume RK1" in str(refused.value)
+    assert "still says it is paused" in str(refused.value)

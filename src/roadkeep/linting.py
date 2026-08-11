@@ -1824,6 +1824,25 @@ def _across(config: Config, documents: dict[str, Document]) -> list[Finding]:
     file = config.relative(config.path("roadmap"))
     out: list[Finding] = []
 
+    # The third governed file that can hold a line (RK96), against the first (RK1081). Its
+    # own code and not a second subject on `id.two-files`: open-and-gone is not the sentence
+    # open-and-paused is, and the door differs too — `ship` closes one and `resume` the other.
+    if config.has("deferred") and config.path("deferred").is_file():
+        paused = config.document("deferred").by_id()
+        for task_id, entry in roadmap.by_id().items():
+            if task_id in paused:
+                out.append(
+                    Finding(
+                        "id.paused-and-open",
+                        file,
+                        f"also set aside on line {paused[task_id].lineno} of "
+                        f"{config.relative(config.path('deferred'))}: open and paused are "
+                        f"not both true, and the store is the half a resume removes",
+                        entry.lineno,
+                        task_id,
+                    )
+                )
+
     if ledger is not None:
         out.extend(_undeclared_blocks(config, roadmap, ledger, file))
         shipped = ledger.by_id()

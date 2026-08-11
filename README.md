@@ -119,15 +119,11 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 40 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 127 | 1 |
 | C — Query (consult without reading the file) | 0 | 84 | 1 |
-| D — The gate | 1 | 137 | 0 |
+| D — The gate | 0 | 138 | 0 |
 | E — Adoption | 0 | 77 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 96 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 1 | 572 | 6 |
-
-**Next ready:**
-
-- 📋 **RK1081** (deps: —) **an id the roadmap and the deferred store both carry passes the gate and ship leaves it shipped and paused** — id.two-files compares the roadmap against the changelog and nothing compares either against the store, so the contradiction is silent and a departure only half resolves it. → §RK1081
+| **Total** | 0 | 573 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

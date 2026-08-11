@@ -654,6 +654,33 @@ class NoSpan(ValueError):
         )
 
 
+class AlsoPaused(ValueError):
+    """A departure for an id the deferred store still carries (RK1081).
+
+    Neither door removes the other file's line, so `ship` and `retire` both *succeeded* here
+    and left the work recorded as shipped — or retired — and still set aside, with the gate
+    calling that tree clean. Two files answering differently about one id is what
+    :class:`AlreadyRecorded` refuses one pair over, and the store was the pair RK96 added and
+    nothing widened for.
+
+    Refused rather than made to remove the store entry, which is the same choice `ship`
+    makes about a second ledger entry: a departure writes the files its own transaction is
+    about, and reconciling a contradiction is a decision with its own verb. `resume` is that
+    verb since RK1081 — the roadmap already says the work is open, so the store's copy is
+    the stale half — and this refusal names it.
+    """
+
+    def __init__(self, task_id: str, where: str, lineno: int) -> None:
+        self.task_id = task_id
+        self.lineno = lineno
+        super().__init__(
+            f"{task_id} is also set aside in {where}:{lineno}: leaving it now would record "
+            f"the work as gone while the store still says it is paused — "
+            f"`{invocation()} resume {task_id}` removes the store's copy first, placing no "
+            f"line, because the roadmap already carries one"
+        )
+
+
 class NoSuchReplacement(KeyError):
     """A forward pointer to an id no file holds, or to the retiring line itself (RK32).
 
@@ -1742,6 +1769,15 @@ def _depart(
             shipped=task_id in ledger.by_id(),
         )
     where = config.relative(config.path("changelog"))
+    # Before the ledger is consulted (RK1081): a departure that lands while the store still
+    # carries the id writes a contradiction rather than resolving one, and the file that can
+    # hold a third line for it is the one RK96 added and no pairwise check reached.
+    if config.has("deferred") and config.path("deferred").is_file():
+        paused = config.document("deferred").by_id().get(task_id)
+        if paused is not None:
+            raise AlsoPaused(
+                task_id, config.relative(config.path("deferred")), paused.lineno
+            )
     duplicate = ledger.by_id().get(task_id)
     # A duplicate carrying a qualifier is not a second record of one decision — it is the
     # *first* half of this one (RK121), and a **ship** is the completion. So the entry is
