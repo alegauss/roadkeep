@@ -11,6 +11,7 @@ about other people's projects.
 
 from __future__ import annotations
 
+import tomllib
 from dataclasses import replace
 from pathlib import Path
 
@@ -499,3 +500,54 @@ def test_an_unknown_id_key_is_refused_like_any_other(tmp_path):
     path = write(tmp_path, '[ids]\nseparator = "-"\n')
     with pytest.raises(ConfigError, match="ids.separator"):
         Config.load(path)
+
+
+# -- the statement that was not the problem (RK1030) -------------------------
+
+
+MARK = b"\xef\xbb\xbf"
+
+
+def test_a_config_saved_with_a_mark_is_answered_with_the_byte(tmp_path):
+    """The reproduction. `Invalid statement (at line 1, column 1)` is `tomllib` answering
+    about `prefix = "RK"`, which is correct — and the file is the first one a project writes,
+    on the platform whose default way to write it adds the mark."""
+    path = tmp_path / "roadkeep.toml"
+    path.write_bytes(MARK + b'prefix = "RK"\n')
+    with pytest.raises(ConfigError) as caught:
+        Config.load(path)
+    said = str(caught.value)
+    assert "byte-order mark (U+FEFF)" in said
+    # The original refusal is carried rather than replaced: it is still what `tomllib` said,
+    # and a reader who knows TOML should not have to take this sentence's word for it.
+    assert "Invalid statement (at line 1, column 1)" in said
+    assert "Set-Content -Encoding utf8" in said
+    assert str(path) in said
+
+
+def test_every_other_toml_error_is_handed_back_as_it_was_written(tmp_path):
+    """The bound. This reads the bytes only after a refusal, and only to answer the one
+    question the refusal could not — so a file with a real syntax error is unchanged."""
+    path = tmp_path / "roadkeep.toml"
+    path.write_bytes(b'prefix = "RK"\nthis is not toml\n')
+    with pytest.raises(tomllib.TOMLDecodeError) as caught:
+        Config.load(path)
+    assert "byte-order mark" not in str(caught.value)
+
+
+def test_a_marked_pyproject_is_found_and_refused_rather_than_walked_past(tmp_path):
+    """The same byte through the other door, where it failed *silently*: the probe that
+    decides whether a `pyproject.toml` configures roadkeep swallowed the decode error, so
+    discovery walked past a file declaring `[tool.roadkeep]` and every verb ran on defaults."""
+    (tmp_path / "pyproject.toml").write_bytes(MARK + b'[tool.roadkeep]\nprefix = "RK"\n')
+    assert find_config(tmp_path) == tmp_path / "pyproject.toml"
+    with pytest.raises(ConfigError) as caught:
+        Config.discover(tmp_path)
+    assert "byte-order mark (U+FEFF)" in str(caught.value)
+
+
+def test_a_pyproject_that_configures_nothing_is_still_walked_past(tmp_path):
+    """The strip is a question about *which file* and never about its content: a marked
+    pyproject with no `[tool.roadkeep]` is not this project's config, mark or no mark."""
+    (tmp_path / "pyproject.toml").write_bytes(MARK + b'[tool.black]\nline-length = 88\n')
+    assert find_config(tmp_path) is None

@@ -24,8 +24,6 @@
 
 ## Block A — The model (a task is data before it is a line)
 
-- 📋 **RK1030** (deps: —) **a roadkeep.toml a Windows editor saved with a BOM answers 'Invalid statement (at line 1, column 1)' and names no byte** — The line it points at is correct, the file is the first one a project writes, and the default PowerShell way to write it adds the mark. → §RK1030
-
 ## Block B — Authoring (insert, never hand-edit)
 
 ## Block C — Query (consult without reading the file)

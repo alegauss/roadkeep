@@ -116,18 +116,18 @@ called unbuilt were already in the ledger.
 
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
-| A — The model (a task is data before it is a line) | 1 | 31 | 2 |
+| A — The model (a task is data before it is a line) | 0 | 32 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 114 | 1 |
 | C — Query (consult without reading the file) | 0 | 76 | 1 |
 | D — The gate | 1 | 124 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 91 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 2 | 521 | 6 |
+| **Total** | 1 | 522 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1030** (deps: —) **a roadkeep.toml a Windows editor saved with a BOM answers 'Invalid statement (at line 1, column 1)' and names no byte** — The line it points at is correct, the file is the first one a project writes, and the default PowerShell way to write it adds the mark. → §RK1030
+- 📋 **RK1031** (deps: —) **an id a project reserves for an epic and never writes as a line is reported as spent, on every prose mention, forever** — body.promise cannot tell a reserved id from a typo, so a project with epics can never have a clean lint and stops reading the gate. → §RK1031
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -75,32 +75,6 @@ already written, not authorship.
 
 ## Block A — The model
 
-### §RK1030 The statement that was not the problem
-
-A `roadkeep.toml` whose first three bytes are `EF BB BF` makes every verb of this tool
-answer the same line:
-
-> `roadkeep: Invalid statement (at line 1, column 1)`
-
-Line 1 column 1 is `prefix = "RK"`, which is correct, and the message points at it. What
-is wrong is a byte no editor shows, in the file a project writes before it has run
-anything — and on Windows the default route writes it: PowerShell 5.1's `Set-Content
--Encoding utf8` and `Out-File` both add the mark, which is how this was found.
-
-`config.py` opens the file `rb` and hands the bytes to `tomllib`, which refuses a
-preamble by specification. So the diagnosis belongs here rather than upstream, and it is
-the same argument RK1023 made about the pipe: the author cannot fix it from where they
-are standing, because nothing in their command names the encoding that added the byte.
-
-**Not the same fix.** Stripping it silently is right for a prose field and wrong for a
-config: this file is the project's declaration, and a tool that quietly accepts one
-encoding variant of it teaches nothing. So the answer is the message — name the mark,
-the file, and the one-line command that removes it — with the edit left as the author's.
-
-What proves it: a config carrying the mark answers with the byte and the fix rather than
-with a statement that is correct, every other TOML error is unchanged, and the sentence
-names the file the caller has open.
-
 ## Block B — Authoring
 
 ## Block C — Query

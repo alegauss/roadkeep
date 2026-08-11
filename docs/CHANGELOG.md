@@ -43,6 +43,7 @@
 - ✅ **RK340** **outline anchors are one namespace across prose roles, and every outline starts at I** — A prose file declares its own namespace in [refs], so its addresses are written §<prefix>:<x.y> and two outlines that each start at I are two sets of addresses rather than one read twice.
 - 🗑 **RK378** **Two prose files must share one outline, with no way to give either its own** — superseded by RK340: RK340 shipped this namespace a day before the line was filed: [refs] <role> = "<prefix>" already puts strategy in its own space, covered end to end by tests/test_namespaces.py.
 - ✅ **RK450** **A staged file is renamed into place without its bytes being flushed, so a crash leaves the new size and no content** — A staged file is flushed and fsynced before the rename that places it, so a crash between the two leaves the previous whole file instead of the new size filled with NUL.
+- ✅ **RK1030** **a roadkeep.toml a Windows editor saved with a BOM answers 'Invalid statement (at line 1, column 1)' and names no byte** — A config opening with a byte-order mark is answered with the byte, the original refusal beside it, and the way to remove it; a marked pyproject is found rather than walked past.
 
 ## Block B — Authoring
 

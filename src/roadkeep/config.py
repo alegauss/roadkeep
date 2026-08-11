@@ -206,6 +206,45 @@ class ConfigError(ValueError):
         super().__init__(where + "; ".join(self.problems))
 
 
+#: The three bytes a Windows editor writes ahead of a UTF-8 file, which `tomllib` refuses by
+#: specification — and refuses at line 1, column 1, where the statement is correct.
+_BOM = b"\xef\xbb\xbf"
+
+
+def _marked(path: Path, broken: tomllib.TOMLDecodeError) -> Exception:
+    """A TOML refusal, re-read as the byte that caused it where that is what it is (RK1030).
+
+    `Invalid statement (at line 1, column 1)` is `tomllib` answering about the first thing it
+    could parse, which is `prefix = "RK"` — correct, and pointing at a line with nothing wrong
+    with it. What is wrong is three bytes no editor shows, in the file a project writes before
+    it has run anything, and on Windows the default route writes them: PowerShell 5.1's
+    `Set-Content -Encoding utf8` and `Out-File` both add the mark.
+
+    **Named and not stripped**, which is the difference from :func:`roadkeep.verbs.reading`'s
+    answer to the same byte one file over. A prose field is a sentence somebody typed and the
+    mark is the encoder's; this file is the project's own declaration, and a tool that quietly
+    accepted one encoding variant of it would teach nothing — the author would meet the mark
+    again in `git diff`, in their editor's next save, and in whatever reads the file next.
+
+    Every other TOML error is handed back exactly as `tomllib` wrote it: this reads the bytes
+    only after a refusal, and only to answer the one question the refusal could not.
+    """
+    try:
+        if not path.read_bytes().startswith(_BOM):
+            return broken
+    except OSError:
+        return broken
+    return ConfigError(
+        (
+            f"the file opens with a byte-order mark (U+FEFF), which TOML has no reading "
+            f"for — so the refusal below is about the first line it could parse and not "
+            f"about anything wrong with it ({broken}). Re-save it as UTF-8 without a BOM; "
+            f"in PowerShell, `Set-Content -Encoding utf8` and `Out-File` both write one",
+        ),
+        path,
+    )
+
+
 @dataclass(frozen=True, slots=True)
 class Config:
     """Where the governed files are, and which format they are written in."""
@@ -276,7 +315,10 @@ class Config:
     def load(cls, path: str | Path) -> Config:
         path = Path(path).resolve()
         with path.open("rb") as handle:
-            document = tomllib.load(handle)
+            try:
+                document = tomllib.load(handle)
+            except tomllib.TOMLDecodeError as broken:
+                raise _marked(path, broken) from None
         if path.name == PYPROJECT:
             document = document.get("tool", {}).get("roadkeep", {})
         return cls.parse(document, root=path.parent, source=path)
@@ -438,10 +480,24 @@ def find_config(start: str | Path = ".") -> Path | None:
 
 
 def _declares_roadkeep(path: Path) -> bool:
+    """Whether this `pyproject.toml` configures roadkeep — a probe, and it may not refuse.
+
+    The mark is taken off **here and only here** (RK1030), because this decides whether a
+    file is the project's config at all: a marked `pyproject.toml` parsed as-is is a
+    `TOMLDecodeError`, which this swallows, so discovery walked past a file that declares
+    `[tool.roadkeep]` and every verb then ran on defaults — the encoding defect turning into
+    silence rather than a refusal, which is the one outcome worse than the refusal.
+
+    Found here, refused in :meth:`Config.load`, which reads the bytes as they are and says
+    what the mark is. The strip is a question about *which file* and never about its content.
+    """
     try:
-        with path.open("rb") as handle:
-            data = tomllib.load(handle)
-    except (OSError, tomllib.TOMLDecodeError):
+        raw = path.read_bytes()
+    except OSError:
+        return False
+    try:
+        data = tomllib.loads(raw.removeprefix(_BOM).decode("utf-8"))
+    except (UnicodeDecodeError, tomllib.TOMLDecodeError):
         return False
     return "roadkeep" in data.get("tool", {})
 
