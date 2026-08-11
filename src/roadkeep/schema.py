@@ -35,7 +35,7 @@ from __future__ import annotations
 import math
 import re
 import unicodedata
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, replace
 from enum import StrEnum
 
@@ -281,6 +281,80 @@ TEMPLATE: tuple[Slot, ...] = (
     Slot("symptom", _reads_symptom, _writes_symptom),
     Slot("why", _reads_why, _writes_why),
 )
+
+
+#: Which `Schema` field each droppable slot turns off, by the name a project writes in
+#: `[grammar.<role>] drop` (RK1064). A name and not a field, because `deps_field` and
+#: `ref_required` are this package's spellings and a config is not a place to learn them —
+#: and because the set is closed on purpose: what may be dropped is what a record can be
+#: read without, which is a fact about the format rather than a knob.
+DROPPABLE: Mapping[str, str] = {
+    "deps": "deps_field",
+    "ref": "ref_required",
+    "marker": "marker_field",
+    "symptom": "symptom_field",
+}
+#: Which `[markers]` key each marker name refers to. Names and not codepoints, because a
+#: project declares its own glyphs and a grammar naming `✅` would be a second declaration
+#: of the one `[markers] shipped` already makes.
+MARKER_NAMES: Mapping[str, str] = {
+    "shipped": "shipped_marker",
+    "retired": "retired_marker",
+    "deferred": "deferred_marker",
+}
+
+
+@dataclass(frozen=True, slots=True)
+class Grammar:
+    """How one role's records differ from the roadmap's, as a declaration (RK1064).
+
+    L6 already had the numbers, the markers, the paths and the id shape. What it did not
+    have was the **shape**: which fields a record carries and which it does not, so a
+    project could change every limit and no part of the line — and `Schema.as_ledger`, one
+    field dropped and the marker moved from the line to the file, was a method where it
+    could be a declaration beside the limits that already vary.
+
+    The boundary is the part to hold, and it is narrow on purpose: `markers` and `drop`,
+    both closed sets of *names*, and nothing that needs a traversal or an expression. A
+    declaration that grows conditionals is an interpreter to debug — Schematron is
+    expressive and nobody writes it — so what stays code stays code and registers here by
+    name, which is what keeps this the whole index of a role's shape rather than the half
+    that fit.
+
+    `extends` is the roadmap in both grammars the tool ships and is carried anyway: a role
+    that derived from another would say so here, and a field nobody can read is a field
+    the next role invents its own answer for.
+    """
+
+    #: The role whose grammar this one starts from. `""` is the base format itself.
+    extends: str = "roadmap"
+    #: The markers a record in this file may carry, by :data:`MARKER_NAMES` key. Empty
+    #: keeps the base set, which is what a role that only drops a field wants.
+    markers: tuple[str, ...] = ()
+    #: The slots this file's records do without, by :data:`DROPPABLE` key.
+    drop: tuple[str, ...] = ()
+    #: Which of the two "this file *is* the state" flags this role sets, if either — the
+    #: one part that is not a field of the line and so cannot be a `drop`.
+    states: str = ""
+
+
+#: The grammars this tool ships, so no adopting project has to declare one it never chose
+#: (RK1064). A project overrides a role with `[grammar.<role>]`; these are what it starts
+#: from, and they are the two `as_ledger` and `as_deferred` were written out as.
+DEFAULT_GRAMMARS: Mapping[str, Grammar] = {
+    # Marker ✅ or 🗑, no deps, no pointer — the rationale section is deleted when the task
+    # leaves, so a pointer to it could not resolve. A retired line (RK32) is this grammar
+    # again rather than a third: a departure with a different door.
+    "changelog": Grammar(
+        markers=("shipped", "retired"),
+        drop=("deps", "ref"),
+        states="shipped",
+    ),
+    # The roadmap's shape with one marker swapped and nothing dropped (RK96): a deferred
+    # line keeps the deps that are still deps, the symptom, and the pointer whose section
+    # is carried rather than deleted — which is what separates a pause from a departure.
+    "deferred": Grammar(markers=("deferred",), states="deferred"),
+}
 
 
 def grammar(marker: bool, symptom: bool) -> str:
@@ -999,16 +1073,13 @@ class Schema:
         than on every line, and the symptom (RK48), because `- **T1** — <prose>` is what a
         ledger written before this tool already spells — and on a shipped line the split
         between the fault and its outcome has no reader left.
+
+        The body is :meth:`under` since RK1064, applied to a declaration rather than
+        written out: this method is now the *name* of that grammar and no longer a second
+        statement of it, which is what lets a project override the shape as it already
+        overrides the numbers.
         """
-        return replace(
-            self,
-            markers=(self.shipped_marker, self.retired_marker),
-            shipped_allowed=True,
-            deps_field=False,
-            ref_required=False,
-            marker_field=self.ledger_marker,
-            symptom_field=self.ledger_symptom,
-        )
+        return self.under(DEFAULT_GRAMMARS["changelog"])
 
     @property
     def is_deferred(self) -> bool:
@@ -1028,7 +1099,42 @@ class Schema:
         no blocker left; a deferred one has both, and a return that had to reinvent them
         would be a re-add under a new id.
         """
-        return replace(self, markers=(self.deferred_marker,), deferred_allowed=True)
+        return self.under(DEFAULT_GRAMMARS["deferred"])
+
+    def under(self, declared: Grammar) -> Schema:
+        """This format as one role's declaration shapes it (RK1064).
+
+        The one place a :class:`Grammar` becomes a schema, so a role's shape is applied by
+        the same code whether the tool shipped the declaration or a project wrote it —
+        which is the whole of what makes the shape configurable rather than merely named.
+
+        `[ledger]`'s two keys survive as what they always were: `marker` and `symptom` are
+        the slots *that* file may drop, so they join `drop` here rather than staying a
+        second mechanism beside it. A role whose declaration says nothing gets the base
+        shape, which is a roadmap line — the honest default for a file nobody has spoken
+        about, and the reason `extends` is carried rather than assumed.
+        """
+        dropped = set(declared.drop)
+        if declared.states == "shipped":
+            # The two `[ledger]` already declares, folded into the same set rather than
+            # kept as their own arguments: they are droppable fields and the file that may
+            # drop them is this one, so a second spelling would be what RK1064 removes.
+            dropped.update(
+                name
+                for name, kept in (
+                    ("marker", self.ledger_marker),
+                    ("symptom", self.ledger_symptom),
+                )
+                if not kept
+            )
+        changed: dict[str, object] = {DROPPABLE[name]: False for name in dropped}
+        if declared.markers:
+            changed["markers"] = tuple(
+                getattr(self, MARKER_NAMES[name]) for name in declared.markers
+            )
+        if declared.states:
+            changed[f"{declared.states}_allowed"] = True
+        return replace(self, **changed)
 
     def needs_design(self, status: str) -> bool:
         """Whether a line carrying this marker still has its design to write (RK83).

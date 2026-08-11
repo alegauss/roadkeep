@@ -31,8 +31,11 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:  # a string annotation under `from __future__ import annotations` (RK261)
     from roadkeep.document import Document
 from roadkeep.schema import (
+    DEFAULT_GRAMMARS,
     DEFAULT_HEADING_WORD,
     DEFERRED,
+    DROPPABLE,
+    MARKER_NAMES,
     OPEN_MARKERS,
     REF_PREFIX_RE,
     REF_SEPARATOR,
@@ -41,6 +44,7 @@ from roadkeep.schema import (
     UNDESIGNED,
     Dep,
     DepKind,
+    Grammar,
     Schema,
 )
 
@@ -86,8 +90,15 @@ _TOP_KEYS = frozenset(
         "claims",
         "refs",
         "tools",
+        "grammar",
     }
 )
+#: `[grammar.<role>]` — the shape of a role's records, which L6 declared everything about
+#: except (RK1064). Three keys and no fourth: what a record starts from, which markers it
+#: may carry, and which slots it does without. `states` is not among them — whether a file
+#: *is* a status is a fact about the tool's own roles, so a project may reshape a line and
+#: never invent a state for which no verb exists.
+_GRAMMAR_KEYS = frozenset({"extends", "markers", "drop"})
 #: `[tools]` — what one served tool may cost a session (RK1059). Its own table and not a
 #: `[budgets]` entry, because every key there is a **path** and this cost is not a file: it
 #: is composed per session from the parser, the config and the `TOOLS` table, so an entry
@@ -284,6 +295,11 @@ class Config:
     #: Always-loaded files and what each may cost (RK30). Not a governed role: the tool
     #: writes none of these, it only refuses to let one grow unwatched.
     budgets: tuple[Budget, ...] = ()
+    #: `[grammar.<role>]` — the shape of one role's records, where a project declares one
+    #: (RK1064), keyed by role and applied by :meth:`schema_for`. Empty is every project
+    #: that has not spoken about a shape, and then the grammars the tool ships are what
+    #: apply: a role nobody declared is not a role without one.
+    grammars: Mapping[str, Grammar] = field(default_factory=dict)
     #: `[tools] characters` — what one served tool may cost the session that connects the
     #: server (RK1059), or **None** where the project declares none, which is every project
     #: that does not serve the surface and every one that has not looked at the number yet.
@@ -379,6 +395,7 @@ class Config:
         priority = tuple(_string_list(data.get("priority"), "priority", problems))
         budgets = _budgets(data.get("budgets"), base, problems)
         tool_characters = _tool_budget(data.get("tools"), problems)
+        grammars = _grammars(data.get("grammar"), problems)
         non_goals = _scope(data.get("non_goals"), problems)
         upstream = _upstream(data.get("report"), problems)
         held = _held(data.get("claims"), problems)
@@ -413,6 +430,7 @@ class Config:
             priority=priority,
             budgets=budgets,
             tool_characters=tool_characters,
+            grammars=grammars,
             limits=per_role,
             rules=rules,
             refs=refs,
@@ -446,12 +464,15 @@ class Config:
         Plus whatever `[limits.<role>]` says (RK50) — the same format again, held to this
         file's own numbers, because a ledger of history and a roadmap line are refused at
         opposite ends of the work.
+
+        The shape comes from a **declaration** since RK1064: the grammar this project wrote
+        for the role, or the one the tool ships for it, applied by `Schema.under` either
+        way. `as_ledger` and `as_deferred` are still the names those two grammars go by and
+        are what every other caller reaches for; what changed is that neither is where the
+        shape is stated, so a project overriding one is not overriding a method.
         """
-        schema = self.schema
-        if role == "changelog":
-            schema = schema.as_ledger()
-        elif role == "deferred":
-            schema = schema.as_deferred()
+        declared = self.grammars.get(role) or DEFAULT_GRAMMARS.get(role)
+        schema = self.schema.under(declared) if declared else self.schema
         own: dict[str, object] = {**self.limits.get(role, {}), **self.rules.get(role, {})}
         # The namespace this role's addresses live in (RK340), carried on the schema for the
         # reason every other per-role difference is: the file travels with the rules it is
@@ -1097,6 +1118,59 @@ def _budgets(raw: object, base: Path, problems: list[str]) -> tuple[Budget, ...]
         if numbers:
             out.append(Budget(path=(base / name).resolve(), **numbers))
     return tuple(out)
+
+
+def _grammars(raw: object, problems: list[str]) -> dict[str, Grammar]:
+    """`[grammar.<role>]` — one role's shape, refused key by key like every other table.
+
+    Every name is checked against a closed set and never taken (RK1064): a `drop` naming a
+    field this format does not have is a slot the author believes is gone, which is the
+    same failure an unignored `symptom_max` typo is one layer down. The role itself is
+    checked too — a grammar for a file `[files]` does not declare is a shape nothing reads.
+    """
+    if raw is None:
+        return {}
+    if not isinstance(raw, Mapping):
+        problems.append("grammar must be a table of role = { extends = …, drop = […] }")
+        return {}
+    out: dict[str, Grammar] = {}
+    for role, value in raw.items():
+        where = f"grammar.{role}"
+        if role not in ROLES:
+            problems.append(f"{where} is not a role ({', '.join(ROLES)})")
+            continue
+        if not isinstance(value, Mapping):
+            problems.append(f"{where} must be a table with {', '.join(sorted(_GRAMMAR_KEYS))}")
+            continue
+        _reject_unknown(value, _GRAMMAR_KEYS, f"{where}.", problems)
+        extends = value.get("extends", "roadmap")
+        if not isinstance(extends, str) or extends not in ROLES:
+            problems.append(f"{where}.extends is not a role ({', '.join(ROLES)})")
+            continue
+        markers = _named(value.get("markers"), MARKER_NAMES, f"{where}.markers", problems)
+        drop = _named(value.get("drop"), DROPPABLE, f"{where}.drop", problems)
+        # The states a role carries are the tool's own and not a project's to declare, so
+        # what a shipped grammar said stays said: a project reshapes the line under it.
+        states = DEFAULT_GRAMMARS.get(role, Grammar()).states
+        out[role] = Grammar(extends=extends, markers=markers, drop=drop, states=states)
+    return out
+
+
+def _named(
+    raw: object, allowed: Mapping[str, str], where: str, problems: list[str]
+) -> tuple[str, ...]:
+    """A list of names from a closed set, or a problem naming what the set holds."""
+    if raw is None:
+        return ()
+    names = _string_list(raw, where, problems)
+    unknown = [name for name in names if name not in allowed]
+    if unknown:
+        problems.append(
+            f"{where} names {', '.join(unknown)}, which is not one of "
+            f"{', '.join(sorted(allowed))}"
+        )
+        return ()
+    return tuple(dict.fromkeys(names))
 
 
 def _tool_budget(raw: object, problems: list[str]) -> int | None:

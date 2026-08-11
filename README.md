@@ -116,18 +116,18 @@ called unbuilt were already in the ledger.
 
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
-| A — The model (a task is data before it is a line) | 4 | 33 | 2 |
+| A — The model (a task is data before it is a line) | 3 | 34 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 124 | 1 |
 | C — Query (consult without reading the file) | 0 | 83 | 1 |
 | D — The gate | 1 | 132 | 0 |
 | E — Adoption | 0 | 77 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 95 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 5 | 555 | 6 |
+| **Total** | 4 | 556 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1064** (deps: RK1063 ✅) **roadkeep.toml declares the limits and the markers but not which fields exist or where they sit** — A project can change every number and no part of the shape, so the ledger dropping its deps field is a method in the package instead of a line in the file that declares it. → §RK1064
+- 📋 **RK1065** (deps: —) **the format's mechanism and this backlog's vocabulary share one namespace** — schema.py and document.py import only stdlib, so the boundary is already there by import direction and absent by naming: both speak Task, Dep and block, which no second format has. → §RK1065
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

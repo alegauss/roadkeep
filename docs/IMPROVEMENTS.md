@@ -75,31 +75,6 @@ already written, not authorship.
 
 ## Block A — The model
 
-### §RK1064 The grammar as a declaration, not as a method
-
-L6 is already half of this: `roadkeep.toml` declares prefix, paths, limits, markers,
-`ref_scheme`, budgets and claims. Four things it does not declare — which fields a
-record carries, where they sit on the line, what each field refers to, and which rules
-exist at all. So a project can change every number and no part of the shape, and
-`Schema.as_ledger()` — one field dropped and the marker moved from the line to the file
-— is a method where it could be `extends` and `drop` beside the limits that already
-vary.
-
-TOML and not JSON, for a reason this repository's own config demonstrates: most of that
-file is comments stating *why* 120 is 120, and JSON has no comments, so each rationale
-would either die or become a string field pretending to be data. A number without its
-reason beside it is the number the next reader rounds. `tomllib` is stdlib, so this
-costs no dependency.
-
-Two files and one object: the format's defaults ship with the tool, a project overrides
-them, or every adopting project declares a grammar it never chose.
-
-The boundary is the part to hold. Declarative for what is decidable from a record's own
-structure; code for anything that needs a traversal. A declaration growing conditionals
-and expressions is an interpreter to debug — Schematron is expressive and nobody writes
-it. What stays code registers here by name, so this remains the whole index of the rules
-rather than the half that fit.
-
 ### §RK1065 The kernel boundary, held by a test before it is a package
 
 Measured: `schema.py` and `document.py` import nothing but stdlib and each other, so by

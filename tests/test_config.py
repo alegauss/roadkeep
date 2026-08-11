@@ -250,6 +250,61 @@ def test_an_unknown_key_inside_a_roles_limits_is_refused_like_any_other(tmp_path
         Config.load(path)
 
 
+# -- the shape, declared rather than named (RK1064) ---------------------------
+
+
+def test_a_role_nobody_declared_still_has_the_grammar_the_tool_ships(tmp_path):
+    # Two files and one object: the format's defaults ship with the tool, a project
+    # overrides them, or every adopting project declares a grammar it never chose.
+    write(tmp_path, 'prefix = "RK"\n')
+    config = Config.discover(tmp_path)
+    assert config.grammars == {}
+    ledger = config.schema_for("changelog")
+    assert ledger.is_ledger and not ledger.deps_field and not ledger.ref_required
+    assert ledger.markers == (ledger.shipped_marker, ledger.retired_marker)
+
+
+def test_a_project_can_declare_a_shape_and_not_only_a_number(tmp_path):
+    # The half L6 was missing: every limit was per project and no part of the line was, so
+    # `as_ledger` — one field dropped — was a method where the numbers beside it were keys.
+    write(tmp_path, 'prefix = "RK"\n[grammar.changelog]\ndrop = ["ref"]\n')
+    ledger = Config.discover(tmp_path).schema_for("changelog")
+    # Declared: the pointer goes. Not declared: the deps field stays, which the shipped
+    # grammar drops — so this really is the project's statement and not an edit to it.
+    assert not ledger.ref_required and ledger.deps_field
+
+
+def test_the_markers_are_named_and_never_spelled(tmp_path):
+    # A grammar naming `✅` would be a second declaration of the one `[markers] shipped`
+    # already makes, and the two would disagree the first time a project changed a glyph.
+    write(
+        tmp_path,
+        'prefix = "RK"\n[markers]\nshipped = "🎉"\n'
+        '[grammar.changelog]\nmarkers = ["shipped"]\n',
+    )
+    assert Config.discover(tmp_path).schema_for("changelog").markers == ("🎉",)
+
+
+def test_a_drop_naming_a_slot_the_format_has_not_got_is_refused(tmp_path):
+    # The boundary the declaration is worth having: a name taken rather than checked is a
+    # slot the author believes is gone, which is the failure an ignored typo already is.
+    path = write(tmp_path, 'prefix = "RK"\n[grammar.changelog]\ndrop = ["symptoms"]\n')
+    with pytest.raises(ConfigError, match="grammar.changelog.drop names symptoms"):
+        Config.load(path)
+
+
+def test_a_grammar_for_a_file_the_project_does_not_govern_is_refused(tmp_path):
+    path = write(tmp_path, 'prefix = "RK"\n[grammar.readme]\ndrop = ["deps"]\n')
+    with pytest.raises(ConfigError, match="grammar.readme is not a role"):
+        Config.load(path)
+
+
+def test_an_unknown_key_in_a_grammar_is_refused_like_every_other_table(tmp_path):
+    path = write(tmp_path, 'prefix = "RK"\n[grammar.changelog]\nstates = "shipped"\n')
+    with pytest.raises(ConfigError, match="grammar.changelog.states"):
+        Config.load(path)
+
+
 def test_a_project_that_declares_no_role_limit_holds_every_file_to_one_number(tmp_path):
     write(tmp_path, "[limits]\nline = 300\n")
     config = Config.discover(tmp_path)
