@@ -81,6 +81,29 @@ already written, not authorship.
 
 ## Block D — The gate
 
+### §RK1044 The state with three closed doors
+
+Measured in Shio on 2026-08-11. `docs/ROADMAP.md` carries `⏳ **SH238**` and
+`docs/CHANGELOG.md:447` carries a `**SH238**` entry with **no partial qualifier** — a
+full ship beside a live line. Reachable in at least two ways: a `ship` without `--part`
+while a line survives, or a hand-edit predating the guard.
+
+Every door is shut. `ship SH238` refuses — *"already recorded as ✅ … a second entry
+would make the ledger disagree with itself about how it left"*. `retire --superseded-by`
+refuses on the same invariant, which is the harder one to accept: retiring writes a
+*departure*, not a completion, and it is the verb whose whole job is a line leaving by
+another door. `repair` does not offer it because `lint` never reports it. And the plugin
+hook denies the `Edit`, correctly. So the line is **unremovable**, the two files
+disagree permanently, and `pick` keeps offering a task the ledger says is done.
+
+Both halves are the deliverable and the gate is the first. `lint` should report an open
+line whose id the ledger holds — it reads both files already, and this is a one-pass
+join. Then one verb has to accept it: the honest candidate is `retire`, whose refusal is
+over-broad, since "this line duplicates a closed id" is exactly a departure that is not
+a completion. Whichever way it goes, the invariant that refuses must name the state it
+is protecting against, because here it protected the ledger by making the roadmap
+permanently wrong.
+
 ## Block E — Adoption
 
 ## Block F — The plugin

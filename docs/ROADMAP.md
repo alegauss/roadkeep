@@ -30,6 +30,8 @@
 
 ## Block D — The gate
 
+- 📋 **RK1044** (deps: —) **an open line whose id the ledger already records as shipped can be closed by no verb, and the gate does not report it** — ship and retire both refuse a second entry, repair cannot see it and the hook denies the hand-edit, so the two files disagree with nothing able to fix it. → §RK1044
+
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
