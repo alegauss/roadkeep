@@ -100,6 +100,29 @@ the mechanism, holding two files that define `Task` and `Dep`, advertises a boun
 does not have — and the rename that fixes that is the larger half of this work, touching
 every caller of the two names rather than every importer of the two modules.
 
+### §RK1072 The larger half, and the one with a meter on it
+
+`tests/test_kernel.py` records what the two mechanism modules pronounce of this
+backlog's vocabulary: 47 names in `schema.py` and 17 in `document.py`. The ceiling is
+the deliverable RK1065 could make; bringing it down is the work it could not.
+
+Not a rename. `Task` and `Dep` are the mechanism's own words for *a record* and *a
+reference*, and swapping them for `Record` and `Reference` touches every caller in the
+package to buy a synonym — the cost this project refuses when the win is a better name.
+What is actually in the wrong file is narrower and moves without renaming anything:
+`as_ledger`, `LEDGER_SHAPES`, `_ledger_slots`, `block_dep_pattern`, `_check_deps` and
+their neighbours are *this backlog's rules* living in the two files that are supposed to
+hold none. Each is a function whose callers already sit above.
+
+The meter is what makes this incremental rather than a rewrite: every move drops the
+count, the test refuses a rise, and there is no point at which the package is
+half-migrated in a way anything can be wrong about — the import direction rule holds
+throughout, because moving a rule *up* never creates an upward import.
+
+Where it stops is a judgement, and the honest answer is when what is left reads as a
+format library: a record, a reference, a file that round-trips, and no opinion about
+what any of them mean.
+
 ## Block B — Authoring
 
 ## Block C — Query
