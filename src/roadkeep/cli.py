@@ -36,6 +36,7 @@ pays for every dependency, and the whole command surface is argument parsing.
 from __future__ import annotations
 
 import argparse
+import difflib
 import sys
 import tomllib
 import traceback
@@ -2211,6 +2212,93 @@ def _counting_flags(parser: argparse.ArgumentParser) -> None:
 _VALUED = ("-C", "--directory")
 
 
+#: How close a rejected flag has to be before it is named as a typo of a real one. High,
+#: because the failure this replaced was advice nobody could act on: at `difflib`'s own 0.6
+#: default, `--note` is offered `--lines`, which is a worse answer than the list — a caller
+#: who wanted `--why` is now weighing a flag that has nothing to do with what they meant.
+#: `--seciton` for `--section` is the case worth catching, and it scores far above this.
+_A_TYPO = 0.8
+
+
+def _verb_reached(parser: argparse.ArgumentParser, argv: Sequence[str]):
+    """The deepest subparser this argv named, and its path — `('ship',)`, `('non-goal',
+    'list')` (RK1026).
+
+    Read by walking the tree the way argparse does rather than by re-listing the verbs: the
+    parser is the authority on what a command is, and a second table would answer about a
+    surface that has moved. `-C <path>` is the one option before the verb that consumes what
+    follows it, in both spellings, which is `_crossed`'s rule and the same reason for it.
+    """
+    reached, path, skipping = parser, [], False
+    for token in argv:
+        if skipping:
+            skipping = False
+            continue
+        if token.startswith("-"):
+            skipping = token in _VALUED
+            continue
+        choices = next(
+            (
+                action.choices
+                for action in reached._actions
+                if isinstance(action, argparse._SubParsersAction)
+            ),
+            None,
+        )
+        if not choices or token not in choices:
+            break
+        reached, _ = choices[token], path.append(token)
+    return reached, tuple(path)
+
+
+def _options(parser: argparse.ArgumentParser) -> tuple[str, ...]:
+    """Every long option one verb declares, in the order its parser does — `--help` aside."""
+    return tuple(
+        option
+        for action in parser._actions
+        for option in action.option_strings
+        if option.startswith("--") and option != "--help"
+    )
+
+
+def _unrecognised(
+    parser: argparse.ArgumentParser, argv: Sequence[str], extra: Sequence[str]
+) -> str:
+    """The refusal this tool writes for a flag its own parser does not declare (RK1026).
+
+    `ship RK1 --note "…"` used to print argparse's usage line, the full list of thirty-odd
+    verbs, `unrecognized arguments:` and then **the entire rejected value** — often a
+    paragraph meant for `--why`, burying the one line that matters under text the caller had
+    just typed. The verb was right; the flag was wrong; nothing on screen said so.
+
+    So the answer is the verb's **own** surface, which is short, rather than the tool's,
+    which is not, and the option token alone, never its value. A near miss is named first
+    where `difflib` finds one — and where it does not, which is the common case (`--note`
+    against `--why` is no edit-distance hit), the list is the whole answer.
+
+    A stray positional keeps its own sentence: `show RK1 RK2` is one argument too many, and
+    naming the flags of a verb that takes an id would be advice about a mistake nobody made.
+    """
+    reached, path = _verb_reached(parser, argv)
+    verb = " ".join(path) or "roadkeep"
+    flags = [token for token in extra if token.startswith("-")]
+    if not flags:
+        loose = ", ".join(repr(token) for token in extra)
+        return (
+            f"roadkeep: `{verb}` takes no further argument, and got {loose}: "
+            f"`{invocation()} {verb} --help` is what it does take"
+        )
+    declared = _options(reached)
+    near = difflib.get_close_matches(flags[0], declared, n=1, cutoff=_A_TYPO)
+    guess = f" — did you mean `{near[0]}`?" if near else ""
+    takes = ", ".join(declared) or "no options of its own"
+    return (
+        f"roadkeep: `{verb}` declares no {flags[0]}{guess}\n"
+        f"  takes    {takes}\n"
+        f"  see      `{invocation()} {verb} --help`"
+    )
+
+
 def _crossed(argv: Sequence[str]) -> str | None:
     """The other surface's name for the verb this argv asked for, if that is what it is (RK353).
 
@@ -2251,7 +2339,15 @@ def main(argv: Sequence[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
     parser = build_parser()
     try:
-        args = parser.parse_args(argv)
+        # `parse_known_args` and not `parse_args`, so the one refusal argparse used to write
+        # is one this tool writes (RK1026). Every other parse failure — a missing required
+        # argument, a verb that is not a verb — still raises below, where argparse's message
+        # is about the thing the caller got wrong and not about thirty verbs they did not.
+        args, extra = parser.parse_known_args(argv)
+        if extra:
+            print(_unrecognised(parser, argv, extra), file=sys.stderr)
+            print(offer(argv), file=sys.stderr)
+            return EXIT_USAGE
     except SystemExit as exit_:
         # argparse refuses before a handler exists, and its exit 2 is one of the three
         # places RK86 names. The argv is all this knows, and all the offer needs.

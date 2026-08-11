@@ -103,29 +103,6 @@ names the file the caller has open.
 
 ## Block B — Authoring
 
-### §RK1026 The one refusal roadkeep did not write
-
-`ship SH625 --note "…"` prints argparse's usage line, the full list of thirty-odd verbs,
-`unrecognized arguments:` followed by the entire rejected value, and then the `report`
-hint. The flag meant was `--why`. Nothing in that output says so.
-
-Every other refusal in this tool is written to be acted on — `body.too-long` gives the
-count, the limit, the delta and a per-paragraph breakdown; a forward reference names the
-hazard and the two ways out. This one is the parsing library's default handler, and it
-fires *before* any of that exists, which is why it reads as coming from a different
-program.
-
-Two things make it worse than a plain unknown-flag error. The verb list is the least
-relevant thing on screen when the verb was right and the flag was wrong. And echoing the
-rejected value — often a paragraph of prose meant for `--why` — buries the one line that
-matters under text the caller just typed.
-
-The fix is an error handler that, for an unrecognised option, names the nearest of that
-subcommand's own options. `--note` against `--why` is not an edit-distance hit, so the
-useful form is *"ship takes: --why, --part, --lines, --superseded-design"* — the verb's
-own surface, which is short, rather than the tool's, which is not. Same law as RK1025,
-at the other end of the CLI.
-
 ### §RK1027 A guard that is right about the hazard and wrong about the cause
 
 Writing prose that mentions a sibling task not yet added is refused: *"names SH653,

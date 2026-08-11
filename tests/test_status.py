@@ -342,10 +342,14 @@ def test_a_verb_with_no_twin_still_gets_argparses_own_answer(tmp_path, capsys):
 
 def test_an_unknown_flag_is_not_a_missing_argument(tmp_path, capsys):
     # Narrow on purpose: the sentence answers the caller who gave too little, and a typo in a
-    # flag name is a different mistake that the twin's name does not explain.
+    # flag name is a different mistake that the twin's name does not explain. It is now a
+    # refusal this tool writes rather than argparse's (RK1026), so it *returns* a code like
+    # every other composed refusal — the mistake is the same one and it says which verb.
     project(tmp_path)
-    refused(tmp_path, "status", "RK1", "🛠", "--nope")
-    assert "unrecognized arguments" in capsys.readouterr().err
+    assert main(["-C", str(tmp_path), "status", "RK1", "🛠", "--nope"]) == EXIT_USAGE
+    err = capsys.readouterr().err
+    assert "`status` declares no --nope" in err
+    assert "`stats`" not in err, "the twin's name explains a different mistake"
 
 
 # -- the pair nobody has typed yet (RK350) ------------------------------------
@@ -461,3 +465,66 @@ def test_every_near_twin_prints_its_sentence_when_it_is_typed_bare(tmp_path, cap
         assert parser.get_default("twin") in err
         # The whole delivery: `_Verb.error` short-circuited instead of falling through.
         assert "the following arguments are required" not in err
+
+
+# -- the one refusal roadkeep did not write (RK1026) --------------------------
+
+
+def test_an_unrecognised_flag_names_the_verb_s_own_surface_and_not_the_tool_s(tmp_path, capsys):
+    """The reproduction. `ship RK1 --note "…"` printed argparse's usage line, thirty-odd
+    verbs, and the **whole rejected value** — a paragraph meant for `--why`, burying the one
+    line that mattered under text the caller had just typed."""
+    project(tmp_path)
+    prose = "a paragraph of prose meant for the why field, long enough to bury a message"
+    assert main(["-C", str(tmp_path), "ship", "RK1", "--note", prose]) == EXIT_USAGE
+    err = capsys.readouterr().err
+    assert "`ship` declares no --note" in err
+    # The verb's own surface, which is short, and never the tool's, which is not.
+    assert "--why" in err and "--part" in err
+    assert "add" not in err.split("takes")[1].split("see")[0]
+    # The value is the caller's and the refusal does not read it back at them: the token is
+    # the whole subject. RK86's capture offer below still reproduces the argv, deliberately —
+    # that line exists to be pasted, and this one exists to be read.
+    refusal = err.split("If roadkeep itself")[0]
+    assert prose not in refusal
+
+
+def test_a_flag_close_enough_to_be_a_typo_is_named_and_a_far_one_is_not(tmp_path, capsys):
+    """A guess that is wrong is worse than the list: at `difflib`'s own default `--note` is
+    offered `--lines`, which sends a caller who wanted `--why` to weigh a flag about
+    something else entirely. `--seciton` is the case worth catching and scores far above."""
+    project(tmp_path)
+    argv = ["-C", str(tmp_path), "add", "--block", "A", "--symptom", "x", "--why", "A why."]
+    assert main([*argv, "--seciton", "T"]) == EXIT_USAGE
+    assert "did you mean `--section`?" in capsys.readouterr().err
+    assert main(["-C", str(tmp_path), "ship", "RK1", "--note", "x"]) == EXIT_USAGE
+    assert "did you mean" not in capsys.readouterr().err
+
+
+def test_a_nested_verb_answers_for_itself(tmp_path, capsys):
+    """The surface named is the one that was reached, not the family above it: `non-goal`
+    declares subcommands and `non-goal list` declares the flags."""
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "non-goal", "list", "--bogus"]) == EXIT_USAGE
+    err = capsys.readouterr().err
+    assert "`non-goal list` declares no --bogus" in err
+    assert "non-goal list --help" in err
+
+
+def test_one_argument_too_many_is_a_different_sentence(tmp_path, capsys):
+    """A stray positional is not a flag typo, and naming the flags of a verb that takes an
+    id would be advice about a mistake nobody made."""
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "show", "RK1", "RK2"]) == EXIT_USAGE
+    err = capsys.readouterr().err
+    assert "takes no further argument" in err and "'RK2'" in err
+    assert "declares no" not in err
+
+
+def test_a_verb_that_is_not_a_verb_is_still_argparse_s(tmp_path):
+    """The bound. What this took back is the unrecognised *option*; an invalid choice is a
+    message about the thing the caller got wrong, and argparse's is that message."""
+    project(tmp_path)
+    with pytest.raises(SystemExit) as caught:
+        main(["-C", str(tmp_path), "shipp", "RK1"])
+    assert caught.value.code == EXIT_USAGE

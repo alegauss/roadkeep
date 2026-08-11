@@ -462,10 +462,22 @@ def test_a_command_that_succeeds_says_nothing_about_reporting(tmp_path, capsys):
 
 
 def test_argparse_refuses_before_a_handler_exists_and_still_offers(capsys):
+    # A verb that is not a verb is still argparse's to refuse, and RK86's offer follows it:
+    # the argv is all this knows, and all the offer needs.
     with pytest.raises(SystemExit) as exited:
-        main(["lint", "--no-such-flag"])
+        main(["no-such-verb"])
     assert exited.value.code == EXIT_USAGE
     assert f"{invocation()} report --symptom" in capsys.readouterr().err
+
+
+def test_a_flag_no_verb_declares_is_refused_by_this_tool_and_still_offers(capsys):
+    # The half RK1026 took back: an unrecognised option is a refusal this tool composes, so
+    # it returns a code like every other one — and the offer is printed either way, the
+    # session where something is wrong being exactly what `report` exists for.
+    assert main(["lint", "--no-such-flag"]) == EXIT_USAGE
+    err = capsys.readouterr().err
+    assert "`lint` declares no --no-such-flag" in err
+    assert f"{invocation()} report --symptom" in err
 
 
 def test_help_and_version_are_not_failures(capsys):

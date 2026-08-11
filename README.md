@@ -117,17 +117,17 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 1 | 31 | 2 |
-| B — Authoring (insert, never hand-edit) | 3 | 111 | 1 |
+| B — Authoring (insert, never hand-edit) | 2 | 112 | 1 |
 | C — Query (consult without reading the file) | 1 | 75 | 1 |
 | D — The gate | 0 | 124 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 91 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 5 | 517 | 6 |
+| **Total** | 4 | 518 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1026** (deps: —) **An unrecognised flag falls through to argparse, so a near-miss gets the verb list and its own value echoed back** — Every refusal this tool authors names the fix, except the one that fires before its own code runs. → §RK1026
+- 📋 **RK1027** (deps: —) **The forward-reference guard has no advice for the case it most often fires on: an id that is about to exist** — Its two remedies both assume the id was a mistake, so the caller writing two related tasks is told to rename or delete rather than to reorder. → §RK1027
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
