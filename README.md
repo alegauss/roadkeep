@@ -117,13 +117,17 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 32 | 2 |
-| B — Authoring (insert, never hand-edit) | 0 | 116 | 1 |
-| C — Query (consult without reading the file) | 0 | 78 | 1 |
+| B — Authoring (insert, never hand-edit) | 1 | 116 | 1 |
+| C — Query (consult without reading the file) | 1 | 78 | 1 |
 | D — The gate | 0 | 126 | 0 |
 | E — Adoption | 0 | 75 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 91 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 0 | 529 | 6 |
+| **Total** | 2 | 529 | 6 |
+
+**Next ready:**
+
+- 📋 **RK1038** (deps: —) **defer and retire call the prose field --reason where nine other verbs call it --why** — A caller who learned the name on any other write verb is told an argument is missing and never that the one they typed was rejected. → §RK1038
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
