@@ -24,8 +24,7 @@
 
 ## Block A — The model (a task is data before it is a line)
 
-- 📋 **RK1069** (deps: RK1072) **the kernel is a boundary a test holds and not a place the code lives** — RK1065 named the two modules and the two ways they reach above themselves, and left them beside the rules, so the vocabulary ceiling has nothing to fall towards. → §RK1069
-- 📋 **RK1072** (deps: —) **the kernel declares sixty-four names the format has no use for** — Ledger shapes, dep checks and block patterns sit in schema.py and document.py, so the boundary a test measures cannot fall and the move it gates cannot honestly be made. → §RK1072
+- 📋 **RK1069** (deps: RK1072 ✅) **the kernel is a boundary a test holds and not a place the code lives** — RK1065 named the two modules and the two ways they reach above themselves, and left them beside the rules, so the vocabulary ceiling has nothing to fall towards. → §RK1069
 
 ## Block B — Authoring (insert, never hand-edit)
 

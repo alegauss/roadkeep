@@ -49,6 +49,7 @@
 - ✅ **RK1065** **the format's mechanism and this backlog's vocabulary share one namespace** — A test names the two kernel modules, the two places they reach above themselves and why each is allowed, and holds the backlog vocabulary they speak as a ceiling that may only fall.
 - ✅ **RK1066** **each kind of reference is resolved by its own code rather than by one rule** — referring.py declares the three relations, the machine each resolves through and every code each answers, held total by a test that found the pointer family answers five and not four.
 - ✅ **RK1068** **a template whose separator can occur inside a field parses back differently and nothing refuses it** — A role whose every bullet fails the round-trip is reported once against the declaration that broke them, on either failure shape, instead of once per line against the corpus.
+- ✅ **RK1072** **the kernel declares sixty-four names the format has no use for** — The meter counted codepoint as dep and read four too many; measured properly it is sixty, and forty-one are the kernel's public surface rather than rules in the wrong file.
 
 ## Block B — Authoring
 

@@ -21,8 +21,9 @@ and may not rise, which is what `[budgets]` does to a file nobody can finish shr
 from __future__ import annotations
 
 import ast
+import re
 
-from surface import PACKAGE
+from surface import PACKAGE, modules
 
 #: The two modules the mechanism lives in. Named rather than derived: which files are the
 #: kernel is the decision this test exists to hold, and a rule that computed its own subject
@@ -62,7 +63,23 @@ VOCABULARY = (
 #: How many names each kernel module declares out of :data:`VOCABULARY`, measured. A ceiling
 #: and not a target: it may fall, and a rise is a rule being written into the mechanism, which
 #: is the drift this file exists to catch while it is still one name.
-SPOKEN = {"schema.py": 47, "document.py": 17}
+#:
+#: **Re-measured for RK1072, and four lower.** The first count matched a vocabulary word
+#: anywhere in an identifier, so `codepoint` contained `dep` and `_named_codepoint`,
+#: `codepoint_kind`, `_codepoints` and `CODEPOINT_KINDS` were counted as this backlog's
+#: words. A ceiling that counts the wrong things is one nobody can bring down on purpose —
+#: the same defect this project files about every other number it publishes.
+SPOKEN = {"schema.py": 43, "document.py": 17}
+
+#: How many of them anything **above** the kernel refers to. The split RK1072 was filed to
+#: find, and the answer it did not expect: two thirds are the kernel's public surface —
+#: `Task`, `Dep`, `block`, `marker`, `symptom` and the fields that spell them — which are
+#: the mechanism's own words for a record and a reference, sharing vocabulary with the
+#: backlog rather than belonging to it. What is left is private, and moves only if its whole
+#: role does. So the count falls by renaming, which RK1072's own design rules out, or by
+#: moving a rule whose reason for being where it is survives the reading (see `_ledger_slots`,
+#: which states an adoption remedy in the one place a reader of that file is looking).
+PUBLIC = 41
 
 
 def declared(where: str) -> set[str]:
@@ -111,19 +128,48 @@ def test_every_allowance_is_still_taken():
         assert module in taken, f"{module} is allowed and reached by neither kernel module"
 
 
+def speaks(name: str) -> bool:
+    """Whether an identifier pronounces one of the backlog's words (RK1072).
+
+    Token by token and never as a substring: `codepoint` contains `dep`, and the first
+    version of this counted four codepoint helpers as dependency vocabulary. A prefix match
+    on the token, so `deps`, `markers` and `shipped` count and `codepoint` does not —
+    English is what the plural and the participle are, and a stemmer would be a dependency
+    to answer a question a `startswith` answers.
+    """
+    tokens = re.findall(r"[A-Z]+(?![a-z])|[A-Z][a-z]*|[a-z]+|[0-9]+", name)
+    return any(t.lower().startswith(word) for t in tokens for word in VOCABULARY)
+
+
+def spoken(where: str) -> set[str]:
+    return {name for name in declared(where) if speaks(name)}
+
+
 def test_the_backlog_vocabulary_in_the_kernel_does_not_grow():
     # The half that is not true yet and so is a ceiling rather than an assertion. `Task` and
     # `Dep` are defined in `schema.py`; the rule is that the number comes down, and a rise is
     # a rule being written into the mechanism while it is still one name to move.
     for where, ceiling in SPOKEN.items():
-        names = declared(where)
-        speaking = {
-            name for name in names if any(word in name.lower() for word in VOCABULARY)
-        }
+        speaking = spoken(where)
         assert len(speaking) <= ceiling, (
             f"{where} now declares {len(speaking)} names from the backlog's vocabulary "
             f"against a recorded {ceiling}: {sorted(speaking)}"
         )
+
+
+def test_most_of_what_the_kernel_speaks_is_its_own_public_surface():
+    # RK1072's finding, kept as a reading rather than a sentence: the count is dominated by
+    # the names everything above reaches for, which are the mechanism's words for a record
+    # and a reference. A drop that came from hiding one of those would be the meter moving
+    # and nothing else, so the split is measured beside the total.
+    every = {name for where in SPOKEN for name in spoken(where)}
+    above = "\n".join(
+        module.text for module in modules() if module.where not in SPOKEN
+    )
+    public = {name for name in every if re.search(rf"\b{re.escape(name)}\b", above)}
+    assert len(public) <= PUBLIC, sorted(public)
+    # Two thirds, which is the number that says renaming is the only large lever left.
+    assert len(public) * 2 > len(every)
 
 
 def test_the_kernel_is_the_share_of_the_package_this_task_measured():
