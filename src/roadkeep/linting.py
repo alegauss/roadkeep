@@ -2148,20 +2148,27 @@ def _carried(config: Config, roadmap: Document, file: str) -> list[Finding]:
     """
     out: list[Finding] = []
     for pair in PAIRS:
-        if not pair.code or pair.first != "roadmap":
+        if not pair.code:
             continue
-        if not config.has(pair.second) or not config.path(pair.second).is_file():
+        if any(
+            not config.has(role) or not config.path(role).is_file()
+            for role in (pair.first, pair.second)
+        ):
             continue
+        first = roadmap if pair.first == "roadmap" else config.document(pair.first)
         elsewhere = config.document(pair.second).by_id()
         where = config.relative(config.path(pair.second))
-        for task_id, entry in roadmap.by_id().items():
+        filed = config.relative(config.path(pair.first))
+        for task_id, entry in first.by_id().items():
             held = elsewhere.get(task_id)
             if held is None or held.task.in_halves:
                 continue
             out.append(
                 Finding(
                     pair.code,
-                    file,
+                    # The pair's own first file and not the roadmap's (RK1084): the third
+                    # pair is filed against the changelog, which is where its line is.
+                    filed,
                     f"also on line {held.lineno} of {where}: {pair.says}",
                     entry.lineno,
                     task_id,

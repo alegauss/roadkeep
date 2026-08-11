@@ -138,3 +138,42 @@ def test_the_gate_still_reports_both_pairs_it_read_before(tmp_path):
     found = {f.code: f.id for f in lint(Config.discover(tmp_path)).findings}
     assert found.get("id.two-files") == "RK1"
     assert found.get("id.paused-and-open") == "RK2"
+
+
+def test_the_third_pair_is_read_and_filed_against_its_own_first_file(tmp_path):
+    """RK1084, after measuring: **neither adopting corpus declares a store at all**, so the
+    pair nobody had walked into is one nobody can walk into yet. The rule is written anyway —
+    a contradiction the format can express should not be silent, and the third row costs one
+    entry — and the door is two reads, because which file is the leftover is a fact about
+    what happened rather than one this tool may decide (L4).
+    """
+    from roadkeep.config import Config
+    from roadkeep.linting import lint
+
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "R.md"\nchangelog = "C.md"\n'
+        'deferred = "D.md"\n[rules.roadmap]\nref = false\n[rules.deferred]\nref = false\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "R.md").write_text("# R\n\n## Block A — x\n", encoding="utf-8")
+    (tmp_path / "C.md").write_text(
+        "# C\n\n## Block A — x\n\n- ✅ **RK1** **A symptom** — It landed.\n", encoding="utf-8"
+    )
+    (tmp_path / "D.md").write_text(
+        "# Deferred\n\n## Block A — x\n\n"
+        "- ⏸ **RK1** (deps: —) **A symptom** — Because of a reason.\n",
+        encoding="utf-8",
+    )
+    (found,) = lint(Config.discover(tmp_path)).findings
+    assert found.code == "id.paused-and-gone" and found.id == "RK1"
+    # Filed against the changelog, which is where its line is: the first two pairs are the
+    # roadmap's and this one is not, which is why the loop reads the pair's own first file.
+    assert found.file == "C.md"
+
+
+def test_no_pair_is_left_without_a_rule():
+    # The closure RK1082 wrote and RK1084 emptied: every pair of files that can hold one id
+    # is read now, so `because` has no occupant and the field stays for the next carrier.
+    from roadkeep.referring import PAIRS
+
+    assert [pair.code for pair in PAIRS] == [pair.code for pair in PAIRS if pair.code]

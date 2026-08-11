@@ -160,6 +160,7 @@ PREVENTION: tuple[Prevented, ...] = (
     Prevented("engine.disagreement", "gate", because=FILE),
     # -- true of an earlier line because of a later write ---------------------
     Prevented("id.paused-and-open", "gate", because=LATER),
+    Prevented("id.paused-and-gone", "gate", because=LATER),
     Prevented("block.emptied", "gate", because=LATER),
     Prevented("block.reopened", "gate", because=LATER),
     Prevented("deps.retired", "gate", because=LATER),

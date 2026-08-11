@@ -414,6 +414,7 @@
 - ✅ **RK1079** **the door table crosses two axes and the deferred store is a third nobody enumerated** — The store is the table's third axis: resume closes a paused id, and sweeping it found the first cell with no door, which is an id both files carry.
 - ✅ **RK1081** **an id the roadmap and the deferred store both carry passes the gate and ship leaves it shipped and paused** — The gate reports id.paused-and-open, resume removes the store's stale copy without placing a line, and a departure is refused while the contradiction stands.
 - ✅ **RK1082** **the pairwise checks over three governed files are two rules written by hand** — referring.PAIRS declares the three pairs of files that can hold one id, the gate walks it instead of a loop per pair, and the unread third says why it has no rule.
+- ✅ **RK1084** **the pair the declaration says nobody has walked into is reachable and still unread** — The third pair is read and filed against the changelog, with two reads for a door: measuring found neither corpus declares a store, so no verb was built for a state nobody can reach.
 
 ## Block E — Adoption
 

@@ -146,7 +146,10 @@ class Carried:
 
 
 #: Every pair of governed files that can hold a line for one id (RK1082). Three, because
-#: `CARRIERS` is three; two are read and the third says why it is not.
+#: `CARRIERS` is three, and all three are read since RK1084 — which measured first and found
+#: that **neither adopting corpus declares a store at all**, so the pair nobody had walked
+#: into is one nobody *can* walk into yet. The rule is written anyway: a contradiction the
+#: format can express should not be silent, and the cost of the third row is one entry here.
 PAIRS: tuple[Carried, ...] = (
     Carried(
         first="roadmap",
@@ -163,14 +166,9 @@ PAIRS: tuple[Carried, ...] = (
     Carried(
         first="changelog",
         second="deferred",
-        because=(
-            "reachable — a crash between a departure's two writes leaves it, and so does a "
-            "hand edit — and unread, because the repair is not `resume`: that verb places an "
-            "open line, and placing one for work the ledger records as gone would be the "
-            "contradiction again with the files swapped. Nobody has walked into it, which is "
-            "the only reason it is a declaration here instead of a rule"
+        code="id.paused-and-gone",
+        says="recorded as gone and still paused are not both true",
         ),
-    ),
 )
 
 

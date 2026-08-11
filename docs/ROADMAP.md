@@ -32,8 +32,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1084** (deps: —) **the pair the declaration says nobody has walked into is reachable and still unread** — A crash between a departure's two writes leaves an id the changelog records and the store still carries, and PAIRS names it with no code because the repair is not resume. → §RK1084
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

@@ -759,6 +759,17 @@ _TABLE: Mapping[str, _Rule] = {
         "the id does not match this project's shape; renumber moves the line and its "
         "dependents to one that does",
     ),
+    # The pair no live project can reach yet (RK1084): neither adopting corpus declares a
+    # store, and a departure that stopped between its two writes is what leaves it. No verb
+    # takes it — `resume` would place an open line for work the ledger records as gone —
+    # so the door is the two reads that say which file is right, and the repair is a
+    # decision this tool may not make for somebody's history (L4).
+    "id.paused-and-gone": _decide(
+        "the ledger records this id as gone and the store still says it is paused; which "
+        "of the two is the leftover is a fact about what actually happened:",
+        (("show", BLANK), "the entry and the pause side by side"),
+        (("origin", BLANK), "which commit wrote each, which is what dates the pair"),
+    ),
     # The store's own pair (RK1081). `resume` and not `defer`: the roadmap already says the
     # work is open, which is what a resume produces, so the store entry is the stale half.
     "id.paused-and-open": _run(
