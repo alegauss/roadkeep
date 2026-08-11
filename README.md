@@ -117,17 +117,13 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 32 | 2 |
-| B — Authoring (insert, never hand-edit) | 1 | 118 | 1 |
+| B — Authoring (insert, never hand-edit) | 0 | 119 | 1 |
 | C — Query (consult without reading the file) | 0 | 82 | 1 |
 | D — The gate | 0 | 130 | 0 |
 | E — Adoption | 0 | 77 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 92 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 1 | 542 | 6 |
-
-**Next ready:**
-
-- 📋 **RK1051** (deps: —) **an id other entries cite can never be given the entry it is missing** — The occupancy check reads any mention as an allocation, so record add --id refuses precisely the well-cited ids whose entry somebody is trying to repair. → §RK1051
+| **Total** | 0 | 543 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -293,6 +293,14 @@ def _record(config: Config, args: argparse.Namespace) -> int:
                         "line": entry.superseded.lineno,
                         "rendered": entry.superseded.raw,
                     },
+                    # The sentence that already named this id, where `--id` was allowed
+                    # because no line held it (RK1051): null on every other record.
+                    "mentioned": None
+                    if entry.mentioned is None
+                    else {
+                        "file": config.relative(entry.mentioned.path),
+                        "line": entry.mentioned.lineno,
+                    },
                     "event": event,
                 },
                 indent=2,
@@ -305,8 +313,21 @@ def _record(config: Config, args: argparse.Namespace) -> int:
         f"under Block {block}"
     )
     # Said out loud, because the absence is the whole point: a reader of this output has to
-    # be able to tell "nothing was planned" from "the roadmap edit was forgotten".
-    print("  planned  never: straight to the ledger, so there was no roadmap line to remove")
+    # be able to tell "there was no line" from "the roadmap edit was forgotten". About the
+    # write and not about the work (RK1050, RK1051): this door is also how a task that *was*
+    # planned gets the entry it is missing, and `planned never` was a claim about the wrong
+    # thing on exactly the write that repairs one.
+    print("  roadmap  no line to remove: this door writes the entry and nothing else")
+    if entry.mentioned is not None:
+        # The citation the occupancy check used to refuse over (RK1051). Printed rather than
+        # refused *and* rather than swallowed: an entry that keeps a sentence's promise and
+        # one that collides with it are the same write, and only the author can tell them
+        # apart — so the address is given and the judgement is left where it belongs.
+        print(
+            f"  cited    {config.relative(entry.mentioned.path)}:{entry.mentioned.lineno} "
+            f"already names {entry.task_id}: no line held it, so this entry is what it "
+            f"now points at"
+        )
     if entry.superseded is not None:
         # The edit the caller did not spell, printed where every other derived write is: the
         # forward pointer is this command's fact, and a reviewer reads the diff against it.

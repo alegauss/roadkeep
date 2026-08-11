@@ -121,11 +121,17 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 
 from roadkeep import claiming, queueing
-from roadkeep.authoring import Insertion, place, refuse_reuse, remove_entry
+from roadkeep.authoring import (
+    Insertion,
+    place,
+    refuse_occupied,
+    refuse_reuse,
+    remove_entry,
+)
 from roadkeep.backlog import Backlog, NotOpen
 from roadkeep.config import PROSE_ROLES, Config
 from roadkeep.document import Document, Entry, Wrapped, counted, save_all
-from roadkeep.ids import next_id
+from roadkeep.ids import IdRef, next_id
 from roadkeep.markers import refresh
 from roadkeep.provenance import invocation
 from roadkeep.renumbering import NotAnId, SameId, family_of
@@ -885,6 +891,10 @@ class Record:
     #: The earlier entry this one supersedes, as it now reads with the forward pointer on it
     #: (RK395). None on every `record add` that supersedes nothing, which is most of them.
     superseded: Entry | None = None
+    #: Where a sentence already named this id, on the `--id` that was allowed because no
+    #: line held it (RK1051). Reported and never swallowed: writing the entry a citation
+    #: promised is the repair, and writing one it did not promise is the author's to see.
+    mentioned: IdRef | None = None
 
     def save(self) -> None:
         """Write the ledger, and the roadmap only if a line in it actually changed."""
@@ -1520,10 +1530,14 @@ def record(
     pointer `retire --superseded-by` already writes one file over, appended to the earlier
     sentence in **this** write rather than in a second one a crash can lose.
     """
+    mention: IdRef | None = None
     if task_id is None:
         task_id = next_id(config)
     else:
-        refuse_reuse(config, task_id)
+        # `refuse_occupied` and not `refuse_reuse` (RK1051): the other doors move a task
+        # *onto* a number and this one gives a number the entry it lacks, so a sentence
+        # citing the id is the state being repaired rather than the collision being avoided.
+        mention = refuse_occupied(config, task_id)
 
     _refuse_absent(config, **{"--symptom": symptom, "--why": why})
     ledger = config.document("changelog")
@@ -1556,6 +1570,7 @@ def record(
         superseded=(
             None if supersedes is None else insertion.document.by_id()[supersedes]
         ),
+        mentioned=mention,
     )
 
 

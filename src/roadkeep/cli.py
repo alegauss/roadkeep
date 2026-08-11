@@ -890,7 +890,11 @@ def build_parser() -> argparse.ArgumentParser:
     record_add.add_argument(
         "--id",
         dest="task_id",
-        help="the id (default: derived, one past the highest anywhere)",
+        help=(
+            "the id (default: derived, one past the highest anywhere); refused where a "
+            "line already holds it, allowed where only a sentence names it — which is how "
+            "an id cited but never recorded gets the entry it is missing"
+        ),
     )
     record_add.add_argument(
         "--supersedes",

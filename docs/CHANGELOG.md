@@ -166,6 +166,7 @@
 - ✅ **RK1034** **the ancestor refusal tells an amend to pick a free top-level anchor, which is a door only an add has** — The overage is one number at both doors and the ways out are not: an amend is told to shorten or to move, and neither door names one the caller cannot take.
 - ✅ **RK1038** **defer and retire call the prose field --reason where nine other verbs call it --why** — defer and retire accept --why beside --reason, so the field the other nine verbs write is reachable by the name a caller has.
 - ✅ **RK1049** **record amend parses a multi-line entry and cannot write one back, so correcting one collapses it** — --lines above one now lets --why carry the whole span: the first line is the sentence, the rest is written back verbatim and checked by re-parsing rather than collapsed.
+- ✅ **RK1051** **an id other entries cite can never be given the entry it is missing** — record add --id now refuses only an id a line carries and reports the sentence that names one, so an id cited but never recorded can be given the entry it lacks.
 
 ## Block C — Query
 

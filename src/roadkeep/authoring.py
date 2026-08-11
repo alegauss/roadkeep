@@ -63,7 +63,7 @@ from roadkeep.document import (
     blank,
     read_deps,
 )
-from roadkeep.ids import Promise, derivation, scan
+from roadkeep.ids import CARRIERS, IdRef, Promise, carried, derivation, scan
 from roadkeep.markers import derive, refresh
 from roadkeep.schema import SchemaError, Task
 from roadkeep.sections import Section
@@ -1137,13 +1137,60 @@ def _refuse_sibling_status(config: Config, task_id: str) -> None:
 def refuse_reuse(config: Config, task_id: str) -> None:
     """Refuse an id anything already mentions, anywhere (RK4).
 
-    Public because every door that mints an id needs the same refusal, and an id rule
-    with a second implementation is an id rule two commands can disagree about: `add`
-    (RK5) and `record` (RK41) both call this one.
+    Public because every door that **moves a task onto** a number needs the same refusal,
+    and an id rule with a second implementation is an id rule two commands can disagree
+    about: `add` (RK5), `renumber` and `record renumber` all call this one. A mention is
+    refused as well as a line, and that is right here: landing a task on a number some
+    sentence already names silently re-points the sentence at work it was not about.
+
+    :func:`refuse_occupied` is the *other* rule, for the door that gives a number the line
+    it is missing rather than taking one over (RK1051). Two functions and not a flag,
+    because they enforce different things — this one that a number is unspoken for, that
+    one that no line holds it.
     """
     clash = next((ref for ref in scan(config) if ref.id == task_id), None)
     if clash is not None:
         raise IdInUse(task_id, config.relative(clash.path), clash.lineno)
+
+
+def refuse_occupied(config: Config, task_id: str) -> IdRef | None:
+    """Refuse an id a **line** holds, and hand back the mention it tolerates (RK1051).
+
+    Measured in Shio: one ledger entry recorded two shipped tasks, so the second had no
+    entry of its own — invisible to `show`, to both counts, and reported by the gate as a
+    broken promise. `record add --id` is the repair, and it refused, because that id
+    occurred **eight** times: its own half, plus seven entries citing its rule. The guard
+    was inverted for exactly this case — the better documented a decision is, the less
+    repairable its record — and the rule was never at stake, since nothing is being
+    *reused* by an id that has no line.
+
+    So the question asked here is :func:`~roadkeep.ids.carried`'s, which is the parse's and
+    not the scan's: does some governed file hold this id as a task, an entry or a paused
+    line, or has the project reserved it? Any of those is an allocation and is refused with
+    the same :class:`IdInUse` as ever. A bare mention is **returned**, never swallowed: the
+    caller reports it, because writing the line a sentence promised is the good case and
+    writing one it did not is a fact the author has to see.
+    """
+    occurrences = [ref for ref in scan(config) if ref.id == task_id]
+    if task_id not in carried(config):
+        return occurrences[0] if occurrences else None
+    # The address is the *line's* and not the first mention's: a refusal is read by
+    # somebody about to click it, and sending them to a sentence citing the id when a
+    # task line holds it names the wrong file for the wrong reason.
+    holders = {
+        config.path(role)
+        for role in CARRIERS
+        if config.has(role) and config.path(role).is_file()
+    }
+    clash = next(
+        (ref for ref in occurrences if ref.path in holders),
+        occurrences[0] if occurrences else None,
+    )
+    raise IdInUse(
+        task_id,
+        config.relative(clash.path) if clash else config.relative(config.source or config.root),
+        clash.lineno if clash else 0,
+    )
 
 
 def declaring(config: Config, block: str) -> None:

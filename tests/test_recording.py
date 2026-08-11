@@ -190,6 +190,97 @@ def test_a_symptom_that_is_a_sentence_is_refused_here_too(tmp_path):
     assert [v.code for v in caught.value.violations] == ["symptom.sentence"]
 
 
+# -- the id a sentence names and no line holds (RK1051) -----------------------
+
+#: The Shio shape, minimised: RK4 shipped inside RK3's sentence and has no entry of its
+#: own, and two further entries cite its rule — which is what a ledger of interlocking
+#: decisions looks like when it works, and what the occupancy check read as an allocation.
+CITED = f"""# Shipped
+
+## Block A — The model
+
+- {SHIPPED} **RK3** **A first symptom** — Because it landed, and RK4 landed with it.
+- {SHIPPED} **RK5** **A second symptom** — Because the rule RK4 states is what it obeys.
+
+## Block B — Authoring
+"""
+
+
+def test_an_id_only_a_sentence_names_can_be_given_the_entry_it_lacks(tmp_path):
+    # The defect: RK4 occurs three times, so `--id RK4` refused — the better documented a
+    # decision was, the less repairable its record, and nothing was being *reused*.
+    config = project(tmp_path, ledger=CITED)
+    written = record(
+        config, block="A", symptom="A folded symptom", why="Because it shipped too.", task_id="RK4"
+    )
+    written.save()
+
+    body = read(tmp_path, "CHANGELOG.md")
+    assert f"- {SHIPPED} **RK4** **A folded symptom**" in body
+    # The two citing entries are untouched: repairing one record may not damage seven.
+    assert "Because the rule RK4 states is what it obeys." in body
+    # And the citation that made it refusable is reported rather than swallowed.
+    assert written.mentioned is not None and written.mentioned.lineno == 5
+
+
+def test_an_id_a_line_holds_is_still_refused_at_the_line_that_holds_it(tmp_path):
+    # The rule that is actually at stake, unchanged: an entry already carries RK3, so a
+    # second one would be two records of two different tasks under one number.
+    config = project(tmp_path, ledger=CITED)
+    with pytest.raises(IdInUse) as raised:
+        record(config, block="A", symptom="A fix", why="Because.", task_id="RK3")
+    # The address is the *entry's* and not the first occurrence's, which here is the same
+    # line — the roadmap case below is where the two come apart.
+    assert "CHANGELOG.md:5" in str(raised.value)
+    assert read(tmp_path, "CHANGELOG.md") == CITED
+
+
+def test_the_refusal_names_the_file_that_carries_the_line(tmp_path):
+    # RK1 is a roadmap line and the ledger cites it; the refusal has to send the reader to
+    # the line, because a sentence citing an id is not what makes the id unavailable.
+    ledger = f"""# Shipped
+
+## Block A — The model
+
+- {SHIPPED} **RK9** **A symptom** — Because RK1 is what it waits on.
+"""
+    config = project(tmp_path, ledger=ledger)
+    with pytest.raises(IdInUse) as raised:
+        record(config, block="A", symptom="A fix", why="Because.", task_id="RK1")
+    assert "ROADMAP.md:5" in str(raised.value)
+
+
+def test_the_command_prints_the_sentence_that_already_named_the_id(tmp_path, capsys):
+    project(tmp_path, ledger=CITED)
+    assert (
+        main(
+            [
+                "-C", str(tmp_path), "record", "add",
+                "--id", "RK4",
+                "--block", "A",
+                "--symptom", "A folded symptom",
+                "--why", "Because it shipped too.",
+            ]
+        )
+        == EXIT_OK
+    )
+    out = capsys.readouterr().out
+    assert "cited    CHANGELOG.md:5 already names RK4" in out
+
+
+def test_the_json_carries_the_citation_and_is_null_without_one(tmp_path, capsys):
+    project(tmp_path, ledger=CITED)
+    main(
+        [
+            "-C", str(tmp_path), "record", "add", "--json",
+            "--block", "A",
+            "--symptom", "A fix nobody planned",
+            "--why", "Because.",
+        ]
+    )
+    assert json.loads(capsys.readouterr().out)["mentioned"] is None
+
+
 # -- the command -------------------------------------------------------------
 
 
@@ -208,9 +299,10 @@ def test_the_command_names_the_absent_planning_step_and_the_event(tmp_path, caps
     )
     out = capsys.readouterr().out
     assert out.startswith(f"RK3 {SHIPPED} CHANGELOG.md:7 under Block B")
-    # A reader has to be able to tell "nothing was planned" from "the roadmap edit was
-    # forgotten", and only the command can say which one this was.
-    assert "planned  never" in out
+    # A reader has to be able to tell "there was no line" from "the roadmap edit was
+    # forgotten", and only the command can say which one this was. About the write and not
+    # about the work (RK1051): the same door gives a *planned* task the entry it lacks.
+    assert "roadmap  no line to remove" in out
     # Block B holds no open line and the ledger now records one, which is what the hook is
     # told (RK38) — `finished` and not `empty` since RK438, those being two questions.
     assert out.splitlines()[-2] == "  event    RK3  Block B  finished"

@@ -77,31 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1051 Cited eight times, and therefore unrepairable
-
-Measured in Shio on 2026-08-11. One ledger entry records two shipped tasks, so the
-second is invisible to every reader that keys on an id: `show` answers *never written or
-was retired*, the gate calls a prose mention a broken promise, and neither shipped nor
-debt counts it. Giving it its own entry is the repair, and `record add --id` is the
-door.
-
-It refuses. **The occupancy check reads any occurrence as an allocation**, and that id
-appears **eight times** in the ledger — its own half, plus seven entries citing its
-rule, which is what a ledger of interlocking decisions looks like when it works.
-Removing citations to free the id would damage seven correct entries to repair one.
-
-The guard is inverted for this case: the better documented a decision is, the less
-repairable its record. And the rule it enforces is not at stake — nothing is being
-*reused*, because the id has no entry, which is the defect.
-
-What separates the two is already in the parser: an **entry** for an id is one thing and
-a **mention** inside another entry's sentence is another, and the parse knows which it
-sees — that distinction is what makes the missing entry detectable at all.
-
-Two further attempts confirmed there is no route: amending the citation out of the
-sibling first deletes half an entry before the new one can exist, and every other verb
-starts from a roadmap line. The repair was reverted rather than half-applied.
-
 ## Block C — Query
 
 ## Block D — The gate

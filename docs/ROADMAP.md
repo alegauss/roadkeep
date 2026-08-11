@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1051** (deps: —) **an id other entries cite can never be given the entry it is missing** — The occupancy check reads any mention as an allocation, so record add --id refuses precisely the well-cited ids whose entry somebody is trying to repair. → §RK1051
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
