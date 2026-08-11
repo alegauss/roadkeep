@@ -117,13 +117,17 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 31 | 2 |
-| B — Authoring (insert, never hand-edit) | 0 | 109 | 1 |
+| B — Authoring (insert, never hand-edit) | 2 | 109 | 1 |
 | C — Query (consult without reading the file) | 0 | 74 | 1 |
 | D — The gate | 0 | 124 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 91 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 0 | 514 | 6 |
+| **Total** | 2 | 514 | 6 |
+
+**Next ready:**
+
+- 📋 **RK1023** (deps: —) **the --why - stdin escape hatch is unusable on PowerShell, which prefixes a BOM the char.invisible check rejects** — Stdin is the escape hatch for a field a shell would mangle, and the refusal names stdin as the remedy for the byte stdin itself added. → §RK1023
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
