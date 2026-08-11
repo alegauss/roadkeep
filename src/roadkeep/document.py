@@ -53,7 +53,16 @@ from functools import lru_cache
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from roadkeep.schema import ARROW, EM_DASH, ID_SHAPE, NO_DEPS, Dep, Schema, Task
+from roadkeep.schema import (
+    ARROW,
+    EM_DASH,
+    ID_SHAPE,
+    NO_DEPS,
+    Dep,
+    Schema,
+    Task,
+    grammar,
+)
 
 if TYPE_CHECKING:  # a name for the annotation only: `config` reads this module, not back
     from roadkeep.config import Config
@@ -71,20 +80,6 @@ _REPLACE_PAUSE = 0.05
 #: number would hold megabytes of somebody else's ledger for no further hit.
 _PARSE_CACHE = 12
 
-#: The bold head, and the qualifier a **partial** entry carries inside it (RK121). Inside
-#: the bold because that is where the corpus already writes it — Shio has seven, from
-#: `- **SH96 (local half)** —` to `- **SH275 (partial)** —` — and a grammar that demanded
-#: the qualifier somewhere else would read those seven as no id at all, which is how two
-#: deps came to report `SH96` as being in neither file while the roadmap annotated it ✅.
-_TASK_HEAD = (
-    r"\*\*(?P<id>[A-Za-z0-9]+)(?: \((?P<part>[^)]+)\))?\*\*"
-    r"(?: \(deps: (?P<deps>[^)]*)\))?"
-)
-#: The two slots a file may not have (`[ledger]`, RK43 and RK48), composed rather than
-#: written out four times: a grammar per combination is four things that drift apart.
-_SYMPTOM = rf" \*\*(?P<symptom>.+?)\*\* {EM_DASH} "
-_WHY = r"(?P<why>.+)$"
-
 
 @functools.lru_cache(maxsize=None)
 def _task_re(marker: bool, symptom: bool) -> re.Pattern[str]:
@@ -92,10 +87,15 @@ def _task_re(marker: bool, symptom: bool) -> re.Pattern[str]:
 
     Cached because it is rebuilt per line otherwise, and the four combinations are the
     whole domain: with a marker or without, with a symptom slot or without.
+
+    Composed from :func:`~roadkeep.schema.grammar` since RK1063, which is the same
+    :data:`~roadkeep.schema.TEMPLATE` `Schema.render` writes from. The fragments used to
+    live here, beside the parser that consumed them and a file away from the writer that
+    had to agree with them — so the two were one statement made twice, and L3's property
+    test over three corpora was what held them level. It still runs; what it no longer
+    carries is the drift case, that having stopped being expressible.
     """
-    status = r"(?P<status>\S+) " if marker else ""
-    middle = _SYMPTOM if symptom else f" {EM_DASH} "
-    return re.compile(rf"^- {status}{_TASK_HEAD}{middle}{_WHY}")
+    return re.compile(rf"^- {grammar(marker, symptom)}")
 
 
 _HEADING_RE = re.compile(r"^(?P<hashes>#{1,6}) (?P<text>.*)$")

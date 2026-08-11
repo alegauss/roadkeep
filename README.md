@@ -116,18 +116,18 @@ called unbuilt were already in the ledger.
 
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
-| A — The model (a task is data before it is a line) | 5 | 32 | 2 |
+| A — The model (a task is data before it is a line) | 4 | 33 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 124 | 1 |
 | C — Query (consult without reading the file) | 0 | 83 | 1 |
 | D — The gate | 1 | 132 | 0 |
 | E — Adoption | 0 | 77 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 95 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 6 | 554 | 6 |
+| **Total** | 5 | 555 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1063** (deps: —) **the line format is stated twice, once in render and once in the parser** — L3 compares the two against a corpus because nothing makes them one statement, so a grammar that renders what it cannot parse is caught by a test instead of being unrepresentable. → §RK1063
+- 📋 **RK1064** (deps: RK1063 ✅) **roadkeep.toml declares the limits and the markers but not which fields exist or where they sit** — A project can change every number and no part of the shape, so the ledger dropping its deps field is a method in the package instead of a line in the file that declares it. → §RK1064
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

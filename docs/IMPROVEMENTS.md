@@ -75,28 +75,6 @@ already written, not authorship.
 
 ## Block A — The model
 
-### §RK1063 One template, read in two directions
-
-`Schema.render` writes the bullet and the parser in `document.py` reads it, and the two
-agree because a property test over three corpora says they do. That is the right
-backstop and the wrong primary. L3's guard exists to catch a parser that *misread* a
-line somebody else wrote; it currently also carries the case where the renderer and the
-reader were written from one intention and drifted — which is not a corruption to detect
-but a duplication to remove.
-
-A template states the line once: `- **{id}** {status} {symptom} — {why} → {ref}`. Parse
-and render both derive from it, so a renderer producing what the parser would refuse
-stops being expressible rather than being caught. RK109 made this argument about the id,
-where one shape was read by two parsers that answered differently; this is the same
-argument one level out, about the whole bullet.
-
-What it does not buy, and the reason this is not free: a template can be **ambiguous** —
-a separator that also occurs inside a field, an optional slot whose absence has two
-readings — so the failure class moves from drift to ambiguity, which is a check of its
-own against this repository's corpus. The guard stays either way. This narrows what it
-can catch and never the reason it is checked, because a configuration change is still
-not a licence to rewrite files written before it.
-
 ### §RK1064 The grammar as a declaration, not as a method
 
 L6 is already half of this: `roadkeep.toml` declares prefix, paths, limits, markers,

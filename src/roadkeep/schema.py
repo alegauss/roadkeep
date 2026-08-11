@@ -35,7 +35,7 @@ from __future__ import annotations
 import math
 import re
 import unicodedata
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, replace
 from enum import StrEnum
 
@@ -175,6 +175,127 @@ SUB_LETTER = r"[a-z]"
 # The shape of a range, without judging its direction, so that `RK9–RK5` can be
 # reported instead of quietly becoming "outside the backlog".
 _RANGE_SHAPE_RE = re.compile(r"^[A-Za-z]{1,8}[0-9]+\s*[-–—]\s*[A-Za-z]{0,8}[0-9]+$")
+
+
+@dataclass(frozen=True, slots=True)
+class Slot:
+    """One part of the task line, stated once for both directions (RK1063).
+
+    The line was written twice — :meth:`Schema.render` composed it and `document._task_re`
+    matched it — and the two agreed because a property test over three corpora said they
+    did. That is the right backstop and the wrong primary: L3 exists to catch a parser that
+    **misread** somebody else's line, and it was also carrying the case where the writer and
+    the reader were written from one intention and drifted, which is a duplication to remove
+    rather than a corruption to detect. RK109 made this argument about the id, where one
+    shape had two parsers that answered differently; this is that argument about the bullet.
+
+    :attr:`reads` and :attr:`writes` are deliberately **not** required to be inverses, and
+    the asymmetries are the reason this is a record rather than a format string. `deps` is
+    read as optional whatever the project declares, because an adopted ledger has lines
+    without it; `symptom` renders nothing and reads a bare separator where the slot is
+    turned off (RK48). Those were the two places the grammar was quietly looser than the
+    writer, and stating them here is what makes them a decision instead of a discovery.
+    """
+
+    name: str
+    #: The regex fragment, with this slot's named groups, given whether the file has it.
+    reads: Callable[[bool], str]
+    #: What the slot puts on the line, given the schema and the task. `""` is a slot that
+    #: contributes nothing, which is how an undeclared marker leaves no double space.
+    writes: Callable[[Schema, Task], str]
+    #: Whether this project's shape has the slot at all — the `[ledger]` questions (RK43,
+    #: RK48) plus `deps`, asked of the schema so one template serves every declared file.
+    present: Callable[[Schema], bool] = lambda _schema: True
+
+
+def _reads_status(present: bool) -> str:
+    return r"(?P<status>\S+) " if present else ""
+
+
+def _reads_head(_present: bool) -> str:
+    # The bold head, and the qualifier a **partial** entry carries inside it (RK121).
+    # Inside the bold because that is where the corpus already writes it — Shio has seven,
+    # from `- **SH96 (local half)** —` to `- **SH275 (partial)** —` — and a grammar that
+    # demanded the qualifier somewhere else would read those seven as no id at all.
+    return r"\*\*(?P<id>[A-Za-z0-9]+)(?: \((?P<part>[^)]+)\))?\*\*"
+
+
+def _reads_deps(_present: bool) -> str:
+    # Optional whichever way the project declared it, and that is the asymmetry worth
+    # naming: `deps_field` decides whether this is *written*, never whether a line that
+    # has it can be read. An adopted roadmap carries both shapes in one file.
+    return r"(?: \(deps: (?P<deps>[^)]*)\))?"
+
+
+def _reads_symptom(present: bool) -> str:
+    # Absent is a bare separator and not an empty match, which is the pair `_writes_symptom`
+    # keeps: a markerless, symptomless ledger line is `- **T1** — because.` (RK48).
+    return rf" \*\*(?P<symptom>.+?)\*\* {EM_DASH} " if present else f" {EM_DASH} "
+
+
+def _reads_why(_present: bool) -> str:
+    # To the end of the head, the pointer having been split off before this runs: a regex
+    # for it over the whole line finds the one §RK15's own `why` quotes as an example and
+    # truncates the sentence there. That rule is `document._split_ref`'s and stays there —
+    # a template states the slots, and this is a decision about where the line ends.
+    return r"(?P<why>.+)$"
+
+
+def _writes_status(schema: Schema, task: Task) -> str:
+    # Omitted, never emptied: `- **T1** …` is the shape both live ledgers already write,
+    # and `-  **T1** …` would be a third one nobody has.
+    return f"{task.status} " if schema.marks(task.status) else ""
+
+
+def _writes_head(_schema: Schema, task: Task) -> str:
+    named = f"{task.id} ({task.part})" if task.part else task.id
+    return f"**{named}**"
+
+
+def _writes_deps(_schema: Schema, task: Task) -> str:
+    return f" (deps: {', '.join(d.render() for d in task.deps) or NO_DEPS})"
+
+
+def _writes_symptom(schema: Schema, task: Task) -> str:
+    # Both shapes here rather than a `present` gate, mirroring `_reads_symptom`: a file
+    # without the slot still has the separator, so "absent" means an unwritten bold and
+    # never an unwritten em dash (RK48). A gate would have dropped both.
+    if not schema.symptom_field:
+        return f" {EM_DASH} "
+    return f" **{task.symptom}** {EM_DASH} "
+
+
+def _writes_why(_schema: Schema, task: Task) -> str:
+    return task.why
+
+
+#: The task line, once. Order is the line's order, and every reader and writer of the
+#: format derives from this sequence rather than restating it (RK1063).
+TEMPLATE: tuple[Slot, ...] = (
+    Slot("status", _reads_status, _writes_status),
+    Slot("head", _reads_head, _writes_head),
+    # The only slot a shape drops *whole*, and so the only one `present` is for: the marker
+    # and the symptom both leave something behind when a file has neither (RK43, RK48), and
+    # each says so in its own pair rather than by being gated away.
+    Slot("deps", _reads_deps, _writes_deps, lambda schema: schema.deps_field),
+    Slot("symptom", _reads_symptom, _writes_symptom),
+    Slot("why", _reads_why, _writes_why),
+)
+
+
+def grammar(marker: bool, symptom: bool) -> str:
+    """The task line as a pattern, for a file with or without each optional slot.
+
+    Composed from :data:`TEMPLATE` and anchored by the caller. `marker` and `symptom` are
+    passed rather than read off a schema because `document.ledger_slots` asks the question
+    the other way round — *which declaration would read this line* — and tries all four
+    combinations against a line it has no schema for yet (RK286).
+    """
+    has = {"status": marker, "symptom": symptom}
+    # Every slot, because `present` is about the *schema* and this question is asked without
+    # one: `deps` reads as optional either way, so a pattern built here is right for a file
+    # that declares the field and for one that does not.
+    return "".join(slot.reads(has.get(slot.name, True)) for slot in TEMPLATE)
 
 
 #: Characters per word, for turning a budget that refuses into one that can be aimed at
@@ -959,28 +1080,19 @@ class Schema:
         `lint`'s comparison, `add`'s output and the round-trip test all read the
         line from here, so "canonical" is a fact about one function rather than a
         claim in a document.
+
+        Composed from :data:`TEMPLATE` since RK1063, which is the same sequence the parser
+        matches against: a slot rendered here that no slot reads back is not a bug this can
+        have any more, it is a line the template cannot state. What the loop cannot express
+        stays outside it — the indentation is the *line's* and not the format's (RK49), read
+        off the file and written back unchanged, and the pointer is split off before the
+        grammar runs (`document._split_ref`), so both bracket the loop rather than joining it.
         """
-        # The marker is omitted, never emptied: `- **T1** …` is the shape both live
-        # ledgers already write, and `-  **T1** …` would be a third one nobody has.
-        # The indentation is the line's, not the format's (RK49): read off the file and
-        # written back unchanged, so a nested follow-up is a task instead of prose.
-        dash = f"{task.indent}-"
-        # The qualifier of a partial entry goes *inside* the bold, after the id (RK121):
-        # that is where the corpus writes it, and a second spelling would be a line the
-        # tool renders differently from the one it read.
-        named = f"{task.id} ({task.part})" if task.part else task.id
-        head = (
-            f"{dash} {task.status} **{named}**"
-            if self.marks(task.status)
-            else f"{dash} **{named}**"
+        # The leading space belongs to the dash; every slot after the head carries its own
+        # separator, exactly as its pattern does, so writing the line is a concatenation.
+        line = task.indent + "- " + "".join(
+            slot.writes(self, task) for slot in TEMPLATE if slot.present(self)
         )
-        if self.deps_field:
-            deps = ", ".join(d.render() for d in task.deps) or NO_DEPS
-            head += f" (deps: {deps})"
-        # The symptom is omitted the same way and for the same reason (RK48): a ledger that
-        # never had the slot must render back the line it read, not one with an empty bold.
-        body = f" **{task.symptom}**" if self.symptom_field else ""
-        line = f"{head}{body} {EM_DASH} {task.why}"
         if task.ref:
             # In the id scheme the pointer is *derived*, not echoed: a line carrying
             # the wrong anchor stops round-tripping instead of being preserved, which
