@@ -392,7 +392,7 @@ def test_the_return_restores_the_line_the_pause_wrapped(tmp_path):
     resumption.save()
     # The author's own sentence, unwrapped: what came back is the line that left, and the
     # reason is reported once rather than left in a design it was never part of.
-    assert resumption.roadmap.rendered == (
+    assert resumption.placed.raw == (
         f"- {DESIGNED} **RK1** (deps: —) **A first symptom** — Because of a reason. → §RK1"
     )
     assert resumption.was == "it waits on a decision"
@@ -414,7 +414,7 @@ def test_the_marker_the_store_could_not_keep_is_the_authors_to_state(tmp_path):
     defer(config, "RK1", reason="it waits").save()
     resumption = resume(Config.discover(tmp_path), "RK1", marker="⏳")
     resumption.save()
-    assert resumption.roadmap.entry.task.status == "⏳"
+    assert resumption.placed.task.status == "⏳"
 
 
 def test_the_dependents_are_re_derived_on_the_way_back(tmp_path):
@@ -621,3 +621,35 @@ def test_a_marker_is_refused_where_the_call_places_no_line(tmp_path):
     # The ordinary path still takes it, or the refusal would be about the flag rather than
     # about the act.
     assert resume(config, "RK2", marker=DESIGNED).marker == DESIGNED
+
+
+def test_the_result_carries_no_line_it_did_not_place(tmp_path):
+    """RK1086. `Resumption.roadmap` was an `Insertion` — a line and the file that now holds
+    it — which is right for the act this verb was built for and wrong for the one RK1081
+    added: a reconciling call places nothing and had to point the field at the entry it left
+    alone. RK1084 then met the act with no entry *anywhere* to point at, and the shape did
+    not refuse it — it parsed, and the printer read `.entry.task.block` two lines later.
+
+    Two fields now, and they answer two questions: the document this write leaves, and the
+    line it put there or `None`.
+    """
+    config = paused_project(tmp_path)
+    reconciled = resume(config, "RK1")
+    assert reconciled.reconciled and reconciled.placed is None
+    reconciled.save()
+
+    returned = resume(Config.discover(config.root), "RK2")
+    assert not returned.reconciled and returned.placed is not None
+    assert returned.placed.task.id == "RK2"
+
+
+def test_a_reconciling_call_reports_no_address_for_a_line_it_never_wrote(tmp_path, capsys):
+    # The `--json` half: a `line` under `roadmap` would be an address for a write nobody
+    # made, so the object is null and a consumer can tell the two acts apart without prose.
+    from roadkeep.cli import EXIT_OK, main
+
+    root = paused_project(tmp_path).root
+    assert main(["-C", str(root), "resume", "RK1", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["reconciled"] is True and payload["roadmap"] is None
+    assert payload["deferred"]["removed"] > 0

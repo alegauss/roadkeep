@@ -77,29 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1086 A shape that fits two acts and not three
-
-`Resumption.roadmap` is an `Insertion` — a document and the entry that landed in it —
-because the verb was one act: take a line out of the store and put it in the roadmap.
-RK1081 added a second, where the roadmap already carries the line and only the store's
-copy is removed, and that one fits by pointing the field at the entry it left alone.
-RK1083 made the *output* say which act ran, which is the right fix for two.
-
-The third does not fit. RK1084 measured the changelog-and-store pair and tried the same
-branch: the ledger already records the id, so the store entry is the leftover, nothing
-is placed and there is no entry anywhere to put in the field. `Insertion(entry=None)`
-parses and the verb's own printer reads `resumption.roadmap.entry.task.block` two lines
-later. The attempt was reverted and the pair got a two-read remedy instead, which is
-honest and is not the door.
-
-So the shape is what is blocking a verb, and it is worth saying that plainly: a closure
-that removes a line from *whichever* file holds it is the same act `ship` performs for
-RK62's leftover, and `Closure` has the same problem one module over — `roadmap:
-Document` and a `removed_from`, with no field for which file the line came out of.
-
-The work is a result type that names the file it wrote and carries no entry it did not
-place. Both verbs, because both are the same sentence about a different pair.
-
 ## Block C — Query
 
 ## Block D — The gate

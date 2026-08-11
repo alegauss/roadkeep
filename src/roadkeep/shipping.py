@@ -872,6 +872,12 @@ class Closure:
     #: The ledger entry that already existed, and its marker — ✅ or 🗑, because a reader has
     #: to know which door this id went through before its line was left behind.
     recorded: Entry
+    #: **Which file the line came out of** (RK1086). `roadmap` on every closure this verb
+    #: makes today, and named rather than assumed because the assumption is what blocks the
+    #: next one: RK1084 found an id the ledger records and the *store* still carries, which
+    #: is the same act — remove the leftover, write nothing — against a different pair, and
+    #: a result that can only say `removed_from` has nowhere to put the answer.
+    removed_in: str = "roadmap"
     #: The prose file this drop rewrote, as :class:`Departure` carries it (RK196).
     prose: Document | None = None
     dropped: Section | None = None

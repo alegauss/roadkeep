@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1086** (deps: —) **Resumption models a placement so a resume that places nothing has to fake one** — The roadmap field is an Insertion, and the branch that only removes the store's copy has no entry to put in it, so the third act crashed the printer rather than being expressible. → §RK1086
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate

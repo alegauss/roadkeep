@@ -480,18 +480,27 @@ def _resume(config: Config, args: argparse.Namespace) -> int:
 
     roadmap = config.relative(config.path("roadmap"))
     store = config.relative(config.path("deferred"))
-    block = resumption.roadmap.entry.task.block
-    event = _event(resumption.task_id, block, resumption.roadmap.document, config)
+    # The line this call placed, or the one already there on a reconciling call (RK1086):
+    # the shape no longer pretends the second is a placement, so the printer asks for the
+    # one it is going to describe rather than reading a field that had to be faked.
+    placed = resumption.placed
+    standing = placed or config.document("roadmap").by_id().get(resumption.task_id)
+    block = standing.task.block if standing else ""
+    event = _event(resumption.task_id, block, resumption.roadmap, config)
     if args.json:
         print(
             json.dumps(
                 {
                     "id": resumption.task_id,
                     "marker": resumption.marker,
-                    "roadmap": {
+                    # Null on a reconciling call, which places no line — a `line` there
+                    # would be an address for a write nobody made (RK1086).
+                    "roadmap": None
+                    if placed is None
+                    else {
                         "file": roadmap,
-                        "line": resumption.roadmap.lineno,
-                        "rendered": resumption.roadmap.rendered,
+                        "line": placed.lineno,
+                        "rendered": placed.raw,
                     },
                     "deferred": {"file": store, "removed": resumption.removed_from},
                     "was": resumption.was,
@@ -517,12 +526,12 @@ def _resume(config: Config, args: argparse.Namespace) -> int:
     if resumption.reconciled:
         print(
             f"{resumption.task_id} reconciled  {store}:{resumption.removed_from} removed, "
-            f"already {resumption.marker} in {roadmap}:{resumption.roadmap.lineno}"
+            f"already {resumption.marker} in {roadmap}:{standing.lineno}"
         )
         print("  roadmap  untouched: the open line is what the files should say")
     else:
         print(
-            f"{resumption.task_id} {resumption.marker} {roadmap}:{resumption.roadmap.lineno} "
+            f"{resumption.task_id} {resumption.marker} {roadmap}:{placed.lineno} "
             f"under Block {block}"
         )
         print(f"  removed  {store}:{resumption.removed_from}")

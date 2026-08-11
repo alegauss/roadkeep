@@ -230,8 +230,19 @@ class Resumption:
     """The same transaction read backwards: the line returns, the store lets it go."""
 
     task_id: str
-    #: The line as the roadmap holds it again, under its own block and its own id.
-    roadmap: Insertion
+    #: The roadmap as this write leaves it. A **document** and not an `Insertion` since
+    #: RK1086: that type is a line and the file that now holds it, which is right for the
+    #: act this verb was built for and wrong for the one RK1081 added. A reconciling call
+    #: places nothing, so it had to point the field at the entry it left alone — and the
+    #: third act, where the *ledger* is what already states the outcome, has no entry
+    #: anywhere to point at. `Insertion(entry=None)` parses and the printer reads
+    #: `.entry.task.block` two lines later, which is how RK1084 found this rather than
+    #: shipping a verb.
+    roadmap: Document
+    #: The line this call put back, or `None` where it placed none. The two are different
+    #: answers and the shape now says which: a caller printing "returned to Block A" over a
+    #: line that never moved is describing a write nobody made (RK1083).
+    placed: Entry | None
     store: Document
     removed_from: int
     refreshed: tuple[str, ...] = ()
@@ -254,10 +265,10 @@ class Resumption:
         # The same rule read backwards: the roadmap is the arrival now, so it goes first
         # and the store's removal second (RK118). A line in both files is a state a reader
         # can see and a second `resume` can finish; a line in neither is one nobody can.
-        save_all(self.roadmap.document, self.store)
+        save_all(self.roadmap, self.store)
         if self.root is not None:
             claiming.follow(
-                self.root, self.task_id, self.marker, self.roadmap.document.entries
+                self.root, self.task_id, self.marker, self.roadmap.entries
             )
 
 
@@ -363,7 +374,8 @@ def resume(config: Config, task_id: str, *, marker: str | None = None) -> Resump
         derived = refresh(replace(backlog, store=remaining))
         return Resumption(
             task_id=task_id,
-            roadmap=Insertion(document=derived.document, entry=open_line),
+            roadmap=derived.document,
+            placed=None,
             store=remaining,
             removed_from=held.lineno,
             refreshed=tuple(name for name in derived.changed if name != task_id),
@@ -388,7 +400,8 @@ def resume(config: Config, task_id: str, *, marker: str | None = None) -> Resump
     returned = next(e for e in derived.document.entries if e.task.id == task_id)
     return Resumption(
         task_id=task_id,
-        roadmap=Insertion(document=derived.document, entry=returned),
+        roadmap=derived.document,
+        placed=returned,
         store=remaining,
         removed_from=held.lineno,
         refreshed=tuple(name for name in derived.changed if name != task_id),
