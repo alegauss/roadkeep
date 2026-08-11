@@ -104,28 +104,6 @@ instead of a corpus that stopped conforming. The trade is still good; it is not 
 
 ## Block D — The gate
 
-### §RK1067 A finding names the rule's source, not only its number
-
-Every code this gate reports resolves to a door and prints it under the line — a
-complete argv where one exists, the two doors where the choice is the author's, a marked
-blank where the field is prose only they can write. The finding whose remedy is
-*changing the rule* is the one with no such door: a `why` reported over its limit names
-the number and leaves the author to find where the number was set, which in an adopting
-project is a file they have never opened.
-
-So the diagnostic carries the rule's origin beside the value — `why exceeds 200 (schema:
-roadkeep.toml:34 [limits].why)` — and two things fall out. A wrong limit stops being a
-defect in this package and becomes a config line somebody reviews, which is the argument
-for a limit being configuration at all, finally reaching the reader who is standing over
-one. And a limit the project never declared has no line, so the answer says it is this
-tool's default rather than inventing a citation; that distinction is exactly the fact
-the author needs, one of the two numbers being one they chose.
-
-It ships alone. Nothing here waits on a declared grammar: the config already records
-which keys a project set, and the validator already knows which limit it applied. Worth
-taking first for that reason — the smallest of these, and the one an adopting project
-feels.
-
 ## Block E — Adoption
 
 ## Block F — The plugin

@@ -32,8 +32,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1067** (deps: —) **a refusal names the limit it enforced and not the line of config that set it** — Every finding carries the command that closes it, and the one whose remedy is changing the rule carries no file:line, so an author who wants a limit raised greps the package for the number. → §RK1067
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

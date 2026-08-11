@@ -36,7 +36,7 @@ import math
 import re
 import unicodedata
 from collections.abc import Callable, Mapping, Sequence
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from enum import StrEnum
 
 # Status markers, as bare codepoints — no variation selectors, because the
@@ -495,6 +495,7 @@ def over_by(
     measured: str = "",
     *,
     prose: bool = True,
+    source: str = "",
 ) -> str:
     """The arithmetic every length refusal opens with, spelled in one place (RK184).
 
@@ -518,6 +519,13 @@ def over_by(
     the approximation is derived from it; the word one follows, hedged, because it is. A
     refusal already counted in words gets no second copy of itself.
 
+    ``source`` is where the number came from (RK1067): every code this gate reports resolves
+    to a door and prints it, and the one whose remedy is *changing the rule* had none — an
+    author told their `why` is over 200 was left to find where 200 was set, which in an
+    adopting project is a file they have never opened. Passed rather than looked up, because
+    this function is the kernel's and a config is not: :meth:`Schema.source_of` composes it
+    from what the project recorded, and the empty string is a caller with nothing to cite.
+
     ``prose`` is the caller's answer to whether a shorter *sentence* is the remedy (RK243).
     It is the caller's because only they know: `line.too-long` fires when no field is over
     the budget the line left it, so what does not fit is the structure around the prose —
@@ -533,7 +541,7 @@ def over_by(
         deletion += f" {EM_DASH} about {aim} {_plural(aim, 'word')}"
     return (
         f"{actual} {_plural(actual, unit)}{_counted(actual, measured)}, "
-        f"limit is {limit}{because}: {deletion}"
+        f"limit is {limit}{source}{because}: {deletion}"
     )
 
 
@@ -857,6 +865,29 @@ class Schema:
     #: it is set, this role answers **only** prefixed addresses and no bare one — which is
     #: what makes `§S:I` and `§I` two addresses rather than one read twice.
     ref_prefix: str = ""
+    #: Where each limit this schema carries was declared, by field name — `"why_max"` →
+    #: `"roadkeep.toml:34 [limits].why"` (RK1067). A refusal is the one place an author is
+    #: standing over a number they may want changed, and it named the number and not the
+    #: line. Plain strings and never a `Config`: this module imports nothing above itself
+    #: (RK1065), so the citation is composed by whoever read the file and carried here as
+    #: text. A field absent means the project declared none, which is a different answer
+    #: from an unknown one and is exactly the fact the author needs.
+    #:
+    #: Pairs and not a mapping, because a schema is a **cache key**: `document._parsed` is
+    #: keyed by `(bytes, schema)`, so a field that is not hashable makes every parse in the
+    #: package a `TypeError`. Five entries at most, so the lookup is a scan.
+    origins: tuple[tuple[str, str], ...] = ()
+
+    def source_of(self, limit: str) -> str:
+        """The parenthesis :func:`over_by` prints after a limit, or the tool's own default.
+
+        Never invented: a project that declared nothing is told so, because *which of these
+        two numbers did I choose* is the whole question a refusal over a limit raises, and a
+        citation guessed for an undeclared one would answer it wrongly in the reassuring
+        direction.
+        """
+        where = next((at for name, at in self.origins if name == limit), "")
+        return f" ({where})" if where else " (this tool's default)"
 
     def __post_init__(self) -> None:
         if self.ref_scheme not in REF_SCHEMES:
@@ -1323,7 +1354,7 @@ class Schema:
                     "line.too-long",
                     "line",
                     f"the rendered line is "
-                    f"{over_by(width(rendered), self.line_max, measured=rendered, prose=False)}; "
+                    f"{over_by(width(rendered), self.line_max, measured=rendered, prose=False, source=self.source_of('line_max'))}; "
                     f"no field is over the budget this line left it, so what does "
                     f"not fit is the structure around them",
                 )
@@ -1418,7 +1449,7 @@ class Schema:
                     "part.too-long",
                     "id",
                     f"the qualifier is "
-                    f"{over_by(width(task.part), self.part_max, measured=task.part)}; "
+                    f"{over_by(width(task.part), self.part_max, measured=task.part, source=self.source_of('part_max'))}; "
                     f"it names which half, it is not the why",
                 )
             ]
@@ -1560,7 +1591,9 @@ class Schema:
             # The slot does not exist in this file (RK48), so there is no field to judge
             # and an empty one is not a violation: `- **T1** — <prose>` is the whole line.
             return []
-        out = self._check_text("symptom", task.symptom, self.symptom_max)
+        out = self._check_text(
+            "symptom", task.symptom, self.symptom_max, source=self.source_of("symptom_max")
+        )
         if "**" in task.symptom:
             # Only the symptom reserves '**': it is what closes the field. Bold
             # inside a `why` round-trips (25 of Shio's lines use it), and grading
@@ -1596,7 +1629,9 @@ class Schema:
                 f" (the line's own limit of {self.line_max} leaves "
                 f"{self.prose_budget(task)} for prose, and the symptom takes {taken})"
             )
-        out = self._check_text("why", task.why, budget, because)
+        out = self._check_text(
+            "why", task.why, budget, because, source=self.source_of("why_max")
+        )
         why = task.why.strip()
         if why and self.terminator and not why.endswith(_TERMINATORS):
             out.append(
@@ -1666,9 +1701,14 @@ class Schema:
         return task
 
     def _check_text(
-        self, field: str, value: str, limit: int, because: str = ""
+        self, field: str, value: str, limit: int, because: str = "", source: str = ""
     ) -> list[Violation]:
-        """The checks that apply to both prose fields, including round-trip safety."""
+        """The checks that apply to both prose fields, including round-trip safety.
+
+        ``source`` is which declaration set `limit`, passed by the caller for the reason
+        :func:`over_by` takes one (RK1067): this method is handed a number and only the
+        caller knows which field's it is.
+        """
         out: list[Violation] = []
         if not value.strip():
             out.append(Violation(f"{field}.empty", field, "must not be empty"))
@@ -1717,7 +1757,7 @@ class Schema:
                 Violation(
                     f"{field}.too-long",
                     field,
-                    f"{over_by(width(value), limit, because=because, measured=value)}; "
+                    f"{over_by(width(value), limit, because=because, measured=value, source=source)}; "
                     f"the remainder "
                     f"belongs in the improvements section rather than compressed away",
                 )

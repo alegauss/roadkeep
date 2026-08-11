@@ -122,9 +122,18 @@ def test_scaffold_takes_the_whole_lifecycle(tmp_path: Path, capsys, monkeypatch)
 
 
 def test_config_reads_back_as_the_schema_it_was_rendered_from(tmp_path: Path) -> None:
-    """The scaffold cannot declare a format the tool does not implement."""
+    """The scaffold cannot declare a format the tool does not implement.
+
+    Less `origins`, which is not part of the format: the scaffold writes every limit out
+    explicitly, so a schema read back from it cites those lines where a bare `Schema()`
+    cites nothing (RK1067) — a difference in provenance and not in what is enforced.
+    """
     init(tmp_path)
-    assert Config.load(tmp_path / "roadkeep.toml").schema == Schema()
+    written = Config.load(tmp_path / "roadkeep.toml").schema
+    assert replace(written, origins=()) == Schema()
+    # And the citations really are the file it was just written to, which is the whole
+    # affordance: an author refused over one of these numbers is one line from it.
+    assert dict(written.origins)["why_max"].startswith("roadkeep.toml:")
 
 
 def test_config_follows_the_schema_and_not_a_template() -> None:

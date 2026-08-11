@@ -18,7 +18,7 @@ from pathlib import Path
 import pytest
 
 from roadkeep.config import CONFIG_NAME, Config, ConfigError, find_config
-from roadkeep.schema import DESIGNED, IDEA, SHIPPED
+from roadkeep.schema import DESIGNED, IDEA, SHIPPED, Task
 
 HERE = Path(__file__).resolve().parents[1]
 
@@ -248,6 +248,56 @@ def test_an_unknown_key_inside_a_roles_limits_is_refused_like_any_other(tmp_path
     path = write(tmp_path, "[limits.changelog]\nlines = 900\n")
     with pytest.raises(ConfigError, match="limits.changelog.lines"):
         Config.load(path)
+
+
+# -- a refusal names where the number was set (RK1067) ------------------------
+
+
+def test_a_refused_limit_names_the_line_that_set_it(tmp_path):
+    # Every code this gate reports resolves to a door and prints it; the one whose remedy is
+    # *changing the rule* had none, so an author was left to find where 150 was set — in an
+    # adopting project, a file they have never opened.
+    write(tmp_path, 'prefix = "RK"\n\n[limits]\nsymptom = 120\nwhy = 150\n')
+    schema = Config.discover(tmp_path).schema
+    assert schema.source_of("why_max") == " (roadkeep.toml:5 [limits].why)"
+    assert schema.source_of("symptom_max") == " (roadkeep.toml:4 [limits].symptom)"
+
+
+def test_a_limit_the_project_never_declared_says_so_instead_of_citing_one(tmp_path):
+    # The distinction that is the whole affordance: *which of these two numbers did I
+    # choose* is the question a refusal over a limit raises, and a citation invented for an
+    # undeclared one would answer it wrongly in the reassuring direction.
+    write(tmp_path, 'prefix = "RK"\n[limits]\nsymptom = 120\n')
+    schema = Config.discover(tmp_path).schema
+    assert schema.source_of("why_max") == " (this tool's default)"
+    assert "roadkeep.toml" in schema.source_of("symptom_max")
+
+
+def test_a_roles_own_number_is_cited_over_the_shared_one(tmp_path):
+    # RK50's whole reason, reaching the author standing over one of the two: a `why` refused
+    # in the changelog is about `[limits.changelog]` and not the roadmap's number.
+    write(
+        tmp_path,
+        'prefix = "RK"\n\n[limits]\nwhy = 200\n\n[limits.changelog]\nwhy = 320\n',
+    )
+    config = Config.discover(tmp_path)
+    assert config.schema_for("roadmap").source_of("why_max") == " (roadkeep.toml:4 [limits].why)"
+    ledger = config.schema_for("changelog")
+    assert ledger.source_of("why_max") == " (roadkeep.toml:7 [limits.changelog].why)"
+    # And a limit that role did not restate still cites the shared line rather than nothing.
+    assert ledger.source_of("line_max") == " (this tool's default)"
+
+
+def test_the_citation_reaches_the_refusal_itself(tmp_path):
+    # The read is only worth what the refusal carries: a source resolved and never printed
+    # is the affordance existing everywhere except where somebody needs it.
+    write(tmp_path, 'prefix = "RK"\n\n[limits]\nwhy = 30\n')
+    schema = Config.discover(tmp_path).schema
+    codes = schema.validate(
+        Task(id="RK1", status="📋", block="A", symptom="A symptom", why="Because " + "x" * 40 + ".")
+    )
+    over = next(v for v in codes if v.code == "why.too-long")
+    assert "limit is 30 (roadkeep.toml:4 [limits].why)" in over.message
 
 
 # -- the shape, declared rather than named (RK1064) ---------------------------

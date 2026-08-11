@@ -411,6 +411,9 @@ class Config:
                     **markers,
                     **ledger,
                     **limits,
+                    # Where each of those numbers was written, so a refusal over one names
+                    # the line somebody reviews rather than only the number (RK1067).
+                    origins=_origins(source, _scalars(data.get("limits"))),  # RK1067
                 )
             except ValueError as error:  # a valid TOML file can still be a wrong format
                 problems.append(str(error))
@@ -474,6 +477,15 @@ class Config:
         declared = self.grammars.get(role) or DEFAULT_GRAMMARS.get(role)
         schema = self.schema.under(declared) if declared else self.schema
         own: dict[str, object] = {**self.limits.get(role, {}), **self.rules.get(role, {})}
+        if role in self.limits:
+            # The role's own citations layered over the shared ones (RK1067), so a `why`
+            # refused in the changelog names `[limits.changelog].why` and not the number
+            # the roadmap is held to — which is the whole reason RK50 exists, reaching the
+            # author at the moment they are standing over one of the two.
+            own["origins"] = tuple(
+                {**dict(schema.origins), **dict(_origins(self.source, self.limits[role], role))}
+                .items()
+            )
         # The namespace this role's addresses live in (RK340), carried on the schema for the
         # reason every other per-role difference is: the file travels with the rules it is
         # read under, so nothing downstream has to be handed a role beside a document.
@@ -826,6 +838,13 @@ def _check_reserved(
             )
 
 
+def _scalars(raw: object) -> dict[str, object]:
+    """The keys a table sets directly, less its sub-tables — `[limits]` without a role's."""
+    if not isinstance(raw, Mapping):
+        return {}
+    return {key: value for key, value in raw.items() if not isinstance(value, Mapping)}
+
+
 def _limits(raw: object, problems: list[str]) -> dict[str, int]:
     """`[limits]` — the numbers every governed file is held to, before any role says less.
 
@@ -1117,6 +1136,63 @@ def _budgets(raw: object, base: Path, problems: list[str]) -> tuple[Budget, ...]
         numbers = _positive(value, where, problems)
         if numbers:
             out.append(Budget(path=(base / name).resolve(), **numbers))
+    return tuple(out)
+
+
+def _positions(source: Path | None) -> dict[tuple[str, str], int]:
+    """Which line of the config each `table.key` is written on (RK1067).
+
+    Read off the text and never through the parse, for :func:`_declared_at`'s reason:
+    `tomllib` keeps no positions, and a refusal that cited `roadkeep.toml:0` would be the
+    one address in this tool that opens nothing. Coarse on purpose — the first assignment
+    of a key under a header — because what a reader needs is the line to go and look at,
+    and a second parser written to be exact about it is a second parser to keep right.
+    """
+    if source is None:
+        return {}
+    try:
+        text = source.read_text(encoding="utf-8")
+    except OSError:
+        return {}
+    found: dict[tuple[str, str], int] = {}
+    table = ""
+    for lineno, line in enumerate(text.splitlines(), start=1):
+        stripped = line.strip()
+        header = re.match(r"^\[([^\]]+)\]$", stripped)
+        if header:
+            table = header.group(1)
+            continue
+        key = re.match(r'^([A-Za-z_][A-Za-z0-9_]*|"[^"]+")\s*=', stripped)
+        if key and (table, key.group(1)) not in found:
+            found[(table, key.group(1))] = lineno
+    return found
+
+
+def _origins(
+    source: Path | None, declared: Mapping[str, object], role: str = ""
+) -> tuple[tuple[str, str], ...]:
+    """Where each limit this project set was declared, as the clause a refusal prints.
+
+    Only the keys the project actually wrote: a limit it never declared has no line, and
+    :meth:`Schema.source_of` says *this tool's default* rather than inventing a citation —
+    which of the two numbers a refusal is about being exactly the fact the author needs.
+    """
+    if source is None:
+        return ()
+    where = source.name
+    table = f"limits.{role}" if role else "limits"
+    at = _positions(source)
+    out: list[tuple[str, str]] = []
+    for key, attribute in _LIMIT_KEYS.items():
+        # Either spelling, because the two callers hold different ones: the top-level table
+        # arrives as it was written (`why`) and a role's arrives already translated to the
+        # field it sets (`why_max`), and a citation that only knew one would silently drop
+        # every per-role number — the ones RK50 exists for and the ones most worth citing.
+        if key not in declared and attribute not in declared:
+            continue
+        lineno = at.get((table, key))
+        address = f"{where}:{lineno}" if lineno else where
+        out.append((attribute, f"{address} [{table}].{key}"))
     return tuple(out)
 
 

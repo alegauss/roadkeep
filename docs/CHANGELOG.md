@@ -398,6 +398,7 @@
 - ✅ **RK1047** **body.promise names three doors and not reserved_ids, the mechanism built for the state it fires on** — The row offers the reservation as a fourth reading, so the state RK1031 built a declaration for is not answered with a rewording.
 - ✅ **RK1059** **the largest every-turn surface is measured and held by nothing** — [tools] characters declares what one served tool may cost, lint refuses one over naming the tool and the ranking, and budget --tools prints the room beside each figure.
 - ✅ **RK1061** **the tool budget makes every lint build the whole served surface** — Measured again, warm: the check is 1.4ms and the 121ms was one-time import cost misattributed by an in-process comparison, so nothing is cached and the numbers are recorded.
+- ✅ **RK1067** **a refusal names the limit it enforced and not the line of config that set it** — A refused limit prints where it was set, roadkeep.toml:34 [limits].why or a role's own line, and says this tool's default where the project declared none rather than inventing a citation.
 
 ## Block E — Adoption
 
