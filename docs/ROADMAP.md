@@ -30,8 +30,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 🛠 **RK1021** (deps: —) **Nothing enumerates the questions a maintainer asks a governed file, so the law about answering them holds nothing** — The register says this row needs an inventory before a property has anything to sweep, and what exists is its converse: every command parses. → §RK1021
-
 ## Block D — The gate
 
 ## Block E — Adoption

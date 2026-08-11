@@ -109,32 +109,6 @@ would hold this shut for good.
 
 ## Block C — Query
 
-### §RK1021 The inventory L5 has been waiting for
-
-L5's row in the register says what it needs, and says it is a task rather than a test: a
-property over *the questions somebody asks* has nothing to sweep until those questions
-are written down. L6 was in the same state and RK1000 moved it, which is the whole
-reason the row carries a sentence instead of a blank.
-
-What exists is the converse, and a converse is not the rule. RK167 holds that every
-command this surface publishes is one the CLI parses; nothing holds that a question a
-maintainer has is answered by one. A tool can publish forty verbs and still send
-somebody to an editor for the one thing they wanted.
-
-Measured before proposing: the CLI declares 27 read-only verbs and the skill's query
-section names 21 in prose. The six it does not are `stats`, `audit`, `guard`, `mcp`,
-`replay` and `report`, two of which are questions a maintainer plainly asks. The
-inventory is half-written already, in the file every adopting project loads, and nothing
-joins it to the parser.
-
-The bound has to be honest, which is what makes this checkable at all: not every
-conceivable question, but every question this project has written down. That is the same
-bound the register already accepts about the six laws, stated there rather than
-pretended away.
-
-What proves it: each declared question names a command the CLI parses and only reads, a
-verb that answers none is named, and L5's row carries a holder.
-
 ## Block D — The gate
 
 ## Block E — Adoption

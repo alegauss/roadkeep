@@ -10,7 +10,8 @@ project states and what a property reaches is where the last fifty commits' defe
 :data:`INVARIANTS` is that set. One row per rule, naming where it is stated, the surface it
 quantifies over, and the test that holds it. **A rule nobody holds is a row with an empty
 holder**, which is the point: an absence nobody can see reads exactly like a rule that is
-kept, and two of the six laws are in that state right now.
+kept. Three of the six laws were in that state when this file was written; RK1000 and
+RK1021 wrote the two holders the rows had said were tasks, and one remains.
 
 The rows are not the deliverable — the **closure** is. A set that any stated rule can be
 missing from is one more docstring, so what this file asserts first is that the six laws
@@ -121,12 +122,14 @@ INVARIANTS: tuple[Invariant, ...] = (
     Invariant(
         stated="L5",
         rule="every question a maintainer asks a governed file is answerable as a command",
-        # Unheld, and the surface is why: the set is *the questions somebody asks*, which no
-        # file enumerates. What is held is the converse — RK167 below, that every command
-        # this surface publishes is one the CLI parses — and a converse is not the rule. A
-        # property here would need a declared inventory of the reads, which is a task and
-        # not a test, and stating that is what this row buys.
-        over="",
+        # Reached by RK1021, and this row is what bought it: the surface is *the questions
+        # somebody asks*, which no file enumerated, so the row said an inventory was a task
+        # and not a test. `asking.QUESTIONS` is that inventory, joined to the parser — every
+        # row's argv resolves to a handler the CLI declares as a read, and every read-only
+        # verb either answers a row or says in a sentence why it answers none. The converse
+        # RK167 held all along is still below it, and is still not the rule.
+        over="asking.QUESTIONS",
+        held_by="test_asking::test_every_declared_question_is_answered_by_a_command_that_only_reads",
     ),
     Invariant(
         stated="L6",
@@ -251,9 +254,10 @@ INVARIANTS: tuple[Invariant, ...] = (
 
 #: The rules stated here that nothing holds, named so that losing a holder is a decision
 #: somebody writes down rather than a row quietly going empty. Asserted equal to the rows
-#: below, in both directions. L6 left this set with RK1000, and the two that remain are the
-#: two whose surface is not a set: an absence, and an inventory nobody has written down.
-UNHELD = frozenset({"L2", "L5"})
+#: below, in both directions. L6 left this set with RK1000 and L5 with RK1021 — the one that
+#: remains is the one whose surface is not a set at all, the rule being satisfied by an
+#: absence: the services this package does not open and the schemas it does not migrate.
+UNHELD = frozenset({"L2"})
 
 
 def declared_laws() -> set[str]:
@@ -279,9 +283,9 @@ def test_every_law_this_project_states_has_a_row():
 
 
 def test_a_rule_nothing_holds_is_a_row_and_never_an_absence():
-    """The answer to the question this file was written to make askable. Three of the rules
-    stated here are reached by a property and three of the six laws are not, and the second
-    number is the one that could not be read anywhere before."""
+    """The answer to the question this file was written to make askable, and the number it
+    reports has moved twice: three of the six laws were unheld on the first run, and each of
+    the two that left did so because its row had already said what an inventory would be."""
     empty = {one.stated for one in INVARIANTS if not one.held_by}
     assert empty == UNHELD, {"newly unheld": empty - UNHELD, "newly held": UNHELD - empty}
     # And an unheld row says what a holder would have to quantify over, in prose beside it —

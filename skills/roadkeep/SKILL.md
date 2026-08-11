@@ -365,7 +365,10 @@ the limit, because composing to exactly the declared number is what refuses. `bu
 --anchor <a>` asks the same thing on its own, which is the read a `section amend` wants —
 **refused where two prose files declare that anchor**, as every other reader of one
 refuses, `--role` naming which of them you mean; on a line's own budget that half comes
-back empty and states the same reason. **If a body is refused anyway, do not count by
+back empty and states the same reason; `section show <a>` is the other half of that read —
+the prose whole, with the count the budget is measured in, so an `amend` is composed
+against what is there rather than against a remembered version of it. **If a body is
+refused anyway, do not count by
 hand**: `body.too-long` names what each paragraph costs and which is the longest, so the
 second draft is composed once — and a `0` there is a table or a fence, which is prose no
 cut can reach. `budget --non-goal [--lead "…"]` is the roadmap's other bullet, whose two

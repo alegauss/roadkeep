@@ -118,16 +118,16 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 31 | 2 |
 | B — Authoring (insert, never hand-edit) | 1 | 108 | 1 |
-| C — Query (consult without reading the file) | 1 | 73 | 1 |
+| C — Query (consult without reading the file) | 0 | 74 | 1 |
 | D — The gate | 0 | 124 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 91 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 2 | 512 | 6 |
+| **Total** | 1 | 513 | 6 |
 
 **Next ready:**
 
-- 🛠 **RK1021** (deps: —) **Nothing enumerates the questions a maintainer asks a governed file, so the law about answering them holds nothing** — The register says this row needs an inventory before a property has anything to sweep, and what exists is its converse: every command parses. → §RK1021
+- 📋 **RK1022** (deps: —) **add refuses for a missing --ref and the anchors it sends you to names --family, which add has no flag for** — The refusal is the whole path an author has: naming a flag the parser rejects turns one refusal into two, and the flag wanted is --ref, which the same message already uses. → §RK1022
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
