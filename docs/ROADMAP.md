@@ -32,8 +32,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK1087** (deps: —) **the deferred store is a declared feature no adopting corpus has ever turned on** — Measuring for RK1084 found neither Shio nor Turing declares one, so five tasks of pause machinery are held by this repo's tests and by nothing anybody runs. → §RK1087
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Block G — The editor surface (the backlog where the file is open)

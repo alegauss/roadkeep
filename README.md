@@ -120,14 +120,10 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 0 | 129 | 1 |
 | C — Query (consult without reading the file) | 0 | 85 | 1 |
 | D — The gate | 0 | 140 | 0 |
-| E — Adoption | 1 | 77 | 1 |
+| E — Adoption | 0 | 78 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 96 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 1 | 578 | 6 |
-
-**Next ready:**
-
-- 📋 **RK1087** (deps: —) **the deferred store is a declared feature no adopting corpus has ever turned on** — Measuring for RK1084 found neither Shio nor Turing declares one, so five tasks of pause machinery are held by this repo's tests and by nothing anybody runs. → §RK1087
+| **Total** | 0 | 579 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -1877,3 +1877,35 @@ def test_adopt_still_writes_no_config_at_all(tmp_path: Path, capsys) -> None:
     assert main(["-C", str(tmp_path), "adopt", str(tmp_path / "ROADMAP.md")]) == EXIT_OK
     assert not (tmp_path / "roadkeep.toml").exists()
     assert "not governed" in capsys.readouterr().out
+
+
+def test_the_estimate_names_the_door_this_project_has_not_got(tmp_path: Path) -> None:
+    """RK1087. Measuring for RK1084 found that **neither adopting corpus declares a store**,
+    and neither carries a single retired entry either — so a pause spelled another way is not
+    there to find, and the feature's only user is this tool's own suite.
+
+    An adopter reading an estimate is asking what the format costs, and *there is no door for
+    "not now"* is part of the answer. Without this it arrives as a refusal from the first
+    `defer`, at the moment somebody wanted to set a line aside.
+    """
+    (tmp_path / "R.md").write_text(
+        "# R\n\n## Block A — x\n\n- 📋 **RK1** (deps: —) **A symptom** — Because of it.\n",
+        encoding="utf-8",
+    )
+    estimate = adopt(Config.default(), str(tmp_path / "R.md"))
+    assert "no deferred store declared" in estimate.pause
+    assert "terminal" in estimate.pause
+
+
+def test_a_project_with_the_door_reports_nothing_about_it(tmp_path: Path) -> None:
+    # Said only where the answer is *nothing*, which is the shape every other absence in an
+    # estimate takes: a limit stated where it does not bite is noise.
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "R.md"\ndeferred = "D.md"\n', encoding="utf-8"
+    )
+    (tmp_path / "R.md").write_text(
+        "# R\n\n## Block A — x\n\n- 📋 **RK1** (deps: —) **A symptom** — Because of it.\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "D.md").write_text("# D\n\n## Block A — x\n", encoding="utf-8")
+    assert adopt(Config.discover(tmp_path), str(tmp_path / "R.md")).pause == ""

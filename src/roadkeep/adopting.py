@@ -476,6 +476,13 @@ class Estimate:
     #: stands in, and the estimate below it is measured against a guess. Defaulted to False
     #: because a rationale run reports no prefix at all — there is no third state there.
     defaulted: bool = False
+    #: What this project has instead of a pause, where it declares no deferred store
+    #: (RK1087) — `""` where it declares one. Measured rather than assumed: neither Shio nor
+    #: Turing declares one, and neither carries a single retired entry either, so the pause
+    #: is a feature whose only user is this tool's own suite. An adopter reading an estimate
+    #: is asking what the format costs, and *there is no door for "not now"* is part of the
+    #: answer — otherwise it arrives as a refusal from the first `defer`.
+    pause: str = ""
     unit: str = "line"
     #: The scheme the pointers and anchors were read under (RK44). Reported because it
     #: decides what was read at all: under the wrong one a file of 151 sections yields 0.
@@ -1042,6 +1049,7 @@ def adopt(
         parsed=len(document.entries),
         conforming=conforming,
         ref_scheme=schema.ref_scheme,
+        pause=_pause(config),
         rejects=_grouped(reject.reason for reject in document.rejects),
         codes=_ranked(counts),
         measures=_measures(document, schema),
@@ -1638,6 +1646,26 @@ def _recognised(*shapes: Iterable[int]) -> int:
     at the call site is what lets one counter serve two readings.
     """
     return len({lineno for shape in shapes for lineno in shape})
+
+
+def _pause(config: Config) -> str:
+    """What this project has instead of a pause, or `""` where it declares a store (RK1087).
+
+    One sentence and only where the answer is *nothing*, which is the shape every other
+    absence in an estimate takes: a limit stated where it does not bite is noise, and a door
+    that does not exist is a cost an adopter is asking about whether or not they knew to.
+
+    `init` does not scaffold a store — a governed file is a path in `[files]` and a store a
+    verb invented on its way past would be a format decided by a command (RK96) — so the
+    default for every adopting project is this sentence rather than the file.
+    """
+    if config.has("deferred"):
+        return ""
+    return (
+        "no deferred store declared, so `defer` refuses and there is no door for *not now*: "
+        'add `deferred = "<path>"` under [files], or a line set aside has to be retired, '
+        "which is terminal — the id cannot come back and the design is deleted"
+    )
 
 
 def _grouped(reasons: Iterable[str]) -> tuple[tuple[str, int], ...]:
