@@ -32,8 +32,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1094** (deps: —) **the standing advice on which half of agents.md to compress rests on a figure that is off by half** — RK203 recorded the Layout index at 23 percent of the bytes and the breakdown reads 37, so compress the prose rather than the index was decided against a number nobody re-measured. → §RK1094
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

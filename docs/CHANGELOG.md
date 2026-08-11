@@ -420,6 +420,7 @@
 - ✅ **RK1084** **the pair the declaration says nobody has walked into is reachable and still unread** — The third pair is read and filed against the changelog, with two reads for a door: measuring found neither corpus declares a store, so no verb was built for a state nobody can reach.
 - ✅ **RK1091** **three heredoc edits corrupted a test file's string literals and only the parser noticed** — agents.md forbids editing source through a shell heredoc, beside the commit rule, paid for by compressing two paragraphs the file already had room to lose.
 - ✅ **RK1092** **agents.md is eight bytes under its budget and the next sentence has nowhere to come from** — budget --file ranks a resident file's sections the way --tools ranks the surface, and the first reading says the Layout index is 37 percent of agents.md rather than the 23 RK203 recorded.
+- ✅ **RK1094** **the standing advice on which half of agents.md to compress rests on a figure that is off by half** — The index drops its task numbers, which origin answers better, and the config records that re-measuring reversed the advice: the index is 36 percent and the cheap cut, not the prose.
 
 ## Block E — Adoption
 

@@ -64,11 +64,13 @@ characters = 2600
 # write path out): a line budget alone is met by writing longer lines, and 20 KB of "under 150
 # lines" is not a budget. Lowered when the skill took the rules — a budget left at the old
 # figure is room the prose grows back into.
-# What the room goes to, measured (RK203): the Layout index is ~20% of the lines and ~23% of
-# the bytes, and it grows for one reason, which is that the package grew. The file binds on
-# lines, so a module added at the limit used to cost an unrelated entry its second line — and
-# twice it cost the module its entry instead. `tests/test_linting.py` holds the index against
-# `src/roadkeep/`; when this file is at the wall again, compress the prose and not the index.
+# What the room goes to, and the advice reversed by re-measuring it (RK203, RK1094). That
+# figure was ~23% of the bytes and the conclusion was "compress the prose, not the index";
+# `budget --file` reads the index at 36%, nearly three times the next section, because every
+# task that adds a module adds an entry while the prose was compressed twice. So the index is
+# the cheap cut, and it is the safe one: `tests/test_linting.py` holds it against
+# `src/roadkeep/`, which says what may not be dropped. Re-read it before cutting, never
+# re-derive it here — a percentage in a comment is what went stale the first time.
 "agents.md" = { lines = 125, bytes = 8400 }
 # The Claude Code entry point only points at agents.md, and a pointer that grew a second
 # paragraph is a second place the rules live. Under `.claude/` because a root CLAUDE.md is a

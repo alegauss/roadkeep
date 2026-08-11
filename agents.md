@@ -34,24 +34,24 @@ docs/ROADMAP.md        active backlog, one line per task (RK<n>)
 docs/CHANGELOG.md      shipped ledger, indexed by block
 docs/IMPROVEMENTS.md   design rationale for UNSHIPPED sections only
 agents.md, roadkeep.toml   this file, and this project's own configuration
-src/roadkeep/   the package; each module's own docstring is the authority — this is the index:
-  kernel/{schema,document}  RK1-2/1063/1069  one template, and the file it round-trips;
-                          imports nothing above (tests/test_kernel.py)
-  config ids referring  RK3-4/1064/1066  a role's declared shape, the id, the relations
-  authoring blocking shipping markers sections  RK5-9/32/41/67/93/141/377  the writes, whole
-  deferring renumbering merging       RK91/96/97/120  the doors that are not terminal,
-                                                 and the merge git cannot make
-  locking claiming storing  RK117/119/330  scan-to-save is one span, who holds a line, one grammar
-  scoping queueing reverting  RK69-70/325/385/416  the non-goal, the queue, the undone
-  backlog counting picking showing graph RK10-13/28-29/31/37/39-40/83/92/247/442/492 the query
-  briefing budgeting exporting history weighing ranking remaining  surface, plus what git answers
-  linting fixing remedying repairing  RK14-17/420-422  the gate, the derived-only fixer,
-                  the door every finding names, and the verb that runs the whole report back
-  adopting installing  RK18/100/415  `init` scaffolds, `adopt` estimates, `install` wires it
-                          in, `engines` says which three copies write, judge and gate
-  guarding screening attesting serving provenance  RK22/24/79/175-176/200  the hook, what it
-                    loads for, what no verb wrote, the stdio tools, and which tree answered
-  capturing                        RK85-89  a defect in this tool, as facts a replay re-runs
+src/roadkeep/   the package. **Each module's docstring is the authority**; this only locates,
+so it carries no task numbers — `origin <id>` answers where a rule came from:
+  kernel/{schema,document}  one template, and the file it round-trips; imports nothing
+                          above it (tests/test_kernel.py)
+  config ids referring  a role's declared shape, the id, the relations a reference resolves in
+  authoring blocking shipping markers sections  the writes, whole
+  deferring renumbering merging  the doors that are not terminal, and the merge git cannot make
+  locking claiming storing  scan-to-save is one span, who holds a line, one grammar
+  scoping queueing reverting  the non-goal, the queue, the undone
+  backlog counting picking showing graph briefing budgeting exporting history weighing
+  ranking remaining  the query surface, plus what git answers
+  linting fixing remedying repairing  the gate, the derived-only fixer, the door every
+                  finding names, and the verb that runs the whole report back
+  adopting installing  `init` scaffolds, `adopt` estimates, `install` wires it in, `engines`
+                          says which three copies write, judge and gate
+  guarding screening attesting serving provenance  the hook, what it loads for, what no verb
+                    wrote, the stdio tools, and which tree answered
+  capturing  a defect in this tool, as facts a replay re-runs
   cli.py verbs/ rendering  the parser and dispatch, a module per verb family, every answer
 action.yml, .pre-commit-hooks.yaml, .github/   the gate's three surfaces (RK17)
 hooks/, skills/, commands/, .claude-plugin/, .mcp.json   the plugin's five, and how it is
