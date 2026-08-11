@@ -320,6 +320,28 @@ async function compose(root) {
 }
 
 /**
+ * The one line that says how much work there is, rendered and never computed (RK1018).
+ *
+ * Every number is `stats`'s: the total, and each marker with its count in the order the
+ * payload lists them — which is the order `roadkeep.toml` declares, so a project with a
+ * seventh marker gets a seventh number and nothing here changes (L6). A sort applied here
+ * would be this reader holding an opinion about somebody else's vocabulary.
+ *
+ * `uncounted` shows only when it is not zero: a marker-bearing line the grammar refused is
+ * the one thing a total must never silently absorb.
+ */
+function _counted(stats) {
+  const parts = [`${stats.total} open`];
+  for (const [marker, count] of Object.entries(stats.markers || {})) {
+    parts.push(`${marker} ${count}`);
+  }
+  if (stats.uncounted) {
+    parts.push(`${stats.uncounted} uncounted`);
+  }
+  return parts.join("   ");
+}
+
+/**
  * The backlog as a tree: blocks at the top, their lines under them, ready before blocked.
  *
  * The fields walked are the ones RK1005 wrote down as promised, which is the whole of what
@@ -359,6 +381,13 @@ class Backlog {
     if (row.notice) {
       const item = new vscode.TreeItem(row.notice);
       item.iconPath = new vscode.ThemeIcon("warning");
+      return item;
+    }
+    if (row.count) {
+      const item = new vscode.TreeItem(row.count);
+      item.description = row.detail;
+      item.iconPath = new vscode.ThemeIcon("list-unordered");
+      item.contextValue = "count";
       return item;
     }
     if (row.engine) {
@@ -425,6 +454,13 @@ class Backlog {
           };
     }
     const said = this.engine;
+    // How much work there is, above the blocks (RK1018). One more call where `engines` is
+    // already made — but cached on the readiness map's terms and not the engine's: the
+    // numbers are about the *file*, so a save invalidates them and an upgrade does not.
+    const counted = await payload(this.root, ["stats"]);
+    const header = counted.error
+      ? { notice: counted.error }
+      : { count: _counted(counted.value), detail: answer.value.file };
     this.file = answer.value.file;
     const grouped = new Map();
     for (const task of answer.value.tasks) {
@@ -433,7 +469,11 @@ class Backlog {
       }
       grouped.get(task.block).push(task);
     }
-    return [said, ...[...grouped].map(([block, tasks]) => ({ group: block, tasks }))];
+    return [
+      said,
+      header,
+      ...[...grouped].map(([block, tasks]) => ({ group: block, tasks })),
+    ];
   }
 
   /** One block's lines, each carrying what `deps` says about it, ready first.

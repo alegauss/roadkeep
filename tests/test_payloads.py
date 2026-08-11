@@ -43,7 +43,9 @@ PROMISED = {
     "lint": ("root", "clean", "problems", "findings", "codes"),
     # The two the write door reads (RK1008): which blocks a task may be filed under, and
     # what each field has left on the line `add` is about to derive.
-    "stats": ("file", "blocks", "total"),
+    # `total`, `uncounted` and `markers` are what the tree's header renders (RK1018) — it
+    # computes none of them, so a project's own marker set is its own numbers.
+    "stats": ("file", "blocks", "total", "uncounted", "markers"),
     "budget": ("id", "fields", "line_max", "prose"),
     # Which copy answered, which an editor shows above the rows it answered with (RK1009).
     "engines": ("writing", "verdict", "agree"),

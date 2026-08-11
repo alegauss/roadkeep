@@ -156,11 +156,11 @@ def test_the_host_reads_only_keys_a_payload_promises():
         | set(INSIDE["budget"][1])
         | set(INSIDE["stats"][1])
         | set(PROMISED["engines"])
-        | {"notice", "group", "engine", "detail"}
+        | {"notice", "group", "engine", "detail", "count"}
     )
     # The receivers a payload is bound to, named rather than matched by `.value.` alone: an
     # input box also has a `value`, and `box.value.length` is a string's length, not a key.
-    holders = ("answer", "budget", "blocks", "engines")
+    holders = ("answer", "budget", "blocks", "engines", "counted")
     for holder in holders:
         assert f"{holder}.value" in source, f"{holder} stopped holding a payload"
     read = set(re.findall(rf"(?:{'|'.join(holders)})\.value\.(\w+)|\brow\.(\w+)", source))
@@ -490,3 +490,27 @@ def test_a_save_re_reads_the_backlog_and_not_the_installation(tmp_path):
     assert ran.count("list") == 3, ran
     # And two `engines`: the window's first answer, and the one the button asked for.
     assert ran.count("engines") == 2, ran
+
+
+@pytest.mark.skipif(not NODE, reason="node is not on PATH")
+def test_the_tree_says_how_much_work_there_is_without_computing_it(tmp_path):
+    """RK1018. The number is `stats`'s — the total, and each marker in the order the payload
+    lists them, which is the order `roadkeep.toml` declares. A project with a marker set of
+    its own gets its own numbers and nothing here changes (L6), which is what makes this a
+    rendering rather than a count."""
+    root = tmp_path / "project"
+    root.mkdir()
+    assert main(["-C", str(root), "init"]) == EXIT_OK
+    for number in range(3):
+        assert main([
+            "-C", str(root), "add", "--block", "A",
+            "--symptom", f"A thing numbered {number} does not work here",
+            "--why", "Because nothing holds it.",
+        ]) == EXIT_OK
+    assert main(["-C", str(root), "status", "RK2", "🛠"]) == EXIT_OK
+    said = _harness(root)["count"]
+    assert said["label"].startswith("3 open")
+    # The markers the file carries, and only those — the numbers came from the payload.
+    assert "📋 2" in said["label"] and "🛠 1" in said["label"]
+    assert "uncounted" not in said["label"], "a zero is not news"
+    assert said["detail"] == "docs/ROADMAP.md"

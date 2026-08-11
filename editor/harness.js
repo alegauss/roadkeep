@@ -150,6 +150,10 @@ async function main() {
       out.notice = block.notice;
       continue;
     }
+    if (block.count) {
+      out.count = { label: backlog.getTreeItem(block).label, detail: block.detail };
+      continue;
+    }
     if (block.engine) {
       out.engine = { label: backlog.getTreeItem(block).label, detail: block.detail };
       continue;

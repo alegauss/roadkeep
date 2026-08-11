@@ -36,8 +36,6 @@
 
 ## Block G — The editor surface (the backlog where the file is open)
 
-- 📋 **RK1018** (deps: —) **The backlog tree opens with no count, so how much work is left is a question only reading the file answers** — `stats` already answers the total and the per-marker split in one payload, so a header costs one call beside the one the view already makes. → §RK1018
-
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:

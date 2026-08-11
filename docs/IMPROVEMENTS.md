@@ -86,25 +86,3 @@ already written, not authorship.
 ## Block F — The plugin
 
 ## Block G — The editor surface (the backlog where the file is open)
-
-### §RK1018 A backlog whose size is not a question
-
-The tree's first row says which copy of the tool answered; nothing above the blocks says
-how much work there is. A reader who wants that number leaves the view — opens the file,
-or runs `stats` in a terminal — which is the read this surface exists to make
-unnecessary (L5).
-
-The counts are not derived here. `stats --json` already returns `total`, `uncounted` and
-a `markers` map, per block and for the file as a whole; the header renders that payload
-and computes nothing, so the marker set stays `roadkeep.toml`'s (L6) and a project
-declaring a seventh marker gets a seventh number without a change to the extension.
-
-One line, because two would be a panel: the total first, then each declared marker with
-its count in the order the config declares them, so the ordering is a fact about the
-project rather than a sort applied here. `uncounted` appears only when it is not zero —
-a marker-bearing line the grammar refused is the one thing a total must never silently
-absorb.
-
-It is one more call per refresh, made where `engines` is already made, and cached on the
-same terms as the readiness map rather than the engine one: the numbers are about the
-file, so a save invalidates them and an upgrade does not.
