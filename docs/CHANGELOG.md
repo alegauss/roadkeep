@@ -46,6 +46,7 @@
 - ✅ **RK1030** **a roadkeep.toml a Windows editor saved with a BOM answers 'Invalid statement (at line 1, column 1)' and names no byte** — A config opening with a byte-order mark is answered with the byte, the original refusal beside it, and the way to remove it; a marked pyproject is found rather than walked past.
 - ✅ **RK1063** **the line format is stated twice, once in render and once in the parser** — TEMPLATE states the bullet once as slots with a read face and a write face, and both render and the parser derive from it, so a renderer emitting what the grammar refuses is unstatable.
 - ✅ **RK1064** **roadkeep.toml declares the limits and the markers but not which fields exist or where they sit** — A role's shape is a [grammar.<role>] of extends, markers and drop, applied by Schema.under, with the two the tool ships as declarations rather than as methods.
+- ✅ **RK1065** **the format's mechanism and this backlog's vocabulary share one namespace** — A test names the two kernel modules, the two places they reach above themselves and why each is allowed, and holds the backlog vocabulary they speak as a ceiling that may only fall.
 
 ## Block B — Authoring
 

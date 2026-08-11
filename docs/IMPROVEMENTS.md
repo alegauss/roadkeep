@@ -75,28 +75,6 @@ already written, not authorship.
 
 ## Block A — The model
 
-### §RK1065 The kernel boundary, held by a test before it is a package
-
-Measured: `schema.py` and `document.py` import nothing but stdlib and each other, so by
-import direction the boundary already exists. By vocabulary it does not — both name
-`Task`, `Dep`, `block`, `ref` and a marker set, none of which a second format has. Of
-the gate's 46 codes, about a dozen are shape and identity, which any record format
-needs; the rest are this backlog's dependency graph, its blocks and its queue, which no
-other format wants. The reusable part is the mechanism and not the rules, and it is
-roughly 3.4k of the package's 43.6k lines.
-
-So the move is a subpackage under one hard rule: it imports nothing above it, never
-reads `Config`, and does not pronounce task, dep, block or ship. Held by a test, the way
-the Layout index already is, and not by this paragraph.
-
-Deliberately **not** a separate distribution, for three reasons in order of force. A
-library is a runtime dependency, and this tool's own argument against taking `click` and
-`pydantic` applies to itself. An abstraction designed from a single client is a
-framework that client then contorts into. And a supported Python API is a standing
-non-goal, which the published version of this collides with head-on rather than at the
-edges. The internal boundary costs no release and is reversible; publishing waits on a
-second real format to prove the shape, and there is not one yet.
-
 ### §RK1066 Reference as a field type
 
 A field whose type is a *reference* carries its own integrity, and this gate already
