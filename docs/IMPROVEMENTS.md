@@ -93,26 +93,27 @@ The plugin ships three executable surfaces and two of them spell one launcher:
 | --- | --- |
 | `hooks/hooks.json` | `python "${CLAUDE_PLUGIN_ROOT}/scripts/roadkeep.py" guard` |
 | `.claude-plugin/mcp.json` | `python ${CLAUDE_PLUGIN_ROOT}/scripts/roadkeep.py mcp` |
-| `commands/*.md` | `` !`roadkeep lint` ``, and `Bash(roadkeep lint:*)` |
+| `commands/*.md` | `` !`roadkeep lint` `` |
 
-The root `.mcp.json` is **not** in that table: it spells `${CLAUDE_PROJECT_DIR:-.}` and
-is this repository's own wiring for running the tool from its checkout. What the
-manifest publishes is the file above it, so the plugin has one spelling and `commands/`
-is the sole outlier rather than a third opinion.
+The root `.mcp.json` is not in that table: it spells `${CLAUDE_PROJECT_DIR:-.}` and is
+this repository's own wiring for running the tool from its checkout. RK254 is the
+argument — the console script exists only after a `pip install`, which a marketplace
+install is not.
 
-RK254 is the argument, in its own words: the console script *exists only after `pip
-install roadkeep` and only if the interpreter's scripts directory is on PATH — so on a
-plugin-installed machine the tool's most-read message named a command that answers
-`command not found`*. A marketplace install copies files and runs no `pip`.
+**The tools half shipped.** Every verb the four commands run is now reachable as the
+tool the skill prefers, in both spellings.
 
-**One question, and it is not the length.** A permission scopes a long prefix — paths,
-flags and quoted arguments included — so `Bash(python "…/scripts/roadkeep.py" lint:*)`
-is a shape the matcher takes. What decides the design is whether `${CLAUDE_PLUGIN_ROOT}`
-is expanded *before* the pattern is compared: unexpanded in the pattern and expanded in
-the command, the scope matches nothing and grants nothing, which is worse than what it
-replaced (RK25). Answered yes, this is four frontmatter lines and four pre-executions.
+**The pre-execution half is a decision, and the fact it waited on is answered.** The
+published table says `${CLAUDE_PLUGIN_ROOT}` resolves *anywhere the placeholder appears*
+in skill and command **content** — so `` !`python
+"${CLAUDE_PLUGIN_ROOT}/scripts/roadkeep.py" lint` `` runs. The `allowed-tools` half is
+where it stops: only `${CLAUDE_SKILL_DIR}` and `${CLAUDE_PROJECT_DIR}` are documented as
+substituted into Bash rules, and neither names a plugin's root. `${CLAUDE_SKILL_DIR}` is
+*the skill's own subdirectory*, so reaching the launcher from a `commands/*.md` file
+means a `..`, which is a permission pattern nobody should have to read.
 
-What proves it: the three surfaces agree and the four commands run with no console
-script.
+So the choice is a prompt on every `/roadkeep:lint`, a `..` in the scope, or dropping
+the pre-execution for the tools — which costs the guarantee that the output is in the
+prompt.
 
 ## Block G — The editor surface (the backlog where the file is open)
