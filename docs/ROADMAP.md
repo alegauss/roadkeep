@@ -26,6 +26,8 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1056** (deps: —) **record add still publishes a --lines flag that exists only to be refused** — RK1053 made the supersedes pointer a first-line write, so the count it took now names a deletion that cannot happen and costs a schema property on every session. → §RK1056
+
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
@@ -33,6 +35,8 @@
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
+
+- 📋 **RK1055** (deps: —) **the served why bound refuses on the client a span the server accepts** — maxLength is the field limit and the span form measures only its first line, so a three-line --why past 200 characters is refused by the schema and never reaches the verb. → §RK1055
 
 ## Block G — The editor surface (the backlog where the file is open)
 

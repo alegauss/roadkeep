@@ -169,6 +169,7 @@
 - ✅ **RK1051** **an id other entries cite can never be given the entry it is missing** — record add --id now refuses only an id a line carries and reports the sentence that names one, so an id cited but never recorded can be given the entry it lacks.
 - ✅ **RK1052** **record amend walks every entry for the reversal clause and prints none** — The clause is read off the ledger before the write that can remove the mark, and printed with the corrected entry, so the amend and the listing state one fact again.
 - ✅ **RK1053** **two ledger writes still delete the continuation lines RK1049 taught one to keep** — The completion writes the span back when --lines authorises it, and the --supersedes pointer takes the first line alone, so neither deletes a paragraph the parse never held.
+- ✅ **RK1054** **the ship that completes a partial reached disk without validating the entry it wrote** — That branch rewrote the entry instead of placing one, so it bypassed the only door that checks: a why carrying a newline landed as a two-line entry no field held.
 
 ## Block C — Query
 
