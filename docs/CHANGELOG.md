@@ -183,6 +183,7 @@
 - ✅ **RK1075** **an open line the ledger records as whole has no verb that closes it, and the guard denies the hand edit** — The entry's qualifier decides a live partial and the roadmap's marker no longer does, so a line beside an entry recording the whole is closed by ship and the refusals name it.
 - ✅ **RK1077** **nothing holds the verb surface complete, so a state no command closes is found by the project that reaches it** — A table pairs every reachable marker and ledger shape with the verb that leaves it, run against a file in that state, and measuring found no cell without one.
 - ✅ **RK1080** **the gate and the verb decide a live partial in two places that only agree by hand** — Task.in_halves is the one predicate both the gate and the verb read, on the record that carries the qualifier, so the next narrowing is one edit rather than two that agree by hand.
+- ✅ **RK1083** **resume answers two different acts under one verb and the printer cannot tell them apart** — A reconciling resume prints reconciled and says the roadmap was untouched, carries the line's own marker, and refuses a --marker that could mark nothing.
 
 ## Block C — Query
 

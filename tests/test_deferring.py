@@ -590,3 +590,34 @@ def test_a_departure_is_refused_while_the_store_still_carries_it(tmp_path):
         ship(config, "RK1", why="It landed.")
     assert "resume RK1" in str(refused.value)
     assert "still says it is paused" in str(refused.value)
+
+
+def test_the_two_acts_resume_answers_are_said_apart(tmp_path, capsys):
+    # RK1083: the reconciling call places no line, and `Resumption.roadmap` wraps the entry
+    # it left alone — so the output said "returned" over a write nobody made. `ship` answers
+    # the same shape the same way (`RK1 closed` against `RK1 →`): one verb, two sentences.
+    from roadkeep.cli import EXIT_OK, main
+
+    root = paused_project(tmp_path).root
+    assert main(["-C", str(root), "resume", "RK1"]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "RK1 reconciled" in said and "roadmap  untouched" in said
+
+    # And the ordinary return keeps its own sentence, which is what makes the pair legible.
+    assert main(["-C", str(root), "resume", "RK2"]) == EXIT_OK
+    assert "under Block A" in capsys.readouterr().out
+
+
+def test_a_marker_is_refused_where_the_call_places_no_line(tmp_path):
+    # `--marker` names the marker a returned line comes back at, and here there is no line
+    # to mark: a flag accepted where it can take no effect is one the caller believes took
+    # one, which is the rule `NoCompletion` and `NoSpan` already hold.
+    from roadkeep.deferring import NoPlacement
+
+    config = paused_project(tmp_path)
+    with pytest.raises(NoPlacement) as refused:
+        resume(config, "RK1", marker=DESIGNED)
+    assert "status RK1" in str(refused.value)
+    # The ordinary path still takes it, or the refusal would be about the flag rather than
+    # about the act.
+    assert resume(config, "RK2", marker=DESIGNED).marker == DESIGNED

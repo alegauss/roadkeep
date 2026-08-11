@@ -495,6 +495,10 @@ def _resume(config: Config, args: argparse.Namespace) -> int:
                     },
                     "deferred": {"file": store, "removed": resumption.removed_from},
                     "was": resumption.was,
+                    # Which of the two acts this was (RK1083): a reconciliation removes the
+                    # store's stale copy and places nothing, so `roadmap.line` is where the
+                    # line already was rather than where one landed.
+                    "reconciled": resumption.reconciled,
                     "refreshed": list(resumption.refreshed),
                     # The half of the pause this does not undo (RK327): the entry the
                     # pause removed is the author's to put back, because where in the
@@ -507,11 +511,21 @@ def _resume(config: Config, args: argparse.Namespace) -> int:
         )
         return EXIT_OK
 
-    print(
-        f"{resumption.task_id} {resumption.marker} {roadmap}:{resumption.roadmap.lineno} "
-        f"under Block {block}"
-    )
-    print(f"  removed  {store}:{resumption.removed_from}")
+    # Two acts under one verb, said apart (RK1083). `ship` answers the same shape the same
+    # way — `RK1 closed` against `RK1 →` — because a caller holding an id should not have to
+    # know which of two states the files are in, and the *output* is where they find out.
+    if resumption.reconciled:
+        print(
+            f"{resumption.task_id} reconciled  {store}:{resumption.removed_from} removed, "
+            f"already {resumption.marker} in {roadmap}:{resumption.roadmap.lineno}"
+        )
+        print("  roadmap  untouched: the open line is what the files should say")
+    else:
+        print(
+            f"{resumption.task_id} {resumption.marker} {roadmap}:{resumption.roadmap.lineno} "
+            f"under Block {block}"
+        )
+        print(f"  removed  {store}:{resumption.removed_from}")
     if resumption.was is not None:
         # The last time the reason is visible: what comes back is a design, and the pause
         # it went through is history the commit states rather than the line.

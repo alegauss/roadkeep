@@ -117,17 +117,13 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 40 | 2 |
-| B — Authoring (insert, never hand-edit) | 1 | 127 | 1 |
+| B — Authoring (insert, never hand-edit) | 0 | 128 | 1 |
 | C — Query (consult without reading the file) | 0 | 84 | 1 |
 | D — The gate | 0 | 139 | 0 |
 | E — Adoption | 0 | 77 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 96 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 1 | 574 | 6 |
-
-**Next ready:**
-
-- 📋 **RK1083** (deps: —) **resume answers two different acts under one verb and the printer cannot tell them apart** — A reconciling call places no line and returns a Resumption whose roadmap field is the entry it left alone, so the output says returned over a write nobody made. → §RK1083
+| **Total** | 0 | 575 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

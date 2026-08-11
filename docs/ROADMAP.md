@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1083** (deps: —) **resume answers two different acts under one verb and the printer cannot tell them apart** — A reconciling call places no line and returns a Resumption whose roadmap field is the entry it left alone, so the output says returned over a write nobody made. → §RK1083
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate

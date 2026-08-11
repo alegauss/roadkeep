@@ -45,6 +45,7 @@ from roadkeep.backlog import Backlog, NotOpen, Whereabouts
 from roadkeep.config import PROSE_ROLES, Config
 from roadkeep.kernel.document import Document, save_all
 from roadkeep.markers import refresh
+from roadkeep.provenance import invocation
 from roadkeep.kernel.schema import Task
 from roadkeep.sections import declaring
 
@@ -81,6 +82,29 @@ class NoStore(ValueError):
             f"{task_id} cannot be set aside: no deferred store is declared — add "
             f'`deferred = "<path>"` under [files] and create the file with its block '
             f"headings, or retire the line if the pause is really an abandonment"
+        )
+
+
+class NoPlacement(ValueError):
+    """`--marker` on a resume that places no line (RK1083).
+
+    The reconciling path removes the store's stale copy and leaves the roadmap alone, so the
+    open marker a returned line would come back at has nothing to be about. Refused rather
+    than ignored, which is `NoCompletion`'s and `NoSpan`'s rule: a flag accepted where it
+    can take no effect is a flag the caller believes took one.
+
+    The remedy is the ordinary one — `status <id> <marker>` writes the marker of a line that
+    is already there — and it is named, because a refusal that only says no costs the reader
+    the turn this one saves.
+    """
+
+    def __init__(self, task_id: str, where: str, lineno: int) -> None:
+        self.task_id = task_id
+        super().__init__(
+            f"--marker names the marker a returned line comes back at, and this call places "
+            f"none: {task_id} is already open at {where}:{lineno} and only the store's copy "
+            f"is removed — `{invocation()} status {task_id} <marker>` writes the marker of a "
+            f"line that is already there"
         )
 
 
@@ -321,6 +345,10 @@ def resume(config: Config, task_id: str, *, marker: str | None = None) -> Resump
     backlog = Backlog.load(config)
     open_line = backlog.roadmap.by_id().get(task_id)
     if open_line is not None:
+        if marker is not None:
+            raise NoPlacement(
+                task_id, config.relative(config.path("roadmap")), open_line.lineno
+            )
         # The roadmap already says what a resume would write, so the store entry is the
         # stale half and this call removes it (RK1081). The mirror of RK1075 one file over:
         # two governed files disagreeing about one id, resolved towards the one that
@@ -339,6 +367,10 @@ def resume(config: Config, task_id: str, *, marker: str | None = None) -> Resump
             store=remaining,
             removed_from=held.lineno,
             refreshed=tuple(name for name in derived.changed if name != task_id),
+            # The line's own, because no marker was chosen here: what this call did is
+            # remove a copy, and reporting a marker it did not write would be the
+            # placement the sentence above refuses to claim.
+            marker=open_line.task.status,
             reconciled=True,
         )
 

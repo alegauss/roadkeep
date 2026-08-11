@@ -77,29 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1083 One verb, two acts, one sentence
-
-RK1081 widened `resume` to take an id both files carry: the roadmap already says the
-work is open, so the store's copy is removed and no line is placed. The transaction is
-right and the report is not quite. `Resumption.roadmap` is an `Insertion` either way,
-and on the reconciling path it wraps the entry that was already there — so the verb's
-output describes a placement that did not happen.
-
-`reconciled` was added for the printer to read and the printer does not read it yet.
-That is the narrow half: one branch in `verbs/deferring.py`, saying *the store's copy is
-gone and the line is where it was* rather than *returned to Block A at line 5*.
-
-The wider half is whether one verb should carry both. `ship` faced this and answered by
-name: a closure and a departure are the same verb because both leave the line, and the
-output distinguishes them (`RK1 closed` against `RK1 →`). `resume` can do the same, and
-the argument for keeping one verb is the same too — a caller who has an id and wants it
-open should not have to know which of two states the files are in.
-
-Worth checking `--marker` while there: it names the open marker a returned line comes
-back at, and on the reconciling path there is no line to mark. Passed there it is a flag
-that takes no effect, which is the thing `NoSpan` and `NoCompletion` both exist to
-refuse.
-
 ## Block C — Query
 
 ## Block D — The gate
