@@ -168,6 +168,7 @@
 - ✅ **RK1049** **record amend parses a multi-line entry and cannot write one back, so correcting one collapses it** — --lines above one now lets --why carry the whole span: the first line is the sentence, the rest is written back verbatim and checked by re-parsing rather than collapsed.
 - ✅ **RK1051** **an id other entries cite can never be given the entry it is missing** — record add --id now refuses only an id a line carries and reports the sentence that names one, so an id cited but never recorded can be given the entry it lacks.
 - ✅ **RK1052** **record amend walks every entry for the reversal clause and prints none** — The clause is read off the ledger before the write that can remove the mark, and printed with the corrected entry, so the amend and the listing state one fact again.
+- ✅ **RK1053** **two ledger writes still delete the continuation lines RK1049 taught one to keep** — The completion writes the span back when --lines authorises it, and the --supersedes pointer takes the first line alone, so neither deletes a paragraph the parse never held.
 
 ## Block C — Query
 

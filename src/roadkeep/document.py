@@ -430,9 +430,18 @@ def counted(
 
     Beside the write it guards rather than inside any one caller, because the invariant is
     that method's — *no caller reaches it without having said how many lines the write
-    replaces* — and three doors now do: `record amend` (RK179), the `ship` that completes a
+    replaces* — and three doors do: `record amend` (RK179), the `ship` that completes a
     partial (RK193), and the roadmap's own `amend` and `restate` (RK195). A rule restated
     once per caller is a rule the fourth caller does not get.
+
+    What the count authorises is no longer one thing, and the split is worth naming (RK1053).
+    On the **ledger** it opens the span in both directions: the two doors there may write the
+    tail back rather than only delete it, so the caller who says they read three lines may
+    return three. On the **roadmap** it can only collapse — no multi-line task line is a
+    non-goal, so a wrapped line there is a hand-written note the format is asserting over,
+    and that deletion is the whole reason the count is asked for. The fourth caller this
+    guarded, the `--supersedes` forward pointer, no longer reaches it at all: that write
+    turned out to need only the first line.
 
     A count that matches is silence.
     """

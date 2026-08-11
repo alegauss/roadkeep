@@ -821,7 +821,9 @@ def build_parser() -> argparse.ArgumentParser:
         help=(
             "the outcome this shipped — required where an entry is written, because the "
             "roadmap's sentence states a problem and is not inherited; refused where the "
-            "ledger already holds the id and this call only closes the line" + _PIPE
+            "ledger already holds the id and this call only closes the line. Completing a "
+            "wrapped partial with --lines above one, it is the whole span: the first line "
+            "is the outcome and the rest is written back as the tail" + _PIPE
         ),
     )
     ship_parser.add_argument(
@@ -836,7 +838,8 @@ def build_parser() -> argparse.ArgumentParser:
         type=int,
         help=(
             "how many lines the completion replaces; required where the partial entry it "
-            "completes wraps, and refused where this call replaces no entry"
+            "completes wraps, and refused where this call replaces no entry — above one it "
+            "is also what lets --why carry that span back instead of collapsing it"
         ),
     )
     ship_parser.add_argument(
@@ -908,8 +911,9 @@ def build_parser() -> argparse.ArgumentParser:
         "--lines",
         type=int,
         help=(
-            "how many lines the --supersedes entry occupies, for a hand-written ledger "
-            "whose bullet wraps: the pointer is appended over the whole span"
+            "refused: the --supersedes pointer is appended to the sentence on the entry's "
+            "first line and replaces no span, so a wrapped bullet needs no count and keeps "
+            "the lines under it"
         ),
     )
     record_add.add_argument(

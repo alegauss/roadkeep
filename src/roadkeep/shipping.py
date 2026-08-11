@@ -631,6 +631,29 @@ class NoCompletion(ValueError):
         )
 
 
+class NoSpan(ValueError):
+    """`--lines` on the `--supersedes` pointer, which no longer replaces a span (RK1053).
+
+    :class:`NoCompletion`'s shape one write over, and refused for its reason rather than
+    ignored: a count accepted where nothing is deleted is a flag the caller believes took
+    effect. What changed is the write beneath it. The forward pointer is appended to the
+    `why`, which is the text of the entry's **first** line, so re-rendering that line
+    reproduces every field the task holds — and the span the count used to authorise was
+    prose the parse never held, deleted by a call that asked to add a pointer.
+
+    So the flag is not merely unnecessary here, it is a claim about a deletion that cannot
+    happen, and the refusal says so rather than leaving a caller to assume it mattered.
+    """
+
+    def __init__(self, task_id: str, where: str) -> None:
+        self.task_id = task_id
+        super().__init__(
+            f"--lines says how many lines a write replaces, and the forward pointer onto "
+            f"{task_id} replaces none: it is appended to the sentence on that entry's "
+            f"first line at {where}, and the lines under it are left where they are"
+        )
+
+
 class NoSuchReplacement(KeyError):
     """A forward pointer to an id no file holds, or to the retiring line itself (RK32).
 
@@ -1589,11 +1612,15 @@ def _supersede(
     two ways (RK8's split, and `retire --superseded-by`'s exactly).
 
     Its refusals are that verb's, for the same reasons: an id the ledger does not carry has no
-    sentence to append to, an id it carries **twice** leaves which entry unanswerable by any
-    file, and an entry that **wraps** is rewritten over its whole span — so a hand-written
-    ledger costs a `--lines` saying how many, or the write deletes text the parse never held
-    (RK179). Nothing is written by this function; the caller places the new entry into what it
+    sentence to append to, and an id it carries **twice** leaves which entry unanswerable by
+    any file. Nothing is written by this function; the caller places the new entry into what it
     returns, so the two edits reach disk together or neither does.
+
+    A **wrapped** entry costs nothing here, and used to cost a `--lines` (RK179, RK1053). The
+    clause is appended to the `why`, which is the text of the first line, so that line alone
+    reproduces every field this task holds — and rewriting the span was authorising a deletion
+    the write does not need, in a call that asked to change no word of somebody's paragraph.
+    The count is therefore refused rather than accepted-and-ignored: see :class:`NoSpan`.
     """
     # No self-pointer check: the replacement is derived, or `refuse_reuse` refused an id any
     # file already mentions, so an entry naming itself is a state neither door can reach.
@@ -1607,12 +1634,18 @@ def _supersede(
         raise Ambiguous(task_id, where, tuple(entry.lineno for entry in twins))
 
     entry = twins[0]
-    counted(task_id, where, entry, lines, verb="pointing it forward")
+    if lines is not None:
+        raise NoSpan(task_id, where)
     wanted = replace(
         entry.task,
         why=_parenthesised(entry.task.why, _SUPERSEDED.format(replacement=replacement)),
     )
-    return ledger.rewrite_entry(entry, ledger.schema.check(wanted))
+    # `replace_task` and not `rewrite_entry` (RK1053): the clause is appended to the `why`,
+    # which is the text of the **first** line, so re-rendering that line alone reproduces
+    # every field this task holds and the continuation beneath it is not this write's to
+    # touch. Rewriting the span was the wider call — a caller who asked to add a pointer,
+    # losing an entry's paragraphs, on the file whose purpose is that history survives.
+    return ledger.replace_task(entry, ledger.schema.check(wanted))
 
 
 def _partial(
@@ -1740,6 +1773,12 @@ def _depart(
         # `retire` always arrives with a derived sentence, so this is the ship path alone.
         raise NoOutcome(task_id, entry.task.why)
 
+    # Split before `--superseded-design` is appended and before anything else reads the
+    # field (RK1053): the clause belongs at the end of the *sentence*, and appending it to
+    # a `why` that carries the whole span would land it under the last paragraph. Guarded
+    # by `completing`, so the count cannot open the span on a path that places a new line.
+    why, below = _unwrapped(why, lines if completing is not None else None)
+
     if superseded is not None:
         # Derived up to the address and prose from there on, the split every field this tool
         # fills in takes (RK8, RK310): the anchor is the pointer the line is losing, which is
@@ -1758,7 +1797,7 @@ def _depart(
 
     recorded = _as_recorded(entry.task, marker, why)
     if completing is not None:
-    # The same write `record amend` makes, so the same count (RK193). A completion drops
+        # The same write `record amend` makes, so the same count (RK193). A completion drops
         # the qualifier *and states a different outcome*, and a wrapped entry's `why` is only
         # as much of the sentence as fits on line one — so rewriting that line alone leaves
         # the half's old tail under a sentence claiming the whole delivery, which is the
@@ -1766,8 +1805,17 @@ def _depart(
         # `ship` and not a detour through `record amend` because the caller asked to finish
         # work, not to fix a word; what it may never be is absent, `rewrite_entry` deleting
         # prose no field of this task holds.
+        #
+        # And the same tail, for the same reason (RK1053): the count says the caller read
+        # the span, so `--why` may write it back rather than only collapse it. Otherwise
+        # finishing the majority-shape partial is what deletes the paragraphs under it.
         counted(task_id, where, completing, lines, verb="completing it")
-        replaced = ledger.rewrite_entry(completing, recorded)
+        # Checked here, where `place` checks it on every other path (L1): this branch
+        # rewrites an entry instead of placing one and was the one call that reached disk
+        # unvalidated — a `why` carrying a newline landed as a two-line entry whose second
+        # line no field held. Found writing the tail above, which is what made it matter:
+        # the split is authorised by `--lines`, and without this the first line is not.
+        replaced = ledger.rewrite_entry(completing, ledger.schema.check(recorded), below)
         insertion = Insertion(document=replaced, entry=replaced.by_id()[task_id])
     else:
         insertion = place(ledger, recorded, role="changelog", config=config)

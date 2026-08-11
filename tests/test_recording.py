@@ -46,6 +46,7 @@ from roadkeep.schema import RETIRED, SHIPPED, SchemaError
 from roadkeep.shipping import (
     Ambiguous,
     NoQualifier,
+    NoSpan,
     NoSuchEntry,
     NotDuplicated,
     NotRecorded,
@@ -1279,6 +1280,59 @@ def test_the_clause_sits_inside_the_terminator(tmp_path):
     ).save()
 
     assert [f.code for f in lint(Config.discover(tmp_path)).findings] == []
+
+
+#: The same shape one file over: the entry the pointer lands on wraps, and RK8 beneath it
+#: is the neighbour a span that overran would take.
+WRAPPED_TARGET = """# Shipped
+
+## Block A — The model
+
+- ✅ **RK9** **A configuration change was read as an accident** — The reader takes the declared value,
+  which the deployment notes of the following week
+  explain at length.
+- ✅ **RK8** **An eighth symptom** — Because of another.
+
+## Block B — Authoring
+"""
+
+
+def test_the_pointer_lands_on_the_first_line_and_leaves_the_tail_alone(tmp_path):
+    # RK1053: this used to rewrite the whole span, so adding a derived pointer deleted two
+    # paragraphs of somebody's history — by a call that asked to change no word of it.
+    config = project(tmp_path, ledger=WRAPPED_TARGET, rules=UNGOVERNED_LEDGER)
+    record(
+        config,
+        block="A",
+        symptom="The change RK9 made was deliberate and the revert removed it",
+        why="The declared value is honoured again and that reading is withdrawn.",
+        supersedes="RK9",
+    ).save()
+
+    body = read(tmp_path, "CHANGELOG.md").splitlines()
+    assert "(superseded by RK10)" in body[4]
+    # The two lines no field of that task holds, exactly where their author left them.
+    assert body[5] == "  which the deployment notes of the following week"
+    assert body[6] == "  explain at length."
+    assert body[7] == "- ✅ **RK8** **An eighth symptom** — Because of another."
+
+
+def test_the_count_is_refused_because_the_pointer_replaces_no_span(tmp_path):
+    # A flag accepted where nothing is deleted is a flag the caller believes took effect,
+    # so the write getting narrower is said out loud rather than left to be assumed.
+    config = project(tmp_path, ledger=WRAPPED_TARGET, rules=UNGOVERNED_LEDGER)
+    was = read(tmp_path, "CHANGELOG.md")
+    with pytest.raises(NoSpan) as raised:
+        record(
+            config,
+            block="A",
+            symptom="A revert carrying a count nothing needs",
+            why="Because the pointer is appended to the first line.",
+            supersedes="RK9",
+            lines=3,
+        )
+    assert "replaces none" in str(raised.value)
+    assert read(tmp_path, "CHANGELOG.md") == was
 
 
 def test_an_id_the_ledger_does_not_carry_is_refused_and_nothing_lands(tmp_path):

@@ -77,30 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1053 One door learned to keep the tail and two did not
-
-RK1049 gave `record amend` a way to write a wrapped entry back. `counted` guards three
-callers of `rewrite_entry`, and the other two still collapse the span:
-
-* **`ship <id> --lines N`** completing a partial (RK193). The comment there says the
-  count is a flag on `ship` because *the caller asked to finish work, not to fix a word*
-  — and finishing it deletes the paragraphs under the bullet. Measured on Shio, 10 of 12
-  partials wrap, so this is the majority shape rather than an edge.
-* **`record add --supersedes <id> --lines N`** (RK395), which is worse in kind. That
-  write appends a derived forward pointer to the earlier entry's sentence; the caller
-  never asked to change a word of it, and the tail goes anyway. It may not even need the
-  span: the pointer lands at the end of the `why`, which is the first line's text, so
-  `replace_task` renders it correctly and leaves the continuation alone.
-
-The roadmap's two callers, `amend` and `restate`, are deliberately **not** in scope: no
-multi-line task line is a non-goal, so collapsing there is the format asserting itself.
-
-Both fixes are small now that the writer takes a tail. `ship` needs `--why` to carry the
-span the way `record amend` does; `--supersedes` needs the narrower call, and then its
-own `--lines` becomes the refusal it no longer has to make. Worth deciding whether
-`counted`'s docstring should name which of its callers may collapse, since the invariant
-it states is now three different ones.
-
 ## Block C — Query
 
 ## Block D — The gate

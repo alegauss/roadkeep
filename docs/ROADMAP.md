@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1053** (deps: —) **two ledger writes still delete the continuation lines RK1049 taught one to keep** — ship completing a wrapped partial and the --supersedes pointer append both rewrite the whole span, so history goes to a call that asked to finish work or to add a pointer. → §RK1053
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate

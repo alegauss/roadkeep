@@ -1239,6 +1239,38 @@ def test_the_count_replaces_the_span_and_stops_at_the_next_entry(tmp_path):
     assert lint(Config.discover(tmp_path)).clean
 
 
+def test_the_completion_can_write_the_span_back_instead_of_collapsing_it(tmp_path):
+    # RK1053: the count says the caller read the span, so `--why` may carry it. Without
+    # this, finishing the majority-shape partial deleted the paragraphs under the bullet —
+    # the RK1049 defect at the door that says the work is done.
+    config = project(tmp_path, roadmap=PARTLY, changelog=WRAPPED_PARTIAL)
+    ship(
+        config,
+        "RK1",
+        why="All of it landed.\n  The remote end took a second protocol,\n  which is what the note below records.",
+        lines=3,
+    ).save()
+
+    ledger = files(config)[1].splitlines()
+    assert ledger[4] == "- ✅ **RK1** **A first symptom** — All of it landed."
+    assert ledger[5] == "  The remote end took a second protocol,"
+    assert ledger[6] == "  which is what the note below records."
+    # The neighbour is still one line past the span, and the qualifier is still gone.
+    assert ledger[7] == "- ✅ **RK9** **A ninth symptom** — Because of another."
+    assert "local half" not in files(config)[1]
+    assert lint(Config.discover(tmp_path)).clean
+
+
+def test_a_completion_with_no_count_still_refuses_a_newline(tmp_path):
+    # The door is the count, here as at `record amend`: on a governed ledger a newline in
+    # the outcome is a shell that expanded something, and the refusal names it.
+    config = project(tmp_path)
+    ship(config, "RK1", part="local half", why="Because of a reason.").save()
+    with pytest.raises(SchemaError) as caught:
+        ship(Config.discover(tmp_path), "RK1", why="It landed.\nAnd this was never typed.")
+    assert any(v.code == "why.newline" for v in caught.value.violations)
+
+
 def test_a_count_that_is_not_the_span_is_refused_rather_than_trusted(tmp_path):
     # An off-by-one here is the neighbour's entry, so the number is checked and not taken.
     config = project(tmp_path, roadmap=PARTLY, changelog=WRAPPED_PARTIAL)
