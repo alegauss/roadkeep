@@ -866,8 +866,12 @@ class Closure:
     """
 
     task_id: str
-    #: The roadmap as this write leaves it: without the line, dependents re-annotated.
-    roadmap: Document
+    #: The file this write leaves behind: without the line, dependents re-annotated. Named
+    #: for what it *is* rather than for the role it happens to be (RK1088), because the role
+    #: is the field below and a pair that can disagree is a pair that will: `Resumption` had
+    #: exactly this shape until RK1086, where a document called `roadmap` was the answer for
+    #: an act that touched the store.
+    remaining: Document
     removed_from: int
     #: The ledger entry that already existed, and its marker — ✅ or 🗑, because a reader has
     #: to know which door this id went through before its line was left behind.
@@ -921,9 +925,9 @@ class Closure:
         the rule reads as a release either way. Last and never a condition of the writes, for
         the reason its sibling states.
         """
-        written = save_all(self.roadmap, self.prose)
+        written = save_all(self.remaining, self.prose)
         if self.root is not None:
-            claiming.follow(self.root, self.task_id, self.marker, self.roadmap.entries)
+            claiming.follow(self.root, self.task_id, self.marker, self.remaining.entries)
         return _spelled(self.root, written)
 
 
@@ -2033,7 +2037,7 @@ def _close(config: Config, task_id: str, recorded: Entry) -> Closure:
     )
     return Closure(
         task_id=task_id,
-        roadmap=derived.document,
+        remaining=derived.document,
         removed_from=entry.lineno,
         recorded=recorded,
         prose=prose,

@@ -199,13 +199,21 @@ def _closed(
     """A roadmap line closed against an entry the ledger already had (RK62)."""
     roadmap = config.relative(config.path("roadmap"))
     ledger = config.relative(config.path("changelog"))
-    event = _event(closure.task_id, closure.recorded.task.block, closure.roadmap, config)
+    event = _event(closure.task_id, closure.recorded.task.block, closure.remaining, config)
     if args.json:
         print(
             json.dumps(
                 {
                     "id": closure.task_id,
-                    "closed": {"file": roadmap, "removed": closure.removed_from},
+                    # The file the line actually came out of (RK1088), read off the
+                    # closure rather than assumed to be the roadmap: the act is the same
+                    # against a different pair, and a payload that named one file by having
+                    # only one to name is one a second act would quietly make wrong.
+                    "closed": {
+                        "file": config.relative(config.path(closure.removed_in)),
+                        "role": closure.removed_in,
+                        "removed": closure.removed_from,
+                    },
                     "recorded": {
                         "file": ledger,
                         "line": closure.recorded.lineno,
@@ -233,7 +241,8 @@ def _closed(
         return EXIT_OK
 
     print(
-        f"{closure.task_id} closed  {roadmap}:{closure.removed_from} removed, "
+        f"{closure.task_id} closed  "
+        f"{config.relative(config.path(closure.removed_in))}:{closure.removed_from} removed, "
         f"already {closure.marker} in {ledger}:{closure.recorded.lineno}"
     )
     print("  ledger   untouched: the entry was already there")

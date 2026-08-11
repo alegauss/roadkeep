@@ -185,6 +185,7 @@
 - ✅ **RK1080** **the gate and the verb decide a live partial in two places that only agree by hand** — Task.in_halves is the one predicate both the gate and the verb read, on the record that carries the qualifier, so the next narrowing is one edit rather than two that agree by hand.
 - ✅ **RK1083** **resume answers two different acts under one verb and the printer cannot tell them apart** — A reconciling resume prints reconciled and says the roadmap was untouched, carries the line's own marker, and refuses a --marker that could mark nothing.
 - ✅ **RK1086** **Resumption models a placement so a resume that places nothing has to fake one** — Resumption carries the document and the line it placed or None, and Closure names the file it removed from, so an act that writes no line is expressible rather than faked.
+- ✅ **RK1088** **the closure names the file it removed from and no caller reads it** — The closure's document is named for what it is and the printer and payload read removed_in, so the file a closure wrote is answered rather than assumed to be the roadmap.
 
 ## Block C — Query
 

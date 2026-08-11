@@ -77,29 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1088 A field added for the next task and used by none
-
-`Closure.removed_in` says which file the line came out of, and every `Closure` this
-package builds leaves it at `"roadmap"`. It was added because RK1084 found the act it
-exists for — an id the ledger records and the deferred store still carries, where the
-same closure would remove the store's line — and that verb was not written, on the
-measurement that no adopting corpus can reach the state.
-
-So the field is right and unexercised, which is a state worth naming rather than leaving
-to read as an oversight. A default nothing varies is indistinguishable from a constant
-somebody forgot to remove, and the printer does not mention it: `RK1 closed  R.md:5
-removed` names the file by having only one to name.
-
-Two ways to finish it, and they are not the same size. The small one is the printer and
-the payload reading the field, so a closure says which file it wrote whether or not
-there is a second — which costs nothing and makes the next act's output already correct.
-The large one is the act itself, which RK1084 declined for a reason that still holds.
-
-Worth pairing with a check that the field is not a lie: `removed_in` and the document a
-closure carries have to agree, and today the type system says nothing about it because
-there is one document field and one role name beside it. That is the same shape RK1086
-removed from `Resumption` and left here.
-
 ## Block C — Query
 
 ## Block D — The gate

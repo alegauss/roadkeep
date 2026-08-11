@@ -297,3 +297,27 @@ def test_the_state_the_table_was_written_from_is_gone_afterwards(tmp_path):
     assert not lint(Config.discover(root)).clean
     assert main(["-C", str(root), "ship", "RK1"]) == EXIT_OK
     assert lint(Config.discover(root)).clean
+
+
+def test_a_closure_names_the_file_it_removed_from(tmp_path, capsys):
+    """RK1088. `removed_in` was added by RK1086 so the store leftover becomes writable, and
+    every construction left it at its default while the printer named the roadmap by having
+    only one file to name — a default nothing varies reads as a constant somebody forgot.
+
+    Read now, so the next act's output is already correct rather than quietly wrong.
+    """
+    import json
+
+    from roadkeep.shipping import Closure
+
+    root = built(tmp_path, next(d for d in DOORS if d.marker == SHIPPED and d.recorded == WHOLE))
+    assert main(["-C", str(root), "ship", "RK1", "--json"]) == EXIT_OK
+    closed = json.loads(capsys.readouterr().out)["closed"]
+    # The role beside the path, because a consumer acting on it wants the name the config
+    # uses and a reader wants the file — and deriving one from the other is a second table.
+    assert closed["role"] == "roadmap" and closed["file"] == "R.md"
+
+    # And the field is the printer's only source, so a closure over another pair says so
+    # without another edit here.
+    assert "removed_in" in Closure.__dataclass_fields__
+    assert "remaining" in Closure.__dataclass_fields__, "the document is named for the role"

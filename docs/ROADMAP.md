@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1088** (deps: —) **the closure names the file it removed from and no caller reads it** — RK1086 added removed_in so the store leftover becomes writable, and the field is a constant every construction leaves at its default, which reads as a rule nothing holds. → §RK1088
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
