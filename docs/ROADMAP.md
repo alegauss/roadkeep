@@ -26,7 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1023** (deps: —) **the --why - stdin escape hatch is unusable on PowerShell, which prefixes a BOM the char.invisible check rejects** — Stdin is the escape hatch for a field a shell would mangle, and the refusal names stdin as the remedy for the byte stdin itself added. → §RK1023
 - 📋 **RK1024** (deps: —) **add accepts a subsection that lint then fails, because the parent section's total is not checked at insert** — add promises nothing is written unless every field passes, and the section it accepted put the parent 277 words over - discovered by lint, after the prose existed. → §RK1024
 
 ## Block C — Query (consult without reading the file)

@@ -28,6 +28,10 @@ Four properties, and one boundary:
 * **Escaped, not fatal** — a lone surrogate reaching stdout is `\\udcff` and exit 0. The
   control run reproduces the field's exact message, so the assertion is about the `errors=`
   choice rather than about a message being absent.
+* **In, less what the encoder added** — PowerShell opens a pipe with U+FEFF, so the field
+  the escape hatch exists to carry arrived refused as `char.invisible`, on the one shell
+  that most needs it (RK1023). One mark, at position 1; the same codepoint anywhere else in
+  the sentence is still prose no keyboard produces, and is still refused.
 * **The boundary is not closed** — the hardening is `main`'s, so interpreter startup and
   every import still print through whatever the environment declared. The last test states
   that as a fact rather than leaving it to be assumed either way.
@@ -355,3 +359,104 @@ def test_a_used_stream_keeping_another_codec_is_the_one_that_is_refused(monkeypa
     stream = io.TextIOWrapper(io.BytesIO("prose".encode("cp1252")), encoding="cp1252")
     stream.read(1)
     assert _force_utf8(stream, errors="strict") is False
+
+
+# -- the mark the encoder opened the stream with (RK1023) ---------------------
+
+
+#: What Windows PowerShell 5.1 puts on the wire ahead of a piped string: `$OutputEncoding`'s
+#: UTF-8 encoder writes its preamble, and a native command reads it as the first character.
+PREAMBLE = "﻿".encode()
+
+
+def test_a_field_piped_behind_a_byte_order_mark_is_the_sentence_and_not_a_refusal(tmp_path):
+    """The escape hatch, on the shell that needs it most.
+
+    `--why -` exists because a shell eats an apostrophe or a backtick; PowerShell is the one
+    that does, and it is also the one that opens the pipe with U+FEFF. Before this the field
+    came back refused as `char.invisible` — correct about the codepoint, wrong about who
+    wrote it, and naming stdin as the remedy for a byte stdin had just added.
+    """
+    root = project(tmp_path)
+    done = cli(
+        root,
+        "add",
+        "--block",
+        "A",
+        "--symptom",
+        "A second symptom",
+        "--why",
+        "-",
+        stdin=PREAMBLE + "Because the shell's own encoder wrote a byte the author did not.".encode(),
+    )
+    assert done.returncode == EXIT_OK, done.stderr
+    written = (root / "ROADMAP.md").read_bytes()
+    assert b"Because the shell's own encoder" in written
+    assert PREAMBLE not in written
+
+
+def test_a_body_piped_behind_a_byte_order_mark_lands_without_it(tmp_path):
+    """The other reader, and the one a caller reaches first: a paragraph is the field
+    somebody pipes before they ever pipe a sentence."""
+    root = project(tmp_path)
+    done = cli(
+        root,
+        "add",
+        "--block",
+        "A",
+        "--symptom",
+        "A third symptom",
+        "--why",
+        "Because of another reason.",
+        "--section",
+        "RK2",
+        "--section-body",
+        "-",
+        stdin=PREAMBLE + "A rationale whose first byte belongs to the encoder.".encode(),
+    )
+    assert done.returncode == EXIT_OK, done.stderr
+    written = (root / "IMPROVEMENTS.md").read_bytes()
+    assert b"A rationale whose first byte" in written
+    assert PREAMBLE not in written
+
+
+def test_the_same_codepoint_inside_the_sentence_is_still_refused(tmp_path):
+    """The half that must not move. A mark at position 1 is a byte order mark doing its job;
+    the same codepoint further in is prose no keyboard produces, and it round-trips into a
+    governed file invisibly. One `removeprefix` and not `utf-8-sig` is exactly this line."""
+    root = project(tmp_path)
+    before = (root / "ROADMAP.md").read_bytes()
+    done = cli(
+        root,
+        "add",
+        "--block",
+        "A",
+        "--symptom",
+        "A fourth symptom",
+        "--why",
+        "-",
+        stdin="Because a mark ﻿ landed where no encoder would have put one.".encode(),
+    )
+    assert done.returncode == EXIT_USAGE
+    assert b"char.invisible" in done.stderr
+    assert (root / "ROADMAP.md").read_bytes() == before
+
+
+def test_only_one_mark_comes_off(tmp_path):
+    """Two is one the encoder wrote and one somebody pasted, and the second is still prose.
+    Held because `lstrip` and `removeprefix` differ only here, and the difference is a field
+    silently losing a character it was meant to be refused for."""
+    root = project(tmp_path)
+    done = cli(
+        root,
+        "add",
+        "--block",
+        "A",
+        "--symptom",
+        "A fifth symptom",
+        "--why",
+        "-",
+        stdin=PREAMBLE * 2 + "Because the second one is not the encoder's.".encode(),
+    )
+    assert done.returncode == EXIT_USAGE
+    assert b"char.invisible" in done.stderr

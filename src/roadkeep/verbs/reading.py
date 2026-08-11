@@ -38,6 +38,30 @@ STDIN = "-"
 #: space stays the author's and stays refused.
 _TRAILING_NEWLINES = re.compile(r"[\r\n]+\Z")
 
+#: The byte order mark an encoder writes ahead of the stream, which nobody typed (RK1023).
+_BOM = "﻿"
+
+
+def _unmarked(text: str) -> str:
+    """A stream's first character, less the mark its encoder opened with (RK1023).
+
+    Windows PowerShell 5.1 pipes to a native command through `$OutputEncoding`, whose UTF-8
+    encoder emits a preamble — so the first character this tool reads is U+FEFF, and
+    `char.invisible` refuses the field. The refusal is correct about the codepoint and wrong
+    about who wrote it, and it then names *stdin* as the remedy for a byte stdin added:
+    the author is told to take the route they already took, and nothing in their command
+    names the encoding that put it there. `$OutputEncoding = UTF8Encoding.new($false)` does
+    not help either, which is what makes this the reader's to fix.
+
+    **One, and only at position 1.** A mark there is a byte order mark doing its job; the
+    same codepoint anywhere else in the sentence is prose that no keyboard produces, and the
+    scan that refuses it is untouched. `str.removeprefix` is that distinction exactly, and
+    the reason this is not `utf-8-sig`: a codec would eat one wherever a read began, and the
+    governed files are read by `Document`, where a stripped byte is a file that stopped
+    round-tripping (L3).
+    """
+    return text.removeprefix(_BOM)
+
 
 def _piped(value: str | None) -> str | None:
     """A prose argument, read off stdin where it spells `-` (RK329).
@@ -67,7 +91,9 @@ def _piped(value: str | None) -> str | None:
     if value != STDIN:
         return value
     _refuse_unhardened()
-    return _TRAILING_NEWLINES.sub("", sys.stdin.read())
+    # Both ends of the stream belong to the encoder and not to the author (RK1023): the
+    # terminator it closed with, and the mark it opened with.
+    return _TRAILING_NEWLINES.sub("", _unmarked(sys.stdin.read()))
 
 
 def _body_reader(literal: str | None, path: str | None) -> Callable[[], str]:
@@ -93,7 +119,9 @@ def _body_reader(literal: str | None, path: str | None) -> Callable[[], str]:
     if literal is not None and literal != STDIN:
         return Rereadable(lambda: literal)
     _refuse_unhardened()
-    return sys.stdin.read
+    # The same preamble reaches a body, and by a shorter route: a paragraph is the field a
+    # caller pipes first, so the escape hatch fails here before it fails on a `why` (RK1023).
+    return lambda: _unmarked(sys.stdin.read())
 
 
 def _refuse_unhardened() -> None:

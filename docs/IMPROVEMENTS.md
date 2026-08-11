@@ -77,36 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1023 Stdin, the escape hatch a shell cannot reach
-
-A `why` containing a double quote cannot be passed inline from Windows PowerShell — the
-quotes reach argparse and the tail of the sentence comes back as `unrecognized
-arguments`. The documented way out is in `add --help` itself:
-
-> `--why WHY  one sentence, ending in a stop; '-' reads stdin, which is how an apostrophe or a
-> backtick survives a shell`
-
-On Windows PowerShell 5.1 that route is closed. Piping to a native command encodes
-through `$OutputEncoding`, and the encoder emits a UTF-8 preamble, so the first
-character roadkeep reads is U+FEFF. It then refuses:
-
-> `U+FEFF ZERO WIDTH NO-BREAK SPACE at position 1: invisible in an editor … pass the field on stdin
-> with -, where nothing rewrites it`
-
-The remedy the refusal names is the route the author already took. Setting
-`$OutputEncoding` to a `UTF8Encoding` constructed with `$false` does not help; the
-preamble still lands.
-
-**The fix** is one line at the read: strip a single leading U+FEFF from a field read on
-stdin. A BOM at position 1 of a stream is a byte-order mark doing its job, not prose —
-it is only content once it is somewhere else in the string, and there the existing check
-still catches it.
-
-**Why the reader and not the author.** Stdin exists so a shell cannot corrupt a field. A
-stdin path that a mainstream shell cannot feed correctly is not an escape hatch, and the
-author cannot fix it from where they are standing: nothing in their command names the
-encoding that added the byte.
-
 ### §RK1024 The budget the insert did not check
 
 `add` opens its own help with the promise that nothing is written unless every field
