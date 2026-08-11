@@ -28,7 +28,11 @@
 
 ## Block C — Query (consult without reading the file)
 
+- 📋 **RK1085** (deps: —) **the pairwise loop reads a role's whole document per pair and lint already holds both** — _carried calls config.document for each pair and the caller has the roadmap in hand, so a fourth carrier is a fourth read of a file the run parsed a moment earlier. → §RK1085
+
 ## Block D — The gate
+
+- 📋 **RK1084** (deps: —) **the pair the declaration says nobody has walked into is reachable and still unread** — A crash between a departure's two writes leaves an id the changelog records and the store still carries, and PAIRS names it with no code because the repair is not resume. → §RK1084
 
 ## Block E — Adoption
 

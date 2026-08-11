@@ -79,7 +79,53 @@ already written, not authorship.
 
 ## Block C — Query
 
+### §RK1085 A read per pair over documents the run already holds
+
+`_carried` walks `PAIRS` and calls `config.document(pair.second)` inside the loop. Today
+that is one extra read — the ledger is already loaded and passed in, the store is not —
+and with a fourth carrier it is two. The parse itself is cached by bytes (`_parsed`), so
+the cost is small and the shape is the argument: a check that reaches for a file the run
+has already opened is one that will reach for the next one too.
+
+`lint` loads the governed documents at the top of `_examine` and hands them down;
+`_carried` takes `roadmap` that way and then goes back to the config for its partner.
+`Backlog.load` is the reader that already holds all three, and it is what `_deps` and
+`_queued` are given. So the seam exists and this check is on the other side of it.
+
+Worth doing with RK1084 rather than before it: that task adds the third pair, which is
+the first time the loop reads two partners rather than one, and a refactor of a
+one-iteration loop is a refactor nobody can measure. Together it is one edit with a
+number on it.
+
+What not to do is thread a fourth argument. The signature already takes `config` and a
+document; the shape that scales is the one `_deps` has — a `Backlog` in, roles read off
+it — and that is a change to what the function is handed rather than to how many things
+it is.
+
 ## Block D — The gate
+
+### §RK1084 The third pair, named and not read
+
+`referring.PAIRS` declares three pairs of governed files that can hold a line for one id
+and the gate reads two. The third — changelog against the deferred store — carries a
+`because` instead of a code, and the honest reason is that nobody has met it: RK118
+orders a departure's writes so the ledger goes first, and a crash between them leaves
+exactly this.
+
+What stopped RK1082 from writing the rule is that the repair is not obvious. `resume`
+places an open line, and placing one for work the ledger records as gone is the
+contradiction again with the files swapped. Removing the store entry silently is a write
+no verb makes, and one that deletes the only record that the work was ever paused.
+
+Two candidates, and picking is the task. `record drop`-shaped: a verb that removes the
+store's copy and says what it removed, which gives the finding a door. Or
+`retire`-shaped: the store entry becomes a departure of its own, on the argument that a
+pause ending in a shipment is history the store should not keep.
+
+The measurement that would decide it is whether an adopting corpus has this state. Shio
+and Turing both declare a store; a count there is one command and turns a design
+argument into a reading. RK1077's point is that a state found by enumeration is cheaper
+than one found by the project that reaches it, and this is where that pays off.
 
 ## Block E — Adoption
 
