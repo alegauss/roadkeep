@@ -81,32 +81,66 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK1097 The larger half, held per tool and not in total
+### §RK1098 An empty backlog is a state, not a broken build
 
-`budget --session` puts the two figures beside each other for the first time: **50,673
-characters once** and 8,782 bytes each turn. RK1059 gave the served surface a ceiling
-and made it per tool — 2,600 each — on the argument that a total names nothing, because
-it fails on whichever tool is added last.
+Shipping RK1097 emptied Block D, and two tests went red: `test_editor` read no block at
+all and `test_payloads` produced no tasks. Neither is about the code that shipped — both
+read `docs/` as the conformance fixture (which is the arrangement this repo chose on
+purpose) and assume it carries at least one open line.
 
-That argument was right about *which* tool to blame and silent about the sum. Fifty-two
-tools under 2,600 each is a ceiling of 135,200, and the real figure is a third of that
-by nobody's decision. So the surface has a rule that catches one description growing and
-no rule that catches the list growing — and every task this session that added a verb or
-a flag spent against a number nothing holds.
+That assumption is exactly the state `ship` announces as normal: it prints `block drop`
+when a block loses its last line, and a backlog with nothing open is what a finished
+project looks like. So the suite reports "broken" for the one outcome the tool is built
+to reach.
 
-The counter-argument stands and is worth restating: a total refuses the tool added last,
-which is the one that had least to do with the size. But `[budgets]` faces the same
-objection about a paragraph and answers it by making the number a declaration somebody
-re-reads — the comment in `roadkeep.toml` is three sentences arguing its own figure, and
-RK1094 shows what happens when nobody re-derives one.
-
-What would decide it is a reading nobody has: how many tools an adopting project
-actually serves. This repo serves 52 because it is the tool; a project using it might
-serve the same 52, and that is worth knowing before choosing between a cap and a
-per-tool rule alone.
+The fix is not to keep a line open. It is for a test that needs an open task to make one
+— the tmp-path `project()` fixture the linting tests use already does — and for the two
+that genuinely read the real docs to assert on what is there rather than on there being
+something. Worth checking whether a third test has the same shape and has simply never
+seen an empty day, and whether the corpora tests would fail the same way against a Shio
+or Turing with nothing open.
 
 ## Block E — Adoption
 
+### §RK1100 The estimate names every gain and no cost
+
+`adopt` walks `GAINS` and tells a project what governing its files would give it: a
+pause door, a design section, non-goals, a queue. RK1097 measured the other side of that
+transaction for the first time, and it is large — roadkeep, Shio and Turing each serve
+52 tools for about 51,000 characters at connect, differing by 1.4% because the surface
+comes from the package and only the prefix and the paths interpolate.
+
+So the number is knowable before adoption and is the same number for everybody, which is
+precisely the kind of figure an estimate should carry. What it is not is a reason
+against adopting: the surface is paid once at the handshake against files a session
+re-reads every turn, and `budget --session` exists to keep those two cadences from being
+added.
+
+The honest shape is a cost line beside the gains, phrased at the cadence it is paid at,
+and a pointer to `[tools]` so a project that wants a ceiling knows one is available. Not
+a warning and not a default ceiling — RK464 declined to guess a number for somebody
+else's surface, and this does not reopen that.
+
 ## Block F — The plugin
+
+### §RK1099 Which arguments a served verb withholds, said out loud
+
+`Tool.exposes` lists the fields a served verb accepts, and everything else on that
+verb's parser is silently unreachable over MCP. Two of those omissions are deliberate
+and argued — `lint --fix` writes, `claims --prune` writes — and the rest are whatever
+nobody added.
+
+Measured: RK1095 added `budget --session` to the parser and not to `exposes`, and it
+stayed CLI-only through RK1096 and half of RK1097. What caught it was not a test about
+the surface; it was `test_remedying`, because the new gate's remedy door happened to
+name the flag and `Door.call` returned None for it. A flag no door names would still be
+missing.
+
+What is missing is a reading, not a rule: which arguments each served verb withholds, so
+an author can see that `--fix` is withheld on purpose and `--session` was not. `writes`
+already answers the adjacent question about which verbs write. Whether the withheld ones
+should then be *declared* — a reason per omission, the way `[budgets]` makes a number a
+declaration — is the decision that reading would inform, and it should not be made
+before it exists.
 
 ## Block G — The editor surface (the backlog where the file is open)

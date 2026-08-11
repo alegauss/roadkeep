@@ -152,6 +152,7 @@ PREVENTION: tuple[Prevented, ...] = (
     Prevented("file.not-text", "gate", because=FILE),
     Prevented("budget.absent", "gate", because=FILE),
     Prevented("budget.tool", "gate", because=SURFACE),
+    Prevented("budget.session", "gate", because=SURFACE),
     Prevented("grammar.unreadable", "gate", because=RULE),
     Prevented("block.unorganised", "gate", because=FILE),
     Prevented("export.unmarked", "gate", because=FILE),

@@ -56,6 +56,19 @@ why = 200
 # enough that a description growing by a paragraph is a finding rather than a rounding.
 characters = 2600
 
+# And the sum, which the paragraph above was right to call blameless and wrong to leave
+# unheld (RK1097). 52 tools under 2,600 each is a ceiling of 135,200; the real figure is
+# 50,869, a third of it by nobody's decision, and every verb this project added spent
+# against a number nothing counted. Measured before it was declared, and that reading
+# decided it: roadkeep, Shio and Turing all serve the same 52 tools and their totals differ
+# by 1.4% (50,869 / 51,238 / 51,572), because the surface is composed from the package's
+# parser and only the prefix and the paths interpolate. So this is a number about the
+# package an adopter installs, which is what makes a total worth declaring and worth
+# declaring per project. 53,000 — above the widest of the three by 1,428, about a verb and a
+# half at the 978-character average, and re-argued rather than raised when the next one is
+# worth more than what it costs every session at connect.
+session = 53000
+
 [budgets]
 # Files loaded on every turn, and what each may cost (RK30). This budget lived in prose at
 # the bottom of agents.md until the gate could hold it — which is exactly the arrangement

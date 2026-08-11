@@ -119,15 +119,15 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 40 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 130 | 1 |
 | C — Query (consult without reading the file) | 0 | 87 | 1 |
-| D — The gate | 1 | 143 | 0 |
-| E — Adoption | 0 | 81 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 96 | 1 |
+| D — The gate | 1 | 144 | 0 |
+| E — Adoption | 1 | 81 | 1 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 96 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 1 | 588 | 6 |
+| **Total** | 3 | 589 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1097** (deps: —) **the served surface is fifty thousand characters against eight thousand the gate holds** — budget --session reads 50673 once and 8782 each turn, so the half nothing budgets in total is six times the half two [budgets] entries hold to the byte. → §RK1097
+- 📋 **RK1098** (deps: —) **two tests read this repo's docs as a fixture and assume the roadmap has an open line** — shipping a block's last line turned test_editor and test_payloads red on a state the tool announces as normal, so an empty backlog reads as a broken build. → §RK1098
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

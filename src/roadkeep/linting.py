@@ -94,7 +94,6 @@ points at exist, and did anything loaded every turn outgrow what it was allowed?
 
 from __future__ import annotations
 
-import json
 import os
 import re
 import unicodedata
@@ -131,7 +130,6 @@ from roadkeep.kernel.schema import (
     indentation,
     over_by,
     suspect,
-    width,
 )
 from roadkeep.sections import Section, anchored, find
 from roadkeep.sections import owners as section_owners
@@ -1139,22 +1137,16 @@ def _served(config: Config) -> list[Finding]:
     """
     if config.tool_characters is None:
         return []
-    from roadkeep.serving import descriptors
+    from roadkeep.serving import surface
 
     allowed = config.tool_characters
     where = _configured(config)
+    sent = surface(config)
     # The same payload `budget --tools` measures, through the same function (RK345): a
     # second estimate here is a gate disagreeing with the read that composed the edit. In
     # its order too — largest first — because the message sends the reader to that ranking,
     # and a report listing the offenders in a different one is two answers to one question.
-    over = sorted(
-        (
-            (width(json.dumps(described, ensure_ascii=False)), described["name"])
-            for described in descriptors(config)
-        ),
-        key=lambda row: (-row[0], row[1]),
-    )
-    return [
+    out = [
         Finding(
             "budget.tool",
             where,
@@ -1163,9 +1155,33 @@ def _served(config: Config) -> list[Finding]:
             f"first call — `{invocation()} budget --tools` ranks them",
             subject=name,
         )
-        for size, name in over
+        for name, size in sent.tools
         if size > allowed
     ]
+    # And the sum, where the project declared one (RK1097). Second and not instead: this one
+    # names no author, so a report carrying only it would refuse the verb added last for a
+    # size the other 51 built.
+    #
+    # Appended after the per-tool findings and printed before them, which is not a
+    # contradiction left standing: every finding here is filed at `roadkeep.toml` with no
+    # line, so `_ordered` breaks the tie on the code and `budget.session` sorts under
+    # `budget.tool`. Left that way rather than special-cased — one address, one documented
+    # order, and the message says no single tool is at fault, which is what a reader arriving
+    # at it first needs to know.
+    if config.tool_session is not None and sent.characters > config.tool_session:
+        out.append(
+            Finding(
+                "budget.session",
+                where,
+                f"the served surface is {sent.characters} characters — {len(sent.tools)} "
+                f"tool(s) and the handshake — against a budget of {config.tool_session}: "
+                f"every session pays this at connect before it calls anything, and no one "
+                f"tool is at fault — `{invocation()} budget --session` prints it beside "
+                f"what the resident files cost each turn",
+                subject="session",
+            )
+        )
+    return out
 
 
 def _collective(config: Config, documents: dict[str, Document]) -> list[Note]:

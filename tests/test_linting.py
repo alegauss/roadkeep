@@ -29,7 +29,7 @@ from conftest import GOVERNED
 from surface import names
 from roadkeep import linting
 from roadkeep.cli import EXIT_GATE, EXIT_OK, main
-from roadkeep.config import Config
+from roadkeep.config import Config, ConfigError
 from roadkeep.exporting import BEGIN, END
 from roadkeep.exporting import project as exported
 from roadkeep.history import HistoryUnavailable, tracked_at
@@ -2250,3 +2250,61 @@ def test_a_project_reserving_nothing_is_unchanged(tmp_path):
     assert not [
         one for one in lint(Config.discover(tmp_path)).findings if one.code == "id.reserved"
     ]
+
+
+def test_the_whole_surface_over_its_budget_fails(tmp_path):
+    """RK1097. RK1059 held one tool and argued a total names nobody, which was right about
+    *which* tool to blame and silent about the sum: 52 tools under 2,600 each is a ceiling of
+    135,200, and this repo's real figure reached 50,673 against nothing. A list growing by
+    verbs each of which is unremarkable is the edit no per-tool rule can see.
+    """
+    config = CONFIG + "\n[tools]\ncharacters = 2600\nsession = 3000\n"
+    findings = [f for f in lint(project(tmp_path, config=config)).findings]
+    (whole,) = [f for f in findings if f.code == "budget.session"]
+    assert not [f for f in findings if f.code == "budget.tool"], (
+        "every tool is under 2,600, which is the state this finding exists for"
+    )
+    assert whole.file == "roadkeep.toml" and whole.subject == "session"
+    assert "no one tool is at fault" in whole.message
+    assert "budget --session" in whole.message
+
+
+def test_the_sum_and_the_tools_that_name_an_author_are_reported_together(tmp_path):
+    """Both, when both are true — and in the report's own order, which puts the sum first.
+
+    Written expecting the reverse: only the per-tool findings say whose description to
+    shorten, so leading with the one that blames nobody reads as "the list is too long" when
+    what is true is that one entry in it is. Measured, `_ordered` ties on the code because
+    every finding here shares one address and carries no line, and `budget.session` sorts
+    under `budget.tool`. Held as it is rather than special-cased: the message says no single
+    tool is at fault, which is what a reader arriving at it first needs.
+    """
+    config = CONFIG + "\n[tools]\ncharacters = 300\nsession = 900\n"
+    codes = [
+        f.code for f in lint(project(tmp_path, config=config)).findings
+        if f.code.startswith("budget.")
+    ]
+    assert codes[0] == "budget.session" and set(codes) == {"budget.session", "budget.tool"}
+
+
+def test_a_project_declaring_only_a_per_tool_budget_is_not_held_to_a_sum(tmp_path):
+    # Offered and not imposed, for RK1059's own reason: this one refuses the verb added last
+    # for a size the other 51 built, so a project takes it by declaring it.
+    report = lint(project(tmp_path, config=CONFIG + "\n[tools]\ncharacters = 300\n"))
+    assert not [f for f in report.findings if f.code == "budget.session"]
+
+
+def test_a_surface_budget_below_one_tools_is_refused_as_configuration(tmp_path):
+    # Not arithmetic pedantry: a total under what one tool may cost makes the per-tool number
+    # unreachable, so one of the two was typed without reading the other.
+    with pytest.raises(ConfigError) as raised:
+        project(tmp_path, config=CONFIG + "\n[tools]\ncharacters = 2600\nsession = 900\n")
+    assert "may not cost less than one tool in it" in str(raised.value)
+
+
+def test_a_surface_budget_without_a_per_tool_one_is_refused(tmp_path):
+    # `session` alone does not answer what `characters` answers: a surface under its total
+    # with one 30,000-character tool in it is the state per-tool exists to refuse.
+    with pytest.raises(ConfigError) as raised:
+        project(tmp_path, config=CONFIG + "\n[tools]\nsession = 53000\n")
+    assert "holds nobody to anything" in str(raised.value)

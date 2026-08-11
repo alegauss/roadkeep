@@ -425,8 +425,11 @@ TOOLS: tuple[Tool, ...] = (
     # reason read back — the caller paying it is the one connected to this server.
     Tool(
         "budget",
+        # `session` joins them for `tools`' reason and one more (RK1097): it is the read the
+        # gate's own message sends a caller to, and a door this surface serves whose call it
+        # withholds is the shape `Door.call` returns None for.
         ("id", "block", "deps", "status", "symptom", "anchor", "role", "non_goal", "lead",
-         "file", "tools"),
+         "file", "tools", "session"),
         conditional=("ref",),
     ),
     # `designed` is exposed on both for the reason it exists (RK83): the caller that asks

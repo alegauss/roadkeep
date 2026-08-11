@@ -30,11 +30,15 @@
 
 ## Block D — The gate
 
-- 📋 **RK1097** (deps: —) **the served surface is fifty thousand characters against eight thousand the gate holds** — budget --session reads 50673 once and 8782 each turn, so the half nothing budgets in total is six times the half two [budgets] entries hold to the byte. → §RK1097
+- 📋 **RK1098** (deps: —) **two tests read this repo's docs as a fixture and assume the roadmap has an open line** — shipping a block's last line turned test_editor and test_payloads red on a state the tool announces as normal, so an empty backlog reads as a broken build. → §RK1098
 
 ## Block E — Adoption
 
+- 📋 **RK1100** (deps: —) **adopt estimates what a project gains and never says the tool surface costs it fifty thousand characters** — an adopting project serves the same 52 tools measured here, so the largest number in the transaction is the one the estimate omits. → §RK1100
+
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
+
+- 📋 **RK1099** (deps: —) **a flag added to a served verb is CLI-only until somebody lists it, and nothing says which ones are** — RK1095 added budget --session and left it off the tool's exposes for two tasks; only a remedy door naming it made the closure test notice. → §RK1099
 
 ## Block G — The editor surface (the backlog where the file is open)
 

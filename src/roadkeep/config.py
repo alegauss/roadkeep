@@ -108,7 +108,7 @@ _GRAMMAR_KEYS = frozenset({"extends", "markers", "drop"})
 #: on the total fails on whichever tool is added last and names nothing; a per-tool one is
 #: refused by the tool that grew, which is the tool whose description somebody just edited —
 #: and `budget --tools` already ranks them, so the read that composes the fix exists.
-_TOOLS_KEYS = frozenset({"characters"})
+_TOOLS_KEYS = frozenset({"characters", "session"})
 #: `[claims]` — how long a claim on a line reads as held (RK151). Its own table for the reason
 #: `[headings]` has one: a bare `held` beside `prefix` would read as one of the limits, and it
 #: is not a limit on any field — it is the one number in the claim mechanism that is a
@@ -307,6 +307,14 @@ class Config:
     #: nobody counts is a cost that moves, and every flag added to a served verb spends it
     #: in an edit whose diff shows one argument.
     tool_characters: int | None = None
+    #: `[tools] session` — what the whole served surface may cost at the handshake: every
+    #: tool plus the instructions, which is the figure `budget --session` prints (RK1097).
+    #: **None** where the project declares none, and separate from `characters` because they
+    #: refuse different edits — one description growing, against the list growing by one more
+    #: verb that is individually unremarkable. Measured across three projects before it was
+    #: offered: the count is 52 in all of them and the totals differ by 1.4%, so this is a
+    #: number about the package a project installs and not about the project.
+    tool_session: int | None = None
     #: `[limits.<role>]` — the numbers one file is held to instead of the shared ones
     #: (RK50), keyed by role and applied by :meth:`schema_for`. Empty is the common case:
     #: a project declares one only where a file's economics differ, which in practice is a
@@ -394,7 +402,7 @@ class Config:
         )
         priority = tuple(_string_list(data.get("priority"), "priority", problems))
         budgets = _budgets(data.get("budgets"), base, problems)
-        tool_characters = _tool_budget(data.get("tools"), problems)
+        tool_characters, tool_session = _tool_budget(data.get("tools"), problems)
         grammars = _grammars(data.get("grammar"), problems)
         non_goals = _scope(data.get("non_goals"), problems)
         upstream = _upstream(data.get("report"), problems)
@@ -433,6 +441,7 @@ class Config:
             priority=priority,
             budgets=budgets,
             tool_characters=tool_characters,
+            tool_session=tool_session,
             grammars=grammars,
             limits=per_role,
             rules=rules,
@@ -1249,32 +1258,56 @@ def _named(
     return tuple(dict.fromkeys(names))
 
 
-def _tool_budget(raw: object, problems: list[str]) -> int | None:
-    """`[tools] characters` — what one served tool may cost (RK1059).
+def _tool_budget(raw: object, problems: list[str]) -> tuple[int | None, int | None]:
+    """`[tools]` — what one served tool may cost, and what the whole surface may (RK1059/1097).
 
     Refused like every other key here rather than defaulted: a ceiling this tool chose for
     somebody's surface would be a number nobody looked at, which is the state RK464 named
     and declined to fix by guessing.
+
+    `session` is optional beside a declared `characters` and never instead of it. Per tool is
+    the one that names an author — it is refused by whoever just edited that description —
+    and it was right about *which* tool to blame and silent about the sum, which is how this
+    repo reached 52 tools and 50,673 characters against a ceiling of 135,200 nobody chose.
+    A total is the only rule that catches a list growing by verbs each of which is
+    unremarkable, and it is offered rather than imposed for exactly RK1059's reason.
     """
     if raw is None:
-        return None
+        return None, None
     if not isinstance(raw, Mapping):
         problems.append("tools must be a table of { characters = … }")
-        return None
+        return None, None
     _reject_unknown(raw, _TOOLS_KEYS, "tools.", problems)
     if "characters" not in raw:
         # The same mistake `[budgets]` names: an entry that holds nobody to anything reads
-        # as a budget and is exactly the arrangement being replaced.
+        # as a budget and is exactly the arrangement being replaced. `session` alone does not
+        # answer it: a surface under its total with one 30,000-character tool in it is the
+        # state per-tool exists to refuse.
         problems.append(
             "tools declares no characters: a table that holds nobody to anything reads "
             "as a budget and is the arrangement being replaced"
         )
-        return None
-    number = raw["characters"]
-    if not isinstance(number, int) or isinstance(number, bool) or number < 1:
-        problems.append("tools.characters must be a positive integer")
-        return None
-    return number
+        return None, None
+    numbers: dict[str, int | None] = {"characters": None, "session": None}
+    for key in ("characters", "session"):
+        if key not in raw:
+            continue
+        number = raw[key]
+        if not isinstance(number, int) or isinstance(number, bool) or number < 1:
+            problems.append(f"tools.{key} must be a positive integer")
+            continue
+        numbers[key] = number
+    if numbers["characters"] is None:
+        return None, None
+    if numbers["session"] is not None and numbers["session"] < numbers["characters"]:
+        # Not arithmetic pedantry: a total below what one tool may cost makes the per-tool
+        # number unreachable, so one of the two was typed without reading the other.
+        problems.append(
+            f"tools.session is {numbers['session']} and tools.characters is "
+            f"{numbers['characters']}: a surface may not cost less than one tool in it"
+        )
+        return numbers["characters"], None
+    return numbers["characters"], numbers["session"]
 
 
 def _positive(

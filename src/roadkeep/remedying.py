@@ -1088,6 +1088,12 @@ _TABLE: Mapping[str, _Rule] = {
         "with the rendering the report carries, then correct `[grammar.<role>]` — the id is "
         "the author's because every line in the file is equally evidence",
     ),
+    "budget.session": _read(
+        ("budget", "--session"),
+        "the whole served surface is past what `[tools] session` allows and no single tool "
+        "is; this prints it beside what the resident files cost each turn, and what closes "
+        "it is a verb withdrawn or a ceiling re-argued in `roadkeep.toml`",
+    ),
     "budget.tool": _read(
         ("budget", "--tools"),
         "one served tool is past what `[tools] characters` allows; this ranks every tool "
