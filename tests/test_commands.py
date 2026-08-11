@@ -51,7 +51,13 @@ EXPECTED = {"add", "ship", "pick", "lint"}
 #: A command line as a command file spells one: inside `` !` ` `` for the ones that execute,
 #: inside backticks for the ones offered to the user. Both start with the program name, so
 #: prose about a flag is never mistaken for a declaration.
-_RUNS = re.compile(r"`!?`?\s*(roadkeep [^`]+)`")
+#: A command line as these files spell one (RK1043). The launcher and not the console
+#: script: `${CLAUDE_PLUGIN_ROOT}` resolves anywhere it appears in command *content*, and
+#: a marketplace install creates no `roadkeep` on PATH (RK254). The `allowed-tools` scope
+#: keeps naming the console script, which no substitution reaches — so these prompt, and
+#: that was the cost chosen over a `..` in a permission pattern nobody can read.
+LAUNCHER = 'python "${CLAUDE_PLUGIN_ROOT}/scripts/roadkeep.py"'
+_RUNS = re.compile(rf"`!?`?\s*{re.escape(LAUNCHER)} ([^`]+)`")
 
 
 def files() -> list[Path]:
@@ -129,8 +135,7 @@ def test_every_command_line_in_the_file_is_one_the_cli_accepts(path):
     found = commands_in(path)
     assert found, path.name
     for declared in found:
-        argv = shlex.split(declared)[1:]
-        parsed = build_parser().parse_args(argv)
+        parsed = build_parser().parse_args(shlex.split(declared))
         assert parsed.command, declared
 
 
@@ -139,7 +144,7 @@ def test_the_command_runs_its_own_subcommand(path):
     """`/roadkeep:ship` runs `ship`. A command that ran something else would be a fifth
     behaviour wearing a familiar name."""
     assert any(
-        build_parser().parse_args(shlex.split(line)[1:]).command == path.stem
+        build_parser().parse_args(shlex.split(line)).command == path.stem
         for line in commands_in(path)
     )
 
@@ -238,3 +243,23 @@ def test_the_tool_names_are_the_served_ones_and_not_the_cli_spelling():
     allowed = " ".join(frontmatter(path)["allowed-tools"] for path in files())
     for name in re.findall(r"mcp__(?:plugin_roadkeep_)?roadkeep__(\w+)", allowed):
         assert name in {tool.name for tool in TOOLS}, name
+
+
+def test_no_command_spells_the_console_script():
+    """The other half of RK1043, and the one that keeps it shut.
+
+    A marketplace install copies files and runs no `pip`, so the console script RK254 found
+    missing is missing here too — and these four are the plugin's third executable surface,
+    the other two having spelled `${CLAUDE_PLUGIN_ROOT}` all along.
+
+    The variable resolves *anywhere it appears in command content*, which is what makes the
+    body the half that could be fixed. It is **not** substituted into `allowed-tools` Bash
+    rules — only `${CLAUDE_SKILL_DIR}` and `${CLAUDE_PROJECT_DIR}` are — so the scope still
+    names the console script and these commands prompt. That was the cost taken over reaching
+    the launcher through `${CLAUDE_SKILL_DIR}/..`, which is a permission pattern nobody can
+    read and therefore nobody can review.
+    """
+    for one in files():
+        body = one.read_text(encoding="utf-8").split("---", 2)[2]
+        assert "`roadkeep " not in body, f"{one.name}: the console script, not the launcher"
+        assert "!`" not in body or LAUNCHER in body, one.name

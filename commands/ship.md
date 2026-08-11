@@ -6,7 +6,7 @@ allowed-tools: mcp__roadkeep__ship, mcp__plugin_roadkeep_roadkeep__ship, mcp__ro
 
 Shipping `$1`:
 
-!`roadkeep ship $1`
+!`python "${CLAUDE_PLUGIN_ROOT}/scripts/roadkeep.py" ship $1`
 
 That is one transaction across three files — the ledger entry, the roadmap line, the rationale
 section — plus the dependents' annotations. It happened or none of it did, so there is nothing
@@ -18,5 +18,5 @@ Report what it printed. Then:
   one: ask which task, and do not guess from the conversation.
 - If it wrote, remind the user that the docs now describe a state their code has to be in:
   the same commit carries both, or the ledger is ahead of the repository.
-- Do not restate the counts. `roadkeep list` and `roadkeep stats` answer that, and a number
+- Do not restate the counts. `python "${CLAUDE_PLUGIN_ROOT}/scripts/roadkeep.py" list` and `python "${CLAUDE_PLUGIN_ROOT}/scripts/roadkeep.py" stats` answer that, and a number
   retyped here is one that goes stale.

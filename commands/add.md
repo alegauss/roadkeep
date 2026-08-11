@@ -13,7 +13,7 @@ symptom.
 Then call this session's `add` tool — `mcp__roadkeep__add` where the project declares the
 server, `mcp__plugin_roadkeep_roadkeep__add` where the plugin provides it — with those parts
 as `block`, `symptom` and `why`, or
-`roadkeep add --block … --symptom … --why …` if that tool is not connected. Two rules bind
+`python "${CLAUDE_PLUGIN_ROOT}/scripts/roadkeep.py" add --block … --symptom … --why …` if that tool is not connected. Two rules bind
 this, and neither is negotiable:
 
 1. **Pass the user's words verbatim.** Do not shorten, rephrase, capitalize, translate or

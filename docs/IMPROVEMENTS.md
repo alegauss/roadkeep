@@ -85,35 +85,4 @@ already written, not authorship.
 
 ## Block F — The plugin
 
-### §RK1043 The surface RK254 did not reach
-
-The plugin ships three executable surfaces and two of them spell one launcher:
-
-| surface | how it reaches the engine |
-| --- | --- |
-| `hooks/hooks.json` | `python "${CLAUDE_PLUGIN_ROOT}/scripts/roadkeep.py" guard` |
-| `.claude-plugin/mcp.json` | `python ${CLAUDE_PLUGIN_ROOT}/scripts/roadkeep.py mcp` |
-| `commands/*.md` | `` !`roadkeep lint` `` |
-
-The root `.mcp.json` is not in that table: it spells `${CLAUDE_PROJECT_DIR:-.}` and is
-this repository's own wiring for running the tool from its checkout. RK254 is the
-argument — the console script exists only after a `pip install`, which a marketplace
-install is not.
-
-**The tools half shipped.** Every verb the four commands run is now reachable as the
-tool the skill prefers, in both spellings.
-
-**The pre-execution half is a decision, and the fact it waited on is answered.** The
-published table says `${CLAUDE_PLUGIN_ROOT}` resolves *anywhere the placeholder appears*
-in skill and command **content** — so `` !`python
-"${CLAUDE_PLUGIN_ROOT}/scripts/roadkeep.py" lint` `` runs. The `allowed-tools` half is
-where it stops: only `${CLAUDE_SKILL_DIR}` and `${CLAUDE_PROJECT_DIR}` are documented as
-substituted into Bash rules, and neither names a plugin's root. `${CLAUDE_SKILL_DIR}` is
-*the skill's own subdirectory*, so reaching the launcher from a `commands/*.md` file
-means a `..`, which is a permission pattern nobody should have to read.
-
-So the choice is a prompt on every `/roadkeep:lint`, a `..` in the scope, or dropping
-the pre-execution for the tools — which costs the guarantee that the output is in the
-prompt.
-
 ## Block G — The editor surface (the backlog where the file is open)
