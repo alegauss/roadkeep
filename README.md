@@ -121,13 +121,13 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 84 | 1 |
 | D — The gate | 1 | 136 | 0 |
 | E — Adoption | 0 | 77 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 95 | 1 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 96 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 3 | 569 | 6 |
+| **Total** | 2 | 570 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1078** (deps: —) **a capture names the engine that failed and nothing compares it with the engine that reads it** — Three of four field reports described work already shipped, the plugin being 31 patch versions behind the checkout, and triage costs a session to find that out. → §RK1078
+- 📋 **RK1079** (deps: —) **the door table crosses two axes and the deferred store is a third nobody enumerated** — RK1077 measured marker against ledger and left resume, a paused id the roadmap also carries and a store the project declares late outside the closure. → §RK1079
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

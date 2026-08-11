@@ -59,6 +59,7 @@ from datetime import datetime, timezone
 from hashlib import sha256
 from pathlib import Path
 
+from roadkeep import __version__
 from roadkeep.config import Config, ConfigError, find_config
 from roadkeep.provenance import STARTUP_CODECS, Engine, engine, invocation
 from roadkeep.kernel.schema import Schema, Task, Violation
@@ -319,6 +320,46 @@ def _drifted(recorded: object) -> tuple[str, ...]:
         return ()
     here = environment().facts
     return tuple(name for name, value in stored.facts.items() if here.get(name, "") != value)
+
+
+#: A version inside the engine line a capture stamps — `roadkeep 0.1.645 (3153c8…`. Read
+#: out of the string rather than stored beside it, because every capture ever taken carries
+#: this field and a second one would reach only the reports filed after it (RK443's rule).
+_STAMPED = re.compile(r"^roadkeep (?P<version>\d+(?:\.\d+)*)")
+
+
+def _aged(recorded: object) -> str:
+    """How far the engine that took this capture is behind the one replaying it (RK1078).
+
+    The cheap fact already in the payload, and the one triage was paying a session for. Four
+    captures arrived from one Shio session against plugin 0.1.645 while the checkout stood at
+    0.1.676, and **three of the four named work that was already shipped** — an id occupancy
+    check (RK1051, 0.1.648), a wrapped-entry correction (RK1049, 0.1.646) and a refusal's
+    second clause (RK1057). The reporter was right every time about what they saw; the engine
+    they saw it with was the stale copy the marketplace had not refreshed.
+
+    A sentence and not a boolean, for :attr:`Replay.drifted`'s reason: this qualifies a
+    verdict rather than being one. A capture that does not reproduce *and* was taken thirty
+    patch versions back is a closed report, and one that does not reproduce against the same
+    version is a defect that went away for some other reason — two different next steps, and
+    the difference is a string comparison this reader can make for nothing.
+
+    `""` where there is nothing to compare: no engine recorded, an unparseable stamp, or the
+    same version. Never a guess about which is newer than which beyond the ordering the
+    numbers give — a commit is stamped too and this deliberately does not read it, two
+    checkouts at one version being a question `engines` answers and this one cannot.
+    """
+    stamp = _STAMPED.match(str(recorded or ""))
+    if stamp is None:
+        return ""
+    taken = tuple(int(part) for part in stamp.group("version").split("."))
+    here = tuple(int(part) for part in __version__.split("."))
+    if taken >= here:
+        return ""
+    return (
+        f"taken on {stamp.group('version')} and replayed on {__version__}: work shipped "
+        f"between them is work this capture could not have seen"
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -690,6 +731,10 @@ class Replay:
     #: and `None` where it recorded none to compare. Not a verdict of its own: it is the reason
     #: a verdict may be about a different machine than the one the defect was on.
     drifted: tuple[str, ...] | None = None
+    #: How far behind the engine that took the capture is, or `""` where there is nothing to
+    #: compare (RK1078). The fourth reason a verdict may be about something other than the
+    #: symptom, and the one that decides whether a report is closed rather than live.
+    aged: str = ""
     #: Whether the capture's own re-run was refused before the verb ran (RK440), read back
     #: here so the reader who *triages* gets the annotation and not only the one who took it
     #: (RK443). The third reason not to trust a verdict, and the third to be stated beside
@@ -741,6 +786,11 @@ class Replay:
         # A positive one needs no caveat: the run just demonstrated it.
         if self.drifted:
             return f"{said}, under a different {', '.join(self.drifted)} than the capture recorded"
+        # Before the environment clause and only where the verdict is negative: a capture
+        # that still reproduces is live whatever version took it, and one that does not is
+        # the case triage was reading the package to decide (RK1078).
+        if self.aged and not self.reproduces:
+            return f"{said} — {self.aged}"
         if self.drifted is None and not self.reproduces:
             return f"{said}, and the capture records no environment to have staged"
         return said
@@ -776,6 +826,9 @@ def replay(recorded: Mapping[str, object], workdir: str | Path) -> Replay:
     recorded_exit = int(recorded.get("exit", 0) or 0)
     stored = recorded.get("environment")
     drifted = _drifted(stored) if stored is not None else None
+    # From the engine line every capture stamps (RK1078), so this reaches every report ever
+    # filed rather than only the ones taken after the field existed.
+    aged = _aged(recorded.get("engine"))
     # From the recorded exit code and never from a stored field (RK443), which is what makes
     # this reach the reports filed before RK440 wrote one: every capture ever taken carries
     # `exit`, and 2 is this CLI's own word for "the call was wrong".
@@ -784,7 +837,8 @@ def replay(recorded: Mapping[str, object], workdir: str | Path) -> Replay:
         # Keyword arguments from here down: four optional fields in one constructor is where a
         # positional call starts assigning one reason to another's slot.
         return Replay(
-            False, recorded_exit, 0, "", missing=missing, drifted=drifted, stopped=stopped
+            False, recorded_exit, 0, "", missing=missing, drifted=drifted,
+            stopped=stopped, aged=aged
         )
 
     root = Path(workdir)
@@ -804,7 +858,8 @@ def replay(recorded: Mapping[str, object], workdir: str | Path) -> Replay:
     unstaged = _unstaged(root)
     if unstaged:
         return Replay(
-            False, recorded_exit, 0, "", drifted=drifted, unstaged=unstaged, stopped=stopped
+            False, recorded_exit, 0, "", drifted=drifted, unstaged=unstaged,
+            stopped=stopped, aged=aged
         )
 
     failure = observe(_repointed([str(part) for part in recorded["argv"]], root))
@@ -819,6 +874,7 @@ def replay(recorded: Mapping[str, object], workdir: str | Path) -> Replay:
         failure.output,
         drifted=drifted,
         stopped=stopped,
+        aged=aged,
     )
 
 

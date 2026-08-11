@@ -38,8 +38,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK1078** (deps: —) **a capture names the engine that failed and nothing compares it with the engine that reads it** — Three of four field reports described work already shipped, the plugin being 31 patch versions behind the checkout, and triage costs a session to find that out. → §RK1078
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Non-goals

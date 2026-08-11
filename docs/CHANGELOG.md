@@ -589,6 +589,7 @@
 - ✅ **RK1055** **the served why bound refuses on the client a span the server accepts** — ship and record amend publish no why ceiling and state the per-line limit and the span in the note, so the client stops refusing a call this server takes.
 - ✅ **RK1058** **the skill teaches the count as a permission to replace and never names the span** — The skill states the count's second permission once, where the correction is introduced, and the completion says it carries the same pair, so the span is reachable from the text that decides.
 - ✅ **RK1060** **one paragraph about counting is repeated on thirteen served properties** — The counting caveat moved to the handshake, which a client is given once, taking 3159 code units off the tool list while each field keeps the number and the aim that vary.
+- ✅ **RK1078** **a capture names the engine that failed and nothing compares it with the engine that reads it** — A replay reads the version off the engine every capture stamps and says, on a negative verdict only, that work shipped since is work the report could not have seen.
 
 ## Block G — The editor surface (the backlog where the file is open)
 

@@ -131,25 +131,4 @@ the same argument would put those in the table too.
 
 ## Block F — The plugin
 
-### §RK1078 Triaging a capture written by an older engine
-
-Four captures arrived from one Shio session, all filed against plugin 0.1.645 while the
-checkout stood at 0.1.676. Three named work that was already done: the id occupancy
-check that refused a cited number (RK1051, 0.1.648), the wrapped-entry correction that
-could only collapse a span (RK1049, 0.1.646) and the clause naming the second permission
-the count carries (RK1057). Only one described a state the running engine still has. The
-reporter was right every time about what they saw; the engine they saw it with was the
-stale copy the marketplace had not refreshed.
-
-Triage found that out by reading the package — four commands, three git archaeologies
-and a version comparison per report — which is a session spent per capture to learn that
-the capture is closed. `replay` is the verb for this and does not reach these: a capture
-from another repository is replayable only where it was taken with `--embed`, which is
-opt-in for RK87's reason and which nothing at capture time asks for.
-
-The cheap fact is the one already in the payload. `engines` reads four small files, asks
-git nothing new and answers `agreed`, `behind` or `unpinnable`; a capture that carried
-that verdict, or a reader that computed it against the version stamped in `engine`,
-would sort a closed report from a live one before an id is spent on it.
-
 ## Block G — The editor surface (the backlog where the file is open)

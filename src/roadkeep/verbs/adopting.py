@@ -487,6 +487,10 @@ def _replay(config: Config, args: argparse.Namespace) -> int:
                     # construction, and what it is about is the refusal rather than the
                     # symptom the capture was filed under.
                     "stopped": outcome.stopped,
+                    # The fourth (RK1078), and the one that decides whether a report is
+                    # closed rather than live: an empty string is "nothing to compare",
+                    # which is a different answer from "the same version".
+                    "aged": outcome.aged,
                 },
                 indent=2,
             )

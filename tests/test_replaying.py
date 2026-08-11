@@ -289,6 +289,60 @@ def test_an_environment_this_process_shares_adds_no_caveat(tmp_path):
     assert outcome.drifted == () and "different" not in str(outcome)
 
 
+# -- the engine that took it against the engine reading it (RK1078) -----------
+
+
+def test_a_capture_taken_by_an_older_engine_says_so_on_a_negative_verdict(tmp_path):
+    """Four captures arrived from one Shio session against plugin 0.1.645 while the checkout
+    stood at 0.1.676, and **three of the four named work already shipped**. The reporter was
+    right every time about what they saw; the engine they saw it with was the stale copy the
+    marketplace had not refreshed, and triage read the package to find that out — four
+    commands and three git archaeologies per report, to learn the report is closed.
+
+    The fact was in the payload the whole time: every capture stamps its engine.
+    """
+    from roadkeep import __version__
+
+    recorded = recorded_from(tmp_path / "theirs")
+    recorded["engine"] = "roadkeep 0.1.645 (3153c88, /somewhere/src/roadkeep)"
+    recorded["exit"] = 99  # so the verdict is the negative one the caveat qualifies
+    outcome = replay(recorded, staging(tmp_path))
+    assert not outcome.reproduces
+    assert "0.1.645" in outcome.aged and __version__ in outcome.aged
+    assert "could not have seen" in str(outcome)
+
+
+def test_a_capture_that_still_reproduces_carries_no_age_caveat(tmp_path):
+    # Live whatever version took it: the run just demonstrated the symptom, so a sentence
+    # about the engine would be a caveat on a claim that needs none.
+    recorded = recorded_from(tmp_path / "theirs")
+    recorded["engine"] = "roadkeep 0.1.645 (3153c88, /somewhere/src/roadkeep)"
+    outcome = replay(recorded, staging(tmp_path))
+    assert outcome.reproduces and "could not have seen" not in str(outcome)
+
+
+def test_a_capture_from_this_engine_or_a_newer_one_has_nothing_to_compare(tmp_path):
+    # `""` and never a guess: the same version is not behind, and a capture from a *newer*
+    # engine is a reader who should update rather than a report to close.
+    from roadkeep import __version__
+
+    recorded = recorded_from(tmp_path / "theirs")
+    recorded["exit"] = 99
+    for stamped in (__version__, "9.9.9"):
+        recorded["engine"] = f"roadkeep {stamped} (abc1234, /x/src/roadkeep)"
+        assert replay(recorded, staging(tmp_path)).aged == ""
+
+
+def test_a_capture_with_no_readable_stamp_is_silent_rather_than_wrong(tmp_path):
+    # Every capture ever taken carries this field, and one whose string this cannot parse is
+    # a reader's problem rather than evidence about a version — so it says nothing.
+    recorded = recorded_from(tmp_path / "theirs")
+    recorded["exit"] = 99
+    for stamped in (None, "", "roadkeep (untracked, /x)"):
+        recorded["engine"] = stamped
+        assert replay(recorded, staging(tmp_path)).aged == ""
+
+
 def test_a_capture_with_no_environment_says_so_rather_than_reading_as_a_fix(tmp_path):
     """`None` and not `()`: *nothing drifted* and *nothing to compare* are different answers,
     and every capture this repository stored before RK341 is the second one.
