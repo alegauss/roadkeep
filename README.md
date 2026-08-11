@@ -119,15 +119,15 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 32 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 117 | 1 |
 | C — Query (consult without reading the file) | 1 | 81 | 1 |
-| D — The gate | 1 | 129 | 0 |
+| D — The gate | 0 | 130 | 0 |
 | E — Adoption | 0 | 76 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 92 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 2 | 538 | 6 |
+| **Total** | 1 | 539 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1047** (deps: —) **body.promise names three doors and not reserved_ids, the mechanism built for the state it fires on** — RK1031 shipped the declaration and the finding that fires on exactly that state offers a rewording Shio has recorded as the wrong fix. → §RK1047
+- 📋 **RK1048** (deps: —) **show says an id was never written when a ledger entry delivers it without leading with it** — by_id keys an entry by its leading id, so a per-id reader misses the rest while gaps resolves them from history. → §RK1048
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

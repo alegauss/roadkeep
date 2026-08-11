@@ -849,8 +849,8 @@ _TABLE: Mapping[str, _Rule] = {
     "body.promise": _decide(
         "the design names an id no line carries, which the deriver reads as spent and the "
         "next `add` steps past (RK431) — and whether it was an illustration, the id this "
-        "task should have had, or work not filed yet is the sentence's meaning, not the "
-        "tool's:",
+        "task should have had, work not filed yet, or an address this project reserved "
+        "and will never write as a line is the sentence's meaning, not the tool's:",
         (
             ("next-id",),
             # The door RK1027 found missing. Both rows below assume the id was an error, so
@@ -867,6 +867,15 @@ _TABLE: Mapping[str, _Rule] = {
             "numbers it",
         ),
         (("gaps",), "read where the id went before deciding it was never a line"),
+        (
+            ("lint",),
+            # The fourth reading, and the one the mechanism was built for (RK1047): an id
+            # this project spoke for and will never write as a line. Shio declared four
+            # epics and six retired ranges and went from twelve findings to one — where the
+            # rewording above would have made its non-goals stop naming what they refuse.
+            "the id is reserved: add it to `reserved_ids` in roadkeep.toml, where the "
+            "deriver skips it because it IS taken — then this re-reads clean",
+        ),
     ),
     "remaining.format": _compose(
         ("section", "amend", "{id}", "--body", "-"),

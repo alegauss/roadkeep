@@ -32,8 +32,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1047** (deps: —) **body.promise names three doors and not reserved_ids, the mechanism built for the state it fires on** — RK1031 shipped the declaration and the finding that fires on exactly that state offers a rewording Shio has recorded as the wrong fix. → §RK1047
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

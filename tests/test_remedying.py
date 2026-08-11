@@ -1282,3 +1282,25 @@ def test_the_payload_carries_it_because_the_caller_outside_this_process_asked():
     thing it is about to run changes the files, and the remedy's kind cannot tell it."""
     payload = remedy(_finding("deps.unknown")).payload()
     assert [door["writes"] for door in payload["doors"]] == [True, False]
+
+
+def test_the_promise_row_names_the_declaration_built_for_it():
+    """RK1047. `body.promise` fires on an id no line carries, and RK1031 shipped the one
+    mechanism for the reading it did not offer — an address the project spoke for and will
+    never write as a line. Measured on Shio: declaring `reserved_ids` took its gate from
+    twelve findings to one, and the rewording this row *did* offer is recorded there as the
+    wrong fix, because a decision not to build something has to keep its address."""
+    found = remedy(Finding("body.promise", "IMPROVEMENTS.md", "", 1, "RK1"))
+    assert found is not None and found.kind == "decide"
+    said = " ".join(door.what for door in found.doors)
+    assert "reserved_ids" in said
+    # The cause names the four readings it now asks the author to choose between.
+    for reading in ("illustration", "should have had", "not filed yet", "reserved"):
+        assert reading in found.decision, reading
+
+
+def test_the_four_readings_are_four_doors():
+    """One door per reading, because the decision is the author's and a row offering three
+    answers to a four-way question is the tool making one of them for them."""
+    found = remedy(Finding("body.promise", "IMPROVEMENTS.md", "", 1, "RK1"))
+    assert len(found.doors) == 4

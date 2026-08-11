@@ -110,31 +110,6 @@ What proves it: `show` on an id a ledger entry mentions says where it went.
 
 ## Block D — The gate
 
-### §RK1047 The door the finding did not learn
-
-Measured on Shio at HEAD. `body.promise` fires on `§IX` for `SH169` and offers three
-doors: `next-id`, `section amend --body -`, `gaps`. None is the mechanism this project
-built for the state, and Shio's own ledger says so — declaring `reserved_ids` took its
-gate *from twelve findings to one*, nine of the ten being ids it had spoken for and
-deliberately never written as a line.
-
-RK1031 shipped that declaration. The finding that fires on exactly its state does not
-name it. The door a maintainer will take is the rewording, and Shio recorded why it is
-wrong — *the fix the lint suggested would make the non-goals stop naming what they
-refuse, and a decision not to build something has to keep its address*.
-
-**A fourth row and not a replacement.** The three that are there answer three real
-readings, and a reservation is a fourth: this id is taken and no line will ever carry
-it. The door is a config edit rather than an argv, which the table already expresses
-once — `priority.config` names the `priority = [...]` line to take out of
-`roadkeep.toml`.
-
-The bound worth keeping: only a *declared* reservation is silent, so a typo still fails.
-That is RK1031's own check and nothing here changes it.
-
-What proves it: the row names `reserved_ids`, `explain body.promise` prints four doors,
-and the table stays total over the codes.
-
 ## Block E — Adoption
 
 ## Block F — The plugin
