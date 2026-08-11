@@ -118,12 +118,16 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 40 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 130 | 1 |
-| C — Query (consult without reading the file) | 0 | 86 | 1 |
-| D — The gate | 0 | 143 | 0 |
+| C — Query (consult without reading the file) | 1 | 86 | 1 |
+| D — The gate | 1 | 143 | 0 |
 | E — Adoption | 0 | 81 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 96 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 0 | 587 | 6 |
+| **Total** | 2 | 587 | 6 |
+
+**Next ready:**
+
+- 📋 **RK1096** (deps: —) **budget has six subjects and the two that read a session's cost overlap without sharing a measurement** — session sums the descriptors and the handshake itself rather than calling tools, so the two answers are one arithmetic written twice and a third caller would write it again. → §RK1096
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

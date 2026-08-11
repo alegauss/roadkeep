@@ -79,7 +79,55 @@ already written, not authorship.
 
 ## Block C — Query
 
+### §RK1096 One number, measured in two places
+
+`--tools` sums `descriptors(config)` plus `instructions()`; `--session` sums the same
+two and prints the total under a different heading. Neither calls the other, so what the
+served surface costs is arithmetic this file now performs twice — and RK1092 added a
+third measurement of the resident half in `budgeting._parts`, which `--session` also
+re-derives by summing costs it could have asked for.
+
+RK345 states the rule this breaks: `lint` refuses the file that went over, `budget
+--file` reports what is left, and *both count through* `roadkeep.config.spent`. One
+measurement, two readers. The two surface reads were written a task apart and neither
+reached for the other.
+
+What that costs is not speed — the parse is cached and the sums are small. It is that
+the two can disagree. A change to what the handshake carries moves one and not the other
+unless somebody remembers, which is the same shape as `_in_halves` against
+`_already_recorded` (RK1080) and as `raised_in` against `stale` (RK1073), both closed
+for exactly this reason.
+
+The shape is a function returning what a session is sent — the tool list, its per-tool
+breakdown and the handshake — with `--tools` printing the ranking and `--session`
+printing the total beside the resident half. Worth checking whether `Load` should carry
+its bytes as a property so `--session` reads a figure rather than re-summing costs.
+
 ## Block D — The gate
+
+### §RK1097 The larger half, held per tool and not in total
+
+`budget --session` puts the two figures beside each other for the first time: **50,673
+characters once** and 8,782 bytes each turn. RK1059 gave the served surface a ceiling
+and made it per tool — 2,600 each — on the argument that a total names nothing, because
+it fails on whichever tool is added last.
+
+That argument was right about *which* tool to blame and silent about the sum. Fifty-two
+tools under 2,600 each is a ceiling of 135,200, and the real figure is a third of that
+by nobody's decision. So the surface has a rule that catches one description growing and
+no rule that catches the list growing — and every task this session that added a verb or
+a flag spent against a number nothing holds.
+
+The counter-argument stands and is worth restating: a total refuses the tool added last,
+which is the one that had least to do with the size. But `[budgets]` faces the same
+objection about a paragraph and answers it by making the number a declaration somebody
+re-reads — the comment in `roadkeep.toml` is three sentences arguing its own figure, and
+RK1094 shows what happens when nobody re-derives one.
+
+What would decide it is a reading nobody has: how many tools an adopting project
+actually serves. This repo serves 52 because it is the tool; a project using it might
+serve the same 52, and that is worth knowing before choosing between a cap and a
+per-tool rule alone.
 
 ## Block E — Adoption
 
