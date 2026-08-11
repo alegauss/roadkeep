@@ -42,7 +42,7 @@ from roadkeep.cli import EXIT_OK, EXIT_USAGE, build_parser, main
 from roadkeep.config import Config
 from conftest import since_import
 from roadkeep.provenance import engine, invocation
-from roadkeep.schema import body_aim
+from roadkeep.kernel.schema import body_aim
 from roadkeep.serving import (
     KNOWN_PROTOCOLS,
     _CONDITIONAL,

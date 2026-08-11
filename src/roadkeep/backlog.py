@@ -37,8 +37,8 @@ from dataclasses import dataclass
 from enum import StrEnum
 
 from roadkeep.config import Config
-from roadkeep.document import Document, Entry
-from roadkeep.schema import Dep, DepKind, Schema, Task
+from roadkeep.kernel.document import Document, Entry
+from roadkeep.kernel.schema import Dep, DepKind, Schema, Task
 
 
 class NotOpen(ValueError):
@@ -639,7 +639,7 @@ def number_of(task_id: str, schema: Schema, family: str | None = None) -> int | 
     Public because a range dep is bounded by numbers: `C14–C20` asks which open lines fall
     between two of them, and that is a question about the number alone.
 
-    Takes the :class:`~roadkeep.schema.Schema` and not `prefixes` plus a flag (RK109). The
+    Takes the :class:`~roadkeep.kernel.schema.Schema` and not `prefixes` plus a flag (RK109). The
     shape is one declaration — the families (RK74), the width and the sub-letter (RK106) —
     and a signature that let a caller pass two thirds of it is how the ordering came to
     read a `D1` its own gate refuses. ``family`` narrows the answer to one track, because

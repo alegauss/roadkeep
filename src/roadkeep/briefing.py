@@ -39,13 +39,13 @@ from dataclasses import dataclass
 from roadkeep.backlog import Backlog, Readiness, Resolution, Standing
 from roadkeep.budgeting import Budget, budget_of
 from roadkeep.config import Config, Scope
-from roadkeep.document import Document
+from roadkeep.kernel.document import Document
 from roadkeep.graph import Chain, Graph, Leverage
 from roadkeep import scoping
 from roadkeep.claiming import Held
 from roadkeep.locking import exclusive
 from roadkeep.picking import Choice, Claim, hold, pick, take
-from roadkeep.schema import Task
+from roadkeep.kernel.schema import Task
 from roadkeep.showing import View, show
 
 #: How many blocker chains a brief carries. Lower than the graph's own limit on purpose:

@@ -23,7 +23,7 @@ from conftest import git, git_init, git_commit
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.history import added_ids, costs_of, git_available
-from roadkeep.schema import SHIPPED
+from roadkeep.kernel.schema import SHIPPED
 from roadkeep.serving import TOOLS
 from roadkeep.weighing import COMPARABLES, Spread, weigh
 

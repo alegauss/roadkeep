@@ -36,7 +36,7 @@ from dataclasses import dataclass
 
 from .backlog import Backlog
 from .config import Config
-from .document import Entry
+from roadkeep.kernel.document import Entry
 
 #: How :data:`~roadkeep.shipping._SUPERSEDED` renders, read back. Built from that constant
 #: rather than spelled again: the writer and the reader of one clause disagreeing is the

@@ -38,8 +38,8 @@ from roadkeep.authoring import IdInUse, refuse_reuse
 from roadkeep.backlog import Where, Whereabouts
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, build_parser, main
 from roadkeep.config import Config
-from roadkeep.document import Document, UnknownBlock
-from roadkeep.schema import Schema, SchemaError
+from roadkeep.kernel.document import Document, UnknownBlock
+from roadkeep.kernel.schema import Schema, SchemaError
 from roadkeep.linting import lint
 from roadkeep.sections import (
     AnchorClaimed,

@@ -33,10 +33,10 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from roadkeep.config import PROSE_ROLES, Config
-from roadkeep.document import Document, Entry
+from roadkeep.kernel.document import Document, Entry
 from roadkeep.history import indexed
 from roadkeep.provenance import invocation
-from roadkeep.schema import Task
+from roadkeep.kernel.schema import Task
 from roadkeep.sections import Section, addressable, declaring, find
 
 #: A path as prose spells one: inside backticks, or as a Markdown link target. Both are

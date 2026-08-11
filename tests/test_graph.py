@@ -22,7 +22,7 @@ from roadkeep.backlog import Backlog, DepStatus
 from roadkeep.cli import EXIT_OK, main
 from roadkeep.config import Config
 from roadkeep.graph import SHOWN, Graph
-from roadkeep.schema import DESIGNED, SHIPPED
+from roadkeep.kernel.schema import DESIGNED, SHIPPED
 
 HERE = Path(__file__).resolve().parents[1]
 

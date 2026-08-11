@@ -15,7 +15,7 @@ from collections.abc import Sequence
 
 from roadkeep.backlog import Backlog, Stage
 from roadkeep.config import Config
-from roadkeep.document import declares, shading
+from roadkeep.kernel.document import declares, shading
 from roadkeep.provenance import invocation
 from roadkeep.ranking import NEAREST, nearest
 from roadkeep.remaining import declared

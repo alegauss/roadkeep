@@ -52,7 +52,7 @@ from roadkeep import claiming, sections
 from roadkeep.backlog import Backlog, DepStatus, NotOpen
 from roadkeep.claiming import Followed
 from roadkeep.config import PROSE_ROLES, ROLES, Config
-from roadkeep.document import (
+from roadkeep.kernel.document import (
     Document,
     Entry,
     Heading,
@@ -65,7 +65,7 @@ from roadkeep.document import (
 )
 from roadkeep.ids import CARRIERS, IdRef, Promise, carried, derivation, scan
 from roadkeep.markers import derive, refresh
-from roadkeep.schema import SchemaError, Task
+from roadkeep.kernel.schema import SchemaError, Task
 from roadkeep.sections import Section
 
 #: The rationale a line arrives with: the heading, and prose that is either the string itself
@@ -304,10 +304,10 @@ def place(
 ) -> Insertion:
     """Validate, render, insert — in memory, and refuse before any of it.
 
-    Raises :class:`~roadkeep.schema.SchemaError` with every violation,
+    Raises :class:`~roadkeep.kernel.schema.SchemaError` with every violation,
     :class:`UnknownBlock` when no heading declares the block,
-    :class:`~roadkeep.document.RepeatedHeading` when two do (RK391), and
-    :class:`~roadkeep.document.RoundTripError` when either the file already carries a
+    :class:`~roadkeep.kernel.document.RepeatedHeading` when two do (RK391), and
+    :class:`~roadkeep.kernel.document.RoundTripError` when either the file already carries a
     line the schema would rewrite or the new line does not read back as it was written.
 
     ``carrying`` is the lines an entry owns **beyond** the one the schema renders (RK157),
@@ -1208,7 +1208,7 @@ def declaring(config: Config, block: str) -> None:
     costs one command.
 
     So the condition is exactly `ship`'s — the ledger declares no heading for this label —
-    asked one task earlier, and the refusal is :class:`~roadkeep.document.UnknownBlock`
+    asked one task earlier, and the refusal is :class:`~roadkeep.kernel.document.UnknownBlock`
     itself, spelling the same file and the same `block add` remedy. A second sentence for one
     condition is a second thing to keep true.
 
@@ -1230,7 +1230,7 @@ def declaring(config: Config, block: str) -> None:
     that verb `--organise <role>`, the remedy exists, and the narrowing's whole reason went
     with it — restored here, and it is the premise having moved rather than a decision
     reversed. The refusal names the argument, so the author is never sent to the refusing
-    command: see :class:`~roadkeep.document.UnknownBlock`.
+    command: see :class:`~roadkeep.kernel.document.UnknownBlock`.
     """
     if not config.has("changelog") or not config.path("changelog").is_file():
         return

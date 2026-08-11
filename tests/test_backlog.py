@@ -29,8 +29,8 @@ from roadkeep.backlog import (
 )
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
-from roadkeep.document import Document
-from roadkeep.schema import DESIGNED, SHIPPED, Dep, DepKind, Schema
+from roadkeep.kernel.document import Document
+from roadkeep.kernel.schema import DESIGNED, SHIPPED, Dep, DepKind, Schema
 
 HERE = Path(__file__).resolve().parents[1]
 
@@ -134,7 +134,7 @@ def test_external_work_that_names_no_id_of_this_project_stays_external():
 
 
 def _task(**over):
-    from roadkeep.schema import Task
+    from roadkeep.kernel.schema import Task
 
     fields = dict(
         id="RK9",

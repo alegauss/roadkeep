@@ -18,7 +18,7 @@ from pathlib import Path
 import pytest
 
 from roadkeep.config import CONFIG_NAME, Config, ConfigError, find_config
-from roadkeep.schema import DESIGNED, IDEA, SHIPPED, Task
+from roadkeep.kernel.schema import DESIGNED, IDEA, SHIPPED, Task
 
 HERE = Path(__file__).resolve().parents[1]
 
@@ -191,7 +191,7 @@ def test_an_exemption_is_read_by_the_write_path_too(tmp_path):
     # one, and one that says nothing is still refused at input (`tests/test_recording.py`).
     write(tmp_path, "[rules.changelog]\none_sentence = false\n")
     schema = Config.discover(tmp_path).schema_for("changelog")
-    from roadkeep.schema import SHIPPED, Task
+    from roadkeep.kernel.schema import SHIPPED, Task
 
     task = Task(id="RK1", status=SHIPPED, block="A", symptom="A symptom", why="Two. Sentences.")
     assert schema.validate(task) == ()
@@ -213,7 +213,7 @@ def test_a_waived_pointer_is_the_demand_and_never_the_resolution(tmp_path):
     # The two halves of RK15 come apart here: nothing has to be pointed at, and a pointer
     # that is written still has to point at something — a dangling one reads as though the
     # design exists, whatever the project declared.
-    from roadkeep.schema import Task
+    from roadkeep.kernel.schema import Task
 
     write(tmp_path, "ref_scheme = \"outline\"\n\n[rules.roadmap]\nref = false\n")
     schema = Config.discover(tmp_path).schema_for("roadmap")

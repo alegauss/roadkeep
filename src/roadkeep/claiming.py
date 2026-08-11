@@ -59,9 +59,9 @@ from pathlib import Path
 
 from roadkeep.backlog import Backlog
 from roadkeep.config import ROLES, Config
-from roadkeep.document import Entry
+from roadkeep.kernel.document import Entry
 from roadkeep.locking import exclusive
-from roadkeep.schema import IN_PROGRESS, Task
+from roadkeep.kernel.schema import IN_PROGRESS, Task
 from roadkeep.storing import Claim, Store, read, write
 from roadkeep.storing import path as store_path
 

@@ -30,7 +30,7 @@ from roadkeep.adopting import adopt
 from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config, ConfigError
 from roadkeep.linting import lint
-from roadkeep.schema import split_ref
+from roadkeep.kernel.schema import split_ref
 from roadkeep.sections import SectionError, add, anchored, find, local, qualified
 
 ROADMAP = "docs/ROADMAP.md"

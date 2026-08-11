@@ -20,14 +20,15 @@ from pathlib import Path
 
 import pytest
 
-from roadkeep import cli, document, exporting
+from roadkeep import cli, exporting
+from roadkeep.kernel import document
 from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
-from roadkeep.document import Document
+from roadkeep.kernel.document import Document
 from roadkeep.exporting import BEGIN, END, NoMarkers, project, splice, splice_into
 from roadkeep.linting import lint
 from roadkeep.picking import take
-from roadkeep.schema import DESIGNED, IN_PROGRESS, RETIRED, SHIPPED
+from roadkeep.kernel.schema import DESIGNED, IN_PROGRESS, RETIRED, SHIPPED
 from roadkeep.shipping import retire
 
 HERE = Path(__file__).resolve().parents[1]
@@ -442,7 +443,7 @@ def test_a_site_that_moved_under_the_command_leaves_the_readme_alone(tmp_path, c
         return staged
 
     with pytest.MonkeyPatch.context() as patch:
-        patch.setattr("roadkeep.document.stage", racing)
+        patch.setattr("roadkeep.kernel.document.stage", racing)
         assert (
             main(["-C", str(tmp_path), "export", "--readme", "--site", "index.html"])
             == EXIT_GATE
@@ -524,7 +525,7 @@ def test_a_readme_that_moved_under_a_ship_refuses_the_whole_transaction(tmp_path
         return staged
 
     with pytest.MonkeyPatch.context() as patch:
-        patch.setattr("roadkeep.document.stage", racing)
+        patch.setattr("roadkeep.kernel.document.stage", racing)
         assert main(["-C", str(tmp_path), "ship", "RK1", "--why", "It works now."]) == EXIT_GATE
     assert (tmp_path / "ROADMAP.md").read_text(encoding="utf-8") == roadmap_before
     assert "somebody else wrote" in readme.read_text(encoding="utf-8")

@@ -21,14 +21,15 @@ import pytest
 
 from roadkeep.provenance import invocation
 
-from roadkeep import claiming, document
+from roadkeep import claiming
+from roadkeep.kernel import document
 from roadkeep.authoring import UnknownBlock, set_status
 from roadkeep.backlog import Backlog, DepStatus
 from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
-from roadkeep.document import Document, RoundTripError, StaleFile
+from roadkeep.kernel.document import Document, RoundTripError, StaleFile
 from roadkeep.linting import lint
-from roadkeep.schema import DESIGNED, IN_PROGRESS, PARTIAL, Dep, Schema, SchemaError
+from roadkeep.kernel.schema import DESIGNED, IN_PROGRESS, PARTIAL, Dep, Schema, SchemaError
 from roadkeep.shipping import AlreadyRecorded, NoQualifier, NoSuchPath, SecondPartial
 from roadkeep.sections import SectionOccupied
 from roadkeep.shipping import (
@@ -686,7 +687,7 @@ def test_a_writer_landing_after_the_first_file_is_staged_still_writes_none(tmp_p
                 handle.write(moved)
         return staged
 
-    monkeypatch.setattr("roadkeep.document.stage", racing)
+    monkeypatch.setattr("roadkeep.kernel.document.stage", racing)
     with pytest.raises(StaleFile, match="changed since it was read"):
         shipment.save()
     assert files(config) == (moved, LEDGER, RATIONALE)
@@ -727,7 +728,7 @@ def written_in_order(config: Config, monkeypatch) -> list[str]:
         order.append(config.relative(target))
         return real(scratch, target)
 
-    monkeypatch.setattr("roadkeep.document.commit", watched)
+    monkeypatch.setattr("roadkeep.kernel.document.commit", watched)
     return order
 
 

@@ -19,7 +19,7 @@ in `remedying`'s cause table — wrote `(deps: … ✅)` with the shipped marker
 
 **Two things it deliberately does not scan, both measured before being dropped.**
 
-*Numbers.* Every integer default of :class:`~roadkeep.schema.Schema` was swept across the
+*Numbers.* Every integer default of :class:`~roadkeep.kernel.schema.Schema` was swept across the
 package and the three hits were `_MOST_OUTPUT_LINES = 40`, a roman-numeral table's `("XL",
 40)` and `MAX_PASSES = 200` — three coincidences and no leaks. A limit is a bare integer and
 a bare integer is the most common literal in any program, so the scan cannot separate them
@@ -38,7 +38,7 @@ import re
 
 from surface import modules
 
-from roadkeep.schema import (
+from roadkeep.kernel.schema import (
     DEFERRED,
     IDEA,
     IN_PROGRESS,
@@ -52,7 +52,7 @@ from roadkeep.schema import (
 #: Where a default is written down, and therefore the two modules a leak cannot be in.
 #: `config` reads `roadkeep.toml` and `schema` is the dataclass whose field defaults are what
 #: it falls back to — spelling a marker or a prefix in either is the declaration itself.
-DECLARES = frozenset({"config.py", "schema.py"})
+DECLARES = frozenset({"config.py", "kernel/schema.py"})
 
 #: The keyword arguments whose value is shown to a caller rather than used as one. Skipped
 #: with the reason this module's docstring gives: nothing in a help string can be derived,

@@ -40,7 +40,7 @@ from roadkeep.capturing import body
 from roadkeep.claiming import Followed, Held
 from roadkeep.config import Config, PROSE_ROLES
 from roadkeep.deferring import Carried
-from roadkeep.document import Document, Entry, Reject
+from roadkeep.kernel.document import Document, Entry, Reject
 from roadkeep.fixing import Fix
 from roadkeep.graph import Leverage
 from roadkeep.history import Commit, Origin
@@ -64,7 +64,7 @@ from roadkeep.provenance import invocation, served_by
 from roadkeep.remaining import count, declared
 from roadkeep.remedying import remedy
 from roadkeep.repairing import MAX_PASSES, Repaired, repair
-from roadkeep.schema import UTF16_UNITS, width as measured_width
+from roadkeep.kernel.schema import UTF16_UNITS, width as measured_width
 from roadkeep.sections import Section
 from roadkeep.showing import View
 from roadkeep.verbs.refusing import EXIT_GATE, EXIT_OK

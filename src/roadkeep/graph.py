@@ -31,7 +31,7 @@ from dataclasses import dataclass
 
 from roadkeep.backlog import Backlog, DepStatus, Readiness
 from roadkeep.config import Config
-from roadkeep.schema import Task
+from roadkeep.kernel.schema import Task
 
 #: How many chains and dependents an answer carries. Bounded because the value of a query
 #: is that its output fits in a tool result; the counts stay exact either way.

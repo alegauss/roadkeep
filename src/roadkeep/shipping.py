@@ -130,12 +130,12 @@ from roadkeep.authoring import (
 )
 from roadkeep.backlog import Backlog, NotOpen
 from roadkeep.config import PROSE_ROLES, Config
-from roadkeep.document import Document, Entry, Wrapped, counted, save_all
+from roadkeep.kernel.document import Document, Entry, Wrapped, counted, save_all
 from roadkeep.ids import IdRef, next_id
 from roadkeep.markers import refresh
 from roadkeep.provenance import invocation
 from roadkeep.renumbering import NotAnId, SameId, family_of
-from roadkeep.schema import PARTIAL, Task
+from roadkeep.kernel.schema import PARTIAL, Task
 from roadkeep.sections import (
     Section,
     declaring,
@@ -770,7 +770,7 @@ class Departure:
         **What it answers is which paths it wrote** (RK309), the projections RK188 refreshed
         included, because that is the half of a commit's contents no author should have to
         declare: a scope is what the holder *said* (RK280) and this is what the tool *did*.
-        Read off :func:`~roadkeep.document.save_all`'s own return and never rebuilt from the
+        Read off :func:`~roadkeep.kernel.document.save_all`'s own return and never rebuilt from the
         config — a second list of the files a transaction touches is one that can be wrong.
         """
         written = save_all(self.ledger.document, self.roadmap, self.prose)
@@ -1531,7 +1531,7 @@ def record(
     others, and the search moves on to verbs that really do refuse.
 
     The fields are refused at input exactly as `add` refuses them (L1), against
-    :meth:`~roadkeep.schema.Schema.as_ledger` rather than the roadmap's schema — so the
+    :meth:`~roadkeep.kernel.schema.Schema.as_ledger` rather than the roadmap's schema — so the
     marker is ✅, the block heading must already be declared in the ledger, and a dep or a
     pointer is not accepted rather than dropped: there is no open line for a dep to be a
     planning fact about, and no rationale section for a pointer to resolve to.

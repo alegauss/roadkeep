@@ -26,7 +26,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from roadkeep.config import Config
-from roadkeep.schema import Schema
+from roadkeep.kernel.schema import Schema
 
 
 @dataclass(frozen=True, slots=True)

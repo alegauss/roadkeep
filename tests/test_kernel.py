@@ -28,7 +28,7 @@ from surface import PACKAGE, modules
 #: The two modules the mechanism lives in. Named rather than derived: which files are the
 #: kernel is the decision this test exists to hold, and a rule that computed its own subject
 #: would move every time somebody added a file.
-KERNEL = ("schema.py", "document.py")
+KERNEL = ("kernel/schema.py", "kernel/document.py")
 
 #: What the kernel may reach for above itself, and why each one is allowed. Empty would be the
 #: goal; two entries with reasons is the honest state, and a third arriving without one is what
@@ -69,7 +69,7 @@ VOCABULARY = (
 #: `codepoint_kind`, `_codepoints` and `CODEPOINT_KINDS` were counted as this backlog's
 #: words. A ceiling that counts the wrong things is one nobody can bring down on purpose —
 #: the same defect this project files about every other number it publishes.
-SPOKEN = {"schema.py": 43, "document.py": 17}
+SPOKEN = {"kernel/schema.py": 43, "kernel/document.py": 17}
 
 #: How many of them anything **above** the kernel refers to. The split RK1072 was filed to
 #: find, and the answer it did not expect: two thirds are the kernel's public surface —
@@ -111,7 +111,7 @@ def reaches(where: str) -> set[str]:
 def test_the_kernel_reaches_up_only_where_it_is_allowed_to():
     # The rule, and the whole reason the boundary is worth naming: a mechanism that imports
     # the rules above it is not a mechanism, it is the middle of one package.
-    inside = {f"roadkeep.{where.removesuffix('.py')}" for where in KERNEL}
+    inside = {f"roadkeep.{where.removesuffix('.py').replace('/', '.')}" for where in KERNEL}
     for where in KERNEL:
         for module in reaches(where) - inside:
             assert module in ALLOWED, (

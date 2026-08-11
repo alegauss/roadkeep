@@ -29,7 +29,7 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 
 from roadkeep.config import PROSE_ROLES, Config
-from roadkeep.schema import REF_SEPARATOR, Schema, split_ref
+from roadkeep.kernel.schema import REF_SEPARATOR, Schema, split_ref
 from roadkeep.sections import find, owners
 
 _UNIT = "\x1f"  # between fields

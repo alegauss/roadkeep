@@ -62,8 +62,8 @@ from dataclasses import dataclass, field
 
 from roadkeep.authoring import _after_preamble, remove_entry
 from roadkeep.config import Config
-from roadkeep.document import Document, Heading, blank, save_all
-from roadkeep.schema import Schema
+from roadkeep.kernel.document import Document, Heading, blank, save_all
+from roadkeep.kernel.schema import Schema
 
 __all__ = [
     "BlockExists",
@@ -189,7 +189,7 @@ class BlockExists(ValueError):
 class NoSuchBlock(KeyError):
     """A label no governed file declares, at the door that removes a declaration (RK144).
 
-    Distinct from :class:`~roadkeep.document.UnknownBlock`, which every *write* raises and
+    Distinct from :class:`~roadkeep.kernel.document.UnknownBlock`, which every *write* raises and
     whose sentence is about a heading a write may not invent. Here nothing was going to be
     written, and what the caller needs is the list — a label that is merely spelled
     differently from the file's is the commonest reason this door is reached at all.
@@ -875,7 +875,7 @@ def merge_block(config: Config, label: str, *, prose: bool = False) -> Merged:
 
     The key RK391 named and RK141/RK144's pair never cut. Two headings under one label is a
     state the gate reports (`block.repeated`) and every write refuses
-    (:class:`~roadkeep.document.RepeatedHeading`), and the only remedy it could offer was
+    (:class:`~roadkeep.kernel.document.RepeatedHeading`), and the only remedy it could offer was
     *merge the two regions by hand* — which the guard (RK22) denies and the gate (RK14)
     refuses. `drop_block` cannot help: it **skips the ledger**, whose headings hold history
     for ever, so an empty duplicate ledger heading is :class:`NothingToDrop` rather than
@@ -952,7 +952,7 @@ def _fold(document: Document, label: str) -> tuple[Document, tuple[str, ...], tu
 
     Re-reads the parse each step (RK54): moving one entry re-numbers every line below it, and
     a heading held across the edit is a heading at a line that has moved. So the loop asks
-    :meth:`~roadkeep.document.Document.declaring` again each time and acts on the first
+    :meth:`~roadkeep.kernel.document.Document.declaring` again each time and acts on the first
     remaining duplicate — moving its next entry under the survivor, or, once it holds none,
     excising the emptied heading. It ends when one heading is left, which the entry moves and
     the excises both drive toward.

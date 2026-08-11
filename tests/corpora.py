@@ -61,7 +61,7 @@ from pathlib import Path
 import pytest
 
 from roadkeep.config import Config
-from roadkeep.document import Document
+from roadkeep.kernel.document import Document
 from roadkeep.history import blob_at, git_available, resolves
 from roadkeep.linting import Report, lint
 

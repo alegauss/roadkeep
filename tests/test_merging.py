@@ -44,7 +44,7 @@ from roadkeep.merging import (
     wiring,
 )
 from roadkeep.provenance import persisted
-from roadkeep.schema import SchemaError
+from roadkeep.kernel.schema import SchemaError
 
 ROADMAP = "docs/ROADMAP.md"
 CHANGELOG = "docs/CHANGELOG.md"

@@ -63,10 +63,10 @@ from roadkeep.authoring import StatusChange, set_status
 from roadkeep.backlog import Backlog, Readiness, Stage, Standing, id_order
 from roadkeep.claiming import Held
 from roadkeep.config import Config
-from roadkeep.document import Entry, declares, shading
+from roadkeep.kernel.document import Entry, declares, shading
 from roadkeep.locking import exclusive
 from roadkeep.queueing import declared
-from roadkeep.schema import IN_PROGRESS, Dep
+from roadkeep.kernel.schema import IN_PROGRESS, Dep
 
 #: How many runners-up an answer carries. Bounded on purpose: the value of `pick` is that
 #: its output fits in a tool result, and a ranked list of everything is the file again.

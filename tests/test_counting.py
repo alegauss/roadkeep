@@ -20,8 +20,8 @@ import corpora
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.counting import NO_BLOCK, Census
-from roadkeep.document import Document
-from roadkeep.schema import DESIGNED, IDEA, Schema
+from roadkeep.kernel.document import Document
+from roadkeep.kernel.schema import DESIGNED, IDEA, Schema
 
 HERE = Path(__file__).resolve().parents[1]
 

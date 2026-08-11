@@ -15,7 +15,7 @@ import pytest
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config, ConfigError
 from roadkeep.ids import carried, derivation, highest, id_scanner, next_id, scan
-from roadkeep.schema import Schema
+from roadkeep.kernel.schema import Schema
 
 HERE = Path(__file__).resolve().parents[1]
 ROADMAP = "docs/ROADMAP.md"

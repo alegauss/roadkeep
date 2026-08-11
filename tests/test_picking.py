@@ -22,7 +22,7 @@ from roadkeep.backlog import Stage
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config, ConfigError
 from roadkeep.picking import Tier, pick
-from roadkeep.schema import DESIGNED, IDEA, IN_PROGRESS, SHIPPED
+from roadkeep.kernel.schema import DESIGNED, IDEA, IN_PROGRESS, SHIPPED
 
 HERE = Path(__file__).resolve().parents[1]
 

@@ -75,31 +75,6 @@ already written, not authorship.
 
 ## Block A — The model
 
-### §RK1069 The move the test was written before
-
-RK1065's title sequenced this — *held by a test before it is a package* — and the test is
-what shipped. `tests/test_kernel.py` names `schema.py` and `document.py`, the one runtime
-call above them (`exporting.refreshes`, RK188) and the one annotation (`Config`, under
-`TYPE_CHECKING`), and holds the backlog vocabulary they declare as a ceiling: 47 names and
-17.
-
-A ceiling with nowhere to fall is where that leaves it. Both modules sit beside the
-thirty they are supposed to be under, so nothing about opening either file says which
-half of the package it is, and the rule that they import nothing above them is a test
-somebody has to know exists rather than a directory that makes the violation not
-compile.
-
-The move is `src/roadkeep/kernel/`, and its cost is entirely in addresses: about
-twenty-two import lines in the package, the `("document.py", "_parsed")` keys in the
-cache inventory, `tests/surface.py`'s census, the Layout index, and `test_kernel`
-itself. No behaviour, and the round-trip property test over three corpora is what says
-so.
-
-Worth doing after the vocabulary comes down rather than before. A directory named for
-the mechanism, holding two files that define `Task` and `Dep`, advertises a boundary it
-does not have — and the rename that fixes that is the larger half of this work, touching
-every caller of the two names rather than every importer of the two modules.
-
 ## Block B — Authoring
 
 ## Block C — Query

@@ -51,7 +51,7 @@ from roadkeep.authoring import refuse_reuse
 from roadkeep.claiming import Held
 from roadkeep.backlog import Backlog, NotOpen
 from roadkeep.config import Config
-from roadkeep.document import Document, Entry, save_all
+from roadkeep.kernel.document import Document, Entry, save_all
 from roadkeep.ids import id_scanner, next_id
 from roadkeep.markers import refresh
 from roadkeep.sections import Section, checked, descending, find, heading_of
@@ -226,7 +226,7 @@ def _move_deps(
 
     Which lines those are is read once, before any of them is rewritten: `replace_task`
     re-parses, so an entry held across an edit is one whose line number may already have
-    moved — the same care every mutator in :mod:`roadkeep.document` takes.
+    moved — the same care every mutator in :mod:`roadkeep.kernel.document` takes.
     """
     out: dict[str, tuple[str, ...]] = {}
     for name, document in documents.items():

@@ -32,8 +32,8 @@ from collections.abc import Mapping
 from dataclasses import dataclass, replace
 
 from roadkeep.config import Config
-from roadkeep.document import Document, Entry, Reject, declares, shading
-from roadkeep.schema import DEFAULT_HEADING_WORD, Schema, width
+from roadkeep.kernel.document import Document, Entry, Reject, declares, shading
+from roadkeep.kernel.schema import DEFAULT_HEADING_WORD, Schema, width
 
 
 @dataclass(frozen=True, slots=True)

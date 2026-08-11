@@ -38,7 +38,7 @@ from roadkeep.config import CLAIM_HELD, CLAIM_HELD_MAX, Config, ConfigError
 from roadkeep.deferring import defer, resume
 from roadkeep.picking import Tier, hold, pick, take
 from roadkeep.renumbering import renumber
-from roadkeep.schema import DESIGNED, IDEA, IN_PROGRESS
+from roadkeep.kernel.schema import DESIGNED, IDEA, IN_PROGRESS
 
 
 def line(task_id: str, deps: str = "—", block: str = "A", status: str = DESIGNED) -> str:

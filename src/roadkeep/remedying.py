@@ -85,7 +85,7 @@ from dataclasses import dataclass
 from functools import lru_cache
 
 from .config import PROSE_ROLES, ROLES, Config
-from .schema import Dep
+from roadkeep.kernel.schema import Dep
 
 #: The six kinds, in the order a caller pays for them: nothing, one write, one read then a
 #: judgement, one sentence, one choice, and one command that is not this tool's at all.
@@ -1224,7 +1224,7 @@ def _values(finding: object, config: Config | None) -> dict[str, str]:
     agreement is a property over the whole of it.
 
     Read by ``getattr`` on purpose: this takes a :class:`~roadkeep.linting.Finding`, a
-    :class:`~roadkeep.linting.Note`, a :class:`~roadkeep.schema.Violation` wrapped in one, or
+    :class:`~roadkeep.linting.Note`, a :class:`~roadkeep.kernel.schema.Violation` wrapped in one, or
     the :class:`_Class` an explanation is composed from — the caller repairing a line does
     not care which of the four reported it, and neither does a door.
 
@@ -1253,7 +1253,7 @@ def remedy(finding: object, config: Config | None = None) -> Remedy | None:
 
     Takes anything with ``code``, ``id``, ``lineno`` and ``file`` — a
     :class:`~roadkeep.linting.Finding`, a :class:`~roadkeep.linting.Note`, or a
-    :class:`~roadkeep.schema.Violation` wrapped in one — because the caller repairing a
+    :class:`~roadkeep.kernel.schema.Violation` wrapped in one — because the caller repairing a
     line does not care which of the three reported it.
     """
     code = getattr(finding, "code", "")
@@ -1478,7 +1478,7 @@ def _label(subject: str, config: Config | None) -> str:
     by looking for a heading named `Block Block D` — exit 2, on the remedy RK420 added so a
     caller would not have to compose one.
 
-    Asked of :meth:`~roadkeep.schema.Schema.block_of_dep`, which is where a token's label is
+    Asked of :meth:`~roadkeep.kernel.schema.Schema.block_of_dep`, which is where a token's label is
     read everywhere else, including at the emission site this row answers. A second reader
     of that spelling would be the drift this package exists to stop, and it would be the one
     that has to remember `heading_word` is per project (L6).

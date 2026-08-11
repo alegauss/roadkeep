@@ -24,7 +24,7 @@ from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.linting import lint
 from roadkeep.renumbering import NotAnId, SameId, renumber
-from roadkeep.schema import SchemaError
+from roadkeep.kernel.schema import SchemaError
 
 ROADMAP = "docs/ROADMAP.md"
 CHANGELOG = "docs/CHANGELOG.md"

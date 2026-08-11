@@ -23,7 +23,7 @@ from roadkeep.briefing import NothingToBrief, brief
 from roadkeep.budgeting import Body, Share, body_budget, budget, file_budget, non_goal_budget
 from roadkeep.config import Config, PROSE_ROLES
 from roadkeep.counting import Census
-from roadkeep.document import StaleFile, write_all
+from roadkeep.kernel.document import StaleFile, write_all
 from roadkeep.exporting import project, splice_into
 from roadkeep.graph import Graph
 from roadkeep.history import (
@@ -72,8 +72,8 @@ from roadkeep.rendering import (
     _view_json,
     _weight_json,
 )
-from roadkeep.schema import body_aim
-from roadkeep.schema import width as measured_width
+from roadkeep.kernel.schema import body_aim
+from roadkeep.kernel.schema import width as measured_width
 from roadkeep.sections import binding, heading_of
 from roadkeep.serving import descriptors, instructions
 from roadkeep.shipping import record

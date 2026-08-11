@@ -3,7 +3,7 @@
 Three real projects, one format: Shio numbers `SH` and has no strategy file, Turing
 numbers `T` and has one, Cursarei keeps its roadmap under `docs/roadmap/`. The moment
 any of that is hardcoded the tool serves exactly one repository, so everything that
-differs is a key here and everything that does not is in :mod:`roadkeep.schema`.
+differs is a key here and everything that does not is in :mod:`roadkeep.kernel.schema`.
 
 Two decisions that matter more than the file format:
 
@@ -29,8 +29,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # a string annotation under `from __future__ import annotations` (RK261)
-    from roadkeep.document import Document
-from roadkeep.schema import (
+    from roadkeep.kernel.document import Document
+from roadkeep.kernel.schema import (
     DEFAULT_GRAMMARS,
     DEFAULT_HEADING_WORD,
     DEFERRED,
@@ -506,7 +506,7 @@ class Config:
         not a cost moved: 22 of the 37 modules import `document` directly, `cli.py` among them,
         so the commands that load a document already had it before this line runs.
         """
-        from roadkeep.document import Document  # noqa: PLC0415 - RK261
+        from roadkeep.kernel.document import Document  # noqa: PLC0415 - RK261
 
         return replace(
             Document.load(self.path(role), self.schema_for(role)), config=self

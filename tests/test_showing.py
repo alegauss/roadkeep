@@ -20,7 +20,7 @@ import pytest
 import corpora
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
-from roadkeep.schema import DESIGNED, SHIPPED
+from roadkeep.kernel.schema import DESIGNED, SHIPPED
 from roadkeep.showing import NoSuchTask, paths_in, show
 
 HERE = Path(__file__).resolve().parents[1]

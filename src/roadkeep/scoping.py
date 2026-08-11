@@ -36,8 +36,8 @@ import textwrap
 from dataclasses import dataclass, replace
 
 from roadkeep.config import Config, Scope
-from roadkeep.document import Document, blank
-from roadkeep.schema import SchemaError, Violation, over_by, width
+from roadkeep.kernel.document import Document, blank
+from roadkeep.kernel.schema import SchemaError, Violation, over_by, width
 
 __all__ = [
     "HEADING",

@@ -47,7 +47,7 @@ __all__ = [
 #: The one place the version is written (RK19). `pyproject.toml` declares it `dynamic` and
 #: reads this literal, so a release cannot ship a number the package disagrees with — which
 #: is also why it stays eager: a build backend parses this file, it does not import it.
-__version__ = "0.1.674"
+__version__ = "0.1.675"
 
 
 #: What the names above are, resolved once each. A frozenset and not a `TYPE_CHECKING`
@@ -67,7 +67,7 @@ def __getattr__(name: str) -> object:
     """
     if name not in _EXPORTED:
         raise AttributeError(f"module 'roadkeep' has no attribute {name!r}")
-    from roadkeep import schema
+    from roadkeep.kernel import schema
 
     value = getattr(schema, name)
     globals()[name] = value

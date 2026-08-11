@@ -17,7 +17,7 @@ from pathlib import Path
 
 import pytest
 
-from roadkeep.document import Document
+from roadkeep.kernel.document import Document
 from roadkeep import (
     DESIGNED,
     IDEA,
@@ -29,7 +29,7 @@ from roadkeep import (
     SchemaError,
     Task,
 )
-from roadkeep.schema import RETIRED, over_by, width, words, words_over
+from roadkeep.kernel.schema import RETIRED, over_by, width, words, words_over
 
 ROADMAP = Path(__file__).resolve().parents[1] / "docs" / "ROADMAP.md"
 CHANGELOG = Path(__file__).resolve().parents[1] / "docs" / "CHANGELOG.md"
@@ -822,7 +822,7 @@ def test_only_the_first_is_reported():
 
 
 def _task(**fields):
-    from roadkeep.schema import Task
+    from roadkeep.kernel.schema import Task
 
     base = {
         "id": "RK1",
@@ -855,7 +855,7 @@ def test_what_the_writer_renders_is_what_the_grammar_reads(symptom, deps):
     line* fills the slot is a question per line and not per file (RK43, RK125), and a test
     that asked the file would be checking a pairing the parser never makes.
     """
-    from roadkeep.document import _split_ref, _task_re
+    from roadkeep.kernel.document import _split_ref, _task_re
 
     schema = Schema(symptom_field=symptom, deps_field=deps)
     task = _task(deps=(Dep("RK7"),) if deps else (), part="local half")
@@ -881,7 +881,7 @@ def test_the_markerless_ledger_line_renders_and_reads_without_the_slot():
     # The other half of the pairing above, and the one the parametrisation cannot reach: a
     # ledger declared markerless writes no marker and no symptom, so both faces have to drop
     # each slot together — and the em dash has to survive both drops (RK43, RK48).
-    from roadkeep.document import _split_ref, _task_re
+    from roadkeep.kernel.document import _split_ref, _task_re
 
     schema = Schema(ledger_marker=False, ledger_symptom=False).as_ledger()
     task = _task(status=SHIPPED, ref=None, part=None)
@@ -905,7 +905,7 @@ def test_the_two_faces_are_the_same_sequence_of_slots():
     # The claim the parametrisation above cannot make: that there is one statement rather
     # than two that happen to agree. A slot added with only one face is a template that has
     # started being two again, which is the state RK1063 was filed from.
-    from roadkeep.schema import TEMPLATE, grammar
+    from roadkeep.kernel.schema import TEMPLATE, grammar
 
     assert [slot.name for slot in TEMPLATE] == ["status", "head", "deps", "symptom", "why"]
     for slot in TEMPLATE:

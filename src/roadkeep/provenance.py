@@ -205,15 +205,22 @@ def raised_in(error: BaseException) -> tuple[str, ...]:
     frame = error.__traceback__
     while frame is not None:
         where = Path(frame.tb_frame.f_code.co_filename)
-        # Not resolved: a frame filename may be `<string>` or a path this filesystem will not
-        # place, and a provenance note is the last place to start raising (`stale`'s own rule).
-        if where.parent.name == _HOME.name and where.name not in seen:
+        # Not resolved first: a frame filename may be `<string>` or a path this filesystem
+        # will not place, and a provenance note is the last place to start raising (`stale`'s
+        # own rule). Resolution is attempted only once the name looks like ours.
+        if where.suffix == ".py":
             try:
-                current = where.resolve().parent == _HOME
-            except OSError:
-                current = False
-            if current:
-                seen.append(where.name)
+                under = where.resolve().relative_to(_HOME).as_posix()
+            except (OSError, ValueError):
+                under = ""
+            # **Anywhere under the package**, named by the path under it — the recursion
+            # RK494 gave `stale` and this did not (RK1069). `verbs/` and now `kernel/` both
+            # hold modules that decide refusals, and a check for the *parent directory*
+            # meant a `why.too-long` raised in `kernel/schema.py` named nothing at all: the
+            # note is compared against `stale`, so the two have to spell a module the same
+            # way or the comparison is between two different vocabularies.
+            if under and under not in seen:
+                seen.append(under)
         frame = frame.tb_next
     return tuple(seen)
 

@@ -25,11 +25,11 @@ from roadkeep.backlog import Backlog, DepStatus, Readiness
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config, ConfigError
 from roadkeep.deferring import defer
-from roadkeep.document import Document
+from roadkeep.kernel.document import Document
 from roadkeep.history import gaps, searchable
 from roadkeep.markers import refresh
 from roadkeep.picking import pick
-from roadkeep.schema import DESIGNED, RETIRED, SHIPPED, Schema, SchemaError
+from roadkeep.kernel.schema import DESIGNED, RETIRED, SHIPPED, Schema, SchemaError
 from roadkeep.shipping import AlreadyRecorded, NoSuchReplacement, NotOpen, retire, ship
 
 HERE = Path(__file__).resolve().parents[1]

@@ -14,8 +14,8 @@ from __future__ import annotations
 import sys
 
 from roadkeep import provenance
-from roadkeep.document import RoundTripError, StaleFile
-from roadkeep.schema import SchemaError
+from roadkeep.kernel.document import RoundTripError, StaleFile
+from roadkeep.kernel.schema import SchemaError
 
 
 EXIT_OK = 0

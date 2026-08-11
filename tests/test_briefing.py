@@ -21,8 +21,8 @@ from roadkeep.backlog import Readiness, Stage
 from roadkeep.briefing import CHAINS, NON_GOALS, NothingToBrief, brief, non_goals
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config, Scope
-from roadkeep.document import Document
-from roadkeep.schema import DESIGNED, IDEA, SHIPPED, Schema
+from roadkeep.kernel.document import Document
+from roadkeep.kernel.schema import DESIGNED, IDEA, SHIPPED, Schema
 
 HERE = Path(__file__).resolve().parents[1]
 #: How many non-goals Turing's roadmap declares at its pin. Exact, because the read cannot

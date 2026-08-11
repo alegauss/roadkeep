@@ -43,9 +43,9 @@ from roadkeep import claiming, queueing
 from roadkeep.authoring import Insertion, place, remove_entry
 from roadkeep.backlog import Backlog, NotOpen, Whereabouts
 from roadkeep.config import PROSE_ROLES, Config
-from roadkeep.document import Document, save_all
+from roadkeep.kernel.document import Document, save_all
 from roadkeep.markers import refresh
-from roadkeep.schema import Task
+from roadkeep.kernel.schema import Task
 from roadkeep.sections import declaring
 
 __all__ = [

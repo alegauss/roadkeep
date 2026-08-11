@@ -30,7 +30,7 @@ from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.linting import lint
 from roadkeep.config import Config
 from roadkeep.sections import SectionError, amend
-from roadkeep.schema import DESIGNED, body_aim
+from roadkeep.kernel.schema import DESIGNED, body_aim
 
 BACKLOG = f"""# Roadmap
 
@@ -965,7 +965,7 @@ def test_the_handshake_is_counted_as_what_it_actually_carries(tmp_path, capsys):
     # is a number that stops moving when the payload does, which is the whole failure RK1062
     # names — the read that could not see where RK1060's 3,159 characters went.
     from roadkeep.serving import instructions
-    from roadkeep.schema import width
+    from roadkeep.kernel.schema import width
 
     budgeted(tmp_path)
     assert main(["-C", str(tmp_path), "budget", "--tools", "--json"]) == EXIT_OK

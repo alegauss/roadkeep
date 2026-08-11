@@ -48,7 +48,7 @@ from pathlib import Path
 from roadkeep.backlog import Backlog
 from roadkeep.config import Config
 from roadkeep.counting import Census
-from roadkeep.document import Document, Entry, StaleFile, Write
+from roadkeep.kernel.document import Document, Entry, StaleFile, Write
 from roadkeep.picking import pick
 
 #: The container, as a comment so it renders as nothing in either file it lives in — the

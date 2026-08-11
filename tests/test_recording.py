@@ -39,10 +39,10 @@ from roadkeep.authoring import IdInUse, UnknownBlock
 from roadkeep.backlog import Backlog
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
-from roadkeep.document import Continuation
+from roadkeep.kernel.document import Continuation
 from roadkeep.history import gaps
 from roadkeep.linting import lint
-from roadkeep.schema import RETIRED, SHIPPED, SchemaError
+from roadkeep.kernel.schema import RETIRED, SHIPPED, SchemaError
 from roadkeep.shipping import (
     Ambiguous,
     NoQualifier,

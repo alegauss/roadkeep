@@ -34,7 +34,7 @@ import pytest
 
 import roadkeep
 from roadkeep.cli import EXIT_OK, build_parser, main
-from roadkeep.schema import DEFERRED, DESIGNED, IDEA, IN_PROGRESS, PARTIAL, RETIRED, SHIPPED
+from roadkeep.kernel.schema import DEFERRED, DESIGNED, IDEA, IN_PROGRESS, PARTIAL, RETIRED, SHIPPED
 
 HERE = Path(__file__).resolve().parents[1]
 EDITOR = HERE / "editor"

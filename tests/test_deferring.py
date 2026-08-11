@@ -38,10 +38,10 @@ from roadkeep.deferring import (
     defer,
     resume,
 )
-from roadkeep.document import Document
+from roadkeep.kernel.document import Document
 from roadkeep.linting import lint
 from roadkeep.picking import pick
-from roadkeep.schema import DEFERRED, DESIGNED, IDEA, SHIPPED, Dep, Schema, Task
+from roadkeep.kernel.schema import DEFERRED, DESIGNED, IDEA, SHIPPED, Dep, Schema, Task
 from roadkeep.shipping import AlreadyRecorded
 
 ROADMAP = f"""# Roadmap

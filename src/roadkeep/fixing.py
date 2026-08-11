@@ -16,7 +16,7 @@ that needed it most. So the findings split in two:
 `--fix` applies the first list and leaves the second, which is the whole point: what
 remains is short enough to read.
 
-**How this coexists with L3.** Every mutator in :mod:`roadkeep.document` refuses the
+**How this coexists with L3.** Every mutator in :mod:`roadkeep.kernel.document` refuses the
 *whole file* when any line it parsed would render back differently, because a silent
 rewrite of a line the parser misread is unreviewable corruption. That guard is exactly
 what a normalizer has to get past — an invisible selector on the marker and a hand-chosen
@@ -62,11 +62,11 @@ from pathlib import Path
 from roadkeep import queueing
 from roadkeep.backlog import Backlog, id_order
 from roadkeep.config import PROSE_ROLES, Config
-from roadkeep.document import Document, StaleFile, ending, write_atomically
+from roadkeep.kernel.document import Document, StaleFile, ending, write_atomically
 from roadkeep.linting import LINE_ROLES, MARK
-from roadkeep.schema import indentation, repaired
+from roadkeep.kernel.schema import indentation, repaired
 from roadkeep.markers import derive
-from roadkeep.schema import Dep, DepKind, Schema, Task
+from roadkeep.kernel.schema import Dep, DepKind, Schema, Task
 
 #: Every repair `--fix` makes, as the word each statement of the split has to contain
 #: (RK355). Six files tell a reader what is mechanical — this docstring, `agents.md`, the
@@ -379,7 +379,7 @@ def _decontrol(document: Document, file: str) -> tuple[list[str], list[Repair]]:
 
     The line **body** only, because `\\r` and `\\n` are control characters too and a pass
     that took them would join the file into one line. The ending is put back exactly as it
-    was read, which is :func:`~roadkeep.document.ending`'s whole reason for being public.
+    was read, which is :func:`~roadkeep.kernel.document.ending`'s whole reason for being public.
 
     The **indentation** is where a codepoint stops being decidable by itself (RK146): a tab
     there is the nesting RK49 reads off the file, and past it the format writes a space —

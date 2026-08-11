@@ -116,18 +116,14 @@ called unbuilt were already in the ledger.
 
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
-| A — The model (a task is data before it is a line) | 1 | 38 | 2 |
+| A — The model (a task is data before it is a line) | 0 | 39 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 124 | 1 |
 | C — Query (consult without reading the file) | 0 | 84 | 1 |
 | D — The gate | 0 | 134 | 0 |
 | E — Adoption | 0 | 77 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 95 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 1 | 563 | 6 |
-
-**Next ready:**
-
-- 📋 **RK1069** (deps: RK1072 ✅) **the kernel is a boundary a test holds and not a place the code lives** — RK1065 named the two modules and the two ways they reach above themselves, and left them beside the rules, so the vocabulary ceiling has nothing to fall towards. → §RK1069
+| **Total** | 0 | 564 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

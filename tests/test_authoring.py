@@ -34,9 +34,9 @@ from roadkeep.authoring import (
 from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.backlog import NotOpen
-from roadkeep.document import RoundTripError, Wrapped
+from roadkeep.kernel.document import RoundTripError, Wrapped
 from roadkeep.provenance import invocation
-from roadkeep.schema import SchemaError, width
+from roadkeep.kernel.schema import SchemaError, width
 
 ROADMAP = "docs/ROADMAP.md"
 IMPROVEMENTS = "docs/IMPROVEMENTS.md"

@@ -33,7 +33,7 @@ from roadkeep.rendering import (
     _section_json,
 )
 from roadkeep.renumbering import renumber
-from roadkeep.schema import width as measured_width
+from roadkeep.kernel.schema import width as measured_width
 from roadkeep.verbs.reading import STDIN, _body_reader, _one_body, _one_pipe, _piped
 from roadkeep.verbs.refusing import EXIT_OK, EXIT_USAGE, REFUSALS, _refused
 

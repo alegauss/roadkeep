@@ -28,7 +28,7 @@ import pytest
 import corpora
 from surface import modules
 from roadkeep import DESIGNED, IDEA, PARTIAL, SHIPPED, Dep, Schema, Task
-from roadkeep.document import (
+from roadkeep.kernel.document import (
     Document,
     RoundTripError,
     StaleFile,
@@ -38,7 +38,7 @@ from roadkeep.document import (
     shading,
     write_atomically,
 )
-from roadkeep.schema import RETIRED
+from roadkeep.kernel.schema import RETIRED
 
 HERE = Path(__file__).resolve().parents[1]
 
@@ -823,7 +823,7 @@ def test_the_two_readers_of_it_are_the_only_two():
     # family named after the domain module it calls, so a bare filename lets
     # `verbs/shipping.py` answer under `shipping.py` — one file counted as another.
     callers = {module.where: module.text for module in modules()}
-    callers.pop("document.py")
+    callers.pop("kernel/document.py")
     spellings = {name for name, text in callers.items() if ".block(" in text}
     # Every remaining caller wants the entries themselves: `backlog.py` expands a `Block X`
     # dep into member ids, `authoring.py` finds where to insert, `linting.py` counts how
@@ -907,7 +907,7 @@ def test_every_file_of_a_transaction_is_synced_before_any_of_them_is_placed(tmp_
     """The same ordering across the three files a `ship` writes: `write_all` stages them all
     and then commits them all, so the sync belongs to the staging half or the last file
     renamed is the one that can be NUL."""
-    from roadkeep.document import Write, write_all
+    from roadkeep.kernel.document import Write, write_all
 
     writes = []
     for name in ("ROADMAP.md", "CHANGELOG.md", "IMPROVEMENTS.md"):
@@ -947,8 +947,8 @@ def test_a_write_that_fails_leaves_neither_a_scratch_file_nor_a_damaged_target(t
         raise PermissionError("something holds the target")
 
     with pytest.MonkeyPatch.context() as patch:
-        patch.setattr("roadkeep.document.os.replace", refusing)
-        patch.setattr("roadkeep.document._REPLACE_PAUSE", 0.0)
+        patch.setattr("roadkeep.kernel.document.os.replace", refusing)
+        patch.setattr("roadkeep.kernel.document._REPLACE_PAUSE", 0.0)
         with pytest.raises(PermissionError):
             write_atomically(target, "the file as it would have been\n")
     assert target.read_text(encoding="utf-8") == "the file as it was\n"

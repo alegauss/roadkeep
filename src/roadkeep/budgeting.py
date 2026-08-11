@@ -55,7 +55,7 @@ is a re-guess. Words survive tokenization well enough to be aimed at, so every n
 is also stated as one — the aim, beside the gate. They are not in conflict, because the
 character figure is what refuses and the word figure is what an author can act on before a
 sentence exists; publishing only the first is the arrangement L1 exists to end. The
-conversion itself lives in :mod:`roadkeep.schema` and is read from here (RK201), because
+conversion itself lives in :mod:`roadkeep.kernel.schema` and is read from here (RK201), because
 the refusal an author reaches *after* an overrun states its surplus in words off the same
 constant — one arithmetic in two directions, and not two constants that can disagree.
 """
@@ -71,7 +71,7 @@ from roadkeep.authoring import compose, prose_role
 from roadkeep.config import Budget as ConfigBudget
 from roadkeep.config import Config, spent
 from roadkeep.ids import next_id
-from roadkeep.schema import CHARS_PER_WORD, Task, body_aim, width, words
+from roadkeep.kernel.schema import CHARS_PER_WORD, Task, body_aim, width, words
 from roadkeep.scoping import NoSuchNonGoal, NotGoverned, address, leads, read
 from roadkeep.sections import binding, declaring, find
 
@@ -155,7 +155,7 @@ class Share:
         The figure an `amend` is actually bounded by, and the one number RK185 skipped:
         beside a partly written field, :attr:`aim` describes the whole of it, so `18 left
         aim 30 words` invites the reading that thirty words are available when about three
-        are. Floored by :func:`~roadkeep.schema.words`, which is the right rounding here for
+        are. Floored by :func:`~roadkeep.kernel.schema.words`, which is the right rounding here for
         RK201's reason read from the other side — a remainder is an allowance, and an
         allowance that rounds up is the retry both figures exist to remove.
         """

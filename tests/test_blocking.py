@@ -129,7 +129,7 @@ def test_a_block_no_file_declares_can_be_opened_and_then_shipped_into(tmp_path):
     # The whole task, end to end: the refusal `ship` gives is right, and this is what makes
     # it survivable without the edit the guard denies.
     config = project(tmp_path)
-    from roadkeep.document import UnknownBlock
+    from roadkeep.kernel.document import UnknownBlock
 
     open_block(config, "C", "Query").save()
 
@@ -917,7 +917,7 @@ def test_the_fold_is_the_merge_the_write_path_refuses_by_hand(tmp_path):
     # End to end: the write path refuses a doubled heading (RepeatedHeading), the fold is the
     # tool's own answer to it, and after it a write the guard is the only other route to lands.
     from roadkeep.blocking import merge_block
-    from roadkeep.document import RepeatedHeading
+    from roadkeep.kernel.document import RepeatedHeading
     from roadkeep.shipping import record
 
     config = project(tmp_path, changelog=_doubled_on("B"))

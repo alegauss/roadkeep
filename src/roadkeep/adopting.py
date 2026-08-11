@@ -6,7 +6,7 @@ halves are deliberately asymmetric — one writes a scaffold and nothing else, t
 reads a file it does not own and writes nothing at all.
 
 * :func:`init` creates `roadkeep.toml` and the files it declares. The config is *rendered
-  from* :class:`~roadkeep.schema.Schema`'s own defaults rather than copied from a template
+  from* :class:`~roadkeep.kernel.schema.Schema`'s own defaults rather than copied from a template
   kept beside them, because a template is a second statement of the format and the two
   drift in the direction nobody tests — the same reason `Schema.render` is the only writer
   of a task line.
@@ -68,8 +68,8 @@ from roadkeep.config import (
     Config,
     Scope,
 )
-from roadkeep.document import LEDGER_SHAPES, Document, checkbox
-from roadkeep.schema import (
+from roadkeep.kernel.document import LEDGER_SHAPES, Document, checkbox
+from roadkeep.kernel.schema import (
     CODE_POINTS,
     DEFAULT_HEADING_WORD,
     OUTLINE_ANCHOR_RE,
@@ -367,8 +367,8 @@ class Measure:
     limit: int
     longest: int
     over: int
-    #: One of :data:`~roadkeep.schema.UTF16_UNITS`, :data:`~roadkeep.schema.WORDS` or
-    #: :data:`~roadkeep.schema.CODE_POINTS`. Defaulted to the one five of the seven measures
+    #: One of :data:`~roadkeep.kernel.schema.UTF16_UNITS`, :data:`~roadkeep.kernel.schema.WORDS` or
+    #: :data:`~roadkeep.kernel.schema.CODE_POINTS`. Defaulted to the one five of the seven measures
     #: use, so the two that differ are the two that say so at construction.
     unit: str = UTF16_UNITS
 
@@ -391,7 +391,7 @@ class Scoped:
 
     parsed: int
     #: Bullets under the heading the grammar did not accept — `scoping.rejects`, which is the
-    #: same split :class:`~roadkeep.document.Reject` is: a count that omitted them would read
+    #: same split :class:`~roadkeep.kernel.document.Reject` is: a count that omitted them would read
     #: as complete.
     unparsed: int
     #: Bullets with at least one field over its limit. Per bullet and not per field, because

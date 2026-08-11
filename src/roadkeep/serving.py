@@ -87,7 +87,7 @@ from roadkeep.provenance import engine, invocation, serving
 # `config` already loads `schema`, and reaching the name through `budgeting` cost the guard
 # 30 ms and eight modules — `authoring`, `sections`, `claiming`, `ids`, `markers` and the
 # rest of the write path — on every denied edit, for one character-to-word division.
-from roadkeep.schema import body_aim, words
+from roadkeep.kernel.schema import body_aim, words
 
 #: The protocol revision this server answers with when the client asks for one it does not
 #: know. Negotiation is "echo what the client asked for if we understand it": a server that
@@ -788,7 +788,7 @@ def _aimed(limit: int) -> str:
     one place a client author reading the field is already looking, beside the aim.
 
     Said on every field rather than only where the counters disagree, which is where
-    :func:`~roadkeep.schema._counted` says it: a refusal has the string in hand and can
+    :func:`~roadkeep.kernel.schema._counted` says it: a refusal has the string in hand and can
     compare, and a schema is composed before any string exists.
 
     **Said once, and not per field** (RK1060). The residual belongs here and the paragraph

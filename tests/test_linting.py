@@ -1381,7 +1381,7 @@ def test_the_declaration_names_what_it_costs_where_the_choice_is_made(tmp_path):
     from dataclasses import replace as replaced
 
     from roadkeep.adopting import render_config
-    from roadkeep.schema import Schema
+    from roadkeep.kernel.schema import Schema
 
     rendered = render_config(
         replaced(Schema(), ledger_marker=False), {"roadmap": "docs/ROADMAP.md"}

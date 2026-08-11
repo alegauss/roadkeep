@@ -53,7 +53,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from roadkeep.schema import (
+from roadkeep.kernel.schema import (
     ARROW,
     EM_DASH,
     ID_SHAPE,
@@ -88,8 +88,8 @@ def _task_re(marker: bool, symptom: bool) -> re.Pattern[str]:
     Cached because it is rebuilt per line otherwise, and the four combinations are the
     whole domain: with a marker or without, with a symptom slot or without.
 
-    Composed from :func:`~roadkeep.schema.grammar` since RK1063, which is the same
-    :data:`~roadkeep.schema.TEMPLATE` `Schema.render` writes from. The fragments used to
+    Composed from :func:`~roadkeep.kernel.schema.grammar` since RK1063, which is the same
+    :data:`~roadkeep.kernel.schema.TEMPLATE` `Schema.render` writes from. The fragments used to
     live here, beside the parser that consumed them and a file away from the writer that
     had to agree with them — so the two were one statement made twice, and L3's property
     test over three corpora was what held them level. It still runs; what it no longer

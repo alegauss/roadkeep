@@ -39,7 +39,7 @@ from roadkeep.history import (
 from roadkeep.sections import AnchorRetired
 from roadkeep.sections import add as add_section
 from roadkeep.sections import move as move_section
-from roadkeep.schema import DESIGNED, IN_PROGRESS, SHIPPED
+from roadkeep.kernel.schema import DESIGNED, IN_PROGRESS, SHIPPED
 
 HERE = Path(__file__).resolve().parents[1]
 

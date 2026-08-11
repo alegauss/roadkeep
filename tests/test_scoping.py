@@ -25,7 +25,7 @@ from roadkeep.config import Config, ConfigError, Scope
 from roadkeep.provenance import invocation
 from roadkeep.guarding import Refusal
 from roadkeep.linting import lint
-from roadkeep.schema import SchemaError
+from roadkeep.kernel.schema import SchemaError
 from roadkeep.scoping import (
     DuplicateLead,
     NoNonGoals,

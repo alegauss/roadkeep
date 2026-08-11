@@ -49,8 +49,8 @@ import re
 from dataclasses import dataclass
 
 from roadkeep.config import Config
-from roadkeep.document import Document, blank
-from roadkeep.schema import Dep, DepKind
+from roadkeep.kernel.document import Document, blank
+from roadkeep.kernel.schema import Dep, DepKind
 
 __all__ = [
     "HEADING",
@@ -397,7 +397,7 @@ def drop(config: Config, token: str) -> Dropped:
 def without(document: Document, config: Config, token: str) -> tuple[Document, str | None]:
     """The same roadmap with one entry gone, and the token if there was one (RK327).
 
-    A :class:`~roadkeep.document.Document` in, a document out, because every caller is a
+    A :class:`~roadkeep.kernel.document.Document` in, a document out, because every caller is a
     **departure**: `ship`, `retire` and `defer` all rewrite the roadmap inside one atomic
     transaction, and dropping the entry is one more change to a file already in hand. Going
     through :func:`drop` would be a second read of the same file and a second write of it —

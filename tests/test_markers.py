@@ -16,7 +16,7 @@ import pytest
 from roadkeep.backlog import Backlog
 from roadkeep.config import Config
 from roadkeep.markers import derive, refresh
-from roadkeep.schema import Dep, SchemaError, Task, width
+from roadkeep.kernel.schema import Dep, SchemaError, Task, width
 
 ROADMAP = "docs/ROADMAP.md"
 CHANGELOG = "docs/CHANGELOG.md"

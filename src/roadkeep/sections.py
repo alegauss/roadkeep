@@ -63,8 +63,8 @@ from typing import TYPE_CHECKING
 
 from roadkeep.backlog import Whereabouts
 from roadkeep.config import PROSE_ROLES, Config
-from roadkeep.document import Document, Heading, UnknownBlock, blank, save_all
-from roadkeep.schema import (
+from roadkeep.kernel.document import Document, Heading, UnknownBlock, blank, save_all
+from roadkeep.kernel.schema import (
     OUTLINE_ANCHOR_RE,
     REF_SEPARATOR,
     Schema,
@@ -100,7 +100,7 @@ _DATA = ("|", ">")
 class SectionError(SchemaError):
     """A section the schema refuses, carrying every violation, not the first.
 
-    A :class:`~roadkeep.schema.SchemaError` because it is the same law one file down —
+    A :class:`~roadkeep.kernel.schema.SchemaError` because it is the same law one file down —
     which also means every caller that already reports violations reports these.
     """
 
@@ -281,7 +281,7 @@ class AnchorRetired(ValueError):
 class UnknownParent(ValueError):
     """An anchor states its place, and this file declares nothing it extends (RK45).
 
-    The counterpart of :class:`~roadkeep.document.UnknownBlock`, for prose that belongs to
+    The counterpart of :class:`~roadkeep.kernel.document.UnknownBlock`, for prose that belongs to
     no task: a §0.4 appended after the last block reads as that block's rationale, which is
     the mistake this module already refuses one case over. So everything under the top level
     is derived, and a **nested** anchor whose parent is missing stays a refusal — that is a
@@ -1363,7 +1363,7 @@ def _repoint(
 
     Which lines those are is read once, before any of them is rewritten, and re-fetched by id
     inside the loop: `replace_task` reparses, so an entry held across an edit is one whose line
-    number may already have moved — the care every mutator in :mod:`roadkeep.document` takes.
+    number may already have moved — the care every mutator in :mod:`roadkeep.kernel.document` takes.
 
     Through `schema.check`, which is what refuses a longer address that pushes the rendered
     line past its limit. That refusal belongs here rather than after the write: a pointer left
@@ -1427,7 +1427,7 @@ def _rewrite(
     """Swap a heading's line and the prose under it for the reflowed replacement.
 
     One removal and one insertion per line rather than a patch, because every mutator in
-    :mod:`roadkeep.document` reparses — so the region is taken out first and the new lines
+    :mod:`roadkeep.kernel.document` reparses — so the region is taken out first and the new lines
     go in at the heading's own index, where nothing below has moved yet.
 
     ``retitle`` is false where only the prose changed, and then the heading line is not
@@ -1634,7 +1634,7 @@ def checked(config: Config, task: Task, *, schema: Schema | None = None) -> Task
     which address is free. That is the same measured cost RK312 removed, on the door the
     correction path actually uses.
 
-    Not folded into `place`, which takes a :class:`~roadkeep.document.Document` and an optional
+    Not folded into `place`, which takes a :class:`~roadkeep.kernel.document.Document` and an optional
     config: these callers hold a :class:`Config` unconditionally, and a rewrite has no
     insertion to make. The enrichment stays :func:`naming_the_anchor`, so this is a call and
     still not a copy of the sentence.
@@ -2519,7 +2519,7 @@ def anchor_of(text: str, schema: Schema) -> str | None:
       the announcement, so the sigil belongs on the pointer alone. It is accepted where an
       author wrote one anyway, because a heading nothing can see is the defect this closes
       and not a spelling to punish. What a segment may be is
-      :data:`~roadkeep.schema.OUTLINE_ANCHOR_RE`'s to say, at both ends of the pointer.
+      :data:`~roadkeep.kernel.schema.OUTLINE_ANCHOR_RE`'s to say, at both ends of the pointer.
     """
     head = text.lstrip()
     if schema.ref_scheme == "id":

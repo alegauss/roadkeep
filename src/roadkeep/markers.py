@@ -29,7 +29,7 @@ write is an opportunity to make every annotation true, and a tool that refreshed
 line it touched would leave the file in a state where some annotations are derived and
 some are remembered. What it will not do is write a line that the schema would then
 refuse — a derived ✅ makes a line two characters longer, so a line already at the cap is
-reported (:class:`~roadkeep.schema.SchemaError`) and the whole write is refused. That
+reported (:class:`~roadkeep.kernel.schema.SchemaError`) and the whole write is refused. That
 report names the line's id and `file:line` (RK348): it is a dependent's sentence and never
 the one the caller passed, so a bare count sends the author to shorten the wrong prose.
 """
@@ -39,8 +39,8 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 
 from roadkeep.backlog import Backlog, DepStatus
-from roadkeep.document import Document, Entry
-from roadkeep.schema import Dep, SchemaError, Task
+from roadkeep.kernel.document import Document, Entry
+from roadkeep.kernel.schema import Dep, SchemaError, Task
 
 
 @dataclass(frozen=True, slots=True)

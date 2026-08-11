@@ -21,8 +21,8 @@ from roadkeep.authoring import DuplicateId, StatusElsewhere, set_status
 from roadkeep.backlog import NotOpen
 from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, build_parser, main
 from roadkeep.config import Config
-from roadkeep.document import RoundTripError
-from roadkeep.schema import SchemaError
+from roadkeep.kernel.document import RoundTripError
+from roadkeep.kernel.schema import SchemaError
 
 ROADMAP = "docs/ROADMAP.md"
 CHANGELOG = "docs/CHANGELOG.md"

@@ -106,7 +106,7 @@ from roadkeep import queueing, scoping
 from roadkeep.backlog import Backlog, DepStatus, Stage, id_order
 from roadkeep.blocking import removable
 from roadkeep.config import PROSE_ROLES, ROLES, Config, spent
-from roadkeep.document import Document, Entry, Heading, ending
+from roadkeep.kernel.document import Document, Entry, Heading, ending
 from roadkeep.exporting import BEGIN, DEFAULTS, NoMarkers, project, splice
 from roadkeep.graph import Graph
 from roadkeep.history import (
@@ -120,7 +120,7 @@ from roadkeep.history import (
     tracked_now,
 )
 from roadkeep.markers import derive
-from roadkeep.schema import (
+from roadkeep.kernel.schema import (
     CODEPOINT_KINDS,
     PARTIAL,
     TAB,
@@ -166,7 +166,7 @@ _ENDING_NAMES = {"\r\n": "CRLF", "\n": "LF", "\r": "CR"}
 class Finding:
     """One defect, at one place. ``code`` is stable; ``message`` names the fix.
 
-    The code is the same string :class:`~roadkeep.schema.Violation` uses where the
+    The code is the same string :class:`~roadkeep.kernel.schema.Violation` uses where the
     finding came from the schema, so a caller filtering on `why.sentences` filters the
     same rule whether it was refused at `add` or found here.
     """
@@ -1911,7 +1911,7 @@ def _repeated(config: Config, files: dict[str, Document]) -> list[Finding]:
 
     A **finding**, not a note, and the exit code is the argument: a file no verb can address
     is not a stylistic drift, and `add`, `ship` and `record add` now all refuse over it
-    (:class:`~roadkeep.document.RepeatedHeading`) — a gate that stayed quiet would be the
+    (:class:`~roadkeep.kernel.document.RepeatedHeading`) — a gate that stayed quiet would be the
     only thing in this tool that saw the state and let it stand. A project mid-adoption that
     has not reached its duplicate yet is what `--baseline` answers (RK84), which is the
     general answer to standing debt and not a reason to weaken one rule.

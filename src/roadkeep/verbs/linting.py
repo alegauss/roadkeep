@@ -19,7 +19,7 @@ from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 
 from roadkeep.config import Config
-from roadkeep.document import write_atomically
+from roadkeep.kernel.document import write_atomically
 from roadkeep.fixing import Fix, fix
 from roadkeep.guarding import START_EVENTS, STOP_EVENTS, announce, attested, guard, review
 from roadkeep.history import HistoryUnavailable

@@ -432,7 +432,7 @@ def test_every_re_export_resolves_to_the_schemas_own_object():
     it is 0.6ms, and what the eager import used to guarantee is guaranteed here instead.
     """
     import roadkeep
-    from roadkeep import schema
+    from roadkeep.kernel import schema
 
     for name in roadkeep.__all__:
         assert getattr(roadkeep, name) is getattr(schema, name), name
@@ -468,7 +468,7 @@ def test_importing_the_package_does_not_import_the_schema():
             "-c",
             "import sys; sys.path.insert(0, r'"
             + str(Path(__file__).parents[1] / "src")
-            + "'); import roadkeep; print('roadkeep.schema' in sys.modules)",
+            + "'); import roadkeep; print('roadkeep.kernel.schema' in sys.modules)",
         ],
         capture_output=True,
         text=True,

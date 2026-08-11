@@ -28,7 +28,7 @@ import pytest
 
 import corpora
 from pathlib import Path
-from roadkeep.document import Document
+from roadkeep.kernel.document import Document
 from roadkeep.history import HistoryUnavailable
 from roadkeep.cli import main
 from roadkeep.config import Config

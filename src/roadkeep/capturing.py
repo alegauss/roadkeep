@@ -61,7 +61,7 @@ from pathlib import Path
 
 from roadkeep.config import Config, ConfigError, find_config
 from roadkeep.provenance import STARTUP_CODECS, Engine, engine, invocation
-from roadkeep.schema import Schema, Task, Violation
+from roadkeep.kernel.schema import Schema, Task, Violation
 
 #: How much of the failing command's output is kept. A capture is read by a person, and a
 #: `lint` over an adopted corpus prints hundreds of findings — the first of which is the

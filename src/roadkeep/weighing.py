@@ -52,7 +52,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 
 from roadkeep.config import Config
-from roadkeep.document import Entry
+from roadkeep.kernel.document import Entry
 from roadkeep.history import Cost, added_ids, costs_of
 
 #: How many recent comparables a scoped answer names. Three, because the question it serves

@@ -41,8 +41,8 @@ from roadkeep.adopting import (
 )
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config, Scope
-from roadkeep.schema import CODE_POINTS, UTF16_UNITS, WORDS, Schema
-from roadkeep.document import Document, ledger_slots
+from roadkeep.kernel.schema import CODE_POINTS, UTF16_UNITS, WORDS, Schema
+from roadkeep.kernel.document import Document, ledger_slots
 from roadkeep.linting import lint
 from roadkeep.sections import unanchored, words
 

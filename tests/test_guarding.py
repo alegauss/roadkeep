@@ -168,7 +168,8 @@ DENIAL_REACHES = {
     # `[limits]` parses into. `document` is *not* here (RK261): the guard decides where a write
     # was going and never opens the file, so the model that would is `Config.document`'s own.
     "roadkeep.config",
-    "roadkeep.schema",
+    "roadkeep.kernel",
+    "roadkeep.kernel.schema",
     # The shell invocation the denial offers (RK254). `locking` is absent for `document`'s
     # reason: a denial dispatches nothing, so the lock is never taken and `LockBusy` is
     # reached inside `serving.call` (RK261).
@@ -195,7 +196,7 @@ DENIAL_ALSO_RENDERS = {
     "roadkeep.serving",
     # And `invocation()`'s own, which is the machine-dependent half.
     "roadkeep.backlog",
-    "roadkeep.document",
+    "roadkeep.kernel.document",
     "roadkeep.history",
     "roadkeep.sections",
 }

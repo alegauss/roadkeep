@@ -58,7 +58,7 @@ def emitted() -> set[str]:
     package too, and an assertion over that domain is noise.
     """
     found: set[str] = set()
-    for name in ("linting.py", "schema.py"):
+    for name in ("linting.py", "kernel/schema.py"):
         text = (SOURCE / name).read_text(encoding="utf-8")
         found |= set(re.findall(r'"([a-z]+\.[a-z][a-z-]*)"', text))
     return (found | composed()) - _NOT_CODES
@@ -74,7 +74,7 @@ def composed() -> set[str]:
     """
     import ast
 
-    text = (SOURCE / "schema.py").read_text(encoding="utf-8")
+    text = (SOURCE / "kernel/schema.py").read_text(encoding="utf-8")
     suffixes = set(re.findall(r'f"\{field\}\.([a-z][a-z-]*)"', text))
     fields = {
         node.args[0].value
@@ -613,7 +613,7 @@ def test_the_composed_read_finds_what_the_literal_one_cannot():
     # Both halves are read from the source, so this is what the schema actually validates.
     assert {"why.newline", "symptom.newline", "why.empty", "symptom.empty"} <= found
     literal: set[str] = set()
-    for name in ("linting.py", "schema.py"):
+    for name in ("linting.py", "kernel/schema.py"):
         literal |= set(
             re.findall(r'"([a-z]+\.[a-z][a-z-]*)"', (SOURCE / name).read_text(encoding="utf-8"))
         )

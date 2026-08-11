@@ -50,7 +50,7 @@ from roadkeep.remedying import codes
 #: qualifier is a ledger field and its rules are not the line's.
 FIELDS = ("symptom", "why")
 
-#: What :func:`~roadkeep.schema._codepoints` resolves its code from (RK499). Read here as the
+#: What :func:`~roadkeep.kernel.schema._codepoints` resolves its code from (RK499). Read here as the
 #: three it can be, because the constructor's first argument is a name and not a literal —
 #: the one place this enumeration cannot read the code off the call.
 COMPUTED = ("char.tab", "char.space", "char.invisible")

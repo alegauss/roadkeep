@@ -49,10 +49,10 @@ from pathlib import Path
 
 from roadkeep.authoring import place, remove_entry
 from roadkeep.config import PROSE_ROLES, Config
-from roadkeep.document import Document, Entry
+from roadkeep.kernel.document import Document, Entry
 from roadkeep.linting import within
 from roadkeep.provenance import invocation, persisted
-from roadkeep.schema import SchemaError
+from roadkeep.kernel.schema import SchemaError
 
 __all__ = [
     "Attributes",
@@ -914,7 +914,7 @@ def _materialize(
 
     In that order and re-located by id at every step, because each edit reparses and a line
     number held across one is a line number that has already moved — the care every mutator
-    in :mod:`roadkeep.document` takes, for the same reason.
+    in :mod:`roadkeep.kernel.document` takes, for the same reason.
 
     ``where`` is the file being merged, which is what makes a refusal here readable (RK361):
     this is the fourth caller of `place` and it was the one passing neither the path nor an
