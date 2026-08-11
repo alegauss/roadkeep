@@ -120,6 +120,7 @@ from roadkeep.history import (
     tracked_now,
 )
 from roadkeep.markers import derive
+from roadkeep.referring import PAIRS
 from roadkeep.kernel.schema import (
     CODEPOINT_KINDS,
     TAB,
@@ -1824,41 +1825,9 @@ def _across(config: Config, documents: dict[str, Document]) -> list[Finding]:
     file = config.relative(config.path("roadmap"))
     out: list[Finding] = []
 
-    # The third governed file that can hold a line (RK96), against the first (RK1081). Its
-    # own code and not a second subject on `id.two-files`: open-and-gone is not the sentence
-    # open-and-paused is, and the door differs too — `ship` closes one and `resume` the other.
-    if config.has("deferred") and config.path("deferred").is_file():
-        paused = config.document("deferred").by_id()
-        for task_id, entry in roadmap.by_id().items():
-            if task_id in paused:
-                out.append(
-                    Finding(
-                        "id.paused-and-open",
-                        file,
-                        f"also set aside on line {paused[task_id].lineno} of "
-                        f"{config.relative(config.path('deferred'))}: open and paused are "
-                        f"not both true, and the store is the half a resume removes",
-                        entry.lineno,
-                        task_id,
-                    )
-                )
-
     if ledger is not None:
         out.extend(_undeclared_blocks(config, roadmap, ledger, file))
-        shipped = ledger.by_id()
-        for task_id, entry in roadmap.by_id().items():
-            if task_id in shipped and not shipped[task_id].task.in_halves:
-                out.append(
-                    Finding(
-                        "id.two-files",
-                        file,
-                        f"also on line {shipped[task_id].lineno} of "
-                        f"{config.relative(config.path('changelog'))}: open and "
-                        f"recorded as gone are not both true",
-                        entry.lineno,
-                        task_id,
-                    )
-                )
+    out.extend(_carried(config, roadmap, file))
 
     for entry in roadmap.entries:
         out.extend(_deps(backlog, entry.task, file, entry.lineno))
@@ -2156,6 +2125,49 @@ def _unorganised(config: Config, roadmap: Document, word: str) -> list[Finding]:
             subject=label,
         )
     ]
+
+
+def _carried(config: Config, roadmap: Document, file: str) -> list[Finding]:
+    """Every pair of governed files holding a line for one id (RK1082).
+
+    One loop over `referring.PAIRS` rather than a rule per pair. Three files can hold a line
+    — RK96 added the third — and the gate read two of the three pairs, each by its own copy
+    of this loop: RK1081 wrote the second by copying the first, which is the arrangement
+    RK1077 was filed about one layer up. The pairs are a cross product over
+    :data:`~roadkeep.ids.CARRIERS`, so a fourth role that can hold a line is covered by
+    arithmetic instead of by somebody remembering.
+
+    The **wording** stays per pair, which is the line RK1081 drew: open-and-gone is not the
+    sentence open-and-paused is, and the doors differ too. What is shared is which pairs
+    exist and the walk over them; a pair the declaration carries with no code is one nobody
+    has walked into, and it is skipped here and named there.
+
+    `in_halves` is the one tolerated shape (RK121, RK1080) and belongs to the ledger pair:
+    an entry naming a half beside an open line is the two files agreeing that work arrived
+    in halves. No other pair has one, because no other file can say so.
+    """
+    out: list[Finding] = []
+    for pair in PAIRS:
+        if not pair.code or pair.first != "roadmap":
+            continue
+        if not config.has(pair.second) or not config.path(pair.second).is_file():
+            continue
+        elsewhere = config.document(pair.second).by_id()
+        where = config.relative(config.path(pair.second))
+        for task_id, entry in roadmap.by_id().items():
+            held = elsewhere.get(task_id)
+            if held is None or held.task.in_halves:
+                continue
+            out.append(
+                Finding(
+                    pair.code,
+                    file,
+                    f"also on line {held.lineno} of {where}: {pair.says}",
+                    entry.lineno,
+                    task_id,
+                )
+            )
+    return out
 
 
 def _deps(backlog: Backlog, task: Task, file: str, lineno: int) -> list[Finding]:

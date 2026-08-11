@@ -26,7 +26,7 @@ from pathlib import Path
 import pytest
 
 from roadkeep import remedying
-from surface import modules
+from surface import address, modules
 from roadkeep.backlog import Backlog
 from roadkeep.cli import build_parser
 from roadkeep.config import ROLES, Config
@@ -57,8 +57,11 @@ def emitted() -> set[str]:
     pattern loose enough to catch `f"{field}.x"` catches every `f"{name}.{ext}"` in the
     package too, and an assertion over that domain is noise.
     """
+    # `referring.py` joined the two when RK1082 moved the pairwise codes into the
+    # declaration that drives them — and the list being hand-written is why this had to be
+    # edited at all, which is RK1074's argument arriving in one more file.
     found: set[str] = set()
-    for name in ("linting.py", "kernel/schema.py"):
+    for name in (address("linting"), address("schema"), address("referring")):
         text = (SOURCE / name).read_text(encoding="utf-8")
         found |= set(re.findall(r'"([a-z]+\.[a-z][a-z-]*)"', text))
     return (found | composed()) - _NOT_CODES

@@ -70,3 +70,71 @@ def test_every_rule_left_out_says_why():
     # not argue it is one somebody added to make this file green.
     for code, because in ELSEWHERE.items():
         assert len(because.split()) >= 4, code
+
+
+# -- the pairs of files that can hold one id (RK1082) -------------------------
+
+
+def test_the_pairs_are_the_cross_product_of_the_files_that_carry_a_line():
+    """Three governed files can hold a line, so there are three pairs, and the gate read two
+    of them by two hand-written loops — RK1081 wrote the second by copying the first.
+
+    Derived from `CARRIERS` rather than listed, which is the whole point: a fourth role that
+    can hold a line is covered by arithmetic instead of by somebody remembering.
+    """
+    from itertools import combinations
+
+    from roadkeep.ids import CARRIERS
+    from roadkeep.referring import PAIRS
+
+    assert {frozenset((one.first, one.second)) for one in PAIRS} == {
+        frozenset(pair) for pair in combinations(CARRIERS, 2)
+    }
+
+
+def test_every_pair_either_has_a_code_or_says_why_it_has_none():
+    # The closure, and the difference from the arrangement RK1077 was filed about: a pair
+    # nobody has walked into says so here rather than being absent, so the gap is a line to
+    # read instead of a discovery somebody's adoption makes.
+    from roadkeep.referring import PAIRS
+    from roadkeep.remedying import codes
+
+    for pair in PAIRS:
+        assert bool(pair.code) != bool(pair.because), (pair.first, pair.second)
+        if pair.code:
+            # A code with no remedy is a finding that names no door, which is the property
+            # `test_remedying` holds over the whole table and this holds over this relation.
+            assert pair.code in set(codes()), pair.code
+            assert pair.says, pair.code
+        else:
+            assert len(pair.because.split()) >= 12, (pair.first, pair.second)
+
+
+
+
+def test_the_gate_still_reports_both_pairs_it_read_before(tmp_path):
+    # The loop replaced two hand-written ones, so both answers are asked for again: a
+    # refactor that quietly dropped one would be the silence RK1076 spent a task removing.
+    from roadkeep.config import Config
+    from roadkeep.linting import lint
+
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "R.md"\nchangelog = "C.md"\n'
+        'deferred = "D.md"\n[rules.roadmap]\nref = false\n[rules.deferred]\nref = false\n',
+        encoding="utf-8",
+    )
+    line = "- {m} **RK{n}** (deps: —) **A symptom** — Because of a reason.\n"
+    (tmp_path / "R.md").write_text(
+        "# R\n\n## Block A — x\n\n" + line.format(m="📋", n=1) + line.format(m="📋", n=2),
+        encoding="utf-8",
+    )
+    (tmp_path / "C.md").write_text(
+        "# C\n\n## Block A — x\n\n- ✅ **RK1** **A symptom** — It landed.\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "D.md").write_text(
+        "# Deferred\n\n## Block A — x\n\n" + line.format(m="⏸", n=2), encoding="utf-8"
+    )
+    found = {f.code: f.id for f in lint(Config.discover(tmp_path)).findings}
+    assert found.get("id.two-files") == "RK1"
+    assert found.get("id.paused-and-open") == "RK2"

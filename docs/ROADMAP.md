@@ -32,8 +32,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1082** (deps: —) **the pairwise checks over three governed files are two rules written by hand** — id.two-files reads the roadmap against the changelog and id.paused-and-open reads it against the store, so a fourth role that can hold a line needs a third rule nobody will remember. → §RK1082
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

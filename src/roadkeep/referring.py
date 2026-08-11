@@ -114,6 +114,66 @@ RELATIONS: tuple[Relation, ...] = (
 )
 
 
+@dataclass(frozen=True, slots=True)
+class Carried:
+    """One pair of governed files that may not both hold a line for the same id (RK1082).
+
+    The fourth relation, and the same kind as the other three: a target, a sentinel meaning
+    *no reference*, and a policy for a target that turned out to be somewhere else. What
+    differs is the direction — a dep points at an id and this one points at a **file**, so
+    the pairs are a cross product over :data:`~roadkeep.ids.CARRIERS` rather than a rule
+    somebody writes per pair.
+
+    Written per pair and not folded into one message, which is the line RK1081 drew and this
+    keeps: open-and-gone, open-and-paused and gone-and-paused are three sentences with three
+    doors. The declaration holds *which pairs exist*; the wording and the remedy stay with
+    the code. A pair with no code yet is a pair nobody has walked into, and it says so here
+    rather than by being absent — which is the whole difference from the arrangement RK1077
+    was filed about, where a gap was found by the project that reached it.
+    """
+
+    #: The role a finding about this pair is filed against, and whose line number it carries.
+    first: str
+    #: The other file holding a line for the same id.
+    second: str
+    #: The gate code, or `""` where no rule reads this pair yet — and then :attr:`because`
+    #: says what is missing rather than leaving a silence.
+    code: str = ""
+    #: What the two files each claim, as the finding's own sentence spells it.
+    says: str = ""
+    #: Why there is no rule, on a pair whose `code` is empty.
+    because: str = ""
+
+
+#: Every pair of governed files that can hold a line for one id (RK1082). Three, because
+#: `CARRIERS` is three; two are read and the third says why it is not.
+PAIRS: tuple[Carried, ...] = (
+    Carried(
+        first="roadmap",
+        second="changelog",
+        code="id.two-files",
+        says="open and recorded as gone are not both true",
+    ),
+    Carried(
+        first="roadmap",
+        second="deferred",
+        code="id.paused-and-open",
+        says="open and paused are not both true",
+    ),
+    Carried(
+        first="changelog",
+        second="deferred",
+        because=(
+            "reachable — a crash between a departure's two writes leaves it, and so does a "
+            "hand edit — and unread, because the repair is not `resume`: that verb places an "
+            "open line, and placing one for work the ledger records as gone would be the "
+            "contradiction again with the files swapped. Nobody has walked into it, which is "
+            "the only reason it is a declaration here instead of a rule"
+        ),
+    ),
+)
+
+
 #: The rules in these four families that are **not** reference questions, each with why. Here
 #: rather than left out, because the index has to name every rule including the ones it does
 #: not implement: a reader asking "is this relation declared" must not have to know which
