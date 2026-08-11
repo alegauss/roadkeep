@@ -120,10 +120,14 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 0 | 117 | 1 |
 | C — Query (consult without reading the file) | 0 | 79 | 1 |
 | D — The gate | 0 | 126 | 0 |
-| E — Adoption | 0 | 75 | 1 |
+| E — Adoption | 1 | 75 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 91 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 0 | 531 | 6 |
+| **Total** | 1 | 531 | 6 |
+
+**Next ready:**
+
+- 📋 **RK1040** (deps: —) **init writes the Non-goals heading and no [non_goals], so the verb that fills it refuses on a fresh project** — The opt-in exists for prose that predates the grammar, which is adopt's case and cannot be true of a heading init just emptied. → §RK1040
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -83,6 +83,35 @@ already written, not authorship.
 
 ## Block E — Adoption
 
+### §RK1040 The list init left ungoverned
+
+`init` writes a roadmap with a `## Non-goals` heading and a `roadkeep.toml` with no
+`[non_goals]`. The verb that fills that heading then refuses:
+
+> `roadkeep.toml declares no [non_goals]: add the table to roadkeep.toml to govern the
+> list, since a schema applied to prose nobody wrote to it reports on adoption`
+
+The reason is right and it is about a file `init` did not write. RK70 made the list
+opt-in because two live corpora wrote theirs as free prose years before this grammar
+existed, and a gate reporting fifteen findings on the first run is one that gets
+bypassed. A project `init` created a minute ago has no such prose — the heading is empty
+because `init` emptied it.
+
+`adopt` is the door that reasoning is for, and it already says so out loud:
+*`[non_goals]` not governed, so measured at the defaults*. Nothing about that changes.
+
+The asymmetry is the tell. The roadmap has two extra lists and `init` scaffolds one of
+them — `priority = []`, empty, with a comment saying what may go in it. `[non_goals]` is
+the other, and it is the one left for the author to add by hand to a file the scaffold
+just wrote.
+
+**The fix** is the same line `priority` gets: an empty `[non_goals]` under a comment,
+which `_scope` already documents as the shortest way to opt in — declared at all means
+governed, and each number may be left default.
+
+What proves it: `non-goal add` works on a project `init` created, `adopt` writes no
+config, and a project that removed the table is refused exactly as it is now.
+
 ## Block F — The plugin
 
 ## Block G — The editor surface (the backlog where the file is open)

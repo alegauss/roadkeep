@@ -32,6 +32,8 @@
 
 ## Block E — Adoption
 
+- 📋 **RK1040** (deps: —) **init writes the Non-goals heading and no [non_goals], so the verb that fills it refuses on a fresh project** — The opt-in exists for prose that predates the grammar, which is adopt's case and cannot be true of a heading init just emptied. → §RK1040
+
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Block G — The editor surface (the backlog where the file is open)
