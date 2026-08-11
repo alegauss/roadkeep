@@ -2925,3 +2925,74 @@ def test_a_mixed_body_is_answered_as_the_mistake_it_may_be(tmp_path):
     (violation,) = [one for one in refused.value.violations if one.code == "body.promise"]
     assert "names RK1, RK4" in violation.message
     assert "past every id a line carries" not in violation.message
+
+
+# -- the door the ancestor check did not reach (RK1033) ----------------------
+
+
+def _nested(tmp_path: Path, parent_words: int, child_words: int, limit: int = 30):
+    """An outline project whose live §IX already owns a child, both spending its budget."""
+    return project(
+        tmp_path,
+        top='ref_scheme = "outline"\n',
+        extra=f"\n[limits]\nsection = {limit}\n",
+        roadmap=f"# Roadmap\n\n## Block A — The model\n\n{RK1_LINE.replace('§RK1', '§IX')}\n",
+        improvements=(
+            "# Improvements\n\n## Block A — The model\n\n"
+            "### IX A design\n\n" + " ".join(["word"] * parent_words) + "\n\n"
+            "#### IX.1 A child\n\n" + " ".join(["word"] * child_words) + "\n"
+        ),
+    )
+
+
+def test_an_amend_that_pushes_its_parent_over_is_refused(tmp_path):
+    """The write RK1024 and RK1029 left open, and the one an author reaches more often: a
+    design is amended more than once and written once, and an amend is where the prose
+    already exists — so the refusal costs a draft rather than a retry."""
+    config = _nested(tmp_path, parent_words=10, child_words=5)
+    before = read(config)
+    with pytest.raises(SectionError) as raised:
+        amend(config, "improvements", "IX.1", body=" ".join(["word"] * 25))
+    assert "§IX" in str(raised.value)
+    assert read(config) == before
+
+
+def test_an_amend_that_shortens_an_already_over_parent_lands(tmp_path):
+    """The delta, and it is what keeps this from being RK215's deadlock: a file somebody
+    else left over is one an author can only correct by writing into it, and a refusal there
+    closes every door and leaves the prose saying something untrue."""
+    config = _nested(tmp_path, parent_words=25, child_words=25)
+    document, section, _ = amend(config, "improvements", "IX.1", body="Four short words.")
+    document.save()
+    assert section.own_words == 3
+    # Still over — the parent alone is 25 of 30 — and the write was right anyway.
+    assert find(Config.discover(tmp_path).document("improvements"), "IX").words > 30
+
+
+def test_an_amend_that_leaves_the_total_where_it_was_lands(tmp_path):
+    """The boundary between the two above: equal is not worse, so a rewrite that trades one
+    sentence for another of the same length is a correction and not an overrun."""
+    config = _nested(tmp_path, parent_words=25, child_words=10)
+    document, _, _ = amend(config, "improvements", "IX.1", body=" ".join(["term"] * 10))
+    document.save()
+    assert "term" in read(Config.discover(tmp_path))
+
+
+def test_a_container_nothing_points_at_still_binds_nothing_at_an_amend(tmp_path):
+    """The gate's rule, asked the same way at this door too (RK215): an ancestor no line
+    points at is charged its own prose, and charging its children here would refuse prose
+    `lint` calls clean."""
+    config = project(
+        tmp_path,
+        top='ref_scheme = "outline"\n',
+        extra="\n[limits]\nsection = 30\n",
+        roadmap="# Roadmap\n\n## Block A — The model\n",
+        improvements=(
+            "# Improvements\n\n## Block A — The model\n\n"
+            "### IX A container nobody addresses\n\n" + " ".join(["word"] * 25) + "\n\n"
+            "#### IX.1 A child\n\nFour short words.\n"
+        ),
+    )
+    document, _, _ = amend(config, "improvements", "IX.1", body=" ".join(["word"] * 25))
+    document.save()
+    assert lint(Config.discover(tmp_path)).findings == ()

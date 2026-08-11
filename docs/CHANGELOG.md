@@ -162,6 +162,7 @@
 - ✅ **RK1026** **An unrecognised flag falls through to argparse, so a near-miss gets the verb list and its own value echoed back** — An unrecognised flag is refused by this tool now: the verb that was reached, the option token alone, and that verb's own surface rather than the whole tool's.
 - ✅ **RK1027** **The forward-reference guard has no advice for the case it most often fires on: an id that is about to exist** — An id just past everything a line carries is named as the sibling not filed yet, with the ordering as the advice; far past it is still an illustration and below it still a hole.
 - ✅ **RK1028** **a body read from a path keeps its editor's BOM, and neither the write nor the gate reports the invisible byte** — A body read from a path loses the mark its editor wrote, and one in a file is red and fixable (design §RK1028 superseded: only the mark is swept; a lookalike a design quotes is prose).
+- ✅ **RK1033** **section amend accepts a body that puts its parent over, which is the write RK1024 and RK1029 left open** — An amend is charged its ancestors too, as a delta: a write that makes an over-limit parent worse is refused, and one that shortens it lands.
 
 ## Block C — Query
 

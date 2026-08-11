@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1033** (deps: —) **section amend accepts a body that puts its parent over, which is the write RK1024 and RK1029 left open** — A design is amended more often than written, and an amend is where the prose already exists — so the refusal costs a draft rather than a retry. → §RK1033
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate

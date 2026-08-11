@@ -897,6 +897,8 @@ def add(
         ) from None
     unspent(config, role, anchor, document=document, where=where)
 
+    # The file as it was read, for the delta :func:`_refuse_overflow` charges (RK1033).
+    was = document
     lines = _render(document.schema, anchor, title, body, _depth(document, anchor, level))
     index = _placement(document, anchor, task, where)
     payload = list(lines)
@@ -909,12 +911,17 @@ def add(
 
     placed = find(document, anchor)
     assert placed is not None  # rendered by this function a moment ago
-    _refuse_overflow(config, document, anchor)
+    _refuse_overflow(config, document, anchor, was)
     return document, placed
 
 
-def _refuse_overflow(config: Config, document: Document, anchor: str) -> None:
-    """Refuse a child whose arrival puts an ancestor over its own limit (RK1024).
+def _refuse_overflow(
+    config: Config, document: Document, anchor: str, before: Document | None = None
+) -> None:
+    """Refuse a write that leaves an ancestor over its own limit and worse than it was.
+
+    RK1024 for an `add`, and RK1033 for the `amend` that door left open — which is the one an
+    author reaches more often, a design being amended more than once and written once.
 
     `add` opens its help with the promise that nothing is written unless every field passes,
     because *a limit reported after the prose exists is a limit discovered too late to save
@@ -933,26 +940,39 @@ def _refuse_overflow(config: Config, document: Document, anchor: str) -> None:
 
     Every ancestor and not only the immediate one: `L.1.2` is inside `L.1` and inside `L`,
     and a parent with room under a grandparent with none is still a write `lint` fails.
+
+    ``before`` is the file as it was read, and it makes the rule a **delta** rather than a
+    state: a shorter body that leaves an already-over parent over is a correction in the
+    right direction, and refusing it is RK215's deadlock exactly — every door closed and the
+    file left saying something untrue. So what is refused is a write that makes the total
+    worse, never one that arrives at a file somebody else left over. An `add` passes it too:
+    a section body cannot be empty, so an insert is always worse by its own words, and
+    stating the rule once is what keeps the two doors from disagreeing about it.
     """
     limit = document.schema.section_max
     parent = _parent(anchor)
     while parent:
         whole = find(document, parent)
-        if whole is not None and whole.words > limit and _pointed_at(config, parent):
-            raise SectionError(
-                (
-                    Violation(
-                        "body.too-long",
-                        "body",
-                        f"§{parent} would be "
-                        f"{over_by(whole.words, limit, unit='word', because=' with this section under it')}"
-                        f" — a subsection is charged to the address that owns it, so this "
-                        f"prose belongs at a free top-level anchor "
-                        f"(`anchors --next`) rather than under §{parent}",
-                    ),
-                )
+        if whole is None or whole.words <= limit or not _pointed_at(config, parent):
+            parent = _parent(parent)
+            continue
+        was = find(before, parent) if before is not None else None
+        if was is not None and whole.words <= was.words:
+            parent = _parent(parent)
+            continue
+        raise SectionError(
+            (
+                Violation(
+                    "body.too-long",
+                    "body",
+                    f"§{parent} would be "
+                    f"{over_by(whole.words, limit, unit='word', because=' with this section under it')}"
+                    f" — a subsection is charged to the address that owns it, so this "
+                    f"prose belongs at a free top-level anchor "
+                    f"(`anchors --next`) rather than under §{parent}",
+                ),
             )
-        parent = _parent(parent)
+        )
 
 
 def unspent(config: Config, role: str, anchor: str, *, document: Document, where: str) -> None:
@@ -1143,6 +1163,12 @@ def amend(
                 ),
             )
         )
+    # The door RK1024 and RK1029 left open (RK1033): a rewrite of `§L.3` that puts `§L`
+    # eighty words over was accepted and reported by `lint` afterwards, which is the
+    # sequence both of those closed at `add`. The delta is what makes it safe here — an
+    # amend is where the prose already exists, and refusing a *shortening* is RK215's
+    # deadlock in the one direction an author can act in.
+    _refuse_overflow(config, updated, anchor, document)
     return updated, amended, changed
 
 
