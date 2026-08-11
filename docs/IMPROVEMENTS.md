@@ -83,25 +83,6 @@ already written, not authorship.
 
 ## Block E — Adoption
 
-### §RK1100 The estimate names every gain and no cost
-
-`adopt` walks `GAINS` and tells a project what governing its files would give it: a
-pause door, a design section, non-goals, a queue. RK1097 measured the other side of that
-transaction for the first time, and it is large — roadkeep, Shio and Turing each serve
-52 tools for about 51,000 characters at connect, differing by 1.4% because the surface
-comes from the package and only the prefix and the paths interpolate.
-
-So the number is knowable before adoption and is the same number for everybody, which is
-precisely the kind of figure an estimate should carry. What it is not is a reason
-against adopting: the surface is paid once at the handshake against files a session
-re-reads every turn, and `budget --session` exists to keep those two cadences from being
-added.
-
-The honest shape is a cost line beside the gains, phrased at the cadence it is paid at,
-and a pointer to `[tools]` so a project that wants a ceiling knows one is available. Not
-a warning and not a default ceiling — RK464 declined to guess a number for somebody
-else's surface, and this does not reopen that.
-
 ## Block F — The plugin
 
 ## Block G — The editor surface (the backlog where the file is open)

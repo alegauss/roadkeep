@@ -1068,7 +1068,9 @@ def test_a_roadmap_has_no_ledger_slots_to_report(tmp_path: Path) -> None:
 #: Declared rather than derived: the boundary is where a field gets a name a reader outside
 #: this package can use — `path` is *which file*, and `file` says so — and a payload generated
 #: from the dataclass would be correct with no place left to say that.
-ESTIMATE_RENAMES = {"path": "file"}
+#: `surface` travels as `serves`, and as an object rather than an integer: the cadence has to
+#: reach a client with the number, or it is added to a per-turn figure (RK1100).
+ESTIMATE_RENAMES = {"path": "file", "surface": "serves"}
 
 
 def test_the_payload_carries_every_field_of_the_estimate(tmp_path: Path, capsys) -> None:
@@ -2001,3 +2003,53 @@ def test_every_gain_says_what_the_project_does_instead(tmp_path: Path) -> None:
     for name, _opens, because in GAINS:
         assert len(because.split()) >= 20, name
         assert "no " in because or "not " in because, name
+
+
+def _project(tmp_path: Path) -> Path:
+    """A conforming backlog under a config of its own — what the three reads below need."""
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\n', encoding="utf-8"
+    )
+    (tmp_path / "ROADMAP.md").write_text(CONFORMING, encoding="utf-8")
+    return tmp_path
+
+
+def test_the_estimate_prices_the_surface_it_arrives_with(tmp_path, capsys):
+    """The other side of the transaction (RK1100).
+
+    `GAINS` names four doors the format opens and the report named no cost at all, which is a
+    decision asked for on half its terms. RK1097 made the missing half knowable: the served
+    surface is a fact about the package — three projects, the same 52 tools, 1.4% apart — so
+    it is the same figure for an adopter as for this repository.
+    """
+    from roadkeep.serving import surface
+
+    root = _project(tmp_path)
+    estimate = adopt(Config.discover(root), root / "ROADMAP.md")
+    assert estimate.surface == surface(Config.discover(root)).characters
+
+    main(["-C", str(root), "adopt", str(root / "ROADMAP.md")])
+    printed = capsys.readouterr().out
+    line = next(one for one in printed.splitlines() if one.strip().startswith("serves"))
+    # The cadence travels with the number, or the reader adds it to a per-turn figure — which
+    # is the arithmetic RK1095 refused to print and this row would reintroduce.
+    assert "once at connect" in line and str(estimate.surface) in line
+    assert "[tools]" in line, "a cost with no door to hold it is a number and not a reading"
+
+
+def test_the_cost_is_reported_and_never_weighed_against_the_gains(tmp_path, capsys):
+    # L4. The estimate states both and concludes nothing: a sentence recommending adoption, or
+    # against it, is the tool making somebody's decision from two numbers it does not own.
+    root = _project(tmp_path)
+    main(["-C", str(root), "adopt", str(root / "ROADMAP.md")])
+    printed = capsys.readouterr().out.lower()
+    for verdict in ("worth", "recommend", "should", "cheap", "expensive"):
+        assert verdict not in printed, f"the estimate reached a conclusion: {verdict}"
+
+
+def test_the_json_carries_the_cadence_with_the_number(tmp_path, capsys):
+    root = _project(tmp_path)
+    main(["-C", str(root), "adopt", str(root / "ROADMAP.md"), "--json"])
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["serves"]["cadence"] == "once, at connect"
+    assert payload["serves"]["characters"] > 0

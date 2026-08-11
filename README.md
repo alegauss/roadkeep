@@ -120,14 +120,10 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 0 | 130 | 1 |
 | C — Query (consult without reading the file) | 0 | 87 | 1 |
 | D — The gate | 0 | 145 | 0 |
-| E — Adoption | 1 | 81 | 1 |
+| E — Adoption | 0 | 82 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 97 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 1 | 591 | 6 |
-
-**Next ready:**
-
-- 📋 **RK1100** (deps: —) **adopt estimates what a project gains and never says the tool surface costs it fifty thousand characters** — an adopting project serves the same 52 tools measured here, so the largest number in the transaction is the one the estimate omits. → §RK1100
+| **Total** | 0 | 592 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

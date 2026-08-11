@@ -609,6 +609,21 @@ class Estimate:
     #: priced 2 as a table and 0 as a list, and a `DESIGN.md` answered 0 sections, both being
     #: the zero RK98 forbids. The *sentence* differs by unit; the number does not.
     listed: int = 0
+    #: What connecting to this project's MCP server would cost a session, in characters at the
+    #: handshake (RK1100) — 0 where the surface could not be measured, which is no adoption
+    #: decision and only a reader that could not compose the schema.
+    #:
+    #: The one number here that is **not** about the file. Every other row prices what this
+    #: backlog would have to change; this prices what the tool arrives carrying, and RK1097
+    #: measured it as a fact about the package rather than about the project: roadkeep, Shio
+    #: and Turing serve the same 52 tools within 1.4% of each other. So it is knowable before
+    #: adoption and is the same for everybody, which is exactly the figure an estimate that
+    #: names four gains and no costs was missing.
+    #:
+    #: Not added to anything and deliberately not weighed against the gains (L4): it is paid
+    #: once at connect where a resident file is paid every turn, so the two do not sum, and
+    #: whether it is worth it is the adopter's call.
+    surface: int = 0
 
     @property
     def changing(self) -> int:
@@ -1065,6 +1080,7 @@ def adopt(
         conforming=conforming,
         ref_scheme=schema.ref_scheme,
         gains=_gains(config, _declared(config, target), document),
+        surface=_surface(config),
         rejects=_grouped(reject.reason for reject in document.rejects),
         codes=_ranked(counts),
         measures=_measures(document, schema),
@@ -1156,6 +1172,9 @@ def _prose(
         # What that read opened, and never a rule about what a read of this kind opens (RK373).
         unopened=_unread(config, target, opened=across.opened),
         declared=_declared(config, target),
+        # The same on both runs: what the server costs is a fact about the package, not about
+        # which file this one was pointed at (RK1100).
+        surface=_surface(config),
         parsed=len(found),
         conforming=sum(1 for count in words if count <= schema.section_max),
         # RK281: the same contract `listed` has one file over. A rationale file that never
@@ -1736,6 +1755,27 @@ def _gains(
         for name, opens, because in GAINS
         if opens(config, document)
     )
+
+
+def _surface(config: Config) -> int:
+    """What a session connecting to this project's server would be sent (RK1100).
+
+    A local import for `linting._served`'s reason and not as a style: `serving` reaches `cli`,
+    which reaches the verbs, which reach this module — so the name at module scope would close
+    a cycle. The measurement itself is `serving.surface`, which is the same function
+    `budget --session` prints and the gate holds (RK1096), because an estimate quoting a
+    second arithmetic is the disagreement that whole task removed.
+
+    Zero where it cannot be composed, which is not an adoption fact: a config too broken to
+    describe a tool is one `adopt` is already reporting on, and a report that raised there
+    would take away the read that explains why.
+    """
+    from roadkeep.serving import surface  # noqa: PLC0415 - RK260, the cycle above
+
+    try:
+        return surface(config).characters
+    except (ValueError, KeyError, TypeError):
+        return 0
 
 
 def _grouped(reasons: Iterable[str]) -> tuple[tuple[str, int], ...]:

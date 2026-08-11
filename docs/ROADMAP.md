@@ -32,8 +32,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK1100** (deps: —) **adopt estimates what a project gains and never says the tool surface costs it fifty thousand characters** — an adopting project serves the same 52 tools measured here, so the largest number in the transaction is the one the estimate omits. → §RK1100
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Block G — The editor surface (the backlog where the file is open)

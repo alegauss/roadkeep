@@ -510,6 +510,7 @@
 - ✅ **RK1089** **the estimate answers what one file costs and says nothing about the doors a project would gain** — The doors a project has not declared are a named category under one heading, with the store joined by a prose file and the non-goals, so the next member has somewhere to land.
 - ✅ **RK1090** **the queue is the fourth door an estimate could name and the only member left out** — The queue joins the category, read off the Priority heading rather than its entries, and says the project picks by lowest ready id instead of naming a gap.
 - ✅ **RK1093** **the estimate's four gains are four hand-written blocks in one function** — GAINS declares each door as a name, a predicate over what the project declared and the sentence saying what it has instead, so a fifth is a row and a test can ask whether all four are named.
+- ✅ **RK1100** **adopt estimates what a project gains and never says the tool surface costs it fifty thousand characters** — the estimate prints what the served surface costs a session at connect, beside the doors it names and with no verdict on the trade.
 
 ## Block F — The Claude Code plugin
 

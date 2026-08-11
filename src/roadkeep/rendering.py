@@ -1256,6 +1256,20 @@ def _print_estimate(estimate: Estimate) -> None:
         )
         for gain in estimate.gains:
             print(f"    {gain.name:<9}{gain.because}")
+    if estimate.surface:
+        # The other side of the transaction, and the only row here that is not about the file
+        # (RK1100). An estimate that named four doors this format opens and no cost is one that
+        # asks for a decision while holding half the terms — and this half is knowable in
+        # advance, being a fact about the package: RK1097 measured three projects serving the
+        # same 52 tools within 1.4% of each other.
+        #
+        # Stated at the cadence it is paid at and never summed with anything (RK1095): once at
+        # connect, against a resident file paid every turn. And no verdict on it — whether the
+        # doors above are worth this is the adopter's arithmetic, not the tool's (L4).
+        print(
+            f"  serves   {estimate.surface} characters once at connect, if this project "
+            f"serves the tools: `[tools]` is where a ceiling on that is declared"
+        )
     for marker, count in estimate.undeclared:
         print(f"  marker   {marker} on {count} line(s), declared by nothing in [markers]")
     for code, count in estimate.codes:
@@ -1397,6 +1411,10 @@ def _estimate_json(estimate: Estimate) -> dict[str, object]:
         "gains": [
             {"name": gain.name, "because": gain.because} for gain in estimate.gains
         ],
+        # Beside the gains and not among the counts, because it is the one figure here that is
+        # not about the file (RK1100). Its own object, so the cadence travels with the number:
+        # a client adding this to a per-turn cost is the arithmetic RK1095 refused to print.
+        "serves": {"characters": estimate.surface, "cadence": "once, at connect"},
         "unit": estimate.unit,
         "ref_scheme": estimate.ref_scheme,
         "parsed": estimate.parsed,
