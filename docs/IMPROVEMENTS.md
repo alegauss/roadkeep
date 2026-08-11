@@ -194,29 +194,6 @@ instead of a corpus that stopped conforming. The trade is still good; it is not 
 
 ## Block C — Query
 
-### §RK1062 A number that can be improved by moving text out of its view
-
-`budget --tools` sums `descriptors(config)` and nothing else. The handshake is the other
-thing a session is handed before its first call: `instructions()`, which carries the
-engine line and — since RK1060 — the counting caveat that used to sit on 13 properties.
-
-So the read has a blind spot exactly where an author will push. RK1060 took 3,159 code
-units off the tool list and put roughly 390 back in a place this does not count, and the
-verb reported the gross figure as though it were the net. The saving was real and most
-of it survives; the point is that the same edit could have saved nothing and measured
-the same, which makes this a number that can be improved by moving text rather than by
-cutting it.
-
-It also leaves `[tools] characters` guarding one half of a session's cost while the
-other half has no ceiling and no reader — which is the state RK464 described about the
-whole surface, now true of a corner of it.
-
-The fix is small and the decision is what to report. A second figure beside the total is
-honest and leaves a caller adding two numbers; one total with the split under it is what
-the per-tool ranking already does, and reads as the one answer the verb exists to give.
-Either way the instructions are per session, not per call, so they are counted once —
-the same footing the tool list is on.
-
 ## Block D — The gate
 
 ### §RK1067 A finding names the rule's source, not only its number

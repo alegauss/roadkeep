@@ -75,7 +75,7 @@ from roadkeep.rendering import (
 from roadkeep.schema import body_aim
 from roadkeep.schema import width as measured_width
 from roadkeep.sections import binding, heading_of
-from roadkeep.serving import descriptors
+from roadkeep.serving import descriptors, instructions
 from roadkeep.shipping import record
 from roadkeep.showing import show
 from roadkeep.verbs.refusing import EXIT_OK, EXIT_USAGE, REFUSALS, _refused
@@ -811,6 +811,12 @@ def _tools_budget(config: Config, args: argparse.Namespace) -> int:
     the pairing RK345 makes everywhere else: a limit that reaches an author only as a refusal
     is the verdict-after-the-prose this project exists to replace.
 
+    **Both halves of what a session is handed** (RK1062), because one of them was a place to
+    hide in. The handshake is the other message sent before the first call, and RK1060 moved
+    a paragraph from the tool list into it — a real saving, reported gross, by a read that
+    could not see where it went. An edit that saved nothing would have measured the same.
+    Not folded into the ranking: no per-tool ceiling is about it, so it is named under them.
+
     Derived from :func:`~roadkeep.serving.descriptors`, so it is the payload a client is
     actually sent rather than a second estimate of it: a description reworded in `cli.py`
     moves this figure, which is the whole reason the number is worth reading.
@@ -819,14 +825,25 @@ def _tools_budget(config: Config, args: argparse.Namespace) -> int:
     sizes = {
         one["name"]: measured_width(json.dumps(one, ensure_ascii=False)) for one in described
     }
-    total = sum(sizes.values())
+    listed = sum(sizes.values())
+    # The other thing a session is handed before its first call (RK1062). Counted here for
+    # the reason the tool list is: RK1060 moved a paragraph out of 13 properties and into
+    # this message, and a read that saw only one side reported the gross figure as the net
+    # — a number improvable by moving text out of its own view rather than by cutting it.
+    # Once and not per call, which is the footing the list is already on.
+    handshake = measured_width(instructions())
+    total = listed + handshake
     ranked = sorted(sizes.items(), key=lambda row: (-row[1], row[0]))
     if args.json:
         print(
             json.dumps(
                 {
                     "tools": len(described),
+                    # The session's whole cost, which is what the verb exists to answer; the
+                    # two halves are named beside it rather than left to be added.
                     "characters": total,
+                    "tool_list": listed,
+                    "handshake": handshake,
                     "unit": CHARACTER_UNIT,
                     # Every tool and not the largest few: a caller reading this to decide what
                     # to cut is reading a payload, where the terminal is reading a report.
@@ -844,7 +861,7 @@ def _tools_budget(config: Config, args: argparse.Namespace) -> int:
             )
         )
         return EXIT_OK
-    print(f"tool list  {len(described)} tool(s), {total} {CHARACTER_UNIT}")
+    print(f"session    {len(described)} tool(s) and the handshake, {total} {CHARACTER_UNIT}")
     for name, size in ranked[:_LARGEST_TOOLS]:
         # The room before the gate says no, said beside the figure it is about: a budget
         # reported only as a total leaves the author to subtract per tool (RK345).
@@ -852,6 +869,9 @@ def _tools_budget(config: Config, args: argparse.Namespace) -> int:
         print(f"  {name:<16} {size}{room}")
     if len(ranked) > _LARGEST_TOOLS:
         print(f"  … and {len(ranked) - _LARGEST_TOOLS} more — `--json` lists every one")
+    # Under the ranking and not folded into it: it is not a tool, no per-tool ceiling is
+    # about it, and a row among them would read as one that had escaped the gate.
+    print(f"  {'handshake':<16} {handshake}  (instructions, sent once)")
     if config.tool_characters is not None:
         over = sum(1 for _, size in ranked if size > config.tool_characters)
         print(

@@ -865,7 +865,10 @@ def test_the_tool_list_states_what_it_costs_a_session(tmp_path, capsys):
     budgeted(tmp_path)
     assert main(["-C", str(tmp_path), "budget", "--tools"]) == EXIT_OK
     printed = capsys.readouterr().out
-    assert f"tool list  {len(TOOLS)} tool(s)" in printed
+    # Both messages a session is handed before its first call (RK1062), because reporting
+    # one of them made the other a place an author could move text into and measure a win.
+    assert f"session    {len(TOOLS)} tool(s) and the handshake" in printed
+    assert "handshake" in printed and "sent once" in printed
     assert "utf-16-code-units" in printed
     # The largest few, because a reader deciding what to cut wants where the size went.
     assert "add " in printed and "… and" in printed
@@ -878,10 +881,26 @@ def test_the_payload_carries_every_tool_and_the_terminal_the_largest(tmp_path, c
     assert main(["-C", str(tmp_path), "budget", "--tools", "--json"]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
     assert payload["tools"] == len(TOOLS) == len(payload["by_tool"])
-    assert payload["characters"] == sum(row["characters"] for row in payload["by_tool"])
+    assert payload["tool_list"] == sum(row["characters"] for row in payload["by_tool"])
+    # The total is the session's and the two halves are named beside it (RK1062): a caller
+    # left to add them is a caller who can be told a saving that only moved.
+    assert payload["characters"] == payload["tool_list"] + payload["handshake"]
     # Largest first, which is the order the terminal truncates from.
     sizes = [row["characters"] for row in payload["by_tool"]]
     assert sizes == sorted(sizes, reverse=True)
+
+
+def test_the_handshake_is_counted_as_what_it_actually_carries(tmp_path, capsys):
+    # Derived from `instructions()` for `descriptors`' reason: a second estimate of a payload
+    # is a number that stops moving when the payload does, which is the whole failure RK1062
+    # names — the read that could not see where RK1060's 3,159 characters went.
+    from roadkeep.serving import instructions
+    from roadkeep.schema import width
+
+    budgeted(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "--tools", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["handshake"] == width(instructions())
 
 
 def test_the_figure_moves_with_what_the_surface_actually_publishes(tmp_path, capsys):

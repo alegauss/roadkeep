@@ -118,16 +118,16 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 5 | 32 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 124 | 1 |
-| C — Query (consult without reading the file) | 1 | 82 | 1 |
+| C — Query (consult without reading the file) | 0 | 83 | 1 |
 | D — The gate | 1 | 132 | 0 |
 | E — Adoption | 0 | 77 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 95 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 7 | 553 | 6 |
+| **Total** | 6 | 554 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1062** (deps: —) **budget --tools counts the tool list and not the handshake beside it** — RK1060 moved a paragraph from one to the other and the read showed the whole 3159 as a saving, so the measurement rewards a move it cannot see the other half of. → §RK1062
+- 📋 **RK1063** (deps: —) **the line format is stated twice, once in render and once in the parser** — L3 compares the two against a corpus because nothing makes them one statement, so a grammar that renders what it cannot parse is caught by a test instead of being unrepresentable. → §RK1063
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

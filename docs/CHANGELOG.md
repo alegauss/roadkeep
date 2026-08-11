@@ -258,6 +258,7 @@
 - ✅ **RK1041** **budget on a new task reports the assumed section's occupancy, so words-left describes a section the task will not use** — A pointer nobody named is kept wide for the line and dropped for the section, so a new task is budgeted for the anchor it will create rather than another task's.
 - ✅ **RK1042** **delivered lists a reverted entry as a delivery, unmarked, and it is the read made before every add** — A superseded entry is named as one in the listing, under --near and in the payload, so the duplicate check stops answering yes-shipped about work that did not hold.
 - ✅ **RK1048** **show says an id was never written when a ledger entry delivers it without leading with it** — The refusal asks history where the parse has no answer, so an id a ledger entry delivers without leading with it says which commit wrote it.
+- ✅ **RK1062** **budget --tools counts the tool list and not the handshake beside it** — The read counts the handshake beside the tool list and names both halves under one session total, so text moved from one to the other no longer measures as a saving.
 
 ## Block D — The gate
 

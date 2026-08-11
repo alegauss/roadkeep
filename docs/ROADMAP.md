@@ -34,8 +34,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1062** (deps: —) **budget --tools counts the tool list and not the handshake beside it** — RK1060 moved a paragraph from one to the other and the read showed the whole 3159 as a saving, so the measurement rewards a move it cannot see the other half of. → §RK1062
-
 ## Block D — The gate
 
 - 📋 **RK1067** (deps: —) **a refusal names the limit it enforced and not the line of config that set it** — Every finding carries the command that closes it, and the one whose remedy is changing the rule carries no file:line, so an author who wants a limit raised greps the package for the number. → §RK1067
