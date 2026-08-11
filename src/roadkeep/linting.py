@@ -198,6 +198,13 @@ class Finding:
     #: because a consumer acting per address needs the line, and the count that follows the
     #: findings is about addresses either way.
     shared: str = ""
+    #: The file this finding is *about*, where that is not the file it is filed against
+    #: (RK1070). One code needs it: `grammar.unreadable` lands on `roadkeep.toml`, because
+    #: the declaration that broke the file is there and so is the edit (RK1067), and it
+    #: explains every per-line failure in the file it names. Two addresses and not one —
+    #: `file` is where a reader clicks, `about` is what the finding covers — because
+    #: conflating them is how a suppression silences the wrong file.
+    about: str = ""
 
     @property
     def token(self) -> str:
@@ -721,22 +728,25 @@ def _grammatical(
     correct: the finding lands on the declaration's own line, so the report reads as one
     defect at one config line instead of a corpus that stopped conforming.
     """
+    explained = next(rule for rule in EXPLAINS if rule.by == "grammar.")
     out = list(findings)
     for role, document in documents.items():
         population = len(document.entries) + len(document.rejects)
         if population < _A_POPULATION:
             continue
         where = config.relative(config.path(role))
-        broken = [
-            finding
-            for finding in out
-            if finding.file == where
-            and finding.code in ("line.non-canonical", "line.unparsed")
-        ]
-        if len(broken) < population:
+        # Counted against the same rule that will suppress them (RK1070), so "which failures
+        # is this an explanation of" is one declaration and not a literal here and a
+        # predicate there. Nothing is removed by this function: it *reports*, and
+        # :func:`_untainted` drops what the report explains — which is what keeps the
+        # removal from being identity over a dataclass, where two findings that compare
+        # equal on one line went together or not at all.
+        broken = sum(
+            1 for finding in out if finding.file == where and explained.explains(finding)
+        )
+        if broken < population:
             continue
         declared = config.grammars.get(role)
-        out = [finding for finding in out if finding not in broken]
         out.append(
             Finding(
                 "grammar.unreadable",
@@ -751,26 +761,105 @@ def _grammatical(
                     "another format"
                 ),
                 subject=role,
+                # What it covers, which is not where it is filed (RK1070): the declaration
+                # is in the config and the lines it explains are in the governed file.
+                about=where,
             )
         )
     return out
 
 
-def _untainted(findings: list[Finding]) -> list[Finding]:
-    """Every finding except the ones a codepoint already explains (RK34).
+@dataclass(frozen=True, slots=True)
+class Explains:
+    """One finding that makes another one noise, declared (RK1070).
 
-    A line carrying a byte nobody typed is not a line this format can judge: the parser read a
-    string the author cannot see, so every other diagnosis of it names a consequence. Report
-    the codepoint; the rest is decidable on the next run.
+    Two checks in this module do this and neither said so: a codepoint nobody typed makes
+    every other diagnosis of that line a consequence (RK34), and a grammar that fails on a
+    whole file makes every per-line failure in it an effect (RK1068). Both were a predicate
+    and a set comprehension written out at the call site — so a third arriving is folded
+    only if somebody remembers, and *at what scope* was a tuple that happened to be built
+    the same way twice.
+
+    :attr:`scope` is the whole of what differs between the two. A codepoint explains the
+    other findings **on its line**, because the byte is in that line and the next one is
+    judged normally; a grammar explains them **in its file**, because the rule is what
+    every line in it was read under. Naming that is what makes the two one mechanism rather
+    than two loops that resemble each other.
     """
-    tainted = {
-        (f.file, f.lineno) for f in findings if f.code.startswith("char.") and f.lineno
-    }
-    return [
-        f
-        for f in findings
-        if f.code.startswith("char.") or (f.file, f.lineno) not in tainted
-    ]
+
+    #: The code that explains, or its prefix where the family is what explains — `char.`
+    #: is nine codes and every one of them makes the same point about the line it is on.
+    by: str
+    #: What it explains, matched the same way.
+    over: tuple[str, ...]
+    #: `line` or `file` — how far the explanation reaches.
+    scope: str
+
+    def explains(self, finding: Finding) -> bool:
+        return any(finding.code.startswith(code) for code in self.over)
+
+    def spoken_by(self, finding: Finding) -> bool:
+        return finding.code.startswith(self.by)
+
+    def where(self, finding: Finding, *, speaking: bool = False) -> tuple[str, int | None]:
+        """The key two findings share when one explains the other.
+
+        ``speaking`` lets an explanation be filed somewhere other than what it is about,
+        which the grammar one has to be: it lands on `roadkeep.toml`, where the declaration
+        that broke the file is and where the edit goes (RK1067), and it explains findings in
+        the file it names. `about` carries that second address, so the two are not confused
+        — the finding's own `file` is where a reader clicks and never what it covers.
+        """
+        under = finding.about if speaking and finding.about else finding.file
+        return (under, finding.lineno if self.scope == "line" else None)
+
+
+#: Every explanation this gate makes, which is the index RK1070 asked for: a reader asking
+#: "does a finding suppress another" reads four lines rather than two functions.
+EXPLAINS: tuple[Explains, ...] = (
+    # A line carrying a byte nobody typed is not a line this format can judge (RK34): the
+    # parser read a string the author cannot see, so every other diagnosis of it names a
+    # consequence. Report the codepoint; the rest is decidable on the next run.
+    Explains(by="char.", over=("",), scope="line"),
+    # A rule that fails on every bullet in a file is what broke them (RK1068), so the
+    # per-line failures are the effect and the report is one defect at one declaration.
+    Explains(
+        by="grammar.",
+        over=("line.non-canonical", "line.unparsed"),
+        scope="file",
+    ),
+)
+
+
+def _untainted(findings: list[Finding]) -> list[Finding]:
+    """Every finding except the ones another already explains (RK34, RK1068, RK1070).
+
+    One pass over :data:`EXPLAINS` rather than a function per relation: what each row says
+    is which code speaks, which it speaks over and how far, and the loop under that is the
+    same four lines it always was. An explanation never suppresses another explanation —
+    a codepoint on a line whose file has a bad grammar is still worth reporting, both being
+    causes rather than effects.
+    """
+    kept = list(findings)
+    for rule in EXPLAINS:
+        # A line-scoped rule needs a line to be about: a finding filed against the file
+        # itself explains nothing on any particular one, and taking it as evidence would
+        # silence every other file-level finding there.
+        spoken = {
+            rule.where(f, speaking=True)
+            for f in kept
+            if rule.spoken_by(f) and (rule.scope == "file" or f.lineno)
+        }
+        kept = [
+            f
+            for f in kept
+            # Never an explanation: a codepoint on a line whose file has a bad grammar is
+            # still worth reporting, both being causes rather than effects of each other.
+            if any(one.spoken_by(f) for one in EXPLAINS)
+            or not rule.explains(f)
+            or rule.where(f) not in spoken
+        ]
+    return kept
 
 
 def _ordered(findings: list[Finding], checked: tuple[str, ...]) -> tuple[Finding, ...]:

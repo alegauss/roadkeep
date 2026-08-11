@@ -152,29 +152,6 @@ the origin beside each figure would let the surface that serves this over MCP an
 
 ## Block D — The gate
 
-### §RK1070 An inference over a list nobody declared the shape of
-
-RK1068's fold is right about the population and loose about how it reads one.
-`_grammatical` scans the finding list for two codes — `line.non-canonical` and
-`line.unparsed` — counts them against a role's bullets, and removes them with `finding
-not in broken`, which is identity over a dataclass.
-
-Three things follow that nobody declared. The pair of codes is a literal in the
-function, so a third way a line can fail wholesale is folded only if somebody remembers
-to add it there. The removal is by value equality, so two identical findings on one line
-— possible, since nothing forbids it — are dropped together or not at all. And it runs
-after every per-line check by position in `_examine` rather than by anything that says
-it must, which is the arrangement RK365 already replaced once for the ordering.
-
-`_untainted` is the same shape one step away and has the same property, which is the
-argument for doing this once rather than twice: it suppresses by
-`code.startswith("char.")` and by `(file, lineno)`, and the two functions are both *a
-finding that explains others* without either saying so.
-
-What that suggests is a small declaration — which codes explain which, and at what scope
-— read by both. It is the shape `referring.py` took for relations and `remedying.py`
-took for doors: the index is the thing, and the loop over it is four lines.
-
 ## Block E — Adoption
 
 ## Block F — The plugin

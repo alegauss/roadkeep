@@ -35,8 +35,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1070** (deps: —) **the grammar fold reads codes out of a list it also rewrites** — _grammatical filters findings by code and file and drops them by identity, so a check added later that reports a whole file the same way is folded or not by accident. → §RK1070
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

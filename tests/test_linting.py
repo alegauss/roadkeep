@@ -33,7 +33,7 @@ from roadkeep.config import Config
 from roadkeep.exporting import BEGIN, END
 from roadkeep.exporting import project as exported
 from roadkeep.history import HistoryUnavailable, tracked_at
-from roadkeep.linting import Tree, _paths, lint, within
+from roadkeep.linting import Finding, Tree, _paths, lint, within
 from roadkeep.picking import take
 
 HERE = Path(__file__).resolve().parents[1]
@@ -1618,6 +1618,77 @@ def test_a_budget_is_read_from_the_configuration_and_not_from_the_file(tmp_path)
         CONFIG + '\n[budgets]\n"agents.md" = { lines = 39 }\n', encoding="utf-8"
     )
     assert not lint(Config.discover(tmp_path)).clean
+
+
+# -- one finding that explains another, declared (RK1070) ----------------------
+
+
+def test_every_suppression_this_gate_makes_is_in_the_index():
+    # The index is the deliverable: two checks did this and neither said so, so a third
+    # would be folded only if somebody remembered. A row added here is the whole edit.
+    from roadkeep.linting import EXPLAINS
+
+    assert {rule.by for rule in EXPLAINS} == {"char.", "grammar."}
+    for rule in EXPLAINS:
+        assert rule.scope in ("line", "file"), rule.by
+        assert rule.over, rule.by
+
+
+def test_a_codepoint_explains_its_own_line_and_not_the_next_one():
+    # The scope is the whole of what differs between the two rows: a byte is in one line
+    # and the line under it is judged normally.
+    from roadkeep.linting import EXPLAINS, _untainted
+
+    rule = next(one for one in EXPLAINS if one.by == "char.")
+    assert rule.scope == "line"
+    findings = [
+        Finding("char.invisible", "docs/ROADMAP.md", "a byte", 5),
+        Finding("why.too-long", "docs/ROADMAP.md", "long", 5),
+        Finding("why.too-long", "docs/ROADMAP.md", "long", 6),
+    ]
+    kept = _untainted(findings)
+    assert [(f.code, f.lineno) for f in kept] == [
+        ("char.invisible", 5),
+        ("why.too-long", 6),
+    ]
+
+
+def test_a_file_level_finding_is_not_evidence_about_any_line():
+    # The guard the original comprehension carried as `and f.lineno`, kept and said: a
+    # finding filed against the file explains nothing on a particular one, and taking it
+    # as evidence would silence every other file-level finding there.
+    from roadkeep.linting import _untainted
+
+    findings = [
+        Finding("char.mixed-endings", "docs/ROADMAP.md", "endings"),
+        Finding("export.stale", "docs/ROADMAP.md", "stale"),
+    ]
+    assert len(_untainted(findings)) == 2
+
+
+def test_an_explanation_is_never_suppressed_by_another_one():
+    # Both are causes rather than effects of each other, so a codepoint on a line whose
+    # file has a broken grammar is still worth reporting.
+    from roadkeep.linting import _untainted
+
+    findings = [
+        Finding("grammar.unreadable", "roadkeep.toml", "the rule", about="docs/ROADMAP.md"),
+        Finding("char.invisible", "docs/ROADMAP.md", "a byte", 5),
+        Finding("line.unparsed", "docs/ROADMAP.md", "no match", 5),
+    ]
+    kept = {f.code for f in _untainted(findings)}
+    assert kept == {"grammar.unreadable", "char.invisible"}
+
+
+def test_the_grammar_finding_covers_a_file_it_is_not_filed_against():
+    # Two addresses and not one: `file` is where a reader clicks — the declaration, RK1067
+    # — and `about` is what it covers. Conflating them silences the wrong file.
+    from roadkeep.linting import EXPLAINS
+
+    rule = next(one for one in EXPLAINS if one.by == "grammar.")
+    filed = Finding("grammar.unreadable", "roadkeep.toml", "x", about="docs/ROADMAP.md")
+    assert rule.where(filed, speaking=True) == ("docs/ROADMAP.md", None)
+    assert rule.where(filed) == ("roadkeep.toml", None)
 
 
 # -- the one invariant a declaration adds (RK1068) -----------------------------
