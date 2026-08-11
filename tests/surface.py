@@ -69,6 +69,54 @@ def modules() -> tuple[Module, ...]:
     )
 
 
+def address(module: str) -> str:
+    """Where a module lives **now**, asked by its module name — `schema` → `kernel/schema.py`.
+
+    The lookup RK1074 was filed for. RK496 declared the module *set* once and had the surveys
+    ask for it; the addresses stayed hand-written, so moving two files into `kernel/` broke
+    seven surveys one at a time, each because a path literal somewhere had to be edited. A
+    test that asks for `address("document")` is one the next reorganisation does not touch.
+
+    Refused rather than defaulted where the name is ambiguous or unknown, which is the whole
+    value: a survey that quietly kept a stale address is what this replaces, and two modules
+    sharing a name — `shipping.py` and `verbs/shipping.py` — is the case RK494 measured, so
+    the caller passes `verbs/shipping` there and gets an answer rather than a coin toss.
+    """
+    wanted = f"{module}.py"
+    found = [one.where for one in modules() if one.where in (wanted, module)]
+    if not found:
+        found = [one.where for one in modules() if one.where.endswith(f"/{wanted}")]
+    if len(found) != 1:
+        known = ", ".join(sorted(one.where for one in modules()))
+        raise LookupError(
+            f"{module!r} names {len(found)} modules ({', '.join(found) or 'none'}): "
+            f"pass the path under the package where two share a name — {known}"
+        )
+    return found[0]
+
+
+def addresses(value: str) -> bool:
+    """Whether a literal is an address **into this package** rather than any path (RK1074).
+
+    Two narrowings, and both are what keeps the rule from being one somebody exempts their
+    way around. A bare `schema.py` is not enough: a test writing that name into its own
+    `tmp_path` is naming a fixture, and a check that could not tell the two apart would fire
+    on half the suite. And a directory is not enough either — `test_baseline` writes
+    `src/gone.py` and `lib/later.py` into a fixture repository, which are paths and not
+    addresses.
+
+    So the first component has to be a subpackage this package actually has, read from the
+    census rather than listed: `kernel/` is one because RK1069 made it one, and the next will
+    be recognised the day it exists rather than the day somebody remembers this function.
+    """
+    directory, _, name = value.partition("/")
+    if not name or not name.endswith(".py"):
+        return False
+    return directory in {
+        one.where.partition("/")[0] for one in modules() if "/" in one.where
+    }
+
+
 def names() -> tuple[str, ...]:
     """What the Layout index in `agents.md` has to name, which is not the module set (RK494).
 

@@ -26,7 +26,7 @@ from pathlib import Path
 import pytest
 
 import corpora
-from surface import modules
+from surface import address, modules
 from roadkeep import DESIGNED, IDEA, PARTIAL, SHIPPED, Dep, Schema, Task
 from roadkeep.kernel.document import (
     Document,
@@ -823,7 +823,7 @@ def test_the_two_readers_of_it_are_the_only_two():
     # family named after the domain module it calls, so a bare filename lets
     # `verbs/shipping.py` answer under `shipping.py` — one file counted as another.
     callers = {module.where: module.text for module in modules()}
-    callers.pop("kernel/document.py")
+    callers.pop(address("document"))
     spellings = {name for name, text in callers.items() if ".block(" in text}
     # Every remaining caller wants the entries themselves: `backlog.py` expands a `Block X`
     # dep into member ids, `authoring.py` finds where to insert, `linting.py` counts how

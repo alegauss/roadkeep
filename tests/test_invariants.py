@@ -34,7 +34,7 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
-from surface import PACKAGE, modules
+from surface import PACKAGE, addresses, modules
 
 HERE = Path(__file__).resolve().parents[1]
 
@@ -398,6 +398,32 @@ def test_no_survey_derives_its_own_view_of_the_package():
                 asking.setdefault(module.name, []).append(node.lineno)
     assert set(asking) == _MAY_GLOB, asking
     assert asking["surface.py"], "surface.py stopped reading the package at all"
+
+
+def test_no_test_spells_an_address_the_package_no_longer_has():
+    """RK1074. RK496 declared the module *set* and left the **addresses** hand-written.
+
+    Moving two modules into `kernel/` for RK1069 broke seven surveys one at a time, each
+    because a path literal somewhere had to be edited: a cache inventory key, the modules a
+    denial may load, a `callers.pop(...)`, the pair a traceback note expects. Every one green
+    afterwards, none of them wrong before — the failure RK496 names, arriving through the
+    addresses rather than through the file set.
+
+    Held on the literals that carry a **directory**, and deliberately not on bare ones: a
+    test writing `schema.py` into its own `tmp_path` is naming a fixture, not this package,
+    and a rule that could not tell them apart would be one somebody exempts their way around.
+    Every address the move broke was of this shape or in a table one of these files declares,
+    and `surface.address()` is what a test written tomorrow asks instead.
+    """
+    known = {module.where for module in modules()}
+    stale: dict[str, list[str]] = {}
+    for module in sorted(Path(__file__).parent.glob("*.py")):
+        for node in ast.walk(ast.parse(module.read_text(encoding="utf-8"))):
+            if not isinstance(node, ast.Constant) or not isinstance(node.value, str):
+                continue
+            if addresses(node.value) and node.value not in known:
+                stale.setdefault(module.name, []).append(f"{node.value}:{node.lineno}")
+    assert stale == {}, stale
 
 
 def test_the_declared_surface_reaches_the_directories_under_the_package():

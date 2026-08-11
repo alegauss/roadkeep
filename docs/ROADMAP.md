@@ -24,13 +24,16 @@
 
 ## Block A — The model (a task is data before it is a line)
 
-- 📋 **RK1074** (deps: —) **fourteen module addresses are spelled by hand across the suite and nothing holds them level** — Moving two files broke seven surveys one at a time, each keyed by a literal path, so the census tests/surface.py declares is not what any of them actually reads. → §RK1074
-
 ## Block B — Authoring (insert, never hand-edit)
+
+- 📋 **RK1075** (deps: —) **an open line the ledger records as whole has no verb that closes it, and the guard denies the hand edit** — ship, retire and defer all refuse the id, so the only exit writes a --part qualifier claiming a half the ledger never delivered. → §RK1075
+- 📋 **RK1077** (deps: —) **nothing holds the verb surface complete, so a state no command closes is found by the project that reaches it** — Six doorless states each cost a capture report or a hand edit, and no test pairs a state a governed file can reach with the verb that leaves it. → §RK1077
 
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
+
+- 📋 **RK1076** (deps: —) **the gate is silent on a partial line whose entry names no half, the one state whose repair is two verbs** — The marker is read as a live partial, so lint reports nothing, repair cannot reach it and pick offers the line forever. → §RK1076
 
 ## Block E — Adoption
 

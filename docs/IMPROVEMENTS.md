@@ -75,34 +75,75 @@ already written, not authorship.
 
 ## Block A — The model
 
-### §RK1074 A census everything was supposed to ask
-
-RK496 wrote `tests/surface.py` because seven suite-wide surveys each derived their own
-file set and each was written against the layout of the day. It declared the set once
-and had the surveys ask for it.
-
-The addresses did not follow. Moving two modules into `kernel/` for RK1069 broke seven
-tests in a row, each because a *path literal* somewhere had to be edited: the cache
-inventory's `("document.py", "_parsed")`, the modules a denial may load, the two that
-may declare a default, a `callers.pop("document.py")`, the traceback note's expected
-pair, a re-export read through `from roadkeep import schema`, and the Layout index.
-Every one green afterwards, none of them wrong before — which is exactly the failure
-RK496 names, arriving through the addresses rather than through the file set.
-
-The shape that would have held it is the one already there: a module is `surface.Module`
-with a `where`, so a test naming one should name it through that rather than by writing
-the string. Whether that means a lookup by symbol, a helper that resolves a name to its
-current address, or simply a test asserting every literal in the suite matches a real
-module, is the work.
-
-Worth doing while the move is fresh: seven edits is the measurement, and the next
-reorganisation pays it again with no reason to expect the same seven.
-
 ## Block B — Authoring
+
+### §RK1075 Closing a line the ledger already recorded
+
+Shio filed three capture reports on one state and closed it with a hand edit. A line
+stands at the partial marker while the ledger entry for its id carries no qualifier: the
+line says a half landed, the entry says the whole did. `ship` refuses, the door in its
+message suppressed because the closure path deliberately does not take a partial
+(RK1045); `retire` refuses through the same transaction; `defer` refuses because a pause
+is between open and terminal; and the gate is silent by design (RK121).
+
+RK1046 opened one exit — `record amend <id> --part "…"` is permitted while the roadmap
+still carries a live partial, after which `ship <id>` completes the entry in place. It
+works, and the third report was captured against a build that already had it. That is
+the measurement: an exit no refusal names is an exit nobody finds, and what the author
+reached for instead was the editor.
+
+It is also the wrong shape. The qualifier is a claim about the delivery — which half
+landed — and here nothing landed in halves, so the only repair asks an author to write a
+false sentence into history in order to open a door. This task is the direct one:
+closing a line whose entry already records the work should not pass through the ledger
+at all, and every refusal standing in front of it — shipping.py's on both doors,
+deferring.py's — names it.
+
+### §RK1077 Every state a file can reach owes a door
+
+The barrier denies every hand edit to a governed file, and that trade is only honest
+while the verb surface is complete. It has not been. RK65: a line could be created and
+removed but never corrected. RK123: a rationale no verb could amend. RK141: a block
+heading only a hand edit could write. RK143: an entry filed under the wrong block.
+RK403: a heading declared twice. RK1046: a partial line beside an unqualified entry.
+Each was found by the project that walked into it, and each cost a capture report, a
+session or a hand edit before it was named — which is the same defect six times, not six
+defects.
+
+Coverage is testable, because the states are enumerable from the model rather than from
+imagination: a marker, crossed with what the ledger holds for that id, crossed with
+whether the pointer resolves and whether the deferred store carries it. What is missing
+is the table pairing each reachable state with the verb that leaves it, held by a test
+the way tests/surface.py holds the module census, so a state with no door fails here
+rather than in someone's adoption.
+
+A cell deliberately left empty is a declaration and not a hole; the point is that it is
+written down, and that a new marker, a new store or a new role adds rows nobody can
+leave blank by accident.
 
 ## Block C — Query
 
 ## Block D — The gate
+
+### §RK1076 The contradiction the gate reads as a partial
+
+`_in_halves` in src/roadkeep/linting.py answers one question: do the two files *say*
+this id is a live partial, rather than contradict each other? A partial marker on the
+open line is enough on its own, and RK121 made that deliberate — a corpus that adopted
+the format writes the marker and no qualifier, Shio carried seven such ids, and a
+finding whose only avoidance is a syntax error teaches the syntax error.
+
+That argument held while the state had no repair. It stopped holding at RK1046: a
+finding here now names a command instead of asking for a deletion, which is the line a
+report may cross. Silence costs more than the noise would. `pick` offers the line
+forever, `repair` cannot reach what `lint` never reports, and the author's only evidence
+that anything is wrong is a refusal from whichever verb they happened to try — three of
+which refuse in the same words.
+
+What the gate has to separate is the corpus that never used the qualifier from the file
+that contradicts itself, where the entry claims the whole delivery and the line claims a
+half. The second is the one to report, with the door that closes it under the line, so
+the finding is one `repair` spends rather than one an author reads.
 
 ## Block E — Adoption
 

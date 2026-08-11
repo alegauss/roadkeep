@@ -23,12 +23,12 @@ from __future__ import annotations
 import ast
 import re
 
-from surface import PACKAGE, modules
+from surface import address, PACKAGE, modules
 
 #: The two modules the mechanism lives in. Named rather than derived: which files are the
 #: kernel is the decision this test exists to hold, and a rule that computed its own subject
 #: would move every time somebody added a file.
-KERNEL = ("kernel/schema.py", "kernel/document.py")
+KERNEL = (address("schema"), address("document"))
 
 #: What the kernel may reach for above itself, and why each one is allowed. Empty would be the
 #: goal; two entries with reasons is the honest state, and a third arriving without one is what
@@ -69,7 +69,7 @@ VOCABULARY = (
 #: `codepoint_kind`, `_codepoints` and `CODEPOINT_KINDS` were counted as this backlog's
 #: words. A ceiling that counts the wrong things is one nobody can bring down on purpose —
 #: the same defect this project files about every other number it publishes.
-SPOKEN = {"kernel/schema.py": 43, "kernel/document.py": 17}
+SPOKEN = {address("schema"): 43, address("document"): 17}
 
 #: How many of them anything **above** the kernel refers to. The split RK1072 was filed to
 #: find, and the answer it did not expect: two thirds are the kernel's public surface —

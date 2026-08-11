@@ -29,7 +29,7 @@ import pytest
 
 import roadkeep
 from conftest import git_commit, git_init, since_import
-from surface import modules
+from surface import address, modules
 from roadkeep.provenance import (
     MODIFIED,
     UNTRACKED,
@@ -362,7 +362,7 @@ def test_the_modules_that_decided_a_refusal_are_read_off_its_traceback(tmp_path)
     # Every package frame and not only the raiser: `schema.py` owns the limit and `authoring.py`
     # is the verb it refused, and both decided this. Naming one would put the note back to
     # guessing — and neither `cli.py` nor `merging.py` is here, which is the whole finding.
-    assert named == ("authoring.py", "kernel/schema.py")
+    assert named == (address("authoring"), address("schema"))
 
 
 def test_both_halves_of_the_note_spell_a_module_the_same_way(tmp_path):
@@ -396,7 +396,7 @@ def test_a_frame_outside_the_package_is_not_named_rather_than_guessed_at():
 
     assert named(Path(__file__), _HOME) == ""
     assert named(Path("<string>"), _HOME) == ""
-    assert named(_HOME / "kernel" / "schema.py", _HOME) == "kernel/schema.py"
+    assert named(_HOME / address("schema"), _HOME) == address("schema")
 
 
 def test_the_frames_read_outermost_first_as_a_printed_traceback_has_them(tmp_path):

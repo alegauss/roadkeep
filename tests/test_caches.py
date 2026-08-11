@@ -22,7 +22,7 @@ import sys
 from pathlib import Path
 
 from conftest import VOLATILE
-from surface import modules
+from surface import address, modules
 
 HERE = Path(__file__).resolve().parents[1]
 PACKAGE = HERE / "src" / "roadkeep"
@@ -30,8 +30,8 @@ PACKAGE = HERE / "src" / "roadkeep"
 #: `(module, function)` → why it is cleared around every test, or why it is not. The reason is
 #: the deliverable: "cached" says nothing about whether a test can leave a lie in it.
 INVENTORY = {
-    ("kernel/document.py", "_task_re"): "pure: the four (marker, symptom) combinations are the domain",
-    ("kernel/document.py", "_parsed"): "pure: keyed by the bytes and the schema, so a hit is a re-read",
+    (address("document"), "_task_re"): "pure: the four (marker, symptom) combinations are the domain",
+    (address("document"), "_parsed"): "pure: keyed by the bytes and the schema, so a hit is a re-read",
     ("provenance.py", "engine"): (
         "process-constant: `roadkeep.__file__` and one git call in that directory, neither of "
         "which any test patches, so a stale entry cannot be a lie and the clear protects nothing"
@@ -57,7 +57,7 @@ INVENTORY = {
 #: The two the suite asserts `cache_info` about, where clearing *is* the measurement's setup:
 #: `test_listing_the_tools_builds_the_parser_once` and
 #: `test_the_same_bytes_are_parsed_once_however_many_times_they_are_read`.
-MEASURED = {("serving.py", "_root"), ("kernel/document.py", "_parsed")}
+MEASURED = {("serving.py", "_root"), (address("document"), "_parsed")}
 
 
 def cached() -> set[tuple[str, str]]:
