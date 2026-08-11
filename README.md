@@ -119,15 +119,15 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 1 | 39 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 124 | 1 |
 | C — Query (consult without reading the file) | 0 | 84 | 1 |
-| D — The gate | 1 | 134 | 0 |
+| D — The gate | 0 | 135 | 0 |
 | E — Adoption | 0 | 77 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 95 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 2 | 564 | 6 |
+| **Total** | 1 | 565 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1073** (deps: —) **a refusal decided under a package subdirectory named no module at all** — raised_in matched a frame only where its parent was the package root, so every verbs/ module that decided one was invisible and the staleness note compared two vocabularies. → §RK1073
+- 📋 **RK1074** (deps: —) **fourteen module addresses are spelled by hand across the suite and nothing holds them level** — Moving two files broke seven surveys one at a time, each keyed by a literal path, so the census tests/surface.py declares is not what any of them actually reads. → §RK1074
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

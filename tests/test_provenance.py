@@ -37,6 +37,7 @@ from roadkeep.provenance import (
     engine,
     invocation,
     persisted,
+    named,
     raised_in,
     witness,
     witnessed,
@@ -362,6 +363,40 @@ def test_the_modules_that_decided_a_refusal_are_read_off_its_traceback(tmp_path)
     # is the verb it refused, and both decided this. Naming one would put the note back to
     # guessing — and neither `cli.py` nor `merging.py` is here, which is the whole finding.
     assert named == ("authoring.py", "kernel/schema.py")
+
+
+def test_both_halves_of_the_note_spell_a_module_the_same_way(tmp_path):
+    """The pair had no test asserting they agree, and disagreed for six tasks (RK1073).
+
+    `stale` says which files moved and `raised_in` says which decided the refusal, and the
+    note is only worth reading because the two are compared. RK494 made the first recursive
+    for `verbs/` and left the second matching on a frame's parent directory, so every
+    refusal decided in that tree named nothing — and nothing failed, because each half is
+    covered on its own and no test read them together.
+    """
+    from roadkeep.provenance import Engine, _HOME
+
+    decided = set(_refusing(tmp_path))
+    assert decided, "the probe stopped witnessing anything"
+    # Every name the traceback half produced is one the census already knows, spelled the
+    # same way: same separator, same depth. A `.name` on either side fails this the moment a
+    # module sits under `verbs/` or `kernel/`. Through `modules()` and never a `rglob` of its
+    # own, which is RK496's rule and what `test_invariants` refuses.
+    everything = {module.where for module in modules()}
+    assert decided <= everything, decided - everything
+    # And the disk half spells them from the same function, so the note compares like with
+    # like — the property that was false from RK494 until RK1073 and that nothing asserted.
+    assert {named(_HOME / where, _HOME) for where in everything} == everything
+
+
+def test_a_frame_outside_the_package_is_not_named_rather_than_guessed_at():
+    # `""` is the answer for the stdlib, for `<string>`, and for a file under somebody else's
+    # tree — one non-answer, because a provenance note is the last place to start raising.
+    from roadkeep.provenance import _HOME
+
+    assert named(Path(__file__), _HOME) == ""
+    assert named(Path("<string>"), _HOME) == ""
+    assert named(_HOME / "kernel" / "schema.py", _HOME) == "kernel/schema.py"
 
 
 def test_the_frames_read_outermost_first_as_a_printed_traceback_has_them(tmp_path):

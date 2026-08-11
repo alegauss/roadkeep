@@ -404,6 +404,7 @@
 - ✅ **RK1061** **the tool budget makes every lint build the whole served surface** — Measured again, warm: the check is 1.4ms and the 121ms was one-time import cost misattributed by an in-process comparison, so nothing is cached and the numbers are recorded.
 - ✅ **RK1067** **a refusal names the limit it enforced and not the line of config that set it** — A refused limit prints where it was set, roadkeep.toml:34 [limits].why or a role's own line, and says this tool's default where the project declared none rather than inventing a citation.
 - ✅ **RK1070** **the grammar fold reads codes out of a list it also rewrites** — EXPLAINS declares which code explains which and at what scope, both suppressors read it, and the grammar finding carries the file it covers apart from the one it is filed against.
+- ✅ **RK1073** **a refusal decided under a package subdirectory named no module at all** — One named() spells a module for both halves of the note, and a test asserts they agree against the census, which is the property that was false from RK494 and that nothing read.
 
 ## Block E — Adoption
 

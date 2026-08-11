@@ -104,6 +104,28 @@ def _codecs() -> tuple[tuple[str, str], ...]:
 STARTUP_CODECS: tuple[tuple[str, str], ...] = _codecs()
 
 
+def named(module: Path, home: Path) -> str:
+    """What this package calls one of its own modules — the path under it, or `""` (RK1073).
+
+    One spelling, because the staleness note is composed from **two** readers of it and they
+    disagreed for six tasks. `Engine.stale` was made recursive by RK494, when `verbs/` took
+    eight handlers each named after the domain module it calls — so a bare `.name` reports
+    `shipping.py` for either of two files — and `raised_in`, which answers the other half of
+    the same note, kept a flat test on the frame's parent directory. Every refusal decided
+    inside `verbs/` therefore named nothing, and the note compared a recursive answer against
+    a shallow one. RK1069 surfaced it by moving two more modules down a directory.
+
+    `""` for anything outside, which is the answer both callers want: a frame in the stdlib
+    and a file under someone else's tree are the same non-answer, and neither is worth a
+    raise. Resolved, and every filesystem failure allows — a provenance note is the last
+    place in this package to start raising.
+    """
+    try:
+        return module.resolve().relative_to(home).as_posix()
+    except (OSError, ValueError):
+        return ""
+
+
 @dataclass(frozen=True, slots=True)
 class Engine:
     """The answering copy of this package: its version, its files, and their commit."""
@@ -139,20 +161,19 @@ class Engine:
         reloading but *saying*, which costs one `stat` per module and cannot be wrong.
         """
         changed = []
-        # Recursive since RK494, and named by the path under the package rather than by the
-        # filename: `verbs/` holds a module per verb family named after the domain module it
-        # calls, so a `glob` would miss every handler in the tree and a bare `.name` would
-        # report `shipping.py` for either of two files.
+        # Recursive since RK494, and named by :func:`named` since RK1073 — the one spelling
+        # this package has for its own modules, shared with `raised_in` because the note is
+        # composed from both and two vocabularies made the comparison meaningless.
         for module in sorted(self.home.rglob("*.py")):
             try:
                 if module.stat().st_mtime > _LOADED_AT + _GRACE:
-                    changed.append(module.relative_to(self.home).as_posix())
+                    changed.append(named(module, self.home))
             except OSError:
                 # A module that cannot be stat'd is not evidence of anything. Every other
                 # failure in this package allows; a provenance note is the last place to
                 # start raising.
                 continue
-        return tuple(changed)
+        return tuple(where for where in changed if where)
 
     def carried_by(self, root: Path) -> bool:
         """Whether the code answering lives **inside** the project it is answering about (RK246).
@@ -209,16 +230,11 @@ def raised_in(error: BaseException) -> tuple[str, ...]:
         # will not place, and a provenance note is the last place to start raising (`stale`'s
         # own rule). Resolution is attempted only once the name looks like ours.
         if where.suffix == ".py":
-            try:
-                under = where.resolve().relative_to(_HOME).as_posix()
-            except (OSError, ValueError):
-                under = ""
-            # **Anywhere under the package**, named by the path under it — the recursion
-            # RK494 gave `stale` and this did not (RK1069). `verbs/` and now `kernel/` both
-            # hold modules that decide refusals, and a check for the *parent directory*
-            # meant a `why.too-long` raised in `kernel/schema.py` named nothing at all: the
-            # note is compared against `stale`, so the two have to spell a module the same
-            # way or the comparison is between two different vocabularies.
+            # **Anywhere under the package**, through the same :func:`named` `stale` uses
+            # (RK1069, RK1073). A check for the *parent directory* meant a `why.too-long`
+            # raised in `kernel/schema.py` named nothing at all — and the note is compared
+            # against `stale`, so the two spell a module one way or not at all.
+            under = named(where, _HOME)
             if under and under not in seen:
                 seen.append(under)
         frame = frame.tb_next

@@ -104,29 +104,6 @@ reorganisation pays it again with no reason to expect the same seven.
 
 ## Block D — The gate
 
-### §RK1073 The recursion one function got and its neighbour did not
-
-`Engine.stale` names this package's changed modules by their path **under** the package,
-recursively, because RK494 moved eight handlers into `src/roadkeep/verbs/` and a `glob`
-would have missed every one. `raised_in` answers the other half of the same note — which
-modules were *executing* when a refusal was decided — and kept the flat test: a frame
-counted only where `where.parent.name == _HOME.name`.
-
-So the two halves have been spelling a module differently since RK494. Every refusal
-decided inside `verbs/` named nothing, and the note that compares "what changed" against
-"what decided this" was comparing a recursive answer with a shallow one. Found by
-RK1069, which moved two modules into `kernel/` and made a `why.too-long` — the exact
-refusal §RK267 was written from — name only `authoring.py`.
-
-Fixed here rather than filed: the frame filter now resolves against the package root and
-names the path under it, which is `stale`'s own rule and the same string.
-
-What is worth taking from it is that the pair had no test asserting they agree. Each is
-covered on its own, and the note is composed from both — so a third reader of "which
-module is this" would be free to invent a third spelling. `tests/surface.py` already
-declares the one census the suite quantifies over (RK496), and this is that argument
-about a *name* rather than about a file set.
-
 ## Block E — Adoption
 
 ## Block F — The plugin

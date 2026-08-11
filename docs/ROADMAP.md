@@ -32,8 +32,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1073** (deps: —) **a refusal decided under a package subdirectory named no module at all** — raised_in matched a frame only where its parent was the package root, so every verbs/ module that decided one was invisible and the staleness note compared two vocabularies. → §RK1073
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
