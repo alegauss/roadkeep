@@ -1827,7 +1827,7 @@ def _across(config: Config, documents: dict[str, Document]) -> list[Finding]:
 
     if ledger is not None:
         out.extend(_undeclared_blocks(config, roadmap, ledger, file))
-    out.extend(_carried(config, roadmap, file))
+    out.extend(_carried(config, backlog))
 
     for entry in roadmap.entries:
         out.extend(_deps(backlog, entry.task, file, entry.lineno))
@@ -2127,7 +2127,7 @@ def _unorganised(config: Config, roadmap: Document, word: str) -> list[Finding]:
     ]
 
 
-def _carried(config: Config, roadmap: Document, file: str) -> list[Finding]:
+def _carried(config: Config, backlog: Backlog) -> list[Finding]:
     """Every pair of governed files holding a line for one id (RK1082).
 
     One loop over `referring.PAIRS` rather than a rule per pair. Three files can hold a line
@@ -2146,17 +2146,21 @@ def _carried(config: Config, roadmap: Document, file: str) -> list[Finding]:
     an entry naming a half beside an open line is the two files agreeing that work arrived
     in halves. No other pair has one, because no other file can say so.
     """
+    # Off the `Backlog` the run already holds (RK1085), which is the reader that opens all
+    # three carriers once — the shape `_deps` and `_queued` are handed. Reaching for
+    # `config.document` per pair was one extra parse today and one per pair as carriers are
+    # added, on a check whose caller had the documents in scope the whole time.
+    carriers = {
+        "roadmap": backlog.roadmap,
+        "changelog": backlog.ledger,
+        "deferred": backlog.store,
+    }
     out: list[Finding] = []
     for pair in PAIRS:
-        if not pair.code:
+        first, second = carriers.get(pair.first), carriers.get(pair.second)
+        if not pair.code or first is None or second is None:
             continue
-        if any(
-            not config.has(role) or not config.path(role).is_file()
-            for role in (pair.first, pair.second)
-        ):
-            continue
-        first = roadmap if pair.first == "roadmap" else config.document(pair.first)
-        elsewhere = config.document(pair.second).by_id()
+        elsewhere = second.by_id()
         where = config.relative(config.path(pair.second))
         filed = config.relative(config.path(pair.first))
         for task_id, entry in first.by_id().items():

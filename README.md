@@ -118,16 +118,12 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 40 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 128 | 1 |
-| C — Query (consult without reading the file) | 1 | 84 | 1 |
+| C — Query (consult without reading the file) | 0 | 85 | 1 |
 | D — The gate | 0 | 140 | 0 |
 | E — Adoption | 0 | 77 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 96 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 1 | 576 | 6 |
-
-**Next ready:**
-
-- 📋 **RK1085** (deps: —) **the pairwise loop reads a role's whole document per pair and lint already holds both** — _carried calls config.document for each pair and the caller has the roadmap in hand, so a fourth carrier is a fourth read of a file the run parsed a moment earlier. → §RK1085
+| **Total** | 0 | 577 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

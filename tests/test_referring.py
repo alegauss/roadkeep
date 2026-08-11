@@ -177,3 +177,29 @@ def test_no_pair_is_left_without_a_rule():
     from roadkeep.referring import PAIRS
 
     assert [pair.code for pair in PAIRS] == [pair.code for pair in PAIRS if pair.code]
+
+
+def test_the_pairwise_check_opens_no_file_the_run_already_holds():
+    """RK1085. `_carried` reached for `config.document` once per pair, on a check whose caller
+    had the documents in scope — one extra parse today and one per pair as carriers are added.
+
+    Held on the source, because the cost is a call and not an outcome: a version that reads
+    the backlog and a version that re-opens the files agree about every finding, which is
+    exactly why nothing would have caught the second one drifting back.
+    """
+    import ast
+
+    from surface import address, modules
+
+    text = next(m.text for m in modules() if m.where == address("linting"))
+    tree = ast.parse(text)
+    reads = [
+        node.lineno
+        for function in ast.walk(tree)
+        if isinstance(function, ast.FunctionDef) and function.name == "_carried"
+        for node in ast.walk(function)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and node.func.attr == "document"
+    ]
+    assert reads == [], f"_carried opens a document at {reads}"

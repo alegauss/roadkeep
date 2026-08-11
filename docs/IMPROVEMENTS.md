@@ -79,29 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1085 A read per pair over documents the run already holds
-
-`_carried` walks `PAIRS` and calls `config.document(pair.second)` inside the loop. Today
-that is one extra read — the ledger is already loaded and passed in, the store is not —
-and with a fourth carrier it is two. The parse itself is cached by bytes (`_parsed`), so
-the cost is small and the shape is the argument: a check that reaches for a file the run
-has already opened is one that will reach for the next one too.
-
-`lint` loads the governed documents at the top of `_examine` and hands them down;
-`_carried` takes `roadmap` that way and then goes back to the config for its partner.
-`Backlog.load` is the reader that already holds all three, and it is what `_deps` and
-`_queued` are given. So the seam exists and this check is on the other side of it.
-
-Worth doing with RK1084 rather than before it: that task adds the third pair, which is
-the first time the loop reads two partners rather than one, and a refactor of a
-one-iteration loop is a refactor nobody can measure. Together it is one edit with a
-number on it.
-
-What not to do is thread a fourth argument. The signature already takes `config` and a
-document; the shape that scales is the one `_deps` has — a `Backlog` in, roles read off
-it — and that is a change to what the function is handed rather than to how many things
-it is.
-
 ## Block D — The gate
 
 ## Block E — Adoption
