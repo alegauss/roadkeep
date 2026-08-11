@@ -28,7 +28,11 @@
 
 ## Block C — Query (consult without reading the file)
 
+- 📋 **RK1021** (deps: —) **Nothing enumerates the questions a maintainer asks a governed file, so the law about answering them holds nothing** — The register says this row needs an inventory before a property has anything to sweep, and what exists is its converse: every command parses. → §RK1021
+
 ## Block D — The gate
+
+- 📋 **RK1020** (deps: —) **Six names across four modules are imported and never spelled, and nothing in this tree reports one** — An import list is what a reader asks what a module needs, and this package argues about that answer more than most while nothing holds it. → §RK1020
 
 ## Block E — Adoption
 
