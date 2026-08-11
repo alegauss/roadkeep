@@ -379,7 +379,8 @@
 - ✅ **RK1020** **Six names across four modules are imported and never spelled, and nothing in this tree reports one** — A survey over the declared source set reddens every import nothing spells, past the `__all__` re-exports and the `__future__` directive; the six it found are gone.
 - ✅ **RK1031** **an id a project reserves for an epic and never writes as a line is reported as spent, on every prose mention, forever** — A project declares reserved_ids: the deriver skips them, the gate stops calling them spent, a typo still fails, and a reservation written as a line is reported.
 - ✅ **RK1032** **an unambiguous prefix reaches --fix, --prune and --claim, so a two-letter typo is a write nobody asked for** — No parser accepts an abbreviation, so every prefix that reached a write is the refusal this tool composes — and which surface answers is where the flag was typed.
-- ✅ **RK1044** **retire refuses an id the ledger already holds without naming ship, the verb that does close the line** — The refusal carries the command that closes the line (design §RK1044 superseded: two of its three doors were open: the gate reports id.two-files and a bare ship closes the line).
+- ✅ **RK1044** **retire refuses an id the ledger already holds without naming ship, the verb that does close the line** — The refusal carries the command that closes the line where the closure path takes it (design superseded: the doors it called shut are open for a 📋 line, shut for a ⏳ one).
+- ✅ **RK1045** **a refusal offers as its remedy the exact command that produced it** — The door is named only where the closure path takes the line, and a test runs the command it names against the state that raised it.
 
 ## Block E — Adoption
 

@@ -22,13 +22,13 @@ import pytest
 from roadkeep.provenance import invocation
 
 from roadkeep import claiming, document
-from roadkeep.authoring import UnknownBlock
+from roadkeep.authoring import UnknownBlock, set_status
 from roadkeep.backlog import Backlog, DepStatus
 from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.document import Document, RoundTripError, StaleFile
 from roadkeep.linting import lint
-from roadkeep.schema import IN_PROGRESS, PARTIAL, Dep, Schema, SchemaError
+from roadkeep.schema import DESIGNED, IN_PROGRESS, PARTIAL, Dep, Schema, SchemaError
 from roadkeep.shipping import AlreadyRecorded, NoSuchPath, SecondPartial
 from roadkeep.sections import SectionOccupied
 from roadkeep.shipping import (
@@ -1914,3 +1914,52 @@ def test_the_door_it_names_is_the_one_that_works(tmp_path):
     assert isinstance(done, Closure) and done.recorded.task.id == "RK1"
     done.save()
     assert "**RK1**" not in read(Config.discover(tmp_path), ROADMAP)
+
+
+# -- a remedy that was the command that failed (RK1045) ----------------------
+
+
+def _recorded_beside(tmp_path: Path, marker: str) -> Config:
+    """A roadmap line under ``marker`` whose id the ledger already closes with a full entry."""
+    config = project(tmp_path)
+    if marker != DESIGNED:
+        set_status(config, "RK1", marker)
+    ledger = config.root / CHANGELOG
+    ledger.write_text(
+        ledger.read_text(encoding="utf-8").rstrip("\n")
+        + "\n\n- ✅ **RK1** **A first symptom** — It shipped once already.\n",
+        encoding="utf-8",
+    )
+    return Config.discover(tmp_path)
+
+
+def test_the_door_is_named_only_where_the_closure_path_takes_the_line(tmp_path):
+    """RK1044 added the clause unconditionally and it landed on the one caller it cannot
+    help. A ⏳ line beside a full entry is refused **by `ship` itself** — deliberately, since
+    widening the closure path there cost a task and a 224-word section — so the remedy named
+    was the command that had just failed, which costs a reader two more attempts before the
+    sentence becomes the suspect."""
+    with pytest.raises(AlreadyRecorded) as refused:
+        ship(_recorded_beside(tmp_path, PARTIAL), "RK1")
+    assert not refused.value.closable
+    assert "ship RK1" not in str(refused.value)
+    # The invariant is still stated: what it protects is why it refuses at all.
+    assert "a second entry would make the ledger disagree" in str(refused.value)
+
+
+def test_the_door_it_does_name_resolves_the_state(tmp_path):
+    """The rule RK1045 argues for: a remedy is a promise, and a promise nothing runs is
+    prose. So the sentence is not read here — the command it names is executed, against the
+    state that raised it, and the state has to be gone afterwards."""
+    config = _recorded_beside(tmp_path, DESIGNED)
+    with pytest.raises(AlreadyRecorded) as refused:
+        retire(config, "RK1", reason="It duplicates a closed id.")
+    assert refused.value.closable and "ship RK1" in str(refused.value)
+
+    done = ship(Config.discover(tmp_path), "RK1")
+    assert isinstance(done, Closure) and done.recorded.task.id == "RK1"
+    done.save()
+    after = Config.discover(tmp_path)
+    assert "**RK1**" not in read(after, ROADMAP)
+    assert read(after, CHANGELOG).count("**RK1**") == 1, "the ledger was only read"
+    assert not [one for one in lint(after).findings if one.code == "id.two-files"]

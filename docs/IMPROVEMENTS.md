@@ -81,33 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK1045 A remedy that is the command that failed
-
-Measured in Shio on 2026-08-11, on the state RK1044 describes. `ship SH238` is refused
-with:
-
-> SH238 is already recorded as ✅ in docs/CHANGELOG.md:447: a second entry would make the ledger
-> disagree with itself about how it left — `roadkeep.py ship SH238` closes the open line against the
-> entry that is already there, writing nothing to the ledger
-
-The remedy named is **the invocation that just failed**. Running it verbatim prints the
-same refusal, through the module entry point and through `scripts/roadkeep.py` alike, so
-it is not a path confusion. The sentence describes a behaviour the code does not have.
-
-This is separable from RK1044 and worth its own line, because the two can be fixed
-independently and only one of them is about the guard. RK1044 is *the state cannot be
-repaired*; this is *the tool says it can, and names how*. The second is the more
-expensive failure: a reader who is told a state is unfixable goes looking for another
-door, and a reader handed a command runs it, reads the same refusal, and concludes they
-typed it wrong. It cost two further attempts here — with `--lines`, and through the
-other entry point — before the sentence itself became the suspect.
-
-The general rule it argues for: a remedy string should be **executed by a test**, not
-merely written. This project already holds the position that a message naming a fix is a
-promise (RK420 made the gate print what closes each finding), and a promise nothing runs
-is prose. The narrow fix is whatever this branch should actually say; the durable one is
-the check.
-
 ## Block E — Adoption
 
 ## Block F — The plugin

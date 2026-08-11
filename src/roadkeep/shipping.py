@@ -208,22 +208,31 @@ class AlreadyRecorded(ValueError):
     changelog" sends a reader looking for a ✅ that may be a 🗑 (RK32).
     """
 
-    def __init__(self, task_id: str, where: str, lineno: int, marker: str) -> None:
+    def __init__(
+        self, task_id: str, where: str, lineno: int, marker: str, closable: bool = False
+    ) -> None:
         self.task_id = task_id
         self.lineno = lineno
         self.marker = marker
-        # The door, and not the invariant alone (RK1044). A caller who reaches this from
-        # `retire` has already tried the verb whose whole job is a line leaving by another
-        # door, and was told only that a second entry would be wrong — while one bare command
-        # closes the line and touches no entry. The gate says the same thing about the same
-        # state (`id.two-files`), and every other refusal here carries the command that
-        # closes it. Reported as a Shio state where every door looked shut; two of them were
-        # not, and what was missing was this clause.
+        #: Whether the closure path would take this line, which is the **only** state the
+        #: door below is true of (RK1045). RK1044 added the clause unconditionally and it
+        #: landed on the one caller it cannot help: a ⏳ line beside a full entry is refused
+        #: *by `ship` itself*, so the remedy named was the command that had just failed —
+        #: which costs a reader two more attempts before the sentence becomes the suspect.
+        #:
+        #: Nothing is invented where it is false. A live partial is deliberately outside the
+        #: closure path (widening it cost a task and a 224-word section), so what a caller
+        #: needs there is the qualifier corrected, not a fourth door composed here.
+        self.closable = closable
+        door = (
+            f" — `{invocation()} ship {task_id}` closes the open line against the entry "
+            f"that is already there, writing nothing to the ledger"
+            if closable
+            else ""
+        )
         super().__init__(
             f"{task_id} is already recorded as {marker} in {where}:{lineno}: a second "
-            f"entry would make the ledger disagree with itself about how it left — "
-            f"`{invocation()} ship {task_id}` closes the open line against the entry that "
-            f"is already there, writing nothing to the ledger"
+            f"entry would make the ledger disagree with itself about how it left{door}"
         )
 
 
@@ -1564,7 +1573,16 @@ def _partial(
                 recorded.task.part,
                 suffix=config.schema.id_suffix,
             )
-        raise AlreadyRecorded(task_id, where, recorded.lineno, recorded.task.status)
+        # Closable exactly where `_leftover` would take the line (RK1045): a live
+        # partial is refused here and the door does not open for it, so naming one
+        # would hand this caller the command that just failed.
+        raise AlreadyRecorded(
+            task_id,
+            where,
+            recorded.lineno,
+            recorded.task.status,
+            closable=entry.task.status != PARTIAL,
+        )
 
     if why is None:
         # A partial states an outcome too — this much of it works — so the half that
@@ -1636,7 +1654,13 @@ def _depart(
             raise PartRecorded(
                 task_id, where, duplicate.lineno, duplicate.task.part, duplicate.task.status
             )
-        raise AlreadyRecorded(task_id, where, duplicate.lineno, duplicate.task.status)
+        raise AlreadyRecorded(
+            task_id,
+            where,
+            duplicate.lineno,
+            duplicate.task.status,
+            closable=entry.task.status != PARTIAL,
+        )
     if why is None:
         # `retire` always arrives with a derived sentence, so this is the ship path alone.
         raise NoOutcome(task_id, entry.task.why)

@@ -30,8 +30,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1045** (deps: —) **a refusal offers as its remedy the exact command that produced it** — ship <id> on a line whose ledger entry exists prints 'ship <id> closes the open line', and running it prints the same refusal, so the reader believes they have a fix. → §RK1045
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
