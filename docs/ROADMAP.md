@@ -30,7 +30,11 @@
 
 ## Block D — The gate
 
+- 📋 **RK1092** (deps: —) **agents.md is eight bytes under its budget and the next sentence has nowhere to come from** — RK1091 paid for one rule by compressing two paragraphs, and the file is now at 8392 of 8400, so the gate refuses the next edit rather than the next paragraph of drift. → §RK1092
+
 ## Block E — Adoption
+
+- 📋 **RK1093** (deps: —) **the estimate's four gains are four hand-written blocks in one function** — Each reads a different declaration and composes its own sentence, so a fifth door is a fifth if-block and the category has no index a test can hold total. → §RK1093
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
