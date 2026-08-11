@@ -24,7 +24,6 @@
 
 ## Block A — The model (a task is data before it is a line)
 
-- 📋 **RK1066** (deps: RK1064 ✅) **each kind of reference is resolved by its own code rather than by one rule** — Deps resolve in backlog.py, pointers and orphan sections in linting.py and the queue's tokens in a third place, so a fourth relation is a fourth implementation instead of a declaration. → §RK1066
 - 📋 **RK1068** (deps: RK1064 ✅) **a template whose separator can occur inside a field parses back differently and nothing refuses it** — The round-trip guard refuses the file, so a bad declaration presents as every line in the corpus being non-canonical and the report blames the lines rather than the rule. → §RK1068
 
 ## Block B — Authoring (insert, never hand-edit)

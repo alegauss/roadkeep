@@ -35,7 +35,8 @@ docs/CHANGELOG.md      shipped ledger, indexed by block
 docs/IMPROVEMENTS.md   design rationale for UNSHIPPED sections only
 agents.md, roadkeep.toml   this file, and this project's own configuration
 src/roadkeep/   the package; each module's own docstring is the authority — this is the index:
-  schema document config ids                RK1-4  the format, the file, the config, the id
+  schema document config ids referring  RK1-4/1063-6  the format as one template, the file,
+                          the config that declares a role's shape, the id, the relations
   authoring blocking shipping markers sections  RK5-9/32/41/67/93/141/377  the writes, whole
   deferring renumbering merging       RK91/96/97/120  the doors that are not terminal,
                                                  and the merge git cannot make

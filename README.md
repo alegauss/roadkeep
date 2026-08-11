@@ -116,18 +116,18 @@ called unbuilt were already in the ledger.
 
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
-| A — The model (a task is data before it is a line) | 2 | 35 | 2 |
+| A — The model (a task is data before it is a line) | 1 | 36 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 124 | 1 |
 | C — Query (consult without reading the file) | 0 | 83 | 1 |
 | D — The gate | 1 | 132 | 0 |
 | E — Adoption | 0 | 77 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 95 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 3 | 557 | 6 |
+| **Total** | 2 | 558 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1066** (deps: RK1064 ✅) **each kind of reference is resolved by its own code rather than by one rule** — Deps resolve in backlog.py, pointers and orphan sections in linting.py and the queue's tokens in a third place, so a fourth relation is a fourth implementation instead of a declaration. → §RK1066
+- 📋 **RK1067** (deps: —) **a refusal names the limit it enforced and not the line of config that set it** — Every finding carries the command that closes it, and the one whose remedy is changing the rule carries no file:line, so an author who wants a limit raised greps the package for the number. → §RK1067
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -75,29 +75,6 @@ already written, not authorship.
 
 ## Block A — The model
 
-### §RK1066 Reference as a field type
-
-A field whose type is a *reference* carries its own integrity, and this gate already
-asks that question three times over. Declared with a target, an empty sentinel and a
-policy for a target that left, one machine answers `deps.unknown`, `deps.retired`,
-`deps.cycle` and `deps.block`; aimed at headings instead of ids it answers
-`ref.unresolved`, `ref.ambiguous`, `section.orphan` and `section.unreachable`; asked of
-the queue's bare tokens it answers the eight `priority.*` codes. Sixteen of the
-thirty-four codes that are this backlog's own, where today each family is code somebody
-wrote once and would write again for a fourth relation.
-
-The distinction that decides whether this is worth anything: a vocabulary of scalar
-types — string, max, enum — buys none of it, and a relational one buys all of it. That
-is the difference between a declaration and a glorified `maxLength`.
-
-What stays code, and should: the section word budget, `engine.disagreement`,
-`export.stale`, `body.promise` and the semantics of migrating a queue. Those are
-traversals and procedures rather than constraints over a record — the first reads a
-subtree, the second reads three installations, the third reads git. Each registers by
-name, so the declaration still names every rule including the ones it does not
-implement. A declaration listing only the half that fit is the second source of truth
-this tool exists to remove, and it would be one carrying the tool's own authority.
-
 ### §RK1068 The one invariant a declaration adds
 
 This is the cost a declared grammar does not remove, and it is worth naming before the

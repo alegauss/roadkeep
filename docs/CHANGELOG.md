@@ -47,6 +47,7 @@
 - ✅ **RK1063** **the line format is stated twice, once in render and once in the parser** — TEMPLATE states the bullet once as slots with a read face and a write face, and both render and the parser derive from it, so a renderer emitting what the grammar refuses is unstatable.
 - ✅ **RK1064** **roadkeep.toml declares the limits and the markers but not which fields exist or where they sit** — A role's shape is a [grammar.<role>] of extends, markers and drop, applied by Schema.under, with the two the tool ships as declarations rather than as methods.
 - ✅ **RK1065** **the format's mechanism and this backlog's vocabulary share one namespace** — A test names the two kernel modules, the two places they reach above themselves and why each is allowed, and holds the backlog vocabulary they speak as a ceiling that may only fall.
+- ✅ **RK1066** **each kind of reference is resolved by its own code rather than by one rule** — referring.py declares the three relations, the machine each resolves through and every code each answers, held total by a test that found the pointer family answers five and not four.
 
 ## Block B — Authoring
 
