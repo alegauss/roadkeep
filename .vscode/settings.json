@@ -1,4 +1,9 @@
 {
+    // The roadkeep this workspace writes with (RK1009). The package is not installed here,
+    // so it is the launcher that puts src/ first on sys.path — the same copy the hook and
+    // the commit path run, resolved relative to the workspace root the view calls from.
+    "roadkeep.command": "python scripts/roadkeep.py",
+
     // Identify this project in the window title / taskbar
     "window.title": "🆁 roadkeep ${separator} ${dirty}${activeEditorShort} ${separator} ${appName}",
 
