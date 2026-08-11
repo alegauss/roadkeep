@@ -26,11 +26,15 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1086** (deps: —) **Resumption models a placement so a resume that places nothing has to fake one** — The roadmap field is an Insertion, and the branch that only removes the store's copy has no entry to put in it, so the third act crashed the printer rather than being expressible. → §RK1086
+
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
 
 ## Block E — Adoption
+
+- 📋 **RK1087** (deps: —) **the deferred store is a declared feature no adopting corpus has ever turned on** — Measuring for RK1084 found neither Shio nor Turing declares one, so five tasks of pause machinery are held by this repo's tests and by nothing anybody runs. → §RK1087
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 

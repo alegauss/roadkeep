@@ -77,11 +77,58 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1086 A shape that fits two acts and not three
+
+`Resumption.roadmap` is an `Insertion` — a document and the entry that landed in it —
+because the verb was one act: take a line out of the store and put it in the roadmap.
+RK1081 added a second, where the roadmap already carries the line and only the store's
+copy is removed, and that one fits by pointing the field at the entry it left alone.
+RK1083 made the *output* say which act ran, which is the right fix for two.
+
+The third does not fit. RK1084 measured the changelog-and-store pair and tried the same
+branch: the ledger already records the id, so the store entry is the leftover, nothing
+is placed and there is no entry anywhere to put in the field. `Insertion(entry=None)`
+parses and the verb's own printer reads `resumption.roadmap.entry.task.block` two lines
+later. The attempt was reverted and the pair got a two-read remedy instead, which is
+honest and is not the door.
+
+So the shape is what is blocking a verb, and it is worth saying that plainly: a closure
+that removes a line from *whichever* file holds it is the same act `ship` performs for
+RK62's leftover, and `Closure` has the same problem one module over — `roadmap:
+Document` and a `removed_from`, with no field for which file the line came out of.
+
+The work is a result type that names the file it wrote and carries no entry it did not
+place. Both verbs, because both are the same sentence about a different pair.
+
 ## Block C — Query
 
 ## Block D — The gate
 
 ## Block E — Adoption
+
+### §RK1087 A feature the corpora do not have
+
+RK1084 asked a question that had never been asked: does an adopting project have the
+state this rule is about? The answer was that neither corpus can, because **neither
+declares a deferred store at all**. `config.has("deferred")` is False for Shio and for
+Turing.
+
+That is a fact about five tasks. RK96 built the store, RK91 the two doors, RK1081 the
+contradiction with the roadmap, RK1083 the second act, RK1084 the third pair — and every
+one is exercised by this repository's own tests and by no backlog anybody runs. This
+repo does not declare one either.
+
+Not an argument to remove it. RK91's reasoning is sound and the alternative it replaced
+— spelling a pause as a retirement — destroys the id, the section and the dep thread. It
+is an argument for *knowing*: a feature whose only user is its test suite is one where
+every design question gets answered from first principles, and this project's method is
+to answer them from a corpus.
+
+Two cheap things would change that. Asking Shio and Turing whether anything in their
+backlogs **is** a pause spelled some other way — a 🗑 entry whose reason says "later", a
+line that came back under a new id — is a grep and a reading. And `adopt` could say so:
+it estimates what a project would owe, and a store nobody declares is what an estimate
+should mention rather than leave for the first `defer` to refuse.
 
 ## Block F — The plugin
 
