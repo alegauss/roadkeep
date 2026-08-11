@@ -28,7 +28,11 @@
 
 ## Block C — Query (consult without reading the file)
 
+- 📋 **RK1095** (deps: —) **two reads rank what a session pays for and neither can be asked about the other** — budget --tools totals the served schema and budget --file totals a resident file, so what one turn costs is two commands and a sum the caller does by hand. → §RK1095
+
 ## Block D — The gate
+
+- 📋 **RK1094** (deps: —) **the standing advice on which half of agents.md to compress rests on a figure that is off by half** — RK203 recorded the Layout index at 23 percent of the bytes and the breakdown reads 37, so compress the prose rather than the index was decided against a number nobody re-measured. → §RK1094
 
 ## Block E — Adoption
 

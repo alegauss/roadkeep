@@ -118,12 +118,16 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 40 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 130 | 1 |
-| C — Query (consult without reading the file) | 0 | 85 | 1 |
-| D — The gate | 0 | 142 | 0 |
+| C — Query (consult without reading the file) | 1 | 85 | 1 |
+| D — The gate | 1 | 142 | 0 |
 | E — Adoption | 0 | 81 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 96 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 0 | 585 | 6 |
+| **Total** | 2 | 585 | 6 |
+
+**Next ready:**
+
+- 📋 **RK1094** (deps: —) **the standing advice on which half of agents.md to compress rests on a figure that is off by half** — RK203 recorded the Layout index at 23 percent of the bytes and the breakdown reads 37, so compress the prose rather than the index was decided against a number nobody re-measured. → §RK1094
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
