@@ -87,32 +87,30 @@ already written, not authorship.
 
 ### §RK1043 The surface RK254 did not reach
 
-The plugin ships three executable surfaces and two of them spell the launcher:
+The plugin ships three executable surfaces and two of them spell one launcher:
 
 | surface | how it reaches the engine |
 | --- | --- |
 | `hooks/hooks.json` | `python "${CLAUDE_PLUGIN_ROOT}/scripts/roadkeep.py" guard` |
-| `.mcp.json` | `python ${CLAUDE_PROJECT_DIR:-.}/scripts/roadkeep.py mcp` |
+| `.claude-plugin/mcp.json` | `python ${CLAUDE_PLUGIN_ROOT}/scripts/roadkeep.py mcp` |
 | `commands/*.md` | `` !`roadkeep lint` ``, and `Bash(roadkeep lint:*)` |
+
+The root `.mcp.json` is **not** in that table: it spells `${CLAUDE_PROJECT_DIR:-.}` and
+is this repository's own wiring for running the tool from its checkout. What the
+manifest publishes is the file above it, so the plugin has one spelling and `commands/`
+is the sole outlier rather than a third opinion.
 
 RK254 is the argument, in its own words: the console script *exists only after `pip
 install roadkeep` and only if the interpreter's scripts directory is on PATH — so on a
 plugin-installed machine the tool's most-read message named a command that answers
-`command not found`*. A marketplace install copies files and runs no `pip`. The other
-two surfaces were written against exactly this, and `commands/` was not in the family
-RK242, RK246, RK250, RK253 and RK254 each took one instance out of.
+`command not found`*. A marketplace install copies files and runs no `pip`.
 
-**One question, and it is not the length.** A permission may scope a long prefix —
-paths, flags and quoted arguments included — so `Bash(python "…/scripts/roadkeep.py"
-lint:*)` is a shape the matcher takes. What decides the design is whether
-`${CLAUDE_PLUGIN_ROOT}` is expanded *before* the pattern is compared: unexpanded in the
-pattern and expanded in the command, the scope matches nothing and grants nothing, which
-is worse than what it replaced (RK25).
-
-**What the answer costs either way.** Expanded, this is four frontmatter lines and four
-pre-execution lines. Not expanded, the choice is between a literal path no plugin can
-know and the MCP tools — which `add` already uses, and which give up the guarantee that
-the output is in the prompt rather than a call the model may not make.
+**One question, and it is not the length.** A permission scopes a long prefix — paths,
+flags and quoted arguments included — so `Bash(python "…/scripts/roadkeep.py" lint:*)`
+is a shape the matcher takes. What decides the design is whether `${CLAUDE_PLUGIN_ROOT}`
+is expanded *before* the pattern is compared: unexpanded in the pattern and expanded in
+the command, the scope matches nothing and grants nothing, which is worse than what it
+replaced (RK25). Answered yes, this is four frontmatter lines and four pre-executions.
 
 What proves it: the three surfaces agree and the four commands run with no console
 script.
