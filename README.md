@@ -120,14 +120,10 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 0 | 130 | 1 |
 | C — Query (consult without reading the file) | 0 | 85 | 1 |
 | D — The gate | 0 | 140 | 0 |
-| E — Adoption | 1 | 78 | 1 |
+| E — Adoption | 0 | 79 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 96 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 1 | 580 | 6 |
-
-**Next ready:**
-
-- 📋 **RK1089** (deps: —) **the estimate answers what one file costs and says nothing about the doors a project would gain** — The pause line is the first of its kind and it sits among measurements, so a reader cannot tell a count of over-long lines from a feature this project has not declared. → §RK1089
+| **Total** | 0 | 581 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

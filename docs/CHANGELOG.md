@@ -500,6 +500,7 @@
 - ✅ **RK1040** **init writes the Non-goals heading and no [non_goals], so the verb that fills it refuses on a fresh project** — The scaffold declares an empty [non_goals] beside the heading it writes, so the verb that fills the list works on a project init created; adopt writes no config.
 - ✅ **RK1050** **record add is described by one motivating case, so the door is not found for the others** — record add, record and retire now lead with the job rather than the case that produced them, in the CLI help, the docstring the MCP surface prints and the skill.
 - ✅ **RK1087** **the deferred store is a declared feature no adopting corpus has ever turned on** — Neither corpus declares a store or carries one retired entry, so adopt now names the missing pause door in its estimate instead of leaving it to the first defer to refuse.
+- ✅ **RK1089** **the estimate answers what one file costs and says nothing about the doors a project would gain** — The doors a project has not declared are a named category under one heading, with the store joined by a prose file and the non-goals, so the next member has somewhere to land.
 
 ## Block F — The Claude Code plugin
 

@@ -1238,12 +1238,17 @@ def _print_estimate(estimate: Estimate) -> None:
     # limit stated only where it happened to bite is one the reader cannot rely on: RK290 made
     # the estimate and the gate agree on everything one file decides, so this names the rest.
     print(f"  scope    {_estimate_scope(estimate)}")
-    if estimate.pause:
-        # The door this project does not have (RK1087). Said in the estimate because that is
-        # where an adopter asks what the format would cost, and a store is the one governed
-        # file `init` does not scaffold — so without this the fact arrives as a refusal from
-        # the first `defer`, at the moment somebody wanted to set a line aside.
-        print(f"  pause    {estimate.pause}")
+    if estimate.gains:
+        # A category and not three more measurements (RK1089). Every row above answers what
+        # this *file* would cost; these answer what the *project* is missing, and the first
+        # of them (RK1087) printed among the numbers read as one more of them. The heading is
+        # what keeps the next member from landing somewhere else again.
+        print(
+            f"  gains    {len(estimate.gains)} the format would add and this project "
+            f"has not declared:"
+        )
+        for gain in estimate.gains:
+            print(f"    {gain.name:<9}{gain.because}")
     for marker, count in estimate.undeclared:
         print(f"  marker   {marker} on {count} line(s), declared by nothing in [markers]")
     for code, count in estimate.codes:
@@ -1380,9 +1385,11 @@ def _estimate_json(estimate: Estimate) -> dict[str, object]:
         # a consumer that saw `inferred: false` on a defaulted prefix read it as *declared*,
         # which is the same two-words-for-three the printed line had.
         "defaulted": estimate.defaulted,
-        # Empty where the project declares a store (RK1087): the field says what it has
-        # *instead* of a pause, so a project with the door has nothing to report here.
-        "pause": estimate.pause,
+        # Empty where the project has them all, and empty where no project declared the
+        # target at all (RK1089) — a consumer telling those apart reads `declared`.
+        "gains": [
+            {"name": gain.name, "because": gain.because} for gain in estimate.gains
+        ],
         "unit": estimate.unit,
         "ref_scheme": estimate.ref_scheme,
         "parsed": estimate.parsed,

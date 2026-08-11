@@ -451,6 +451,22 @@ class Doubling:
 
 
 @dataclass(frozen=True, slots=True)
+class Gain:
+    """One door declaring the format would open, that this project has not declared (RK1089).
+
+    Named as well as described, because the name is what a reader scans for and what a
+    payload keys on — and because the category has more members than anybody enumerated: the
+    store, a prose file, the non-goals, and a queue after them. A sentence alone is a row
+    that reads like every other sentence in a report full of numbers.
+    """
+
+    name: str
+    #: What the project has instead, and what to declare. Never what to *do* about it: the
+    #: estimate is what somebody runs before deciding, and deciding is theirs (L4).
+    because: str
+
+
+@dataclass(frozen=True, slots=True)
 class Estimate:
     """What an existing backlog would cost to bring under the schema. Written by nothing."""
 
@@ -476,13 +492,12 @@ class Estimate:
     #: stands in, and the estimate below it is measured against a guess. Defaulted to False
     #: because a rationale run reports no prefix at all — there is no third state there.
     defaulted: bool = False
-    #: What this project has instead of a pause, where it declares no deferred store
-    #: (RK1087) — `""` where it declares one. Measured rather than assumed: neither Shio nor
-    #: Turing declares one, and neither carries a single retired entry either, so the pause
-    #: is a feature whose only user is this tool's own suite. An adopter reading an estimate
-    #: is asking what the format costs, and *there is no door for "not now"* is part of the
-    #: answer — otherwise it arrives as a refusal from the first `defer`.
-    pause: str = ""
+    #: What declaring the format would give this project that it has not got (RK1087,
+    #: RK1089). A category rather than a fourth measurement: every other row answers what
+    #: this *file* would cost, and these answer what the *project* is missing. Empty where a
+    #: project declared the target and has them all, and empty where none declared it at all
+    #: — there, every gain is true and useless.
+    gains: tuple[Gain, ...] = ()
     unit: str = "line"
     #: The scheme the pointers and anchors were read under (RK44). Reported because it
     #: decides what was read at all: under the wrong one a file of 151 sections yields 0.
@@ -1049,7 +1064,7 @@ def adopt(
         parsed=len(document.entries),
         conforming=conforming,
         ref_scheme=schema.ref_scheme,
-        pause=_pause(config),
+        gains=_gains(config, _declared(config, target)),
         rejects=_grouped(reject.reason for reject in document.rejects),
         codes=_ranked(counts),
         measures=_measures(document, schema),
@@ -1648,24 +1663,55 @@ def _recognised(*shapes: Iterable[int]) -> int:
     return len({lineno for shape in shapes for lineno in shape})
 
 
-def _pause(config: Config) -> str:
-    """What this project has instead of a pause, or `""` where it declares a store (RK1087).
+def _gains(config: Config, declared: bool) -> tuple[Gain, ...]:
+    """What declaring the format would give this project that it has not got (RK1089).
 
-    One sentence and only where the answer is *nothing*, which is the shape every other
-    absence in an estimate takes: a limit stated where it does not bite is noise, and a door
-    that does not exist is a cost an adopter is asking about whether or not they knew to.
+    A **category** and not a fourth measurement. Every other row in an estimate answers *what
+    would this file cost* — lines read, longest symptom, how many would change — and RK1087
+    added a sentence answering something else: what door is missing. Printed among the
+    numbers, it read as one more of them, and the next member would have landed somewhere
+    else again. So the category is named once and its members sit under it.
 
-    `init` does not scaffold a store — a governed file is a path in `[files]` and a store a
-    verb invented on its way past would be a format decided by a command (RK96) — so the
-    default for every adopting project is this sentence rather than the file.
+    Silent where **no project declared the target**, which is the case `adopt` exists for: a
+    file handed over from another repository has no `[files]` of its own, so every gain here
+    would be true and useless — the answer for that case is `_estimate_scope`'s, and this
+    would be four more lines saying the same absence four ways.
+
+    Only where the answer is *nothing*, which is every absence in this report: a door the
+    project has is not a gain, and a row stated where it does not bite is one a reader learns
+    to skip past.
     """
-    if config.has("deferred"):
-        return ""
-    return (
-        "no deferred store declared, so `defer` refuses and there is no door for *not now*: "
-        'add `deferred = "<path>"` under [files], or a line set aside has to be retired, '
-        "which is terminal — the id cannot come back and the design is deleted"
-    )
+    if not declared:
+        return ()
+    out: list[Gain] = []
+    if not config.has("deferred"):
+        out.append(
+            Gain(
+                "pause",
+                "no deferred store, so `defer` refuses and there is no door for *not now*: "
+                'add `deferred = "<path>"` under [files], or a line set aside has to be '
+                "retired, which is terminal — the id cannot come back and the design goes",
+            )
+        )
+    if not any(config.has(role) for role in PROSE_ROLES):
+        out.append(
+            Gain(
+                "design",
+                "no prose file, so a line has nowhere to point: `add --section` cannot "
+                "write the rationale a symptom has no room for, and the reasoning lives "
+                "wherever it lived before — which is the 539 KB this tool was built from",
+            )
+        )
+    if config.non_goals is None:
+        out.append(
+            Gain(
+                "non-goals",
+                "`[non_goals]` not governed, so the roadmap's other bullet is prose the "
+                "gate does not read: what may not be proposed is stated and unenforced, "
+                "which is the arrangement every limit here exists to replace",
+            )
+        )
+    return tuple(out)
 
 
 def _grouped(reasons: Iterable[str]) -> tuple[tuple[str, int], ...]:

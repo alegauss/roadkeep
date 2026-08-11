@@ -32,8 +32,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK1089** (deps: —) **the estimate answers what one file costs and says nothing about the doors a project would gain** — The pause line is the first of its kind and it sits among measurements, so a reader cannot tell a count of over-long lines from a feature this project has not declared. → §RK1089
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Block G — The editor surface (the backlog where the file is open)

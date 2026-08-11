@@ -83,29 +83,6 @@ already written, not authorship.
 
 ## Block E — Adoption
 
-### §RK1089 Two kinds of answer under one report
-
-`adopt` reports numbers — lines read, longest symptom, how many would change — and
-RK1087 added a sentence of a different kind: what this project has instead of a pause.
-Both print under the same two-space indent, so `pause` reads as one more measurement
-rather than as the first entry in a category that has more members.
-
-The category is *what declaring the format would give you that you have not got*. A
-store is one. A prose file for the rationale is another — `scope` already says which
-governed files went unread, which is the same fact wearing the measurement's clothes.
-`[non_goals]` is a third: the report says `not governed` and leaves what that costs to
-be inferred. A queue is a fourth.
-
-Each of those is today either a number, a clause inside another sentence, or absent, and
-an adopter reading the report is asking exactly this question. The estimate is the one
-surface where the answer belongs, because it is what somebody runs *before* deciding.
-
-What to decide is whether they group under a heading or stay one line each. A heading is
-honest about the category and costs a line in a report this project keeps short; one
-line each is what `pause` is now, and the risk it has already taken is that the next one
-lands somewhere else. Worth doing before the second, which is the cheapest moment there
-is.
-
 ## Block F — The plugin
 
 ## Block G — The editor surface (the backlog where the file is open)

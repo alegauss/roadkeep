@@ -1892,20 +1892,30 @@ def test_the_estimate_names_the_door_this_project_has_not_got(tmp_path: Path) ->
         "# R\n\n## Block A — x\n\n- 📋 **RK1** (deps: —) **A symptom** — Because of it.\n",
         encoding="utf-8",
     )
-    estimate = adopt(Config.default(), str(tmp_path / "R.md"))
-    assert "no deferred store declared" in estimate.pause
-    assert "terminal" in estimate.pause
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "R.md"\n', encoding="utf-8"
+    )
+    named = {gain.name: gain.because for gain in adopt(
+        Config.discover(tmp_path), str(tmp_path / "R.md")
+    ).gains}
+    # Three members, which is the category RK1089 named: the store, a prose file to point
+    # at, and the roadmap's other bullet. Each says what the project has *instead*.
+    assert set(named) == {"pause", "design", "non-goals"}
+    assert "no deferred store" in named["pause"] and "terminal" in named["pause"]
 
 
-def test_a_project_with_the_door_reports_nothing_about_it(tmp_path: Path) -> None:
+def test_a_project_with_every_door_reports_no_gains(tmp_path: Path) -> None:
     # Said only where the answer is *nothing*, which is the shape every other absence in an
     # estimate takes: a limit stated where it does not bite is noise.
     (tmp_path / "roadkeep.toml").write_text(
-        'prefix = "RK"\n[files]\nroadmap = "R.md"\ndeferred = "D.md"\n', encoding="utf-8"
+        'prefix = "RK"\n[files]\nroadmap = "R.md"\ndeferred = "D.md"\n'
+        'improvements = "I.md"\n[non_goals]\nlead = 60\nwhy = 200\n',
+        encoding="utf-8",
     )
     (tmp_path / "R.md").write_text(
         "# R\n\n## Block A — x\n\n- 📋 **RK1** (deps: —) **A symptom** — Because of it.\n",
         encoding="utf-8",
     )
     (tmp_path / "D.md").write_text("# D\n\n## Block A — x\n", encoding="utf-8")
-    assert adopt(Config.discover(tmp_path), str(tmp_path / "R.md")).pause == ""
+    (tmp_path / "I.md").write_text("# I\n", encoding="utf-8")
+    assert adopt(Config.discover(tmp_path), str(tmp_path / "R.md")).gains == ()
