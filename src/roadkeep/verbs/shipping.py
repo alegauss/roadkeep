@@ -346,6 +346,13 @@ def _record_amend(config: Config, args: argparse.Namespace) -> int:
         print("roadkeep: nothing to amend: pass --why or --part", file=sys.stderr)
         return EXIT_USAGE
     try:
+        # One read joined to the listing, not a second parse: `reversals` walks the same
+        # entries for the same clause, so asking it here is what keeps the two answers one
+        # fact (RK1042). Asked **before** the write and not after (RK1052): the mark lives
+        # inside the `why` this command is about to replace, so the post-write state cannot
+        # answer whether the entry being corrected had been undone. The parse is the one
+        # `amend` is about to make of the same bytes, so this costs a cache hit.
+        undone_by = {one.undone: one.by for one in reversals(config)}.get(args.id)
         corrected = amend_record(
             config, args.id, why=_piped(args.why), part=args.part, lines=args.lines
         )
@@ -354,9 +361,6 @@ def _record_amend(config: Config, args: argparse.Namespace) -> int:
         return _refused(error)
 
     where = config.relative(config.path("changelog"))
-    # One read joined to the listing, not a second parse: `reversals` walks the same entries
-    # for the same clause, so asking it here is what keeps the two answers one fact (RK1042).
-    reversed_by = {one.undone: one.by for one in reversals(config)}
     if args.json:
         print(
             json.dumps(
@@ -371,13 +375,20 @@ def _record_amend(config: Config, args: argparse.Namespace) -> int:
                     # is the first line, so a reader diffing the JSON cannot otherwise
                     # tell a kept tail from a collapsed one.
                     "below": corrected.below,
+                    # The id that reverted this one, or null (RK1042, RK1052): read off the
+                    # ledger as it stood, since correcting the sentence is what can remove
+                    # the mark it is read from.
+                    "undone_by": undone_by,
                 },
                 indent=2,
             )
         )
         return EXIT_OK
 
-    if not corrected.changed:
+    # `below` as well as `changed` (RK1049): a correction that moved no field and rewrote
+    # four paragraphs under the bullet is a write, and calling it unchanged here would be
+    # the collapse that task closed, reported as a no-op.
+    if not corrected.changed and not corrected.below:
         print(f"{corrected.task_id} unchanged: the entry already reads that way")
         return EXIT_OK
     print(
@@ -385,6 +396,14 @@ def _record_amend(config: Config, args: argparse.Namespace) -> int:
         f"({', '.join(corrected.changed) or 'tail'})"
     )
     print(f"  {corrected.rendered}")
+    if undone_by is not None:
+        # The moment the clause matters most (RK1052): the author is composing an outcome
+        # for work a later entry says did not hold, and `delivered` would have told them.
+        # The two surfaces RK1042 joined are one fact again, said in the same words.
+        print(
+            f"  undone   by {undone_by}: the decision this entry records was reverted, "
+            f"so the outcome being corrected is one that did not hold"
+        )
     if corrected.below:
         # Said out loud for the reason the absence is (RK1049): the line printed above is
         # the whole of what this command can render, and a reader who cannot see that four

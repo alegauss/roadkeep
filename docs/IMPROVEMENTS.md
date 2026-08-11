@@ -77,30 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1052 The clause the comment promises and the output never carries
-
-Found while shipping RK1049, in the verb beside it. `_record_amend` builds `reversed_by
-= {one.undone: one.by for one in reversals(config)}` above a comment citing RK1042 —
-*one read joined to the listing, not a second parse ... which is what keeps the two
-answers one fact* — and then reads it in neither branch. `delivered` builds the same map
-twenty lines further down and does use it, both in its JSON and in its `(undone by
-<id>)` suffix, so the shape is right and only this caller is inert.
-
-Two costs, and the smaller one is the wasted work. `reversals` walks every entry in the
-ledger on a command whose whole claim is that it rewrites one line and opens nothing
-else; on Turing's 889-entry changelog that is the parse the verb's own docstring says it
-does not make.
-
-The larger one is what the reader is not told. Correcting the sentence of an entry that
-a later entry reverted is exactly the moment the reversal matters: the author is
-composing an outcome for work that did not hold, and the file already knows. `delivered`
-would tell them and this does not, so the two surfaces RK1042 joined disagree again —
-which is the failure that task named, arriving by the door it opened.
-
-The fix is one of two lines, and the choice is the task: print the clause where the
-entry is reported, or delete the map and the comment that describes a join nothing
-makes.
-
 ### §RK1053 One door learned to keep the tail and two did not
 
 RK1049 gave `record amend` a way to write a wrapped entry back. `counted` guards three

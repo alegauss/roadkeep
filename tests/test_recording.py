@@ -801,6 +801,96 @@ def test_a_span_written_back_from_a_crlf_pipe_carries_no_carriage_return(tmp_pat
     assert "\r" not in read(tmp_path, "CHANGELOG.md")
 
 
+# -- correcting an outcome that did not hold (RK1042, RK1052) -----------------
+
+#: RK1 shipped and RK2 reverted it, so RK1's sentence carries the forward pointer
+#: `record add --supersedes` writes. RK3 is the neighbour that was never undone.
+REVERTED = f"""# Shipped
+
+## Block A — The model
+
+- {SHIPPED} **RK1** **A first symptom** — Because it landed. (superseded by RK2)
+- {SHIPPED} **RK2** **The same symptom, again** — Because the first did not hold.
+- {SHIPPED} **RK3** **A third symptom** — Because of another.
+"""
+
+
+def test_correcting_an_entry_the_ledger_undid_says_which_entry_undid_it(tmp_path, capsys):
+    # The defect: the map was built above a comment citing RK1042 and read in neither
+    # branch, so `delivered` marked the entry and the verb correcting it said nothing.
+    project(tmp_path, roadmap=BARE_ROADMAP, ledger=REVERTED)
+    assert (
+        main(
+            [
+                "-C", str(tmp_path), "record", "amend", "RK1",
+                "--why", "Because it landed and was reverted an hour later.",
+            ]
+        )
+        == EXIT_OK
+    )
+    assert "undone   by RK2" in capsys.readouterr().out
+
+
+def test_an_entry_nothing_undid_says_nothing(tmp_path, capsys):
+    project(tmp_path, roadmap=BARE_ROADMAP, ledger=REVERTED)
+    main(["-C", str(tmp_path), "record", "amend", "RK3", "--why", "Because of a reason."])
+    assert "undone" not in capsys.readouterr().out
+
+
+def test_the_clause_is_read_before_the_write_that_can_remove_the_mark(tmp_path, capsys):
+    # The ordering is the whole correctness of it: `amend` replaces the sentence the mark
+    # lives in, so a map built after the save would answer about an entry that no longer
+    # carries it and the one correction that most needs the clause would print none.
+    project(tmp_path, roadmap=BARE_ROADMAP, ledger=REVERTED)
+    main(
+        [
+            "-C", str(tmp_path), "record", "amend", "RK1",
+            "--why", "Because it landed, with no clause at all.",
+        ]
+    )
+    out = capsys.readouterr().out
+    assert "undone   by RK2" in out
+    assert "(superseded by RK2)" not in read(tmp_path, "CHANGELOG.md")
+
+
+def test_the_json_carries_the_reverting_id_and_is_null_without_one(tmp_path, capsys):
+    project(tmp_path, roadmap=BARE_ROADMAP, ledger=REVERTED)
+    main(
+        [
+            "-C", str(tmp_path), "record", "amend", "RK1", "--json",
+            "--why", "Because it landed and was reverted an hour later.",
+        ]
+    )
+    assert json.loads(capsys.readouterr().out)["undone_by"] == "RK2"
+
+    project(tmp_path, roadmap=BARE_ROADMAP, ledger=REVERTED)
+    main(
+        [
+            "-C", str(tmp_path), "record", "amend", "RK3", "--json",
+            "--why", "Because of a reason.",
+        ]
+    )
+    assert json.loads(capsys.readouterr().out)["undone_by"] is None
+
+
+def test_a_tail_only_correction_is_not_reported_as_unchanged(tmp_path, capsys):
+    # The no-op path asks about fields, and RK1049 made a write possible that moves none:
+    # rewriting four paragraphs and printing `unchanged` is that task's defect, reported.
+    project(tmp_path, roadmap=BARE_ROADMAP, ledger=CONTINUED, rules=UNGOVERNED_LEDGER)
+    assert (
+        main(
+            [
+                "-C", str(tmp_path), "record", "amend", "RK1",
+                "--why", "Because a sentence starts here,\n  and stops on this one.",
+                "--lines", "3",
+            ]
+        )
+        == EXIT_OK
+    )
+    out = capsys.readouterr().out
+    assert "unchanged" not in out and "amended" in out and "(tail)" in out
+
+
 def test_the_span_reaches_the_command_line_and_the_tail_is_reported(tmp_path, capsys):
     project(tmp_path, roadmap=BARE_ROADMAP, ledger=CONTINUED)
     assert (

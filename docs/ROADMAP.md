@@ -26,7 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1052** (deps: —) **record amend walks every entry for the reversal clause and prints none** — The map RK1042 built so the listing and the correction state one fact is computed on every amend and read by nothing, so an entry that was undone is corrected in silence. → §RK1052
 - 📋 **RK1053** (deps: —) **two ledger writes still delete the continuation lines RK1049 taught one to keep** — ship completing a wrapped partial and the --supersedes pointer append both rewrite the whole span, so history goes to a call that asked to finish work or to add a pointer. → §RK1053
 
 ## Block C — Query (consult without reading the file)
