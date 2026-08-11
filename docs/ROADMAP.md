@@ -32,8 +32,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1020** (deps: —) **Six names across four modules are imported and never spelled, and nothing in this tree reports one** — An import list is what a reader asks what a module needs, and this package argues about that answer more than most while nothing holds it. → §RK1020
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

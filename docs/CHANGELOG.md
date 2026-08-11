@@ -358,6 +358,7 @@
 - ✅ **RK1012** **A pointer can resolve to a heading with no prose, or to one with no title, and the gate reports neither** — The gate reports a pointer resolving to a heading with no prose or no title, under the two codes the door already refuses, and a container is still silent.
 - ✅ **RK1015** **A door says nothing about whether running it writes, and the kind beside it describes the remedy and not the door** — A door says whether running it writes, derived from the verb the CLI already declares read-only and the flag that makes one a write, and the payload carries it.
 - ✅ **RK1016** **The Layout index names a sixth surface nowhere, and what holds it reads package modules only** — Every tracked top-level entry is named in the Layout index or exempted there with a reason, and the two surfaces that shipped without one are named.
+- ✅ **RK1020** **Six names across four modules are imported and never spelled, and nothing in this tree reports one** — A survey over the declared source set reddens every import nothing spells, past the `__all__` re-exports and the `__future__` directive; the six it found are gone.
 
 ## Block E — Adoption
 

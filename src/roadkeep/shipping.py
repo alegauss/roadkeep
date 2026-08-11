@@ -124,16 +124,14 @@ from roadkeep import claiming, queueing
 from roadkeep.authoring import Insertion, place, refuse_reuse, remove_entry
 from roadkeep.backlog import Backlog, NotOpen
 from roadkeep.config import PROSE_ROLES, Config
-from roadkeep.document import Document, Entry, Heading, Wrapped, counted, save_all
+from roadkeep.document import Document, Entry, Wrapped, counted, save_all
 from roadkeep.ids import next_id
 from roadkeep.markers import refresh
 from roadkeep.provenance import invocation
 from roadkeep.renumbering import NotAnId, SameId, family_of
 from roadkeep.schema import PARTIAL, Task
 from roadkeep.sections import (
-    NoSuchSection,
     Section,
-    citing,
     declaring,
     find,
     nested,

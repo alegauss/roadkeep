@@ -119,15 +119,15 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 31 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 108 | 1 |
 | C — Query (consult without reading the file) | 1 | 73 | 1 |
-| D — The gate | 1 | 123 | 0 |
+| D — The gate | 0 | 124 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 91 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 2 | 511 | 6 |
+| **Total** | 1 | 512 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1020** (deps: —) **Six names across four modules are imported and never spelled, and nothing in this tree reports one** — An import list is what a reader asks what a module needs, and this package argues about that answer more than most while nothing holds it. → §RK1020
+- 📋 **RK1021** (deps: —) **Nothing enumerates the questions a maintainer asks a governed file, so the law about answering them holds nothing** — The register says this row needs an inventory before a property has anything to sweep, and what exists is its converse: every command parses. → §RK1021
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -107,32 +107,6 @@ verb that answers none is named, and L5's row carries a holder.
 
 ## Block D — The gate
 
-### §RK1020 The imports nothing spells
-
-Swept once, with the `__all__` re-exports excluded because those are a module's own
-statement of what it publishes: six names across four modules — `guarding`, `linting`,
-`remedying` and `shipping` — are imported and never spelled again.
-
-None of them breaks anything, which is why they accumulate. What they do is make a
-module's import list a false answer to the question a reader asks it: what does this
-need. This package spends more care on that question than most — the deferred imports
-RK260 argues for, the one-way edge `verbs/` was split to keep, the two modules
-`test_configured` exempts because a default is declared there — and every one of those
-arguments is read off the imports.
-
-Nothing reports one, and nothing can today: this tree has no linter and takes no dev
-dependency that would bring one, which is the same decision it makes about runtime
-dependencies and for the same reason. So the check belongs where the other source
-surveys are — over the set `tests/surface.py` declares, with the same shape as the scan
-that holds L6.
-
-The exclusion is the whole risk and it is small: a name in `__all__` is published rather
-than used, and a module that re-exports is saying so out loud. Anything else is either
-spelled or it is not, which an AST decides without judgement.
-
-What proves it: an import nothing spells is red, a re-export is not, and the six above
-are gone in the commit that adds the check.
-
 ## Block E — Adoption
 
 ## Block F — The plugin

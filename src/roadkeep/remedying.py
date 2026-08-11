@@ -81,7 +81,7 @@ over the whole table rather than a defect discovered one row at a time.
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from functools import lru_cache
 
 from .config import PROSE_ROLES, ROLES, Config

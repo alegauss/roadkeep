@@ -90,7 +90,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from roadkeep.config import Config, ConfigError, find_config
-from roadkeep.provenance import WIRED, invocation, served_by
+from roadkeep.provenance import WIRED, served_by
 from roadkeep.remedying import Door, alongside, offered
 
 if TYPE_CHECKING:  # annotations only, and already strings — see the docstring's sixth decision

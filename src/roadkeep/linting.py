@@ -111,7 +111,6 @@ from roadkeep.graph import Graph
 from roadkeep.history import (
     HistoryUnavailable,
     check_ignore,
-    indexed,
     blob_at,
     content_at,
     resolves,
