@@ -73,7 +73,7 @@ from roadkeep.config import Config, spent
 from roadkeep.ids import next_id
 from roadkeep.schema import CHARS_PER_WORD, Task, body_aim, width, words
 from roadkeep.scoping import NoSuchNonGoal, NotGoverned, address, leads, read
-from roadkeep.sections import declaring, find
+from roadkeep.sections import binding, declaring, find
 
 #: Re-exported, not re-declared (RK201). The conversion moved down to `schema`, where the
 #: refusal that states a surplus can reach it: the aim and the surplus are the same
@@ -373,6 +373,23 @@ class Body:
     #: where the whole limit is free; True is the `amend`, which is where it matters — there
     #: the author holds a body and the number nobody has stated is what it has to fit inside.
     written: bool
+    #: The ancestor address whose budget binds this one, and what it already spends (RK1029).
+    #: `("", 0)` where none does — a top level, or a parent that is a container nothing points
+    #: at, which the gate charges its own prose and not its children's.
+    #:
+    #: A **row and not a substitution**: the field's own limit is still the first number,
+    #: because that is what the paragraph in front of the author has to fit, and this is the
+    #: second one that decides whether the `add` after it lands. Before RK1029 there was
+    #: nowhere to put it, so `budget --anchor IX.1` answered `30 words, aim 28` about a parent
+    #: with one word of room — the pre-`add` read, wrong in the generous direction, on the one
+    #: question this whole tool is built to answer before the prose exists.
+    under: str = ""
+    under_taken: int = 0
+
+    @property
+    def under_left(self) -> int:
+        """What the binding ancestor leaves, which is what an `add` here will accept."""
+        return max(0, self.limit - self.under_taken)
 
     @property
     def left(self) -> int:
@@ -563,6 +580,7 @@ def body_budget(config: Config, anchor: str, role: str | None = None) -> Body:
             f"about a role, and this one has no file to be a fact about"
         )
     section = find(config.document(role), anchor) if config.path(role).is_file() else None
+    binds, spends = _binding(config, role, anchor)
     return Body(
         anchor=anchor,
         role=role,
@@ -570,7 +588,31 @@ def body_budget(config: Config, anchor: str, role: str | None = None) -> Body:
         taken=0 if section is None else section.own_words,
         subtree=0 if section is None else section.words,
         written=section is not None,
+        under=binds,
+        under_taken=spends,
     )
+
+
+def _binding(config: Config, role: str, anchor: str) -> tuple[str, int]:
+    """The ancestor whose budget decides what a body here may say, and what it spends (RK1029).
+
+    Every ancestor and not the immediate one, because a parent with room under a grandparent
+    with none is still a write the gate fails — and the *tightest* of them, since that is the
+    one an `add` will actually be refused by. `("", 0)` where none binds.
+
+    What binds is :func:`~roadkeep.sections.binding`, which is the same reading `add` now
+    refuses on and the same one the gate bills: a container nothing points at is measured on
+    its own prose, so it never binds a child, and reporting it here would price a body
+    against a heading nobody charges (RK215).
+    """
+    tightest, spent = "", 0
+    parent = anchor.rsplit(".", 1)[0] if "." in anchor else ""
+    while parent:
+        answer = binding(config, role, parent)
+        if answer is not None and answer[0] > spent:
+            tightest, spent = parent, answer[0]
+        parent = parent.rsplit(".", 1)[0] if "." in parent else ""
+    return tightest, spent
 
 
 def _widest_anchor(config: Config) -> str | None:

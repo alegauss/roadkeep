@@ -30,8 +30,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1029** (deps: —) **budget answers a whole limit free for a child whose parent has one word left, which is the read an add is composed from** — RK1024 charged the ancestor at the write and said so at anchors, leaving the pre-add read — the one this tool is most about — answering about the child alone. → §RK1029
-
 ## Block D — The gate
 
 - 📋 **RK1031** (deps: —) **an id a project reserves for an epic and never writes as a line is reported as spent, on every prose mention, forever** — body.promise cannot tell a reserved id from a typo, so a project with epics can never have a clean lint and stops reading the gate. → §RK1031

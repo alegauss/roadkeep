@@ -105,30 +105,6 @@ names the file the caller has open.
 
 ## Block C — Query
 
-### §RK1029 The read RK1024 did not reach
-
-RK1024 charged an ancestor at `add` and said so at `anchors`. The read those two exist
-to save a retry on is the one still answering about the child alone.
-
-Measured in a scratch project whose `§IX` is a live design spending 29 of its own 30
-words: `budget --anchor IX.1` answers `body 30 words, aim 28`. The room is one word, and
-the `add` after it is refused — correctly, and after the prose exists, which is the
-sequence this tool was built to end.
-
-The number is not hard to find: `charged()` already answers what the gate bills an
-ancestor, and `sections.add` already walks every one of them. What is missing is that
-`Body` carries a single limit, so there is nowhere to put the second fact — which
-ancestor binds, and what it leaves.
-
-**The shape to avoid** is a second number replacing the first. A child of a container
-nothing points at is charged its own prose, and an ancestor's figure there would price a
-section against a heading nobody bills. So this is a row and not a substitution: the
-field's own limit, and beside it the address that binds where one does.
-
-What proves it: a child of a full parent is answered with the room it actually has, a
-child of a container is answered as it is now, and the number `budget` states is the
-number the `add` after it accepts.
-
 ## Block D — The gate
 
 ### §RK1031 A reserved id is not a spent id, and lint cannot tell them apart

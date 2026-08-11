@@ -785,6 +785,11 @@ def _body_json(answer: Body) -> dict[str, object]:
         # Both figures, as `section show` carries both (RK287): `taken` is the argument and
         # this is what a reader pays for the whole subtree.
         "subtree": answer.subtree,
+        # The ancestor that binds, where one does (RK1029). Null and not omitted: a client
+        # reading a missing key cannot tell "no ancestor" from "this server is older".
+        "under": answer.under or None,
+        "under_taken": answer.under_taken,
+        "under_left": answer.under_left if answer.under else None,
     }
 
 

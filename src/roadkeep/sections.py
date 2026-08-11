@@ -1835,24 +1835,27 @@ def _check(
         raise SectionError(tuple(out))
 
 
-def charged(config: Config, role: str, anchor: str) -> tuple[int, int] | None:
-    """What the gate charges this address, and the limit it is charged against (RK1024).
+def binding(config: Config, role: str, anchor: str) -> tuple[int, int] | None:
+    """What this address charges anything written **under** it, and against what limit.
 
-    `(words, limit)`, or `None` where the address names no section at all. The words are the
-    same two the gate picks between — the subtree where a line points at the anchor, its own
-    prose where nothing does — so a reader offered a child address can be told what room its
-    parent has left without a second view of the rule.
+    `(words, limit)`, or `None` where nothing written under this anchor is charged to it —
+    which is two states and not one: the address names no section, or it names a container
+    nothing points at. A pointer hands a reader the whole subtree, so a *pointed-at* section
+    is billed with its children and therefore binds them; a container is billed its own
+    prose, and charging its children to it would price a body against a heading the gate does
+    not bill (RK215). Both readers of this — `anchors` offering a child address (RK1024), and
+    `budget` pricing one (RK1029) — want exactly the second question, and asking it here is
+    what keeps them from deriving two answers to it.
 
     A read, so it decides nothing: `anchors` states the number and still prints the address,
     because an author about to shorten the parent is holding a plan no count can see.
     """
-    if not config.has(role):
+    if not config.has(role) or not _pointed_at(config, anchor):
         return None
     section = find(config.document(role), anchor)
     if section is None:
         return None
-    words_taken = section.words if _pointed_at(config, anchor) else section.own_words
-    return words_taken, config.schema_for(role).section_max
+    return section.words, config.schema_for(role).section_max
 
 
 def known(config: Config, anchor: str, task: Task | None) -> frozenset[str]:

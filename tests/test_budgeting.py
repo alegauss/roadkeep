@@ -942,3 +942,71 @@ def test_each_flag_beside_the_subject_it_narrows_is_never_refused_for_it(tmp_pat
     assert "--role narrows" not in capsys.readouterr().err
     main(["-C", str(tmp_path), "budget", "--non-goal", "--lead", "a lead"])
     assert "--lead narrows" not in capsys.readouterr().err
+
+
+# -- the read RK1024 did not reach (RK1029) ----------------------------------
+
+
+def crowded(tmp_path: Path, spent: int, limit: int = 30, pointed: bool = True) -> Config:
+    """An outline project whose §IX is a design already spending most of its budget."""
+    line = (
+        "- 📋 **RK1** (deps: —) **A symptom** — Because of a reason. → §IX\n"
+        if pointed
+        else ""
+    )
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\nref_scheme = "outline"\n[files]\nroadmap = "ROADMAP.md"\n'
+        f'changelog = "CHANGELOG.md"\nimprovements = "IMPROVEMENTS.md"\n'
+        f"\n[limits]\nsection = {limit}\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "ROADMAP.md").write_text(
+        f"# Roadmap\n\n## Block A — The model\n\n{line}", encoding="utf-8"
+    )
+    (tmp_path / "CHANGELOG.md").write_text(
+        "# Changelog\n\n## Block A — The model\n", encoding="utf-8"
+    )
+    (tmp_path / "IMPROVEMENTS.md").write_text(
+        "# Improvements\n\n## Block A — The model\n\n### IX A design\n\n"
+        + " ".join(["word"] * spent)
+        + "\n",
+        encoding="utf-8",
+    )
+    return Config.discover(tmp_path)
+
+
+def test_a_child_of_a_full_parent_is_answered_with_the_room_it_has(tmp_path):
+    """The reproduction. `budget --anchor IX.1` answered `30 words, aim 28` about a parent
+    with one word of room — the pre-`add` read, wrong in the generous direction, on the one
+    question this tool is built to answer before the prose exists."""
+    answer = body_budget(crowded(tmp_path, spent=29), "IX.1")
+    # A row and not a substitution: the field's own limit is still what the paragraph fits.
+    assert (answer.limit, answer.aim) == (30, body_aim(30))
+    assert (answer.under, answer.under_taken, answer.under_left) == ("IX", 29, 1)
+
+
+def test_a_container_nothing_points_at_never_binds_a_child(tmp_path):
+    """The gate's own rule, asked the same way (RK215): a parent no line points at is
+    charged its own prose, so reporting it here would price a body against a heading nobody
+    bills — and refuse prose `lint` calls clean."""
+    answer = body_budget(crowded(tmp_path, spent=29, pointed=False), "IX.1")
+    assert answer.under == "" and answer.under_left == 30
+
+
+def test_a_top_level_has_no_ancestor_to_be_bound_by(tmp_path):
+    answer = body_budget(crowded(tmp_path, spent=29), "XII")
+    assert answer.under == "" and answer.under_taken == 0
+
+
+def test_the_tightest_ancestor_is_the_one_reported(tmp_path):
+    """Every ancestor and not the immediate one: a parent with room under a grandparent with
+    none is still a write the gate fails, and the number that matters is the one an `add`
+    will actually be refused by."""
+    config = crowded(tmp_path, spent=29)
+    path = config.root / "IMPROVEMENTS.md"
+    path.write_text(
+        path.read_text(encoding="utf-8") + "\n#### IX.1 A child\n\nFour short words.\n",
+        encoding="utf-8",
+    )
+    answer = body_budget(Config.discover(tmp_path), "IX.1.1")
+    assert answer.under == "IX"

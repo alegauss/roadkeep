@@ -118,16 +118,16 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 1 | 31 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 114 | 1 |
-| C — Query (consult without reading the file) | 1 | 75 | 1 |
+| C — Query (consult without reading the file) | 0 | 76 | 1 |
 | D — The gate | 1 | 124 | 0 |
 | E — Adoption | 0 | 74 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 91 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 3 | 520 | 6 |
+| **Total** | 2 | 521 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1029** (deps: —) **budget answers a whole limit free for a child whose parent has one word left, which is the read an add is composed from** — RK1024 charged the ancestor at the write and said so at anchors, leaving the pre-add read — the one this tool is most about — answering about the child alone. → §RK1029
+- 📋 **RK1030** (deps: —) **a roadkeep.toml a Windows editor saved with a BOM answers 'Invalid statement (at line 1, column 1)' and names no byte** — The line it points at is correct, the file is the first one a project writes, and the default PowerShell way to write it adds the mark. → §RK1030
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

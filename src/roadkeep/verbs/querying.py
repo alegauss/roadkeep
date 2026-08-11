@@ -74,7 +74,7 @@ from roadkeep.rendering import (
 )
 from roadkeep.schema import body_aim
 from roadkeep.schema import width as measured_width
-from roadkeep.sections import charged, heading_of
+from roadkeep.sections import binding, heading_of
 from roadkeep.serving import descriptors
 from roadkeep.shipping import record
 from roadkeep.showing import show
@@ -697,7 +697,16 @@ def _body(section: Body, named: bool = True) -> str:
         f"aim {section.room} more words" if section.written else f"aim {section.aim} words"
     )
     where = f" ({section.role})" if named else ""
-    return f"{section.limit} words{where}{spent}{nested}  {aim}"
+    # The row RK1029 added, and it is a row: the field's own limit stays the first number,
+    # because that is what the paragraph has to fit — and this is the one that decides
+    # whether the `add` after it lands.
+    binds = (
+        f"\n  under      §{section.under} spends {section.under_taken} of {section.limit}"
+        f", so {section.under_left} is what an `add` here accepts"
+        if section.under
+        else ""
+    )
+    return f"{section.limit} words{where}{spent}{nested}  {aim}{binds}"
 
 
 def _body_budget(config: Config, args: argparse.Namespace) -> int:
@@ -1187,7 +1196,7 @@ def _room_left(config: Config, roles: Sequence[str], family: str) -> str:
     rationale at, and stating a number that small is the same service as stating none left.
     """
     for role in roles:
-        answer = charged(config, role, family)
+        answer = binding(config, role, family)
         if answer is None:
             continue
         taken, limit = answer
