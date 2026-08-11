@@ -26,9 +26,11 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1022** (deps: —) **add refuses for a missing --ref and the anchors it sends you to names --family, which add has no flag for** — The refusal is the whole path an author has: naming a flag the parser rejects turns one refusal into two, and the flag wanted is --ref, which the same message already uses. → §RK1022
+
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1021** (deps: —) **Nothing enumerates the questions a maintainer asks a governed file, so the law about answering them holds nothing** — The register says this row needs an inventory before a property has anything to sweep, and what exists is its converse: every command parses. → §RK1021
+- 🛠 **RK1021** (deps: —) **Nothing enumerates the questions a maintainer asks a governed file, so the law about answering them holds nothing** — The register says this row needs an inventory before a property has anything to sweep, and what exists is its converse: every command parses. → §RK1021
 
 ## Block D — The gate
 

@@ -77,6 +77,36 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1022 The guidance names a flag the parser does not declare
+
+Filing a task without `--ref` is refused, and the refusal is correct — every line points
+at its rationale. What it says next is not:
+
+> `anchors --block AK` says which family this block's prose lives under
+
+and `anchors --block AK` then answers:
+
+> Block AK's prose is under §LIX, §LX, §LXI, §LXII, §LXV — pick one, then `--family` it
+
+There is no `--family`. `add --help` lists `--block`, `--symptom`, `--why`, `--dep`,
+`--status`, `--id`, `--prefix`, `--ref`, `--section`, `--section-body`,
+`--section-body-file` and `--json`, and the flag actually wanted is `--ref` — the one
+the first refusal already named. So an author who does exactly what the tool says gets a
+second refusal, this time an argparse error, and has to go back to `--help` to discover
+that the answer was in the first message all along.
+
+Two refusals is the cost, and the second one is worse than the first: a validation
+refusal explains itself, and `unrecognized arguments: --family` does not.
+
+**The fix** is the word: `anchors` should say `--ref` where it says `--family`, since
+that is the flag that takes an anchor. If `--family` is a name the model uses
+internally, it is not a name the CLI exposes, and the guidance is written for someone
+holding the CLI.
+
+**Worth checking with it** whether any other guidance string names a flag no parser
+declares — a test that walks every hint for `--word` and asserts the parser knows it
+would hold this shut for good.
+
 ## Block C — Query
 
 ### §RK1021 The inventory L5 has been waiting for
