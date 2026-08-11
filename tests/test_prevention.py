@@ -55,6 +55,10 @@ LATER = "a later write makes it true of an earlier line, which was correct when 
 HAND = "only a hand edit or a merge reaches it: every verb derives this field or refuses it"
 #: A state a write creates on purpose, and names the door for in its own answer.
 MEANT = "a write creates it deliberately and names the door for it in the same answer"
+#: About the served schema, which no write of this tool composes either — a tool's
+#: description is `cli.py`'s prose and the `TOOLS` table, so what spends this budget is a
+#: source edit and the door is a read (RK1059).
+SURFACE = "about the served schema: what spends it is a source edit, not a write of a line"
 
 SYMPTOM = "A second symptom that is plainly long enough"
 WHY = "Because of some other reason."
@@ -143,6 +147,7 @@ PREVENTION: tuple[Prevented, ...] = (
     Prevented("file.missing", "gate", because=FILE),
     Prevented("file.not-text", "gate", because=FILE),
     Prevented("budget.absent", "gate", because=FILE),
+    Prevented("budget.tool", "gate", because=SURFACE),
     Prevented("block.unorganised", "gate", because=FILE),
     Prevented("export.unmarked", "gate", because=FILE),
     Prevented("priority.config", "gate", because=FILE),

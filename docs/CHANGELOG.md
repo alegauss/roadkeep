@@ -391,6 +391,7 @@
 - ✅ **RK1045** **a refusal offers as its remedy the exact command that produced it** — The door is named only where the closure path takes the line, and a test runs the command it names against the state that raised it.
 - ✅ **RK1046** **a partial-marker line beside an unqualified entry has no door and no finding** — record amend writes the qualifier where the roadmap still carries a live partial, so the cycle terminates and the completion path closes the line.
 - ✅ **RK1047** **body.promise names three doors and not reserved_ids, the mechanism built for the state it fires on** — The row offers the reservation as a fourth reading, so the state RK1031 built a declaration for is not answered with a rewording.
+- ✅ **RK1059** **the largest every-turn surface is measured and held by nothing** — [tools] characters declares what one served tool may cost, lint refuses one over naming the tool and the ranking, and budget --tools prints the room beside each figure.
 
 ## Block E — Adoption
 

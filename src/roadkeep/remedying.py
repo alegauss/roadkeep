@@ -1055,6 +1055,14 @@ _TABLE: Mapping[str, _Rule] = {
         "a `[budgets]` entry names a file that is not there; read what is budgeted, then "
         "correct the entry in roadkeep.toml",
     ),
+    # The read is the door and there is no `--fix` for it (RK1059): what a tool costs is
+    # its own `help=` and its exposed arguments, so the shorter description is the author's
+    # and the only mechanical part is finding which tool grew.
+    "budget.tool": _read(
+        ("budget", "--tools"),
+        "one served tool is past what `[tools] characters` allows; this ranks every tool "
+        "and prints the room, and the shortening is prose in `cli.py`",
+    ),
     "export.stale": _run(
         ("export", "--readme"),
         "every character between the markers is derived, so it is rewritten and never edited",

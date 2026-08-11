@@ -85,8 +85,19 @@ _TOP_KEYS = frozenset(
         "report",
         "claims",
         "refs",
+        "tools",
     }
 )
+#: `[tools]` — what one served tool may cost a session (RK1059). Its own table and not a
+#: `[budgets]` entry, because every key there is a **path** and this cost is not a file: it
+#: is composed per session from the parser, the config and the `TOOLS` table, so an entry
+#: under a name no file has would break the one thing that table's refusals can say.
+#:
+#: Per tool and not per list, which is the decision RK464 deliberately left open. A ceiling
+#: on the total fails on whichever tool is added last and names nothing; a per-tool one is
+#: refused by the tool that grew, which is the tool whose description somebody just edited —
+#: and `budget --tools` already ranks them, so the read that composes the fix exists.
+_TOOLS_KEYS = frozenset({"characters"})
 #: `[claims]` — how long a claim on a line reads as held (RK151). Its own table for the reason
 #: `[headings]` has one: a bare `held` beside `prefix` would read as one of the limits, and it
 #: is not a limit on any field — it is the one number in the claim mechanism that is a
@@ -273,6 +284,13 @@ class Config:
     #: Always-loaded files and what each may cost (RK30). Not a governed role: the tool
     #: writes none of these, it only refuses to let one grow unwatched.
     budgets: tuple[Budget, ...] = ()
+    #: `[tools] characters` — what one served tool may cost the session that connects the
+    #: server (RK1059), or **None** where the project declares none, which is every project
+    #: that does not serve the surface and every one that has not looked at the number yet.
+    #: The same argument `budgets` makes about a resident file, about the schema: a cost
+    #: nobody counts is a cost that moves, and every flag added to a served verb spends it
+    #: in an edit whose diff shows one argument.
+    tool_characters: int | None = None
     #: `[limits.<role>]` — the numbers one file is held to instead of the shared ones
     #: (RK50), keyed by role and applied by :meth:`schema_for`. Empty is the common case:
     #: a project declares one only where a file's economics differ, which in practice is a
@@ -360,6 +378,7 @@ class Config:
         )
         priority = tuple(_string_list(data.get("priority"), "priority", problems))
         budgets = _budgets(data.get("budgets"), base, problems)
+        tool_characters = _tool_budget(data.get("tools"), problems)
         non_goals = _scope(data.get("non_goals"), problems)
         upstream = _upstream(data.get("report"), problems)
         held = _held(data.get("claims"), problems)
@@ -393,6 +412,7 @@ class Config:
             reserved=reserved,
             priority=priority,
             budgets=budgets,
+            tool_characters=tool_characters,
             limits=per_role,
             rules=rules,
             refs=refs,
@@ -1077,6 +1097,34 @@ def _budgets(raw: object, base: Path, problems: list[str]) -> tuple[Budget, ...]
         if numbers:
             out.append(Budget(path=(base / name).resolve(), **numbers))
     return tuple(out)
+
+
+def _tool_budget(raw: object, problems: list[str]) -> int | None:
+    """`[tools] characters` — what one served tool may cost (RK1059).
+
+    Refused like every other key here rather than defaulted: a ceiling this tool chose for
+    somebody's surface would be a number nobody looked at, which is the state RK464 named
+    and declined to fix by guessing.
+    """
+    if raw is None:
+        return None
+    if not isinstance(raw, Mapping):
+        problems.append("tools must be a table of { characters = … }")
+        return None
+    _reject_unknown(raw, _TOOLS_KEYS, "tools.", problems)
+    if "characters" not in raw:
+        # The same mistake `[budgets]` names: an entry that holds nobody to anything reads
+        # as a budget and is exactly the arrangement being replaced.
+        problems.append(
+            "tools declares no characters: a table that holds nobody to anything reads "
+            "as a budget and is the arrangement being replaced"
+        )
+        return None
+    number = raw["characters"]
+    if not isinstance(number, int) or isinstance(number, bool) or number < 1:
+        problems.append("tools.characters must be a positive integer")
+        return None
+    return number
 
 
 def _positive(

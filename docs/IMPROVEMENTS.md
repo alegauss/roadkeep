@@ -81,29 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK1059 A budget the gate cannot spell
-
-RK30's argument is that a budget stated in prose is a budget nothing holds, and its
-answer is `[budgets]`, checked by `lint`. RK464 then measured the served tool list for
-the same reason — what the surface costs a session that connects it — and stopped at the
-read. `budget --tools` answers **53,369 UTF-16 code units across 52 tools** here,
-against the 7,695 bytes budgeted for `agents.md`, and nothing refuses either number.
-
-The gap is structural rather than an oversight: `[budgets]` is keyed by path and this
-cost is not a file. It is composed per session from the parser, the config and the
-`TOOLS` table, so what needs bounding is a derivation. That is also why it drifts
-silently — every flag added to a served verb and every sentence added to a `help=`
-raises it, in an edit whose diff shows one argument.
-
-Measured moving twice in one session: withdrawing one flag from `record add` took 221
-code units off, and a note rewritten on two verbs put some back. Neither was visible as
-a cost in the change that made it.
-
-What a budget here means is the decision. A ceiling on the total is one answer and a
-poor one — it fails on whichever tool is added last. A per-tool ceiling names the
-offender, and `budget --tools` already ranks them, which is the shape the read was built
-in.
-
 ## Block E — Adoption
 
 ## Block F — The plugin

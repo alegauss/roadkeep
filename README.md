@@ -119,15 +119,15 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 32 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 124 | 1 |
 | C — Query (consult without reading the file) | 0 | 82 | 1 |
-| D — The gate | 1 | 130 | 0 |
+| D — The gate | 0 | 131 | 0 |
 | E — Adoption | 0 | 77 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 94 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 2 | 550 | 6 |
+| **Total** | 1 | 551 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1059** (deps: —) **the largest every-turn surface is measured and held by nothing** — budget --tools reports what the served schema costs a session and [budgets] takes only file paths, so the one cost RK30 exists to gate is outside the gate. → §RK1059
+- 📋 **RK1060** (deps: —) **one paragraph about counting is repeated on thirteen served properties** — The UTF-16 caveat is 322 characters and identical every time, so 4186 of the tool list is one sentence a session reads thirteen times before its first call. → §RK1060
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

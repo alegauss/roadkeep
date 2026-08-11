@@ -94,6 +94,7 @@ points at exist, and did anything loaded every turn outgrow what it was allowed?
 
 from __future__ import annotations
 
+import json
 import os
 import re
 import unicodedata
@@ -130,6 +131,7 @@ from roadkeep.schema import (
     indentation,
     over_by,
     suspect,
+    width,
 )
 from roadkeep.sections import Section, anchored, find
 from roadkeep.sections import owners as section_owners
@@ -671,7 +673,10 @@ def _checked(
     checked.extend(config.relative(config.path(role)) for role in prose)
     checked.extend(target.where for target in targets)
     checked.extend(config.relative(budget.path) for budget in config.budgets)
-    if config.priority:
+    # The config is judged where it declares a queue (RK354) and where it declares what a
+    # served tool may cost (RK1059) — the second being the one budget whose subject is not
+    # a file, so `roadkeep.toml` is both what declared it and the only place to name.
+    if config.priority or config.tool_characters is not None:
         checked.append(_configured(config))
     return tuple(checked)
 
@@ -938,7 +943,56 @@ def _budgets(config: Config, tree: Tree) -> list[Finding]:
                         f"turn, so the overrun is paid on every turn",
                     )
                 )
-    return out
+    return out + _served(config)
+
+
+def _served(config: Config) -> list[Finding]:
+    """Every served tool against what one may cost a session (RK1059).
+
+    `_budgets`' argument, about the surface instead of about a file. RK30 held the resident
+    prose and RK464 measured the schema and stopped there, deliberately: what a ceiling
+    would be *per* was a decision it declined to make without a number in front of it. Here
+    it is per tool, because a total names nothing — it fails on whichever tool is added
+    last — and a per-tool one is refused by the tool whose description somebody just edited.
+
+    Filed against `roadkeep.toml`, which is the file that declared it and the only file
+    involved: the cost is composed per session from the parser, the config and the `TOOLS`
+    table, so there is no path a reader could open to see it. `budget --tools` is what
+    prints it, and the message says so.
+
+    Silent where nothing is declared, which is every adopting project until it looks at the
+    number — a gate that arrived with a ceiling this tool chose would be the guess RK464
+    refused to make.
+    """
+    if config.tool_characters is None:
+        return []
+    from roadkeep.serving import descriptors
+
+    allowed = config.tool_characters
+    where = _configured(config)
+    # The same payload `budget --tools` measures, through the same function (RK345): a
+    # second estimate here is a gate disagreeing with the read that composed the edit. In
+    # its order too — largest first — because the message sends the reader to that ranking,
+    # and a report listing the offenders in a different one is two answers to one question.
+    over = sorted(
+        (
+            (width(json.dumps(described, ensure_ascii=False)), described["name"])
+            for described in descriptors(config)
+        ),
+        key=lambda row: (-row[0], row[1]),
+    )
+    return [
+        Finding(
+            "budget.tool",
+            where,
+            f"the {name} tool is {size} characters, budget is {allowed}: this is sent to "
+            f"every session that connects the server, so the overrun is paid before the "
+            f"first call — `{invocation()} budget --tools` ranks them",
+            subject=name,
+        )
+        for size, name in over
+        if size > allowed
+    ]
 
 
 def _collective(config: Config, documents: dict[str, Document]) -> list[Note]:

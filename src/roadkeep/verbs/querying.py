@@ -803,9 +803,13 @@ def _tools_budget(config: Config, args: argparse.Namespace) -> int:
     own argument is that a limit nobody counts is a limit that moves: every task adding a tool
     or a sentence to a description spends this, and each spend looks free where it is written.
 
-    **A read and no ceiling**, which is where §RK464 left it. What a budget would be per —
-    the list or one tool — is a decision this does not make, and a gate built before the
-    number was ever printed would be a limit chosen without looking at one.
+    **And the ceiling §RK464 left open** (RK1059), once the number had been looked at: it is
+    per tool, declared as `[tools] characters`, and `lint` refuses one over. A total names
+    nothing — it fails on whichever tool is added last — where a per-tool figure is refused
+    by the tool whose description somebody just edited, which is the ranking this read
+    already prints. Reported here as the room a caller has before the gate says no, which is
+    the pairing RK345 makes everywhere else: a limit that reaches an author only as a refusal
+    is the verdict-after-the-prose this project exists to replace.
 
     Derived from :func:`~roadkeep.serving.descriptors`, so it is the payload a client is
     actually sent rather than a second estimate of it: a description reworded in `cli.py`
@@ -827,6 +831,14 @@ def _tools_budget(config: Config, args: argparse.Namespace) -> int:
                     # Every tool and not the largest few: a caller reading this to decide what
                     # to cut is reading a payload, where the terminal is reading a report.
                     "by_tool": [{"name": name, "characters": size} for name, size in ranked],
+                    # What one tool may cost, and null where the project declares none
+                    # (RK1059) — the gate's number, so the read and the refusal are one.
+                    "each": config.tool_characters,
+                    "over": [
+                        name
+                        for name, size in ranked
+                        if config.tool_characters is not None and size > config.tool_characters
+                    ],
                 },
                 indent=2,
             )
@@ -834,9 +846,18 @@ def _tools_budget(config: Config, args: argparse.Namespace) -> int:
         return EXIT_OK
     print(f"tool list  {len(described)} tool(s), {total} {CHARACTER_UNIT}")
     for name, size in ranked[:_LARGEST_TOOLS]:
-        print(f"  {name:<16} {size}")
+        # The room before the gate says no, said beside the figure it is about: a budget
+        # reported only as a total leaves the author to subtract per tool (RK345).
+        room = "" if config.tool_characters is None else f"  {config.tool_characters - size:+}"
+        print(f"  {name:<16} {size}{room}")
     if len(ranked) > _LARGEST_TOOLS:
         print(f"  … and {len(ranked) - _LARGEST_TOOLS} more — `--json` lists every one")
+    if config.tool_characters is not None:
+        over = sum(1 for _, size in ranked if size > config.tool_characters)
+        print(
+            f"  each     {config.tool_characters} {CHARACTER_UNIT}, "
+            f"{over} over — `lint` is what refuses one"
+        )
     return EXIT_OK
 
 

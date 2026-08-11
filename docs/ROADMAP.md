@@ -30,8 +30,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1059** (deps: —) **the largest every-turn surface is measured and held by nothing** — budget --tools reports what the served schema costs a session and [budgets] takes only file paths, so the one cost RK30 exists to gate is outside the gate. → §RK1059
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

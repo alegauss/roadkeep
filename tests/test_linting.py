@@ -130,6 +130,10 @@ def test_this_repository_passes_its_own_gate(checkout):
         "README.md",
         "agents.md",
         ".claude/CLAUDE.md",
+        # Judged because it declares what one served tool may cost (RK1059) — the one budget
+        # whose subject is not a file, so the config is both what declared it and the only
+        # address a finding about it can carry.
+        "roadkeep.toml",
     )
     # The instruction files are inside the budget they declare, which is the reading that
     # matters: this repository is the file that reached 186 KB in the project next door.
@@ -1614,6 +1618,42 @@ def test_a_budget_is_read_from_the_configuration_and_not_from_the_file(tmp_path)
         CONFIG + '\n[budgets]\n"agents.md" = { lines = 39 }\n', encoding="utf-8"
     )
     assert not lint(Config.discover(tmp_path)).clean
+
+
+# -- the budget whose subject is not a file (RK1059) ---------------------------
+
+
+def test_a_served_tool_over_its_budget_fails(tmp_path):
+    # RK30's argument about a resident file, made about the schema: the tool list is sent
+    # to every session that connects the server and nothing refused a number either way.
+    report = lint(project(tmp_path, config=CONFIG + "\n[tools]\ncharacters = 300\n"))
+    over = [f for f in report.findings if f.code == "budget.tool"]
+    assert over, "no tool is under 300 characters, so the gate has to fire"
+    # Filed against the config, which declared it and is the only address there is: the
+    # cost is composed per session and no path a reader could open holds it.
+    assert {f.file for f in over} == {"roadkeep.toml"}
+    assert "connects the server" in over[0].message and "budget --tools" in over[0].message
+    # Largest first, because the message sends the reader to that ranking.
+    assert over[0].subject == "add"
+
+
+def test_a_project_declaring_no_tool_budget_is_silent(tmp_path):
+    # A ceiling this tool chose would be a number nobody looked at, which is the guess
+    # RK464 declined to make — so a project that has not looked is held to nothing.
+    report = lint(project(tmp_path))
+    assert not [f for f in report.findings if f.code == "budget.tool"]
+    assert "roadkeep.toml" not in report.checked
+
+
+def test_the_read_and_the_gate_answer_with_one_number(tmp_path, capsys):
+    # RK345: a limit that reaches an author only as a refusal is the verdict-after-the-prose
+    # this project replaces, so `budget --tools` prints the room the gate is about to refuse.
+    root = project(tmp_path, config=CONFIG + "\n[tools]\ncharacters = 300\n").root
+    assert main(["-C", str(root), "budget", "--tools", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["each"] == 300
+    over = {f.subject for f in lint(Config.discover(root)).findings if f.code == "budget.tool"}
+    assert set(payload["over"]) == over
 
 
 # -- the block the tool writes outside a governed file (RK104) -----------------
