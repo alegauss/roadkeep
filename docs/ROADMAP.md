@@ -36,6 +36,8 @@
 
 ## Block G — The editor surface (the backlog where the file is open)
 
+- 📋 **RK1019** (deps: —) **The harness proves the client against whatever roadkeep the machine resolves, and nothing says it was this checkout** — RK1009 made the view refuse to guess which copy it calls, and the suite that proves the view still takes whatever answered. → §RK1019
+
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:
