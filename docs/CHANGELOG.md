@@ -465,6 +465,7 @@
 - ✅ **RK445** **adopt lists a block once per heading, so a ledger grouped by sub-headings reports the same label three times** — The estimate lists a block once per region through the reader RK439 narrowed, so a ledger grouped by sub-headings reports one label and two genuine regions still report two.
 - ✅ **RK1037** **agents.md is at 125 of 125 lines, so the next module added to the package makes the gate red** — The prose is compressed to 120 of 125 lines with the Layout index byte-identical, so the next module added has somewhere to be named.
 - ✅ **RK1040** **init writes the Non-goals heading and no [non_goals], so the verb that fills it refuses on a fresh project** — The scaffold declares an empty [non_goals] beside the heading it writes, so the verb that fills the list works on a project init created; adopt writes no config.
+- ✅ **RK1050** **record add is described by one motivating case, so the door is not found for the others** — record add, record and retire now lead with the job rather than the case that produced them, in the CLI help, the docstring the MCP surface prints and the skill.
 
 ## Block F — The Claude Code plugin
 

@@ -108,29 +108,6 @@ starts from a roadmap line. The repair was reverted rather than half-applied.
 
 ## Block E — Adoption
 
-### §RK1050 Described by its origin story rather than by its job
-
-`record add` reads: *write a ledger entry for work that shipped **without ever being
-planned***, and its long help explains the case that produced it — `ship` and the two
-retirements all begin from an open roadmap line, so a fix nobody planned had only one
-route in, a fictitious line shipped in the same breath.
-
-That is a good story and it is not the verb's job. The job is narrower and more useful:
-**write an entry directly, for work the other three doors cannot reach.** Unplanned work
-is one instance. Measured here on another: a task that *was* planned and *did* ship,
-whose entry has to be written because it was recorded inside a second task's sentence
-and is therefore invisible to every reader that keys on an id. Reading the description,
-that door looks shut — the work was planned, so the sentence excludes it — and the
-search moves on to verbs that refuse.
-
-The same shape is worth checking across the verb list, because a tool documented by the
-defect that motivated each command is one whose help ages into a changelog. `retire
---superseded-by` is the other candidate: its summary is about abandonment, and the flag
-exists for a replacement, which is not the same act.
-
-The fix is prose only, and the test for it is whether somebody who has never read the
-origin story can pick the right verb from the summary line alone.
-
 ## Block F — The plugin
 
 ## Block G — The editor surface (the backlog where the file is open)

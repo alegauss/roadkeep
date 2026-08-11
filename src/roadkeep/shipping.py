@@ -1487,7 +1487,15 @@ def record(
     supersedes: str | None = None,
     lines: int | None = None,
 ) -> Record:
-    """Write a ledger entry for work that shipped without ever being planned (RK41).
+    """Write one ledger entry directly, for shipped work no open line can carry (RK41).
+
+    The job, stated as the job rather than as the case that produced it (RK1050): every
+    other door into the ledger begins from a roadmap line, so this is the one for work that
+    has none. Never planned is the first instance and not the definition — a task that was
+    planned, shipped, and recorded inside a *second* task's sentence is invisible to every
+    reader that keys on an id and needs its own entry, and so does a revert
+    (``supersedes``). A description naming only the first case reads as a refusal for the
+    others, and the search moves on to verbs that really do refuse.
 
     The fields are refused at input exactly as `add` refuses them (L1), against
     :meth:`~roadkeep.schema.Schema.as_ledger` rather than the roadmap's schema — so the

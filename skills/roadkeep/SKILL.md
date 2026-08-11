@@ -121,7 +121,9 @@ what the store could not keep, so `--marker` is where you say which it was. A de
 paused task resolves as **deferred**, and the line waiting on it as `blocked-paused` — not
 offered, counted apart, and unblocked by a `resume` rather than a ship. Reach for `retire`
 only when the work is not coming back. `record add --block <x> --symptom "…" --why "…"` is
-the fourth — never planned, so the ledger entry alone and the roadmap untouched. It is
+the fourth — the entry alone, roadmap untouched, for **any** shipped work with no open line
+to carry it: never planned is one case, and so is a task that shipped inside another's
+sentence and needs an entry of its own. It is
 also **the revert**: `--supersedes <id>` writes the entry saying the work did not hold
 *and* appends the forward pointer to the entry saying it shipped, in one write — reach for
 it there, because `retire` needs a roadmap line the ship already removed and `record drop`

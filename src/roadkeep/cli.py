@@ -855,22 +855,25 @@ def build_parser() -> argparse.ArgumentParser:
 
     record_parser = subcommands.add_parser(
         "record",
-        help="write a ledger entry for unplanned work, or drop a duplicate of one",
+        help="write, correct, re-file, renumber or drop a ledger entry directly",
         description=(
-            "The ledger's own two doors, the pair the roadmap's four are not: every other "
-            "command starts from a task line, and these start from the entry."
+            "The ledger's own doors, the ones the roadmap's are not: every other command "
+            "starts from a task line, and these start from the entry."
         ),
     )
     entries = record_parser.add_subparsers(dest="action", required=True)
 
     record_add = entries.add_parser(
         "add",
-        help="write a ledger entry for work that shipped without ever being planned",
+        help="write a ledger entry directly, for shipped work no open line can carry",
         description=(
-            "The fourth door, and the only one that starts nowhere. `ship` and both "
-            "retirements begin from an open roadmap line, so a fix nobody planned had one "
-            "route in: a fictitious roadmap line shipped in the same breath, which teaches "
-            "that the format can be gamed. This writes the entry and touches nothing else."
+            "The fourth door, and the only one that starts nowhere: `ship` and both "
+            "retirements begin from an open roadmap line, so this is how the ledger records "
+            "work that has none. Never planned is one case and not the definition — a task "
+            "that was planned and shipped inside another's sentence needs its own entry too, "
+            "and so does a revert (--supersedes). What it does is write the entry and touch "
+            "nothing else; without it the only route in was a fictitious line shipped in the "
+            "same breath, which teaches that the format can be gamed."
         ),
     )
     record_add.add_argument("--block", required=True, help="the block label, e.g. B")
@@ -1688,11 +1691,12 @@ def build_parser() -> argparse.ArgumentParser:
 
     retire_parser = subcommands.add_parser(
         "retire",
-        help="record a line leaving without shipping: superseded, or abandoned",
+        help="record a line leaving without shipping: replaced by another, or abandoned",
         description=(
-            "A line leaves the roadmap by three doors and only shipping was recorded, so "
-            "a gap read as a botched hand-edit. This writes the other two: one ledger "
-            "line under the block it belonged to, with the forward pointer, and no design."
+            "The two departures that are not a ship: the work moved to another id "
+            "(--superseded-by), or it is not being done. Both write one ledger line under "
+            "the block it belonged to, with the forward pointer where there is one, and no "
+            "design — which is what a gap here otherwise reads as, a botched hand-edit."
         ),
     )
     retire_parser.add_argument("id", help="the task leaving, e.g. RK33")
@@ -1700,7 +1704,10 @@ def build_parser() -> argparse.ArgumentParser:
         "--superseded-by",
         dest="superseded_by",
         metavar="ID",
-        help="the id that replaces it; omitted, the line is recorded as abandoned",
+        help=(
+            "the id that takes the work over, which is a replacement and not an "
+            "abandonment; omitted, the line is recorded as abandoned"
+        ),
     )
     _reason_flag(
         retire_parser, "one sentence, the author's own: the tool never writes it" + _PIPE

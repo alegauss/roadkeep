@@ -34,8 +34,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK1050** (deps: —) **record add is described by one motivating case, so the door is not found for the others** — Its help says work that shipped without ever being planned, which excludes a planned task whose entry has to be written because it was folded into another's. → §RK1050
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Block G — The editor surface (the backlog where the file is open)
