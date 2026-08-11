@@ -26,9 +26,13 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1083** (deps: —) **resume answers two different acts under one verb and the printer cannot tell them apart** — A reconciling call places no line and returns a Resumption whose roadmap field is the entry it left alone, so the output says returned over a write nobody made. → §RK1083
+
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
+
+- 📋 **RK1082** (deps: —) **the pairwise checks over three governed files are two rules written by hand** — id.two-files reads the roadmap against the changelog and id.paused-and-open reads it against the store, so a fourth role that can hold a line needs a third rule nobody will remember. → §RK1082
 
 ## Block E — Adoption
 

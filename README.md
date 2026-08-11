@@ -117,13 +117,17 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 40 | 2 |
-| B — Authoring (insert, never hand-edit) | 0 | 127 | 1 |
+| B — Authoring (insert, never hand-edit) | 1 | 127 | 1 |
 | C — Query (consult without reading the file) | 0 | 84 | 1 |
-| D — The gate | 0 | 138 | 0 |
+| D — The gate | 1 | 138 | 0 |
 | E — Adoption | 0 | 77 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 96 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 0 | 573 | 6 |
+| **Total** | 2 | 573 | 6 |
+
+**Next ready:**
+
+- 📋 **RK1082** (deps: —) **the pairwise checks over three governed files are two rules written by hand** — id.two-files reads the roadmap against the changelog and id.paused-and-open reads it against the store, so a fourth role that can hold a line needs a third rule nobody will remember. → §RK1082
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

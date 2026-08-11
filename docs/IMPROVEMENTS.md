@@ -77,9 +77,56 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1083 One verb, two acts, one sentence
+
+RK1081 widened `resume` to take an id both files carry: the roadmap already says the
+work is open, so the store's copy is removed and no line is placed. The transaction is
+right and the report is not quite. `Resumption.roadmap` is an `Insertion` either way,
+and on the reconciling path it wraps the entry that was already there — so the verb's
+output describes a placement that did not happen.
+
+`reconciled` was added for the printer to read and the printer does not read it yet.
+That is the narrow half: one branch in `verbs/deferring.py`, saying *the store's copy is
+gone and the line is where it was* rather than *returned to Block A at line 5*.
+
+The wider half is whether one verb should carry both. `ship` faced this and answered by
+name: a closure and a departure are the same verb because both leave the line, and the
+output distinguishes them (`RK1 closed` against `RK1 →`). `resume` can do the same, and
+the argument for keeping one verb is the same too — a caller who has an id and wants it
+open should not have to know which of two states the files are in.
+
+Worth checking `--marker` while there: it names the open marker a returned line comes
+back at, and on the reconciling path there is no line to mark. Passed there it is a flag
+that takes no effect, which is the thing `NoSpan` and `NoCompletion` both exist to
+refuse.
+
 ## Block C — Query
 
 ## Block D — The gate
+
+### §RK1082 The pair that is really a relation
+
+Three governed files can hold a line for one id — roadmap, changelog, deferred store —
+and the gate now reads two of the three pairs, each by its own code and its own loop.
+RK1081 wrote the second by copying the shape of the first, which is the arrangement
+RK1077 was filed about one layer up: a surface completed by whoever walks into the gap.
+
+The third pair is unread. An id the changelog records and the store still carries is
+reachable — `defer` refuses a shipped id, but a crash between a departure's two writes
+and a hand edit both leave it — and nothing reports it. Nobody has walked into it yet,
+which is the only reason it is not a task.
+
+`referring.py` already declares that this backlog's relations are three and holds the
+index total (RK1066). Carrying an id across files is a fourth relation of the same kind:
+a target, an empty sentinel and a policy for a target that is somewhere else. Declared
+there, the pairs are a cross product over `CARRIERS` — which `ids.py` already names —
+rather than a rule per pair, and a role added to `[files]` is covered by arithmetic
+instead of by memory.
+
+What it cannot become is one message. Open-and-gone, open-and-paused and gone-and-paused
+are three sentences with three doors, and RK1081 chose a code per pair for exactly that
+reason. The declaration holds which pairs exist; the wording and the remedy stay per
+code.
 
 ## Block E — Adoption
 
