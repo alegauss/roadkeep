@@ -155,6 +155,7 @@
 - ✅ **RK499** **Every prose door accepts a tab, a zero-width codepoint and a space that is not one, and the gate refuses all three** — Every prose door refuses a tab, an invisible codepoint and a space that is not one, under the code the gate reports and from the one rule both surfaces read.
 - ✅ **RK500** **A dep flag naming an id nothing carries is written, and so is one on the block the line is being filed into** — A write refuses a dep in neither file and one whose blockers walk back to the line, so the id is no longer spent by a token nothing carries.
 - ✅ **RK1014** **A project with no queue is told to write the heading by hand, and the verb that would move one says the first writes it** — `priority add` opens the section above the blocks where a project has none and says so, so no queue needs the hand edit the guard denies.
+- ✅ **RK1022** **add refuses for a missing --ref and the anchors it sends you to names --family, which add has no flag for** — Every command a message spells carries the flags the parser declares (design §RK1022 superseded: `--family` is an `anchors` flag and `--ref` is not; the command beside it was missing).
 
 ## Block C — Query
 

@@ -250,6 +250,15 @@ INVARIANTS: tuple[Invariant, ...] = (
         over="roadkeep.remedying.FIELDS",
         held_by="test_remedying::test_the_declared_fields_are_exactly_the_ones_a_finding_answers",
     ),
+    Invariant(
+        stated="RK1022",
+        rule=(
+            "every command a message spells with a flag is one this CLI parses with that "
+            "flag, so a hint hands over an argv that runs"
+        ),
+        over="surface.modules",
+        held_by="test_hinting::test_every_command_a_message_spells_declares_the_flags_it_is_spelled_with",
+    ),
 )
 
 #: The rules stated here that nothing holds, named so that losing a holder is a decision

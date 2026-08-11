@@ -966,7 +966,8 @@ def _anchors(config: Config, args: argparse.Namespace) -> int:
     if block and args.family:
         print(
             "roadkeep: --block resolves to a family, so passing both asks two questions: "
-            f"`anchors --block {block}` names the families, and --family narrows to one",
+            f"`{invocation()} anchors --block {block}` names the families, and "
+            f"`{invocation()} anchors --family <one of them>` narrows to it",
             file=sys.stderr,
         )
         return EXIT_USAGE
@@ -1106,9 +1107,18 @@ def _anchors(config: Config, args: argparse.Namespace) -> int:
         # output is already about, and two is the answer itself — the caller picks, because
         # which subtree a new line belongs under is a judgement no file holds.
         named = ", ".join(f"§{one}" for one in spans)
+        # The whole command and not the flag alone (RK1022). A caller arrives here from an
+        # `add` refusal that named `--ref`, so a bare `--family` reads as a second flag of
+        # the verb they were writing — and `add --family` is an argparse error, which is a
+        # worse refusal than the validation one it followed. Spelled with an address off
+        # this very listing, so what to run next is a line to copy and not a shape to build.
         print(
             f"  block    Block {block}'s prose is under {named}"
-            + ("" if len(spans) == 1 else " — pick one, then --family it")
+            + (
+                ""
+                if len(spans) == 1
+                else f" — pick one, e.g. `{invocation()} anchors --family {spans[0]}`"
+            )
         )
     if args.family:
         for one in found:
@@ -1152,7 +1162,9 @@ def _anchors(config: Config, args: argparse.Namespace) -> int:
     if outline:
         # Named because the listing above is per family and the addresses are what the
         # caller came for: one flag away, and never printed by the hundred unasked.
-        print("  --family <anchor> lists the addresses under one of them")
+        print(
+            f"  `{invocation()} anchors --family <anchor>` lists the addresses under one"
+        )
     return EXIT_OK
 
 
