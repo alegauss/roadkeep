@@ -118,12 +118,16 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 32 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 117 | 1 |
-| C — Query (consult without reading the file) | 0 | 80 | 1 |
+| C — Query (consult without reading the file) | 1 | 80 | 1 |
 | D — The gate | 0 | 126 | 0 |
 | E — Adoption | 0 | 76 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 91 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 0 | 533 | 6 |
+| **Total** | 1 | 533 | 6 |
+
+**Next ready:**
+
+- 📋 **RK1042** (deps: —) **delivered lists a reverted entry as a delivery, unmarked, and it is the read made before every add** — The ledger carries the forward pointer and reversals reads it, so the duplicate check answers yes-shipped about work the same file says did not hold. → §RK1042
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

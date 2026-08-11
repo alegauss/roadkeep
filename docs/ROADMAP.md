@@ -28,6 +28,8 @@
 
 ## Block C — Query (consult without reading the file)
 
+- 📋 **RK1042** (deps: —) **delivered lists a reverted entry as a delivery, unmarked, and it is the read made before every add** — The ledger carries the forward pointer and reversals reads it, so the duplicate check answers yes-shipped about work the same file says did not hold. → §RK1042
+
 ## Block D — The gate
 
 ## Block E — Adoption
