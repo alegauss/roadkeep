@@ -12,6 +12,7 @@ that spelled all three "none" would be the same as not asking.
 from __future__ import annotations
 
 import json
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -535,4 +536,55 @@ def test_the_ordinary_refusal_is_unchanged(tmp_path):
     with pytest.raises(NoSuchTask) as caught:
         show(outlined(tmp_path), "RK99")
     assert caught.value.instead == ""
+    assert caught.value.args[0].endswith(NoSuchTask.ABSENT)
+
+
+# -- the id the parse could not see (RK1048) ---------------------------------
+
+
+def _repo(tmp_path: Path) -> Config:
+    """A ledger entry that delivers two ids and leads with one — Shio's shape (RK1048)."""
+    config = project(
+        tmp_path,
+        changelog=LEDGER
+        + "\n- ✅ **RK7** **A first symptom** — it was done, and so was **RK8**.\n",
+    )
+    for argv in (
+        ("init", "-q"),
+        ("add", "-A"),
+        ("-c", "user.email=a@b.c", "-c", "user.name=t", "commit", "-qm", "feat: two at once"),
+    ):
+        subprocess.run(["git", *argv], cwd=tmp_path, check=True, capture_output=True)
+    return Config.discover(tmp_path)
+
+
+def test_an_id_no_entry_leads_with_is_answered_from_history(tmp_path):
+    """`Document.by_id()` keys an entry by the id it **leads with**, so an entry delivering
+    two things is visible under one of them. Measured in Shio: `show SH169` answered *never
+    written* about a task in the file, while `gaps` resolved it to the commit that shipped
+    SH154 and SH169 together — two readers of one file, disagreeing."""
+    config = _repo(tmp_path)
+    # RK7 leads the entry and resolves; RK8 is in the same sentence and does not.
+    assert show(config, "RK7").task.id == "RK7"
+    with pytest.raises(NoSuchTask) as caught:
+        show(config, "RK8")
+    said = caught.value.args[0]
+    assert "wrote it" in said and "feat: two at once" in said
+    assert "gaps` resolves which" in said
+
+
+def test_an_id_history_never_wrote_keeps_the_plain_refusal(tmp_path):
+    """The bound: a commit is evidence the id was written, and where there is none the
+    sentence says only what it always said. Inventing a whereabouts from a failed search
+    would be the worse half of the defect this closes."""
+    config = _repo(tmp_path)
+    with pytest.raises(NoSuchTask) as caught:
+        show(config, "RK99")
+    assert caught.value.args[0].endswith(NoSuchTask.ABSENT)
+
+
+def test_a_tree_git_cannot_answer_for_is_silent(tmp_path):
+    """A shallow clone, a tarball, an unindexed tree: the absence is the refusal's own."""
+    with pytest.raises(NoSuchTask) as caught:
+        show(project(tmp_path), "RK8")  # no `git init`, so there is no history to ask
     assert caught.value.args[0].endswith(NoSuchTask.ABSENT)

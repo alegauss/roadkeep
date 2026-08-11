@@ -79,35 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1048 The id the parse could not see
-
-Measured on Shio at HEAD, and named in its own ledger: *SH169 shipped inside a ledger
-entry led by SH154, and a per-id reader cannot see it — `roadkeep show` answers "never
-written or was retired" about a task that is in the file.*
-
-Reproduced. `docs/CHANGELOG.md:150` opens `- **SH154** …` and its sentence also delivers
-`**SH169** — the render digest composes the way the page does`. `Document.by_id()` keys
-an entry by the id it *leads with*, so:
-
-* `show SH169` answers `no task SH169 in docs/ROADMAP.md or docs/CHANGELOG.md`;
-* `carried()` does not hold it, so `body.promise` reads a mention of it as an id no line
-  carries;
-* `gaps` **does** resolve it, to `c843f449 feat(agent): verify and digest see a page's
-  section references (SH154, SH169)`.
-
-So git knows and the parse does not, and the two readers disagree about a file they both
-read.
-
-**What this is not** is a call to make `by_id` return every id an entry names. That is
-one line and a wide blast radius: `id.duplicate` would fire on the pair, `ship` would
-find an entry where it now finds none, and a ledger written before this tool would start
-refusing verbs it has always accepted.
-
-The cheaper reading is that `show`'s refusal is wrong rather than absent — it names two
-files and a rule, where `gaps` holds the answer.
-
-What proves it: `show` on an id a ledger entry mentions says where it went.
-
 ## Block D — The gate
 
 ## Block E — Adoption

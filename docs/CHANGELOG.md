@@ -250,6 +250,7 @@
 - ✅ **RK1039** **export answers a missing target with an errno and an absolute path, where the state next to it names the fix** — A target the flag named and nothing created is refused with the two lines that make a file one, at the path relative to the root.
 - ✅ **RK1041** **budget on a new task reports the assumed section's occupancy, so words-left describes a section the task will not use** — A pointer nobody named is kept wide for the line and dropped for the section, so a new task is budgeted for the anchor it will create rather than another task's.
 - ✅ **RK1042** **delivered lists a reverted entry as a delivery, unmarked, and it is the read made before every add** — A superseded entry is named as one in the listing, under --near and in the payload, so the duplicate check stops answering yes-shipped about work that did not hold.
+- ✅ **RK1048** **show says an id was never written when a ledger entry delivers it without leading with it** — The refusal asks history where the parse has no answer, so an id a ledger entry delivers without leading with it says which commit wrote it.
 
 ## Block D — The gate
 

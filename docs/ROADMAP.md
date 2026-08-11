@@ -28,8 +28,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1048** (deps: —) **show says an id was never written when a ledger entry delivers it without leading with it** — by_id keys an entry by its leading id, so a per-id reader misses the rest while gaps resolves them from history. → §RK1048
-
 ## Block D — The gate
 
 ## Block E — Adoption

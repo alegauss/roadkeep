@@ -201,7 +201,43 @@ def _instead(config: Config, given: str) -> str:
             f"{NoSuchTask.ABSENT}, and §{anchor} is a section address rather than an id "
             f"— {verb} reads one"
         )
-    return ""
+    return _where_it_went(config, anchor)
+
+
+def _where_it_went(config: Config, task_id: str) -> str:
+    """History's answer, where the parse has none (RK1048).
+
+    `Document.by_id()` keys an entry by the id it **leads with**, so an entry delivering two
+    things is visible under one of them. Measured in Shio: `docs/CHANGELOG.md:150` opens
+    `- **SH154** …` and its sentence also ships `**SH169**`, so `show SH169` answered *never
+    written or was retired* about a task that is in the file — while `gaps` resolved it to
+    `c843f449 feat(agent): verify and digest see a page's section references (SH154, SH169)`.
+    Two readers of one file, disagreeing.
+
+    Asked **only after the parse has failed**, so the answer path costs nothing and a common
+    typo costs one `git log` on a refusal that was already being composed. And it says only
+    what it found: a commit is evidence the id was written, never a claim about which entry
+    holds it — that is `gaps`', and naming it is what this sentence is for.
+
+    Silent where git cannot answer. A shallow clone, a tarball, an unindexed tree: the
+    absence is the refusal's own, and inventing a whereabouts from a failed search would be
+    the worse half of the defect this closes.
+    """
+    # Deferred: `history` shells out, and the overwhelming majority of `show` calls resolve.
+    from roadkeep.history import HistoryUnavailable, origin_of  # noqa: PLC0415 - RK1002
+
+    try:
+        found = origin_of(config, task_id)
+    except (HistoryUnavailable, OSError):
+        return ""
+    commit = found.shipped_in or found.proposed_in
+    if commit is None:
+        return ""
+    return (
+        f"{NoSuchTask.ABSENT} — but {commit.short} wrote it "
+        f"({commit.subject}), so it is in a line this parse reads under another id: "
+        f"`{invocation()} gaps` resolves which"
+    )
 
 
 def _rationale(
