@@ -77,28 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1077 Every state a file can reach owes a door
-
-The barrier denies every hand edit to a governed file, and that trade is only honest
-while the verb surface is complete. It has not been. RK65: a line could be created and
-removed but never corrected. RK123: a rationale no verb could amend. RK141: a block
-heading only a hand edit could write. RK143: an entry filed under the wrong block.
-RK403: a heading declared twice. RK1046: a partial line beside an unqualified entry.
-Each was found by the project that walked into it, and each cost a capture report, a
-session or a hand edit before it was named — which is the same defect six times, not six
-defects.
-
-Coverage is testable, because the states are enumerable from the model rather than from
-imagination: a marker, crossed with what the ledger holds for that id, crossed with
-whether the pointer resolves and whether the deferred store carries it. What is missing
-is the table pairing each reachable state with the verb that leaves it, held by a test
-the way tests/surface.py holds the module census, so a state with no door fails here
-rather than in someone's adoption.
-
-A cell deliberately left empty is a declaration and not a hole; the point is that it is
-written down, and that a new marker, a new store or a new role adds rows nobody can
-leave blank by accident.
-
 ## Block C — Query
 
 ## Block D — The gate

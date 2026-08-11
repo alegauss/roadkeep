@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1077** (deps: —) **nothing holds the verb surface complete, so a state no command closes is found by the project that reaches it** — Six doorless states each cost a capture report or a hand edit, and no test pairs a state a governed file can reach with the verb that leaves it. → §RK1077
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
