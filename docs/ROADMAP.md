@@ -32,6 +32,8 @@
 
 ## Block D — The gate
 
+- 📋 **RK1081** (deps: —) **an id the roadmap and the deferred store both carry passes the gate and ship leaves it shipped and paused** — id.two-files compares the roadmap against the changelog and nothing compares either against the store, so the contradiction is silent and a departure only half resolves it. → §RK1081
+
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
