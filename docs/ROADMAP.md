@@ -24,11 +24,15 @@
 
 ## Block A — The model (a task is data before it is a line)
 
+- 📋 **RK1074** (deps: —) **fourteen module addresses are spelled by hand across the suite and nothing holds them level** — Moving two files broke seven surveys one at a time, each keyed by a literal path, so the census tests/surface.py declares is not what any of them actually reads. → §RK1074
+
 ## Block B — Authoring (insert, never hand-edit)
 
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
+
+- 📋 **RK1073** (deps: —) **a refusal decided under a package subdirectory named no module at all** — raised_in matched a frame only where its parent was the package root, so every verbs/ module that decided one was invisible and the staleness note compared two vocabularies. → §RK1073
 
 ## Block E — Adoption
 

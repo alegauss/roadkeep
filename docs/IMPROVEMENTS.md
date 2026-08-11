@@ -75,11 +75,57 @@ already written, not authorship.
 
 ## Block A — The model
 
+### §RK1074 A census everything was supposed to ask
+
+RK496 wrote `tests/surface.py` because seven suite-wide surveys each derived their own
+file set and each was written against the layout of the day. It declared the set once
+and had the surveys ask for it.
+
+The addresses did not follow. Moving two modules into `kernel/` for RK1069 broke seven
+tests in a row, each because a *path literal* somewhere had to be edited: the cache
+inventory's `("document.py", "_parsed")`, the modules a denial may load, the two that
+may declare a default, a `callers.pop("document.py")`, the traceback note's expected
+pair, a re-export read through `from roadkeep import schema`, and the Layout index.
+Every one green afterwards, none of them wrong before — which is exactly the failure
+RK496 names, arriving through the addresses rather than through the file set.
+
+The shape that would have held it is the one already there: a module is `surface.Module`
+with a `where`, so a test naming one should name it through that rather than by writing
+the string. Whether that means a lookup by symbol, a helper that resolves a name to its
+current address, or simply a test asserting every literal in the suite matches a real
+module, is the work.
+
+Worth doing while the move is fresh: seven edits is the measurement, and the next
+reorganisation pays it again with no reason to expect the same seven.
+
 ## Block B — Authoring
 
 ## Block C — Query
 
 ## Block D — The gate
+
+### §RK1073 The recursion one function got and its neighbour did not
+
+`Engine.stale` names this package's changed modules by their path **under** the package,
+recursively, because RK494 moved eight handlers into `src/roadkeep/verbs/` and a `glob`
+would have missed every one. `raised_in` answers the other half of the same note — which
+modules were *executing* when a refusal was decided — and kept the flat test: a frame
+counted only where `where.parent.name == _HOME.name`.
+
+So the two halves have been spelling a module differently since RK494. Every refusal
+decided inside `verbs/` named nothing, and the note that compares "what changed" against
+"what decided this" was comparing a recursive answer with a shallow one. Found by
+RK1069, which moved two modules into `kernel/` and made a `why.too-long` — the exact
+refusal §RK267 was written from — name only `authoring.py`.
+
+Fixed here rather than filed: the frame filter now resolves against the package root and
+names the path under it, which is `stale`'s own rule and the same string.
+
+What is worth taking from it is that the pair had no test asserting they agree. Each is
+covered on its own, and the note is composed from both — so a third reader of "which
+module is this" would be free to invent a third spelling. `tests/surface.py` already
+declares the one census the suite quantifies over (RK496), and this is that argument
+about a *name* rather than about a file set.
 
 ## Block E — Adoption
 

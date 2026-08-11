@@ -116,14 +116,18 @@ called unbuilt were already in the ledger.
 
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
-| A — The model (a task is data before it is a line) | 0 | 39 | 2 |
+| A — The model (a task is data before it is a line) | 1 | 39 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 124 | 1 |
 | C — Query (consult without reading the file) | 0 | 84 | 1 |
-| D — The gate | 0 | 134 | 0 |
+| D — The gate | 1 | 134 | 0 |
 | E — Adoption | 0 | 77 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 95 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 0 | 564 | 6 |
+| **Total** | 2 | 564 | 6 |
+
+**Next ready:**
+
+- 📋 **RK1073** (deps: —) **a refusal decided under a package subdirectory named no module at all** — raised_in matched a frame only where its parent was the package root, so every verbs/ module that decided one was invisible and the staleness note compared two vocabularies. → §RK1073
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
