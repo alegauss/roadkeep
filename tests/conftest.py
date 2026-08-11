@@ -356,9 +356,16 @@ def populated(tmp_path_factory: pytest.TempPathFactory) -> Path:
     conformance fixture it is — and a three-line stand-in when they do not.
 
     Session-scoped and read once, like :func:`governed`, so every test asking sees one answer.
+
+    **The question is asked of the tool and not of the text.** The first predicate here read
+    the file for a line starting with `- `, and the roadmap's *non-goals* are bullets too — so
+    it answered "populated" on a backlog with nothing open in it, which is the one day this
+    fixture exists for. The same false positive RK1090 made against the same kind of guess.
     """
-    roadmap = HERE / "docs" / "ROADMAP.md"
-    if any(line.startswith("- ") for line in roadmap.read_text(encoding="utf-8").splitlines()):
+    from roadkeep.config import Config
+
+    document = Config.discover(HERE).document("roadmap")
+    if document.entries:
         return HERE
     root = tmp_path_factory.mktemp("populated")
     (root / "roadkeep.toml").write_text(

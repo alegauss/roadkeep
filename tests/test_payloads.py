@@ -231,3 +231,27 @@ def test_an_emptied_backlog_is_not_a_failure(tmp_path):
     listed = payload("list", root=tmp_path)
     assert listed["tasks"] == [] and listed["total"] == 0
     assert payload("lint", root=tmp_path)["clean"] is True
+
+
+def test_the_roadmaps_other_bullet_is_not_read_as_an_open_line(tmp_path):
+    """The false positive the first `populated` had, held so it cannot come back (RK1098).
+
+    Its predicate read the file for a line starting with `- `, and the roadmap's non-goals are
+    bullets — so a backlog with nothing open but a Non-goals section answered "populated", and
+    the two tests it defends went red on the exact day it was written for. Asked of the tool
+    now: `entries` is what the parser calls a task line, and a non-goal is not one.
+    """
+    from roadkeep.config import Config
+
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\n[non_goals]\nlead = 60\nwhy = 200\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "ROADMAP.md").write_text(
+        "# Roadmap\n\n## Block A — The model\n\n"
+        "## Non-goals\n\n- **No model** — Because the tool renders and never writes prose.\n",
+        encoding="utf-8",
+        newline="",
+    )
+    assert not Config.discover(tmp_path).document("roadmap").entries
+    assert payload("list", root=tmp_path)["tasks"] == []
