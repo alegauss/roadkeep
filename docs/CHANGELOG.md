@@ -249,6 +249,7 @@
 - ✅ **RK1036** **a section budget reports the limit that does not bind, so the aim promises room the write refuses** — A body budget reports the smaller of its declared limit, what its own subsections spend and what a binding ancestor leaves, and the aim comes off that.
 - ✅ **RK1039** **export answers a missing target with an errno and an absolute path, where the state next to it names the fix** — A target the flag named and nothing created is refused with the two lines that make a file one, at the path relative to the root.
 - ✅ **RK1041** **budget on a new task reports the assumed section's occupancy, so words-left describes a section the task will not use** — A pointer nobody named is kept wide for the line and dropped for the section, so a new task is budgeted for the anchor it will create rather than another task's.
+- ✅ **RK1042** **delivered lists a reverted entry as a delivery, unmarked, and it is the read made before every add** — A superseded entry is named as one in the listing, under --near and in the payload, so the duplicate check stops answering yes-shipped about work that did not hold.
 
 ## Block D — The gate
 

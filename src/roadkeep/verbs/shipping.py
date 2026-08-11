@@ -333,6 +333,9 @@ def _record_amend(config: Config, args: argparse.Namespace) -> int:
         return _refused(error)
 
     where = config.relative(config.path("changelog"))
+    # One read joined to the listing, not a second parse: `reversals` walks the same entries
+    # for the same clause, so asking it here is what keeps the two answers one fact (RK1042).
+    reversed_by = {one.undone: one.by for one in reversals(config)}
     if args.json:
         print(
             json.dumps(
@@ -607,6 +610,9 @@ def _delivered(config: Config, args: argparse.Namespace) -> int:
             for index in nearest(args.near, [e.task.symptom for e in entries], NEAREST)
         )
     where = config.relative(config.path("changelog"))
+    # One read joined to the listing, not a second parse: `reversals` walks the same entries
+    # for the same clause, so asking it here is what keeps the two answers one fact (RK1042).
+    reversed_by = {one.undone: one.by for one in reversals(config)}
     if args.json:
         print(
             json.dumps(
@@ -627,6 +633,10 @@ def _delivered(config: Config, args: argparse.Namespace) -> int:
                             "marker": e.task.status,
                             "symptom": e.task.symptom,
                             "line": e.lineno,
+                            # Null and not omitted (RK1042): a consumer reading a missing
+                            # key cannot tell "this held" from "this server is older", and
+                            # the whole use of this payload is deciding a duplicate.
+                            "undone_by": reversed_by.get(e.task.id),
                             # The order and never a score (RK441): the absolute figure
                             # separates nothing, so a payload carrying it is one turn from
                             # the threshold that measurement rules out. Absent without
@@ -663,7 +673,12 @@ def _delivered(config: Config, args: argparse.Namespace) -> int:
             f"verdict; `{invocation()} delivered {label}` is all {recorded}"
         )
     for entry in entries:
-        print(f"  {entry.task.status} {entry.task.id:<8} {entry.task.symptom}")
+        # Marked and never dropped (RK1042). This verb's own rule about retired lines: a
+        # claim that did not hold is still a claim somebody made and argued about, so the
+        # marker says which and nothing is conflated. A superseded entry carries no marker
+        # of its own — the ledger spells it in the sentence — so the mark is written here.
+        said = f" (undone by {reversed_by[entry.task.id]})" if entry.task.id in reversed_by else ""
+        print(f"  {entry.task.status} {entry.task.id:<8} {entry.task.symptom}{said}")
     return EXIT_OK
 
 

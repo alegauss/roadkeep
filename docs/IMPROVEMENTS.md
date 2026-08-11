@@ -79,35 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1042 The delivery the ledger already undid
-
-The skill sends a caller here before every proposal — *the other list to consult before
-proposing work, beside `non-goal list`* — and the guard's own table repeats it:
-`delivered`, *also before `add`*. It is the duplicate check.
-
-A reverted entry answers that check as a delivery, unmarked. Reproduced: `ZZ1` shipped,
-`ZZ4` undid it, and the ledger line now reads
-
-> `- ✅ **ZZ1** **…** — The first thing works (superseded by ZZ4).`
-
-while `delivered A` prints `✅ ZZ1` with nothing beside it, `--near` ranks it, and the
-payload carries no key for it. So the read that decides whether an `add` is a duplicate
-says *yes, shipped* about work the same file says did not hold, steering the author off
-the one proposal the ledger argues for.
-
-**The verb already has the rule**, in its own docstring: *retired lines are in it — the
-marker says which, so nothing is hidden and nothing is conflated.* A superseded entry is
-that case and carries no marker of its own, the ledger spelling it in the sentence.
-
-Cheap, because the fact is parsed already: `reverting` reads the same clause off the
-same entries, so this is one read joined to a listing rather than a second parse.
-
-**Not a filter.** RK378 and RK382 settled that a duplicate is not refused and could not
-be, and a reverted entry is still evidence. It is marked, never dropped.
-
-What proves it: a superseded entry is named as one in the listing, in `--near` and in
-the payload, and `reversals` still answers what undid it.
-
 ## Block D — The gate
 
 ## Block E — Adoption

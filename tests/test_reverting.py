@@ -137,3 +137,37 @@ def _project(tmp_path: Path, ledger: str = _REVERTED) -> Config:
         with (tmp_path / name).open("w", encoding="utf-8", newline="") as handle:
             handle.write(body)
     return Config.discover(tmp_path)
+
+
+# -- the delivery the ledger already undid (RK1042) --------------------------
+
+
+def test_delivered_marks_the_entry_the_ledger_undid(tmp_path, capsys):
+    """The read the skill and the guard both send a caller to before an `add` answered
+    *yes, shipped* about work the same file says did not hold — unmarked in the listing,
+    ranked under `--near`, and carrying no key in the payload."""
+    _project(tmp_path)
+    assert main(["-C", str(tmp_path), "delivered", "A"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "DX2" in out and "(undone by DX9)" in out
+    # Marked and never dropped: RK378 and RK382 settled that a duplicate is not refused and
+    # could not be, and a reverted entry is still evidence somebody argued about.
+    assert out.count("DX") >= 2
+
+
+def test_the_mark_survives_the_narrower_question(tmp_path, capsys):
+    """`--near` is the same read asked a narrower question (RK442), so what it drops is
+    entries and never a fact about the ones it keeps."""
+    _project(tmp_path)
+    assert main(["-C", str(tmp_path), "delivered", "A", "--near", "the second"]) == EXIT_OK
+    assert "(undone by DX9)" in capsys.readouterr().out
+
+
+def test_the_payload_says_null_where_an_entry_held(tmp_path, capsys):
+    """Null and not omitted: a consumer reading a missing key cannot tell "this held" from
+    "this server is older", and deciding a duplicate is the whole use of this payload."""
+    _project(tmp_path)
+    assert main(["-C", str(tmp_path), "delivered", "A", "--json"]) == EXIT_OK
+    rows = {one["id"]: one["undone_by"] for one in json.loads(capsys.readouterr().out)["delivered"]}
+    assert rows["DX2"] == "DX9"
+    assert set(rows) - {"DX2"} and all(rows[one] is None for one in rows if one != "DX2")
