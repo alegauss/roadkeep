@@ -24,6 +24,8 @@
 
 ## Block A — The model (a task is data before it is a line)
 
+- 📋 **RK1102** (deps: —) **a predicate that reads a governed file's text instead of asking the parser has now been wrong twice** — RK1090 counted queue entries where the heading was the fact and RK1098 counted non-goal bullets as open lines, both green until the day they mattered. → §RK1102
+
 ## Block B — Authoring (insert, never hand-edit)
 
 ## Block C — Query (consult without reading the file)
@@ -31,6 +33,8 @@
 ## Block D — The gate
 
 ## Block E — Adoption
+
+- 📋 **RK1101** (deps: —) **a relative path under -C resolves against the shell's directory, so adopt can measure another project's file** — roadkeep -C <project> adopt ROADMAP.md read the caller's ROADMAP.md under the project's config, which errors when it is absent and is silent when it is not. → §RK1101
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
