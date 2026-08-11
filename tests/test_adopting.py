@@ -1900,7 +1900,7 @@ def test_the_estimate_names_the_door_this_project_has_not_got(tmp_path: Path) ->
     ).gains}
     # Three members, which is the category RK1089 named: the store, a prose file to point
     # at, and the roadmap's other bullet. Each says what the project has *instead*.
-    assert set(named) == {"pause", "design", "non-goals"}
+    assert set(named) == {"pause", "design", "non-goals", "queue"}
     assert "no deferred store" in named["pause"] and "terminal" in named["pause"]
 
 
@@ -1913,9 +1913,56 @@ def test_a_project_with_every_door_reports_no_gains(tmp_path: Path) -> None:
         encoding="utf-8",
     )
     (tmp_path / "R.md").write_text(
-        "# R\n\n## Block A — x\n\n- 📋 **RK1** (deps: —) **A symptom** — Because of it.\n",
+        "# R\n\n## Priority\n\n## Block A — x\n\n"
+        "- 📋 **RK1** (deps: —) **A symptom** — Because of it.\n",
         encoding="utf-8",
     )
     (tmp_path / "D.md").write_text("# D\n\n## Block A — x\n", encoding="utf-8")
     (tmp_path / "I.md").write_text("# I\n", encoding="utf-8")
     assert adopt(Config.discover(tmp_path), str(tmp_path / "R.md")).gains == ()
+
+
+def test_the_queue_is_the_fourth_door_and_is_read_off_the_section(tmp_path: Path) -> None:
+    """RK1090. RK1089 named a queue among the category's members and wrote three, which is
+    the shape that task exists to prevent, one iteration later.
+
+    Read off the `## Priority` **heading** and not off what is under it: RK325 moved the
+    queue into the roadmap, and a project whose queue is empty today has the door and is
+    using it. Counting entries reported this repository as missing one on any day nothing
+    outranked the id order — which is most days.
+    """
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "R.md"\n', encoding="utf-8"
+    )
+    line = "- 📋 **RK1** (deps: —) **A symptom** — Because of it.\n"
+    (tmp_path / "R.md").write_text(
+        "# R\n\n## Block A — x\n\n" + line, encoding="utf-8"
+    )
+    named = {g.name for g in adopt(Config.discover(tmp_path), str(tmp_path / "R.md")).gains}
+    assert "queue" in named
+
+    # The section, empty, is the door — so the gain goes even though nothing is queued.
+    (tmp_path / "R.md").write_text(
+        "# R\n\n## Priority\n\n## Block A — x\n\n" + line, encoding="utf-8"
+    )
+    opened = {g.name for g in adopt(Config.discover(tmp_path), str(tmp_path / "R.md")).gains}
+    assert "queue" not in opened
+
+
+def test_the_queue_gain_names_the_section_and_never_the_retired_config_key(tmp_path: Path) -> None:
+    # RK325 moved the queue out of `[priority]`, and the gate reports that key as
+    # `priority.config` — so a gain naming the old home would be advice the gate refuses.
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "R.md"\n', encoding="utf-8"
+    )
+    (tmp_path / "R.md").write_text(
+        "# R\n\n## Block A — x\n\n- 📋 **RK1** (deps: —) **A symptom** — Because of it.\n",
+        encoding="utf-8",
+    )
+    (queue,) = [
+        g for g in adopt(Config.discover(tmp_path), str(tmp_path / "R.md")).gains
+        if g.name == "queue"
+    ]
+    assert "## Priority" in queue.because and "[priority]" not in queue.because
+    # And it says what the project does *instead*, which is a real answer rather than a gap.
+    assert "lowest ready id" in queue.because

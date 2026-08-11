@@ -58,7 +58,7 @@ from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, replace
 from pathlib import Path
 
-from roadkeep import scoping
+from roadkeep import queueing, scoping
 from roadkeep.config import (
     CLAIM_HELD,
     CONFIG_NAME,
@@ -1064,7 +1064,7 @@ def adopt(
         parsed=len(document.entries),
         conforming=conforming,
         ref_scheme=schema.ref_scheme,
-        gains=_gains(config, _declared(config, target)),
+        gains=_gains(config, _declared(config, target), document),
         rejects=_grouped(reject.reason for reject in document.rejects),
         codes=_ranked(counts),
         measures=_measures(document, schema),
@@ -1663,7 +1663,7 @@ def _recognised(*shapes: Iterable[int]) -> int:
     return len({lineno for shape in shapes for lineno in shape})
 
 
-def _gains(config: Config, declared: bool) -> tuple[Gain, ...]:
+def _gains(config: Config, declared: bool, document: Document | None = None) -> tuple[Gain, ...]:
     """What declaring the format would give this project that it has not got (RK1089).
 
     A **category** and not a fourth measurement. Every other row in an estimate answers *what
@@ -1709,6 +1709,27 @@ def _gains(config: Config, declared: bool) -> tuple[Gain, ...]:
                 "`[non_goals]` not governed, so the roadmap's other bullet is prose the "
                 "gate does not read: what may not be proposed is stated and unenforced, "
                 "which is the arrangement every limit here exists to replace",
+            )
+        )
+    # The fourth, and the one RK1089 named and did not write (RK1090). Read off the
+    # **document** and not the config: RK325 moved the queue into a `## Priority` section of
+    # the roadmap, and the config key that used to hold it is now `priority.config` — a gain
+    # naming that home would be advice the gate refuses.
+    #
+    # And it is the one member whose absence is not a defect. A project without a queue picks
+    # the lowest ready id, which is a real answer and often the right one, so the sentence
+    # says what that *costs* rather than that something is missing.
+    #
+    # The **heading** and not the entries: a project whose queue is empty today has the
+    # door and is using it, and counting entries reports this repository as missing one on
+    # any day nothing outranks the id order.
+    if document is not None and not queueing.opened(document):
+        out.append(
+            Gain(
+                "queue",
+                "no `## Priority` section, so `pick` offers the lowest ready id: order is "
+                "derived from the numbers, and work nobody wants next is offered first "
+                "whenever its id happens to be lowest — a cost a long backlog feels",
             )
         )
     return tuple(out)

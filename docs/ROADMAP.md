@@ -34,8 +34,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK1090** (deps: —) **the queue is the fourth door an estimate could name and the only member left out** — RK1089 built the category from the three absences a config declares and stopped, so a project with no priority order reads the same as one that chose id order deliberately. → §RK1090
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Block G — The editor surface (the backlog where the file is open)

@@ -563,6 +563,18 @@ def open_queue(document: Document) -> tuple[Document, int]:
     return document.insert_line(at, SECTION).insert_line(at + 1, ""), at
 
 
+def opened(document: Document) -> bool:
+    """Whether this roadmap declares a queue at all — the heading, not what is under it.
+
+    A different question from :func:`entries`, and the one an estimate asks (RK1090): a
+    project with a `## Priority` section and nothing in it right now has the door and is
+    using it, where one with no section picks by the lowest ready id. Counting entries
+    answers the first as if it were the second, which is this repository on any day its
+    queue is empty.
+    """
+    return _heading_index(document) is not None
+
+
 def _heading_index(document: Document) -> int | None:
     """The 0-based index of the priority heading line, or None when there is no section."""
     heading = next((h for h in document.headings if HEADING.match(h.text)), None)

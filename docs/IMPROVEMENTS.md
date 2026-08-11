@@ -106,29 +106,6 @@ is written as a whole file instead.
 
 ## Block E — Adoption
 
-### §RK1090 The member the category was written knowing about
-
-`_gains` reports three: no store, no prose file, no governed non-goals. RK1089's own
-section named a fourth — a queue — and the implementation did not add it, which is the
-shape that task exists to prevent one iteration later.
-
-The reason it is harder than the other three is worth stating rather than discovering.
-Those are read off `[files]` and `[non_goals]`: declared or not, one call each. A queue
-is a `## Priority` **section** in the roadmap since RK325, so the answer needs the
-document rather than the config, and `adopt` already holds it. What it does not have is
-a way to say the useful thing: a project with no queue is not missing a feature, it is
-picking by the lowest ready id, which is a real answer and often the right one.
-
-So the sentence is the work. `pause` says what happens instead — a line has to be
-retired, which is terminal — and the queue's equivalent is that order is derived from
-ids, which means a task nobody wants next is offered first whenever its number is
-lowest. That is a cost, and it is one an adopter with a hundred lines feels and one with
-ten does not.
-
-Worth checking whether `[priority]` in the config is still reachable while writing it:
-RK325 moved the queue into the section and the config key is reported as
-`priority.config`, so a gain naming the old home would be advice the gate refuses.
-
 ## Block F — The plugin
 
 ## Block G — The editor surface (the backlog where the file is open)

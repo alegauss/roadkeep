@@ -501,6 +501,7 @@
 - ✅ **RK1050** **record add is described by one motivating case, so the door is not found for the others** — record add, record and retire now lead with the job rather than the case that produced them, in the CLI help, the docstring the MCP surface prints and the skill.
 - ✅ **RK1087** **the deferred store is a declared feature no adopting corpus has ever turned on** — Neither corpus declares a store or carries one retired entry, so adopt now names the missing pause door in its estimate instead of leaving it to the first defer to refuse.
 - ✅ **RK1089** **the estimate answers what one file costs and says nothing about the doors a project would gain** — The doors a project has not declared are a named category under one heading, with the store joined by a prose file and the non-goals, so the next member has somewhere to land.
+- ✅ **RK1090** **the queue is the fourth door an estimate could name and the only member left out** — The queue joins the category, read off the Priority heading rather than its entries, and says the project picks by lowest ready id instead of naming a gap.
 
 ## Block F — The Claude Code plugin
 
