@@ -963,6 +963,15 @@ def _served(config: Config) -> list[Finding]:
     Silent where nothing is declared, which is every adopting project until it looks at the
     number — a gate that arrived with a ceiling this tool chose would be the guess RK464
     refused to make.
+
+    **And it is cheap, which RK1061 was filed believing it was not.** That task measured 201
+    ms against 80 and read it as this check building 52 descriptors on a command CI, the
+    pre-commit hook and the Stop hook each run. Measured again, warm: `descriptors` is 1 ms
+    and this whole function is **1.4 ms**. The 121 ms was one-time import cost — `serving`
+    and the CLI it reaches — attributed to the check by an in-process comparison whose first
+    call paid it. The import is still real and is 13 ms on a path where `cli` is already
+    loaded, which every path this runs on is. Left as it is, and the measurement kept here
+    because the next reader will make the same inference from the same shape.
     """
     if config.tool_characters is None:
         return []

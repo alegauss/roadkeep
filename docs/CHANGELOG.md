@@ -392,6 +392,7 @@
 - ✅ **RK1046** **a partial-marker line beside an unqualified entry has no door and no finding** — record amend writes the qualifier where the roadmap still carries a live partial, so the cycle terminates and the completion path closes the line.
 - ✅ **RK1047** **body.promise names three doors and not reserved_ids, the mechanism built for the state it fires on** — The row offers the reservation as a fourth reading, so the state RK1031 built a declaration for is not answered with a rewording.
 - ✅ **RK1059** **the largest every-turn surface is measured and held by nothing** — [tools] characters declares what one served tool may cost, lint refuses one over naming the tool and the ranking, and budget --tools prints the room beside each figure.
+- ✅ **RK1061** **the tool budget makes every lint build the whole served surface** — Measured again, warm: the check is 1.4ms and the 121ms was one-time import cost misattributed by an in-process comparison, so nothing is cached and the numbers are recorded.
 
 ## Block E — Adoption
 

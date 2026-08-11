@@ -75,6 +75,121 @@ already written, not authorship.
 
 ## Block A — The model
 
+### §RK1063 One template, read in two directions
+
+`Schema.render` writes the bullet and the parser in `document.py` reads it, and the two
+agree because a property test over three corpora says they do. That is the right
+backstop and the wrong primary. L3's guard exists to catch a parser that *misread* a
+line somebody else wrote; it currently also carries the case where the renderer and the
+reader were written from one intention and drifted — which is not a corruption to detect
+but a duplication to remove.
+
+A template states the line once: `- **{id}** {status} {symptom} — {why} → {ref}`. Parse
+and render both derive from it, so a renderer producing what the parser would refuse
+stops being expressible rather than being caught. RK109 made this argument about the id,
+where one shape was read by two parsers that answered differently; this is the same
+argument one level out, about the whole bullet.
+
+What it does not buy, and the reason this is not free: a template can be **ambiguous** —
+a separator that also occurs inside a field, an optional slot whose absence has two
+readings — so the failure class moves from drift to ambiguity, which is a check of its
+own against this repository's corpus. The guard stays either way. This narrows what it
+can catch and never the reason it is checked, because a configuration change is still
+not a licence to rewrite files written before it.
+
+### §RK1064 The grammar as a declaration, not as a method
+
+L6 is already half of this: `roadkeep.toml` declares prefix, paths, limits, markers,
+`ref_scheme`, budgets and claims. Four things it does not declare — which fields a
+record carries, where they sit on the line, what each field refers to, and which rules
+exist at all. So a project can change every number and no part of the shape, and
+`Schema.as_ledger()` — one field dropped and the marker moved from the line to the file
+— is a method where it could be `extends` and `drop` beside the limits that already
+vary.
+
+TOML and not JSON, for a reason this repository's own config demonstrates: most of that
+file is comments stating *why* 120 is 120, and JSON has no comments, so each rationale
+would either die or become a string field pretending to be data. A number without its
+reason beside it is the number the next reader rounds. `tomllib` is stdlib, so this
+costs no dependency.
+
+Two files and one object: the format's defaults ship with the tool, a project overrides
+them, or every adopting project declares a grammar it never chose.
+
+The boundary is the part to hold. Declarative for what is decidable from a record's own
+structure; code for anything that needs a traversal. A declaration growing conditionals
+and expressions is an interpreter to debug — Schematron is expressive and nobody writes
+it. What stays code registers here by name, so this remains the whole index of the rules
+rather than the half that fit.
+
+### §RK1065 The kernel boundary, held by a test before it is a package
+
+Measured: `schema.py` and `document.py` import nothing but stdlib and each other, so by
+import direction the boundary already exists. By vocabulary it does not — both name
+`Task`, `Dep`, `block`, `ref` and a marker set, none of which a second format has. Of
+the gate's 46 codes, about a dozen are shape and identity, which any record format
+needs; the rest are this backlog's dependency graph, its blocks and its queue, which no
+other format wants. The reusable part is the mechanism and not the rules, and it is
+roughly 3.4k of the package's 43.6k lines.
+
+So the move is a subpackage under one hard rule: it imports nothing above it, never
+reads `Config`, and does not pronounce task, dep, block or ship. Held by a test, the way
+the Layout index already is, and not by this paragraph.
+
+Deliberately **not** a separate distribution, for three reasons in order of force. A
+library is a runtime dependency, and this tool's own argument against taking `click` and
+`pydantic` applies to itself. An abstraction designed from a single client is a
+framework that client then contorts into. And a supported Python API is a standing
+non-goal, which the published version of this collides with head-on rather than at the
+edges. The internal boundary costs no release and is reversible; publishing waits on a
+second real format to prove the shape, and there is not one yet.
+
+### §RK1066 Reference as a field type
+
+A field whose type is a *reference* carries its own integrity, and this gate already
+asks that question three times over. Declared with a target, an empty sentinel and a
+policy for a target that left, one machine answers `deps.unknown`, `deps.retired`,
+`deps.cycle` and `deps.block`; aimed at headings instead of ids it answers
+`ref.unresolved`, `ref.ambiguous`, `section.orphan` and `section.unreachable`; asked of
+the queue's bare tokens it answers the eight `priority.*` codes. Sixteen of the
+thirty-four codes that are this backlog's own, where today each family is code somebody
+wrote once and would write again for a fourth relation.
+
+The distinction that decides whether this is worth anything: a vocabulary of scalar
+types — string, max, enum — buys none of it, and a relational one buys all of it. That
+is the difference between a declaration and a glorified `maxLength`.
+
+What stays code, and should: the section word budget, `engine.disagreement`,
+`export.stale`, `body.promise` and the semantics of migrating a queue. Those are
+traversals and procedures rather than constraints over a record — the first reads a
+subtree, the second reads three installations, the third reads git. Each registers by
+name, so the declaration still names every rule including the ones it does not
+implement. A declaration listing only the half that fit is the second source of truth
+this tool exists to remove, and it would be one carrying the tool's own authority.
+
+### §RK1068 The one invariant a declaration adds
+
+This is the cost a declared grammar does not remove, and it is worth naming before the
+trade is made. Several hardcoded invariants become one: a grammar given as data can be a
+grammar that cannot read back what it writes, and the failure surfaces at the wrong end.
+The round-trip guard refuses the whole file, correctly and by law — so a separator
+declared one character too loose presents as every line in the corpus being
+non-canonical, and the report blames a hundred lines for the one line of config that
+broke them.
+
+The check is small and belongs to the gate: for every record the corpus holds, rendering
+what was parsed reproduces the source bytes, and parsing that rendering is stable. Which
+is this repository's own conformance rule — the docs are the fixture, and a limit that
+cannot express these lines is the wrong limit rather than a set of wrong lines — moving
+from a development convention to something the tool runs against itself. An adopting
+project gets it against its own files, which is where a hand-written grammar is actually
+dangerous.
+
+It stays code, necessarily: a declaration cannot carry the check of declarations without
+becoming the interpreter that design refused. And it pairs with the finding that cites a
+rule's origin, because with both the report reads as one defect at one config line
+instead of a corpus that stopped conforming. The trade is still good; it is not free.
+
 ## Block B — Authoring
 
 ## Block C — Query
@@ -104,28 +219,27 @@ the same footing the tool list is on.
 
 ## Block D — The gate
 
-### §RK1061 A gate that costs more than the thing it guards
+### §RK1067 A finding names the rule's source, not only its number
 
-RK1059 put a ceiling on what one served tool may cost, and paid for it on the wrong
-path. `_served` calls `descriptors(config)`, which builds every subparser and renders 52
-tool schemas — measured on this repository at **201 ms with the budget declared against
-80 ms without**, so the check is two and a half times the rest of the gate put together.
+Every code this gate reports resolves to a door and prints it under the line — a
+complete argv where one exists, the two doors where the choice is the author's, a marked
+blank where the field is prose only they can write. The finding whose remedy is
+*changing the rule* is the one with no such door: a `why` reported over its limit names
+the number and leaves the author to find where the number was set, which in an adopting
+project is a file they have never opened.
 
-`lint` is not a command run once. CI runs it, `.pre-commit-hooks.yaml` runs it, and the
-Stop hook runs it on every turn that touched a governed file — which is the surface RK22
-made cheap on purpose. A guard that costs a fifth of a second there is a guard somebody
-turns off.
+So the diagnostic carries the rule's origin beside the value — `why exceeds 200 (schema:
+roadkeep.toml:34 [limits].why)` — and two things fall out. A wrong limit stops being a
+defect in this package and becomes a config line somebody reviews, which is the argument
+for a limit being configuration at all, finally reaching the reader who is standing over
+one. And a limit the project never declared has no line, so the answer says it is this
+tool's default rather than inventing a citation; that distinction is exactly the fact
+the author needs, one of the two numbers being one they chose.
 
-The guard is already narrow in the right way: a project declaring no `[tools]` pays
-nothing, because the config is read before the import. What it is not is narrow in
-*when*. The schema changes when this package changes and not when a roadmap line does,
-so the answer is probably a cache keyed on something that moves with the source —
-`provenance.engine()` already resolves the commit and whether the tree is dirty.
-
-Worth deciding whether it belongs in `lint` at all. The number it holds is a fact about
-the package, not about the repository being linted, so a check that runs where the
-package is tested would catch every regression this one does and cost an adopting
-project nothing.
+It ships alone. Nothing here waits on a declared grammar: the config already records
+which keys a project set, and the validator already knows which limit it applied. Worth
+taking first for that reason — the smallest of these, and the one an adopting project
+feels.
 
 ## Block E — Adoption
 

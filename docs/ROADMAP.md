@@ -24,6 +24,12 @@
 
 ## Block A — The model (a task is data before it is a line)
 
+- 📋 **RK1063** (deps: —) **the line format is stated twice, once in render and once in the parser** — L3 compares the two against a corpus because nothing makes them one statement, so a grammar that renders what it cannot parse is caught by a test instead of being unrepresentable. → §RK1063
+- 📋 **RK1064** (deps: RK1063) **roadkeep.toml declares the limits and the markers but not which fields exist or where they sit** — A project can change every number and no part of the shape, so the ledger dropping its deps field is a method in the package instead of a line in the file that declares it. → §RK1064
+- 📋 **RK1065** (deps: —) **the format's mechanism and this backlog's vocabulary share one namespace** — schema.py and document.py import only stdlib, so the boundary is already there by import direction and absent by naming: both speak Task, Dep and block, which no second format has. → §RK1065
+- 📋 **RK1066** (deps: RK1064) **each kind of reference is resolved by its own code rather than by one rule** — Deps resolve in backlog.py, pointers and orphan sections in linting.py and the queue's tokens in a third place, so a fourth relation is a fourth implementation instead of a declaration. → §RK1066
+- 📋 **RK1068** (deps: RK1064) **a template whose separator can occur inside a field parses back differently and nothing refuses it** — The round-trip guard refuses the file, so a bad declaration presents as every line in the corpus being non-canonical and the report blames the lines rather than the rule. → §RK1068
+
 ## Block B — Authoring (insert, never hand-edit)
 
 ## Block C — Query (consult without reading the file)
@@ -32,7 +38,7 @@
 
 ## Block D — The gate
 
-- 📋 **RK1061** (deps: —) **the tool budget makes every lint build the whole served surface** — Measured here at 201ms against 80ms without it: the gate constructs 52 descriptors, and lint is what CI, the pre-commit hook and the Stop hook each run. → §RK1061
+- 📋 **RK1067** (deps: —) **a refusal names the limit it enforced and not the line of config that set it** — Every finding carries the command that closes it, and the one whose remedy is changing the rule carries no file:line, so an author who wants a limit raised greps the package for the number. → §RK1067
 
 ## Block E — Adoption
 
@@ -57,9 +63,9 @@ Deliberately **not** built — check this list before proposing work:
 - **No multi-line task line.** A task whose text wraps across paragraphs, with its deps
   on a `↳` line of their own, is a second grammar; reading only the first line would
   ship a truncated why and orphan the rest.
-- **No supported Python API.** The CLI, the MCP tools and the plugin are the surface;
-  `from roadkeep import Schema` is how the tests reach the vocabulary, so no `py.typed`
-  ships and a rename inside the package breaks nobody.
+- **No supported Python API.** The CLI, the MCP tools and the plugin are the surface; a
+  boundary held by a test inside the package is not one, so nothing ships `py.typed` and
+  a rename still breaks nobody.
 - **No effort or size field.** Nothing can verify a letter, `pick`'s every tier is a
   fact, and what an agent pays is context — median to p90, files vary 1.4× against lines
   2.7×, so the letter prices the axis nobody pays.

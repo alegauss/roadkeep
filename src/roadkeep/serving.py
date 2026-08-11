@@ -952,6 +952,16 @@ def _root() -> argparse.ArgumentParser:
     What the cache does assume is that nobody mutates the parser it hands out. Nothing in
     this package does — `parse_args` builds a Namespace, `descriptor` and `argv` read
     actions — and `tests/test_serving.py` holds it rather than this sentence.
+
+    **The second build is real and is left alone** (RK1061). `main` builds a tree to
+    dispatch the verb and this builds another to describe the surface, so a `lint` holding
+    `[tools] characters` builds two — and `remedying._reading` is a third caller caching its
+    own derivation of the same uncached object (RK1015). Caching `build_parser` removes the
+    duplicate and was tried and reverted: measured at **6.3 ms once per process**, against a
+    `lint` process of ~460 ms, and it is bought by freezing every `handler=` the parser
+    holds at first build. A `monkeypatch` on one then silently does nothing — which is not a
+    hypothetical, it is what the revert was written from. 1.4% is not worth a change that
+    makes a patch fail by having no effect.
     """
     from roadkeep.cli import build_parser
 
