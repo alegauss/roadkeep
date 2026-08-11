@@ -120,14 +120,10 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 0 | 130 | 1 |
 | C — Query (consult without reading the file) | 0 | 85 | 1 |
 | D — The gate | 0 | 142 | 0 |
-| E — Adoption | 1 | 80 | 1 |
+| E — Adoption | 0 | 81 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 96 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 1 | 584 | 6 |
-
-**Next ready:**
-
-- 📋 **RK1093** (deps: —) **the estimate's four gains are four hand-written blocks in one function** — Each reads a different declaration and composes its own sentence, so a fifth door is a fifth if-block and the category has no index a test can hold total. → §RK1093
+| **Total** | 0 | 585 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

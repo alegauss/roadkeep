@@ -54,7 +54,7 @@ from __future__ import annotations
 
 import re
 import tomllib
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass, replace
 from pathlib import Path
 
@@ -1663,19 +1663,67 @@ def _recognised(*shapes: Iterable[int]) -> int:
     return len({lineno for shape in shapes for lineno in shape})
 
 
-def _gains(config: Config, declared: bool, document: Document | None = None) -> tuple[Gain, ...]:
+#: Every door declaring this format opens, as a declaration rather than a function body
+#: (RK1093). RK1089 built the category so a fourth member had somewhere to land and RK1090
+#: landed it — by adding a fifth `if` to a block that was already four, which is the failure
+#: that task was filed about arriving one iteration later.
+#:
+#: `opens` is a predicate over what the project declared, and it takes the roadmap because
+#: one of the four is a `## Priority` **section** rather than a config key (RK325). A
+#: callable and not a key, which is `serving._BOUNDS`' own shape and worth copying rather
+#: than inventing: what varies is data, and what has to traverse is code.
+GAINS: tuple[tuple[str, Callable[[Config, Document | None], bool], str], ...] = (
+    (
+        "pause",
+        lambda config, _document: not config.has("deferred"),
+        "no deferred store, so `defer` refuses and there is no door for *not now*: "
+        'add `deferred = "<path>"` under [files], or a line set aside has to be '
+        "retired, which is terminal — the id cannot come back and the design goes",
+    ),
+    (
+        "design",
+        lambda config, _document: not any(config.has(role) for role in PROSE_ROLES),
+        "no prose file, so a line has nowhere to point: `add --section` cannot write "
+        "the rationale a symptom has no room for, and the reasoning lives wherever it "
+        "lived before — which is the 539 KB this tool was built from",
+    ),
+    (
+        "non-goals",
+        lambda config, _document: config.non_goals is None,
+        "`[non_goals]` not governed, so the roadmap's other bullet is prose the gate "
+        "does not read: what may not be proposed is stated and unenforced, which is "
+        "the arrangement every limit here exists to replace",
+    ),
+    (
+        "queue",
+        # The heading and not its entries: a project whose queue is empty today has the
+        # door and is using it (RK1090), and counting entries reports this repository as
+        # missing one on any day nothing outranks the id order.
+        lambda _config, document: document is not None
+        and not queueing.opened(document),
+        "no `## Priority` section, so `pick` offers the lowest ready id: order is "
+        "derived from the numbers, and work nobody wants next is offered first "
+        "whenever its id happens to be lowest — a cost a long backlog feels",
+    ),
+)
+
+
+def _gains(
+    config: Config, declared: bool, document: Document | None = None
+) -> tuple[Gain, ...]:
     """What declaring the format would give this project that it has not got (RK1089).
 
     A **category** and not a fourth measurement. Every other row in an estimate answers *what
     would this file cost* — lines read, longest symptom, how many would change — and RK1087
-    added a sentence answering something else: what door is missing. Printed among the
-    numbers, it read as one more of them, and the next member would have landed somewhere
-    else again. So the category is named once and its members sit under it.
+    added a sentence answering something else: what door is missing.
+
+    One walk over :data:`GAINS` since RK1093, so a fifth door is a row there and
+    `tests/test_adopting.py` can ask whether every door this format opens is named — a
+    question a function body cannot be asked.
 
     Silent where **no project declared the target**, which is the case `adopt` exists for: a
     file handed over from another repository has no `[files]` of its own, so every gain here
-    would be true and useless — the answer for that case is `_estimate_scope`'s, and this
-    would be four more lines saying the same absence four ways.
+    would be true and useless — the answer for that case is `_estimate_scope`'s.
 
     Only where the answer is *nothing*, which is every absence in this report: a door the
     project has is not a gain, and a row stated where it does not bite is one a reader learns
@@ -1683,56 +1731,11 @@ def _gains(config: Config, declared: bool, document: Document | None = None) -> 
     """
     if not declared:
         return ()
-    out: list[Gain] = []
-    if not config.has("deferred"):
-        out.append(
-            Gain(
-                "pause",
-                "no deferred store, so `defer` refuses and there is no door for *not now*: "
-                'add `deferred = "<path>"` under [files], or a line set aside has to be '
-                "retired, which is terminal — the id cannot come back and the design goes",
-            )
-        )
-    if not any(config.has(role) for role in PROSE_ROLES):
-        out.append(
-            Gain(
-                "design",
-                "no prose file, so a line has nowhere to point: `add --section` cannot "
-                "write the rationale a symptom has no room for, and the reasoning lives "
-                "wherever it lived before — which is the 539 KB this tool was built from",
-            )
-        )
-    if config.non_goals is None:
-        out.append(
-            Gain(
-                "non-goals",
-                "`[non_goals]` not governed, so the roadmap's other bullet is prose the "
-                "gate does not read: what may not be proposed is stated and unenforced, "
-                "which is the arrangement every limit here exists to replace",
-            )
-        )
-    # The fourth, and the one RK1089 named and did not write (RK1090). Read off the
-    # **document** and not the config: RK325 moved the queue into a `## Priority` section of
-    # the roadmap, and the config key that used to hold it is now `priority.config` — a gain
-    # naming that home would be advice the gate refuses.
-    #
-    # And it is the one member whose absence is not a defect. A project without a queue picks
-    # the lowest ready id, which is a real answer and often the right one, so the sentence
-    # says what that *costs* rather than that something is missing.
-    #
-    # The **heading** and not the entries: a project whose queue is empty today has the
-    # door and is using it, and counting entries reports this repository as missing one on
-    # any day nothing outranks the id order.
-    if document is not None and not queueing.opened(document):
-        out.append(
-            Gain(
-                "queue",
-                "no `## Priority` section, so `pick` offers the lowest ready id: order is "
-                "derived from the numbers, and work nobody wants next is offered first "
-                "whenever its id happens to be lowest — a cost a long backlog feels",
-            )
-        )
-    return tuple(out)
+    return tuple(
+        Gain(name, because)
+        for name, opens, because in GAINS
+        if opens(config, document)
+    )
 
 
 def _grouped(reasons: Iterable[str]) -> tuple[tuple[str, int], ...]:

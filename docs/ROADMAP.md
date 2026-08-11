@@ -32,8 +32,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK1093** (deps: —) **the estimate's four gains are four hand-written blocks in one function** — Each reads a different declaration and composes its own sentence, so a fifth door is a fifth if-block and the category has no index a test can hold total. → §RK1093
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Block G — The editor surface (the backlog where the file is open)

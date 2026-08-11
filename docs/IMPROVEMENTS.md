@@ -83,31 +83,6 @@ already written, not authorship.
 
 ## Block E — Adoption
 
-### §RK1093 The category that is a function body
-
-`_gains` is four `if` blocks: the store off `[files]`, a prose file off `PROSE_ROLES`,
-the non-goals off `[non_goals]`, the queue off a heading in the document. RK1089 built
-the category to give the fourth somewhere to land and RK1090 landed it — by adding a
-fifth block to a function that was already four.
-
-The shape this project uses for exactly this is one file over. `referring.PAIRS`
-declares which pairs exist and the gate walks it; `remedying._TABLE` declares which code
-has which door and a test holds it total over what the gate emits. A gain is the same
-kind of thing: a name, a predicate over what the project declared, and a sentence saying
-what it has instead.
-
-What a declaration buys here is the closure. Today nothing can ask *is every door this
-format opens named among the gains* — the answer lives in a function body, so a fifth
-door added to the tool is a fifth door the estimate silently does not mention, which is
-precisely the failure RK1089 was filed about and RK1090 demonstrated one iteration
-later.
-
-The predicate is the part that resists: three read a config and one reads a document, so
-the declaration carries a callable rather than a key. That is the same thing `_BOUNDS`
-does in `serving.py` — a lambda over `Config` per field — and it is worth copying rather
-than inventing, including its own rule that what varies is data and what traverses is
-code.
-
 ## Block F — The plugin
 
 ## Block G — The editor surface (the backlog where the file is open)

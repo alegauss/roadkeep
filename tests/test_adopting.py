@@ -1966,3 +1966,38 @@ def test_the_queue_gain_names_the_section_and_never_the_retired_config_key(tmp_p
     assert "## Priority" in queue.because and "[priority]" not in queue.because
     # And it says what the project does *instead*, which is a real answer rather than a gap.
     assert "lowest ready id" in queue.because
+
+
+def test_every_door_the_format_opens_is_named_among_the_gains() -> None:
+    """RK1093, and the question a function body could not be asked. RK1089 built the category
+    so a fourth member had somewhere to land; RK1090 landed it by adding a fifth `if` to a
+    block that was already four, which is the failure RK1089 was filed about arriving one
+    iteration later.
+
+    The closure is over what the *format* has: a governed role a project may declare, plus
+    the two shapes that are not roles — the non-goals table and the priority section. A fifth
+    door added to the tool is red here until somebody says whether an estimate mentions it.
+    """
+    from roadkeep.adopting import GAINS
+    from roadkeep.config import ROLES
+
+    named = {name for name, _opens, _because in GAINS}
+    # The roles an estimate can be about: the roadmap is the file being estimated and the
+    # changelog is where its lines go, so neither is a door a project would *gain*.
+    optional = set(ROLES) - {"roadmap", "changelog"}
+    assert {"pause", "queue"} <= named
+    # `design` stands for the prose roles together: one file answers a pointer, and which of
+    # the two it is is the project's business (RK196).
+    assert len(optional - {"improvements", "strategy", "deferred"}) == 0
+    assert named == {"pause", "design", "non-goals", "queue"}
+
+
+def test_every_gain_says_what_the_project_does_instead(tmp_path: Path) -> None:
+    # A row that only names an absence is a gap; one that says what happens instead is a
+    # cost, which is what an adopter is asking about. Held over the table rather than over
+    # one sentence, so a fifth row cannot be the first that only says no.
+    from roadkeep.adopting import GAINS
+
+    for name, _opens, because in GAINS:
+        assert len(because.split()) >= 20, name
+        assert "no " in because or "not " in because, name
