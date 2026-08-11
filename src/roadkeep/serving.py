@@ -516,10 +516,14 @@ _DESTS: Mapping[str, Mapping[str, str]] = {
     "amend": {"--dep": "deps"},
     "anchors": {"--next": "only_next"},
     "budget": {"--dep": "deps", "--marker": "status", "--prefix": "family"},
+    # The two that call the one sentence `--reason` and accept `--why` beside it (RK1038):
+    # the same crossing `--marker` and `--status` make, so the same rows.
+    "defer": {"--why": "reason"},
     "list": {"--status": "marker"},
     "next-id": {"--prefix": "family"},
     "record add": {"--id": "task_id"},
     "resume": {"--status": "marker"},
+    "retire": {"--why": "reason"},
     "reversals": {"--id": "task_id"},
 }
 

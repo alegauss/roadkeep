@@ -576,3 +576,77 @@ def test_a_flag_typed_before_the_verb_is_the_top_level_s(tmp_path, capsys):
     # The name and the command are two things: one string for both prints a door that opens
     # nothing.
     assert "roadkeep roadkeep" not in err
+
+
+# -- one field, two names (RK1038) -------------------------------------------
+
+
+#: Every spelling this CLI gives a prose field a caller writes, and what each one is. A
+#: declared set for `_MAY_GLOB`'s reason: a fourth name is a decision somebody makes rather
+#: than a synonym somebody invents, and an exemption nobody can see reads exactly like a rule
+#: being kept. RK399 settled the same question for the marker and kept both names accepted.
+SPELLINGS = {
+    ("--why",): "the task's one sentence, on the nine verbs that write one",
+    ("--reason", "--why"): "the same sentence on `defer` and `retire`, which name it "
+    "`--reason` in the shipped skill and accept both (RK1038)",
+    ("--body",): "a section's paragraph, which is a different field with its own limit",
+    ("--section-body",): "that paragraph inside an `add`, where the line is written too",
+}
+
+
+def prose_fields() -> dict[tuple[str, ...], list[tuple[str, ...]]]:
+    """Every prose field this CLI declares, by the option strings that reach it.
+
+    Read off `reads_stdin`, which is where each verb declares that one of its fields arrives
+    on a pipe (RK171) — a claim about one command, kept on its own parser. So a verb added
+    tomorrow is measured here rather than remembered.
+    """
+    found: dict[tuple[str, ...], list[tuple[str, ...]]] = {}
+    for path, parser in verbs(build_parser()).items():
+        for one in parser.get_default("reads_stdin") or ():
+            names = tuple(
+                option
+                for action in parser._actions
+                if action.dest == one.dest
+                for option in action.option_strings
+            )
+            found.setdefault(names, []).append(path)
+    return found
+
+
+def test_the_prose_field_a_caller_writes_is_reachable_as_why(tmp_path, capsys):
+    """The defect. `defer` and `retire` require the field, so a caller who spelled it the way
+    the other nine verbs do got `error: the following arguments are required: --reason` —
+    argparse naming what is missing and never what was typed."""
+    project(tmp_path)
+    config = project(tmp_path)
+    assert main(["-C", str(tmp_path), "retire", "RK1", "--why", "Not work after all."]) == EXIT_OK
+    # The spelling reached the handler and the write landed: the alias is the same field.
+    assert "🗑 **RK1**" in read(config, CHANGELOG)
+    assert "**RK1** (deps:" not in read(config)  # the open line left the roadmap
+    capsys.readouterr()
+    # And the refusal that stays names both, so neither spelling is the one nobody knows.
+    with pytest.raises(SystemExit):
+        main(["-C", str(tmp_path), "defer", "RK2"])
+    assert "--reason/--why" in capsys.readouterr().err
+
+
+def test_no_verb_spells_a_prose_field_a_way_nothing_else_does():
+    """The closure. A third name for the one sentence is a red here until somebody writes
+    down which field it is — which is the cost of a synonym, paid once, in a sentence."""
+    found = prose_fields()
+    assert set(found) == set(SPELLINGS), {
+        "declared, no row": set(found) - set(SPELLINGS),
+        "row, not declared": set(SPELLINGS) - set(found),
+    }
+    for names, where in found.items():
+        assert SPELLINGS[names] and where, names
+
+
+def test_the_two_that_rename_it_accept_the_name_the_rest_use():
+    """The rule itself, stated so that dropping the alias is a red rather than a quiet
+    return to the state this task was filed from."""
+    for names, where in prose_fields().items():
+        if names in (("--body",), ("--section-body",)):
+            continue  # a paragraph is a different field, with its own limit
+        assert "--why" in names, (names, where)

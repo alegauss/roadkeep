@@ -213,6 +213,25 @@ class _Verb(argparse.ArgumentParser):
         self.exit(EXIT_USAGE, f"roadkeep: {twin}\n")
 
 
+def _reason_flag(parser: argparse.ArgumentParser, help_text: str) -> None:
+    """The prose field on the two verbs that call it `--reason`, under `--why` too (RK1038).
+
+    RK399's repair, one field over. Nine verbs spell this `--why` — `add`, `amend`, `ship`,
+    `restate`, `origin`, `report` and both the `record` and `non-goal` pairs — and `defer`
+    and `retire` spell it `--reason`, which are the two doors a caller reaches least often
+    and so the two names they are least likely to have kept. Because the field is *required*,
+    a caller who typed `--why` got `error: the following arguments are required: --reason`:
+    argparse naming what is missing and never what was typed, so the correction is a guess.
+
+    Both accepted and neither removed, for the reason RK399 gives about `--status`: other
+    projects have adopted this tool, these verbs are in their skills and their hooks, and a
+    rename that breaks them to win a synonym is a cost paid by everyone to fix nobody's
+    defect. `--reason` stays first, so it is what the usage line and the shipped skill spell
+    and what :class:`~roadkeep.serving.Prose` keeps naming; `dest` does not move.
+    """
+    parser.add_argument("--reason", "--why", dest="reason", required=True, help=help_text)
+
+
 def _marker_flag(
     parser: argparse.ArgumentParser, help_text: str, *, dest: str = "status"
 ) -> None:
@@ -1676,10 +1695,8 @@ def build_parser() -> argparse.ArgumentParser:
         metavar="ID",
         help="the id that replaces it; omitted, the line is recorded as abandoned",
     )
-    retire_parser.add_argument(
-        "--reason",
-        required=True,
-        help="one sentence, the author's own: the tool never writes it" + _PIPE,
+    _reason_flag(
+        retire_parser, "one sentence, the author's own: the tool never writes it" + _PIPE
     )
     retire_parser.add_argument("--json", action="store_true", help="every edit, as data")
     retire_parser.set_defaults(
@@ -1696,10 +1713,9 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     defer_parser.add_argument("id", help="the task being set aside, e.g. RK33")
-    defer_parser.add_argument(
-        "--reason",
-        required=True,
-        help="one sentence, the author's own: it wraps the why and a resume unwraps it" + _PIPE,
+    _reason_flag(
+        defer_parser,
+        "one sentence, the author's own: it wraps the why and a resume unwraps it" + _PIPE,
     )
     defer_parser.add_argument("--json", action="store_true", help="every edit, as data")
     defer_parser.set_defaults(

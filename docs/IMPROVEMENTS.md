@@ -77,36 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1038 One field, two names
-
-Nine verbs spell the prose field `--why` — `add`, `amend`, `ship`, `restate`, `origin`,
-`report` and both `record` and `non-goal` pairs. Two spell it `--reason`: `defer` and
-`retire`, which are the doors a caller reaches least often and so the two names they are
-least likely to have kept.
-
-`defer TT2 --why "…"` answers:
-
-> `roadkeep defer: error: the following arguments are required: --reason`
-
-Which is argparse naming what is missing and never naming what was typed. The caller
-learns a flag exists and not that the one they used was rejected, so the correction is a
-guess or a `--help`.
-
-This is RK399 exactly, one field over. That task found `--status` and `--marker` written
-by four verbs for one config value, kept **both** accepted, and said why a rename is the
-wrong fix: other projects have adopted this tool, these verbs are in their skills and
-their hooks, and breaking one to win a synonym is a cost paid by everyone to fix
-nobody's defect.
-
-**So the repair is the same shape**: `--why` becomes accepted on `defer` and `retire`
-beside `--reason`, which stays. The skill documents `--reason` and keeps documenting it
-— one name to read, two to type — and the required-argument error stops firing on a
-caller who spelled the field the way the other nine verbs do.
-
-What proves it: both spellings reach the same handler on both verbs, neither verb's
-`dest` moves, and a survey holds that no verb declares a prose field under a name no
-other verb accepts.
-
 ## Block C — Query
 
 ### §RK1039 The errno where a sentence was

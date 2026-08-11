@@ -164,6 +164,7 @@
 - ✅ **RK1028** **a body read from a path keeps its editor's BOM, and neither the write nor the gate reports the invisible byte** — A body read from a path loses the mark its editor wrote, and one in a file is red and fixable (design §RK1028 superseded: only the mark is swept; a lookalike a design quotes is prose).
 - ✅ **RK1033** **section amend accepts a body that puts its parent over, which is the write RK1024 and RK1029 left open** — An amend is charged its ancestors too, as a delta: a write that makes an over-limit parent worse is refused, and one that shortens it lands.
 - ✅ **RK1034** **the ancestor refusal tells an amend to pick a free top-level anchor, which is a door only an add has** — The overage is one number at both doors and the ways out are not: an amend is told to shorten or to move, and neither door names one the caller cannot take.
+- ✅ **RK1038** **defer and retire call the prose field --reason where nine other verbs call it --why** — defer and retire accept --why beside --reason, so the field the other nine verbs write is reachable by the name a caller has.
 
 ## Block C — Query
 

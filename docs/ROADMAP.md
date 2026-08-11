@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1038** (deps: —) **defer and retire call the prose field --reason where nine other verbs call it --why** — A caller who learned the name on any other write verb is told an argument is missing and never that the one they typed was rejected. → §RK1038
-
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK1039** (deps: —) **export answers a missing target with an errno and an absolute path, where the state next to it names the fix** — The sentence a missing file needs is already written for a file with no markers, and the absence falls through to OSError instead. → §RK1039
