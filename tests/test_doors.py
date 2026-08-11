@@ -15,15 +15,17 @@ state, and finding the state gone, is the claim. That is `test_remedying`'s rule
 remedy — *a promise nothing runs is prose* — applied to the surface instead of to a message.
 
 Enumerable from the model and not from imagination: a roadmap marker crossed with what the
-ledger holds for that id. :data:`DOORS` fills every reachable cell, :data:`UNREADABLE` names
-the markers whose lines the roadmap cannot hold at all — a 🗑 line is `line.unparsed` and not
-a task in a state — and :data:`NO_DOOR` is where a reachable cell with no verb goes.
+ledger holds for that id, and — since RK1079 — whether the deferred store carries it too.
+:data:`DOORS` fills every reachable cell, :data:`UNREADABLE` names the markers whose lines
+the roadmap cannot hold at all (a 🗑 line is `line.unparsed`, not a task in a state), and
+:data:`NO_DOOR` is where a reachable cell with no verb goes.
 
-**`NO_DOOR` is empty, and that is the finding.** Measured cell by cell by running the verb:
-every state this model can reach has one, which is a claim RK1077 could not make before and
-which nothing was holding. What the file buys is that the next one cannot be silent — a new
-marker, store or role adds cells, and the closure fails until somebody says which of the
-three a cell is rather than leaving it blank by accident.
+**Sweeping the third axis put the first entry in `NO_DOOR`**, which is what the table is
+for. RK1077 measured marker against ledger, found a door everywhere and said so; RK1079
+added the store and found an id both files can carry where `resume` refuses, `lint` reports
+nothing at all, and `ship` **succeeds** — leaving the work recorded as shipped and still
+paused, with the gate calling the tree clean. Two axes said the surface was complete; the
+third says where it is not, which is the argument for enumerating rather than believing.
 """
 
 from __future__ import annotations
@@ -35,7 +37,7 @@ import pytest
 
 from roadkeep.cli import EXIT_OK, main
 from roadkeep.config import Config
-from roadkeep.kernel.schema import DESIGNED, PARTIAL, RETIRED, SHIPPED
+from roadkeep.kernel.schema import DEFERRED, DESIGNED, PARTIAL, RETIRED, SHIPPED
 
 #: What the ledger holds for the id, which is the axis that decides most of the table.
 NOTHING, WHOLE, HALF = "nothing", "whole", "half"
@@ -57,6 +59,13 @@ class Door:
     because: str
     #: The command that leaves it, after `-C <root>`.
     argv: tuple[str, ...]
+    #: Whether the deferred store carries the id too — the third axis (RK1079). Off on every
+    #: row above it, which is the shape of a project that declares no store at all.
+    paused: bool = False
+    #: Which file must no longer name the id once the door has been used. The roadmap for
+    #: every row that starts from a line; the store for the one that starts from a pause.
+    leaves: str = "R.md"
+
 
 DOORS: tuple[Door, ...] = (
     Door(
@@ -134,6 +143,17 @@ DOORS: tuple[Door, ...] = (
         ),
         argv=("ship", "RK1", "--why", "It landed."),
     ),
+    Door(
+        marker="",
+        recorded=NOTHING,
+        paused=True,
+        because=(
+            "work set aside: the store holds the line and the roadmap does not, which is "
+            "the one state that is not a roadmap marker at all (RK96)"
+        ),
+        argv=("resume", "RK1"),
+        leaves="D.md",
+    ),
 )
 
 
@@ -154,7 +174,16 @@ UNREADABLE = {
 #: A cell deliberately left empty, with the reason there is none. Empty today, and kept
 #: because the closure needs somewhere to put a state that is reachable and has no verb —
 #: which is the six-times defect this file was written from, and the shape a seventh takes.
-NO_DOOR: dict[tuple[str, str], str] = {}
+NO_DOOR: dict[tuple[str, str], str] = {
+    ("paused", "open line"): (
+        "an id the deferred store and the roadmap both carry. Measured for RK1079 and it is "
+        "worse than doorless: `resume` refuses, `lint` reports nothing at all, and `ship` "
+        "**succeeds** — leaving the id recorded as shipped in the ledger and still paused in "
+        "the store, with the gate calling the tree clean. `id.two-files` covers the roadmap "
+        "against the changelog and no rule covers either against the store, so this is a hole "
+        "in the gate before it is a missing verb"
+    ),
+}
 
 
 LEDGERS = {
@@ -164,18 +193,25 @@ LEDGERS = {
 }
 
 
+#: One line, spelled once for whichever file a row puts it in.
+LINE = "- {marker} **RK1** (deps: —) **A symptom** — Because of a reason.\n"
+
+
 def built(root: Path, door: Door) -> Path:
+    # The store is declared on every fixture and empty on most, which is the honest shape:
+    # a project that declares `deferred` has the axis whether or not it has used it (RK1079).
     (root / "roadkeep.toml").write_text(
         'prefix = "RK"\n[files]\nroadmap = "R.md"\nchangelog = "C.md"\n'
-        "[rules.roadmap]\nref = false\n",
+        'deferred = "D.md"\n[rules.roadmap]\nref = false\n[rules.deferred]\nref = false\n',
         encoding="utf-8",
     )
-    (root / "R.md").write_text(
-        f"# R\n\n## Block A — x\n\n- {door.marker} **RK1** (deps: —) "
-        f"**A symptom** — Because of a reason.\n",
-        encoding="utf-8",
-    )
+    roadmap = LINE.format(marker=door.marker) if door.marker else ""
+    (root / "R.md").write_text(f"# R\n\n## Block A — x\n\n{roadmap}", encoding="utf-8")
     (root / "C.md").write_text(LEDGERS[door.recorded], encoding="utf-8")
+    paused = LINE.format(marker=DEFERRED) if door.paused else ""
+    (root / "D.md").write_text(
+        f"# Deferred\n\n## Block A — x\n\n{paused}", encoding="utf-8"
+    )
     return root
 
 
@@ -185,7 +221,7 @@ def test_every_reachable_state_is_left_by_the_verb_the_table_names(door, tmp_pat
     # door that quietly stopped working is exactly what the six tasks above each were.
     root = built(tmp_path, door)
     assert main(["-C", str(root), *door.argv]) == EXIT_OK, capsys.readouterr()
-    assert "**RK1**" not in (root / "R.md").read_text(encoding="utf-8")
+    assert "**RK1**" not in (root / door.leaves).read_text(encoding="utf-8")
 
 
 def test_the_table_and_the_empty_cells_together_cover_the_cross_product():
@@ -201,13 +237,15 @@ def test_the_table_and_the_empty_cells_together_cover_the_cross_product():
         # the line is `line.unparsed` and the gate names the codepoint (see UNREADABLE).
         if marker not in UNREADABLE
     }
-    doored = {(door.marker, door.recorded) for door in DOORS}
+    doored = {(door.marker, door.recorded) for door in DOORS if not door.paused}
     assert doored.isdisjoint(NO_DOOR), doored & set(NO_DOOR)
     missing = every - doored - set(NO_DOOR)
     assert missing == set(), missing
-    # Every cell has a door today, which is what RK1077 was written to find out. The empty
-    # table is the finding and not an omission — and it is where a seventh one goes.
-    assert NO_DOOR == {}
+    # The store is the third axis (RK1079), and it is two cells rather than a cross product:
+    # a paused id the roadmap does not carry, which `resume` takes, and one it does — which
+    # is the first entry `NO_DOOR` has ever had, and it was found by looking.
+    assert {(door.paused, bool(door.marker)) for door in DOORS} >= {(True, False)}
+    assert ("paused", "open line") in NO_DOOR
 
 
 def test_every_declaration_argues_rather_than_asserts():

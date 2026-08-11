@@ -32,8 +32,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1079** (deps: —) **the door table crosses two axes and the deferred store is a third nobody enumerated** — RK1077 measured marker against ledger and left resume, a paused id the roadmap also carries and a store the project declares late outside the closure. → §RK1079
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

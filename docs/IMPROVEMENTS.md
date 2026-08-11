@@ -104,29 +104,6 @@ whether `_others_pointing` and `_orphans` are the same shape one relation over.
 
 ## Block D — The gate
 
-### §RK1079 The axis the table names and does not sweep
-
-`tests/test_doors.py` opens by saying the states are a roadmap marker crossed with what
-the ledger holds *crossed with whether a deferred store carries it*, and then sweeps the
-first two. The third is named in the sentence and absent from the table, which is the
-shape RK496 already measured once: a survey that says what it covers and covers less.
-
-What is outside is not small. `resume <id>` is a door no row exercises. A paused id the
-roadmap **also** carries is a two-files contradiction with its own resolution. A project
-that declares `deferred` after lines were already set aside, or removes the declaration
-with a store on disk, is the adoption shape `[files]` makes reachable — and `defer`
-refuses with a message about the missing key, which is a door for the *config* rather
-than for a state.
-
-The reason it stopped where it did is honest: every cell was built by writing two files,
-and the store needs a third plus a `[files]` key, so the fixture is a different shape
-rather than one more parameter. That is a reason to write the fixture, not a reason for
-the closure to quantify over two axes while its own docstring claims three.
-
-Worth deciding whether the third axis is the store or the *role set*: a project with a
-strategy file and no improvements has states the pointer half of this model reaches, and
-the same argument would put those in the table too.
-
 ## Block E — Adoption
 
 ## Block F — The plugin
