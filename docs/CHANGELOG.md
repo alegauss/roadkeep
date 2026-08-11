@@ -418,6 +418,7 @@
 - ✅ **RK1081** **an id the roadmap and the deferred store both carry passes the gate and ship leaves it shipped and paused** — The gate reports id.paused-and-open, resume removes the store's stale copy without placing a line, and a departure is refused while the contradiction stands.
 - ✅ **RK1082** **the pairwise checks over three governed files are two rules written by hand** — referring.PAIRS declares the three pairs of files that can hold one id, the gate walks it instead of a loop per pair, and the unread third says why it has no rule.
 - ✅ **RK1084** **the pair the declaration says nobody has walked into is reachable and still unread** — The third pair is read and filed against the changelog, with two reads for a door: measuring found neither corpus declares a store, so no verb was built for a state nobody can reach.
+- ✅ **RK1091** **three heredoc edits corrupted a test file's string literals and only the parser noticed** — agents.md forbids editing source through a shell heredoc, beside the commit rule, paid for by compressing two paragraphs the file already had room to lose.
 
 ## Block E — Adoption
 

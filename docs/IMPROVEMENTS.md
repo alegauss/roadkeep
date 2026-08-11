@@ -81,29 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK1091 An edit path that rewrites what it is given
-
-Four times in one session, a `python - <<'PY'` block that replaced a string literal
-containing `\n` wrote a real newline instead, leaving an unterminated literal that the
-next `pytest` collection reported as a `SyntaxError`. Each cost a read, an edit and a
-rerun; two of them silently failed to apply their *other* replacement in the same
-script, so a fixture kept its old shape while the test around it changed.
-
-This is not a defect in roadkeep and it is worth a line here anyway, because the tool's
-own argument applies to it exactly: an edit that rewrites text it was handed is the
-failure the governed files exist to prevent, and the only thing catching it was a parser
-downstream.
-
-What would close it is a rule rather than more care. Editing source through a shell
-heredoc has no property worth the risk — the escaping depends on three layers agreeing —
-and the alternatives are ordinary: a file written whole, or a targeted replacement made
-by a tool that takes the old and new text as data rather than as shell input.
-
-Worth writing into `agents.md` beside the commit rule, since that file is where this
-repository states how work is done and the budget still has room. One sentence: source
-edits do not go through a heredoc, and a replacement whose old text contains an escape
-is written as a whole file instead.
-
 ## Block E — Adoption
 
 ## Block F — The plugin

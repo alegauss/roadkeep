@@ -73,22 +73,20 @@ still parses, so the line stays counted — that split is deliberate.
 
 `roadkeep lint` **must pass on `docs/`** — the format is proven by the artefact, not asserted
 in a README. A limit that cannot express these lines is the wrong limit rather than a set of
-wrong lines, so a schema change validates here first, under this repo's `roadkeep.toml`. Don't
-hand-check it: `… lint` **exits 1** on any violation, line that stopped round-tripping, dep
-nothing satisfies, pointer resolving to nothing, section nothing points at, over-budget
-every-turn file or served tool, queue entry naming work that left, or invisible codepoint —
-as `file:line:column`, each carrying **the command that closes it** (RK14/15/30/34/326/420). CI
-runs it through the action this repo ships (RK17); `--fix` repairs only the **derived**
-(annotation, pointer, dep order, marker codepoint, whitespace, dead queue entry) (RK16).
+wrong lines, so a schema change validates here first. Don't hand-check it: `… lint` **exits 1**
+on any violation, line that stopped round-tripping, dep nothing satisfies, pointer or section
+nothing answers, over-budget every-turn file or served tool, dead queue entry, or invisible
+codepoint — as `file:line:column`, each carrying **the command that closes it**
+(RK14/15/30/34/326/420). CI runs the action this repo ships (RK17); `--fix` repairs only the
+**derived** (annotation, pointer, dep order, marker codepoint, whitespace, queue entry) (RK16).
 
 ## The write path is a skill, not a preamble
 
 [skills/roadkeep/SKILL.md](skills/roadkeep/SKILL.md) is the authority on which command to call,
-what it derives, the two rules a schema cannot check, the query surface and how work is picked —
-loaded when a governed file is in play and costing nothing on the turns that touch none (RK23).
-It ships in the plugin, so it is the same text in every adopting project and **nothing here
-repeats it**. The package is not installed here, so read every command in it as
-`PYTHONPATH=src python -m roadkeep.cli <…>` from the repo root; the numbers are `roadkeep.toml`.
+what it derives, the rules a schema cannot check, the query surface and how work is picked —
+loaded when a governed file is in play, free on turns that touch none (RK23). It ships in the
+plugin, so it is the same text everywhere and **nothing here repeats it**. The package is not
+installed here: read every command in it as `PYTHONPATH=src python -m roadkeep.cli <…>`.
 
 ## Build and test
 
@@ -100,7 +98,11 @@ repeats it**. The package is not installed here, so read every command in it as
   (L3) is a **property test over real files**: `docs/`, plus Shio's and Turing's at the
   revision `tests/corpora.py` pins — absent or unpinnable, they skip (CI).
 
-## Committing
+## Editing and committing
+
+**Never edit source through a shell heredoc.** `python - <<'PY'` turned `\n` in a literal into
+a real newline four times in one session, twice also dropping that script's *other* edit
+silently (RK1091). Write the whole file, or pass old and new text as data.
 
 **One task → one commit, the instant it is validated.** What `ship` wrote goes in the *same*
 commit as the code, so the docs never describe a state that did not ship; a batch of ≥2 tasks
@@ -109,9 +111,8 @@ repo root, **`-m` always** and ASCII — without it a docs commit's prose about 
 misread as `feat: implement <feature>`. It stages everything, which is why a claim carries a
 **scope**: `claim <id> --path …` says what this commit owns and `claim <id>` reads it back
 against the tree (RK280), and **`ship` prints the `git add --` line** for what it releases
-(RK298) — run that, then commit. **Every commit bumps the patch version**, Claude Code
-re-reading an installed plugin per version (RK153): `.githooks/pre-commit` does it, never
-blocks, and is wired by `git config core.hooksPath .githooks`.
+(RK298) — run that, then commit. **Every commit bumps the patch version** (RK153):
+`.githooks/pre-commit` does it, never blocks, wired by `git config core.hooksPath .githooks`.
 
 ## Non-goals are binding, and this file is scaffolding
 

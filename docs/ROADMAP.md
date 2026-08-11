@@ -30,8 +30,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1091** (deps: —) **three heredoc edits corrupted a test file's string literals and only the parser noticed** — Writing Python through a shell heredoc turned backslash-n into real newlines four times this session, each caught as a syntax error after the edit rather than refused at it. → §RK1091
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
