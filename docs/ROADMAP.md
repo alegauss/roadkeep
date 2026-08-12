@@ -26,13 +26,21 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1107** (deps: —) **a prose file's preamble and table of contents carry no anchor, so every edit to them is a hand edit** — ship drops a family's last child and the contents row naming it goes stale in that instant, while section show 'Table of contents' answers that no such section exists. → §RK1107
+- 📋 **RK1109** (deps: —) **section amend answers unchanged: it already reads that way over a body left unread on stdin** — A title-only amend does not read the pipe by design, so a caller who piped the new prose gets exit 0 and a success-shaped message over a write that never happened. → §RK1109
+
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
 
+- 📋 **RK1105** (deps: —) **a byte budget counts what the checkout has, so CRLF and LF give one commit different headroom** — AGENTS.md measures 24310 bytes with CRLF and 23999 with LF from one commit under core.autocrlf=input, so a governed ceiling moves 311 bytes per machine and git diff shows nothing. → §RK1105
+- 📋 **RK1106** (deps: —) **a citation inside prose can name a section that no longer exists, and no gate code says so** — Shio lints clean over four retired addresses cited in section bodies, because the three declared relations cover a dep, a task line's pointer and a queue entry and never a citation. → §RK1106
+
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
+
+- 📋 **RK1108** (deps: —) **the guard reaches no environment without the plugin, so a project hand-writes the launcher that finds one** — Shio's own bridge looks under ~/.claude/plugins alone, so where CLAUDE_CONFIG_DIR moves the real one it defers to a stale copy and a hand edit of two governed files passed. → §RK1108
 
 ## Block G — The editor surface (the backlog where the file is open)
 

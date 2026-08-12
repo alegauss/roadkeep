@@ -117,13 +117,17 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 41 | 2 |
-| B — Authoring (insert, never hand-edit) | 0 | 130 | 1 |
+| B — Authoring (insert, never hand-edit) | 2 | 130 | 1 |
 | C — Query (consult without reading the file) | 0 | 87 | 1 |
-| D — The gate | 0 | 146 | 0 |
+| D — The gate | 2 | 146 | 0 |
 | E — Adoption | 0 | 84 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 97 | 1 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 97 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 0 | 596 | 6 |
+| **Total** | 5 | 596 | 6 |
+
+**Next ready:**
+
+- 📋 **RK1105** (deps: —) **a byte budget counts what the checkout has, so CRLF and LF give one commit different headroom** — AGENTS.md measures 24310 bytes with CRLF and 23999 with LF from one commit under core.autocrlf=input, so a governed ceiling moves 311 bytes per machine and git diff shows nothing. → §RK1105
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

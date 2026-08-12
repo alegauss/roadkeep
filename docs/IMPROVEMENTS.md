@@ -77,12 +77,120 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1107 A heading with no anchor, and the hand edit it forces
+
+Every write here addresses a section by its anchor, and a prose file's first two
+headings have none: the preamble that says what the file is, and the `## Table of
+contents` that lists its families. `section show 'Table of contents'` answers that no
+such section exists, which is true and leaves the caller one door — the hand edit the
+guard exists to deny.
+
+It matters because those two go stale mechanically. `ship` drops a section; where that
+section was a family's last child, the contents row naming the family and the preamble
+sentence introducing it are both wrong in the same instant, and each is a derived fact
+about a file this tool owns that nobody reports.
+
+Two questions the design has to answer. The first is what the address is: a title is not
+an anchor and a positional name (`preamble`, `contents`) is a second addressing scheme,
+so it has to be one the project declares rather than one invented here. The second is
+whether a contents is prose at all — a list of the file's own headings is derivable,
+which makes it a rendering and not a body, and then the verb is not `amend` but the
+`--fix` that already repairs the other derived fields. The preamble is genuinely prose
+and needs the first answer, so the two headings that look like one problem are probably
+two.
+
+### §RK1109 A confirmation over prose that was never read
+
+`section amend <anchor> --title "…"` deliberately leaves the body alone: `None` stays
+`None`, so a title-only amend does not block on a pipe nobody meant to open. That rule
+is right and it has a failure mode. A caller who piped the new prose *and* passed
+`--title` gets the title compared alone, and where the title already reads that way the
+answer is `§XI.21 unchanged: it already reads that way` at exit 0 — over a paragraph on
+stdin that was never read.
+
+That is a silent no-op wearing a confirmation, which is the one shape a write path may
+not have. Everything else here refuses and says what it looked at: a field over its
+limit exits 2 naming the limit and the line of config that set it, an unresolved pointer
+is a finding with the command that closes it. This one reports success about a file it
+did not open.
+
+The fix is not to read the pipe. It is to notice that a body arrived: stdin not being a
+tty is a fact this process has, and `reading.py` already decides whether fd 0 could be
+made strict UTF-8 for its own reason, so the reader exists. Where a body is detectable
+the answer is a refusal naming `--body -`; where it is not — a harness that handed over
+a used fd 0 — then `unchanged` has to say that no body was read, since the caller cannot
+otherwise tell the two cases apart.
+
 ## Block C — Query
 
 ## Block D — The gate
 
+### §RK1105 A ceiling measured on the checkout, not on the commit
+
+`_parts` states the rule the whole file budget is counted by: bytes and never text,
+because what a loader pays is what is on disk. That is right about the cost and wrong
+about the ceiling. Measured in claude-tray: AGENTS.md is 24310 bytes with CRLF and 23999
+with LF from one commit under `core.autocrlf=input`, so 311 bytes of headroom — about
+ten lines of the prose this budget exists to ration — appear and disappear with the
+checkout, and `git diff` is empty across the two.
+
+What that costs is a gate whose answer depends on the machine. A commit at 24399 of a
+24400 ceiling passes on the Linux runner and is refused on the Windows desk, and neither
+answer is wrong on its own terms. A budget is a fact about the commit, since that is
+what a reviewer reads and what CI gates, so the number to count is the normalised one.
+
+Two readings before the change. Which bytes the harness actually loads is worth
+measuring rather than assumed — if it reads the working tree, the cost the docstring
+names is real and the answer is to report both, the counted ceiling and what this
+checkout pays. And every declared `[budgets]` number in every adopting project was set
+against a CRLF measurement, so a switch to LF hands each of them room it never voted
+for, which `lint` should say once.
+
+### §RK1106 The fourth relation: a citation inside prose
+
+`referring.py` declares three relations — a dep names an id, a pointer names a heading,
+a queue entry names either — and argues that a fourth should be a line there rather than
+a fourth implementation. This is that fourth. A `§X.Y` written **inside a section's
+body** is a reference nothing resolves: `ref.unresolved` reads the pointer a task line
+carries and `section.stale` catches the other direction, so a body citing a section that
+has shipped lints clean.
+
+Measured on Shio: four citations in `docs/IMPROVEMENTS.md` name retired addresses —
+`§II.1`, `§II.7`, `§III.1`, `§III.10` — against an `anchors` that reports family II as
+one live and seven retired. `lint` says clean over 641 lines. The reason none is caught
+is that a citation was never a field, and every check here is over a record's field.
+
+What makes it hard is what `ship` and `section drop` already do: both name the sections
+whose prose cited what they deleted, so the fact is derivable at the moment of deletion
+and is reported to a caller who may not act on it. The gate is the backstop for exactly
+that, which means the scan and those two answers have to read one index — otherwise a
+project gets two counts of its own dead citations, and the reader that agrees with the
+file is not the one it was told to trust.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
+
+### §RK1108 The environment the plugin never reaches
+
+The plugin is the whole install on a developer machine, and there is one environment it
+never reaches: Claude Code on the web reads settings and files committed to the
+repository and installs no marketplace plugin. The hooks and the server never load, the
+guard is absent, and an agent falls back to editing the governed files by hand — the
+drift this tool exists to stop, in the environment with the least supervision.
+
+Shio answered it with a committed `.claude/hooks/roadkeep-launch.py` that resolves an
+engine at runtime and stands down where an installed plugin is present, so nothing
+double-fires. That file is where the defect was measured: it looks under
+`~/.claude/plugins` alone, so where `CLAUDE_CONFIG_DIR` moves the harness's real config
+directory it finds a stale copy, defers to it, and no guard runs at all. A hand edit of
+`docs/ROADMAP.md` and `docs/IMPROVEMENTS.md` passed.
+
+`provenance.installed` already resolves that pair — the environment variable or
+`~/.claude` — which is the whole argument for moving the launcher here: *which copy
+answers* is this tool's own question, `engines` already reports it for three copies, and
+a project re-deriving it gets one of them wrong quietly. What `install` writes is the
+surface to put it on. Whether the fallback may clone over the network is a separate
+decision and probably a no.
 
 ## Block G — The editor surface (the backlog where the file is open)
