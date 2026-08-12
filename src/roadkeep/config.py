@@ -521,6 +521,29 @@ class Config:
             Document.load(self.path(role), self.schema_for(role)), config=self
         )
 
+    def locate(self, path: str | Path) -> Path:
+        """A path naming a file **of this project**, resolved against its root (RK1101).
+
+        `-C` selects the project and never the working directory, so a relative path had two
+        possible bases and the answer differed by argument: `budget --file agents.md` resolved
+        against the root and `adopt ROADMAP.md` against whatever directory the process happened
+        to be in. Two rules is worse than either, and this is the one the tool already kept for
+        the file arguments that name governed files.
+
+        The half that decided it is the served surface. Over MCP the process's directory is the
+        session's and the project is `-C`'s, so a relative path was read from a tree the caller
+        never named — loudly where the file is absent there, and **silently where it is not**:
+        a real measurement of somebody else's backlog, reported under this project's prefix,
+        markers and limits, with nothing in the output naming the tree it read.
+
+        Only for a path that names a file of the project. A body file (`add --section-body-file`,
+        `section amend --body-file`) and a capture (`replay`) are the caller's own and stay
+        relative to the caller, the way `cat` is: those name a file to *read from*, not a file
+        this project has.
+        """
+        given = Path(path)
+        return given if given.is_absolute() else self.root / given
+
     def relative(self, path: Path) -> str:
         """A path as the project spells it — output has to be machine-independent."""
         try:

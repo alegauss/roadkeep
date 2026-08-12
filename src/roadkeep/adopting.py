@@ -202,6 +202,22 @@ def blocking(path: Path) -> Path | None:
     return None
 
 
+def _elsewhere(*given: object) -> tuple[str, ...]:
+    """Which of these relative paths is a file beside the **caller** rather than the project.
+
+    Read for the refusal alone (RK1101) and never to decide what to open: two bases is the
+    ambiguity the resolution rule removes, and a fallback here would put it back one layer
+    down. What it buys is a sentence — the reader is told which tree holds the file they meant.
+    """
+    candidates: list[str] = []
+    for one in given:
+        for path in (one,) if isinstance(one, (str, Path)) else tuple(one):  # type: ignore[arg-type]
+            spelled = Path(path)
+            if not spelled.is_absolute() and spelled.is_file():
+                candidates.append(spelled.as_posix())
+    return tuple(dict.fromkeys(candidates))
+
+
 def _relative(path: Path, base: Path | None) -> str:
     """A path as a reader would type it from the project root, or absolute where it is not one."""
     try:
@@ -229,14 +245,31 @@ class Unreadable(ValueError):
     already reports. What is removed is the case the estimate can see coming.
     """
 
-    def __init__(self, missing: Sequence[tuple[str, Path]], base: Path | None = None) -> None:
+    def __init__(
+        self,
+        missing: Sequence[tuple[str, Path]],
+        base: Path | None = None,
+        elsewhere: Sequence[str] = (),
+    ) -> None:
         self.missing = tuple(missing)
+        self.elsewhere = tuple(elsewhere)
         listed = ", ".join(
             f"{_relative(path.resolve(), base)} ({named})" for named, path in self.missing
         )
+        # Where the same relative path *is* a file next to the caller, that is said (RK1101).
+        # The resolution moved to the project root, so `cd docs && … adopt ROADMAP.md` now
+        # refuses — and the one thing that refusal must not do is leave the reader guessing
+        # which of the two trees is meant. Naming the candidate is what keeps a rule change
+        # from reading as a file having gone missing.
+        found = (
+            f" — {', '.join(self.elsewhere)} is a file where this was run, and paths here are "
+            f"read from the project root: pass it as that path or as an absolute one"
+            if self.elsewhere
+            else ""
+        )
         super().__init__(
             f"{len(self.missing)} path(s) are not a file this can read and nothing was "
-            f"measured: {listed}"
+            f"measured: {listed}{found}"
         )
 
 
@@ -991,7 +1024,14 @@ def adopt(
     `IMPROVEMENTS.md` is a guess about somebody's layout, and the report would then be
     measuring a set the caller never chose. Every other number stays about ``path`` alone.
     """
-    target = Path(path)
+    # Against the project root and not the process's directory (RK1101): `-C` names the
+    # project, and over MCP the two are never the same tree.
+    target = config.locate(path)
+    # And reported the way `Unreadable` spells one: from the project root where it is under it,
+    # absolute where it is not. The resolution above makes every path absolute, and an absolute
+    # path in a report is the message `provenance.invocation` refuses — about a machine rather
+    # than about a project.
+    from_root = Path(_relative(target.resolve(), config.root))
     if ledger and sections:
         raise ValueError(
             "--ledger and --sections measure different units — a ledger in lines and a "
@@ -1012,18 +1052,18 @@ def adopt(
     # rather than reporting the files it reached before the one it could not.
     handed = (
         ("the file to measure", target),
-        *(("--with", Path(one)) for one in alongside),
+        *(("--with", config.locate(one)) for one in alongside),
     )
     unreadable = [(named, one) for named, one in handed if not one.is_file()]
     if unreadable:
-        raise Unreadable(unreadable, config.root)
+        raise Unreadable(unreadable, config.root, elsewhere=_elsewhere(path, alongside))
     # And before that, the file that is readable and is still not a corpus (RK374) — which is
     # either of the two this format is declared in, asked the way `init` asks (RK375).
     declaration = [(named, one) for named, one in handed if _declares(one)]
     if declaration:
         raise NotACorpus(declaration[0][0], declaration[0][1], config)
     if sections:
-        return _prose(config, target, ref_scheme, alongside)
+        return _prose(config, target, ref_scheme, alongside, from_root)
     schema = config.schema_for("changelog" if ledger else "roadmap")
     if ref_scheme is not None and ref_scheme != schema.ref_scheme:
         schema = replace(schema, ref_scheme=ref_scheme)  # raises on an unknown scheme
@@ -1071,7 +1111,7 @@ def adopt(
     conforming = sum(1 for entry in document.entries if entry.lineno not in faulted)
 
     return Estimate(
-        path=target,
+        path=from_root,
         prefix=chosen[0],
         families=chosen,
         inferred=inferred,
@@ -1114,6 +1154,7 @@ def _prose(
     target: Path,
     ref_scheme: str | None,
     alongside: Sequence[str | Path] = (),
+    from_root: Path | None = None,
 ) -> Estimate:
     """A rationale file, measured in sections against the two limits nobody reported (RK99).
 
@@ -1158,7 +1199,7 @@ def _prose(
     # same report may name as out of reach, and a file it did not is not one it may cover for.
     across = _ambiguous(config, target, alongside, schema)
     return Estimate(
-        path=target,
+        path=from_root or target,
         prefix="",
         families=(),
         inferred=False,

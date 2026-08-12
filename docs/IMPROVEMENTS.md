@@ -104,26 +104,6 @@ check that finds this shape mechanically would have to read test source.
 
 ## Block E — Adoption
 
-### §RK1101 Which directory a path argument is relative to
-
-`-C` says it is "where to start looking for roadkeep.toml", and every path argument
-still resolves against the process's own working directory. The two are consistent only
-until both directories hold a file with the same name.
-
-Measured while writing RK1100's tests: `main(["-C", str(tmp), "adopt", "ROADMAP.md"])`
-exited 2 naming `D:/Git/alegauss/roadkeep/ROADMAP.md` — the repository's file, under the
-temporary project's config. That is the loud half. The quiet half is a project that
-*does* have the file: the estimate is then a real measurement of the caller's backlog
-reported under someone else's prefix, markers and limits, and nothing in the output says
-which tree it read.
-
-Two answers, and the choice is the whole task. Resolving relative paths against the
-config root makes `-C` a project selector and matches how every other argument behaves
-once discovered. Leaving it and *naming the tree* in the report is smaller and keeps
-shell completion honest. Worth checking which other verbs take a path — `claim --path`,
-`adopt --with`, `install` — and whether any already resolves the other way, because two
-rules would be worse than either.
-
 ## Block F — The plugin
 
 ## Block G — The editor surface (the backlog where the file is open)

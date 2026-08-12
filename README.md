@@ -120,14 +120,14 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 0 | 130 | 1 |
 | C — Query (consult without reading the file) | 0 | 87 | 1 |
 | D — The gate | 0 | 145 | 0 |
-| E — Adoption | 1 | 82 | 1 |
+| E — Adoption | 0 | 83 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 97 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 2 | 592 | 6 |
+| **Total** | 1 | 593 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1101** (deps: —) **a relative path under -C resolves against the shell's directory, so adopt can measure another project's file** — roadkeep -C <project> adopt ROADMAP.md read the caller's ROADMAP.md under the project's config, which errors when it is absent and is silent when it is not. → §RK1101
+- 📋 **RK1102** (deps: —) **a predicate that reads a governed file's text instead of asking the parser has now been wrong twice** — RK1090 counted queue entries where the heading was the fact and RK1098 counted non-goal bullets as open lines, both green until the day they mattered. → §RK1102
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

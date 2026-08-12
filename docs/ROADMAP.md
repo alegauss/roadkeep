@@ -34,8 +34,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK1101** (deps: —) **a relative path under -C resolves against the shell's directory, so adopt can measure another project's file** — roadkeep -C <project> adopt ROADMAP.md read the caller's ROADMAP.md under the project's config, which errors when it is absent and is silent when it is not. → §RK1101
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Block G — The editor surface (the backlog where the file is open)

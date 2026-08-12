@@ -2006,7 +2006,8 @@ def test_every_gain_says_what_the_project_does_instead(tmp_path: Path) -> None:
 
 
 def _project(tmp_path: Path) -> Path:
-    """A conforming backlog under a config of its own — what the three reads below need."""
+    """A conforming backlog under a config of its own — what the reads below need."""
+    tmp_path.mkdir(parents=True, exist_ok=True)
     (tmp_path / "roadkeep.toml").write_text(
         'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\n', encoding="utf-8"
     )
@@ -2053,3 +2054,94 @@ def test_the_json_carries_the_cadence_with_the_number(tmp_path, capsys):
     payload = json.loads(capsys.readouterr().out)
     assert payload["serves"]["cadence"] == "once, at connect"
     assert payload["serves"]["characters"] > 0
+
+
+# -- which directory a path argument is relative to (RK1101) ------------------
+
+
+def test_a_relative_target_is_read_from_the_project_and_not_from_the_caller(tmp_path, monkeypatch):
+    """The silent half, which is the one worth a test (RK1101).
+
+    `-C` names the project, and a relative path resolved against the *process's* directory
+    read a file the caller never chose. Loud where that file is absent; here both trees hold a
+    `ROADMAP.md`, and the old rule measured the caller's backlog under the project's config
+    with nothing in the report naming the tree it read.
+    """
+    project, elsewhere = _project(tmp_path / "project"), tmp_path / "elsewhere"
+    elsewhere.mkdir()
+    (elsewhere / "ROADMAP.md").write_text(
+        "# Roadmap\n\n## Block A — The model\n\n"
+        "- 📋 **RK9** (deps: —) **Another project's line** — Because it is not this one's. → §RK9\n",
+        encoding="utf-8",
+        newline="",
+    )
+    monkeypatch.chdir(elsewhere)
+
+    estimate = adopt(Config.discover(project), "ROADMAP.md")
+    assert estimate.parsed == 2, "the caller's one-line file was measured, not the project's"
+    # And the report spells it from the project root, which is the answer to *which tree*: an
+    # absolute path here is the message `provenance.invocation` refuses.
+    assert estimate.path.as_posix() == "ROADMAP.md"
+
+
+def test_an_absolute_target_is_still_exactly_the_file_named(tmp_path, monkeypatch):
+    # The rule is about resolving a *relative* path, and an absolute one was never ambiguous.
+    project = _project(tmp_path / "project")
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "OTHER.md").write_text(CONFORMING, encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+    estimate = adopt(Config.discover(project), outside / "OTHER.md")
+    assert estimate.parsed == 2
+    # Not under the root, so the whole path is the only true answer — `_relative`'s own rule.
+    assert estimate.path.is_absolute()
+
+
+def test_the_refusal_names_the_file_beside_the_caller(tmp_path, monkeypatch):
+    """The cost of the change, paid where it lands (RK1101).
+
+    `cd docs && adopt ROADMAP.md` used to work and now refuses, and the one thing that refusal
+    must not do is read as the file having gone missing. So where the same relative path *is*
+    a file next to the caller, the message says so and says which spelling to pass.
+    """
+    project = _project(tmp_path / "project")
+    beside = tmp_path / "beside"
+    beside.mkdir()
+    (beside / "NOTES.md").write_text(CONFORMING, encoding="utf-8")
+    monkeypatch.chdir(beside)
+    with pytest.raises(Unreadable) as raised:
+        adopt(Config.discover(project), "NOTES.md")
+    said = str(raised.value)
+    assert "NOTES.md is a file where this was run" in said
+    assert "read from the project root" in said
+    # Named and never opened: two bases is the ambiguity the rule removes, and a fallback here
+    # would put it back one layer down — which is why this is a refusal and not a second look.
+
+
+def test_a_body_file_stays_relative_to_the_caller(tmp_path, monkeypatch):
+    """The other half of the rule, and the reason it is not "every path" (RK1101).
+
+    `--section-body-file` names a file to *read from*, the way `cat` does — the caller's own,
+    not one this project has. Resolving it against the root would be a rule about somebody
+    else's shell.
+    """
+    project = _project(tmp_path / "project")
+    (project / "IMPROVEMENTS.md").write_text(
+        "# Improvements\n\n## Block A — The model\n", encoding="utf-8", newline=""
+    )
+    (project / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nimprovements = "IMPROVEMENTS.md"\n',
+        encoding="utf-8",
+    )
+    beside = tmp_path / "beside"
+    beside.mkdir()
+    (beside / "body.md").write_text(
+        "A rationale written somewhere else entirely, which is where a caller keeps one.\n",
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(beside)
+    assert main([
+        "-C", str(project), "section", "add", "RK1",
+        "--title", "A title for it", "--body-file", "body.md",
+    ]) == EXIT_OK
+    assert "somewhere else entirely" in (project / "IMPROVEMENTS.md").read_text(encoding="utf-8")
