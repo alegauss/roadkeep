@@ -75,27 +75,6 @@ already written, not authorship.
 
 ## Block A — The model
 
-### §RK1102 Ask the parser, never the line
-
-Twice now a predicate has guessed from a governed file's text what `Document` already
-answers, and both were green until the one day they were not.
-
-RK1090 asked whether a project has a queue by counting entries, so any empty-queue day
-reported this repository as queue-less; the fact was the heading, and `queueing.opened`
-answers it. RK1098 asked whether the backlog has an open line by looking for `- ` at the
-start of a line — and the roadmap's non-goals are bullets, so the fixture that exists
-for an emptied backlog answered "populated" on exactly the state it defends.
-`document.entries` answers it.
-
-Both were written by somebody holding the parser in the same process. That is what makes
-it worth a rule rather than two fixes: the shape is cheap to write, reads as obviously
-correct, and fails only against a file arrangement the author was not picturing — which
-is every arrangement a corpus has and this repository does not.
-
-The rule to state is one sentence, and where it goes is the question: `agents.md` is at
-123 of 125 lines, the skill governs the write path rather than the test suite, and a
-check that finds this shape mechanically would have to read test source.
-
 ## Block B — Authoring
 
 ## Block C — Query

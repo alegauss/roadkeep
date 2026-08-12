@@ -561,3 +561,62 @@ def test_the_reader_finds_a_declaration_and_stops_at_the_section_that_made_it():
     # a sentence quoting the info string is prose — the same two mistakes RK492's reader has
     # to survive in a file whose subject is the format itself.
     assert declared_instances(body) == {"RK9": ("RK421", "RK467")}
+
+
+# -- a fact the parser owns, guessed from the text (RK1102) -------------------
+
+
+#: Every function in `tests/conftest.py` that reads a file as text, with why that is not the
+#: shape this rule forbids. A shared fixture is where a wrong predicate reaches furthest — its
+#: answer is one session-scoped value every test that asks receives — so this is held here and
+#: the rule itself is argued in that file's own docstring.
+CONFTEST_READS_TEXT = {
+    "frontmatter": (
+        "a skill or command file, which no parser in this package owns: what it reproduces "
+        "*is* the loader's own reading, and that is the whole point of it (RK331)"
+    ),
+}
+
+
+def test_no_shared_fixture_decides_a_governed_files_shape_from_its_text():
+    """RK1102, held over the one file where the guess does the most damage.
+
+    Narrow on purpose, and the narrowness is the honest part: reading a governed file's prose is
+    a different act — `agents.md` counted against its budget is an assertion about text as text
+    — and no scan tells that apart from deriving structure. What a scan *can* say is that this
+    file, whose answers every test shares, reads no file as text except the one declared here.
+
+    So a new reader in `conftest.py` is a red with one question in it: is it prose, or is it a
+    fact `Config.discover(HERE).document(role)` already answers.
+    """
+    source = (HERE / "tests" / "conftest.py").read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    readers: set[str] = set()
+    for node in ast.walk(tree):
+        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            continue
+        for inner in ast.walk(node):
+            if (
+                isinstance(inner, ast.Call)
+                and isinstance(inner.func, ast.Attribute)
+                and inner.func.attr == "read_text"
+            ):
+                readers.add(node.name)
+    assert readers == set(CONFTEST_READS_TEXT), (
+        "a shared fixture reads a file as text: declare why in CONFTEST_READS_TEXT, or ask "
+        "the parser — `Config.discover(HERE).document(role)` answers what a line is"
+    )
+
+
+def test_the_rule_is_argued_where_the_next_predicate_is_written():
+    """A rule stated nowhere is one the next author re-derives from scratch, which is how this
+    one arrived twice. `conftest.py` is where it goes: its docstring is already the authority
+    for what a test cannot get from its own assertion, and it costs no turn that reads none."""
+    docstring = ast.get_docstring(
+        ast.parse((HERE / "tests" / "conftest.py").read_text(encoding="utf-8"))
+    )
+    assert docstring is not None
+    assert "Ask the parser, never the line" in docstring
+    # Both failures named, because the rule without them is advice: what makes it land is that
+    # it has already cost two reds, and one of those was written the same week as the rule.
+    assert "RK1090" in docstring and "RK1098" in docstring

@@ -116,18 +116,14 @@ called unbuilt were already in the ledger.
 
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
-| A — The model (a task is data before it is a line) | 1 | 40 | 2 |
+| A — The model (a task is data before it is a line) | 0 | 41 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 130 | 1 |
 | C — Query (consult without reading the file) | 0 | 87 | 1 |
 | D — The gate | 0 | 145 | 0 |
 | E — Adoption | 0 | 83 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 97 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 1 | 593 | 6 |
-
-**Next ready:**
-
-- 📋 **RK1102** (deps: —) **a predicate that reads a governed file's text instead of asking the parser has now been wrong twice** — RK1090 counted queue entries where the heading was the fact and RK1098 counted non-goal bullets as open lines, both green until the day they mattered. → §RK1102
+| **Total** | 0 | 594 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -1,8 +1,9 @@
-"""The five things a test cannot get from its own assertion: whether the tree moved under the run
+"""The six things a test cannot get from its own assertion: whether the tree moved under the run
 (RK263), whether the docs it asserts about are the ones the run set out to measure (RK315),
 whether the answer it reads back is about the call or about the checkout (RK351), whether a cache
-outlived the test that filled it (RK268), and whether the frontmatter it read is the frontmatter a
-loader would (RK331). Each produces a red — or a green — in a file that
+outlived the test that filled it (RK268), whether the frontmatter it read is the frontmatter a
+loader would (RK331), and whether a fact it guessed from a file's text is the fact the parser
+answers (RK1102). Each produces a red — or a green — in a file that
 mentions nothing about the cause, so each is answered here rather than at a call site.
 
 ## The tree moved under the run (RK263)
@@ -130,6 +131,30 @@ That leaves `invocation` and `persisted`, which read a PATH scan, the launcher o
 working directory, cost 9 ms, and are what every poisoning test actually patches.
 `tests/test_caches.py` holds the split as an inventory, so a seventh cache is a decision somebody
 makes rather than one nobody notices.
+
+## A fact the parser owns, guessed from the text (RK1102)
+
+**Ask the parser, never the line.** Twice a predicate here has decided something about a governed
+file by looking at its characters, and both were green until the one day they were not.
+
+RK1090 asked whether a project has a queue by counting entries, so any empty-queue day reported
+this repository as having none — the fact is the heading, and `queueing.opened` answers it.
+RK1098 asked whether the backlog has an open line by looking for `- ` at the start of one, and the
+roadmap's *non-goals* are bullets too: the fixture written for an emptied backlog answered
+"populated" on precisely the state it defends, and the two tests it exists for went red.
+
+Both were written in a process that had already imported the parser. That is what makes it a rule
+rather than two fixes: the shape is cheap to write, reads as obviously correct, and fails only
+against a file arrangement the author was not picturing — which is every arrangement a corpus has
+and this repository does not. `Config.discover(HERE).document(role)` is one line and is never
+wrong about what a line *is*.
+
+Reading a governed file's **prose** is a different act and stays allowed: `tests/test_linting.py`
+counts `agents.md`'s lines against its budget, and that is an assertion about the text as text.
+What is forbidden is deriving structure — is there an open line, a block, a queue, a marker —
+from anything but the reader that owns it. `tests/test_invariants.py` holds the narrow half of
+that mechanically, over this file, because a shared fixture is where a wrong predicate reaches
+furthest.
 """
 
 from __future__ import annotations

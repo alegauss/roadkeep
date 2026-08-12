@@ -52,6 +52,7 @@
 - ✅ **RK1072** **the kernel declares sixty-four names the format has no use for** — The meter counted codepoint as dep and read four too many; measured properly it is sixty, and forty-one are the kernel's public surface rather than rules in the wrong file.
 - ✅ **RK1069** **the kernel is a boundary a test holds and not a place the code lives** — The two mechanism modules are src/roadkeep/kernel/, so reaching past the boundary is an import that reads wrong rather than a test somebody has to know exists.
 - ✅ **RK1074** **fourteen module addresses are spelled by hand across the suite and nothing holds them level** — surface.address() answers where a module lives now, the five surveys the move broke ask it, and an invariant refuses any literal naming a subpackage address the census does not have.
+- ✅ **RK1102** **a predicate that reads a governed file's text instead of asking the parser has now been wrong twice** — conftest's docstring states ask the parser, never the line, and a scan holds that the shared fixtures read no file as text but the one declared.
 
 ## Block B — Authoring
 
