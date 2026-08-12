@@ -106,7 +106,15 @@ from roadkeep.backlog import Backlog, DepStatus, Stage, id_order
 from roadkeep.blocking import removable
 from roadkeep.config import PROSE_ROLES, ROLES, Config, spent, translated
 from roadkeep.kernel.document import Document, Entry, Heading, ending
-from roadkeep.exporting import BEGIN, DEFAULTS, NoMarkers, project, splice
+from roadkeep.exporting import (
+    BEGIN,
+    DEFAULTS,
+    NoMarkers,
+    enclosing,
+    project,
+    splice,
+    target_of,
+)
 from roadkeep.graph import Graph
 from roadkeep.history import (
     HistoryUnavailable,
@@ -638,7 +646,9 @@ def _examine(config: Config, since: str | None, tree: Tree) -> Report:
     findings.extend(_paths(config, documents, tree))
 
     targets = _targets(config, tree)
-    findings.extend(_projections(config, documents, targets))
+    # Prose merged in, because the contents block is derived from that file's own headings
+    # (RK1110) — the projection reads four roles now, and one of them is the file it writes into.
+    findings.extend(_projections(config, {**documents, **prose}, targets))
     budgeted, budget_notes = _budgets(config, tree)
     findings.extend(budgeted)
     notes.extend(budget_notes)
@@ -2981,14 +2991,18 @@ def _targets(config: Config, tree: Tree) -> tuple[Target, ...]:
     `docs/index.html` here, a pitch with no strip in it, is not one.
     """
     out: list[Target] = []
-    for flag, (name, shape) in DEFAULTS.items():
-        path = config.root / name
-        raw = tree.blob(path)
+    for flag, kind in DEFAULTS.items():
+        # Through the resolver the write uses (RK1110), never a path spelled again here: a
+        # target is a literal name or a governed role, and a gate that decided that for itself
+        # would be a gate over a file nothing writes — which passes for the same reason the
+        # drift got in.
+        path = target_of(config, flag)
+        raw = None if path is None else tree.blob(path)
         if raw is None:
             continue
         text = raw.decode("utf-8", errors="replace")
         if BEGIN in text:
-            out.append(Target(flag, config.relative(path), shape, text))
+            out.append(Target(flag, config.relative(path), kind.shape, text))
     return tuple(out)
 
 
@@ -3023,14 +3037,24 @@ def _projections(
     out: list[Finding] = []
     for target in targets:
         try:
-            if splice(target.text, projection.body(target.shape), target.where) == target.text:
+            rendered = projection.body(target.shape, omit=enclosing(target.text))
+            if splice(target.text, rendered, target.where) == target.text:
                 continue
         except NoMarkers as error:
             # A begin with no end, or the two in the wrong order: the block has no extent, so
             # there is nothing to compare and `export` refuses the same file for the same
             # reason. Reported with the message that names the two lines to paste.
             out.append(
-                Finding("export.unmarked", target.where, str(error), _marked(target.text))
+                Finding(
+                    "export.unmarked",
+                    target.where,
+                    str(error),
+                    _marked(target.text),
+                    # The flag, so the door under the message names the same projection the
+                    # message does (RK1110) — with a third target a literal `--readme` in the
+                    # remedy contradicted it, which is the half a reader trusts.
+                    subject=target.flag,
+                )
             )
             continue
         out.append(
@@ -3041,6 +3065,7 @@ def _projections(
                 f"render: `{invocation()} export --{target.flag}` rewrites it, and every "
                 f"character of it is derived",
                 _marked(target.text),
+                subject=target.flag,
             )
         )
     return out

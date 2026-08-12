@@ -400,6 +400,10 @@ def test_the_varying_rows_are_derived_from_the_table():
         # line claims a section nested under the one being dropped, so `runnable` — which is
         # a question about the argv's shape — dispatched it and was refused, run after run.
         "section.stale": "nested",
+        # The sixth, per finding again (RK1110): which of the three projections went stale.
+        # A literal `--readme` was right while there were two targets in one file each, and
+        # with a third it became a door contradicting the message printed above it.
+        "export.stale": "target",
     }
 
 

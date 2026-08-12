@@ -1800,21 +1800,31 @@ def build_parser() -> argparse.ArgumentParser:
     export_parser.add_argument(
         "--readme",
         nargs="?",
-        const=DEFAULTS["readme"][0],
+        const=DEFAULTS["readme"].name,
         metavar="PATH",
         help=(
             f"write the block between the roadkeep markers in this file "
-            f"(default {DEFAULTS['readme'][0]})"
+            f"(default {DEFAULTS['readme'].name})"
         ),
     )
     export_parser.add_argument(
         "--site",
         nargs="?",
-        const=DEFAULTS["site"][0],
+        const=DEFAULTS["site"].name,
         metavar="PATH",
         help=(
             f"the same projection as HTML, between the same two markers "
-            f"(default {DEFAULTS['site'][0]})"
+            f"(default {DEFAULTS['site'].name})"
+        ),
+    )
+    export_parser.add_argument(
+        "--contents",
+        action="store_true",
+        help=(
+            "refresh the table of contents inside this project's rationale file, between the "
+            "same two markers: every row is a heading that file already carries, so a `ship` "
+            "that drops a section leaves the list wrong until this runs. Takes no path — the "
+            "target is `[files]`' own"
         ),
     )
     export_parser.add_argument(

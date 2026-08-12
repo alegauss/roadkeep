@@ -79,30 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1110 The contents is a projection, and the paragraph beside it is not
-
-RK1107 made the two unanchored regions addressable and stopped there, deliberately: an
-address is what an author needs to edit prose, and half of a contents is not prose.
-Reading the two live files says which half. Shio's `## Table of contents` is 21 lines of
-`- [§X. Title](#slug)` — the anchor, the heading text and a GitHub slug, every character
-of it already in the file it lists. claude-tray's is the same table plus a blockquote
-saying which families are gone and that numbers are never reused, which no derivation
-could produce.
-
-So the row is a projection and the paragraph beside it is the author's, and the
-machinery for exactly that split is already here: `exporting` replaces what is between
-two markers the author put there, `refreshes` carries the write inside every transaction
-that touches a governed file, and `export.stale` is the gate code with a remedy. A
-`ship` that drops a section would rewrite the contents in the same commit that made it
-wrong.
-
-What has to change to admit it. `DEFAULTS` maps a flag to a literal path, and this
-target's is the project's own `[files]` improvements — so it stops being a constant.
-`Projection` is built from the three counted roles and knows no prose headings, so the
-derivation is a second one. And the block sits inside a file `Document` round-trips,
-which is the property to hold first: a splice that broke L3 on a governed file is worse
-than the staleness it fixes.
-
 ## Block D — The gate
 
 ## Block E — Adoption

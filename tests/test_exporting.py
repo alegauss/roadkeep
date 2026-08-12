@@ -25,7 +25,19 @@ from roadkeep.kernel import document
 from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.kernel.document import Document
-from roadkeep.exporting import BEGIN, END, NoMarkers, project, splice, splice_into
+import corpora
+from roadkeep.exporting import (
+    BEGIN,
+    END,
+    NoMarkers,
+    project,
+    refreshes,
+    slug,
+    splice,
+    splice_into,
+    target_of,
+)
+from roadkeep.kernel.document import write_all
 from roadkeep.linting import lint
 from roadkeep.picking import take
 from roadkeep.kernel.schema import DESIGNED, IN_PROGRESS, RETIRED, SHIPPED
@@ -614,3 +626,168 @@ def test_a_target_nothing_named_is_still_skipped_in_silence(tmp_path):
     (config.root / "README.md").unlink()
     write, said = splice_into(config, project(config), "readme")
     assert write is None and "is not there" in said
+
+
+# -- the contents, which is a projection of the prose file (RK1110) ------------
+
+CONTENTS_PROSE = """# Improvements
+
+The opening, which says what this file is for.
+
+## Table of contents
+
+<!-- roadkeep:begin -->
+<!-- roadkeep:end -->
+
+## Block A — The model
+
+### §RK1 A first design
+
+The reasoning the line has no room for.
+
+## Block B — Authoring & Co. (Part 2)
+"""
+
+
+def contents_project(tmp_path: Path, prose: str = CONTENTS_PROSE) -> Config:
+    """A project whose rationale file carries a contents block between the markers."""
+    project_files(tmp_path)
+    (tmp_path / "roadkeep.toml").write_text(
+        "\n".join(
+            (
+                'prefix = "RK"',
+                "[files]",
+                'roadmap = "ROADMAP.md"',
+                'changelog = "CHANGELOG.md"',
+                'improvements = "IMPROVEMENTS.md"',
+                "",
+            )
+        ),
+        encoding="utf-8",
+    )
+    with (tmp_path / "IMPROVEMENTS.md").open("w", encoding="utf-8", newline="") as handle:
+        handle.write(prose)
+    return Config.discover(tmp_path)
+
+
+def test_the_contents_lists_the_families_and_not_every_heading(tmp_path):
+    """One level, and the corpora are what say so: listing every heading gave 55 rows against
+    the 17 Shio keeps, which is an index the size of the thing it indexes."""
+    config = contents_project(tmp_path)
+    body = project(config).contents(omit="Table of contents")
+    rows = [one for one in body.splitlines() if one.startswith("- ")]
+    assert rows == [
+        "- [Block A — The model](#block-a--the-model)",
+        "- [Block B — Authoring & Co. (Part 2)](#block-b--authoring--co-part-2)",
+    ]
+    # The `#` title is out (it names the file), the block's own heading is out (`omit`), and
+    # the `###` design is out (it belongs to the family above it).
+    assert "Improvements" not in body and "A first design" not in body
+
+
+def test_the_slug_reproduces_the_fragments_the_corpora_already_link_to():
+    """The renderer's algorithm is somebody else's, so the only honest check is whether this
+    rule reproduces the fragments three live files already point at. Punctuation alone got 44
+    of 49; `Sm` (`+`, `↔`) and `Sk` (the backtick) bring it to 47, and the two that remain are
+    links those files have gone stale against — which is the defect this task is about."""
+    import re
+
+    for corpus in corpora.BOTH:
+        if not corpora.present(corpus) or not corpora.has(corpus, "improvements"):
+            continue
+        text = corpora.text(corpus, "improvements")
+        produced = {
+            slug(line.lstrip("#").strip())
+            for line in text.splitlines()
+            if line.startswith("#")
+        }
+        wanted = [one for _, one in re.findall(r"\[([^\]]+)\]\(#([^)]+)\)", text)]
+        assert wanted, corpus.name
+        reproduced = [one for one in wanted if one in produced]
+        # Not all of them: Turing's contents links two headings it has since renamed, and a
+        # rule that reproduced those would be a rule that had memorised the file.
+        assert len(reproduced) >= len(wanted) - 2, (corpus.name, set(wanted) - produced)
+
+
+def test_an_emoji_survives_the_slug_and_punctuation_does_not():
+    # Not a detail: Shio links a heading carrying `✅`, and a rule stripping every symbol
+    # would break fifteen live anchors at once. `✅` is `So`; `+` is `Sm` and goes.
+    assert slug("IX. Perception & verification loop (Block K) — ✅ shipped") == (
+        "ix-perception--verification-loop-block-k--✅-shipped"
+    )
+    assert slug("XI. Blueprints + Claude Code plugin (Block J)") == (
+        "xi-blueprints--claude-code-plugin-block-j"
+    )
+    # `-` and `_` are kept: both are characters an author writes into a fragment.
+    assert slug("A snake_case and a hyphen-ated word") == "a-snake_case-and-a-hyphen-ated-word"
+
+
+def test_the_contents_target_is_the_project_s_own_declaration(tmp_path):
+    # `DEFAULTS` stopped being two literals here: this target's path is `[files]`' own, so a
+    # project that keeps its rationale somewhere else is written there and not at a constant.
+    config = contents_project(tmp_path)
+    assert target_of(config, "contents") == config.path("improvements")
+    assert target_of(config, "readme") == config.root / "README.md"
+
+
+def test_a_project_with_no_rationale_file_has_no_contents_to_be_stale(tmp_path):
+    # The same answer an absent README gets, one role over.
+    config = project_files(tmp_path)
+    bare = Config.discover(tmp_path)
+    if bare.has("improvements") and bare.path("improvements").is_file():
+        bare.path("improvements").unlink()
+    del config
+    write, said = splice_into(Config.discover(tmp_path), project(Config.discover(tmp_path)), "contents")
+    assert write is None and ("not there" in said or "no improvements" in said)
+
+
+def test_the_export_and_the_gate_render_the_same_bytes(tmp_path):
+    # RK104's property, over the third target: a gate that rendered the block differently from
+    # the write would be red on a file the command had just refreshed.
+    config = contents_project(tmp_path)
+    write, _ = splice_into(config, project(config), "contents")
+    assert write is not None
+    write_all(write)
+    # On this target and not on the report: the shared fixture's README carries a deliberately
+    # stale block, which is another test's subject and would answer this one by accident.
+    stale = {
+        f.file for f in lint(Config.discover(tmp_path)).findings if f.code == "export.stale"
+    }
+    assert "IMPROVEMENTS.md" not in stale
+
+
+def test_a_contents_written_into_a_governed_file_still_round_trips(tmp_path):
+    """The property RK1110 said to hold first: the block lands inside a file `Document`
+    round-trips, and a splice that broke L3 would be worse than the staleness it fixes."""
+    config = contents_project(tmp_path)
+    write, _ = splice_into(config, project(config), "contents")
+    write_all(write)
+    reread = Config.discover(tmp_path)
+    document = reread.document("improvements")
+    assert document.render() == reread.path("improvements").read_text(
+        encoding="utf-8", newline=""
+    )
+    codes = [f.code for f in lint(reread).findings]
+    assert "line.non-canonical" not in codes and "line.unparsed" not in codes
+
+
+def test_a_section_drop_refreshes_the_contents_in_its_own_transaction(tmp_path):
+    """The whole argument for making it a projection: a `ship` or a `section drop` is what makes
+    the list wrong, so the same transaction is what should rewrite it."""
+    from roadkeep.sections import drop as drop_section
+
+    config = contents_project(tmp_path)
+    write, _ = splice_into(config, project(config), "contents")
+    write_all(write)
+    reread = Config.discover(tmp_path)
+    assert "Block B" in reread.path("improvements").read_text(encoding="utf-8")
+    document, _, _ = drop_section(
+        reread.document("improvements"), "RK1", claimed={}, where="docs/IMPROVEMENTS.md"
+    )
+    document.save()
+    # The refresh a governed write owes, derived from the document the transaction holds.
+    for owed in refreshes(Config.discover(tmp_path), [document]):
+        owed.path.write_text(owed.text, encoding="utf-8", newline="")
+    assert "export.stale" not in [
+        f.code for f in lint(Config.discover(tmp_path)).findings
+    ]

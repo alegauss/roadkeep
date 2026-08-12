@@ -614,7 +614,9 @@ def writable(config: Config) -> tuple[str, ...]:
     out = [
         config.relative(config.path(role)) for role in ROLES if config.has(role)
     ]
-    out += [name for name, _ in DEFAULTS.values()]
+    # A literal name only: a role's own file is already in the loop above, and listing it twice
+    # would report one path as two scopes (RK1110).
+    out += [kind.name for kind in DEFAULTS.values() if kind.name]
     return tuple(dict.fromkeys(out))
 
 

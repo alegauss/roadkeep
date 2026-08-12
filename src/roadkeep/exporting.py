@@ -56,18 +56,41 @@ from roadkeep.picking import pick
 BEGIN = "<!-- roadkeep:begin -->"
 END = "<!-- roadkeep:end -->"
 
-#: Which file each flag writes when it names no path, and the shape the block takes there.
+@dataclass(frozen=True, slots=True)
+class Kind:
+    """Where one flag writes when it names no path, and the shape the block takes there.
+
+    A record since RK1110, where the pair stopped being two literals. The first two targets
+    are files this tool does not own and names outright; the contents is *inside* a governed
+    file, whose path is the project's own `[files]` declaration (L6) — so a target is either a
+    name or a role, and which of the two decides where it lands.
+    """
+
+    shape: str
+    #: The literal path, relative to the root, for a target outside the governed set.
+    name: str = ""
+    #: The governed role whose own file carries the block, for one inside it.
+    role: str = ""
+
+
 #: One statement of the pair, because the gate over the block (RK104) has to read exactly
 #: what the write produces: a second spelling of `README.md` in the linter would be a gate
 #: over a path nothing writes, which passes for the same reason the drift got in.
-DEFAULTS: Mapping[str, tuple[str, str]] = {
-    "readme": ("README.md", "markdown"),
-    "site": ("docs/index.html", "html"),
+DEFAULTS: Mapping[str, Kind] = {
+    "readme": Kind(shape="markdown", name="README.md"),
+    "site": Kind(shape="html", name="docs/index.html"),
+    # Improvements and not every prose role (RK1110): it is the file both live corpora keep a
+    # contents in, and one flag per role is a decision to make when a project wants the second.
+    "contents": Kind(shape="contents", role="improvements"),
 }
 
 #: The governed files a projection is derived from — the three whose unit is a task line.
-#: The prose files hold no count and no next-ready line, so nothing here reads them.
+#: The prose files hold no count and no next-ready line, so only the contents reads one.
 COUNTED_ROLES = ("roadmap", "changelog", "deferred")
+
+#: The prose role the contents is derived from, which is a *reading* of that file's headings
+#: and never a count of its lines (RK1110).
+LISTED_ROLE = "improvements"
 
 
 def _note(command: str) -> str:
@@ -118,6 +141,56 @@ class Row:
 
 
 @dataclass(frozen=True, slots=True)
+class Listed:
+    """One heading a contents lists, as the file already writes it (RK1110).
+
+    Every field is read off the heading: the text a reader clicks, the fragment it lands on,
+    and the depth that decides its indent. Nothing composed — which is what makes the contents
+    a projection and not a second author (L4).
+    """
+
+    #: The heading's own text, less the `#`s: `§RK9 A design`, `VIII. The gateway`.
+    heading: str
+    #: The fragment the link points at, by the rule :func:`slug` states.
+    slug: str
+    level: int
+
+
+#: The character categories a heading fragment drops, beyond the two it keeps (RK1110).
+#: `Sm` is `+` and `↔`; `Sk` is the backtick a heading quotes a type name in. Both had to be
+#: measured rather than assumed: with punctuation alone the rule reproduced 44 of 49 link
+#: targets across Shio, Turing and claude-tray, and with these two it reproduces 47 — the
+#: other two being links those files have already gone stale against, which is this task.
+_DROPPED_CATEGORIES = frozenset({"Sm", "Sk"})
+
+
+def slug(heading: str) -> str:
+    """The fragment a Markdown renderer gives this heading, by the rule the corpora show.
+
+    Lowercased, punctuation and the two symbol classes above removed, spaces to hyphens —
+    with `-` and `_` kept, both being characters an author writes *into* a fragment. An emoji
+    survives (`✅` is `So`), which is not a detail: Shio's contents links a heading carrying
+    one, and a rule that stripped it would break fifteen live anchors at once.
+
+    Held against the three corpora by `tests/test_exporting.py` rather than argued here: the
+    renderer's algorithm is somebody else's, so the only honest check is whether this
+    reproduces the fragments those files already link to.
+    """
+    import unicodedata  # noqa: PLC0415 - one call, on a path that runs per heading
+
+    kept = "".join(
+        character
+        for character in heading.lower()
+        if character in "-_"
+        or not (
+            unicodedata.category(character).startswith("P")
+            or unicodedata.category(character) in _DROPPED_CATEGORIES
+        )
+    )
+    return kept.replace(" ", "-")
+
+
+@dataclass(frozen=True, slots=True)
 class Projection:
     """The backlog as another file would restate it, in two shapes."""
 
@@ -129,6 +202,10 @@ class Projection:
     prefix: str
     #: True when any line was retired: a column of zeroes is noise, not information.
     show_retired: bool
+    #: The prose file's own headings, for the contents block (RK1110). Empty where the project
+    #: declares no such file or the caller gave a tree that did not carry it — and then the
+    #: target is not written, exactly as an absent README is not one.
+    listed: tuple[Listed, ...] = ()
 
     @property
     def totals(self) -> Row:
@@ -153,18 +230,55 @@ class Projection:
         counted = totals.open + totals.shipped + totals.retired
         return 0 if not counted else min(100, totals.shipped * 100 // counted)
 
-    def body(self, shape: str) -> str:
+    def body(self, shape: str, *, omit: str = "") -> str:
         """The block one target takes, addressed by the shape :data:`DEFAULTS` names it by.
 
         One door, because the write and the gate over it (RK104) have to render the same
         bytes: a caller that chose between the two methods itself would be a second place
         the pairing lives, and the linter is exactly the caller that must not get it wrong.
+
+        ``omit`` is the heading the block is written *under* (RK1110), which only the contents
+        has any use for: a list that links the section it is inside is a row nobody follows.
+        Passed in rather than derived here, because where the markers sit is a fact about the
+        file and both callers already hold that file's text — :func:`enclosing` reads it.
         """
         if shape == "html":
             return self.html()
         if shape == "markdown":
             return self.markdown()
+        if shape == "contents":
+            return self.contents(omit=omit)
         raise KeyError(f"no such projection shape: {shape!r}")
+
+    def contents(self, *, omit: str = "") -> str:
+        """The prose file's families, as the list that file already keeps by hand.
+
+        **One level, and it is the corpus that says so.** Listing every heading was the first
+        answer and it was wrong twice over: 55 rows against the 17 Shio keeps, and a reader
+        handed every `###` design in a 900-line file has an index the size of the thing it
+        indexes. Both live corpora list the families alone — Shio's 15 links and claude-tray's
+        18 are all top-level — and a subsection is reached from the family it belongs to.
+
+        So the depth is the shallowest heading *below the title*, whatever that file writes it
+        as: `##` in both corpora, and derived rather than assumed because the level a project
+        organises by is the project's (L6, without a key to declare it).
+
+        Three headings are left out. The `#` names the file, and a contents linking the document
+        it is inside is a row nobody follows; ``omit`` is the heading this block is written
+        under, the same reason one step in; and anything deeper than the families belongs to
+        one of them. What is *not* excluded is an unanchored heading (RK1107): the question a
+        reader asks of a contents is what is in here, and a `## Table of contents` is as much
+        in here as a numbered family.
+        """
+        below = [one for one in self.listed if one.level > 1]
+        lines = [_note("--contents"), ""]
+        if not below:
+            return "\n".join(lines)
+        family = min(one.level for one in below)
+        for one in below:
+            if one.level == family and one.heading != omit:
+                lines.append(f"- [{one.heading}](#{one.slug})")
+        return "\n".join(lines)
 
     def markdown(self) -> str:
         """The README block's body. Deterministic, and every line derived."""
@@ -317,6 +431,24 @@ def project(
         show_retired=any(
             e.task.status == retired_marker for e in (ledger.counted if ledger else ())
         ),
+        listed=_listed(held.get(LISTED_ROLE)),
+    )
+
+
+def _listed(document: Document | None) -> tuple[Listed, ...]:
+    """Every heading of the prose file, in file order, as the contents lists them (RK1110).
+
+    Off `Document.headings` and not off :func:`~roadkeep.sections.anchored`, which is the
+    decision worth stating: `anchored` drops a heading that declares no address, and those are
+    exactly the rows RK1107 made addressable and a reader still wants listed. A contents is
+    about what the file contains, not about what carries a pointer.
+    """
+    if document is None:
+        return ()
+    return tuple(
+        Listed(heading=text, slug=slug(text), level=heading.level)
+        for heading in document.headings
+        if (text := heading.text.strip())
     )
 
 
@@ -352,13 +484,31 @@ def refreshes(config: Config, held: Sequence[Document]) -> tuple[Write, ...]:
 
 
 def _role_of(config: Config, path: Path | None) -> str | None:
-    """Which counted role a file about to be written is, or None for one nothing projects."""
+    """Which projected role a file about to be written is, or None for one nothing projects.
+
+    The prose role joined the three counted ones with RK1110: a `section drop` edits the file
+    the contents lists, so a transaction holding it has to hand *that* version over — refreshing
+    from disk would derive the contents from the headings the drop is in the middle of removing.
+    """
     if path is None:
         return None
-    for role in COUNTED_ROLES:
+    for role in (*COUNTED_ROLES, LISTED_ROLE):
         if config.has(role) and config.path(role) == path:
             return role
     return None
+
+
+def target_of(config: Config, flag: str) -> Path | None:
+    """The file this flag writes when it names no path, or None where the project has none.
+
+    One resolver for the write and for the gate (RK1110), which is :data:`DEFAULTS`' own reason
+    for existing: a target is a literal name or a governed role, and a second place deciding
+    which would be a gate reading a path nothing writes.
+    """
+    kind = DEFAULTS[flag]
+    if kind.role:
+        return config.path(kind.role) if config.has(kind.role) else None
+    return config.root / kind.name
 
 
 def splice_into(
@@ -372,7 +522,12 @@ def splice_into(
     :data:`DEFAULTS` says that flag writes, and a file that is not there is not a target —
     an adopting project has a README long before it has a block in one.
     """
-    target = config.root / (name if name is not None else DEFAULTS[flag][0])
+    resolved = config.root / name if name is not None else target_of(config, flag)
+    if resolved is None:
+        # A role this project does not declare (RK1110): the same answer an absent file gets,
+        # because a project with no rationale file has no contents to be stale.
+        return None, f"no {DEFAULTS[flag].role} file is declared"
+    target = resolved
     where = config.relative(target)
     if not target.is_file():
         # Silent where nothing named it — a `ship` refreshes whatever a project happens to
@@ -389,7 +544,9 @@ def splice_into(
         # carrying none is not a target, so a refresh never opens a container an author
         # did not ask for. Named on the command line, the missing marker is still refused.
         return None, f"{where} carries no projection"
-    after = splice(before, projection.body(DEFAULTS[flag][1]), where)
+    after = splice(
+        before, projection.body(DEFAULTS[flag].shape, omit=enclosing(before)), where
+    )
     if after == before:
         # The point of idempotence, said out loud: nothing changed, so nothing is written
         # and the file's mtime does not move either.
@@ -433,6 +590,23 @@ def splice(text: str, body: str, where: str) -> str:
     return newline.join(replaced)
 
 
+def enclosing(text: str) -> str:
+    """The heading the roadkeep block is written under, less its `#`s (RK1110).
+
+    One reader for the write and for the gate, because both hold the target's text and the
+    contents needs to know which of the headings it lists is the one it is inside. Empty where
+    the block is above every heading or there is no marker at all — a projection at the top of
+    a file lists nothing twice, so there is nothing to leave out.
+    """
+    found = ""
+    for line in text.split("\n"):
+        if line.startswith("#"):
+            found = line.lstrip("#").strip()
+        elif line.strip() == BEGIN:
+            return found
+    return ""
+
+
 def _index(lines: list[str], marker: str, where: str, name: str) -> int:
     for number, line in enumerate(lines):
         if line.strip() == marker:
@@ -441,10 +615,16 @@ def _index(lines: list[str], marker: str, where: str, name: str) -> int:
 
 
 def _from_disk(config: Config) -> dict[str, Document]:
-    """The counted roles this project declares and has, each under its own schema."""
+    """The projected roles this project declares and has, each under its own schema.
+
+    Four since RK1110: the three counted, plus the prose file the contents lists. Read here
+    rather than in the renderer for the reason every other role is — `project` takes documents
+    so a baseline can hand it a revision's, and a role that fell back to disk on its own would
+    be the one input a `--baseline` run could not replace.
+    """
     return {
         role: config.document(role)
-        for role in COUNTED_ROLES
+        for role in (*COUNTED_ROLES, LISTED_ROLE)
         if config.has(role) and config.path(role).is_file()
     }
 

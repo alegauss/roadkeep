@@ -1060,11 +1060,16 @@ def _export(config: Config, args: argparse.Namespace) -> int:
     # Both destinations in one run: a README and a page that restate the same backlog have
     # to be refreshed by the same call, or the one nobody remembered is the stale one —
     # which is the whole symptom RK39 names, and it named the site too.
-    chosen = [
+    chosen: list[tuple[str, str | None]] = [
         (flag, name)
         for flag, name in (("readme", args.readme), ("site", args.site))
         if name is not None
     ]
+    if args.contents:
+        # No path of its own (RK1110): the target is the project's `[files]` rationale file, so
+        # a path here would be a second answer to a question the config already answers —
+        # `None` is what sends `splice_into` through the resolver the gate reads too.
+        chosen.append(("contents", None))
     try:
         projection = project(config)
         if not chosen:

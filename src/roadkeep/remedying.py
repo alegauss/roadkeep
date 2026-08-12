@@ -1128,9 +1128,22 @@ _TABLE: Mapping[str, _Rule] = {
         "one served tool is past what `[tools] characters` allows; this ranks every tool "
         "and prints the room, and the shortening is prose in `cli.py`",
     ),
-    "export.stale": _run(
-        ("export", "--readme"),
-        "every character between the markers is derived, so it is rewritten and never edited",
+    # `--readme` is the row and the *target's* flag is what `_varied` swaps in (RK1110). With a
+    # third projection the literal became a remedy contradicting the message above it — the
+    # finding named `export --contents` and the door under it said `--readme` — which is the
+    # worse half of the two, being the one a reader trusts. Varied rather than templated,
+    # because `{id}` means a task id everywhere else and a row spelling `--{id}` renders
+    # `export --RK1` under the sweep that holds every door runnable.
+    "export.stale": _Rule(
+        "run",
+        (
+            (
+                ("export", "--readme"),
+                "every character between the markers is derived, so it is rewritten and "
+                "never edited",
+            ),
+        ),
+        varies="target",
     ),
     "export.unmarked": _run(
         ("export", "--readme"),
@@ -1341,6 +1354,18 @@ def _varied(
         # The order lives where no verb writes, so the mechanical pass cannot reach it and
         # the honest remedy is the one door between the two declarations.
         return _TABLE["priority.unmigrated"]
+    if rule.varies == "target":
+        # Which projection went stale, read off the finding's own subject (RK1110). The domain
+        # is `DEFAULTS`' keys, so a fourth target is covered by arithmetic rather than by
+        # somebody remembering — and a subject that is not one of them keeps the row, which is
+        # what `explain` gets, having no finding to ask.
+        from roadkeep.exporting import DEFAULTS  # noqa: PLC0415 - RK260's edge back
+
+        flag = values.get("id", "")
+        if flag in DEFAULTS:
+            argv, what = rule.doors[0]
+            return _Rule("run", (((*argv[:-1], f"--{flag}"), what),))
+        return rule
     if rule.varies == "nested":
         blockers = _claimed_below(finding, config)
         if blockers:

@@ -453,7 +453,10 @@ refuses the reuse by name. **You know the block, not the numeral**: a prose file
 outline declares no block heading, so `anchors --block <x>` is the way in — it names the
 family that block's pointers already use and narrows to it, or names both where the block
 spans two and leaves the choice with you. And **never restate a count in prose**: `export
-[--readme|--site|--json]` projects it.
+[--readme|--site|--json]` projects it, and `export --contents` does the same for a prose
+file's own table of contents — every row a heading that file already carries, so a `ship`
+or a `section drop` leaves the list wrong until it runs. All three go stale the same way
+and `lint` says which: `export.stale` names the flag that rewrites it.
 
 ## Picking work
 

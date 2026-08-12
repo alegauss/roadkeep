@@ -28,8 +28,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1110** (deps: —) **a table of contents lists the file's own headings and nothing re-derives it, so a ship leaves it wrong** — RK1107 made it addressable, which is the door for the prose beside it: Shio's 21 rows are anchor, title and slug, every character already in the file they list. → §RK1110
-
 ## Block D — The gate
 
 ## Block E — Adoption

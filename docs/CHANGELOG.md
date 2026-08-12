@@ -280,6 +280,7 @@
 - ✅ **RK1085** **the pairwise loop reads a role's whole document per pair and lint already holds both** — The pairwise check reads the three carriers off the Backlog the run already loaded, which took it from 0.70ms to 0.18ms and stops a fourth carrier costing a fourth parse.
 - ✅ **RK1095** **two reads rank what a session pays for and neither can be asked about the other** — budget --session names the schema paid once at the handshake and the resident files paid on every turn, and never adds them, because the cadences differ.
 - ✅ **RK1096** **budget has six subjects and the two that read a session's cost overlap without sharing a measurement** — budget --tools and --session now read one serving.surface(), so the ranking and the session total cannot disagree.
+- ✅ **RK1110** **a table of contents lists the file's own headings and nothing re-derives it, so a ship leaves it wrong** — export --contents derives a prose file's contents from its own headings, so a ship that drops a section rewrites the list in one write (design §RK1110 superseded: one level, not every heading).
 
 ## Block D — The gate
 

@@ -118,16 +118,12 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 41 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 132 | 1 |
-| C — Query (consult without reading the file) | 1 | 87 | 1 |
+| C — Query (consult without reading the file) | 0 | 88 | 1 |
 | D — The gate | 0 | 148 | 0 |
 | E — Adoption | 0 | 84 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 98 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 1 | 601 | 6 |
-
-**Next ready:**
-
-- 📋 **RK1110** (deps: —) **a table of contents lists the file's own headings and nothing re-derives it, so a ship leaves it wrong** — RK1107 made it addressable, which is the door for the prose beside it: Shio's 21 rows are anchor, title and slug, every character already in the file they list. → §RK1110
+| **Total** | 0 | 602 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
