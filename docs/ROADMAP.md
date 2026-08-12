@@ -26,9 +26,13 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1112** (deps: —) **section show prints the subtree and section amend takes only the own body, so the obvious round-trip is refused** — Feeding show's output straight back reports 1692 words against a 300 limit, which reads as prose written too long rather than as the wrong extent. → §RK1112
+
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
+
+- 📋 **RK1111** (deps: —) **a namespaced citation is read as its namespace, so lint reports a live anchor as dangling** — ref.dangling reads §S:V as §S in STRATEGY.md:67 while anchors lists S:V as live, so the rule is red on correct prose in every project that namespaces a second file. → §RK1111
 
 ## Block E — Adoption
 
