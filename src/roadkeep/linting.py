@@ -131,7 +131,7 @@ from roadkeep.kernel.schema import (
     over_by,
     suspect,
 )
-from roadkeep.sections import Section, anchored, find
+from roadkeep.sections import Section, anchored, find, references
 from roadkeep.sections import owners as section_owners
 from roadkeep.showing import known_directories, on_disk, paths_in
 from roadkeep.provenance import invocation
@@ -627,6 +627,7 @@ def _examine(config: Config, since: str | None, tree: Tree) -> Report:
         findings.extend(_marks(config, role, document))
     if prose:
         findings.extend(_pointers(config, documents, anchors))
+        findings.extend(_citations(config, prose, anchors))
         for role, document in prose.items():
             findings.extend(_orphans(config, documents, document, anchors, role=role))
         if since is not None:
@@ -2325,6 +2326,58 @@ def _pointers(
                         entry.task.id,
                     )
                 )
+    return out
+
+
+def _citations(
+    config: Config,
+    prose: dict[str, Document],
+    anchors: dict[str, tuple[Section, ...]],
+) -> list[Finding]:
+    """Every `§<anchor>` a section's **prose** makes, resolved like a pointer (RK1106).
+
+    The fourth relation, and the gap the other three left between them. `_pointers` reads the
+    ref a task line carries and `_orphans` reads what points at a section; a citation inside a
+    paragraph is neither, so `ship` deletes a design another design argues from and the gate
+    reports clean. Measured on Shio: four citations of retired addresses — `§II.1`, `§II.7`,
+    `§III.1`, `§III.10` — over 641 lines the gate called clean.
+
+    Not a duplicate of what the writers already say. `ship` and `section drop` name the
+    sections citing what *they* are deleting, in the transaction that creates the dangling
+    reference, which is the L1 door and the cheaper moment. This is the backstop for the
+    caller who was told and did not act, and for the hand edit and the merge — and it reads
+    :func:`~roadkeep.sections.references`, the same scan those two select from, so a project
+    never gets two counts of its own dead citations.
+
+    **Resolved against every prose file, exactly as a pointer is**, which is why `declared` is
+    the index and not one document's anchors: a citation of `§S:I.2` from the improvements
+    file is a reference into the strategy file, and asking one document would report the
+    correct half of a project's prose as dangling.
+    """
+    if not prose:
+        return []
+    declared = _declared(anchors)
+    where = " or ".join(config.relative(config.path(role)) for role in anchors)
+    out: list[Finding] = []
+    for role, document in prose.items():
+        file = config.relative(config.path(role))
+        for cited in references(document):
+            if cited.anchor in declared:
+                continue
+            out.append(
+                Finding(
+                    "ref.dangling",
+                    file,
+                    f"§{cited.by} cites §{cited.anchor}, which is not in {where}: prose "
+                    f"arguing from a section that is gone reads exactly like a typo, and "
+                    f"from the next command on nothing can tell the two apart",
+                    cited.lineno,
+                    # The **citing** section and not the cited one, which is the subject every
+                    # other reference code carries: `ref.unresolved` names the task holding the
+                    # pointer, not the heading nothing answers. The edit is here too.
+                    subject=cited.by,
+                )
+            )
     return out
 
 

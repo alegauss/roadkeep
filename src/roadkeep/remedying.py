@@ -850,6 +850,25 @@ _TABLE: Mapping[str, _Rule] = {
         "the section was edited and its line was not — `pick` reads only the line, so read "
         "what moved and put it there with `restate` or `amend`",
     ),
+    # RK1106. Not a `--fix`: a citation is prose, and repointing it at a different anchor or
+    # rewriting the sentence that argued from it are different edits with different meanings,
+    # which is exactly the statement about the work L4 keeps out of this tool. Two doors and
+    # the read second, because the anchor may never have existed — a typo has no design to go
+    # and read, and `origin` is what tells the two apart (RK212).
+    "ref.dangling": _decide(
+        "this section's prose cites an anchor no prose file declares, and whether the design "
+        "moved or was never there decides which edit it is:",
+        (
+            ("section", "amend", "{id}", "--body", "-"),
+            "the sentence is this section's, so repointing the citation or rewriting the "
+            "argument that leant on it arrives on stdin",
+        ),
+        (
+            ("origin", BLANK),
+            "the cited anchor, if it ever was one: this answers which commit wrote that "
+            "design and which took it, so a sentence can be corrected instead of deleted",
+        ),
+    ),
     "section.too-long": _compose(
         ("section", "amend", "{id}", "--body", "-"),
         "past the word budget; the shorter prose is yours and arrives on stdin",

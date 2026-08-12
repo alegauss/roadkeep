@@ -119,15 +119,15 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 41 | 2 |
 | B — Authoring (insert, never hand-edit) | 2 | 130 | 1 |
 | C — Query (consult without reading the file) | 0 | 87 | 1 |
-| D — The gate | 1 | 147 | 0 |
+| D — The gate | 0 | 148 | 0 |
 | E — Adoption | 0 | 84 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 97 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 4 | 597 | 6 |
+| **Total** | 3 | 598 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1106** (deps: —) **a citation inside prose can name a section that no longer exists, and no gate code says so** — Shio lints clean over four retired addresses cited in section bodies, because the three declared relations cover a dep, a task line's pointer and a queue entry and never a citation. → §RK1106
+- 📋 **RK1107** (deps: —) **a prose file's preamble and table of contents carry no anchor, so every edit to them is a hand edit** — ship drops a family's last child and the contents row naming it goes stale in that instant, while section show 'Table of contents' answers that no such section exists. → §RK1107
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

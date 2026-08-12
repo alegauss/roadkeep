@@ -866,6 +866,63 @@ def test_a_pointer_quoted_inside_a_sentence_is_not_scanned(tmp_path):
     assert lint(project(tmp_path, roadmap=quoting)).clean
 
 
+def test_prose_citing_a_section_that_is_gone_fails(tmp_path):
+    # RK1106, the fourth relation. `_pointers` reads the ref a task line carries and
+    # `_orphans` reads what points at a section; a `§X.Y` inside a paragraph was neither, so
+    # `ship` deleted designs other designs argue from and the gate reported clean — 11 of them
+    # in claude-tray and 25 in Turing, over files that had lint in CI.
+    citing = PROSE.replace(
+        "The reasoning the second line has no room for.",
+        "The reasoning the second line has no room for, which §RK7 already settled.",
+    )
+    report = lint(project(tmp_path, improvements=citing))
+    dangling = next(f for f in report.findings if f.code == "ref.dangling")
+    assert dangling.file == "IMPROVEMENTS.md" and dangling.lineno == 11
+    assert "§RK2 cites §RK7" in dangling.message
+    # The citing section and not the cited one, which is the subject the family carries: the
+    # sentence to correct is here, and `ref.unresolved` names the task holding the pointer too.
+    assert dangling.token == "RK2"
+
+
+def test_a_citation_of_a_section_that_is_there_is_not_a_finding(tmp_path):
+    # The other half, and the one that decides whether this check is adoptable: prose arguing
+    # from a live design is the normal shape of a rationale file, not a finding.
+    citing = PROSE.replace(
+        "The reasoning the second line has no room for.",
+        "The reasoning the second line has no room for, building on §RK1.",
+    )
+    assert lint(project(tmp_path, improvements=citing)).clean
+
+
+def test_a_citation_inside_a_quotation_is_not_a_citation(tmp_path):
+    # The exclusions `citing` measured across four trees, now load-bearing for the gate too:
+    # Shio marks its historic anchors in a blockquote, in inline code, saying they are no
+    # longer headings — and reporting those 15 tokens is how this check would get turned off.
+    # On this code alone and not on `clean`: under `ref_scheme = "id"` an anchor is an id, so
+    # `body.promise` reads the same quoted tokens as work promised in prose — a real rule with
+    # its own door, and asserting a clean report here would be testing that one by accident.
+    for quoted in (
+        "> (Historic anchors `§RK7`–`§RK9`, cited by specs and no longer headings.)",
+        "The pointer `§RK7` is written as an example of one.",
+        "```\nA fenced §RK7 is generated text.\n```",
+        "- 📋 **RK9** (deps: —) **A symptom** — Because of it. → §RK7",
+    ):
+        citing = PROSE.replace("The reasoning the second line has no room for.", quoted)
+        assert "ref.dangling" not in codes(lint(project(tmp_path, improvements=citing))), quoted
+
+
+def test_two_dead_citations_on_two_lines_are_two_findings(tmp_path):
+    # Every occurrence and not the distinct set: two of them are two edits, and a reader
+    # handed one fixes the file halfway and reads a clean gate as agreement.
+    citing = PROSE.replace(
+        "The reasoning the second line has no room for.",
+        "First §RK7 settled it.\n\nThen §RK8 restated it.",
+    )
+    report = lint(project(tmp_path, improvements=citing))
+    dangling = [f for f in report.findings if f.code == "ref.dangling"]
+    assert [f.lineno for f in dangling] == [11, 13]
+
+
 def test_a_section_whose_task_shipped_and_was_not_dropped_fails(tmp_path):
     # `ship` deletes the section as one of its three edits, so this is a hand edit.
     survived = PROSE + "\n### §RK5 The shipped design\n\nStill here after the ship.\n"

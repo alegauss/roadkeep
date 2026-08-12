@@ -60,10 +60,16 @@ class Relation:
     answers: tuple[str, ...]
 
 
-#: The three relations this backlog has. Two share a resolver and one does not, which is a
+#: The four relations this backlog has. Two share a resolver and two do not, which is a
 #: fact about the target space rather than an omission: an id lives in a set of records and a
 #: heading lives in a tree of prose, and a resolver that pretended otherwise would answer
 #: `ref.ambiguous` — two files declaring one anchor — with a lookup that has no such case.
+#:
+#: The fourth arrived the way this index was written to make possible (RK1106): a citation
+#: was always a reference and nothing resolved it, so `ship` deleted designs other designs
+#: argued from and the gate reported clean over 11 of them in claude-tray and 25 in Turing.
+#: What it cost to add was a row here, a scan `citing` already had, and the pointer's own
+#: resolver — which is the argument §RK1066 made and could not yet demonstrate.
 RELATIONS: tuple[Relation, ...] = (
     Relation(
         name="dep",
@@ -91,6 +97,20 @@ RELATIONS: tuple[Relation, ...] = (
             # its first run — the argument for a total index, made by the index.
             "section.ambiguous",
         ),
+    ),
+    Relation(
+        name="citation",
+        # Not a field of a task line at all — the first relation whose carrier is prose, which
+        # is why it took a scan to find and not a lookup: `body` is the whole paragraph, and
+        # which of its tokens is a reference is `sections.references`' reading to make.
+        field="body",
+        targets="heading",
+        empty="",
+        # The pointer's resolver, deliberately: a citation of `§S:I.2` resolves in the same
+        # index a `→ §S:I.2` does, and two answers about one address would be the disagreement
+        # this file exists to prevent — one of them across the namespaces and one inside a file.
+        resolver="roadkeep.sections.anchored",
+        answers=("ref.dangling",),
     ),
     Relation(
         name="queued",

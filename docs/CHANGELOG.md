@@ -428,6 +428,7 @@
 - ✅ **RK1098** **two tests read this repo's docs as a fixture and assume the roadmap has an open line** — the two tests that read this repo's docs take a populated root, which is docs/ while it has an open line and a stand-in when it does not.
 - ✅ **RK1104** **the rule about guessing a fact from a file's text is held over one file and stated for the rest** — every reader of this repository's own corpus is declared with why it is prose, which the measurement made feasible at six functions rather than thirty modules.
 - ✅ **RK1105** **a byte budget counts what the checkout has, so CRLF and LF give one commit different headroom** — A file budget counts CRLF as the LF the repository stores, so one commit has one ceiling on every machine, and lint and budget both name what this checkout pays over it.
+- ✅ **RK1106** **a citation inside prose can name a section that no longer exists, and no gate code says so** — A citation in a section's body resolves like a pointer, so ref.dangling names prose arguing from a deleted design (design §RK1106 superseded: Shio's four are quoted anchors the scan excludes).
 
 ## Block E — Adoption
 

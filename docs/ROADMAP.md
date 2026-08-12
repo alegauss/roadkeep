@@ -33,8 +33,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1106** (deps: —) **a citation inside prose can name a section that no longer exists, and no gate code says so** — Shio lints clean over four retired addresses cited in section bodies, because the three declared relations cover a dep, a task line's pointer and a queue entry and never a citation. → §RK1106
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

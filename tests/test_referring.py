@@ -38,11 +38,13 @@ def test_every_code_in_a_reference_family_is_accounted_for_exactly_once():
 
 def test_the_count_the_task_argued_from_is_re_readable_and_was_one_short():
     # §RK1066 argued from sixteen, and a number nobody can re-read is the sentence this
-    # project keeps replacing with a command. It is seventeen: the pointer relation answers
+    # project keeps replacing with a command. It was seventeen: the pointer relation answers
     # `section.ambiguous` too, which the closure above found on its first run — the argument
     # for a total index, made by the index. The rest are shapes, traversals and procedures.
-    assert sum(len(relation.answers) for relation in RELATIONS) == 17
-    assert len(familied()) == 17 + len(ELSEWHERE)
+    # Eighteen since RK1106 added the citation, which is the index paying for itself: a fourth
+    # relation cost a row and reused the pointer's resolver, and this number is where it shows.
+    assert sum(len(relation.answers) for relation in RELATIONS) == 18
+    assert len(familied()) == 18 + len(ELSEWHERE)
 
 
 def test_the_queue_and_the_deps_share_one_resolver():

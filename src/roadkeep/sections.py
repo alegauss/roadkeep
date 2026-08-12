@@ -591,20 +591,74 @@ def citing(
 
     ``ignore`` is what the transaction is deleting: a section citing its own subtree, or a
     sibling going in the same drop, is prose that leaves with the reference.
+
+    Membership is the **filter** and no longer the scan (RK1106): :func:`references` reads the
+    prose once and this selects from it, because the gate asks the same file the opposite
+    question — which citations resolve to nothing — and two scanners would give a project two
+    counts of its own dead citations.
     """
     wanted = {anchor for anchor in anchors if anchor}
     if not wanted:
         return ()
     skipped = set(ignore)
-    pattern = re.compile(
-        r"§(" + "|".join(sorted(map(re.escape, wanted), key=len, reverse=True)) + r")(?![\w.])"
+    return tuple(
+        (cited.anchor, cited.by)
+        for cited in references(document)
+        if cited.anchor in wanted and cited.by not in skipped
     )
-    out: list[tuple[str, str]] = []
+
+
+@dataclass(frozen=True, slots=True)
+class Cite:
+    """One `§<anchor>` a section's prose makes, and where it is written (RK1106).
+
+    The record the fourth relation resolves — a citation, beside the dep, the pointer and the
+    queue entry :mod:`roadkeep.referring` already declares. It carries the place because the
+    gate reports `file:line`, and the citing section because that is who has to make the edit:
+    a dangling reference is a defect in the prose that makes it, not in the section it names.
+    """
+
+    #: What is cited, as the prose spells it — namespaced (`S:I.2`) where the pointer is.
+    anchor: str
+    #: The anchor of the section whose prose cites it.
+    by: str
+    #: 1-based, as an editor counts.
+    lineno: int
+
+
+#: An anchor-shaped token after a `§`, in either scheme (RK1106). Deliberately looser than
+#: :data:`~roadkeep.kernel.schema.OUTLINE_ANCHOR_RE` and than any id shape, because the two
+#: questions are different: a *reference* is anything an author wrote as one, and whether the
+#: token is a well-formed address of this project is what resolving it answers. A pattern that
+#: only matched valid anchors would read a typo as prose and report nothing about it, which is
+#: the citation this exists to find.
+_CITED_RE = re.compile(r"§([A-Za-z0-9]+(?::[A-Za-z0-9]+)?(?:\.[A-Za-z0-9]+)*)(?![\w.])")
+
+
+def references(document: Document) -> tuple[Cite, ...]:
+    """Every citation this file's prose makes, unresolved (RK1106).
+
+    One scan, two questions. :func:`citing` asks which of *these* anchors are cited, at the
+    moment a transaction deletes them; the gate asks which citations name nothing at all. The
+    reading of what counts as a citation — :func:`_argument`'s four exclusions, each measured
+    across four trees — belongs to neither of them and is made once, here.
+
+    Every occurrence and not the distinct set: two dead citations on two lines are two edits,
+    and a reader handed one of them fixes the file halfway. `citing` de-duplicates on its own
+    side, where the answer is *which* section to warn about and saying it twice is noise.
+    """
+    out: list[Cite] = []
     for section in anchored(document):
-        if section.anchor in skipped:
-            continue
-        for found in dict.fromkeys(pattern.findall(_argument(section.body))):
-            out.append((found, section.anchor))
+        # Off the document's own lines and **not** off `Section.body`, which is stripped of the
+        # blank after the heading — measured: that shift reported claude-tray's §I.7 two lines
+        # early, onto prose carrying no citation at all. `_argument` blanks a quotation in
+        # place rather than dropping it, so this slice and its output stay index-for-index.
+        raw = "".join(document.lines[section.first : section.last])
+        for offset, line in enumerate(_argument(raw).splitlines()):
+            for found in _CITED_RE.findall(line):
+                out.append(
+                    Cite(anchor=found, by=section.anchor, lineno=section.first + 1 + offset)
+                )
     return tuple(out)
 
 

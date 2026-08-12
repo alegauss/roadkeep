@@ -125,27 +125,6 @@ otherwise tell the two cases apart.
 
 ## Block D — The gate
 
-### §RK1106 The fourth relation: a citation inside prose
-
-`referring.py` declares three relations — a dep names an id, a pointer names a heading,
-a queue entry names either — and argues that a fourth should be a line there rather than
-a fourth implementation. This is that fourth. A `§X.Y` written **inside a section's
-body** is a reference nothing resolves: `ref.unresolved` reads the pointer a task line
-carries and `section.stale` catches the other direction, so a body citing a section that
-has shipped lints clean.
-
-Measured on Shio: four citations in `docs/IMPROVEMENTS.md` name retired addresses —
-`§II.1`, `§II.7`, `§III.1`, `§III.10` — against an `anchors` that reports family II as
-one live and seven retired. `lint` says clean over 641 lines. The reason none is caught
-is that a citation was never a field, and every check here is over a record's field.
-
-What makes it hard is what `ship` and `section drop` already do: both name the sections
-whose prose cited what they deleted, so the fact is derivable at the moment of deletion
-and is reported to a caller who may not act on it. The gate is the backstop for exactly
-that, which means the scan and those two answers have to read one index — otherwise a
-project gets two counts of its own dead citations, and the reader that agrees with the
-file is not the one it was told to trust.
-
 ## Block E — Adoption
 
 ## Block F — The plugin

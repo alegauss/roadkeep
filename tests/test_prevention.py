@@ -156,6 +156,11 @@ PREVENTION: tuple[Prevented, ...] = (
     Prevented("budget.translated", "gate", because=FILE),
     Prevented("budget.tool", "gate", because=SURFACE),
     Prevented("budget.session", "gate", because=SURFACE),
+    # RK1106. `LATER` and not `HAND`: the write that put the citation in was right when it ran,
+    # and what made it dangle is a `ship` or a `section drop` somewhere else — which those two
+    # verbs do report, at the moment they create it. This is the backstop for the caller who
+    # was told and did not act, so there is nothing here for an `add` to have refused.
+    Prevented("ref.dangling", "gate", because=LATER),
     Prevented("grammar.unreadable", "gate", because=RULE),
     Prevented("block.unorganised", "gate", because=FILE),
     Prevented("export.unmarked", "gate", because=FILE),
