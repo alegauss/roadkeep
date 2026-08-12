@@ -27,14 +27,18 @@ from roadkeep.queueing import (
 from roadkeep.rendering import _counted, _print_cited, _section_json
 from roadkeep.scoping import add as add_non_goal, amend as amend_non_goal, drop as drop_non_goal
 from roadkeep.sections import (
+    AmbiguousTitle,
     add as add_section,
     amend as amend_section,
+    amend_untitled,
     drop as drop_section,
     find as find_section,
     heading_of,
     move as move_section,
     nested as nested_sections,
     pointers,
+    titled,
+    untitled,
 )
 from roadkeep.verbs.reading import _body_reader, _one_body, _piped
 from roadkeep.verbs.refusing import EXIT_OK, EXIT_USAGE, REFUSALS, _refused
@@ -243,9 +247,21 @@ def _section_amend(config: Config, args: argparse.Namespace) -> int:
             if args.body is None and args.body_file is None
             else _body_reader(args.body, args.body_file)()
         )
-        document, section, changed = amend_section(
-            config, args.role, args.anchor, title=args.title, body=body
-        )
+        # An anchor first and the heading text second, the order `show` reads in (RK1107): an
+        # address the project chose wins, and a `## Table of contents` is reachable by the one
+        # name it has. The branch is here rather than inside `amend` because the two writes
+        # differ in what they may do — an unanchored section has no owner to bind into its
+        # heading, no pointer to move and no word budget measured against it.
+        if find_section(config.document(args.role), args.anchor) is None and (
+            titled(config.document(args.role), args.anchor) is not None
+        ):
+            document, section, changed = amend_untitled(
+                config, args.role, args.anchor, body=body, retitle=args.title
+            )
+        else:
+            document, section, changed = amend_section(
+                config, args.role, args.anchor, title=args.title, body=body
+            )
         document.save()
     except REFUSALS as error:
         return _refused(error)
@@ -258,13 +274,20 @@ def _section_amend(config: Config, args: argparse.Namespace) -> int:
             )
         )
         return EXIT_OK
+    # An unanchored section is named by its heading and never by a bare sigil (RK1107), and it
+    # carries no word count: `section = <n>` is what a *rationale* may spend, and printing a
+    # figure beside a limit is claiming the two are the same number — which the file's opening
+    # paragraph and its contents table are not measured by. `[budgets]` counts their bytes.
+    named = f"§{section.anchor}" if section.anchor else f"'{section.title}'"
     if not changed:
-        print(f"§{section.anchor} unchanged: it already reads that way")
+        print(f"{named} unchanged: it already reads that way")
         return EXIT_OK
-    print(
-        f"§{section.anchor} amended  {where}:{section.first}  "
-        f"({', '.join(changed)})  {_counted(section, config.schema_for(args.role).section_max)}"
+    counted = (
+        f"  {_counted(section, config.schema_for(args.role).section_max)}"
+        if section.anchor
+        else ""
     )
+    print(f"{named} amended  {where}:{section.first}  ({', '.join(changed)}){counted}")
     return EXIT_OK
 
 
@@ -309,14 +332,41 @@ def _section_move(config: Config, args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _by_title(document, title: str):
+    """The unanchored section this heading text names, or None (RK1107).
+
+    A lookup and not a second reader: :func:`~roadkeep.sections.titled` decides what matches
+    and :func:`~roadkeep.sections.untitled` builds the record, so this only joins the two —
+    which is what keeps `show` and `amend` reading one answer.
+    """
+    heading = titled(document, title)
+    if heading is None:
+        return None
+    return next(
+        (one for one in untitled(document) if one.first == heading.lineno),
+        None,
+    )
+
+
 def _section_show(config: Config, args: argparse.Namespace) -> int:
     try:
-        section = find_section(config.document(args.role), args.anchor)
-    except (KeyError, OSError) as error:
+        document = config.document(args.role)
+        section = find_section(document, args.anchor)
+        if section is None:
+            # The address is a heading text where it is not an anchor (RK1107), which is the
+            # order every reader here needs: an anchor is the project's chosen name and wins,
+            # and the fall-through is what makes `section show 'Table of contents'` — the call
+            # this task was reported from — an answer instead of a refusal.
+            section = _by_title(document, args.anchor)
+    except (KeyError, OSError, AmbiguousTitle) as error:
         return _refused(error)
     where = config.relative(config.path(args.role))
     if section is None:
-        print(f"roadkeep: no §{args.anchor} section in {where}", file=sys.stderr)
+        print(
+            f"roadkeep: no §{args.anchor} section in {where}, and no heading reading "
+            f"'{args.anchor}' either",
+            file=sys.stderr,
+        )
         return EXIT_USAGE
 
     if args.json:

@@ -42,6 +42,7 @@ from roadkeep.kernel.document import Document, UnknownBlock
 from roadkeep.kernel.schema import Schema, SchemaError
 from roadkeep.linting import lint
 from roadkeep.sections import (
+    AmbiguousTitle,
     AnchorClaimed,
     AnchorIsId,
     _elsewhere,
@@ -55,6 +56,7 @@ from roadkeep.sections import (
     UnknownParent,
     add,
     amend,
+    amend_untitled,
     anchored,
     citing,
     drop,
@@ -64,6 +66,8 @@ from roadkeep.sections import (
     paragraphs,
     pointers,
     structural,
+    titled,
+    untitled,
     words,
 )
 
@@ -3024,3 +3028,135 @@ def test_every_way_out_the_refusal_names_is_a_command_this_cli_parses(tmp_path):
     parser = build_parser()
     for argv in (["anchors", "--next"], ["section", "move", "IX.1", "--to", "IX.9"]):
         assert parser.parse_args(argv) is not None
+
+
+# -- the two regions that carry no anchor (RK1107) -----------------------------
+
+#: A prose file with both of them: an opening that says what the file is, and a contents
+#: listing its families. Shio's shape, which is where the defect was reported from — there
+#: the two occupy lines 1–27 and 28–49, and neither had a door.
+UNANCHORED = """# Improvements
+
+The file's own opening, which says what this document is for.
+
+## Table of contents
+
+- [§RK1 A first design](#rk1-a-first-design)
+
+## Block A — The model
+
+### §RK1 A first design
+
+The reasoning the line has no room for.
+"""
+
+
+def test_the_unanchored_headings_are_the_ones_no_verb_could_reach(tmp_path):
+    config = project(tmp_path, improvements=UNANCHORED)
+    found = {one.title: one for one in untitled(config.document("improvements"))}
+    assert set(found) == {"Improvements", "Table of contents", "Block A — The model"}
+    # Own prose and never the subtree, `anchored`'s rule: the `#`'s body stops at the first
+    # `##`, so amending the opening can never reach a section that has an address of its own.
+    assert "says what this document is for" in found["Improvements"].body
+    assert "Table of contents" not in found["Improvements"].body
+    assert found["Improvements"].anchor == ""
+
+
+def test_an_unanchored_section_is_addressed_by_its_heading(tmp_path):
+    # The call the defect was reported from: `section show 'Table of contents'` answered *no
+    # §Table of contents section*, which was true and left the caller the hand edit alone.
+    config = project(tmp_path, improvements=UNANCHORED)
+    document = config.document("improvements")
+    assert titled(document, "Table of contents").lineno == 5
+    assert titled(document, "Improvements").level == 1
+    # An anchored heading is *not* reachable this way: one address per addressable thing.
+    assert titled(document, "A first design") is None
+
+
+def test_amending_the_contents_leaves_every_other_line_alone(tmp_path):
+    config = project(tmp_path, improvements=UNANCHORED)
+    document, section, changed = amend_untitled(
+        config, "improvements", "Table of contents", body="- [§RK1 A first design](#rk1)"
+    )
+    document.save()
+    body = read(config)
+    assert changed == ("body",) and section.level == 2
+    assert "- [§RK1 A first design](#rk1)\n" in body
+    # Neither neighbour moved: the opening above it and the anchored section below.
+    assert "The file's own opening, which says what this document is for." in body
+    assert "The reasoning the line has no room for." in body
+    # On this file and not on the report: the shared roadmap fixture points at sections this
+    # prose does not carry, which is another test's subject. What matters here is that a write
+    # into an unanchored region leaves the prose file itself gating clean.
+    report = lint(Config.discover(tmp_path))
+    assert [one.code for one in report.findings if one.file.endswith(IMPROVEMENTS)] == []
+
+
+def test_the_opening_is_the_file_s_own_title_and_needs_no_new_word(tmp_path):
+    # §RK1107 assumed a positional name (`preamble`) declared per project. The `#` heading is
+    # already an unanchored heading and `prose_end` already delimits its body, so the file's
+    # title is its address and no second addressing scheme is invented anywhere.
+    config = project(tmp_path, improvements=UNANCHORED)
+    document, _, changed = amend_untitled(
+        config, "improvements", "Improvements", body="A rewritten opening."
+    )
+    document.save()
+    body = read(config)
+    assert changed == ("body",)
+    assert "A rewritten opening.\n" in body and "## Table of contents\n" in body
+    assert "The file's own opening" not in body
+
+
+def test_a_retitled_unanchored_heading_gets_no_bare_sigil(tmp_path):
+    # `heading_of` renders `§` + anchor, so an empty anchor wrote `## § Contents` — caught
+    # here because the one writer of that spelling is the one place to answer it.
+    config = project(tmp_path, improvements=UNANCHORED)
+    document, _, changed = amend_untitled(
+        config, "improvements", "Table of contents", retitle="Contents"
+    )
+    document.save()
+    assert changed == ("title",)
+    assert "\n## Contents\n" in read(config) and "§ Contents" not in read(config)
+
+
+def test_two_headings_with_one_text_have_no_address_between_them(tmp_path):
+    # Refused rather than guessed: the first match would make *which one did I edit* a
+    # question, and a file with two identical headings has two regions and one name.
+    doubled = UNANCHORED.replace(
+        "## Block A — The model", "## Table of contents\n\nA second one.\n\n## Block A — The model"
+    )
+    config = project(tmp_path, improvements=doubled)
+    with pytest.raises(AmbiguousTitle) as refusal:
+        amend_untitled(config, "improvements", "Table of contents", body="Which one?")
+    assert "2 headings read 'Table of contents'" in str(refusal.value)
+    assert read(config) == doubled
+
+
+def test_an_amend_of_a_heading_no_file_carries_is_refused(tmp_path):
+    config = project(tmp_path, improvements=UNANCHORED)
+    with pytest.raises(NoSuchSection):
+        amend_untitled(config, "improvements", "Nothing writes this", body="x")
+
+
+def test_the_command_reads_and_writes_an_unanchored_section(tmp_path, capsys, monkeypatch):
+    config = project(tmp_path, improvements=UNANCHORED)
+    assert main(["-C", str(tmp_path), "section", "show", "Table of contents"]) == EXIT_OK
+    assert "## Table of contents" in capsys.readouterr().out
+    monkeypatch.setattr("sys.stdin", _Stdin("The corrected contents."))
+    assert (
+        main(["-C", str(tmp_path), "section", "amend", "Table of contents", "--body", "-"])
+        == EXIT_OK
+    )
+    printed = capsys.readouterr().out
+    # Named by its heading and carrying no word count: `section = <n>` is what a rationale
+    # may spend, and these two were never measured against it.
+    assert "'Table of contents' amended" in printed and "§ amended" not in printed
+    assert "limit" not in printed
+    assert "The corrected contents." in read(config)
+
+
+def test_an_address_that_is_neither_says_so_in_both_vocabularies(tmp_path, capsys):
+    project(tmp_path, improvements=UNANCHORED)
+    assert main(["-C", str(tmp_path), "section", "show", "Nothing"]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    assert "no §Nothing section" in said and "no heading reading 'Nothing'" in said

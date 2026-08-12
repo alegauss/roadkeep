@@ -26,10 +26,11 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1107** (deps: —) **a prose file's preamble and table of contents carry no anchor, so every edit to them is a hand edit** — ship drops a family's last child and the contents row naming it goes stale in that instant, while section show 'Table of contents' answers that no such section exists. → §RK1107
 - 📋 **RK1109** (deps: —) **section amend answers unchanged: it already reads that way over a body left unread on stdin** — A title-only amend does not read the pipe by design, so a caller who piped the new prose gets exit 0 and a success-shaped message over a write that never happened. → §RK1109
 
 ## Block C — Query (consult without reading the file)
+
+- 📋 **RK1110** (deps: —) **a table of contents lists the file's own headings and nothing re-derives it, so a ship leaves it wrong** — RK1107 made it addressable, which is the door for the prose beside it: Shio's 21 rows are anchor, title and slug, every character already in the file they list. → §RK1110
 
 ## Block D — The gate
 

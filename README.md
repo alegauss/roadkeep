@@ -117,17 +117,17 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 41 | 2 |
-| B — Authoring (insert, never hand-edit) | 2 | 130 | 1 |
-| C — Query (consult without reading the file) | 0 | 87 | 1 |
+| B — Authoring (insert, never hand-edit) | 1 | 131 | 1 |
+| C — Query (consult without reading the file) | 1 | 87 | 1 |
 | D — The gate | 0 | 148 | 0 |
 | E — Adoption | 0 | 84 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 97 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 3 | 598 | 6 |
+| **Total** | 3 | 599 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1107** (deps: —) **a prose file's preamble and table of contents carry no anchor, so every edit to them is a hand edit** — ship drops a family's last child and the contents row naming it goes stale in that instant, while section show 'Table of contents' answers that no such section exists. → §RK1107
+- 📋 **RK1108** (deps: —) **the guard reaches no environment without the plugin, so a project hand-writes the launcher that finds one** — Shio's own bridge looks under ~/.claude/plugins alone, so where CLAUDE_CONFIG_DIR moves the real one it defers to a stale copy and a hand edit of two governed files passed. → §RK1108
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

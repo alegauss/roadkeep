@@ -1251,6 +1251,78 @@ def amend(
     return updated, amended, changed
 
 
+def amend_untitled(
+    config: Config,
+    role: str,
+    title: str,
+    *,
+    body: str | None = None,
+    retitle: str | None = None,
+) -> tuple[Document, Section, tuple[str, ...]]:
+    """Rewrite an unanchored section's prose or its heading, in place (RK1107).
+
+    :func:`amend`'s twin for the two regions a prose file has that carry no address — its
+    opening, and a `## Table of contents`. The same three properties and one fewer: own prose
+    and never the subtree, nothing written unless something changed, and **no `owner`** —
+    an unanchored section belongs to no task, so there is no id to bind into the heading and no
+    pointer that a re-titling has to move with it. That last is the whole reason this is a
+    second function rather than a branch in the first: `amend`'s body is about the anchor, the
+    task that owns it, and the budget the two decide between them, and an unanchored section
+    has none of the three.
+
+    Not budgeted, deliberately. `section = <n>` is what a *rationale* may spend, measured
+    against a corpus of rationale sections; a file's opening paragraph and a contents table are
+    neither, and charging them a limit nobody measured them against is how a ceiling comes to
+    refuse the prose it was derived from. What holds them is `[budgets]` on the whole file,
+    which already counts every byte of both.
+    """
+    document = config.document(role)
+    heading = titled(document, title)
+    if heading is None:
+        raise NoSuchSection(title, config.relative(config.path(role)))
+    end = document.prose_end(heading)
+    own = "".join(document.lines[heading.lineno : end]).strip("\r\n")
+    section = Section(
+        anchor="",
+        title=heading.text.strip(),
+        level=heading.level,
+        first=heading.lineno,
+        last=end,
+        body=own,
+    )
+    wanted_title = section.title if retitle is None else retitle.strip()
+    wanted_body = own if body is None else body
+    changed = tuple(
+        name
+        for name, before, after in (
+            ("title", section.title, wanted_title),
+            ("body", own, _normalize(wanted_body)),
+        )
+        if before != after
+    )
+    if not changed:
+        return document, section, ()
+    if not wanted_title:
+        raise SectionError(
+            (
+                Violation(
+                    "title.empty",
+                    "title",
+                    "an unanchored section is addressed by its heading, so a blank one "
+                    "leaves it with no address at all",
+                ),
+            )
+        )
+    updated = _rewrite(
+        document,
+        heading,
+        replace(section, title=wanted_title),
+        wanted_body,
+        retitle="title" in changed,
+    )
+    return updated, replace(section, title=wanted_title, body=_normalize(wanted_body)), changed
+
+
 #: The governed files whose lines carry a `→ §<anchor>`, which is the end of a pointer a
 #: re-address has to move with the heading. The deferred store is one (RK96): pausing a line
 #: keeps its section, so its pointer is as live as the roadmap's and the gate reads both.
@@ -2509,6 +2581,83 @@ def _extends(document: Document, anchor: str) -> str | None:
     return ".".join(best) or None
 
 
+def untitled(document: Document) -> tuple[Section, ...]:
+    """Every heading this file carries that declares no anchor, in file order (RK1107).
+
+    The other half of :func:`anchored`, and until this the half no verb could reach. A prose
+    file's opening — the `#` that names it, and the prose under it saying what the file is —
+    declares no address, and neither does a `## Table of contents`; both go stale the instant
+    a `ship` drops a section, and the only door onto either was the hand edit the guard denies.
+    Measured: `section show 'Table of contents'` answered *no §Table of contents section*, which
+    was true and left the caller nowhere to go.
+
+    **The heading's text is the address, and that is not a second addressing scheme.** An
+    anchor is a name the project chose and never reuses; this is the heading a reader already
+    sees, matched as it is written. §RK1107 assumed a positional name (`preamble`, `contents`)
+    would be needed and would have to be declared per project (L6) — measuring the two live
+    files says otherwise: the opening prose is the `#`'s **own** body, which
+    :meth:`~roadkeep.kernel.document.Document.prose_end` already delimits, so the file's title
+    is its address and no new word is invented anywhere.
+
+    Own prose and never the subtree, for :func:`anchored`'s reason: the `#` heading's body is
+    the preamble and stops at the first `##`, so amending it can never reach a section that has
+    an address of its own.
+    """
+    out: list[Section] = []
+    for heading in document.headings:
+        if anchor_of(heading.text, document.schema) is not None:
+            continue
+        end = document.prose_end(heading)
+        out.append(
+            Section(
+                anchor="",
+                title=heading.text.strip(),
+                level=heading.level,
+                first=heading.lineno,
+                last=end,
+                body="".join(document.lines[heading.lineno : end]).strip("\r\n"),
+            )
+        )
+    return tuple(out)
+
+
+def titled(document: Document, title: str) -> Heading | None:
+    """The one unanchored heading whose text is *title*, or None (RK1107).
+
+    Compared on the stripped text and nothing cleverer: the caller has the file open, and a
+    fuzzy match would make *which section did I just edit* a question. Refused rather than
+    guessed where two headings carry one text — :class:`AmbiguousTitle` — because a file whose
+    contents heading is written twice has two regions and no address distinguishes them.
+
+    Asked **only of the unanchored**, so this can never become a second way to reach a section
+    that has an anchor: one address per addressable thing, which is the property every reader
+    downstream of `_span` already depends on.
+    """
+    wanted = title.strip()
+    found = [
+        heading
+        for heading in document.headings
+        if anchor_of(heading.text, document.schema) is None and heading.text.strip() == wanted
+    ]
+    if len(found) > 1:
+        raise AmbiguousTitle(wanted, tuple(heading.lineno for heading in found))
+    return found[0] if found else None
+
+
+class AmbiguousTitle(ValueError):
+    """One heading text, two headings — so the text is not an address (RK1107)."""
+
+    def __init__(self, title: str, linenos: tuple[int, ...]) -> None:
+        self.title = title
+        self.linenos = linenos
+        spelled = ", ".join(str(one) for one in linenos)
+        super().__init__(
+            f"{len(linenos)} headings read '{title}' (lines {spelled}): an unanchored section "
+            f"is addressed by its heading, so two with one text have no address between them — "
+            f"give one of them a different heading, or an anchor"
+        )
+
+
 def _span(document: Document, anchor: str) -> tuple[int, int, Heading] | None:
     """The `[start, end)` lines to delete, and the heading that names them.
 
@@ -2547,7 +2696,15 @@ def anchor_text(schema: Schema, anchor: str) -> str:
 
 
 def heading_of(schema: Schema, section: Section) -> str:
-    """The heading line this section is written as — one spelling, one writer (RK44)."""
+    """The heading line this section is written as — one spelling, one writer (RK44).
+
+    An empty anchor is the unanchored section (RK1107) and writes its title alone: under the
+    id scheme :func:`anchor_text` would otherwise render the sigil with nothing after it, so a
+    re-titled `## Table of contents` came back as `## § Table of contents`. Answered here
+    because this is the one writer, and a caller composing the exception would be the second.
+    """
+    if not section.anchor:
+        return f"{'#' * section.level} {section.title}"
     return f"{'#' * section.level} {anchor_text(schema, section.anchor)} {section.title}"
 
 

@@ -461,10 +461,15 @@ def build_parser() -> argparse.ArgumentParser:
             "changes. The subtree is not touched: a subsection is amended by its own "
             "anchor. Neither is the anchor itself: that is `section move` under an outline, "
             "and `renumber` where the address is the task's id. Nor is the heading line, "
-            "unless --title asks for it: a body-only amend leaves those bytes alone."
+            "unless --title asks for it: a body-only amend leaves those bytes alone. An "
+            "address that is not an anchor is read as a heading text, which is how the two "
+            "regions carrying no anchor — the file's opening, and a table of contents — are "
+            "reached; neither is charged the section word limit, which is a rationale's."
         ),
     )
-    section_amend.add_argument("anchor", help="the anchor, e.g. RK9 (no §)")
+    section_amend.add_argument(
+        "anchor", help="the anchor, e.g. RK9 (no §), or an unanchored heading's own text"
+    )
     section_amend.add_argument("--title", help="replace the heading text")
     section_amend.add_argument(
         "--body",
@@ -518,11 +523,14 @@ def build_parser() -> argparse.ArgumentParser:
         "show",
         help="print one section and its word count",
         description=(
-            "Print one section whole, with the word count the budget is measured in. Reads; "
-            "never writes."
+            "Print one section whole, with the word count the budget is measured in. An "
+            "address that is not an anchor is read as a heading text, so the file's opening "
+            "and a table of contents answer too. Reads; never writes."
         ),
     )
-    section_show.add_argument("anchor", help="the anchor, e.g. RK9")
+    section_show.add_argument(
+        "anchor", help="the anchor, e.g. RK9, or an unanchored heading's own text"
+    )
     section_show.add_argument("--role", default="improvements", help="which prose file")
     section_show.add_argument("--json", action="store_true", help=_JSON_HELP)
     section_show.set_defaults(handler=_section_show, reads_only=True)

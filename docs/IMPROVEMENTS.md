@@ -77,28 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1107 A heading with no anchor, and the hand edit it forces
-
-Every write here addresses a section by its anchor, and a prose file's first two
-headings have none: the preamble that says what the file is, and the `## Table of
-contents` that lists its families. `section show 'Table of contents'` answers that no
-such section exists, which is true and leaves the caller one door — the hand edit the
-guard exists to deny.
-
-It matters because those two go stale mechanically. `ship` drops a section; where that
-section was a family's last child, the contents row naming the family and the preamble
-sentence introducing it are both wrong in the same instant, and each is a derived fact
-about a file this tool owns that nobody reports.
-
-Two questions the design has to answer. The first is what the address is: a title is not
-an anchor and a positional name (`preamble`, `contents`) is a second addressing scheme,
-so it has to be one the project declares rather than one invented here. The second is
-whether a contents is prose at all — a list of the file's own headings is derivable,
-which makes it a rendering and not a body, and then the verb is not `amend` but the
-`--fix` that already repairs the other derived fields. The preamble is genuinely prose
-and needs the first answer, so the two headings that look like one problem are probably
-two.
-
 ### §RK1109 A confirmation over prose that was never read
 
 `section amend <anchor> --title "…"` deliberately leaves the body alone: `None` stays
@@ -122,6 +100,30 @@ a used fd 0 — then `unchanged` has to say that no body was read, since the cal
 otherwise tell the two cases apart.
 
 ## Block C — Query
+
+### §RK1110 The contents is a projection, and the paragraph beside it is not
+
+RK1107 made the two unanchored regions addressable and stopped there, deliberately: an
+address is what an author needs to edit prose, and half of a contents is not prose.
+Reading the two live files says which half. Shio's `## Table of contents` is 21 lines of
+`- [§X. Title](#slug)` — the anchor, the heading text and a GitHub slug, every character
+of it already in the file it lists. claude-tray's is the same table plus a blockquote
+saying which families are gone and that numbers are never reused, which no derivation
+could produce.
+
+So the row is a projection and the paragraph beside it is the author's, and the
+machinery for exactly that split is already here: `exporting` replaces what is between
+two markers the author put there, `refreshes` carries the write inside every transaction
+that touches a governed file, and `export.stale` is the gate code with a remedy. A
+`ship` that drops a section would rewrite the contents in the same commit that made it
+wrong.
+
+What has to change to admit it. `DEFAULTS` maps a flag to a literal path, and this
+target's is the project's own `[files]` improvements — so it stops being a constant.
+`Projection` is built from the three counted roles and knows no prose headings, so the
+derivation is a second one. And the block sits inside a file `Document` round-trips,
+which is the property to hold first: a splice that broke L3 on a governed file is worse
+than the staleness it fixes.
 
 ## Block D — The gate
 
