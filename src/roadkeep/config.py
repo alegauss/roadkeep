@@ -268,6 +268,54 @@ def _marked(path: Path, broken: tomllib.TOMLDecodeError) -> Exception:
     )
 
 
+#: Every argument this CLI takes that carries a path, and which directory it is read from
+#: (RK1103). RK1101 stated the rule for one verb and this is the reading that says where else
+#: it applies — and the answer it produced is that there are **three** classes and not two.
+#:
+#: * ``project`` — names a file of the project, so a relative one is resolved against the root
+#:   by :meth:`Config.locate`. `-C` selects the project and never the working directory, and
+#:   over MCP the two are never the same tree.
+#: * ``caller`` — names a file to *read from*, the way `cat` does. The caller's own, relative
+#:   to the caller. Resolving one against the root would be a rule about somebody else's shell.
+#: * ``repo`` — repo-relative **text**, and never resolved at all. A claim's scope becomes a
+#:   `git add --` argument matched against what git reports, which is repo-relative already;
+#:   resolving it would make `src/` absolute and stop it covering `src/a.py` (RK495). git's
+#:   merge driver passes `%O`, `%A`, `%B` and `%P` under its own contract, which is this class
+#:   arrived at from the other side.
+#:
+#: Held by `tests/test_config.py` against the parser, so a key naming no argument is a failure
+#: rather than a classification that quietly stopped applying — the rule `_DIVERGENT` has.
+#: What that test **cannot** say is that the table is complete: no property of an argparse
+#: argument marks it as carrying a path (`--with` is `alongside`, `install --source` reads as
+#: neither), so the guard is a scan for the obvious spellings and the rest is this list. That
+#: limit is stated rather than papered over: a new path argument spelled `--out-dir` is caught,
+#: one spelled `--target` is not.
+PATH_ARGUMENTS: Mapping[str, Mapping[str, str]] = {
+    # `-C` is the caller's, and it is the one row worth saying out loud: the flag that selects
+    # the project is itself read from the process's directory, because there is no project to
+    # be relative to until it has been answered. Every `project` row below is relative to what
+    # this one found.
+    "": {"directory": "caller"},
+    "add": {"section_body_file": "caller"},
+    "section add": {"body_file": "caller"},
+    "section amend": {"body_file": "caller"},
+    "merge": {
+        "base": "repo",
+        "ours": "repo",
+        "theirs": "repo",
+        "path": "repo",
+    },
+    "claim": {"path": "repo", "add_path": "repo"},
+    "budget": {"file": "project"},
+    "replay": {"path": "caller"},
+    "adopt": {"path": "project", "alongside": "project"},
+    "install": {"source": "caller"},
+}
+
+#: The dest spellings a scan can recognise as a path, which is the partial guard above.
+PATH_SPELLINGS = ("path", "paths", "file", "files", "directory")
+
+
 @dataclass(frozen=True, slots=True)
 class Config:
     """Where the governed files are, and which format they are written in."""

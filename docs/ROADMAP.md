@@ -34,8 +34,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK1103** (deps: —) **adopt resolves a project path from the root and no other verb taking one was checked** — RK1101 fixed the target and --with, leaving claim --path, merge --path and replay unexamined against the rule it declared. → §RK1103
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Block G — The editor surface (the backlog where the file is open)

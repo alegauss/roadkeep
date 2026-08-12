@@ -120,14 +120,14 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 0 | 130 | 1 |
 | C — Query (consult without reading the file) | 0 | 87 | 1 |
 | D — The gate | 1 | 145 | 0 |
-| E — Adoption | 1 | 83 | 1 |
+| E — Adoption | 0 | 84 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 97 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 2 | 594 | 6 |
+| **Total** | 1 | 595 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1103** (deps: —) **adopt resolves a project path from the root and no other verb taking one was checked** — RK1101 fixed the target and --with, leaving claim --path, merge --path and replay unexamined against the rule it declared. → §RK1103
+- 📋 **RK1104** (deps: —) **the rule about guessing a fact from a file's text is held over one file and stated for the rest** — RK1102's scan covers tests/conftest.py alone, so the same predicate written in any of the other thirty test modules is caught by nothing. → §RK1104
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

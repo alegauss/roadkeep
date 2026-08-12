@@ -513,6 +513,7 @@
 - ✅ **RK1093** **the estimate's four gains are four hand-written blocks in one function** — GAINS declares each door as a name, a predicate over what the project declared and the sentence saying what it has instead, so a fifth is a row and a test can ask whether all four are named.
 - ✅ **RK1100** **adopt estimates what a project gains and never says the tool surface costs it fifty thousand characters** — the estimate prints what the served surface costs a session at connect, beside the doors it names and with no verdict on the trade.
 - ✅ **RK1101** **a relative path under -C resolves against the shell's directory, so adopt can measure another project's file** — a path naming a file of the project resolves against the project root, and the refusal names the file beside the caller when there is one.
+- ✅ **RK1103** **adopt resolves a project path from the root and no other verb taking one was checked** — PATH_ARGUMENTS classifies every path this CLI takes as the project's, the caller's or repo-relative text, held against the parser.
 
 ## Block F — The Claude Code plugin
 

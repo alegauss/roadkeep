@@ -103,26 +103,6 @@ the reading that decides it is how many text readers the suite actually has.
 
 ## Block E — Adoption
 
-### §RK1103 One rule about paths, applied to one verb
-
-RK1101 stated the rule — a path naming a file **of the project** resolves against the
-project root, and a file the caller supplies stays relative to the caller — and applied
-it to `adopt`'s target and `--with`. Every other path argument was measured and then
-left alone.
-
-The reading it left: `budget --file` already resolves against the root, so it agrees by
-accident rather than by the rule. `claim --path` and `--add-path` store what they are
-given and `claim <id>` reads it back against the tree, which makes them project paths
-that nothing resolves. `merge --path` is git's `%P`, repo-relative by contract. `replay`
-takes a capture and `--body-file` takes prose, both the caller's.
-
-So the classification is already made and only one verb was moved. What is left is to
-apply `Config.locate` where the rule says it belongs, and — more usefully — to hold the
-classification somewhere a new path argument has to join: the shape RK1099 gave the
-served surface, where an argument nobody classified is a red rather than a silence.
-Worth checking whether `claim --path` under `-C` from another directory records a scope
-that resolves against nothing.
-
 ## Block F — The plugin
 
 ## Block G — The editor surface (the backlog where the file is open)

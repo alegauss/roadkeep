@@ -17,7 +17,14 @@ from pathlib import Path
 
 import pytest
 
-from roadkeep.config import CONFIG_NAME, Config, ConfigError, find_config
+from roadkeep.config import (
+    CONFIG_NAME,
+    PATH_ARGUMENTS,
+    PATH_SPELLINGS,
+    Config,
+    ConfigError,
+    find_config,
+)
 from roadkeep.kernel.schema import DESIGNED, IDEA, SHIPPED, Task
 
 HERE = Path(__file__).resolve().parents[1]
@@ -656,3 +663,87 @@ def test_a_pyproject_that_configures_nothing_is_still_walked_past(tmp_path):
     pyproject with no `[tool.roadkeep]` is not this project's config, mark or no mark."""
     (tmp_path / "pyproject.toml").write_bytes(MARK + b'[tool.black]\nline-length = 88\n')
     assert find_config(tmp_path) is None
+
+
+# -- which directory a path argument is read from (RK1103) --------------------
+
+
+def _arguments() -> dict[str, set[str]]:
+    """Every dest this CLI declares, by subcommand path — `""` for the top-level parser."""
+    import argparse
+
+    from roadkeep.cli import build_parser
+
+    out: dict[str, set[str]] = {}
+
+    def walk(parser, prefix: str = "") -> None:
+        for action in parser._actions:
+            if isinstance(action, argparse._SubParsersAction):
+                for name, sub in action.choices.items():
+                    walk(sub, f"{prefix}{name} ".strip() if not prefix else f"{prefix} {name}")
+                continue
+            if action.dest not in ("help", "handler"):
+                out.setdefault(prefix, set()).add(action.dest)
+
+    walk(build_parser())
+    return out
+
+
+def test_every_classified_path_argument_is_one_this_cli_declares():
+    """`_DIVERGENT`'s rule, applied to the classification RK1103 made.
+
+    A key naming no argument is the failure a table has: the entry stops matching, nothing
+    says so, and the rule it encoded quietly stops applying to a renamed flag.
+    """
+    declared = _arguments()
+    for command, rows in PATH_ARGUMENTS.items():
+        assert command in declared, f"{command!r} is not a subcommand of this CLI"
+        missing = set(rows) - declared[command]
+        assert not missing, f"{command}: {sorted(missing)} is not an argument it takes"
+
+
+def test_every_class_is_one_of_the_three_the_rule_names():
+    # Three and not two, which is the finding RK1103 produced: a claim's scope is repo-relative
+    # text that is never resolved, because resolving `src/` would stop it covering `src/a.py`.
+    assert {one for rows in PATH_ARGUMENTS.values() for one in rows.values()} == {
+        "project",
+        "caller",
+        "repo",
+    }
+
+
+def test_a_path_argument_spelled_the_obvious_way_is_classified():
+    """The partial guard, and its limit is the honest part (RK1103).
+
+    No property of an argparse argument marks it as carrying a path — `--with` is `alongside`
+    and `install --source` reads as neither — so completeness cannot be checked. What can is
+    the common spelling: a new `--out-dir` or `--body-file` that nobody classified is a red.
+    """
+    import re
+
+    spelled = re.compile(rf"(^|_)({'|'.join(PATH_SPELLINGS)})$")
+    unclassified = {
+        (command, dest)
+        for command, dests in _arguments().items()
+        for dest in dests
+        if spelled.search(dest) and dest not in PATH_ARGUMENTS.get(command, {})
+    }
+    assert not unclassified, (
+        f"{sorted(unclassified)} looks like a path and is in no class: add it to "
+        f"PATH_ARGUMENTS as project, caller or repo"
+    )
+
+
+def test_a_claims_scope_is_never_resolved(tmp_path):
+    """The class that would break if the rule were applied everywhere (RK1103).
+
+    `claim --path src/` becomes a `git add --` argument matched against what git reports, and
+    git reports repo-relative paths. `Config.locate` would make it absolute and `_covers` would
+    stop answering — the directory scope RK495 exists for would cover nothing.
+    """
+    write(tmp_path, 'prefix = "RK"\n')
+    config = Config.discover(tmp_path)
+    assert PATH_ARGUMENTS["claim"] == {"path": "repo", "add_path": "repo"}
+    # And the rule itself still does what it says on the class that takes it.
+    assert config.locate("docs/ROADMAP.md") == config.root / "docs" / "ROADMAP.md"
+    assert config.locate(tmp_path / "elsewhere.md") == tmp_path / "elsewhere.md"
