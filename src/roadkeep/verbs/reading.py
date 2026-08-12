@@ -264,6 +264,32 @@ def harden() -> None:
     _force_utf8(sys.stderr)
 
 
+def unread_prose(*, named: str = "--body") -> str:
+    """The clause an answer adds where it left the prose alone (RK1109).
+
+    A title-only `section amend` does not read the pipe, by design and correctly — `None` stays
+    `None` so a call with nothing to read never blocks on a stream nobody opened. What that cost
+    was silence: a caller who piped the replacement prose *and* passed `--title` got the title
+    compared alone, and where it already read that way the answer was `unchanged: it already
+    reads that way` at exit 0, over a paragraph that was never read.
+
+    **Said rather than detected**, which is the whole reading. "Is a body waiting on stdin" has
+    no portable answer, and the one that looks right — stdin is not a tty — is wrong exactly
+    where this tool is used most: the MCP server owns stdin for the protocol, so every served
+    `section_amend` would be refused for a pipe that is the transport. A sentence naming what
+    the call did not do is true unconditionally, costs no test, and cannot false-positive.
+
+    The flag it names is the one that would work here: over a stream this process could not make
+    strict UTF-8 the pipe is not available at all, and `--body-file` is the door (RK455).
+    """
+    if _STDIN_HARDENED:
+        return f"the prose was not read; pass {named} - to replace it"
+    return (
+        f"the prose was not read, and this process cannot read a pipe; "
+        f"{named}-file <path> is the door"
+    )
+
+
 def _unhardened() -> str | None:
     """Why this process may not read prose off stdin, or None where it may (RK455).
 

@@ -3160,3 +3160,67 @@ def test_an_address_that_is_neither_says_so_in_both_vocabularies(tmp_path, capsy
     assert main(["-C", str(tmp_path), "section", "show", "Nothing"]) == EXIT_USAGE
     said = capsys.readouterr().err
     assert "no §Nothing section" in said and "no heading reading 'Nothing'" in said
+
+
+# -- the answer with nothing in it to read (RK1109) ---------------------------
+
+
+def test_an_unchanged_amend_says_the_prose_was_never_read(tmp_path, capsys, monkeypatch):
+    """The defect, from a field report: a caller piped the replacement prose *and* passed
+    `--title`, the title already read that way, and the answer was `unchanged: it already reads
+    that way` at exit 0 — a success-shaped message over a paragraph nothing had looked at.
+
+    The changed path lists its fields, so `(title)` already says the prose was left alone; this
+    one listed nothing at all, which is where the silence was.
+    """
+    config = project(tmp_path)
+    monkeypatch.setattr("sys.stdin", _Unread())
+    argv = ["-C", str(tmp_path), "section", "amend", "RK1", "--title", "A first design"]
+
+    assert main(argv) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "unchanged: it already reads that way" in said
+    assert "the prose was not read; pass --body - to replace it" in said
+    # And the pipe stayed shut, which is the rule this keeps rather than changes: `_Unread`
+    # fails the test if anything drains it.
+    assert read(config) == RATIONALE
+
+
+def test_an_unchanged_amend_that_did_read_the_prose_says_nothing_extra(tmp_path, capsys):
+    # The clause is about what the call did not do, so a call that read the body and found it
+    # identical is simply unchanged — adding the sentence there would be false.
+    config = project(tmp_path)
+    argv = [
+        "-C", str(tmp_path), "section", "amend", "RK1",
+        "--body", "The reasoning the line has no room for.",
+    ]
+    assert main(argv) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "unchanged" in said and "the prose was not read" not in said
+    assert read(config) == RATIONALE
+
+
+def test_the_json_answer_carries_whether_the_prose_was_looked_at(tmp_path, capsys, monkeypatch):
+    # `changed: []` says nothing moved and cannot say why, which is the ambiguity a piped body
+    # and a `--title` land in together — so the same fact is a field.
+    project(tmp_path)
+    monkeypatch.setattr("sys.stdin", _Unread())
+    argv = [
+        "-C", str(tmp_path), "section", "amend", "RK1", "--title", "A first design", "--json",
+    ]
+    assert main(argv) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["changed"] == [] and payload["read_body"] is False
+
+
+def test_the_clause_names_the_path_where_this_process_cannot_read_a_pipe(monkeypatch):
+    # Over MCP the server owns stdin for the protocol, so the pipe is not available at all and
+    # naming it would send the caller at the transport. `--body-file` is the door there, and
+    # this is also why the fix is a sentence and not a *detection*: "stdin is not a tty" is true
+    # of every served call, so refusing on it would refuse the whole surface.
+    from roadkeep.verbs import reading
+
+    monkeypatch.setattr(reading, "_STDIN_HARDENED", False)
+    assert "--body-file <path> is the door" in reading.unread_prose()
+    monkeypatch.setattr(reading, "_STDIN_HARDENED", True)
+    assert "pass --body - to replace it" in reading.unread_prose()

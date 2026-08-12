@@ -40,7 +40,7 @@ from roadkeep.sections import (
     titled,
     untitled,
 )
-from roadkeep.verbs.reading import _body_reader, _one_body, _piped
+from roadkeep.verbs.reading import _body_reader, _one_body, _piped, unread_prose
 from roadkeep.verbs.refusing import EXIT_OK, EXIT_USAGE, REFUSALS, _refused
 
 
@@ -270,7 +270,15 @@ def _section_amend(config: Config, args: argparse.Namespace) -> int:
     if args.json:
         print(
             json.dumps(
-                {**_section_json(section, where), "changed": list(changed)}, indent=2
+                {
+                    **_section_json(section, where),
+                    "changed": list(changed),
+                    # The same fact as a field (RK1109): whether this call looked at the prose
+                    # at all. `changed: []` says nothing moved and cannot say why, which is the
+                    # ambiguity a piped body and a `--title` land in together.
+                    "read_body": body is not None,
+                },
+                indent=2,
             )
         )
         return EXIT_OK
@@ -280,7 +288,12 @@ def _section_amend(config: Config, args: argparse.Namespace) -> int:
     # paragraph and its contents table are not measured by. `[budgets]` counts their bytes.
     named = f"§{section.anchor}" if section.anchor else f"'{section.title}'"
     if not changed:
-        print(f"{named} unchanged: it already reads that way")
+        # RK1109. `unchanged` at exit 0 is the one answer here with nothing in it to read: the
+        # changed path lists its fields, so a caller sees `(title)` and knows the prose was left
+        # alone, and this path listed nothing at all. A caller who piped the replacement and
+        # passed `--title` got a success-shaped message over a paragraph never read.
+        aside = "" if body is not None else f" — {unread_prose()}"
+        print(f"{named} unchanged: it already reads that way{aside}")
         return EXIT_OK
     counted = (
         f"  {_counted(section, config.schema_for(args.role).section_max)}"

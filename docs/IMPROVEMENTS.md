@@ -77,28 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1109 A confirmation over prose that was never read
-
-`section amend <anchor> --title "…"` deliberately leaves the body alone: `None` stays
-`None`, so a title-only amend does not block on a pipe nobody meant to open. That rule
-is right and it has a failure mode. A caller who piped the new prose *and* passed
-`--title` gets the title compared alone, and where the title already reads that way the
-answer is `§XI.21 unchanged: it already reads that way` at exit 0 — over a paragraph on
-stdin that was never read.
-
-That is a silent no-op wearing a confirmation, which is the one shape a write path may
-not have. Everything else here refuses and says what it looked at: a field over its
-limit exits 2 naming the limit and the line of config that set it, an unresolved pointer
-is a finding with the command that closes it. This one reports success about a file it
-did not open.
-
-The fix is not to read the pipe. It is to notice that a body arrived: stdin not being a
-tty is a fact this process has, and `reading.py` already decides whether fd 0 could be
-made strict UTF-8 for its own reason, so the reader exists. Where a body is detectable
-the answer is a refusal naming `--body -`; where it is not — a harness that handed over
-a used fd 0 — then `unchanged` has to say that no body was read, since the caller cannot
-otherwise tell the two cases apart.
-
 ## Block C — Query
 
 ### §RK1110 The contents is a projection, and the paragraph beside it is not

@@ -188,6 +188,7 @@
 - ✅ **RK1086** **Resumption models a placement so a resume that places nothing has to fake one** — Resumption carries the document and the line it placed or None, and Closure names the file it removed from, so an act that writes no line is expressible rather than faked.
 - ✅ **RK1088** **the closure names the file it removed from and no caller reads it** — The closure's document is named for what it is and the printer and payload read removed_in, so the file a closure wrote is answered rather than assumed to be the roadmap.
 - ✅ **RK1107** **a prose file's preamble and table of contents carry no anchor, so every edit to them is a hand edit** — An address that is not an anchor reads as a heading text, so a file's opening and its contents answer to section show and amend (design §RK1107 superseded: no positional name had to be declared).
+- ✅ **RK1109** **section amend answers unchanged: it already reads that way over a body left unread on stdin** — An unchanged amend says the prose was never read and the JSON carries it as a field, so a piped body with a --title is not a confirmation (design §RK1109 superseded: stdin is never a tty over MCP).
 
 ## Block C — Query
 
