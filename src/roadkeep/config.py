@@ -186,9 +186,30 @@ def spent(raw: bytes) -> dict[str, int]:
     decoding (L4). Here rather than in either reader, because the gate that refuses the
     overrun (RK30) and the read that reports the room before an edit (RK345) are two callers
     of one measurement — and two spellings of it would be the disagreement RK50 removed.
+
+    **The terminator is normalised out and nothing else is** (RK1105). Counted raw, the byte
+    number is a fact about the *checkout*: one commit of claude-tray's `AGENTS.md` is 24310
+    bytes with CRLF and 23999 with LF under `core.autocrlf=input`, so a ceiling moves 311
+    bytes per machine while `git diff` shows nothing, and a commit one byte inside its budget
+    passes on the runner and is refused on the desk. A budget is a fact about the commit —
+    that is what a reviewer reads and what CI gates — so `\\r\\n` is counted as the `\\n` the
+    repository stores. What this checkout pays over that is real and is not dropped in
+    silence: :func:`translated` is the difference, which `lint` states as a note and
+    `budget` prints beside the number.
     """
-    return {"lines": raw.count(b"\n") + (0 if raw.endswith(b"\n") or not raw else 1),
-            "bytes": len(raw)}
+    counted = raw.replace(b"\r\n", b"\n")
+    return {"lines": counted.count(b"\n") + (0 if counted.endswith(b"\n") or not counted else 1),
+            "bytes": len(counted)}
+
+
+def translated(raw: bytes) -> int:
+    """How many bytes this checkout carries that :func:`spent` did not count (RK1105).
+
+    One per `\\r\\n`, which is the whole difference between the two measurements — a lone `\\r`
+    is a byte in its own right in both, and `char.mixed-endings` is what has something to say
+    about a file carrying two conventions.
+    """
+    return raw.count(b"\r\n")
 
 
 @dataclass(frozen=True, slots=True)

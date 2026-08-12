@@ -788,6 +788,14 @@ def _file_budget(config: Config, args: argparse.Namespace) -> int:
             # pays, so a word figure beside it would be a number this project never stated.
             over = f", {cost.over} over" if cost.over else f", {cost.left} left"
             print(f"  {cost.unit:<11}{cost.taken} of {cost.limit}{over}")
+        if load.translated:
+            # The remainder the ceiling does not charge (RK1105). Printed under the units and
+            # not beside one, because it is a fact about the checkout and not about the budget:
+            # the number above decides, and this one is what a loader here actually reads.
+            print(
+                f"  {'checkout':<11}{load.translated} more, this tree's lines ending CRLF — "
+                f"counted as the commit stores them"
+            )
         _print_parts(load)
     return EXIT_OK
 

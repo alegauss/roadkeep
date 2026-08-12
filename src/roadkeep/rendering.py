@@ -771,6 +771,9 @@ def _load_json(load: Load) -> dict[str, object]:
             {"heading": part.heading, "lines": part.lines, "bytes": part.bytes}
             for part in load.parts
         ],
+        # What this checkout pays over the counted number (RK1105), so a caller comparing two
+        # machines has the difference as a field instead of inferring it from a mismatch.
+        "translated": load.translated,
     }
 
 

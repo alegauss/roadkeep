@@ -1088,6 +1088,16 @@ _TABLE: Mapping[str, _Rule] = {
         "with the rendering the report carries, then correct `[grammar.<role>]` — the id is "
         "the author's because every line in the file is equally evidence",
     ),
+    # A note and not a finding, so the door is a read and there is nothing to repair: the
+    # ceiling held (RK1105). What it reports is that the declared number was measured on a
+    # working tree and this count is the commit's, so the file has room its author never
+    # voted for — and bringing a ceiling down is an argument about what may be loaded every
+    # turn, which is the one edit in `roadkeep.toml` no verb of this tool makes for you.
+    "budget.translated": _read(
+        ("budget", "--file", "{id}"),
+        "the counted bytes are the commit's and this checkout pays more; this prints both "
+        "beside the ceiling, and lowering it is a line in roadkeep.toml",
+    ),
     "budget.session": _read(
         ("budget", "--session"),
         "the whole served surface is past what `[tools] session` allows and no single tool "

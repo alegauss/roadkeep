@@ -69,7 +69,7 @@ from pathlib import Path
 
 from roadkeep.authoring import compose, prose_role
 from roadkeep.config import Budget as ConfigBudget
-from roadkeep.config import Config, spent
+from roadkeep.config import Config, spent, translated
 from roadkeep.ids import next_id
 from roadkeep.kernel.schema import CHARS_PER_WORD, Task, body_aim, width, words
 from roadkeep.scoping import NoSuchNonGoal, NotGoverned, address, leads, read
@@ -574,6 +574,11 @@ class Load:
     #: Said rather than answered as a free file, because the whole limit being available is
     #: the one reading that would make a missing file look like room.
     present: bool = True
+    #: Bytes this checkout carries that the count above left out — one per `\r\n` (RK1105).
+    #: Reported and never charged: the ceiling is the commit's, so the number that decides is
+    #: normalised, and this is the honest remainder a loader on *this* machine really pays.
+    #: 0 on an LF checkout, which is every question about the two being the same question.
+    translated: int = 0
 
     @property
     def over(self) -> bool:
@@ -631,6 +636,10 @@ def file_budget(config: Config, path: str | None = None) -> tuple[Load, ...]:
 def _load(config: Config, budget: ConfigBudget) -> Load:
     raw = budget.path.read_bytes() if budget.path.is_file() else None
     measured = spent(raw if raw is not None else b"")
+    # Normalised before `_parts`, and not only in the total (RK1105): a breakdown counted off
+    # the checkout sums past the number above it, and the reader comparing the two is deciding
+    # what to cut. One convention, both figures.
+    counted = b"" if raw is None else raw.replace(b"\r\n", b"\n")
     return Load(
         path=config.relative(budget.path),
         costs=tuple(
@@ -638,17 +647,19 @@ def _load(config: Config, budget: ConfigBudget) -> Load:
             for unit, limit in (("lines", budget.lines), ("bytes", budget.bytes))
             if limit is not None
         ),
-        parts=_parts(raw) if raw is not None else (),
+        parts=_parts(counted) if raw is not None else (),
         present=raw is not None,
+        translated=0 if raw is None else translated(raw),
     )
 
 
 def _parts(raw: bytes) -> tuple[Part, ...]:
     """The file's `##` sections, largest first (RK1092).
 
-    Bytes and never text, for the reason the budget itself is counted that way: what a loader
-    pays is what is on disk, and a section measured through newline translation is a different
-    number from the one the limit is about.
+    Bytes and never text, for the reason the budget itself is counted that way: an instruction
+    file is not a format this tool decodes (L4). Handed the same normalised bytes the total is
+    counted from (RK1105) — this sentence said the opposite while that was true of both, and a
+    breakdown on the checkout's own terminator would sum past the number printed above it.
 
     Only `##`, because that is the level `agents.md` organises by — a `###` under one belongs
     to it, and splitting there would report a heading's own body as a sibling of its parent.

@@ -1618,6 +1618,38 @@ def test_the_byte_budget_catches_what_the_line_budget_cannot(tmp_path):
     assert "802 bytes, budget is 500" in report.findings[0].message
 
 
+def test_the_byte_count_does_not_move_with_the_checkout_s_line_endings(tmp_path):
+    # RK1105. Measured in claude-tray: one commit of `AGENTS.md` is 24310 bytes checked out
+    # with CRLF and 23999 with LF, so a ceiling set on one machine is 311 bytes looser on
+    # the other and `git diff` is empty across the two. A budget is a fact about the commit,
+    # since that is what a reviewer reads and what CI gates, so the terminator is normalised
+    # out of the count and the number a project declared means one thing everywhere.
+    lf = "x" * 90 + "\n"
+    both = [lint(budgeted(tmp_path, lf * 5, '"agents.md" = { bytes = 455 }')).clean]
+    both.append(lint(budgeted(tmp_path, lf.replace("\n", "\r\n") * 5, '"agents.md" = { bytes = 455 }')).clean)
+    assert both == [True, True]
+
+
+def test_a_crlf_checkout_is_told_what_it_pays_over_the_counted_number(tmp_path):
+    # The cost the normalisation drops is real — a loader on this checkout reads those bytes
+    # — so it is stated rather than hidden, and stated as a note: the ceiling held, and a
+    # gate that failed over the checkout's own convention would be the machine-dependent
+    # answer this task removed, in the other direction.
+    report = lint(budgeted(tmp_path, "a\r\n" * 10, '"agents.md" = { bytes = 20 }'))
+    note = next(n for n in report.notes if n.code == "budget.translated")
+    assert report.clean and note.file == "agents.md"
+    assert "20 bytes counted" in note.message and "10 more on this checkout" in note.message
+
+
+def test_a_budget_declared_against_crlf_is_told_the_room_it_gained(tmp_path):
+    # Every `[budgets]` number in every adopting project was measured the old way, on a
+    # working tree, so this change hands each of them free room it never voted for. The note
+    # is where that is said: the ceiling is the author's to bring back down, not this tool's.
+    report = lint(budgeted(tmp_path, "a\r\n" * 10, '"agents.md" = { bytes = 20 }'))
+    note = next(n for n in report.notes if n.code == "budget.translated")
+    assert "declared against a working tree" in note.message
+
+
 def test_a_budgeted_file_that_is_absent_is_reported(tmp_path):
     report = lint(project(tmp_path, config=CONFIG + '\n[budgets]\n"gone.md" = { lines = 5 }\n'))
     absent = next(f for f in report.findings if f.code == "budget.absent")

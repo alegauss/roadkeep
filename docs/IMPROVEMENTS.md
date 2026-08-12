@@ -125,27 +125,6 @@ otherwise tell the two cases apart.
 
 ## Block D — The gate
 
-### §RK1105 A ceiling measured on the checkout, not on the commit
-
-`_parts` states the rule the whole file budget is counted by: bytes and never text,
-because what a loader pays is what is on disk. That is right about the cost and wrong
-about the ceiling. Measured in claude-tray: AGENTS.md is 24310 bytes with CRLF and 23999
-with LF from one commit under `core.autocrlf=input`, so 311 bytes of headroom — about
-ten lines of the prose this budget exists to ration — appear and disappear with the
-checkout, and `git diff` is empty across the two.
-
-What that costs is a gate whose answer depends on the machine. A commit at 24399 of a
-24400 ceiling passes on the Linux runner and is refused on the Windows desk, and neither
-answer is wrong on its own terms. A budget is a fact about the commit, since that is
-what a reviewer reads and what CI gates, so the number to count is the normalised one.
-
-Two readings before the change. Which bytes the harness actually loads is worth
-measuring rather than assumed — if it reads the working tree, the cost the docstring
-names is real and the answer is to report both, the counted ceiling and what this
-checkout pays. And every declared `[budgets]` number in every adopting project was set
-against a CRLF measurement, so a switch to LF hands each of them room it never voted
-for, which `lint` should say once.
-
 ### §RK1106 The fourth relation: a citation inside prose
 
 `referring.py` declares three relations — a dep names an id, a pointer names a heading,

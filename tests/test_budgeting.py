@@ -709,10 +709,14 @@ def test_an_every_turn_file_states_what_it_costs_before_the_edit(tmp_path):
     costs = {one.unit: one for one in load.costs}
     assert load.path == "agents.md" and load.present and not load.over
     assert costs["lines"].taken == 3 and costs["lines"].left == 2
-    # Off the bytes on disk and not off the string this test wrote: a budget is what the
-    # loader pays, and a line ending translated on the way out is part of what it pays.
+    # Off the string this test wrote and not off the bytes on disk (RK1105). This assertion
+    # was the other way round, on the ground that a line ending translated on the way out is
+    # part of what a loader pays — and it was the defect: the fixture writes through Python's
+    # own translation, so it asserted 35 here and 32 on a posix runner for one source string.
+    # A budget is a fact about the commit, so `\r\n` counts as the `\n` the repository stores.
+    assert costs["bytes"].taken == len(AGENTS.encode()) and costs["bytes"].limit == 100
     written = (tmp_path / "agents.md").read_bytes()
-    assert costs["bytes"].taken == len(written) and costs["bytes"].limit == 100
+    assert load.translated == written.count(b"\r\n")  # named, and never charged
 
 
 def test_the_gate_and_the_read_count_the_same_file_the_same_way(tmp_path):
@@ -726,6 +730,40 @@ def test_the_gate_and_the_read_count_the_same_file_the_same_way(tmp_path):
     # And `lint` refuses it, naming the same figure — the read reports, the gate holds.
     findings = [one for one in lint(config).findings if one.code == "budget.lines"]
     assert findings and f"{costs['lines'].taken} lines" in findings[0].message
+
+
+def test_the_read_names_what_this_checkout_pays_over_the_ceiling(tmp_path, capsys):
+    # RK1105's other half. The normalised number is the one that decides, and the bytes a
+    # loader on this machine really reads are stated under it rather than dropped — otherwise
+    # the tool answers a smaller number than the file and never says which question it took.
+    budgeted(tmp_path)
+    (tmp_path / "agents.md").write_bytes(b"# Agents\r\n\r\nOne line.\r\n")
+    assert main(["-C", str(tmp_path), "budget", "--file"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "bytes      20 of 100" in printed
+    assert "checkout   3 more, this tree's lines ending CRLF" in printed
+    assert main(["-C", str(tmp_path), "budget", "--file", "--json"]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["files"][0]["translated"] == 3
+
+
+def test_a_section_breakdown_counts_the_bytes_the_total_counted(tmp_path):
+    # The parts have to sum inside the total (RK1092 under RK1105): measured off the checkout
+    # while the total was normalised, a breakdown adds up past the number printed above it,
+    # and a reader deciding what to cut is comparing the two.
+    budgeted(tmp_path)
+    (tmp_path / "agents.md").write_bytes(b"## One\r\nbody\r\n## Two\r\nbody\r\n")
+    (load,) = file_budget(Config.discover(tmp_path))
+    assert sum(part.bytes for part in load.parts) == load.bytes
+
+
+def test_an_lf_checkout_says_nothing_about_a_translation_it_did_not_make(tmp_path, capsys):
+    # 0 is not a fact worth a line: on a posix checkout the two numbers are one number, and a
+    # note about the difference would be a reader's cue to look for one that is not there.
+    budgeted(tmp_path)
+    (tmp_path / "agents.md").write_bytes(b"# Agents\n\nOne line.\n")
+    assert main(["-C", str(tmp_path), "budget", "--file"]) == EXIT_OK
+    assert "checkout" not in capsys.readouterr().out
+    assert lint(Config.discover(tmp_path)).notes == ()
 
 
 def test_a_declared_file_that_is_not_there_is_said_and_never_read_as_room(tmp_path):

@@ -33,7 +33,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1105** (deps: —) **a byte budget counts what the checkout has, so CRLF and LF give one commit different headroom** — AGENTS.md measures 24310 bytes with CRLF and 23999 with LF from one commit under core.autocrlf=input, so a governed ceiling moves 311 bytes per machine and git diff shows nothing. → §RK1105
 - 📋 **RK1106** (deps: —) **a citation inside prose can name a section that no longer exists, and no gate code says so** — Shio lints clean over four retired addresses cited in section bodies, because the three declared relations cover a dep, a task line's pointer and a queue entry and never a citation. → §RK1106
 
 ## Block E — Adoption

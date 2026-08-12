@@ -104,7 +104,7 @@ from pathlib import Path
 from roadkeep import queueing, scoping
 from roadkeep.backlog import Backlog, DepStatus, Stage, id_order
 from roadkeep.blocking import removable
-from roadkeep.config import PROSE_ROLES, ROLES, Config, spent
+from roadkeep.config import PROSE_ROLES, ROLES, Config, spent, translated
 from roadkeep.kernel.document import Document, Entry, Heading, ending
 from roadkeep.exporting import BEGIN, DEFAULTS, NoMarkers, project, splice
 from roadkeep.graph import Graph
@@ -638,7 +638,9 @@ def _examine(config: Config, since: str | None, tree: Tree) -> Report:
 
     targets = _targets(config, tree)
     findings.extend(_projections(config, documents, targets))
-    findings.extend(_budgets(config, tree))
+    budgeted, budget_notes = _budgets(config, tree)
+    findings.extend(budgeted)
+    notes.extend(budget_notes)
 
     # After every per-line check and before the ordering, because it *reads* those findings:
     # a whole file's worth of them is evidence about the rule (RK1068), and the fold has to
@@ -1065,7 +1067,7 @@ def _endings(document: Document, file: str) -> list[Finding]:
     ]
 
 
-def _budgets(config: Config, tree: Tree) -> list[Finding]:
+def _budgets(config: Config, tree: Tree) -> tuple[list[Finding], list[Note]]:
     """Every always-loaded file, against what it declared it may cost (RK30).
 
     Measured in bytes off the tree and lines by counting terminators, so nothing here has
@@ -1074,8 +1076,15 @@ def _budgets(config: Config, tree: Tree) -> list[Finding]:
     tree and not off disk for RK84's reason — an `agents.md` pushed over its budget by this
     change is the finding a baseline exists to keep, and both runs reading the same bytes
     would forgive it.
+
+    Which is exactly why the count is normalised (RK1105): with no baseline the tree *is*
+    disk, so this read is a working tree's bytes, and with one it is a git blob's — the same
+    gate answering two numbers for one commit, 311 bytes apart on the corpus that found it.
+    `spent` drops the terminator's second byte and the second half of that is here, as a
+    note: the checkout's real cost is stated and never charged.
     """
     out: list[Finding] = []
+    notes: list[Note] = []
     for budget in config.budgets:
         where = config.relative(budget.path)
         raw = tree.blob(budget.path)
@@ -1105,7 +1114,20 @@ def _budgets(config: Config, tree: Tree) -> list[Finding]:
                         f"turn, so the overrun is paid on every turn",
                     )
                 )
-    return out + _served(config)
+        extra = translated(raw)
+        if extra and budget.bytes is not None:
+            notes.append(
+                Note(
+                    "budget.translated",
+                    where,
+                    f"{measured_in['bytes']} bytes counted and {extra} more on this "
+                    f"checkout, whose lines end CRLF: the ceiling is the commit's, so a "
+                    f"number declared against a working tree has that much room it never "
+                    f"voted for",
+                    subject=where,
+                )
+            )
+    return out + _served(config), notes
 
 
 def _served(config: Config) -> list[Finding]:
