@@ -81,26 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK1104 The half of the rule a scan cannot reach
-
-RK1102 argued the rule in `conftest.py`'s docstring and held it mechanically over that
-one file, on the ground that a shared fixture is where a wrong predicate reaches
-furthest. That is true and it is also where the coverage stops: the same guess written
-in any of the other test modules meets nothing.
-
-The obstacle is real and worth restating before anybody widens the scan. Reading a
-governed file's *prose* is a legitimate act — `test_linting` counts `agents.md` against
-its budget, `test_invariants` reads `IMPROVEMENTS.md` for the ids it carries — and no
-syntactic rule separates that from deriving structure. A scan over every module would
-report those and be turned off, which is the failure mode a gate has.
-
-Two directions worth measuring before choosing. One is to declare the readers the way
-`conftest`'s are declared, module by module, and accept that the list is long — the
-count is the first thing to measure. The other is to make the guess unattractive instead
-of illegal: if the two facts most often guessed were one call each on a shared helper,
-the shape would stop being the cheapest thing to write. Neither is obviously right, and
-the reading that decides it is how many text readers the suite actually has.
-
 ## Block E — Adoption
 
 ## Block F — The plugin

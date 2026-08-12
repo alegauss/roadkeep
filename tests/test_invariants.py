@@ -566,10 +566,95 @@ def test_the_reader_finds_a_declaration_and_stops_at_the_section_that_made_it():
 # -- a fact the parser owns, guessed from the text (RK1102) -------------------
 
 
-#: Every function in `tests/conftest.py` that reads a file as text, with why that is not the
-#: shape this rule forbids. A shared fixture is where a wrong predicate reaches furthest — its
-#: answer is one session-scoped value every test that asks receives — so this is held here and
-#: the rule itself is argued in that file's own docstring.
+#: The **corpus** this repository is its own conformance fixture of: the governed files, plus
+#: the directory they live in. Wider than `conftest.GOVERNED` on purpose — what the rule is
+#: about is deciding a fact from a file this project *owns the reader for*, and `docs/` is where
+#: those live, whatever a future file in it is called.
+CORPUS = (
+    "ROADMAP.md",
+    "CHANGELOG.md",
+    "IMPROVEMENTS.md",
+    "STRATEGY.md",
+    "roadkeep.toml",
+    "agents.md",
+    "README.md",
+    "CLAUDE.md",
+    "docs",
+)
+
+#: Every function in the suite that reads one of those as text, and why that is prose and not
+#: a fact the parser owns (RK1104). RK1102 held this over `conftest.py` alone and said the
+#: rest was out of reach; the measurement says otherwise — **six** functions in the whole
+#: suite read this repository's own corpus, against 236 text reads overall, because almost
+#: every one of those reads a file the test had just written under `tmp_path`.
+#:
+#: So the declarable set is small, and the reason to declare it is that each entry is a
+#: sentence somebody had to write: reading prose *as prose* is legitimate, deriving structure
+#: from it is what cost two reds, and no scan tells those apart. The reason is where the
+#: telling happens.
+READS_THE_CORPUS = {
+    "test_exporting.test_this_repositorys_readme_is_current": (
+        "the README as text, against the projection `export` writes into it — the assertion "
+        "*is* about the characters, which is what makes it a comparison and not a guess"
+    ),
+    "test_exporting.test_the_landing_page_carries_no_projection_to_go_stale": (
+        "the generated page under `docs/`, read for what it must *not* carry: no parser here "
+        "reads HTML, and the fact being asserted is the absence of copied prose"
+    ),
+    "test_invariants.declared_instances": (
+        "rationale prose, scanned for the ids it cites — a section body is text this format "
+        "deliberately does not structure past its heading (L4)"
+    ),
+    "test_invariants.test_every_recorded_instance_is_a_task_this_project_carries": (
+        "the same scan across both files, and the same reason: an id spelled inside a "
+        "sentence is in no field a parser would return"
+    ),
+    "test_linting._layout_index": (
+        "agents.md as text, to weigh one section of it against another — the budget is bytes "
+        "and lines, so the characters are the subject and not a proxy for one"
+    ),
+    "test_linting.test_the_index_is_a_fifth_of_the_budget_and_the_prose_is_the_rest": (
+        "the same weighing, whose whole finding (RK1094) was that a figure quoted from memory "
+        "had gone stale — re-measuring the text is the correction, not the shape being warned "
+        "about"
+    ),
+}
+
+
+def _reads_the_corpus() -> dict[str, str]:
+    """Every function in `tests/` that reads this repository's own corpus as text.
+
+    Attributed to the enclosing function and not to a line, because a line number moves with
+    every edit above it and the declaration would be re-keyed by an unrelated change. Matched
+    on the *spelling* of the receiver — `HERE / "docs" / name`, `governed / "README.md"` — for
+    the reason RK1103's own guard is a scan for spellings: nothing about a `read_text` call
+    marks its argument as this project's file, so the reading is textual and says so.
+    """
+    found: dict[str, str] = {}
+    for path in sorted(Path(HERE / "tests").glob("*.py")):
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        for node in ast.walk(tree):
+            if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                continue
+            for inner in ast.walk(node):
+                if not (
+                    isinstance(inner, ast.Call)
+                    and isinstance(inner.func, ast.Attribute)
+                    and inner.func.attr in ("read_text", "read_bytes")
+                ):
+                    continue
+                spelled = ast.unparse(inner.func.value)
+                if ("HERE" in spelled or "governed" in spelled) and any(
+                    one in spelled for one in CORPUS
+                ):
+                    found[f"{path.stem}.{node.name}"] = spelled
+    return found
+
+
+#: The other half, and it is not the same claim (RK1102): a shared fixture answers once for
+#: every test that asks, so *any* text read there is declared — not only a corpus one. Kept
+#: beside the wider table rather than folded into it, because the two catch different things
+#: and folding them would leave `conftest` covered only where it reads this project's files.
 CONFTEST_READS_TEXT = {
     "frontmatter": (
         "a skill or command file, which no parser in this package owns: what it reproduces "
@@ -578,34 +663,55 @@ CONFTEST_READS_TEXT = {
 }
 
 
-def test_no_shared_fixture_decides_a_governed_files_shape_from_its_text():
-    """RK1102, held over the one file where the guess does the most damage.
+def test_no_shared_fixture_decides_a_files_shape_from_its_text():
+    """RK1102, held over the one file where a wrong predicate reaches furthest.
 
-    Narrow on purpose, and the narrowness is the honest part: reading a governed file's prose is
-    a different act — `agents.md` counted against its budget is an assertion about text as text
-    — and no scan tells that apart from deriving structure. What a scan *can* say is that this
-    file, whose answers every test shares, reads no file as text except the one declared here.
-
-    So a new reader in `conftest.py` is a red with one question in it: is it prose, or is it a
-    fact `Config.discover(HERE).document(role)` already answers.
+    Every test that asks receives one session-scoped answer, so a guess here is a guess made
+    in fifty places at once — which is what `populated` was, matching `- ` and calling a
+    roadmap of non-goals a populated backlog.
     """
-    source = (HERE / "tests" / "conftest.py").read_text(encoding="utf-8")
-    tree = ast.parse(source)
-    readers: set[str] = set()
-    for node in ast.walk(tree):
-        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-            continue
-        for inner in ast.walk(node):
-            if (
-                isinstance(inner, ast.Call)
-                and isinstance(inner.func, ast.Attribute)
-                and inner.func.attr == "read_text"
-            ):
-                readers.add(node.name)
+    tree = ast.parse((HERE / "tests" / "conftest.py").read_text(encoding="utf-8"))
+    readers = {
+        node.name
+        for node in ast.walk(tree)
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+        for inner in ast.walk(node)
+        if isinstance(inner, ast.Call)
+        and isinstance(inner.func, ast.Attribute)
+        and inner.func.attr == "read_text"
+    }
     assert readers == set(CONFTEST_READS_TEXT), (
         "a shared fixture reads a file as text: declare why in CONFTEST_READS_TEXT, or ask "
         "the parser — `Config.discover(HERE).document(role)` answers what a line is"
     )
+
+
+def test_every_reader_of_this_projects_own_corpus_says_why():
+    """RK1104: the rule RK1102 argued, held over the whole suite rather than one file.
+
+    That task scoped the guard to `conftest.py` and said the rest was out of reach, because
+    reading prose *as prose* is legitimate and no syntactic rule separates it from deriving
+    structure. Both halves are still true. What was wrong was the size: the suite makes 236
+    text reads and **six** of them touch this repository's own corpus — the rest read a file
+    the test had just written under `tmp_path`, which is a fixture and not a fact.
+
+    So the list is short enough to declare, and the declaration is where the telling-apart
+    happens: each entry is somebody's sentence saying this one is prose. A new reader is a red
+    with one question in it — is it prose, or is it a fact
+    `Config.discover(HERE).document(role)` already answers.
+    """
+    assert set(_reads_the_corpus()) == set(READS_THE_CORPUS), (
+        "a test reads this project's own corpus as text: declare why in READS_THE_CORPUS, "
+        "or ask the parser — `Config.discover(HERE).document(role)` answers what a line is"
+    )
+
+
+def test_no_reason_is_a_placeholder():
+    # The failure a table of reasons has: a row written to make the test above pass. Each says
+    # what *this* read is about, so the cheapest wrong answer is one that does not.
+    for where, why in {**READS_THE_CORPUS, **CONFTEST_READS_TEXT}.items():
+        assert len(why.split()) >= 12, f"{where} has no reason in it"
+        assert not why[0].isupper(), f"{where}: a clause, like every other row"
 
 
 def test_the_rule_is_argued_where_the_next_predicate_is_written():

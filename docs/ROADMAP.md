@@ -30,8 +30,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1104** (deps: —) **the rule about guessing a fact from a file's text is held over one file and stated for the rest** — RK1102's scan covers tests/conftest.py alone, so the same predicate written in any of the other thirty test modules is caught by nothing. → §RK1104
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

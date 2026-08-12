@@ -119,15 +119,11 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 41 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 130 | 1 |
 | C — Query (consult without reading the file) | 0 | 87 | 1 |
-| D — The gate | 1 | 145 | 0 |
+| D — The gate | 0 | 146 | 0 |
 | E — Adoption | 0 | 84 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 97 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 1 | 595 | 6 |
-
-**Next ready:**
-
-- 📋 **RK1104** (deps: —) **the rule about guessing a fact from a file's text is held over one file and stated for the rest** — RK1102's scan covers tests/conftest.py alone, so the same predicate written in any of the other thirty test modules is caught by nothing. → §RK1104
+| **Total** | 0 | 596 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

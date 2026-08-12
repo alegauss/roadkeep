@@ -152,9 +152,16 @@ wrong about what a line *is*.
 Reading a governed file's **prose** is a different act and stays allowed: `tests/test_linting.py`
 counts `agents.md`'s lines against its budget, and that is an assertion about the text as text.
 What is forbidden is deriving structure — is there an open line, a block, a queue, a marker —
-from anything but the reader that owns it. `tests/test_invariants.py` holds the narrow half of
-that mechanically, over this file, because a shared fixture is where a wrong predicate reaches
-furthest.
+from anything but the reader that owns it.
+
+`tests/test_invariants.py` holds it mechanically, in two tables and for two reasons. Every
+function *in this file* that reads any file as text is declared, because a shared fixture
+answers once for every test that asks and a guess here is a guess made in fifty places at once.
+And every function *anywhere in the suite* that reads this repository's own corpus is declared
+too — which RK1102 believed was out of reach and RK1104 measured: the suite makes 236 text reads
+and six of them touch the corpus, the rest reading a file the test had just written under
+`tmp_path`. A short list is worth declaring, and the reason beside each entry is where prose
+gets told apart from structure, since no scan can do it.
 """
 
 from __future__ import annotations
