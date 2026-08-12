@@ -25,7 +25,11 @@ tool list rather than typing it: the whole write path and the reads a task needs
 refusals, with the fields arriving as a schema instead of flag names typed from memory.
 `init`, `adopt` and `install` run once per project and want the CLI — the last of them
 wires this file, the tools and the guard into a project running the tool from a checkout,
-and `install --check` is what holds its copy of this file in step. `uninstall` is the way
+and `install --check` is what holds its copy of this file in step. `install --committed`
+wires a launcher committed to the repository instead of a path into a checkout, which is
+what reaches a session that can install no plugin and clone nothing — Claude Code on the
+web; it stands down where the harness has the plugin wired for that project, so nothing
+double-fires, and it never blocks a turn. `uninstall` is the way
 back out, for a project moving to the plugin: it takes out this project's entries and
 nothing else, keeps the CI workflow, and needs no checkout to read, so it still works once
 that tree is gone. Every guarantee below holds either way. Three copies of this tool can

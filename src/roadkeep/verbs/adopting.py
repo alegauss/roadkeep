@@ -197,12 +197,13 @@ def _install(config: Config, args: argparse.Namespace) -> int:
         intent = (
             # `--check` writes nothing, so it reports the driver as unwritten either way: a
             # check that registered one would be a check that changed the repository (RK148).
-            plan(args.directory, source=args.source)
+            plan(args.directory, source=args.source, committed=args.committed)
             if args.check
             else install(
                 args.directory,
                 source=args.source,
                 register_merge=args.register_merge,
+                committed=args.committed,
             )
         )
     except (ValueError, OSError) as error:

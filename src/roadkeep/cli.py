@@ -2198,6 +2198,16 @@ def build_parser() -> argparse.ArgumentParser:
             "because it is configuration and the other half is outside these files"
         ),
     )
+    install_parser.add_argument(
+        "--committed",
+        action="store_true",
+        help=(
+            "wire a launcher committed to this repository instead of a path to the checkout, "
+            "so the guard reaches an environment that installs no plugin and clones no "
+            "checkout — Claude Code on the web. It defers where the harness has the plugin "
+            "wired for this project, and never blocks a turn"
+        ),
+    )
     install_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     install_parser.set_defaults(handler=_install)
 

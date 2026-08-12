@@ -24,6 +24,7 @@ from roadkeep.config import (
     Config,
     ConfigError,
     find_config,
+    spent,
 )
 from roadkeep.kernel.schema import DESIGNED, IDEA, SHIPPED, Task
 
@@ -72,13 +73,18 @@ def test_its_own_instruction_files_declare_their_budget_here(tmp_path):
     # checked here as *headroom over the reading*, not as a literal: a figure repeated in a
     # test is the duplicate the move existed to remove, and a budget left far above the file
     # it governs is room the prose grows back into, which is what RK23's trim had to reclaim.
+    # Through `spent` and never re-counted here (RK1105): this was the one caller that measured
+    # the file itself, and once the gate stopped counting the terminator's second byte the two
+    # disagreed — 8414 raw against 8290 counted, so this asserted "over" about a file `lint`
+    # reports with 110 bytes to spare. A test that re-derives a measurement is the second
+    # opinion the function exists to prevent.
     config = Config.discover(HERE)
     declared = {config.relative(b.path): b for b in config.budgets}
     assert set(declared) == {"agents.md", ".claude/CLAUDE.md"}
     for name, budget in declared.items():
-        raw = (HERE / name).read_bytes()
-        assert 0 <= budget.lines - len(raw.splitlines()) <= 25, name
-        assert 0 <= budget.bytes - len(raw) <= 2000, name
+        measured = spent((HERE / name).read_bytes())
+        assert 0 <= budget.lines - measured["lines"] <= 25, name
+        assert 0 <= budget.bytes - measured["bytes"] <= 2000, name
 
 
 def test_a_project_without_a_strategy_file_declares_none_rather_than_an_empty_one():

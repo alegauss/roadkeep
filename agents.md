@@ -54,8 +54,9 @@ so it carries no task numbers — `origin <id>` answers where a rule came from:
   capturing  a defect in this tool, as facts a replay re-runs
   cli.py verbs/ rendering  the parser and dispatch, a module per verb family, every answer
 action.yml, .pre-commit-hooks.yaml, .github/   the gate's three surfaces (RK17)
-hooks/, skills/, commands/, .claude-plugin/, .mcp.json   the plugin's five, and how it is
-                installed (RK22-26); reasoned in tests/test_{plugin,skill,serving,commands}.py
+hooks/, skills/, commands/, .claude-plugin/, .mcp.json   the plugin's five, how it is installed
+                (RK22-26), and the launcher an adopter commits where no plugin can be (RK1108);
+                reasoned in tests/test_{plugin,skill,serving,commands,launching}.py
 editor/, scripts/, tests/   the editor host and the archive it installs as (RK1011-13), the
                 two commands a developer runs, and pytest — docs/ is a fixture, not a mock
 ```

@@ -90,6 +90,11 @@ PLUGIN_HOOKS = "hooks/hooks.json"
 PLUGIN_MCP = ".claude-plugin/mcp.json"
 PLUGIN_SKILL = "skills/roadkeep/SKILL.md"
 PLUGIN_MANIFEST = ".claude-plugin/plugin.json"
+#: The self-locating bridge, for the environment that installs no plugin and has no checkout
+#: to point at (RK1108). Copied rather than translated: it is a program and not a declaration,
+#: and the one fact `install` substitutes elsewhere — where the engine is — is the question
+#: this file exists to answer at runtime.
+PLUGIN_BRIDGE = "hooks/roadkeep-launch.py"
 
 #: The five together, which is both what a tree must carry to be translated *from* and what
 #: says a tree is the plugin rather than an adopter of it (RK235). One list, so the two
@@ -104,6 +109,10 @@ PROJECT_MCP = ".mcp.json"
 PROJECT_SETTINGS = ".claude/settings.json"
 PROJECT_SKILL = ".claude/skills/roadkeep/SKILL.md"
 PROJECT_WORKFLOW = ".github/workflows/roadkeep.yml"
+#: Where the bridge lands, beside the hooks that run it (RK1108). Inside the repository on
+#: purpose: the environment it exists for reads what is committed and nothing else, so a path
+#: pointing anywhere outside would be a path that resolves on one machine.
+PROJECT_BRIDGE = ".claude/hooks/roadkeep-launch.py"
 
 #: The directory whose presence decides whether the workflow is written. A repository with no
 #: workflows has not asked for CI, and a scaffold that leaves a file nobody runs is litter.
@@ -176,6 +185,12 @@ _OWN_HOOKS = (
 _OWN_WORKFLOW = (
     "this tree *is* the action, and its own workflow already calls the gate — a second one "
     "would run the same lint twice"
+)
+#: The fourth of that set (RK1108). Same reasoning as the skill's, one file over: a tree that
+#: ships the bridge does not vendor a copy of it beside the original.
+_OWN_BRIDGE = (
+    f"this tree ships {PLUGIN_BRIDGE}, and a session here reaches the engine directly — a "
+    f"copy of the bridge beside the original is the drift `install` exists to remove"
 )
 
 #: The surface this command names and does not write (L4), and why. Printed by `install`.
@@ -324,6 +339,7 @@ def plan(
     source: str | Path | None = None,
     registering: bool = False,
     gauging: bool = True,
+    committed: bool = False,
 ) -> Plan:
     """Read the plugin's surfaces and the project's, and answer what would change.
 
@@ -338,12 +354,21 @@ def plan(
     whole gate to choose the workflow's default (RK140), and :func:`stale` asks this question
     on every session start (RK234) where the workflow is not in play at all. Declining it
     reports ``debt`` as None, which is the same answer a project that declares nothing gets.
+
+    ``committed`` wires the bridge instead of the checkout (RK1108) — a fourth surface, and the
+    launcher every declaration then names. Opt-in and never the default, because it answers a
+    different question: the default points at the tree this command is running from, which is
+    exact and is what an early adopter developing against a checkout wants; the bridge searches
+    at runtime, which is the only thing that can work in an environment holding neither a
+    plugin nor a checkout. A project that has both is better served by the exact path.
     """
     base = Path(root).resolve()
     origin = Path(source).resolve() if source is not None else _source()
-    _carried(origin)
+    _carried(origin, committed=committed)
 
-    launcher = _launcher(base, origin)
+    # Addressed from the project and not from the checkout, which is the whole point: the file
+    # is committed, so the path resolves on every machine that clones the repository (RK1108).
+    launcher = PROJECT_BRIDGE if committed else _launcher(base, origin)
     hooks = _hooks(origin, launcher)
     server = _server(origin, launcher)
 
@@ -369,6 +394,15 @@ def plan(
                 base / PROJECT_SETTINGS, lambda current: _merged_settings(current, hooks)
             )
         )
+    # A copy and refreshed like the skill, for the skill's reason (RK1108): a vendored program
+    # that drifts from the one the plugin ships is read with the same trust and answers with an
+    # older rule. Skipped at the plugin's own root, where it would sit beside the file it came
+    # from — the narrowing RK235 already makes for the other two copies.
+    if committed:
+        if own:
+            skipped.insert(0, (PROJECT_BRIDGE, f"{PROJECT_BRIDGE}: {_OWN_BRIDGE}"))
+        else:
+            surfaces.append(_copy(base / PROJECT_BRIDGE, _read(origin / PLUGIN_BRIDGE)))
     driver = blocking(base / ATTRIBUTES)
     if not registering:
         described = (
@@ -413,6 +447,7 @@ def install(
     *,
     source: str | Path | None = None,
     register_merge: bool = False,
+    committed: bool = False,
 ) -> Plan:
     """Write every surface that would change, or write nothing.
 
@@ -426,7 +461,7 @@ def install(
     project's own config is resolved *before* the first write, so a project with nothing to
     register refuses instead of leaving four surfaces written and a flag unhonoured.
     """
-    intent = plan(root, source=source, registering=register_merge)
+    intent = plan(root, source=source, registering=register_merge, committed=committed)
     # With the rest of the refusals and above the first write (RK393), which is what the
     # paragraph above claims and the `mkdir` below used to break.
     if intent.blocked:
@@ -672,9 +707,16 @@ def _source() -> Path:
     return engine().home.parent.parent
 
 
-def _carried(root: Path) -> None:
-    """Refuse a tree that is not carrying the plugin, naming what it lacks."""
-    missing = tuple(part for part in CARRIED if not (root / part).is_file())
+def _carried(root: Path, *, committed: bool = False) -> None:
+    """Refuse a tree that is not carrying what this run has to translate, naming what it lacks.
+
+    The bridge is asked for only under `--committed` (RK1108) and is deliberately not in
+    :data:`CARRIED`: that list also decides whether a tree *is* the plugin, so adding a sixth
+    file would make an older checkout stop being recognised as one. Asked here instead, so a
+    source that predates the bridge is refused by name rather than by an errno from the copy.
+    """
+    wanted = (*CARRIED, PLUGIN_BRIDGE) if committed else CARRIED
+    missing = tuple(part for part in wanted if not (root / part).is_file())
     if missing:
         raise NotShipped(root, missing)
 
@@ -1001,6 +1043,11 @@ def removal(root: str | Path = ".") -> Removal:
             _withdrawn(base / PROJECT_MCP, _without_server),
             _withdrawn(base / PROJECT_SETTINGS, _without_guard),
             _dropped(base / PROJECT_SKILL),
+            # Unconditionally, and `_dropped` answers `held=False` where it is not there
+            # (RK1108): `removal` reads no checkout and cannot know whether the wiring it is
+            # taking out was written with `--committed`, so asking the disk is the only reading
+            # available — which is the rule RK284 already established for what is *kept*.
+            _dropped(base / PROJECT_BRIDGE),
         ),
         kept=tuple(kept),
     )
@@ -1135,9 +1182,21 @@ def _merged_settings(current: dict, hooks: dict) -> dict:
     return merged
 
 
+#: Every launcher spelling this command writes into a hook, which is what recognising its own
+#: entry means (RK1108). Two since the bridge: a match on the checkout's `scripts/roadkeep.py`
+#: alone did not see a `--committed` wiring — so a re-run appended a second identical group to
+#: all three events instead of replacing its own, and `uninstall` left the guard in place. The
+#: comment beside `_merged_settings` had named this exact failure ("a match on it is the one
+#: thing that would stop matching") one flag before it happened.
+_LAUNCHERS = (LAUNCHER, PROJECT_BRIDGE)
+
+
 def _ours(group: dict) -> bool:
     """A hook group this command wrote, recognised by the launcher it runs."""
-    return any(LAUNCHER in hook.get("command", "") for hook in group.get("hooks", []))
+    return any(
+        any(spelling in hook.get("command", "") for spelling in _LAUNCHERS)
+        for hook in group.get("hooks", [])
+    )
 
 
 def _read(path: Path) -> str:

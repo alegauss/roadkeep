@@ -36,8 +36,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK1108** (deps: —) **the guard reaches no environment without the plugin, so a project hand-writes the launcher that finds one** — Shio's own bridge looks under ~/.claude/plugins alone, so where CLAUDE_CONFIG_DIR moves the real one it defers to a stale copy and a hand edit of two governed files passed. → §RK1108
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Non-goals

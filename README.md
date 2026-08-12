@@ -121,13 +121,13 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 1 | 87 | 1 |
 | D — The gate | 0 | 148 | 0 |
 | E — Adoption | 0 | 84 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 97 | 1 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 98 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 2 | 600 | 6 |
+| **Total** | 1 | 601 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1108** (deps: —) **the guard reaches no environment without the plugin, so a project hand-writes the launcher that finds one** — Shio's own bridge looks under ~/.claude/plugins alone, so where CLAUDE_CONFIG_DIR moves the real one it defers to a stale copy and a hand edit of two governed files passed. → §RK1108
+- 📋 **RK1110** (deps: —) **a table of contents lists the file's own headings and nothing re-derives it, so a ship leaves it wrong** — RK1107 made it addressable, which is the door for the prose beside it: Shio's 21 rows are anchor, title and slug, every character already in the file they list. → §RK1110
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -560,7 +560,10 @@ def test_un_wiring_the_plugin_from_itself_is_refused(capsys):
 def test_un_wiring_a_project_that_was_never_wired_takes_nothing(project):
     taken = uninstall(project)
     assert taken.changing == ()
-    assert [w.state for w in taken.withdrawals] == ["absent", "absent", "absent"]
+    # Four since RK1108 added the committed bridge, which `removal` asks the disk about for the
+    # reason it asks about everything else: it reads no checkout, so it cannot know which flag
+    # wired this project. Absent is absent either way.
+    assert [w.state for w in taken.withdrawals] == ["absent"] * 4
 
 
 def test_uninstall_check_is_the_same_answer_and_writes_nothing(project, source, capsys):

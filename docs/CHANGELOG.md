@@ -620,6 +620,7 @@
 - ✅ **RK1060** **one paragraph about counting is repeated on thirteen served properties** — The counting caveat moved to the handshake, which a client is given once, taking 3159 code units off the tool list while each field keeps the number and the aim that vary.
 - ✅ **RK1078** **a capture names the engine that failed and nothing compares it with the engine that reads it** — A replay reads the version off the engine every capture stamps and says, on a negative verdict only, that work shipped since is work the report could not have seen.
 - ✅ **RK1099** **a flag added to a served verb is CLI-only until somebody lists it, and nothing says which ones are** — WITHHELD names every argument a served verb does not offer and why, held equal to the parsers so a new flag is a red test rather than a silent omission.
+- ✅ **RK1108** **the guard reaches no environment without the plugin, so a project hand-writes the launcher that finds one** — install --committed writes a launcher the repository carries, so the guard reaches a session with no plugin and no checkout, and defers on the harness's own registry.
 
 ## Block G — The editor surface (the backlog where the file is open)
 

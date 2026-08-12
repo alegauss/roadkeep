@@ -109,26 +109,4 @@ than the staleness it fixes.
 
 ## Block F — The plugin
 
-### §RK1108 The environment the plugin never reaches
-
-The plugin is the whole install on a developer machine, and there is one environment it
-never reaches: Claude Code on the web reads settings and files committed to the
-repository and installs no marketplace plugin. The hooks and the server never load, the
-guard is absent, and an agent falls back to editing the governed files by hand — the
-drift this tool exists to stop, in the environment with the least supervision.
-
-Shio answered it with a committed `.claude/hooks/roadkeep-launch.py` that resolves an
-engine at runtime and stands down where an installed plugin is present, so nothing
-double-fires. That file is where the defect was measured: it looks under
-`~/.claude/plugins` alone, so where `CLAUDE_CONFIG_DIR` moves the harness's real config
-directory it finds a stale copy, defers to it, and no guard runs at all. A hand edit of
-`docs/ROADMAP.md` and `docs/IMPROVEMENTS.md` passed.
-
-`provenance.installed` already resolves that pair — the environment variable or
-`~/.claude` — which is the whole argument for moving the launcher here: *which copy
-answers* is this tool's own question, `engines` already reports it for three copies, and
-a project re-deriving it gets one of them wrong quietly. What `install` writes is the
-surface to put it on. Whether the fallback may clone over the network is a separate
-decision and probably a no.
-
 ## Block G — The editor surface (the backlog where the file is open)
