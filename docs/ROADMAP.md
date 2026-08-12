@@ -40,6 +40,7 @@
 
 - 📋 **RK1113** (deps: —) **`install --check` reports drift on a `--committed` project and names the plain `install`, which downgrades the wiring** — The committed launcher exists for a session that installs no plugin, so a refresh replacing it with a checkout path leaves that environment with no guard. → §RK1113
 - 📋 **RK1114** (deps: —) **`pick` offers a partially shipped line that `--claim` then refuses, the partial ledger entry reading as a ship** — A partial leaves the line open at ⏳ by design, so the one verb that starts a task cannot take the line the picker just named. → §RK1114
+- 📋 **RK1115** (deps: —) **defer refuses any line whose why already fills its budget, because the wrapped reason is charged to the same limit** — A line written to its why budget can never be paused: the prefix alone needs 14 characters the limit has no room for, so the only doors are terminal. → §RK1115
 
 ## Block G — The editor surface (the backlog where the file is open)
 
