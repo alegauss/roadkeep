@@ -30,6 +30,8 @@
 
 ## Block D — The gate
 
+- 📋 **RK1142** (deps: —) **a capture already on disk has no command that stamps it, so the only door is the Python API** — RK1141 covers every capture filed from now on and none of the ones held today: clearing this repository's own row took a python -c, which is the shape L5 exists against. → §RK1142
+
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

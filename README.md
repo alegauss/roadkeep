@@ -119,11 +119,15 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 41 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 145 | 1 |
 | C — Query (consult without reading the file) | 0 | 92 | 1 |
-| D — The gate | 0 | 155 | 0 |
+| D — The gate | 1 | 155 | 0 |
 | E — Adoption | 0 | 85 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 104 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 0 | 633 | 6 |
+| **Total** | 1 | 633 | 6 |
+
+**Next ready:**
+
+- 📋 **RK1142** (deps: —) **a capture already on disk has no command that stamps it, so the only door is the Python API** — RK1141 covers every capture filed from now on and none of the ones held today: clearing this repository's own row took a python -c, which is the shape L5 exists against. → §RK1142
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
