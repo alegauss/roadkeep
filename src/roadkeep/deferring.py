@@ -46,7 +46,7 @@ from roadkeep.config import PROSE_ROLES, Config
 from roadkeep.kernel.document import Document, save_all
 from roadkeep.markers import refresh
 from roadkeep.provenance import invocation
-from roadkeep.kernel.schema import Task
+from roadkeep.kernel.schema import PAUSED_CLOSE, PAUSED_OPEN, Task, authored_why, pause_reason
 from roadkeep.sections import declaring
 
 __all__ = [
@@ -61,10 +61,12 @@ __all__ = [
     "resume",
 ]
 
-#: What the derived prefix opens and closes. One spelling, one writer — the same rule the
-#: line format itself obeys, applied to the one field this module composes.
-_OPEN = "set aside ("
-_CLOSE = "): "
+#: What the derived prefix opens and closes. One spelling, and since RK1115 it lives in the
+#: kernel: this module composes it, and the rule that measures a `why` has to know what part
+#: of one it wrote — two spellings of that would be a limit disagreeing with the door about
+#: which characters an author is charged for.
+_OPEN = PAUSED_OPEN
+_CLOSE = PAUSED_CLOSE
 
 
 class NoStore(ValueError):
@@ -461,23 +463,11 @@ def _as_open(task: Task, marker: str) -> Task:
     return replace(task, status=marker, why=_unwrapped(task.why))
 
 
-def _reason(why: str) -> str | None:
-    """The reason a pause recorded, or None where the prefix is not this module's."""
-    if not why.startswith(_OPEN) or _CLOSE not in why:
-        return None
-    return why[len(_OPEN) :].split(_CLOSE, 1)[0]
-
-
-def _unwrapped(why: str) -> str:
-    """The author's sentence, with the derived prefix taken back off.
-
-    Left exactly as written when the prefix is not there: an `amend` may have replaced the
-    whole sentence while the line was paused, and a resume that stripped a prefix it did not
-    write would be editing prose (L4).
-    """
-    if _reason(why) is None:
-        return why
-    return why.split(_CLOSE, 1)[1]
+#: The reason a pause recorded, and the author's sentence without it. Both moved to the kernel
+#: by RK1115, where the rule that measures a paused `why` reads them too — named here because
+#: this module is where the wrapping is composed, and a reader of `defer` looks for them here.
+_reason = pause_reason
+_unwrapped = authored_why
 
 
 def _refuse_recorded(config: Config, task_id: str) -> None:

@@ -85,34 +85,6 @@ already written, not authorship.
 
 ## Block F — The plugin
 
-### §RK1115 The pause a budget forbids
-
-pportal's PP55 named an instrument the machine does not have, so the honest door was a
-pause. It refused twice, and the second refusal is this line. `defer` wraps the author's
-sentence rather than rewriting it - `set aside (<reason>): <why>` - and then charges the
-whole composed string to `[limits].why`. PP55's why is 165 characters against a limit of
-169, so the 14-character prefix alone overflows by 10 before a reason is written at all:
-
-```
-roadkeep defer PP55 --reason 'no Reflex panel here'
-roadkeep: refused, nothing written:
-  why: 199 characters, limit is 169 (roadkeep.toml:60 [limits].why) ...
-  delete 30 characters - about 5 words [why.too-long]
-```
-
-A reason of zero characters still fails. So a line written to its budget cannot be
-paused at all, and the tool is what encouraged writing it that way: `brief` prints "why
-3 of 168 left" as headroom to fill. What remains are the two terminal doors, for a line
-that is neither shipped nor abandoned.
-
-The message compounds it. It names `[limits].why` and the author's own prose, says
-nothing about the prefix that actually overflowed, and sends the reader to trim a
-sentence they did not write and that the module promises never to rewrite.
-
-The fix is a decision rather than an obvious edit: charge only the author's half to the
-limit and let the derived prefix ride free, give the wrapped form a budget of its own,
-or keep the refusal and make it name the prefix and point at `amend`.
-
 ### §RK1116 The named entry point that runs no command
 
 `install --committed` writes `.claude/hooks/roadkeep-launch.py` and the skill beside it,

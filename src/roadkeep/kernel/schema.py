@@ -77,6 +77,35 @@ RETIRED = "\N{WASTEBASKET}"  # 🗑
 #: of departures one of which comes back.
 DEFERRED = "\N{DOUBLE VERTICAL BAR}"  # ⏸
 
+#: What a pause wraps the author's sentence in, and what a resume takes back off (RK96).
+#: Here rather than in :mod:`roadkeep.deferring`, which composes it, because the *length* of a
+#: paused why is a question this file answers and the answer needs the prefix (RK1115): a
+#: derived wrapper charged to the author's limit made a line written to its budget impossible
+#: to pause at all — pportal's PP55 overflowed by 10 characters before a reason was written,
+#: and the two remaining doors were both terminal. One spelling, one writer, and now one
+#: reader: the door that composes it and the rule that measures around it cannot disagree.
+PAUSED_OPEN = "set aside ("
+PAUSED_CLOSE = "): "
+
+
+def pause_reason(why: str) -> str | None:
+    """The reason a pause recorded, or None where the prefix is not the one above."""
+    if not why.startswith(PAUSED_OPEN) or PAUSED_CLOSE not in why:
+        return None
+    return why[len(PAUSED_OPEN) :].split(PAUSED_CLOSE, 1)[0]
+
+
+def authored_why(why: str) -> str:
+    """The author's own sentence, with the derived prefix taken back off.
+
+    Left exactly as written when the prefix is not there: an `amend` may have replaced the
+    whole sentence while the line was paused, and stripping a prefix nothing wrote would be
+    this tool editing prose (L4).
+    """
+    if pause_reason(why) is None:
+        return why
+    return why.split(PAUSED_CLOSE, 1)[1]
+
 #: The markers a roadmap line may carry. ✅ is not among them: shipped work lives
 #: in the changelog, and a roadmap that can say "done" is a second source of truth.
 OPEN_MARKERS = (DESIGNED, IDEA, PARTIAL, IN_PROGRESS)
@@ -1639,6 +1668,15 @@ class Schema:
         return out
 
     def _check_why(self, task: Task) -> list[Violation]:
+        # The author's half and never the derived wrapper, on the one file that carries one
+        # (RK1115). The limit is what a *sentence* may cost — every other derived part of a
+        # line, the annotation and the pointer, is charged to nobody — and charging this one
+        # made "written to the budget" and "can be paused" mutually exclusive: the 14-character
+        # prefix alone overflowed pportal's limit before a reason existed, so the only doors
+        # left to a line that was neither shipped nor abandoned were the two terminal ones.
+        # The whole line is still bounded: `line.too-long` measures what is rendered, and on a
+        # paused line the structure around the prose is exactly what it names.
+        measured = authored_why(task.why) if self.is_deferred else task.why
         budget = self.why_budget(task)
         because = ""
         if budget < self.why_max:
@@ -1651,9 +1689,14 @@ class Schema:
                 f"{self.prose_budget(task)} for prose, and the symptom takes {taken})"
             )
         out = self._check_text(
-            "why", task.why, budget, because, source=self.source_of("why_max")
+            "why",
+            task.why,
+            budget,
+            because,
+            source=self.source_of("why_max"),
+            charged=measured,
         )
-        why = task.why.strip()
+        why = measured.strip()
         if why and self.terminator and not why.endswith(_TERMINATORS):
             out.append(
                 Violation("why.no-terminator", "why", "why is a sentence: end it")
@@ -1722,14 +1765,27 @@ class Schema:
         return task
 
     def _check_text(
-        self, field: str, value: str, limit: int, because: str = "", source: str = ""
+        self,
+        field: str,
+        value: str,
+        limit: int,
+        because: str = "",
+        source: str = "",
+        charged: str | None = None,
     ) -> list[Violation]:
         """The checks that apply to both prose fields, including round-trip safety.
 
         ``source`` is which declaration set `limit`, passed by the caller for the reason
         :func:`over_by` takes one (RK1067): this method is handed a number and only the
         caller knows which field's it is.
+
+        ``charged`` is the part of ``value`` the *limit* applies to, where a file wraps the
+        field in something derived (RK1115). Only the limit: every other check here is about
+        text this tool must not accept at all — a control character in the wrapper is as
+        unrenderable as one in the sentence — so relaxing them with the number would let a
+        `defer --reason` smuggle in the codepoints an author is refused for.
         """
+        measured = value if charged is None else charged
         out: list[Violation] = []
         if not value.strip():
             out.append(Violation(f"{field}.empty", field, "must not be empty"))
@@ -1773,12 +1829,12 @@ class Schema:
                 )
             )
         out += _codepoints(field, value)
-        if width(value) > limit:
+        if width(measured) > limit:
             out.append(
                 Violation(
                     f"{field}.too-long",
                     field,
-                    f"{over_by(width(value), limit, because=because, measured=value, source=source)}; "
+                    f"{over_by(width(measured), limit, because=because, measured=measured, source=source)}; "
                     f"the remainder "
                     f"belongs in the improvements section rather than compressed away",
                 )

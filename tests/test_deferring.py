@@ -21,6 +21,7 @@ Four claims, and the third is the one that would rot silently:
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -41,7 +42,16 @@ from roadkeep.deferring import (
 from roadkeep.kernel.document import Document
 from roadkeep.linting import lint
 from roadkeep.picking import pick
-from roadkeep.kernel.schema import DEFERRED, DESIGNED, IDEA, SHIPPED, Dep, Schema, Task
+from roadkeep.kernel.schema import (
+    DEFERRED,
+    DESIGNED,
+    IDEA,
+    SHIPPED,
+    Dep,
+    Schema,
+    SchemaError,
+    Task,
+)
 from roadkeep.shipping import AlreadyRecorded
 
 ROADMAP = f"""# Roadmap
@@ -653,3 +663,89 @@ def test_a_reconciling_call_reports_no_address_for_a_line_it_never_wrote(tmp_pat
     payload = json.loads(capsys.readouterr().out)
     assert payload["reconciled"] is True and payload["roadmap"] is None
     assert payload["deferred"]["removed"] > 0
+
+
+# -- the pause a budget forbade (RK1115) --------------------------------------
+
+#: A `why` written to exactly the limit below, which is what `brief` invites: it prints the
+#: headroom left on the field as room to fill, and a line that took the invitation could then
+#: never be paused — the 14-character derived prefix overflowed before a reason was written.
+AT_BUDGET = "Because a reason fills exactly the limit this project declares for a why, leaving no room."
+NARROW = DECLARE + "[limits]\nwhy = 90\n"
+
+
+def written(tmp_path: Path, why: str = AT_BUDGET) -> Config:
+    return project(
+        tmp_path,
+        files={
+            "ROADMAP.md": (
+                "# Roadmap\n\n## Block A — The model\n\n"
+                f"- {DESIGNED} **RK1** (deps: —) **A first symptom** — {why} → §RK1\n"
+            ),
+            "DEFERRED.md": "# Set aside\n\n## Block A — The model\n",
+            "IMPROVEMENTS.md": (
+                "# Improvements\n\n## Block A — The model\n\n### §RK1 A first design\n\n"
+                "The reasoning the line has no room for.\n"
+            ),
+        },
+        declare=NARROW,
+    )
+
+
+def test_a_line_written_to_its_why_budget_can_still_be_paused(tmp_path):
+    # pportal's PP55: 165 characters against a limit of 169, so `set aside (): ` alone was 10
+    # over before a reason existed. A reason of zero characters still failed, which left the
+    # two terminal doors as the only ones — for a line that was neither shipped nor abandoned.
+    config = written(tmp_path)
+    assert len(AT_BUDGET) == 90  # the limit exactly, so the prefix is the whole overflow
+    paused = defer(config, "RK1", reason="no instrument here")
+    paused.store.document.save()
+    paused.roadmap.save()
+    stored = (tmp_path / "DEFERRED.md").read_text(encoding="utf-8")
+    assert f"set aside (no instrument here): {AT_BUDGET}" in stored
+
+
+def test_the_stored_line_the_pause_wrote_passes_the_gate(tmp_path):
+    # The half that makes it a fix and not a hole: the door and the gate read one rule, so a
+    # file `defer` wrote is a file `lint` calls clean.
+    config = written(tmp_path)
+    paused = defer(config, "RK1", reason="no instrument here")
+    paused.store.document.save()
+    paused.roadmap.save()
+    assert [f.code for f in lint(Config.discover(tmp_path)).findings] == []
+
+
+def test_the_author_s_own_sentence_is_still_charged(tmp_path):
+    # Only the derived half rides free. A `why` one character over its limit is still over it,
+    # in the store as in the roadmap — the relaxation is about who wrote the characters.
+    config = written(tmp_path, why=AT_BUDGET.replace("no room.", "no room at all."))
+    with pytest.raises(Exception) as raised:
+        defer(config, "RK1", reason="no instrument here")
+    assert "why" in str(raised.value)
+
+
+def test_the_reason_may_not_smuggle_in_what_an_author_is_refused_for(tmp_path):
+    # The limit is the one thing `charged` relaxes: a control character in the wrapper is as
+    # unrenderable as one in the sentence, so every other check still reads the whole field.
+    config = written(tmp_path)
+    with pytest.raises(Exception) as raised:
+        defer(config, "RK1", reason="no\tinstrument")
+    assert "char.tab" in str(raised.value) or "tab" in str(raised.value)
+
+
+def test_a_roadmap_line_gets_no_free_prefix_for_writing_the_same_words(tmp_path):
+    # Guarded on the store's own configuration and never on the text: a roadmap line whose
+    # author happens to open with those words is prose, and prose is charged.
+    schema = Schema(why_max=90)
+    task = Task(
+        status=DESIGNED,
+        id="RK1",
+        block="A",
+        symptom="A symptom",
+        why=f"set aside (a reason): {AT_BUDGET}",
+        ref="RK1",
+    )
+    assert "why.too-long" in {v.code for v in schema.validate(task)}
+    assert "why.too-long" not in {
+        v.code for v in schema.as_deferred().validate(replace(task, status=DEFERRED))
+    }
