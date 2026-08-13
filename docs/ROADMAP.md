@@ -30,6 +30,8 @@
 
 ## Block D — The gate
 
+- 📋 **RK1144** (deps: —) **the corpora pins are 477 deliveries behind, so the shapes those projects adopted since are untested here** — The advisory warns on every run and nothing has acted on it: Shio has shipped 378 ledger entries since its pin and Turing 99, and both roadmaps have turned over. → §RK1144
+
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
