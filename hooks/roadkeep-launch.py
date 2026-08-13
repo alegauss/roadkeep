@@ -120,6 +120,17 @@ def _plugin_is_wired(root: Path) -> bool:
     Read defensively and never written: the file is the harness's. A registry this cannot
     parse answers False, which is the safe side of the two — a doubled deny message is
     cosmetic and an absent guard is the drift roadkeep exists to stop.
+
+    **And a row whose install is gone is not a wired plugin** (RK1166). The harness prunes old
+    versions and leaves the row behind: measured in one corpus, whose row pinned `0.1.285` while
+    only three later versions were on disk, so this returned True, the launcher stood down, and
+    the plugin it deferred to could not load — both guards absent at once, which is the same
+    drift arriving through the reading written to stop it. An `Edit` on a governed file was not
+    refused there; it reached the tool and failed on its own arguments.
+
+    So a row that **names** an install must still have it. A row that names none is unchanged:
+    there is nothing to check, and the identity claim — this project, this plugin — is what the
+    row is for. The safe side stays the one already chosen: what cannot be confirmed guards.
     """
     try:
         payload = json.loads(
@@ -141,10 +152,26 @@ def _plugin_is_wired(root: Path) -> bool:
                 # its platform spells it, and a repository reached through a junction or a
                 # symlink is one project written twice.
                 if Path(stated).resolve() == wanted:
-                    return True
+                    return _installed(row.get("installPath"))
             except OSError:
                 continue
     return False
+
+
+def _installed(stated: object) -> bool:
+    """Whether the install a row names is still on disk — True where it names none (RK1166).
+
+    The directory and not the engine inside it: what the harness prunes is the version, and a
+    row pointing at a pruned one is a record of an install that ended. Checking further would
+    be this file deciding whether somebody else's plugin is well-formed, which is the question
+    `_valid` answers for the copy *this* launcher would run.
+    """
+    if not isinstance(stated, str) or not stated:
+        return True  # an older harness wrote no path: nothing to check, and the row still binds
+    try:
+        return Path(stated).is_dir()
+    except OSError:
+        return False
 
 
 def _repo_root() -> Path:

@@ -675,6 +675,7 @@
 - ✅ **RK1128** **A --lines refusal says the ledger records no partial, on a line whose partial it names one call later** — A --lines beside a --part is refused for the rule rather than for the ledger, and names the call with no --part as the completion a count belongs to.
 - ✅ **RK1140** **anchors --next names a free top-level that add --ref then refuses, because no heading declares it yet** — A free top-level says it is an address and not yet a section and names the section add that declares it, on stderr and in the payload, where a free child says nothing.
 - ✅ **RK1152** **ship refuses because a dependent task's why is one character too long once its dep annotation grows a tick** — the refusal leads with whose line overflowed and the amend that closes it, and names every line the write would break.
+- ✅ **RK1166** **A registry row whose install directory is gone stands the launcher down, and nothing guards the governed files** — a row only stands the launcher down where the install it names is still on disk, and a row naming none still binds.
 
 ## Block G — The editor surface (the backlog where the file is open)
 

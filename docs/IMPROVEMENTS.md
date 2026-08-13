@@ -137,36 +137,6 @@ The rule found this section, which is the rule working.
 
 ## Block F — The plugin
 
-### §RK1166 A stale registry row is not a wired plugin
-
-`_plugin_is_wired` decides whether the launcher stands down, and it decides on a row in
-the harness's registry matched by project path. That was a deliberate choice over "is
-there a copy on disk": a marketplace clone and every cached version live under
-`plugins/` whether or not this project uses them, so a glob finds files in cases where
-no hook is loaded.
-
-The converse was not considered. A row can name an `installPath` that no longer exists —
-the harness prunes old versions and leaves the row behind. The launcher reads it,
-concludes the plugin's hook is live, and returns 0 without guarding, while the plugin it
-deferred to cannot load because its directory is gone. Both guards are absent at once,
-which is the drift the docstring says this tool exists to stop.
-
-Measured in the Viglet Turing corpus, whose row pins
-`...\cache\alegauss\roadkeep\0.1.285` while only `0.1.685`, `0.1.721` and `0.1.727`
-exist on disk:
-
-    launcher, registry as it is   ->  exit 0, 0 bytes
-    launcher, empty registry      ->  exit 0, 5204 bytes, permissionDecision deny
-
-and, end to end, an `Edit` on `docs/ROADMAP.md` was not refused: it reached the tool and
-failed on its own missing `old_string`, which is what a `PreToolUse` deny would have
-preempted.
-
-The fix keeps the reasoning that rejected the glob and adds the half it missed: a row
-only stands the launcher down when the path it names is still there. A row pointing at a
-pruned install is not a wired plugin, it is a stale record, and the safe reading of it
-is the one already chosen for an unparseable registry.
-
 ### §RK1167 The first matching row is not the installed one
 
 `_installed` walks the harness's registry and returns on the first row whose

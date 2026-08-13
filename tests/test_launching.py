@@ -81,14 +81,24 @@ def test_the_engine_path_is_the_one_install_substitutes():
 # -- defer to the plugin, which is the defect (RK1108) ------------------------
 
 
-def registry(home: Path, project: Path, *, name: str = "roadkeep@alegauss") -> None:
-    """A harness registry wiring one plugin to one project, as the harness writes it."""
+def registry(
+    home: Path,
+    project: Path,
+    *,
+    name: str = "roadkeep@alegauss",
+    install: Path | None = None,
+) -> None:
+    """A harness registry wiring one plugin to one project, as the harness writes it.
+
+    ``install`` is the `installPath` a current harness writes and an older one does not, which
+    is why it is optional here as well as there (RK1166).
+    """
     path = home / "plugins" / "installed_plugins.json"
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(
-        json.dumps({"plugins": {name: [{"projectPath": str(project), "version": "0.1.0"}]}}),
-        encoding="utf-8",
-    )
+    row: dict[str, str] = {"projectPath": str(project), "version": "0.1.0"}
+    if install is not None:
+        row["installPath"] = str(install)
+    path.write_text(json.dumps({"plugins": {name: [row]}}), encoding="utf-8")
 
 
 def test_it_stands_down_only_where_this_project_is_the_one_wired(tmp_path, monkeypatch):
@@ -645,3 +655,63 @@ def test_every_route_the_launcher_reads_is_one_this_suite_can_make_absent():
         "read, not isolated": sorted(read - {*nowhere(Path("x")), POPPED}),
         "isolated, not read": sorted({*nowhere(Path("x")), POPPED} - read),
     }
+
+
+def test_a_row_whose_install_was_pruned_is_a_record_and_not_a_wired_plugin(tmp_path, monkeypatch):
+    """RK1166, measured in one corpus: the row pinned an old version while only three later ones
+    were on disk, so this answered True, the launcher stood down, and the plugin it deferred to
+    could not load — both guards absent at once, through the reading written to stop that.
+
+    Three rows and one rule: a live install binds, a pruned one does not, and a row that names
+    none is unchanged, there being nothing to check and an identity claim that still holds.
+    """
+    bridge = load()
+    home, project = tmp_path / "config", tmp_path / "project"
+    project.mkdir()
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(home))
+
+    live = tmp_path / "cache" / "0.1.727"
+    live.mkdir(parents=True)
+    registry(home, project, install=live)
+    assert bridge._plugin_is_wired(project) is True
+
+    registry(home, project, install=tmp_path / "cache" / "0.1.285")  # pruned by the harness
+    assert bridge._plugin_is_wired(project) is False
+
+    registry(home, project)  # an older harness, which writes no path
+    assert bridge._plugin_is_wired(project) is True
+
+
+def test_the_guard_runs_where_the_plugin_it_would_defer_to_cannot_load(tmp_path):
+    """The end of it, and why the row alone was not enough: what this file decides is whether
+    **anything** guards the write. Asserted on the answer a `PreToolUse` carries rather than on
+    the predicate, because that is the fact a session gets — measured as an `Edit` on a governed
+    file that was not refused, reached the tool, and failed on its own arguments instead.
+    """
+    from roadkeep.adopting import init
+
+    init(tmp_path)
+    home = tmp_path / "config"
+    registry(home, tmp_path, install=tmp_path / "cache" / "gone")
+    environment = {
+        **os.environ,
+        "CLAUDE_PROJECT_DIR": str(tmp_path),
+        "CLAUDE_CONFIG_DIR": str(home),
+        "ROADKEEP_HOME": str(ROOT),
+    }
+    payload = json.dumps(
+        {
+            "hook_event_name": "PreToolUse",
+            "tool_name": "Edit",
+            "tool_input": {"file_path": str(tmp_path / "docs" / "ROADMAP.md")},
+        }
+    )
+    done = subprocess.run(
+        [sys.executable, str(BRIDGE), "guard"],
+        input=payload.encode("utf-8"),
+        capture_output=True,
+        env=environment,
+        check=False,
+    )
+    assert done.returncode == 0
+    assert b"deny" in done.stdout, done.stdout
