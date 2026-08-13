@@ -103,7 +103,7 @@ installed here: read every command in it as `PYTHONPATH=src python -m roadkeep.c
 
 **Never edit source through a shell heredoc.** `python - <<'PY'` turned `\n` in a literal into
 a real newline four times in one session, twice also dropping that script's *other* edit
-silently (RK1091). Write the whole file, or pass old and new text as data.
+silently (RK1091). Write the whole file, or pass old/new as data; `.gitattributes` pins the EOL (RK1132).
 
 **One task → one commit, the instant it is validated.** What `ship` wrote goes in the *same*
 commit as the code, so the docs never describe a state that did not ship; a batch of ≥2 tasks

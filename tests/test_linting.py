@@ -240,6 +240,7 @@ UNINDEXED = {
     "pyproject.toml": "how the package is built, which `agents.md` states as a section",
     ".gitignore": "one line about a directory the tree does not carry",
     ".githooks": "named where it is wired, in the committing section",
+    ".gitattributes": "named beside the rule it exists for, in the committing section",
     ".vscode": "this checkout's own editor settings, which no adopting project gets",
     ".claude": "the instruction file, whose budget the index is inside",
 }
