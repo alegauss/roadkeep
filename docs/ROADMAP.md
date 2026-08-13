@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1138** (deps: —) **A partial that is later abandoned has no exit: retire refuses while its entry exists** — retire points at record amend, which changes the entry and not the refusal, so the only door left is ship - which claims the rest landed. → §RK1138
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate

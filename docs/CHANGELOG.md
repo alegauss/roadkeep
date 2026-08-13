@@ -201,6 +201,7 @@
 - ✅ **RK1130** **four of the thirty-two write commands print a staging line, so the rest can leave the projection they refreshed behind** — Every write command prints the git add line for what it wrote or is exempted with a reason, and a closure over the parser holds the two sets total.
 - ✅ **RK1131** **six records gained a field and twelve payloads carry it, with a closure over one dataclass and none over the rest** — A table per record binds every field to the key it becomes or to the reason it becomes none, asserted in both directions and executed against the verb that answers.
 - ✅ **RK1137** **git collapses an untracked tree to its top directory, so a claim naming a file inside it is called a typo** — Either side of the comparison may be the directory, and the trailing slash git spells a collapsed tree with is what keeps the third case exact.
+- ✅ **RK1138** **A partial that is later abandoned has no exit: retire refuses while its entry exists** — The refusal names ship --why as the exit whose sentence records the abandonment, the three shapes for a second record each being blocked by a rule the format keeps.
 
 ## Block C — Query
 

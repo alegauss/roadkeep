@@ -2021,8 +2021,12 @@ def test_the_door_is_named_only_where_the_closure_path_takes_the_line(tmp_path):
     # Its own refusal and not this one, and it names `ship RK1` as the **completion** — the
     # exit that rewrites the entry. What it must never offer is the closure, which removes
     # the line against an entry recording only a half and drops the one that never landed.
-    assert "writing nothing to the ledger" not in str(refused.value)
-    assert "if the rest landed after all" in str(refused.value)
+    said = str(refused.value)
+    assert "writing nothing to the ledger" not in said
+    # Named as *the* exit and no longer as a conditional (RK1138): "if the rest landed after
+    # all" read as advice for a different case, and the case the author was in had none.
+    assert f"{invocation()} ship RK1 --why" in said
+    assert "if the rest landed after all" not in said
 
 
 def test_the_door_it_does_name_resolves_the_state(tmp_path):
@@ -2086,3 +2090,82 @@ def test_a_plain_open_line_still_refuses_it_too(tmp_path):
     qualifier there would invent a half nobody shipped."""
     with pytest.raises(NoQualifier):
         amend_record(_recorded_beside(tmp_path, DESIGNED), "RK1", part="the first half")
+
+
+# -- the exit a partial's abandonment actually has (RK1138) ----------------------
+
+
+def test_the_abandonment_of_a_remainder_is_recorded_by_the_completion(tmp_path):
+    """RK1138, observed on Shio's SH698: instrumented, the cure refuted, the remainder
+    abandoned — and every door refused. The hint sent the author to `record amend --part`, which
+    restates the entry and leaves the refusal standing, so the only verb that closed the line
+    was one whose contract read as "the rest landed".
+
+    Executed rather than argued, which is RK1045's rule for a remedy: the sentence names
+    `ship <id> --why`, so this runs it and reads what the ledger then says.
+    """
+    beside = _recorded_beside(tmp_path, PARTIAL)
+    half = read(beside, CHANGELOG).replace("**RK1**", "**RK1 (local half)**")
+    (beside.root / CHANGELOG).write_text(half, encoding="utf-8", newline="")
+    config = Config.discover(beside.root)
+
+    with pytest.raises(PartRecorded):
+        retire(config, "RK1", reason="Nobody will do the rest.")
+    # The door the refusal names, with the author's own sentence about what happened.
+    ship(
+        Config.discover(beside.root),
+        "RK1",
+        why="The local half landed and the rest was abandoned as unreproducible.",
+    ).save()
+    ledger = read(Config.discover(beside.root), CHANGELOG)
+    assert "the rest was abandoned as unreproducible" in ledger
+    # The qualifier is gone, because nothing is outstanding any more — and the half that
+    # shipped is still the reason this line left by the delivering door.
+    assert "(local half)" not in ledger
+    assert "✅ **RK1**" in ledger
+
+
+def test_the_line_is_gone_and_the_gate_is_clean_afterwards(tmp_path):
+    # The state RK1138 said had no exit, asserted as a state: no open line, one entry, and a
+    # tree `lint` passes — which is what makes the door a door rather than a message.
+    beside = _recorded_beside(tmp_path, PARTIAL)
+    half = read(beside, CHANGELOG).replace("**RK1**", "**RK1 (local half)**")
+    (beside.root / CHANGELOG).write_text(half, encoding="utf-8", newline="")
+    ship(
+        Config.discover(beside.root),
+        "RK1",
+        why="The local half landed and the rest was abandoned as unreproducible.",
+    ).save()
+    config = Config.discover(beside.root)
+    assert config.document("roadmap").by_id().get("RK1") is None
+    assert [f.code for f in lint(config).findings] == []
+
+
+def test_a_second_entry_is_what_the_gate_calls_a_duplicate(tmp_path):
+    """Why the door is not a second record, measured rather than asserted: the shape RK1138's
+    design asked for first would leave the tree red on the gate's own `id.duplicate`."""
+    beside = _recorded_beside(tmp_path, PARTIAL)
+    half = read(beside, CHANGELOG).replace("**RK1**", "**RK1 (local half)**")
+    (beside.root / CHANGELOG).write_text(
+        half + "- 🗑 **RK1** **A first symptom** — abandoned: nobody will do the rest.\n",
+        encoding="utf-8",
+    )
+    codes = {f.code for f in lint(Config.discover(beside.root)).findings}
+    assert "id.duplicate" in codes
+
+
+def test_appending_a_sentence_is_what_the_ledger_calls_two(tmp_path):
+    # And the second shape: an entry holds one sentence, so the abandonment cannot be appended
+    # to the one already there — and appending *inside* it would be this tool writing prose (L4).
+    from roadkeep.kernel.schema import Schema, Task
+
+    schema = Schema().as_ledger()
+    task = Task(
+        status="✅",
+        id="RK1",
+        block="A",
+        symptom="A first symptom",
+        why="Because the local half landed. The rest was abandoned: it never reproduced.",
+        part="local half",
+    )
+    assert "why.sentences" in {v.code for v in schema.validate(task)}

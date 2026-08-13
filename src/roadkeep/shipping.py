@@ -457,6 +457,21 @@ class PartRecorded(ValueError):
 
     So the choice is handed back rather than made silently, which is the whole defect: the
     current behaviour made it, and made it in the direction that loses work.
+
+    **What it named was not a door** (RK1138). Observed on Shio's `SH698`: an intermittent red
+    was instrumented, the cure refuted, the remainder abandoned — and the hint sent the author
+    to `record amend --part`, which restates the entry and leaves this refusal exactly as it
+    was, because the entry still exists. Three shapes for a real door were measured and each is
+    blocked by a rule this project keeps: a **second entry** is the gate's own `id.duplicate`;
+    **appending a sentence** to the entry's `why` is `why.sentences`, the ledger holding one
+    sentence per outcome; and appending *inside* it would be this tool rewriting somebody's
+    prose (L4). The qualifier has room for neither the reason nor the fact.
+
+    So the exit is the completion, and the message now says so as the intended one. `ship <id>
+    --why "…"` replaces the qualified entry with **the author's own sentence** and drops the
+    qualifier — which is where "and the rest was abandoned" belongs, because ✅ marks the line
+    leaving by the delivering door and something here did deliver. 🗑 would say nothing ever
+    did, which is the other direction's lie and the one RK129 refuses.
     """
 
     def __init__(
@@ -467,10 +482,12 @@ class PartRecorded(ValueError):
         self.part = part
         super().__init__(
             f"{where}:{lineno} already records {marker} {task_id} ({part}), and retiring "
-            f"{task_id} would replace that entry: the half that shipped would leave the "
-            f"only file that holds it — say what happens to it first (`ship {task_id}` if "
-            f"the rest landed after all, or `record amend {task_id} --part \"…\" --why "
-            f"\"…\"` to restate the entry as the whole of what ever will)"
+            f"{task_id} would replace that entry: the half that shipped would leave the only "
+            f"file that holds it. An entry holds one outcome per id, so an abandonment cannot "
+            f"be a second one — `{invocation()} ship {task_id} --why \"…\"` is the exit, and "
+            f"its sentence is where the rest being abandoned is recorded: the qualifier goes, "
+            f"and {marker} stays because this line left by the door something did deliver "
+            f"through"
         )
 
 

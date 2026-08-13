@@ -77,35 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1138 The exit a partial does not have
-
-`ship --part` records the half that landed and leaves the line open, which is the right
-shape for work that genuinely continues. What it has no answer for is the half that is
-later **abandoned**.
-
-Observed on SH698 in the Shio backlog: an intermittent red was instrumented rather than
-cured, the cure did not reproduce in eighteen runs, and its two proposed mechanisms were
-measured and refuted. The owner decided to abandon the remainder. Then:
-
-    $ roadkeep retire SH698 --reason "..."
-    roadkeep: docs/CHANGELOG.md:1351 already records ✅ SH698 (the instrument), and retiring
-    SH698 would replace that entry: the half that shipped would leave the only file that holds
-    it — say what happens to it first (`ship SH698` ... or `record amend SH698 --part ...`)
-
-The hint is followed and does not help. `record amend --part "instrumented, not cured"
---why "…the cure is abandoned…"` succeeds, restating the entry as the whole of what will
-ever be — and `retire` then refuses with exactly the same message, because the entry
-still exists. The only verb that closes the roadmap line is `ship`, whose own contract
-is that the outcome shipped.
-
-So an abandoned remainder is recorded as a ship. The ledger reads as if the work
-completed, and the one place that says otherwise is the sentence the author happened to
-write.
-
-What it wants is a door: `retire` accepting a task whose entry is a partial, appending
-the abandonment to that entry rather than replacing it — or the refusal naming `ship` as
-the intended exit, rather than as the thing to do "if the rest landed after all".
-
 ## Block C — Query
 
 ## Block D — The gate
