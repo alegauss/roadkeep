@@ -77,40 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1131 The closure that reads one record
-
-RK1123 bound the five fields of `Scope` to the two payloads that carry them, and the
-argument was general: a field added reaches one reader and not the other, and nothing
-notices. RK1130 then added `wrote` to **six** records — `Insertion`, `StatusChange`,
-`Amendment`, `Restatement` and the two the ledger keeps — and to twelve payloads, every
-one of them by hand.
-
-Nothing holds any of those. The closure that exists reads one dataclass; the sweep that
-needed it read twelve, and the only reason it is right is that a human checked twelve
-times.
-
-`test_installing`'s `PLAN_RENAMES` is the shape, and `test_claiming`'s two tables are
-the shape refined — a rename map per payload, asserted in **both** directions so a field
-with no entry is red and an entry naming no field is red too. What is missing is that
-the map exists once per record instead of once per project:
-
-```
-RECORDS = {
-    "Insertion":    {"entry": "line", "wrote": "wrote", …},
-    "StatusChange": {"before": "from", "wrote": "wrote", …},
-    …
-}
-```
-
-Two things need deciding rather than copying. A record carries fields a payload **must
-not** have — `document`, `entry`, `prose` are objects, not keys — so the table needs the
-`because` column `test_backstop` uses for a code nothing reports, not a silent omission.
-And a verb whose payload nests (`ship`'s `scope`, `changelog`, `improvements`) addresses
-a key by path, so the map's values are addresses and not names.
-
-What it buys is the next sweep: a seventh field, added by whoever needs it, is refused
-by a test rather than caught by a reviewer counting payloads.
-
 ## Block C — Query
 
 ## Block D — The gate

@@ -255,3 +255,140 @@ def test_the_roadmaps_other_bullet_is_not_read_as_an_open_line(tmp_path):
     )
     assert not Config.discover(tmp_path).document("roadmap").entries
     assert payload("list", root=tmp_path)["tasks"] == []
+
+
+# -- the records a write answers with, bound to the keys they become (RK1131) ----
+
+#: Per record, which payload key each field becomes — or `None` and the reason it becomes
+#: none. RK1123 bound `Scope` this way and the argument was general; RK1130 then added `wrote`
+#: to four records and twelve payloads **by hand**, and the only thing that made that right was
+#: a human checking twelve times. Asserted in both directions, which is RK491's rule for a code
+#: nothing reports: a field with no entry is red, and an entry naming no field is red too, so
+#: the table cannot outlive the record it describes.
+#:
+#: A `None` is not an omission. Three of these fields are *documents* — the parsed file, the
+#: entry inside it, the prose file beside it — and a payload carrying one would be handing a
+#: client this process's objects. What a reader gets instead is the address: `file` and `line`.
+RECORDS: dict[str, dict[str, str | None]] = {
+    "Insertion": {
+        "document": None,
+        "entry": None,
+        "prose": None,
+        "section": "section",
+        "needs": "needs",
+        "needs_role": None,
+        "promise": "promise",
+        "bound": "bound",
+        "wrote": "wrote",
+    },
+    "StatusChange": {
+        "document": None,
+        "entry": None,
+        "before": "from",
+        "refreshed": "refreshed",
+        "claim": "claim",
+        "wrote": "wrote",
+    },
+    "Amendment": {
+        "document": None,
+        "entry": None,
+        "before": None,
+        "refreshed": "refreshed",
+        "wrote": "wrote",
+    },
+    "Restatement": {
+        "document": None,
+        "entry": None,
+        "before": "was",
+        "refreshed": "refreshed",
+        "typo": "typo",
+        "wrote": "wrote",
+    },
+}
+
+#: Why a row above sends no key, one entry per row and addressed `Record.field`. Declared the
+#: way `test_backstop` declares a code nothing reports: the absence is the claim, so it is
+#: written down rather than left as a silence somebody has to interpret. Keyed per record and
+#: not per field name, because `before` is three different answers — `from` on a marker write,
+#: `was` on a restatement, and nothing on an amend, where what differs is `changed`.
+UNSENT = {
+    "Insertion.document": "the parsed roadmap; a payload carrying one hands out this process's objects",
+    "Insertion.entry": "the line itself: its address is `file` and `line`, its text `rendered`",
+    "Insertion.prose": "the rationale file, addressed inside `section`",
+    "Insertion.needs_role": "folded into the `needs` command the answer already spells",
+    "StatusChange.document": "the parsed roadmap, addressed by `file` and `line`",
+    "StatusChange.entry": "the line, reported as `rendered`",
+    "Amendment.document": "the parsed roadmap, addressed by `file` and `line`",
+    "Amendment.entry": "the line, reported as `rendered`",
+    "Amendment.before": "the old values are the diff's; `changed` is which fields differ",
+    "Restatement.document": "the parsed roadmap, addressed by `file` and `line`",
+    "Restatement.entry": "the line, reported as `rendered`",
+}
+
+#: The command each record is the answer of, with the argv that produces one.
+ANSWERS = {
+    "Insertion": ("add", "--block", "A", "--symptom", "A second symptom", "--why", "Because."),
+    "StatusChange": ("status", "RK1", "🛠"),
+    "Amendment": ("amend", "RK1", "--why", "Because of a corrected reason."),
+    "Restatement": ("restate", "RK1", "--symptom", "A corrected symptom"),
+}
+
+
+@pytest.fixture
+def writable(tmp_path: Path) -> Path:
+    """A project a write verb can be run against — `docs/` is this suite's read-only fixture."""
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\n[rules.roadmap]\nref = false\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "ROADMAP.md").write_text(
+        "# Roadmap\n\n## Block A — The model\n\n"
+        "- 📋 **RK1** (deps: —) **A symptom** — Because of a reason.\n",
+        encoding="utf-8",
+        newline="",
+    )
+    return tmp_path
+
+
+def test_every_field_of_every_record_has_a_row():
+    """The half that fails on the *next* field rather than on this one, which is why it exists:
+    a fifth field added tomorrow reaches whichever payload its author remembered."""
+    from dataclasses import fields
+
+    from roadkeep import authoring
+
+    for name, table in RECORDS.items():
+        record = getattr(authoring, name)
+        assert set(table) == {field.name for field in fields(record)}, name
+
+
+def test_every_row_that_names_a_key_finds_it_in_the_payload(writable):
+    # Executed rather than asserted (`test_doors`' rule): each record is produced by running
+    # the command that answers with one, and the keys are read the way a client reads them.
+    for name, argv in ANSWERS.items():
+        answered = payload(*argv, root=writable)
+        wanted = {key for key in RECORDS[name].values() if key is not None}
+        assert wanted <= set(answered), (name, sorted(wanted - set(answered)))
+
+
+def test_every_row_that_sends_no_key_says_why(the_table=RECORDS):
+    """Both directions, which is what stops the reasons drifting from the rows: a field that
+    stops being sent needs an entry, and an entry for a field that is sent again is stale
+    prose about a decision nobody takes any more."""
+    silent = {
+        f"{record}.{field}"
+        for record, table in the_table.items()
+        for field, key in table.items()
+        if key is None
+    }
+    assert silent == set(UNSENT), {"no reason": silent - set(UNSENT), "stale": set(UNSENT) - silent}
+    assert all(reason.strip() for reason in UNSENT.values())
+
+
+def test_the_path_list_is_one_key_in_every_one_of_them(writable):
+    """RK1130's own field, held across all four: it is the list a `git add --` takes, so a
+    record that answered it under a second name would be the drift RK1123 closed for `Scope`."""
+    for name, argv in ANSWERS.items():
+        assert RECORDS[name]["wrote"] == "wrote", name
+        answered = payload(*argv, root=writable)
+        assert "ROADMAP.md" in answered["wrote"], name

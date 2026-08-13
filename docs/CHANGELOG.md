@@ -199,6 +199,7 @@
 - ✅ **RK1127** **a task's own subsection reads as another design, the exclusion comparing labels as strings and not as addresses** — A moved section is labelled by the task that owns it, so this id's own subsection is excluded and prose belonging to nobody keeps its anchor.
 - ✅ **RK1129** **`add` refreshes the README projection and prints no staging line, so a commit takes the roadmap and leaves it behind** — add prints the git add line for every path it wrote, projections included, off the save's own return.
 - ✅ **RK1130** **four of the thirty-two write commands print a staging line, so the rest can leave the projection they refreshed behind** — Every write command prints the git add line for what it wrote or is exempted with a reason, and a closure over the parser holds the two sets total.
+- ✅ **RK1131** **six records gained a field and twelve payloads carry it, with a closure over one dataclass and none over the rest** — A table per record binds every field to the key it becomes or to the reason it becomes none, asserted in both directions and executed against the verb that answers.
 
 ## Block C — Query
 

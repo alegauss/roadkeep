@@ -117,17 +117,17 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 41 | 2 |
-| B — Authoring (insert, never hand-edit) | 1 | 142 | 1 |
+| B — Authoring (insert, never hand-edit) | 0 | 143 | 1 |
 | C — Query (consult without reading the file) | 0 | 91 | 1 |
 | D — The gate | 1 | 149 | 0 |
 | E — Adoption | 0 | 85 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 103 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 2 | 622 | 6 |
+| **Total** | 1 | 623 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1131** (deps: —) **six records gained a field and twelve payloads carry it, with a closure over one dataclass and none over the rest** — RK1130 edited every payload by hand and the only thing that made it right was checking twelve times, which is what RK1123 closed for Scope alone. → §RK1131
+- 📋 **RK1132** (deps: —) **45 modules end CRLF and 11 end LF, so an edit anchored on one terminator silently matches nothing** — Two scripted patches stopped on their own assert in one session, which is RK1091's defect one layer down and a step nothing in the repository declares. → §RK1132
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

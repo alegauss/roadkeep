@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1131** (deps: —) **six records gained a field and twelve payloads carry it, with a closure over one dataclass and none over the rest** — RK1130 edited every payload by hand and the only thing that made it right was checking twelve times, which is what RK1123 closed for Scope alone. → §RK1131
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
