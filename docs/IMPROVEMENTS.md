@@ -81,40 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK1134 The surface the closure cannot see yet
-
-RK1016 made the Layout index a gate over every top-level surface this repository
-carries, and it reads `git ls-files` — the **index**. So a file reaches the check only
-once it is tracked, which is the commit that adds it. The turn that writes a new surface
-passes; the next turn fails, on a tree the author has already left.
-
-Measured this session, on the task that added one:
-
-```
-$ roadkeep lint && pytest -q          # RK1132's own turn: green, .gitattributes untracked
-$ run-commit.cmd -m "fix(RK1132): …"  # the file becomes tracked here
-$ pytest -q
-FAILED test_every_surface_this_repository_carries_is_named_in_the_index
-E  AssertionError: ['.gitattributes']
-```
-
-The gate was right and one commit late, which is the failure RK1016 was written about
-said back to it: an index that silently stops being an index is worse than none, and
-*silently* includes the window where the file exists and the check cannot see it.
-
-The reading that closes it is one flag, and the pair is what git already separates:
-
-```
-$ git ls-files                                  # tracked
-$ git ls-files --others --exclude-standard      # written, not yet tracked, not ignored
-```
-
-`--exclude-standard` is what keeps this a check about the **repository** and not about
-the machine — a cache directory somebody's afternoon left behind is ignored, which is
-the line RK217 draws for a path claim and the reason the current reading chose the index
-in the first place. The union of the two is *what this tree carries*, which is what the
-sentence meant.
-
 ## Block E — Adoption
 
 ## Block F — The plugin

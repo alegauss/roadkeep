@@ -246,6 +246,35 @@ UNINDEXED = {
 }
 
 
+def _carried() -> set[str] | None:
+    """Every top-level entry **this tree carries**, or None where git cannot say (RK1134).
+
+    Two readings and the union of them, because git separates exactly the two states a surface
+    passes through: `ls-files` is what is tracked, and `--others --exclude-standard` is what has
+    been written and not yet added. The check read only the first, so a file reached it in the
+    commit that added it — the turn that wrote `.gitattributes` passed and the *next* turn
+    failed, on a tree its author had already left. That window is the silence RK1016 was written
+    against, said back to it.
+
+    `--exclude-standard` is what keeps this a question about the **repository** rather than
+    about the machine: a cache directory somebody's afternoon left behind is ignored, which is
+    the line RK217 draws for a path claim and the reason the tracked-only reading was chosen in
+    the first place. What was wrong was not asking git; it was asking it one question.
+    """
+    entries: set[str] = set()
+    for extra in ((), ("--others", "--exclude-standard")):
+        listed = subprocess.run(
+            ["git", "-C", str(HERE), "ls-files", *extra],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+        )
+        if listed.returncode != 0:
+            return None
+        entries |= {line.split("/", 1)[0] for line in listed.stdout.splitlines() if line}
+    return entries
+
+
 def _named(index: str, entry: str) -> bool:
     """Is this top-level entry addressed in the index, as the index spells addresses?
 
@@ -276,18 +305,9 @@ def test_every_surface_this_repository_carries_is_named_in_the_index():
     growing into a way of not writing an index entry.
     """
     index = _layout_index()
-    # What the **repository** carries and never what the disk holds: a cache directory is
-    # somebody's afternoon and an index that had to name one would be an index of this
-    # machine (RK217 draws the same line for a path claim).
-    listed = subprocess.run(
-        ["git", "-C", str(HERE), "ls-files"],
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-    )
-    if listed.returncode != 0:
+    carried = _carried()
+    if carried is None:
         pytest.skip("git cannot list this tree, so there is nothing to compare the index to")
-    carried = {line.split("/", 1)[0] for line in listed.stdout.splitlines() if line}
     unnamed = [
         name
         for name in sorted(carried)
@@ -298,8 +318,16 @@ def test_every_surface_this_repository_carries_is_named_in_the_index():
 
 def test_nothing_is_exempted_from_the_index_that_the_tree_no_longer_carries():
     """The other direction, for :data:`UNHELD`'s reason: an exemption for a path that left is
-    a sentence nobody can check, and the list is only worth what it still describes."""
-    gone = [name for name in UNINDEXED if not (HERE / name).exists()]
+    a sentence nobody can check, and the list is only worth what it still describes.
+
+    Asked of :func:`_carried` and no longer of the disk (RK1134), so both directions quantify
+    over one set: an entry that exists but is *ignored* is not something this tree carries, and
+    a reverse check reading the filesystem would keep an exemption the forward one never needs.
+    """
+    carried = _carried()
+    if carried is None:
+        pytest.skip("git cannot list this tree, so there is nothing to compare the list to")
+    gone = [name for name in UNINDEXED if name not in carried]
     assert gone == [], gone
 
 
