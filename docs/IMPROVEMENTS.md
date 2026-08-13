@@ -77,6 +77,65 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1120 The file whose diff names two tasks
+
+RK1117 taught a departure to report a governed file it wrote and does not explain, and
+it is bounded by its own reading: `written` asks whether the **file's** diff names this
+id, so a file this task both wrote and is named in stays accounted for whatever else is
+in it.
+
+The roadmap is that file on every ship. Measured here, shipping RK1112 while another
+session had filed RK1116: `docs/IMPROVEMENTS.md` is now reported, and `docs/ROADMAP.md`
+is not — this task's marker write is in the same diff, so the added `RK1116` line rides
+inside the staging line the report prints and nothing says a second id is in it.
+
+```
+$ git diff HEAD -U0 -- docs/ROADMAP.md
+-- 📋 **RK1112** …          this task's own marker
++- 🛠 **RK1112** …
++- 📋 **RK1116** …          somebody else's line
+```
+
+The machinery to read it is already here and used one command over. `lint --since HEAD`
+parses both revisions of a governed file to answer `block.emptied` (RK269), and a
+`Document` gives entries by id — so *which ids gained or lost a line since HEAD* is a
+comparison of two parses rather than a diff heuristic. An annotation refresh (RK8)
+changes a dependent's deps field and is not a line gained or lost, which is exactly the
+false positive a diff-level reading of "other ids appear" would produce.
+
+What to say is one line beside the staging: which ids in this file's change are not this
+task's, and that staging the file takes them. Not a refusal — a tree somebody else is
+working in is not this command's to block, and the answer needed is which hunk to leave
+out.
+
+### §RK1121 The next step that is never the next step
+
+Every `ship` that takes the last open line out of a block prints a second line naming
+the door for the heading:
+
+```
+  event    RK1119  Block E  finished
+           its last open line just left — `block drop E` withdraws the heading, where this
+           project drops one
+```
+
+Measured in this repository across one session: **nine ships, six of those hints — D, B,
+F, B, C, E — and no block has ever been dropped.** The seven headings here are the
+structure of the backlog and outlive every line filed under them; a block that empties
+is a block whose work is finished, not a heading anybody wants withdrawn.
+
+The clause `where this project drops one` is the hedge that says the sentence knows
+this, and a hedge is not the fix: it costs a reader the same attention on every run, and
+the answer to "is this the next step" is a fact about the project rather than about the
+ship. That is what `[blocks]` exists to declare and this is the one thing it does not: a
+project whose blocks are permanent says so once, and the hint is then silence rather
+than a line six ships out of nine have to be read past.
+
+The other half of the same reading is `block.emptied`, the gate's own note (RK269) — a
+transition worth recording, and not a suggestion to act. So the declaration turns the
+*hint* off and leaves the note where it is: what emptied is history and what to do about
+it is the project's, which is the split every other configurable rule here keeps.
+
 ## Block C — Query
 
 ## Block D — The gate
