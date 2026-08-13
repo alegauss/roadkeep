@@ -1122,12 +1122,25 @@ def restate(
 
 
 def _refuse_sibling_status(config: Config, task_id: str) -> None:
-    """Any other governed file carrying a marker for this id is the disagreement."""
+    """Any other governed file carrying a marker for this id is the disagreement.
+
+    Except the one shape the tool creates on purpose (RK121, RK1080, RK1114). `ship --part`
+    writes an entry naming a half and *leaves the line open* at ⏳, so a ⏳ line beside a
+    qualified ✅ is the two files agreeing rather than disagreeing — and refusing it closed the
+    only door that starts work: measured on dockerdesk, `pick` named the line, `brief` called
+    it ready, and `brief --claim` answered that status lives in exactly one file. It does; the
+    roadmap holds it, and an id in the ledger is a finished task only when the line is gone.
+
+    :attr:`~roadkeep.kernel.schema.Task.in_halves` and never a second test of the qualifier,
+    which is where RK1080 folded the two readings this rule has: the gate skips the same pair
+    for the same reason (`linting._carried`), and a door disagreeing with it would refuse a
+    state the gate calls clean.
+    """
     for role in ROLES:
         if role == "roadmap" or not config.has(role) or not config.path(role).is_file():
             continue
         found = config.document(role).by_id().get(task_id)
-        if found is not None:
+        if found is not None and not found.task.in_halves:
             raise StatusElsewhere(
                 task_id,
                 role,

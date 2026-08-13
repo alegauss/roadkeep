@@ -522,3 +522,46 @@ def test_a_project_that_names_no_undesigned_marker_never_skips(tmp_path):
     )
     choice = pick(config, designed=True)
     assert choice.entry.task.id == "RK4" and not choice.needs_design
+
+
+# -- the line the picker offers is a line the claim can take (RK1114) ----------
+
+
+def test_a_partially_shipped_line_can_be_claimed_from_the_picker(tmp_path, capsys):
+    """The picker and the claim disagreed about one line and the picker was right: an id in the
+    ledger is a finished task only when the roadmap no longer carries the line. Measured on
+    dockerdesk one command after the other — `pick` named it, `brief` called it ready, and
+    `--claim` answered that status lives in exactly one file."""
+    project(
+        tmp_path,
+        BLOCKS + line("RK1", status="⏳"),
+        changelog=(
+            "# Shipped\n\n## Block A — The model\n\n"
+            "- ✅ **RK1 (local half)** **A symptom for RK1** — a reason.\n"
+        ),
+    )
+    assert main(["-C", str(tmp_path), "pick", "--claim"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "RK1" in printed
+    # And the line is taken, which is what the flag promises the next caller.
+    assert IN_PROGRESS in (tmp_path / "ROADMAP.md").read_text(encoding="utf-8")
+
+
+def test_the_half_that_landed_is_still_what_the_ledger_says(tmp_path):
+    # The marker moved and the record did not: the qualifier is where a partial lives (RK1075),
+    # so `ship RK1` still completes it — the door the partial's own answer names.
+    from roadkeep.backlog import Backlog
+
+    config = project(
+        tmp_path,
+        BLOCKS + line("RK1", status="⏳"),
+        changelog=(
+            "# Shipped\n\n## Block A — The model\n\n"
+            "- ✅ **RK1 (local half)** **A symptom for RK1** — a reason.\n"
+        ),
+    )
+    assert main(["-C", str(tmp_path), "status", "RK1", IN_PROGRESS]) == EXIT_OK
+    assert Backlog.load(Config.discover(tmp_path)).partial("RK1") == "local half"
+    # And the completion closes it from the claimed marker, the line's own door either way.
+    assert main(["-C", str(tmp_path), "ship", "RK1", "--why", "The rest of it landed."]) == EXIT_OK
+    assert "RK1" not in (tmp_path / "ROADMAP.md").read_text(encoding="utf-8")

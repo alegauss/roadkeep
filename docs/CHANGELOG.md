@@ -625,6 +625,7 @@
 - ✅ **RK1099** **a flag added to a served verb is CLI-only until somebody lists it, and nothing says which ones are** — WITHHELD names every argument a served verb does not offer and why, held equal to the parsers so a new flag is a red test rather than a silent omission.
 - ✅ **RK1108** **the guard reaches no environment without the plugin, so a project hand-writes the launcher that finds one** — install --committed writes a launcher the repository carries, so the guard reaches a session with no plugin and no checkout, and defers on the harness's own registry.
 - ✅ **RK1113** **`install --check` reports drift on a `--committed` project and names the plain `install`, which downgrades the wiring** — install reads the committed launcher off the project's own declarations, so a --committed tree reports its real drift and the plain install keeps its wiring.
+- ✅ **RK1114** **`pick` offers a partially shipped line that `--claim` then refuses, the partial ledger entry reading as a ship** — A ledger entry naming a half is the one pair no marker write refuses, so the line pick offers is the line a claim takes.
 
 ## Block G — The editor surface (the backlog where the file is open)
 

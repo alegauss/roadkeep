@@ -85,41 +85,6 @@ already written, not authorship.
 
 ## Block F — The plugin
 
-### §RK1114 A partial ship leaves a line the picker offers and the claim refuses
-
-`ship <id> --part` writes a ledger entry and deliberately leaves the roadmap line open
-at ⏳, because the rest of it is still a task. Its own answer says so, and names `ship
-<id>` as the command that finishes it later. So a ⏳ line with a partial entry is the one
-state the tool creates on purpose to mean "come back to this".
-
-The claim path does not read it that way. It looks for the id in the ledger, finds the
-partial ✅, and refuses — with the rule about status living in exactly one file, which is
-the right rule about the wrong situation: the roadmap says ⏳ and the ledger says "half
-of it", and those do not disagree.
-
-Measured on the dockerdesk repository, one command after the other, nothing else
-changed:
-
-    $ roadkeep pick
-    DD2  Block A  ⏳  docs/ROADMAP.md:7
-      because  lowest ready id
-
-    $ roadkeep brief DD2
-    DD2  Block A  ⏳  ready  docs/ROADMAP.md:7
-
-    $ roadkeep brief DD2 --claim
-    roadkeep: DD2 already carries ✅ in the changelog at docs/CHANGELOG.md:6: status lives in
-    exactly one file, because two files that both express it will eventually express different
-    ones and nothing says which is right
-
-`pick` names it, `brief` calls it ready, and the one verb that starts work on it
-refuses. `status <id> --claim` is no way round either, since moving ⏳ to 🛠 to take a
-claim discards the fact that half of it shipped — which is the whole thing that marker
-carries.
-
-The picker and the claim disagree about one line, and the picker is right: an id in the
-ledger is a finished task only when the roadmap no longer carries the line.
-
 ### §RK1115 The pause a budget forbids
 
 pportal's PP55 named an instrument the machine does not have, so the honest door was a

@@ -121,13 +121,13 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 88 | 1 |
 | D — The gate | 0 | 149 | 0 |
 | E — Adoption | 0 | 84 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 3 | 99 | 1 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 2 | 100 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 3 | 605 | 6 |
+| **Total** | 2 | 606 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1114** (deps: —) **`pick` offers a partially shipped line that `--claim` then refuses, the partial ledger entry reading as a ship** — A partial leaves the line open at ⏳ by design, so the one verb that starts a task cannot take the line the picker just named. → §RK1114
+- 📋 **RK1115** (deps: —) **defer refuses any line whose why already fills its budget, because the wrapped reason is charged to the same limit** — A line written to its why budget can never be paused: the prefix alone needs 14 characters the limit has no room for, so the only doors are terminal. → §RK1115
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

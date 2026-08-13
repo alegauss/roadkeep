@@ -161,6 +161,36 @@ def test_a_task_in_the_changelog_is_refused_not_updated(tmp_path):
     assert read(config) == BACKLOG
 
 
+def test_an_entry_naming_a_half_is_the_one_pair_that_is_not_a_disagreement(tmp_path):
+    """RK1114. `ship --part` writes a qualified entry and leaves the line open at ⏳ on purpose,
+    so a ⏳ line beside it is the two files agreeing — and refusing it left the state the tool
+    creates to mean "come back to this" as the one state no verb could start work on: measured
+    on dockerdesk, `pick` named the line, `brief` called it ready, `brief --claim` refused."""
+    config = project(
+        tmp_path,
+        roadmap=BACKLOG.replace("- 📋 **RK1**", "- ⏳ **RK1**"),
+        changelog=LEDGER
+        + "\n- ✅ **RK1 (local half)** **A first symptom** — Because of a reason.\n",
+    )
+    change = set_status(config, "RK1", "🛠")
+    assert change.before == "⏳" and change.after == "🛠"
+    assert change.claim.name == "CLAIMED"
+
+
+def test_an_unqualified_entry_is_still_the_disagreement(tmp_path):
+    # The qualifier and never the marker (RK1075, RK1080), which is what keeps the relaxation
+    # from reading every ledger entry as a live partial: an entry naming no half says the whole
+    # of it shipped, and that beside an open line is the state `id.two-files` reports.
+    config = project(
+        tmp_path,
+        roadmap=BACKLOG.replace("- 📋 **RK1**", "- ⏳ **RK1**"),
+        changelog=LEDGER + "\n- ✅ **RK1** **A first symptom** — Because of a reason.\n",
+    )
+    with pytest.raises(StatusElsewhere):
+        set_status(config, "RK1", "🛠")
+    assert read(config) == BACKLOG.replace("- 📋 **RK1**", "- ⏳ **RK1**")
+
+
 def test_a_rationale_file_that_grew_a_marker_is_refused(tmp_path):
     config = project(
         tmp_path,

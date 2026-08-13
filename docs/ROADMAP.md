@@ -34,7 +34,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK1114** (deps: —) **`pick` offers a partially shipped line that `--claim` then refuses, the partial ledger entry reading as a ship** — A partial leaves the line open at ⏳ by design, so the one verb that starts a task cannot take the line the picker just named. → §RK1114
 - 📋 **RK1115** (deps: —) **defer refuses any line whose why already fills its budget, because the wrapped reason is charged to the same limit** — A line written to its why budget can never be paused: the prefix alone needs 14 characters the limit has no room for, so the only doors are terminal. → §RK1115
 - 📋 **RK1116** (deps: —) **the launcher the installed skill names as the entry point forwards only guard and mcp, so every verb exits 2** — With no MCP server connected, the one path the session is told to use answers a usage line, so an agent with a working engine on disk guesses at a checkout path instead. → §RK1116
 
