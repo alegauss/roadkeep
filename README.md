@@ -117,13 +117,17 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 41 | 2 |
-| B — Authoring (insert, never hand-edit) | 0 | 137 | 1 |
-| C — Query (consult without reading the file) | 0 | 90 | 1 |
+| B — Authoring (insert, never hand-edit) | 1 | 137 | 1 |
+| C — Query (consult without reading the file) | 1 | 90 | 1 |
 | D — The gate | 0 | 149 | 0 |
 | E — Adoption | 0 | 85 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 102 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 0 | 615 | 6 |
+| **Total** | 2 | 615 | 6 |
+
+**Next ready:**
+
+- 📋 **RK1124** (deps: —) **sharing resolves the same revision once per carrier, so a read pays a subprocess for an answer it already has** — One rev-parse is 20.6ms and the pair costs 85.6ms here against RK176's 43ms floor, on the read an agent runs before every commit. → §RK1124
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
