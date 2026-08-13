@@ -77,6 +77,39 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1137 The directory git named instead
+
+RK495 taught `_covers` that a **declared directory** speaks for the files git lists
+under it: a claim on `src/` prints the staging line that takes `src/a.py` and must not
+then report `src/a.py` as named by nobody. This is the same question from the other
+side, and it is the one nobody asked: git reports an *untracked directory* as the
+directory, so a claim naming a **file inside it** matches nothing.
+
+Measured on the ship that created one, this repository, one command:
+
+```
+$ roadkeep claim RK1136 --path .claude/skills/roadkeep-dev/SKILL.md …
+$ roadkeep ship RK1136 --why "…"
+  loose    .claude/skills/  (no claim names it)
+  typo?    .claude/skills/roadkeep-dev/SKILL.md  (declared, and stages nothing)
+```
+
+Both lines are wrong and they are about one path. The scope named the file the write
+created; `dirty` answered `.claude/skills/` because git collapses an untracked tree to
+its topmost new directory, so `_covers` compared a declared file against a shorter
+string and `_stages` found nothing for the declaration — which reads as a mistyped path
+on the one path that is certainly not mistyped.
+
+`_covers` already knows the shape of the answer: it strips a trailing slash and compares
+a prefix. What is missing is that the *listed* side can be the prefix — `path ==
+declared or path.startswith(declared + "/") or declared.startswith(path)`, where the
+third case is a directory git named standing for everything under it.
+
+What needs deciding rather than adding: the third case must not make a claim on
+`src/a.py` answer for a dirty `src/` on a tree where `src/` is tracked and merely holds
+other changes. Git only collapses **untracked** trees, so the reading is available —
+`--others` names them.
+
 ## Block C — Query
 
 ## Block D — The gate

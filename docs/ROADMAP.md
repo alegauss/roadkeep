@@ -26,6 +26,8 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1137** (deps: —) **git collapses an untracked tree to its top directory, so a claim naming a file inside it is called a typo** — RK1136's own ship reported the new skill as loose and its declaration as staging nothing, both about one path and both wrong (RK495 from the other side). → §RK1137
+
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
