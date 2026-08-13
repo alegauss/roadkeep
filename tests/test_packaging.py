@@ -481,3 +481,66 @@ def test_a_whole_tree_still_gets_every_core() -> None:
 
     assert pytest_xdist_auto_num_workers(_Asked("tests")) == os.cpu_count()
     assert pytest_xdist_auto_num_workers(_Asked("tests/", "tests/captures")) == os.cpu_count()
+
+
+# -- the gate's environment, run here (RK1159) --------------------------------
+
+
+def _like_ci():
+    """The script as a module, loaded the way `test_launching` loads the bridge."""
+    import importlib.util
+    import sys
+
+    spec = importlib.util.spec_from_file_location(
+        "like_ci", HERE / "scripts" / "like_ci.py"
+    )
+    module = importlib.util.module_from_spec(spec)
+    # Registered before it is executed, which `@dataclass(slots=True)` requires: the decorator
+    # rebuilds the class and looks its module up in `sys.modules` to do it.
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_the_floor_it_runs_against_is_the_one_pyproject_declares() -> None:
+    """Read and never restated (RK1158's rule, one file over): a script carrying its own copy of
+    the floor is a second answer to a question `requires-python` already settles."""
+    import tomllib
+
+    declared = tomllib.loads((HERE / "pyproject.toml").read_text(encoding="utf-8"))
+    stated = declared["project"]["requires-python"]
+    assert stated.startswith(">=")
+    assert _like_ci().floor() == tuple(int(part) for part in stated.removeprefix(">=").split("."))
+
+
+def test_every_difference_it_cannot_apply_says_so(capsys) -> None:
+    """The rule the script exists to keep (RK1159): a run that quietly covered three differences
+    of four would report a clean suite about an environment nobody chose. `--dry-run` is the
+    surface where that is checkable without spending a venv."""
+    like_ci = _like_ci()
+    assert like_ci.main(["--dry-run"]) == 0
+    printed = capsys.readouterr().out
+    _, unapplied = like_ci.interpreter()
+    for one in like_ci.differences(unapplied):
+        assert one.name in printed, one.name
+        assert ("applied" if one.applied else "skipped") in printed
+    # The two nobody's machine can apply are named as such, and named for what they cost.
+    said = [line for line in printed.splitlines() if line.strip().startswith("skipped")]
+    assert any("corpora" in line for line in said), printed
+
+
+def test_the_environment_it_composes_removes_the_identity_and_keeps_the_ownership(tmp_path) -> None:
+    """The correction its own first run forced: nulling the global config takes `safe.directory`
+    with the identity, and the corpora — checkouts another user owns — stop being readable. That
+    is this script's red and not the gate's, since a runner has no corpora at all."""
+    like_ci = _like_ci()
+    env = like_ci.environment(tmp_path, tmp_path / "c", tmp_path / "g", tmp_path / "s")
+    assert env["GIT_CONFIG_SYSTEM"] == os.devnull
+    written = Path(env["GIT_CONFIG_GLOBAL"]).read_text(encoding="utf-8")
+    assert written.startswith("[safe]")
+    assert "user" not in written and "email" not in written
+    # And the three routes RK1155 named, plus the project a session states and CI does not.
+    assert env["XDG_CACHE_HOME"] == str(tmp_path / "c")
+    assert env["CLAUDE_CONFIG_DIR"] == str(tmp_path / "g")
+    assert "CLAUDE_PROJECT_DIR" not in env
+    assert env["PATH"].startswith(str(tmp_path / "s"))

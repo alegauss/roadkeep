@@ -57,7 +57,7 @@ hooks/, skills/, commands/, .claude-plugin/, .mcp.json   the plugin's five, how 
                 (RK22-26), and the launcher an adopter commits where no plugin can be (RK1108);
                 reasoned in tests/test_{plugin,skill,serving,commands,launching}.py
 editor/, scripts/, tests/   the editor host and the archive it installs as (RK1011-13), the
-                two commands a developer runs, and pytest — docs/ is a fixture, not a mock
+                three commands a developer runs, and pytest — docs/ is a fixture, not a mock
 ```
 
 `Schema.render` is the only writer of the line format, `Schema.validate` the only reader of the

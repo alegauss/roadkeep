@@ -30,7 +30,6 @@
 
 ## Block D — The gate
 
-- 🛠 **RK1159** (deps: —) **nothing here runs the suite the way CI does, so four defects this session were only findable there** — The differences are an installed console script, no ambient git and no caches, and three of the four need no second interpreter. → §RK1159
 - 📋 **RK1160** (deps: —) **A capture filed in another repo's backlog can never clear its row, and only a wrong id or a deletion silences it** — The filed id resolves against the capturing project's own ids, so a capture about this tool stays unfiled for ever in the project that took it. → §RK1160
 
 ## Block E — Adoption

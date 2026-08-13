@@ -81,34 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK1159 The environment nobody can reproduce
-
-Four tasks this session were defects the suite could not see and CI could: RK1153
-(fixture git calls taking the machine's identity), RK1154 (an assertion that fails once
-the console script exists), RK1155 (isolation a plugin cache invalidates), RK1158 (a
-call newer than the floor).
-
-They are one difference, not four: CI installs the package (`pip install ".[dev]"`) and
-runs it on a machine that has no git identity, no plugin cache, and — for one of two
-jobs — the floor interpreter. Nothing here runs the suite that way, and nothing says
-how.
-
-Three of the four differences are reproducible on **this** interpreter, which is what
-makes this worth a command rather than a wish:
-
-* **installed, not on the path** — `pip install` into a throwaway venv makes `invocation()` the
-  console script, which is the whole of RK1154;
-* **no ambient git** — an empty `HOME`/`GIT_CONFIG_*`, which is RK1153's environment;
-* **no caches** — `XDG_CACHE_HOME` and `CLAUDE_CONFIG_DIR` inside the temp tree, RK1155's.
-
-The fourth needs the floor interpreter, and this machine has one Python. So the command
-runs what it can and **says which difference it could not apply**, rather than reporting
-a clean run that covered three of four — the rule `adopt`'s scope line already keeps.
-
-What needs deciding: whether it lives in `scripts/` beside the two a developer already
-runs, or as a marker the suite honours, which would put the environment inside pytest
-rather than around it.
-
 ### §RK1160 A capture delivered to another backlog has no way to say so
 
 RK1139 counted captures and RK1141 gave each one the id it was filed as, so a reworded
