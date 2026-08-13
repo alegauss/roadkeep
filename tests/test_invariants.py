@@ -726,3 +726,50 @@ def test_the_rule_is_argued_where_the_next_predicate_is_written():
     # Both failures named, because the rule without them is advice: what makes it land is that
     # it has already cost two reds, and one of those was written the same week as the rule.
     assert "RK1090" in docstring and "RK1098" in docstring
+
+
+# -- one terminator per file (RK1132) ------------------------------------------
+
+
+def test_no_file_mixes_the_two_line_terminators():
+    """Measured before it was fixed: 45 of the package's modules held CRLF in the working tree
+    and 11 held LF, and eight test files held **both** — because the index is normalised and
+    some editors write CRLF back.
+
+    Nothing renders differently and no diff is at stake, which is exactly what makes it
+    expensive: an edit anchored on one terminator matches nothing in a file that uses the
+    other, **silently**. That is RK1091's defect one layer down, and it stopped two scripted
+    patches in a single session — cheap only because each carried an `assert` on its anchor.
+
+    The declaration is `.gitattributes` (`* text=auto eol=lf`), which decides a *checkout*;
+    this is what holds a tree somebody edited afterwards. Mixing and never "must be LF": a
+    Windows checkout with `core.autocrlf=true` is uniformly CRLF and perfectly editable, and a
+    test demanding LF would redden that machine for a setting the repository does not own.
+    """
+    mixed = []
+    for module in (*modules(), *_test_modules()):
+        raw = module.path.read_bytes()
+        crlf = raw.count(b"\r\n")
+        if crlf and raw.count(b"\n") - crlf:
+            mixed.append(module.where)
+    assert not mixed, mixed
+
+
+def test_the_declaration_that_decides_a_checkout_is_committed():
+    # The other half, and the one a test cannot enforce on its own: a per-machine
+    # `core.autocrlf` is not a promise to a contributor who never set it (L6).
+    declared = (Path(__file__).parent.parent / ".gitattributes").read_text(encoding="utf-8")
+    assert "* text=auto eol=lf" in declared
+    assert "RK1132" in declared  # the measurement it came from, where a reader will look
+
+
+def _test_modules():
+    """This suite's own files, as `Module`-shaped rows. The one read `surface` cannot make:
+    it declares the *package*, and the terminator invariant is about every file an author
+    edits — which is why `test_invariants.py` is in `_MAY_GLOB` at all."""
+    from surface import Module
+
+    return tuple(
+        Module(where=f"tests/{path.name}", path=path)
+        for path in sorted(Path(__file__).parent.glob("*.py"))
+    )

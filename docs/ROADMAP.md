@@ -30,8 +30,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1132** (deps: —) **45 modules end CRLF and 11 end LF, so an edit anchored on one terminator silently matches nothing** — Two scripted patches stopped on their own assert in one session, which is RK1091's defect one layer down and a step nothing in the repository declares. → §RK1132
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

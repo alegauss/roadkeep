@@ -81,36 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK1132 One tree, two terminators
-
-Measured across the working tree: **45 of the 56 package modules end CRLF and 11 end
-LF**, and eight test files carry **both**. `src/roadkeep/verbs/shipping.py` is one of
-the eleven while every file beside it is one of the forty-five.
-
-The cost is not rendering and not bytes. It is that an edit anchored on one terminator
-matches nothing in a file that uses the other, **silently** — which is RK1091's defect
-one layer down. Twice in one session a scripted patch asserted its anchor and stopped:
-
-```
-AssertionError:                     "event": event,
-                },
-```
-
-The assert is what made it cheap; RK1091 was filed because the same class of edit had
-once *succeeded* at writing the wrong bytes. Both times the fix was to notice the file's
-endings — a step nothing here declares, so every author rediscovers it.
-
-The repository already owns the file where this is stated: `.gitattributes` carries the
-merge driver for the governed files (RK120), so a `*.py text` line lands beside a
-declaration this project already made. It changes the **checkout**, which is where the
-mixing comes from — the index is normalised to LF either way, so no diff is at stake.
-
-Two decisions worth writing down rather than assuming. Whether the eight mixed files are
-normalised in one commit — a diff of every line, once, against a class of silent failure
-— and whether anything holds it afterwards: `test_invariants` is where a source-level
-property lives, and "one terminator per file" is one it can read off
-`surface.modules()`.
-
 ## Block E — Adoption
 
 ## Block F — The plugin

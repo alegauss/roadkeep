@@ -119,15 +119,11 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 41 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 143 | 1 |
 | C — Query (consult without reading the file) | 0 | 91 | 1 |
-| D — The gate | 1 | 149 | 0 |
+| D — The gate | 0 | 150 | 0 |
 | E — Adoption | 0 | 85 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 103 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 1 | 623 | 6 |
-
-**Next ready:**
-
-- 📋 **RK1132** (deps: —) **45 modules end CRLF and 11 end LF, so an edit anchored on one terminator silently matches nothing** — Two scripted patches stopped on their own assert in one session, which is RK1091's defect one layer down and a step nothing in the repository declares. → §RK1132
+| **Total** | 0 | 624 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

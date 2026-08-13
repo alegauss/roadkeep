@@ -447,6 +447,7 @@
 - ✅ **RK1105** **a byte budget counts what the checkout has, so CRLF and LF give one commit different headroom** — A file budget counts CRLF as the LF the repository stores, so one commit has one ceiling on every machine, and lint and budget both name what this checkout pays over it.
 - ✅ **RK1106** **a citation inside prose can name a section that no longer exists, and no gate code says so** — A citation in a section's body resolves like a pointer, so ref.dangling names prose arguing from a deleted design (design §RK1106 superseded: Shio's four are quoted anchors the scan excludes).
 - ✅ **RK1111** **a namespaced citation is read as its namespace, so lint reports a live anchor as dangling** — A citation is read to the end of its address, so a namespaced or sentence-final one resolves and a dead one is still reported.
+- ✅ **RK1132** **45 modules end CRLF and 11 end LF, so an edit anchored on one terminator silently matches nothing** — A committed .gitattributes decides the checkout and a test refuses any file that mixes the two, so a scripted edit cannot silently match nothing.
 
 ## Block E — Adoption
 
