@@ -77,40 +77,64 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1149 The refusal that knows the answer (RK1145)
+
+`lint` findings carry a `remedy.doors` array: the tool to call, the arguments, and
+whether it writes. `add` refuses with prose alone — and its two most common refusals
+have *already done the work*:
+
+    ref: every task points at its rationale section — Block L's prose is under §XII,
+    where §XII.17 is free (`anchors` with block: L lists it)
+
+    §XXIII.7 was declared before (e210585) and its section is gone … §XXIII.10 is the
+    next one nothing ever used
+
+Both know the answer. Both hand it over as a sentence the caller must read, extract and
+retype into an otherwise identical call. Measured in one session against Shio, a project
+on the outline scheme: seven tasks filed, five of them refused first for exactly this,
+five retries carrying no new information. The second refusal is worse than the first,
+because the anchor it forbids is one `anchors` would have offered and the caller had no
+way to know it was burnt.
+
+The fix is the mechanism this tool already has, not a new one: attach a door to these
+refusals the way `lint` attaches one, complete and pre-filled, so the retry is a call
+rather than a transcription.
+
+Auto-assigning instead was considered and is the wrong half. A ref is an address other
+lines cite, and choosing it silently is how a task ends up pointing somewhere its author
+never read — the refusal is right, its ergonomics are not.
+
 ## Block C — Query
 
 ## Block D — The gate
 
-### §RK1147 The scheme decides the estimate, and the report never says so
+### §RK1147 The payload carries the count and the report carries the door
 
 `adopt` is the first command an adopting project runs, and it runs before anybody there
-knows this tool's vocabulary. Point it at Shio's roadmap with no `--ref-scheme` and it
-reads:
+knows this tool's vocabulary. Point it at Shio's roadmap with nothing declared and the
+printed report has said the right thing since RK285:
 
 ```
-adopt(id):      parsed=20 non_canonical=20 codes=[line.non-canonical (20), ref.mismatch (20)]
-adopt(outline): parsed=20 non_canonical=0  codes=[]
+also  20 pointer(s) spell outline, unread here: --ref-scheme outline if that is how …
 ```
 
-Same bytes. Every line is a reformatting cost under one flag and none of it is under the
-other, and nothing in the report says the flag decided it — 48/48 and 37/37 at the other
-pins, so the ratio is the file's numbering scheme rather than a distribution over its
-lines.
+The payload of the same run says `{"scheme": "outline", "count": 20}` beside
+`line.non-canonical: 20`, and nothing else. Same reading, two surfaces, and only one of
+them carries the door — the asymmetry `lint` has not had since RK15, where every finding
+names the command that closes it and the JSON carries it as a structured `remedy`.
 
-What an adopter reads is *this file needs rewriting line by line*; the answer is *this
-file numbers its sections the other way*. That is what RK14/15 removed from `lint`,
-where every finding carries the command that closes it, and `adopt` is the surface where
-a misread costs the adoption itself.
+Who reads which is the whole cost. The text surface goes to a person weighing an
+adoption; the payload goes to an agent, which is the author this tool is built for, and
+what it gets is two counts and the inference *between* them. This filing is the
+evidence: it was opened against the `Estimate` object, claimed the report named no
+cause, and the report named it twice.
 
-Both readings are already available: the estimate parses under a schema it constructs,
-so the other one is a second parse of a file in memory. What it cannot do is say which
-is *right* — an id-numbered backlog is non-canonical under `outline` just as
-symmetrically. So the finding is a comparison and not a correction: name the scheme that
-costs nothing and let the adopter recognise their own file.
-
-The cost: a second parse per estimate, and a report that mentions a configuration the
-caller did not ask about — the price of a number otherwise read as a verdict on a
-backlog.
+So the finding is one field wide: the rows that already say a reading is unread carry
+the door that reads it that way, published in the one shape `Door` already has. What the
+door must carry to be honest is the flags that decide the measurement — `--sections`
+reads a rationale file and `--ledger` applies the changelog limits (RK76) — and the
+estimate records neither today, so the role it was taken in becomes a field rather than
+something a consumer infers from `unit`.
 
 ### §RK1148 A skip that makes a historical claim can be held to it
 
@@ -142,6 +166,32 @@ skip that says only what it read at this pin needs no second revision and cannot
 wrong — and loses exactly the information that motivated RK1145.
 
 ## Block E — Adoption
+
+### §RK1150 A version skew wearing a typo's message (RK1150)
+
+Reached from Shio, filing RK1149. The MCP server resolves roadkeep from the plugin cache
+and the project resolves it from a checkout, so the two can differ. When they did:
+
+    roadkeep: D:\...\roadkeep.toml: unknown key 'headings.permanent'
+    (allowed: headings.word)
+
+Every word true, and the conclusion it invites is wrong. `headings.permanent` is not a
+typo and not somebody's invention — it is a key a *later* roadkeep added, read by a
+binary that predates it. The message's own `allowed` list is the older schema, presented
+as though it were the schema. The cheapest action it suggests is deleting a key the
+project needs, and the second cheapest is editing a config that is already correct.
+
+Nothing in the sentence can be used to reach the real answer, because the one fact that
+separates the two readings — which roadkeep is running — is absent. The tool prints its
+version in the MCP handshake and in `--version`, and not in the refusal that needs it.
+
+So: name the running version in every config refusal, and where a key is unknown say
+which of the two states it is. A key no version has ever declared is a typo; a key this
+version does not have is an upgrade. They are different findings and they currently
+share a message.
+
+Cheap, and it is the first thing a reader needs on a machine where two copies are
+installed.
 
 ## Block F — The plugin
 

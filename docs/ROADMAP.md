@@ -26,14 +26,18 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1149** (deps: —) **A refusal that already computed the free anchor still makes the caller retype it** — add names the next free ref and the next unused one when it refuses, but carries no door, so every task under an outline scheme costs two calls instead of one. → §RK1149
+
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
 
-- 📋 **RK1147** (deps: —) **adopt calls every line non-canonical when the ref scheme is the only disagreement** — The estimate names no cause, so an adopter reads a file that needs rewriting line by line where the truth is one flag. → §RK1147
+- 🛠 **RK1147** (deps: —) **the adopt payload publishes the count of an unread reading and not the flag that changes it** — The printed report has named the flag since RK285 and the payload leaves it to be inferred from a count. → §RK1147
 - 📋 **RK1148** (deps: —) **three skips claim a shape left the corpus and it was never there at the pin before** — The clause is prose nobody checks, while both retired revisions still resolve, so a false history reads as coverage. → §RK1148
 
 ## Block E — Adoption
+
+- 📋 **RK1150** (deps: —) **An older installed roadkeep reports a newer config's key as a typo, so the fix reads as deleting it** — unknown key names the allowed set and never the running version, so a plugin one release behind its project looks like a roadkeep.toml somebody got wrong. → §RK1150
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
