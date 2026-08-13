@@ -907,7 +907,11 @@ def test_a_frozen_excerpt_still_round_trips_and_says_where_it_came_from(shape):
     # it came from inside itself rather than in a table beside it.
     config = corpora.thawed(shape)
     document = config.document("roadmap")
-    source = config.path("roadmap").read_text(encoding="utf-8", newline="")
+    # `open(..., newline="")` and not `read_text(newline=...)`: that keyword is 3.13, this
+    # package supports 3.11, and the difference showed up only in CI — where the bytes are the
+    # whole point, so translating them would break the round-trip this fixture exists to prove.
+    with config.path("roadmap").open("r", encoding="utf-8", newline="") as handle:
+        source = handle.read()
     assert document.render() == source
     assert document.entries and document.rejects == ()
     assert shape.rev in source and "frozen excerpt" in source
