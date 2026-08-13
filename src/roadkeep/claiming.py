@@ -503,7 +503,8 @@ class Scope:
     #: path and never the declaration it fell under (RK495): what a caller leaves alone is a
     #: file, and a holder who scoped `src/` would otherwise be reported as holding nothing.
     theirs: tuple[tuple[str, str], ...] = ()
-    #: Changed paths no live claim covers at all — by name or by the directory above them.
+    #: Changed paths no live claim covers at all — by name or by the directory above them, and
+    #: whose change this id does not already explain (`accounted`, RK1117).
     loose: tuple[str, ...] = ()
     #: Declared paths that would stage nothing right now (RK295) — in neither the dirty set
     #: nor the index. A subset of :attr:`mine`, in the order it was declared, because this is
@@ -527,6 +528,7 @@ def split(
     entries: Iterable[Entry],
     changed: Iterable[str],
     tracked: Iterable[str] = (),
+    accounted: Iterable[str] = (),
 ) -> Scope:
     """Split the changed paths by whose claim names them (RK280, RK295).
 
@@ -535,6 +537,15 @@ def split(
     is shared, and the reason this is a function rather than a second composition at each call
     site, is the *subtraction* — lists that have to stay disjoint and stay in the same order
     in both answers.
+
+    `accounted` is the third subtraction and the one RK1117 moved here: paths whose change
+    **this id already explains**, so they are not reported as belonging to nobody. It used to
+    be done by each printer, filtering `loose` against what the caller called written — and the
+    two callers mean different things by that word. `claim <id>` means "its diff carries this
+    id" (:func:`written`), which is the predicate; `ship` means "this transaction wrote it",
+    which is not. So a governed file that a departure wrote *and* that was already dirty with
+    another session's work was reported as written and never as loose, and the `git add --`
+    line took both. Measured here: a filing of RK1116 landed inside RK1112's commit.
 
     `tracked` is the index, and it is what makes :attr:`Scope.idle` a fact rather than a
     guess: a declared path that is dirty stages itself, and one the index carries is a real
@@ -560,13 +571,15 @@ def split(
         if any(_covers(declared, one) for declared in other.paths)
     )
     named = (*mine, *(one for other in others for one in other.paths))
+    explained = frozenset(accounted)
     return Scope(
         mine=mine,
         theirs=theirs,
         loose=tuple(
             one
             for one in sorted(changed)
-            if not any(_covers(declared, one) for declared in named)
+            if one not in explained
+            and not any(_covers(declared, one) for declared in named)
         ),
         idle=() if not known else tuple(one for one in mine if not _stages(one, known)),
     )
@@ -658,6 +671,13 @@ def departing(config: Config, task_id: str, entries: Iterable[Entry]) -> Scope |
     would answer the question the incident asked — which of these is mine — by assuming it,
     and the two sessions this exists to separate would each get the other's files with the
     tool's signature on it.
+
+    What this id **already explains** is asked here and not left to the printer (RK1117), and
+    asked of the tree *before* the transaction writes: a governed file dirty at this moment is
+    dirty from something else, and :func:`written` says whether that something names this id.
+    The reading is per file and says so — a file this task both wrote and is named in stays
+    accounted, so a second task's line added to the same roadmap is still not separable. What
+    it does catch is the other file, which is what a report has to be right about to be read.
     """
     entries = tuple(entries)
     if not any(one.paths for one in live(config, entries)):
@@ -667,7 +687,15 @@ def departing(config: Config, task_id: str, entries: Iterable[Entry]) -> Scope |
     # `pick`, `brief`, every marker write — would otherwise pay for the wrapper.
     from roadkeep.history import dirty, indexed  # noqa: PLC0415
 
-    return split(config, task_id, entries, dirty(config), indexed(config))
+    changed = dirty(config)
+    return split(
+        config,
+        task_id,
+        entries,
+        changed,
+        indexed(config),
+        accounted=written(config, task_id, changed),
+    )
 
 
 def rename(root: Path | str, old: str, new: str) -> bool:

@@ -77,36 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1117 The staging that names somebody else's work
-
-`ship` ends with the line a commit is composed from: `git add --` every path this task's
-claim named, plus the governed files it wrote. `claim <id>` reads that same scope back
-against the tree and reports a governed file carrying changes **no claim names** as
-`loose`. `ship` prints the paths and not that sentence.
-
-Measured in this repository today, shipping RK1112. A concurrent session had filed
-RK1116 — a roadmap line and a `§RK1116` section — while the work was in progress:
-
-```
-$ roadkeep claim RK1112 --path src/roadkeep/sections.py …
-  stage    git add -- … docs/ROADMAP.md README.md
-  loose    docs/IMPROVEMENTS.md  (no claim names it)
-$ roadkeep ship RK1112 --why "…"
-  stage    git add -- … docs/CHANGELOG.md docs/ROADMAP.md docs/IMPROVEMENTS.md README.md
-```
-
-The second staging names `docs/IMPROVEMENTS.md` without the reservation the first one
-carried, and it is the one that was run. Another task's filing landed under this task's
-message — the state "one task, one commit" exists to prevent, arriving through the
-command that prints the staging.
-
-`claim`'s own reading is the fix, and `ship` is where it stops being available:
-afterwards the claim is released and the line is gone, so nothing can say which paths
-were nobody's. Read before the writes, beside every other refusal this verb computes,
-and **reported rather than refused** — a tree somebody else is working in is not this
-command's to block, and the answer an author needs is which path to leave out of the
-`git add`.
-
 ## Block C — Query
 
 ### §RK1118 The container that answers with a blank line

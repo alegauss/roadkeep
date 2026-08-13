@@ -117,17 +117,17 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 41 | 2 |
-| B — Authoring (insert, never hand-edit) | 1 | 133 | 1 |
+| B — Authoring (insert, never hand-edit) | 0 | 134 | 1 |
 | C — Query (consult without reading the file) | 1 | 88 | 1 |
 | D — The gate | 0 | 149 | 0 |
 | E — Adoption | 1 | 84 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 102 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 3 | 608 | 6 |
+| **Total** | 2 | 609 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1117** (deps: —) **`ship` prints a stage line without naming the paths in it that carry changes no claim owns** — The line is what a commit is composed from, so a governed file another session changed in the meantime is staged under this task's message with nothing saying so. → §RK1117
+- 📋 **RK1118** (deps: —) **`section show --own` on a container prints an empty body, which reads exactly like a command that failed** — A parent with no paragraph of its own is the shape this repository's §0 has, so the reader cannot tell an honest absence from a call that did nothing. → §RK1118
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

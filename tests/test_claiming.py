@@ -1441,3 +1441,80 @@ def test_the_listing_counts_a_scope_and_the_json_carries_it(tmp_path, capsys):
     assert main(["-C", str(tmp_path), "claims", "--json"]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
     assert payload["claims"][0]["paths"] == ["src/a.py", "src/b.py"]
+
+
+# -- the path a departure wrote and somebody else had changed (RK1117) ---------
+
+
+def test_a_path_this_id_explains_is_not_reported_as_nobody_s(tmp_path):
+    # The subtraction, as the printers used to make it and `split` now does: a governed file
+    # dirty because this task's own claim moved a marker is not a change no claim accounts for.
+    config = project(tmp_path, BLOCKS + line("RK2"))
+    take(config)
+    claiming.scope(config, "RK2", ["src/a.py"])
+    entries = config.document("roadmap").entries
+    changed = ["src/a.py", "docs/ROADMAP.md"]
+    assert claiming.split(config, "RK2", entries, changed).loose == ("docs/ROADMAP.md",)
+    split = claiming.split(
+        config, "RK2", entries, changed, accounted=["docs/ROADMAP.md"]
+    )
+    assert split.loose == () and split.mine == ("src/a.py",)
+
+
+def test_the_ship_report_names_a_file_it_wrote_and_does_not_explain(tmp_path, capsys):
+    """RK1117, measured here: a filing of RK1116 sat in `docs/IMPROVEMENTS.md` while RK1112 was
+    being shipped. The ship wrote that file too, so the printer's own filter dropped it from
+    `loose` — and the `git add --` line it printed took both changes into one commit under one
+    task's message. Asserted on the report, because the list was never what was wrong."""
+    from conftest import git, git_init
+    from roadkeep.history import git_available
+
+    if not git_available():
+        pytest.skip("git is not on PATH")
+    git_init(tmp_path)
+    project(tmp_path, BLOCKS + line("RK2", status=IN_PROGRESS) + line("RK9"))
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
+        'improvements = "IMPROVEMENTS.md"\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "IMPROVEMENTS.md").write_text(
+        "# Improvements\n\n## Block A — The model\n\n### §RK2 A design\n\nThe reasoning.\n\n"
+        "### §RK9 A second design\n\nThe other reasoning.\n",
+        encoding="utf-8",
+    )
+    git(tmp_path, "add", "-A")
+    git(tmp_path, "commit", "--quiet", "-m", "chore: bootstrap")
+    config = Config.discover(tmp_path)
+    hold(config, "RK2")
+    claiming.scope(config, "RK2", ["src/a.py"])
+    # Another session's edit, in the file this task's own ship is about to write.
+    with (tmp_path / "IMPROVEMENTS.md").open("a", encoding="utf-8", newline="") as handle:
+        handle.write("\nSomebody else's paragraph about RK9.\n")
+    capsys.readouterr()
+    assert main(["-C", str(tmp_path), "ship", "RK2", "--why", "It works now."]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "loose    IMPROVEMENTS.md" in printed, printed
+    # And the staging line still names it, because the ship's own write is in there too: what
+    # the author needs is both facts, and the one that was missing is the reservation.
+    assert "IMPROVEMENTS.md" in printed.partition("stage    ")[2].partition("\n")[0]
+
+
+def test_a_governed_file_this_task_did_write_is_still_accounted_for(tmp_path):
+    # The other half, and the bound on the reading: `departing` asks whether the diff names
+    # this id, so a roadmap dirty from this task's own marker write stays out of `loose` —
+    # which is what RK309 established and what a report nobody trusts would undo.
+    from conftest import git, git_init
+    from roadkeep.history import git_available
+
+    if not git_available():
+        pytest.skip("git is not on PATH")
+    git_init(tmp_path)
+    project(tmp_path, BLOCKS + line("RK2"))
+    git(tmp_path, "add", "-A")
+    git(tmp_path, "commit", "--quiet", "-m", "chore: bootstrap")
+    config = Config.discover(tmp_path)
+    take(config)  # writes 🛠 onto RK2's own line
+    claiming.scope(config, "RK2", ["src/a.py"])
+    scope = claiming.departing(config, "RK2", config.document("roadmap").entries)
+    assert "ROADMAP.md" not in scope.loose

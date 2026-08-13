@@ -393,9 +393,13 @@ def _claim(config: Config, args: argparse.Namespace) -> int:
     # The subtraction is `claiming`'s (RK294), because `ship` asks for the same lists at the
     # moment of committing and two compositions of one answer is how they come to disagree.
     # Git is asked here and not there: this command was told to answer.
-    scope = claiming.split(config, args.id, entries, dirty(config), indexed(config))
+    # `accounted=wrote` (RK1117): here the word means what it always meant on this path — the
+    # dirty governed files whose diff carries this id — and the subtraction it feeds is the
+    # same one a departure makes, now made in one place rather than by each printer.
+    scope = claiming.split(
+        config, args.id, entries, dirty(config), indexed(config), accounted=wrote
+    )
     if args.json:
-        written = set(wrote)
         print(
             json.dumps(
                 {
@@ -408,9 +412,7 @@ def _claim(config: Config, args: argparse.Namespace) -> int:
                     "theirs": [
                         {"path": one, "claimed_by": who} for one, who in scope.theirs
                     ],
-                    "unclaimed": [
-                        one for one in scope.loose if one not in written
-                    ],
+                    "unclaimed": list(scope.loose),
                     "staging_nothing": list(scope.idle),
                 },
                 indent=2,

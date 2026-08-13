@@ -282,8 +282,10 @@ def _print_scope(scope: claiming.Scope | None, wrote: Sequence[str] = ()) -> Non
     for one, who in scope.theirs:
         print(f"  theirs   {one}  ({who} is holding it)")
     for one in scope.loose:
-        if one in set(wrote):
-            continue
+        # No filter here since RK1117: `loose` already excludes what this id explains, and the
+        # subtraction moved to `split` because the two callers meant different things by the
+        # list this used to read — a departure's `wrote` is what the transaction wrote, and a
+        # governed file it wrote *and* somebody else had changed vanished from both reports.
         print(f"  loose    {one}  (no claim names it)")
     # The declared paths that would stage nothing (RK295). Named here rather than folded into
     # `mine`, which this printer deliberately does not repeat: at a departure the work is done,
@@ -312,12 +314,13 @@ def _scope_json(
     """
     if scope is None:
         return None
-    written = set(wrote)
     return {
         "mine": list(scope.mine),
         "wrote": list(wrote),
         "theirs": [{"path": one, "claimed_by": who} for one, who in scope.theirs],
-        "unclaimed": [one for one in scope.loose if one not in written],
+        # Already subtracted (RK1117), so the payload and the printed report cannot disagree
+        # about which paths belong to nobody.
+        "unclaimed": list(scope.loose),
         "staging_nothing": list(scope.idle),
     }
 
