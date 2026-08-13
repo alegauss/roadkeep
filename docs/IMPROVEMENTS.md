@@ -132,32 +132,6 @@ labelled, where the difference between them is itself the thing worth seeing.
 
 ## Block D — The gate
 
-### §RK1165 A run is one fact, said once
-
-`gaps` on this repository prints **503 lines**, and 499 of them are one fact. Every row
-of the run reads the same way — *never carried: the whole history mentions it nowhere* —
-with only the number changing, from 501 through 999.
-
-Measured: the never-carried ids are a **contiguous run of 499** plus exactly two singles, at 80 and
-224. The run is a numbering jump — this backlog restarted its series at a thousand — so it is
-permanent, unactionable, and 499 rows on every run for ever.
-
-The two singles are the signal: each is a number the counter spent and no commit ever
-carried, which is the reading RK95 built. They are findable today only by paging past
-the jump.
-
-This is RK1143's rule one command over — a row that is never the next step makes the row
-beside it unread — and the shape is already in the format: a **range** is how this tool
-spells many ids at once. One line for the run, rows for the singles.
-
-What needs deciding: whether a run is collapsed by size or by *reason*. A jump in the
-series and five ids somebody burnt in one afternoon are both contiguous, and only the
-first is permanent.
-
-Worth stating because it decided the prose above: naming those ids here is refused
-(`body.promise`, RK431), an id in this prefix that no line carries being read as spent.
-The rule found this section, which is the rule working.
-
 ### §RK1172 A rule is a record, the way a remedy already is
 
 `src/roadkeep/remedying.py` states the argument outright: keyed centrally,
@@ -213,26 +187,29 @@ pointer scheme are its own. None of that is a table; all of it is the field's ty
 ### §RK1169 The tool declares itself once, or six tables declare it again
 
 `src/roadkeep/serving.py` derives every property's type, description and bounds from the
-argparse action, which was the right call and stopped one file short. What it could not
-derive it tabled: `TOOLS` says which arguments a caller may set, `_BOUNDS` narrows them,
+argparse action, which was right and stopped one file short. What it could not derive it
+tabled: `TOOLS` says which arguments a caller may set, `_BOUNDS` narrows them,
 `WITHHELD` says what a refusal must explain, `_CONDITIONAL` says when a project opens
-one, `_DIVERGENT` says where the served name is not the command's, and `_DESTS` maps an
-option back to its dest. Six facts about a verb, keyed by that verb, written in the file
-that is not its parser.
+one, `_DIVERGENT` says where a verb's bounds are not the common ones, and `_DESTS` maps
+an option back to its dest.
 
-None of them is wrong, and that is the finding. Each is held true by a test asserting
-the domain is total — `test_every_tool_is_a_subcommand_the_cli_accepts` in
-`tests/test_serving.py` is one — so what this costs is not a defect waiting to happen
-but tests written to prove that two places agree about one thing.
+None is wrong, and that is the finding. Each is held true by a test asserting its domain
+is total against the parsers, so the cost is not a defect waiting to happen but tests
+written to prove that two places agree about one thing.
 
-A parser already carries `handler`, `reads_only`, `reads_stdin` and the flags that turn
-a read into a write, all through `set_defaults`. Exposure and bounds are the same kind
-of fact and belong there. Moved, the tables go and so do the tests that held them,
-because a fact stated once cannot disagree with itself.
+A parser already carries `handler`, `reads_only` and `reads_stdin` through
+`set_defaults`. Exposure, bounds and the withheld reason are the same kind of fact and
+belong there; moved, the tables go and so do the tests that held them, because a fact
+stated once cannot disagree with itself.
 
-What is derived stays derived. The config still narrows a conditional field, since L6
-says a project declares that shape and this surface never holds a second opinion about
-it.
+`_DESTS` is the exception and must not be folded in blind. It exists so `serves` can
+answer inside a hook the harness waits on **without** building the parser index, which
+costs 117 ms — a budget, not a convenience. So it stays a table, and what it is owed
+here is a derivation checked against the parsers rather than a second hand-written
+opinion.
+
+What is derived stays derived: the config still narrows a conditional field, since L6
+says the project declares that shape.
 
 ### §RK1170 One result, two registers, one place
 

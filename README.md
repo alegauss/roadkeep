@@ -119,16 +119,16 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 1 | 42 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 147 | 1 |
 | C — Query (consult without reading the file) | 1 | 94 | 1 |
-| D — The gate | 3 | 171 | 1 |
+| D — The gate | 2 | 172 | 1 |
 | E — Adoption | 0 | 86 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 107 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 3 | 0 | 0 |
-| **Total** | 8 | 658 | 7 |
+| **Total** | 7 | 659 | 7 |
 
 **Next ready:**
 
-- 📋 **RK1165** (deps: —) **gaps prints a numbering jump as 499 rows, and the two ids worth reading are behind them** — A contiguous run of never-carried ids is one permanent fact, and the format already spells many ids as a range. → §RK1165
+- ⏳ **RK1168** (deps: —) **Declaring a namespace re-addresses the headings and leaves the file's own citations pointing at the other prose file** — section move carries pointers with an address and [refs] carries none, so 28 citations stayed behind and 21 resolve into the other file rather than dangle. → §RK1168
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -478,6 +478,7 @@
 - ✅ **RK1160** **A capture filed in another repo's backlog can never clear its row, and only a wrong id or a deletion silences it** — a stamp qualified by the repository holding the id is read as filed, because this project cannot open that backlog.
 - ✅ **RK1161** **the delivery stamp asks for the repository the config already declares** — the capture records where it was aimed, so a bare id becomes the delivery it was without the repository being typed again.
 - ✅ **RK1162** **a delivery elsewhere and a local filing are one number in the payload** — the counts separate a stamp this project resolved from one it can only take somebody's word for, and name the repository.
+- ✅ **RK1165** **gaps prints a numbering jump as 499 rows, and the two ids worth reading are behind them** — a contiguous run of never-carried ids is one row with its count, so the ids a reader can act on are visible.
 
 ## Block E — Adoption
 

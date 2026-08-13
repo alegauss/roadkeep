@@ -320,7 +320,9 @@ def test_the_command_names_the_two_answers_apart(tmp_path, capsys):
     propose(config, "RK3", "docs: add RK3")
     assert main(["-C", str(tmp_path), "gaps"]) == EXIT_OK
     out = capsys.readouterr().out
-    assert "RK2    never carried" in out and "unresolvable" not in out
+    # The row and not the padding (RK1165): the column is sized to the widest label now.
+    assert any(line.split()[:3] == ["RK2", "never", "carried"] for line in out.splitlines()), out
+    assert "unresolvable" not in out
     assert "1 gap(s), 0 resolved against history, 1 never carried" in out
 
 
@@ -1955,3 +1957,45 @@ def test_the_command_it_names_is_the_one_that_makes_the_pointer_resolve(tmp_path
     filed = ["-C", str(tmp_path), "add", "--block", "A", "--symptom", "A symptom",
              "--why", "Because of a reason.", "--ref", f"{free}.1"]
     assert main(filed) == EXIT_OK
+
+
+# -- a run of never-carried ids is one row (RK1165) ---------------------------
+
+
+def numbered(config: Config, *ids: str) -> None:
+    """File one line per id, so the numbers between them become gaps of the never-carried kind."""
+    for one in ids:
+        append(
+            config.path("roadmap"),
+            f"- {DESIGNED} **{one}** (deps: —) **A symptom** — a reason. → §{one}\n",
+        )
+    git_commit(config.root, "docs: file the lines these ids carry")
+
+
+def test_a_contiguous_run_of_never_carried_ids_is_one_row(tmp_path, capsys):
+    """Measured on this repository: `gaps` printed 503 lines, 499 of them a numbering jump saying
+    the same sentence with a different number — and the two ids worth reading were behind them.
+
+    **Every** run and not a long one: a threshold would be a number nobody can re-read, and two
+    consecutive ids in one row is the same information rather than less."""
+    config = repo(tmp_path)
+    numbered(config, "RK1", "RK9")
+    assert main(["-C", str(config.root), "gaps"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    # RK2 through RK8 is one row, and the count rides on it.
+    assert "RK2–RK8" in printed and "(7 ids)" in printed
+    assert "RK3" not in printed and "RK7" not in printed
+    assert "7 gap(s)" in printed and "7 never carried" in printed
+
+
+def test_a_gap_history_answers_for_is_never_folded_into_a_run(tmp_path, capsys):
+    """One kind runs together and the other does not: a gap resolved against history carries a
+    commit of its own, and two of them are two answers however adjacent their numbers."""
+    config = repo(tmp_path)
+    numbered(config, "RK1", "RK5")
+    ship(config, "RK1", "feat: ship RK1")
+    assert main(["-C", str(config.root), "gaps"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "RK2–RK4" in printed
+    # And RK1, which the ledger holds, is no gap at all — the run starts after it.
+    assert "RK1–" not in printed

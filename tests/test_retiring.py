@@ -429,7 +429,12 @@ def test_gaps_prints_the_commit_or_says_unresolvable(tmp_path, capsys):
     project(tmp_path)
     assert main(["-C", str(tmp_path), "gaps"]) == EXIT_OK
     out = capsys.readouterr().out
-    assert "RK2    unresolvable" in out
+    # The column is as wide as the widest label since RK1165, a range being one — so what is
+    # asserted is the row and not the run of spaces that used to pad an id to six.
+    assert any(
+        line.split() == ["RK2", "unresolvable", "no", "history", "here", "to", "search"]
+        for line in out.splitlines()
+    ), out
     assert "4 gap(s), 0 resolved against history" in out
 
 

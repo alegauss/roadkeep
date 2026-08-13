@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from dataclasses import dataclass
 from collections.abc import Mapping, Sequence
@@ -40,6 +41,7 @@ from roadkeep.exporting import project, splice_into
 from roadkeep.graph import Graph
 from roadkeep.history import (
     Anchor,
+    Gap,
     HistoryUnavailable,
     anchors,
     cited_origin,
@@ -1261,15 +1263,32 @@ def _gaps(config: Config, args: argparse.Namespace) -> int:
     if not found:
         print("no gaps: every id below the highest is in one of the files")
         return EXIT_OK
-    for gap in found:
+    # One row for a **run** of never-carried ids and not one per id (RK1165). Measured here: 503
+    # lines, of which 499 were a numbering jump saying the same sentence with a different number,
+    # and the two ids worth reading were behind them. The format already spells many ids at once,
+    # and a range is what this is.
+    #
+    # **Every** run and not a long one: a threshold would be a number nobody can re-read, and two
+    # consecutive ids collapsed into one row is the same information rather than less. What
+    # decides the row is contiguity, which is a fact about the ids and not a judgement.
+    rows: list[tuple[str, str]] = []
+    at = 0
+    for gap, run in _runs(found):
+        where = gap.id if run == 1 else f"{gap.id}–{found[at + run - 1].id}"
+        at += run
         if gap.never_carried:
-            print(f"  {gap.id:<6} never carried  the whole history mentions it nowhere")
-            continue
-        if gap.removed_in is None:
-            print(f"  {gap.id:<6} unresolvable  no history here to search")
-            continue
-        commit = gap.removed_in
-        print(f"  {gap.id:<6} {commit.short}  {commit.date[:10]}  {commit.subject}")
+            counted = "" if run == 1 else f"  ({run} ids)"
+            rows.append((where, f"never carried  the whole history mentions it nowhere{counted}"))
+        elif gap.removed_in is None:
+            rows.append((where, "unresolvable  no history here to search"))
+        else:
+            commit = gap.removed_in
+            rows.append((where, f"{commit.short}  {commit.date[:10]}  {commit.subject}"))
+    # Padded to the widest label, which a range is: a column sized for one id puts the sentence
+    # of a collapsed row in a different place from every other one.
+    width = max(len(label) for label, _ in rows)
+    for label, said in rows:
+        print(f"  {label:<{width}} {said}")
     resolved = sum(1 for gap in found if gap.resolved)
     skipped = sum(1 for gap in found if gap.never_carried)
     tail = f", {skipped} never carried" if skipped else ""
@@ -1945,3 +1964,40 @@ def _remaining(config: Config, args: argparse.Namespace) -> int:
     found = count(config.root, args.id, clauses)
     print(json.dumps(found.payload(), indent=2) if args.json else str(found))
     return EXIT_OK
+
+
+def _runs(found: Sequence[Gap]) -> list[tuple[Gap, int]]:
+    """Each gap with how many **contiguous never-carried** ids start there (RK1165).
+
+    Only that kind runs together: a gap resolved against history carries a commit of its own and
+    two of them are two answers, however adjacent their numbers. What a run of never-carried ids
+    carries is one sentence repeated, and this is what lets the row say it once.
+
+    Contiguity is read off the numbers the ids spell, which `next_id` already treats as a
+    sequence — a prefix change ends a run for free, two families being two sequences.
+    """
+    out: list[tuple[Gap, int]] = []
+    index = 0
+    while index < len(found):
+        gap = found[index]
+        run = 1
+        if gap.never_carried:
+            while index + run < len(found) and _follows(found[index + run - 1], found[index + run]):
+                run += 1
+        out.append((gap, run))
+        index += run
+    return out
+
+
+def _follows(earlier: Gap, later: Gap) -> bool:
+    """Whether one never-carried id is the next number after another, in the same family."""
+    if not later.never_carried:
+        return False
+    one, two = _numbered(earlier.id), _numbered(later.id)
+    return one is not None and two is not None and one[0] == two[0] and two[1] == one[1] + 1
+
+
+def _numbered(task_id: str) -> tuple[str, int] | None:
+    """An id as its family and its number, or None where it spells neither."""
+    found = re.match(r"^([A-Za-z]+)(\d+)$", task_id)
+    return (found[1], int(found[2])) if found else None
