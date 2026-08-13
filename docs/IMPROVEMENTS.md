@@ -81,6 +81,63 @@ already written, not authorship.
 
 ## Block D — The gate
 
+### §RK1157 A name that cannot be mistaken for the answer
+
+`Tool.exposes` is the **declaration** and `Tool.exposed(config)` is the **answer**: the
+first is a literal tuple, the second adds whatever `conditional` this project opens
+(RK111). The names differ by one letter, and the one a reader reaches for first is the
+one that is not the answer.
+
+Measured twice in three iterations. RK1147 claimed `adopt` never named the flag that
+changes its estimate — read off the `Estimate` object, while the report had named it
+since RK285 — and was restated once the command was run. RK1156 claimed an outline
+project cannot file over MCP, read off `Tool.exposes`; `exposed(config)` ends in `ref`,
+a served `add` takes it, and the line was retired.
+
+What makes it worth a change rather than a resolution to be careful: `serves()` reads
+`exposes` **deliberately**, and says so — it is composed inside a hook the harness waits
+on, and asking the config would cost the parser build RK261 removed. So both readings
+are legitimate, they coexist in one class, and the cheap one is the one that looks
+total.
+
+The fix is the project's own thesis applied to its own API: make the wrong reading hard
+rather than documented. A declaration named `declares` (or `whitelist`) cannot be
+mistaken for the answer, and `exposed(config)` stays the one thing a caller asks. Eight
+call sites and the `_WITHHELD` closure name it, so the rename is mechanical and the
+closure proves it total.
+
+What needs deciding: whether `serves` keeps its cheap reading under a name that says
+*cheap*.
+
+### §RK1158 The floor is declared and nothing reads it
+
+`pyproject.toml` declares `requires-python = ">=3.11"` and this machine develops on
+3.13, so an API newer than the floor is green here and red only in CI. It happened:
+
+```
+tests/test_backlog.py:910: TypeError: Path.read_text() got an unexpected keyword argument 'newline'
+```
+
+`newline=` on `read_text` is 3.13. The call was written, the suite passed, the task
+shipped, and the gate that found it was the one this repository ships as an action
+(RK17) — one commit later, in a log somebody had to read.
+
+CI catching it is not the same as catching it, and the difference is this project's own
+thesis: a limit reported after the prose exists asks the author to delete work. Here it
+asks them to fix a shipped commit, and the round trip is a push, a wait and a log.
+
+The shape that fits: a closure that scans the package and the suite for a **declared**
+set of calls newer than the floor, with the floor read from `requires-python` rather
+than restated — the same arrangement `test_linting`'s index and `test_surfaces`' staging
+closure already use. Declared and not derived, because deriving *every* API's version
+needs a table of the standard library nobody here maintains; what a row costs is one
+line, and what it buys is that the next one is caught before the commit rather than
+after it.
+
+The alternative worth weighing: a linter with a `target-version`, which knows the whole
+table and costs a dev dependency plus a configuration this repository has so far not
+needed.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
