@@ -87,31 +87,13 @@ loaded when a governed file is in play, free on turns that touch none (RK23). It
 plugin, so it is one text everywhere and **nothing here repeats it**. The package is not
 installed here: read its every command as `PYTHONPATH=src python -m roadkeep.cli <…>`.
 
-## Build and test
+## Building and committing is a skill too
 
-- **Python ≥3.11** (`tomllib` is stdlib there; 3.13.14 here) and **zero runtime deps**: `argparse`
-  + `tomllib`, never `click` + `pydantic` — a tool meant to run as `uvx roadkeep` in someone
-  else's CI pays for every dependency it takes.
-- `uv` is **not** here — `python -m pytest` from repo root (`pythonpath = ["src"]`); deps are `pip
-  install --user pytest pytest-xdist`, `-n auto` is on and `-n0` undoes it. Round-trip (L3) is a
-  **property test over real files**: `docs/`, plus Shio's and Turing's at the revision
-  `tests/corpora.py` pins — absent or unpinnable, they skip (CI).
-
-## Editing and committing
-
-**Never edit source through a shell heredoc.** `python - <<'PY'` turned `\n` in a literal into
-a real newline four times in one session, twice also dropping that script's *other* edit
-silently (RK1091). Write the whole file, or pass old/new as data; `.gitattributes` pins the EOL (RK1132).
-
-**One task → one commit, the instant it is validated.** What `ship` wrote goes in the *same*
-commit as the code, so the docs never describe a state that did not ship; a batch of ≥2 tasks is
-**not** permission to batch. Use `run-commit.cmd -m "<conventional-commits title>"` from the repo
-root, **`-m` always** and ASCII — without it a docs commit's prose about shipped work is misread
-as `feat: implement <feature>`. **It stages everything**, which is why a claim carries a
-**scope**: `claim <id> --path …` says what this commit owns and `claim <id>` reads it back
-against the tree (RK280), and every write **prints the `git add --` line** for what it wrote
-(RK298, RK1130) — run that, then commit. **Every commit bumps the patch version** (RK153):
-`.githooks/pre-commit` does it, never blocks, wired by `git config core.hooksPath .githooks`.
+[.claude/skills/roadkeep-dev/SKILL.md](.claude/skills/roadkeep-dev/SKILL.md) is the authority on
+running the tests here, editing a source file and composing a commit — **≥3.11 and zero runtime
+deps**, no heredoc into source (RK1091), one task per commit, and `run-commit.cmd -m` always.
+Twenty-six lines that a turn touching neither the tests nor a commit was paying for, moved for
+RK23's reason and by its shape (RK1136). Nothing here repeats it.
 
 ## Non-goals are binding, and this file is scaffolding
 

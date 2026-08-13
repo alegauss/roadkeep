@@ -287,3 +287,53 @@ def test_every_read_this_skill_names_is_one_the_tool_surface_serves():
         and any(re.match(rf"^{re.escape(name)}\b", one) for one in spans)
     }
     assert not missing, f"the skill names these reads and nothing serves them: {sorted(missing)}"
+
+
+# -- the second skill, and the sections it took off the every-turn file (RK1136) --
+
+DEV = HERE / ".claude" / "skills" / "roadkeep-dev" / "SKILL.md"
+
+
+def test_the_repository_s_own_build_and_commit_rules_are_trigger_loaded():
+    """RK1136, by RK23's shape and for its reason. `agents.md` is resident on every turn under a
+    `[budgets]` ceiling `lint` enforces (RK30), and twenty-six of its lines were needed only on a
+    turn that runs pytest or writes a commit — paid for by every turn that did neither."""
+    assert DEV.is_file()
+    body = DEV.read_text(encoding="utf-8")
+    resident = AGENTS.read_text(encoding="utf-8")
+    # The pointer, and never the prose: two authorities on one rule is the arrangement RK23
+    # removed for the write path, and this is that decision applied a second time.
+    assert ".claude/skills/roadkeep-dev/SKILL.md" in resident
+    assert "## Build and test" not in resident
+    assert "## Editing and committing" not in resident
+    for moved in ("pytest-xdist", "core.hooksPath", "conventional-commits", "heredoc"):
+        assert moved in body, moved
+
+
+def test_the_moved_rules_kept_the_measurement_that_makes_them_land():
+    # §0's rule about advice: a rule without the red it cost reads as a preference. Each of
+    # these is the number or the id that makes the sentence a finding rather than a habit.
+    body = DEV.read_text(encoding="utf-8")
+    for measured in ("RK1091", "RK1132", "RK280", "RK153", "four times in one session"):
+        assert measured in body, measured
+
+
+def test_the_dev_skill_declares_what_loads_it():
+    # A skill is loaded by its description matching, so the trigger words are the mechanism and
+    # not decoration — and the two acts it covers are what a turn here actually does.
+    head = DEV.read_text(encoding="utf-8").split("---")[1]
+    assert "name: roadkeep-dev" in head
+    for trigger in ("pytest", "commit", "heredoc", "stage"):
+        assert trigger in head, trigger
+
+
+def test_it_is_this_repository_s_own_and_never_shipped_to_an_adopter():
+    """The plugin's skill is installed everywhere and states no value this project configures;
+    this one is the opposite — it names `run-commit.cmd`, a path on one machine — so it must
+    stay out of every surface an adopting project receives."""
+    shipped = sorted(HERE.glob("skills/*/SKILL.md"))
+    assert DEV not in shipped
+    from roadkeep.installing import CARRIED, PROJECT_SKILL
+
+    assert "roadkeep-dev" not in PROJECT_SKILL
+    assert not any("roadkeep-dev" in part for part in CARRIED)
