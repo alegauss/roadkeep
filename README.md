@@ -118,16 +118,16 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 1 | 41 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 147 | 1 |
-| C — Query (consult without reading the file) | 1 | 93 | 1 |
+| C — Query (consult without reading the file) | 0 | 94 | 1 |
 | D — The gate | 1 | 171 | 1 |
 | E — Adoption | 0 | 86 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 107 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 3 | 656 | 7 |
+| **Total** | 2 | 657 | 7 |
 
 **Next ready:**
 
-- 📋 **RK1163** (deps: —) **A rationale written before its dep shipped reads as current, and brief is where that is decided** — brief prints the section verbatim beside deps it reports as shipped, so a design whose trade-off the dep already settled is followed rather than re-decided. → §RK1163
+- 📋 **RK1165** (deps: —) **gaps prints a numbering jump as 499 rows, and the two ids worth reading are behind them** — A contiguous run of never-carried ids is one permanent fact, and the format already spells many ids as a range. → §RK1165
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

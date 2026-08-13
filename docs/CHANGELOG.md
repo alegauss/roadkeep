@@ -301,6 +301,7 @@
 - ✅ **RK1124** **sharing resolves the same revision once per carrier, so a read pays a subprocess for an answer it already has** — The revision is resolved once per command and passed down, and a tree with nothing to compare asks git nothing: 123.8ms to 90.8ms here.
 - ✅ **RK1133** **amend --json carries which fields changed and never what they were, where status and restate both answer** — The amend payload carries what each changed field said before, deps spelled the way the line spells them and nothing for a field that did not move.
 - ✅ **RK1143** **stats keeps printing the capture row after every capture is filed, so a permanent line says nothing is owed** — The capture row prints where one is unfiled and carries the total there, and the payload keeps the state a report stops saying.
+- ✅ **RK1163** **A rationale written before its dep shipped reads as current, and brief is where that is decided** — a dep whose ship is a descendant of the design's last revision is named beside it, as an ordering and never a claim.
 
 ## Block D — The gate
 

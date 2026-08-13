@@ -681,8 +681,18 @@ def _brief(config: Config, args: argparse.Namespace) -> int:
             f"  budget   why {why.left} of {why.allowed} left, {_aim(why)}, "
             f"{gathered.budget.prose} for prose"
         )
+    settled = {one.dep: one for one in gathered.settled}
     for resolution in gathered.deps:
         print(f"  dep      {resolution.dep.id}  {resolution.status}  {resolution.detail}")
+        landed = settled.get(resolution.dep.id)
+        if landed is not None:
+            # The ordering and never a claim about the prose (RK1163): the design below was last
+            # written before this dep shipped, so a trade-off it argues may already be decided —
+            # and what decided it is in that commit, which is why the commit is what this names.
+            print(
+                f"           shipped {landed.shipped.date[:10]} in {landed.shipped.short}, "
+                f"after this design was last written ({landed.revised.date[:10]})"
+            )
     for chain in gathered.chains:
         print(f"  chain    {chain.render(task.id)}  — {chain.detail}")
     if not view.shipped:

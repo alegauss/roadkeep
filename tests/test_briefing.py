@@ -16,6 +16,8 @@ from pathlib import Path
 
 import pytest
 
+from conftest import git_commit, git_init
+
 import corpora
 from roadkeep.backlog import Readiness, Stage
 from roadkeep.briefing import CHAINS, NON_GOALS, NothingToBrief, brief, non_goals
@@ -453,3 +455,59 @@ def test_the_reason_is_carried_and_never_reconstructed_from_the_message():
     nothing = NothingToBrief("nothing is open in Block A")
     assert nothing.reason == "nothing is open in Block A"
     assert nothing.reason not in ("", str(nothing))
+
+
+# -- a dep that shipped after the design was written (RK1163) -----------------
+
+
+def committed(tmp_path: Path) -> Config:
+    """This file's project, in a repository — RK4 depends on RK1, and §RK4 is its design."""
+    config = project(tmp_path, improvements=RATIONALE + "\n### §RK4 A design with a trade-off\n\nBoth sides argued here.\n")
+    git_init(tmp_path)
+    git_commit(tmp_path, "docs: file the backlog and its designs")
+    return config
+
+
+def test_a_dep_that_shipped_after_the_design_was_written_is_said_beside_it(tmp_path, capsys):
+    """Measured on a real run: a task asked whether a check should widen and its rationale argued
+    both sides; the dep then shipped a unique index, deleting one side of the trade-off. The
+    section still read as an open question and `brief` handed it over verbatim beside
+    `deps_resolved: shipped` — both facts on screen, nothing joining them.
+
+    An **ordering** and never a claim about the prose (L4): what changed is in the dep's commit,
+    so that commit is what this names and the reader decides.
+    """
+    committed(tmp_path)
+    # RK1 ships *after* the design above was written, which is the whole fact this reports.
+    assert main(["-C", str(tmp_path), "ship", "RK1", "--why", "It works now."]) == EXIT_OK
+    capsys.readouterr()
+    git_commit(tmp_path, "feat: ship RK1, which settles half of RK4's question")
+
+    assert main(["-C", str(tmp_path), "brief", "RK4"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "after this design was last written" in printed
+
+    assert main(["-C", str(tmp_path), "brief", "RK4", "--json"]) == EXIT_OK
+    (dep,) = json.loads(capsys.readouterr().out)["deps_resolved"]
+    assert dep["dep"] == "RK1"
+    assert dep["settled_since"]["shipped"]["subject"].startswith("feat: ship RK1")
+    assert dep["settled_since"]["revised"]["subject"].startswith("docs: file the backlog")
+
+
+def test_a_design_written_after_its_dep_shipped_says_nothing(tmp_path, capsys):
+    """The control, and the reason this is a note rather than a nag: a design revised *after* the
+    ship has already read what changed, and a line there would be noise on every brief."""
+    committed(tmp_path)
+    assert main(["-C", str(tmp_path), "ship", "RK1", "--why", "It works now."]) == EXIT_OK
+    capsys.readouterr()
+    git_commit(tmp_path, "feat: ship RK1 first")
+
+    # The design is rewritten afterwards, so it has already read what the ship changed.
+    assert main(
+        ["-C", str(tmp_path), "section", "amend", "RK4", "--body", "Rewritten after the ship."]
+    ) == EXIT_OK
+    capsys.readouterr()
+    git_commit(tmp_path, "docs: rewrite RK4's design afterwards")
+
+    assert main(["-C", str(tmp_path), "brief", "RK4"]) == EXIT_OK
+    assert "after this design was last written" not in capsys.readouterr().out

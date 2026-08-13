@@ -282,6 +282,54 @@ def resolves(config: Config, rev: str) -> bool:
     return True
 
 
+def revisions_of(
+    config: Config, path: Path, first: int, last: int
+) -> tuple[Commit, ...]:
+    """Every commit that touched these lines of this file, oldest first (RK1163).
+
+    `-L` and not `-G`, which is the difference between a *span* and a mention: a section's
+    heading appears in the diff of the commit that wrote it and of nothing else, so a body-only
+    `section amend` — the ordinary way a design is revised — is invisible to a needle. That is
+    RK1126's finding one module over, and it is the whole reason this reads a range.
+
+    The range is the section's own span, resolved through history by git rather than by this
+    reader: `-L` follows the lines as the file moves around them, which no line number stored
+    here could. `-s` suppresses the diffs, since what is wanted is the commits.
+    """
+    where = str(path if not path.is_absolute() else path.relative_to(config.root))
+    return _parse(
+        _run(
+            config.root,
+            "log",
+            "--reverse",
+            "-s",
+            f"--format={_FORMAT}",
+            f"-L{first},{last}:{where}",
+        )
+    )
+
+
+def precedes(config: Config, earlier: str, later: str) -> bool:
+    """Whether one commit is an ancestor of another — the ordering dates cannot give (RK1163).
+
+    Two commits made in the same second carry the same ISO timestamp, so a date compare answers
+    *no* about a design that plainly predates a ship; and a rebase can order dates against the
+    history. What git already knows is the ancestry, which is the question actually being asked:
+    was this written before that landed.
+
+    A commit is its own ancestor, so an identical pair answers True and the caller excludes it —
+    a design revised *in* the shipping commit has read what changed, which is the one case this
+    must not report.
+    """
+    if not earlier or not later:
+        return False
+    try:
+        _run(config.root, "merge-base", "--is-ancestor", earlier, later)
+    except HistoryUnavailable:
+        return False
+    return True
+
+
 def touched_since(config: Config, rev: str, role: str) -> Touched:
     """The diff of one governed file from ``rev`` to the working tree.
 

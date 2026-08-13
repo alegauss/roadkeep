@@ -30,8 +30,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1163** (deps: —) **A rationale written before its dep shipped reads as current, and brief is where that is decided** — brief prints the section verbatim beside deps it reports as shipped, so a design whose trade-off the dep already settled is followed rather than re-decided. → §RK1163
-
 ## Block D — The gate
 
 - 📋 **RK1165** (deps: —) **gaps prints a numbering jump as 499 rows, and the two ids worth reading are behind them** — A contiguous run of never-carried ids is one permanent fact, and the format already spells many ids as a range. → §RK1165

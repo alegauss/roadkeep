@@ -36,11 +36,12 @@ from __future__ import annotations
 import textwrap
 from dataclasses import dataclass
 
-from roadkeep.backlog import Backlog, Readiness, Resolution, Standing
+from roadkeep.backlog import Backlog, DepStatus, Readiness, Resolution, Standing
 from roadkeep.budgeting import Budget, budget_of
 from roadkeep.config import Config, Scope
 from roadkeep.kernel.document import Document
 from roadkeep.graph import Chain, Graph, Leverage
+from roadkeep.history import Commit
 from roadkeep import scoping
 from roadkeep.claiming import Held
 from roadkeep.locking import exclusive
@@ -105,6 +106,32 @@ class NonGoals:
 
 
 @dataclass(frozen=True, slots=True)
+class Settled:
+    """A dep that shipped **after** this design was last revised (RK1163).
+
+    Measured on a real run. A task asked whether a check should widen, and its rationale argued
+    both sides — widening risks a report full of findings about work somebody is still writing,
+    which is the noise that gets a check switched off. Its dep then shipped a unique index, and
+    that deleted one side of the trade-off: what was left to report could no longer be anybody's
+    unfinished draft. The section still read as an open question, and `brief` handed it over
+    verbatim beside `deps_resolved: shipped`. Both facts were on screen and nothing joined them.
+
+    **A date and not a judgement.** What changed is in the dep's own commit, and saying which
+    part of a design it settles would be this tool writing prose about a trade-off (L4). So the
+    fact is the ordering — the section predates the ship — and the reader decides.
+
+    Empty wherever git cannot answer, which is a checkout with no history and a project whose
+    prose file is untracked: a note that cannot be dated is a guess, and this is a query.
+    """
+
+    dep: str
+    #: The commit that shipped it, so the reader can go straight to what changed.
+    shipped: Commit
+    #: The last commit that touched this design, which is what "predates" is measured against.
+    revised: Commit
+
+
+@dataclass(frozen=True, slots=True)
 class Brief:
     """One task, and every derived fact needed to start it."""
 
@@ -124,6 +151,9 @@ class Brief:
     #: The line taken, where the caller asked for it (RK149). Absent otherwise, so a brief
     #: that claimed nothing cannot be read as one that did.
     claim: Claim | None = None
+    #: Deps that shipped after this design was last revised (RK1163) — the question a
+    #: dependency may have answered, said as an ordering and never as a claim about the prose.
+    settled: tuple[Settled, ...] = ()
     #: What this line has left for prose (RK190). Here because a brief is the call that
     #: starts a task, and the next write on the line it handed over is an `amend` — so the
     #: number that would otherwise arrive as a refusal is already on the desk. None for a
@@ -217,6 +247,7 @@ def _gather(
         non_goals=non_goals(config, backlog.roadmap),
         choice=chosen,
         claim=claim,
+        settled=_settled(config, view, backlog.resolve(task) if entry is not None else ()),
         budget=None if view.shipped else budget_of(config, task, open_line=True),
     )
 
@@ -243,3 +274,68 @@ def non_goals(config: Config, document: Document) -> NonGoals:
         ),
         elided=max(0, len(every) - NON_GOALS),
     )
+
+
+def _settled(config: Config, view: View, deps: tuple[Resolution, ...]) -> tuple[Settled, ...]:
+    """Which shipped deps landed after this design was last written (RK1163).
+
+    Only the **shipped** ones, because an open dep has settled nothing and its date would be a
+    question about work in progress. Only where the task has a section: there is no design to
+    predate otherwise, and `brief` on a line whose prose is unwritten already says so.
+
+    Two git reads per shipped dep at most, on a command a session runs once to start a task —
+    and none at all for the common case of a task whose deps are open or absent. A failure to
+    read history is silence, never an error: `git_available` is the guard the rest of this
+    package uses and a note nobody can date is the guess L4 keeps out.
+    """
+    if view.section is None or not deps:
+        return ()
+        # Deferred for RK260's reason: `history` runs git, and no successful write path reaches it.
+    from roadkeep.history import (  # noqa: PLC0415
+        HistoryUnavailable,
+        git_available,
+        origin_of,
+        precedes,
+        revisions_of,
+    )
+
+    if not git_available():
+        return ()
+    if view.section_role is None or not config.has(view.section_role):
+        return ()
+    prose = config.path(view.section_role)
+    if not prose.is_file():
+        return ()
+    # The section's **span** and never a needle for its heading: a heading appears in the diff of
+    # the commit that wrote it and of nothing else, so a body-only `section amend` — the ordinary
+    # way a design is revised — would be invisible and every design would read as unrevised since
+    # the day it was filed. RK1126 measured that asymmetry one verb over.
+    try:
+        written = revisions_of(config, prose, view.section.first, view.section.last)
+    except (HistoryUnavailable, OSError):
+        # A project git cannot answer for — no repository, a checkout too shallow — says
+        # nothing rather than raising: this is a note on a query, and `brief` is the command a
+        # session starts a task with.
+        return ()
+    if not written:
+        return ()
+    revised = written[-1]
+    out: list[Settled] = []
+    for one in deps:
+        if one.status is not DepStatus.SHIPPED:
+            continue
+        try:
+            shipped = origin_of(config, one.dep.id).shipped_in
+        except (HistoryUnavailable, OSError):
+            continue
+        # Ancestry and not dates (RK1163): two commits in one second carry the same timestamp,
+        # and a rebase can order dates against the history. `precedes` answers the question the
+        # note is about — was this design written before that ship landed — and a design revised
+        # *in* the shipping commit is excluded, having read what changed.
+        if (
+            shipped is not None
+            and revised.sha != shipped.sha
+            and precedes(config, revised.sha, shipped.sha)
+        ):
+            out.append(Settled(dep=one.dep.id, shipped=shipped, revised=revised))
+    return tuple(out)

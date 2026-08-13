@@ -793,6 +793,18 @@ def _brief_json(gathered: Brief, config: Config) -> dict[str, object]:
                 "kind": str(r.kind),
                 "status": str(r.status),
                 "detail": r.detail,
+                # Where this dep shipped after the design was last written (RK1163), the two
+                # commits that say so — beside the resolution rather than in a list of their
+                # own, because it is a fact *about* this dep and a consumer reading the row
+                # would otherwise join two arrays to find it.
+                **{
+                    "settled_since": {
+                        "shipped": _commit_json(one.shipped),
+                        "revised": _commit_json(one.revised),
+                    }
+                    for one in gathered.settled
+                    if one.dep == r.dep.id
+                },
             }
             for r in gathered.deps
         ],
@@ -1768,3 +1780,13 @@ def _prose_file(config: Config, prose: Document | None) -> str:
         return config.relative(prose.path)
     declared = tuple(role for role in PROSE_ROLES if config.has(role))
     return config.relative(config.path(declared[0])) if declared else ""
+
+
+def _commit_json(commit: Commit) -> dict[str, str]:
+    """One commit as the fields every payload here already publishes (RK1163)."""
+    return {
+        "sha": commit.sha,
+        "short": commit.short,
+        "date": commit.date,
+        "subject": commit.subject,
+    }
